@@ -21,14 +21,13 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 
 <!-- Shipped and confirmed valuable. -->
 
-(None yet — ship to validate)
+- [x] Sharpen the 5-phase methodology — tighten the process, output format, and rigor where the original is loose — *Validated in Phase 1: Sharpen the Methodology and Harden the Output Format (5/5 success criteria verified)*
 
 ### Active
 
 <!-- Current scope. Building toward these. v1 = enhanced single skill, pure Markdown. -->
 
 - [ ] Expand worked examples to cover software/systems, product/business, personal/general, and science/engineering domains
-- [ ] Sharpen the 5-phase methodology — tighten the process, output format, and rigor where the original is loose
 - [ ] Add a Markdown validation rubric — a scoring/self-check the model applies to verify an analysis followed first-principles rigor
 - [ ] Build out the companion thinking tools (5-Whys, pre-mortem, trade-off analysis) as fully usable reference components inside the single skill
 - [ ] Keep the skill installable the same way as the original (copy or symlink into a Claude Code skills directory)
@@ -86,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-16 after initialization*
+*Last updated: 2026-05-16 after Phase 1 completion*
