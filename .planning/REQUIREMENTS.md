@@ -17,12 +17,12 @@ Requirements for the enhanced single skill (pure Markdown). Each maps to roadmap
 
 ### Methodology
 
-- [ ] **METH-01**: Each of the 5 phases has explicit entry and exit criteria stating when the phase is done
-- [ ] **METH-02**: Each phase names the concrete artifact it must produce before the next phase begins
-- [ ] **METH-03**: The Challenge-Assumptions phase includes an assumption-classification scheme (physical law / current constraint / convention / untested belief)
-- [ ] **METH-04**: The standardized output format is a strict template with required sections, including the assumptions table
-- [ ] **METH-05**: The output format requires an explicit conclusion-to-ground-truth traceability map
-- [ ] **METH-06**: Methodology instructions state the rationale behind each rule rather than bare imperatives
+- [x] **METH-01**: Each of the 5 phases has explicit entry and exit criteria stating when the phase is done
+- [x] **METH-02**: Each phase names the concrete artifact it must produce before the next phase begins
+- [x] **METH-03**: The Challenge-Assumptions phase includes an assumption-classification scheme (physical law / current constraint / convention / untested belief)
+- [x] **METH-04**: The standardized output format is a strict template with required sections, including the assumptions table
+- [x] **METH-05**: The output format requires an explicit conclusion-to-ground-truth traceability map
+- [x] **METH-06**: Methodology instructions state the rationale behind each rule rather than bare imperatives
 
 ### Validation Rubric
 
@@ -86,12 +86,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-03 | Phase 2 | Pending |
 | FOUND-04 | Phase 6 | Pending |
 | FOUND-05 | Phase 6 | Pending |
-| METH-01 | Phase 1 | Pending |
-| METH-02 | Phase 1 | Pending |
-| METH-03 | Phase 1 | Pending |
-| METH-04 | Phase 1 | Pending |
-| METH-05 | Phase 1 | Pending |
-| METH-06 | Phase 1 | Pending |
+| METH-01 | Phase 1 | Complete |
+| METH-02 | Phase 1 | Complete |
+| METH-03 | Phase 1 | Complete |
+| METH-04 | Phase 1 | Complete |
+| METH-05 | Phase 1 | Complete |
+| METH-06 | Phase 1 | Complete |
 | VALID-01 | Phase 3 | Pending |
 | VALID-02 | Phase 3 | Pending |
 | VALID-03 | Phase 3 | Pending |
