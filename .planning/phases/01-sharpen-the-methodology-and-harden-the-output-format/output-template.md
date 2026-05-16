@@ -82,3 +82,64 @@ A ground truth must pass this test: it is a fact that is true regardless of what
 The `?` suffix signals that this ground truth is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a confidence caveat in the Derivation Chains section. The analysis may proceed with unverified inputs — but the uncertainty must be visible.
 
 IDs are stable once assigned. GT-3 remains GT-3 throughout the document even if GT-3 is later verified or discarded.
+
+---
+
+## 4. Derivation Chains
+
+Show how the ground truths combine into conclusions. Every conclusion offered in this analysis must have exactly one chain here — no more (no redundant restatement), no fewer (no orphaned conclusions).
+
+**Chain format:**
+
+```
+GT-N + GT-M → [intermediate claim] → [conclusion]
+```
+
+Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
+
+### Conclusion: [Conclusion text]
+
+GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])
+→ [intermediate claim — a new inference statable from combining GT-N and GT-M but from neither alone]
+→ [conclusion — the claim this chain establishes]
+
+**Confidence:** [HIGH / MEDIUM / LOW]
+[If MEDIUM or LOW: state which GT-N? input caused the downgrade and what would need to be verified to raise confidence.]
+
+**Unverified input rule (D-07):** A chain that includes any `GT-N?` input must end with a MEDIUM or LOW confidence line. The line must name the unverified input and state what verification would raise confidence to HIGH. A HIGH confidence claim cannot rest on an unverified ground truth.
+
+---
+
+## 5. Abandoned Reasoning
+
+Record every reasoning path that was explored and discarded. This section is required in every analysis. Dead ends are not failures — they are part of the reasoning record and save future analysts from re-exploring paths that have already been ruled out.
+
+### Dead End: [Name of discarded path]
+
+**What was tried:** [Brief description of the reasoning path that was pursued.]
+
+**Why abandoned:** [The specific failure — assumption false, contradicts a ground truth, assumption classification too weak to anchor the chain, conclusion circular, intermediate could not be established, etc. Be precise: "we ran out of time" is not a valid abandonment reason.]
+
+**What it ruled out:** [What this dead end saves the reader from re-exploring. A well-documented dead end is as valuable as a live conclusion.]
+
+If no reasoning was abandoned, write:
+
+`Nothing material here — all reasoning paths pursued led to the conclusion above. [Optional: describe the problem's constraint space that made alternative paths infeasible.]`
+
+The escape valve still satisfies D-03. Do not omit the heading.
+
+---
+
+## 6. Conclusion
+
+Summarize the analysis result. The Conclusion section synthesizes what the Derivation Chains established — it does not introduce new claims or reasoning.
+
+**Recommended approach:** [Description of the recommended course of action, decision, or design choice.]
+
+**Key insight:** [The non-obvious finding the first-principles analysis revealed — what reasoning by analogy or convention would have missed.]
+
+**Trade-offs acknowledged:** [What is being accepted, deprioritized, or deferred as a result of this recommendation. No recommendation is free of trade-offs.]
+
+**Confidence:** [HIGH / MEDIUM / LOW]
+
+If Confidence is MEDIUM or LOW: name the specific `GT-N?` inputs from the Derivation Chains that caused the downgrade and state what verification would raise confidence to HIGH. A MEDIUM or LOW conclusion without this explanation does not satisfy D-07.
