@@ -10,7 +10,7 @@ Requirements for the enhanced single skill (pure Markdown). Each maps to roadmap
 ### Skill Foundation
 
 - [ ] **FOUND-01**: `SKILL.md` has valid YAML frontmatter (`name`, `description`, `metadata.version`) conforming to the Agent Skills schema
-- [ ] **FOUND-02**: The `description` field triggers reliably — states what the skill does and when to use it, with explicit English and Chinese trigger phrases, within the budget limit
+- [ ] **FOUND-02**: The `description` field triggers reliably — states what the skill does and when to use it, with explicit English trigger phrases, within the budget limit
 - [ ] **FOUND-03**: The `SKILL.md` body stays under 500 lines, with depth content pushed to `references/` and `examples/`
 - [ ] **FOUND-04**: Every `references/` and `examples/` file links one level deep directly from `SKILL.md`
 - [ ] **FOUND-05**: The skill installs by copy or symlink into a Claude Code skills directory with no build step
@@ -116,4 +116,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-05-16*
-*Last updated: 2026-05-16 after roadmap creation*
+*Last updated: 2026-05-16 — FOUND-02 amended during Phase 2 discussion (Chinese trigger phrases dropped; English-only)*

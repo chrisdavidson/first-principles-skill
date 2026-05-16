@@ -54,7 +54,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
   1. `SKILL.md` has valid YAML frontmatter (`name`, `description`, `metadata.version`) conforming to the Agent Skills schema, and the skill loads without error.
-  2. The `description` field states what the skill does and when to use it, includes explicit English and Chinese trigger phrases, and fits within the character budget without truncation.
+  2. The `description` field states what the skill does and when to use it, includes explicit English trigger phrases, and fits within the character budget without truncation.
   3. The `SKILL.md` body is under 500 lines, with the methodology procedure resident and depth content deferred to placeholder pointers for `references/` and `examples/`.
   4. `SKILL.md` instructs Claude to apply the validation rubric as a validator-fix-repeat feedback loop before presenting conclusions.
 
