@@ -76,3 +76,17 @@ The accumulated artifacts together form the standardized output document, whose 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
 **Exit criterion:** BOTH conditions must hold: (1) the problem's core question as stated in the Essence Statement is answered, AND (2) every conclusion offered has a complete derivation chain back to named ground truths. Partial conclusions or incomplete chains do not satisfy this criterion and do not exit this phase.
+
+---
+
+### Phase 5: Validate
+
+**Why this phase exists:** Completing a derivation chain does not guarantee the chain is sound. A chain built on an unverified assumption that is load-bearing, or one whose weakest link is never examined, produces a conclusion that looks rigorous but collapses under scrutiny. Validation is the adversarial pass — it exists to find the flaws that the forward-direction reasoning in Phase 4 was not looking for.
+
+**Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
+
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply a validation rubric as a systematic check — a separate rubric document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
+
+**Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
+
+**Exit criterion:** Every conclusion traces to a named ground truth via a complete derivation chain, AND every weak link is either resolved (the assumption has been verified or reclassified) or explicitly flagged with a confidence caveat that a reader can evaluate. A skeptic inspecting the signed-off analysis can verify both conditions hold without asking the analyst for clarification.
