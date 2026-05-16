@@ -13,7 +13,7 @@ This milestone delivers the enhanced v1 single skill — a pure-Markdown Claude 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Sharpen the Methodology and Harden the Output Format** - Tighten the 5-phase process with entry/exit criteria, per-phase artifacts, assumption classification, and a strict traceable output template
+- [x] **Phase 1: Sharpen the Methodology and Harden the Output Format** - Tighten the 5-phase process with entry/exit criteria, per-phase artifacts, assumption classification, and a strict traceable output template (completed 2026-05-16)
 - [ ] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape
 - [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
 - [ ] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components
@@ -44,7 +44,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 01-03-PLAN.md — Author test-run-draft.md: a dogfooding run of the methodology on a genuinely unresolved design question, proving end-to-end traceability
+- [x] 01-03-PLAN.md — Author test-run-draft.md: a dogfooding run of the methodology on a genuinely unresolved design question, proving end-to-end traceability
 
 ### Phase 2: SKILL.md Skeleton and Frontmatter
 
@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sharpen the Methodology and Harden the Output Format | 2/3 | In Progress|  |
+| 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
 | 2. SKILL.md Skeleton and Frontmatter | 0/TBD | Not started | - |
 | 3. Validation Rubric | 0/TBD | Not started | - |
 | 4. Companion Tool References | 0/TBD | Not started | - |
