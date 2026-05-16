@@ -31,7 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The standardized output template is a strict-shape document with required sections including an assumptions table, and it requires an explicit conclusion-to-ground-truth traceability map.
   4. A test run of the methodology on a sample problem produces an analysis where every conclusion visibly traces back to a named ground truth.
   5. Each phase instruction states the rationale for its rule rather than a bare imperative, and at least one phase (Reason Upward) is deliberately left high-freedom.
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — Author methodology.md: the sharpened 5-phase procedure with entry/exit criteria, named artifacts, the 4-type assumption scheme, and rationale statements
+- [ ] 01-02-PLAN.md — Author output-template.md: the strict-shape six-section output template with the classified assumptions table and per-conclusion derivation chains
+- [ ] 01-03-PLAN.md — Author test-run-draft.md: a dogfooding run of the methodology on a genuinely unresolved design question, proving end-to-end traceability
 
 ### Phase 2: SKILL.md Skeleton and Frontmatter
 **Goal**: A loadable, discoverable `SKILL.md` exists — valid frontmatter that triggers reliably, the sharpened methodology resident as standing instructions, a lean body under 500 lines, and a navigation map whose named slots later phases fill.
@@ -97,7 +101,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sharpen the Methodology and Harden the Output Format | 0/TBD | Not started | - |
+| 1. Sharpen the Methodology and Harden the Output Format | 0/3 | Not started | - |
 | 2. SKILL.md Skeleton and Frontmatter | 0/TBD | Not started | - |
 | 3. Validation Rubric | 0/TBD | Not started | - |
 | 4. Companion Tool References | 0/TBD | Not started | - |
