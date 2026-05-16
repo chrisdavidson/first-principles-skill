@@ -58,7 +58,15 @@ Plans:
   3. The `SKILL.md` body is under 500 lines, with the methodology procedure resident and depth content deferred to placeholder pointers for `references/` and `examples/`.
   4. `SKILL.md` instructs Claude to apply the validation rubric as a validator-fix-repeat feedback loop before presenting conclusions.
 
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Build the Layer-3 scaffold: full output-template.md plus eight references/ and examples/ stub files so every nav-map link resolves
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — Author SKILL.md: frontmatter, the resident 5-phase methodology, the condensed output skeleton, the VALID-05 validator-fix-repeat instruction, and the navigation map
 **UI hint**: yes
 
 ### Phase 3: Validation Rubric
@@ -126,7 +134,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
-| 2. SKILL.md Skeleton and Frontmatter | 0/TBD | Not started | - |
+| 2. SKILL.md Skeleton and Frontmatter | 0/2 | Not started | - |
 | 3. Validation Rubric | 0/TBD | Not started | - |
 | 4. Companion Tool References | 0/TBD | Not started | - |
 | 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
