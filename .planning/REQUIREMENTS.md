@@ -81,39 +81,39 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| FOUND-05 | TBD | Pending |
-| METH-01 | TBD | Pending |
-| METH-02 | TBD | Pending |
-| METH-03 | TBD | Pending |
-| METH-04 | TBD | Pending |
-| METH-05 | TBD | Pending |
-| METH-06 | TBD | Pending |
-| VALID-01 | TBD | Pending |
-| VALID-02 | TBD | Pending |
-| VALID-03 | TBD | Pending |
-| VALID-04 | TBD | Pending |
-| VALID-05 | TBD | Pending |
-| TOOL-01 | TBD | Pending |
-| TOOL-02 | TBD | Pending |
-| TOOL-03 | TBD | Pending |
-| TOOL-04 | TBD | Pending |
-| EX-01 | TBD | Pending |
-| EX-02 | TBD | Pending |
-| EX-03 | TBD | Pending |
-| EX-04 | TBD | Pending |
-| PKG-01 | TBD | Pending |
-| PKG-02 | TBD | Pending |
-| PKG-03 | TBD | Pending |
+| FOUND-01 | Phase 2 | Pending |
+| FOUND-02 | Phase 2 | Pending |
+| FOUND-03 | Phase 2 | Pending |
+| FOUND-04 | Phase 6 | Pending |
+| FOUND-05 | Phase 6 | Pending |
+| METH-01 | Phase 1 | Pending |
+| METH-02 | Phase 1 | Pending |
+| METH-03 | Phase 1 | Pending |
+| METH-04 | Phase 1 | Pending |
+| METH-05 | Phase 1 | Pending |
+| METH-06 | Phase 1 | Pending |
+| VALID-01 | Phase 3 | Pending |
+| VALID-02 | Phase 3 | Pending |
+| VALID-03 | Phase 3 | Pending |
+| VALID-04 | Phase 3 | Pending |
+| VALID-05 | Phase 2 | Pending |
+| TOOL-01 | Phase 4 | Pending |
+| TOOL-02 | Phase 4 | Pending |
+| TOOL-03 | Phase 4 | Pending |
+| TOOL-04 | Phase 6 | Pending |
+| EX-01 | Phase 5 | Pending |
+| EX-02 | Phase 5 | Pending |
+| EX-03 | Phase 5 | Pending |
+| EX-04 | Phase 5 | Pending |
+| PKG-01 | Phase 6 | Pending |
+| PKG-02 | Phase 6 | Pending |
+| PKG-03 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-16*
-*Last updated: 2026-05-16 after initial definition*
+*Last updated: 2026-05-16 after roadmap creation*
