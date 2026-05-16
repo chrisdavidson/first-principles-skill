@@ -39,8 +39,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 **Wave 1**
 
-- [ ] 01-01-PLAN.md — Author methodology.md: the sharpened 5-phase procedure with entry/exit criteria, named artifacts, the 4-type assumption scheme, and rationale statements
-- [ ] 01-02-PLAN.md — Author output-template.md: the strict-shape six-section output template with the classified assumptions table and per-conclusion derivation chains
+- [x] 01-01-PLAN.md — Author methodology.md: the sharpened 5-phase procedure with entry/exit criteria, named artifacts, the 4-type assumption scheme, and rationale statements
+- [x] 01-02-PLAN.md — Author output-template.md: the strict-shape six-section output template with the classified assumptions table and per-conclusion derivation chains
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -125,7 +125,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Sharpen the Methodology and Harden the Output Format | 0/3 | Not started | - |
+| 1. Sharpen the Methodology and Harden the Output Format | 2/3 | In Progress|  |
 | 2. SKILL.md Skeleton and Frontmatter | 0/TBD | Not started | - |
 | 3. Validation Rubric | 0/TBD | Not started | - |
 | 4. Companion Tool References | 0/TBD | Not started | - |
