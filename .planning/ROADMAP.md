@@ -85,7 +85,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Author validation-rubric.md: the preamble, gate + hand-wavy-cap scoring model, verdict-block format, and 6 analytic criteria each with a shared 4-level observable-descriptor scale
+- [x] 03-01-PLAN.md — Author validation-rubric.md: the preamble, gate + hand-wavy-cap scoring model, verdict-block format, and 6 analytic criteria each with a shared 4-level observable-descriptor scale
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [ ] 03-02-PLAN.md — Author 03-weak-sample.md: a deliberately-weak analysis and its rubric scoring run, demonstrating an overall fail with per-criterion evidence-quoting verdicts
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
-| 3. Validation Rubric | 0/2 | Not started | - |
+| 3. Validation Rubric | 1/2 | In Progress|  |
 | 4. Companion Tool References | 0/TBD | Not started | - |
 | 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
