@@ -85,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-16 after Phase 1 completion*
+*Last updated: 2026-05-17 after Phase 2 completion — `SKILL.md` skeleton, frontmatter, and navigation map shipped*
