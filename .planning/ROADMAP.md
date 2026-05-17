@@ -14,7 +14,7 @@ This milestone delivers the enhanced v1 single skill — a pure-Markdown Claude 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Sharpen the Methodology and Harden the Output Format** - Tighten the 5-phase process with entry/exit criteria, per-phase artifacts, assumption classification, and a strict traceable output template (completed 2026-05-16)
-- [ ] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape
+- [x] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape (completed 2026-05-17)
 - [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
 - [ ] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components
 - [ ] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric
@@ -66,7 +66,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Author SKILL.md: frontmatter, the resident 5-phase methodology, the condensed output skeleton, the VALID-05 validator-fix-repeat instruction, and the navigation map
+- [x] 02-02-PLAN.md — Author SKILL.md: frontmatter, the resident 5-phase methodology, the condensed output skeleton, the VALID-05 validator-fix-repeat instruction, and the navigation map
 **UI hint**: yes
 
 ### Phase 3: Validation Rubric
@@ -134,7 +134,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
-| 2. SKILL.md Skeleton and Frontmatter | 1/2 | In Progress|  |
+| 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
 | 3. Validation Rubric | 0/TBD | Not started | - |
 | 4. Companion Tool References | 0/TBD | Not started | - |
 | 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
