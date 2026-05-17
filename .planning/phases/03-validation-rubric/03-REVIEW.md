@@ -1,0 +1,203 @@
+---
+phase: 03-validation-rubric
+reviewed: 2026-05-17T00:00:00Z
+depth: standard
+files_reviewed: 1
+files_reviewed_list:
+  - first-principles-thinking/references/validation-rubric.md
+findings:
+  critical: 2
+  warning: 4
+  info: 3
+  total: 9
+status: issues_found
+---
+
+# Phase 3: Code Review Report
+
+**Reviewed:** 2026-05-17T00:00:00Z
+**Depth:** standard
+**Files Reviewed:** 1
+**Status:** issues_found
+
+## Summary
+
+Reviewed `first-principles-thinking/references/validation-rubric.md`, the Layer-3
+scoring instrument for the first-principles skill. It is a pure-Markdown reference
+component — no runtime, no input handling — so the review targets internal
+consistency, cross-reference correctness, and whether the rubric's own descriptors
+are unambiguous and self-consistent.
+
+The rubric is well-structured and largely coherent, but contains two BLOCKER-class
+defects that make it self-contradicting or un-applicable as written: the pass
+condition stated in the Scoring Model directly contradicts the gate defined in
+"How to Apply This Rubric," and the rubric cites design-decision IDs (`D-01`, `D-08`)
+that exist nowhere in `SKILL.md` or `output-template.md`. Both are correctness
+defects: a reviewer following the rubric will reach a wrong or unresolvable verdict.
+Four WARNING-class consistency gaps and three INFO items follow.
+
+## Critical Issues
+
+### CR-01: Contradictory pass conditions — "Pass" definition conflicts with the gate
+
+**File:** `first-principles-thinking/references/validation-rubric.md:18-21` and `:60`
+**Issue:** The "How to Apply This Rubric" section defines the pass condition as exactly
+two clearing conditions:
+
+> 1. **Gate cleared** — no criterion scores Absent.
+> 2. **Hand-wavy cap cleared** — at most one criterion scores Hand-wavy.
+
+This permits a passing analysis to contain criteria scored **Hand-wavy** (up to one).
+But line 60 in the Scoring Model states:
+
+> **Pass:** Every criterion scores Sound or above, with at most one criterion at Hand-wavy.
+
+"Every criterion scores Sound or above" and "at most one criterion at Hand-wavy" are
+mutually exclusive — a criterion at Hand-wavy is *not* "Sound or above" (the rank order
+on line 49 is `Rigorous > Sound > Hand-wavy > Absent`). The first clause forbids any
+Hand-wavy; the second clause permits one. A reviewer cannot tell whether an analysis
+with one Hand-wavy criterion passes. This is a logic error that produces an
+unresolvable verdict — the rubric's central output (pass/fail) is undefined for a
+common case.
+**Fix:** Drop the contradictory first clause so the definition matches the gate:
+```markdown
+**Pass:** No criterion scores Absent, and at most one criterion scores Hand-wavy.
+(Equivalently: every criterion is Sound or above, except at most one may be Hand-wavy.)
+```
+
+### CR-02: Dangling design-decision references — `D-01` and `D-08` are undefined
+
+**File:** `first-principles-thinking/references/validation-rubric.md:139`, `:195`, `:196`
+**Issue:** Criterion 2 (line 139) and Criterion 4 (lines 195-196) cite design-decision
+identifiers as authority for what they fold in:
+
+- Line 139: "Folds in: four-type classification quality and unverified-flag discipline (D-01)."
+- Lines 195-196: "Folds in: dead-end honesty and the no-analogies-as-direct-evidence ban
+  (D-01), and escape-valve policing for Abandoned Reasoning (D-08)."
+
+A repo-wide grep of `SKILL.md`, `references/output-template.md`, and the other
+reference/example files shows the only design-decision IDs defined are **D-03** and
+**D-07**. `D-01` and `D-08` appear *only* in this file — they reference nothing. A
+reviewer who tries to follow these citations to the source rule will find no rule. The
+rubric is asserting traceability to design decisions that do not exist, which both
+breaks the cross-reference and undermines the rubric's own auditability claim
+(lines 92-96 argue the rubric must be auditable against quoted evidence).
+
+Note the related symptom in Criterion 3 (line 168) and Criterion 5: the unverified-flag
+behavior the rubric describes is the one `SKILL.md:65,71,81,97` and
+`output-template.md:44,83,114,150` attribute to **D-07** — strongly suggesting `D-01`
+was intended to be `D-07`. `D-08` has no plausible existing target at all.
+**Fix:** Either (a) correct the IDs to the design decisions that actually define these
+rules — most likely `D-07` for the unverified-flag/`GT-N?` discipline and `D-03` for
+the required-Abandoned-Reasoning-section / escape-valve rule (`output-template.md:134`
+ties the Abandoned Reasoning escape valve to D-03) — or (b) if a canonical D-01..D-08
+decision log exists outside the reviewed scope, add it to the repo and confirm the IDs
+resolve. Do not ship dangling references.
+
+## Warnings
+
+### WR-01: Escape-valve scoring is undefined for four of six criteria
+
+**File:** `first-principles-thinking/references/validation-rubric.md:111-275`
+**Issue:** The skill's output format (`SKILL.md:128-132`, `output-template.md:12-16`)
+permits any section to use the honest-depth escape valve (`Nothing material here — [reason]`).
+The rubric only tells a reviewer how to score that escape valve for **Criterion 1**
+(lines 118-119, 128-129) and **Criterion 4 / Abandoned Reasoning** (lines 204-206,
+218-220). For Criteria 2, 3, 5, and 6, an escape-valve section is unaddressed: a
+reviewer encountering `Nothing material here — [reason]` in, e.g., the Assumptions
+Table cannot tell whether that scores Rigorous (justified omission), Hand-wavy (generic
+reason), or Absent (the Absent descriptors on lines 131-133, 161-163, 246-249, 272-275
+all read as if any empty-looking section is Absent). This is a genuine gap that will
+produce inconsistent verdicts across reviewers.
+**Fix:** Add a single global rule to the Scoring Model: "Any section legitimately using
+the honest-depth escape valve is scored Rigorous if the stated reason is specific to
+this analysis and Hand-wavy if the reason is generic/copy-pasteable; it is never scored
+Absent solely for using the escape valve." Then the per-criterion Absent descriptors
+should explicitly exclude a properly-used escape valve.
+
+### WR-02: Criterion 4 vs. output-template disagree on "one chain per conclusion"
+
+**File:** `first-principles-thinking/references/validation-rubric.md:199` and `:223-224`
+**Issue:** Criterion 4 Rigorous (line 199) requires "every conclusion stated anywhere
+in the document (in section 4 or section 6) has exactly one derivation chain in
+section 4." But the Absent descriptor (lines 223-224) treats "conclusions appear in
+section 6 with no corresponding chains in section 4" as the Absent trigger. There is no
+band defined for the in-between case the template explicitly warns about
+(`output-template.md:95`: "no more (no redundant restatement)") — i.e., a conclusion
+with *two or more* chains. Duplicate/redundant chains are a defect the template names,
+yet Criterion 4's four bands have no slot for it; a reviewer would have to force-fit it
+into Sound or Hand-wavy with no descriptor support.
+**Fix:** Add the redundant-chain case to a band — most naturally Sound ("a conclusion
+has more than one chain — redundant restatement rather than a missing chain") so
+Criterion 4 covers the full failure space the template defines.
+
+### WR-03: Criterion 5 Absent third clause overlaps and can conflict with the first two
+
+**File:** `first-principles-thinking/references/validation-rubric.md:246-249`
+**Issue:** Criterion 5 Absent lists three OR'd conditions. The third — "there is no
+evidence that Phase 5's stress-test operation was executed (no weak-link
+identification, no chain inspection, no confidence rating of any kind)" — restates the
+first ("no confidence ratings appear anywhere in the derivation chains") plus more. The
+bands are meant to be mutually exclusive verdicts; an overlapping/encompassing clause
+makes it ambiguous which clause a reviewer cites in the required Justification line
+(line 75 demands the reviewer "name the specific structural property present or
+absent"). Overlapping descriptors weaken the auditability the rubric claims for itself.
+**Fix:** Make the third clause strictly additive, e.g., "OR — covering the case the
+first two clauses miss — confidence ratings exist but no weak-link identification or
+chain inspection was performed at all," or merge it into the first clause.
+
+### WR-04: "load-bearing chain" used as a scoring term but never defined
+
+**File:** `first-principles-thinking/references/validation-rubric.md:232`, `:247`
+**Issue:** Criterion 5 Rigorous and Absent both hinge on whether a `GT-N?` input
+"appears in a load-bearing chain" / is used "in load-bearing chains." The band a
+reviewer assigns can flip on this judgment, but "load-bearing" is never defined in this
+file. `SKILL.md:109` uses "load-bearing for a high-stakes conclusion" — a different,
+narrower phrasing. Leaving the threshold undefined makes Criterion 5 scoring subjective
+in exactly the place it must be precise (the rubric's stated purpose, lines 92-96, is
+to be un-fudgeable).
+**Fix:** Define the term once near the Scoring Model or at first use, e.g., "A chain is
+*load-bearing* if a conclusion in section 6 depends on it." Align the wording with
+`SKILL.md` or note the intentional difference.
+
+## Info
+
+### IN-01: Heading levels make all six criteria siblings of "## Criteria"
+
+**File:** `first-principles-thinking/references/validation-rubric.md:100`, `:106`, `:135`, `:165`, `:190`, `:226`, `:251`
+**Issue:** "## Criteria" (line 100) is an H2, and each "## Criterion N" (lines 106,
+135, 190, 226, 251) is also an H2 — so the six criteria are siblings of the section
+that introduces them, not children. A document outline / table of contents will render
+"Criteria" as an empty section followed by six peers. Cosmetic, but the skill's own
+tech guidance (`CLAUDE.md`) keeps `MD003` consistent-heading discipline.
+**Fix:** Demote the six criterion headings to `### Criterion N: ...` so they nest under
+`## Criteria`.
+
+### IN-02: "produced in Phase N" couples the rubric to methodology internals
+
+**File:** `first-principles-thinking/references/validation-rubric.md:109`, `:136`, `:167`, `:194`, `:228`
+**Issue:** Each criterion intro says the artifact is "produced in Phase 1/2/3/4/5." The
+rubric's own scope note (lines 3-9) says it scores against the *six-section output
+format*, not the methodology phases, and that the loop/procedure lives in `SKILL.md`.
+Tying criterion descriptions to phase numbers means any renumbering of phases in
+`SKILL.md` silently desyncs this file. Low risk today, but it is an unnecessary
+coupling for a "score the artifact" instrument.
+**Fix:** Reference the output-template section the artifact lives in (e.g., "the
+Essence Statement — output section 1") rather than the producing phase, or state the
+phase mapping once in the scope note instead of repeating it per criterion.
+
+### IN-03: Verdict Block Format placeholder uses a different capitalization than the bands
+
+**File:** `first-principles-thinking/references/validation-rubric.md:73`
+**Issue:** Minor: the template line reads `Band: [Rigorous / Sound / Hand-wavy / Absent]`
+which matches, but Criterion intros and the Scoring Model consistently bold the band
+names (`**Rigorous**`). The verdict-block example does not. Purely a consistency nit —
+worth aligning so generated verdict blocks look uniform.
+**Fix:** Optional — either bold the band names in the example or leave as-is; no
+functional impact.
+
+---
+
+_Reviewed: 2026-05-17T00:00:00Z_
+_Reviewer: Claude (gsd-code-reviewer)_
+_Depth: standard_
