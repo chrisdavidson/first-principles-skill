@@ -137,7 +137,7 @@ a short list of success criteria — produced in Phase 1.
 
 Scores the **Classified Assumptions Table** — a table with columns Assumption, Type, Treatment,
 Verdict, Verification — produced in Phase 2. Folds in: four-type classification quality and
-unverified-flag discipline (D-01).
+unverified-flag discipline (D-07).
 
 - **Rigorous** — every row in the Assumptions Table has a Type value drawn from exactly the
   four-type scheme (physical law / current constraint / convention / untested belief); the
@@ -193,8 +193,8 @@ source citations, with unverified entries marked with the `GT-N?` suffix — pro
 Scores the **Derivation Chains** — one chain per conclusion, formatted as
 `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one intermediate step,
 plus the **Abandoned Reasoning** section — produced in Phase 4. Folds in: dead-end honesty
-and the no-analogies-as-direct-evidence ban (D-01), and escape-valve policing for Abandoned
-Reasoning (D-08).
+and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
+Reasoning (D-03).
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the GT-IDs it consumes,
