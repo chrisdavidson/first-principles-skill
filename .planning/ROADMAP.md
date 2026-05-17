@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Sharpen the Methodology and Harden the Output Format** - Tighten the 5-phase process with entry/exit criteria, per-phase artifacts, assumption classification, and a strict traceable output template (completed 2026-05-16)
 - [x] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape (completed 2026-05-17)
-- [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
+- [x] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis (completed 2026-05-17)
 - [ ] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components
 - [ ] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric
 - [ ] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation
@@ -88,7 +88,7 @@ Plans:
 - [x] 03-01-PLAN.md — Author validation-rubric.md: the preamble, gate + hand-wavy-cap scoring model, verdict-block format, and 6 analytic criteria each with a shared 4-level observable-descriptor scale
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Author 03-weak-sample.md: a deliberately-weak analysis and its rubric scoring run, demonstrating an overall fail with per-criterion evidence-quoting verdicts
+- [x] 03-02-PLAN.md — Author 03-weak-sample.md: a deliberately-weak analysis and its rubric scoring run, demonstrating an overall fail with per-criterion evidence-quoting verdicts
 
 ### Phase 4: Companion Tool References
 
@@ -142,7 +142,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
-| 3. Validation Rubric | 1/2 | In Progress|  |
+| 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 0/TBD | Not started | - |
 | 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
