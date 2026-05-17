@@ -70,6 +70,13 @@ descriptors below apply to a section that is missing, empty, or filled with non-
 content, not to a section that is honestly and specifically marked as having no material
 content.
 
+**Load-bearing chain (definition):** A derivation chain is *load-bearing* if a claim in
+the Conclusion section (output section 6) depends on it — i.e., the chain produces, or is
+cited as support for, a conclusion the analysis actually presents. A chain that reaches
+only an intermediate result no conclusion rests on is not load-bearing. (This is the
+narrower scoring sense of the phrase `SKILL.md` uses informally as "load-bearing for a
+high-stakes conclusion.")
+
 ---
 
 ## Verdict Block Format
