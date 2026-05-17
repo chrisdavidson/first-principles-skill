@@ -546,7 +546,7 @@ forward-looking risk lists generic. Do not skip it or soften it to "might fail."
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Procedure depth for 5-Whys branching tree**
    - What we know: the procedure is a branching cause tree, not a linear sequence; branches are
