@@ -28,8 +28,8 @@ Requirements for the enhanced single skill (pure Markdown). Each maps to roadmap
 
 - [ ] **VALID-01**: `references/validation-rubric.md` defines 6-8 analytic criteria covering the 5 phases and traceability
 - [ ] **VALID-02**: Each rubric criterion has 3-4 named levels, each with a concrete observable descriptor
-- [ ] **VALID-03**: The rubric uses a gate scoring model — any criterion at the lowest band fails the analysis and forces revision
-- [ ] **VALID-04**: The rubric requires Claude to quote the specific span of its analysis that satisfies or fails each criterion
+- [x] **VALID-03**: The rubric uses a gate scoring model — any criterion at the lowest band fails the analysis and forces revision
+- [x] **VALID-04**: The rubric requires Claude to quote the specific span of its analysis that satisfies or fails each criterion
 - [ ] **VALID-05**: `SKILL.md` instructs Claude to apply the rubric as a validator → fix → repeat feedback loop
 
 ### Companion Tools
@@ -94,8 +94,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | METH-06 | Phase 1 | Complete |
 | VALID-01 | Phase 3 | Pending |
 | VALID-02 | Phase 3 | Pending |
-| VALID-03 | Phase 3 | Pending |
-| VALID-04 | Phase 3 | Pending |
+| VALID-03 | Phase 3 | Complete |
+| VALID-04 | Phase 3 | Complete |
 | VALID-05 | Phase 2 | Pending |
 | TOOL-01 | Phase 4 | Pending |
 | TOOL-02 | Phase 4 | Pending |
