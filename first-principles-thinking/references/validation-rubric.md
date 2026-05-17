@@ -96,7 +96,7 @@ analysis section exists and contains scoreable content:
 **Criterion N: [Criterion Name]**
 Quoted span: "[Direct quote of the specific text in the analysis being scored — the span
 that most directly determines the band assigned.]"
-Band: [Rigorous / Sound / Hand-wavy / Absent]
+Band: [**Rigorous** / **Sound** / **Hand-wavy** / **Absent**]
 Justification: [One sentence tying the quoted span to the observable descriptor for
 that band — name the specific structural property present or absent.]
 ```
@@ -109,7 +109,8 @@ absence is the evidence:
 **Criterion N: [Criterion Name]**
 Gap: [Name what is missing and where it should have appeared — e.g., "No Derivation
 Chains section exists; chains of the form 'GT-N + GT-M → [intermediate] → [conclusion]'
-should appear in section 4 for each conclusion stated in section 6."]
+should appear in section 4 (Derivation Chains) for each conclusion stated in section 6
+(Conclusion)."]
 Band: Absent
 Justification: [One sentence: the absence itself is the structural failure that triggers
 the gate — the criterion cannot be scored against a non-existent artifact.]
