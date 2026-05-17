@@ -129,7 +129,7 @@ Apply all six criteria in the order listed. The criteria follow methodology-phas
 same chain-of-artifacts sequence the analysis itself follows — so that a scoring pass moves
 through the analysis in the order it was produced.
 
-## Criterion 1: Identify Essence
+### Criterion 1: Identify Essence
 
 Scores the **Essence Statement** — the single sentence naming the core problem followed by
 a short list of success criteria — produced in Phase 1.
@@ -158,7 +158,7 @@ a short list of success criteria — produced in Phase 1.
   only a restatement of the original prompt with no analytical distillation, or the section
   heading appears with nothing below it).
 
-## Criterion 2: Challenge Assumptions
+### Criterion 2: Challenge Assumptions
 
 Scores the **Classified Assumptions Table** — a table with columns Assumption, Type, Treatment,
 Verdict, Verification — produced in Phase 2. Folds in: four-type classification quality and
@@ -188,7 +188,7 @@ unverified-flag discipline (D-07).
   cell is empty, freeform (no mapping to the four-type scheme), or missing — making the
   table a list of undifferentiated claims rather than a classified set.
 
-## Criterion 3: Establish Ground Truths
+### Criterion 3: Establish Ground Truths
 
 Scores the **Ground Truths list** — a numbered list of verified facts with stable GT-IDs and
 source citations, with unverified entries marked with the `GT-N?` suffix — produced in Phase 3.
@@ -213,7 +213,7 @@ source citations, with unverified entries marked with the `GT-N?` suffix — pro
   appears anywhere, no citations appear anywhere, and the list is undifferentiated); OR the
   section is absent or empty.
 
-## Criterion 4: Reason Upward
+### Criterion 4: Reason Upward
 
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
@@ -253,7 +253,7 @@ Reasoning (D-03).
   is absent or empty; OR conclusions appear in section 6 with no corresponding chains in
   section 4 — the core question's answer cannot be traced to any named ground truth.
 
-## Criterion 5: Validate
+### Criterion 5: Validate
 
 Scores the **signed-off analysis** — the complete output with all conclusions traced and weak
 links resolved or explicitly flagged with confidence caveats — produced in Phase 5.
@@ -279,7 +279,7 @@ links resolved or explicitly flagged with confidence caveats — produced in Pha
   identification or chain inspection was performed at all, so there is no evidence that
   Phase 5's stress-test operation was executed.
 
-## Criterion 6: Conclusion-to-Ground-Truth Traceability
+### Criterion 6: Conclusion-to-Ground-Truth Traceability
 
 Scores the relationship between the **Conclusion section** (section 6) claims and the
 **Derivation Chains** (section 4) that produced them — a cross-section structural property
