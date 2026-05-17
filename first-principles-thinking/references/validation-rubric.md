@@ -20,6 +20,14 @@ one condition alone does not constitute a pass:
 
 If either condition is not met, revise the analysis and re-score from the beginning.
 
+**Precedence rule (no double-counting):** A single observable defect can match the
+descriptor of more than one criterion — for example, an unverified ground truth used in a
+chain without the `?` suffix is named by Criteria 2, 3, and 5. When this happens, band the
+defect under the **lowest-numbered criterion** whose descriptor names it, and merely *note*
+the overlap under the other criteria without lowering their band for the same underlying
+problem. One real flaw must not independently drag down two or three criteria, because that
+would let a single defect trip the hand-wavy cap on its own.
+
 ---
 
 ## Scoring Model
