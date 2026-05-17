@@ -219,6 +219,8 @@ Reasoning (D-03).
 - **Sound** — chains exist for all conclusions, but one or more chains lack a genuine
   intermediate step (the chain goes directly from GT-IDs to conclusion, or the stated
   intermediate is a restatement of one of the named GTs rather than a new inference); OR
+  a conclusion has more than one derivation chain — redundant restatement rather than a
+  missing chain — where the prescribed form is exactly one chain per conclusion; OR
   one dead end in Abandoned Reasoning is described with a vague abandonment reason
   ("seemed unlikely," "ran out of time") rather than the specific structural reason
   (assumption false, contradicts a GT, circular, intermediate could not be established).
