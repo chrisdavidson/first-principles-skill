@@ -7,9 +7,9 @@ files_reviewed_list:
   - first-principles-thinking/references/validation-rubric.md
 findings:
   critical: 2
-  warning: 4
+  warning: 6
   info: 3
-  total: 9
+  total: 11
 status: issues_found
 ---
 
@@ -32,9 +32,12 @@ The rubric is well-structured and largely coherent, but contains two BLOCKER-cla
 defects that make it self-contradicting or un-applicable as written: the pass
 condition stated in the Scoring Model directly contradicts the gate defined in
 "How to Apply This Rubric," and the rubric cites design-decision IDs (`D-01`, `D-08`)
-that exist nowhere in `SKILL.md` or `output-template.md`. Both are correctness
-defects: a reviewer following the rubric will reach a wrong or unresolvable verdict.
-Four WARNING-class consistency gaps and three INFO items follow.
+that exist nowhere in `SKILL.md` or `output-template.md`. Six WARNING-class
+consistency gaps and three INFO items follow. WR-05 and WR-06 were surfaced by an
+adversarial cross-reference pass against the two sibling files and were not present
+in the prior review.
+
+No structural findings block was provided; all findings below are narrative.
 
 ## Critical Issues
 
@@ -86,13 +89,13 @@ breaks the cross-reference and undermines the rubric's own auditability claim
 Note the related symptom in Criterion 3 (line 168) and Criterion 5: the unverified-flag
 behavior the rubric describes is the one `SKILL.md:65,71,81,97` and
 `output-template.md:44,83,114,150` attribute to **D-07** — strongly suggesting `D-01`
-was intended to be `D-07`. `D-08` has no plausible existing target at all.
+was intended to be `D-07`. `D-08` is best matched by `D-03`, which
+`output-template.md:134` ties directly to the required-Abandoned-Reasoning escape valve.
 **Fix:** Either (a) correct the IDs to the design decisions that actually define these
 rules — most likely `D-07` for the unverified-flag/`GT-N?` discipline and `D-03` for
-the required-Abandoned-Reasoning-section / escape-valve rule (`output-template.md:134`
-ties the Abandoned Reasoning escape valve to D-03) — or (b) if a canonical D-01..D-08
-decision log exists outside the reviewed scope, add it to the repo and confirm the IDs
-resolve. Do not ship dangling references.
+the required-Abandoned-Reasoning-section / escape-valve rule — or (b) if a canonical
+D-01..D-08 decision log exists outside the reviewed scope, add it to the repo and
+confirm the IDs resolve. Do not ship dangling references.
 
 ## Warnings
 
@@ -160,6 +163,48 @@ to be un-fudgeable).
 *load-bearing* if a conclusion in section 6 depends on it." Align the wording with
 `SKILL.md` or note the intentional difference.
 
+### WR-05: Criterion 4 scope is ambiguous — title says "Derivation Chains," body also scores section 5
+
+**File:** `first-principles-thinking/references/validation-rubric.md:190-220`
+**Issue:** Criterion 4 is titled "Reason Upward" and its lead sentence says it "Scores
+the **Derivation Chains** ... produced in Phase 4." But the band descriptors also score
+the **Abandoned Reasoning** section, which `output-template.md:18-24,118` defines as a
+*separate* output section — section 5, not section 4. A reviewer who reads the criterion
+title and lead literally will score Criterion 4 on the chains alone (section 4) and
+never inspect the escape-valve quality of section 5, because the criterion name and the
+section it actually scores disagree. The "Folds in: ... escape-valve policing for
+Abandoned Reasoning" note (line 196) is the only hint the section-5 content is in scope,
+and it is buried in the same line as the broken D-08 reference. This produces
+inconsistent verdicts: two reviewers will disagree on whether Abandoned Reasoning was
+even meant to be scored here.
+**Fix:** Make the section coverage explicit in the criterion lead, e.g. "Scores **both**
+the Derivation Chains (output section 4) **and** the Abandoned Reasoning section (output
+section 5)," so the scope cannot be read as section-4-only.
+
+### WR-06: Double-jeopardy — the unflagged-`GT-N?`-in-a-chain defect is scoreable under three criteria
+
+**File:** `first-principles-thinking/references/validation-rubric.md:152-154`, `:177-178`, `:182-183`, `:238-239`
+**Issue:** A single observable defect — an unverified ground truth used in a chain
+without the `?` suffix / "unverified — flagged" notation — is independently scoreable
+under at least three criteria with no precedence rule:
+- Criterion 2 Sound (line 152-154): an assumption used in a chain "lacks the
+  'unverified — flagged' notation."
+- Criterion 3 Sound / Hand-wavy (lines 177-178, 182-183): one / multiple unverified GTs
+  "used in a derivation chain without the `?` suffix."
+- Criterion 5 Sound (lines 238-239): "GT-N? inputs in chains are not mentioned in the
+  chain's confidence line."
+
+The rubric never says which criterion "owns" the defect. As written, one real flaw
+drags down two or three criteria at once, and a pattern of them could trip the
+Hand-wavy cap (CR-01 / lines 54-58) on the strength of a single underlying problem —
+the gate/cap math double-counts. Scoring is therefore non-deterministic across
+reviewers depending on how many criteria they choose to apply it to.
+**Fix:** Add a precedence note to "How to Apply This Rubric": when one observable defect
+maps to more than one criterion, score it under the lowest-numbered criterion whose
+descriptor names it, and merely note (do not re-band) the overlap under the others.
+Alternatively, narrow each descriptor so the `GT-N?`-flag rule lives in exactly one
+criterion.
+
 ## Info
 
 ### IN-01: Heading levels make all six criteria siblings of "## Criteria"
@@ -181,20 +226,27 @@ rubric's own scope note (lines 3-9) says it scores against the *six-section outp
 format*, not the methodology phases, and that the loop/procedure lives in `SKILL.md`.
 Tying criterion descriptions to phase numbers means any renumbering of phases in
 `SKILL.md` silently desyncs this file. Low risk today, but it is an unnecessary
-coupling for a "score the artifact" instrument.
+coupling for a "score the artifact" instrument. Related: the "Criteria" preamble
+(lines 102-104) claims "the criteria follow methodology-phase order," but Criterion 6
+(lines 251-255) is a whole-document cross-section check that maps to no phase — the
+blanket claim is not literally true for the sixth criterion.
 **Fix:** Reference the output-template section the artifact lives in (e.g., "the
-Essence Statement — output section 1") rather than the producing phase, or state the
-phase mapping once in the scope note instead of repeating it per criterion.
+Essence Statement — output section 1") rather than the producing phase; and soften the
+preamble to "Criteria 1-5 follow methodology-phase order; Criterion 6 is a
+whole-document cross-section check applied last."
 
-### IN-03: Verdict Block Format placeholder uses a different capitalization than the bands
+### IN-03: Section numbers cited bare, without naming the template they index
 
-**File:** `first-principles-thinking/references/validation-rubric.md:73`
-**Issue:** Minor: the template line reads `Band: [Rigorous / Sound / Hand-wavy / Absent]`
-which matches, but Criterion intros and the Scoring Model consistently bold the band
-names (`**Rigorous**`). The verdict-block example does not. Purely a consistency nit —
-worth aligning so generated verdict blocks look uniform.
-**Fix:** Optional — either bold the band names in the example or leave as-is; no
-functional impact.
+**File:** `first-principles-thinking/references/validation-rubric.md:73`, `:199-200`, `:222-224`, `:252-255`
+**Issue:** Two minor consistency nits. (a) Criteria 4 and 6 cite "section 4" and
+"section 6" as bare numbers; the numbering is defined in `output-template.md:18-24`, not
+in this file, and the scope note says a reviewer may "come here only to score an
+analysis" — i.e., possibly without the template loaded. (b) The Verdict Block Format
+example (line 73) writes `Band: [Rigorous / Sound / Hand-wavy / Absent]` un-bolded,
+while every other occurrence of the band names is bolded (`**Rigorous**`).
+**Fix:** On first use, name the section alongside the number ("section 4 (Derivation
+Chains)", "section 6 (Conclusion)"); optionally bold the band names in the example for
+uniformity. No functional impact.
 
 ---
 
