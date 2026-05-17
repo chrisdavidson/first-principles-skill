@@ -1,10 +1,12 @@
 ---
 phase: 3
 slug: validation-rubric
-status: draft
+status: validated
 nyquist_compliant: false
-wave_0_complete: false
+nyquist_na_reason: pure-Markdown skill — no executable code permitted (PROJECT.md v1 constraint); all verification is manual/behavioral by design
+wave_0_complete: true
 created: 2026-05-16
+audited: 2026-05-17
 ---
 
 # Phase 3 — Validation Strategy
@@ -48,15 +50,15 @@ produces a fail with per-criterion evidence-quoting verdicts.
 Task IDs are assigned by the planner. The requirement-level validation map
 below is the contract every plan must satisfy.
 
-| Req ID | Wave | Behavior | Test Type | Verification |
-|--------|------|----------|-----------|--------------|
-| VALID-01 | — | `validation-rubric.md` defines exactly 6 analytic criteria covering the 5 phases + conclusion-to-ground-truth traceability | Manual count | Count criteria headings in the shipped file = 6; each maps to a named phase or traceability |
-| VALID-02 | — | Each criterion has 4 named levels, each with a concrete observable descriptor (no adjectives) | Manual audit | Apply the adjective-test to every level descriptor — remainder must still be verifiable |
-| VALID-03 | — | Gate model: any criterion scored at the lowest band fails the whole analysis and forces revision; hand-wavy cap (2/6 at second-lowest) also fails | Manual scoring | Score the weak sample; verify any lowest-band criterion produces a fail verdict |
-| VALID-04 | — | Evidence-quoting: each verdict block contains a quoted span (or explicit gap citation), the band, and a one-line justification | Manual scoring | Apply the rubric to the weak sample; verify every verdict block has the required parts |
-| SC-4 | — | Applying the rubric to the deliberately-weak sample produces a fail, each verdict quoting the specific span | Behavioral | Apply the rubric to `.planning/phases/03-validation-rubric/03-weak-sample.md`; verify ≥2 criteria fail with named, quoted spans |
+| Req ID | Wave | Behavior | Test Type | Verification | Status |
+|--------|------|----------|-----------|--------------|--------|
+| VALID-01 | — | `validation-rubric.md` defines exactly 6 analytic criteria covering the 5 phases + conclusion-to-ground-truth traceability | Manual count | Count criteria headings in the shipped file = 6; each maps to a named phase or traceability | COVERED (manual) — 6 criteria confirmed in 03-01-SUMMARY self-check + UAT test 1 |
+| VALID-02 | — | Each criterion has 4 named levels, each with a concrete observable descriptor (no adjectives) | Manual audit | Apply the adjective-test to every level descriptor — remainder must still be verifiable | COVERED (manual) — 4-level scale confirmed in 03-01-SUMMARY self-check + UAT test 1 |
+| VALID-03 | — | Gate model: any criterion scored at the lowest band fails the whole analysis and forces revision; hand-wavy cap (2/6 at second-lowest) also fails | Manual scoring | Score the weak sample; verify any lowest-band criterion produces a fail verdict | COVERED (manual) — gate fired on weak sample (Criterion 2 = Absent → FAIL); UAT test 4 |
+| VALID-04 | — | Evidence-quoting: each verdict block contains a quoted span (or explicit gap citation), the band, and a one-line justification | Manual scoring | Apply the rubric to the weak sample; verify every verdict block has the required parts | COVERED (manual) — 6 evidence-quoting verdict blocks in 03-weak-sample.md; UAT test 4 |
+| SC-4 | — | Applying the rubric to the deliberately-weak sample produces a fail, each verdict quoting the specific span | Behavioral | Apply the rubric to `.planning/phases/03-validation-rubric/03-weak-sample.md`; verify ≥2 criteria fail with named, quoted spans | COVERED (manual) — overall FAIL, 2 criteria below Sound (C2 Absent, C4 Hand-wavy); UAT test 4 |
 
-*Status tracked per-task once the planner assigns task IDs.*
+*All requirements verified by manual/behavioral inspection — no automatable gaps exist (pure-Markdown phase). Each requirement was cross-checked against the plan SUMMARY self-checks and the Phase 3 UAT (`03-UAT.md`, 5/5 passed).*
 
 ---
 
@@ -80,12 +82,34 @@ rubric and its fail demonstration, not code.*
 
 ---
 
+## Validation Audit 2026-05-17
+
+State A audit (existing VALIDATION.md). No automatable gaps exist: this is a
+pure-Markdown phase and the v1 constraint forbids executable code, so automated
+test generation is not applicable. All 5 requirements were already classified
+Manual-Only at plan time; this audit confirms each has been verified.
+
+| Metric | Count |
+|--------|-------|
+| Requirements | 5 |
+| Covered (automated) | 0 |
+| Covered (manual / behavioral) | 5 |
+| Partial | 0 |
+| Missing | 0 |
+| Gaps escalated | 0 |
+
+Evidence sources: `03-01-SUMMARY.md` and `03-02-SUMMARY.md` self-checks, the
+weak-sample fail run in `03-weak-sample.md` (overall FAIL via the gate), and the
+Phase 3 UAT (`03-UAT.md`, 5/5 tests passed).
+
+---
+
 ## Validation Sign-Off
 
-- [ ] Every task has `<acceptance_criteria>` with source/behavior assertions on the Markdown
-- [ ] The weak-sample fail run is authored and demonstrably produces a fail
-- [ ] All 4 Success Criteria are observable in the shipped rubric + weak-sample artifact
-- [ ] No executable code introduced (pure-Markdown v1 constraint honored)
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] Every task has `<acceptance_criteria>` with source/behavior assertions on the Markdown
+- [x] The weak-sample fail run is authored and demonstrably produces a fail
+- [x] All 4 Success Criteria are observable in the shipped rubric + weak-sample artifact
+- [x] No executable code introduced (pure-Markdown v1 constraint honored)
+- [ ] `nyquist_compliant: true` — N/A: no automated verification possible for a pure-Markdown skill; all 5 requirements covered manual-only by design (see `nyquist_na_reason`)
 
-**Approval:** pending
+**Approval:** validated (partial) 2026-05-17 — 0 automated, 5 manual-only by design
