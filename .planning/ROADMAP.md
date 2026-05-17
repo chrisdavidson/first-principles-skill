@@ -102,7 +102,13 @@ Plans:
   3. `references/trade-off-analysis.md` is a usable component with a weighted-criteria-before-scoring procedure, a mini-example, failure modes, and a handoff to the 5-phase spine.
   4. No companion tool file carries its own YAML frontmatter or trigger description — each is a reference component, not a separate skill.
 
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+**Wave 1** *(all three files are independent — fully parallel)*
+
+- [ ] 04-01-PLAN.md — Author five-whys.md: the 5-Whys root-cause drill-down with a branching procedure, a test-based (Corrective Action Test) stop criterion, an everyday mini-example, failure modes, and a handoff to Phase 2/4
+- [ ] 04-02-PLAN.md — Author pre-mortem.md: the prospective-hindsight failure analysis with a mandatory past-tense framing step, the write→share→pattern procedure, an everyday mini-example, failure modes, and a handoff to Phase 5
+- [ ] 04-03-PLAN.md — Author trade-off-analysis.md: the weighted option-comparison with a discrete lock-weights-before-scoring step, an everyday weighted-matrix mini-example, failure modes, and a handoff to Phase 4
 
 ### Phase 5: Domain-Spread Worked Examples
 
@@ -143,6 +149,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Sharpen the Methodology and Harden the Output Format | 3/3 | Complete   | 2026-05-16 |
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
-| 4. Companion Tool References | 0/TBD | Not started | - |
+| 4. Companion Tool References | 0/3 | Not started | - |
 | 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
