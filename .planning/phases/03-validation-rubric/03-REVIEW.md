@@ -11,6 +11,21 @@ findings:
   info: 3
   total: 11
 status: issues_found
+fix_status: critical_and_warning_resolved
+fix_iteration: 1
+fixed_findings:
+  - CR-01
+  - CR-02
+  - WR-01
+  - WR-02
+  - WR-03
+  - WR-04
+  - WR-05
+  - WR-06
+remaining_findings:
+  - IN-01
+  - IN-02
+  - IN-03
 ---
 
 # Phase 3: Code Review Report
@@ -41,7 +56,10 @@ No structural findings block was provided; all findings below are narrative.
 
 ## Critical Issues
 
-### CR-01: Contradictory pass conditions — "Pass" definition conflicts with the gate
+### CR-01: Contradictory pass conditions — "Pass" definition conflicts with the gate [RESOLVED]
+
+**Status:** Resolved in commit `04a7be1` — dropped the contradictory "Every criterion scores Sound or above" clause; the Pass definition now matches the gate (no Absent, at most one Hand-wavy).
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:18-21` and `:60`
 **Issue:** The "How to Apply This Rubric" section defines the pass condition as exactly
@@ -68,7 +86,10 @@ common case.
 (Equivalently: every criterion is Sound or above, except at most one may be Hand-wavy.)
 ```
 
-### CR-02: Dangling design-decision references — `D-01` and `D-08` are undefined
+### CR-02: Dangling design-decision references — `D-01` and `D-08` are undefined [RESOLVED]
+
+**Status:** Resolved in commit `29f6112` — repo grep confirmed only `D-03` and `D-07` exist. `D-01` corrected to `D-07` (unverified-flag/`GT-N?` discipline, per `SKILL.md:71,81,97` and `output-template.md:44,83,114,150`); `D-08` corrected to `D-03` (Abandoned Reasoning escape valve, per `output-template.md:134`).
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:139`, `:195`, `:196`
 **Issue:** Criterion 2 (line 139) and Criterion 4 (lines 195-196) cite design-decision
@@ -99,7 +120,10 @@ confirm the IDs resolve. Do not ship dangling references.
 
 ## Warnings
 
-### WR-01: Escape-valve scoring is undefined for four of six criteria
+### WR-01: Escape-valve scoring is undefined for four of six criteria [RESOLVED]
+
+**Status:** Resolved in commit `26d37e2` — added a global "Escape-valve scoring" rule to the Scoring Model: a legitimate escape valve scores Rigorous (analysis-specific reason) or Hand-wavy (generic reason), never Absent solely for using it.
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:111-275`
 **Issue:** The skill's output format (`SKILL.md:128-132`, `output-template.md:12-16`)
@@ -118,7 +142,10 @@ this analysis and Hand-wavy if the reason is generic/copy-pasteable; it is never
 Absent solely for using the escape valve." Then the per-criterion Absent descriptors
 should explicitly exclude a properly-used escape valve.
 
-### WR-02: Criterion 4 vs. output-template disagree on "one chain per conclusion"
+### WR-02: Criterion 4 vs. output-template disagree on "one chain per conclusion" [RESOLVED]
+
+**Status:** Resolved in commit `0b34a55` — added the redundant-chain case ("a conclusion has more than one derivation chain") to the Criterion 4 Sound band.
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:199` and `:223-224`
 **Issue:** Criterion 4 Rigorous (line 199) requires "every conclusion stated anywhere
@@ -134,7 +161,10 @@ into Sound or Hand-wavy with no descriptor support.
 has more than one chain — redundant restatement rather than a missing chain") so
 Criterion 4 covers the full failure space the template defines.
 
-### WR-03: Criterion 5 Absent third clause overlaps and can conflict with the first two
+### WR-03: Criterion 5 Absent third clause overlaps and can conflict with the first two [RESOLVED]
+
+**Status:** Resolved in commit `fa0876f` — rewrote the third Absent clause to be strictly additive ("covering the case the first two clauses miss — confidence ratings exist but no weak-link identification or chain inspection").
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:246-249`
 **Issue:** Criterion 5 Absent lists three OR'd conditions. The third — "there is no
@@ -149,7 +179,10 @@ absent"). Overlapping descriptors weaken the auditability the rubric claims for 
 first two clauses miss — confidence ratings exist but no weak-link identification or
 chain inspection was performed at all," or merge it into the first clause.
 
-### WR-04: "load-bearing chain" used as a scoring term but never defined
+### WR-04: "load-bearing chain" used as a scoring term but never defined [RESOLVED]
+
+**Status:** Resolved in commit `11fb53b` — added a "Load-bearing chain (definition)" entry to the Scoring Model: a chain is load-bearing if a Conclusion-section (section 6) claim depends on it.
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:232`, `:247`
 **Issue:** Criterion 5 Rigorous and Absent both hinge on whether a `GT-N?` input
@@ -163,7 +196,10 @@ to be un-fudgeable).
 *load-bearing* if a conclusion in section 6 depends on it." Align the wording with
 `SKILL.md` or note the intentional difference.
 
-### WR-05: Criterion 4 scope is ambiguous — title says "Derivation Chains," body also scores section 5
+### WR-05: Criterion 4 scope is ambiguous — title says "Derivation Chains," body also scores section 5 [RESOLVED]
+
+**Status:** Resolved in commit `175a92b` — rewrote the Criterion 4 lead to state it scores **both** the Derivation Chains (output section 4) **and** the Abandoned Reasoning section (output section 5).
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:190-220`
 **Issue:** Criterion 4 is titled "Reason Upward" and its lead sentence says it "Scores
@@ -181,7 +217,10 @@ even meant to be scored here.
 the Derivation Chains (output section 4) **and** the Abandoned Reasoning section (output
 section 5)," so the scope cannot be read as section-4-only.
 
-### WR-06: Double-jeopardy — the unflagged-`GT-N?`-in-a-chain defect is scoreable under three criteria
+### WR-06: Double-jeopardy — the unflagged-`GT-N?`-in-a-chain defect is scoreable under three criteria [RESOLVED]
+
+**Status:** Resolved in commit `cc783b5` — added a "Precedence rule (no double-counting)" to "How to Apply This Rubric": band a multi-criterion defect under the lowest-numbered criterion and only note the overlap elsewhere.
+
 
 **File:** `first-principles-thinking/references/validation-rubric.md:152-154`, `:177-178`, `:182-183`, `:238-239`
 **Issue:** A single observable defect — an unverified ground truth used in a chain
