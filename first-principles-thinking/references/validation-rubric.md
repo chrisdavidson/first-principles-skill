@@ -258,8 +258,9 @@ links resolved or explicitly flagged with confidence caveats — produced in Pha
 
 - **Absent** — no confidence ratings appear anywhere in the derivation chains; OR GT-N? inputs
   are used in load-bearing chains without any confidence caveat anywhere in the document; OR
-  there is no evidence that Phase 5's stress-test operation was executed (no weak-link
-  identification, no chain inspection, no confidence rating of any kind).
+  — covering the case the first two clauses miss — confidence ratings exist but no weak-link
+  identification or chain inspection was performed at all, so there is no evidence that
+  Phase 5's stress-test operation was executed.
 
 ## Criterion 6: Conclusion-to-Ground-Truth Traceability
 
