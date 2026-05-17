@@ -125,14 +125,15 @@ sustained.
 
 ## Criteria
 
-Apply all six criteria in the order listed. The criteria follow methodology-phase order — the
-same chain-of-artifacts sequence the analysis itself follows — so that a scoring pass moves
-through the analysis in the order it was produced.
+Apply all six criteria in the order listed. Criteria 1-5 follow the order of the
+six-section output format — the same chain-of-artifacts sequence the analysis itself
+follows — so that a scoring pass moves through the analysis in the order it was produced;
+Criterion 6 is a whole-document cross-section check applied last.
 
 ### Criterion 1: Identify Essence
 
 Scores the **Essence Statement** — the single sentence naming the core problem followed by
-a short list of success criteria — produced in Phase 1.
+a short list of success criteria — in the Problem Essence section (output section 1).
 
 - **Rigorous** — the Essence Statement is a single sentence that names the core question or
   decision (not a symptom, not the triggering event, not a restatement of the user's prompt);
@@ -161,8 +162,8 @@ a short list of success criteria — produced in Phase 1.
 ### Criterion 2: Challenge Assumptions
 
 Scores the **Classified Assumptions Table** — a table with columns Assumption, Type, Treatment,
-Verdict, Verification — produced in Phase 2. Folds in: four-type classification quality and
-unverified-flag discipline (D-07).
+Verdict, Verification — in the Assumptions Table section (output section 2). Folds in:
+four-type classification quality and unverified-flag discipline (D-07).
 
 - **Rigorous** — every row in the Assumptions Table has a Type value drawn from exactly the
   four-type scheme (physical law / current constraint / convention / untested belief); the
@@ -191,7 +192,8 @@ unverified-flag discipline (D-07).
 ### Criterion 3: Establish Ground Truths
 
 Scores the **Ground Truths list** — a numbered list of verified facts with stable GT-IDs and
-source citations, with unverified entries marked with the `GT-N?` suffix — produced in Phase 3.
+source citations, with unverified entries marked with the `GT-N?` suffix — in the Ground
+Truths section (output section 3).
 
 - **Rigorous** — every GT-item carries a stable identifier (GT-1, GT-2, etc.) that matches
   the identifiers referenced in the Derivation Chains section; every verified GT has a source
@@ -218,7 +220,7 @@ source citations, with unverified entries marked with the `GT-N?` suffix — pro
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
 intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
-Both sections are produced in Phase 4 and are in scope for this criterion. Folds in:
+Both sections are in scope for this criterion. Folds in:
 dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
 Reasoning (D-03).
@@ -256,7 +258,8 @@ Reasoning (D-03).
 ### Criterion 5: Validate
 
 Scores the **signed-off analysis** — the complete output with all conclusions traced and weak
-links resolved or explicitly flagged with confidence caveats — produced in Phase 5.
+links resolved or explicitly flagged with confidence caveats — across all six output sections,
+focusing on the confidence caveats attached to the Derivation Chains (output section 4).
 
 - **Rigorous** — every derivation chain's weakest link is named; every GT-N? input that
   appears in a load-bearing chain has a confidence caveat stating which unverified input
