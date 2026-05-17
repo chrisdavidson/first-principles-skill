@@ -57,7 +57,8 @@ it must be revised before conclusions are presented. One criterion at Hand-wavy 
 Hand-wavy indicates a pattern of shallow reasoning that the gate alone cannot catch, because
 no single criterion has reached the gate-fail level.
 
-**Pass:** Every criterion scores Sound or above, with at most one criterion at Hand-wavy.
+**Pass:** No criterion scores Absent, and at most one criterion scores Hand-wavy.
+(Equivalently: every criterion is Sound or above, except at most one may be Hand-wavy.)
 
 ---
 
