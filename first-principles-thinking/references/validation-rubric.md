@@ -60,6 +60,16 @@ no single criterion has reached the gate-fail level.
 **Pass:** No criterion scores Absent, and at most one criterion scores Hand-wavy.
 (Equivalently: every criterion is Sound or above, except at most one may be Hand-wavy.)
 
+**Escape-valve scoring (global rule, applies to every criterion):** Any section that
+legitimately uses the honest-depth escape valve (`Nothing material here — [reason]`) is
+scored **Rigorous** if the stated reason is specific to this analysis — it names a property
+of this problem that makes the section's content unnecessary — and **Hand-wavy** if the
+reason is generic or copy-pasteable to any analysis. A properly-used escape valve is
+**never** scored Absent solely for using the escape valve: the per-criterion Absent
+descriptors below apply to a section that is missing, empty, or filled with non-scoreable
+content, not to a section that is honestly and specifically marked as having no material
+content.
+
 ---
 
 ## Verdict Block Format
