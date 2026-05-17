@@ -207,9 +207,11 @@ source citations, with unverified entries marked with the `GT-N?` suffix — pro
 
 ## Criterion 4: Reason Upward
 
-Scores the **Derivation Chains** — one chain per conclusion, formatted as
-`GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one intermediate step,
-plus the **Abandoned Reasoning** section — produced in Phase 4. Folds in: dead-end honesty
+Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
+formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
+intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
+Both sections are produced in Phase 4 and are in scope for this criterion. Folds in:
+dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
 Reasoning (D-03).
 
