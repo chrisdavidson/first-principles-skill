@@ -163,6 +163,11 @@ solely by Conclusion 4, whose chain consumes **GT-6?** — an unverified
 behavioral prediction about how authors use a catch-all category. Conclusion 4
 is not load-bearing for the recommendation: even if GT-6? turned out false (or
 true), Conclusions 1–3 still stand and the recommendation is unchanged.
+Verification that would raise overall confidence to HIGH: usage data from real
+first-principles analyses authored under a fifth-category scheme, showing
+whether the catch-all is used as intended. Until that data exists, GT-6? stays
+flagged and the conclusion is reported at MEDIUM — honestly, rather than
+inflated to HIGH on a chain that contains an unverified link.
 
 ---
 
@@ -183,3 +188,138 @@ true), Conclusions 1–3 still stand and the recommendation is unchanged.
 >   `## 5. Abandoned Reasoning` replaces two documented dead ends with the single
 >   generic line "Nothing material here — no dead ends were encountered." — a
 >   reason that could be copy-pasted to any analysis without alteration.
+
+---
+
+## Rubric Scoring Run
+
+This run applies `first-principles-thinking/references/validation-rubric.md` to
+the weak analysis above — all six criteria, in methodology-phase order, each
+producing one verdict block in the rubric's prescribed format (D-07). Sections
+that score `Absent` use the D-09 gap-citation variant only when the named
+artifact is missing or empty; the Assumptions Table here is present-but-broken,
+so it is scored with a quoted span.
+
+### Criterion 1: Identify Essence
+
+**Quoted span:** "Should the assumption-classification scheme keep exactly four
+types (physical law / current constraint / convention / untested belief), or add
+a fifth 'mixed / uncertain' category for assumptions that do not fit one type?"
+followed by three success criteria including "Phase 2's exit criterion stays
+mechanically checkable: 'every assumption is classified and has a recorded
+verdict' must remain a yes/no test."
+
+**Band:** Rigorous
+
+**Justification:** The Essence Statement is a single sentence naming the core
+decision (not a symptom or a prompt restatement), and each success criterion is
+a checkable condition a reader could verify against the final conclusion without
+asking the analyst for clarification — the Rigorous descriptor for this criterion.
+
+### Criterion 2: Challenge Assumptions
+
+**Quoted span:** "| A1: Every real assumption falls cleanly into exactly one of
+the four types. | general assumption | look into it | | unsure |" — and every
+other row likewise carries the Type value "general assumption".
+
+**Band:** Absent
+
+**Justification:** The table exists with populated rows, but every row's Type
+cell reads "general assumption" — a freeform label with no mapping to the
+four-type scheme (physical law / current constraint / convention / untested
+belief) — which is exactly the Absent descriptor: the table is a list of
+undifferentiated claims rather than a classified set.
+
+### Criterion 3: Establish Ground Truths
+
+**Quoted span:** "GT-1 `methodology.md` Phase 2 assigns each of the four types a
+distinct, specific prescribed treatment ... — source: `methodology.md` Phase 2,
+'The four assumption types and their prescribed treatments' table." and "GT-6?
+... — unverified: this is a behavioral prediction about a scheme that does not
+yet exist."
+
+**Band:** Rigorous
+
+**Justification:** Every GT carries a stable identifier that matches the IDs
+referenced in the Derivation Chains, every verified GT has a source citation
+more specific than "common knowledge", and the one unverified entry carries the
+`?` suffix (GT-6?) — the Rigorous descriptor for this criterion.
+
+### Criterion 4: Reason Upward
+
+**Quoted span:** "GT-2 + GT-4 → adding a fifth 'mixed / uncertain' category
+cannot satisfy the scheme's own stated purpose." (every chain in section 4 is
+flattened identically), and the section 5 body in full: "Nothing material here —
+no dead ends were encountered."
+
+**Band:** Hand-wavy
+
+**Justification:** Every chain runs straight from its GT-pair to its conclusion
+with no intermediate claim (the Sound descriptor — "the chain goes directly from
+GT-IDs to conclusion"), and the Abandoned Reasoning section uses the honest-depth
+escape valve with a reason that would apply equally to any analysis (the
+Hand-wavy descriptor for escape-valve abuse) — the lower of the two applicable
+bands governs, so this criterion scores Hand-wavy. It is not Absent: derivation
+chains are present for every conclusion, so the rubric's Absent descriptor
+("no derivation chains exist") does not apply.
+
+### Criterion 5: Validate
+
+**Quoted span:** "**Confidence:** MEDIUM — this chain consumes GT-6?, an
+unverified input." (the confidence line on the only chain consuming a `GT-N?`
+input).
+
+**Band:** Sound
+
+**Justification:** Confidence ratings are present on every chain, the GT-6?
+input is named in its chain's confidence line, and no chain consuming a `GT-N?`
+input is rated HIGH — but the flattened chains expose no weakest-link analysis
+and the per-chain caveat does not state what verification would raise confidence
+to HIGH, so the criterion falls one identifiable step short of Rigorous.
+
+### Criterion 6: Conclusion-to-Ground-Truth Traceability
+
+**Quoted span:** "The decomposition rule adds work to Phase 2 ... and Phase 2's
+exit criterion grows slightly more demanding (every *component*, not merely
+every assumption, must be classified)."
+
+**Band:** Sound
+
+**Justification:** Every Conclusion claim maps to a `### Conclusion:` chain
+heading in section 4 and the Key Insight names a genuinely non-obvious finding,
+but the trade-off elaboration quoted above is developed only in section 6 — the
+flattened chains are too bare to contain it — which is the Sound descriptor:
+one claim is introduced for the first time in the Conclusion section.
+
+## Overall Verdict
+
+**FAIL.**
+
+**Rule fired — the gate.** Criterion 2 (Challenge Assumptions) scores Absent.
+The rubric's gate states: any criterion scored Absent fails the entire analysis,
+regardless of how all other criteria score. Criterion 2 alone is therefore
+sufficient to fail this analysis.
+
+**Cap not triggered.** Exactly one criterion (Criterion 4, Reason Upward) scores
+Hand-wavy. The hand-wavy cap fails an analysis only at two or more Hand-wavy
+criteria; one isolated Hand-wavy is tolerated. The cap does not fire here — the
+FAIL stands entirely on the gate. (Reported honestly: the precision of the
+rubric is part of what is being demonstrated — it does not over-fire the cap on
+a single weak section.)
+
+**Score distribution:** Rigorous ×3 (Criteria 1, 3), Sound ×2 (Criteria 5, 6),
+Hand-wavy ×1 (Criterion 4), Absent ×1 (Criterion 2). Two criteria score below
+Sound — one Absent (gate) and one Hand-wavy — so the analysis is decisively
+below the pass bar (every criterion Sound or above, at most one Hand-wavy).
+
+**Disposition:** This analysis must be revised before its conclusions could be
+presented. The required fixes are localized and named by the verdict blocks:
+restore four-type classification to every Assumptions Table row (Criterion 2),
+re-insert the intermediate claim into every derivation chain (Criterion 4), and
+replace the generic Abandoned Reasoning line with the actual documented dead
+ends (Criterion 4).
+
+**Phase 3 Success Criterion 4 satisfied.** Applying the authored rubric to a
+deliberately-weak analysis produced an overall fail, localized to specific
+quoted spans per criterion — the rubric catches hand-waving rather than
+certifying it.
