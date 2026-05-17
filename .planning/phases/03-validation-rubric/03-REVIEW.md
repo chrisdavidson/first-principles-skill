@@ -11,8 +11,8 @@ findings:
   info: 3
   total: 11
 status: issues_found
-fix_status: critical_and_warning_resolved
-fix_iteration: 1
+fix_status: all_resolved
+fix_iteration: 2
 fixed_findings:
   - CR-01
   - CR-02
@@ -22,10 +22,10 @@ fixed_findings:
   - WR-04
   - WR-05
   - WR-06
-remaining_findings:
   - IN-01
   - IN-02
   - IN-03
+remaining_findings: []
 ---
 
 # Phase 3: Code Review Report
@@ -246,7 +246,9 @@ criterion.
 
 ## Info
 
-### IN-01: Heading levels make all six criteria siblings of "## Criteria"
+### IN-01: Heading levels make all six criteria siblings of "## Criteria" [RESOLVED]
+
+**Status:** Resolved in commit `b1fb4c9` — demoted all six "## Criterion N" headings to `### Criterion N` so they nest under `## Criteria`.
 
 **File:** `first-principles-thinking/references/validation-rubric.md:100`, `:106`, `:135`, `:165`, `:190`, `:226`, `:251`
 **Issue:** "## Criteria" (line 100) is an H2, and each "## Criterion N" (lines 106,
@@ -257,7 +259,9 @@ tech guidance (`CLAUDE.md`) keeps `MD003` consistent-heading discipline.
 **Fix:** Demote the six criterion headings to `### Criterion N: ...` so they nest under
 `## Criteria`.
 
-### IN-02: "produced in Phase N" couples the rubric to methodology internals
+### IN-02: "produced in Phase N" couples the rubric to methodology internals [RESOLVED]
+
+**Status:** Resolved in commit `c35ca24` — criterion intros now reference the output-template section the artifact lives in (e.g., "Problem Essence section (output section 1)") rather than the producing phase, and the Criteria preamble was softened to "Criteria 1-5 follow the order of the six-section output format ... Criterion 6 is a whole-document cross-section check applied last."
 
 **File:** `first-principles-thinking/references/validation-rubric.md:109`, `:136`, `:167`, `:194`, `:228`
 **Issue:** Each criterion intro says the artifact is "produced in Phase 1/2/3/4/5." The
@@ -274,7 +278,9 @@ Essence Statement — output section 1") rather than the producing phase; and so
 preamble to "Criteria 1-5 follow methodology-phase order; Criterion 6 is a
 whole-document cross-section check applied last."
 
-### IN-03: Section numbers cited bare, without naming the template they index
+### IN-03: Section numbers cited bare, without naming the template they index [RESOLVED]
+
+**Status:** Resolved in commit `9136ced` — the gap-citation example now names sections alongside numbers ("section 4 (Derivation Chains)", "section 6 (Conclusion)"), and the band names in the Verdict Block Format example are now bolded for uniformity with the rest of the file. The Criterion 4 and Criterion 6 leads already named their sections.
 
 **File:** `first-principles-thinking/references/validation-rubric.md:73`, `:199-200`, `:222-224`, `:252-255`
 **Issue:** Two minor consistency nits. (a) Criteria 4 and 6 cite "section 4" and
