@@ -159,8 +159,8 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02-PLAN.md — Restructure SKILL.md into a consolidated "Skill files" nav section with 2-3 sentence companion-tool blurbs (FOUND-04, TOOL-04)
-- [ ] 06-03-PLAN.md — Author the comprehensive human-facing README.md (PKG-01)
+- [x] 06-02-PLAN.md — Restructure SKILL.md into a consolidated "Skill files" nav section with 2-3 sentence companion-tool blurbs (FOUND-04, TOOL-04)
+- [x] 06-03-PLAN.md — Author the comprehensive human-facing README.md (PKG-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -178,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
 | 5. Domain-Spread Worked Examples | 8/8 | Complete   | 2026-05-18 |
-| 6. Final SKILL.md Wiring, README, and Validation | 1/4 | In Progress|  |
+| 6. Final SKILL.md Wiring, README, and Validation | 3/4 | In Progress|  |
