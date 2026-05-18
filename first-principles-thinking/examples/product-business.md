@@ -1,12 +1,16 @@
 # Worked Example: Product and Business
 
+A complete first-principles analysis of a product and business pricing question, following the standardized output format. The Phase 2 Classified Assumptions Table is the deepest section of analysis — seven assumptions examined, two discarded outright — and the abandoned reasoning path demonstrates the Phase 4 no-analogies guidance applied to a competitor-parity argument. Authored in Phase 5.
+
+---
+
 ## 1. Problem Essence
 
 **Core problem:** Does this B2B SaaS product's own economics support adding a free tier, or is the case for one resting entirely on unverified beliefs and competitor analogy?
 
 **Success criteria:**
 - A verifiable data gap (the product's free-to-paid conversion rate) is either measured or a concrete plan to measure it is recommended.
-- The competitor-parity argument ("all our competitors have a free tier") is tested against the no-analogies-as-direct-evidence rule, with a clear verdict on whether it can anchor a decision.
+- The competitor-parity argument ("all our competitors have a free tier") is tested against the Phase 4 no-analogies guidance (SKILL.md, Phase 4 Operation), with a clear verdict on whether it can anchor a decision.
 - The recommendation is grounded in what is actually known about this product's acquisition model, cost structure, and ICP behavior — not in industry convention.
 - A skeptic can evaluate whether a free tier is the right move for this specific product at this specific ARR stage, using only the reasoning and ground truths in this document.
 
@@ -73,7 +77,7 @@ GT-2 (outbound-led acquisition; no existing self-serve channel) + GT-3 (free-tie
 
 **What was tried:** Use the observation that all major competitors offer a free tier as direct evidence that this product must add one to remain competitive. The reasoning chain was: "industry-wide adoption of free tiers indicates it is a necessary competitive feature; we lack it; therefore we are at a competitive disadvantage."
 
-**Why abandoned:** This is an analogy-as-evidence move. The Phase 4 no-analogies-as-direct-evidence rule requires any reference to how others solved a similar problem to be grounded in a named GT about their situation. The competitors' free-tier economics — their conversion rates, their ICP fit, their cost structure, and whether their free tiers are net-positive for growth — are not observable without published data. Without a named GT anchoring those facts, competitor behavior is an untested belief elevated to the role of direct evidence, which the methodology does not permit. The assumption "all our competitors have a free tier, so we need one" was classified in Phase 2 as a convention with Verdict: Discard precisely because it commits this error. A derivation chain built on it collapses the moment the analogy is probed: competitors may be at a different ARR stage, serve a different ICP sub-segment, or run a free tier that is loss-leading with a known payback horizon — none of which is established as a GT for this analysis.
+**Why abandoned:** This is an analogy-as-evidence move. The Phase 4 instruction not to use analogies as direct evidence (SKILL.md, Phase 4 Operation) requires any reference to how others solved a similar problem to be grounded in a verified ground truth about their situation. The competitors' free-tier economics — their conversion rates, their ICP fit, their cost structure, and whether their free tiers are net-positive for growth — are not observable without published data. Without a named GT anchoring those facts, competitor behavior is an untested belief elevated to the role of direct evidence, which the methodology does not permit. The assumption "all our competitors have a free tier, so we need one" was classified in Phase 2 as a convention with Verdict: Discard precisely because it commits this error. A derivation chain built on it collapses the moment the analogy is probed: competitors may be at a different ARR stage, serve a different ICP sub-segment, or run a free tier that is loss-leading with a known payback horizon — none of which is established as a GT for this analysis.
 
 **What it ruled out:** Competitor parity as a sufficient justification for restructuring the pricing model. This dead end establishes that the free-tier question must be evaluated on this product's own economics — GT-1, GT-2, GT-3, and the gap in GT-4 — not by reference to what others have chosen to do.
 
