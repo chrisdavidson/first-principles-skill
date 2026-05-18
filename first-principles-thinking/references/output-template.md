@@ -96,7 +96,7 @@ Show how the ground truths combine into conclusions. Every conclusion offered in
 
 **Chain format:**
 
-```
+```text
 GT-N + GT-M → [intermediate claim] → [conclusion]
 ```
 
