@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Sharpen the Methodology and Harden the Output Format** - Tighten the 5-phase process with entry/exit criteria, per-phase artifacts, assumption classification, and a strict traceable output template (completed 2026-05-16)
 - [x] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape (completed 2026-05-17)
-- [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
+- [x] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis (completed 2026-05-17)
 - [x] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components (completed 2026-05-17)
 - [x] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric (verification found gaps — see 05-VERIFICATION.md) (completed 2026-05-18)
 - [x] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation (completed 2026-05-18)
