@@ -1,5 +1,9 @@
 # Worked Example: Product and Business
 
+A complete first-principles analysis of a product and business pricing question, following the standardized output format. The Phase 2 Classified Assumptions Table is the deepest section of analysis — seven assumptions examined, two discarded outright — and the abandoned reasoning path demonstrates the Phase 4 no-analogies guidance applied to a competitor-parity argument. Authored in Phase 5.
+
+---
+
 ## 1. Problem Essence
 
 **Core problem:** Does this B2B SaaS product's own economics support adding a free tier, or is the case for one resting entirely on unverified beliefs and competitor analogy?
