@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape (completed 2026-05-17)
 - [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
 - [x] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components (completed 2026-05-17)
-- [ ] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric
+- [x] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric (completed 2026-05-18)
 - [ ] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation
 
 ## Phase Details
@@ -126,10 +126,10 @@ Plans:
 Plans:
 **Wave 1** *(all four examples are independent — fully parallel)*
 
-- [ ] 05-01-PLAN.md — Author software-systems.md (EX-01): the monolith-to-microservices analysis with a symptom→cause Phase 1 re-framing and a two-dead-end Abandoned Reasoning centerpiece
-- [ ] 05-02-PLAN.md — Author product-business.md (EX-02): the SaaS free-tier analysis with a dense Phase 2 Assumptions Table and an analogy-as-evidence dead-end
-- [ ] 05-03-PLAN.md — Author personal-general.md (EX-03): the relocation-decision analysis with a stated-goal→real-goal Phase 1 re-framing and a pure-compensation dead-end
-- [ ] 05-04-PLAN.md — Author science-engineering.md (EX-04): the off-grid solar sizing analysis with physics-anchored quantitative chains, a GT-N? unverified input, and a peak-load dead-end
+- [x] 05-01-PLAN.md — Author software-systems.md (EX-01): the monolith-to-microservices analysis with a symptom→cause Phase 1 re-framing and a two-dead-end Abandoned Reasoning centerpiece
+- [x] 05-02-PLAN.md — Author product-business.md (EX-02): the SaaS free-tier analysis with a dense Phase 2 Assumptions Table and an analogy-as-evidence dead-end
+- [x] 05-03-PLAN.md — Author personal-general.md (EX-03): the relocation-decision analysis with a stated-goal→real-goal Phase 1 re-framing and a pure-compensation dead-end
+- [x] 05-04-PLAN.md — Author science-engineering.md (EX-04): the off-grid solar sizing analysis with physics-anchored quantitative chains, a GT-N? unverified input, and a peak-load dead-end
 
 ### Phase 6: Final SKILL.md Wiring, README, and Validation
 
@@ -157,5 +157,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
-| 5. Domain-Spread Worked Examples | 0/4 | Not started | - |
+| 5. Domain-Spread Worked Examples | 4/4 | Complete   | 2026-05-18 |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
