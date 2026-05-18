@@ -158,19 +158,33 @@ Do not present conclusions until the rubric gate is cleared.
 
 ---
 
-## Companion thinking tools
+## Skill files
 
-Reach for a companion tool when the analysis needs it:
+### Companion tools
 
-- **Stuck on why something is true** → [references/five-whys.md](references/five-whys.md) — root-cause drill-down procedure
-- **Stress-testing a proposed solution** → [references/pre-mortem.md](references/pre-mortem.md) — prospective-hindsight failure analysis
-- **Choosing between viable options** → [references/trade-off-analysis.md](references/trade-off-analysis.md) — weighted trade-off procedure
+**[Five Whys](references/five-whys.md)** — Root-cause drill-down procedure. Use when an
+analysis is stuck on *why* something is true and the surface explanation feels insufficient.
+The tool branches causal chains iteratively until a root cause passes a testability check,
+then hands back to Phase 3 (Establish Ground Truths) with a verified causal fact.
 
-## Worked examples
+**[Pre-mortem](references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use
+during Phase 5 (Validate) to stress-test a proposed solution by imagining it has already
+failed and working backward to find the failure modes. Findings surface as weak-link flags
+or confidence caveats in the signed-off analysis.
 
-Match the domain, then read the relevant example to calibrate format and rigor:
+**[Trade-off Analysis](references/trade-off-analysis.md)** — Weighted-criteria decision
+procedure. Use during Phase 4 (Reason Upward) when multiple viable options remain after
+ground truths are established. Criteria are weighted before scoring to prevent
+post-hoc rationalization, and the result feeds back as a derivation chain step.
+
+### Worked examples
 
 - Software and systems → [examples/software-systems.md](examples/software-systems.md)
 - Product and business → [examples/product-business.md](examples/product-business.md)
 - Personal and general → [examples/personal-general.md](examples/personal-general.md)
 - Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
+
+### Reference docs
+
+- Output format template → [references/output-template.md](references/output-template.md)
+- Validation rubric → [references/validation-rubric.md](references/validation-rubric.md)
