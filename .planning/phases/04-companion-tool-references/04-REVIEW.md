@@ -13,6 +13,7 @@ findings:
   info: 4
   total: 7
 status: issues_found
+warnings_resolved: 3
 ---
 
 # Phase 4: Code Review Report
@@ -43,6 +44,8 @@ that violates its own procedure undermines the methodology it teaches.
 
 ### WR-01: Trade-off example uses 4 criteria, violating the procedure's "5–8 criteria" rule
 
+**Status:** RESOLVED (commit ec0f209) — example expanded to 6 criteria.
+
 **File:** `first-principles-thinking/references/trade-off-analysis.md:24-26, 61-69`
 
 **Issue:** Step 2 of the procedure explicitly mandates "Identify 5–8 criteria that
@@ -63,6 +66,8 @@ preferred — keep the rule strict and make the example obey it.
 
 ### WR-02: Trade-off example never demonstrates the mandatory "Reliability risk" scoring direction, creating an ambiguous scale
 
+**Status:** RESOLVED (commit ec0f209) — Step 4 instruction added; criterion renamed to "Reliability".
+
 **File:** `first-principles-thinking/references/trade-off-analysis.md:64, 74-75`
 
 **Issue:** The criterion is named "Reliability risk." Higher *risk* is worse, yet
@@ -81,6 +86,8 @@ risk')." Then rename the example criterion to "Reliability" so the name matches
 the scoring direction. This removes a genuine source of incorrect results.
 
 ### WR-03: 5-Whys example branches do not perform the mandated lateral scan at every level
+
+**Status:** RESOLVED (commit 3593c23) — rejected alternate causes added at level 2 in both branches.
 
 **File:** `first-principles-thinking/references/five-whys.md:31-33, 52-61`
 
