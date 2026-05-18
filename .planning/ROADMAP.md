@@ -122,7 +122,14 @@ Plans:
   3. Each example, when scored against the validation rubric, passes the gate (no criterion at the lowest band).
   4. The four examples differ in structure and methodology emphasis — no two are the same skeleton with domain nouns swapped.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1** *(all four examples are independent — fully parallel)*
+
+- [ ] 05-01-PLAN.md — Author software-systems.md (EX-01): the monolith-to-microservices analysis with a symptom→cause Phase 1 re-framing and a two-dead-end Abandoned Reasoning centerpiece
+- [ ] 05-02-PLAN.md — Author product-business.md (EX-02): the SaaS free-tier analysis with a dense Phase 2 Assumptions Table and an analogy-as-evidence dead-end
+- [ ] 05-03-PLAN.md — Author personal-general.md (EX-03): the relocation-decision analysis with a stated-goal→real-goal Phase 1 re-framing and a pure-compensation dead-end
+- [ ] 05-04-PLAN.md — Author science-engineering.md (EX-04): the off-grid solar sizing analysis with physics-anchored quantitative chains, a GT-N? unverified input, and a peak-load dead-end
 
 ### Phase 6: Final SKILL.md Wiring, README, and Validation
 
@@ -150,5 +157,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
-| 5. Domain-Spread Worked Examples | 0/TBD | Not started | - |
+| 5. Domain-Spread Worked Examples | 0/4 | Not started | - |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
