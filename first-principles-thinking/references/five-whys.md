@@ -51,14 +51,20 @@ to evidence for a link, flag it as assumed before continuing.
 
 - Why? → The loaf is too large for one person to finish quickly.
   - Why? → Only standard-size loaves are bought.
+    - Why else? — considered: the household eats less bread than it used to;
+      rejected, weekly bread consumption has not changed — only the loaf size on
+      offer has.
     - Why? → Half-loaves were not known to be available.
       - **Stop:** Corrective action — check the store for half-loaves or switch to a
-        smaller format. In control, specific, prevents recurrence. **(Branch ends here.)**
+        smaller format. Specific, in control, prevents recurrence. **(Branch ends here.)**
 - Why (else at level 1)? → The bread is stored on the counter.
   - Why? → No one sealed the bag after the first slice.
+    - Why else? — considered: the bag itself is defective and will not seal;
+      rejected, the bag seals fine when the clip is used — the issue is that the
+      clip is not at hand.
     - Why? → The bag clip is kept in a different drawer.
       - **Stop:** Corrective action — keep a clip at the bread storage point.
-        In control, specific. **(Branch ends here.)**
+        Specific, in control, prevents recurrence. **(Branch ends here.)**
 
 Both branches reach actionable corrective actions. The root causes are a purchasing
 habit and a storage habit — not the bread itself.
