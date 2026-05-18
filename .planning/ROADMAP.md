@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: SKILL.md Skeleton and Frontmatter** - Build the discoverable, lean SKILL.md body with valid frontmatter, the resident methodology, and the navigation map shape (completed 2026-05-17)
 - [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
 - [x] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components (completed 2026-05-17)
-- [ ] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric (verification found gaps — see 05-VERIFICATION.md)
+- [x] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric (verification found gaps — see 05-VERIFICATION.md) (completed 2026-05-18)
 - [ ] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation
 
 ## Phase Details
@@ -133,10 +133,10 @@ Plans:
 
 **Gap Closure** *(verification found gaps — see 05-VERIFICATION.md; all four plans are independent, fully parallel)*
 
-- [ ] 05-05-PLAN.md — Close GAP-01/02/03 in software-systems.md: name GT-3 in the Conclusion A chain header, make Section 6 synthesis-only, convert lettered Conclusion headings to template form, scope the absolute architecture phrasing
-- [ ] 05-06-PLAN.md — Close GAP-01/03 in product-business.md: replace the invented "Phase 4 no-analogies-as-direct-evidence rule" with an accurate SKILL.md citation, add the missing preamble
-- [ ] 05-07-PLAN.md — Close GAP-03 in personal-general.md: make the ~$18,000 cost-differential caveat phrasing consistent between Chain 1 and Section 6
-- [ ] 05-08-PLAN.md — Close GAP-01/03 in science-engineering.md: account for battery round-trip efficiency in the panel-sizing chain's loss model, record the IN-04 escape-valve non-action decision
+- [x] 05-05-PLAN.md — Close GAP-01/02/03 in software-systems.md: name GT-3 in the Conclusion A chain header, make Section 6 synthesis-only, convert lettered Conclusion headings to template form, scope the absolute architecture phrasing
+- [x] 05-06-PLAN.md — Close GAP-01/03 in product-business.md: replace the invented "Phase 4 no-analogies-as-direct-evidence rule" with an accurate SKILL.md citation, add the missing preamble
+- [x] 05-07-PLAN.md — Close GAP-03 in personal-general.md: make the ~$18,000 cost-differential caveat phrasing consistent between Chain 1 and Section 6
+- [x] 05-08-PLAN.md — Close GAP-01/03 in science-engineering.md: account for battery round-trip efficiency in the panel-sizing chain's loss model, record the IN-04 escape-valve non-action decision
 
 ### Phase 6: Final SKILL.md Wiring, README, and Validation
 
@@ -164,5 +164,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. SKILL.md Skeleton and Frontmatter | 2/2 | Complete   | 2026-05-17 |
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
-| 5. Domain-Spread Worked Examples | 4/4 | Complete   | 2026-05-18 |
+| 5. Domain-Spread Worked Examples | 8/8 | Complete   | 2026-05-18 |
 | 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
