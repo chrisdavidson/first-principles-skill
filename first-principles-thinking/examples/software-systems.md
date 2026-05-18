@@ -84,16 +84,19 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ## 4. Derivation Chains
 
-### Conclusion A: Architecture is not demonstrably the primary bottleneck
+### Conclusion: Architecture is not demonstrably the primary bottleneck
 
 GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass
-including a complete test suite run)
-→ The deploy cycle floor is set by the test suite wall-clock duration. A monolith running a
-  fully-parallelized test suite in 8 minutes with a blue-green deploy strategy requires only
-  8 minutes per deploy — no architectural change is needed to achieve that outcome. Architecture
-  determines whether services can deploy independently, but the current bottleneck is the
-  sequential pipeline that blocks every deploy behind a 45-minute queue regardless of the
-  code change size.
+including a complete test suite run) + GT-3 (2 deploys/day measured ceiling imposed by the
+sequential pipeline)
+→ The deploy cycle floor is set by the test suite wall-clock duration, and the 2-deploy/day
+  ceiling follows directly from that floor combined with the full-pipeline-per-deploy
+  requirement. A monolith running a fully-parallelized test suite in 8 minutes with a
+  blue-green deploy strategy requires only 8 minutes per deploy — no architectural change is
+  needed to remove the deploy-frequency bottleneck. Architecture determines whether services
+  can deploy independently, but the pipeline structure (sequential execution + full-suite
+  requirement), not the monolithic architecture itself, is the sufficient cause of the
+  measured 2-deploy/day ceiling.
 → Architecture cannot be concluded to be the primary deploy bottleneck until the test suite
   runtime, pipeline step serialization, and deployment restart time have been profiled and
   ruled out as the dominant cause. The 45-minute pipeline is a sufficient explanation of the
@@ -103,7 +106,7 @@ including a complete test suite run)
 
 ---
 
-### Conclusion B: The shared database coupling problem is separable from a microservices migration
+### Conclusion: The shared database coupling problem is separable from a microservices migration
 
 GT-5 (single shared relational database schema with no service-boundary ownership) + GT-4
 (microservices require per-service independent deployment pipelines and inter-service contracts)
@@ -124,19 +127,22 @@ GT-5 (single shared relational database schema with no service-boundary ownershi
 
 ---
 
-### Conclusion C: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
+### Conclusion: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
 GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequential pipeline)
 + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
-→ The cost-risk profile of available interventions varies by orders of magnitude. Pipeline
-  parallelization (splitting the test suite across concurrent CI workers) is a configuration-
-  level change achievable in days with no architectural risk and is fully reversible; schema
-  decomposition along bounded-context lines is weeks-to-months of careful migration work with
-  moderate risk and is largely reversible; a full monolith-to-microservices migration is months-
-  to-years of architectural work with high risk and is not easily reversible, and it introduces
-  the full GT-4 operational overhead before delivering any deploy-speed benefit. Committing to
-  the highest-cost option before ruling out lower-cost options is not consistent with minimum
-  viable intervention principles.
+→ The cost-risk profile of available interventions varies by orders of magnitude. The pipeline
+  has four measurable stages: test suite execution, artifact build, deployment and restart, and
+  health-check wait. Profiling these stages (a configuration-level instrumentation taking
+  approximately 1 day) identifies which stage is the dominant cost without requiring any code
+  change. Pipeline parallelization (splitting the test suite across concurrent CI workers) is
+  a configuration-level change achievable in days to 2 weeks with no architectural risk and
+  is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of
+  careful migration work with moderate risk and is largely reversible; a full
+  monolith-to-microservices migration is months-to-years of architectural work with high risk
+  and is not easily reversible, and it introduces the full GT-4 operational overhead before
+  delivering any deploy-speed benefit. Committing to the highest-cost option before ruling out
+  lower-cost options is not consistent with minimum viable intervention principles.
 → The rational sequencing is: profile the pipeline to identify the specific bottleneck, apply
   the lowest-cost intervention that removes it (almost certainly parallelization first), and
   revisit microservices only after profiling demonstrates that the bottleneck is architectural
@@ -255,17 +261,18 @@ as a follow-on after parallelization, but it is not the primary intervention.
 **Recommended approach:** Execute a three-step intervention in order, stopping when deploy
 frequency reaches the target:
 
-1. **Profile the pipeline** (1 day): instrument the CI/CD pipeline to measure the wall-clock
-   contribution of each stage — test suite execution, artifact build, deployment and restart,
-   health-check wait. Identify the dominant bottleneck. In most cases for a codebase of this
-   profile, the test suite runtime (GT-1) is the dominant cost; profiling confirms or refutes
-   this.
+1. **Profile the pipeline** (approximately 1 day, as established in the minimum-viable-intervention
+   chain): instrument the CI/CD pipeline to measure the wall-clock contribution of each stage —
+   test suite execution, artifact build, deployment and restart, health-check wait. Identify the
+   dominant bottleneck. In most cases for a codebase of this profile, the test suite runtime
+   (GT-1) is the dominant cost; profiling confirms or refutes this.
 
-2. **Parallelize the test suite and decouple the restart** (days to 2 weeks): split the test
-   suite into shards and run them concurrently across multiple CI workers; introduce a blue-green
-   or rolling deploy strategy to eliminate the coordinated-restart requirement from GT-2. These
-   are CI configuration changes with no changes to application code and no architectural risk.
-   After this step, measure deploy frequency. If the target is met, stop.
+2. **Parallelize the test suite and decouple the restart** (days to 2 weeks, as established in
+   the minimum-viable-intervention chain): split the test suite into shards and run them
+   concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy
+   to eliminate the coordinated-restart requirement from GT-2. These are CI configuration
+   changes with no changes to application code and no architectural risk. After this step,
+   measure deploy frequency. If the target is met, stop.
 
 3. **If profiling identifies schema coupling as a bottleneck**: begin incremental schema
    decomposition along bounded-context lines, guided by the module boundaries already present in
@@ -278,7 +285,8 @@ Revisit the microservices question as a separate analysis after steps 1–3 are 
 after removing the pipeline bottleneck and decoupling the schema, the team's deploy frequency
 still does not meet business needs — or if the team's real goal is independent team ownership
 and feature velocity rather than deploy speed — that is a different problem and warrants a
-fresh first-principles analysis with the real goal stated in the Essence Statement.
+fresh first-principles analysis with the real goal stated in the Essence Statement (Section 1,
+Problem Essence).
 
 **Key insight:** "Deploys are too slow" is a symptom with multiple independent possible causes
 — test suite runtime, pipeline step serialization, deployment restart overhead, and database
