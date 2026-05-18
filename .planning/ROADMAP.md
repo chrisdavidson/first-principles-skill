@@ -122,7 +122,7 @@ Plans:
   3. Each example, when scored against the validation rubric, passes the gate (no criterion at the lowest band).
   4. The four examples differ in structure and methodology emphasis — no two are the same skeleton with domain nouns swapped.
 
-**Plans**: 4 plans
+**Plans**: 8 plans (4 original + 4 gap-closure)
 Plans:
 **Wave 1** *(all four examples are independent — fully parallel)*
 
@@ -130,6 +130,13 @@ Plans:
 - [x] 05-02-PLAN.md — Author product-business.md (EX-02): the SaaS free-tier analysis with a dense Phase 2 Assumptions Table and an analogy-as-evidence dead-end
 - [x] 05-03-PLAN.md — Author personal-general.md (EX-03): the relocation-decision analysis with a stated-goal→real-goal Phase 1 re-framing and a pure-compensation dead-end
 - [x] 05-04-PLAN.md — Author science-engineering.md (EX-04): the off-grid solar sizing analysis with physics-anchored quantitative chains, a GT-N? unverified input, and a peak-load dead-end
+
+**Gap Closure** *(verification found gaps — see 05-VERIFICATION.md; all four plans are independent, fully parallel)*
+
+- [ ] 05-05-PLAN.md — Close GAP-01/02/03 in software-systems.md: name GT-3 in the Conclusion A chain header, make Section 6 synthesis-only, convert lettered Conclusion headings to template form, scope the absolute architecture phrasing
+- [ ] 05-06-PLAN.md — Close GAP-01/03 in product-business.md: replace the invented "Phase 4 no-analogies-as-direct-evidence rule" with an accurate SKILL.md citation, add the missing preamble
+- [ ] 05-07-PLAN.md — Close GAP-03 in personal-general.md: make the ~$18,000 cost-differential caveat phrasing consistent between Chain 1 and Section 6
+- [ ] 05-08-PLAN.md — Close GAP-01/03 in science-engineering.md: account for battery round-trip efficiency in the panel-sizing chain's loss model, record the IN-04 escape-valve non-action decision
 
 ### Phase 6: Final SKILL.md Wiring, README, and Validation
 
