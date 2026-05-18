@@ -22,6 +22,7 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 <!-- Shipped and confirmed valuable. -->
 
 - [x] Sharpen the 5-phase methodology — tighten the process, output format, and rigor where the original is loose — *Validated in Phase 1: Sharpen the Methodology and Harden the Output Format (5/5 success criteria verified)*
+- [x] Build out the companion thinking tools (5-Whys, pre-mortem, trade-off analysis) as fully usable reference components inside the single skill — *Validated in Phase 4: Companion Tool References (4/4 success criteria verified)*
 
 ### Active
 
@@ -29,7 +30,6 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 
 - [ ] Expand worked examples to cover software/systems, product/business, personal/general, and science/engineering domains
 - [ ] Add a Markdown validation rubric — a scoring/self-check the model applies to verify an analysis followed first-principles rigor
-- [ ] Build out the companion thinking tools (5-Whys, pre-mortem, trade-off analysis) as fully usable reference components inside the single skill
 - [ ] Keep the skill installable the same way as the original (copy or symlink into a Claude Code skills directory)
 
 ### Out of Scope
@@ -85,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-17 after Phase 2 completion — `SKILL.md` skeleton, frontmatter, and navigation map shipped*
+*Last updated: 2026-05-18 after Phase 4 completion — 5-Whys, pre-mortem, and trade-off analysis shipped as self-contained `references/` companion tools*
