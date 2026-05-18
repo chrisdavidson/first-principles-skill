@@ -3,15 +3,15 @@
 A complete first-principles analysis of a software or systems design question, following the
 standardized output format and showing at least one abandoned reasoning path. Authored in Phase 5.
 
----
-
-## 1. Problem Essence
-
-**Scenario:** A 6-year-old e-commerce platform — catalog, cart, checkout, and fulfillment in a
+**Scenario.** A 6-year-old e-commerce platform — catalog, cart, checkout, and fulfillment in a
 single Rails monolith (~350 KLOC) — has a CI/CD pipeline that takes approximately 45 minutes
 end-to-end. Every deploy requires a full test suite run and a coordinated application restart,
 limiting the team of 12 engineers to roughly 2 deploys per day. Engineering leadership has
 concluded: "deploys are too slow, we need microservices."
+
+---
+
+## 1. Problem Essence
 
 **Core problem:** What is the actual bottleneck in the deploy cycle for this monolith, and what
 is the minimum intervention that removes it — evaluated independently of whether microservices
