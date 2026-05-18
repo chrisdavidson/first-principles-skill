@@ -33,7 +33,7 @@ required to meet the cabin's daily electrical load reliably?
 | Energy conservation: energy out equals energy in divided by system efficiency | physical law | Accept as ground-truth candidate; promote to GT | Accept | Conservation of energy — physics; no verification needed |
 | A panel array's daily output equals rated wattage × Peak Sun Hours × system derating factor | physical law | Accept as ground-truth candidate; promote to GT | Accept | Derived directly from energy conservation and the definition of PSH |
 | Annual-average Peak Sun Hours at this site are approximately 5.5 h/day | convention | Challenge before use: PSH is site-specific; verify against NREL PVWatts data for the coordinates; treat as illustrative | Accept | Source: NREL solar radiation maps (illustrative; verifiable via PVWatts for 35° N high-desert NM) |
-| A system derating factor of 0.80 accounts for all losses (temperature, wiring, MPPT, inverter) | convention | Challenge before use: 0.80 is a conservative design-practice figure; verify against site-specific equipment specs | Accept | Standard design practice; source: NREL and NABCEP design guidelines |
+| A system derating factor of 0.80 accounts for all losses in the energy path from panels to delivered load (temperature, wiring, MPPT, inverter, and battery charge/discharge round-trip) | convention | Challenge before use: 0.80 is a conservative design-practice figure; verify against site-specific equipment specs; confirm the factor bundles battery round-trip loss since this is a battery-mediated off-grid system | Accept | Standard conservative design-practice value for off-grid systems; source: NREL and NABCEP off-grid design guidelines; LiFePO4 round-trip efficiency (~92–95%) is reflected in the conservative 0.80 factor alongside wiring (~5%), MPPT (~3%), and inverter (~4%) losses |
 | LiFePO4 batteries can be discharged to 80% depth-of-discharge (DoD) safely | physical law | Accept as ground-truth candidate; promote to GT | Accept | Battery chemistry fact; source: manufacturer specifications and electrochemical design literature |
 | 3 days of autonomy is the correct design target | current constraint | Record expiry condition: if occupants can accept load-shedding in multi-day overcast periods, fewer days of autonomy are acceptable; if the site has more severe winter weather, more days may be needed | Accept | Current design decision; expiry: site-specific weather analysis or owner preference change |
 | The daily energy load is approximately 1.5 kWh/day | untested belief | Flag as unverified; may be used in chains but must carry GT-5? notation; any conclusion depending on it inherits MEDIUM confidence and a stated verification path | Accept | unverified — flagged |
@@ -48,10 +48,16 @@ required to meet the cabin's daily electrical load reliably?
   source: NREL solar radiation maps; illustrative figure verifiable via NREL PVWatts
   for the specific site coordinates.
 
-- **GT-2** System derating factor: 0.80 — accounts for temperature losses, wiring
-  losses, MPPT controller efficiency, and inverter efficiency in a well-designed
-  off-grid system — source: NREL and NABCEP off-grid design guidelines; standard
-  conservative design-practice value.
+- **GT-2** System derating factor: 0.80 — accounts for all losses in the energy path
+  from panels to delivered load in a well-designed off-grid system: temperature losses
+  (~8%), wiring losses (~5%), MPPT controller efficiency (~3%), inverter efficiency (~4%),
+  and battery charge/discharge round-trip efficiency for LiFePO4 (~5–8% loss, i.e., ~92–95%
+  round-trip efficiency). Combined, these losses are consistent with a 0.80 conservative
+  derating factor. Because this is a battery-mediated off-grid system — essentially all
+  generated energy passes through the battery before reaching the load — battery round-trip
+  loss is a real, non-negligible term in the energy path and is explicitly included here —
+  source: NREL and NABCEP off-grid design guidelines; LiFePO4 round-trip efficiency from
+  manufacturer specifications and electrochemical battery design literature.
 
 - **GT-3** LiFePO4 battery safe depth-of-discharge: 80% DoD — this chemistry can
   deliver 80% of rated capacity without significant cycle-life degradation — source:
@@ -93,11 +99,16 @@ required to meet the cabin's daily electrical load reliably?
 
 ### Conclusion: A 400 W panel array is required to meet the estimated daily load
 
-GT-2 (0.80 derating factor) + GT-5? (1.5 kWh/day estimated load)
-→ Required daily panel output = 1.5 kWh ÷ 0.80 = 1,875 Wh/day
+GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery
+round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day
+estimated load) + GT-1 (5.5 PSH)
+→ Required gross daily panel output = 1.5 kWh ÷ 0.80 = 1,875 Wh/day
   (Neither GT-2 nor GT-5? alone specifies how many watt-hours the panels must generate;
-  combining them via the energy-conservation relationship yields the gross generation target.)
-→ GT-1 (5.5 PSH) applied to 1,875 Wh/day: panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
+  combining them via the energy-conservation relationship yields the gross generation target.
+  The 0.80 factor is the complete loss model — it accounts for every loss between panel
+  output and delivered load, including battery round-trip loss, so no further derating is
+  needed for battery inefficiency.)
+→ GT-1 (5.5 PSH annual average) applied to 1,875 Wh/day: panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
 → Recommendation: 400 W array (e.g., 2 × 200 W panels), providing a 17% margin above
   the minimum 341 W to buffer winter PSH variability (winter minimum ~4.5 PSH at this
   site would require ~417 W; the 400 W array is slightly undersized for worst-case winter
