@@ -152,8 +152,8 @@ of sustaining 250 W of continuous output.
 load continuously" was discarded in Phase 2 (Verdict: Discard) because peak instantaneous
 power is not the correct sizing variable for daily energy storage and generation. The
 water pump runs for only 30 minutes per day; sizing the system to sustain 250 W
-continuously would require roughly 250 W × 24 h = 6 kWh/day of panel output — more than
-four times the actual 1.5 kWh/day load — producing a massively overbuilt installation.
+continuously would require roughly 250 W × 24 h = 6 kWh/day of panel output — exactly
+four times the actual 1.5 kWh/day load (6 ÷ 1.5 = 4.0) — producing a massively overbuilt installation.
 The correct sizing variable is daily energy throughput in watt-hours: how much total
 energy the system must store and deliver each day. Peak instantaneous power (watts) is the
 correct variable only for inverter sizing and wire gauge selection, not for panel array
@@ -180,7 +180,7 @@ measured daily load consistently exceeds 1.8 kWh/day, upsize to a 600 W array an
 peak instantaneous power (W). The water pump's 250 W draw appears to dominate the load,
 but because it runs only 30 minutes per day it contributes only 125 Wh to the daily
 total — less than the refrigerator (540 Wh) or the laptop (390 Wh). A peak-power framing
-produces a specification more than four times too large; an energy-throughput framing
+produces a specification four times too large; an energy-throughput framing
 produces the correct specification. The largest single uncertainty in the sizing outputs
 is not the physics (PSH, derating factor, and DoD are well-characterized) but the load
 estimate: occupant behavior and seasonal variation can shift the daily load by 30–50%
