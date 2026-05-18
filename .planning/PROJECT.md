@@ -24,13 +24,14 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 - [x] Sharpen the 5-phase methodology — tighten the process, output format, and rigor where the original is loose — *Validated in Phase 1: Sharpen the Methodology and Harden the Output Format (5/5 success criteria verified)*
 - [x] Build out the companion thinking tools (5-Whys, pre-mortem, trade-off analysis) as fully usable reference components inside the single skill — *Validated in Phase 4: Companion Tool References (4/4 success criteria verified)*
 - [x] Expand worked examples to cover software/systems, product/business, personal/general, and science/engineering domains — *Validated in Phase 5: Domain-Spread Worked Examples (4/4 must-haves verified, after GAP-01/02/03 gap closure and code-review fixes WR-01–WR-05)*
+- [x] Add a Markdown validation rubric — a scoring/self-check the model applies to verify an analysis followed first-principles rigor — *Validated in Phase 3: Validation Rubric*
+- [x] Keep the skill installable the same way as the original (copy or symlink into a Claude Code skills directory) — *Validated in Phase 6: Final SKILL.md Wiring, README, and Validation (5/5 success criteria verified — copy/symlink install confirmed, no build step, schema validation passes)*
 
 ### Active
 
 <!-- Current scope. Building toward these. v1 = enhanced single skill, pure Markdown. -->
 
-- [ ] Add a Markdown validation rubric — a scoring/self-check the model applies to verify an analysis followed first-principles rigor
-- [ ] Keep the skill installable the same way as the original (copy or symlink into a Claude Code skills directory)
+- All v1 requirements validated. The enhanced single-skill milestone is complete and shippable.
 
 ### Out of Scope
 
@@ -85,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after Phase 5 completion — four domain-spread worked examples (software, product, personal, science) shipped, each showing a real dead-end and clearing the validation rubric*
+*Last updated: 2026-05-18 after Phase 6 completion — SKILL.md navigation consolidated, human-facing README.md written, and all three validation gates (Agent Skills schema, markdownlint, link resolution) pass. The v1 enhanced single-skill milestone is complete and shippable.*
