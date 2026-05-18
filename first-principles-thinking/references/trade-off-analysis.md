@@ -32,7 +32,10 @@ direct decision, not a trade-off.
    discipline: it prevents reverse-engineering weights to favor a choice you have
    already made intuitively.
 
-4. **Score each option** on each criterion independently (1–5).
+4. **Score each option** on each criterion independently (1–5). Phrase every
+   criterion so that a higher score is always more desirable (e.g., use
+   "Reliability" not "Reliability risk"). A scale where higher is sometimes
+   better and sometimes worse silently inverts the result.
 
 5. **Compute:** multiply weight × score per criterion; sum across criteria per
    option.
@@ -60,23 +63,25 @@ machine.
 
 **Step 2 — criteria locked:**
 
-| Criterion          | Weight |
-|--------------------|--------|
-| Performance        | 4      |
-| Reliability risk   | 5      |
-| Cost               | 3      |
-| Warranty / support | 4      |
+| Criterion                       | Weight |
+|----------------------------------|--------|
+| Performance                      | 4      |
+| Reliability                      | 5      |
+| Cost                             | 3      |
+| Warranty / support               | 4      |
+| Portability                      | 2      |
+| Ease of setup (non-technical)    | 3      |
 
 **Steps 3 → 4 — weights locked, then scored independently:**
 
-| Option     | Performance (×4) | Reliability risk (×5) | Cost (×3) | Warranty (×4) | Total  |
-|------------|------------------|-----------------------|-----------|----------------|--------|
-| A (refurb) | 4 × 4 = 16       | 2 × 5 = 10            | 5 × 3 = 15 | 2 × 4 = 8    | **49** |
-| B (new)    | 2 × 4 = 8        | 5 × 5 = 25            | 3 × 3 = 9  | 5 × 4 = 20   | **62** |
+| Option     | Performance (×4) | Reliability (×5) | Cost (×3)  | Warranty (×4) | Portability (×2) | Ease of setup (×3) | Total  |
+|------------|------------------|------------------|------------|---------------|------------------|--------------------|--------|
+| A (refurb) | 4 × 4 = 16       | 2 × 5 = 10       | 5 × 3 = 15 | 2 × 4 = 8     | 3 × 2 = 6        | 3 × 3 = 9          | **64** |
+| B (new)    | 2 × 4 = 8        | 5 × 5 = 25       | 3 × 3 = 9  | 5 × 4 = 20    | 4 × 2 = 8        | 4 × 3 = 12         | **82** |
 
-**Result:** B (new entry-level) scores 62 vs. 49. The gap is driven by
-reliability risk and warranty — criteria weighted high because device failure
-would leave the parent without support. Recommendation: buy new.
+**Result:** B (new entry-level) scores 82 vs. 64. The gap is driven by
+reliability and warranty — criteria weighted high because device failure would
+leave the parent without support. Recommendation: buy new.
 
 ---
 
