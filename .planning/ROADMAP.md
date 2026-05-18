@@ -155,7 +155,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Create the markdownlint config and link-resolution check; fix the 5 pre-existing MD040 fenced-code violations
+- [x] 06-01-PLAN.md — Create the markdownlint config and link-resolution check; fix the 5 pre-existing MD040 fenced-code violations
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -178,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
 | 5. Domain-Spread Worked Examples | 8/8 | Complete   | 2026-05-18 |
-| 6. Final SKILL.md Wiring, README, and Validation | 0/4 | Not started | - |
+| 6. Final SKILL.md Wiring, README, and Validation | 1/4 | In Progress|  |
