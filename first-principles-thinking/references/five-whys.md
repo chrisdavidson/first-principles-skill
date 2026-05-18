@@ -94,5 +94,8 @@ forces consideration of causes that contradict the hypothesis.
 
 The root cause(s) identified here are inputs to the 5-phase methodology. If you reached
 for this tool during Phase 2 (Challenge Assumptions), add each root cause as a challenged
-assumption row in the Classified Assumptions Table. If you reached for it during Phase 4
+assumption row in the Classified Assumptions Table. If you reached for it during Phase 3
+(Establish Ground Truths), promote each evidence-backed root cause to a ground truth —
+give it a stable GT-N identifier and a source citation, or the `GT-N?` suffix if its
+causal link is still assumed rather than verified. If you reached for it during Phase 4
 (Reason Upward), add each cause as a validated step in the relevant Derivation Chain.
