@@ -31,7 +31,22 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 
 <!-- Current scope. Building toward these. v1 = enhanced single skill, pure Markdown. -->
 
-- All v1 requirements validated. The enhanced single-skill milestone is complete and shippable.
+- v1.0 shipped (2026-05-18) — all 27 v1 requirements validated; the enhanced
+  single-skill milestone is complete and tagged. No active milestone scope until
+  the next one is defined via `/gsd:new-milestone`.
+
+### Next Milestone Candidates
+
+<!-- Carried-forward intent for v1.1+. Not committed scope. -->
+
+- **Milestone 2 — collection of related thinking skills:** split the companion
+  tools (5-Whys, pre-mortem, trade-off analysis) into a Claude Code plugin that
+  distributes them with a `plugin-name:skill-name` namespace.
+- **Milestone 3 — programmatic skill builder:** a Python program (the reserved
+  `uv` scaffold) that generates `SKILL.md` + reference files.
+- **v1.x polish:** close the two carried-forward tech-debt items (Five Whys
+  Phase 3 handback line; `trade-off-analysis.md` length), and the v2 `META-01/02/03`
+  depth requirements (self-application reference, expanded taxonomy, extra examples).
 
 ### Out of Scope
 
@@ -48,6 +63,12 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 - **Working directory:** `first-principles-skills` (plural) currently holds only a `uv init` Python scaffold (`main.py`, empty `README.md`, no dependencies). The plural name and `uv` scaffold are deliberate — they reserve room for future milestones (a collection of skills, then a programmatic builder). v1 does not touch the Python side.
 - **Three-milestone vision:** (1) enhanced/extended single skill — *this milestone*; (2) collection of related thinking skills; (3) potential Python program that programmatically builds skills.
 - **Self-referential goal:** the project's own design decisions are to be made *using* first-principles analysis — the methodology is the planning philosophy, not just the deliverable.
+- **Current state (post-v1.0):** the skill ships as `first-principles-thinking/` —
+  ~1,700 lines of pure Markdown across `SKILL.md`, 5 `references/` files, and 4
+  `examples/` files, plus a human-facing `README.md`. Built in 6 phases / 22 plans
+  over 3 days (175 commits). All three validation gates pass (Agent Skills schema,
+  markdownlint, link resolution). Installs by copy or symlink with no build step.
+  Two minor tech-debt items carried forward; Nyquist coverage is advisory-partial.
 
 ## Constraints
 
@@ -62,11 +83,12 @@ fails, the methodology must still produce reasoning a skeptic cannot dismiss as 
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| v1 is the enhanced single skill only | Keeps the first milestone focused and shippable; collection and Python builder are separable later work | — Pending |
-| Validation tooling is a Markdown rubric, not a script | Honors "pure Markdown v1"; a self-check the model applies needs no executable code | — Pending |
-| Companion tools (5-Whys, pre-mortem, trade-off) live as reference files inside the single skill | v1 is one skill, not a collection — they become usable components, not separate skills | — Pending |
-| Keep `uv` scaffold untouched in v1 | It is foundation for the milestone-3 Python builder; removing or using it now would be premature | — Pending |
-| Use first-principles analysis to drive the project's own design decisions | The user's explicit "build itself" goal — dogfooding the methodology as planning philosophy | — Pending |
+| v1 is the enhanced single skill only | Keeps the first milestone focused and shippable; collection and Python builder are separable later work | ✓ Good — v1.0 shipped focused and on scope, no creep |
+| Validation tooling is a Markdown rubric, not a script | Honors "pure Markdown v1"; a self-check the model applies needs no executable code | ✓ Good — rubric proven to FAIL a deliberately weak analysis (Phase 3) |
+| Companion tools (5-Whys, pre-mortem, trade-off) live as reference files inside the single skill | v1 is one skill, not a collection — they become usable components, not separate skills | ✓ Good — three self-contained `references/` components, promotion-ready for milestone 2 |
+| Keep `uv` scaffold untouched in v1 | It is foundation for the milestone-3 Python builder; removing or using it now would be premature | ✓ Good — scaffold untouched; reserved for milestone 3 |
+| Use first-principles analysis to drive the project's own design decisions | The user's explicit "build itself" goal — dogfooding the methodology as planning philosophy | ✓ Good — methodology dogfooded in the Phase 1 test-run draft |
+| Build order is dependency-driven: methodology → SKILL.md → rubric → tools → examples → wiring | A content-build chain — the rubric must exist before examples so examples are authored to pass it | ✓ Good — each phase produced a verifiable artifact that unblocked the next |
 
 ## Evolution
 
@@ -86,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-18 after Phase 6 completion — SKILL.md navigation consolidated, human-facing README.md written, and all three validation gates (Agent Skills schema, markdownlint, link resolution) pass. The v1 enhanced single-skill milestone is complete and shippable.*
+*Last updated: 2026-05-18 after v1.0 milestone — full evolution review. All 27 v1 requirements moved to Validated; Key Decisions outcomes resolved to ✓ Good; Context updated with shipped state; next-milestone candidates recorded. v1.0 Enhanced Skill is shipped and tagged.*

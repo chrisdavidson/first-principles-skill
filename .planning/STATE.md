@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: milestone_complete
-stopped_at: All 6 phases complete — v1.0 milestone ready to archive (/gsd:complete-milestone)
-last_updated: 2026-05-18T21:46:08.890Z
-last_activity: 2026-05-18 -- Phase 03 re-verified (passed) after gap closure; all phases complete
+status: Awaiting next milestone
+stopped_at: Phase 3 re-verified (passed) — all 6 phases complete, v1.0 milestone ready to archive
+last_updated: "2026-05-18T22:12:51.829Z"
+last_activity: 2026-05-18 — Milestone v1.0 completed and archived
 progress:
   total_phases: 6
   completed_phases: 6
@@ -18,19 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-16)
+See: .planning/PROJECT.md (updated 2026-05-18 after v1.0 milestone)
 
 **Core value:** Every conclusion traces back to a verified ground truth and every assumption is explicitly challenged — reasoning a skeptic cannot dismiss as hand-waving.
-**Current focus:** v1.0 milestone complete — all 6 phases verified
+**Current focus:** v1.0 Enhanced Skill shipped and tagged — planning next milestone
 
 ## Current Position
 
-Phase: All phases complete (6/6)
-Plan: 22/22 complete
-Status: Milestone complete — ready to archive (/gsd:complete-milestone)
-Last activity: 2026-05-18
-
-Progress: [██████████] 100%
+Phase: Milestone v1.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-05-18 — Milestone v1.0 completed and archived
 
 ## Performance Metrics
 
@@ -76,18 +74,24 @@ None yet.
 
 ### Blockers/Concerns
 
-- None — all 6 phases complete and verified. The two pre-execution research risks (Phase 1 methodology operationalization, Phase 3 falsifiable self-evaluation) were resolved during their respective phases.
+- None — v1.0 shipped clean. Milestone audit passed (27/27 requirements, 0 blockers).
 
 ## Deferred Items
 
-Items acknowledged and carried forward from previous milestone close:
+Tech debt carried forward from v1.0 (non-blocking; see MILESTONES.md):
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| tech-debt | Five Whys phase-attribution inconsistency — `five-whys.md` Handoff omits the Phase 3 handback path | open | v1.0 close |
+| tech-debt | `references/trade-off-analysis.md` is 118 lines vs the ~100-line guideline | accepted | v1.0 close |
+| advisory | Nyquist coverage partial (5 of 6 phases) — discovery-only, gates nothing | accepted | v1.0 close |
 
 ## Session Continuity
 
-Last session: 2026-05-18T21:46:08.890Z
-Stopped at: Phase 3 re-verified (passed) — all 6 phases complete, v1.0 milestone ready to archive
-Resume file: .planning/ROADMAP.md
+Last session: 2026-05-18 — v1.0 milestone completed, archived, and tagged
+Stopped at: v1.0 Enhanced Skill shipped — awaiting next milestone definition
+Resume file: .planning/PROJECT.md
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
