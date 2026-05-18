@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Validation Rubric** - Author a falsifiable, evidence-quoting analytic rubric with gate scoring that catches a deliberately weak analysis
 - [x] **Phase 4: Companion Tool References** - Build 5-Whys, pre-mortem, and trade-off analysis as self-contained, usable reference components (completed 2026-05-17)
 - [x] **Phase 5: Domain-Spread Worked Examples** - Produce four worked examples (software, product, personal, science) each showing a real dead-end and passing the rubric (verification found gaps — see 05-VERIFICATION.md) (completed 2026-05-18)
-- [ ] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation
+- [x] **Phase 6: Final SKILL.md Wiring, README, and Validation** - Wire every Layer 3 file into the nav map, write the human README, and pass schema validation (completed 2026-05-18)
 
 ## Phase Details
 
@@ -164,7 +164,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 06-04-PLAN.md — Run all three validation gates green and capture evidence (FOUND-05, PKG-02, PKG-03)
+- [x] 06-04-PLAN.md — Run all three validation gates green and capture evidence (FOUND-05, PKG-02, PKG-03)
 
 ## Progress
 
@@ -178,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
 | 5. Domain-Spread Worked Examples | 8/8 | Complete   | 2026-05-18 |
-| 6. Final SKILL.md Wiring, README, and Validation | 3/4 | In Progress|  |
+| 6. Final SKILL.md Wiring, README, and Validation | 4/4 | Complete   | 2026-05-18 |
