@@ -133,7 +133,7 @@ The section heading must still appear. Writing `Nothing material here — [reaso
 
 **Derivation chain format:**
 
-```
+```text
 GT-N + GT-M → [intermediate claim] → [conclusion]
 ```
 
