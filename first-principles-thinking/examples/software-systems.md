@@ -159,7 +159,7 @@ GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequent
 **What was tried:** Accept "microservices enable faster deploys" as an established fact and
 reason from it directly to a migration recommendation. The attempted chain was:
 
-```
+```text
 Current deploys take 45 minutes, limiting releases to ~2/day.
 Microservices enable each service to deploy independently.
 Independent deploys are faster than full-monolith deploys.

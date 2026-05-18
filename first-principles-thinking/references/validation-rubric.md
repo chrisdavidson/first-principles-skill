@@ -92,7 +92,7 @@ high-stakes conclusion.")
 Each of the 6 criteria requires exactly one verdict block. Use the standard form when the
 analysis section exists and contains scoreable content:
 
-```
+```text
 **Criterion N: [Criterion Name]**
 Quoted span: "[Direct quote of the specific text in the analysis being scored — the span
 that most directly determines the band assigned.]"
@@ -105,7 +105,7 @@ Use the gap-citation form when the criterion scores Absent because the section o
 artifact is missing or empty — in that case there is no span to quote, and the documented
 absence is the evidence:
 
-```
+```text
 **Criterion N: [Criterion Name]**
 Gap: [Name what is missing and where it should have appeared — e.g., "No Derivation
 Chains section exists; chains of the form 'GT-N + GT-M → [intermediate] → [conclusion]'
