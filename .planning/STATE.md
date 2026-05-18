@@ -5,7 +5,7 @@ milestone_name: milestone
 status: Awaiting next milestone
 stopped_at: Phase 3 re-verified (passed) — all 6 phases complete, v1.0 milestone ready to archive
 last_updated: "2026-05-18T22:12:51.829Z"
-last_activity: 2026-05-18 — Milestone v1.0 completed and archived
+last_activity: 2026-05-18 — Milestone v1.0 shipped — PR #1
 progress:
   total_phases: 6
   completed_phases: 6
@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-05-18 after v1.0 milestone)
 
 Phase: Milestone v1.0 complete
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-05-18 — Milestone v1.0 completed and archived
+Status: Milestone v1.0 shipped — PR #1 (chrisdavidson/first-principles-skill) awaiting review/merge
+Last activity: 2026-05-18 — Milestone v1.0 shipped — PR #1
 
 ## Performance Metrics
 
