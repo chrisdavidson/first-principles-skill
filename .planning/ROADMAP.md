@@ -151,7 +151,20 @@ Plans:
   4. `README.md` describes the skill, its methodology, and installation for human readers.
   5. The skill passes Agent Skills schema validation.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Create the markdownlint config and link-resolution check; fix the 5 pre-existing MD040 fenced-code violations
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02-PLAN.md — Restructure SKILL.md into a consolidated "Skill files" nav section with 2-3 sentence companion-tool blurbs (FOUND-04, TOOL-04)
+- [ ] 06-03-PLAN.md — Author the comprehensive human-facing README.md (PKG-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 06-04-PLAN.md — Run all three validation gates green and capture evidence (FOUND-05, PKG-02, PKG-03)
 
 ## Progress
 
@@ -165,4 +178,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Validation Rubric | 2/2 | Complete   | 2026-05-17 |
 | 4. Companion Tool References | 3/3 | Complete   | 2026-05-17 |
 | 5. Domain-Spread Worked Examples | 8/8 | Complete   | 2026-05-18 |
-| 6. Final SKILL.md Wiring, README, and Validation | 0/TBD | Not started | - |
+| 6. Final SKILL.md Wiring, README, and Validation | 0/4 | Not started | - |
