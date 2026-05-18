@@ -2,17 +2,13 @@
 
 A complete first-principles analysis of the question "Should I take a higher-paying job that requires relocating?" The Phase 1 emphasis demonstrates a stated-goal→real-goal re-framing — a different operation from EX-01's symptom→cause diagnosis. Authored in Phase 5.
 
+**Scenario.** A software engineer with five years at their current employer in Portland, OR — a full-remote role — has received an offer from a large San Francisco tech company. The offer includes a $70K annual compensation increase (base salary plus equity) but requires physical relocation and three days per week in the office. The engineer's partner has an established Portland-based career with no remote option. The stated question: "Should I take this job?"
+
+**The re-framing operation.** The stated question frames the decision as a binary — take or don't take — and the framing implies that the decision criterion is the compensation delta. That framing is wrong because it substitutes a proxy (salary) for the actual objective (whatever the person is trying to build with their career and life). Salary is a means, not an end. A compensation comparison can tell you which offer pays more; it cannot tell you which outcome serves you better. The stated-goal→real-goal operation identifies what the salary is a proxy for. That requires the person to state their actual goal explicitly — not "earn more" but the specific career and life outcomes the money is meant to support. Once the real goal is named, the offer can be evaluated against it rather than against itself.
+
 ---
 
 ## 1. Problem Essence
-
-**Background:** A software engineer with five years at their current employer in Portland, OR — a full-remote role — has received an offer from a large San Francisco tech company. The offer includes a $70K annual compensation increase (base salary plus equity) but requires physical relocation and three days per week in the office. The engineer's partner has an established Portland-based career with no remote option.
-
-The stated question: "Should I take this job?"
-
-**The re-framing operation:** The stated question frames the decision as a binary — take or don't take — and the framing implies that the decision criterion is the compensation delta. That framing is wrong because it substitutes a proxy (salary) for the actual objective (whatever the person is trying to build with their career and life). Salary is a means, not an end. A compensation comparison can tell you which offer pays more; it cannot tell you which outcome serves you better.
-
-The stated-goal→real-goal operation identifies what the salary is a proxy for. That requires the person to state their actual goal explicitly — not "earn more" but the specific career and life outcomes the money is meant to support. Once the real goal is named, the offer can be evaluated against it rather than against itself.
 
 **Core problem:** Am I on a career trajectory that will let me achieve what I actually care about over the next five to ten years, and does this specific offer accelerate or threaten that trajectory?
 
