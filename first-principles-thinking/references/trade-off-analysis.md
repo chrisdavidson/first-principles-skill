@@ -8,8 +8,8 @@
 
 ## When to reach for this
 
-Use this tool when: two or more options are viable (none obviously dominant), the
-choice spans multiple criteria that pull in different directions, and a single
+Use this tool when two or more options are viable (none obviously dominant), the
+choice spans multiple criteria that pull in different directions, and an
 intuitive pick would be hard to justify to others.
 
 Do not use it when one option dominates on every relevant criterion — that is a
@@ -26,40 +26,32 @@ direct decision, not a trade-off.
    must appear now.
 
 3. **Assign weights. Lock them now.** Give each criterion a relative weight
-   (1–5). Lock the weights before scoring any option. If you find you cannot
-   assign weights without first looking at how the options score, stop — you are
-   not ready to use this tool. Locking weights before scoring is the core
-   discipline: it prevents reverse-engineering weights to favor a choice you have
-   already made intuitively.
+   (1–5) before scoring any option. If you cannot assign weights without first
+   seeing how options score, stop — locking weights before scoring is the core
+   discipline that prevents reverse-engineering them to favor an intuitive pick.
 
 4. **Score each option** on each criterion independently (1–5). Phrase every
-   criterion so that a higher score is always more desirable (e.g., use
-   "Reliability" not "Reliability risk"). A scale where higher is sometimes
-   better and sometimes worse silently inverts the result.
+   criterion so higher is always better (e.g., "Reliability" not "Reliability
+   risk") — a mixed scale silently inverts the result.
 
-5. **Compute:** multiply weight × score per criterion; sum across criteria per
-   option.
+5. **Compute:** multiply weight × score per criterion; sum per option.
 
-6. **Read the result.** The highest weighted total is the analysis's
-   recommendation. If the result surprises you, re-examine the weights — but
-   only if you can state why a specific weight was wrong *before* you saw the
-   result. Adjusting weights after seeing scores to change the outcome is the
-   failure mode this procedure is designed to prevent.
+6. **Read the result.** The highest weighted total is the recommendation. If
+   it surprises you, only re-examine a weight when you can state why it was
+   wrong *before* seeing the result — adjusting weights afterward is the
+   failure mode this procedure prevents.
 
-**Sensitivity check:** If two options score within roughly 10% of each other, do
-not refine scores further. Instead, identify the single criterion whose weight,
-if changed, would flip the result. Ask whether that weight is genuinely wrong —
-if not, the near-tie is a real finding: either option is defensible.
+**Sensitivity check:** If two options score within roughly 10% of each other,
+do not refine scores. Identify the criterion whose weight, if changed, would
+flip the result, and ask whether that weight is genuinely wrong — if not, the
+near-tie is a real finding and either option is defensible.
 
 ---
 
 ## Example
 
-**Decision:** Which laptop to buy for a parent who mainly browses, video-calls,
-and writes documents — a refurbished mid-range machine or a new entry-level
-machine.
-
-**Options:** A = Refurbished mid-range, B = New entry-level
+**Decision:** Laptop for a parent who browses, video-calls, and writes
+documents — refurbished mid-range (A) vs. new entry-level (B).
 
 **Step 2 — criteria locked:**
 
@@ -79,40 +71,35 @@ machine.
 | A (refurb) | 4 × 4 = 16       | 2 × 5 = 10       | 5 × 3 = 15 | 2 × 4 = 8     | 3 × 2 = 6        | 3 × 3 = 9          | **64** |
 | B (new)    | 2 × 4 = 8        | 5 × 5 = 25       | 3 × 3 = 9  | 5 × 4 = 20    | 4 × 2 = 8        | 4 × 3 = 12         | **82** |
 
-**Result:** B (new entry-level) scores 82 vs. 64. The gap is driven by
-reliability and warranty — criteria weighted high because device failure would
-leave the parent without support. Recommendation: buy new.
+**Result:** B (new entry-level) scores 82 vs. 64 — driven by reliability and
+warranty, weighted high because device failure would leave the parent without
+support. Recommendation: buy new.
 
 ---
 
 ## Failure modes
 
-- **Weights set after scoring.** If you scored options before assigning weights,
-  the weights will unconsciously reflect the scores. Discard and restart from
-  step 3.
+- **Weights set after scoring.** If you scored options before assigning
+  weights, the weights will unconsciously reflect the scores — discard and
+  restart from step 3.
 
-- **Too many criteria.** More than 8 criteria dilute the signal — each
-  criterion's influence shrinks toward noise. Prune to the criteria that
-  genuinely differentiate the options.
+- **Too many criteria.** More than 8 criteria dilute the signal toward noise —
+  prune to those that genuinely differentiate the options.
 
 - **Criteria added mid-analysis.** Adding a criterion after seeing partial
-  scores is almost always rationalizing. Lock the list at step 2 — restart if
-  an omitted criterion is material.
+  scores is almost always rationalizing — lock the list at step 2 and restart.
 
 - **Treating a near-tie as a precision problem.** Refining scores to break a
-  near-tie manufactures false precision. Run the sensitivity check: find the
-  swing criterion and decide whether that weight is genuinely wrong.
+  near-tie manufactures false precision; run the sensitivity check instead.
 
-- **Criteria that are not independent.** If two criteria measure the same
-  factor (e.g., "cost" and "budget impact"), they double-count its influence.
-  Merge them or keep only the more precise one.
+- **Criteria that are not independent.** Two criteria measuring the same factor
+  (e.g., "cost" and "budget impact") double-count it — merge or drop one.
 
 ---
 
 ## Handoff
 
-The output of this tool is the recommended option with its weighted justification
-and the reasoning behind the weight assignments. Return to Phase 4 (Reason
-Upward) and use this output as the Derivation Chain that selects between viable
-options — citing the weighted scores as the intermediate step between the ground
-truths and the final conclusion.
+The output is the recommended option with its weighted justification and the
+reasoning behind the weights. Return to Phase 4 (Reason Upward) and use it as
+the Derivation Chain that selects between viable options — citing the weighted
+scores as the step between ground truths and conclusion.
