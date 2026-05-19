@@ -53,7 +53,7 @@ support access, account-management touchpoints).
 - **Product** — feature gaps vs. competitors; data-refresh reliability below contracted SLA
 - **Price** — perceived value does not justify renewal; new entrants offering lower pricing
 - **Place** *(delivery channel)* — onboarding leaves customers under-activated; $18K–$25K
-  tier accounts have no dedicated CSM; renewals not initiated until 30 days before expiry
+  tier accounts have no dedicated CSM; renewals not initiated until 60 days before expiry
 - **Promotion** — new feature value not communicated to existing customers; no 6-month
   business-review to make the renewal case proactively
 - **People** — CSM headcount grew 10% while the customer base grew 40% over 18 months;
@@ -263,10 +263,11 @@ decisions are made 90–120 days before expiry; segment adoption scores by churn
 Do not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.
 
 **Key insight:** A fishbone brainstorm generates a well-organised list of hypotheses — it
-does not generate verified causes. After Phase 2 classification, two of eight category
-branches produced verified Ground Truths and the highest-confidence intervention set is
-narrow, cheap, and fast relative to the 14-sprint programme the brainstorm appeared to
-demand. The Phase 2 challenge step is the mechanism that separates the two outcomes.
+does not generate verified causes. After Phase 2 classification, the eight 8P cause-map
+branches and their sub-causes collapsed to a narrow verified set; the highest-confidence
+intervention set is narrow, cheap, and fast relative to the 14-sprint programme the brainstorm
+appeared to demand. The Phase 2 challenge step is the mechanism that separates the two
+outcomes.
 
 **Trade-offs acknowledged:** Stage 1 addresses the verified cause of ~48% of the churn
 signal; the remaining ~52% represent an unresolved causal cluster Stage 2 is designed to
