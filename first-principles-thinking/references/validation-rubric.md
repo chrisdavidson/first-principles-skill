@@ -318,3 +318,37 @@ from the Verdict Block Format section above. The analysis must clear the gate (n
 at Absent) and the hand-wavy cap (at most one criterion at Hand-wavy) before conclusions are
 presented. If either condition is not met, revise the relevant sections and re-score from
 the beginning.
+
+---
+
+## Link-resolution gate
+
+Gate 3 of the Phase 9 validation gates (CONTEXT D-06): verify that every relative `.md`
+link in the skill's spine (`first-principles-thinking/SKILL.md`) and the top-level
+`README.md` resolves to a file on disk. The check is a `test -f` against each resolved
+target (expressed in the snippet as `[ ! -f "$target" ]`). Run the snippet below from the
+repo root; it prints any broken link as `BROKEN: <src> -> <link>` and exits non-zero if
+any link is broken, so it can be wired into CI without further glue.
+
+```bash
+# Gate 3 — link resolution for the wired spine.
+# Greps relative .md links out of SKILL.md and README.md, resolves them
+# against each file's directory, prints any broken link, and exits
+# non-zero if any link is broken. Uses process substitution so the
+# while-loop runs in the parent shell and the rc=1 assignment is
+# preserved (a pipe-into-while runs in a subshell and would lose rc).
+rc=0
+for src in first-principles-thinking/SKILL.md README.md; do
+  dir=$(dirname "$src")
+  while IFS= read -r link; do
+    target="$dir/$link"
+    if [ ! -f "$target" ]; then
+      echo "BROKEN: $src -> $link (resolved: $target)"
+      rc=1
+    fi
+  done < <(grep -oE '\]\([^)]+\.md\)' "$src" \
+             | sed -E 's/^\]\(//; s/\)$//' \
+             | grep -vE '^https?://')
+done
+exit $rc
+```
