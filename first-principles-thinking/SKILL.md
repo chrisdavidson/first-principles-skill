@@ -168,6 +168,12 @@ analysis is stuck on *why* something is true and the surface explanation feels i
 The tool branches causal chains iteratively until a root cause passes a testability check,
 then hands back to Phase 3 (Establish Ground Truths) with a verified causal fact.
 
+**[Ishikawa (fishbone)](references/ishikawa-diagram.md)** — Breadth-first
+cause-category brainstorm. Use during Phase 2 (Challenge Assumptions) when
+the assumption space is multi-causal and intuition cannot enumerate it
+confidently. Branches enter the Classified Assumptions Table as `untested belief` rows;
+reach for Five Whys instead when the problem is single-chain depth.
+
 **[Pre-mortem](references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use
 during Phase 5 (Validate) to stress-test a proposed solution by imagining it has already
 failed and working backward to find the failure modes. Findings surface as weak-link flags
@@ -184,6 +190,7 @@ post-hoc rationalization, and the result feeds back as a derivation chain step.
 - Product and business → [examples/product-business.md](examples/product-business.md)
 - Personal and general → [examples/personal-general.md](examples/personal-general.md)
 - Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
+- Ishikawa fishbone → [examples/ishikawa-fishbone.md](examples/ishikawa-fishbone.md)
 
 ### Reference docs
 
