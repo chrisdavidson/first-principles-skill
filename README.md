@@ -49,6 +49,7 @@ Four domain-spread examples show the methodology applied end-to-end, each with a
 - **[Product and business](first-principles-thinking/examples/product-business.md)** — Deciding whether to build a new pricing tier, decomposing the business assumptions and grounding the recommendation in verified market and unit-economics facts.
 - **[Personal and general](first-principles-thinking/examples/personal-general.md)** — Evaluating a career transition, separating the real constraints from conventions and untested beliefs about what the options actually are.
 - **[Science and engineering](first-principles-thinking/examples/science-engineering.md)** — Choosing a materials approach for a physical product, grounding the trade-offs in verified physical properties rather than industry convention.
+- **[Ishikawa fishbone](first-principles-thinking/examples/ishikawa-fishbone.md)** — A worked fishbone-style cause-category brainstorm; branches hand back to Phase 2's Classified Assumptions Table as `untested belief` rows.
 
 ## Relationship to the original
 
