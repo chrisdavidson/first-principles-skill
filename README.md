@@ -37,6 +37,7 @@ For the complete procedure with entry/exit criteria per phase and the exact outp
 Three tools extend the methodology when the analysis calls for them:
 
 - **[Five Whys](first-principles-thinking/references/five-whys.md)** — Root-cause drill-down procedure. Use it during Phase 3 when an analysis is stuck on *why* something is true and the surface explanation feels insufficient.
+- **[Ishikawa (fishbone)](first-principles-thinking/references/ishikawa-diagram.md)** — Breadth-first cause-category brainstorm. Use it during Phase 2 (Challenge Assumptions) when the assumption space is multi-causal and intuition cannot enumerate it confidently. Branches enter the Classified Assumptions Table as `untested belief` rows; reach for Five Whys instead when the problem is single-chain depth.
 - **[Pre-mortem](first-principles-thinking/references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use it during Phase 5 to stress-test a proposed solution by imagining it has already failed and working backward to the failure modes.
 - **[Trade-off Analysis](first-principles-thinking/references/trade-off-analysis.md)** — Weighted-criteria decision procedure. Use it during Phase 4 when multiple viable options remain after ground truths are established. Criteria are weighted before scoring to prevent post-hoc rationalization.
 
@@ -48,6 +49,7 @@ Four domain-spread examples show the methodology applied end-to-end, each with a
 - **[Product and business](first-principles-thinking/examples/product-business.md)** — Deciding whether to build a new pricing tier, decomposing the business assumptions and grounding the recommendation in verified market and unit-economics facts.
 - **[Personal and general](first-principles-thinking/examples/personal-general.md)** — Evaluating a career transition, separating the real constraints from conventions and untested beliefs about what the options actually are.
 - **[Science and engineering](first-principles-thinking/examples/science-engineering.md)** — Choosing a materials approach for a physical product, grounding the trade-offs in verified physical properties rather than industry convention.
+- **[Ishikawa fishbone](first-principles-thinking/examples/ishikawa-fishbone.md)** — A worked fishbone-style cause-category brainstorm; branches hand back to Phase 2's Classified Assumptions Table as `untested belief` rows.
 
 ## Relationship to the original
 
