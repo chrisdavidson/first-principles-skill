@@ -6,7 +6,8 @@ description: >-
   analyze from first principles, think from scratch, question a design,
   challenge assumptions, is this the right approach, why are we doing it this
   way, is there a better solution, evaluate an architectural decision, justify
-  a decision from ground truths, apply a pre-mortem or 5-Whys, or asks
+  a decision from ground truths, map causes with an Ishikawa or fishbone
+  diagram, pick cause categories, apply a pre-mortem or 5-Whys, or asks
   whether reasoning is sound. Make sure to use this skill whenever the user
   wants to avoid reasoning by analogy or convention, even if they do not
   explicitly say "first principles".
