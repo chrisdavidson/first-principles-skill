@@ -130,7 +130,7 @@ intervention set that addresses the verified ones?"
 | The absence of a recurring CS capacity-review process is the structural root cause of the coverage gap | untested belief | Verify — confirm that no capacity-review process exists and that the ratio has drifted beyond the design threshold; confirmed via CS Director debrief. | Accept | Confirmed: CS Director confirmed ratios are reviewed only at annual planning; CSM-to-account ratio in the $18K–$25K tier is currently 1:67 vs. a design threshold of 1:40 |
 | New feature value is not communicated to existing customers | untested belief | Verify — measure open and click-through rates on in-app changelog and renewal-cycle emails. | Challenge | unverified — flagged; CS team reports low feature-awareness anecdotally but engagement data has not been pulled |
 | Customers are not achieving the productivity outcome promised at sale | untested belief | Verify — compare workflow-automation rate across a statistically valid sample of active accounts against the sales-demo benchmark. | Challenge | unverified — flagged; ~40% shortfall is a preliminary estimate from 4 accounts only |
-| A full product-feature overhaul is required to halt churn | convention | Explicitly challenge — the instinct to "fix the product" when churn rises is a common convention; the highest-frequency exit-interview signal is "felt unsupported," not a product-feature complaint. | Challenge | Not supported by available evidence; product-overhaul framing is premature |
+| A full product overhaul is required to halt churn | convention | Explicitly challenge — the instinct to "fix the product" when churn rises is a common convention; the highest-frequency exit-interview signal is "felt unsupported," not a product-feature complaint. | Challenge | Not supported by available evidence; product-overhaul framing is premature |
 
 ---
 
@@ -310,8 +310,8 @@ row is challenged with specific counter-evidence rather than dismissed generical
 
 **Criterion 3: Establish Ground Truths**
 Quoted span: "GT-5? The average workflow-automation rate achieved by active Northbrook accounts
-is approximately 40% below the benchmark figure — source: unverified; preliminary estimate
-from 4 accounts, not a statistically valid sample"
+is approximately 40% below the benchmark figure used in sales demos — source: unverified;
+preliminary estimate from 4 accounts, not a statistically valid sample"
 Band: **Rigorous**
 Justification: All five GTs carry stable identifiers; every verified GT has a specific source
 citation naming the data type and confirming party; the single unverified GT is marked with
@@ -322,8 +322,8 @@ GT list.
 
 **Criterion 4: Reason Upward**
 Quoted span: "GT-2 (11 of 23 churned accounts cite 'felt unsupported') + GT-3 (CSM-to-account
-ratio 1:67 vs. design threshold 1:40) → The 'felt unsupported' signal maps directly onto the
-structurally uncovered account segment"
+ratio 1:67 vs. design threshold 1:40 in the uncovered tier) → The 'felt unsupported' signal
+maps onto the structurally uncovered account segment"
 Band: **Rigorous**
 Justification: All three Section 6 conclusions have exactly one corresponding chain in Section
 4; each chain names the GT-IDs consumed, contains at least one intermediate claim statable
@@ -333,9 +333,8 @@ with GT-level or Phase-2-type abandonment reasons; no analogy is used as direct 
 ---
 
 **Criterion 5: Validate**
-Quoted span: "Confidence: MEDIUM — GT-5? is unverified (preliminary estimate from 4 accounts).
-Raising to HIGH requires a statistically valid workflow-automation survey (minimum n=40
-accounts)."
+Quoted span: "Confidence: MEDIUM — GT-5? is unverified (4 accounts). Raising to HIGH requires
+a statistically valid workflow-automation survey (minimum n=40 accounts)."
 Band: **Rigorous**
 Justification: Every derivation chain carries an explicit Confidence rating; the two HIGH
 chains consume only verified GTs; the MEDIUM chain names the specific unverified input (GT-5?),
@@ -346,15 +345,14 @@ rated HIGH.
 ---
 
 **Criterion 6: Conclusion-to-Ground-Truth Traceability**
-Quoted span: "Do not commit to a product-feature overhaul, UI refresh, or all-8P-category
-intervention plan until Stage 2 verification is complete. The available evidence does not
-support those commitments."
+Quoted span: "Do not commit to a product overhaul, UI refresh, or all-8P programme until
+Stage 2 is done."
 Band: **Rigorous**
 Justification: Every Conclusion claim (Stage 1 actions, Stage 2 sequencing, deferral of
 product overhaul) traces to a specific derivation chain or named GT; no new reasoning appears
 in Section 6 that did not appear in Sections 3–4; the Key Insight names a non-obvious
-finding — that Phase 2 collapsed 25+ hypotheses to a narrow verified set — which conventional
-reasoning would have missed.
+finding — that Phase 2 collapsed the eight 8P cause-map branches and their sub-causes to a
+narrow verified set — which conventional reasoning would have missed.
 
 ---
 
