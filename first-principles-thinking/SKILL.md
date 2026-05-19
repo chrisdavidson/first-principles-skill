@@ -54,7 +54,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Essence Statement from Phase 1 is complete.
 
-**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
+**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the assumption space feels too broad to enumerate by intuition, use [Ishikawa](references/ishikawa-diagram.md) to brainstorm causes by category, then bring each branch into this table as an `untested belief`. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
 
 **The four assumption types and their prescribed treatments:**
 
