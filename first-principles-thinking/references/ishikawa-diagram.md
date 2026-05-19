@@ -163,11 +163,11 @@ cause type and need to drill deeper, reach for [5-Whys](five-whys.md) instead.
 
 ## Handoff
 
-The candidate causes mapped here enter the 5-phase methodology at Phase 2 (Challenge
-Assumptions). Each branch on the fishbone is an `untested belief` — the fourth
-assumption class in Phase 2's four-type scheme — because the diagram is a brainstorm
-of plausible contributors, not a set of verified facts. Add each candidate cause as
-a row in the Classified Assumptions Table with type `untested belief`.
+The candidate causes mapped here enter the 5-phase methodology at
+Phase 2 (Challenge Assumptions). Each branch on the fishbone is an `untested belief` —
+the fourth assumption class in Phase 2's four-type scheme — because the diagram is a
+brainstorm of plausible contributors, not a set of verified facts. Add each candidate
+cause as a row in the Classified Assumptions Table with type `untested belief`.
 
 Do not route fishbone branches directly to Phase 3 (Establish Ground Truths). A
 branch is promoted to a ground truth only after evidence confirms it — that promotion
