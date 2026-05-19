@@ -6,7 +6,8 @@ description: >-
   analyze from first principles, think from scratch, question a design,
   challenge assumptions, is this the right approach, why are we doing it this
   way, is there a better solution, evaluate an architectural decision, justify
-  a decision from ground truths, apply a pre-mortem or 5-Whys, or asks
+  a decision from ground truths, map causes with an Ishikawa or fishbone
+  diagram, pick cause categories, apply a pre-mortem or 5-Whys, or asks
   whether reasoning is sound. Make sure to use this skill whenever the user
   wants to avoid reasoning by analogy or convention, even if they do not
   explicitly say "first principles".
@@ -53,7 +54,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Essence Statement from Phase 1 is complete.
 
-**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
+**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the assumption space feels too broad to enumerate by intuition, use [Ishikawa](references/ishikawa-diagram.md) to brainstorm causes by category, then bring each branch into this table as an `untested belief`. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
 
 **The four assumption types and their prescribed treatments:**
 
@@ -167,6 +168,12 @@ analysis is stuck on *why* something is true and the surface explanation feels i
 The tool branches causal chains iteratively until a root cause passes a testability check,
 then hands back to Phase 3 (Establish Ground Truths) with a verified causal fact.
 
+**[Ishikawa (fishbone)](references/ishikawa-diagram.md)** — Breadth-first
+cause-category brainstorm. Use during Phase 2 (Challenge Assumptions) when
+the assumption space is multi-causal and intuition cannot enumerate it
+confidently. Branches enter the Classified Assumptions Table as `untested belief` rows;
+reach for Five Whys instead when the problem is single-chain depth.
+
 **[Pre-mortem](references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use
 during Phase 5 (Validate) to stress-test a proposed solution by imagining it has already
 failed and working backward to find the failure modes. Findings surface as weak-link flags
@@ -183,6 +190,7 @@ post-hoc rationalization, and the result feeds back as a derivation chain step.
 - Product and business → [examples/product-business.md](examples/product-business.md)
 - Personal and general → [examples/personal-general.md](examples/personal-general.md)
 - Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
+- Ishikawa fishbone → [examples/ishikawa-fishbone.md](examples/ishikawa-fishbone.md)
 
 ### Reference docs
 
