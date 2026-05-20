@@ -52,6 +52,7 @@ Four domain-spread examples show the methodology applied end-to-end, each with a
 - **[Personal and general](first-principles-thinking/examples/personal-general.md)** — Evaluating a career transition, separating the real constraints from conventions and untested beliefs about what the options actually are.
 - **[Science and engineering](first-principles-thinking/examples/science-engineering.md)** — Choosing a materials approach for a physical product, grounding the trade-offs in verified physical properties rather than industry convention.
 - **[Ishikawa fishbone](first-principles-thinking/examples/ishikawa-fishbone.md)** — A worked fishbone-style cause-category brainstorm; branches hand back to Phase 2's Classified Assumptions Table as `untested belief` rows.
+- **[Composed Inversion + Second-Order](first-principles-thinking/examples/composed-inversion-second-order.md)** — A worked analysis combining Inversion at Phase 2 with Second-Order Thinking at Phase 4; demonstrates the hand-back semantics for both tools and the route-back-to-Phase-2 path on contradicting downstream effects.
 
 ## Relationship to the original
 
