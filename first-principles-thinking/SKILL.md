@@ -7,7 +7,9 @@ description: >-
   challenge assumptions, is this the right approach, why are we doing it this
   way, is there a better solution, evaluate an architectural decision, justify
   a decision from ground truths, map causes with an Ishikawa or fishbone
-  diagram, pick cause categories, apply a pre-mortem or 5-Whys, or asks
+  diagram, pick cause categories, use inversion to invert the question and
+  ask what would guarantee failure, apply second-order thinking to trace
+  downstream consequences, apply a pre-mortem or 5-Whys, or asks
   whether reasoning is sound. Make sure to use this skill whenever the user
   wants to avoid reasoning by analogy or convention, even if they do not
   explicitly say "first principles".
@@ -54,7 +56,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Essence Statement from Phase 1 is complete.
 
-**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the assumption space feels too broad to enumerate by intuition, use [Ishikawa](references/ishikawa-diagram.md) to brainstorm causes by category, then bring each branch into this table as an `untested belief`. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
+**Operation:** Identify every assumption — explicit and implicit — that bears on the problem. For each one, classify it by type using the four-type scheme below, apply the prescribed treatment, and record the verdict. Surface hidden assumptions: things that are treated as given but have never been verified. When the assumption space feels too broad to enumerate by intuition, use [Ishikawa](references/ishikawa-diagram.md) to brainstorm causes by category, then bring each branch into this table as an `untested belief`. When a conclusion feels too clean or a goal feels too obvious, use [Inversion](references/inversion.md) to enumerate what would guarantee failure — each unverified precondition becomes an `untested belief` row in this table. When the stakes of a conclusion rest heavily on a particular assumption, push that assumption down toward physical law or verified ground truth status rather than accepting a weaker classification. Classification drives the method — it is not merely labelling.
 
 **The four assumption types and their prescribed treatments:**
 
@@ -93,7 +95,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Ground Truths list is complete — all ground truths carry IDs and verification notes — and the Classified Assumptions Table from Phase 2 is finalized.
 
-**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification.
+**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. Before handing off to Phase 5, apply [Second-Order Thinking](references/second-order-thinking.md) to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
@@ -174,6 +176,14 @@ the assumption space is multi-causal and intuition cannot enumerate it
 confidently. Branches enter the Classified Assumptions Table as `untested belief` rows;
 reach for Five Whys instead when the problem is single-chain depth.
 
+**[Inversion](references/inversion.md)** — Failure-enumeration procedure.
+Use during Phase 2 (Challenge Assumptions) when a conclusion or goal feels
+too clean and the assumption set looks suspiciously thin. Enumerates what
+would guarantee failure; each unverified precondition hands back to the
+Classified Assumptions Table as an `untested belief` row. Pairs with
+Pre-mortem when you want to stress-test in Phase 5 rather than challenge
+in Phase 2.
+
 **[Pre-mortem](references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use
 during Phase 5 (Validate) to stress-test a proposed solution by imagining it has already
 failed and working backward to find the failure modes. Findings surface as weak-link flags
@@ -184,6 +194,13 @@ procedure. Use during Phase 4 (Reason Upward) when multiple viable options remai
 ground truths are established. Criteria are weighted before scoring to prevent
 post-hoc rationalization, and the result feeds back as a derivation chain step.
 
+**[Second-Order Thinking](references/second-order-thinking.md)** —
+Downstream-consequence extension procedure. Use during Phase 4 (Reason
+Upward) to extend a Derivation Chain with 2nd/3rd-order effects before
+handing off to Phase 5. Contradicting effects route the conclusion back
+to Phase 2 for re-challenging. Pairs with Inversion: Inversion looks back
+at preconditions; Second-Order looks forward at consequences.
+
 ### Worked examples
 
 - Software and systems → [examples/software-systems.md](examples/software-systems.md)
@@ -191,6 +208,7 @@ post-hoc rationalization, and the result feeds back as a derivation chain step.
 - Personal and general → [examples/personal-general.md](examples/personal-general.md)
 - Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
 - Ishikawa fishbone → [examples/ishikawa-fishbone.md](examples/ishikawa-fishbone.md)
+- Composed Inversion + Second-Order → [examples/composed-inversion-second-order.md](examples/composed-inversion-second-order.md)
 
 ### Reference docs
 
