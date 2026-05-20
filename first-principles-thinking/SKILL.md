@@ -176,6 +176,14 @@ the assumption space is multi-causal and intuition cannot enumerate it
 confidently. Branches enter the Classified Assumptions Table as `untested belief` rows;
 reach for Five Whys instead when the problem is single-chain depth.
 
+**[Inversion](references/inversion.md)** — Failure-enumeration procedure.
+Use during Phase 2 (Challenge Assumptions) when a conclusion or goal feels
+too clean and the assumption set looks suspiciously thin. Enumerates what
+would guarantee failure; each unverified precondition hands back to the
+Classified Assumptions Table as an `untested belief` row. Pairs with
+Pre-mortem when you want to stress-test in Phase 5 rather than challenge
+in Phase 2.
+
 **[Pre-mortem](references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use
 during Phase 5 (Validate) to stress-test a proposed solution by imagining it has already
 failed and working backward to find the failure modes. Findings surface as weak-link flags
@@ -186,6 +194,13 @@ procedure. Use during Phase 4 (Reason Upward) when multiple viable options remai
 ground truths are established. Criteria are weighted before scoring to prevent
 post-hoc rationalization, and the result feeds back as a derivation chain step.
 
+**[Second-Order Thinking](references/second-order-thinking.md)** —
+Downstream-consequence extension procedure. Use during Phase 4 (Reason
+Upward) to extend a Derivation Chain with 2nd/3rd-order effects before
+handing off to Phase 5. Contradicting effects route the conclusion back
+to Phase 2 for re-challenging. Pairs with Inversion: Inversion looks back
+at preconditions; Second-Order looks forward at consequences.
+
 ### Worked examples
 
 - Software and systems → [examples/software-systems.md](examples/software-systems.md)
@@ -193,6 +208,7 @@ post-hoc rationalization, and the result feeds back as a derivation chain step.
 - Personal and general → [examples/personal-general.md](examples/personal-general.md)
 - Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
 - Ishikawa fishbone → [examples/ishikawa-fishbone.md](examples/ishikawa-fishbone.md)
+- Composed Inversion + Second-Order → [examples/composed-inversion-second-order.md](examples/composed-inversion-second-order.md)
 
 ### Reference docs
 
