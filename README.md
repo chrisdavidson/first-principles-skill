@@ -38,8 +38,10 @@ Three tools extend the methodology when the analysis calls for them:
 
 - **[Five Whys](first-principles-thinking/references/five-whys.md)** — Root-cause drill-down procedure. Use it during Phase 3 when an analysis is stuck on *why* something is true and the surface explanation feels insufficient.
 - **[Ishikawa (fishbone)](first-principles-thinking/references/ishikawa-diagram.md)** — Breadth-first cause-category brainstorm. Use it during Phase 2 (Challenge Assumptions) when the assumption space is multi-causal and intuition cannot enumerate it confidently. Branches enter the Classified Assumptions Table as `untested belief` rows; reach for Five Whys instead when the problem is single-chain depth.
+- **[Inversion](first-principles-thinking/references/inversion.md)** — Failure-enumeration procedure. Use it during Phase 2 (Challenge Assumptions) when a conclusion feels too clean; enumerate what would guarantee failure and hand each unverified precondition back to the Classified Assumptions Table as an `untested belief` row.
 - **[Pre-mortem](first-principles-thinking/references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use it during Phase 5 to stress-test a proposed solution by imagining it has already failed and working backward to the failure modes.
 - **[Trade-off Analysis](first-principles-thinking/references/trade-off-analysis.md)** — Weighted-criteria decision procedure. Use it during Phase 4 when multiple viable options remain after ground truths are established. Criteria are weighted before scoring to prevent post-hoc rationalization.
+- **[Second-Order Thinking](first-principles-thinking/references/second-order-thinking.md)** — Downstream-consequence extension procedure. Use it during Phase 4 (Reason Upward) to extend a Derivation Chain with 2nd/3rd-order effects before handing off to Phase 5; contradicting effects route back to Phase 2 for re-challenging.
 
 ## Worked examples
 
@@ -50,6 +52,7 @@ Four domain-spread examples show the methodology applied end-to-end, each with a
 - **[Personal and general](first-principles-thinking/examples/personal-general.md)** — Evaluating a career transition, separating the real constraints from conventions and untested beliefs about what the options actually are.
 - **[Science and engineering](first-principles-thinking/examples/science-engineering.md)** — Choosing a materials approach for a physical product, grounding the trade-offs in verified physical properties rather than industry convention.
 - **[Ishikawa fishbone](first-principles-thinking/examples/ishikawa-fishbone.md)** — A worked fishbone-style cause-category brainstorm; branches hand back to Phase 2's Classified Assumptions Table as `untested belief` rows.
+- **[Composed Inversion + Second-Order](first-principles-thinking/examples/composed-inversion-second-order.md)** — A worked analysis combining Inversion at Phase 2 with Second-Order Thinking at Phase 4; demonstrates the hand-back semantics for both tools and the route-back-to-Phase-2 path on contradicting downstream effects.
 
 ## Relationship to the original
 
