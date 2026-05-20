@@ -24,5 +24,7 @@ to `0.02` in Claude Code user settings (`~/.claude/settings.json`) to
 double the listing budget to 2%. This is a per-user preference — the
 plugin manifest is unchanged.
 
-For the marketplace install path and the v1.2 single-skill install path, see
-the repo root README (updated in Phase 18).
+For the v1.2 single-skill install path (copy or symlink
+`first-principles-thinking/` into `~/.claude/skills/`), see the repo
+root README. Marketplace install instructions will be added once the
+plugin is published.
