@@ -87,7 +87,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
-**Exit criterion:** BOTH conditions must hold: (1) the problem's core question as stated in the Essence Statement is answered, AND (2) every conclusion offered has a complete derivation chain back to named ground truths. Partial conclusions or incomplete chains do not satisfy this criterion and do not exit this phase.
+**Exit criterion:** ALL THREE conditions must hold: (1) the problem's core question as stated in the Essence Statement is answered, AND (2) every conclusion offered has a complete derivation chain back to named ground truths, AND (3) the `/first-principles:second-order` pass has been applied and no extension step contradicts a Ground Truth, OR the pass has been explicitly waived with a one-line justification recorded in the Abandoned Reasoning section. Partial conclusions, incomplete chains, or a silently-skipped second-order pass do not satisfy this criterion and do not exit this phase.
 
 ---
 
