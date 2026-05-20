@@ -1,6 +1,6 @@
 ---
 name: inversion
-description: Stress-tests a claim by inverting it — 'invert, always invert' — asking what would have to be true to fail, then surfacing the preconditions the claim silently depends on. Use during Phase 2 (Challenge Assumptions) or as a Phase 4 sanity check.
+description: Applies 'invert, always invert' to a claim by asking what would have to be true to fail, surfacing the preconditions it silently depends on.
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

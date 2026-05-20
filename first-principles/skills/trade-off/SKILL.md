@@ -1,6 +1,6 @@
 ---
 name: trade-off
-description: Structures a choice between two or more viable options by weighting criteria before scoring — a decision matrix that locks weights, then scores against weights to prevent reverse-engineering. Use when comparing trade-offs across multiple criteria.
+description: Structures a choice across viable options via a decision matrix — weighting criteria are locked first, then score against weights to prevent reverse-engineering.
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

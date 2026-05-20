@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: Runs a prospective-hindsight failure analysis to stress-test the plan before commitment; assumes the plan has already failed and works backward to surface probable failure causes. Use when a plan is specific enough to fail in particular ways.
+description: Prospective-hindsight failure analysis that assumes the plan has already failed and works backward to probable causes — stress-test the plan before commitment.
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT
