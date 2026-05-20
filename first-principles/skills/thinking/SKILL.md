@@ -2,7 +2,7 @@
 name: thinking
 description: Decomposes any problem into fundamental truths and reasons up from them rather than by analogy or convention. The 5-phase first-principles methodology; composes with sibling companion-tool skills.
 metadata:
-  version: "2.0.0-alpha.0"
+  version: "2.0.0-alpha.1"
 license: MIT
 ---
 
