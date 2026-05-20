@@ -9,10 +9,7 @@
   },
   "license": "MIT",
   "homepage": "https://github.com/chrisdavidson/first-principles-skill",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/chrisdavidson/first-principles-skill.git"
-  },
+  "repository": "https://github.com/chrisdavidson/first-principles-skill.git",
   "keywords": [
     "first-principles",
     "thinking",
