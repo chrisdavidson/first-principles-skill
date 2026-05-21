@@ -169,16 +169,26 @@ def _stitch(meta: dict, body: str) -> str:
 
 
 def _expand(body: str, tool_map: dict, surface: str) -> str:
-    """Replace {{TOOL:<slug>}} markers with per-surface expansions."""
+    """Replace {{TOOL:<slug>}} markers with per-surface expansions.
+
+    Distinguishes 'slug not in tool-map' from 'surface key missing on a known
+    slug' (WR-06) so a contributor sees which mistake they made.
+    """
     def sub(m: re.Match) -> str:
         slug = m.group(1)
-        try:
-            return tool_map[slug][surface]
-        except KeyError as e:
+        entry = tool_map.get(slug)
+        if entry is None:
             raise ValueError(
                 f"Unknown marker {{{{TOOL:{slug}}}}} in spine body "
                 f"(surface={surface!r}; known slugs={sorted(tool_map)})"
-            ) from e
+            )
+        if not isinstance(entry, dict) or surface not in entry:
+            raise ValueError(
+                f"Marker {{{{TOOL:{slug}}}}} has no '{surface}' surface in "
+                f"shared/spine/tool-map.yml (slug is known, but its entry is "
+                f"missing the '{surface}' key)"
+            )
+        return entry[surface]
     return TOKEN_RE.sub(sub, body)
 
 
