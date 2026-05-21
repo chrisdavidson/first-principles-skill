@@ -324,21 +324,31 @@ the beginning.
 ## Link-resolution gate
 
 Gate 3 of the Phase 9 validation gates (CONTEXT D-06): verify that every relative `.md`
-link in the skill's spine (`first-principles-thinking/SKILL.md`) and the top-level
-`README.md` resolves to a file on disk. The check is a `test -f` against each resolved
-target (expressed in the snippet as `[ ! -f "$target" ]`). Run the snippet below from the
-repo root; it prints any broken link as `BROKEN: <src> -> <link>` and exits non-zero if
-any link is broken, so it can be wired into CI without further glue.
+link in the skill's spine and any top-level README resolves to a file on disk. The check
+is a `test -f` against each resolved target (expressed in the snippet as `[ ! -f "$target" ]`).
+Run the snippet below from the repo root; it auto-detects which surfaces exist (the v1.2
+single-skill layout at `first-principles-thinking/SKILL.md`, the plugin spine at
+`first-principles/skills/thinking/SKILL.md`, the repo-root `README.md`, and the plugin
+README at `first-principles/README.md`) and scores only those present. It prints any
+broken link as `BROKEN: <src> -> <link>` and exits non-zero if any link is broken, so it
+can be wired into CI without further glue.
 
 ```bash
-# Gate 3 — link resolution for the wired spine.
-# Greps relative .md links out of SKILL.md and README.md, resolves them
-# against each file's directory, prints any broken link, and exits
-# non-zero if any link is broken. Uses process substitution so the
-# while-loop runs in the parent shell and the rc=1 assignment is
-# preserved (a pipe-into-while runs in a subshell and would lose rc).
+# Gate 3 — link resolution for whichever surfaces are present.
+# Greps relative .md links out of each detected SKILL.md / README.md,
+# resolves them against each file's directory, prints any broken link,
+# and exits non-zero if any link is broken. Uses process substitution
+# so the while-loop runs in the parent shell and the rc=1 assignment
+# is preserved (a pipe-into-while runs in a subshell and would lose rc).
 rc=0
-for src in first-principles-thinking/SKILL.md README.md; do
+candidates="
+  first-principles-thinking/SKILL.md
+  first-principles/skills/thinking/SKILL.md
+  first-principles/README.md
+  README.md
+"
+for src in $candidates; do
+  [ -f "$src" ] || continue
   dir=$(dirname "$src")
   while IFS= read -r link; do
     target="$dir/$link"

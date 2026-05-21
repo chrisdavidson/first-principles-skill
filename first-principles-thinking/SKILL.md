@@ -1,18 +1,7 @@
 ---
 name: first-principles-thinking
 description: >-
-  Decomposes any problem into verified fundamental truths and reasons upward
-  from them instead of by analogy or convention. Use when the user wants to
-  analyze from first principles, think from scratch, question a design,
-  challenge assumptions, is this the right approach, why are we doing it this
-  way, is there a better solution, evaluate an architectural decision, justify
-  a decision from ground truths, map causes with an Ishikawa or fishbone
-  diagram, pick cause categories, use inversion to invert the question and
-  ask what would guarantee failure, apply second-order thinking to trace
-  downstream consequences, apply a pre-mortem or 5-Whys, or asks
-  whether reasoning is sound. Make sure to use this skill whenever the user
-  wants to avoid reasoning by analogy or convention, even if they do not
-  explicitly say "first principles".
+  Decomposes any problem into verified fundamental truths and reasons upward from them instead of by analogy or convention. Use when the user wants to analyze from first principles, think from scratch, question a design, challenge assumptions, is this the right approach, why are we doing it this way, is there a better solution, evaluate an architectural decision, justify a decision from ground truths, map causes with an Ishikawa or fishbone diagram, pick cause categories, use inversion to invert the question and ask what would guarantee failure, apply second-order thinking to trace downstream consequences, apply a pre-mortem or 5-Whys, or asks whether reasoning is sound. Make sure to use this skill whenever the user wants to avoid reasoning by analogy or convention, even if they do not explicitly say "first principles".
 license: MIT
 metadata:
   version: "2.0"
@@ -81,7 +70,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Classified Assumptions Table from Phase 2 is finalized. Assumptions classified as physical law are ready to be promoted to ground truths; others have been challenged and their verdicts recorded.
 
-**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the Phase 4 Abandoned Reasoning section, not here.
+**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs and source citations. Unverified entries are marked with the `?` suffix.
 
@@ -99,7 +88,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
-**Exit criterion:** BOTH conditions must hold: (1) the problem's core question as stated in the Essence Statement is answered, AND (2) every conclusion offered has a complete derivation chain back to named ground truths. Partial conclusions or incomplete chains do not satisfy this criterion and do not exit this phase.
+**Exit criterion:** ALL THREE conditions must hold: (1) the problem's core question as stated in the Essence Statement is answered, AND (2) every conclusion offered has a complete derivation chain back to named ground truths, AND (3) the [Second-Order Thinking](references/second-order-thinking.md) pass has been applied and no extension step contradicts a Ground Truth. Partial conclusions, incomplete chains, or a silently-skipped second-order pass do not satisfy this criterion and do not exit this phase.
 
 ---
 
@@ -109,7 +98,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
 
-**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply a validation rubric as a systematic check — a separate rubric document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the rubric in [`references/validation-rubric.md`](references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
 
 **Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
 
@@ -170,7 +159,7 @@ analysis is stuck on *why* something is true and the surface explanation feels i
 The tool branches causal chains iteratively until a root cause passes a testability check,
 then hands back to Phase 3 (Establish Ground Truths) with a verified causal fact.
 
-**[Ishikawa (fishbone)](references/ishikawa-diagram.md)** — Breadth-first
+**[Ishikawa](references/ishikawa-diagram.md)** — Breadth-first
 cause-category brainstorm. Use during Phase 2 (Challenge Assumptions) when
 the assumption space is multi-causal and intuition cannot enumerate it
 confidently. Branches enter the Classified Assumptions Table as `untested belief` rows;
@@ -200,15 +189,6 @@ Upward) to extend a Derivation Chain with 2nd/3rd-order effects before
 handing off to Phase 5. Contradicting effects route the conclusion back
 to Phase 2 for re-challenging. Pairs with Inversion: Inversion looks back
 at preconditions; Second-Order looks forward at consequences.
-
-### Worked examples
-
-- Software and systems → [examples/software-systems.md](examples/software-systems.md)
-- Product and business → [examples/product-business.md](examples/product-business.md)
-- Personal and general → [examples/personal-general.md](examples/personal-general.md)
-- Science and engineering → [examples/science-engineering.md](examples/science-engineering.md)
-- Ishikawa fishbone → [examples/ishikawa-fishbone.md](examples/ishikawa-fishbone.md)
-- Composed Inversion + Second-Order → [examples/composed-inversion-second-order.md](examples/composed-inversion-second-order.md)
 
 ### Reference docs
 

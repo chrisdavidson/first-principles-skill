@@ -39,12 +39,73 @@ PLUGIN_SKILLS = REPO_ROOT / "first-principles" / "skills"
 TOKEN_RE = re.compile(r"\{\{TOOL:([a-z][a-z0-9-]*)\}\}")
 
 # PyYAML emission flags — pinned for byte-deterministic output (Pitfall 5).
+# width=10**9 keeps short single-line description scalars on one line (plugin
+# canonical shape). The monolith spine's folded `>-` description scalar (see
+# _FoldedStr below) still emits as a folded block — just unwrapped onto one
+# indented content line. The wrap-width delta from the hand-authored multi-line
+# original is absorbed by MIGRATION-DIFFS.md (resolution C addendum).
 YAML_DUMP_KWARGS = dict(
     default_flow_style=False,
     sort_keys=False,
     allow_unicode=True,
     width=10**9,
 )
+
+
+class _QuotedStr(str):
+    """Marker subclass: emit as a double-quoted scalar (preserves version: "x.y.z")."""
+
+
+class _FoldedStr(str):
+    """Marker subclass: emit as a folded block scalar (>-) for long descriptions."""
+
+
+def _build_dumper():
+    """Return a yaml.SafeDumper subclass with our two style markers registered.
+
+    A scoped Dumper subclass (vs. yaml.add_representer) keeps the sync script's
+    emission choices local — global registration would leak across any other
+    yaml.safe_dump call in the process.
+    """
+    import yaml
+
+    class _Dumper(yaml.SafeDumper):
+        pass
+
+    def _quoted(dumper, data):
+        return dumper.represent_scalar("tag:yaml.org,2002:str", str(data), style='"')
+
+    def _folded(dumper, data):
+        return dumper.represent_scalar("tag:yaml.org,2002:str", str(data), style=">")
+
+    _Dumper.add_representer(_QuotedStr, _quoted)
+    _Dumper.add_representer(_FoldedStr, _folded)
+    return _Dumper
+
+
+def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
+    """Walk a meta dict and re-wrap select string values with style markers.
+
+    Rules (see Plan 18-03 additional context; YAML emission resolution path A):
+      - `metadata.version` is always wrapped as _QuotedStr so it re-emits with
+        double quotes (matches current on-disk shape across both surfaces).
+      - For the monolith spine (kind=='spine' and surface=='monolith'), the
+        `description` field is wrapped as _FoldedStr so it re-emits as a `>-`
+        folded block scalar (matches current on-disk shape; wrap-width may
+        differ slightly from the hand-authored original — that minor
+        cosmetic delta is absorbed by MIGRATION-DIFFS.md per resolution C).
+
+    Returns a shallow-mutated copy; the input dict is not mutated.
+    """
+    out = {k: v for k, v in meta.items()}
+    md = out.get("metadata")
+    if isinstance(md, dict) and "version" in md:
+        new_md = {k: v for k, v in md.items()}
+        new_md["version"] = _QuotedStr(str(md["version"]))
+        out["metadata"] = new_md
+    if kind == "spine" and surface == "monolith" and isinstance(out.get("description"), str):
+        out["description"] = _FoldedStr(out["description"])
+    return out
 
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
 TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order")
@@ -100,7 +161,8 @@ def _stitch(meta: dict, body: str) -> str:
     Letting the body own the leading whitespace keeps stitch shape-agnostic.
     """
     import yaml
-    fm = yaml.safe_dump(meta, **YAML_DUMP_KWARGS).rstrip("\n")
+    Dumper = _build_dumper()
+    fm = yaml.dump(meta, Dumper=Dumper, **YAML_DUMP_KWARGS).rstrip("\n")
     out = f"---\n{fm}\n---\n{body}"
     if not out.endswith("\n"):
         out += "\n"
@@ -164,7 +226,9 @@ def generate_all() -> dict[Path, str]:
         # Plugin sibling SKILL.md: stitch plugin frontmatter onto body.
         if not plugin_fm:
             raise ValueError(f"shared/references/{t}.meta.yml missing 'plugin' block")
-        plugin_skill = _stitch(plugin_fm, body)
+        plugin_skill = _stitch(
+            _decorate_for_emission(plugin_fm, surface="plugin", kind="sibling"), body
+        )
         targets[PLUGIN_SKILLS / t / "SKILL.md"] = plugin_skill
 
         # Monolith refs never get frontmatter; ignore monolith_fm here.
@@ -186,9 +250,13 @@ def generate_all() -> dict[Path, str]:
     monolith_spine_body = _expand(spine_body, tool_map, "monolith")
 
     targets[PLUGIN_SKILLS / "thinking" / "SKILL.md"] = _stitch(
-        spine_plugin_fm, plugin_spine_body
+        _decorate_for_emission(spine_plugin_fm, surface="plugin", kind="spine"),
+        plugin_spine_body,
     )
-    targets[MONOLITH / "SKILL.md"] = _stitch(spine_monolith_fm, monolith_spine_body)
+    targets[MONOLITH / "SKILL.md"] = _stitch(
+        _decorate_for_emission(spine_monolith_fm, surface="monolith", kind="spine"),
+        monolith_spine_body,
+    )
 
     # --- Spine appendices: verbatim, no marker expansion, no frontmatter ---
     for appendix in ("output-template.md", "validation-rubric.md"):
