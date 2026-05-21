@@ -2,12 +2,16 @@
 # Sync drift gate for shared/ ↔ generated trees.
 # Opt in:  git config core.hooksPath .githooks
 
-set -e
+set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
 if command -v uv >/dev/null 2>&1; then
-    uv run scripts/sync-content.py --check
+    exec uv run scripts/sync-content.py --check
+elif command -v python3 >/dev/null 2>&1; then
+    exec python3 scripts/sync-content.py --check
 else
-    python3 scripts/sync-content.py --check
+    echo "pre-commit: neither 'uv' nor 'python3' on PATH." >&2
+    echo "  Install one of them, or bypass this hook with 'git commit --no-verify'." >&2
+    exit 2
 fi
