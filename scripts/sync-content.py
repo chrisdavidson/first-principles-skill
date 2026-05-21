@@ -187,6 +187,15 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _is_within(child: Path, parent: Path) -> bool:
+    """Return True iff `child` is `parent` or strictly inside it (resolved)."""
+    try:
+        child.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
+
+
 def _normalise_trailing_newline(content: str) -> str:
     """Pin every emitted file to exactly one trailing '\\n' (Pitfall 9)."""
     return content.rstrip("\n") + "\n"
@@ -268,12 +277,13 @@ def generate_all() -> dict[Path, str]:
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
     #     one of the two known generated-trees.
+    # Use Path.relative_to() rather than str.startswith() to avoid sibling-dir
+    # false positives (WR-01): a path like `.../first-principles-thinking-extra/x`
+    # shares a string prefix with `.../first-principles-thinking` but is not
+    # actually inside it. relative_to() is the boundary-correct check.
     allowed_roots = (MONOLITH, PLUGIN_SKILLS)
     for path in targets:
-        if not any(
-            str(path.resolve()).startswith(str(root.resolve()))
-            for root in allowed_roots
-        ):
+        if not any(_is_within(path, root) for root in allowed_roots):
             raise ValueError(
                 f"Generated path {path} resolves outside allowed trees "
                 f"{[str(r) for r in allowed_roots]}"
