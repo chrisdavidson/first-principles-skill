@@ -186,6 +186,22 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _read_required(path: Path, hint: str) -> str:
+    """Read `path` as UTF-8; raise a structured FileNotFoundError on miss (WR-04).
+
+    `hint` is appended to the error message so a contributor sees *why* the file
+    is required (e.g. "did you add a TOOLS slug without a sidecar?") rather than
+    a bare 'No such file or directory' traceback.
+    """
+    if not path.exists():
+        try:
+            rel = path.relative_to(REPO_ROOT)
+        except ValueError:
+            rel = path
+        raise FileNotFoundError(f"{rel} not found ({hint})")
+    return path.read_text(encoding="utf-8")
+
+
 def _is_within(child: Path, parent: Path) -> bool:
     """Return True iff `child` is `parent` or strictly inside it (resolved)."""
     try:
@@ -220,9 +236,15 @@ def generate_all() -> dict[Path, str]:
 
     # --- Companion bodies + sidecars ---
     for t in TOOLS:
-        body = _read_text(SHARED / "references" / f"{t}.md")
+        body = _read_required(
+            SHARED / "references" / f"{t}.md",
+            hint=f"shared/references/{t}.md is required for the '{t}' tool listed in TOOLS",
+        )
         meta_path = SHARED / "references" / f"{t}.meta.yml"
-        meta = yaml.safe_load(_read_text(meta_path))
+        meta = yaml.safe_load(_read_required(
+            meta_path,
+            hint=f"every TOOLS slug needs a sidecar; add shared/references/{t}.meta.yml or remove '{t}' from TOOLS",
+        ))
         plugin_fm = meta.get("plugin") or {}
         monolith_fm = meta.get("monolith") or {}
 
@@ -243,9 +265,18 @@ def generate_all() -> dict[Path, str]:
         _ = monolith_fm  # documented no-op
 
     # --- Spine body (with marker expansion per surface) ---
-    spine_body = _read_text(SHARED / "spine" / "SKILL-body.md")
-    tool_map = yaml.safe_load(_read_text(SHARED / "spine" / "tool-map.yml"))
-    spine_meta = yaml.safe_load(_read_text(SHARED / "spine" / "SKILL.meta.yml"))
+    spine_body = _read_required(
+        SHARED / "spine" / "SKILL-body.md",
+        hint="canonical spine body is required",
+    )
+    tool_map = yaml.safe_load(_read_required(
+        SHARED / "spine" / "tool-map.yml",
+        hint="canonical tool-map drives {{TOOL:<slug>}} marker expansion",
+    ))
+    spine_meta = yaml.safe_load(_read_required(
+        SHARED / "spine" / "SKILL.meta.yml",
+        hint="canonical spine frontmatter is required for both surfaces",
+    ))
     spine_plugin_fm = spine_meta.get("plugin") or {}
     spine_monolith_fm = spine_meta.get("monolith") or {}
 
@@ -269,7 +300,10 @@ def generate_all() -> dict[Path, str]:
     # --- Spine appendices: verbatim, no marker expansion, no frontmatter ---
     for appendix in ("output-template.md", "validation-rubric.md"):
         content = _normalise_trailing_newline(
-            _read_text(SHARED / "spine" / "references" / appendix)
+            _read_required(
+                SHARED / "spine" / "references" / appendix,
+                hint=f"spine appendix '{appendix}' ships to both surfaces verbatim",
+            )
         )
         targets[MONOLITH / "references" / appendix] = content
         targets[PLUGIN_SKILLS / "thinking" / "references" / appendix] = content
