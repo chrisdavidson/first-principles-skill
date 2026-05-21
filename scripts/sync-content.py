@@ -186,6 +186,26 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def _require_mapping(value, source_path: Path):
+    """Ensure `yaml.safe_load` produced a dict, not None/list/scalar (WR-05).
+
+    An empty or whitespace-only YAML file parses to None, which then crashes
+    downstream with `'NoneType' object has no attribute 'get'`. Catch it here
+    with a message that names the file.
+    """
+    if not isinstance(value, dict):
+        try:
+            rel = source_path.relative_to(REPO_ROOT)
+        except ValueError:
+            rel = source_path
+        got = "empty/null" if value is None else type(value).__name__
+        raise ValueError(
+            f"{rel} did not parse to a YAML mapping (got {got}); "
+            f"the file may be empty or malformed"
+        )
+    return value
+
+
 def _read_required(path: Path, hint: str) -> str:
     """Read `path` as UTF-8; raise a structured FileNotFoundError on miss (WR-04).
 
@@ -241,10 +261,13 @@ def generate_all() -> dict[Path, str]:
             hint=f"shared/references/{t}.md is required for the '{t}' tool listed in TOOLS",
         )
         meta_path = SHARED / "references" / f"{t}.meta.yml"
-        meta = yaml.safe_load(_read_required(
+        meta = _require_mapping(
+            yaml.safe_load(_read_required(
+                meta_path,
+                hint=f"every TOOLS slug needs a sidecar; add shared/references/{t}.meta.yml or remove '{t}' from TOOLS",
+            )),
             meta_path,
-            hint=f"every TOOLS slug needs a sidecar; add shared/references/{t}.meta.yml or remove '{t}' from TOOLS",
-        ))
+        )
         plugin_fm = meta.get("plugin") or {}
         monolith_fm = meta.get("monolith") or {}
 
@@ -269,14 +292,22 @@ def generate_all() -> dict[Path, str]:
         SHARED / "spine" / "SKILL-body.md",
         hint="canonical spine body is required",
     )
-    tool_map = yaml.safe_load(_read_required(
-        SHARED / "spine" / "tool-map.yml",
-        hint="canonical tool-map drives {{TOOL:<slug>}} marker expansion",
-    ))
-    spine_meta = yaml.safe_load(_read_required(
-        SHARED / "spine" / "SKILL.meta.yml",
-        hint="canonical spine frontmatter is required for both surfaces",
-    ))
+    tool_map_path = SHARED / "spine" / "tool-map.yml"
+    tool_map = _require_mapping(
+        yaml.safe_load(_read_required(
+            tool_map_path,
+            hint="canonical tool-map drives {{TOOL:<slug>}} marker expansion",
+        )),
+        tool_map_path,
+    )
+    spine_meta_path = SHARED / "spine" / "SKILL.meta.yml"
+    spine_meta = _require_mapping(
+        yaml.safe_load(_read_required(
+            spine_meta_path,
+            hint="canonical spine frontmatter is required for both surfaces",
+        )),
+        spine_meta_path,
+    )
     spine_plugin_fm = spine_meta.get("plugin") or {}
     spine_monolith_fm = spine_meta.get("monolith") or {}
 
