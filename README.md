@@ -65,32 +65,60 @@ The v2.0 enhanced successor adds four things the original does not have:
 3. **Four domain-spread worked examples** — software/systems, product/business, personal/general, and science/engineering, each demonstrating a real dead-end and a complete validation pass.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
-## Installation
+## Install
 
-The skill lives in the `first-principles-thinking/` subdirectory of this repo. The installed directory **must be named `first-principles-thinking`** — this name must match the frontmatter `name` field, and renaming it will break skill discovery.
+Pick one path — installing both creates two copies of the methodology and risks Claude Code routing ambiguity between `/first-principles-thinking` (v1.2 monolith skill) and `/first-principles:thinking` (v2.0 plugin spine).
 
-### Personal install (recommended)
+> **Pick one, not both.** The two install paths ship the *same* methodology under different invocation namespaces. Installing both makes it ambiguous which one Claude Code routes a given trigger phrase to. Choose the path that matches how you want to invoke the skill, and uninstall the other if you have it.
 
-Available across all your projects:
+### v1.2 single-skill (monolith)
 
-```bash
+For users who want the methodology plus all companion references bundled under a single skill directory. Invoked as `/first-principles-thinking`. The installed directory **must be named `first-principles-thinking`** — the name must match the skill's frontmatter `name` field, and renaming it will break skill discovery.
+
+```sh
 git clone https://github.com/chrisdavidson/first-principles-skills.git
+cd first-principles-skills
 
-# Copy (standalone — does not stay in sync with the repo):
-cp -r first-principles-skills/first-principles-thinking ~/.claude/skills/first-principles-thinking
+# Copy (snapshot — does not stay in sync with the repo)
+cp -r first-principles-thinking ~/.claude/skills/first-principles-thinking
 
-# Or symlink (keeps the cloned repo as the live source of truth — edits picked up without re-copying):
-ln -s "$(pwd)/first-principles-skills/first-principles-thinking" ~/.claude/skills/first-principles-thinking
+# Or symlink (keeps the cloned repo as the live source of truth — edits picked up without re-copying; recommended for contributors)
+ln -s "$(pwd)/first-principles-thinking" ~/.claude/skills/first-principles-thinking
 ```
 
-### Project install
+Verify with `/doctor` inside Claude Code; the skill should appear in the listing.
 
-Scoped to one repo, committed to VCS:
+### v2.0 plugin (7 skills)
 
-```bash
-# Copy into your project:
-cp -r first-principles-skills/first-principles-thinking /path/to/your-project/.claude/skills/first-principles-thinking
+For users who want namespace-addressable companion tools (`/first-principles:five-whys`, `:fishbone`, `:inversion`, `:pre-mortem`, `:trade-off`, `:second-order`) alongside the spine (`/first-principles:thinking`). Each companion is its own skill under the `first-principles` plugin namespace.
 
-# Or symlink:
-ln -s /path/to/first-principles-skills/first-principles-thinking /path/to/your-project/.claude/skills/first-principles-thinking
+```sh
+git clone https://github.com/chrisdavidson/first-principles-skills.git
+claude --plugin-dir ./first-principles-skills/first-principles
 ```
+
+Marketplace install (`/plugin marketplace add ...`) is coming with the v2.0 release.
+
+### Project-scoped install
+
+Either path can also be installed into a single project (committed to that repo's VCS) by targeting `.claude/skills/<name>/` inside the project instead of `~/.claude/skills/`. Use this when a team wants the skill version-controlled with a specific codebase.
+
+## Contributing
+
+Canonical content lives in `shared/`. The monolith (`first-principles-thinking/`) and the plugin (`first-principles/skills/`) are **generated** from `shared/` by `scripts/sync-content.py`. Edit `shared/` — never the generated trees directly.
+
+**One-time setup — opt into the pre-commit drift gate (recommended):**
+
+```sh
+git config core.hooksPath .githooks
+```
+
+With the gate on, every `git commit` runs `scripts/sync-content.py --check` and fails the commit if `shared/` and the generated trees have drifted. Remediation:
+
+```sh
+python3 scripts/sync-content.py --write && git add -u
+```
+
+**Python requirement:** the sync script needs Python ≥ 3.12 and PyYAML. Easiest is `uv run scripts/sync-content.py --check` ([install uv](https://docs.astral.sh/uv/getting-started/installation/)); alternatively `pip install --user 'pyyaml>=6.0'` and use plain `python3`.
+
+The hook opt-in is per-clone (Git does not propagate `core.hooksPath` automatically), so each contributor configures it once locally.
