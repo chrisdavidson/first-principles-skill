@@ -1,0 +1,7 @@
+plugin:
+  name: inversion
+  description: Applies 'invert, always invert' to a claim by asking what would have to be true to fail, surfacing the preconditions it silently depends on.
+  metadata:
+    version: 2.0.0-alpha.1
+  license: MIT
+monolith: {}

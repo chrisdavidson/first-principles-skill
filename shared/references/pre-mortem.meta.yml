@@ -1,0 +1,7 @@
+plugin:
+  name: pre-mortem
+  description: Prospective-hindsight failure analysis that assumes the plan has already failed and works backward to probable causes — stress-test the plan before commitment.
+  metadata:
+    version: 2.0.0-alpha.1
+  license: MIT
+monolith: {}
