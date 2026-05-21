@@ -1,0 +1,12 @@
+plugin:
+  name: thinking
+  description: Decomposes any problem into fundamental truths and reasons up from them rather than by analogy or convention. The 5-phase first-principles methodology; composes with sibling companion-tool skills.
+  metadata:
+    version: 2.0.0-alpha.1
+  license: MIT
+monolith:
+  name: first-principles-thinking
+  description: Decomposes any problem into verified fundamental truths and reasons upward from them instead of by analogy or convention. Use when the user wants to analyze from first principles, think from scratch, question a design, challenge assumptions, is this the right approach, why are we doing it this way, is there a better solution, evaluate an architectural decision, justify a decision from ground truths, map causes with an Ishikawa or fishbone diagram, pick cause categories, use inversion to invert the question and ask what would guarantee failure, apply second-order thinking to trace downstream consequences, apply a pre-mortem or 5-Whys, or asks whether reasoning is sound. Make sure to use this skill whenever the user wants to avoid reasoning by analogy or convention, even if they do not explicitly say "first principles".
+  license: MIT
+  metadata:
+    version: '2.0'

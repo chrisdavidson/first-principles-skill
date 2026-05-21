@@ -1,0 +1,7 @@
+plugin:
+  name: five-whys
+  description: Drills down a recurring symptom by asking 5 whys at each level until reaching a root cause with an actionable corrective. Traces the causal chain branch-by-branch and stops by test, not by count. Use when a surface fix has not held.
+  metadata:
+    version: 2.0.0-alpha.1
+  license: MIT
+monolith: {}

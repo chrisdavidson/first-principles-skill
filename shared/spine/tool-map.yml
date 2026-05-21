@@ -1,0 +1,18 @@
+five-whys:
+  plugin: "`/first-principles:five-whys`"
+  monolith: "[Five Whys](references/five-whys.md)"
+fishbone:
+  plugin: "`/first-principles:fishbone`"
+  monolith: "[Ishikawa](references/ishikawa-diagram.md)"
+inversion:
+  plugin: "`/first-principles:inversion`"
+  monolith: "[Inversion](references/inversion.md)"
+pre-mortem:
+  plugin: "`/first-principles:pre-mortem`"
+  monolith: "[Pre-mortem](references/pre-mortem.md)"
+trade-off:
+  plugin: "`/first-principles:trade-off`"
+  monolith: "[Trade-off Analysis](references/trade-off-analysis.md)"
+second-order:
+  plugin: "`/first-principles:second-order`"
+  monolith: "[Second-Order Thinking](references/second-order-thinking.md)"
