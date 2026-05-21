@@ -65,6 +65,8 @@ The v2.0 enhanced successor adds four things the original does not have:
 3. **Four domain-spread worked examples** — software/systems, product/business, personal/general, and science/engineering, each demonstrating a real dead-end and a complete validation pass.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
+[![Validation](https://github.com/chrisdavidson/first-principles-skills/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skills/actions/workflows/validation.yml)
+
 ## Install
 
 Pick one path — installing both creates two copies of the methodology and risks Claude Code routing ambiguity between `/first-principles-thinking` (v1.2 monolith skill) and `/first-principles:thinking` (v2.0 plugin spine).
