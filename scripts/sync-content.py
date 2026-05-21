@@ -129,7 +129,6 @@ def _require_pyyaml() -> None:
         import yaml  # noqa: F401
     except ImportError:
         sys.stderr.write(
-            "Run: python3 scripts/sync-content.py --write && git add -u\n"
             "scripts/sync-content.py needs PyYAML.\n"
             "  Easiest:  uv run scripts/sync-content.py --check\n"
             "  Or:       pip install --user 'pyyaml>=6.0'  &&  "
