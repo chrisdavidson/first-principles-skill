@@ -65,7 +65,7 @@ The v2.0 enhanced successor adds four things the original does not have:
 3. **Four domain-spread worked examples** — software/systems, product/business, personal/general, and science/engineering, each demonstrating a real dead-end and a complete validation pass.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
-[![Validation](https://github.com/chrisdavidson/first-principles-skills/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skills/actions/workflows/validation.yml)
+[![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml)
 
 ## Install
 
@@ -78,8 +78,8 @@ Pick one path — installing both creates two copies of the methodology and risk
 For users who want the methodology plus all companion references bundled under a single skill directory. Invoked as `/first-principles-thinking`. The installed directory **must be named `first-principles-thinking`** — the name must match the skill's frontmatter `name` field, and renaming it will break skill discovery.
 
 ```sh
-git clone https://github.com/chrisdavidson/first-principles-skills.git
-cd first-principles-skills
+git clone https://github.com/chrisdavidson/first-principles-skill.git
+cd first-principles-skill
 
 # Copy (snapshot — does not stay in sync with the repo)
 cp -r first-principles-thinking ~/.claude/skills/first-principles-thinking
@@ -95,15 +95,15 @@ Verify with `/doctor` inside Claude Code; the skill should appear in the listing
 For users who want namespace-addressable companion tools (`/first-principles:five-whys`, `:fishbone`, `:inversion`, `:pre-mortem`, `:trade-off`, `:second-order`) alongside the spine (`/first-principles:thinking`). Each companion is its own skill under the `first-principles` plugin namespace.
 
 ```sh
-git clone https://github.com/chrisdavidson/first-principles-skills.git
-claude --plugin-dir ./first-principles-skills/first-principles
+git clone https://github.com/chrisdavidson/first-principles-skill.git
+claude --plugin-dir ./first-principles-skill/first-principles
 ```
 
 Or install via the Claude Code plugin marketplace — no clone required:
 
 ```sh
 /plugin marketplace add chrisdavidson/first-principles-skill
-/plugin install first-principles@first-principles-skills
+/plugin install first-principles@first-principles-skill
 ```
 
 Verify with `/doctor` inside Claude Code; all 7 skills (`/first-principles:thinking` plus the six companions) should appear in the listing.

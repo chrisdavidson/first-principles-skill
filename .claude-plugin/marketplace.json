@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-marketplace-manifest.json",
-  "name": "first-principles-skills",
+  "name": "first-principles-skill",
   "owner": {
     "name": "Christopher Davidson"
   },
