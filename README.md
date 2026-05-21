@@ -102,7 +102,7 @@ claude --plugin-dir ./first-principles-skills/first-principles
 Or install via the Claude Code plugin marketplace — no clone required:
 
 ```sh
-/plugin marketplace add chrisdavidson/first-principles-skills
+/plugin marketplace add chrisdavidson/first-principles-skill
 /plugin install first-principles@first-principles-skills
 ```
 
