@@ -99,7 +99,14 @@ git clone https://github.com/chrisdavidson/first-principles-skills.git
 claude --plugin-dir ./first-principles-skills/first-principles
 ```
 
-Marketplace install (`/plugin marketplace add ...`) is coming with the v2.0 release.
+Or install via the Claude Code plugin marketplace — no clone required:
+
+```sh
+/plugin marketplace add chrisdavidson/first-principles-skills
+/plugin install first-principles@first-principles-skills
+```
+
+Verify with `/doctor` inside Claude Code; all 7 skills (`/first-principles:thinking` plus the six companions) should appear in the listing.
 
 ### Project-scoped install
 
