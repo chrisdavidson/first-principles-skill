@@ -1,0 +1,13 @@
+#!/bin/sh
+# Sync drift gate for shared/ ↔ generated trees.
+# Opt in:  git config core.hooksPath .githooks
+
+set -e
+
+cd "$(git rev-parse --show-toplevel)"
+
+if command -v uv >/dev/null 2>&1; then
+    uv run scripts/sync-content.py --check
+else
+    python3 scripts/sync-content.py --check
+fi
