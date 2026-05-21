@@ -1,2 +1,4 @@
 .planning/
 .claude/
+scripts/__pycache__/
+scripts/*.pyc

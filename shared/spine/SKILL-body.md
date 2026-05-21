@@ -1,3 +1,4 @@
+
 # First Principles Thinking
 
 A systematic methodology for decomposing any problem into verified fundamental truths and reasoning upward from there — for evaluating designs, challenging assumptions, and avoiding reasoning by analogy.
