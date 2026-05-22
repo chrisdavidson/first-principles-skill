@@ -165,6 +165,25 @@ AskUserQuestion: permitted
 This is a non-empty body with valid content.
 """
 
+# Self-test fixture: description missing one mandatory trigger phrase
+_FIXTURE_MISSING_TRIGGER_PHRASE = """\
+---
+name: first-principles
+description: Analyze from first principles; challenge assumptions; reason from ground truth. No decompose phrase.
+license: MIT
+metadata:
+  version: "3.0.0"
+disallowedTools:
+  - Write
+  - Edit
+maxTurns: 30
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content.
+"""
+
 
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
@@ -304,6 +323,8 @@ def _run_self_test() -> None:
          "missing required key 'maxTurns'"),
         ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS,
          "missing required key 'disallowedTools'"),
+        ("fixture-h (missing trigger phrase)", _FIXTURE_MISSING_TRIGGER_PHRASE,
+         "missing required trigger phrase"),
     ]
 
     wrong_passes: list[str] = []
