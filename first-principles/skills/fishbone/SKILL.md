@@ -1,6 +1,6 @@
 ---
 name: fishbone
-description: Ishikawa fishbone diagram for breadth-first cause map across parallel categories. Use when an effect has multiple interacting contributors and the cause space must be surveyed across cause categories before drilling into any single chain.
+description: 'Deprecated: the Ishikawa fishbone cause-mapping technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies fishbone mapping internally.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

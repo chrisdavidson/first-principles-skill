@@ -1,6 +1,6 @@
 ---
 name: second-order
-description: Extends a first-order conclusion by enumerating downstream effects — second-level thinking that asks what follows from it. Use when a Phase 4 conclusion needs stress-testing for 2nd- and 3rd-order consequences before validation.
+description: 'Deprecated: the second-order thinking technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which covers downstream-consequence analysis directly.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

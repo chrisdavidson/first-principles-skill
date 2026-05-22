@@ -1,6 +1,6 @@
 ---
 name: trade-off
-description: Structures a choice across viable options via a decision matrix — weighting criteria are locked first, then score against weights to prevent reverse-engineering.
+description: 'Deprecated: the trade-off decision-matrix technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies trade-off analysis internally.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT
