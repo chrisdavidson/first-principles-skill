@@ -37,6 +37,12 @@ _MARKER_RE = re.compile(r"\{\{.*?\}\}")
 # Expected locked values
 _EXPECTED_NAME = "first-principles"
 _MAX_DESCRIPTION_LEN = 1024
+_REQUIRED_PHRASES = [
+    "first principles",
+    "challenge assumptions",
+    "reason from ground truth",
+    "decompose this problem",
+]
 
 # Self-test fixture: missing `name` key in frontmatter
 _FIXTURE_MISSING_NAME = """\
@@ -280,6 +286,15 @@ def _check_agent_text(text: str) -> list[str]:
         failures.append(
             f"body contains unresolved sync markers: {', '.join(markers[:5])}"
         )
+
+    # Check 8: description must contain all four mandatory trigger phrases
+    if isinstance(description, str) and len(description) > 0:
+        missing = [p for p in _REQUIRED_PHRASES if p not in description.lower()]
+        if missing:
+            failures.append(
+                "'description' missing required trigger phrase(s): "
+                + ", ".join(f'"{p}"' for p in missing)
+            )
 
     return failures
 
