@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: 'Deprecated: the pre-mortem technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies pre-mortem internally.'
+description: Deprecated stand-alone packaging of prospective-hindsight pre-mortem analysis. Kept installable only as a legacy compatibility shim. Newer callers should hand work off via @agent-first-principles.
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

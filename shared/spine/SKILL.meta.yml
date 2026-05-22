@@ -1,6 +1,6 @@
 plugin:
   name: thinking
-  description: 'Deprecated: the 5-phase first-principles methodology as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent for new work.'
+  description: 'Deprecated standalone surface for the five-phase first-principles methodology. Kept installable only for backward compatibility. Route new work through agent first-principles.'
   metadata:
     version: 2.0.0-alpha.1
   license: MIT

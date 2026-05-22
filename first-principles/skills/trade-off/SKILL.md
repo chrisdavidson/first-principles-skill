@@ -1,6 +1,6 @@
 ---
 name: trade-off
-description: 'Deprecated: the trade-off decision-matrix technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies trade-off analysis internally.'
+description: Deprecated stand-alone weighted decision-matrix tool. Preserved purely so existing references keep resolving. Prefer invoking the agent named first-principles, which embeds weighted scoring during Phase 4.
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT
