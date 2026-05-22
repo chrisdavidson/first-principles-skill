@@ -1,5 +1,11 @@
 # First Principles Thinking — Claude Code Plugin
 
+> **Deprecated — use the `first-principles` agent instead.**
+> The plugin skills still work and remain installable, but the recommended
+> interface is the `first-principles` agent already included in this plugin.
+> Invoke it directly with `@agent-first-principles:first-principles` or
+> `/first-principles:first-principles` — no extra install step needed.
+
 A Claude Code plugin packaging the 5-phase first-principles methodology and
 six companion thinking tools as namespaced skills.
 
