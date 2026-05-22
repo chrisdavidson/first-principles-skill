@@ -99,8 +99,16 @@ labels and blank branches.
 1. **Define the effect.** Write one sentence naming the observable problem — the effect
    to be explained. State what is happening, not why. Do not name a suspected cause.
 
-2. **Choose categories.** Select the category set using the decision rule in
-   [Cause categories](#cause-categories). Lock the set now. Do not add, rename, or
+2. **Choose categories.** Pick the category set by domain signal: use **6M** (Machine,
+   Method, Material, Measurement, Man, Mother Nature) for a physical production line,
+   factory floor, or ops process with equipment; use **8P** (Product, Price, Place,
+   Promotion, People, Process, Physical Evidence, Productivity) for a service business
+   with a customer offer, channel, pricing, and marketing mix; use **4S** (Surroundings,
+   Suppliers, Systems, Skills) for a narrow-scope service-delivery operation with no
+   marketing mix; use the **default six-category set** (People, Process, Technology and
+   Tools, Environment, Information, Resources) for software, knowledge work,
+   cross-functional teams, research domains, or when no preset fits cleanly. The default
+   six-category set is always a valid fallback. Lock the set now. Do not add, rename, or
    remove categories once brainstorming begins.
 
 3. **Brainstorm causes.** For each category, generate candidate causes that could
