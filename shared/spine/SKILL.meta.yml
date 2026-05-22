@@ -12,7 +12,7 @@ monolith:
     version: '2.0'
 agent:
   name: first-principles
-  description: Runs a complete first-principles analysis end-to-end — decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a conclusion. Applies the six companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) internally. Delegate when the user asks to analyze from first principles, challenge assumptions, question a design, or stress-test reasoning.
+  description: "Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all six companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, or stress-test reasoning. Not for routine code review, debugging, or general Q&A."
   license: MIT
   metadata:
     version: '3.0.0'
