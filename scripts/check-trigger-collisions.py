@@ -5,8 +5,16 @@
 # ///
 """VAL-04 / GATE-02 gate: cross-sibling 4-token n-gram collision scanner.
 
-Usage: python3 scripts/check-trigger-collisions.py
-Exit codes: 0 clean, 1 collision, 2 environment error.
+Usage:
+    python3 scripts/check-trigger-collisions.py [--self-test]
+
+Exit codes: 0 clean, 1 collision (or self-test fixture wrongly produced no
+collision), 2 environment error.
+
+--self-test: runs an inline fixture pair (synthetic agent + synthetic skill
+descriptions that share at least one 4-gram) and asserts the scanner detects
+the collision. Negative proof per D-07: it must demonstrate the scanner FAILs
+on a known-colliding input — a silent no-op extension cannot pass.
 
 Algorithm matches D-19-7 verbatim: lowercase -> re.split(r'\\W+', s) -> drop
 empties -> contiguous 4-grams -> pairwise set intersection across all 28 pairs
@@ -27,6 +35,7 @@ The monolith skill at first-principles-thinking/ is deliberately excluded
 
 from __future__ import annotations
 
+import argparse
 import itertools
 import re
 import sys
@@ -158,9 +167,70 @@ def build_skill_ngrams() -> dict[str, set[tuple[str, ...]]]:
     return skill_ngrams
 
 
+def _run_self_test() -> None:
+    """Negative proof (D-07): feed a deliberately colliding agent/skill pair
+    into the same tokens()/ngrams() functions and assert a 4-gram collision is
+    detected. If the fixture produces NO collision the algorithm or fixture is
+    broken — FAIL with exit 1. If the collision IS detected, PASS with exit 0.
+
+    Fixture is inline (no external files), matching the
+    scripts/check-agent.py --self-test precedent.
+    """
+    # Synthetic colliding pair — share the 4-gram
+    # ("analyze", "from", "first", "principles"), which is one of the locked
+    # agent description's trigger phrases. A real skill description that
+    # accidentally re-introduced this 4-token sequence is exactly the failure
+    # mode the gate must catch.
+    fixture_agent_desc = (
+        "Synthetic fixture: analyze from first principles for self-test."
+    )
+    fixture_skill_desc = (
+        "Synthetic skill that helps users analyze from first principles too."
+    )
+
+    agent_grams = ngrams(tokens(fixture_agent_desc))
+    skill_grams = ngrams(tokens(fixture_skill_desc))
+    collision = agent_grams & skill_grams
+
+    if not collision:
+        sys.stderr.write(
+            "check-trigger-collisions --self-test: FAIL — fixture produced no "
+            "collision (algorithm or fixture broken; the 4-gram intersection "
+            "of the inline agent/skill descriptions was empty)\n"
+        )
+        sys.exit(1)
+
+    sample = sorted(collision)[0]
+    print(
+        f"check-trigger-collisions --self-test: PASS "
+        f"(fixture collision detected: {' '.join(sample)})"
+    )
+    sys.exit(0)
+
+
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description=(
+            "VAL-04 / GATE-02: cross-sibling 4-token n-gram collision scanner "
+            "(7 plugin skills + first-principles agent, 28 pairs)."
+        )
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help=(
+            "run an inline colliding fixture pair and verify the scanner "
+            "detects the collision (negative proof, D-07)"
+        ),
+    )
+    args = parser.parse_args()
+
     _require_python_version()
     _require_pyyaml()
+
+    if args.self_test:
+        _run_self_test()
+        return
 
     try:
         skills = build_skill_ngrams()
