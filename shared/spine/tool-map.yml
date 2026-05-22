@@ -1,18 +1,24 @@
 five-whys:
   plugin: "`/first-principles:five-whys`"
   monolith: "[Five Whys](references/five-whys.md)"
+  agent: the inlined 5-Whys procedure
 fishbone:
   plugin: "`/first-principles:fishbone`"
   monolith: "[Ishikawa](references/ishikawa-diagram.md)"
+  agent: the inlined fishbone procedure
 inversion:
   plugin: "`/first-principles:inversion`"
   monolith: "[Inversion](references/inversion.md)"
+  agent: the inlined inversion procedure
 pre-mortem:
   plugin: "`/first-principles:pre-mortem`"
   monolith: "[Pre-mortem](references/pre-mortem.md)"
+  agent: the inlined pre-mortem procedure
 trade-off:
   plugin: "`/first-principles:trade-off`"
   monolith: "[Trade-off Analysis](references/trade-off-analysis.md)"
+  agent: the inlined trade-off analysis procedure
 second-order:
   plugin: "`/first-principles:second-order`"
   monolith: "[Second-Order Thinking](references/second-order-thinking.md)"
+  agent: the inlined second-order thinking procedure
