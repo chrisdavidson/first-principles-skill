@@ -3,10 +3,10 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0"]
 # ///
-"""Sync canonical shared/ content into the monolith + plugin surfaces.
+"""Sync canonical shared/ content into the monolith + plugin + agent surfaces.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 17 target files
+    python3 scripts/sync-content.py --write    # regenerate all 19 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -19,6 +19,7 @@ Target surfaces:
     - first-principles-thinking/                 (monolith)
     - first-principles/skills/thinking/          (plugin spine)
     - first-principles/skills/<tool>/SKILL.md    (plugin sibling skills)
+    - first-principles/agents/first-principles.md (orchestrating agent)
 """
 
 from __future__ import annotations
@@ -34,9 +35,14 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SHARED = REPO_ROOT / "shared"
 MONOLITH = REPO_ROOT / "first-principles-thinking"
 PLUGIN_SKILLS = REPO_ROOT / "first-principles" / "skills"
+AGENT_DIR = REPO_ROOT / "first-principles" / "agents"
+AGENT_PATH = AGENT_DIR / "first-principles.md"
 
 # Marker syntax in shared/spine/SKILL-body.md.
 TOKEN_RE = re.compile(r"\{\{TOOL:([a-z][a-z0-9-]*)\}\}")
+
+# Heading-slice pattern for ## Procedure section extraction from reference files.
+PROCEDURE_RE = re.compile(r"(^## Procedure\n.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL)
 
 # PyYAML emission flags — pinned for byte-deterministic output (Pitfall 5).
 # width=10**9 keeps short single-line description scalars on one line (plugin
@@ -246,19 +252,103 @@ def _normalise_trailing_newline(content: str) -> str:
     return content.rstrip("\n") + "\n"
 
 
+def _extract_procedure(slug: str) -> str:
+    """Extract the ## Procedure section from shared/references/{slug}.md.
+
+    Returns the text from the '## Procedure' heading line through (but not
+    including) the next '## ' heading or EOF, with a trailing newline normalised
+    to exactly one. Raises ValueError if the heading is absent.
+
+    Used by generate_agent() to build the Companion Techniques section of the
+    agent body — each slug's ## Procedure block is inlined verbatim.
+    """
+    body = _read_required(
+        SHARED / "references" / f"{slug}.md",
+        hint=f"shared/references/{slug}.md is required for the Companion Techniques section in the agent body",
+    )
+    m = PROCEDURE_RE.search(body)
+    if not m:
+        raise ValueError(
+            f"shared/references/{slug}.md has no '## Procedure' heading"
+        )
+    return _normalise_trailing_newline(m.group(1))
+
+
+def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
+    """Return {AGENT_PATH: content} for the first-principles orchestrating agent.
+
+    Assembles the agent body from shared/ sources in this order:
+      1. shared/agent/input-contract.md (verbatim prepend — before H1)
+      2. shared/spine/SKILL-body.md expanded for the 'agent' surface
+      3. ## Companion Techniques header + 6 ## Procedure blocks (TOOLS order)
+      4. shared/spine/references/output-template.md (verbatim)
+      5. shared/spine/references/validation-rubric.md (verbatim)
+
+    Stitches the agent: block from shared/spine/SKILL.meta.yml as YAML frontmatter.
+    The generated file is never hand-edited; all content comes from shared/.
+    """
+    # --- Frontmatter from agent: block ---
+    agent_fm = spine_meta.get("agent") or {}
+    if not agent_fm:
+        raise ValueError("shared/spine/SKILL.meta.yml missing 'agent' block")
+
+    # --- Spine body expanded for the agent surface ---
+    spine_body = _read_required(
+        SHARED / "spine" / "SKILL-body.md",
+        hint="canonical spine body is required for agent body assembly",
+    )
+    expanded_body = _expand(spine_body, tool_map, "agent")
+
+    # --- Input contract (verbatim prepend — must precede the spine body's H1) ---
+    input_contract = _read_required(
+        SHARED / "agent" / "input-contract.md",
+        hint="shared/agent/input-contract.md is required; add it per Phase 23 D-02",
+    )
+
+    # --- Companion Techniques: 6 ## Procedure sections in TOOLS order ---
+    companion_header = "\n## Companion Techniques\n\n"
+    companion_blocks = "".join(_extract_procedure(slug) + "\n" for slug in TOOLS)
+
+    # --- Appendices: inlined verbatim (no marker expansion, no frontmatter) ---
+    output_template = _read_required(
+        SHARED / "spine" / "references" / "output-template.md",
+        hint="spine appendix 'output-template.md' is required for agent body",
+    )
+    validation_rubric = _read_required(
+        SHARED / "spine" / "references" / "validation-rubric.md",
+        hint="spine appendix 'validation-rubric.md' is required for agent body",
+    )
+
+    # --- Assemble body and stitch frontmatter ---
+    body = _normalise_trailing_newline(
+        input_contract
+        + expanded_body
+        + companion_header
+        + companion_blocks
+        + "\n"
+        + output_template
+        + "\n"
+        + validation_rubric
+    )
+    content = _stitch(
+        _decorate_for_emission(agent_fm, surface="agent", kind="agent"),
+        body,
+    )
+    return {AGENT_PATH: content}
+
+
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    17 targets total:
+    19 targets total:
       - 6 monolith companion refs
       - 6 plugin sibling SKILL.md files
       - 1 monolith spine SKILL.md
       - 1 plugin spine SKILL.md
       - 2 monolith spine appendices (output-template + validation-rubric)
       - 2 plugin spine appendices (output-template + validation-rubric)
-    Wait: 6 + 6 + 1 + 1 + 2 + 2 = 18. The plan said 17; off-by-one in plan
-    description. Both spine appendices ship to both surfaces, so 18 is
-    correct.
+      - 1 agent SKILL.md (first-principles/agents/first-principles.md)
+    Total: 6 + 6 + 1 + 1 + 2 + 2 + 1 = 19.
     """
     import yaml
 
@@ -349,13 +439,16 @@ def generate_all() -> dict[Path, str]:
         targets[MONOLITH / "references" / appendix] = content
         targets[PLUGIN_SKILLS / "thinking" / "references" / appendix] = content
 
+    # --- Agent surface (third generated surface) ---
+    targets.update(generate_agent(spine_meta, tool_map))
+
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
-    #     one of the two known generated-trees.
+    #     one of the three known generated-trees.
     # Use Path.relative_to() rather than str.startswith() to avoid sibling-dir
     # false positives (WR-01): a path like `.../first-principles-thinking-extra/x`
     # shares a string prefix with `.../first-principles-thinking` but is not
     # actually inside it. relative_to() is the boundary-correct check.
-    allowed_roots = (MONOLITH, PLUGIN_SKILLS)
+    allowed_roots = (MONOLITH, PLUGIN_SKILLS, AGENT_DIR)
     for path in targets:
         if not any(_is_within(path, root) for root in allowed_roots):
             raise ValueError(
