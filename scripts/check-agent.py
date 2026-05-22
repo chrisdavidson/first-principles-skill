@@ -287,30 +287,45 @@ def _validate_agent_file() -> None:
 
 def _run_self_test() -> None:
     """Run inline malformed fixtures and verify each produces failures."""
+    # Each fixture declares the substring its *intended* check must emit, so a
+    # fixture cannot pass for the wrong reason (e.g. an unrelated defect firing).
     fixtures = [
-        ("fixture-a (missing name)", _FIXTURE_MISSING_NAME),
-        ("fixture-b (empty body)", _FIXTURE_EMPTY_BODY),
-        ("fixture-c (unresolved sync marker)", _FIXTURE_UNRESOLVED_MARKER),
-        ("fixture-d (wrong name)", _FIXTURE_WRONG_NAME),
-        ("fixture-e (over-length description)", _FIXTURE_LONG_DESCRIPTION),
-        ("fixture-f (missing maxTurns)", _FIXTURE_MISSING_MAXTURNS),
-        ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS),
+        ("fixture-a (missing name)", _FIXTURE_MISSING_NAME,
+         "missing required key 'name'"),
+        ("fixture-b (empty body)", _FIXTURE_EMPTY_BODY,
+         "body is empty"),
+        ("fixture-c (unresolved sync marker)", _FIXTURE_UNRESOLVED_MARKER,
+         "unresolved sync markers"),
+        ("fixture-d (wrong name)", _FIXTURE_WRONG_NAME,
+         f"name must be '{_EXPECTED_NAME}'"),
+        ("fixture-e (over-length description)", _FIXTURE_LONG_DESCRIPTION,
+         "exceeds max"),
+        ("fixture-f (missing maxTurns)", _FIXTURE_MISSING_MAXTURNS,
+         "missing required key 'maxTurns'"),
+        ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS,
+         "missing required key 'disallowedTools'"),
     ]
 
     wrong_passes: list[str] = []
 
-    for label, text in fixtures:
+    for label, text, expected in fixtures:
         failures = _check_agent_text(text)
-        if failures:
-            print(f"check-agent --self-test: {label} correctly failed ({len(failures)} failure(s))")
-        else:
+        if not failures:
             print(f"check-agent --self-test: {label} WRONGLY PASSED (expected failure)")
-            wrong_passes.append(label)
+            wrong_passes.append(f"{label} (no failures produced)")
+        elif not any(expected in f for f in failures):
+            print(
+                f"check-agent --self-test: {label} failed for the WRONG reason "
+                f"(expected '{expected}', got: {'; '.join(failures)})"
+            )
+            wrong_passes.append(f"{label} (expected '{expected}')")
+        else:
+            print(f"check-agent --self-test: {label} correctly failed ({len(failures)} failure(s))")
 
     if wrong_passes:
         sys.stderr.write(
-            f"check-agent --self-test: FAIL — these fixtures wrongly passed: "
-            f"{', '.join(wrong_passes)}\n"
+            f"check-agent --self-test: FAIL — these fixtures wrongly passed or "
+            f"failed for the wrong reason: {', '.join(wrong_passes)}\n"
         )
         sys.exit(1)
 
