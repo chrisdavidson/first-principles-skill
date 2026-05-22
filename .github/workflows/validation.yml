@@ -100,5 +100,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install 'pyyaml>=6.0'
-      - run: python3 scripts/check-agent.py
       - run: python3 scripts/check-agent.py --self-test
+      - run: python3 scripts/check-agent.py
