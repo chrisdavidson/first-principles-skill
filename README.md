@@ -1,5 +1,14 @@
 # First Principles Thinking
 
+> **Deprecated — use the `first-principles` agent instead.**
+> The recommended interface is now the `first-principles` agent, which ships
+> only with the plugin. The `first-principles-thinking` monolith skill below
+> still works and remains installable, but the agent is the preferred entry
+> point. To upgrade: install the plugin with
+> `claude --plugin-dir ./first-principles`, then invoke
+> `@agent-first-principles:first-principles` or
+> `/first-principles:first-principles`.
+
 A Claude Code skill that gives Claude a systematic methodology for decomposing any problem into verified fundamental truths and reasoning upward from there. Use it when you want analysis that traces every conclusion back to a ground truth rather than reasoning by analogy or convention — for software design decisions, product strategy, or any domain where "we've always done it this way" is not a sufficient justification.
 
 ## When to use it
