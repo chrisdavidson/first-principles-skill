@@ -1,6 +1,6 @@
 ---
 name: inversion
-description: Applies 'invert, always invert' to a claim by asking what would have to be true to fail, surfacing the preconditions it silently depends on.
+description: 'Deprecated: the inversion technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies inversion internally.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

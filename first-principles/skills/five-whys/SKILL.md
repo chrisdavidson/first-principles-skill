@@ -1,6 +1,6 @@
 ---
 name: five-whys
-description: Drills down a recurring symptom by asking 5 whys at each level until reaching a root cause with an actionable corrective. Traces the causal chain branch-by-branch and stops by test, not by count. Use when a surface fix has not held.
+description: 'Deprecated: the 5-Whys root-cause technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies 5-Whys internally.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT

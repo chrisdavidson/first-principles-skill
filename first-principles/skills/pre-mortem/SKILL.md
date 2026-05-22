@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: Prospective-hindsight failure analysis that assumes the plan has already failed and works backward to probable causes — stress-test the plan before commitment.
+description: 'Deprecated: the pre-mortem technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which applies pre-mortem internally.'
 metadata:
   version: "2.0.0-alpha.1"
 license: MIT
