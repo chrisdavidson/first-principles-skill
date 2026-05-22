@@ -1,6 +1,6 @@
 plugin:
   name: second-order
-  description: 'Deprecated: the second-order thinking technique as a standalone skill. Retained for backward compatibility; please invoke the first-principles agent, which covers downstream-consequence analysis directly.'
+  description: 'Deprecated stand-alone downstream-consequence (second-order) tool. Available only so older skill references resolve cleanly. Send fresh runs onto agent first-principles instead.'
   metadata:
     version: 2.0.0-alpha.1
   license: MIT
