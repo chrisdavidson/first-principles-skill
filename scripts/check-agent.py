@@ -125,10 +125,13 @@ def _check_agent_text(text: str) -> list[str]:
     """
     import yaml
 
-    # Check 1: frontmatter splits into 3 parts
+    # Check 1: file must begin with a frontmatter fence, then split into 3 parts
+    if not text.startswith("---"):
+        sys.stderr.write("check-agent: agent file does not begin with a frontmatter fence\n")
+        sys.exit(2)
     parts = _FENCE_RE.split(text, maxsplit=2)
-    if len(parts) < 3:
-        sys.stderr.write("check-agent: agent file is missing closing frontmatter fence\n")
+    if len(parts) < 3 or parts[0].strip():
+        sys.stderr.write("check-agent: agent file is missing/has malformed frontmatter fences\n")
         sys.exit(2)
 
     fm_text = parts[1]
