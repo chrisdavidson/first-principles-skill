@@ -93,6 +93,78 @@ AskUserQuestion: permitted
 This body contains an unresolved sync marker: {{TOOL:five-whys}}
 """
 
+# Self-test fixture: wrong `name` value (present but not "first-principles")
+_FIXTURE_WRONG_NAME = """\
+---
+name: wrong-agent-name
+description: A test agent for first-principles analysis.
+license: MIT
+metadata:
+  version: "3.0.0"
+disallowedTools:
+  - Write
+  - Edit
+maxTurns: 30
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content.
+"""
+
+# Self-test fixture: description exceeds the 1024-char limit
+_FIXTURE_LONG_DESCRIPTION = (
+    "---\n"
+    "name: first-principles\n"
+    'description: "' + ("x" * (_MAX_DESCRIPTION_LEN + 1)) + '"\n'
+    "license: MIT\n"
+    "metadata:\n"
+    '  version: "3.0.0"\n'
+    "disallowedTools:\n"
+    "  - Write\n"
+    "  - Edit\n"
+    "maxTurns: 30\n"
+    "AskUserQuestion: permitted\n"
+    "---\n"
+    "## Body\n"
+    "\n"
+    "This is a non-empty body with valid content.\n"
+)
+
+# Self-test fixture: missing `maxTurns` key
+_FIXTURE_MISSING_MAXTURNS = """\
+---
+name: first-principles
+description: A test agent for first-principles analysis.
+license: MIT
+metadata:
+  version: "3.0.0"
+disallowedTools:
+  - Write
+  - Edit
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content.
+"""
+
+# Self-test fixture: missing `disallowedTools` key
+_FIXTURE_MISSING_DISALLOWED_TOOLS = """\
+---
+name: first-principles
+description: A test agent for first-principles analysis.
+license: MIT
+metadata:
+  version: "3.0.0"
+maxTurns: 30
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content.
+"""
+
 
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
@@ -219,6 +291,10 @@ def _run_self_test() -> None:
         ("fixture-a (missing name)", _FIXTURE_MISSING_NAME),
         ("fixture-b (empty body)", _FIXTURE_EMPTY_BODY),
         ("fixture-c (unresolved sync marker)", _FIXTURE_UNRESOLVED_MARKER),
+        ("fixture-d (wrong name)", _FIXTURE_WRONG_NAME),
+        ("fixture-e (over-length description)", _FIXTURE_LONG_DESCRIPTION),
+        ("fixture-f (missing maxTurns)", _FIXTURE_MISSING_MAXTURNS),
+        ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS),
     ]
 
     wrong_passes: list[str] = []
