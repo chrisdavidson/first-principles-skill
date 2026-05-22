@@ -271,7 +271,26 @@ def _extract_procedure(slug: str) -> str:
         raise ValueError(
             f"shared/references/{slug}.md has no '## Procedure' heading"
         )
-    return _normalise_trailing_newline(m.group(1))
+    slice_text = m.group(1)
+    # Guard: raise if any intra-document anchor in the slice points at a heading
+    # outside the slice (would become a dead link in the generated agent body).
+    for fragment in re.findall(r"\]\(#([a-z0-9-]+)\)", slice_text):
+        candidate = fragment.replace("-", " ")
+        # A heading line inside the slice strips leading '#' chars and surrounding
+        # whitespace; check case-insensitively.
+        heading_in_slice = any(
+            line.lstrip("#").strip().lower() == candidate
+            for line in slice_text.splitlines()
+            if line.startswith("#")
+        )
+        if not heading_in_slice:
+            raise ValueError(
+                f"shared/references/{slug}.md ## Procedure slice contains anchor "
+                f"'#{fragment}' whose target heading is outside the inlined "
+                f"## Procedure slice — this would become a dead link in the "
+                f"generated agent body"
+            )
+    return _normalise_trailing_newline(slice_text)
 
 
 def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
