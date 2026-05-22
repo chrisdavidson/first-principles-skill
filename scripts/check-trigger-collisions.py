@@ -3,19 +3,26 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0"]
 # ///
-"""VAL-04 gate: cross-sibling 4-token n-gram collision scanner.
+"""VAL-04 / GATE-02 gate: cross-sibling 4-token n-gram collision scanner.
 
 Usage: python3 scripts/check-trigger-collisions.py
 Exit codes: 0 clean, 1 collision, 2 environment error.
 
 Algorithm matches D-19-7 verbatim: lowercase -> re.split(r'\\W+', s) -> drop
-empties -> contiguous 4-grams -> pairwise set intersection across all 21 pairs.
+empties -> contiguous 4-grams -> pairwise set intersection across all 28 pairs
+(8 nodes: the 7 plugin skills + the first-principles agent description folded
+in as an 8th node per Phase 26 D-06).
 No stop-word filtering; no normalization beyond lower() + \\W+ split.
 
 Em-dash (U+2014, research P6): "first—principles" -> ["first", "principles"] via
 \\W+, identical to "first-principles" — no special casing needed.
 
 Trigger surface: description + " " + when_to_use (unified with VAL-05, research Q1).
+The agent's trigger surface is just its frontmatter description (the agent file
+has no when_to_use field).
+
+The monolith skill at first-principles-thinking/ is deliberately excluded
+(D-09 — agent and monolith never co-install on the same surface).
 """
 
 from __future__ import annotations
@@ -29,6 +36,17 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _skill_io import iter_plugin_skills  # noqa: E402
+
+
+# Agent surface location (D-06: fold the agent description in as an 8th scan node).
+# Mirrors scripts/check-agent.py REPO_ROOT/AGENT_FILE/_FENCE_RE constants.
+REPO_ROOT: Path = Path(__file__).resolve().parents[1]
+AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
+_FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
+
+# Slug used for the agent node in the pairwise scan — chosen so it cannot
+# collide with any plugin skill directory name.
+_AGENT_SLUG = "first-principles-agent"
 
 
 def _require_python_version() -> None:
@@ -63,6 +81,64 @@ def ngrams(toks: list[str], n: int = 4) -> set[tuple[str, ...]]:
     return {tuple(toks[i : i + n]) for i in range(len(toks) - n + 1)}
 
 
+def _load_agent_description() -> str:
+    """Read the generated agent file's frontmatter `description` (D-06).
+
+    Returns the description string. Exits 2 (environment error) if the agent
+    file is missing, malformed, has no frontmatter, or the description field
+    is missing/non-string — same handling shape build_skill_ngrams uses for a
+    missing skill description so a broken agent surface FAILs the gate loudly
+    instead of silently shrinking the scan back to 21 pairs.
+    """
+    # Lazy import — _require_pyyaml() is what surfaces the missing-yaml case.
+    import yaml
+
+    if not AGENT_FILE.exists():
+        sys.stderr.write(
+            f"check-trigger-collisions: ERROR agent file not found: {AGENT_FILE}\n"
+            f"  Run the sync pipeline to generate it before running this gate.\n"
+        )
+        sys.exit(2)
+
+    text = AGENT_FILE.read_text(encoding="utf-8")
+    if not text.startswith("---"):
+        sys.stderr.write(
+            "check-trigger-collisions: ERROR agent file does not begin with a "
+            "frontmatter fence\n"
+        )
+        sys.exit(2)
+    parts = _FENCE_RE.split(text, maxsplit=2)
+    if len(parts) < 3:
+        sys.stderr.write(
+            "check-trigger-collisions: ERROR agent file is missing/has malformed "
+            "frontmatter fences\n"
+        )
+        sys.exit(2)
+
+    try:
+        frontmatter = yaml.safe_load(parts[1])
+    except yaml.YAMLError as exc:
+        sys.stderr.write(
+            f"check-trigger-collisions: ERROR malformed YAML in agent frontmatter: {exc}\n"
+        )
+        sys.exit(2)
+
+    if not isinstance(frontmatter, dict):
+        sys.stderr.write(
+            "check-trigger-collisions: ERROR agent frontmatter is not a mapping\n"
+        )
+        sys.exit(2)
+
+    desc = frontmatter.get("description", "")
+    if not isinstance(desc, str) or not desc:
+        sys.stderr.write(
+            "check-trigger-collisions: ERROR agent frontmatter missing or "
+            "non-string 'description' field\n"
+        )
+        sys.exit(2)
+    return desc
+
+
 def build_skill_ngrams() -> dict[str, set[tuple[str, ...]]]:
     """Return {slug: 4-gram set} for every plugin skill's unified trigger surface."""
     skill_ngrams: dict[str, set[tuple[str, ...]]] = {}
@@ -91,6 +167,12 @@ def main() -> None:
     except (ValueError, FileNotFoundError) as exc:
         sys.stderr.write(f"check-trigger-collisions: ERROR {exc}\n")
         sys.exit(2)
+
+    # D-06: fold the agent description in as an 8th node. The pairwise scan
+    # then naturally grows from 21 to 28 pairs (8 nodes choose 2). The collision
+    # loop and exit-code semantics are unchanged.
+    agent_desc = _load_agent_description()
+    skills[_AGENT_SLUG] = ngrams(tokens(agent_desc))
 
     slugs = sorted(skills.keys())
     pairs = list(itertools.combinations(slugs, 2))
