@@ -116,6 +116,20 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
 TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order")
 
+# Canonical worked-example list (filename stem under shared/examples/).
+# Source-of-truth tree = shared/examples/ (established in Plan 26.1-03 Task 0).
+# Plan 05 deletes the parallel monolith copies under
+# first-principles-thinking/examples/; shared/examples/ survives as the
+# sole source consumed by generate_agent_examples().
+EXAMPLES = (
+    "composed-inversion-second-order",
+    "ishikawa-fishbone",
+    "personal-general",
+    "product-business",
+    "science-engineering",
+    "software-systems",
+)
+
 # Monolith carries historical filenames that differ from plugin slugs for 3 tools.
 # fishbone -> ishikawa-diagram.md, trade-off -> trade-off-analysis.md,
 # second-order -> second-order-thinking.md.
@@ -356,6 +370,57 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     return {AGENT_PATH: content}
 
 
+def generate_agent_references() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/{slug}.md: body} for the 6 companion tools.
+
+    Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
+    the agent's on-demand reference siblings ship verbatim — NO frontmatter,
+    NO marker expansion, NO edits. Trailing newline normalised to exactly one.
+    """
+    targets: dict[Path, str] = {}
+    for slug in TOOLS:
+        body = _read_required(
+            SHARED / "references" / f"{slug}.md",
+            hint=(
+                f"shared/references/{slug}.md is required for the agent's "
+                f"on-demand reference sibling at "
+                f"first-principles/agents/references/{slug}.md"
+            ),
+        )
+        targets[AGENT_DIR / "references" / f"{slug}.md"] = (
+            _normalise_trailing_newline(body)
+        )
+    return targets
+
+
+def generate_agent_examples() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/examples/{name}.md: body} for the 6 worked examples.
+
+    Source = shared/examples/{name}.md (the source-of-truth tree established
+    in Plan 26.1-03 Task 0 — NOT the monolith path). This preserves the
+    single-source-of-truth invariant past Plan 05's monolith deletion:
+    shared/examples/ survives, this generator survives, and the sync-drift
+    CI gate continues to enforce byte-identity between source and emission.
+
+    Per D-01 amended / MIGRATE-02 amended / E-3 resolution: verbatim copy —
+    NO frontmatter, NO marker expansion, NO edits. Trailing newline normalised.
+    """
+    targets: dict[Path, str] = {}
+    for name in EXAMPLES:
+        body = _read_required(
+            SHARED / "examples" / f"{name}.md",
+            hint=(
+                f"shared/examples/{name}.md is required for the agent's "
+                f"on-demand worked-example sibling at "
+                f"first-principles/agents/references/examples/{name}.md"
+            ),
+        )
+        targets[AGENT_DIR / "references" / "examples" / f"{name}.md"] = (
+            _normalise_trailing_newline(body)
+        )
+    return targets
+
+
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
@@ -460,6 +525,8 @@ def generate_all() -> dict[Path, str]:
 
     # --- Agent surface (third generated surface) ---
     targets.update(generate_agent(spine_meta, tool_map))
+    targets.update(generate_agent_references())
+    targets.update(generate_agent_examples())
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
     #     one of the three known generated-trees.
