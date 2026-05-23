@@ -48,19 +48,24 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Scan globs: surfaces that receive BOTH relative-link and namespace-ref validation.
+# Phase 26.1 adds the agent surface — first-principles.md is the agent spine and
+# references/*.md its companion files. references/examples/ is illustrative
+# content (worked examples), NOT link-checked source.
 FULL_CHECK_GLOBS = [
     "first-principles/skills/thinking/SKILL.md",
     "first-principles/skills/thinking/references/*.md",
     "first-principles-thinking/SKILL.md",
     "first-principles-thinking/references/*.md",
+    "first-principles/agents/first-principles.md",
+    "first-principles/agents/references/*.md",
 ]
 
 # Scan globs: surfaces that receive namespace-ref validation ONLY.
 # Relative links in these files use conventions valid in their source context
-# (shared/ uses monolith filenames; plugin companion SKILL.md files use the
-# shared/ context filenames), not the installed plugin directory layout.
+# (shared/ uses monolith filenames), not the installed plugin directory layout.
+# Phase 26.1: removed `first-principles/skills/*/SKILL.md` — Plan 05 deletes
+# that tree, after which the glob would match zero files (dead config).
 NAMESPACE_ONLY_GLOBS = [
-    "first-principles/skills/*/SKILL.md",
     "shared/**/*.md",
 ]
 
@@ -224,15 +229,24 @@ def main() -> int:
         sys.exit(2)
 
     # Build valid namespace-ref slug set at runtime (not hard-coded — Phase 20+ safe).
-    try:
-        valid_slugs: set[str] = {
-            name
-            for name in os.listdir(_skill_io.PLUGIN_SKILLS_DIR)
-            if (_skill_io.PLUGIN_SKILLS_DIR / name / "SKILL.md").exists()
-        }
-    except Exception as exc:
-        sys.stderr.write(f"check-links: cannot enumerate plugin skills: {exc}\n")
-        sys.exit(2)
+    # Phase 26.1: tolerate missing first-principles/skills/ (Plan 05 deletes it)
+    # AND include the agent's namespace token `first-principles` whenever the
+    # agent file exists (so `/first-principles:first-principles` references in
+    # the agent body resolve cleanly).
+    valid_slugs: set[str] = set()
+    if _skill_io.PLUGIN_SKILLS_DIR.exists():
+        try:
+            valid_slugs |= {
+                name
+                for name in os.listdir(_skill_io.PLUGIN_SKILLS_DIR)
+                if (_skill_io.PLUGIN_SKILLS_DIR / name / "SKILL.md").exists()
+            }
+        except Exception as exc:
+            sys.stderr.write(f"check-links: cannot enumerate plugin skills: {exc}\n")
+            sys.exit(2)
+
+    if (REPO_ROOT / "first-principles" / "agents" / "first-principles.md").exists():
+        valid_slugs.add("first-principles")
 
     full_check_files = _collect_files(FULL_CHECK_GLOBS)
     namespace_only_files = _collect_files(NAMESPACE_ONLY_GLOBS)
