@@ -32,7 +32,7 @@ preconditions, second-order surfaces silent consequences.
 
 **Decision rule — second-order vs. trade-off analysis:** when 2nd-order
 effects diverge across two or more candidate options, the decision becomes
-a selection problem. Hand off to [trade-off analysis](trade-off-analysis.md),
+a selection problem. Hand off to [trade-off analysis](trade-off.md),
 which locks criteria and weights before scoring so divergent effects can be
 compared without reverse-engineering the answer.
 
@@ -127,4 +127,4 @@ from the other direction.
 For the negative-direction counterpart, pair with [inversion](inversion.md):
 second-order traces downstream consequences, inversion surfaces upstream
 preconditions. When divergent 2nd-order effects across options force a
-selection, hand off to [trade-off analysis](trade-off-analysis.md).
+selection, hand off to [trade-off analysis](trade-off.md).

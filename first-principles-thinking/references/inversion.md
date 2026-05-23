@@ -33,7 +33,7 @@ reasons about implementation failure modes that claim-level inversion cannot see
 **Not a good fit:** stress-testing a plan with timelines and dependencies — use
 [pre-mortem](pre-mortem.md). Tracing what already went wrong on a single causal
 chain — use 5-Whys. Inversion is the negative-direction pass on a claim;
-[second-order](second-order-thinking.md) thinking is the positive-direction pass
+[second-order](second-order.md) thinking is the positive-direction pass
 on the same conclusion — run inversion first to find what could fail, then
 second-order to trace consequences of what holds.
 
@@ -125,6 +125,6 @@ skipping it. A precondition is promoted only after evidence confirms it — unti
 then it stays `untested belief`, and any chain depending on it inherits the D-07 caveat.
 
 For the positive-direction counterpart, pair inversion with
-[second-order-thinking](second-order-thinking.md): inversion surfaces what must
+[second-order-thinking](second-order.md): inversion surfaces what must
 hold; second-order traces downstream consequences once it does. Inversion
 stress-tests claims; [pre-mortem](pre-mortem.md) stress-tests plans.

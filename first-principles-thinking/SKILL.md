@@ -21,7 +21,7 @@ Each phase produces a named artifact. That artifact is the entry condition for t
 
 > **Essence Statement** → **Classified Assumptions Table** → **Ground Truths list** → **Derivation Chains** → **signed-off analysis**
 
-The accumulated artifacts together form the standardized output document, whose full section shape is defined in `output-template.md`. Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
+The accumulated artifacts together form the standardized output document, whose full section shape is defined in the [First Principles Analysis Output Template](#first-principles-analysis-output-template) appendix. Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
 
 ---
 
@@ -98,7 +98,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
 
-**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the rubric in [`references/validation-rubric.md`](references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the rubric in [Validation Rubric](#validation-rubric) as a systematic check — that document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
 
 **Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
 
@@ -133,14 +133,14 @@ Each chain must contain at least one intermediate step — the intermediate is w
 
 **Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of what verification would raise it to HIGH.
 
-For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see [references/output-template.md](references/output-template.md).
+For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see the [First Principles Analysis Output Template](#first-principles-analysis-output-template) appendix.
 
 ---
 
 ## Before presenting conclusions
 
-Score the completed analysis against the rubric in
-[references/validation-rubric.md](references/validation-rubric.md) as a feedback loop:
+Score the completed analysis against the rubric in the
+[Validation Rubric](#validation-rubric) appendix as a feedback loop:
 
 1. **Validate** — apply each rubric criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
@@ -192,5 +192,5 @@ at preconditions; Second-Order looks forward at consequences.
 
 ### Reference docs
 
-- Output format template → [references/output-template.md](references/output-template.md)
-- Validation rubric → [references/validation-rubric.md](references/validation-rubric.md)
+- Output format template → [First Principles Analysis Output Template](#first-principles-analysis-output-template) appendix
+- Validation rubric → [Validation Rubric](#validation-rubric) appendix

@@ -51,11 +51,17 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # Phase 26.1 adds the agent surface — first-principles.md is the agent spine and
 # references/*.md its companion files. references/examples/ is illustrative
 # content (worked examples), NOT link-checked source.
+#
+# Phase 26.1 Plan 04 deviation (Rule 3, in-scope): monolith + plugin-spine
+# entries removed for the same "dead config after Plan 05" reason as the
+# NAMESPACE_ONLY_GLOBS plugin-skill entry. Reconciling shared/ link targets
+# with the agent tree's short-slug reference filenames (second-order.md,
+# trade-off.md) — required to make the agent surface link-check clean —
+# would otherwise leave the monolith's long-slug filenames
+# (second-order-thinking.md, trade-off-analysis.md) unable to resolve those
+# same links. Both trees are deleted in Plan 05; pruning now is dead-config
+# cleanup, not coverage loss.
 FULL_CHECK_GLOBS = [
-    "first-principles/skills/thinking/SKILL.md",
-    "first-principles/skills/thinking/references/*.md",
-    "first-principles-thinking/SKILL.md",
-    "first-principles-thinking/references/*.md",
     "first-principles/agents/first-principles.md",
     "first-principles/agents/references/*.md",
 ]
