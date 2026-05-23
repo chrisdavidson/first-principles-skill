@@ -10,6 +10,8 @@ disallowedTools:
 maxTurns: 30
 AskUserQuestion: permitted
 ---
+# First-Principles Analysis
+
 ## Input Contract
 
 To run a complete first-principles analysis, supply:
