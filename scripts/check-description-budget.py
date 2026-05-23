@@ -59,10 +59,12 @@ def main() -> None:
         sys.path.insert(0, str(scripts_dir))
 
     try:
-        from _skill_io import iter_plugin_skills
+        from _skill_io import REPO_ROOT, _FENCE_RE, iter_plugin_skills
     except ImportError as exc:
         sys.stderr.write(f"check-description-budget: cannot import _skill_io: {exc}\n")
         sys.exit(2)
+
+    import yaml
 
     # Collect per-skill surface lengths.
     # Surface = description + " " + when_to_use (if when_to_use present) — D-19-8.
@@ -76,6 +78,28 @@ def main() -> None:
     except (ValueError, FileNotFoundError) as exc:
         sys.stderr.write(f"check-description-budget: {exc}\n")
         sys.exit(2)
+
+    # Agent surface (Phase 26.1): include the agent's description as a row.
+    # The agent's listing text counts toward the same 2000-char listing budget
+    # as plugin-skill descriptions. After Plan 05 deletes first-principles/skills/,
+    # this agent row is the ONLY row remaining; without it the table would be empty.
+    agent_path = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
+    if agent_path.exists():
+        try:
+            text = agent_path.read_text(encoding="utf-8")
+            parts = _FENCE_RE.split(text, maxsplit=2)
+            if len(parts) < 3:
+                raise ValueError("agent file missing closing frontmatter fence")
+            fm = yaml.safe_load(parts[1])
+            if not isinstance(fm, dict):
+                raise ValueError("agent frontmatter is not a mapping")
+            desc = fm.get("description", "") or ""
+            wtu = fm.get("when_to_use", "") or ""
+            surface = f"{desc} {wtu}" if wtu else desc
+            rows.append(("agent:first-principles", len(desc), len(wtu), len(surface)))
+        except (ValueError, OSError, yaml.YAMLError) as exc:
+            sys.stderr.write(f"check-description-budget: agent: {exc}\n")
+            sys.exit(2)
 
     # iter_plugin_skills already sorts by slug; rows are already deterministic.
     # Sort explicitly here in case caller wraps iter_plugin_skills differently.

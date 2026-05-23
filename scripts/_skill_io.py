@@ -38,7 +38,16 @@ def iter_plugin_skills() -> Iterator[tuple[str, dict, str]]:
                     the closing frontmatter fence.
         FileNotFoundError: propagated from Path.read_text if SKILL.md vanishes
                            between directory listing and read.
+
+    Defensive early-return: if PLUGIN_SKILLS_DIR does not exist (e.g., after
+    the Phase 26.1 migration deletes first-principles/skills/), yield nothing
+    rather than raising FileNotFoundError. Consumers (check-trigger-collisions,
+    check-description-budget) treat an empty iterator as "0 plugin skills" —
+    the agent surface is checked separately.
     """
+    if not PLUGIN_SKILLS_DIR.exists():
+        return
+
     skill_dirs = sorted(
         d for d in PLUGIN_SKILLS_DIR.iterdir()
         if d.is_dir() and (d / "SKILL.md").exists()
