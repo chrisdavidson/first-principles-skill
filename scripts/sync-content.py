@@ -356,6 +356,29 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     return {AGENT_PATH: content}
 
 
+def generate_agent_references() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/{slug}.md: body} for the 6 companion tools.
+
+    Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
+    the agent's on-demand reference siblings ship verbatim — NO frontmatter,
+    NO marker expansion, NO edits. Trailing newline normalised to exactly one.
+    """
+    targets: dict[Path, str] = {}
+    for slug in TOOLS:
+        body = _read_required(
+            SHARED / "references" / f"{slug}.md",
+            hint=(
+                f"shared/references/{slug}.md is required for the agent's "
+                f"on-demand reference sibling at "
+                f"first-principles/agents/references/{slug}.md"
+            ),
+        )
+        targets[AGENT_DIR / "references" / f"{slug}.md"] = (
+            _normalise_trailing_newline(body)
+        )
+    return targets
+
+
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
@@ -460,6 +483,7 @@ def generate_all() -> dict[Path, str]:
 
     # --- Agent surface (third generated surface) ---
     targets.update(generate_agent(spine_meta, tool_map))
+    targets.update(generate_agent_references())
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
     #     one of the three known generated-trees.
