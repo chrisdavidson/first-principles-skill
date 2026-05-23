@@ -1,17 +1,14 @@
 # First Principles Thinking — Claude Code Plugin
 
-> **Deprecated — use the `first-principles` agent instead.**
-> The plugin skills still work and remain installable, but the recommended
-> interface is the `first-principles` agent already included in this plugin.
-> Invoke it directly with `@agent-first-principles:first-principles` or
-> `/first-principles:first-principles` — no extra install step needed.
+> **v3.0.0 — Plugin contents removed.** The 7 namespaced skills (`first-principles:thinking`, `:five-whys`, `:pre-mortem`, `:trade-off`, `:fishbone`, `:inversion`, `:second-order`) and the root monolith have been removed. The recommended (and only shipped) interface is the **first-principles agent** — invoke `@agent-first-principles:first-principles` or `/first-principles:first-principles`. See [/CHANGELOG.md](../CHANGELOG.md) for the upgrade path.
 
-A Claude Code plugin packaging the 5-phase first-principles methodology and
-six companion thinking tools as namespaced skills.
+A Claude Code plugin packaging the 5-phase first-principles methodology as a single agent, with six on-demand companion thinking tools loaded as agent reference siblings.
 
-> **Status:** v2.0.0-alpha.1 — plugin spine and companion-tool skills
-> landed in Phases 16–17. See the repo root for the shippable v1.2
-> single-skill install.
+## What this plugin ships
+
+- **One agent** at `agents/first-principles.md` — the methodology spine with all five phases inlined.
+- **Six on-demand reference siblings** under `agents/references/` — Five Whys, fishbone, inversion, pre-mortem, trade-off analysis, second-order thinking. The agent loads each on demand when the relevant trigger fires; no recurring token cost from technique procedures that aren't being used.
+- **Six worked examples** under `agents/references/examples/` — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order. Pulled in by the agent when an in-context illustration helps.
 
 ## Install (dev)
 
@@ -19,18 +16,13 @@ six companion thinking tools as namespaced skills.
 claude --plugin-dir ./first-principles
 ```
 
-## Performance tip
+## Invoke
 
-This plugin ships 7 skills (the spine plus six companion tools), whose
-`description:` fields together occupy a non-trivial share of Claude Code's
-default 1% skill-listing budget. Users who run this plugin alongside many
-other skills may want to raise that budget so all 7 descriptions stay
-visible to the model during skill routing. Set `skillListingBudgetFraction`
-to `0.02` in Claude Code user settings (`~/.claude/settings.json`) to
-double the listing budget to 2%. This is a per-user preference — the
-plugin manifest is unchanged.
+```text
+@agent-first-principles:first-principles   # auto-routed
+/first-principles:first-principles         # explicit
+```
 
-For the v1.2 single-skill install path (copy or symlink
-`first-principles-thinking/` into `~/.claude/skills/`), see the repo
-root README. Marketplace install instructions will be added once the
-plugin is published.
+Verify with `/doctor` inside Claude Code; the `first-principles` agent should appear in the listing.
+
+For marketplace install and the full upgrade path from v2.x, see the repo-root [README](../README.md) and [CHANGELOG.md](../CHANGELOG.md).
