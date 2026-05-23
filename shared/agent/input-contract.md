@@ -1,3 +1,5 @@
+# First-Principles Analysis
+
 ## Input Contract
 
 To run a complete first-principles analysis, supply:
