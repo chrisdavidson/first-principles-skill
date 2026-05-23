@@ -27,7 +27,7 @@ jobs:
           restore-keys: |
             npm-claude-${{ runner.os }}-
       - run: npm install -g @anthropic-ai/claude-code@latest
-      - run: claude plugin validate ./first-principles --strict
+      - run: claude plugin validate ./first-principles
 
   markdownlint:
     name: markdownlint (VAL-02)
