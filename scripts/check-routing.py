@@ -1,0 +1,635 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+"""Routing battery harness for the first-principles agent.
+
+Why this exists:
+    Phase 29 ran its routing battery out of `/tmp/phase29-battery/*.sh` — an
+    ephemeral shell harness that lived on a single developer's machine. That
+    approach proved the v2 catalog (8/8 P + 9/10 N) but could not be re-run
+    by anyone else, was not under version control, and could not score
+    expanded catalogs in later phases. This script is the checked-in,
+    hardened replacement.
+
+    See:
+      - .planning/RETROSPECTIVE.md (v3.0 section on stream-json subagent capture)
+      - .planning/milestones/v3.0-phases/25-agent-description-and-frontmatter-hardening/25-02-PLAN.md
+        (battery scoring harness — first iteration)
+      - .planning/milestones/v3.0-phases/29-routing-catalog-rewrite/29-01-PLAN.md
+        (battery v2 — locked transport + detection)
+
+    The transport flags and two-signal detection rule are ported verbatim
+    from Phase 29's `detect_routing` bash function (D-10, D-11).
+
+    Sequential execution only (D-12): the script issues prompts one at a
+    time against a fresh `claude -p` session per prompt. Parallel execution
+    risks rate-limit interference between fresh sessions and would
+    contaminate the very routing decisions we are measuring. Promote to
+    parallel only after seeing real-world execution times.
+
+Usage:
+    scripts/check-routing.py --catalog <path> [--plugin-dir <path>] [--out <dir>]
+                             [--p-threshold N] [--n-threshold N] [--quiet]
+                             [--dry-run]
+    scripts/check-routing.py --self-test
+
+Defaults:
+    --plugin-dir   $(pwd)/first-principles
+    --out          /tmp/check-routing-<UTC-timestamp>/
+    --p-threshold  6   (P-cases >= 6/8 DELEGATE)
+    --n-threshold  14  (N-cases >= 14/15 NO-DELEGATE)
+
+Exit codes:
+    0  thresholds met (battery PASS), --self-test all fixtures correct,
+       or --dry-run successful parse
+    1  thresholds not met (battery FAIL) or --self-test fixture mismatch
+    2  environment error (claude missing, catalog parse error, IO error,
+       invalid CLI args)
+"""
+
+from __future__ import annotations
+
+import argparse
+import datetime as _dt
+import json
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, Literal
+
+
+REPO_ROOT: Path = Path(__file__).resolve().parents[1]
+DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
+
+Verdict = Literal["DELEGATE", "NO-DELEGATE"]
+
+# The six expected first-principles agent section-header categories
+# (Signal B). Each category is a tuple of synonyms that all map to the
+# same logical category (so "abandoned" and "dead-end" count as one).
+_HEADER_CATEGORIES: list[tuple[str, ...]] = [
+    ("essence",),
+    ("assumption",),
+    ("ground.?truth", "ground truth"),
+    ("derivation",),
+    ("abandoned", "dead.?end", "dead end"),
+    ("conclusion", "verdict"),
+]
+
+# Compiled detection regexes
+_HEADER_LINE_RE = re.compile(
+    r"^#+\s*.*("
+    r"essence|"
+    r"assumption|"
+    r"ground[- ]?truth|"
+    r"derivation|"
+    r"abandoned|dead[- ]?end|"
+    r"conclusion|verdict"
+    r")",
+    re.IGNORECASE,
+)
+_SIGNAL_A_FALLBACK_RE = re.compile(
+    r'"(subagent_type|agent[_-]?name|agent_id)"\s*:\s*"first-principles',
+    re.IGNORECASE,
+)
+
+
+# ---------------------------------------------------------------------------
+# Data types
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Prompt:
+    """One row from the routing catalog."""
+
+    id: str
+    text: str
+    expected: Verdict
+
+
+# ---------------------------------------------------------------------------
+# Catalog parsing
+# ---------------------------------------------------------------------------
+
+
+def _strip_quotes(s: str) -> str:
+    s = s.strip()
+    if len(s) >= 2 and s[0] in ('"', "'") and s[-1] == s[0]:
+        return s[1:-1]
+    return s
+
+
+def _split_row(line: str) -> list[str]:
+    """Split a Markdown table row on `|`, returning trimmed cells.
+
+    Leading/trailing `|` produce empty cells which we drop.
+    """
+    parts = [c.strip() for c in line.split("|")]
+    # Drop the empty cells from leading/trailing pipes
+    if parts and parts[0] == "":
+        parts = parts[1:]
+    if parts and parts[-1] == "":
+        parts = parts[:-1]
+    return parts
+
+
+def _is_separator_row(cells: list[str]) -> bool:
+    """A separator row in a Markdown table is all dashes (with optional colons)."""
+    if not cells:
+        return False
+    return all(re.fullmatch(r":?-{3,}:?", c) is not None for c in cells)
+
+
+def parse_catalog(path: Path) -> tuple[list[Prompt], list[Prompt]]:
+    """Parse a 25-DELEGATION-TESTS.md-shaped Markdown catalog.
+
+    Returns (positives, negatives). Rows are classified by the prefix of
+    the id cell: `P*` -> positive, `N*` -> negative. Other ids are ignored.
+
+    Raises FileNotFoundError if path missing, ValueError on parse error
+    or empty result.
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"catalog not found: {path}")
+
+    positives: list[Prompt] = []
+    negatives: list[Prompt] = []
+
+    in_table = False
+    expecting_separator = False
+
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.rstrip()
+        if not line.startswith("|"):
+            in_table = False
+            expecting_separator = False
+            continue
+
+        cells = _split_row(line)
+        if not cells:
+            in_table = False
+            continue
+
+        # Detect header row by presence of a column literally "Prompt"
+        # case-insensitively in cell 2 — that is the catalog's signature.
+        # The row immediately after a header is the separator row.
+        if not in_table:
+            if len(cells) >= 3 and cells[1].strip().lower() == "prompt":
+                in_table = True
+                expecting_separator = True
+                continue
+            # Not a header; treat any stray pipe-line as noise.
+            continue
+
+        if expecting_separator:
+            expecting_separator = False
+            if _is_separator_row(cells):
+                continue
+            # Some catalogs may omit the separator; fall through and treat
+            # the row as data.
+
+        # Data row.
+        if len(cells) < 3:
+            continue
+        rid = cells[0].strip()
+        prompt_text = _strip_quotes(cells[1])
+        expected_raw = cells[2].strip().upper()
+
+        # Skip id cells that do not start with P or N
+        if not rid or rid[0] not in ("P", "N"):
+            continue
+
+        if expected_raw not in ("DELEGATE", "NO-DELEGATE"):
+            raise ValueError(
+                f"row {rid!r}: expected verdict must be 'DELEGATE' or 'NO-DELEGATE', "
+                f"got {expected_raw!r}"
+            )
+
+        prompt = Prompt(id=rid, text=prompt_text, expected=expected_raw)  # type: ignore[arg-type]
+        if rid.startswith("P"):
+            positives.append(prompt)
+        else:
+            negatives.append(prompt)
+
+    if not positives and not negatives:
+        raise ValueError(f"catalog {path} contained no P* or N* rows")
+    return positives, negatives
+
+
+# ---------------------------------------------------------------------------
+# Detection (Signal A / Signal B)
+# ---------------------------------------------------------------------------
+
+
+def _walk(obj: object) -> Iterable[object]:
+    """Yield every node in a nested JSON-like structure (dicts/lists/scalars)."""
+    yield obj
+    if isinstance(obj, dict):
+        for v in obj.values():
+            yield from _walk(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _walk(v)
+
+
+def _signal_a(parsed_lines: list[object], raw_text: str) -> bool:
+    """Signal A: a Task tool_use with subagent_type 'first-principles'.
+
+    Strategy:
+      1. Structured walk: for every dict with name == "Task", stringify
+         its `input` and case-insensitively search for "first-principles".
+      2. Regex fallback over the raw text for the documented patterns.
+    """
+    needle = "first-principles"
+    for parsed in parsed_lines:
+        for node in _walk(parsed):
+            if isinstance(node, dict) and node.get("name") == "Task":
+                blob = json.dumps(node.get("input", {}))
+                if needle in blob.lower():
+                    return True
+    if _SIGNAL_A_FALLBACK_RE.search(raw_text):
+        return True
+    return False
+
+
+def _signal_b(parsed_lines: list[object]) -> bool:
+    """Signal B: >= 4 of 6 expected agent section headers in text nodes."""
+    text_blobs: list[str] = []
+    for parsed in parsed_lines:
+        for node in _walk(parsed):
+            if isinstance(node, dict):
+                t = node.get("text")
+                if isinstance(t, str):
+                    text_blobs.append(t)
+    joined = "\n".join(text_blobs)
+
+    matched_categories: set[int] = set()
+    for line in joined.splitlines():
+        m = _HEADER_LINE_RE.match(line)
+        if not m:
+            continue
+        token = m.group(1).lower()
+        for idx, syns in enumerate(_HEADER_CATEGORIES):
+            for syn in syns:
+                if re.search(syn, token, re.IGNORECASE):
+                    matched_categories.add(idx)
+                    break
+    return len(matched_categories) >= 4
+
+
+def detect_routing(jsonl_path: Path) -> Verdict:
+    """Score a captured stream-json event log as DELEGATE or NO-DELEGATE.
+
+    Ports Phase 29's `detect_routing` bash function: DELEGATE iff Signal A
+    or Signal B fires; NO-DELEGATE otherwise.
+    """
+    raw_text = jsonl_path.read_text(encoding="utf-8", errors="replace")
+    parsed_lines: list[object] = []
+    for line in raw_text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            parsed_lines.append(json.loads(line))
+        except json.JSONDecodeError:
+            # Non-JSON line (e.g., stderr leakage); skip but raw_text still
+            # captures it for the regex fallback in Signal A.
+            continue
+
+    if _signal_a(parsed_lines, raw_text):
+        return "DELEGATE"
+    if _signal_b(parsed_lines):
+        return "DELEGATE"
+    return "NO-DELEGATE"
+
+
+# ---------------------------------------------------------------------------
+# Transport: invoke claude -p per prompt
+# ---------------------------------------------------------------------------
+
+
+def run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
+    """Issue one prompt via `claude -p` and capture the stream-json log.
+
+    Transport per D-10 (verbatim):
+        claude -p --plugin-dir <path> --no-session-persistence \
+          --output-format stream-json --verbose \
+          --permission-mode bypassPermissions <prompt>
+
+    Returns the path of the captured <out>/<id>.jsonl file (combined
+    stdout + stderr).
+    """
+    out_path = out_dir / f"{prompt.id}.jsonl"
+    argv = [
+        "claude",
+        "-p",
+        "--plugin-dir",
+        str(plugin_dir),
+        "--no-session-persistence",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--permission-mode",
+        "bypassPermissions",
+        prompt.text,
+    ]
+    # No timeout: sequential, one-prompt-at-a-time; Ctrl-C if it hangs.
+    proc = subprocess.run(
+        argv,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        check=False,
+    )
+    out_path.write_bytes(proc.stdout or b"")
+    return out_path
+
+
+# ---------------------------------------------------------------------------
+# Battery driver
+# ---------------------------------------------------------------------------
+
+
+def _ensure_claude_available() -> None:
+    if shutil.which("claude") is None:
+        print(
+            "error: `claude` CLI not found on PATH; cannot run the routing battery",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
+
+def _print(msg: str, quiet: bool) -> None:
+    if not quiet:
+        print(msg, flush=True)
+
+
+def run_battery(
+    positives: list[Prompt],
+    negatives: list[Prompt],
+    plugin_dir: Path,
+    out_dir: Path,
+    p_threshold: int,
+    n_threshold: int,
+    quiet: bool,
+) -> int:
+    """Run the full battery, write outputs, return 0 (PASS) or 1 (FAIL)."""
+    _ensure_claude_available()
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    total = len(positives) + len(negatives)
+    _print(f"check-routing: catalog has {len(positives)} P + {len(negatives)} N (total {total})", quiet)
+    _print(f"  plugin-dir: {plugin_dir}", quiet)
+    _print(f"  out:        {out_dir}", quiet)
+    _print(f"  thresholds: P >= {p_threshold}, N >= {n_threshold}", quiet)
+
+    scores: list[tuple[Prompt, Verdict, bool]] = []
+    ordered = list(positives) + list(negatives)
+    for idx, prompt in enumerate(ordered, start=1):
+        _print(f"[{idx}/{total}] {prompt.id}: expected={prompt.expected} ...", quiet)
+        jsonl_path = run_prompt(prompt, plugin_dir, out_dir)
+        actual = detect_routing(jsonl_path)
+        passed = actual == prompt.expected
+        scores.append((prompt, actual, passed))
+        _print(f"    -> actual={actual} {'PASS' if passed else 'FAIL'}", quiet)
+
+    # scores.tsv
+    scores_path = out_dir / "scores.tsv"
+    with scores_path.open("w", encoding="utf-8") as fh:
+        fh.write("id\texpected\tactual\tpass\n")
+        for prompt, actual, passed in scores:
+            fh.write(f"{prompt.id}\t{prompt.expected}\t{actual}\t{'pass' if passed else 'fail'}\n")
+
+    p_pass = sum(
+        1 for prompt, actual, passed in scores if prompt.id.startswith("P") and actual == "DELEGATE"
+    )
+    n_pass = sum(
+        1 for prompt, actual, passed in scores if prompt.id.startswith("N") and actual == "NO-DELEGATE"
+    )
+    battery_pass = p_pass >= p_threshold and n_pass >= n_threshold
+
+    verdict_lines: list[str] = []
+    verdict_lines.append(f"BATTERY: {'PASS' if battery_pass else 'FAIL'}")
+    verdict_lines.append(f"P: {p_pass}/{len(positives)}  N: {n_pass}/{len(negatives)}")
+    if not battery_pass:
+        verdict_lines.append("")
+        verdict_lines.append("Failed prompts:")
+        for prompt, actual, passed in scores:
+            if not passed:
+                verdict_lines.append(
+                    f"  {prompt.id}: expected={prompt.expected} actual={actual}"
+                )
+    verdict_text = "\n".join(verdict_lines) + "\n"
+    (out_dir / "verdict.txt").write_text(verdict_text, encoding="utf-8")
+
+    # Always print verdict to stdout, even in --quiet mode
+    print(verdict_text, end="")
+    return 0 if battery_pass else 1
+
+
+# ---------------------------------------------------------------------------
+# Self-test
+# ---------------------------------------------------------------------------
+
+
+# Fixture (a): DELEGATE via Signal A (Task tool_use w/ subagent_type)
+_FIXTURE_SIGNAL_A = "\n".join(
+    [
+        json.dumps(
+            {
+                "type": "tool_use",
+                "name": "Task",
+                "input": {
+                    "subagent_type": "first-principles",
+                    "prompt": "Analyze from first principles ...",
+                },
+            }
+        ),
+        json.dumps({"type": "assistant", "text": "Hello world"}),
+    ]
+)
+
+# Fixture (b): DELEGATE via Signal B (>= 4 distinct header categories)
+_FIXTURE_SIGNAL_B = "\n".join(
+    [
+        json.dumps({"type": "assistant", "text": "## Essence\nThe core question is ..."}),
+        json.dumps({"type": "assistant", "text": "## Assumption Audit\nWe assume ..."}),
+        json.dumps({"type": "assistant", "text": "## Ground Truths\nWhat we know ..."}),
+        json.dumps({"type": "assistant", "text": "## Conclusion\nTherefore ..."}),
+    ]
+)
+
+# Fixture (c): NO-DELEGATE (neither signal)
+_FIXTURE_NO_SIGNAL = "\n".join(
+    [
+        json.dumps({"type": "assistant", "text": "Hello world. Here is the answer."}),
+        json.dumps({"type": "assistant", "text": "Nothing structural here at all."}),
+    ]
+)
+
+# Fixture (d): DELEGATE via Signal A regex fallback (subagent_type in a
+# non-Task object, exercising the raw-text fallback path)
+_FIXTURE_SIGNAL_A_FALLBACK = "\n".join(
+    [
+        json.dumps({"type": "assistant", "text": "Hello world"}),
+        # Note: name is NOT "Task" here — only the regex fallback catches it.
+        json.dumps(
+            {
+                "type": "system",
+                "name": "Other",
+                "input": {"subagent_type": "first-principles"},
+            }
+        ),
+    ]
+)
+
+
+def _run_one_fixture(name: str, body: str, expected: Verdict) -> bool:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
+    ) as tmp:
+        tmp.write(body)
+        tmp_path = Path(tmp.name)
+    try:
+        actual = detect_routing(tmp_path)
+        if actual != expected:
+            print(
+                f"self-test FAIL: fixture {name!r} expected {expected}, got {actual}",
+                file=sys.stderr,
+            )
+            return False
+        return True
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def self_test() -> int:
+    """Validate detection logic against in-script fixtures. No claude invocation."""
+    fixtures: list[tuple[str, str, Verdict]] = [
+        ("signal_a_structured", _FIXTURE_SIGNAL_A, "DELEGATE"),
+        ("signal_b_headers", _FIXTURE_SIGNAL_B, "DELEGATE"),
+        ("no_signal", _FIXTURE_NO_SIGNAL, "NO-DELEGATE"),
+        ("signal_a_regex_fallback", _FIXTURE_SIGNAL_A_FALLBACK, "DELEGATE"),
+    ]
+    all_passed = True
+    for name, body, expected in fixtures:
+        if not _run_one_fixture(name, body, expected):
+            all_passed = False
+    if all_passed:
+        print("self-test PASS (4 fixtures)")
+        return 0
+    return 1
+
+
+# ---------------------------------------------------------------------------
+# Main / CLI
+# ---------------------------------------------------------------------------
+
+
+def _default_out_dir() -> Path:
+    ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    return Path("/tmp") / f"check-routing-{ts}"
+
+
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog="check-routing.py",
+        description="Routing battery harness for the first-principles agent.",
+    )
+    mode = p.add_mutually_exclusive_group(required=True)
+    mode.add_argument(
+        "--catalog",
+        type=Path,
+        help="Path to a Markdown routing catalog (shape of 25-DELEGATION-TESTS.md).",
+    )
+    mode.add_argument(
+        "--self-test",
+        dest="self_test",
+        action="store_true",
+        help="Validate detection logic against in-script fixtures and exit.",
+    )
+    p.add_argument(
+        "--plugin-dir",
+        type=Path,
+        default=DEFAULT_PLUGIN_DIR,
+        help=f"Plugin directory passed to `claude --plugin-dir` (default: {DEFAULT_PLUGIN_DIR}).",
+    )
+    p.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="Output directory for per-prompt .jsonl + scores.tsv + verdict.txt "
+        "(default: /tmp/check-routing-<UTC-timestamp>/).",
+    )
+    p.add_argument(
+        "--p-threshold",
+        type=int,
+        default=6,
+        help="Min P-cases scored DELEGATE for battery PASS (default: 6).",
+    )
+    p.add_argument(
+        "--n-threshold",
+        type=int,
+        default=14,
+        help="Min N-cases scored NO-DELEGATE for battery PASS (default: 14).",
+    )
+    p.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress per-prompt progress lines (final verdict still printed).",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Parse the catalog and print counts; do not invoke claude.",
+    )
+    return p
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return self_test()
+
+    catalog_path: Path = args.catalog
+    try:
+        positives, negatives = parse_catalog(catalog_path)
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    except ValueError as exc:
+        print(f"error: failed to parse catalog: {exc}", file=sys.stderr)
+        return 2
+
+    if args.dry_run:
+        print(f"Catalog: {len(positives)} P-prompts, {len(negatives)} N-prompts")
+        return 0
+
+    out_dir: Path = args.out if args.out is not None else _default_out_dir()
+    try:
+        return run_battery(
+            positives,
+            negatives,
+            plugin_dir=args.plugin_dir,
+            out_dir=out_dir,
+            p_threshold=args.p_threshold,
+            n_threshold=args.n_threshold,
+            quiet=args.quiet,
+        )
+    except OSError as exc:
+        print(f"error: IO failure during battery run: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
