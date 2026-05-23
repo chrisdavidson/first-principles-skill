@@ -1,7 +1,0 @@
-plugin:
-  name: five-whys
-  description: 'Deprecated standalone packaging of the 5-Whys root-cause drill-down. Still functional for legacy installs. Forward fresh runs into @agent-first-principles; the agent folds 5-Whys into Phase 2.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}

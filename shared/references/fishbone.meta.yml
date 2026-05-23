@@ -1,7 +1,0 @@
-plugin:
-  name: fishbone
-  description: 'Deprecated stand-alone Ishikawa cause-mapping tool. Preserved purely as a no-op compatibility shim for prior install references. Direct routing should land on agent first-principles directly.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}

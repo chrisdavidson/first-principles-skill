@@ -1,15 +1,3 @@
-plugin:
-  name: thinking
-  description: 'Deprecated standalone surface for the five-phase first-principles methodology. Kept installable only for backward compatibility. Route new work through agent first-principles.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith:
-  name: first-principles-thinking
-  description: Decomposes any problem into verified fundamental truths and reasons upward from them instead of by analogy or convention. Use when the user wants to analyze from first principles, think from scratch, question a design, challenge assumptions, is this the right approach, why are we doing it this way, is there a better solution, evaluate an architectural decision, justify a decision from ground truths, map causes with an Ishikawa or fishbone diagram, pick cause categories, use inversion to invert the question and ask what would guarantee failure, apply second-order thinking to trace downstream consequences, apply a pre-mortem or 5-Whys, or asks whether reasoning is sound. Make sure to use this skill whenever the user wants to avoid reasoning by analogy or convention, even if they do not explicitly say "first principles".
-  license: MIT
-  metadata:
-    version: '2.0'
 agent:
   name: first-principles
   description: "Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all six companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, or stress-test reasoning. Not for routine code review, debugging, or general Q&A."
