@@ -3,10 +3,10 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0"]
 # ///
-"""Sync canonical shared/ content into the monolith + plugin + agent surfaces.
+"""Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 19 target files
+    python3 scripts/sync-content.py --write    # regenerate all 13 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -15,11 +15,10 @@ Exit codes:
     2  environment error (missing PyYAML, wrong Python version) or non-deterministic generation
 
 Source of truth: shared/  (canonical)
-Target surfaces:
-    - first-principles-thinking/                 (monolith)
-    - first-principles/skills/thinking/          (plugin spine)
-    - first-principles/skills/<tool>/SKILL.md    (plugin sibling skills)
-    - first-principles/agents/first-principles.md (orchestrating agent)
+Target surface (post Phase 26.1):
+    - first-principles/agents/first-principles.md          (orchestrating agent)
+    - first-principles/agents/references/<tool>.md         (6 companion-tool refs)
+    - first-principles/agents/references/examples/<name>.md (6 worked-example siblings)
 """
 
 from __future__ import annotations
@@ -33,8 +32,6 @@ from pathlib import Path
 # Path resolution: relative to this script's location, not Path.cwd() (Pitfall 8).
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SHARED = REPO_ROOT / "shared"
-MONOLITH = REPO_ROOT / "first-principles-thinking"
-PLUGIN_SKILLS = REPO_ROOT / "first-principles" / "skills"
 AGENT_DIR = REPO_ROOT / "first-principles" / "agents"
 AGENT_PATH = AGENT_DIR / "first-principles.md"
 
@@ -45,11 +42,7 @@ TOKEN_RE = re.compile(r"\{\{TOOL:([a-z][a-z0-9-]*)\}\}")
 PROCEDURE_RE = re.compile(r"(^## Procedure\n.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL)
 
 # PyYAML emission flags — pinned for byte-deterministic output (Pitfall 5).
-# width=10**9 keeps short single-line description scalars on one line (plugin
-# canonical shape). The monolith spine's folded `>-` description scalar (see
-# _FoldedStr below) still emits as a folded block — just unwrapped onto one
-# indented content line. The wrap-width delta from the hand-authored multi-line
-# original is absorbed by MIGRATION-DIFFS.md (resolution C addendum).
+# width=10**9 keeps short single-line description scalars on one line.
 YAML_DUMP_KWARGS = dict(
     default_flow_style=False,
     sort_keys=False,
@@ -62,12 +55,8 @@ class _QuotedStr(str):
     """Marker subclass: emit as a double-quoted scalar (preserves version: "x.y.z")."""
 
 
-class _FoldedStr(str):
-    """Marker subclass: emit as a folded block scalar (>-) for long descriptions."""
-
-
 def _build_dumper():
-    """Return a yaml.SafeDumper subclass with our two style markers registered.
+    """Return a yaml.SafeDumper subclass with our style markers registered.
 
     A scoped Dumper subclass (vs. yaml.add_representer) keeps the sync script's
     emission choices local — global registration would leak across any other
@@ -81,25 +70,21 @@ def _build_dumper():
     def _quoted(dumper, data):
         return dumper.represent_scalar("tag:yaml.org,2002:str", str(data), style='"')
 
-    def _folded(dumper, data):
-        return dumper.represent_scalar("tag:yaml.org,2002:str", str(data), style=">")
-
     _Dumper.add_representer(_QuotedStr, _quoted)
-    _Dumper.add_representer(_FoldedStr, _folded)
     return _Dumper
 
 
 def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
     """Walk a meta dict and re-wrap select string values with style markers.
 
-    Rules (see Plan 18-03 additional context; YAML emission resolution path A):
+    Rule (see Plan 18-03 additional context; YAML emission resolution path A):
       - `metadata.version` is always wrapped as _QuotedStr so it re-emits with
-        double quotes (matches current on-disk shape across both surfaces).
-      - For the monolith spine (kind=='spine' and surface=='monolith'), the
-        `description` field is wrapped as _FoldedStr so it re-emits as a `>-`
-        folded block scalar (matches current on-disk shape; wrap-width may
-        differ slightly from the hand-authored original — that minor
-        cosmetic delta is absorbed by MIGRATION-DIFFS.md per resolution C).
+        double quotes (matches current on-disk shape).
+
+    `surface` / `kind` are retained for call-site compatibility; the only
+    remaining surface after Phase 26.1 is the agent, but keeping the signature
+    documents intent and leaves room for future surfaces without rippling
+    changes through call sites.
 
     Returns a shallow-mutated copy; the input dict is not mutated.
     """
@@ -109,8 +94,6 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
         new_md = {k: v for k, v in md.items()}
         new_md["version"] = _QuotedStr(str(md["version"]))
         out["metadata"] = new_md
-    if kind == "spine" and surface == "monolith" and isinstance(out.get("description"), str):
-        out["description"] = _FoldedStr(out["description"])
     return out
 
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
@@ -129,19 +112,6 @@ EXAMPLES = (
     "science-engineering",
     "software-systems",
 )
-
-# Monolith carries historical filenames that differ from plugin slugs for 3 tools.
-# fishbone -> ishikawa-diagram.md, trade-off -> trade-off-analysis.md,
-# second-order -> second-order-thinking.md.
-MONOLITH_REF_FILENAME = {
-    "five-whys": "five-whys.md",
-    "fishbone": "ishikawa-diagram.md",
-    "inversion": "inversion.md",
-    "pre-mortem": "pre-mortem.md",
-    "trade-off": "trade-off-analysis.md",
-    "second-order": "second-order-thinking.md",
-}
-
 
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
@@ -424,58 +394,17 @@ def generate_agent_examples() -> dict[Path, str]:
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    19 targets total:
-      - 6 monolith companion refs
-      - 6 plugin sibling SKILL.md files
-      - 1 monolith spine SKILL.md
-      - 1 plugin spine SKILL.md
-      - 2 monolith spine appendices (output-template + validation-rubric)
-      - 2 plugin spine appendices (output-template + validation-rubric)
+    13 targets total (post Phase 26.1 monolith + plugin-skill removal):
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-    Total: 6 + 6 + 1 + 1 + 2 + 2 + 1 = 19.
+      - 6 agent reference siblings (first-principles/agents/references/<tool>.md)
+      - 6 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
+    Total: 1 + 6 + 6 = 13.
     """
     import yaml
 
     targets: dict[Path, str] = {}
 
-    # --- Companion bodies + sidecars ---
-    for t in TOOLS:
-        body = _read_required(
-            SHARED / "references" / f"{t}.md",
-            hint=f"shared/references/{t}.md is required for the '{t}' tool listed in TOOLS",
-        )
-        meta_path = SHARED / "references" / f"{t}.meta.yml"
-        meta = _require_mapping(
-            yaml.safe_load(_read_required(
-                meta_path,
-                hint=f"every TOOLS slug needs a sidecar; add shared/references/{t}.meta.yml or remove '{t}' from TOOLS",
-            )),
-            meta_path,
-        )
-        plugin_fm = meta.get("plugin") or {}
-        monolith_fm = meta.get("monolith") or {}
-
-        # Monolith ref: body only, no frontmatter (D-18-2).
-        targets[MONOLITH / "references" / MONOLITH_REF_FILENAME[t]] = (
-            _normalise_trailing_newline(body)
-        )
-
-        # Plugin sibling SKILL.md: stitch plugin frontmatter onto body.
-        if not plugin_fm:
-            raise ValueError(f"shared/references/{t}.meta.yml missing 'plugin' block")
-        plugin_skill = _stitch(
-            _decorate_for_emission(plugin_fm, surface="plugin", kind="sibling"), body
-        )
-        targets[PLUGIN_SKILLS / t / "SKILL.md"] = plugin_skill
-
-        # Monolith refs never get frontmatter; ignore monolith_fm here.
-        _ = monolith_fm  # documented no-op
-
-    # --- Spine body (with marker expansion per surface) ---
-    spine_body = _read_required(
-        SHARED / "spine" / "SKILL-body.md",
-        hint="canonical spine body is required",
-    )
+    # --- Spine + tool-map: still required for agent body assembly ---
     tool_map_path = SHARED / "spine" / "tool-map.yml"
     tool_map = _require_mapping(
         yaml.safe_load(_read_required(
@@ -488,53 +417,21 @@ def generate_all() -> dict[Path, str]:
     spine_meta = _require_mapping(
         yaml.safe_load(_read_required(
             spine_meta_path,
-            hint="canonical spine frontmatter is required for both surfaces",
+            hint="canonical spine frontmatter is required for the agent surface",
         )),
         spine_meta_path,
     )
-    spine_plugin_fm = spine_meta.get("plugin") or {}
-    spine_monolith_fm = spine_meta.get("monolith") or {}
 
-    if not spine_plugin_fm:
-        raise ValueError("shared/spine/SKILL.meta.yml missing 'plugin' block")
-    if not spine_monolith_fm:
-        raise ValueError("shared/spine/SKILL.meta.yml missing 'monolith' block")
-
-    plugin_spine_body = _expand(spine_body, tool_map, "plugin")
-    monolith_spine_body = _expand(spine_body, tool_map, "monolith")
-
-    targets[PLUGIN_SKILLS / "thinking" / "SKILL.md"] = _stitch(
-        _decorate_for_emission(spine_plugin_fm, surface="plugin", kind="spine"),
-        plugin_spine_body,
-    )
-    targets[MONOLITH / "SKILL.md"] = _stitch(
-        _decorate_for_emission(spine_monolith_fm, surface="monolith", kind="spine"),
-        monolith_spine_body,
-    )
-
-    # --- Spine appendices: verbatim, no marker expansion, no frontmatter ---
-    for appendix in ("output-template.md", "validation-rubric.md"):
-        content = _normalise_trailing_newline(
-            _read_required(
-                SHARED / "spine" / "references" / appendix,
-                hint=f"spine appendix '{appendix}' ships to both surfaces verbatim",
-            )
-        )
-        targets[MONOLITH / "references" / appendix] = content
-        targets[PLUGIN_SKILLS / "thinking" / "references" / appendix] = content
-
-    # --- Agent surface (third generated surface) ---
+    # --- Agent surface (sole remaining generated surface) ---
     targets.update(generate_agent(spine_meta, tool_map))
     targets.update(generate_agent_references())
     targets.update(generate_agent_examples())
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
-    #     one of the three known generated-trees.
+    #     the agent tree (the sole allowed root after Phase 26.1).
     # Use Path.relative_to() rather than str.startswith() to avoid sibling-dir
-    # false positives (WR-01): a path like `.../first-principles-thinking-extra/x`
-    # shares a string prefix with `.../first-principles-thinking` but is not
-    # actually inside it. relative_to() is the boundary-correct check.
-    allowed_roots = (MONOLITH, PLUGIN_SKILLS, AGENT_DIR)
+    # false positives (WR-01).
+    allowed_roots = (AGENT_DIR,)
     for path in targets:
         if not any(_is_within(path, root) for root in allowed_roots):
             raise ValueError(
