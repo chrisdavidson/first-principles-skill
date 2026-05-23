@@ -1,7 +1,0 @@
-plugin:
-  name: trade-off
-  description: 'Deprecated stand-alone weighted decision-matrix tool. Preserved purely so existing references keep resolving. Prefer invoking the agent named first-principles, which embeds weighted scoring during Phase 4.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}

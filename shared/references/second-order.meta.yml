@@ -1,7 +1,0 @@
-plugin:
-  name: second-order
-  description: 'Deprecated stand-alone downstream-consequence (second-order) tool. Available only so older skill references resolve cleanly. Send fresh runs onto agent first-principles instead.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}

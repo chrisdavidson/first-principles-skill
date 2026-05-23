@@ -1,7 +1,0 @@
-plugin:
-  name: pre-mortem
-  description: 'Deprecated stand-alone packaging of prospective-hindsight pre-mortem analysis. Kept installable only as a legacy compatibility shim. Newer callers should hand work off via @agent-first-principles.'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}

@@ -1,7 +1,0 @@
-plugin:
-  name: inversion
-  description: 'Deprecated stand-alone failure-enumeration (inversion) tool. Available solely so old skill references continue resolving. Pass new requests over to first-principles (the bundled agent).'
-  metadata:
-    version: 2.0.0-alpha.1
-  license: MIT
-monolith: {}
