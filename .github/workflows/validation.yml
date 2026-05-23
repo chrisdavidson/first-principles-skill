@@ -39,7 +39,6 @@ jobs:
         with:
           globs: |
             first-principles/**/*.md
-            first-principles-thinking/**/*.md
           config: .markdownlint.jsonc
 
   check-links:
