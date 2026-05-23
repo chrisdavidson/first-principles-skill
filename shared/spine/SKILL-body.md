@@ -186,3 +186,4 @@ at preconditions; Second-Order looks forward at consequences.
 
 - Output format template → [First Principles Analysis Output Template](#first-principles-analysis-output-template) appendix
 - Validation rubric → [Validation Rubric](#validation-rubric) appendix
+- Testing this agent headlessly → [docs/testing-agents-headlessly.md](../../docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
