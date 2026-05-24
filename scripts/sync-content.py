@@ -131,6 +131,12 @@ EXAMPLES = (
 # Pitfall 1. Use an explicit list, never a glob.
 SPINE_REFERENCES = (
     "assumption-taxonomy",
+    # Phase 34-02 Path B: output-template and validation-rubric were previously
+    # inlined into the agent body by generate_agent(). They are now emitted as
+    # sibling reference files only, restoring META-Q4's <500-line body budget.
+    # The spine body links to them via file-relative `references/...` links.
+    "output-template",
+    "validation-rubric",
 )
 
 def _require_pyyaml() -> None:
@@ -304,8 +310,13 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
       1. shared/agent/input-contract.md (verbatim prepend — before H1)
       2. shared/spine/SKILL-body.md expanded for the 'agent' surface
       3. ## Companion Techniques header + 6 ## Procedure blocks (TOOLS order)
-      4. shared/spine/references/output-template.md (verbatim)
-      5. shared/spine/references/validation-rubric.md (verbatim)
+
+    The output-template.md and validation-rubric.md spine appendices are NO
+    LONGER inlined into the agent body (Phase 34-02, Path B). They are emitted
+    solely as sibling reference files by generate_agent_spine_references() and
+    linked from the spine body via file-relative `references/...` markdown links.
+    This restores META-Q4's <500-line agent body budget without losing the
+    content — the agent loads the references on demand.
 
     Stitches the agent: block from shared/spine/SKILL.meta.yml as YAML frontmatter.
     The generated file is never hand-edited; all content comes from shared/.
@@ -332,26 +343,16 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     companion_header = "\n## Companion Techniques\n\n"
     companion_blocks = "".join(_extract_procedure(slug) + "\n" for slug in TOOLS)
 
-    # --- Appendices: inlined verbatim (no marker expansion, no frontmatter) ---
-    output_template = _read_required(
-        SHARED / "spine" / "references" / "output-template.md",
-        hint="spine appendix 'output-template.md' is required for agent body",
-    )
-    validation_rubric = _read_required(
-        SHARED / "spine" / "references" / "validation-rubric.md",
-        hint="spine appendix 'validation-rubric.md' is required for agent body",
-    )
-
     # --- Assemble body and stitch frontmatter ---
+    # NOTE: output-template.md and validation-rubric.md are intentionally NOT
+    # inlined here (Phase 34-02, Path B). They reach the agent only as sibling
+    # reference files via generate_agent_spine_references(); the spine body
+    # links to them with file-relative markdown links.
     body = _normalise_trailing_newline(
         input_contract
         + expanded_body
         + companion_header
         + companion_blocks
-        + "\n"
-        + output_template
-        + "\n"
-        + validation_rubric
     )
     content = _stitch(
         _decorate_for_emission(agent_fm, surface="agent", kind="agent"),
@@ -390,10 +391,12 @@ def generate_agent_spine_references() -> dict[Path, str]:
     Mirrors generate_agent_references() exactly: verbatim file copy, trailing-
     newline normalisation, NO frontmatter injection, NO marker expansion. This
     is the post-Plan-26.1 spine-reference sync path — distinct from the 6 tool
-    references (which live under shared/references/, not shared/spine/references/)
-    and distinct from the inlined spine appendices (output-template.md /
-    validation-rubric.md) which generate_agent() consumes inline rather than
-    as siblings.
+    references (which live under shared/references/, not shared/spine/references/).
+
+    Phase 34-02 Path B: output-template.md and validation-rubric.md are now
+    emitted via this path as sibling reference files only (previously
+    generate_agent() inlined them into the agent body). The spine body links
+    to them via file-relative `references/...` markdown links.
     """
     targets: dict[Path, str] = {}
     for slug in SPINE_REFERENCES:
