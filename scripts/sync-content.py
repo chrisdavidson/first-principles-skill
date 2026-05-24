@@ -110,6 +110,7 @@ EXAMPLES = (
     "personal-general",
     "product-business",
     "science-engineering",
+    "self-application",
     "software-systems",
 )
 
