@@ -108,10 +108,14 @@ EXAMPLES = (
     "composed-inversion-second-order",
     "ishikawa-fishbone",
     "personal-general",
+    "personal-general-2",
     "product-business",
+    "product-business-2",
     "science-engineering",
+    "science-engineering-2",
     "self-application",
     "software-systems",
+    "software-systems-2",
 )
 
 # Canonical spine-references list (filename stem under shared/spine/references/)
