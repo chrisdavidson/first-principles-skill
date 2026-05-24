@@ -229,6 +229,16 @@ at preconditions; Second-Order looks forward at consequences.
 - Validation rubric → [Validation Rubric](#validation-rubric) appendix
 - Testing this agent headlessly → [docs/testing-agents-headlessly.md](../../docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
 
+#### Worked Examples
+
+- [Software Systems](references/examples/software-systems.md) — microservices-vs-monolith analysis decomposed to first principles
+- [Product/Business](references/examples/product-business.md) — pricing/strategy decision worked from verified ground truths
+- [Personal/General](references/examples/personal-general.md) — everyday decision analyzed without reasoning by analogy
+- [Science/Engineering](references/examples/science-engineering.md) — physical-law-anchored derivation in an engineering domain
+- [Ishikawa (Fishbone)](references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
+- [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
+- [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
+
 ## Companion Techniques
 
 ## Procedure
