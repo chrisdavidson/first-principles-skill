@@ -89,6 +89,8 @@ The accumulated artifacts together form the standardized output document, whose 
 
 **Stakes-escalation rule:** The higher the stakes of the conclusion resting on an assumption, the more that assumption must be pushed toward physical law or verified ground truth. A critical conclusion resting on a convention or untested belief is a fragile conclusion — either verify the assumption or flag the conclusion's confidence accordingly.
 
+For a refined within-type subtype catalog with prescribed treatments and cited evidence, see [Assumption Taxonomy](references/assumption-taxonomy.md). Subtypes are recommended-but-not-required; the parent type's treatment remains a valid fallback.
+
 **Named artifact:** Classified Assumptions Table — a table with columns: Assumption, Type, Treatment, Verdict, Verification.
 
 **Exit criterion:** Every assumption in scope has a classification from the four-type scheme (physical law / current constraint / convention / untested belief) AND has a recorded verdict and verification note, or an explicit "unverified — flagged" note per D-07.
