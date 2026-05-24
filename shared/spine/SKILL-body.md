@@ -193,9 +193,13 @@ at preconditions; Second-Order looks forward at consequences.
 #### Worked Examples
 
 - [Software Systems](references/examples/software-systems.md) — microservices-vs-monolith analysis decomposed to first principles
+- [Software Systems (build-vs-buy)](references/examples/software-systems-2.md) — capability-cost-risk trade-off for build-vs-adopt decisions
 - [Product/Business](references/examples/product-business.md) — pricing/strategy decision worked from verified ground truths
+- [Product/Business (feature prioritization)](references/examples/product-business-2.md) — value-vs-cost-vs-evidence for build-next decisions
 - [Personal/General](references/examples/personal-general.md) — everyday decision analyzed without reasoning by analogy
+- [Personal/General (financial decision)](references/examples/personal-general-2.md) — quantitative chains with values-laden tie-breakers
 - [Science/Engineering](references/examples/science-engineering.md) — physical-law-anchored derivation in an engineering domain
+- [Science/Engineering (failure analysis)](references/examples/science-engineering-2.md) — diagnostic root-cause reasoning (symptom → cause)
 - [Ishikawa (Fishbone)](references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
 - [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
 - [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
