@@ -113,6 +113,21 @@ EXAMPLES = (
     "software-systems",
 )
 
+# Canonical spine-references list (filename stem under shared/spine/references/)
+# emitted verbatim as agent-side reference siblings under
+# first-principles/agents/references/. Phase 31-02 introduces this list to ship
+# `assumption-taxonomy.md` from the canonical spine tree to the agent surface.
+#
+# Inclusion contract: every entry MUST be a standalone reference file consumed
+# by the agent as an on-demand sibling — NOT a spine appendix that
+# generate_agent() inlines (e.g. `output-template.md`, `validation-rubric.md`).
+# Mixing those in here would double-emit them (once inlined into the agent body,
+# once as a sibling reference) and is explicitly forbidden by Phase 31-02
+# Pitfall 1. Use an explicit list, never a glob.
+SPINE_REFERENCES = (
+    "assumption-taxonomy",
+)
+
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
     try:
@@ -363,6 +378,34 @@ def generate_agent_references() -> dict[Path, str]:
     return targets
 
 
+def generate_agent_spine_references() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/{slug}.md: body} for canonical spine references.
+
+    Source = shared/spine/references/{slug}.md for each slug in SPINE_REFERENCES.
+    Mirrors generate_agent_references() exactly: verbatim file copy, trailing-
+    newline normalisation, NO frontmatter injection, NO marker expansion. This
+    is the post-Plan-26.1 spine-reference sync path — distinct from the 6 tool
+    references (which live under shared/references/, not shared/spine/references/)
+    and distinct from the inlined spine appendices (output-template.md /
+    validation-rubric.md) which generate_agent() consumes inline rather than
+    as siblings.
+    """
+    targets: dict[Path, str] = {}
+    for slug in SPINE_REFERENCES:
+        body = _read_required(
+            SHARED / "spine" / "references" / f"{slug}.md",
+            hint=(
+                f"shared/spine/references/{slug}.md is required for the agent's "
+                f"on-demand reference sibling at "
+                f"first-principles/agents/references/{slug}.md"
+            ),
+        )
+        targets[AGENT_DIR / "references" / f"{slug}.md"] = (
+            _normalise_trailing_newline(body)
+        )
+    return targets
+
+
 def generate_agent_examples() -> dict[Path, str]:
     """Return {AGENT_DIR/references/examples/{name}.md: body} for the 6 worked examples.
 
@@ -394,11 +437,13 @@ def generate_agent_examples() -> dict[Path, str]:
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    13 targets total (post Phase 26.1 monolith + plugin-skill removal):
+    14 targets total (Phase 31-02 adds the spine-references emission):
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 6 agent reference siblings (first-principles/agents/references/<tool>.md)
+      - 1 agent spine-reference sibling
+        (first-principles/agents/references/assumption-taxonomy.md)
       - 6 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
-    Total: 1 + 6 + 6 = 13.
+    Total: 1 + 6 + 1 + 6 = 14.
     """
     import yaml
 
@@ -425,6 +470,7 @@ def generate_all() -> dict[Path, str]:
     # --- Agent surface (sole remaining generated surface) ---
     targets.update(generate_agent(spine_meta, tool_map))
     targets.update(generate_agent_references())
+    targets.update(generate_agent_spine_references())
     targets.update(generate_agent_examples())
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
