@@ -40,6 +40,8 @@ Defaults:
     --out          /tmp/check-routing-<UTC-timestamp>/
     --p-threshold  8   (P-cases >= 8/10 DELEGATE)
     --n-threshold  15  (N-cases >= 15/17 NO-DELEGATE)
+    --repeat       3
+    --min-pass     2
 
 Exit codes:
     0  thresholds met (battery PASS), --self-test all fixtures correct,
@@ -348,7 +350,7 @@ def _run_prompt_to(prompt: Prompt, plugin_dir: Path, out_path: Path) -> Path:
     return out_path
 
 
-def run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
+def _run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
     """Issue one prompt via `claude -p` and capture the stream-json log.
 
     Legacy single-run interface — writes to `out_dir/<id>.jsonl`.
@@ -645,7 +647,10 @@ def self_test() -> int:
         all_passed = False
 
     # (d) K>N rejection: --repeat 2 --min-pass 3 must exit 2 before any I/O
-    rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--repeat", "2", "--min-pass", "3"])
+    try:
+        rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--repeat", "2", "--min-pass", "3"])
+    except SystemExit as exc:
+        rc = exc.code if isinstance(exc.code, int) else 2
     if rc != 2:
         print(
             f"self-test FAIL: 'kofn_invalid_kn_rejection' expected exit 2 (K>N guard), got {rc}",
@@ -654,7 +659,7 @@ def self_test() -> int:
         all_passed = False
 
     if all_passed:
-        print("self-test PASS (8 fixtures)")
+        print("self-test PASS (8 fixtures)")  # Update this count if fixtures are added.
         return 0
     return 1
 
@@ -752,6 +757,12 @@ def main(argv: list[str] | None = None) -> int:
     # When --repeat 1, clamp min_pass to 1 for legacy-parity mode.
     # Otherwise validate the user-supplied --min-pass against --repeat.
     if args.repeat == 1:
+        if args.min_pass != 1:
+            print(
+                f"warning: --repeat 1 forces --min-pass to 1 "
+                f"(supplied {args.min_pass} ignored)",
+                file=sys.stderr,
+            )
         args.min_pass = 1
     elif args.min_pass < 1 or args.min_pass > args.repeat:
         print(

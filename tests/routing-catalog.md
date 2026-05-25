@@ -1,4 +1,4 @@
-# Routing Catalog (v3.1)
+# Routing Catalog (v3.6)
 
 **Status:** Committed repo fixture. Consumed by `scripts/check-routing.py --catalog tests/routing-catalog.md`.
 
@@ -51,7 +51,7 @@ The agent should NOT be invoked for these off-topic prompts. The scope line in t
 description (v3.1) reads: *"Not for routine code review, debugging, performance
 optimization, or general Q&A."*
 
-N1-N10 are carried verbatim from Phase 25 v2. N11-N15 are new in Phase 30 (v3.1).
+N1-N10 are carried verbatim from Phase 25 v2. N11-N15 are new in Phase 30 (v3.1). N16-N17 are new in Phase 39 (v3.6).
 
 ### Code Review Class
 
