@@ -1,0 +1,81 @@
+#!/bin/sh
+# Body-budget gate AND sync-drift gate for shared/ <-> generated trees.
+# Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
+#
+# This hook runs two checks in order:
+#   1. Body budget (HOOK-03): if any body-affecting file is staged, invoke
+#      scripts/check-body-budget.py. On breach, print the bypass hint and
+#      exit 1.
+#   2. Sync drift: compositional preservation of the existing
+#      .githooks/pre-commit gate so contributors who switch from
+#      core.hooksPath to this installer-managed hook do not silently lose
+#      the sync-drift gate.
+#
+# POSIX sh only -- no bashisms. Quote all expansions.
+
+set -eu
+
+cd "$(git rev-parse --show-toplevel)"
+
+# --- 1. Body-budget gate (HOOK-03) ------------------------------------------
+
+# 7-path body-affecting allowlist (per D-04). Any change to one of these can
+# alter the generated agent body, so the budget check must fire.
+ALLOWLIST='first-principles/agents/first-principles.md
+shared/spine/SKILL-body.md
+shared/spine/input-contract.md
+shared/spine/SKILL.meta.yml
+shared/spine/references/output-template.md
+shared/spine/references/validation-rubric.md
+scripts/sync-content.py'
+
+STAGED=$(git diff --cached --name-only -z | tr '\0' '\n')
+
+BODY_AFFECTED=0
+if [ -n "$STAGED" ]; then
+    # Iterate allowlist, exact-match against staged paths.
+    OLD_IFS=$IFS
+    IFS='
+'
+    for path in $ALLOWLIST; do
+        if printf '%s\n' "$STAGED" | grep -Fxq "$path"; then
+            BODY_AFFECTED=1
+            break
+        fi
+    done
+    IFS=$OLD_IFS
+fi
+
+if [ "$BODY_AFFECTED" = "1" ]; then
+    if command -v uv >/dev/null 2>&1; then
+        if ! uv run scripts/check-body-budget.py; then
+            printf 'pre-commit: body budget exceeded.\n' >&2
+            printf "  The generated agent body would push past MAX_LINES=500 with the changes you're committing.\n" >&2
+            printf '  Bypass (intentional in-progress work):  git commit --no-verify\n' >&2
+            exit 1
+        fi
+    elif command -v python3 >/dev/null 2>&1; then
+        if ! python3 scripts/check-body-budget.py; then
+            printf 'pre-commit: body budget exceeded.\n' >&2
+            printf "  The generated agent body would push past MAX_LINES=500 with the changes you're committing.\n" >&2
+            printf '  Bypass (intentional in-progress work):  git commit --no-verify\n' >&2
+            exit 1
+        fi
+    else
+        printf "pre-commit: neither 'uv' nor 'python3' on PATH.\n" >&2
+        printf "  Install one of them, or bypass this hook with 'git commit --no-verify'.\n" >&2
+        exit 2
+    fi
+fi
+
+# --- 2. Sync-drift gate (compositional preservation) ------------------------
+
+if command -v uv >/dev/null 2>&1; then
+    exec uv run scripts/sync-content.py --check
+elif command -v python3 >/dev/null 2>&1; then
+    exec python3 scripts/sync-content.py --check
+else
+    printf "pre-commit: neither 'uv' nor 'python3' on PATH.\n" >&2
+    printf "  Install one of them, or bypass this hook with 'git commit --no-verify'.\n" >&2
+    exit 2
+fi
