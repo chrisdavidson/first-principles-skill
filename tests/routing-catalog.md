@@ -111,6 +111,13 @@ scope-line tightening beyond N6.
 |---|--------|-----------------|-----------------|-----------|
 | N15 | "What does the second argument to `Array.prototype.reduce` do?" | NO-DELEGATE | Library API | API lookup question — informational, not first-principles framing |
 
+### Science Lookup Class (new in v3.6)
+
+| # | Prompt | Expected Routing | Off-Topic Class | Rationale |
+|---|--------|-----------------|-----------------|-----------|
+| N16 | "What's the formula for calculating the freezing-point depression of a 5% NaCl solution?" | NO-DELEGATE | Science formula/homework lookup | Factual formula recall — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: chemistry (paired with P9). |
+| N17 | "How deep is the average ocean thermocline, and which latitudes have the steepest gradient?" | NO-DELEGATE | Science factual lookup | Factual lookup question — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: earth-science (paired with P10). |
+
 ---
 
 ## Catalog History
