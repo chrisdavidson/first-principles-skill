@@ -40,6 +40,8 @@ are issued. All eight prompts are carried verbatim from Phase 25 v2 / Phase 29.
 | P6 | "Question the design of standard 40-hour work weeks from first principles. Is the structure actually optimal, or just inherited?" | DELEGATE | "question a design" + "first principles" | Self-contained (business/personal domain); matches both "question a design" and "first principles" triggers |
 | P7 | "What are the fundamental ground truths about why human memory degrades over time? Reason up from them to evaluate whether spaced repetition really works." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science domain); v3.4 baseline 1/3 — vocabulary gap: description lacked plural noun "fundamental ground truths" and particle-verb "Reason up from them"; closed by FRAG-03 description fix adding both paraphrases (Plan 01) |
 | P8 | "Take the modern smartphone form factor apart from the ground up. Decompose this problem: what do we actually know is true about why this shape and size won?" | DELEGATE | "decompose this problem" | Self-contained (software/business domain); literal "decompose this problem" trigger with from-the-ground-up framing |
+| P9 | "Help me reason from ground truth about why dissolving table salt in water lowers the freezing point — what do we actually know is true about the underlying mechanism?" | DELEGATE | "reason from ground truth" | Self-contained (science / chemistry domain); natural mid-sentence embedding of trigger phrase; colligative-properties substance requires reasoning from primitives, not lookup; chemistry discipline (new in v3.6) |
+| P10 | "What are the fundamental ground truths about why the deep ocean stays cold even directly under the equator? Reason up from them to evaluate whether thermohaline circulation alone explains it." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science / earth-science domain); multi-trigger annotation mirrors P7 form; requires reasoning from first principles about ocean thermodynamics, not factual lookup; earth-science discipline (new in v3.6) |
 
 ---
 
@@ -108,6 +110,13 @@ scope-line tightening beyond N6.
 | # | Prompt | Expected Routing | Off-Topic Class | Rationale |
 |---|--------|-----------------|-----------------|-----------|
 | N15 | "What does the second argument to `Array.prototype.reduce` do?" | NO-DELEGATE | Library API | API lookup question — informational, not first-principles framing |
+
+### Science Lookup Class (new in v3.6)
+
+| # | Prompt | Expected Routing | Off-Topic Class | Rationale |
+|---|--------|-----------------|-----------------|-----------|
+| N16 | "What's the formula for calculating the freezing-point depression of a 5% NaCl solution?" | NO-DELEGATE | Science formula/homework lookup | Factual formula recall — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: chemistry (paired with P9). |
+| N17 | "How deep is the average ocean thermocline, and which latitudes have the steepest gradient?" | NO-DELEGATE | Science factual lookup | Factual lookup question — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: earth-science (paired with P10). |
 
 ---
 
