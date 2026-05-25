@@ -489,6 +489,26 @@ _FIXTURE_SIGNAL_A_FALLBACK = "\n".join(
 )
 
 
+def _assert_kofn(
+    name: str,
+    verdicts: list[Verdict],
+    expected: Verdict,
+    min_pass: int,
+    should_pass: bool,
+) -> bool:
+    """Assert that K-of-N aggregation produces the expected prompt-level outcome."""
+    match_count = sum(1 for v in verdicts if v == expected)
+    actual_pass = match_count >= min_pass
+    if actual_pass != should_pass:
+        print(
+            f"self-test FAIL: {name!r} expected prompt={'PASS' if should_pass else 'FAIL'}, "
+            f"got {'PASS' if actual_pass else 'FAIL'} (match={match_count}/{len(verdicts)})",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
 def _run_one_fixture(name: str, body: str, expected: Verdict) -> bool:
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
@@ -523,8 +543,49 @@ def self_test() -> int:
     for name, body, expected in fixtures:
         if not _run_one_fixture(name, body, expected):
             all_passed = False
+
+    # K-of-N aggregation fixtures (a)(b)(c)(d)
+    # (a) Legacy parity: N=1, K=1 — single match, PASS
+    if not _assert_kofn(
+        "kofn_legacy_parity",
+        verdicts=["DELEGATE"],
+        expected="DELEGATE",
+        min_pass=1,
+        should_pass=True,
+    ):
+        all_passed = False
+
+    # (b) PASS via 2-of-3: two matches out of three, min_pass=2
+    if not _assert_kofn(
+        "kofn_pass_2of3",
+        verdicts=["DELEGATE", "NO-DELEGATE", "DELEGATE"],
+        expected="DELEGATE",
+        min_pass=2,
+        should_pass=True,
+    ):
+        all_passed = False
+
+    # (c) FAIL via 1-of-3: only one match, min_pass=2
+    if not _assert_kofn(
+        "kofn_fail_1of3",
+        verdicts=["DELEGATE", "NO-DELEGATE", "NO-DELEGATE"],
+        expected="DELEGATE",
+        min_pass=2,
+        should_pass=False,
+    ):
+        all_passed = False
+
+    # (d) K>N rejection: --repeat 2 --min-pass 3 must exit 2 before any I/O
+    rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--repeat", "2", "--min-pass", "3"])
+    if rc != 2:
+        print(
+            f"self-test FAIL: 'kofn_invalid_kn_rejection' expected exit 2 (K>N guard), got {rc}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
-        print("self-test PASS (4 fixtures)")
+        print("self-test PASS (8 fixtures)")
         return 0
     return 1
 
@@ -591,6 +652,20 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Parse the catalog and print counts; do not invoke claude.",
     )
+    p.add_argument(
+        "--repeat",
+        type=int,
+        default=3,
+        metavar="N",
+        help="Run each catalog prompt N times (default: 3). Use --repeat 1 for legacy single-run.",
+    )
+    p.add_argument(
+        "--min-pass",
+        type=int,
+        default=2,
+        metavar="K",
+        help="K-of-N runs must match expected for a prompt to count as PASS (default: 2).",
+    )
     return p
 
 
@@ -600,6 +675,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.self_test:
         return self_test()
+
+    # K>N pre-flight guard — validated BEFORE any I/O (T-36-01)
+    if args.repeat < 1:
+        print("error: --repeat must be >= 1", file=sys.stderr)
+        return 2
+    if args.min_pass < 1 or args.min_pass > args.repeat:
+        print(
+            f"error: --min-pass ({args.min_pass}) must be >= 1 and <= --repeat ({args.repeat})",
+            file=sys.stderr,
+        )
+        return 2
 
     catalog_path: Path = args.catalog
     try:
