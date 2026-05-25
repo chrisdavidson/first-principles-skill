@@ -122,6 +122,18 @@ scope-line tightening beyond N6.
 
 ## Catalog History
 
+### v3.6 (Phase 39) — 2026-05-25
+
+Extended the v3.5 catalog with two new science-domain P-prompts and paired N-prompts, and rescaled battery thresholds proportionally.
+
+- **P9 (CAT-01, CAT-02, CAT-03)**: Chemistry (colligative properties) first-principles question in mid-sentence trigger embedding form. Domain: science / chemistry. Trigger Phrase Matched: `"reason from ground truth"`. Adds chemistry to the distinct-disciplines count (previously physics-thermodynamics + neuroscience from P3/P7). Rationale: colligative-property mechanism question requires reasoning about underlying intermolecular physics, not formula recall — cleanly DELEGATE.
+- **P10 (CAT-01, CAT-02, CAT-03)**: Earth-science (thermohaline circulation / deep-ocean thermodynamics) first-principles question in mid-sentence trigger embedding form. Domain: science / earth-science. Trigger Phrase Matched: `"fundamental ground truths" + "reason up from first principles"`. Rationale: multi-trigger annotation mirrors P7 form; thermohaline question requires causal first-principles reasoning, not factual lookup.
+- **N16 / N17 (CAT-04, CAT-05)**: Paired science-domain N-prompts covering the same disciplines as P9 / P10. N16 Off-Topic Class: `Science formula/homework lookup` (chemistry, paired with P9). N17 Off-Topic Class: `Science factual lookup` (earth-science, paired with P10). Both Rationales cite the existing `"general Q&A"` scope-exclusion clause in `shared/spine/SKILL.meta.yml`. New H3 section `### Science Lookup Class (new in v3.6)` added under the N-section.
+- **Threshold rescale (CAT-06)**: Battery thresholds rescaled to P ≥ 8/10 DELEGATE and N ≥ 15/17 NO-DELEGATE. Rationale: the v3.1 Key Decision states that routing battery thresholds are designed to "tolerate single-prompt non-determinism" — CAT-06's literal example of N ≥ 15/17 deliberately widens from strict single-flip tolerance (which would be N ≥ 16/17) to 2-flip tolerance, absorbing the ±3 P-prompt same-session noise floor documented in v3.4/v3.5; this widening is intentional and consistent with the spirit of the v3.1 principle even though the denominator math shifts from 1-flip to 2-flip. The N-side now tolerates 2 flips (15/17 = 88.2%); P-side maintains near-80% pass rate (8/10), closest integer cutoff preserving single-flip tolerance for 10 prompts. `check-routing.py` defaults updated; catalog header line updated in lockstep.
+- **Description update (CAT-05)**: None — both N16 and N17 Rationales cite the existing `"general Q&A"` clause in `shared/spine/SKILL.meta.yml`; the four locked `_REQUIRED_PHRASES` are unchanged.
+
+P-prompts P1-P8 are unchanged. N-prompts N1-N15 are unchanged.
+
 ### v3.5 (Phase 37) — 2026-05-25
 
 Fixed P3 structural embedding defect and updated P3/P7 annotations with v3.4 root-cause evidence:
