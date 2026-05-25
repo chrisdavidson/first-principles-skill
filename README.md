@@ -116,6 +116,18 @@ python3 scripts/sync-content.py --write && git add -u
 
 The hook opt-in is per-clone (Git does not propagate `core.hooksPath` automatically), so each contributor configures it once locally.
 
+**One-time setup — opt into the body-budget pre-commit hook (recommended):**
+
+```sh
+./scripts/install-hooks.sh
+```
+
+The installer symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` (preserving any existing hook as `.bak` on first run, idempotent on re-run). The hook blocks commits that would push the generated agent body (`first-principles/agents/first-principles.md`) over the ~500-line target. Bypass for intentional in-progress work: `git commit --no-verify`.
+
+Why a 500-line budget: keeps the generated agent body under ~500 lines so it loads quickly into model context and stays under Claude Code's recommended budget for skill body length.
+
+> **Note:** the body-budget installer composes BOTH gates (body budget + sync drift) into a single `.git/hooks/pre-commit`, so contributors who use the installer do not also need the `core.hooksPath = .githooks` opt-in above. Conversely, `.githooks/pre-commit` now also runs the body-budget check, so either opt-in path gives full coverage. The two mechanisms are mutually exclusive at the Git level (Git honors one hooks path or the other); pick whichever you prefer. The installer prints a WARNING if it detects `core.hooksPath` is set.
+
 ### Testing the agent
 
 The first-principles agent's routing (when it should and shouldn't auto-delegate) is tested via a reproducible headless battery: `scripts/check-routing.py --catalog tests/routing-catalog.md` issues each prompt through `claude -p` and scores DELEGATE / NO-DELEGATE from the stream-json event stream. Sequential execution against a fresh session per prompt; exit code 0 iff the P-case and N-case thresholds are both met.
