@@ -104,10 +104,13 @@ echo "smoke: (c) over-budget commit correctly rejected (exit $RC)"
 
 # --- (d) Revert over-budget edit ----------------------------------------------
 
-git checkout -- "$BODY_FILE"
-# After the revert, the index still contains the previously-staged version.
-# Reset the index entry for the body file so the next commit doesn't include it.
+# Order matters: unstage FIRST (so HEAD becomes the restore source), then
+# checkout from HEAD. If we checkout first while the index still has the
+# padded version, `git checkout -- file` restores from the index (still padded)
+# and the working tree stays dirty -- which then trips the sync-drift gate on
+# the supposedly under-budget commit in step (e).
 git reset HEAD -- "$BODY_FILE" >/dev/null 2>&1 || true
+git checkout -- "$BODY_FILE"
 echo "smoke: (d) body reverted to original ($(wc -l < "$BODY_FILE") lines)"
 
 # --- (e) Assert under-budget (empty) commit is accepted -----------------------
