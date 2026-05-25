@@ -209,3 +209,74 @@ The original bash harness pattern is in
   documented the pattern in this file.
 - **Cross-AI methodology context:** `.planning/RETROSPECTIVE.md` (v3.0 section
   "Patterns Established" and "Key Lessons").
+
+---
+
+## 10. Rerun-to-stability (v3.4)
+
+The v3.1 harness ran each catalog prompt once. Phase 31 measured a ±3 P-prompt
+swing in adjacent same-session runs against a byte-identical agent body (7/8 → 4/8
+in under 30 minutes). Single-run verdicts cannot reliably attribute a FAIL to a
+specific commit — the noise envelope is too wide.
+
+v3.4 fixes this at the runner level with `--repeat N --min-pass K`: each prompt
+runs N times and counts as PASS only if the expected verdict occurs in at least K
+of those N runs. Session noise is absorbed without changing the pass thresholds
+(P≥6/8, N≥14/15).
+
+### Default (best-of-3)
+
+```bash
+python3 scripts/check-routing.py --catalog tests/routing-catalog.md
+```
+
+No extra flags needed. The defaults are `--repeat 3 --min-pass 2`: each prompt
+runs 3 times; it passes only if the expected verdict occurs in ≥ 2 of 3 runs.
+Wall-clock time: approximately 45–70 minutes for the full 23-prompt catalog.
+
+### When to override
+
+- `--repeat 1` — fast smoke check before a live coding session; same behavior as
+  v3.1; **not for ship decisions** (noise envelope unmitigated).
+- `--repeat 5 --min-pass 3` — high-confidence shipping run; requires a strict
+  majority (3 of 5); approximately 2 hours wall-clock.
+
+If `--min-pass` exceeds `--repeat` the script exits with code 2 before any prompt
+runs — a deliberate guard against misconfiguration.
+
+### What changes in the output
+
+**`scores.tsv`** switches to per-run rows (v3.4 format). Each prompt produces N
+rows with the header:
+
+```
+id	run	expected	actual	match
+```
+
+One row per run, `match` is 1 (match) or 0 (mismatch). All runs for a prompt are
+grouped together in catalog order.
+
+**`verdict.txt`** retains its summary lines unchanged (`BATTERY: PASS`, `P: x/y
+N: x/y`) and appends a per-prompt K/N block below them:
+
+```
+Per-prompt K/N (best-of-3, K=2):
+  P1: 3/3 PASS
+  P2: 2/3 PASS
+  N1: 3/3 PASS
+  ...
+```
+
+The summary lines are always the first two lines — no existing parser that reads
+only the summary is broken.
+
+### Self-test
+
+```bash
+python3 scripts/check-routing.py --self-test
+```
+
+Validates the K-of-N aggregation logic entirely in-process (no `claude` calls).
+Covers: legacy N=1 parity, 2/3 PASS, 1/3 FAIL, and K>N invalid-args rejection.
+
+Canonical best-of-3 baseline: `tests/routing-baseline-v3.4.md`.
