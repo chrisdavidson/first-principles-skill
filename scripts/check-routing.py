@@ -314,18 +314,16 @@ def detect_routing(jsonl_path: Path) -> Verdict:
 # ---------------------------------------------------------------------------
 
 
-def run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
-    """Issue one prompt via `claude -p` and capture the stream-json log.
+def _run_prompt_to(prompt: Prompt, plugin_dir: Path, out_path: Path) -> Path:
+    """Issue one prompt via `claude -p` and capture the stream-json log to out_path.
 
     Transport per D-10 (verbatim):
         claude -p --plugin-dir <path> --no-session-persistence \
           --output-format stream-json --verbose \
           --permission-mode bypassPermissions <prompt>
 
-    Returns the path of the captured <out>/<id>.jsonl file (combined
-    stdout + stderr).
+    Returns out_path (combined stdout + stderr written there).
     """
-    out_path = out_dir / f"{prompt.id}.jsonl"
     argv = [
         "claude",
         "-p",
@@ -348,6 +346,36 @@ def run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
     )
     out_path.write_bytes(proc.stdout or b"")
     return out_path
+
+
+def run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
+    """Issue one prompt via `claude -p` and capture the stream-json log.
+
+    Legacy single-run interface — writes to `out_dir/<id>.jsonl`.
+    Preserved for backward compatibility; delegates to _run_prompt_to.
+
+    Returns the path of the captured <out>/<id>.jsonl file.
+    """
+    return _run_prompt_to(prompt, plugin_dir, out_dir / f"{prompt.id}.jsonl")
+
+
+def _run_prompt_n_times(
+    prompt: Prompt, plugin_dir: Path, out_dir: Path, repeat: int
+) -> list[Verdict]:
+    """Run a single prompt N times and return a list of N Verdict values.
+
+    When repeat == 1, writes to <id>.jsonl (legacy parity — no -run suffix).
+    When repeat > 1, writes to <id>-run<n>.jsonl (1-indexed, n in 1..repeat).
+    """
+    results: list[Verdict] = []
+    for run_idx in range(repeat):
+        if repeat == 1:
+            out_path = out_dir / f"{prompt.id}.jsonl"
+        else:
+            out_path = out_dir / f"{prompt.id}-run{run_idx + 1}.jsonl"
+        jsonl_path = _run_prompt_to(prompt, plugin_dir, out_path)
+        results.append(detect_routing(jsonl_path))
+    return results
 
 
 # ---------------------------------------------------------------------------
@@ -377,8 +405,15 @@ def run_battery(
     p_threshold: int,
     n_threshold: int,
     quiet: bool,
+    repeat: int = 1,
+    min_pass: int = 1,
 ) -> int:
-    """Run the full battery, write outputs, return 0 (PASS) or 1 (FAIL)."""
+    """Run the full battery, write outputs, return 0 (PASS) or 1 (FAIL).
+
+    When repeat == 1 (legacy mode), output is byte-identical to v3.1.
+    When repeat > 1 (K-of-N mode), each prompt runs repeat times and counts
+    as PASS only if min_pass-of-repeat runs match the expected verdict.
+    """
     _ensure_claude_available()
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -387,29 +422,50 @@ def run_battery(
     _print(f"  plugin-dir: {plugin_dir}", quiet)
     _print(f"  out:        {out_dir}", quiet)
     _print(f"  thresholds: P >= {p_threshold}, N >= {n_threshold}", quiet)
+    if repeat > 1:
+        _print(f"  repeat:     {repeat} (K-of-N, min-pass={min_pass})", quiet)
 
-    scores: list[tuple[Prompt, Verdict, bool]] = []
+    # K-of-N per-prompt data: (prompt, verdicts, match_count, prompt_passed)
+    prompt_results: list[tuple[Prompt, list[Verdict], int, bool]] = []
     ordered = list(positives) + list(negatives)
     for idx, prompt in enumerate(ordered, start=1):
         _print(f"[{idx}/{total}] {prompt.id}: expected={prompt.expected} ...", quiet)
-        jsonl_path = run_prompt(prompt, plugin_dir, out_dir)
-        actual = detect_routing(jsonl_path)
-        passed = actual == prompt.expected
-        scores.append((prompt, actual, passed))
-        _print(f"    -> actual={actual} {'PASS' if passed else 'FAIL'}", quiet)
+        verdicts = _run_prompt_n_times(prompt, plugin_dir, out_dir, repeat)
+        match_count = sum(1 for v in verdicts if v == prompt.expected)
+        prompt_passed = match_count >= min_pass
+        prompt_results.append((prompt, verdicts, match_count, prompt_passed))
+        if repeat == 1:
+            # Legacy output format: byte-identical to v3.1
+            actual = verdicts[0]
+            _print(f"    -> actual={actual} {'PASS' if prompt_passed else 'FAIL'}", quiet)
+        else:
+            ratio_str = f"{match_count}/{repeat}"
+            _print(f"    -> {ratio_str} {'PASS' if prompt_passed else 'FAIL'}", quiet)
 
     # scores.tsv
     scores_path = out_dir / "scores.tsv"
     with scores_path.open("w", encoding="utf-8") as fh:
-        fh.write("id\texpected\tactual\tpass\n")
-        for prompt, actual, passed in scores:
-            fh.write(f"{prompt.id}\t{prompt.expected}\t{actual}\t{'pass' if passed else 'fail'}\n")
+        if repeat == 1:
+            # Legacy format: byte-identical to v3.1
+            fh.write("id\texpected\tactual\tpass\n")
+            for prompt, verdicts, match_count, prompt_passed in prompt_results:
+                actual = verdicts[0]
+                fh.write(f"{prompt.id}\t{prompt.expected}\t{actual}\t{'pass' if prompt_passed else 'fail'}\n")
+        else:
+            # v3.4 per-run row format
+            fh.write("id\trun\texpected\tactual\tmatch\n")
+            for prompt, verdicts, match_count, prompt_passed in prompt_results:
+                for run_idx, actual in enumerate(verdicts, start=1):
+                    match_flag = 1 if actual == prompt.expected else 0
+                    fh.write(f"{prompt.id}\t{run_idx}\t{prompt.expected}\t{actual}\t{match_flag}\n")
 
     p_pass = sum(
-        1 for prompt, actual, passed in scores if prompt.id.startswith("P") and actual == "DELEGATE"
+        1 for prompt, verdicts, match_count, prompt_passed in prompt_results
+        if prompt.id.startswith("P") and prompt_passed
     )
     n_pass = sum(
-        1 for prompt, actual, passed in scores if prompt.id.startswith("N") and actual == "NO-DELEGATE"
+        1 for prompt, verdicts, match_count, prompt_passed in prompt_results
+        if prompt.id.startswith("N") and prompt_passed
     )
     battery_pass = p_pass >= p_threshold and n_pass >= n_threshold
 
@@ -419,11 +475,24 @@ def run_battery(
     if not battery_pass:
         verdict_lines.append("")
         verdict_lines.append("Failed prompts:")
-        for prompt, actual, passed in scores:
-            if not passed:
-                verdict_lines.append(
-                    f"  {prompt.id}: expected={prompt.expected} actual={actual}"
-                )
+        for prompt, verdicts, match_count, prompt_passed in prompt_results:
+            if not prompt_passed:
+                if repeat == 1:
+                    actual = verdicts[0]
+                    verdict_lines.append(
+                        f"  {prompt.id}: expected={prompt.expected} actual={actual}"
+                    )
+                else:
+                    verdict_lines.append(
+                        f"  {prompt.id}: expected={prompt.expected} {match_count}/{repeat} match"
+                    )
+    if repeat > 1:
+        verdict_lines.append("")
+        verdict_lines.append(f"Per-prompt K/N (best-of-{repeat}, K={min_pass}):")
+        for prompt, verdicts, match_count, prompt_passed in prompt_results:
+            verdict_lines.append(
+                f"  {prompt.id}: {match_count}/{repeat} {'PASS' if prompt_passed else 'FAIL'}"
+            )
     verdict_text = "\n".join(verdict_lines) + "\n"
     (out_dir / "verdict.txt").write_text(verdict_text, encoding="utf-8")
 
@@ -680,7 +749,11 @@ def main(argv: list[str] | None = None) -> int:
     if args.repeat < 1:
         print("error: --repeat must be >= 1", file=sys.stderr)
         return 2
-    if args.min_pass < 1 or args.min_pass > args.repeat:
+    # When --repeat 1, clamp min_pass to 1 for legacy-parity mode.
+    # Otherwise validate the user-supplied --min-pass against --repeat.
+    if args.repeat == 1:
+        args.min_pass = 1
+    elif args.min_pass < 1 or args.min_pass > args.repeat:
         print(
             f"error: --min-pass ({args.min_pass}) must be >= 1 and <= --repeat ({args.repeat})",
             file=sys.stderr,
@@ -711,6 +784,8 @@ def main(argv: list[str] | None = None) -> int:
             p_threshold=args.p_threshold,
             n_threshold=args.n_threshold,
             quiet=args.quiet,
+            repeat=args.repeat,
+            min_pass=args.min_pass,
         )
     except OSError as exc:
         print(f"error: IO failure during battery run: {exc}", file=sys.stderr)
