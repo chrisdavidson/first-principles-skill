@@ -34,11 +34,11 @@ are issued. All eight prompts are carried verbatim from Phase 25 v2 / Phase 29.
 |---|--------|-----------------|----------------------|-----------|
 | P1 | "Analyze from first principles why most New Year's resolutions fail by February. What are the fundamental drivers, not the surface symptoms?" | DELEGATE | "first principles" | Self-contained (personal domain); literal "first principles" trigger; asks for fundamental decomposition |
 | P2 | "Challenge the assumptions behind the claim that working from home reduces productivity. Are they actually valid?" | DELEGATE | "challenge assumptions" | Self-contained (business domain); direct literal trigger phrase match |
-| P3 | "Reason from ground truth: why does a hot cup of coffee cool faster on its first ten minutes than its second ten minutes? What do we actually know is true here?" | DELEGATE | "reason from ground truth" | Self-contained (science domain); literal trigger phrase plus explicit ground-truth framing |
+| P3 | "Help me reason from ground truth about why a hot cup of coffee cools faster in its first ten minutes than in its second — what do we actually know is true?" | DELEGATE | "reason from ground truth" | Self-contained (science domain); natural mid-sentence embedding of trigger phrase per D-03 structural fix (v3.4 baseline: 0/3 — command-label-plus-colon framing suppressed delegation) |
 | P4 | "Decompose this problem into its foundations: why do most independent restaurants fail within the first year?" | DELEGATE | "decompose this problem" | Self-contained (business domain); direct literal trigger phrase match |
 | P5 | "Stress-test the reasoning behind the claim that raising the minimum wage always reduces total employment. Are there hidden assumptions?" | DELEGATE | "stress-test reasoning" | Self-contained (business/economics domain); explicit "stress-test reasoning" trigger phrase in description |
 | P6 | "Question the design of standard 40-hour work weeks from first principles. Is the structure actually optimal, or just inherited?" | DELEGATE | "question a design" + "first principles" | Self-contained (business/personal domain); matches both "question a design" and "first principles" triggers |
-| P7 | "What are the fundamental ground truths about why human memory degrades over time? Reason up from them to evaluate whether spaced repetition really works." | DELEGATE | "reason from ground truth" | Self-contained (science domain); paraphrase of "reason from ground truth" with explicit ground-truth framing |
+| P7 | "What are the fundamental ground truths about why human memory degrades over time? Reason up from them to evaluate whether spaced repetition really works." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science domain); v3.4 baseline 1/3 — vocabulary gap: description lacked plural noun "fundamental ground truths" and particle-verb "Reason up from them"; closed by FRAG-03 description fix adding both paraphrases (Plan 01) |
 | P8 | "Take the modern smartphone form factor apart from the ground up. Decompose this problem: what do we actually know is true about why this shape and size won?" | DELEGATE | "decompose this problem" | Self-contained (software/business domain); literal "decompose this problem" trigger with from-the-ground-up framing |
 
 ---
@@ -112,6 +112,15 @@ scope-line tightening beyond N6.
 ---
 
 ## Catalog History
+
+### v3.5 (Phase 37) — 2026-05-25
+
+Fixed P3 structural embedding defect and updated P3/P7 annotations with v3.4 root-cause evidence:
+
+- **P3 prompt rewrite (FRAG-05)**: replaced command-label-plus-colon framing ("Reason from ground truth: why…") with natural mid-sentence trigger embedding ("Help me reason from ground truth about why…"); Newton's law of cooling / coffee cooling substance preserved. v3.4 baseline evidence: P3 0/3 — the bare label-plus-colon construction suppressed delegation in all three runs (structural defect per D-03).
+- **P7 annotation update (FRAG-06)**: updated "Trigger Phrase Matched" to "fundamental ground truths" + "reason up from first principles" and expanded Rationale to cite the v3.4 1/3 pass rate and vocabulary gap root cause: description lacked plural noun "fundamental ground truths" and particle-verb "Reason up from them"; closed by FRAG-03 description fix (Plan 01) which appended both paraphrases to the agent description.
+
+P-prompts P1-P2, P4-P8 are unchanged. N-prompts N1-N15 are unchanged.
 
 ### v3.1 (Phase 30) — 2026-05-23
 
