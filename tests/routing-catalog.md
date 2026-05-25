@@ -13,7 +13,7 @@ plugin sets, and Claude routing-model versions. This catalog documents *expected
 measured against thresholds (not per-prompt exactness). A single mis-route does not fail
 the battery; the **threshold counts** are the pass criterion.
 
-**Pass thresholds:** P-cases ≥ 6/8 DELEGATE **AND** N-cases ≥ 14/15 NO-DELEGATE.
+**Pass thresholds:** P-cases ≥ 8/10 DELEGATE **AND** N-cases ≥ 15/17 NO-DELEGATE.
 
 **History:** Extended from
 `.planning/milestones/v3.0-phases/25-agent-description-and-frontmatter-hardening/25-DELEGATION-TESTS.md`

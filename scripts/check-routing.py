@@ -38,8 +38,8 @@ Usage:
 Defaults:
     --plugin-dir   $(pwd)/first-principles
     --out          /tmp/check-routing-<UTC-timestamp>/
-    --p-threshold  6   (P-cases >= 6/8 DELEGATE)
-    --n-threshold  14  (N-cases >= 14/15 NO-DELEGATE)
+    --p-threshold  8   (P-cases >= 8/10 DELEGATE)
+    --n-threshold  15  (N-cases >= 15/17 NO-DELEGATE)
 
 Exit codes:
     0  thresholds met (battery PASS), --self-test all fixtures correct,
@@ -702,14 +702,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--p-threshold",
         type=int,
-        default=6,
-        help="Min P-cases scored DELEGATE for battery PASS (default: 6).",
+        default=8,
+        help="Min P-cases scored DELEGATE for battery PASS (default: 8).",
     )
     p.add_argument(
         "--n-threshold",
         type=int,
-        default=14,
-        help="Min N-cases scored NO-DELEGATE for battery PASS (default: 14).",
+        default=15,
+        help="Min N-cases scored NO-DELEGATE for battery PASS (default: 15).",
     )
     p.add_argument(
         "--quiet",
