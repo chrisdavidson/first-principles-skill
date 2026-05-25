@@ -144,6 +144,7 @@ Initial catalog. Used project-context-dependent P-prompts.
 
 ## See Also
 
+- `tests/routing-baseline-v3.4.md` — v3.4 canonical best-of-3 baseline (P 6/8, N 15/15, recorded 2026-05-25)
 - `.planning/milestones/v3.0-phases/25-agent-description-and-frontmatter-hardening/25-DELEGATION-TESTS.md` — source of P1-P8 (v2) and N1-N10
 - `.planning/phases/30-routing-quality-patch/30-CONTEXT.md` — D-15 / D-16 / D-17 decisions driving v3.1
 - `scripts/check-routing.py` — battery harness that consumes this catalog
