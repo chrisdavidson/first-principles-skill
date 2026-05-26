@@ -296,7 +296,7 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 - **Rigorous** — every derivation chain's weakest link is named; every GT-N? input that
   appears in a load-bearing chain has a confidence caveat stating which unverified input
-  caused the downgrade and what specific verification would raise confidence to HIGH; the
+  caused the downgrade and what specific verification raises confidence to HIGH; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
   chain that contributes to it; no chain that consumes a GT-N? input is rated HIGH confidence.
 
@@ -325,7 +325,7 @@ of the signed-off analysis as a whole.
   trade-offs acknowledged) traces to a specific named derivation chain in section 4; the
   Conclusion section introduces no new claims that did not appear in section 4; the Key
   Insight names a non-obvious finding — a result that reasoning by analogy or convention
-  would not have reached — rather than restating the recommended approach.
+  does not reach — rather than restating the recommended approach.
 
 - **Sound** — most Conclusion claims trace to chains in section 4, but one claim is introduced
   for the first time in the Conclusion section (new reasoning not present in any derivation
