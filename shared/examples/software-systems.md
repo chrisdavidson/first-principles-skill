@@ -49,6 +49,7 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 | A 12-person team can operate a microservices estate at acceptable overhead | untested belief | Verify — distributed systems require per-service monitoring, independent CI pipelines, inter-service communication contracts, and distributed tracing; the ops burden scales with service count and is well-documented to exceed small-team capacity below a threshold | Challenge | Unverified — flagged; no evidence the team has operated distributed services; DORA research documents that teams below ~50 engineers operating more than ~10 services face significant reliability and velocity headwinds |
 | Slow deploys are causing meaningful, ongoing business harm | current constraint | Record expiry conditions — this constraint holds as long as the business requires more than ~2 deploys per day; it expires if product velocity requirements decrease or if the team ships features whose release cadence is compatible with the current ceiling | Accept | Observed: ~2 deploys/day maximum is the measured ceiling; business impact is real (engineering velocity is blocked; hotfixes require manual bypass procedures) even if the precise dollar value of the constraint is not quantified |
 | A full rewrite or big-bang migration is required to change the architecture | untested belief | Discard — the strangler fig pattern enables incremental extraction of services from a monolith while the monolith continues to handle remaining traffic; no big-bang rewrite is required; this assumption frames the decision as binary when it is not | Discard | Contradicted by published incremental migration patterns; the strangler fig approach is the documented industry mechanism for this exact scenario (Newman "Building Microservices", chapter on the strangler fig application) |
+| Schema-level coupling is equivalent to application-level deploy coupling — a shared relational schema blocks truly independent releases in the same way a shared application binary does | untested belief | Accept with verification — the inference in Chain 2 ("splitting the application while retaining the shared schema produces a distributed monolith") requires this to hold; the specific coupling mechanism is that any service performing a schema migration must either apply it to the shared schema (affecting all co-tenant services) or coordinate migration timing with all services that read those tables | Accept | Verified by technical analysis: a shared schema forces coordinated migration windows across all services; the deploy-independence that microservices nominally provide is negated at the data layer if schema ownership is not decomposed first — this is the documented definition of a distributed monolith (Newman "Building Microservices", 2nd ed., Chapter 4) |
 
 ---
 
@@ -253,6 +254,24 @@ implemented. The correct intervention is parallelization, which delivers an orde
 improvement (from 45 minutes to 6–8 minutes) versus the marginal improvement from runner
 substitution (from 45 minutes to ~30–35 minutes). Runner-level optimization may be worthwhile
 as a follow-on after parallelization, but it is not the primary intervention.
+
+---
+
+## Assumption Audit
+
+This audit was completed before scoring. It covers every derivation chain in section 4: the
+pipeline-bottleneck diagnosis chain, the shared-database separability chain, and the minimum
+viable intervention chain. Each chain step is visited in order; any assumption required to hold
+that was not already in the Assumptions Table has been added there before this table was finalised.
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|-------------------|----------------------|-----------------|
+| Bottleneck | 1 | GT-1 + GT-2 + GT-3 → test-suite wall-clock sets the deploy-cycle floor; 2-deploy/day ceiling follows from sequential pipeline | none — step consumes only named, already-classified GTs and the logical consequence is definitional | n/a |
+| Bottleneck | 2 | → Architecture cannot be concluded as primary bottleneck until pipeline stages are profiled | none — this is a logical negation step: without profiling data, the architectural claim is unestablished; no additional bridging fact required | n/a |
+| DB coupling | 1 | GT-5 + GT-4 → retaining shared schema after app split produces a distributed monolith; schema decomposition is a prerequisite of migration | Schema-level coupling blocks truly independent releases in the same way application-level coupling does | already present (added above in this audit) |
+| DB coupling | 2 | → Schema decomposition is executable incrementally on the monolith without splitting into separate services | none — this step follows from the separability claim in Step 1 and the existing Discard verdict on the big-bang assumption | n/a |
+| Min viable | 1 | GT-1 + GT-3 + GT-4 → cost-risk of interventions varies by orders of magnitude; four measurable pipeline stages; profiling takes ~1 day | none — the ~1-day profiling estimate is a practical engineering judgement consistent with GT-2 (pipeline configuration is observable); no separate factual claim is required | n/a |
+| Min viable | 2 | → Rational sequencing: profile first, apply lowest-cost fix, revisit microservices only if bottleneck is architectural | none — this sequencing follows directly from the cost-risk ordering established in Step 1; no additional assumption beyond the prior chains | n/a |
 
 ---
 
