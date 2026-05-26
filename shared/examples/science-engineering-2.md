@@ -134,14 +134,18 @@ IEC TS 60034-25 threshold) + GT-6 (DFIG drivetrain with IGBT switching — withi
 IEC TS 60034-25 EIBD domain of applicability)
 → Classical RCF is already modelled by ISO 281 and its L10 figure. A 9× shortfall
   inside that envelope (GT-4) demands a *non-classical* mechanism — i.e., a degradation
-  pathway that ISO 281 does not capture. WEC morphology (GT-3) is the published
-  fingerprint of that non-classical pathway in wind-turbine HSS bearings. GT-5 supplies
-  the proximate physical cause (open bonding path → rotor voltage discharges through
-  the bearing rolling contact) and GT-6 confirms the drivetrain falls inside the
-  IEC-defined domain where this mechanism is known to apply. None of these GTs alone
-  fixes the mechanism: WEC has multiple published candidate causes; bonding-ring
-  failure alone need not produce WEC if voltage is below threshold; L10 shortfall alone
-  could be misload or material defect. Combined, they trace a single causal chain.
+  pathway that ISO 281 does not capture. [Assumes: ISO 281's L10 model is the
+  appropriate classical baseline for this bearing, and a 9× life shortfall against it
+  is too large to be explained by load-spectrum uncertainty or material-cleanliness
+  variance within the classical RCF model — a non-classical mechanism is therefore
+  required.] WEC morphology (GT-3) is the published fingerprint of that non-classical
+  pathway in wind-turbine HSS bearings. GT-5 supplies the proximate physical cause
+  (open bonding path → rotor voltage discharges through the bearing rolling contact)
+  and GT-6 confirms the drivetrain falls inside the IEC-defined domain where this
+  mechanism is known to apply. None of these GTs alone fixes the mechanism: WEC has
+  multiple published candidate causes; bonding-ring failure alone need not produce WEC
+  if voltage is below threshold; L10 shortfall alone could be misload or material
+  defect. Combined, they trace a single causal chain.
 → The root cause is electrically-induced bearing damage from a degraded shaft-to-ground
   bonding path, producing WEC-mediated subsurface degradation that drives premature
   spalling at the Hertz-stress depth.
