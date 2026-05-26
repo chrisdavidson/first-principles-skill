@@ -257,7 +257,7 @@ as a follow-on after parallelization, but it is not the primary intervention.
 
 ---
 
-## Assumption Audit
+## Assumption Audit (pre-scoring; completed before §6)
 
 This audit was completed before scoring. It covers every derivation chain in section 4: the
 pipeline-bottleneck diagnosis chain, the shared-database separability chain, and the minimum
