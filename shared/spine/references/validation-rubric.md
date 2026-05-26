@@ -159,13 +159,16 @@ a short list of success criteria — in the Problem Essence section (output sect
 
 - **Rigorous** — the Essence Statement is a single sentence that names the core question or
   decision (not a symptom, not the triggering event, not a restatement of the user's prompt);
-  the success criteria are stated as checkable conditions a reader can verify against the final
-  conclusion without asking the analyst for clarification; the statement is specific enough that
-  it could not be copied without modification into an analysis of a different but related problem.
+  each success criterion contains a pass/fail structural test — a verb + subject + outcome
+  triplet where the outcome is a property of the Conclusion section — so that a reviewer
+  applies each criterion by scanning the Conclusion section without analyst interpretation;
+  the statement is specific enough that it appears nowhere in an analysis of a different but
+  related problem without modification (it names a property unique to this problem, not a
+  generic template phrase).
   If this section uses the honest-depth escape valve (`Nothing material here — [reason]`), the
   stated reason is specific to this analysis's problem — it names a property of the problem
-  that makes an Essence Statement unnecessary or redundant, and that reason could not be
-  copy-pasted to a different analysis without alteration.
+  that makes an Essence Statement unnecessary or redundant, and that reason appears in no
+  other analysis without alteration.
 
 - **Sound** — the Essence Statement exists and names a question, but the success criteria are
   vague or stated in terms that cannot be verified against the conclusion without further
@@ -191,10 +194,15 @@ four-type classification quality and unverified-flag discipline (D-07).
   four-type scheme (physical law / current constraint / convention / untested belief); the
   Treatment cell uses the vocabulary of the prescribed treatment for that type; the Verdict
   cell records Accept, Challenge, or Discard; the Verification cell cites a specific source
-  or names what verification would confirm the assumption — not "unclear" or "possibly true";
+  or names what verification confirms the assumption — not "unclear" or "possibly true";
   at least one assumption has been challenged (not merely labelled Accept); if any assumption
   is used in a derivation chain despite being unverified, the Verification cell reads
-  "unverified — flagged."
+  "unverified — flagged"; the agent has visited every named derivation chain step in section 4
+  and surfaced any assumption that step requires to hold — not already in the Assumptions Table
+  — adding it to the table before scoring; the Assumption Audit artifact produced before
+  scoring (per "How to Apply This Rubric") records this scan and confirms it was exhaustive
+  over named derivation chain steps, not an open-ended survey of the universe of conceivable
+  assumptions.
 
 - **Sound** — the table exists with populated rows, but one or more rows have generic entries:
   the Verification cell reads "unclear" or "unsure" without specifics, OR the Treatment
@@ -249,13 +257,16 @@ Reasoning (D-03).
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the GT-IDs it consumes,
-  contains at least one intermediate claim (a claim that could not be stated from either
+  contains at least one intermediate claim (a claim that cannot be stated from either
   named GT alone), and reaches a conclusion; the Abandoned Reasoning section either documents
   at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
   OR uses the honest-depth escape valve with a reason that is specific to this analysis's
-  problem and could not be copy-pasted to any other analysis without alteration; no analogy
+  problem and appears in no other analysis without alteration; no analogy
   is used as direct evidence (any reference to how others solved a similar problem is grounded
-  in a named GT about their situation, not offered as standalone justification).
+  in a named GT about their situation, not offered as standalone justification);
+  each chain step that introduces an assumption not already in the Assumptions Table
+  declares that assumption inline using `[Assumes: X]` appended to the step text —
+  a reviewer applies this check by scanning each chain step for the `[Assumes:` token.
 
 - **Sound** — chains exist for all conclusions, but one or more chains lack a genuine
   intermediate step (the chain goes directly from GT-IDs to conclusion, or the stated
