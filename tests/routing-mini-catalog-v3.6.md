@@ -4,7 +4,7 @@
 v3.6 prompts (P9, P10, N16, N17), used for the CAT-08 mini-battery gate. Run with:
 
 ```
-python3 scripts/check-routing.py --catalog tests/routing-mini-catalog-v3.6.md --repeat 5 --min-pass 3
+python3 scripts/check-routing.py --catalog tests/routing-mini-catalog-v3.6.md --repeat 5 --min-pass 3 --p-threshold 2 --n-threshold 2
 ```
 
 Unlike the P3+P7 mini-catalog (`tests/routing-mini-catalog-p3p7.md`), this fixture includes
