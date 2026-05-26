@@ -20,6 +20,27 @@ one condition alone does not constitute a pass:
 
 If either condition is not met, revise the analysis and re-score from the beginning.
 
+**Assumption Audit (complete before scoring)**
+
+Before scoring any criterion, complete the following scan and include the filled-in table
+in your response before the verdict blocks. Do not proceed to verdict blocks until every
+chain's steps have been scanned.
+
+1. Enumerate every derivation chain in section 4.
+2. For each chain, visit each step in order.
+3. For each step, name any assumption that step requires to hold that is not already in
+   the Assumptions Table.
+4. Add any surfaced assumption to the Assumptions Table before scoring Criterion 2.
+5. Record all findings in the scan table below.
+
+| Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
+|-------|------|-------------------|----------------------|-----------------|
+| [chain producing conclusion X] | 1 | [step text] | [assumption or "none"] | [yes / n/a] |
+| [chain producing conclusion X] | 2 | [step text] | [assumption or "none"] | [yes / n/a] |
+| [chain producing conclusion Y] | 1 | [step text] | [assumption or "none"] | [yes / n/a] |
+
+Include the completed table in your response before the verdict blocks. Do not proceed to verdict blocks until every chain's steps have been scanned and the table reflects the updated Assumptions Table.
+
 **Precedence rule (no double-counting):** A single observable defect can match the
 descriptor of more than one criterion — for example, an unverified ground truth used in a
 chain without the `?` suffix is named by Criteria 2, 3, and 5. When this happens, band the
@@ -37,8 +58,8 @@ Score each of the 6 criteria using this shared 4-level scale, applied uniformly 
 
 - **Rigorous** — the criterion's named artifact is present, structurally complete, and every
   entry meets the observable descriptor for this level: all required fields are populated with
-  non-generic content, all required relationships are explicit, and the artifact could withstand
-  inspection by a skeptic who knows the methodology.
+  non-generic content, all required relationships are explicit,
+  and every observable structural test in this criterion's Rigorous descriptor returns pass.
 
 - **Sound** — the criterion's named artifact is present and mostly meets the Rigorous descriptor,
   but one or more entries fall short in a specific, identifiable way: a field is generic or vague
