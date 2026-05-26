@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v3.6
 milestone_name: Routing Catalog Expansion (P9/P10)
-status: verifying
-last_updated: "2026-05-26T17:00:00.000Z"
-last_activity: 2026-05-26 -- Phase 41 execution complete (Nyquist sign-off for phases 39 and 40)
+status: complete
+last_updated: "2026-05-26T17:30:00.000Z"
+last_activity: 2026-05-26 -- v3.6 milestone archived and tagged
 progress:
   total_phases: 3
   completed_phases: 3
@@ -17,17 +17,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-25 after v3.5 milestone)
+See: .planning/PROJECT.md (updated 2026-05-26 after v3.6 milestone)
 
 **Core value:** Every conclusion traces back to a verified ground truth and every assumption is explicitly challenged — reasoning a skeptic cannot dismiss as hand-waving.
-**Current focus:** Milestone complete
+**Current focus:** v3.6 shipped — planning next milestone
 
 ## Current Position
 
 Phase: 41
 Plan: All plans complete (41-01, 41-02)
-Status: Phase 41 done — all v3.6 phases complete; ready for milestone completion
-Last activity: 2026-05-26 -- Phase 41 execution complete (Nyquist sign-off for phases 39 and 40)
+Status: v3.6 milestone archived and tagged
+Last activity: 2026-05-26 -- v3.6 milestone archived and tagged
 
 ## Milestone History
 
@@ -76,7 +76,7 @@ v3.5 roadmapping notes:
 
 ### Pending Todos
 
-- None. All v3.6 phases complete. Run `/gsd-complete-milestone` to archive v3.6.
+- None. v3.6 complete and archived. Run `/gsd-new-milestone` to start next milestone.
 
 ### Blockers/Concerns
 
@@ -100,12 +100,12 @@ No deferred items from v3.4. All requirements resolved.
 
 ## Session Continuity
 
-Last session: 2026-05-26T17:00:00.000Z
-Stopped at: Phase 41 complete — all v3.6 phases and plans done
+Last session: 2026-05-26T17:30:00.000Z
+Stopped at: v3.6 milestone archived, tagged v3.6, REQUIREMENTS.md deleted
 
 ## Operator Next Steps
 
-- Run `/gsd-complete-milestone` to archive v3.6 and start next milestone
+- Run `/gsd-new-milestone` to start the next milestone
 
 ## Performance Metrics
 
