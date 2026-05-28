@@ -15,10 +15,12 @@ Exit codes:
     2  environment error (missing PyYAML, wrong Python version) or non-deterministic generation
 
 Source of truth: shared/  (canonical)
-Target surface (post Phase 26.1):
-    - first-principles/agents/first-principles.md          (orchestrating agent)
-    - first-principles/agents/references/<tool>.md         (6 companion-tool refs)
-    - first-principles/agents/references/examples/<name>.md (6 worked-example siblings)
+Target surface:
+    - first-principles/agents/first-principles.md           (orchestrating agent)
+    - first-principles/agents/references/<tool>.md          (6 companion-tool refs)
+    - first-principles/agents/references/<spine-ref>.md     (3 spine refs)
+    - first-principles/agents/references/examples/<name>.md (worked-example siblings)
+    - first-principles/skills/<slug>/SKILL.md               (6 focused-mode stubs, Phase 46-02)
 """
 
 from __future__ import annotations
@@ -98,6 +100,33 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
 
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
 TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order")
+
+# Canonical slash-invocable focused-mode stub list (Phase 46-02, DEC-46-B).
+# Each entry maps to a `shared/skills/<slug>/SKILL.md` source and a generated
+# `first-principles/skills/<slug>/SKILL.md` sibling. All six carry
+# `disable-model-invocation: true` so the orchestrator cannot auto-route to
+# them (verified by 46-01 Wave 0 Probe 1) — only explicit `/first-principles:<slug>`
+# slash invocation loads them. The stub body inline-copies the technique's
+# reference content per Q1 Option A (46-RESEARCH.md §Q1).
+SKILLS = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order")
+
+# Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
+# technique content (from `## When to reach for this` to EOF of
+# shared/references/<slug>.md). The pattern mirrors {{TOOL:<slug>}} expansion
+# but targets the larger reference body (procedure + example + failure modes
+# + handoff), which keeps every stub above the 80-LOC floor that
+# 46-02-PLAN.md mandates for "procedure inlined" to be empirically falsifiable.
+SKILL_TOKEN_RE = re.compile(r"\{\{PROCEDURE:([a-z][a-z0-9-]*)\}\}")
+
+# Marker line stamped on every generated stub body, immediately after the
+# closing frontmatter delimiter (Pitfall 7 mitigation, 46-02-PLAN must_haves).
+SKILL_DO_NOT_EDIT_LINE = (
+    "<!-- DO NOT EDIT — generated from shared/skills/{slug}/SKILL.md "
+    "by sync-content.py -->\n"
+)
+
+# Generated stub target tree (sibling to AGENT_DIR; never hand-edited).
+SKILLS_DIR = REPO_ROOT / "first-principles" / "skills"
 
 # Canonical worked-example list (filename stem under shared/examples/).
 # Source-of-truth tree = shared/examples/ (established in Plan 26.1-03 Task 0).
@@ -303,6 +332,161 @@ def _extract_procedure(slug: str) -> str:
     return _normalise_trailing_newline(slice_text)
 
 
+_SKILL_CONTENT_RE = re.compile(
+    r"(^## When to reach for this\n.*)\Z",
+    re.MULTILINE | re.DOTALL,
+)
+
+
+def _extract_skill_content(slug: str) -> str:
+    """Extract the inline-copy region for a focused-mode stub body.
+
+    Returns the slice of `shared/references/{slug}.md` starting at the
+    `## When to reach for this` heading through end-of-file (covers When /
+    Framing (where present) / Procedure / Example / Failure modes / Handoff
+    — i.e. everything except the H1 title block and the leading blockquote).
+    This is the content 46-RESEARCH.md §Q1 specifies for inline-copy under
+    Option A. Distinct from `_extract_procedure()` (which inlines only the
+    `## Procedure` section into the composer agent body) — these two
+    surfaces have different inclusion contracts and must not share an extractor.
+
+    The 80-LOC stub floor (46-02-PLAN.md must_haves) is achieved only when
+    this slice is the inlined content; substituting `_extract_procedure()`
+    here would produce stubs in the 45-55 LOC range and falsify the
+    "procedure inlined" truth.
+
+    Raises ValueError if the anchor heading is absent.
+    """
+    body = _read_required(
+        SHARED / "references" / f"{slug}.md",
+        hint=(
+            f"shared/references/{slug}.md is required for the focused-mode "
+            f"stub at first-principles/skills/{slug}/SKILL.md"
+        ),
+    )
+    m = _SKILL_CONTENT_RE.search(body)
+    if not m:
+        raise ValueError(
+            f"shared/references/{slug}.md has no '## When to reach for this' "
+            f"heading — required as the inline-copy anchor for "
+            f"first-principles/skills/{slug}/SKILL.md"
+        )
+    return _normalise_trailing_newline(m.group(1))
+
+
+def _expand_skill_token(body: str, slug: str) -> str:
+    """Replace `{{PROCEDURE:<slug>}}` with the inlined skill content.
+
+    The token MUST appear at least once in the source body. The slug captured
+    by the token MUST equal the stub's own slug — cross-slug token references
+    (e.g. a pre-mortem stub embedding `{{PROCEDURE:inversion}}`) are rejected
+    so the sync pipeline cannot silently propagate the wrong technique's
+    procedure into a stub.
+    """
+    seen = 0
+
+    def sub(m: re.Match) -> str:
+        nonlocal seen
+        seen += 1
+        captured = m.group(1)
+        if captured != slug:
+            raise ValueError(
+                f"shared/skills/{slug}/SKILL.md contains "
+                f"{{{{PROCEDURE:{captured}}}}} — token slug must match the "
+                f"stub's own slug ({slug!r})"
+            )
+        return _extract_skill_content(slug).rstrip("\n")
+
+    out = SKILL_TOKEN_RE.sub(sub, body)
+    if seen == 0:
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md is missing the required "
+            f"{{{{PROCEDURE:{slug}}}}} token — without it the stub body "
+            f"falls below the 80-LOC floor and the inline-copy contract "
+            f"(46-02-PLAN must_haves) is violated"
+        )
+    return out
+
+
+def generate_skill_stub(slug: str) -> tuple[Path, str]:
+    """Return (target_path, content) for one focused-mode stub.
+
+    Reads `shared/skills/{slug}/SKILL.md`, expands the `{{PROCEDURE:<slug>}}`
+    token via `_expand_skill_token`, and stamps the DO-NOT-EDIT marker line
+    immediately after the closing `---` frontmatter delimiter (Pitfall 7).
+
+    Frontmatter is passed through verbatim — including `disable-model-invocation:
+    true` and `metadata.version: "3.8.0"` per DEC-46-B. The frontmatter shape is
+    NOT re-emitted via PyYAML to avoid normalising the source author's quoting
+    style; the source file is authored once and propagated byte-faithfully (the
+    YAML re-emission path is reserved for files where shared/ stores a meta
+    dict, e.g. `shared/spine/SKILL.meta.yml`).
+    """
+    source_path = SHARED / "skills" / slug / "SKILL.md"
+    source = _read_required(
+        source_path,
+        hint=(
+            f"shared/skills/{slug}/SKILL.md is required as the source for "
+            f"first-principles/skills/{slug}/SKILL.md (Phase 46-02)"
+        ),
+    )
+
+    # Split frontmatter from body: must open with `---\n` and contain a closing
+    # `---\n` line. Reject sources that lack frontmatter — the stub contract
+    # requires `name`, `disable-model-invocation`, and `metadata.version` keys.
+    lines = source.split("\n")
+    if not lines or lines[0] != "---":
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md missing opening '---' frontmatter "
+            f"delimiter"
+        )
+    try:
+        close_idx = lines.index("---", 1)
+    except ValueError as exc:
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md missing closing '---' frontmatter "
+            f"delimiter"
+        ) from exc
+
+    frontmatter_block = "\n".join(lines[: close_idx + 1]) + "\n"
+    body_block = "\n".join(lines[close_idx + 1 :])
+
+    # Sanity: required frontmatter keys must be literally present so a CI
+    # diff (`--check`) makes their removal a visible drift.
+    for required in ("name:", "disable-model-invocation:", "version:"):
+        if required not in frontmatter_block:
+            raise ValueError(
+                f"shared/skills/{slug}/SKILL.md frontmatter missing required "
+                f"key fragment {required!r} (DEC-46-B)"
+            )
+
+    expanded_body = _expand_skill_token(body_block, slug)
+    do_not_edit = SKILL_DO_NOT_EDIT_LINE.format(slug=slug)
+    # Place DO-NOT-EDIT line immediately after the closing `---` line, with a
+    # single blank line separator so the marker reads as its own paragraph and
+    # markdown renderers don't fold it into the next block.
+    assembled = (
+        frontmatter_block
+        + do_not_edit
+        + (expanded_body if expanded_body.startswith("\n") else "\n" + expanded_body)
+    )
+    content = _normalise_trailing_newline(assembled)
+    return SKILLS_DIR / slug / "SKILL.md", content
+
+
+def generate_skill_stubs() -> dict[Path, str]:
+    """Return {target_path: content} for every focused-mode stub (Phase 46-02).
+
+    One target per slug in SKILLS. The byte-identity gate enforced by
+    `cmd_check()` rejects any hand-edit to the generated files (Pitfall 7).
+    """
+    targets: dict[Path, str] = {}
+    for slug in SKILLS:
+        path, content = generate_skill_stub(slug)
+        targets[path] = content
+    return targets
+
+
 def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     """Return {AGENT_PATH: content} for the first-principles orchestrating agent.
 
@@ -445,13 +629,15 @@ def generate_agent_examples() -> dict[Path, str]:
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    14 targets total (Phase 31-02 adds the spine-references emission):
+    14 targets total (Phase 31-02 adds the spine-references emission, 46-02 adds 6 stubs):
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 6 agent reference siblings (first-principles/agents/references/<tool>.md)
       - 1 agent spine-reference sibling
         (first-principles/agents/references/assumption-taxonomy.md)
       - 6 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
-    Total: 1 + 6 + 1 + 6 = 14.
+      - 6 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
+    Total: 1 + 6 + 1 + 6 + 6 = 20.
+
     """
     import yaml
 
@@ -475,17 +661,22 @@ def generate_all() -> dict[Path, str]:
         spine_meta_path,
     )
 
-    # --- Agent surface (sole remaining generated surface) ---
+    # --- Agent surface ---
     targets.update(generate_agent(spine_meta, tool_map))
     targets.update(generate_agent_references())
     targets.update(generate_agent_spine_references())
     targets.update(generate_agent_examples())
 
+    # --- Slash-invocable focused-mode stubs (Phase 46-02) ---
+    # disable-model-invocation: true on every stub → no orchestrator
+    # auto-routing; only `/first-principles:<slug>` slash invocation loads them.
+    targets.update(generate_skill_stubs())
+
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
-    #     the agent tree (the sole allowed root after Phase 26.1).
+    #     an allowed write root.
     # Use Path.relative_to() rather than str.startswith() to avoid sibling-dir
     # false positives (WR-01).
-    allowed_roots = (AGENT_DIR,)
+    allowed_roots = (AGENT_DIR, SKILLS_DIR)
     for path in targets:
         if not any(_is_within(path, root) for root in allowed_roots):
             raise ValueError(
