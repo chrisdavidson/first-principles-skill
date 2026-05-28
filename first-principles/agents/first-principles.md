@@ -56,6 +56,32 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ---
 
+### Step 0: Technique selection
+
+Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full six-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
+
+**Pre-set MODE honour.** When invoked via a slash-stub with `MODE` pre-set in the calling context, skip detection and honour the pre-set value.
+
+**Phrase detection rules** (case-insensitive; first technique whose pattern fires wins; ties resolve in declaration order):
+
+| Technique | Trigger phrases (any one fires) |
+|---|---|
+| pre-mortem | "pre-mortem", "prospective-hindsight", "nervous about [my/the/this] plan", "[walk/run] through what would have caused", "imagine .* failed .* what caused" |
+| inversion | "invert", "invert this claim", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break" |
+| fishbone | "fishbone", "Ishikawa", "cause categor(y/ies)", "breadth-first .* causes", "map the .* cause space" |
+| five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
+| trade-off | "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting" |
+| second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
+
+**Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
+
+**Execution branching.**
+
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other five companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full six-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all six companion techniques.
+
+---
+
 ### Phase 1: Identify Essence
 
 **Why this phase exists:** Starting an analysis without isolating the core problem produces conclusions that solve a symptom, a proxy, or a convenient restatement of the original question rather than the real one. When the essence is unstated, every subsequent phase is calibrated to the wrong target — the error is invisible until the final conclusion turns out to answer a question nobody asked.
