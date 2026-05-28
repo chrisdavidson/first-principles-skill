@@ -16,14 +16,26 @@ poaching legitimate plan-shaped `:pre-mortem` traffic.
 python3 scripts/check-sub-skill-routing.py --catalog tests/sub-skill-routing-catalog.md --repeat 5 --min-pass 3 --p-threshold 0 --n-threshold 2
 ```
 
-**Expected baseline outcomes:** Against the current (pre-Phase-46) shipped
-descriptions, P12 and P24 WILL FAIL — that IS the regression this fixture
-pins. The two N-controls should PASS. Phase 46's re-run (with
-`--p-threshold 2 --n-threshold 2`) is the success gate. `--p-threshold 0` is
-used in Phase 45 because the script's overall PASS/FAIL exit code is
-deliberately non-strict on P-failures here — the P-failures are *expected*.
-Per-prompt verdicts in the output block are the gate, not the battery exit
-code.
+**Expected baseline outcomes** (v2 detection — see Plan 45-04 SUMMARY):
+Against the current (pre-Phase-46) shipped descriptions, prompts that
+"should route to a specific sub-skill" mostly fail in the same way: the
+orchestrator invokes the `first-principles:first-principles` composer
+agent instead of a specific sub-skill, classifying as `none-or-other` under
+the v2 verifier. This means:
+
+- **P12** (expected `pre-mortem`) — FAIL (FU-21-1 reproduced; composer-routing)
+- **P24** (expected `inversion`) — FAIL (FU-21-2 reproduced; composer-routing)
+- **N1** (expected `none-or-other`) — PASS (composer-routing = none-or-other = matches expected)
+- **N2** (expected `pre-mortem`) — FAIL (composer-routing; same regression class as P12. N2's expected outcome is **forward-looking** — it should PASS post-Phase-46, proving `:inversion` sharpening did not poach plan-shaped `:pre-mortem` traffic)
+
+So the v3.8 baseline is expected to show 3 of 4 prompts failing under K-of-N.
+That is the evidence Phase 46 will be measured against: P12, P24, and N2 must
+all start PASSing post-Phase-46 (with their respective expected sub-skills
+firing), while N1 must STAY PASSing (proving `:pre-mortem` widening did not
+over-trigger on debugging prompts). `--p-threshold 0` is used in Phase 45
+because the battery-level PASS/FAIL exit code is deliberately non-strict on
+P-failures here — the failures are *expected*. Per-prompt verdicts in the
+output block are the gate, not the battery exit code.
 
 ---
 
