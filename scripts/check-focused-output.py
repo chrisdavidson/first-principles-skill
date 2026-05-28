@@ -10,26 +10,75 @@ focused single-technique output or the full six-technique walkthrough.
 Transport inline-copied from check-routing.py (D-01/D-02). Detection
 layer is novel — cardinality-classified marker firing per 46-RESEARCH §Q4.
 
-Task 1 scaffold (this commit):
-    Transport regions inline-copied verbatim from `scripts/check-routing.py`
-    per the Phase 45 PATTERNS §Inline-copy reuse discipline:
-      - shebang block + imports + module constants
-      - `Prompt` dataclass shape
-      - catalog parser + helpers
-      - `_walk` structured-walk helper
-      - `_run_prompt_to` + `_run_prompt_n_times` (claude -p invocation,
-        K-of-N loop, file naming)
-      - `_ensure_claude_available`, `_print`, `_default_out_dir`
-      - `build_parser` / `main` (CLI surface + K>N pre-flight guard)
-      - scores.tsv / verdict.txt writers
-    `_TECHNIQUE_CATEGORIES` is present as a placeholder with the six
-    technique keys mapped to empty tuples; `classify()` and
-    `detect_output_structure()` return "none". Task 2 fills the detection
-    layer. Task 3 adds the --self-test fixture battery.
+Why this exists:
+    Phase 46 ships an internal dispatcher in the composer agent body
+    (`Step 0 — Technique selection`) that branches between MODE=focused-X
+    and MODE=full-composer. Plan 46-04 needs a measurement instrument that
+    can classify a captured composer response stream into one of:
 
-DO NOT inline-copy `_HEADER_CATEGORIES` / `_HEADER_LINE_RE` / `_signal_a`
-/ `_signal_b` from check-routing.py — those are routing-signal detectors;
-Phase 46's detector is output-structure-shaped and is authored fresh.
+        focused-pre-mortem | focused-inversion | focused-fishbone |
+        focused-five-whys | focused-trade-off | focused-second-order |
+        ambiguous | full-composer | none
+
+    This script provides that instrument as a SIBLING to
+    `scripts/check-routing.py` and `scripts/check-sub-skill-routing.py`
+    rather than an in-place edit to either. DEC-46-C locks the sibling
+    decision; D-01 (no-edit) and D-02 (inline-copy reuse) are inherited
+    from Phase 45.
+
+Inline-copy regions (verbatim from scripts/check-routing.py — D-01/D-02):
+    - Shebang + script-header block + imports + module constants
+    - `Prompt` dataclass shape
+    - Catalog parsing helpers (`_strip_quotes`, `_split_row`,
+      `_is_separator_row`, `parse_catalog`)
+    - `_walk` structured-walk helper
+    - Transport: `_run_prompt_to`, `_run_prompt_n_times`
+    - CLI surface: argparse builder, K>N pre-flight rejection guard,
+      battery driver, scores.tsv / verdict.txt writers
+    - `_ensure_claude_available`, `_print`, `_default_out_dir`
+    - `--self-test` scaffolding
+
+Detection layer — what differs from check-routing.py:
+    - `_HEADER_CATEGORIES` / `_HEADER_LINE_RE` from check-routing.py are
+      ROUTING-shaped (six section headers of the FP agent's output).
+      Phase 46 needs OUTPUT-STRUCTURE-shaped detection: per-technique
+      marker tables `_TECHNIQUE_CATEGORIES` keyed by the six companion
+      techniques (pre-mortem, inversion, fishbone, five-whys, trade-off,
+      second-order). Markers are verbatim phrases drawn from
+      46-RESEARCH §Q4.1-Q4.6 tables (cited at each entry).
+    - Cardinality classifier `classify()` resolves to focused-<technique>
+      (n=1), ambiguous (n=2, n=3), or full-composer (n>=4 OR composer-
+      structure signal fires). MIN_HEADER_HITS=2 mirrors the Phase 45
+      `MIN_TEXT_HITS=2` precedent (noise-tolerance floor — a single
+      incidental mention should NOT fire a marker).
+
+Cardinality calibration choice (LOAD-BEARING — read before editing):
+    46-RESEARCH Q4 base rule says n>=4 distinct techniques = full-composer.
+    BUT 46-01-SUMMARY Probe 3 showed real composer output fires only 1-2
+    distinct technique-name markers (Inversion + Second-Order + brief
+    Trade-off mention), while emitting the canonical 5-phase structure
+    headers ("Phase 1 — Ground Truths", "Phase 2 — Assumption Audit",
+    "Phase 5 — Second-Order Effects", "Verdict", etc.) repeatedly.
+
+    Calibration path chosen here = OPTION B from 46-01-SUMMARY findings:
+      Add a structural `composer-structure` signal counting the canonical
+      5-phase markers ("Phase 1", "Ground Truths", "Assumption Audit",
+      "Derivation Chains", "Verdict"). If composer-structure fires at
+      >= MIN_HEADER_HITS, classify as full-composer regardless of the
+      per-technique cardinality. This matches the Probe 3 empirical
+      signal (5 Phase headers + Ground Truths + Assumption Audit + Verdict
+      all fire ≥2x in the real capture) while preserving the original
+      n>=4 rule as a fallback for outputs that omit the canonical headers
+      but emit all six techniques' verbatim markers.
+
+    Rationale: the LOAD-BEARING distinction between focused-X and
+    full-composer is structural — the composer walks the 5-phase scaffold;
+    focused-X output does not. A single technique fired in passing inside
+    a 5-phase walkthrough is still full-composer, not focused-X. The
+    structural signal is the load-bearing observable.
+
+    Citation: 46-01-SUMMARY "Findings to surface to 46-03" §1, captured
+    in `.planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl`.
 
 Usage:
     scripts/check-focused-output.py --catalog <path> [--plugin-dir <path>]
@@ -37,6 +86,15 @@ Usage:
                                     [--n-threshold N] [--quiet] [--dry-run]
                                     [--repeat N] [--min-pass K]
     scripts/check-focused-output.py --self-test
+
+Defaults:
+    --plugin-dir   $(pwd)/first-principles
+    --out          /tmp/check-focused-output-<UTC-timestamp>/
+    --p-threshold  0   (Phase 46 baseline is non-gating until 46-04 sets
+                        the calibrated thresholds)
+    --n-threshold  0   (same)
+    --repeat       5
+    --min-pass     3   (3-of-5 K-of-N noise tolerance — matches Phase 45)
 
 Exit codes:
     0  thresholds met (battery PASS), --self-test all fixtures correct,
@@ -77,7 +135,8 @@ OutputStructure = Literal[
     "none",
 ]
 
-# Six canonical companion technique keys.
+# Six canonical companion technique keys (must match the file basenames
+# under first-principles/agents/references/<key>.md).
 _TECHNIQUE_KEYS: tuple[str, ...] = (
     "pre-mortem",
     "inversion",
@@ -107,7 +166,7 @@ MIN_HEADER_HITS: int = 2
 # output as `focused-<technique>` unless ZERO other techniques fire and
 # ZERO composer-structure markers fire. The structural-signal path is
 # the load-bearing observable empirically demonstrated by 46-01 Probe 3
-# capture.
+# capture (see top-of-file calibration block).
 #
 # Pitfall 4 mitigation (MIN_HEADER_HITS=2 floor): each technique requires
 # >= 2 distinct phrase hits to count, mirroring Phase 45 MIN_TEXT_HITS=2.
@@ -116,33 +175,6 @@ MIN_HEADER_HITS: int = 2
 # the procedural-marker phrases) is too lexically common to count toward
 # MIN_HEADER_HITS. It is detected separately as a tiebreaker signal only
 # (currently unused beyond documentation — preserved for future tuning).
-#
-# Cardinality calibration choice (LOAD-BEARING — read before editing):
-# 46-RESEARCH Q4 base rule says n>=4 distinct techniques = full-composer.
-# BUT 46-01-SUMMARY Probe 3 showed real composer output fires only 1-2
-# distinct technique-name markers (Inversion + Second-Order + brief
-# Trade-off mention), while emitting the canonical 5-phase structure
-# headers ("Phase 1 — Ground Truths", "Phase 2 — Assumption Audit",
-# "Phase 5 — Second-Order Effects", "Verdict", etc.) repeatedly.
-#
-# Calibration path chosen here = OPTION B from 46-01-SUMMARY findings:
-#   Add a structural `composer-structure` signal counting the canonical
-#   5-phase markers ("Phase 1", "Ground Truths", "Assumption Audit",
-#   "Derivation Chains", "Verdict"). If composer-structure fires at
-#   >= MIN_HEADER_HITS, classify as full-composer regardless of the
-#   per-technique cardinality. This matches the Probe 3 empirical
-#   signal (5 Phase headers + Ground Truths + Assumption Audit + Verdict
-#   all fire ≥2x in the real capture) while preserving the original
-#   n>=4 rule as a fallback for outputs that omit the canonical headers
-#   but emit all six techniques' verbatim markers.
-#
-# Rationale: the LOAD-BEARING distinction between focused-X and
-# full-composer is structural — the composer walks the 5-phase scaffold;
-# focused-X output does not. A single technique fired in passing inside
-# a 5-phase walkthrough is still full-composer, not focused-X.
-#
-# Citation: 46-01-SUMMARY "Findings to surface to 46-03" §1, captured
-# in `.planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl`.
 # ---------------------------------------------------------------------------
 
 
@@ -233,10 +265,10 @@ _TRADEOFF_BARE_TOKEN_RE: re.Pattern[str] = re.compile(
 )
 
 # Composer-structure markers — the canonical 5-phase scaffold headers
-# the composer emits in its output. Per the calibration block above
-# (OPTION B from 46-01-SUMMARY), if >= MIN_HEADER_HITS of these fire,
-# classify as `full-composer` regardless of per-technique cardinality.
-# Empirically verified against
+# the composer emits in its output. Per the calibration block at the top
+# of this file (OPTION B from 46-01-SUMMARY), if >= MIN_HEADER_HITS of
+# these fire, classify as `full-composer` regardless of per-technique
+# cardinality. Empirically verified against
 # .planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl
 # (5 Phase headers + 2 "Ground Truths" + 1 "Assumption Audit" + 1
 # "Verdict" all fired in that real capture).
@@ -250,7 +282,8 @@ _COMPOSER_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
 
 
 # ---------------------------------------------------------------------------
-# Data types (inline-copied from scripts/check-routing.py — `Prompt`)
+# Data types
+# (Inline-copied from scripts/check-routing.py — Prompt dataclass shape.)
 # ---------------------------------------------------------------------------
 
 
@@ -281,7 +314,10 @@ def _strip_quotes(s: str) -> str:
 
 
 def _split_row(line: str) -> list[str]:
-    """Split a Markdown table row on `|`, returning trimmed cells."""
+    """Split a Markdown table row on `|`, returning trimmed cells.
+
+    Leading/trailing `|` produce empty cells which we drop.
+    """
     parts = [c.strip() for c in line.split("|")]
     if parts and parts[0] == "":
         parts = parts[1:]
@@ -298,7 +334,15 @@ def _is_separator_row(cells: list[str]) -> bool:
 
 
 def parse_catalog(path: Path) -> tuple[list[Prompt], list[Prompt]]:
-    """Parse a Markdown routing/output-structure catalog."""
+    """Parse a Markdown routing/output-structure catalog.
+
+    Returns (positives, negatives). Rows are classified by the prefix of
+    the id cell: `P*` -> positive, `N*` -> negative. Other ids are ignored.
+
+    Raises FileNotFoundError if path missing, ValueError on empty result.
+    Verdict strings are NOT validated against an enum here — 46-04 will
+    define the calibrated expectations.
+    """
     if not path.exists():
         raise FileNotFoundError(f"catalog not found: {path}")
 
@@ -358,12 +402,13 @@ def parse_catalog(path: Path) -> tuple[list[Prompt], list[Prompt]]:
 
 
 # ---------------------------------------------------------------------------
-# Structured walker (inline-copied from scripts/check-routing.py:_walk)
+# Structured walker
+# (Inline-copied verbatim from scripts/check-routing.py:_walk.)
 # ---------------------------------------------------------------------------
 
 
 def _walk(obj: object) -> Iterable[object]:
-    """Yield every node in a nested JSON-like structure."""
+    """Yield every node in a nested JSON-like structure (dicts/lists/scalars)."""
     yield obj
     if isinstance(obj, dict):
         for v in obj.values():
@@ -394,6 +439,7 @@ def _extract_assistant_text(parsed_lines: list[object]) -> str:
     """
     text_blobs: list[str] = []
     for parsed in parsed_lines:
+        # Direct shape: any dict node with type=assistant + text key.
         for node in _walk(parsed):
             if not isinstance(node, dict):
                 continue
@@ -401,6 +447,7 @@ def _extract_assistant_text(parsed_lines: list[object]) -> str:
                 direct_text = node.get("text")
                 if isinstance(direct_text, str):
                     text_blobs.append(direct_text)
+                # Nested message envelope.
                 msg = node.get("message")
                 if isinstance(msg, dict):
                     content = msg.get("content")
@@ -410,13 +457,18 @@ def _extract_assistant_text(parsed_lines: list[object]) -> str:
                                 t = c.get("text")
                                 if isinstance(t, str):
                                     text_blobs.append(t)
+            # Some captures emit standalone {"type":"text","text":"..."}
+            # blocks at the top level (rare). Count them defensively.
             elif node.get("type") == "text" and isinstance(node.get("text"), str):
                 text_blobs.append(node["text"])
     return "\n".join(text_blobs)
 
 
 def _technique_hits(text: str) -> dict[str, int]:
-    """Per-technique total marker-hit count across `text`."""
+    """Per-technique total marker-hit count across `text`.
+
+    A technique "fires" iff its hit count is >= MIN_HEADER_HITS.
+    """
     hits: dict[str, int] = {}
     for tech, patterns in _TECHNIQUE_CATEGORIES.items():
         total = 0
@@ -475,7 +527,7 @@ def detect_output_structure(
 
     Structured-walk-first: extract assistant text via `_walk` (Pitfall 3 —
     don't count Read tool_result echoes). If the structured walk yields
-    no text (parser drift or unanticipated capture shape), fall back to
+    no text (parser drift or pre-Phase-46 capture shape), fall back to
     `raw_text` for marker counting — the trade-off here is that raw-text
     fallback may over-count markers that appear in tool inputs, but
     that risk is preferable to silently returning "none" on a capture
@@ -483,6 +535,7 @@ def detect_output_structure(
     """
     text = _extract_assistant_text(parsed_lines)
     if not text.strip():
+        # Parser-drift fallback: regex the raw bytes.
         text = raw_text
 
     hits = _technique_hits(text)
@@ -509,12 +562,20 @@ def detect_output_structure_from_file(jsonl_path: Path) -> OutputStructure:
 # ---------------------------------------------------------------------------
 # Transport: invoke claude -p per prompt
 # (Inline-copied verbatim from scripts/check-routing.py:_run_prompt_to and
-# _run_prompt_n_times — DO NOT EDIT the flag list.)
+# _run_prompt_n_times — DO NOT EDIT the flag list. The K-of-N loop and
+# the per-prompt file naming convention (<id>.jsonl vs <id>-run<n>.jsonl)
+# are also inline-copied.)
 # ---------------------------------------------------------------------------
 
 
 def _run_prompt_to(prompt: Prompt, plugin_dir: Path, out_path: Path) -> Path:
-    """Issue one prompt via `claude -p` and capture the stream-json log."""
+    """Issue one prompt via `claude -p` and capture the stream-json log.
+
+    Transport per D-10 (verbatim, copied from check-routing.py):
+        claude -p --plugin-dir <path> --no-session-persistence \
+          --output-format stream-json --verbose \
+          --permission-mode bypassPermissions <prompt>
+    """
     argv = [
         "claude",
         "-p",
@@ -541,7 +602,11 @@ def _run_prompt_to(prompt: Prompt, plugin_dir: Path, out_path: Path) -> Path:
 def _run_prompt_n_times(
     prompt: Prompt, plugin_dir: Path, out_dir: Path, repeat: int
 ) -> list[OutputStructure]:
-    """Run a single prompt N times and return a list of N OutputStructure values."""
+    """Run a single prompt N times and return a list of N OutputStructure values.
+
+    When repeat == 1, writes to <id>.jsonl (legacy parity).
+    When repeat > 1, writes to <id>-run<n>.jsonl (1-indexed, n in 1..repeat).
+    """
     results: list[OutputStructure] = []
     for run_idx in range(repeat):
         if repeat == 1:
@@ -554,7 +619,8 @@ def _run_prompt_n_times(
 
 
 # ---------------------------------------------------------------------------
-# Battery driver (inline-copied from scripts/check-routing.py)
+# Battery driver
+# (Inline-copied verbatim from scripts/check-routing.py.)
 # ---------------------------------------------------------------------------
 
 
@@ -693,16 +759,195 @@ def run_battery(
 
 
 # ---------------------------------------------------------------------------
-# Self-test (Task 3 adds fixtures)
+# Self-test
 # ---------------------------------------------------------------------------
 
 
-def self_test() -> int:
-    """Placeholder — Task 3 wires in the in-script fixture battery and the
-    Probe 3 sanity feed. For Task 1 scaffold we still exercise the K>N
-    rejection path so the guard ships green from day one.
+def _fixture_assistant_text(text: str) -> str:
+    """Build a one-line stream-json blob whose assistant text == `text`."""
+    return json.dumps({"type": "assistant", "text": text})
+
+
+# Fixture 1 — focused-pre-mortem: ≥2 distinct pre-mortem markers, no others.
+_FIXTURE_FOCUSED_PREMORTEM = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Running a prospective-hindsight analysis on the launch plan. "
+            "Imagine the plan has already failed. What caused it?\n\n"
+            "Working backward: what caused the rollout to stall?\n"
+            "We adopt the prospective-hindsight stance throughout."
+        ),
+    ]
+)
+
+# Fixture 2 — focused-inversion: ≥2 distinct inversion markers, no others.
+_FIXTURE_FOCUSED_INVERSION = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Invert, always invert. The inverted form of the claim is sharper.\n\n"
+            "Enumerate failure-guaranteeing conditions. Each condition has a "
+            "necessary precondition we must verify.\n"
+            "The inverted form clarifies the assertion."
+        ),
+    ]
+)
+
+# Fixture 3 — LOAD-BEARING: prevents Pitfall 1 (v1-style false-positive).
+# Synthetic full-composer text with markers from FOUR techniques firing
+# ≥2x each (pre-mortem, inversion, trade-off, second-order). Must NOT
+# classify as `focused-pre-mortem` just because pre-mortem markers fired —
+# the cardinality classifier must return `full-composer`.
+_FIXTURE_FULL_COMPOSER = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Phase 2 — Pre-mortem\n"
+            "Prospective-hindsight: the plan has already failed. What caused it?\n"
+            "Working backward: what caused the rollout to stall? "
+            "We adopt prospective-hindsight throughout.\n\n"
+            "## Phase 3 — Inversion\n"
+            "Invert, always invert. The inverted form of the claim:\n"
+            "necessary precondition X is unverified. Failure-guaranteeing "
+            "condition Y also holds. necessary precondition Z is fragile.\n\n"
+            "## Phase 4 — Trade-off matrix\n"
+            "Assign weights. Lock them now. Weighted total: 0.72.\n"
+            "Sensitivity check: dropping one criterion flips the verdict.\n"
+            "weighted total of the alternative scores higher.\n\n"
+            "## Phase 5 — Second-order effects\n"
+            "2nd-order consequence: the downstream team's roadmap shifts.\n"
+            "3rd-order consequence: the platform team's hiring plan breaks.\n"
+            "undermining contradiction: the fix introduces the failure mode "
+            "it was supposed to prevent. The stopping rule applies here.\n"
+        ),
+    ]
+)
+
+# Fixture 4 — ambiguous: exactly TWO techniques' markers fire (pre-mortem
+# + inversion — the documented Phase 2 + Phase 3 chain). NO composer-
+# structure markers. Expected: `ambiguous`.
+_FIXTURE_AMBIGUOUS = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Prospective-hindsight framing: the plan has already failed.\n"
+            "Working backward: what caused the breakage?\n\n"
+            "Now invert, always invert. The inverted form clarifies the claim.\n"
+            "Each failure-guaranteeing condition maps to a necessary precondition.\n"
+        ),
+    ]
+)
+
+# Fixture 5 — none: no technique markers above threshold, no structure.
+_FIXTURE_NONE = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Hello world. Here is a generic answer with no methodology markers."
+        ),
+        _fixture_assistant_text(
+            "Just plain text discussing some unrelated topic at length."
+        ),
+    ]
+)
+
+# Fixture 6 — raw-text fallback: malformed stream-json that fails to parse
+# at the assistant-text extraction layer. Markers appear only in the raw
+# bytes. Exactly ONE technique's markers fire (inversion). Expected:
+# `focused-inversion` via the raw-text fallback path.
+_FIXTURE_RAW_TEXT_FALLBACK = (
+    "not valid json line one with no structure\n"
+    "Invert, always invert. The inverted form of the claim is sharper.\n"
+    "Enumerate every failure-guaranteeing condition. Each has a "
+    "necessary precondition we must check. The inverted form sharpens "
+    "the assertion. necessary precondition X is unverified.\n"
+    "more non-json garbage\n"
+)
+
+
+def _run_one_fixture(
+    name: str, body: str, expected: OutputStructure
+) -> bool:
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
+    ) as tmp:
+        tmp.write(body)
+        tmp_path = Path(tmp.name)
+    try:
+        actual = detect_output_structure_from_file(tmp_path)
+        if actual != expected:
+            print(
+                f"self-test FAIL: fixture {name!r} expected {expected}, got {actual}",
+                file=sys.stderr,
+            )
+            return False
+        return True
+    finally:
+        try:
+            tmp_path.unlink()
+        except OSError:
+            pass
+
+
+def _run_probe3_sanity_feed() -> bool:
+    """Fixture 8 (HARD-REQUIRED — no soft-skip).
+
+    Read the committed cross-wave Probe 3 capture from
+    `.planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl`
+    and assert it classifies as `full-composer`. If the file is absent,
+    self-test fails with an actionable message: re-run 46-01 Task 1
+    Probe 3 to produce the load-bearing calibration sample.
     """
+    probe3_path = (
+        REPO_ROOT
+        / ".planning"
+        / "phases"
+        / "46-composer-internal-dispatcher-and-focused-output"
+        / "wave0-evidence"
+        / "probe3-full-composer.jsonl"
+    )
+    if not probe3_path.exists():
+        print(
+            f"self-test FAIL: Fixture 8 source missing at {probe3_path}\n"
+            "Re-run 46-01 Task 1 Probe 3 to produce the load-bearing "
+            "calibration sample (cross-wave committed handoff path).",
+            file=sys.stderr,
+        )
+        return False
+    actual = detect_output_structure_from_file(probe3_path)
+    expected: OutputStructure = "full-composer"
+    if actual != expected:
+        print(
+            f"self-test FAIL: Fixture 8 (Probe 3 sanity feed) expected "
+            f"{expected}, got {actual}. The Q4 marker tables or the "
+            f"composer-structure calibration need tuning before 46-04 runs.",
+            file=sys.stderr,
+        )
+        return False
+    return True
+
+
+def self_test() -> int:
+    """Validate detection logic against in-script fixtures + the
+    LOAD-BEARING Probe 3 sanity feed. No claude invocation.
+    """
+    fixtures: list[tuple[str, str, OutputStructure]] = [
+        ("focused_pre_mortem", _FIXTURE_FOCUSED_PREMORTEM, "focused-pre-mortem"),
+        ("focused_inversion", _FIXTURE_FOCUSED_INVERSION, "focused-inversion"),
+        # LOAD-BEARING: prevents Pitfall 1 (v1-style false-positive).
+        ("full_composer_LOAD_BEARING", _FIXTURE_FULL_COMPOSER, "full-composer"),
+        ("ambiguous", _FIXTURE_AMBIGUOUS, "ambiguous"),
+        ("none", _FIXTURE_NONE, "none"),
+        ("raw_text_fallback", _FIXTURE_RAW_TEXT_FALLBACK, "focused-inversion"),
+    ]
     all_passed = True
+    for name, body, expected in fixtures:
+        if not _run_one_fixture(name, body, expected):
+            all_passed = False
+
+    # Fixture 8 — Probe 3 sanity feed (HARD-REQUIRED, no soft-skip).
+    if not _run_probe3_sanity_feed():
+        all_passed = False
+
+    # K>N rejection self-test (parallel to check-routing.py and
+    # check-sub-skill-routing.py): --repeat 2 --min-pass 3 must exit 2
+    # before any I/O.
     try:
         rc = main(
             [
@@ -724,14 +969,19 @@ def self_test() -> int:
         )
         all_passed = False
 
+    fixture_total = len(fixtures) + 2  # +1 Probe 3 sanity, +1 K>N guard
     if all_passed:
-        print("self-test PASS (1 fixture — Task 3 will expand)")
+        print(f"self-test PASS ({fixture_total} fixtures)")
         return 0
     return 1
 
 
 # ---------------------------------------------------------------------------
-# Main / CLI (inline-copied from scripts/check-routing.py)
+# Main / CLI
+# (Inline-copied verbatim from scripts/check-routing.py:_default_out_dir,
+# build_parser, main — K>N pre-flight guard preserved at lines 753-772 of
+# the parent. Default thresholds set to non-gating (0/0) until 46-04
+# calibrates them.)
 # ---------------------------------------------------------------------------
 
 
@@ -775,15 +1025,50 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Output directory (default: /tmp/check-focused-output-<UTC-ts>/)."
+            "Output directory for per-prompt .jsonl + scores.tsv + verdict.txt "
+            "(default: /tmp/check-focused-output-<UTC-timestamp>/)."
         ),
     )
-    p.add_argument("--p-threshold", type=int, default=0)
-    p.add_argument("--n-threshold", type=int, default=0)
-    p.add_argument("--quiet", action="store_true")
-    p.add_argument("--dry-run", action="store_true")
-    p.add_argument("--repeat", type=int, default=5, metavar="N")
-    p.add_argument("--min-pass", type=int, default=3, metavar="K")
+    p.add_argument(
+        "--p-threshold",
+        type=int,
+        default=0,
+        help=(
+            "Min P-cases matching expected structure for battery PASS "
+            "(default: 0 — Phase 46 baseline is non-gating until 46-04 "
+            "calibrates the per-prompt expectations)."
+        ),
+    )
+    p.add_argument(
+        "--n-threshold",
+        type=int,
+        default=0,
+        help="Min N-cases matching expected for battery PASS (default: 0).",
+    )
+    p.add_argument(
+        "--quiet",
+        action="store_true",
+        help="Suppress per-prompt progress lines (final verdict still printed).",
+    )
+    p.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Parse the catalog and print counts; do not invoke claude.",
+    )
+    p.add_argument(
+        "--repeat",
+        type=int,
+        default=5,
+        metavar="N",
+        help="Run each catalog prompt N times (default: 5).",
+    )
+    p.add_argument(
+        "--min-pass",
+        type=int,
+        default=3,
+        metavar="K",
+        help="K-of-N runs must match expected for prompt to PASS (default: 3).",
+    )
     return p
 
 
@@ -794,7 +1079,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.self_test:
         return self_test()
 
-    # K>N pre-flight guard — validated BEFORE any I/O.
+    # K>N pre-flight guard — validated BEFORE any I/O (verbatim parallel
+    # to check-routing.py:T-36-01 lines 753-772).
     if args.repeat < 1:
         print("error: --repeat must be >= 1", file=sys.stderr)
         return 2
