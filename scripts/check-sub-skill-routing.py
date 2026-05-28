@@ -85,48 +85,35 @@ _VALID_SUBSKILLS: set[str] = {"pre-mortem", "inversion", "both", "none-or-other"
 
 
 # ---------------------------------------------------------------------------
-# Detection regexes — Signal A (reference-path Read tool_use) and
-# Signal B (procedure-distinctive text markers per sub-skill).
+# Detection regex — Signal A v2 (sub-skill invocation at orchestrator boundary).
 #
-# Signal A path regex matches the literal reference file paths the agent
-# would pass to a Read tool_use. Case-insensitive.
+# What this measures and why it changed (v1 → v2, see Plan 45-04):
+#
+# v1 design (Plan 45-01) assumed Signal A could detect Reads of
+# `agents/references/<name>.md` from the outer `claude -p` stream-json. Wave 0
+# calibration on 2026-05-28 (artefacts in
+# /tmp/check-sub-skill-routing-calib-20260528T133944Z/) proved this assumption
+# wrong: when the orchestrator invokes the `first-principles:first-principles`
+# composer Agent, that subagent's Reads of `pre-mortem.md` / `inversion.md`
+# happen inside the subagent's nested stream and never appear in the outer
+# capture. Signal A always returned empty; the v1 Signal B text-marker fallback
+# then misclassified composer-only runs as `inversion` because the composer
+# emits all six techniques' procedure text verbatim.
+#
+# v2 design (Plan 45-04): measure the OBSERVABLE signal at the orchestrator
+# boundary — a `Skill` or `Agent` (or `Task`) tool_use that explicitly names a
+# specific sub-skill (`first-principles:pre-mortem` or `first-principles:inversion`).
+# This mirrors the parent verifier (`check-routing.py:_signal_a`) which also
+# inspects tool_use envelopes rather than nested subagent behaviour. The
+# absence of a sub-skill invocation IS the FU-21 regression: the current
+# shipped descriptions route to the composer, never naming a sub-skill;
+# Phase 46's description fixes will make `Skill: first-principles:pre-mortem`
+# appear in the stream for prompts like P12.
 # ---------------------------------------------------------------------------
 
-REFERENCE_PATH_RE: dict[str, re.Pattern[str]] = {
-    "pre-mortem": re.compile(r"agents/references/pre-mortem\.md", re.IGNORECASE),
-    "inversion": re.compile(r"agents/references/inversion\.md", re.IGNORECASE),
-}
-
-# TEXT_MARKERS: procedure-distinctive phrases drawn verbatim from
-# first-principles/agents/references/{pre-mortem,inversion}.md. Each entry
-# cites the source line whose phrasing produced the regex.
-#
-# MIN_TEXT_HITS = 2 enforces RESEARCH §Pattern 1's rule that a single
-# incidental mention is insufficient — at least two distinct distinctive
-# markers must fire for Signal B to count.
-MIN_TEXT_HITS: int = 2
-
-TEXT_MARKERS: dict[str, list[str]] = {
-    "pre-mortem": [
-        # pre-mortem.md line 3: "prospective-hindsight failure analysis tool"
-        r"prospective[- ]?hindsight",
-        # pre-mortem.md line 24 / 35: "This plan has failed" / "The plan has already failed"
-        r"the plan has (already )?failed",
-        # pre-mortem.md line 25: "Working backward: what caused it?"
-        r"working backward[s]?[:\.]?\s*what caused it",
-        # pre-mortem.md line 1 / title: "Pre-Mortem"
-        r"pre[- ]?mortem",
-    ],
-    "inversion": [
-        # inversion.md line 3: 'Jacobi's maxim "Invert, always invert"'
-        r"\binvert,?\s*always\s*invert\b",
-        # inversion.md line 52: "Enumerate failure-guaranteeing conditions"
-        r"failure[- ]?guaranteeing condition",
-        # inversion.md line 56 / 25: "necessary precondition" / "any necessary precondition"
-        r"necessary precondition",
-        # inversion.md line 1 / title: "Inversion"
-        r"\binversion\b",
-    ],
+SUBSKILL_INVOCATION_RE: dict[str, re.Pattern[str]] = {
+    "pre-mortem": re.compile(r"first-principles:pre-mortem\b", re.IGNORECASE),
+    "inversion": re.compile(r"first-principles:inversion\b", re.IGNORECASE),
 }
 
 
@@ -264,90 +251,53 @@ def _walk(obj: object) -> Iterable[object]:
             yield from _walk(v)
 
 
+_SUBSKILL_TOOL_NAMES: set[str] = {"Skill", "Agent", "Task"}
+
+
 def _signal_a(parsed_lines: list[object], raw_text: str) -> set[str]:
-    """Signal A: which sub-skill reference files were loaded via Read tool_use.
+    """Signal A v2: which sub-skills were invoked at the orchestrator boundary.
 
     Strategy (mirrors check-routing.py:_signal_a shape — structured walk plus
     raw-text regex fallback):
-      1. Structured walk: for every dict with name == "Read", stringify its
-         `input` and match each REFERENCE_PATH_RE entry.
-      2. Regex fallback over the raw text for the same path regexes — catches
-         events that survived the JSONL stream but did not parse as a tool_use
-         dict (parser drift, stderr leakage).
-    Returns the set of sub-skill names whose reference path was observed.
+      1. Structured walk: for every dict whose `name` is in
+         _SUBSKILL_TOOL_NAMES (Skill, Agent, Task), stringify its `input`
+         field and match each SUBSKILL_INVOCATION_RE entry. Stringifying the
+         whole input dict catches `input.skill`, `input.subagent_type`, and
+         any nested mention (matches the parent verifier's strategy).
+      2. Regex fallback over the raw text for the same patterns — catches
+         events that survived the JSONL stream but did not parse as a
+         tool_use dict (parser drift, stderr leakage).
+    Returns the set of sub-skill names whose invocation pattern was observed.
     """
     fired: set[str] = set()
     for parsed in parsed_lines:
         for node in _walk(parsed):
-            if isinstance(node, dict) and node.get("name") == "Read":
+            if isinstance(node, dict) and node.get("name") in _SUBSKILL_TOOL_NAMES:
                 blob = json.dumps(node.get("input", {}))
-                for name, rx in REFERENCE_PATH_RE.items():
+                for name, rx in SUBSKILL_INVOCATION_RE.items():
                     if rx.search(blob):
                         fired.add(name)
-    for name, rx in REFERENCE_PATH_RE.items():
+    for name, rx in SUBSKILL_INVOCATION_RE.items():
         if rx.search(raw_text):
             fired.add(name)
     return fired
 
 
-def _signal_b(parsed_lines: list[object]) -> set[str]:
-    """Signal B: which sub-skills' text markers fired >= MIN_TEXT_HITS times.
-
-    Walks every text node in the JSONL stream, joins them, counts the number
-    of distinct TEXT_MARKERS regexes per sub-skill that matched (at least
-    once each), and returns the set of sub-skills whose distinct-marker count
-    is >= MIN_TEXT_HITS.
-
-    Counting distinct markers (rather than total occurrences) makes the
-    signal noise-tolerant: a single phrase repeated three times still counts
-    as one marker, but two different distinctive phrases each appearing once
-    fires the signal.
-    """
-    text_blobs: list[str] = []
-    for parsed in parsed_lines:
-        for node in _walk(parsed):
-            if isinstance(node, dict):
-                t = node.get("text")
-                if isinstance(t, str):
-                    text_blobs.append(t)
-    joined = "\n".join(text_blobs)
-
-    fired: set[str] = set()
-    for name, markers in TEXT_MARKERS.items():
-        hit_count = 0
-        for marker_rx in markers:
-            if re.search(marker_rx, joined, re.IGNORECASE):
-                hit_count += 1
-        if hit_count >= MIN_TEXT_HITS:
-            fired.add(name)
-    return fired
-
-
-def _first_loaded(parsed_lines: list[object], fired: set[str]) -> str:
-    """For diagnostic / tiebreak inspection: which sub-skill's Read event
-    appeared earliest in the JSONL stream. Falls back to lexical sort of
-    `fired` when neither came via Signal A.
-
-    Currently unused by detect_subskill (cardinality 2 always resolves to
-    "both") but exported for operator inspection and future use.
-    """
-    for parsed in parsed_lines:
-        for node in _walk(parsed):
-            if isinstance(node, dict) and node.get("name") == "Read":
-                blob = json.dumps(node.get("input", {}))
-                for name in fired:
-                    rx = REFERENCE_PATH_RE.get(name)
-                    if rx is not None and rx.search(blob):
-                        return name
-    return sorted(fired)[0] if fired else "none-or-other"
-
-
 def detect_subskill(jsonl_path: Path) -> SubSkill:
     """Score a captured stream-json event log into one of the 4 SubSkill values.
 
+    v2 design: single-signal detection (see SUBSKILL_INVOCATION_RE block above
+    for the v1→v2 rationale). Signal B was removed because the composer
+    `first-principles:first-principles` Agent emits all six companion
+    techniques' procedure text verbatim, causing text-marker-based detection
+    to spuriously fire `pre-mortem` AND `inversion` on every composer-only run.
+
     Resolution:
-        fired = _signal_a ∪ _signal_b
-        |fired| == 0  → "none-or-other"
+        fired = _signal_a(parsed_lines, raw_text)
+        |fired| == 0  → "none-or-other"   (no specific sub-skill named —
+                                           composer-only routing or no
+                                           first-principles invocation at all;
+                                           this IS the FU-21 regression signal)
         |fired| == 1  → the single name
         |fired| == 2  → "both"
     """
@@ -362,7 +312,7 @@ def detect_subskill(jsonl_path: Path) -> SubSkill:
         except json.JSONDecodeError:
             continue
 
-    fired = _signal_a(parsed_lines, raw_text) | _signal_b(parsed_lines)
+    fired = _signal_a(parsed_lines, raw_text)
     if not fired:
         return "none-or-other"
     if len(fired) == 1:
@@ -593,104 +543,85 @@ def run_battery(
 # ---------------------------------------------------------------------------
 
 
-# Fixture (a): pre-mortem via Signal A (Read tool_use of pre-mortem.md)
-_FIXTURE_PREMORTEM_VIA_READ = "\n".join(
+# v2 fixtures (Plan 45-04): exercise Signal A invocation detection at the
+# orchestrator boundary. See SUBSKILL_INVOCATION_RE block for the v1→v2
+# rationale (subagent-side Reads are invisible to the outer stream-json).
+
+# Fixture (a): pre-mortem via Skill tool_use naming the sub-skill
+_FIXTURE_PREMORTEM_VIA_SKILL = "\n".join(
     [
         json.dumps(
             {
                 "type": "tool_use",
-                "name": "Read",
-                "input": {"file_path": "first-principles/agents/references/pre-mortem.md"},
+                "name": "Skill",
+                "input": {"skill": "first-principles:pre-mortem", "args": "stress-test the plan"},
             }
         ),
-        json.dumps({"type": "assistant", "text": "Reviewing the plan now."}),
+        json.dumps({"type": "assistant", "text": "Loaded the pre-mortem sub-skill."}),
     ]
 )
 
-# Fixture (b): inversion via Signal A (Read tool_use of inversion.md)
-_FIXTURE_INVERSION_VIA_READ = "\n".join(
+# Fixture (b): inversion via Agent tool_use naming the sub-skill
+_FIXTURE_INVERSION_VIA_AGENT = "\n".join(
     [
         json.dumps(
             {
                 "type": "tool_use",
-                "name": "Read",
-                "input": {"file_path": "first-principles/agents/references/inversion.md"},
+                "name": "Agent",
+                "input": {
+                    "subagent_type": "first-principles:inversion",
+                    "description": "Inversion analysis",
+                    "prompt": "Invert the claim and enumerate failure-guaranteeing conditions.",
+                },
             }
         ),
-        json.dumps({"type": "assistant", "text": "Stress-testing the claim."}),
+        json.dumps({"type": "assistant", "text": "Delegating to the inversion sub-skill."}),
     ]
 )
 
-# Fixture (c): pre-mortem via Signal B (>=2 pre-mortem markers, no Read)
-_FIXTURE_PREMORTEM_VIA_TEXT = "\n".join(
+# Fixture (c): pre-mortem via Task tool_use whose stringified input mentions
+# the sub-skill (parser-drift / nested-wrap case).
+_FIXTURE_PREMORTEM_VIA_TASK = "\n".join(
     [
         json.dumps(
             {
-                "type": "assistant",
-                "text": (
-                    "Adopt prospective-hindsight framing: the plan has failed. "
-                    "Working backward: what caused it?"
-                ),
+                "type": "tool_use",
+                "name": "Task",
+                "input": {
+                    "subagent_type": "first-principles:pre-mortem",
+                    "prompt": "Run a structured pre-mortem on this plan.",
+                },
             }
         ),
-        json.dumps(
-            {
-                "type": "assistant",
-                "text": "Now interrogate the list adversarially.",
-            }
-        ),
+        json.dumps({"type": "assistant", "text": "Task dispatched."}),
     ]
 )
 
-# Fixture (d): inversion via Signal B (>=2 inversion markers, no Read)
-_FIXTURE_INVERSION_VIA_TEXT = "\n".join(
-    [
-        json.dumps(
-            {
-                "type": "assistant",
-                "text": (
-                    'Invert, always invert. Enumerate every failure-guaranteeing '
-                    "condition for the claim."
-                ),
-            }
-        ),
-        json.dumps(
-            {
-                "type": "assistant",
-                "text": (
-                    "Each surfaces a necessary precondition the claim silently "
-                    "depends on."
-                ),
-            }
-        ),
-    ]
-)
-
-# Fixture (e): both — Read of both reference files (pre-mortem first to
-# exercise the _first_loaded tiebreak ordering — final verdict is still "both"
-# since cardinality is 2).
+# Fixture (d): both — Skill invocation for pre-mortem AND Agent invocation
+# for inversion in the same stream.
 _FIXTURE_BOTH = "\n".join(
     [
         json.dumps(
             {
                 "type": "tool_use",
-                "name": "Read",
-                "input": {"file_path": "first-principles/agents/references/pre-mortem.md"},
+                "name": "Skill",
+                "input": {"skill": "first-principles:pre-mortem", "args": "..."},
             }
         ),
         json.dumps({"type": "assistant", "text": "Pre-mortem first."}),
         json.dumps(
             {
                 "type": "tool_use",
-                "name": "Read",
-                "input": {"file_path": "first-principles/agents/references/inversion.md"},
+                "name": "Agent",
+                "input": {"subagent_type": "first-principles:inversion", "prompt": "..."},
             }
         ),
         json.dumps({"type": "assistant", "text": "Then inversion."}),
     ]
 )
 
-# Fixture (f): none-or-other — neither signal fires
+# Fixture (e): none-or-other — empty / generic stream with no
+# first-principles invocation at all.
 _FIXTURE_NONE = "\n".join(
     [
         json.dumps({"type": "assistant", "text": "Hello world. Here is a generic answer."}),
@@ -698,24 +629,63 @@ _FIXTURE_NONE = "\n".join(
     ]
 )
 
-# Fixture (g): single marker → rejected (MIN_TEXT_HITS=2 guard).
-# Only ONE pre-mortem marker present ("pre-mortem"); should classify as
-# none-or-other, NOT pre-mortem.
-_FIXTURE_SINGLE_MARKER_REJECTED = "\n".join(
+# Fixture (f) — LOAD-BEARING: composer-only stream. The orchestrator invokes
+# the `first-principles:first-principles` composer Skill+Agent, NOT a specific
+# sub-skill. The composer's response text will mention pre-mortem AND
+# inversion (it runs all six techniques), but Signal A v2 only counts explicit
+# sub-skill names. Expected: none-or-other.
+#
+# This fixture encodes exactly what /tmp/check-sub-skill-routing-calib-20260528T133944Z/
+# P-CAL1-run3.jsonl showed against current shipped descriptions. The v1
+# verifier misclassified that run as `inversion` via Signal B text markers;
+# v2 must correctly classify it as `none-or-other`.
+_FIXTURE_COMPOSER_ONLY = "\n".join(
     [
         json.dumps(
             {
-                "type": "assistant",
-                "text": (
-                    "The user mentioned the word pre-mortem once incidentally, "
-                    "but did not actually invoke the procedure."
-                ),
+                "type": "tool_use",
+                "name": "Skill",
+                "input": {"skill": "first-principles:first-principles", "args": "..."},
             }
         ),
         json.dumps(
-            {"type": "assistant", "text": "Moving on to other matters."}
+            {
+                "type": "tool_use",
+                "name": "Agent",
+                "input": {
+                    "subagent_type": "first-principles:first-principles",
+                    "description": "Composer agent",
+                    "prompt": "Apply all six techniques.",
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "user",
+                "message": {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "content": (
+                                "Pre-mortem analysis: working backward from failure. "
+                                "Invert, always invert. Failure-guaranteeing conditions. "
+                                "Prospective-hindsight framing. Inversion of the claim."
+                            ),
+                        }
+                    ],
+                },
+            }
         ),
     ]
+)
+
+# Fixture (g): raw-text fallback — malformed JSONL line containing
+# the sub-skill name as text, unparseable as a full JSON envelope. Proves
+# the regex fallback over `raw_text` still fires.
+_FIXTURE_RAW_TEXT_FALLBACK = (
+    json.dumps({"type": "assistant", "text": "header"}) + "\n"
+    + '{"truncated stream-json line mentioning first-principles:pre-mortem here'
 )
 
 
@@ -744,13 +714,13 @@ def _run_one_fixture(name: str, body: str, expected: SubSkill) -> bool:
 def self_test() -> int:
     """Validate detection logic against in-script fixtures. No claude invocation."""
     fixtures: list[tuple[str, str, SubSkill]] = [
-        ("pre-mortem_via_read", _FIXTURE_PREMORTEM_VIA_READ, "pre-mortem"),
-        ("inversion_via_read", _FIXTURE_INVERSION_VIA_READ, "inversion"),
-        ("pre-mortem_via_text", _FIXTURE_PREMORTEM_VIA_TEXT, "pre-mortem"),
-        ("inversion_via_text", _FIXTURE_INVERSION_VIA_TEXT, "inversion"),
+        ("pre-mortem_via_skill", _FIXTURE_PREMORTEM_VIA_SKILL, "pre-mortem"),
+        ("inversion_via_agent", _FIXTURE_INVERSION_VIA_AGENT, "inversion"),
+        ("pre-mortem_via_task", _FIXTURE_PREMORTEM_VIA_TASK, "pre-mortem"),
         ("both", _FIXTURE_BOTH, "both"),
         ("none-or-other", _FIXTURE_NONE, "none-or-other"),
-        ("single_marker_rejected", _FIXTURE_SINGLE_MARKER_REJECTED, "none-or-other"),
+        ("composer_only_LOAD_BEARING", _FIXTURE_COMPOSER_ONLY, "none-or-other"),
+        ("raw_text_fallback", _FIXTURE_RAW_TEXT_FALLBACK, "pre-mortem"),
     ]
     all_passed = True
     for name, body, expected in fixtures:
