@@ -437,30 +437,35 @@ def _extract_assistant_text(parsed_lines: list[object]) -> str:
             {"type": "text", "text": "..."}                  envelope)
          ]}}`
     """
+    # IMPORTANT: only inspect TOP-LEVEL parsed entries with type=assistant.
+    # Do NOT recurse via _walk(): nested text nodes inside user messages
+    # (e.g. when the Skill tool loads a stub body into the conversation as a
+    # user-role context block) would otherwise be incorrectly counted as
+    # assistant output. Phase 46-04 mini-battery (2026-05-28) surfaced this:
+    # _walk yielded the stub body content from inside parsed[8] (a user
+    # message with the SKILL.md body) and the defensive fallback for
+    # standalone {"type":"text"} blocks then included it, polluting the
+    # marker counts with the stub's references to all six techniques.
     text_blobs: list[str] = []
     for parsed in parsed_lines:
-        # Direct shape: any dict node with type=assistant + text key.
-        for node in _walk(parsed):
-            if not isinstance(node, dict):
-                continue
-            if node.get("type") == "assistant":
-                direct_text = node.get("text")
-                if isinstance(direct_text, str):
-                    text_blobs.append(direct_text)
-                # Nested message envelope.
-                msg = node.get("message")
-                if isinstance(msg, dict):
-                    content = msg.get("content")
-                    if isinstance(content, list):
-                        for c in content:
-                            if isinstance(c, dict) and c.get("type") == "text":
-                                t = c.get("text")
-                                if isinstance(t, str):
-                                    text_blobs.append(t)
-            # Some captures emit standalone {"type":"text","text":"..."}
-            # blocks at the top level (rare). Count them defensively.
-            elif node.get("type") == "text" and isinstance(node.get("text"), str):
-                text_blobs.append(node["text"])
+        if not isinstance(parsed, dict):
+            continue
+        if parsed.get("type") != "assistant":
+            continue
+        # Direct text field (legacy shape).
+        direct_text = parsed.get("text")
+        if isinstance(direct_text, str):
+            text_blobs.append(direct_text)
+        # Nested message envelope.
+        msg = parsed.get("message")
+        if isinstance(msg, dict):
+            content = msg.get("content")
+            if isinstance(content, list):
+                for c in content:
+                    if isinstance(c, dict) and c.get("type") == "text":
+                        t = c.get("text")
+                        if isinstance(t, str):
+                            text_blobs.append(t)
     return "\n".join(text_blobs)
 
 
