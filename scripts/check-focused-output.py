@@ -525,6 +525,69 @@ def classify(
     return "full-composer"
 
 
+# Routing-envelope detection (Phase 46-04 calibration addition, 2026-05-28).
+#
+# Why this exists: the per-technique TEXT_CATEGORIES patterns were derived
+# verbatim from each reference file's procedure text. Real focused-mode
+# agent output uses the procedure framing but with natural variation
+# ("Working backward from the wreckage" rather than the procedure's exact
+# "Working backward: what caused it?"). Under strict MIN_HEADER_HITS=2 the
+# focused outputs underfire and classify as `none`.
+#
+# The principled fix mirrors Phase 45 v2.1 Signal A: when the orchestrator's
+# stream-json shows an explicit `Skill`/`Agent`/`Task` invocation targeting
+# `first-principles:<technique>`, that envelope IS the routing signal.
+# Combined with even a SINGLE technique-marker hit in the assistant output
+# (loosened from MIN_HEADER_HITS=2), it is sufficient to classify as focused.
+# The routing envelope cannot fire on its own — Signal A still requires the
+# agent's output to show at least minimal procedure language, guarding
+# against false-positives from invocation that immediately fails (e.g.
+# clarification request returning no procedure text).
+_SUBSKILL_INVOCATION_TOOL_NAMES: tuple[str, ...] = ("Skill", "Agent", "Task")
+
+
+def _signal_a_invocations(parsed_lines: list[object]) -> set[str]:
+    """Return the set of sub-skill techniques explicitly invoked at the
+    orchestrator boundary via Skill/Agent/Task tool_use envelopes whose
+    routing fields (skill / subagent_type) name `first-principles:<technique>`.
+
+    Mirrors Phase 45 v2.1 Signal A discipline: inspect only routing fields
+    (not the entire input dict — would catch sub-skill names appearing in
+    prompt/args text).
+    """
+    invoked: set[str] = set()
+    for parsed in parsed_lines:
+        if not isinstance(parsed, dict):
+            continue
+        if parsed.get("type") != "assistant":
+            continue
+        msg = parsed.get("message")
+        if not isinstance(msg, dict):
+            continue
+        content = msg.get("content")
+        if not isinstance(content, list):
+            continue
+        for c in content:
+            if not isinstance(c, dict):
+                continue
+            if c.get("type") != "tool_use":
+                continue
+            if c.get("name") not in _SUBSKILL_INVOCATION_TOOL_NAMES:
+                continue
+            inp = c.get("input", {})
+            if not isinstance(inp, dict):
+                continue
+            for field in ("skill", "subagent_type"):
+                val = inp.get(field, "")
+                if not isinstance(val, str):
+                    continue
+                val_lc = val.lower()
+                for tech in _TECHNIQUE_KEYS:
+                    if f"first-principles:{tech}" in val_lc:
+                        invoked.add(tech)
+    return invoked
+
+
 def detect_output_structure(
     parsed_lines: list[object], raw_text: str
 ) -> OutputStructure:
@@ -537,6 +600,12 @@ def detect_output_structure(
     fallback may over-count markers that appear in tool inputs, but
     that risk is preferable to silently returning "none" on a capture
     shape we did not anticipate.
+
+    Signal A (routing-envelope) override: when exactly one sub-skill was
+    explicitly invoked AND its technique has at least one marker hit in
+    the output AND composer-structure markers are under the full-composer
+    threshold, classify as `focused-<technique>`. This handles the calibration
+    gap between strict procedure-text markers and natural agent variation.
     """
     text = _extract_assistant_text(parsed_lines)
     if not text.strip():
@@ -546,6 +615,15 @@ def detect_output_structure(
     hits = _technique_hits(text)
     fired = {tech for tech, n in hits.items() if n >= MIN_HEADER_HITS}
     structure_hits = _composer_structure_hits(text)
+
+    # Signal A: routing envelope override (Phase 46-04 calibration).
+    if structure_hits < MIN_HEADER_HITS:
+        invoked = _signal_a_invocations(parsed_lines)
+        if len(invoked) == 1:
+            tech = next(iter(invoked))
+            if hits.get(tech, 0) >= 1:
+                return f"focused-{tech}"  # type: ignore[return-value]
+
     return classify(fired, structure_hits)
 
 
