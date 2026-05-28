@@ -254,32 +254,60 @@ def _walk(obj: object) -> Iterable[object]:
 _SUBSKILL_TOOL_NAMES: set[str] = {"Skill", "Agent", "Task"}
 
 
-def _signal_a(parsed_lines: list[object], raw_text: str) -> set[str]:
-    """Signal A v2: which sub-skills were invoked at the orchestrator boundary.
+# Routing-field keys: the input-dict keys that name the invocation target.
+# Other input keys (`prompt`, `args`, `description`) carry user-facing text
+# that can mention sub-skill names without invoking them — must NOT count.
+_ROUTING_FIELDS: tuple[str, ...] = ("skill", "subagent_type")
 
-    Strategy (mirrors check-routing.py:_signal_a shape — structured walk plus
-    raw-text regex fallback):
-      1. Structured walk: for every dict whose `name` is in
-         _SUBSKILL_TOOL_NAMES (Skill, Agent, Task), stringify its `input`
-         field and match each SUBSKILL_INVOCATION_RE entry. Stringifying the
-         whole input dict catches `input.skill`, `input.subagent_type`, and
-         any nested mention (matches the parent verifier's strategy).
-      2. Regex fallback over the raw text for the same patterns — catches
-         events that survived the JSONL stream but did not parse as a
-         tool_use dict (parser drift, stderr leakage).
-    Returns the set of sub-skill names whose invocation pattern was observed.
+
+def _signal_a(parsed_lines: list[object], raw_text: str) -> set[str]:
+    """Signal A v2.1: which sub-skills were invoked at the orchestrator boundary.
+
+    Structured walk, routing-field scoped: for every dict whose `name` is
+    in _SUBSKILL_TOOL_NAMES (Skill, Agent, Task), inspect ONLY the routing
+    fields of its `input` dict (`skill`, `subagent_type`) against each
+    SUBSKILL_INVOCATION_RE entry.
+
+    Why scoped:
+    - Raw-text regex fallback over the whole stream catches sub-skill names
+      that appear inside Read tool_result content when the agent Reads
+      in-repo files (this script's source, plan files). Removed in v2.1.
+    - Stringifying the full `input` dict catches sub-skill names that
+      appear inside the user-facing `prompt` / `args` / `description`
+      fields when the orchestrator enriches a vague prompt with project
+      context that quotes the verifier's own design. Plan 45-03 baseline
+      run on 2026-05-28 P12-run4 showed this: the orchestrator sent the
+      composer subagent a prompt that quoted `first-principles:pre-mortem`
+      and `first-principles:inversion` verbatim as background context, and
+      Signal A v2.0 matched both in the stringified input dict despite the
+      actual `subagent_type` being `first-principles:first-principles`
+      (the composer). v2.1 inspects only routing fields to avoid this.
+
+    Trade-off: we lose the parser-drift recovery the fallback provided. If
+    a stream-json line ever fails to parse but contains a real sub-skill
+    invocation, we will miss it. Currently judged an acceptable loss: the
+    Plan 36-locked transport produces well-formed stream-json reliably, and
+    a false-negative on a true invocation is preferable to a false-positive
+    on quoted prompt-text. `raw_text` is retained as a parameter for
+    signature stability and future tightening (e.g. scoped to lines that
+    failed JSON parse).
     """
+    del raw_text  # see docstring — fallback intentionally removed in v2.1
     fired: set[str] = set()
     for parsed in parsed_lines:
         for node in _walk(parsed):
             if isinstance(node, dict) and node.get("name") in _SUBSKILL_TOOL_NAMES:
-                blob = json.dumps(node.get("input", {}))
+                inp = node.get("input", {})
+                if not isinstance(inp, dict):
+                    continue
+                # Extract only the routing fields. Concat their string values
+                # so a single regex search covers both fields.
+                routing_text = " ".join(
+                    str(inp.get(field, "")) for field in _ROUTING_FIELDS
+                )
                 for name, rx in SUBSKILL_INVOCATION_RE.items():
-                    if rx.search(blob):
+                    if rx.search(routing_text):
                         fired.add(name)
-    for name, rx in SUBSKILL_INVOCATION_RE.items():
-        if rx.search(raw_text):
-            fired.add(name)
     return fired
 
 
@@ -680,12 +708,89 @@ _FIXTURE_COMPOSER_ONLY = "\n".join(
     ]
 )
 
-# Fixture (g): raw-text fallback — malformed JSONL line containing
-# the sub-skill name as text, unparseable as a full JSON envelope. Proves
-# the regex fallback over `raw_text` still fires.
-_FIXTURE_RAW_TEXT_FALLBACK = (
-    json.dumps({"type": "assistant", "text": "header"}) + "\n"
-    + '{"truncated stream-json line mentioning first-principles:pre-mortem here'
+# Fixture (g) — LOAD-BEARING NEGATIVE: Read tool_result contains a verbatim
+# `first-principles:pre-mortem` / `:inversion` mention (e.g. when the agent
+# Reads this script's own source, a plan file, or any of the agent reference
+# markdown). The verifier must NOT classify this as `both` or any specific
+# sub-skill. The Plan 45-03 baseline (2026-05-28) showed this false-positive
+# pattern on N1 and P12; the raw-text fallback was removed in response. This
+# fixture encodes the regression test.
+# Fixture (h) — LOAD-BEARING NEGATIVE: composer invocation whose prompt/args
+# text quotes the sub-skill names verbatim (e.g. orchestrator enriches a vague
+# user prompt with project context that mentions `first-principles:pre-mortem`
+# and `first-principles:inversion` as background). The verifier must NOT
+# classify this as `both` — only the routing fields (`skill`,
+# `subagent_type`) count. Plan 45-03 P12-run4 (2026-05-28) showed this on
+# the live baseline; Signal A v2.1 (routing-field scoped) fixes it.
+_FIXTURE_COMPOSER_WITH_QUOTED_SUBSKILLS = "\n".join(
+    [
+        json.dumps(
+            {
+                "type": "tool_use",
+                "name": "Skill",
+                "input": {
+                    "skill": "first-principles:first-principles",
+                    "args": (
+                        "Run a pre-mortem. Background: Plan 45-04 distinguishes "
+                        "first-principles:pre-mortem from first-principles:inversion "
+                        "and the verifier must catch composer routing."
+                    ),
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "tool_use",
+                "name": "Agent",
+                "input": {
+                    "subagent_type": "first-principles:first-principles",
+                    "description": "Composer for pre-mortem analysis",
+                    "prompt": (
+                        "Apply first-principles methodology. Phase 45 fixture "
+                        "covers P12 (expected first-principles:pre-mortem) and "
+                        "P24 (expected first-principles:inversion)."
+                    ),
+                },
+            }
+        ),
+    ]
+)
+
+_FIXTURE_READ_RESULT_CONTAMINATION = "\n".join(
+    [
+        json.dumps(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "name": "Read",
+                            "input": {"file_path": "scripts/check-sub-skill-routing.py"},
+                        }
+                    ],
+                },
+            }
+        ),
+        json.dumps(
+            {
+                "type": "user",
+                "message": {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "content": (
+                                "SUBSKILL_INVOCATION_RE pre-mortem matches "
+                                "first-principles:pre-mortem and inversion matches "
+                                "first-principles:inversion (script source)"
+                            ),
+                        }
+                    ],
+                },
+            }
+        ),
+    ]
 )
 
 
@@ -720,7 +825,8 @@ def self_test() -> int:
         ("both", _FIXTURE_BOTH, "both"),
         ("none-or-other", _FIXTURE_NONE, "none-or-other"),
         ("composer_only_LOAD_BEARING", _FIXTURE_COMPOSER_ONLY, "none-or-other"),
-        ("raw_text_fallback", _FIXTURE_RAW_TEXT_FALLBACK, "pre-mortem"),
+        ("read_result_contamination_LOAD_BEARING", _FIXTURE_READ_RESULT_CONTAMINATION, "none-or-other"),
+        ("composer_with_quoted_subskills_LOAD_BEARING", _FIXTURE_COMPOSER_WITH_QUOTED_SUBSKILLS, "none-or-other"),
     ]
     all_passed = True
     for name, body, expected in fixtures:
