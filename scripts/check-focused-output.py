@@ -87,13 +87,166 @@ _TECHNIQUE_KEYS: tuple[str, ...] = (
     "second-order",
 )
 
-# Noise-tolerance floor (Task 2 wires this into the detection layer).
+# Noise-tolerance floor — a marker "fires" only if its regex matches
+# >= MIN_HEADER_HITS distinct times in the assistant text. Mirrors the
+# Phase 45 `MIN_TEXT_HITS = 2` precedent (see check-sub-skill-routing.py
+# v2.1 history). A single incidental mention of e.g. "trade-off" inside
+# an unrelated discussion should NOT fire the trade-off technique.
 MIN_HEADER_HITS: int = 2
 
-# Placeholder — Task 2 populates the per-technique marker regex tuples.
+
+# ---------------------------------------------------------------------------
+# Detection layer — what this measures and why
+#
+# Markers verbatim from 46-RESEARCH §1 Q4.1-Q4.6 (each subsection lists
+# the per-technique phrase set with provenance citations into the agent
+# reference files at first-principles/agents/references/<technique>.md).
+#
+# Pitfall 1 mitigation (cardinality classifier prevents v1-style false
+# positives): a single technique's markers firing does NOT classify the
+# output as `focused-<technique>` unless ZERO other techniques fire and
+# ZERO composer-structure markers fire. The structural-signal path is
+# the load-bearing observable empirically demonstrated by 46-01 Probe 3
+# capture.
+#
+# Pitfall 4 mitigation (MIN_HEADER_HITS=2 floor): each technique requires
+# >= 2 distinct phrase hits to count, mirroring Phase 45 MIN_TEXT_HITS=2.
+#
+# Trade-off bare-token tiebreaker: the bare token `trade-off` (without
+# the procedural-marker phrases) is too lexically common to count toward
+# MIN_HEADER_HITS. It is detected separately as a tiebreaker signal only
+# (currently unused beyond documentation — preserved for future tuning).
+#
+# Cardinality calibration choice (LOAD-BEARING — read before editing):
+# 46-RESEARCH Q4 base rule says n>=4 distinct techniques = full-composer.
+# BUT 46-01-SUMMARY Probe 3 showed real composer output fires only 1-2
+# distinct technique-name markers (Inversion + Second-Order + brief
+# Trade-off mention), while emitting the canonical 5-phase structure
+# headers ("Phase 1 — Ground Truths", "Phase 2 — Assumption Audit",
+# "Phase 5 — Second-Order Effects", "Verdict", etc.) repeatedly.
+#
+# Calibration path chosen here = OPTION B from 46-01-SUMMARY findings:
+#   Add a structural `composer-structure` signal counting the canonical
+#   5-phase markers ("Phase 1", "Ground Truths", "Assumption Audit",
+#   "Derivation Chains", "Verdict"). If composer-structure fires at
+#   >= MIN_HEADER_HITS, classify as full-composer regardless of the
+#   per-technique cardinality. This matches the Probe 3 empirical
+#   signal (5 Phase headers + Ground Truths + Assumption Audit + Verdict
+#   all fire ≥2x in the real capture) while preserving the original
+#   n>=4 rule as a fallback for outputs that omit the canonical headers
+#   but emit all six techniques' verbatim markers.
+#
+# Rationale: the LOAD-BEARING distinction between focused-X and
+# full-composer is structural — the composer walks the 5-phase scaffold;
+# focused-X output does not. A single technique fired in passing inside
+# a 5-phase walkthrough is still full-composer, not focused-X.
+#
+# Citation: 46-01-SUMMARY "Findings to surface to 46-03" §1, captured
+# in `.planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl`.
+# ---------------------------------------------------------------------------
+
+
+# Per-technique marker regex sets — verbatim from 46-RESEARCH §Q4.1-Q4.6.
+# Case-insensitive matching is applied uniformly. Each entry cites its
+# source file + approximate line (pre-Phase-43 lines may have shifted by
+# +/-1 after the Phase 43 edits; the phrases themselves are stable).
 _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
-    key: () for key in _TECHNIQUE_KEYS
+    "pre-mortem": (
+        # pre-mortem.md line 3 (frontmatter blurb) + line 36 (Phase 2 framing)
+        re.compile(r"prospective[- ]?hindsight", re.IGNORECASE),
+        # pre-mortem.md "the plan has (already) failed. What caused it?"
+        re.compile(r"the plan has (already )?failed", re.IGNORECASE),
+        # pre-mortem.md procedure step — "working backward: what caused..."
+        re.compile(r"working backward(s)?:?\s+what caused", re.IGNORECASE),
+        # Note: `failure-guaranteeing` is intentionally NOT included here —
+        # Q4.1 collision note flags it as overlapping with inversion. The
+        # disambiguation lives in inversion's marker set, not pre-mortem's.
+    ),
+    "inversion": (
+        # inversion.md frontmatter / opening — "Invert, always invert"
+        re.compile(r"invert,?\s+always invert", re.IGNORECASE),
+        # inversion.md lines 52-53 — "failure-guaranteeing conditions"
+        re.compile(r"failure[- ]?guaranteeing condition", re.IGNORECASE),
+        # inversion.md lines 25, 56, 60 — "necessary precondition"
+        re.compile(r"necessary precondition", re.IGNORECASE),
+        # inversion.md lines 46, 49, 96 — "inverted form"
+        re.compile(r"inverted form", re.IGNORECASE),
+    ),
+    "fishbone": (
+        # fishbone.md procedure section — "cause categories"
+        re.compile(r"cause categor(y|ies)", re.IGNORECASE),
+        # fishbone.md — "breadth-first" enumeration phrasing
+        re.compile(r"breadth[- ]?first", re.IGNORECASE),
+        # fishbone.md presets — 6M / 8P / 4S categorization presets
+        re.compile(r"\b(6M|8P|4S)\s+(preset|categor)", re.IGNORECASE),
+        # fishbone.md — "sub-causes" enumeration
+        re.compile(r"sub[- ]?causes?", re.IGNORECASE),
+        # fishbone.md name itself — "fishbone" or "Ishikawa"
+        re.compile(r"fishbone|ishikawa", re.IGNORECASE),
+    ),
+    "five-whys": (
+        # five-whys.md — the canonical drill question
+        re.compile(r"why did this happen", re.IGNORECASE),
+        # five-whys.md — siblings-check phrasing
+        re.compile(r"what else caused this", re.IGNORECASE),
+        # five-whys.md procedure step — symptom statement
+        re.compile(r"state the symptom", re.IGNORECASE),
+        # five-whys.md framing — "depth-first root-cause"
+        re.compile(r"depth[- ]?first\s+root[- ]?cause", re.IGNORECASE),
+        # five-whys.md name itself — "five-whys" or "5 whys"
+        re.compile(r"\b(five[- ]?whys?|5[- ]?whys?)\b", re.IGNORECASE),
+    ),
+    "trade-off": (
+        # trade-off.md procedure step — "Assign weights. Lock them now."
+        re.compile(r"assign weights\.?\s+lock them now", re.IGNORECASE),
+        # trade-off.md — "weighted total"
+        re.compile(r"weighted total", re.IGNORECASE),
+        # trade-off.md — "sensitivity check"
+        re.compile(r"sensitivity check", re.IGNORECASE),
+        # trade-off.md — "weight × score" or "weight x score"
+        re.compile(r"weight\s*[×x]\s*score", re.IGNORECASE),
+        # Note: bare `trade-off` token is NOT included — Q4.5 collision
+        # note flags it as too lexically common (RFC-style "trade-off"
+        # mentions everywhere). Detected separately as a tiebreaker (see
+        # `_TRADEOFF_BARE_TOKEN_RE` below) but not counted toward
+        # MIN_HEADER_HITS for the trade-off technique.
+    ),
+    "second-order": (
+        # second-order.md — "2nd-order consequence" / "3rd-order consequence"
+        re.compile(r"2nd[- ]?order consequence", re.IGNORECASE),
+        re.compile(r"3rd[- ]?order consequence", re.IGNORECASE),
+        # second-order.md — "undermining contradiction"
+        re.compile(r"undermining contradiction", re.IGNORECASE),
+        # second-order.md — "stopping rule"
+        re.compile(r"stopping rule", re.IGNORECASE),
+        # second-order.md framing — "second-level thinking"
+        re.compile(r"second[- ]?level thinking", re.IGNORECASE),
+    ),
 }
+
+# Tiebreaker — bare `trade-off` token. Counted separately, NOT toward
+# MIN_HEADER_HITS for the trade-off technique. Reserved for future
+# tuning of the focused-trade-off vs ambiguous boundary; currently
+# present as documentation of the Q4.5 collision-avoidance choice.
+_TRADEOFF_BARE_TOKEN_RE: re.Pattern[str] = re.compile(
+    r"\btrade[- ]?off\b", re.IGNORECASE
+)
+
+# Composer-structure markers — the canonical 5-phase scaffold headers
+# the composer emits in its output. Per the calibration block above
+# (OPTION B from 46-01-SUMMARY), if >= MIN_HEADER_HITS of these fire,
+# classify as `full-composer` regardless of per-technique cardinality.
+# Empirically verified against
+# .planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl
+# (5 Phase headers + 2 "Ground Truths" + 1 "Assumption Audit" + 1
+# "Verdict" all fired in that real capture).
+_COMPOSER_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
+    re.compile(r"\bPhase\s+[0-9]+\b", re.IGNORECASE),
+    re.compile(r"\bGround\s+Truths?\b", re.IGNORECASE),
+    re.compile(r"\bAssumption\s+Audit\b", re.IGNORECASE),
+    re.compile(r"\bDerivation\s+Chains?\b", re.IGNORECASE),
+    re.compile(r"\bVerdict\b", re.IGNORECASE),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -221,22 +374,121 @@ def _walk(obj: object) -> Iterable[object]:
 
 
 # ---------------------------------------------------------------------------
-# Detection — placeholders (Task 2 fills these)
+# Detection — per-technique marker firing + cardinality classifier
 # ---------------------------------------------------------------------------
 
 
-def classify(fired: set[str], composer_structure_hits: int = 0) -> OutputStructure:
-    """Placeholder cardinality classifier — Task 2 fills this."""
-    del fired, composer_structure_hits
-    return "none"
+def _extract_assistant_text(parsed_lines: list[object]) -> str:
+    """Concatenate every assistant-text blob from a parsed stream-json log.
+
+    Pitfall 3 mitigation: walk the parsed structure rather than regexing
+    the raw bytes, so we only count markers that appear inside actual
+    assistant output — not Read tool_result contents echoing this script's
+    own source.
+
+    Recognises both shapes observed in real `claude -p` captures:
+      1. `{"type": "assistant", "text": "..."}`            (direct text field)
+      2. `{"type": "assistant", "message": {"content": [   (nested message
+            {"type": "text", "text": "..."}                  envelope)
+         ]}}`
+    """
+    text_blobs: list[str] = []
+    for parsed in parsed_lines:
+        for node in _walk(parsed):
+            if not isinstance(node, dict):
+                continue
+            if node.get("type") == "assistant":
+                direct_text = node.get("text")
+                if isinstance(direct_text, str):
+                    text_blobs.append(direct_text)
+                msg = node.get("message")
+                if isinstance(msg, dict):
+                    content = msg.get("content")
+                    if isinstance(content, list):
+                        for c in content:
+                            if isinstance(c, dict) and c.get("type") == "text":
+                                t = c.get("text")
+                                if isinstance(t, str):
+                                    text_blobs.append(t)
+            elif node.get("type") == "text" and isinstance(node.get("text"), str):
+                text_blobs.append(node["text"])
+    return "\n".join(text_blobs)
+
+
+def _technique_hits(text: str) -> dict[str, int]:
+    """Per-technique total marker-hit count across `text`."""
+    hits: dict[str, int] = {}
+    for tech, patterns in _TECHNIQUE_CATEGORIES.items():
+        total = 0
+        for rx in patterns:
+            total += len(rx.findall(text))
+        hits[tech] = total
+    return hits
+
+
+def _composer_structure_hits(text: str) -> int:
+    """Total composer-structure marker hits across `text` (5-phase scaffold)."""
+    total = 0
+    for rx in _COMPOSER_STRUCTURE_PATTERNS:
+        total += len(rx.findall(text))
+    return total
+
+
+def classify(
+    fired: set[str], composer_structure_hits: int = 0
+) -> OutputStructure:
+    """Cardinality-based output-structure classifier.
+
+    Per 46-RESEARCH §Q4 cardinality table, calibrated by 46-01-SUMMARY
+    Probe 3 finding (OPTION B — composer-structure signal):
+
+        composer_structure_hits >= MIN_HEADER_HITS
+                                      → "full-composer"  (structural override)
+        n == 0                        → "none"
+        n == 1                        → "focused-<technique>"
+        n in {2, 3}                   → "ambiguous"
+        n >= 4                        → "full-composer"
+
+    The structural override is the LOAD-BEARING calibration — real
+    composer outputs may fire only 1-2 technique-name markers but always
+    emit the canonical 5-phase scaffold. The override prevents Pitfall 1
+    (misclassifying a full-composer walkthrough as `focused-<technique>`
+    just because one technique's markers happen to fire).
+    """
+    if composer_structure_hits >= MIN_HEADER_HITS:
+        return "full-composer"
+    n = len(fired)
+    if n == 0:
+        return "none"
+    if n == 1:
+        tech = next(iter(fired))
+        return f"focused-{tech}"  # type: ignore[return-value]
+    if n in (2, 3):
+        return "ambiguous"
+    return "full-composer"
 
 
 def detect_output_structure(
     parsed_lines: list[object], raw_text: str
 ) -> OutputStructure:
-    """Placeholder detector — Task 2 fills this."""
-    del parsed_lines, raw_text
-    return "none"
+    """Score a parsed stream-json event log into one of the 9 OutputStructure values.
+
+    Structured-walk-first: extract assistant text via `_walk` (Pitfall 3 —
+    don't count Read tool_result echoes). If the structured walk yields
+    no text (parser drift or unanticipated capture shape), fall back to
+    `raw_text` for marker counting — the trade-off here is that raw-text
+    fallback may over-count markers that appear in tool inputs, but
+    that risk is preferable to silently returning "none" on a capture
+    shape we did not anticipate.
+    """
+    text = _extract_assistant_text(parsed_lines)
+    if not text.strip():
+        text = raw_text
+
+    hits = _technique_hits(text)
+    fired = {tech for tech, n in hits.items() if n >= MIN_HEADER_HITS}
+    structure_hits = _composer_structure_hits(text)
+    return classify(fired, structure_hits)
 
 
 def detect_output_structure_from_file(jsonl_path: Path) -> OutputStructure:
