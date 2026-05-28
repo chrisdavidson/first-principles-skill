@@ -617,11 +617,28 @@ def detect_output_structure(
     structure_hits = _composer_structure_hits(text)
 
     # Signal A: routing envelope override (Phase 46-04 calibration).
-    if structure_hits < MIN_HEADER_HITS:
-        invoked = _signal_a_invocations(parsed_lines)
-        if len(invoked) == 1:
-            tech = next(iter(invoked))
-            if hits.get(tech, 0) >= 1:
+    # Direct routing evidence (Skill/Agent/Task invocation of a specific
+    # sub-skill) is stronger than the composer-structure heuristic. A
+    # focused pre-mortem on a multi-phase plan naturally organizes by phase
+    # ("Phase 1 — SSO Migration"), which fires _COMPOSER_STRUCTURE_PATTERNS'
+    # `\bPhase \d+\b` many times — but that's a focused output, not a
+    # full-composer walkthrough. Without this priority ordering N2-style
+    # prompts (slash-invoked focused-mode on multi-phase plans) false-fail
+    # as `full-composer` despite the explicit invocation envelope.
+    #
+    # Guard: Signal A only fires when (a) exactly one sub-skill was
+    # invoked, (b) its technique shows at least one marker in the agent's
+    # output, and (c) no OTHER technique fired above MIN_HEADER_HITS.
+    # Condition (c) ensures we don't classify as `focused-X` when the agent
+    # actually ran the full six-technique walkthrough despite a slash hint.
+    invoked = _signal_a_invocations(parsed_lines)
+    if len(invoked) == 1:
+        tech = next(iter(invoked))
+        if hits.get(tech, 0) >= 1:
+            other_fired = {
+                t for t, c in hits.items() if t != tech and c >= MIN_HEADER_HITS
+            }
+            if not other_fired:
                 return f"focused-{tech}"  # type: ignore[return-value]
 
     return classify(fired, structure_hits)
