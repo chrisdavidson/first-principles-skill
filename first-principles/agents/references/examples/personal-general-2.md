@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/personal-general-2.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Personal and General (Second)
 
 A complete first-principles analysis of the question "I have surplus cash and a fixed-rate mortgage — should I pay the mortgage down or invest the cash in a broad-market index fund?" The Phase 4 emphasis demonstrates a quantitative expected-value chain anchored in interest rates and expected returns, with a values-laden tie-breaker (sleep-at-night vs expected utility) deciding the close cases. Authored in Phase 33 as the second personal-general worked example; meaningfully distinct from the v1.0 personal-general analysis, which is a stated-goal → real-goal re-framing exercise (career relocation). This analysis does not re-frame the goal — the goal (maximise the household's chosen utility function over the relevant horizon) is taken as given — and instead does the quantitative work the v1.0 example deliberately did not.

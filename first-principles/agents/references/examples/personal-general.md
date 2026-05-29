@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/personal-general.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Personal and General
 
 A complete first-principles analysis of the question "Should I take a higher-paying job that requires relocating?" The Phase 1 emphasis demonstrates a stated-goal→real-goal re-framing — a different operation from EX-01's symptom→cause diagnosis. Authored in Phase 5.

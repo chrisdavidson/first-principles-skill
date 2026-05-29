@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/spine/references/output-template.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # First Principles Analysis Output Template
 
 > **Note:** This is the full annotated template with complete section guidance, type

@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/trade-off.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Trade-Off Analysis
 
 > Structures a choice between two or more genuinely viable options by weighting

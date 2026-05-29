@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/software-systems.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Software and Systems
 
 A complete first-principles analysis of a software or systems design question, following the

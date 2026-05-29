@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/fishbone.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Ishikawa Diagram
 
 > A breadth-first cause-mapping tool that organises candidate causes of an observed

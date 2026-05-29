@@ -10,6 +10,8 @@ disallowedTools:
 maxTurns: 30
 AskUserQuestion: permitted
 ---
+<!-- GENERATED — DO NOT EDIT. Source: shared/spine/SKILL-body.md + spine/SKILL.meta.yml + references/*.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # First-Principles Analysis
 
 ## Input Contract

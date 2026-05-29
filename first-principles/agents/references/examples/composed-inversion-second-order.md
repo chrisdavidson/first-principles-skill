@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/composed-inversion-second-order.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Composed Inversion + Second-Order Thinking
 
 A complete first-principles analysis demonstrating how **inversion** (Phase 11 negative-direction

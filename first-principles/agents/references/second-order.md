@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/second-order.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Second-Order Thinking
 
 > A positive-direction extension of a *conclusion*. Following Howard Marks's

@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/pre-mortem.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Pre-Mortem
 
 > A prospective-hindsight failure analysis tool. Reach for this when a proposed

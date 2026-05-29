@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/software-systems-2.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Software and Systems (Build vs. Buy)
 
 A complete first-principles analysis of a software-systems decision whose reasoning shape is a

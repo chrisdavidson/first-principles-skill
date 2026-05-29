@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/science-engineering-2.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Science and Engineering (Failure Analysis)
 
 A complete first-principles analysis of an in-service mechanical component failure,

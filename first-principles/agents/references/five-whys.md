@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/five-whys.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # 5-Whys
 
 > A branching root-cause drill-down procedure — reach for it when a symptom keeps

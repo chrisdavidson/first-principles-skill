@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/self-application.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Self-Application (Meta)
 
 A complete first-principles analysis applied to a live, contested design decision

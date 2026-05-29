@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/product-business-2.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Product and Business (Feature Prioritization)
 
 A second product-and-business analysis, peer to `product-business.md`. The earlier

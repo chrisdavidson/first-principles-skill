@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/references/inversion.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Inversion
 
 > A negative-direction stress test on a *claim*. Following Jacobi's maxim

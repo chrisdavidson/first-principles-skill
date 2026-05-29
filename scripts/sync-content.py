@@ -125,6 +125,18 @@ SKILL_DO_NOT_EDIT_LINE = (
     "by sync-content.py -->\n"
 )
 
+# Marker line stamped on every byte-identical verbatim copy emitted to the
+# agent surface (references, spine-references, examples) and at the top of
+# the assembled agent body. Lets code reviewers (and any future
+# `.reviewignore` consumer) shortcut the generated mirror under
+# first-principles/agents/ and review the canonical shared/ source instead.
+# Format: HTML comment so markdown renderers ignore it and the runtime
+# agent loader sees a single inert line of prose.
+GENERATED_MARKER = (
+    "<!-- GENERATED — DO NOT EDIT. Source: shared/{source_rel}. "
+    "Regenerate via: scripts/sync-content.py --write. -->\n"
+)
+
 # Generated stub target tree (sibling to AGENT_DIR; never hand-edited).
 SKILLS_DIR = REPO_ROOT / "first-principles" / "skills"
 
@@ -532,8 +544,13 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     # inlined here (Phase 34-02, Path B). They reach the agent only as sibling
     # reference files via generate_agent_spine_references(); the spine body
     # links to them with file-relative markdown links.
+    agent_marker = GENERATED_MARKER.format(
+        source_rel="spine/SKILL-body.md + spine/SKILL.meta.yml + references/*.md"
+    )
     body = _normalise_trailing_newline(
-        input_contract
+        agent_marker
+        + "\n"
+        + input_contract
         + expanded_body
         + companion_header
         + companion_blocks
@@ -562,8 +579,9 @@ def generate_agent_references() -> dict[Path, str]:
                 f"first-principles/agents/references/{slug}.md"
             ),
         )
+        marker = GENERATED_MARKER.format(source_rel=f"references/{slug}.md")
         targets[AGENT_DIR / "references" / f"{slug}.md"] = (
-            _normalise_trailing_newline(body)
+            _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
 
@@ -592,8 +610,9 @@ def generate_agent_spine_references() -> dict[Path, str]:
                 f"first-principles/agents/references/{slug}.md"
             ),
         )
+        marker = GENERATED_MARKER.format(source_rel=f"spine/references/{slug}.md")
         targets[AGENT_DIR / "references" / f"{slug}.md"] = (
-            _normalise_trailing_newline(body)
+            _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
 
@@ -620,8 +639,9 @@ def generate_agent_examples() -> dict[Path, str]:
                 f"first-principles/agents/references/examples/{name}.md"
             ),
         )
+        marker = GENERATED_MARKER.format(source_rel=f"examples/{name}.md")
         targets[AGENT_DIR / "references" / "examples" / f"{name}.md"] = (
-            _normalise_trailing_newline(body)
+            _normalise_trailing_newline(marker + "\n" + body)
         )
     return targets
 

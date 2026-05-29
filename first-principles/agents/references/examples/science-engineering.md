@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/science-engineering.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Science and Engineering
 
 A complete first-principles analysis of a science and engineering sizing question,

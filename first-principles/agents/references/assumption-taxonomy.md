@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/spine/references/assumption-taxonomy.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Assumption Taxonomy (v3.2 Subtype Refinement)
 
 > **Scope:** This is a Layer-3 reference that refines the four-type assumption-classification

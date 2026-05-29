@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/spine/references/validation-rubric.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Validation Rubric
 
 > **Scope:** This is the Layer-3 scoring instrument read on demand by the validator-fix-repeat loop

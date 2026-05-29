@@ -1,3 +1,5 @@
+<!-- GENERATED — DO NOT EDIT. Source: shared/examples/ishikawa-fishbone.md. Regenerate via: scripts/sync-content.py --write. -->
+
 # Worked Example: Service Business and B2B SaaS
 
 A complete first-principles analysis of a B2B SaaS customer-churn problem, following the
