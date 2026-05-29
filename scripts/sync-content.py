@@ -544,9 +544,13 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     # inlined here (Phase 34-02, Path B). They reach the agent only as sibling
     # reference files via generate_agent_spine_references(); the spine body
     # links to them with file-relative markdown links.
-    agent_marker = GENERATED_MARKER.format(
-        source_rel="spine/SKILL-body.md + spine/SKILL.meta.yml + references/*.md"
-    )
+    # Primary canonical source = shared/spine/SKILL-body.md (the bulk of the
+    # assembled body). Frontmatter (shared/spine/SKILL.meta.yml) and the
+    # inlined companion-technique procedures (shared/references/<slug>.md)
+    # are secondary sources reachable as siblings of the primary — name only
+    # the primary here so the marker remains a navigable path, matching the
+    # source_rel shape used by every other call site (WR-02).
+    agent_marker = GENERATED_MARKER.format(source_rel="spine/SKILL-body.md")
     body = _normalise_trailing_newline(
         agent_marker
         + "\n"
