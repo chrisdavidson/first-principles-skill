@@ -39,7 +39,7 @@ are issued. All eight prompts are carried verbatim from Phase 25 v2 / Phase 29.
 | P5 | "Stress-test the reasoning behind the claim that raising the minimum wage always reduces total employment. Are there hidden assumptions?" | DELEGATE | "stress-test reasoning" | Self-contained (business/economics domain); explicit "stress-test reasoning" trigger phrase in description |
 | P6 | "Question the design of standard 40-hour work weeks from first principles. Is the structure actually optimal, or just inherited?" | DELEGATE | "question a design" + "first principles" | Self-contained (business/personal domain); matches both "question a design" and "first principles" triggers |
 | P7 | "What are the fundamental ground truths about why human memory degrades over time? Reason up from them to evaluate whether spaced repetition really works." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science domain); v3.4 baseline 1/3 — vocabulary gap: description lacked plural noun "fundamental ground truths" and particle-verb "Reason up from them"; closed by FRAG-03 description fix adding both paraphrases (Plan 01) |
-| P8 | "Help me reason from the ground up about why the modern smartphone landed on this particular form factor — what do we actually know is true about why this shape and size won out?" | DELEGATE | "reason from ground truth" + "what do we actually know is true" | Self-contained (software/business domain); mid-sentence Task-delegation trigger "reason from ground truth" with from-the-ground-up framing and epistemic anchor |
+| P8 | "Help me reason from the ground up about why the modern smartphone landed on this particular form factor — what do we actually know is true about why this shape and size won out?" | DELEGATE | "reason from ground truth" + "what do we actually know is true" | Self-contained (software/business domain); mid-sentence Task-delegation trigger "reason from ground truth" with from-the-ground-up framing and epistemic anchor (v3.8 baseline: 0/3 main + 2/5 disambig — Skill-vs-Task routing confusion: "Decompose this problem" triggered Skill invocation rather than Task delegation; Signal A blindspot; fixed in v3.9 by prompt rewrite removing bare command-label form; post-fix: 2/3 PASS) |
 | P9 | "Help me reason from ground truth about why dissolving table salt in water lowers the freezing point — what do we actually know is true about the underlying mechanism?" | DELEGATE | "reason from ground truth" | Self-contained (science / chemistry domain); natural mid-sentence embedding of trigger phrase; colligative-properties substance requires reasoning from primitives, not lookup; chemistry discipline (new in v3.6) |
 | P10 | "What are the fundamental ground truths about why the deep ocean stays cold even directly under the equator? Reason up from them to evaluate whether thermohaline circulation alone explains it." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science / earth-science domain); multi-trigger annotation mirrors P7 form; requires reasoning from first principles about ocean thermodynamics, not factual lookup; earth-science discipline (new in v3.6) |
 
@@ -121,6 +121,15 @@ scope-line tightening beyond N6.
 ---
 
 ## Catalog History
+
+### v3.9 (Phase 47) — 2026-05-29
+
+Fixed P8 Skill-vs-Task routing confusion:
+
+- **P8 prompt rewrite (P8-03)**: replaced bare "Decompose this problem:" command-label framing with mid-sentence first-principles question leading with "Help me reason from the ground up"; smartphone form-factor topic and epistemic anchor ("what do we actually know is true") preserved. v3.8 baseline evidence: P8 0/3 main + 2/5 disambig — "Decompose this problem" triggered Skill(skill: "first-principles:first-principles") invocation rather than Task delegation; Signal A (which only detects Task tool_use) produced false NO-DELEGATE scores. Post-fix: 2/3 PASS under --repeat 3 --min-pass 2.
+- **N-side regression check (P8-04)**: full 17 N-cases re-run; result: N 17/17. No regressions introduced.
+
+P-prompts P1-P7, P9-P10 are unchanged. N-prompts N1-N17 are unchanged.
 
 ### v3.6 (Phase 39) — 2026-05-25
 
