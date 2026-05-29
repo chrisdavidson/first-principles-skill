@@ -1,6 +1,6 @@
 ---
 name: second-order
-description: Runs a focused second-order analysis only — enumerates 2nd/3rd-order consequences of a stated conclusion. Slash-only; orchestrator uses the main agent.
+description: Runs a focused second-order analysis only — enumerates 2nd/3rd-order consequences of a stated conclusion. Invoke via /second-order only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"

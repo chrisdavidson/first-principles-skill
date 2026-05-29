@@ -1,6 +1,6 @@
 ---
 name: inversion
-description: Runs a focused inversion only — stress-tests a claim by enumerating what would guarantee its failure. Slash-only; orchestrator uses the main agent.
+description: Runs a focused inversion only — stress-tests a claim by enumerating what would guarantee its failure. Invoke via /inversion only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"

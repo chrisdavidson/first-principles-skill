@@ -1,6 +1,6 @@
 ---
 name: pre-mortem
-description: Runs a focused pre-mortem only — prospective-hindsight failure analysis on a plan. Slash-only; orchestrator uses the main agent.
+description: Runs a focused pre-mortem only — prospective-hindsight failure analysis on a plan. Invoke via /pre-mortem only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"
