@@ -34,18 +34,18 @@ For the complete procedure with entry/exit criteria per phase and the exact outp
 
 ## Companion tools
 
-Six tools extend the methodology when the analysis calls for them. Each ships as an on-demand reference sibling of the agent — the agent loads them when the relevant trigger fires:
+Six tools extend the methodology when the analysis calls for them. Each ships both as an on-demand reference sibling of the agent (loaded automatically when the relevant trigger fires) and as a standalone slash-only skill for direct invocation (`/first-principles:<name>`):
 
-- **[Five Whys](first-principles/agents/references/five-whys.md)** — Root-cause drill-down procedure. Use it during Phase 3 when an analysis is stuck on *why* something is true and the surface explanation feels insufficient.
-- **[Fishbone (Ishikawa)](first-principles/agents/references/fishbone.md)** — Breadth-first cause-category brainstorm. Use it during Phase 2 (Challenge Assumptions) when the assumption space is multi-causal and intuition cannot enumerate it confidently. Branches enter the Classified Assumptions Table as `untested belief` rows; reach for Five Whys instead when the problem is single-chain depth.
-- **[Inversion](first-principles/agents/references/inversion.md)** — Failure-enumeration procedure. Use it during Phase 2 (Challenge Assumptions) when a conclusion feels too clean; enumerate what would guarantee failure and hand each unverified precondition back to the Classified Assumptions Table as an `untested belief` row.
-- **[Pre-mortem](first-principles/agents/references/pre-mortem.md)** — Prospective-hindsight failure analysis. Use it during Phase 5 to stress-test a proposed solution by imagining it has already failed and working backward to the failure modes.
-- **[Trade-off Analysis](first-principles/agents/references/trade-off.md)** — Weighted-criteria decision procedure. Use it during Phase 4 when multiple viable options remain after ground truths are established. Criteria are weighted before scoring to prevent post-hoc rationalization.
-- **[Second-Order Thinking](first-principles/agents/references/second-order.md)** — Downstream-consequence extension procedure. Use it during Phase 4 (Reason Upward) to extend a Derivation Chain with 2nd/3rd-order effects before handing off to Phase 5; contradicting effects route back to Phase 2 for re-challenging.
+- **[Five Whys](first-principles/agents/references/five-whys.md)** (`/first-principles:five-whys`) — Root-cause drill-down procedure. Use it during Phase 3 when an analysis is stuck on *why* something is true and the surface explanation feels insufficient.
+- **[Fishbone (Ishikawa)](first-principles/agents/references/fishbone.md)** (`/first-principles:fishbone`) — Breadth-first cause-category brainstorm. Use it during Phase 2 (Challenge Assumptions) when the assumption space is multi-causal and intuition cannot enumerate it confidently. Branches enter the Classified Assumptions Table as `untested belief` rows; reach for Five Whys instead when the problem is single-chain depth.
+- **[Inversion](first-principles/agents/references/inversion.md)** (`/first-principles:inversion`) — Failure-enumeration procedure. Use it during Phase 2 (Challenge Assumptions) when a conclusion feels too clean; enumerate what would guarantee failure and hand each unverified precondition back to the Classified Assumptions Table as an `untested belief` row.
+- **[Pre-mortem](first-principles/agents/references/pre-mortem.md)** (`/first-principles:pre-mortem`) — Prospective-hindsight failure analysis. Use it during Phase 5 to stress-test a proposed solution by imagining it has already failed and working backward to the failure modes.
+- **[Trade-off Analysis](first-principles/agents/references/trade-off.md)** (`/first-principles:trade-off`) — Weighted-criteria decision procedure. Use it during Phase 4 when multiple viable options remain after ground truths are established. Criteria are weighted before scoring to prevent post-hoc rationalization.
+- **[Second-Order Thinking](first-principles/agents/references/second-order.md)** (`/first-principles:second-order`) — Downstream-consequence extension procedure. Use it during Phase 4 (Reason Upward) to extend a Derivation Chain with 2nd/3rd-order effects before handing off to Phase 5; contradicting effects route back to Phase 2 for re-challenging.
 
 ## Worked examples
 
-Six domain-spread examples show the methodology applied end-to-end, each with a real dead-end and a validation rubric pass:
+Eleven domain-spread examples show the methodology applied end-to-end, each with a real dead-end and a validation rubric pass:
 
 - **[Software and systems](first-principles/agents/references/examples/software-systems.md)** — Evaluating a microservices migration decision for a monolithic codebase, tracing the actual constraints and ground truths rather than following distributed-systems fashion.
 - **[Product and business](first-principles/agents/references/examples/product-business.md)** — Deciding whether to build a new pricing tier, decomposing the business assumptions and grounding the recommendation in verified market and unit-economics facts.
@@ -53,16 +53,21 @@ Six domain-spread examples show the methodology applied end-to-end, each with a 
 - **[Science and engineering](first-principles/agents/references/examples/science-engineering.md)** — Choosing a materials approach for a physical product, grounding the trade-offs in verified physical properties rather than industry convention.
 - **[Ishikawa fishbone](first-principles/agents/references/examples/ishikawa-fishbone.md)** — A worked fishbone-style cause-category brainstorm; branches hand back to Phase 2's Classified Assumptions Table as `untested belief` rows.
 - **[Composed Inversion + Second-Order](first-principles/agents/references/examples/composed-inversion-second-order.md)** — A worked analysis combining Inversion at Phase 2 with Second-Order Thinking at Phase 4; demonstrates the hand-back semantics for both tools and the route-back-to-Phase-2 path on contradicting downstream effects.
+- **[Software and systems 2](first-principles/agents/references/examples/software-systems-2.md)** — Build vs. Buy software decision: build own auth or adopt a managed identity provider.
+- **[Product and business 2](first-principles/agents/references/examples/product-business-2.md)** — Feature prioritization under a binding engineering-capacity constraint.
+- **[Personal and general 2](first-principles/agents/references/examples/personal-general-2.md)** — Mortgage paydown vs. index investment: a quantitative expected-value analysis.
+- **[Science and engineering 2](first-principles/agents/references/examples/science-engineering-2.md)** — In-service mechanical component failure analysis (diagnostic reasoning shape).
+- **[Self-application](first-principles/agents/references/examples/self-application.md)** — Meta: applying the methodology to a contested design decision about the agent itself (agent body length vs. scope).
 
 ## Relationship to the original
 
 This project is a fork and enhancement of [`github.com/chrisdavidson/first-principles-skill`](https://github.com/chrisdavidson/first-principles-skill), MIT licensed, authored by the same person. The original is a complete, working skill with a 5-phase methodology, a standardized output format, multilingual triggers (English + Chinese), and worked examples.
 
-The v3.0 enhanced successor adds four things the original does not have:
+The v3.8 enhanced successor adds four things the original does not have:
 
 1. **Validation rubric** — a scoring/self-check the model applies after Phase 5 to verify the analysis met the rigor bar, with explicit criteria, levels, and a gate that blocks presenting conclusions until the rubric clears.
 2. **Six companion tools** — Five Whys, fishbone, inversion, pre-mortem, trade-off analysis, and second-order thinking as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine.
-3. **Six domain-spread worked examples** — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order, each demonstrating a real dead-end and a complete validation pass.
+3. **Eleven domain-spread worked examples** — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order, each demonstrating a real dead-end and a complete validation pass.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
 [![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml)
@@ -90,7 +95,7 @@ Or install via the Claude Code plugin marketplace — no clone required:
 
 Verify with `/doctor` inside Claude Code; the `first-principles` agent should appear in the listing.
 
-The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0. The agent is now the only shipped interface. See [CHANGELOG.md](./CHANGELOG.md) for the upgrade path, including how to clean up previously-copied local installs.
+The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0. In v3.8.0, six companion-tool slash-only skills were re-added under `first-principles/skills/` — these are standalone direct-invoke skills, not the full plugin-skill surfaces from v2.x. See [CHANGELOG.md](./CHANGELOG.md) for the full upgrade path.
 
 ### Project-scoped install
 
