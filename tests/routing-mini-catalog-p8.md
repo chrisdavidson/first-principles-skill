@@ -34,7 +34,7 @@ python3 scripts/check-routing.py --catalog tests/routing-mini-catalog-p8.md --re
 
 | # | Prompt | Expected Routing | Trigger Phrase Matched | Rationale |
 |---|--------|-----------------|----------------------|-----------|
-| P8 | "Help me reason from the ground up about why the modern smartphone landed on this particular form factor — what do we actually know is true about why this shape and size won out?" | DELEGATE | "reason from ground truth" + "what do we actually know is true" | Self-contained (software/business domain); mid-sentence Task-delegation trigger "reason from ground truth" with from-the-ground-up framing and epistemic anchor |
+| P8 | "Help me reason from the ground up about why the modern smartphone landed on this particular form factor — what do we actually know is true about why this shape and size won out?" | DELEGATE | "reason from the ground up" + "what do we actually know is true" | Self-contained (software/business domain); mid-sentence Task-delegation trigger "reason from the ground up" with epistemic anchor |
 
 ---
 
