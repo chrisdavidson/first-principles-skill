@@ -567,7 +567,13 @@ def generate_agent_references() -> dict[Path, str]:
 
     Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
     the agent's on-demand reference siblings ship verbatim — NO frontmatter,
-    NO marker expansion, NO edits. Trailing newline normalised to exactly one.
+    NO `{{TOOL:<slug>}}` marker expansion, NO edits to the source body. Trailing
+    newline normalised to exactly one.
+
+    A `GENERATED_MARKER` HTML-comment line is prepended (followed by a blank
+    line) so code reviewers and the .reviewignore consumer can shortcut the
+    mirror. The marker is markdown-inert and counts as two added lines per
+    file; the source body itself is otherwise unmodified.
     """
     targets: dict[Path, str] = {}
     for slug in TOOLS:
@@ -591,8 +597,10 @@ def generate_agent_spine_references() -> dict[Path, str]:
 
     Source = shared/spine/references/{slug}.md for each slug in SPINE_REFERENCES.
     Mirrors generate_agent_references() exactly: verbatim file copy, trailing-
-    newline normalisation, NO frontmatter injection, NO marker expansion. This
-    is the post-Plan-26.1 spine-reference sync path — distinct from the 6 tool
+    newline normalisation, NO frontmatter injection, NO `{{TOOL:<slug>}}` marker
+    expansion, NO edits to the source body. A `GENERATED_MARKER` HTML-comment
+    line is prepended (same shape as generate_agent_references). This is the
+    post-Plan-26.1 spine-reference sync path — distinct from the 6 tool
     references (which live under shared/references/, not shared/spine/references/).
 
     Phase 34-02 Path B: output-template.md and validation-rubric.md are now
@@ -626,8 +634,11 @@ def generate_agent_examples() -> dict[Path, str]:
     shared/examples/ survives, this generator survives, and the sync-drift
     CI gate continues to enforce byte-identity between source and emission.
 
-    Per D-01 amended / MIGRATE-02 amended / E-3 resolution: verbatim copy —
-    NO frontmatter, NO marker expansion, NO edits. Trailing newline normalised.
+    Per D-01 amended / MIGRATE-02 amended / E-3 resolution: verbatim copy of
+    the source body — NO frontmatter, NO `{{TOOL:<slug>}}` marker expansion,
+    NO edits to the source body. A `GENERATED_MARKER` HTML-comment line is
+    prepended (same shape as generate_agent_references). Trailing newline
+    normalised.
     """
     targets: dict[Path, str] = {}
     for name in EXAMPLES:
