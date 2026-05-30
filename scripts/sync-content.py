@@ -99,6 +99,33 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
 TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order")
 
+# Canonical slash-invocable focused-mode stub list (Phase 46-02, DEC-46-B).
+# Each entry maps to a `shared/skills/<slug>/SKILL.md` source and a generated
+# `first-principles/skills/<slug>/SKILL.md` sibling. All carry
+# `disable-model-invocation: true` so the orchestrator cannot auto-route to
+# them — only explicit `/first-principles:<slug>` slash invocation loads them.
+# Phase 52 extends the original six companion-tool slugs with five new phase
+# slugs (identify-essence, challenge-assumptions, ground-truths, reason-upward,
+# validate). The shared/skills/<slug>/SKILL.md source stubs for the five new
+# slugs are Phase 53 deliverables; running --write before they exist raises
+# FileNotFoundError from _read_required().
+SKILLS = (
+    "pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order",
+    "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
+)
+
+# Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
+# technique content (from `## When to reach for this` to EOF of
+# shared/references/<slug>.md).
+SKILL_TOKEN_RE = re.compile(r"\{\{PROCEDURE:([a-z][a-z0-9-]*)\}\}")
+
+# Marker line stamped on every generated stub body, immediately after the
+# closing frontmatter delimiter.
+SKILL_DO_NOT_EDIT_LINE = (
+    "<!-- DO NOT EDIT — generated from shared/skills/{slug}/SKILL.md "
+    "by sync-content.py -->\n"
+)
+
 # Canonical worked-example list (filename stem under shared/examples/).
 # Source-of-truth tree = shared/examples/ (established in Plan 26.1-03 Task 0).
 # Plan 05 deletes the parallel monolith copies under
@@ -394,11 +421,16 @@ def generate_agent_examples() -> dict[Path, str]:
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    13 targets total (post Phase 26.1 monolith + plugin-skill removal):
+    Phase 52 extends SKILLS to 11 entries; the 5 phase stubs are emitted
+    starting Phase 53 once their shared/skills/<slug>/SKILL.md sources exist.
+    Post-Phase-53 target count: 25 total.
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 6 agent reference siblings (first-principles/agents/references/<tool>.md)
+      - 1 agent spine-reference sibling
+        (first-principles/agents/references/assumption-taxonomy.md)
       - 6 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
-    Total: 1 + 6 + 6 = 13.
+      - 11 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
+    Total after Phase 53: 1 + 6 + 1 + 6 + 11 = 25.
     """
     import yaml
 
