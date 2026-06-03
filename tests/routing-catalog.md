@@ -42,6 +42,9 @@ are issued. All eight prompts are carried verbatim from Phase 25 v2 / Phase 29.
 | P8 | "Help me reason from the ground up about why the modern smartphone landed on this particular form factor — what do we actually know is true about why this shape and size won out?" | DELEGATE | "reason from the ground up" + "what do we actually know is true" | Self-contained (software/business domain); mid-sentence Task-delegation trigger "reason from the ground up" with epistemic anchor; (v3.8 baseline: 0/3 main + 2/5 disambig — Skill-vs-Task routing confusion: "Decompose this problem" triggered Skill invocation rather than Task delegation; Signal A blindspot; fixed in v3.9 by prompt rewrite removing bare command-label form; post-fix: 2/3 PASS) |
 | P9 | "Help me reason from ground truth about why dissolving table salt in water lowers the freezing point — what do we actually know is true about the underlying mechanism?" | DELEGATE | "reason from ground truth" | Self-contained (science / chemistry domain); natural mid-sentence embedding of trigger phrase; colligative-properties substance requires reasoning from primitives, not lookup; chemistry discipline (new in v3.6) |
 | P10 | "What are the fundamental ground truths about why the deep ocean stays cold even directly under the equator? Reason up from them to evaluate whether thermohaline circulation alone explains it." | DELEGATE | "fundamental ground truths" + "reason up from first principles" | Self-contained (science / earth-science domain); multi-trigger annotation mirrors P7 form; requires reasoning from first principles about ocean thermodynamics, not factual lookup; earth-science discipline (new in v3.6) |
+| P11 | "I want to challenge the assumptions embedded in how modern universities assign academic credit hours — can you map out the distinct categories of assumptions baked into that model and evaluate whether each one actually holds?" | DELEGATE | "challenge assumptions" | Self-contained (education domain); "challenge assumptions" trigger in natural mid-sentence embedding; framing asks for assumption-taxonomy (categorize + evaluate) rather than a single-assumption refutation — cleanly DELEGATE |
+| P12 | "Help me analyze from first principles whether first-principles reasoning itself is a reliable method — what fundamental assumptions does the approach rest on, and do they actually hold under scrutiny?" | DELEGATE | "analyze from first principles" | Self-contained (methodology / meta domain); "analyze from first principles" trigger in natural mid-sentence embedding; self-application framing: the method is applied to an evaluation of itself; cleanly DELEGATE |
+| P13 | "I want to reason from ground truth about why antibiotics stop working against bacteria that were once sensitive to them — what do we actually know is true about the underlying biological mechanism?" | DELEGATE | "reason from ground truth" | Self-contained (biology / medicine domain); "reason from ground truth" trigger in natural mid-sentence embedding; worked-examples-domain framing: biology/medicine is a distinct discipline not yet represented in the P-table; requires causal reasoning from first principles, not clinical lookup — cleanly DELEGATE |
 
 ---
 
@@ -118,9 +121,40 @@ scope-line tightening beyond N6.
 | N16 | "What's the formula for calculating the freezing-point depression of a 5% NaCl solution?" | NO-DELEGATE | Science formula/homework lookup | Factual formula recall — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: chemistry (paired with P9). |
 | N17 | "How deep is the average ocean thermocline, and which latitudes have the steepest gradient?" | NO-DELEGATE | Science factual lookup | Factual lookup question — general Q&A; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Domain: earth-science (paired with P10). |
 
+### Assumption-Taxonomy Boundary Class (new in v3.13)
+
+| # | Prompt | Expected Routing | Off-Topic Class | Rationale |
+|---|--------|-----------------|-----------------|-----------|
+| N18 | "What are the main categories of cognitive biases that affect human decision-making?" | NO-DELEGATE | Taxonomy / classification request | Enumeration request about a cognitive-science taxonomy — general Q&A; no first-principles framing, no trigger phrase from the description; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Paired with P11 (assumption-taxonomy boundary). |
+
+### Self-Application Boundary Class (new in v3.13)
+
+| # | Prompt | Expected Routing | Off-Topic Class | Rationale |
+|---|--------|-----------------|-----------------|-----------|
+| N19 | "What is first-principles reasoning and how does it differ from analogical thinking?" | NO-DELEGATE | Methodology explanation | Factual explanation request about a reasoning methodology — general Q&A; no analytical trigger framing; asking "what is" not "analyze / challenge / reason from ground truth"; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Paired with P12 (self-application boundary). |
+
+### Medical / Clinical Lookup Class (new in v3.13)
+
+| # | Prompt | Expected Routing | Off-Topic Class | Rationale |
+|---|--------|-----------------|-----------------|-----------|
+| N20 | "What antibiotic classes are typically used to treat MRSA infections?" | NO-DELEGATE | Medical / clinical lookup | Clinical factual lookup in the same domain (medicine/biology) as P13 — general Q&A; no causal or first-principles framing; asking for a clinical answer, not an underlying mechanism; excluded by the "general Q&A" scope-exclusion clause in shared/spine/SKILL.meta.yml. Paired with P13 (worked-examples-domain boundary). |
+
 ---
 
 ## Catalog History
+
+### v3.13 (Phase 55) — 2026-06-03
+
+Extended the v3.9/v3.6 catalog with three new framing-coverage P-prompts and paired N-prompts, and rescaled battery thresholds proportionally.
+
+- **P11 (TAX-01)**: Education-domain (academic credit hours) assumption-taxonomy framing. Domain: education (new). Trigger Phrase Matched: `"challenge assumptions"`. Framing: assumption-taxonomy — asks to map distinct categories of assumptions and evaluate each; "challenge assumptions" drawn from existing description vocabulary (no description edit required).
+- **P12 (META-01)**: Methodology-domain self-application framing. Domain: methodology / meta. Trigger Phrase Matched: `"analyze from first principles"`. Framing: self-application — the first-principles method applied to evaluating the reliability of itself; "analyze from first principles" drawn from existing description vocabulary.
+- **P13 (WKEX-01)**: Biology/medicine-domain worked-examples-domain framing. Domain: biology / medicine (new). Trigger Phrase Matched: `"reason from ground truth"`. Framing: worked-examples-domain — causal mechanism question suitable for a worked example; mirrors P3/P9 mid-sentence embedding form; "reason from ground truth" drawn from existing description vocabulary.
+- **N18 / N19 / N20 (TAX-02, META-02, WKEX-02)**: Paired negative controls. N18 Off-Topic Class: `Taxonomy / classification request` (education/cognitive-science, paired with P11). N19 Off-Topic Class: `Methodology explanation` (meta domain, paired with P12). N20 Off-Topic Class: `Medical / clinical lookup` (biology/medicine, paired with P13). All three Rationales cite the existing `"general Q&A"` scope-exclusion clause in `shared/spine/SKILL.meta.yml`. Three new H3 sections added under the N-section.
+- **Threshold rescale (INFRA-01/INFRA-02)**: Battery thresholds rescaled to P ≥ 11/13 DELEGATE and N ≥ 18/20 NO-DELEGATE (applied in Plan 55-02). Rationale: proportional scaling from the v3.1 Key Decision (tolerate single-prompt non-determinism) — P-side 11/13 ≈ 84.6% (nearest integer preserving ~1-flip tolerance for 13 prompts); N-side 18/20 = 90% (2-flip tolerance, consistent with v3.6 precedent).
+- **Description budget constraint**: Description is at 1977/2000 chars — no description edits made. All trigger phrases for P11/P12/P13 drawn from existing description vocabulary.
+
+P-prompts P1-P10 are unchanged. N-prompts N1-N17 are unchanged.
 
 ### v3.9 (Phase 47) — 2026-05-29
 
