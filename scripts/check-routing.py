@@ -707,14 +707,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--p-threshold",
         type=int,
-        default=8,
-        help="Min P-cases scored DELEGATE for battery PASS (default: 8).",
+        default=11,
+        help="Min P-cases scored DELEGATE for battery PASS (default: 11).",
     )
     p.add_argument(
         "--n-threshold",
         type=int,
-        default=15,
-        help="Min N-cases scored NO-DELEGATE for battery PASS (default: 15).",
+        default=18,
+        help="Min N-cases scored NO-DELEGATE for battery PASS (default: 18).",
     )
     p.add_argument(
         "--quiet",
