@@ -312,6 +312,40 @@ def detect_routing(jsonl_path: Path) -> Verdict:
 
 
 # ---------------------------------------------------------------------------
+# Resume helpers: disk-aware skip logic for interrupted battery runs
+# ---------------------------------------------------------------------------
+
+
+def _existing_run_paths(prompt: Prompt, out_dir: Path, repeat: int) -> list[Path]:
+    """Return the list of expected run-file paths for a prompt.
+
+    When repeat == 1: [out_dir/<id>.jsonl]  (legacy single-run naming)
+    When repeat > 1:  [out_dir/<id>-run1.jsonl, ..., out_dir/<id>-runN.jsonl]
+
+    The returned list mirrors the exact naming used by _run_prompt_n_times.
+    """
+    if repeat == 1:
+        return [out_dir / f"{prompt.id}.jsonl"]
+    return [out_dir / f"{prompt.id}-run{n}.jsonl" for n in range(1, repeat + 1)]
+
+
+def _is_run_complete(path: Path) -> bool:
+    """Return True iff path exists and contains non-whitespace content."""
+    if not path.exists():
+        return False
+    try:
+        content = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return False
+    return bool(content.strip())
+
+
+def _is_prompt_complete(paths: list[Path]) -> bool:
+    """Return True iff every expected run-file path is complete."""
+    return all(_is_run_complete(p) for p in paths)
+
+
+# ---------------------------------------------------------------------------
 # Transport: invoke claude -p per prompt
 # ---------------------------------------------------------------------------
 
@@ -363,21 +397,32 @@ def _run_prompt(prompt: Prompt, plugin_dir: Path, out_dir: Path) -> Path:
 
 def _run_prompt_n_times(
     prompt: Prompt, plugin_dir: Path, out_dir: Path, repeat: int
-) -> list[Verdict]:
-    """Run a single prompt N times and return a list of N Verdict values.
+) -> tuple[list[Verdict], bool]:
+    """Run a single prompt N times and return (list[Verdict], resumed).
+
+    When all expected run files are already complete on disk, skips the
+    claude subprocess and re-scores from disk instead (resume mode).
+    When any expected run file is missing or empty, all N runs are executed
+    and the output files are overwritten (normal mode).
+
+    resumed is True when the prompt was skipped and re-scored from disk.
 
     When repeat == 1, writes to <id>.jsonl (legacy parity — no -run suffix).
     When repeat > 1, writes to <id>-run<n>.jsonl (1-indexed, n in 1..repeat).
     """
+    expected_paths = _existing_run_paths(prompt, out_dir, repeat)
+
+    if _is_prompt_complete(expected_paths):
+        # Resume: all run files are present and non-empty — re-score from disk.
+        return [detect_routing(p) for p in expected_paths], True
+
+    # Normal run: execute all N times, overwriting any partial files.
     results: list[Verdict] = []
     for run_idx in range(repeat):
-        if repeat == 1:
-            out_path = out_dir / f"{prompt.id}.jsonl"
-        else:
-            out_path = out_dir / f"{prompt.id}-run{run_idx + 1}.jsonl"
+        out_path = expected_paths[run_idx]
         jsonl_path = _run_prompt_to(prompt, plugin_dir, out_path)
         results.append(detect_routing(jsonl_path))
-    return results
+    return results, False
 
 
 # ---------------------------------------------------------------------------
@@ -432,17 +477,18 @@ def run_battery(
     ordered = list(positives) + list(negatives)
     for idx, prompt in enumerate(ordered, start=1):
         _print(f"[{idx}/{total}] {prompt.id}: expected={prompt.expected} ...", quiet)
-        verdicts = _run_prompt_n_times(prompt, plugin_dir, out_dir, repeat)
+        verdicts, resumed = _run_prompt_n_times(prompt, plugin_dir, out_dir, repeat)
+        resume_tag = " (resumed)" if resumed else ""
         match_count = sum(1 for v in verdicts if v == prompt.expected)
         prompt_passed = match_count >= min_pass
         prompt_results.append((prompt, verdicts, match_count, prompt_passed))
         if repeat == 1:
-            # Legacy output format: byte-identical to v3.1
+            # Legacy output format: byte-identical to v3.1 (plus optional resume tag)
             actual = verdicts[0]
-            _print(f"    -> actual={actual} {'PASS' if prompt_passed else 'FAIL'}", quiet)
+            _print(f"    -> actual={actual} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}", quiet)
         else:
             ratio_str = f"{match_count}/{repeat}"
-            _print(f"    -> {ratio_str} {'PASS' if prompt_passed else 'FAIL'}", quiet)
+            _print(f"    -> {ratio_str} {'PASS' if prompt_passed else 'FAIL'}{resume_tag}", quiet)
 
     # scores.tsv
     scores_path = out_dir / "scores.tsv"
@@ -658,8 +704,42 @@ def self_test() -> int:
         )
         all_passed = False
 
+    # Resume fixtures (Task 2): disk-aware skip/run decisions — no claude invocation.
+    with tempfile.TemporaryDirectory() as _tmpdir:
+        _out = Path(_tmpdir)
+        _p = Prompt(id="P99", text="dummy", expected="DELEGATE")
+
+        # (e) resume_all_present: repeat=3, all three run files exist and non-empty -> complete
+        for n in range(1, 4):
+            (_out / f"P99-run{n}.jsonl").write_text(_FIXTURE_SIGNAL_A, encoding="utf-8")
+        _paths_e = _existing_run_paths(_p, _out, repeat=3)
+        if not _is_prompt_complete(_paths_e):
+            print("self-test FAIL: 'resume_all_present' expected complete=True", file=sys.stderr)
+            all_passed = False
+
+        # (f) resume_one_missing: repeat=3, one run file missing -> incomplete
+        (_out / "P99-run2.jsonl").unlink()
+        _paths_f = _existing_run_paths(_p, _out, repeat=3)
+        if _is_prompt_complete(_paths_f):
+            print("self-test FAIL: 'resume_one_missing' expected complete=False", file=sys.stderr)
+            all_passed = False
+
+        # (g) resume_empty_file: repeat=3, all present but one is whitespace-only -> incomplete
+        (_out / "P99-run2.jsonl").write_text("   \n  ", encoding="utf-8")
+        _paths_g = _existing_run_paths(_p, _out, repeat=3)
+        if _is_prompt_complete(_paths_g):
+            print("self-test FAIL: 'resume_empty_file' expected complete=False", file=sys.stderr)
+            all_passed = False
+
+        # (h) resume_legacy_single: repeat=1, single {id}.jsonl present and non-empty -> complete
+        (_out / "P99.jsonl").write_text(_FIXTURE_NO_SIGNAL, encoding="utf-8")
+        _paths_h = _existing_run_paths(_p, _out, repeat=1)
+        if not _is_prompt_complete(_paths_h):
+            print("self-test FAIL: 'resume_legacy_single' expected complete=True", file=sys.stderr)
+            all_passed = False
+
     if all_passed:
-        print("self-test PASS (8 fixtures)")  # Update this count if fixtures are added.
+        print("self-test PASS (12 fixtures)")  # Update this count if fixtures are added.
         return 0
     return 1
 
