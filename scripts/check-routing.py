@@ -38,8 +38,8 @@ Usage:
 Defaults:
     --plugin-dir   $(pwd)/first-principles
     --out          /tmp/check-routing-<UTC-timestamp>/
-    --p-threshold  8   (P-cases >= 8/10 DELEGATE)
-    --n-threshold  15  (N-cases >= 15/17 NO-DELEGATE)
+    --p-threshold  11  (P-cases >= 11/13 DELEGATE)
+    --n-threshold  18  (N-cases >= 18/20 NO-DELEGATE)
     --repeat       3
     --min-pass     2
 
