@@ -222,7 +222,7 @@ specific commit — the noise envelope is too wide.
 v3.4 fixes this at the runner level with `--repeat N --min-pass K`: each prompt
 runs N times and counts as PASS only if the expected verdict occurs in at least K
 of those N runs. Session noise is absorbed without changing the pass thresholds
-(P≥6/8, N≥14/15).
+(P≥8/10, N≥15/17).
 
 ### Default (best-of-3)
 
@@ -232,7 +232,7 @@ python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 
 No extra flags needed. The defaults are `--repeat 3 --min-pass 2`: each prompt
 runs 3 times; it passes only if the expected verdict occurs in ≥ 2 of 3 runs.
-Wall-clock time: approximately 45–70 minutes for the full 23-prompt catalog.
+Wall-clock time: approximately 45–70 minutes for the full 27-prompt catalog.
 
 ### When to override
 

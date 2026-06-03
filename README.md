@@ -138,3 +138,7 @@ Why a 500-line budget: keeps the generated agent body under ~500 lines so it loa
 The first-principles agent's routing (when it should and shouldn't auto-delegate) is tested via a reproducible headless battery: `scripts/check-routing.py --catalog tests/routing-catalog.md` issues each prompt through `claude -p` and scores DELEGATE / NO-DELEGATE from the stream-json event stream. Sequential execution against a fresh session per prompt; exit code 0 iff the P-case and N-case thresholds are both met.
 
 The underlying methodology (why `stream-json` is required, the two-signal detection rule, jq extraction strategies, and the `--permission-mode bypassPermissions` requirement) is documented in [docs/testing-agents-headlessly.md](docs/testing-agents-headlessly.md). For the battery thresholds and the pass criterion, see `tests/routing-catalog.md`.
+
+## License
+
+MIT. See [LICENSE](./LICENSE).
