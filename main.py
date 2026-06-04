@@ -48,6 +48,19 @@ def _require_python_version() -> None:
         sys.exit(2)
 
 
+def _require_pyyaml() -> None:
+    """Catch missing PyYAML at startup with a clear remediation message."""
+    try:
+        import yaml  # noqa: F401
+    except ImportError:
+        sys.stderr.write(
+            "main.py needs PyYAML.\n"
+            "  Easiest:  uv run main.py\n"
+            "  Or:       pip install --user 'pyyaml>=6.0'  &&  python3 main.py\n"
+        )
+        sys.exit(2)
+
+
 def _prompt_artifact_type() -> str:
     """Prompt the user to select artifact type; loops until a valid choice is given."""
     print("Select artifact type:")
@@ -314,6 +327,7 @@ def _run_validation(artifact_type: str, candidate_path: Path) -> None:
 
 def main() -> None:
     _require_python_version()
+    _require_pyyaml()
 
     GENERATED_DIR.mkdir(exist_ok=True)
 
