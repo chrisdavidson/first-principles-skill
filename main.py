@@ -187,6 +187,7 @@ def _check_description_budget(candidate_path: Path) -> tuple[bool, str]:
     text = candidate_path.read_text(encoding="utf-8")
     parts = _FENCE_RE.split(text, maxsplit=2)
     fm = yaml.safe_load(parts[1]) if len(parts) >= 3 else {}
+    fm = fm or {}   # guard: yaml.safe_load returns None for empty frontmatter
     desc: str = fm.get("description", "") or ""
     wtu: str = fm.get("when_to_use", "") or ""
     surface = f"{desc} {wtu}" if wtu else desc
@@ -225,6 +226,7 @@ def _check_trigger_collisions(candidate_path: Path) -> tuple[bool, str]:
     text = candidate_path.read_text(encoding="utf-8")
     parts = _FENCE_RE.split(text, maxsplit=2)
     fm = yaml.safe_load(parts[1]) if len(parts) >= 3 else {}
+    fm = fm or {}   # guard: yaml.safe_load returns None for empty frontmatter
     cand_desc: str = fm.get("description", "") or ""
     cand_wtu: str = fm.get("when_to_use", "") or ""
     cand_surface = f"{cand_desc} {cand_wtu}" if cand_wtu else cand_desc
@@ -240,6 +242,7 @@ def _check_trigger_collisions(candidate_path: Path) -> tuple[bool, str]:
             st = skill_md.read_text(encoding="utf-8")
             sparts = _FENCE_RE.split(st, maxsplit=2)
             sfm = yaml.safe_load(sparts[1]) if len(sparts) >= 3 else {}
+            sfm = sfm or {}   # guard: yaml.safe_load returns None for empty frontmatter
             sdesc: str = sfm.get("description", "") or ""
             swtu: str = sfm.get("when_to_use", "") or ""
             ssurface = f"{sdesc} {swtu}" if swtu else sdesc
