@@ -190,6 +190,26 @@ AskUserQuestion: permitted
 This is a non-empty body with valid content.
 """
 
+# Self-test fixture: structurally valid candidate with a non-first-principles name
+# and no trigger phrases — used to verify skip_name_check=True path
+_FIXTURE_CANDIDATE_VALID = """\
+---
+name: my-builder-agent
+description: A builder-generated candidate agent for structural validation testing.
+license: MIT
+metadata:
+  version: "1.0.0"
+disallowedTools:
+  - Write
+  - Edit
+maxTurns: 30
+AskUserQuestion: permitted
+---
+## Body
+
+Non-empty body content for the candidate agent fixture.
+"""
+
 
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
@@ -214,8 +234,14 @@ def _require_pyyaml() -> None:
         sys.exit(2)
 
 
-def _check_agent_text(text: str) -> list[str]:
+def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     """Validate agent file text against the locked schema.
+
+    Args:
+        text: The full agent file text (frontmatter + body).
+        skip_name_check: If True, skip Check 2 (name identity) and Check 8
+            (trigger-phrase presence). Use for builder-generated candidate agents
+            that are structurally valid but do not have the first-principles identity.
 
     Returns a list of failure-message strings (empty list == valid).
     Exits with code 2 for environment-class errors (malformed YAML, non-mapping frontmatter).
@@ -249,11 +275,12 @@ def _check_agent_text(text: str) -> list[str]:
     failures: list[str] = []
 
     # Check 2: name present and exactly "first-principles"
-    name = frontmatter.get("name")
-    if name is None:
-        failures.append(f"frontmatter missing required key 'name'")
-    elif name != _EXPECTED_NAME:
-        failures.append(f"name must be '{_EXPECTED_NAME}', got '{name}'")
+    if not skip_name_check:
+        name = frontmatter.get("name")
+        if name is None:
+            failures.append(f"frontmatter missing required key 'name'")
+        elif name != _EXPECTED_NAME:
+            failures.append(f"name must be '{_EXPECTED_NAME}', got '{name}'")
 
     # Check 3: description is a non-empty string with len <= 1024
     description = frontmatter.get("description")
@@ -288,18 +315,19 @@ def _check_agent_text(text: str) -> list[str]:
         )
 
     # Check 8: description must contain all four mandatory trigger phrases
-    if isinstance(description, str) and len(description) > 0:
-        missing = [p for p in _REQUIRED_PHRASES if p not in description.lower()]
-        if missing:
-            failures.append(
-                "'description' missing required trigger phrase(s): "
-                + ", ".join(f'"{p}"' for p in missing)
-            )
+    if not skip_name_check:
+        if isinstance(description, str) and len(description) > 0:
+            missing = [p for p in _REQUIRED_PHRASES if p not in description.lower()]
+            if missing:
+                failures.append(
+                    "'description' missing required trigger phrase(s): "
+                    + ", ".join(f'"{p}"' for p in missing)
+                )
 
     return failures
 
 
-def _validate_agent_file(agent_path: Path) -> None:
+def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> None:
     """Validate the agent file at *agent_path*. Exits non-zero on failure."""
     if not agent_path.exists():
         sys.stderr.write(
@@ -308,7 +336,7 @@ def _validate_agent_file(agent_path: Path) -> None:
         sys.exit(2)
 
     text = agent_path.read_text(encoding="utf-8")
-    failures = _check_agent_text(text)
+    failures = _check_agent_text(text, skip_name_check=skip_name_check)
 
     if failures:
         for msg in failures:
@@ -357,6 +385,21 @@ def _run_self_test() -> None:
         else:
             print(f"check-agent --self-test: {label} correctly failed ({len(failures)} failure(s))")
 
+    # Fixture-i: structurally valid candidate with skip_name_check=True
+    # This is a "positive" fixture — expects zero failures (pass case)
+    fi_failures = _check_agent_text(_FIXTURE_CANDIDATE_VALID, skip_name_check=True)
+    if fi_failures:
+        print(
+            f"check-agent --self-test: fixture-i (valid candidate, skip_name_check) "
+            f"WRONGLY FAILED ({len(fi_failures)} failure(s): {'; '.join(fi_failures)})"
+        )
+        wrong_passes.append("fixture-i (unexpected failures)")
+    else:
+        print(
+            "check-agent --self-test: fixture-i (valid candidate, skip_name_check) "
+            "correctly passed (0 failures)"
+        )
+
     if wrong_passes:
         sys.stderr.write(
             f"check-agent --self-test: FAIL — these fixtures wrongly passed or "
@@ -381,6 +424,14 @@ def main() -> None:
         default=None,
         help="path to the agent .md file to validate",
     )
+    parser.add_argument(
+        "--skip-name-check",
+        action="store_true",
+        help=(
+            "skip name identity check (Check 2) and trigger-phrase check (Check 8); "
+            "use for builder-generated candidate agents"
+        ),
+    )
     args = parser.parse_args()
 
     _require_python_version()
@@ -393,7 +444,7 @@ def main() -> None:
     if args.file is None:
         parser.error("--file is required when not using --self-test")
 
-    _validate_agent_file(Path(args.file))
+    _validate_agent_file(Path(args.file), skip_name_check=args.skip_name_check)
 
 
 if __name__ == "__main__":
