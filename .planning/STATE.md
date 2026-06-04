@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.13
-milestone_name: Routing Catalog v3.2 Content Coverage
-status: archived
-last_updated: 2026-06-03T23:30:00.000Z
-last_activity: 2026-06-03
+milestone: v4.0
+milestone_name: Programmatic Skill/Agent Builder
+status: ready_to_plan
+last_updated: 2026-06-04T13:19:52.138Z
+last_activity: 2026-06-04
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 5
+  completed_phases: 2
+  total_plans: 4
   completed_plans: 5
-  percent: 100
-stopped_at: Milestone archived — v3.13 shipped and tagged
+  percent: 67
+stopped_at: Phase 59 complete (2/2) — ready to discuss Phase 60
 ---
 
 # Project State
@@ -21,14 +21,14 @@ stopped_at: Milestone archived — v3.13 shipped and tagged
 See: .planning/PROJECT.md (updated 2026-06-03 after v3.13 milestone)
 
 **Core value:** Every conclusion traces back to a verified ground truth and every assumption is explicitly challenged — reasoning a skeptic cannot dismiss as hand-waving.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 60 — documentation
 
 ## Current Position
 
-Phase: 57 (complete)
-Plan: All plans complete
-Status: v3.13 archived — planning next milestone
-Last activity: 2026-06-03
+Phase: 60
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-06-04
 
 ## Milestone History
 
@@ -71,6 +71,17 @@ Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning
 - v3.11: 2-phase roadmap — Phase 50 (run mini-battery + diagnose if failing, MON-01/02) → Phase 51 (fix if confirmed defect + verify rerun + commit baseline, MON-03/04/05). Conditional branching: MON-02/03/04 only execute if P8 pass rate is below threshold; Phase 51 always executes (baseline committed regardless of outcome).
 - v3.12: 3-phase roadmap — Phase 52 (reference file extraction + sync-content.py extension, PHASE-06/07) → Phase 53 (stub authoring + emission + manifest update, PHASE-01..05/08) → Phase 54 (static checks + routing regression battery, PHASE-09/10). Dependency chain: generation infrastructure must exist before stubs can be authored and emitted; all deliverables must exist before gates can be run.
 - v3.13: 3-phase roadmap mirrors v3.6 — Phase 55 (catalog authoring + threshold update, TAX-01/02 + META-01/02 + WKEX-01/02 + INFRA-01/02/06) → Phase 56 (mini-battery gate + full battery + baseline commit, INFRA-03/04/05) → Phase 57 (Nyquist sign-off). Dependency chain: new prompts and threshold changes must exist before any battery run; mini-battery must pass before full battery.
+- v4.0: 3-phase roadmap — Phase 58 (CLI scaffold + template rendering, CLI-01/02/03/07) → Phase 59 (post-generation validation wiring, CLI-04/05/06) → Phase 60 (documentation, CLI-08). Dependency chain: interactive entry point and templates must exist before validators can be wired; all behavior must be settled before documentation is written.
+
+### v4.0 scoping notes
+
+- Phase 58 owns the complete interactive experience: `main.py` entry point, prompt loop, and both template renderers (skill and agent). This is the core delivery — a user can generate a valid candidate file from this phase alone.
+- Phase 59 wires the three existing check-* scripts as a post-generation validation step. No new validation logic is written; only subprocess integration and pass/fail reporting.
+- Phase 60 is documentation-only: README "Builder" section with usage, prompts, and output locations.
+- Output is candidate-only (no auto-install into shared/ or first-principles/) — this is an explicit v4.0 Out of Scope boundary in REQUIREMENTS.md.
+- The uv scaffold already exists (main.py in the project root). Phase 58 replaces/extends it in-place; no new files outside main.py and a possible templates/ directory are expected.
+- check-description-budget.py and check-trigger-collisions.py apply to skill output; check-agent.py applies to agent output. They run in-process via subprocess on the generated candidate file path.
+- `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
 
 ### v3.13 scoping notes
 
@@ -100,6 +111,8 @@ v3.5 roadmapping notes:
 - [Phase ?]: P-threshold default raised from 8 to 11 to match 13P catalog shape
 - [Phase ?]: N-threshold default raised from 15 to 18 to match 20N catalog shape
 - [Phase ?]: P1-P10 and N1-N17 K/N scores carried forward verbatim from routing-baseline-v3.12.md per D-04; only P11/P12/P13 and N18/N19/N20 freshly measured in v3.13 baseline
+- [Phase ?]: Used required=False with manual parser.error guard to keep --self-test working without --file
+- [Phase ?]: Implemented all four validation functions in one feat commit — Task 1 and Task 2 tightly coupled in main.py
 
 ### v3.12 scoping notes
 
@@ -175,31 +188,27 @@ Items acknowledged and deferred:
 | nyquist_gap | Phase 46: 46-VALIDATION.md | resolved — 46-VALIDATION.md created 2026-05-29 (Phase 49) |
 | forward_monitoring | P8 (`decompose this problem`) routing | resolved — P8 HELD at 3/5 (Phase 50); v3.11 baseline (tests/routing-baseline-v3.11.md) closes the watch obligation (Phase 51) |
 
-## v3.13 Requirement Traceability
+## v4.0 Requirement Traceability
 
 | REQ-ID | Phase | Notes |
 |--------|-------|-------|
-| TAX-01 | Phase 55 | P11 assumption-taxonomy P-prompt authoring |
-| TAX-02 | Phase 55 | N18 assumption-taxonomy N-prompt authoring |
-| META-01 | Phase 55 | P12 self-application P-prompt authoring |
-| META-02 | Phase 55 | N19 self-application N-prompt authoring |
-| WKEX-01 | Phase 55 | P13 worked-examples-domain P-prompt authoring |
-| WKEX-02 | Phase 55 | N20 worked-examples-domain N-prompt authoring |
-| INFRA-01 | Phase 55 | check-routing.py threshold + self-test update |
-| INFRA-02 | Phase 55 | Catalog header threshold line update |
-| INFRA-03 | Phase 56 | Mini-battery gate on new P-prompts |
-| INFRA-04 | Phase 56 | Full battery PASS at new thresholds |
-| INFRA-05 | Phase 56 | Canonical baseline committed |
-| INFRA-06 | Phase 55 | Catalog History entry for v3.13 |
+| CLI-01 | Phase 58 | Interactive session + prompt loop |
+| CLI-02 | Phase 58 | Skill template rendering |
+| CLI-03 | Phase 58 | Agent template rendering |
+| CLI-04 | Phase 59 | check-description-budget.py integration |
+| CLI-05 | Phase 59 | check-trigger-collisions.py integration |
+| CLI-06 | Phase 59 | check-agent.py integration |
+| CLI-07 | Phase 58 | main.py entry point constraint |
+| CLI-08 | Phase 60 | README Builder section |
 
 ## Session Continuity
 
-Last session: 2026-06-03T22:00:00.000Z
-Stopped at: Phase 57 planned (57-01-PLAN.md — 1 plan, 3 tasks)
+Last session: 2026-06-04T13:11:29.027Z
+Stopped at: Phase 59 context gathered
 
 ## Operator Next Steps
 
-- Run `/gsd-new-milestone` to start the next milestone cycle (questioning → research → requirements → roadmap)
+- Run `/gsd-plan-phase 58` to plan Phase 58 (CLI Scaffold + Template Rendering)
 
 ## Performance Metrics
 
@@ -217,3 +226,5 @@ Stopped at: Phase 57 planned (57-01-PLAN.md — 1 plan, 3 tasks)
 | Phase 55 P02 | 5m | 2 tasks | 2 files |
 | Phase 56 P01 | ~15m | 2 tasks | 1 file | tests/routing-mini-catalog-v3.13.md; INFRA-03 BATTERY: PASS |
 | Phase 56 P02 | 10min | 2 tasks | 1 files |
+| Phase 59 P01 | 5m | 2 tasks | 2 files |
+| Phase 59 P02 | 5m | 2 tasks | 2 files |

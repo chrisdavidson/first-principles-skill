@@ -101,6 +101,38 @@ The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed i
 
 The plugin can also be installed into a single project (committed to that repo's VCS) by placing it under `.claude/plugins/` inside the project. Use this when a team wants the agent version-controlled with a specific codebase.
 
+## Builder
+
+An interactive CLI that generates a candidate `SKILL.md` or agent `.md` from templates. Generated files land in `generated/<slug>.md` — they are candidates, not installed skills or agents; installing them into `shared/` or `first-principles/` is a separate manual step the builder does not perform.
+
+```bash
+python3 main.py
+uv run main.py
+```
+
+### Prompts
+
+| Prompt | What it collects | Constraints / Notes |
+|--------|------------------|---------------------|
+| Select artifact type | `skill` or `agent` | Accepts `1` or `skill`; `2` or `agent`; loops until valid |
+| Name | The skill/agent name | Required, non-empty; cannot contain the reserved words `anthropic` or `claude`; output filename slug is derived from this (lowercased, spaces to hyphens) |
+| Description | Description surface text | Required, non-empty; maximum 1024 chars |
+| Trigger phrases | One phrase per line, blank line to finish | Skill-only — not asked when building an agent |
+
+### Output
+
+The rendered candidate is written to `generated/<slug>.md` in the repo root, where `<slug>` is the lowercased, hyphenated name. The `generated/` directory is created automatically. If a file with that name already exists, the builder prompts before overwriting.
+
+### Validation
+
+After writing the file, `main.py` prints an advisory `Validation:` section:
+
+- `check-description-budget` — warns if the description surface exceeds 2000 chars (skill artifacts).
+- `check-trigger-collisions` — warns if the description shares a 4-gram with an installed skill (skill artifacts).
+- `check-agent` — runs structural checks from `scripts/check-agent.py` (agent artifacts only).
+
+Validation is advisory — the candidate file stays in `generated/` regardless of PASS/FAIL and `main.py` exits 0.
+
 ## Contributing
 
 Canonical content lives in `shared/`. The agent surface (`first-principles/agents/first-principles.md`) and its on-demand reference siblings under `first-principles/agents/references/` are **generated** from `shared/` by `scripts/sync-content.py`. Edit `shared/` — never the generated agent tree directly.
