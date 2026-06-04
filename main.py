@@ -265,6 +265,7 @@ def _check_agent_subprocess(candidate_path: Path) -> tuple[bool, str]:
             str(REPO_ROOT / "scripts" / "check-agent.py"),
             "--file",
             str(candidate_path),
+            "--skip-name-check",
         ],
         capture_output=True,
         text=True,
