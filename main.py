@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["pyyaml>=6.0"]
 # ///
 """Interactive builder: generate a candidate SKILL.md or agent .md from templates.
 
@@ -12,7 +11,7 @@ Usage:
 Exit codes:
     0  normal completion
     1  user aborted / file write error
-    2  environment error (Python <3.12, PyYAML missing)
+    2  environment error (Python <3.12)
 """
 
 from __future__ import annotations
@@ -22,6 +21,8 @@ import sys
 from pathlib import Path
 
 _MAX_DESCRIPTION_LEN = 1024
+_DEFAULT_VERSION = "0.1.0"
+_RESERVED_NAME_WORDS = frozenset({"anthropic", "claude"})
 
 REPO_ROOT: Path = Path(__file__).resolve().parent
 TEMPLATES_DIR: Path = REPO_ROOT / "templates"
@@ -33,19 +34,6 @@ def _require_python_version() -> None:
         sys.stderr.write(
             f"main.py requires Python >=3.12 "
             f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"
-        )
-        sys.exit(2)
-
-
-def _require_pyyaml() -> None:
-    """Catch missing PyYAML at startup with a clear remediation message."""
-    try:
-        import yaml  # noqa: F401
-    except ImportError:
-        sys.stderr.write(
-            "main.py needs PyYAML.\n"
-            "  Easiest:  uv run main.py\n"
-            "  Or:       pip install --user 'pyyaml>=6.0'  &&  python3 main.py\n"
         )
         sys.exit(2)
 
@@ -64,13 +52,21 @@ def _prompt_artifact_type() -> str:
         sys.stderr.write("Invalid choice. Enter 1 or skill, or 2 or agent.\n")
 
 
-def _prompt_nonempty(label: str) -> str:
-    """Prompt for a required non-empty field; re-prompts if blank."""
+def _prompt_name() -> str:
+    """Prompt for a skill/agent name; rejects reserved words."""
     while True:
-        value = input(f"{label}: ").strip()
-        if value:
-            return value
-        sys.stderr.write(f"{label} is required and cannot be empty.\n")
+        value = input("Name: ").strip()
+        if not value:
+            sys.stderr.write("Name is required and cannot be empty.\n")
+            continue
+        lower = value.lower()
+        if any(word in lower for word in _RESERVED_NAME_WORDS):
+            sys.stderr.write(
+                f"Name cannot contain reserved words: "
+                f"{', '.join(sorted(_RESERVED_NAME_WORDS))}.\n"
+            )
+            continue
+        return value
 
 
 def _prompt_description() -> str:
@@ -129,12 +125,15 @@ def _render_and_write(
         sys.exit(1)
     template_text = tmpl_path.read_text(encoding="utf-8")
 
-    # Build substitution mapping
-    version = "0.1.0"
+    # Build substitution mapping.
+    # name in frontmatter must equal the parent directory name (the slug) per
+    # the plugin invariant in CLAUDE.md. The human-readable display name is
+    # kept as a separate key for use in the H1 heading.
     mapping: dict[str, str] = {
-        "name": name,
+        "name": slug,
+        "display_name": name,
         "description": description,
-        "version": version,
+        "version": _DEFAULT_VERSION,
     }
     if artifact_type == "skill":
         if trigger_phrases:
@@ -166,19 +165,22 @@ def _render_and_write(
 
 def main() -> None:
     _require_python_version()
-    _require_pyyaml()
 
     GENERATED_DIR.mkdir(exist_ok=True)
 
-    artifact_type = _prompt_artifact_type()
-    name = _prompt_nonempty("Name")
-    description = _prompt_description()
+    try:
+        artifact_type = _prompt_artifact_type()
+        name = _prompt_name()
+        description = _prompt_description()
 
-    trigger_phrases: list[str] = []
-    if artifact_type == "skill":
-        trigger_phrases = _prompt_trigger_phrases()
+        trigger_phrases: list[str] = []
+        if artifact_type == "skill":
+            trigger_phrases = _prompt_trigger_phrases()
 
-    _render_and_write(artifact_type, name, description, trigger_phrases)
+        _render_and_write(artifact_type, name, description, trigger_phrases)
+    except (EOFError, KeyboardInterrupt):
+        sys.stderr.write("\nAborted.\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
