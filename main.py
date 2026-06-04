@@ -127,6 +127,8 @@ def _slug(name: str) -> str:
     slug = slug.replace("/", "").replace("\\", "").replace("..", "")
     # Remove any remaining characters that are not alphanumeric, hyphen, or underscore
     slug = "".join(c for c in slug if c.isalnum() or c in "-_")
+    # Strip leading/trailing separator chars so inputs like "---" don't produce a bare-separator slug
+    slug = slug.strip("-_")
     return slug or "untitled"
 
 
