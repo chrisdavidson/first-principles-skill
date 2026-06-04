@@ -299,16 +299,15 @@ def _check_agent_text(text: str) -> list[str]:
     return failures
 
 
-def _validate_agent_file() -> None:
-    """Validate the real generated agent file. Exits non-zero on failure."""
-    if not AGENT_FILE.exists():
+def _validate_agent_file(agent_path: Path) -> None:
+    """Validate the agent file at *agent_path*. Exits non-zero on failure."""
+    if not agent_path.exists():
         sys.stderr.write(
-            f"check-agent: generated agent file not found: {AGENT_FILE}\n"
-            f"  Run the sync pipeline to generate it before running this gate.\n"
+            f"check-agent: agent file not found: {agent_path}\n"
         )
         sys.exit(2)
 
-    text = AGENT_FILE.read_text(encoding="utf-8")
+    text = agent_path.read_text(encoding="utf-8")
     failures = _check_agent_text(text)
 
     if failures:
@@ -377,6 +376,11 @@ def main() -> None:
         action="store_true",
         help="run inline malformed fixtures and verify each produces failures",
     )
+    parser.add_argument(
+        "--file",
+        default=None,
+        help="path to the agent .md file to validate",
+    )
     args = parser.parse_args()
 
     _require_python_version()
@@ -386,7 +390,10 @@ def main() -> None:
         _run_self_test()
         return
 
-    _validate_agent_file()
+    if args.file is None:
+        parser.error("--file is required when not using --self-test")
+
+    _validate_agent_file(Path(args.file))
 
 
 if __name__ == "__main__":
