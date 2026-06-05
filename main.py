@@ -38,6 +38,8 @@ REPO_ROOT: Path = Path(__file__).resolve().parent
 TEMPLATES_DIR: Path = REPO_ROOT / "templates"
 GENERATED_DIR: Path = REPO_ROOT / "generated"
 PLUGIN_SKILLS_DIR: Path = REPO_ROOT / "first-principles" / "skills"
+SHARED_SKILLS_DIR: Path = REPO_ROOT / "shared" / "skills"
+SHARED_AGENT_DIR: Path = REPO_ROOT / "shared" / "agent"
 
 
 def _require_python_version() -> None:
@@ -313,32 +315,41 @@ def _check_agent_subprocess(candidate_path: Path) -> tuple[bool, str]:
     return False, detail
 
 
-def _run_validation(artifact_type: str, candidate_path: Path) -> None:
+def _run_validation(artifact_type: str, candidate_path: Path) -> bool:
     """Print a structured pass/fail validation report for the generated candidate.
 
     Validation is advisory — this function never calls sys.exit() (D-06/D-07).
     For skill artifacts: runs description-budget and trigger-collision checks.
     For agent artifacts: runs check-agent.py via subprocess.
     Output format per D-08/D-10: blank line separator, one line per check.
+    Returns True if all checks pass, False if any check fails.
     """
     print()  # blank-line separator per D-10
     print("Validation:")
+    all_passed = True
     if artifact_type == "skill":
         ok, detail = _check_description_budget(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-description-budget: {status} {suffix}")
 
         ok, detail = _check_trigger_collisions(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-trigger-collisions: {status} {suffix}")
     else:  # agent
         ok, detail = _check_agent_subprocess(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-agent: {status} {suffix}")
     # No sys.exit() — validation is advisory per D-06/D-07
+    return all_passed
 
 
 def _install(artifact_type: str, candidate_path: Path, *, install: bool) -> None:
