@@ -389,11 +389,31 @@ def _install(artifact_type: str, candidate_path: Path, *, install: bool) -> None
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     dest_path.write_text(candidate_path.read_text(encoding="utf-8"), encoding="utf-8")
     print(f"Installed {dest_path.relative_to(REPO_ROOT)}")
+    _sync_content(dest_path)
 
 
-def _sync_content() -> None:
-    """No-op stub — sync-content logic is implemented in Phase 63."""
-    pass
+def _sync_content(dest_path: Path) -> None:
+    """Invoke scripts/sync-content.py --write after a successful install write.
+
+    On success (returncode == 0): returns normally with no output.
+    On failure (non-zero returncode):
+      1. Deletes dest_path (rollback — OSError propagates as traceback if delete fails).
+      2. Writes subprocess stderr verbatim to sys.stderr (root cause first).
+      3. Writes a rollback notice line to sys.stderr.
+      4. Calls sys.exit(1).
+    """
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--write"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        dest_path.unlink()
+        sys.stderr.write(result.stderr)
+        sys.stderr.write(
+            f"Rolled back: deleted {dest_path.relative_to(REPO_ROOT)}\n"
+        )
+        sys.exit(1)
 
 
 def main() -> None:
