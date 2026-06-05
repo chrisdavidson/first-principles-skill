@@ -17,6 +17,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import argparse
 import re
 import string
 import subprocess
@@ -59,6 +60,19 @@ def _require_pyyaml() -> None:
             "  Or:       pip install --user 'pyyaml>=6.0'  &&  python3 main.py\n"
         )
         sys.exit(2)
+
+
+def _parse_args() -> argparse.Namespace:
+    """Parse CLI arguments and return the resulting Namespace."""
+    parser = argparse.ArgumentParser(
+        description="Interactive builder: generate a candidate SKILL.md or agent .md."
+    )
+    parser.add_argument(
+        "--install",
+        action="store_true",
+        help="Copy to shared/ and regenerate plugin surface",
+    )
+    return parser.parse_args()
 
 
 def _prompt_artifact_type() -> str:
@@ -327,9 +341,20 @@ def _run_validation(artifact_type: str, candidate_path: Path) -> None:
     # No sys.exit() — validation is advisory per D-06/D-07
 
 
+def _install(artifact_type: str, candidate_path: Path, *, install: bool) -> None:
+    """No-op stub — install logic is implemented in Phase 62."""
+    pass
+
+
+def _sync_content() -> None:
+    """No-op stub — sync-content logic is implemented in Phase 63."""
+    pass
+
+
 def main() -> None:
     _require_python_version()
     _require_pyyaml()
+    args = _parse_args()
 
     GENERATED_DIR.mkdir(exist_ok=True)
 
@@ -345,6 +370,7 @@ def main() -> None:
         candidate_path = _render_and_write(artifact_type, name, description, trigger_phrases)
         if candidate_path is not None:
             _run_validation(artifact_type, candidate_path)
+            _install(artifact_type, candidate_path, install=args.install)
     except (EOFError, KeyboardInterrupt):
         sys.stderr.write("\nAborted.\n")
         sys.exit(1)
