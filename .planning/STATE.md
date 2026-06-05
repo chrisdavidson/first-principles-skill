@@ -2,32 +2,32 @@
 gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: Programmatic Skill/Agent Builder
-status: ready_to_plan
-last_updated: 2026-06-04T13:19:52.138Z
-last_activity: 2026-06-04
+status: archived
+last_updated: 2026-06-04T20:00:00.000Z
+last_activity: 2026-06-04 -- v4.0 milestone archived; next milestone to be defined
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 5
-  percent: 67
-stopped_at: Phase 59 complete (2/2) — ready to discuss Phase 60
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 7
+  completed_plans: 7
+  percent: 100
+stopped_at: Milestone archived
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-03 after v3.13 milestone)
+See: .planning/PROJECT.md (updated 2026-06-04 after v4.0 milestone)
 
 **Core value:** Every conclusion traces back to a verified ground truth and every assumption is explicitly challenged — reasoning a skeptic cannot dismiss as hand-waving.
-**Current focus:** Phase 60 — documentation
+**Current focus:** Planning next milestone (run `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 60
+Phase: 60.1
 Plan: Not started
-Status: Ready to plan
+Status: Milestone complete
 Last activity: 2026-06-04
 
 ## Milestone History
@@ -72,6 +72,7 @@ Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning
 - v3.12: 3-phase roadmap — Phase 52 (reference file extraction + sync-content.py extension, PHASE-06/07) → Phase 53 (stub authoring + emission + manifest update, PHASE-01..05/08) → Phase 54 (static checks + routing regression battery, PHASE-09/10). Dependency chain: generation infrastructure must exist before stubs can be authored and emitted; all deliverables must exist before gates can be run.
 - v3.13: 3-phase roadmap mirrors v3.6 — Phase 55 (catalog authoring + threshold update, TAX-01/02 + META-01/02 + WKEX-01/02 + INFRA-01/02/06) → Phase 56 (mini-battery gate + full battery + baseline commit, INFRA-03/04/05) → Phase 57 (Nyquist sign-off). Dependency chain: new prompts and threshold changes must exist before any battery run; mini-battery must pass before full battery.
 - v4.0: 3-phase roadmap — Phase 58 (CLI scaffold + template rendering, CLI-01/02/03/07) → Phase 59 (post-generation validation wiring, CLI-04/05/06) → Phase 60 (documentation, CLI-08). Dependency chain: interactive entry point and templates must exist before validators can be wired; all behavior must be settled before documentation is written.
+- Phase 60.1 inserted after Phase 60: Fix CLI-06 semantic gap — check-agent.py `_EXPECTED_NAME` lock and trigger-phrase checks cause every builder-generated agent to always fail regardless of structural correctness (URGENT) — v4.0
 
 ### v4.0 scoping notes
 
@@ -203,12 +204,12 @@ Items acknowledged and deferred:
 
 ## Session Continuity
 
-Last session: 2026-06-04T13:11:29.027Z
-Stopped at: Phase 59 context gathered
+Last session: 2026-06-04T20:00:00.000Z
+Stopped at: v4.0 milestone archived
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 58` to plan Phase 58 (CLI Scaffold + Template Rendering)
+- Run `/gsd-new-milestone` to define and plan the next milestone
 
 ## Performance Metrics
 
