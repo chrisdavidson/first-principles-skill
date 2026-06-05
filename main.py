@@ -438,7 +438,8 @@ def main() -> None:
 
         candidate_path = _render_and_write(artifact_type, name, description, trigger_phrases)
         if candidate_path is not None:
-            _run_validation(artifact_type, candidate_path)
+            if not args.install:
+                _run_validation(artifact_type, candidate_path)
             _install(artifact_type, candidate_path, install=args.install)
     except (EOFError, KeyboardInterrupt):
         sys.stderr.write("\nAborted.\n")
