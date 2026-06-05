@@ -353,8 +353,42 @@ def _run_validation(artifact_type: str, candidate_path: Path) -> bool:
 
 
 def _install(artifact_type: str, candidate_path: Path, *, install: bool) -> None:
-    """No-op stub — install logic is implemented in Phase 62."""
-    pass
+    """Copy the generated candidate to the correct shared/ destination.
+
+    When install=False, returns immediately (no-op; preserves v4.0 advisory behavior).
+    When install=True:
+      1. Runs validation as a hard gate — aborts with exit 1 if any check fails (INST-05).
+      2. Derives the destination path from artifact_type:
+           skill → shared/skills/<slug>/SKILL.md (INST-01)
+           agent → shared/agent/<slug>.md (INST-02)
+      3. Conflict guard — aborts with exit 1 if the destination file already exists (INST-03).
+         A pre-existing parent directory without the target file is not a conflict.
+      4. Creates the parent directory as needed (mkdir -p).
+      5. Copies via write_text/read_text only — no new imports (D-06).
+    """
+    if not install:
+        return
+
+    slug = candidate_path.stem
+
+    if not _run_validation(artifact_type, candidate_path):
+        sys.stderr.write("Install aborted: validation failed.\n")
+        sys.exit(1)
+
+    if artifact_type == "skill":
+        dest_path = SHARED_SKILLS_DIR / slug / "SKILL.md"
+    else:  # agent
+        dest_path = SHARED_AGENT_DIR / f"{slug}.md"
+
+    if dest_path.exists():
+        sys.stderr.write(
+            f"Install aborted: {dest_path.relative_to(REPO_ROOT)} already exists.\n"
+        )
+        sys.exit(1)
+
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    dest_path.write_text(candidate_path.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"Installed {dest_path.relative_to(REPO_ROOT)}")
 
 
 def _sync_content() -> None:
