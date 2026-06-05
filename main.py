@@ -38,6 +38,8 @@ REPO_ROOT: Path = Path(__file__).resolve().parent
 TEMPLATES_DIR: Path = REPO_ROOT / "templates"
 GENERATED_DIR: Path = REPO_ROOT / "generated"
 PLUGIN_SKILLS_DIR: Path = REPO_ROOT / "first-principles" / "skills"
+SHARED_SKILLS_DIR: Path = REPO_ROOT / "shared" / "skills"
+SHARED_AGENT_DIR: Path = REPO_ROOT / "shared" / "agent"
 
 
 def _require_python_version() -> None:
@@ -313,37 +315,80 @@ def _check_agent_subprocess(candidate_path: Path) -> tuple[bool, str]:
     return False, detail
 
 
-def _run_validation(artifact_type: str, candidate_path: Path) -> None:
+def _run_validation(artifact_type: str, candidate_path: Path) -> bool:
     """Print a structured pass/fail validation report for the generated candidate.
 
     Validation is advisory — this function never calls sys.exit() (D-06/D-07).
     For skill artifacts: runs description-budget and trigger-collision checks.
     For agent artifacts: runs check-agent.py via subprocess.
     Output format per D-08/D-10: blank line separator, one line per check.
+    Returns True if all checks pass, False if any check fails.
     """
     print()  # blank-line separator per D-10
     print("Validation:")
+    all_passed = True
     if artifact_type == "skill":
         ok, detail = _check_description_budget(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-description-budget: {status} {suffix}")
 
         ok, detail = _check_trigger_collisions(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-trigger-collisions: {status} {suffix}")
     else:  # agent
         ok, detail = _check_agent_subprocess(candidate_path)
+        if not ok:
+            all_passed = False
         status = "PASS" if ok else "FAIL"
         suffix = f"({detail})" if ok else f"— {detail}"
         print(f"  check-agent: {status} {suffix}")
     # No sys.exit() — validation is advisory per D-06/D-07
+    return all_passed
 
 
 def _install(artifact_type: str, candidate_path: Path, *, install: bool) -> None:
-    """No-op stub — install logic is implemented in Phase 62."""
-    pass
+    """Copy the generated candidate to the correct shared/ destination.
+
+    When install=False, returns immediately (no-op; preserves v4.0 advisory behavior).
+    When install=True:
+      1. Runs validation as a hard gate — aborts with exit 1 if any check fails (INST-05).
+      2. Derives the destination path from artifact_type:
+           skill → shared/skills/<slug>/SKILL.md (INST-01)
+           agent → shared/agent/<slug>.md (INST-02)
+      3. Conflict guard — aborts with exit 1 if the destination file already exists (INST-03).
+         A pre-existing parent directory without the target file is not a conflict.
+      4. Creates the parent directory as needed (mkdir -p).
+      5. Copies via write_text/read_text only — no new imports (D-06).
+    """
+    if not install:
+        return
+
+    slug = candidate_path.stem
+
+    if not _run_validation(artifact_type, candidate_path):
+        sys.stderr.write("Install aborted: validation failed.\n")
+        sys.exit(1)
+
+    if artifact_type == "skill":
+        dest_path = SHARED_SKILLS_DIR / slug / "SKILL.md"
+    else:  # agent
+        dest_path = SHARED_AGENT_DIR / f"{slug}.md"
+
+    if dest_path.exists():
+        sys.stderr.write(
+            f"Install aborted: {dest_path.relative_to(REPO_ROOT)} already exists.\n"
+        )
+        sys.exit(1)
+
+    dest_path.parent.mkdir(parents=True, exist_ok=True)
+    dest_path.write_text(candidate_path.read_text(encoding="utf-8"), encoding="utf-8")
+    print(f"Installed {dest_path.relative_to(REPO_ROOT)}")
 
 
 def _sync_content() -> None:
