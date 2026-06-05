@@ -408,10 +408,14 @@ def _sync_content(dest_path: Path) -> None:
         text=True,
     )
     if result.returncode != 0:
-        dest_path.unlink()
+        dest_path.unlink(missing_ok=True)
+        if result.stdout:
+            sys.stderr.write(result.stdout)
         sys.stderr.write(result.stderr)
         sys.stderr.write(
             f"Rolled back: deleted {dest_path.relative_to(REPO_ROOT)}\n"
+            "Warning: generated/ tree may be partially updated; "
+            "run 'python3 scripts/sync-content.py --write' to repair.\n"
         )
         sys.exit(1)
 
