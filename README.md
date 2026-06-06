@@ -34,7 +34,7 @@ For the complete procedure with entry/exit criteria per phase and the exact outp
 
 ## Companion tools
 
-Six tools extend the methodology when the analysis calls for them. Each ships both as an on-demand reference sibling of the agent (loaded automatically when the relevant trigger fires) and as a standalone slash-only skill for direct invocation (`/first-principles:<name>`):
+Eleven tools extend the methodology when the analysis calls for them. The six companion-reference tools ship both as on-demand reference siblings of the agent (loaded automatically when the relevant trigger fires) and as standalone slash-only skills for direct invocation (`/first-principles:<name>`). The five focused-mode phase skills are slash-only stubs for direct phase invocation:
 
 - **[Five Whys](first-principles/agents/references/five-whys.md)** (`/first-principles:five-whys`) — Root-cause drill-down procedure. Use it during Phase 3 when an analysis is stuck on *why* something is true and the surface explanation feels insufficient.
 - **[Fishbone (Ishikawa)](first-principles/agents/references/fishbone.md)** (`/first-principles:fishbone`) — Breadth-first cause-category brainstorm. Use it during Phase 2 (Challenge Assumptions) when the assumption space is multi-causal and intuition cannot enumerate it confidently. Branches enter the Classified Assumptions Table as `untested belief` rows; reach for Five Whys instead when the problem is single-chain depth.
@@ -42,6 +42,11 @@ Six tools extend the methodology when the analysis calls for them. Each ships bo
 - **[Pre-mortem](first-principles/agents/references/pre-mortem.md)** (`/first-principles:pre-mortem`) — Prospective-hindsight failure analysis. Use it during Phase 5 to stress-test a proposed solution by imagining it has already failed and working backward to the failure modes.
 - **[Trade-off Analysis](first-principles/agents/references/trade-off.md)** (`/first-principles:trade-off`) — Weighted-criteria decision procedure. Use it during Phase 4 when multiple viable options remain after ground truths are established. Criteria are weighted before scoring to prevent post-hoc rationalization.
 - **[Second-Order Thinking](first-principles/agents/references/second-order.md)** (`/first-principles:second-order`) — Downstream-consequence extension procedure. Use it during Phase 4 (Reason Upward) to extend a Derivation Chain with 2nd/3rd-order effects before handing off to Phase 5; contradicting effects route back to Phase 2 for re-challenging.
+- **Identify Essence** (`/first-principles:identify-essence`) — Phase 1 focused-mode stub. Invoke directly to strip framing artifacts and expose the core question; produces an Essence Statement with success criteria.
+- **Challenge Assumptions** (`/first-principles:challenge-assumptions`) — Phase 2 focused-mode stub. Invoke directly to classify and test every assumption (physical law / constraint / convention / untested belief) before reasoning upward.
+- **Ground Truths** (`/first-principles:ground-truths`) — Phase 3 focused-mode stub. Invoke directly to compile GT-ID-anchored verified facts for use as derivation-chain inputs.
+- **Reason Upward** (`/first-principles:reason-upward`) — Phase 4 focused-mode stub. Invoke directly to build derivation chains upward from named ground truths; records dead-end paths explicitly.
+- **Validate** (`/first-principles:validate`) — Phase 5 focused-mode stub. Invoke directly to stress-test each derivation chain for weak links and apply the validation rubric before presenting conclusions.
 
 ## Worked examples
 
@@ -66,7 +71,7 @@ This project is a fork and enhancement of [`github.com/chrisdavidson/first-princ
 The v3.8 enhanced successor adds four things the original does not have:
 
 1. **Validation rubric** — a scoring/self-check the model applies after Phase 5 to verify the analysis met the rigor bar, with explicit criteria, levels, and a gate that blocks presenting conclusions until the rubric clears.
-2. **Six companion tools** — Five Whys, fishbone, inversion, pre-mortem, trade-off analysis, and second-order thinking as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine.
+2. **Eleven companion tools** — Five Whys, fishbone, inversion, pre-mortem, trade-off analysis, and second-order thinking as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine; plus five focused-mode phase stubs (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) for direct phase invocation.
 3. **Eleven domain-spread worked examples** — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order, each demonstrating a real dead-end and a complete validation pass.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
@@ -95,7 +100,7 @@ Or install via the Claude Code plugin marketplace — no clone required:
 
 Verify with `/doctor` inside Claude Code; the `first-principles` agent should appear in the listing.
 
-The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0. In v3.8.0, six companion-tool slash-only skills were re-added under `first-principles/skills/` — these are standalone direct-invoke skills, not the full plugin-skill surfaces from v2.x. See [CHANGELOG.md](./CHANGELOG.md) for the full upgrade path.
+The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0. In v3.8.0, eleven companion-tool slash-only skills were re-added under `first-principles/skills/` — these are standalone direct-invoke skills, not the full plugin-skill surfaces from v2.x. See [CHANGELOG.md](./CHANGELOG.md) for the full upgrade path.
 
 ### Project-scoped install
 
