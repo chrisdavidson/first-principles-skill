@@ -103,7 +103,7 @@ The plugin can also be installed into a single project (committed to that repo's
 
 ## Builder
 
-An interactive CLI that generates a candidate `SKILL.md` or agent `.md` from templates. Generated files land in `generated/<slug>.md` — they are candidates, not installed skills or agents; installing them into `shared/` or `first-principles/` is a separate manual step the builder does not perform.
+An interactive CLI that generates a candidate `SKILL.md` or agent `.md` from templates. By default, generated files land in `generated/<slug>.md` — they are candidates ready for review. Passing `--install` copies the candidate into `shared/` and regenerates the plugin surface automatically (see [Install flag](#install-flag) below).
 
 ```bash
 python3 main.py
@@ -131,7 +131,26 @@ After writing the file, `main.py` prints an advisory `Validation:` section:
 - `check-trigger-collisions` — warns if the description shares a 4-gram with an installed skill (skill artifacts).
 - `check-agent` — runs structural checks from `scripts/check-agent.py` (agent artifacts only).
 
-Validation is advisory — the candidate file stays in `generated/` regardless of PASS/FAIL and `main.py` exits 0.
+Validation is advisory — the candidate file stays in `generated/` regardless of PASS/FAIL and `main.py` exits 0. Under `--install`, validation becomes a hard block: a FAIL aborts the install before any file is written to `shared/`.
+
+### Install flag
+
+Passing `--install` promotes the generated candidate directly into the source-of-truth tree and regenerates the plugin surface:
+
+```bash
+python3 main.py --install
+```
+
+**Copy → sync behavior.** After generating the candidate, `--install` copies it to its `shared/` destination and then runs `python3 scripts/sync-content.py --write` to regenerate the `first-principles/` plugin surface:
+
+- Skills land at `shared/skills/<slug>/SKILL.md` (the `<slug>/` subdirectory is created as needed).
+- Agents land at `shared/agent/<slug>.md` (a flat file).
+
+**Conflict policy.** If the target path already exists under `shared/`, the install aborts with exit 1 and prints the conflicting path. No file is overwritten — source-of-truth content is protected. Resolve the conflict manually before re-running with `--install`.
+
+**Rollback on sync failure.** If `sync-content.py --write` exits non-zero, the just-copied `shared/` file is deleted (rollback), the sync error is printed to stderr, and the builder exits 1 — leaving `shared/` in its pre-install state so the pre-commit sync-drift gate does not fire.
+
+**Agent-manifest caveat.** Installing an agent writes `shared/agent/<slug>.md` but does NOT register the agent in the plugin manifest (`first-principles/.claude-plugin/plugin.json`). `sync-content.py` regenerates only the canonical `first-principles` agent, so declaring a new agent in the manifest is a separate manual step.
 
 ## Contributing
 
