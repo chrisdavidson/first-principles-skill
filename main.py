@@ -217,8 +217,11 @@ def _check_description_budget(candidate_path: Path) -> tuple[bool, str]:
     import yaml  # lazy import — pyyaml declared in PEP 723 header
     text = candidate_path.read_text(encoding="utf-8")
     parts = _FENCE_RE.split(text, maxsplit=2)
-    fm = yaml.safe_load(parts[1]) if len(parts) >= 3 else {}
-    fm = fm or {}   # guard: yaml.safe_load returns None for empty frontmatter
+    try:
+        fm = yaml.safe_load(parts[1]) if len(parts) >= 3 else {}
+    except yaml.YAMLError as exc:
+        return False, f"frontmatter YAML parse error: {exc}"
+    fm = fm if isinstance(fm, dict) else {}
     desc: str = fm.get("description", "") or ""
     wtu: str = fm.get("when_to_use", "") or ""
     surface = f"{desc} {wtu}" if wtu else desc
