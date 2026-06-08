@@ -418,7 +418,7 @@ def _sync_content(dest_path: Path) -> None:
         sys.stderr.write(result.stderr)
         sys.stderr.write(
             f"Rolled back: deleted {dest_path.relative_to(REPO_ROOT)}\n"
-            "Warning: generated/ tree may be partially updated; "
+            "Warning: first-principles/ tree may be partially updated; "
             "run 'python3 scripts/sync-content.py --write' to repair.\n"
         )
         sys.exit(1)
