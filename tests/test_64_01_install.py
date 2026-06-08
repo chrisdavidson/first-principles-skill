@@ -299,6 +299,52 @@ def check_validation_fail_blocks_install() -> tuple[bool, str]:
         shutil.rmtree(anchor, ignore_errors=True)
 
 
+def check_no_flag_noop() -> tuple[bool, str]:
+    """_install('skill', candidate, install=False) is a true no-op.
+
+    Verifies: returns None without raising, writes nothing to disk, never
+    calls _run_validation.
+    """
+    mod, err = _load_main()
+    if mod is None:
+        return False, err
+
+    anchor = Path(tempfile.mkdtemp(dir=REPO_ROOT))
+    try:
+        skills_dir = anchor / "shared" / "skills"
+        agent_dir = anchor / "shared" / "agent"
+        setattr(mod, "SHARED_SKILLS_DIR", skills_dir)
+        setattr(mod, "SHARED_AGENT_DIR", agent_dir)
+
+        # Sentinel: records whether _run_validation was called
+        validation_calls: list[str] = []
+        def _sentinel(*a, **k):
+            validation_calls.append("called")
+            return True
+        setattr(mod, "_run_validation", _sentinel)
+
+        cand_path = anchor / "my-test-skill.md"
+        cand_path.write_text(_SKILL_CONTENT, encoding="utf-8")
+
+        result = mod._install("skill", cand_path, install=False)
+
+        if result is not None:
+            return False, f"Expected None return, got {result!r}"
+        if validation_calls:
+            return False, "_run_validation was called but should not be (install=False)"
+        # Verify no files written under skills_dir or agent_dir
+        if skills_dir.exists() and any(skills_dir.rglob("*")):
+            written = [str(p) for p in skills_dir.rglob("*") if p.is_file()]
+            return False, f"Files written to skills_dir: {written}"
+        return True, "no-flag no-op: returned None, no files written, _run_validation not called"
+    except SystemExit as e:
+        return False, f"Unexpected SystemExit({e.code}) in no-flag no-op"
+    except Exception as e:
+        return False, f"Unexpected exception: {e}"
+    finally:
+        shutil.rmtree(anchor, ignore_errors=True)
+
+
 def check_shared_tree_untouched() -> tuple[bool, str]:
     """After all test scenarios, shared/ must be no dirtier than before the suite ran."""
     result = subprocess.run(
@@ -326,6 +372,8 @@ def main() -> None:
         ("conflict abort: SystemExit(1) when dest exists; no overwrite", check_conflict_abort),
         ("sync failure rollback: SystemExit(1) and dest deleted on non-zero sync exit", check_sync_failure_rollback),
         ("validation fail blocks install: SystemExit(1); no file written", check_validation_fail_blocks_install),
+        ("no-flag no-op: install=False returns immediately, no files written, no validation called",
+         check_no_flag_noop),
         ("shared tree untouched: git status --porcelain shared/ is empty", check_shared_tree_untouched),
     ]
     failures = []
