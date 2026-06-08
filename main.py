@@ -398,9 +398,10 @@ def _sync_content(dest_path: Path) -> None:
     On success (returncode == 0): returns normally with no output.
     On failure (non-zero returncode):
       1. Deletes dest_path (rollback — OSError propagates as traceback if delete fails).
-      2. Writes subprocess stderr verbatim to sys.stderr (root cause first).
-      3. Writes a rollback notice line to sys.stderr.
-      4. Calls sys.exit(1).
+      2. Writes subprocess stdout to sys.stderr if non-empty (diagnostic output first).
+      3. Writes subprocess stderr verbatim to sys.stderr (root cause).
+      4. Writes a rollback notice line to sys.stderr.
+      5. Calls sys.exit(1).
     """
     result = subprocess.run(
         [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--write"],
