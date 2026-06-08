@@ -296,17 +296,21 @@ def _check_agent_subprocess(candidate_path: Path) -> tuple[bool, str]:
     Returns (True, "all checks passed") on pass,
             (False, "<fail detail>") on fail.
     """
-    result = subprocess.run(
-        [
-            sys.executable,
-            str(REPO_ROOT / "scripts" / "check-agent.py"),
-            "--file",
-            str(candidate_path),
-            "--skip-name-check",
-        ],
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(REPO_ROOT / "scripts" / "check-agent.py"),
+                "--file",
+                str(candidate_path),
+                "--skip-name-check",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "check-agent.py timed out after 60 seconds"
     combined = result.stdout + result.stderr
     fail_lines = [
         line for line in combined.splitlines()
@@ -406,11 +410,22 @@ def _sync_content(dest_path: Path) -> None:
       4. Writes a rollback notice line to sys.stderr.
       5. Calls sys.exit(1).
     """
-    result = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--write"],
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [sys.executable, str(REPO_ROOT / "scripts" / "sync-content.py"), "--write"],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except subprocess.TimeoutExpired:
+        dest_path.unlink(missing_ok=True)
+        sys.stderr.write(
+            f"Rolled back: deleted {dest_path.relative_to(REPO_ROOT)}\n"
+            "Warning: sync-content.py timed out after 60 seconds; "
+            "first-principles/ tree may be partially updated; "
+            "run 'python3 scripts/sync-content.py --write' to repair.\n"
+        )
+        sys.exit(1)
     if result.returncode != 0:
         dest_path.unlink(missing_ok=True)
         if result.stdout:
