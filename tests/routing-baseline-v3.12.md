@@ -1,3 +1,17 @@
+> **SUPERSEDED — v4.2 (Phase 65) — PARTIAL (sub-skill battery references)**
+> This baseline includes a sub-skill battery section (lines ~112/165/185 in the original) that used
+> the `--p-threshold 0` mask. That methodology masked an architectural fixture contradiction:
+> P12, P24, and N2 expected direct sub-skill invocations that Phase 46 intentionally disabled
+> (`disable-model-invocation: true`). The embedded sub-skill run command with `--p-threshold 0`
+> should **NOT** be re-run. Use the corrected catalog (`tests/sub-skill-routing-catalog.md`,
+> Phase 65 fixture correction) with no `--p-threshold` flag (the strict default
+> `--p-threshold 2` now applies). The main agent routing battery section of this baseline is
+> unaffected by the fixture correction.
+> Evidence chain: `.planning/notes/fu21-fixture-contradiction-diagnosis.md`.
+> Original record preserved below for methodology audit trail.
+
+---
+
 # Routing Baseline — v3.12 (Phase-Level Slash Commands validation)
 
 **Recorded:** 2026-05-30

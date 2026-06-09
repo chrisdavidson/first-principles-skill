@@ -1,3 +1,15 @@
+> **SUPERSEDED — v4.2 (Phase 65)**
+> The `--p-threshold 0` methodology used in this baseline masked an architectural fixture
+> contradiction: P12, P24, and N2 expected direct sub-skill invocations that Phase 46
+> intentionally disabled (`disable-model-invocation: true`). The "Phase 46 comparison gate"
+> section below instructs re-running with `--p-threshold 0 --n-threshold 2` — do **NOT** do this.
+> Use the corrected catalog (`tests/sub-skill-routing-catalog.md`, Phase 65 fixture correction)
+> with no `--p-threshold` flag (the strict default `--p-threshold 2` now applies).
+> Evidence chain: `.planning/notes/fu21-fixture-contradiction-diagnosis.md`.
+> Original record preserved below for methodology audit trail.
+
+---
+
 # Sub-Skill Routing Baseline — v3.8 (FU-21-1 / FU-21-2 regression baseline)
 
 **Recorded:** 2026-05-28 (14:36–15:05 UTC, ~30 min wall-clock for 20 live `claude` invocations)
