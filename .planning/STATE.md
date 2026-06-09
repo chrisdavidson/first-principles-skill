@@ -1,34 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.0
-milestone_name: Programmatic Skill/Agent Builder
+milestone: v4.1
+milestone_name: Builder Auto-Install Flag
 status: archived
-last_updated: 2026-06-04T20:00:00.000Z
-last_activity: 2026-06-04 -- v4.0 milestone archived; next milestone to be defined
+stopped_at: Milestone archived (Phase 64.1 tech debt closure complete)
+last_updated: "2026-06-09T00:00:00.000Z"
+last_activity: 2026-06-09
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
   percent: 100
-stopped_at: Milestone archived
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-04 after v4.0 milestone)
+See: .planning/PROJECT.md (updated 2026-06-09 after v4.1 milestone fully closed)
 
 **Core value:** Every conclusion traces back to a verified ground truth and every assumption is explicitly challenged — reasoning a skeptic cannot dismiss as hand-waving.
 **Current focus:** Planning next milestone (run `/gsd-new-milestone`)
 
 ## Current Position
 
-Phase: 60.1
-Plan: Not started
+Phase: v4.1 archived
+Plan: —
 Status: Milestone complete
-Last activity: 2026-06-04
+Last activity: 2026-06-09
 
 ## Milestone History
 
@@ -52,6 +52,8 @@ Last activity: 2026-06-04
 | v3.11 P8 Routing Forward Monitoring | 50-51 | 2 | 2026-05-30 |
 | v3.12 Phase-Level Slash Commands | 52-54 | 6 | 2026-05-30 |
 | v3.13 Routing Catalog v3.2 Content Coverage | 55-57 | 5 | 2026-06-03 |
+| v4.0 Programmatic Skill/Agent Builder | 58-60 + 60.1 | 7 | 2026-06-04 |
+| v4.1 Builder Auto-Install Flag | 61-64 + 64.1 | 5 | 2026-06-08 |
 
 Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning/RETROSPECTIVE.md`.
 
@@ -73,6 +75,18 @@ Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning
 - v3.13: 3-phase roadmap mirrors v3.6 — Phase 55 (catalog authoring + threshold update, TAX-01/02 + META-01/02 + WKEX-01/02 + INFRA-01/02/06) → Phase 56 (mini-battery gate + full battery + baseline commit, INFRA-03/04/05) → Phase 57 (Nyquist sign-off). Dependency chain: new prompts and threshold changes must exist before any battery run; mini-battery must pass before full battery.
 - v4.0: 3-phase roadmap — Phase 58 (CLI scaffold + template rendering, CLI-01/02/03/07) → Phase 59 (post-generation validation wiring, CLI-04/05/06) → Phase 60 (documentation, CLI-08). Dependency chain: interactive entry point and templates must exist before validators can be wired; all behavior must be settled before documentation is written.
 - Phase 60.1 inserted after Phase 60: Fix CLI-06 semantic gap — check-agent.py `_EXPECTED_NAME` lock and trigger-phrase checks cause every builder-generated agent to always fail regardless of structural correctness (URGENT) — v4.0
+- v4.1: 4-phase roadmap — Phase 61 (argparse + flow wiring, no-op stubs) → Phase 62 (_install() + conflict guard + validation gate, INST-01/02/03/05) → Phase 63 (_sync_content() + rollback, INST-04) → Phase 64 (tests + README, INST-06/07). Dependency chain: argparse must exist before any filesystem logic is added; conflict guard must be stable before integration tests; rollback depends on knowing the exact install path.
+- Phase 64.1 inserted after Phase 64: Address tech debt: v4.1 debt items — stale D-03 note (Ph62), missing no-flag test (Ph64), stdout-before-stderr output order (Ph63) (INSERTED, URGENT) — v4.1
+
+### v4.1 scoping notes
+
+- Phase 61 introduces argparse without touching install logic — makes `--install` recognizable and stubs `_install()` and `_sync_content()` as no-ops. Zero filesystem writes. This isolates any wiring failures from install logic failures.
+- Phase 62 implements both artifact_type branches of `_install()`: skill path (`shared/skills/<slug>/SKILL.md`, requires mkdir) and agent path (`shared/agent/<slug>.md`, flat file). Conflict guard on `shared/` destination is independent of the existing overwrite guard in `_render_and_write()` which protects `generated/`. INST-05 (validation gate) lands here because it is part of the install flow, not documentation.
+- Phase 63 implements `_sync_content()` via subprocess invocation of `sync-content.py --write` using a `REPO_ROOT`-anchored absolute path and `sys.executable`. On non-zero exit: forward stderr verbatim, call `target.unlink()` (rollback), `sys.exit(1)`. Resolved in favor of PITFALLS.md (rollback) over FEATURES.md (keep file) — drift gate argument is load-bearing.
+- Phase 64 is tests + README only. Tests use `TemporaryDirectory` + module-level constant patching to avoid real `shared/` writes. Post-suite assertion: `git status --porcelain shared/` must be empty. README documents `--install` behavior, conflict policy, rollback semantics, and agent-manifest caveat (new agents in `shared/agent/` are not automatically declared in `plugin.json`).
+- `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
+- Phase 61 satisfies no INST- requirements on its own; it is a prerequisite. Requirements map: INST-01/02/03/05 → Phase 62; INST-04 → Phase 63; INST-06/07 → Phase 64.
+- Copy idiom: `target.write_text(candidate_path.read_text(encoding="utf-8"), encoding="utf-8")` — avoids introducing `shutil` import per ARCHITECTURE.md anti-pattern 5.
 
 ### v4.0 scoping notes
 
@@ -83,6 +97,21 @@ Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning
 - The uv scaffold already exists (main.py in the project root). Phase 58 replaces/extends it in-place; no new files outside main.py and a possible templates/ directory are expected.
 - check-description-budget.py and check-trigger-collisions.py apply to skill output; check-agent.py applies to agent output. They run in-process via subprocess on the generated candidate file path.
 - `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
+
+### Decisions
+
+Decisions are logged in the PROJECT.md Key Decisions table. Recent decisions added in v3.1:
+
+- Routing battery thresholds tolerate single-prompt non-determinism (P ≥ 6/8, N ≥ 14/15) — verdict survives stochastic flips.
+- `check-routing.py` ships as developer tool + non-blocking CI job, not blocking gate — LLM non-determinism makes a strict gate flaky.
+- Stream-json + jq subagent-capture methodology documented in-repo (`docs/testing-agents-headlessly.md`), no longer load-bearing in tribal knowledge.
+
+v4.1 roadmapping decisions:
+
+- Rollback on sync failure (PITFALLS.md wins over FEATURES.md) — drift gate is a repository-wide blocker; orphaned `shared/` file is harder to diagnose than a clean rollback with verbatim error output.
+- `Path.write_text` for the copy step, not `shutil.copy2` — avoids introducing a new import, consistent with sync-content.py line 739 idiom.
+- Validation gate (INST-05) is part of Phase 62 (install flow), not Phase 64 (documentation) — it is a behavioral change to `_run_validation()` semantics, not a docs artifact.
+- Phase 61 does not satisfy any INST- requirement independently; it is a prerequisite that isolates argparse changes from filesystem changes.
 
 ### v3.13 scoping notes
 
@@ -95,11 +124,7 @@ Full per-milestone records: `.planning/MILESTONES.md`. Retrospective: `.planning
 
 ### Decisions
 
-Decisions are logged in the PROJECT.md Key Decisions table. Recent decisions added in v3.1:
-
-- Routing battery thresholds tolerate single-prompt non-determinism (P ≥ 6/8, N ≥ 14/15) — verdict survives stochastic flips.
-- `check-routing.py` ships as developer tool + non-blocking CI job, not blocking gate — LLM non-determinism makes a strict gate flaky.
-- Stream-json + jq subagent-capture methodology documented in-repo (`docs/testing-agents-headlessly.md`), no longer load-bearing in tribal knowledge.
+Decisions are logged in the PROJECT.md Key Decisions table.
 
 v3.5 roadmapping notes:
 
@@ -107,13 +132,6 @@ v3.5 roadmapping notes:
 - Catalog fix (P3) and description fix (P7) are co-located in Phase 37 because the root-cause documentation directly informs what to change in each case.
 - Mini-battery (FRAG-07) precedes full battery (FRAG-08) as a fast-iteration confirmation step — avoids the ~45-70 min full run if a fix is wrong.
 - N-case stability (15/15 NO-DELEGATE) is a hard success criterion for Phase 38 — success is not P 8/8 but P3+P7 fixed without degrading N-side behavior.
-- [Phase ?]: v3.7 routing battery: P 10/10, N 17/17, BATTERY: PASS — no regressions from v3.6; P2 and P3 improved to PASS
-- [Phase ?]: All P11/P12/P13 trigger phrases drawn from existing description vocabulary (budget 1977/2000 chars) — no description edits required
-- [Phase ?]: P-threshold default raised from 8 to 11 to match 13P catalog shape
-- [Phase ?]: N-threshold default raised from 15 to 18 to match 20N catalog shape
-- [Phase ?]: P1-P10 and N1-N17 K/N scores carried forward verbatim from routing-baseline-v3.12.md per D-04; only P11/P12/P13 and N18/N19/N20 freshly measured in v3.13 baseline
-- [Phase ?]: Used required=False with manual parser.error guard to keep --self-test working without --file
-- [Phase ?]: Implemented all four validation functions in one feat commit — Task 1 and Task 2 tightly coupled in main.py
 
 ### v3.12 scoping notes
 
@@ -121,25 +139,6 @@ v3.5 roadmapping notes:
 - Phase 53 authors all 5 `shared/skills/<slug>/SKILL.md` stubs using the `{{PROCEDURE:<slug>}}` token pattern, runs `sync-content.py --write` to emit `first-principles/skills/<slug>/SKILL.md`, and updates `first-principles/.claude-plugin/plugin.json` to declare all 11 skills.
 - Phase 54 runs every static gate (`check-links.py`, `check-description-budget.py`, `check-trigger-collisions.py`, `sync-content.py --check`) and the orchestrator routing battery (`--repeat 3 --min-pass 2`, P ≥ 8/10, N ≥ 15/17). The new stubs carry `disable-model-invocation: true` so they cannot cause orchestrator over-triggering; routing regression risk is low but must be verified.
 - REQUIREMENTS.md Out of Scope: do NOT modify `shared/spine/SKILL-body.md` to use `{{PHASE:N}}` tokens — the extracted reference files serve as source of truth; SKILL-body.md retains its inline content. This milestone is additive only; the 6 existing companion-tool stubs are not touched.
-- `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
-
-### v3.11 scoping notes
-
-- MON-01 runs the P8-scoped mini-battery (`tests/routing-mini-catalog-p8.md`, `--repeat 5 --min-pass 3`). This is the entry gate for the milestone.
-- MON-02/03/04 are conditional: they only apply if MON-01 finds the pass rate below threshold. If the v3.9 fix held, Phase 51 goes straight to baseline commit (MON-05).
-- Root-cause taxonomy for diagnosis (MON-02): vocabulary gap | catalog embedding defect | stochastic boundary. Classification must be supported by evidence, not asserted.
-- Fix scope is strictly P8 (MON-03) — no full battery runs, no changes to other catalog prompts.
-- N-side spot checks at the P8 boundary (MON-04) confirm no regression from any fix applied.
-- `tests/routing-baseline-v3.11.md` (MON-05) is committed regardless of whether a fix was applied; it records the final disposition (held / fixed / stochastic).
-- Full routing battery refresh is explicitly out of scope — deferred to a future milestone that makes broader changes.
-- `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
-
-### v3.10 scoping notes
-
-- Phase 46 has no VERIFICATION.md or VALIDATION.md — this was accepted tech-debt at v3.8 close and deferred past v3.9.
-- Evidence is fully captured in per-plan SUMMARYs: 46-04-SUMMARY has Tasks 2 + 3 K/N evidence tables for VERIFY-01 (focused-output baseline) and VERIFY-02 (routing regression); other SUMMARYs cover individual tasks.
-- Convention reference: 45-VERIFICATION.md (requirements coverage table) and 45-VALIDATION.md (nyquist_compliant + per-task map + retroactive note) — filed Phase 48.
-- No code changes, no routing battery runs, no shared/ edits. Phase 49 is documentation-only.
 - `commit_docs: false` applies — all .planning/ artifacts remain gitignored and are not committed.
 
 ### Pending Todos
@@ -168,15 +167,6 @@ Note: "_inline_" rows indicate quick-style tasks executed without the full /gsd-
 
 Open backlog (skill-side, NOT this repo): teach `gsd-code-reviewer` to parse `.reviewignore` before file discovery — see `.reviewignore` header for rationale and estimated saving (~80K tokens on a full-repo review of this project).
 
-### v3.7 scoping notes
-
-- Core problem: validation rubric criteria are too vague — easy to claim compliance without actually being rigorous. "Could withstand inspection by a skeptic" is itself hand-wavy.
-- Success criterion: a skeptic reading any output produced by the agent cannot find an unchallenged assumption.
-- Approach: rewrite criteria AND enforce structured application (not either/or).
-- Key deliverable is a mandatory Assumption Audit protocol — exhaustive enumeration of assumptions by scanning each derivation chain step, not opportunistic listing.
-- Routing regression gate applies: rubric changes live in `shared/spine/references/validation-rubric.md` which propagates via sync-content.py; agent body budget check remains in force.
-- v3.7 does NOT expand the routing catalog — that is separate work. Scope is purely the validation/rubric layer.
-
 ## Deferred Items
 
 Items acknowledged and deferred:
@@ -188,6 +178,18 @@ Items acknowledged and deferred:
 | verification_gap | Phase 46: 46-VERIFICATION.md | resolved — 46-VERIFICATION.md created 2026-05-29 (Phase 49) |
 | nyquist_gap | Phase 46: 46-VALIDATION.md | resolved — 46-VALIDATION.md created 2026-05-29 (Phase 49) |
 | forward_monitoring | P8 (`decompose this problem`) routing | resolved — P8 HELD at 3/5 (Phase 50); v3.11 baseline (tests/routing-baseline-v3.11.md) closes the watch obligation (Phase 51) |
+
+## v4.1 Requirement Traceability
+
+| REQ-ID | Phase | Notes |
+|--------|-------|-------|
+| INST-01 | Phase 62 | Skill install copy: shared/skills/<slug>/SKILL.md |
+| INST-02 | Phase 62 | Agent install copy: shared/agent/<slug>.md |
+| INST-03 | Phase 62 | Conflict guard: abort + exit 1 if target exists |
+| INST-04 | Phase 63 | sync-content.py --write + rollback on failure |
+| INST-05 | Phase 62 | Validation FAIL becomes hard block when --install active |
+| INST-06 | Phase 64 | README ## Builder section update |
+| INST-07 | Phase 64 | Tests (TemporaryDirectory, all failure modes) |
 
 ## v4.0 Requirement Traceability
 
@@ -204,8 +206,8 @@ Items acknowledged and deferred:
 
 ## Session Continuity
 
-Last session: 2026-06-04T20:00:00.000Z
-Stopped at: v4.0 milestone archived
+Last session: 2026-06-09T00:00:00.000Z
+Stopped at: v4.1 milestone fully archived
 
 ## Operator Next Steps
 
@@ -229,3 +231,4 @@ Stopped at: v4.0 milestone archived
 | Phase 56 P02 | 10min | 2 tasks | 1 files |
 | Phase 59 P01 | 5m | 2 tasks | 2 files |
 | Phase 59 P02 | 5m | 2 tasks | 2 files |
+| Phase 63 P01 | 3 minutes | 1 tasks | 1 files |
