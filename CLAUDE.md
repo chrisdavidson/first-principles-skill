@@ -30,7 +30,8 @@ python3 scripts/check-body-budget.py      # pre-commit body budget (500-line lim
 
 ```sh
 python3 scripts/check-routing.py --catalog tests/routing-catalog.md
-python3 scripts/check-routing.py --catalog tests/sub-skill-routing-catalog.md
+python3 scripts/check-sub-skill-routing.py --catalog tests/sub-skill-routing-catalog.md --repeat 5 --min-pass 3
+python3 scripts/check-focused-output.py --catalog tests/focused-output-catalog.md --repeat 5 --min-pass 3 --p-threshold 2 --n-threshold 1
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
 
@@ -116,9 +117,15 @@ Bypass for intentional in-progress work: `git commit --no-verify`
 
 ### Routing battery
 
-`scripts/check-routing.py` issues prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and scores DELEGATE / NO-DELEGATE from the `stream-json` event stream. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE. Routing is non-deterministic — a single mis-route does not fail the battery; threshold counts are the criterion.
+Three verifiers cover different layers of routing correctness. All issue prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and score verdicts from the `stream-json` event stream. Routing is non-deterministic — threshold K-of-N counts are the criterion, not per-run pass/fail.
 
-Catalog fixtures: `tests/routing-catalog.md` (agent routing), `tests/sub-skill-routing-catalog.md` (skill routing).
+**`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE.
+
+**`check-sub-skill-routing.py`** — BOUNDARY DISCIPLINE battery. Verifies that nothing auto-routes to the eleven slash-only companion skills (`disable-model-invocation: true`). All P rows expect `none-or-other` (the orchestrator should route to the composer, not dispatch directly to a sub-skill). Strict by default (`--p-threshold 2` — all P rows must pass).
+
+**`check-focused-output.py`** — canonical FU-21-1 / FU-21-2 gate (FOCUS-01). Verifies that explicit slash invocation (`/first-principles:<technique>`) produces the correct focused-technique output. P rows expect `focused-<technique>`; N1 expects `NOT-any-focused` (over-trigger guard). Calibrated run: `--p-threshold 2 --n-threshold 1`.
+
+Catalog fixtures: `tests/routing-catalog.md` (agent routing), `tests/sub-skill-routing-catalog.md` (boundary discipline), `tests/focused-output-catalog.md` (focused-output gate).
 
 ### Key invariants
 
