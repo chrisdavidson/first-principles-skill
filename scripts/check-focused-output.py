@@ -146,6 +146,25 @@ _TECHNIQUE_KEYS: tuple[str, ...] = (
     "second-order",
 )
 
+# Frozenset of the six focused-technique verdict strings, built from
+# _TECHNIQUE_KEYS. Used by the semantic comparator below.
+_FOCUSED_PREFIXES: frozenset[str] = frozenset(
+    f"focused-{tech}" for tech in _TECHNIQUE_KEYS
+)
+
+
+def _verdict_matches(actual: OutputStructure, expected: str) -> bool:
+    """Semantic comparator: handles NOT-any-focused as 'not in focused set'.
+
+    When expected == "NOT-any-focused", returns True if actual is NOT one of
+    the six focused-<technique> verdicts (i.e. none/ambiguous/full-composer
+    all match). Otherwise falls back to exact string equality.
+    """
+    if expected == "NOT-any-focused":
+        return actual not in _FOCUSED_PREFIXES
+    return actual == expected
+
+
 # Noise-tolerance floor — a marker "fires" only if its regex matches
 # >= MIN_HEADER_HITS distinct times in the assistant text. Mirrors the
 # Phase 45 `MIN_TEXT_HITS = 2` precedent (see check-sub-skill-routing.py
@@ -773,7 +792,7 @@ def run_battery(
             quiet,
         )
         verdicts = _run_prompt_n_times(prompt, plugin_dir, out_dir, repeat)
-        match_count = sum(1 for v in verdicts if v == prompt.expected)
+        match_count = sum(1 for v in verdicts if _verdict_matches(v, prompt.expected))
         prompt_passed = match_count >= min_pass
         prompt_results.append((prompt, verdicts, match_count, prompt_passed))
         if repeat == 1:
@@ -803,7 +822,7 @@ def run_battery(
             fh.write("id\trun\texpected\tactual\tmatch\n")
             for prompt, verdicts, match_count, prompt_passed in prompt_results:
                 for run_idx, actual in enumerate(verdicts, start=1):
-                    match_flag = 1 if actual == prompt.expected else 0
+                    match_flag = 1 if _verdict_matches(actual, prompt.expected) else 0
                     fh.write(
                         f"{prompt.id}\t{run_idx}\t{prompt.expected}\t"
                         f"{actual}\t{match_flag}\n"
@@ -1069,7 +1088,26 @@ def self_test() -> int:
         )
         all_passed = False
 
-    fixture_total = len(fixtures) + 2  # +1 Probe 3 sanity, +1 K>N guard
+    # Fixture 9 — NOT-any-focused semantic comparator assertions
+    _not_any_cases: list[tuple[OutputStructure, str, bool]] = [
+        ("none", "NOT-any-focused", True),
+        ("full-composer", "NOT-any-focused", True),
+        ("ambiguous", "NOT-any-focused", True),
+        ("focused-pre-mortem", "NOT-any-focused", False),
+        ("focused-inversion", "focused-inversion", True),
+        ("none", "focused-pre-mortem", False),
+    ]
+    for actual_v, expected_v, want in _not_any_cases:
+        got = _verdict_matches(actual_v, expected_v)
+        if got is not want:
+            print(
+                f"self-test FAIL: _verdict_matches({actual_v!r}, {expected_v!r}) "
+                f"expected {want}, got {got}",
+                file=sys.stderr,
+            )
+            all_passed = False
+
+    fixture_total = len(fixtures) + 2 + len(_not_any_cases)  # +1 Probe 3 sanity, +1 K>N guard, +NOT-any-focused assertions
     if all_passed:
         print(f"self-test PASS ({fixture_total} fixtures)")
         return 0
