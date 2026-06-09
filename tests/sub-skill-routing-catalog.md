@@ -1,41 +1,50 @@
-# Sub-Skill Routing Catalog — v3.8 (FU-21-1 / FU-21-2 regression fixture)
+# Sub-Skill Routing Catalog — v4.2 (Boundary Discipline Fixture)
 
 **Status:** Committed repo fixture, consumed by `scripts/check-sub-skill-routing.py`.
 
-**Purpose:** Pins the two v2.0 eval regressions and the two paired negative
-controls Phase 46 must keep green. FU-21-1: P12 fails to load `:pre-mortem`
-(oblique nervous-about-plan framing). FU-21-2: P24 routes to `:pre-mortem`
-instead of `:inversion` (oblique figure-out-what-makes-it-go-wrong framing).
-N1 guards Phase 46 `:pre-mortem` widening against over-trigger on
-debugging-shaped prompts. N2 guards Phase 46 `:inversion` sharpening against
-poaching legitimate plan-shaped `:pre-mortem` traffic.
+## Purpose
 
-**Run command:**
+This battery measures **boundary discipline**: all eleven sub-skills in the
+`first-principles` plugin are registered `disable-model-invocation: true`
+(Path 2 architecture, shipped in Phase 46). This means the orchestrator
+**never** auto-routes to them. Every P and N row in this catalog therefore
+correctly expects `none-or-other` — composer-routing is the architecturally
+correct outcome at the orchestrator boundary.
+
+## Division of Labor
+
+Two batteries cover the original FU-21 regressions:
+
+- **`scripts/check-sub-skill-routing.py`** (this catalog) — **boundary discipline**:
+  verifies nothing auto-routes to slash-only stubs at the orchestrator boundary;
+  all rows expect `none-or-other`.
+- **`scripts/check-focused-output.py`** against `tests/focused-output-catalog.md`
+  — **canonical FU-21-1 / FU-21-2 gate**: verifies that slash-invoked sub-skill
+  calls produce the correct focused-technique output (the right analysis fires
+  on explicit `/first-principles:pre-mortem` or `/first-principles:inversion`
+  invocation).
+
+## Run Command
 
 ```
-python3 scripts/check-sub-skill-routing.py --catalog tests/sub-skill-routing-catalog.md --repeat 5 --min-pass 3 --p-threshold 0 --n-threshold 2
+python3 scripts/check-sub-skill-routing.py --catalog tests/sub-skill-routing-catalog.md --repeat 5 --min-pass 3
 ```
 
-**Expected baseline outcomes** (v2 detection — see Plan 45-04 SUMMARY):
-Against the current (pre-Phase-46) shipped descriptions, prompts that
-"should route to a specific sub-skill" mostly fail in the same way: the
-orchestrator invokes the `first-principles:first-principles` composer
-agent instead of a specific sub-skill, classifying as `none-or-other` under
-the v2 verifier. This means:
+(No `--p-threshold` flag — the strict default applies; all P rows must pass.)
 
-- **P12** (expected `pre-mortem`) — FAIL (FU-21-1 reproduced; composer-routing)
-- **P24** (expected `inversion`) — FAIL (FU-21-2 reproduced; composer-routing)
-- **N1** (expected `none-or-other`) — PASS (composer-routing = none-or-other = matches expected)
-- **N2** (expected `pre-mortem`) — FAIL (composer-routing; same regression class as P12. N2's expected outcome is **forward-looking** — it should PASS post-Phase-46, proving `:inversion` sharpening did not poach plan-shaped `:pre-mortem` traffic)
+## Anti-Regression Warning
 
-So the v3.8 baseline is expected to show 3 of 4 prompts failing under K-of-N.
-That is the evidence Phase 46 will be measured against: P12, P24, and N2 must
-all start PASSing post-Phase-46 (with their respective expected sub-skills
-firing), while N1 must STAY PASSing (proving `:pre-mortem` widening did not
-over-trigger on debugging prompts). `--p-threshold 0` is used in Phase 45
-because the battery-level PASS/FAIL exit code is deliberately non-strict on
-P-failures here — the failures are *expected*. Per-prompt verdicts in the
-output block are the gate, not the battery exit code.
+> Do not "fix" the catalog back to expecting direct sub-skill firing, and do not
+> remove `disable-model-invocation: true` to make these prompts pass.
+> The fixture, not the architecture, was wrong.
+
+## History
+
+This catalog was originally authored in Phase 45 against pre-Phase-46
+descriptions. The Phase 46 design chose Path 2 (`disable-model-invocation: true`),
+which made the original P12/P24/N2 expectations architecturally impossible.
+Full diagnosis: `.planning/notes/fu21-fixture-contradiction-diagnosis.md`.
+The v3.8 baseline and Phase 45 rationale are archived in the v3.8 phase archive.
 
 ---
 
