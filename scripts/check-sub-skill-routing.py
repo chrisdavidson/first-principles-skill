@@ -6,12 +6,14 @@
 """Sub-skill routing battery harness for the first-principles agent.
 
 Why this exists:
-    Phase 45 measures whether the first-principles agent, once routed via the
-    parent routing battery (`scripts/check-routing.py`), then loads the
-    *correct sub-skill reference* (`agents/references/pre-mortem.md` vs
-    `agents/references/inversion.md`) for the prompt class. The parent battery
-    proves the binary DELEGATE vs NO-DELEGATE routing; this sibling proves the
-    finer-grained sub-skill selection layer beneath it.
+    Under the Path 2 architecture all sub-skills carry
+    ``disable-model-invocation: true`` — they are slash-only stubs that the
+    orchestrator must *never* auto-route to. This battery measures **boundary
+    discipline**: every P and N row in the catalog correctly expects
+    ``none-or-other``, confirming that nothing auto-routes to a slash-only
+    stub. Technique-dispatch correctness (which reference file is loaded when
+    a sub-skill is *explicitly* invoked) is measured separately by
+    ``scripts/check-focused-output.py``, the canonical FU-21 gate.
 
     Sibling, not extension (locked decision D-01 — see 45-CONTEXT.md):
         `scripts/check-routing.py` is v3.4-locked and may NOT be modified.
@@ -47,8 +49,8 @@ Usage:
 Defaults:
     --plugin-dir   $(pwd)/first-principles
     --out          /tmp/check-sub-skill-routing-<UTC-timestamp>/
-    --p-threshold  0   (Phase 45 baseline is non-gating on P-failures —
-                        FU-21-1/FU-21-2 are EXPECTED to FAIL pre-Phase 46)
+    --p-threshold  2   (all P rows must pass — strict, per v4.2 fixture correction;
+                        Phase 65 corrected the catalog to reflect Path 2 architecture)
     --n-threshold  2   (both N-controls must classify none-or-other)
     --repeat       5
     --min-pass     3   (3-of-5 K-of-N for noise tolerance)
@@ -915,10 +917,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--p-threshold",
         type=int,
-        default=0,
+        default=2,
         help=(
             "Min P-cases matching expected sub-skill for battery PASS "
-            "(default: 0 — Phase 45 baseline is non-gating on P-failures)."
+            "(default: 2 — all P rows must pass; strict per v4.2 fixture correction)."
         ),
     )
     p.add_argument(
