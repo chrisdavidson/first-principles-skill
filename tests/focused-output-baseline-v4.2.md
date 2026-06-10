@@ -29,7 +29,7 @@ Each row's Verdict cell uses the falsifiable `<n>/N PASS|FAIL` format per the Pl
 
 ### N1 PASS criterion (rationale)
 
-N1 is the over-trigger guard: a debugging-shaped prompt without a slash prefix that must NOT auto-route to any focused technique. The expected value is `NOT-any-focused` — a negative-set semantic meaning "actual classification must not be in {`focused-pre-mortem`, `focused-inversion`, `focused-fishbone`, `focused-five-whys`, `focused-trade-off`, `focused-second-order`, `focused-identify-essence`, `focused-challenge-assumptions`, `focused-ground-truths`, `focused-reason-upward`, `focused-validate`}". Any classification in {`full-composer`, `none`, `ambiguous`} counts as a PASS.
+N1 is the over-trigger guard: a debugging-shaped prompt without a slash prefix that must NOT auto-route to any focused technique. The expected value is `NOT-any-focused` — a negative-set semantic meaning "actual classification must not be any `focused-*` verdict the detector can emit": {`focused-pre-mortem`, `focused-inversion`, `focused-fishbone`, `focused-five-whys`, `focused-trade-off`, `focused-second-order`} (the six-element `_FOCUSED_PREFIXES` set in `scripts/check-focused-output.py`, built from `_TECHNIQUE_KEYS`). Any classification in {`full-composer`, `none`, `ambiguous`} counts as a PASS.
 
 In this run, N1 classified as: run 1 = `focused-pre-mortem` (FAIL for this row), runs 2–5 = `none` (PASS). K=4 meets the min-pass=3 threshold. The sole `focused-pre-mortem` result on run 1 reflects the stochastic gate tolerance built into K-of-N.
 
