@@ -978,9 +978,13 @@ _FIXTURE_FOCUSED_INVERSION = "\n".join(
 
 # Fixture 3 — LOAD-BEARING: prevents Pitfall 1 (v1-style false-positive).
 # Synthetic full-composer text with markers from FOUR techniques firing
-# ≥2x each (pre-mortem, inversion, trade-off, second-order). Must NOT
-# classify as `focused-pre-mortem` just because pre-mortem markers fired —
-# the cardinality classifier must return `full-composer`.
+# (≥2 distinct patterns each: pre-mortem, inversion, trade-off,
+# second-order). Must NOT classify as `focused-pre-mortem` just because
+# pre-mortem markers fired — the cardinality classifier must return
+# `full-composer`. NOTE (66 review WR-04): this fixture passes via the
+# n>=4 cardinality fallback, NOT the structural override — its
+# `## Phase N — <technique>` headers are not composer scaffold tokens.
+# The structural-override path is covered by _FIXTURE_STRUCTURAL_OVERRIDE.
 _FIXTURE_FULL_COMPOSER = "\n".join(
     [
         _fixture_assistant_text(
@@ -1042,6 +1046,63 @@ _FIXTURE_RAW_TEXT_FALLBACK = (
     "necessary precondition we must check. The inverted form sharpens "
     "the assertion. necessary precondition X is unverified.\n"
     "more non-json garbage\n"
+)
+
+# Fixture 10 — Bug-1 regression guard (66-03 fix; 66 review WR-04).
+# Focused pre-mortem output whose PLAN CONTENT mentions "Phase 1/2/3"
+# repeatedly, with NO composer scaffold tokens. Under the pre-151b197
+# broad `\bPhase\s+\d+\b` structure pattern this false-classified as
+# `full-composer`; it must classify `focused-pre-mortem`. Reintroducing
+# a bare Phase-N structure pattern makes this fixture FAIL.
+_FIXTURE_BUG1_PHASE_PROSE = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Pre-mortem on the migration plan. It is six months from now "
+            "and the plan has already failed. What caused it?\n"
+            "Working backward: what caused the failure?\n"
+            "Phase 1 migrated staging. Phase 2 moved production traffic. "
+            "Phase 3 cut over DNS. The failure traces back to Phase 2 — "
+            "Phase 2 assumed staging parity that Phase 1 never validated.\n"
+        ),
+    ]
+)
+
+# Fixture 11 — Bug-2 regression guard (66-03 fix; 66 review WR-04).
+# Natural-variation pre-mortem phrasing (no exact procedure-text quotes):
+# "treat the rollout as already failed", "working backward from the
+# wreckage". Under the pre-151b197 strict markers this under-fired;
+# it must classify `focused-pre-mortem`. Tightening the pre-mortem
+# markers back to exact procedure-text phrases makes this fixture FAIL.
+_FIXTURE_BUG2_NATURAL_VARIATION = "\n".join(
+    [
+        _fixture_assistant_text(
+            "Treat the rollout as already failed — assume it is dead on "
+            "arrival.\n"
+            "Working backward from the wreckage, three causes stand out: "
+            "the unrehearsed cutover, the silent schema drift, and the "
+            "missing rollback rehearsal.\n"
+        ),
+    ]
+)
+
+# Fixture 12 — structural-override regression guard (LOAD-BEARING;
+# 66 review WR-04). Canonical composer scaffold tokens with ZERO
+# techniques firing. The OPTION B structural override (see calibration
+# block) must classify this `full-composer` even though technique
+# cardinality alone would say `none`. This is the in-repo coverage of
+# the override path — the Probe 3 sanity feed (Fixture 8) is a
+# local-only, gitignored capture and may be absent on fresh clones.
+_FIXTURE_STRUCTURAL_OVERRIDE = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Phase 1 — Ground Truths\n"
+            "Fact: the service handles 2k rps today.\n\n"
+            "## Phase 2 — Assumption Audit\n"
+            "Untested belief: the cache hit rate survives the migration.\n\n"
+            "## Phase 6 — Verdict\n"
+            "Proceed, with the cache assumption flagged for verification.\n"
+        ),
+    ]
 )
 
 
@@ -1119,6 +1180,22 @@ def self_test() -> int:
         ("ambiguous", _FIXTURE_AMBIGUOUS, "ambiguous"),
         ("none", _FIXTURE_NONE, "none"),
         ("raw_text_fallback", _FIXTURE_RAW_TEXT_FALLBACK, "focused-inversion"),
+        # 66 review WR-04 regression fixtures (Bug 1 / Bug 2 / override):
+        (
+            "bug1_phase_prose_regression",
+            _FIXTURE_BUG1_PHASE_PROSE,
+            "focused-pre-mortem",
+        ),
+        (
+            "bug2_natural_variation_regression",
+            _FIXTURE_BUG2_NATURAL_VARIATION,
+            "focused-pre-mortem",
+        ),
+        (
+            "structural_override_LOAD_BEARING",
+            _FIXTURE_STRUCTURAL_OVERRIDE,
+            "full-composer",
+        ),
     ]
     all_passed = True
     for name, body, expected in fixtures:
