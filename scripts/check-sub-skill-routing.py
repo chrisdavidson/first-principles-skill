@@ -33,11 +33,13 @@ Why this exists:
 
     Classification is 4-way:
         {"pre-mortem", "inversion", "both", "none-or-other"}
-        - pre-mortem: pre-mortem.md loaded OR procedure markers fired
-        - inversion: inversion.md loaded OR procedure markers fired
-        - both: both fired (used as match when expected is pre-mortem or inversion)
-        - none-or-other: neither fired (Phase 45 baseline expects this for
-          the FU-21-1/FU-21-2 regression cases)
+        - pre-mortem: pre-mortem invocation envelope detected
+        - inversion: inversion invocation envelope detected
+        - both: both envelopes detected (matches when expected is pre-mortem or inversion)
+        - none-or-other: neither envelope detected — the architecturally correct
+          outcome under Path 2 for every row in the corrected v4.2 catalog (the
+          orchestrator routes to the composer; it never auto-dispatches to a
+          slash-only sub-skill)
 
 Usage:
     scripts/check-sub-skill-routing.py --catalog <path> [--plugin-dir <path>]

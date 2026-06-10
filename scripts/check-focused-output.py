@@ -90,11 +90,10 @@ Usage:
 Defaults:
     --plugin-dir   $(pwd)/first-principles
     --out          /tmp/check-focused-output-<UTC-timestamp>/
-    --p-threshold  0   (Phase 46 baseline is non-gating until 46-04 sets
-                        the calibrated thresholds)
-    --n-threshold  0   (same)
+    --p-threshold  4   (all four calibrated P rows must pass)
+    --n-threshold  1   (sole over-trigger control N1 must pass)
     --repeat       5
-    --min-pass     3   (3-of-5 K-of-N noise tolerance — matches Phase 45)
+    --min-pass     3   (3-of-5 K-of-N noise tolerance)
 
 Exit codes:
     0  thresholds met (battery PASS), --self-test all fixtures correct,
@@ -1118,8 +1117,8 @@ def self_test() -> int:
 # Main / CLI
 # (Inline-copied verbatim from scripts/check-routing.py:_default_out_dir,
 # build_parser, main — K>N pre-flight guard preserved at lines 753-772 of
-# the parent. Default thresholds set to non-gating (0/0) until 46-04
-# calibrates them.)
+# the parent. Default thresholds set to calibrated gating values 4/1 per
+# Phase 65 gap-closure: all four P rows and the sole N1 control must pass.)
 # ---------------------------------------------------------------------------
 
 
@@ -1170,18 +1169,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--p-threshold",
         type=int,
-        default=0,
+        default=4,
         help=(
             "Min P-cases matching expected structure for battery PASS "
-            "(default: 0 — Phase 46 baseline is non-gating until 46-04 "
-            "calibrates the per-prompt expectations)."
+            "(default: 4 — all four P rows in the calibrated FU-21 catalog "
+            "must pass)."
         ),
     )
     p.add_argument(
         "--n-threshold",
         type=int,
-        default=0,
-        help="Min N-cases matching expected for battery PASS (default: 0).",
+        default=1,
+        help=(
+            "Min N-cases matching expected for battery PASS "
+            "(default: 1 — the sole over-trigger negative control N1 must pass)."
+        ),
     )
     p.add_argument(
         "--quiet",
