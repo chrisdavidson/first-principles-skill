@@ -62,14 +62,30 @@ Cardinality calibration choice (LOAD-BEARING — read before editing):
 
     Calibration path chosen here = OPTION B from 46-01-SUMMARY findings:
       Add a structural `composer-structure` signal counting the canonical
-      5-phase markers ("Phase 1", "Ground Truths", "Assumption Audit",
-      "Derivation Chains", "Verdict"). If composer-structure fires at
-      >= MIN_HEADER_HITS, classify as full-composer regardless of the
-      per-technique cardinality. This matches the Probe 3 empirical
-      signal (5 Phase headers + Ground Truths + Assumption Audit + Verdict
-      all fire ≥2x in the real capture) while preserving the original
-      n>=4 rule as a fallback for outputs that omit the canonical headers
-      but emit all six techniques' verbatim markers.
+      5-phase markers ("Phase N — Ground Truths", "Ground Truths",
+      "Assumption Audit", "Derivation Chains", "Verdict"). If
+      composer-structure fires at >= MIN_HEADER_HITS, classify as
+      full-composer regardless of the per-technique cardinality. This
+      matches the Probe 3 empirical signal (Phase-titled section headers +
+      Ground Truths + Assumption Audit + Derivation Chains + Verdict all
+      fire ≥2x in the real capture) while preserving the original n>=4
+      rule as a fallback for outputs that omit the canonical headers but
+      emit all six techniques' verbatim markers.
+
+    Bug 1 fix (66-03 Signal B probe, 2026-06-10): the original "Phase N"
+      entry was r"\\bPhase\\s+[0-9]+\\b" — too broad. It fired on plan-content
+      prose in focused pre-mortem output ("Phase 1 migrates staging"; "Phase
+      1/2/3" in a multi-phase migration plan 19-29 times), causing false
+      full-composer classifications on P24 and P25. Tightened to a
+      multi-word composer-header form:
+      r"\\bPhase\\s+[0-9]+\\s*[—–-]\\s*(Ground Truths?|...|Verdict)\\b".
+
+    Bug 2 fix (66-03 Signal B probe, 2026-06-10): pre-mortem technique
+      markers were too strict — required exact procedure-text phrases
+      ("working backward: what caused", "the plan has already failed").
+      Real focused pre-mortem output uses natural variation ("Working
+      backward from the wreckage", "treat it as already failed"). Both
+      patterns were loosened; see _TECHNIQUE_CATEGORIES['pre-mortem'].
 
     Rationale: the LOAD-BEARING distinction between focused-X and
     full-composer is structural — the composer walks the 5-phase scaffold;
@@ -205,9 +221,21 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # pre-mortem.md line 3 (frontmatter blurb) + line 36 (Phase 2 framing)
         re.compile(r"prospective[- ]?hindsight", re.IGNORECASE),
         # pre-mortem.md "the plan has (already) failed. What caused it?"
-        re.compile(r"the plan has (already )?failed", re.IGNORECASE),
-        # pre-mortem.md procedure step — "working backward: what caused..."
-        re.compile(r"working backward(s)?:?\s+what caused", re.IGNORECASE),
+        # Covers natural variation: "treat it as already failed",
+        # "has already failed" etc. (with "already" qualifier).
+        re.compile(r"(already|has already|treat.*as)\s+failed", re.IGNORECASE),
+        # Additional variant: bare "has failed" without "already" qualifier.
+        # Real focused pre-mortem output ("the migration has failed",
+        # "the rollout has failed") consistently uses this form; the
+        # qualifier-free phrase is still distinctive when combined with a
+        # second marker like "working backward". Observed in 100% of
+        # P25/P26 runs in the 66-03 probe capture (2026-06-10).
+        re.compile(r"\bhas\s+failed\b", re.IGNORECASE),
+        # pre-mortem.md procedure step — loosened from "working backward: what
+        # caused" to bare "working backward" to match natural output variation
+        # ("Working backward from the wreckage", "Working backward from this
+        # failure", etc.) observed in 66-03 Signal B probe (2026-06-10).
+        re.compile(r"working backward(s)?\b", re.IGNORECASE),
         # Note: `failure-guaranteeing` is intentionally NOT included here —
         # Q4.1 collision note flags it as overlapping with inversion. The
         # disambiguation lives in inversion's marker set, not pre-mortem's.
@@ -291,7 +319,19 @@ _TRADEOFF_BARE_TOKEN_RE: re.Pattern[str] = re.compile(
 # (5 Phase headers + 2 "Ground Truths" + 1 "Assumption Audit" + 1
 # "Verdict" all fired in that real capture).
 _COMPOSER_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
-    re.compile(r"\bPhase\s+[0-9]+\b", re.IGNORECASE),
+    # Tightened from bare `\bPhase\s+[0-9]+\b` (fired on plan-content prose
+    # like "Phase 1 migrates staging") to the composer's own section-header
+    # form: "Phase N — Ground Truths", "Phase N — Assumption Audit", etc.
+    # A standalone "Phase N" in the plan content no longer fires.
+    # Calibrated fix for Bug 1 from 66-03 Signal B probe (2026-06-10):
+    # P24 (inversion output with incidental "Phase N" prose) and P25
+    # (multi-phase migration plan where Phase 1/2/3 appears 19-29 times)
+    # were false-positive full-composer due to this too-broad pattern.
+    re.compile(
+        r"\bPhase\s+[0-9]+\s*[—–-]\s*"
+        r"(Ground\s+Truths?|Assumption\s+Audit|Derivation\s+Chains?|Verdict)\b",
+        re.IGNORECASE,
+    ),
     re.compile(r"\bGround\s+Truths?\b", re.IGNORECASE),
     re.compile(r"\bAssumption\s+Audit\b", re.IGNORECASE),
     re.compile(r"\bDerivation\s+Chains?\b", re.IGNORECASE),
