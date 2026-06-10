@@ -180,11 +180,14 @@ def _verdict_matches(actual: OutputStructure, expected: str) -> bool:
     return actual == expected
 
 
-# Noise-tolerance floor — a marker "fires" only if its regex matches
-# >= MIN_HEADER_HITS distinct times in the assistant text. Mirrors the
-# Phase 45 `MIN_TEXT_HITS = 2` precedent (see check-sub-skill-routing.py
-# v2.1 history). A single incidental mention of e.g. "trade-off" inside
-# an unrelated discussion should NOT fire the trade-off technique.
+# Noise-tolerance floor. A technique "fires" only if >= MIN_HEADER_HITS
+# DISTINCT marker patterns each match the assistant text (distinct-pattern
+# counting in `_technique_hits` — 66 review WR-01); the composer-structure
+# signal fires at >= MIN_HEADER_HITS total scaffold-marker hits. Mirrors
+# the Phase 45 `MIN_TEXT_HITS = 2` precedent (see
+# check-sub-skill-routing.py v2.1 history). A single incidental mention
+# of e.g. "trade-off" inside an unrelated discussion — or one generic
+# phrase repeated — should NOT fire the trade-off technique.
 MIN_HEADER_HITS: int = 2
 
 
@@ -203,7 +206,9 @@ MIN_HEADER_HITS: int = 2
 # capture (see top-of-file calibration block).
 #
 # Pitfall 4 mitigation (MIN_HEADER_HITS=2 floor): each technique requires
-# >= 2 distinct phrase hits to count, mirroring Phase 45 MIN_TEXT_HITS=2.
+# >= 2 DISTINCT marker patterns to match, mirroring Phase 45
+# MIN_TEXT_HITS=2. Distinct-pattern counting (66 review WR-01) means two
+# repeats of a single generic phrase cannot fire a technique on their own.
 #
 # Trade-off bare-token tiebreaker: the bare token `trade-off` (without
 # the procedural-marker phrases) is too lexically common to count toward
@@ -221,15 +226,25 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # pre-mortem.md line 3 (frontmatter blurb) + line 36 (Phase 2 framing)
         re.compile(r"prospective[- ]?hindsight", re.IGNORECASE),
         # pre-mortem.md "the plan has (already) failed. What caused it?"
-        # Covers natural variation: "treat it as already failed",
-        # "has already failed" etc. (with "already" qualifier).
-        re.compile(r"(already|has already|treat.*as)\s+failed", re.IGNORECASE),
+        # Covers natural variation: "has already failed", "already failed",
+        # and the bounded "treat <up to 4 words> as (already) failed" form
+        # ("treat it as already failed"). The treat branch is bounded to at
+        # most 4 intervening words so it cannot greedily match across
+        # unrelated clauses on the same line ("we treat retries gracefully
+        # and mark the job as failed" must NOT fire) — 66 review WR-01.
+        re.compile(
+            r"(already|has already)\s+failed"
+            r"|treat(?:ing)?\s+(?:\w+\s+){0,4}as\s+(?:already\s+)?failed",
+            re.IGNORECASE,
+        ),
         # Additional variant: bare "has failed" without "already" qualifier.
         # Real focused pre-mortem output ("the migration has failed",
-        # "the rollout has failed") consistently uses this form; the
-        # qualifier-free phrase is still distinctive when combined with a
-        # second marker like "working backward". Observed in 100% of
-        # P25/P26 runs in the 66-03 probe capture (2026-06-10).
+        # "the rollout has failed") consistently uses this form. The phrase
+        # is generic on its own — `_technique_hits` counts DISTINCT patterns
+        # matched (66 review WR-01), so this pattern can never fire
+        # pre-mortem by itself: a second, different marker (e.g. "working
+        # backward") must also match. Observed in 100% of P25/P26 runs in
+        # the 66-03 probe capture (2026-06-10).
         re.compile(r"\bhas\s+failed\b", re.IGNORECASE),
         # pre-mortem.md procedure step — loosened from "working backward: what
         # caused" to bare "working backward" to match natural output variation
@@ -528,16 +543,18 @@ def _extract_assistant_text(parsed_lines: list[object]) -> str:
 
 
 def _technique_hits(text: str) -> dict[str, int]:
-    """Per-technique total marker-hit count across `text`.
+    """Per-technique count of DISTINCT marker patterns matching `text`.
 
-    A technique "fires" iff its hit count is >= MIN_HEADER_HITS.
+    A technique "fires" iff at least MIN_HEADER_HITS of its patterns each
+    match at least once. Counting distinct patterns rather than total
+    occurrences (66 review WR-01) prevents one generic phrase repeated
+    twice (e.g. two bare "has failed" mentions in ordinary debugging
+    prose) from firing a technique on its own — a second, different
+    marker must corroborate.
     """
     hits: dict[str, int] = {}
     for tech, patterns in _TECHNIQUE_CATEGORIES.items():
-        total = 0
-        for rx in patterns:
-            total += len(rx.findall(text))
-        hits[tech] = total
+        hits[tech] = sum(1 for rx in patterns if rx.search(text))
     return hits
 
 
