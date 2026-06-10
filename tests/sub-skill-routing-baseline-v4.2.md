@@ -16,10 +16,10 @@
 
 | # | Expected | Runs | Matches | K/N | Verdict |
 |---|----------|------|---------|-----|---------|
-| P12 | none-or-other | 5 | 5 | 5/5 PASS | |
-| P24 | none-or-other | 5 | 5 | 5/5 PASS | |
-| N1  | none-or-other | 5 | 5 | 5/5 PASS | |
-| N2  | none-or-other | 5 | 5 | 5/5 PASS | |
+| P12 | none-or-other | 5 | 5 | 5/5 | PASS |
+| P24 | none-or-other | 5 | 5 | 5/5 | PASS |
+| N1  | none-or-other | 5 | 5 | 5/5 | PASS |
+| N2  | none-or-other | 5 | 5 | 5/5 | PASS |
 
 All 20 captured runs classified as `none-or-other` under the routing-field-scoped Signal A detection — the orchestrator invoked the `first-principles:first-principles` composer agent for every prompt, never naming a specific sub-skill directly. This is the expected correct behavior: Phase 46 set `disable-model-invocation: true` on all eleven companion skills, so the orchestrator must never auto-route to them; this battery confirms the boundary discipline holds.
 

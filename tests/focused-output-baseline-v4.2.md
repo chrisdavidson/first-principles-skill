@@ -81,7 +81,7 @@ The first battery run under v4.2 (OUT_DIR: `/tmp/focused-output-v4.2-20260610T17
 1. `\bPhase\s+[0-9]+\b` in `_COMPOSER_STRUCTURE_PATTERNS` was too broad — it fired on plan-content prose ("Phase 1 migrates staging") in addition to the composer's structural section headers, causing P24 (inversion) and P25 (multi-phase plan pre-mortem) to false-classify as `full-composer`.
 2. Pre-mortem technique markers in `_TECHNIQUE_CATEGORIES` were under-specified — requiring exact procedure-text phrases that real agent output rarely matches verbatim, causing consistent under-detection on P12 and P26.
 
-The user authorized the Signal B redesign. The fix was implemented and committed at commit `151b197` (Phase 65-05). This baseline records the first complete PASS run after that fix.
+The user authorized the Signal B redesign. The fix was implemented and committed at commit `151b197` (Phase 66-03). This baseline records the first complete PASS run after that fix.
 
 **Second run interrupted (2026-06-10):** A second verbatim battery run was interrupted by a provider spend limit after 4 P rows completed (all 4 P rows had PASSed at the point of interruption). The third run — this baseline — completed without interruption.
 
