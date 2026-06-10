@@ -697,13 +697,18 @@ def detect_output_structure(
 
     # Signal A: routing envelope override (Phase 46-04 calibration).
     # Direct routing evidence (Skill/Agent/Task invocation of a specific
-    # sub-skill) is stronger than the composer-structure heuristic. A
-    # focused pre-mortem on a multi-phase plan naturally organizes by phase
-    # ("Phase 1 — SSO Migration"), which fires _COMPOSER_STRUCTURE_PATTERNS'
-    # `\bPhase \d+\b` many times — but that's a focused output, not a
-    # full-composer walkthrough. Without this priority ordering N2-style
-    # prompts (slash-invoked focused-mode on multi-phase plans) false-fail
-    # as `full-composer` despite the explicit invocation envelope.
+    # sub-skill) is stronger than the composer-structure heuristic.
+    # Post-151b197 rationale (66 review WR-03): the structural signal now
+    # rests on the standalone scaffold tokens ("Ground Truths",
+    # "Assumption Audit", "Derivation Chains", "Verdict"), and focused
+    # output can mention those incidentally — e.g. the closing handoff
+    # suggestion "feed this output to the composer as known ground
+    # truths", or ordinary analytic prose using "verdict". Two such
+    # incidental mentions reach MIN_HEADER_HITS and would force
+    # `full-composer`. Without this priority ordering, P26-style prompts
+    # (P26 = the former N2: slash-invoked focused-mode on a multi-phase
+    # plan) could false-fail as `full-composer` despite the explicit
+    # invocation envelope.
     #
     # Guard: Signal A only fires when (a) exactly one sub-skill was
     # invoked, (b) its technique shows at least one marker in the agent's
