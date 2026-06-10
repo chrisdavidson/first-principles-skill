@@ -1130,14 +1130,18 @@ def _run_one_fixture(
             pass
 
 
-def _run_probe3_sanity_feed() -> bool:
-    """Fixture 8 (HARD-REQUIRED — no soft-skip).
+def _run_probe3_sanity_feed() -> bool | None:
+    """Fixture 8 — Probe 3 sanity feed (soft-skip when the capture is absent).
 
-    Read the committed cross-wave Probe 3 capture from
+    Read the LOCAL-ONLY cross-wave Probe 3 capture from
     `.planning/phases/46-.../wave0-evidence/probe3-full-composer.jsonl`
-    and assert it classifies as `full-composer`. If the file is absent,
-    self-test fails with an actionable message: re-run 46-01 Task 1
-    Probe 3 to produce the load-bearing calibration sample.
+    and assert it classifies as `full-composer`. The file is NOT committed
+    — `.planning/` is gitignored (66 review WR-05) — so on a fresh clone
+    or CI runner it is absent. In that case this fixture is SKIPPED with
+    a warning (returns None) rather than hard-failing the self-test:
+    in-repo hard coverage of the structural-override path is provided by
+    `_FIXTURE_STRUCTURAL_OVERRIDE` (66 review WR-04). When the capture IS
+    present, a classification mismatch still fails the self-test.
     """
     probe3_path = (
         REPO_ROOT
@@ -1149,12 +1153,15 @@ def _run_probe3_sanity_feed() -> bool:
     )
     if not probe3_path.exists():
         print(
-            f"self-test FAIL: Fixture 8 source missing at {probe3_path}\n"
-            "Re-run 46-01 Task 1 Probe 3 to produce the load-bearing "
-            "calibration sample (cross-wave committed handoff path).",
+            "self-test WARNING: Fixture 8 SKIPPED — Probe 3 capture absent "
+            f"at\n  {probe3_path}\n"
+            "  (.planning/ is gitignored; the capture exists only on the "
+            "machine that ran 46-01 Task 1 Probe 3. The structural-override "
+            "path is still hard-covered by the in-script "
+            "structural_override_LOAD_BEARING fixture.)",
             file=sys.stderr,
         )
-        return False
+        return None
     actual = detect_output_structure_from_file(probe3_path)
     expected: OutputStructure = "full-composer"
     if actual != expected:
@@ -1169,8 +1176,9 @@ def _run_probe3_sanity_feed() -> bool:
 
 
 def self_test() -> int:
-    """Validate detection logic against in-script fixtures + the
-    LOAD-BEARING Probe 3 sanity feed. No claude invocation.
+    """Validate detection logic against in-script fixtures, plus the
+    Probe 3 sanity feed when its local-only capture is present
+    (soft-skipped otherwise — 66 review WR-05). No claude invocation.
     """
     fixtures: list[tuple[str, str, OutputStructure]] = [
         ("focused_pre_mortem", _FIXTURE_FOCUSED_PREMORTEM, "focused-pre-mortem"),
@@ -1202,8 +1210,10 @@ def self_test() -> int:
         if not _run_one_fixture(name, body, expected):
             all_passed = False
 
-    # Fixture 8 — Probe 3 sanity feed (HARD-REQUIRED, no soft-skip).
-    if not _run_probe3_sanity_feed():
+    # Fixture 8 — Probe 3 sanity feed (soft-skip when the local-only
+    # capture is absent — 66 review WR-05; None means skipped).
+    probe3_result = _run_probe3_sanity_feed()
+    if probe3_result is False:
         all_passed = False
 
     # K>N rejection self-test (parallel to check-routing.py and
@@ -1249,9 +1259,16 @@ def self_test() -> int:
             )
             all_passed = False
 
-    fixture_total = len(fixtures) + 2 + len(_not_any_cases)  # +1 Probe 3 sanity, +1 K>N guard, +NOT-any-focused assertions
+    probe3_counted = 1 if probe3_result is not None else 0
+    fixture_total = (
+        len(fixtures) + probe3_counted + 1 + len(_not_any_cases)
+    )  # +probe3 when present, +1 K>N guard, +NOT-any-focused assertions
+    skip_note = (
+        "" if probe3_result is not None
+        else " (Fixture 8 probe3 sanity feed skipped — local capture absent)"
+    )
     if all_passed:
-        print(f"self-test PASS ({fixture_total} fixtures)")
+        print(f"self-test PASS ({fixture_total} fixtures){skip_note}")
         return 0
     return 1
 
