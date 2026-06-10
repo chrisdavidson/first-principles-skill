@@ -18,7 +18,7 @@
 | #   | Expected           | Technique     | Runs | Matches | K/N     | Verdict |
 |-----|--------------------|---------------|------|---------|---------|---------|
 | P12 | focused-pre-mortem | pre-mortem    | 5    | 3       | 3/5 PASS | FU-21-1 via slash; 2 runs drifted to `full-composer` (stochastic) |
-| P24 | focused-inversion  | inversion     | 5    | 3       | 3/5 PASS | FU-21-2 via slash; 2 runs drifted to `full-composer` (plan content triggered Phase-header pattern) |
+| P24 | focused-inversion  | inversion     | 5    | 3       | 3/5 PASS | FU-21-2 via slash; 2 runs drifted to `full-composer` (verified in run-2/run-3 captures: standalone `Ground Truths`/`Verdict` tokens in incidental handoff/analytic prose reached the structural override at MIN_HEADER_HITS=2 — the Phase-header pattern fired 0 times) |
 | P25 | focused-pre-mortem | pre-mortem    | 5    | 5       | 5/5 PASS | Strong result — new fixture in v4.2; multi-phase plan prompt, all 5 runs classified correctly |
 | P26 | focused-pre-mortem | pre-mortem    | 5    | 5       | 5/5 PASS | Re-IDed from N2 in v3.8 (plan-shaped slash invocation); all 5 runs classified correctly |
 | N1  | NOT-any-focused    | (none)        | 5    | 4       | 4/5 PASS | Over-trigger guard; 1 run classified `focused-pre-mortem` (stochastic), 4 runs classified `none` |
