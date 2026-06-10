@@ -62,8 +62,8 @@ Cardinality calibration choice (LOAD-BEARING — read before editing):
 
     Calibration path chosen here = OPTION B from 46-01-SUMMARY findings:
       Add a structural `composer-structure` signal counting the canonical
-      5-phase markers ("Phase N — Ground Truths", "Ground Truths",
-      "Assumption Audit", "Derivation Chains", "Verdict"). If
+      5-phase scaffold markers ("Ground Truths", "Assumption Audit",
+      "Derivation Chains", "Verdict"). If
       composer-structure fires at >= MIN_HEADER_HITS, classify as
       full-composer regardless of the per-technique cardinality. This
       matches the Probe 3 empirical signal (Phase-titled section headers +
@@ -76,9 +76,13 @@ Cardinality calibration choice (LOAD-BEARING — read before editing):
       entry was r"\\bPhase\\s+[0-9]+\\b" — too broad. It fired on plan-content
       prose in focused pre-mortem output ("Phase 1 migrates staging"; "Phase
       1/2/3" in a multi-phase migration plan 19-29 times), causing false
-      full-composer classifications on P24 and P25. Tightened to a
-      multi-word composer-header form:
-      r"\\bPhase\\s+[0-9]+\\s*[—–-]\\s*(Ground Truths?|...|Verdict)\\b".
+      full-composer classifications on P24 and P25. First tightened to a
+      multi-word composer-header form, then removed entirely (66 review
+      WR-02): the tightened form double-counted against the standalone
+      header patterns, so a single header line defeated the
+      MIN_HEADER_HITS=2 noise floor. The standalone scaffold tokens
+      ("Ground Truths", "Assumption Audit", "Derivation Chains",
+      "Verdict") now carry the structural signal alone.
 
     Bug 2 fix (66-03 Signal B probe, 2026-06-10): pre-mortem technique
       markers were too strict — required exact procedure-text phrases
@@ -334,19 +338,19 @@ _TRADEOFF_BARE_TOKEN_RE: re.Pattern[str] = re.compile(
 # (5 Phase headers + 2 "Ground Truths" + 1 "Assumption Audit" + 1
 # "Verdict" all fired in that real capture).
 _COMPOSER_STRUCTURE_PATTERNS: tuple[re.Pattern[str], ...] = (
-    # Tightened from bare `\bPhase\s+[0-9]+\b` (fired on plan-content prose
-    # like "Phase 1 migrates staging") to the composer's own section-header
-    # form: "Phase N — Ground Truths", "Phase N — Assumption Audit", etc.
-    # A standalone "Phase N" in the plan content no longer fires.
-    # Calibrated fix for Bug 1 from 66-03 Signal B probe (2026-06-10):
-    # P24 (inversion output with incidental "Phase N" prose) and P25
-    # (multi-phase migration plan where Phase 1/2/3 appears 19-29 times)
-    # were false-positive full-composer due to this too-broad pattern.
-    re.compile(
-        r"\bPhase\s+[0-9]+\s*[—–-]\s*"
-        r"(Ground\s+Truths?|Assumption\s+Audit|Derivation\s+Chains?|Verdict)\b",
-        re.IGNORECASE,
-    ),
+    # History (Bug 1, 66-03 Signal B probe, 2026-06-10): the original first
+    # entry here was bare `\bPhase\s+[0-9]+\b`, which fired on plan-content
+    # prose ("Phase 1 migrates staging"; "Phase 1/2/3" appearing 19-29
+    # times in a multi-phase migration plan), false-classifying P24/P25 as
+    # full-composer. It was first tightened to the multi-word header form
+    # ("Phase N — Ground Truths" etc.), but that form structurally
+    # OVERLAPPED the standalone patterns below — every header match
+    # double-counted, so a single header line defeated the
+    # MIN_HEADER_HITS=2 noise floor (66 review WR-02). The Phase-header
+    # entry is now REMOVED entirely: the distinctive suffix tokens
+    # (Ground Truths / Assumption Audit / Derivation Chains / Verdict)
+    # are fully counted by the standalone patterns, each occurrence
+    # exactly once. Bare "Phase N" prose never fires.
     re.compile(r"\bGround\s+Truths?\b", re.IGNORECASE),
     re.compile(r"\bAssumption\s+Audit\b", re.IGNORECASE),
     re.compile(r"\bDerivation\s+Chains?\b", re.IGNORECASE),
