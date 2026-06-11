@@ -102,3 +102,14 @@ jobs:
       - run: pip install 'pyyaml>=6.0'
       - run: python3 scripts/check-agent.py --self-test
       - run: python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
+
+  check-routing-battery:
+    name: check-routing-battery (BATT-06)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/check-routing-battery.py --self-test
