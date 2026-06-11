@@ -68,9 +68,9 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 | Technique | Trigger phrases (any one fires) |
 |---|---|
-| pre-mortem | "pre-mortem", "prospective-hindsight", "nervous about [my/the/this] plan", "[walk/run] through what would have caused", "imagine .* failed .* what caused" |
+| pre-mortem | "pre-mortem", "prospective-hindsight", "nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused" |
 | inversion | "invert", "invert this claim", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break" |
-| fishbone | "fishbone", "Ishikawa", "cause categor(y/ies)", "breadth-first .* causes", "map the .* cause space" |
+| fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space" |
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
 | trade-off | "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
