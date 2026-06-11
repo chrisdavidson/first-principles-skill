@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 """Tests for Phase 66: committed baseline invariant guards.
 
+LINEAGE MARKER: Superseded by `tests/test_69_merged_baseline_invariants.py` (BATT-08)
+— these v4.2-baseline guards remain as lineage while the v4.2 files exist (D-03).
+The 22 assertions below continue to pass because the v4.2 baseline files are retained
+on disk (smallest-green migration per RESEARCH §2; physical deletion deferred per D-05).
+New callers should assert over `tests/routing-battery-baseline-v4.3.md` via test_69.
+
 Requirements covered:
   STRICT-02 / BASE-01 — sub-skill-routing-baseline-v4.2.md structural invariants
   STRICT-02 / BASE-02 — focused-output-baseline-v4.2.md structural invariants
