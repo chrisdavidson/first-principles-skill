@@ -6,7 +6,10 @@ baseline. The anti-masking guarantees (no --p-threshold 0 mask, no silent fixtur
 falsifiable verdict cells) carry forward onto the merged battery surface.
 
 Requirements covered:
-  BATT-08 — 45 Nyquist invariant tests migrated to target the merged battery / v4.3 baseline
+  BATT-08 — Nyquist invariant tests migrated to target the merged battery / v4.3 baseline
+
+This module defines 20 test functions: 8 file-level guards, 4 boundary-row checks,
+5 focused-row checks, and 3 self-check / anti-falsifiability tests.
 
 Note: The live battery run (BATT-07) is recorded in the baseline file itself. These tests
 guard the committed baseline content so structural drift is caught immediately.
@@ -103,14 +106,36 @@ def test_baseline_v43_lineage_mentions_commit_151b197() -> None:
 # ---------------------------------------------------------------------------
 
 def _check_baseline_row(text: str, row_id: str, kn_value: str, verdict: str) -> None:
-    """Assert that a table row contains the expected K/N and verdict cells."""
+    """Assert that a boundary table row has the expected Boundary K/N and Verdict cells.
+
+    Cell-anchored (CR-01): splits the matched line on '|' and checks EXACT equality on
+    cell index 4 (Boundary K/N) and cell index 6 (Both-Match Verdict). This prevents two
+    proven leak vectors on the merged table:
+      - '5/5 FAIL' passing a substring '5/5' check on the K/N cell
+      - 'FAIL' verdict passing because 'PASS' leaks from the Focused K/N cell (index 5)
+
+    Column layout after split on '|' and strip (indices):
+      [0]="" [1]=row_id [2]=Expected Boundary [3]=Expected Output
+      [4]=Boundary K/N [5]=Focused K/N [6]=Both-Match Verdict [7]=""
+    """
+    MIN_CELLS = 7  # need at least index 6 to be present
     for line in text.splitlines():
         if f"| {row_id} " in line or f"| {row_id}  " in line:
-            assert kn_value in line, (
-                f"Row {row_id}: expected K/N cell '{kn_value}' not found in: {line!r}"
+            cells = [c.strip() for c in line.split("|")]
+            if len(cells) < MIN_CELLS + 1:
+                raise AssertionError(
+                    f"Row {row_id}: malformed line — expected at least {MIN_CELLS + 1} "
+                    f"pipe-delimited cells, got {len(cells)}: {line!r}"
+                )
+            actual_kn = cells[4]
+            actual_verdict = cells[6]
+            assert actual_kn == kn_value, (
+                f"Row {row_id}: Boundary K/N cell (index 4) is {actual_kn!r}, "
+                f"expected {kn_value!r}. Full line: {line!r}"
             )
-            assert verdict in line, (
-                f"Row {row_id}: expected Verdict '{verdict}' not found in: {line!r}"
+            assert actual_verdict == verdict, (
+                f"Row {row_id}: Verdict cell (index 6) is {actual_verdict!r}, "
+                f"expected {verdict!r}. Full line: {line!r}"
             )
             return
     raise AssertionError(
@@ -219,6 +244,55 @@ def test_check_focused_row_is_falsifiable() -> None:
         raise AssertionError(
             "_check_focused_row did not raise for a '2/5 FAIL' cell — "
             "the tightened falsifiability check is broken"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Anti-falsifiability self-check — confirm _check_baseline_row rejects leak vectors
+# ---------------------------------------------------------------------------
+
+def test_check_baseline_row_is_falsifiable_kn_leak() -> None:
+    """_check_baseline_row must raise when Boundary K/N cell reads '5/5 FAIL' (leak vector 1).
+
+    A row with '5/5 FAIL' in the Boundary K/N cell must NOT satisfy the gate, even though
+    '5/5' is a substring of '5/5 FAIL'. The cell-anchored check must reject this row.
+    """
+    malformed_table = (
+        "| #     | Expected Boundary | Expected Output | Boundary K/N | Focused K/N | Both-Match Verdict |\n"
+        "|-------|-------------------|-----------------|--------------|-------------|--------------------|\n"
+        "| B-P12 | none-or-other     | n-a             | 5/5 FAIL     | n-a         | PASS               |\n"
+    )
+    try:
+        _check_baseline_row(malformed_table, "B-P12", "5/5", "PASS")
+    except AssertionError:
+        pass  # Expected — the cell-anchored check correctly rejects '5/5 FAIL' != '5/5'
+    else:
+        raise AssertionError(
+            "_check_baseline_row did not raise for a '5/5 FAIL' Boundary K/N cell — "
+            "the cell-anchored K/N check is broken (CR-01 leak vector 1)"
+        )
+
+
+def test_check_baseline_row_is_falsifiable_verdict_leak() -> None:
+    """_check_baseline_row must raise when Verdict cell reads 'FAIL' (leak vector 2).
+
+    A row with a 'FAIL' Verdict cell must NOT pass, even though 'PASS' is present as a
+    substring in the Focused K/N cell (index 5). The cell-anchored check must isolate
+    the Verdict at index 6 and reject it.
+    """
+    malformed_table = (
+        "| #     | Expected Boundary | Expected Output | Boundary K/N | Focused K/N | Both-Match Verdict |\n"
+        "|-------|-------------------|-----------------|--------------|-------------|--------------------|\n"
+        "| B-P12 | none-or-other     | n-a             | 5/5          | 3/5 PASS    | FAIL               |\n"
+    )
+    try:
+        _check_baseline_row(malformed_table, "B-P12", "5/5", "PASS")
+    except AssertionError:
+        pass  # Expected — the cell-anchored check correctly rejects 'FAIL' != 'PASS' at index 6
+    else:
+        raise AssertionError(
+            "_check_baseline_row did not raise for a 'FAIL' Verdict cell with 'PASS' leaking "
+            "from the Focused K/N cell — the cell-anchored verdict check is broken (CR-01 leak vector 2)"
         )
 
 
