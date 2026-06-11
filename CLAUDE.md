@@ -29,9 +29,12 @@ python3 scripts/check-body-budget.py      # pre-commit body budget (500-line lim
 ### Routing battery (requires a running Claude Code session)
 
 ```sh
+python3 scripts/check-routing-battery.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
+python3 scripts/check-routing-battery.py --self-test   # offline deterministic gate
+# Deprecated shims (delegate to check-routing-battery.py):
+python3 scripts/check-sub-skill-routing.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
+python3 scripts/check-focused-output.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3 --p-threshold 4 --n-threshold 1
 python3 scripts/check-routing.py --catalog tests/routing-catalog.md
-python3 scripts/check-sub-skill-routing.py --catalog tests/sub-skill-routing-catalog.md --repeat 5 --min-pass 3
-python3 scripts/check-focused-output.py --catalog tests/focused-output-catalog.md --repeat 5 --min-pass 3 --p-threshold 4 --n-threshold 1
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
 
@@ -117,15 +120,15 @@ Bypass for intentional in-progress work: `git commit --no-verify`
 
 ### Routing battery
 
-Three verifiers cover different layers of routing correctness. All issue prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and score verdicts from the `stream-json` event stream. Routing is non-deterministic — threshold K-of-N counts are the criterion, not per-run pass/fail.
+Two verifiers cover different layers of routing correctness. All issue prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and score verdicts from the `stream-json` event stream. Routing is non-deterministic — threshold K-of-N counts are the criterion, not per-run pass/fail.
 
 **`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE.
 
-**`check-sub-skill-routing.py`** — BOUNDARY DISCIPLINE battery. Verifies that nothing auto-routes to the eleven slash-only companion skills (`disable-model-invocation: true`). All P rows expect `none-or-other` (the orchestrator should route to the composer, not dispatch directly to a sub-skill). Strict by default (`--p-threshold 2` — all P rows must pass).
+**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate).
 
-**`check-focused-output.py`** — canonical FU-21-1 / FU-21-2 gate (FOCUS-01). Verifies that explicit slash invocation (`/first-principles:<technique>`) produces the correct focused-technique output. Four P rows (P12, P24, P25, P26) all expect `focused-<technique>`; exactly one N row (N1, the over-trigger negative control) expects `NOT-any-focused`. The N bucket is a single true-negative control — the former N2 (positive expectation: `focused-pre-mortem`) was re-IDed to P26 and moved to the P bucket, so no inverted-expectation row remains in the N bucket. Calibrated run: `--p-threshold 4 --n-threshold 1` (all four P rows must pass; the sole N row must pass at 1/1).
+`check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims** that translate the old per-script flags onto the merged battery and forward to `check-routing-battery.py`. They exist for backward compatibility only; new callers should invoke `check-routing-battery.py` directly.
 
-Catalog fixtures: `tests/routing-catalog.md` (agent routing), `tests/sub-skill-routing-catalog.md` (boundary discipline), `tests/focused-output-catalog.md` (focused-output gate).
+Catalog fixtures: `tests/routing-catalog.md` (main agent routing battery), `tests/routing-battery-catalog.md` (merged boundary + focused-output battery).
 
 ### Key invariants
 
