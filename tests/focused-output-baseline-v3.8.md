@@ -1,3 +1,12 @@
+> **SUPERSEDED — v4.2 (Phase 66 close-out)**
+> This baseline was recorded against the v3.8 3P+1N fixture set with `--p-threshold 2`
+> (only 2 of the P rows required to pass). The "Phase 46 comparison gate" section below
+> instructs re-running with `--p-threshold 2 --n-threshold 1` — do **NOT** do this.
+> The canonical FU-21-1/FU-21-2 gate is now `tests/focused-output-catalog.md` (4P+1N,
+> N2 re-IDed to P26) run with `--p-threshold 4 --n-threshold 1` — all four P rows must
+> pass. Current baseline: `tests/focused-output-baseline-v4.2.md`.
+> Evidence chain: `.planning/notes/fu21-fixture-contradiction-diagnosis.md`.
+
 # Focused-Output Baseline — v3.8 (VERIFY-01 closure: FU-21-1 / FU-21-2 closed via composer-internal dispatch)
 
 **Recorded:** 2026-05-28 (18:45–19:31 UTC, ~45 min wall-clock for 20 live `claude -p` calls)
