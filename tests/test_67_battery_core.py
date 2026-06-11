@@ -547,3 +547,119 @@ def test_verdict_output_format(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) 
 
     f_tsv = tmp_path / "scores-focused.tsv"
     assert f_tsv.exists(), "scores-focused.tsv was not written"
+
+
+# ===========================================================================
+# REGRESSION: per-signal threshold gates must not be defeated by n-a auto-pass
+# (67-REVIEW.md CR-01 / CR-02 — the merged battery must reproduce each source
+#  script's verdict over ITS OWN signal rows only, never inflated by the
+#  opposite signal's auto-passing n-a rows)
+# ===========================================================================
+
+
+def test_threshold_gates_not_defeated_by_na_autopass(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Boundary-P and focused-N gates must fire when their real signal rows fail.
+
+    Regression for 67-REVIEW.md CR-01/CR-02: the per-signal tally must exclude
+    rows whose expectation is ``n-a`` on that signal. The 4 focused P-rows
+    auto-pass the BOUNDARY side and the 2 boundary N-rows auto-pass the FOCUSED
+    side; counting those auto-passes toward the boundary-P / focused-N gates
+    would mask a real B-P or F-N1 regression and yield a false ``BATTERY: PASS``.
+
+    Here the real boundary P-rows (B-P12, B-P24) and the real focused N-row
+    (F-N1) FAIL their signal; everything else passes. Both signal gates and the
+    overall verdict must be FAIL, with per-signal denominators (not catalog
+    totals) in the ``P: x/y  N: a/b`` lines.
+    """
+    MP = bc.MergedPrompt
+    prompts_p = [
+        MP("B-P12", "x", "none-or-other", "n-a"),
+        MP("B-P24", "y", "none-or-other", "n-a"),
+        MP("F-P12", "z", "n-a", "focused-pre-mortem"),
+        MP("F-P24", "z", "n-a", "focused-pre-mortem"),
+        MP("F-P25", "z", "n-a", "focused-pre-mortem"),
+        MP("F-P26", "z", "n-a", "focused-pre-mortem"),
+    ]
+    prompts_n = [
+        MP("B-N1", "a", "none-or-other", "n-a"),
+        MP("B-N2", "b", "none-or-other", "n-a"),
+        MP("F-N1", "c", "n-a", "NOT-any-focused"),
+    ]
+
+    def fake_run_prompt_n_times_to_paths(prompt, plugin_dir, out_dir, repeat):
+        # Encode the intended boundary + focused 'actual' verdicts per row so the
+        # stub detectors below are deterministic. The real boundary P-rows return
+        # a WRONG subskill (fail vs. none-or-other); every focused capture looks
+        # like focused-pre-mortem, so F-N1 (expects NOT-any-focused) fails.
+        b_actual = "pre-mortem" if prompt.id in ("B-P12", "B-P24") else "none-or-other"
+        payload = json.dumps({"b": b_actual, "f": "focused-pre-mortem"})
+        paths = []
+        for run_idx in range(repeat):
+            name = (
+                f"{prompt.id}.jsonl"
+                if repeat == 1
+                else f"{prompt.id}-run{run_idx + 1}.jsonl"
+            )
+            out_path = out_dir / name
+            out_path.write_text(payload, encoding="utf-8")
+            paths.append(out_path)
+        return paths
+
+    monkeypatch.setattr(
+        crb, "_run_prompt_n_times_to_paths", fake_run_prompt_n_times_to_paths
+    )
+    monkeypatch.setattr(crb, "_ensure_claude_available", lambda: None)
+    monkeypatch.setattr(
+        crb, "detect_subskill", lambda p: json.loads(Path(p).read_text())["b"]
+    )
+    monkeypatch.setattr(
+        crb,
+        "detect_output_structure_from_file",
+        lambda p: json.loads(Path(p).read_text())["f"],
+    )
+
+    rc = crb.run_battery(
+        prompts_p=prompts_p,
+        prompts_n=prompts_n,
+        plugin_dir=Path("/tmp/fake-plugin"),
+        out_dir=tmp_path,
+        boundary_p_threshold=2,
+        boundary_n_threshold=2,
+        focused_p_threshold=4,
+        focused_n_threshold=1,
+        quiet=True,
+        repeat=1,
+        min_pass=1,
+    )
+
+    verdict = (tmp_path / "verdict.txt").read_text(encoding="utf-8")
+    b_sec = verdict.split("--- Boundary signal ---", 1)[1].split(
+        "--- Focused output ---", 1
+    )[0]
+    f_sec = verdict.split("--- Focused output ---", 1)[1].split("--- Overall ---", 1)[0]
+    o_sec = verdict.split("--- Overall ---", 1)[1]
+
+    assert "BATTERY: FAIL" in b_sec, (
+        f"boundary-P gate did not fire — CR-01 regression (n-a focused rows masked "
+        f"the failing B-P rows): {b_sec!r}"
+    )
+    assert "BATTERY: FAIL" in f_sec, (
+        f"focused-N gate did not fire — CR-02 regression (n-a boundary rows masked "
+        f"the failing F-N1 row): {f_sec!r}"
+    )
+    assert "BATTERY: FAIL" in o_sec, f"overall verdict should be FAIL: {o_sec!r}"
+    assert rc == 1, f"run_battery should return 1 on overall FAIL, got {rc}"
+
+    # Per-signal denominators must reflect the REAL signal rows, not catalog totals.
+    assert "P: 0/2" in b_sec, (
+        f"boundary tally must be over the 2 real boundary-P rows (got catalog "
+        f"totals?): {b_sec!r}"
+    )
+    assert "N: 2/2" in b_sec, f"both boundary-N rows should pass: {b_sec!r}"
+    assert "P: 4/4" in f_sec, f"all four focused-P rows should pass: {f_sec!r}"
+    assert "N: 0/1" in f_sec, (
+        f"focused tally must be over the 1 real focused-N row (got catalog "
+        f"totals?): {f_sec!r}"
+    )

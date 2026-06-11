@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import re
 import sys
 from pathlib import Path
 
@@ -189,54 +190,60 @@ def run_battery(
                 quiet,
             )
 
+    # P/N classification — strip a single leading de-collision prefix (B-/F-)
+    # before reading the P/N marker.
+    def _is_p_row(rid: str) -> bool:
+        return re.sub(r"^[A-Z]-", "", rid).startswith("P")
+
     # ------------------------------------------------------------------
     # Tally: boundary signal
+    # CR-01 fix: score ONLY rows that actually carry the boundary signal
+    # (expected_boundary != "n-a"). Counting n-a rows would tally their
+    # auto-pass (b_count == min_pass forced by _both_match) and permanently
+    # defeat the gate — the boundary P/N thresholds must reproduce
+    # check-sub-skill-routing.py's verdict over ITS rows (B-P12/B-P24 and
+    # B-N1/B-N2) only, not the 4 focused P-rows that are n-a on this side.
     # ------------------------------------------------------------------
+    boundary_results = [
+        (prompt, b_count) for prompt, b_count, _f, _p in results
+        if prompt.expected_boundary != "n-a"
+    ]
+    b_p_total = sum(1 for prompt, _ in boundary_results if _is_p_row(prompt.id))
+    b_n_total = sum(1 for prompt, _ in boundary_results if not _is_p_row(prompt.id))
     b_p_pass = sum(
-        1
-        for prompt, b_count, f_count, prompt_passed in results
-        if prompt.id.startswith(("P", "B-P", "F-P")) and b_count >= min_pass
-    )
-    b_n_pass = sum(
-        1
-        for prompt, b_count, f_count, prompt_passed in results
-        if not prompt.id.startswith(("P", "B-P", "F-P")) and b_count >= min_pass
-    )
-
-    # Re-derive using the actual P/N classification (strip prefix)
-    import re as _re
-
-    def _is_p_row(rid: str) -> bool:
-        stripped = _re.sub(r"^[A-Z]-", "", rid)
-        return stripped.startswith("P")
-
-    b_p_pass = sum(
-        1 for prompt, b_count, f_count, _ in results
+        1 for prompt, b_count in boundary_results
         if _is_p_row(prompt.id) and b_count >= min_pass
     )
     b_n_pass = sum(
-        1 for prompt, b_count, f_count, _ in results
+        1 for prompt, b_count in boundary_results
         if not _is_p_row(prompt.id) and b_count >= min_pass
     )
     boundary_pass = b_p_pass >= boundary_p_threshold and b_n_pass >= boundary_n_threshold
 
     # ------------------------------------------------------------------
     # Tally: focused output
+    # CR-02 fix: score ONLY rows that carry the focused signal
+    # (expected_output != "n-a"). Otherwise the boundary N-rows (B-N1/B-N2,
+    # n-a on this side) auto-pass and mask an F-N1 regression. Reproduces
+    # check-focused-output.py's verdict over its rows (F-P12/24/25/26, F-N1).
     # ------------------------------------------------------------------
+    focused_results = [
+        (prompt, f_count) for prompt, _b, f_count, _p in results
+        if prompt.expected_output != "n-a"
+    ]
+    fp_p_total = sum(1 for prompt, _ in focused_results if _is_p_row(prompt.id))
+    fp_n_total = sum(1 for prompt, _ in focused_results if not _is_p_row(prompt.id))
     fp_p_pass = sum(
-        1 for prompt, b_count, f_count, _ in results
+        1 for prompt, f_count in focused_results
         if _is_p_row(prompt.id) and f_count >= min_pass
     )
     fp_n_pass = sum(
-        1 for prompt, b_count, f_count, _ in results
+        1 for prompt, f_count in focused_results
         if not _is_p_row(prompt.id) and f_count >= min_pass
     )
     focused_pass = fp_p_pass >= focused_p_threshold and fp_n_pass >= focused_n_threshold
 
     overall_pass = boundary_pass and focused_pass
-
-    p_total = len(prompts_p)
-    n_total = len(prompts_n)
 
     # ------------------------------------------------------------------
     # Build verdict.txt content — three sections in Phase 69 locked format
@@ -246,7 +253,7 @@ def run_battery(
     # --- Boundary signal ---
     verdict_lines.append("--- Boundary signal ---")
     verdict_lines.append(f"BATTERY: {'PASS' if boundary_pass else 'FAIL'}")
-    verdict_lines.append(f"P: {b_p_pass}/{p_total}  N: {b_n_pass}/{n_total}")
+    verdict_lines.append(f"P: {b_p_pass}/{b_p_total}  N: {b_n_pass}/{b_n_total}")
     if not boundary_pass:
         verdict_lines.append("")
         verdict_lines.append("Failed prompts:")
@@ -279,7 +286,7 @@ def run_battery(
     # --- Focused output ---
     verdict_lines.append("--- Focused output ---")
     verdict_lines.append(f"BATTERY: {'PASS' if focused_pass else 'FAIL'}")
-    verdict_lines.append(f"P: {fp_p_pass}/{p_total}  N: {fp_n_pass}/{n_total}")
+    verdict_lines.append(f"P: {fp_p_pass}/{fp_p_total}  N: {fp_n_pass}/{fp_n_total}")
     if not focused_pass:
         verdict_lines.append("")
         verdict_lines.append("Failed prompts:")
