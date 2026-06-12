@@ -109,6 +109,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-01 | `check-agent.py` | Agent structural checks |
+| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session) |
 
 ### Pre-commit gates
 
