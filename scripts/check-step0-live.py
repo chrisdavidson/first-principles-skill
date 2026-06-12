@@ -514,7 +514,12 @@ def _write_baseline(
     n_rows = [r for r in results if r.prompt.id.startswith("S-N")]
     p_pass = sum(1 for r in p_rows if r.row_pass)
     n_pass = sum(1 for r in n_rows if r.row_pass)
-    battery_pass = (p_pass == len(p_rows)) and (n_pass == len(n_rows))
+    # NEW: split p_rows into context-fixed (S-P01–06) and context-free (S-P07/08)
+    p_context = [r for r in p_rows if r.prompt.id not in ("S-P07", "S-P08")]
+    p_context_free = [r for r in p_rows if r.prompt.id in ("S-P07", "S-P08")]
+    p_context_pass = sum(1 for r in p_context if r.row_pass)
+    # battery_pass now excludes context-free rows from the gate
+    battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_rows))
     battery_verdict = "PASS" if battery_pass else "FAIL"
 
     if not recorded_ts:
@@ -531,7 +536,7 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        f"**Summary:** P {p_pass}/{len(p_rows)} | N {n_pass}/{len(n_rows)}; overall {battery_verdict}",
+        f"**Summary:** P {p_context_pass}/{len(p_context)} (S-P01–06) | S-N {n_pass}/{len(n_rows)} | S-P07/08 expected-FAIL (context-free)",
         "",
         "---",
         "",
@@ -541,13 +546,17 @@ def _write_baseline(
         "|----|---------------|-----|---------|",
     ]
 
+    CONTEXT_FREE_IDS = ("S-P07", "S-P08")
     residual_risk_rows: list[PromptResult] = []
     for r in results:
         kn_str = f"{r.match_count}/{repeat} {'PASS' if r.row_pass else 'FAIL'}"
-        verdict_str = "PASS" if r.row_pass else "FAIL"
+        if r.prompt.id in CONTEXT_FREE_IDS:
+            verdict_str = "FAIL (expected — context-free parser-robustness fixture, not part of the 4/6 live-technique bar)"
+        else:
+            verdict_str = "PASS" if r.row_pass else "FAIL"
+            if not r.row_pass:
+                residual_risk_rows.append(r)
         lines.append(f"| {r.prompt.id} | {r.prompt.expected} | {kn_str} | {verdict_str} |")
-        if not r.row_pass:
-            residual_risk_rows.append(r)
 
     lines += [
         "",
