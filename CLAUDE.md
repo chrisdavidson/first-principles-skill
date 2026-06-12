@@ -38,6 +38,20 @@ python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
 
+### Step 0 measurement harness
+
+```sh
+# Live manual full run — 60 live claude invocations (manual only, not run in CI).
+# Run from /tmp with an absolute --catalog path. Baseline: tests/step0-baseline-v5.0.md
+python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
+
+# Live harness offline self-test — STEP0-06 CI gate (no live claude session)
+python3 scripts/check-step0-live.py --self-test
+
+# Offline emulator self-test — STEP0-08 CI gate (no live claude session; no heavy manual run)
+python3 scripts/check-step0-emulator.py --self-test
+```
+
 ### Plugin validation (CI equivalent, requires `claude` CLI)
 
 ```sh
@@ -110,6 +124,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-01 | `check-agent.py` | Agent structural checks |
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session) |
+| STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
 
 ### Pre-commit gates
 
