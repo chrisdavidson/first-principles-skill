@@ -934,6 +934,18 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"necessary precondition", re.IGNORECASE),
         # inversion.md lines 46, 49, 96 — "inverted form"
         re.compile(r"inverted form", re.IGNORECASE),
+        # v5.0 capture-backed: S-P02-run1 emitted "## Claim, inverted" header;
+        # S-P02-run2/3/4 emitted "## Inverted claim" header. Neither phrase
+        # appears in any S-N capture tested. Source: /tmp/step0-baseline-20260612T133945Z/
+        # S-P02-run1..5.jsonl (evidence copy: .planning/phases/74-fixture-context-detector-markers-and-offline-gates/evidence/).
+        # False-positive guard: "claim, inverted" is idiomatic to formal inversion
+        # analysis; it does not appear in general analytical prose (verified against
+        # S-N01/N02/N03/N04 run1 captures, all clean). MIN_HEADER_HITS=2 means a
+        # second distinct marker must also fire — one alone cannot fire inversion.
+        re.compile(r"\bclaim[,.]?\s+inverted\b", re.IGNORECASE),
+        # v5.0 capture-backed: S-P02-run2 "## Inverted claim", run3 "## Inverted claim",
+        # run4 "**Inverted claim:**". Clean in S-N captures. Same provenance as above.
+        re.compile(r"\binverted\s+claim\b", re.IGNORECASE),
     ),
     "fishbone": (
         # fishbone.md procedure section — "cause categories"
@@ -946,6 +958,18 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         re.compile(r"sub[- ]?causes?", re.IGNORECASE),
         # fishbone.md name itself — "fishbone" or "Ishikawa"
         re.compile(r"fishbone|ishikawa", re.IGNORECASE),
+        # v5.0 capture-backed: S-P03-run2 produced a real fishbone diagram with
+        # category table "People, Process, Technology & Tools, Environment,
+        # Information, Resources". The existing `fishbone|ishikawa` fires once
+        # (=1 distinct); this marker supplies the second distinct hit.
+        # Source: /tmp/step0-baseline-20260612T133945Z/S-P03-run2.jsonl
+        # (evidence copy: .planning/phases/74-fixture-context-detector-markers-and-offline-gates/evidence/).
+        # False-positive guard: the 3-word "People, Process, Technology" sequence
+        # identifies the 6M software fishbone category preset; not present in
+        # general prose. If it appears in full-composer output, the composer-
+        # structure override fires first (>=2 scaffold tokens from Ground Truths /
+        # Assumption Audit / Verdict), correctly labeling the run full-composer.
+        re.compile(r"\bPeople[,;]?\s+(and\s+)?Process[,;]?\s+(Technology|Tools)\b", re.IGNORECASE),
     ),
     "five-whys": (
         # five-whys.md — the canonical drill question
@@ -1547,6 +1571,43 @@ _FIXTURE_STRUCTURAL_OVERRIDE = "\n".join(
     ]
 )
 
+# Fixture D-08 — capture-backed positive: v5.0 inversion natural-phrasing guard.
+# S-P02-run1 emitted "## Claim, inverted" / "## Inverted claim" / "## Verdict"
+# but scored `none` due to missing markers. S-P02-run2 emitted "## Inverted claim".
+# These new markers must fire >= MIN_HEADER_HITS on this output shape.
+# Source: /tmp/step0-baseline-20260612T133945Z/S-P02-run1..2.jsonl
+# (evidence copy: .planning/phases/74-fixture-context-detector-markers-and-offline-gates/evidence/v5.0-captures/).
+# Dropping either new marker (`claim, inverted` or `inverted claim`) makes
+# this fixture FAIL loudly on BATT-06.
+_FIXTURE_FOCUSED_INVERSION_V50 = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Claim, inverted\n"
+            "- **Original:** 'Faster shipping causes better retention.'\n"
+            "- **Inverted:** 'Faster shipping does not improve retention.'\n\n"
+            "## Inverted claim\n"
+            "Shipping speed and shipping the right thing are independent variables. "
+            "Six hidden preconditions silently hold in the original.\n\n"
+            "## Verdict\n"
+            "False as a general rule; conditionally true at best."
+        ),
+    ]
+)
+
+# Fixture D-09 — explicit negative: single new inversion marker, must NOT fire.
+# Proves MIN_HEADER_HITS=2 — one new marker phrase alone cannot fire inversion.
+# If this fixture were to classify `focused-inversion`, a new marker was added
+# without a required second-pattern guard (DET-02 / D-06 violation).
+_FIXTURE_INVERSION_SINGLE_MARKER = "\n".join(
+    [
+        _fixture_assistant_text(
+            "The claim, inverted, is that shipping faster worsens outcomes. "
+            "This is a generic analytical restatement. No second marker appears here. "
+            "The analysis proceeds without applying the formal inversion procedure."
+        ),
+    ]
+)
+
 
 # ---------------------------------------------------------------------------
 # Focused self-test runner (renamed from self_test — CR-4/Pitfall 5)
@@ -1628,7 +1689,7 @@ def _run_probe3_sanity_feed() -> bool | None:
 def self_test_focused() -> int:
     """Validate focused-output detection logic against in-module fixtures.
 
-    Runs 9 deterministic fixtures plus the Probe 3 sanity feed when its
+    Runs 11 deterministic fixtures plus the Probe 3 sanity feed when its
     local-only capture is present (soft-skipped otherwise — 66 review WR-05).
     No claude invocation.
 
@@ -1660,6 +1721,10 @@ def self_test_focused() -> int:
             _FIXTURE_STRUCTURAL_OVERRIDE,
             "full-composer",
         ),
+        # D-08: capture-backed positive — v5.0 natural inversion phrasing
+        ("focused_inversion_v50_natural_phrasing", _FIXTURE_FOCUSED_INVERSION_V50, "focused-inversion"),
+        # D-09: single new marker does NOT fire inversion alone
+        ("inversion_single_new_marker_negative", _FIXTURE_INVERSION_SINGLE_MARKER, "none"),
     ]
     all_passed = True
     for name, body, expected in fixtures:
