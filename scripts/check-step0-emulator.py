@@ -33,9 +33,11 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -69,26 +71,35 @@ def _extract_phrases(cell: str) -> list[str]:
     return re.findall(r'"([^"]+)"', cell)
 
 
-def _parse_table_rows(lines: list[str]) -> list[list[str]]:
-    """Parse markdown pipe-table data rows, skipping header and separator lines.
+def _parse_table_rows(lines: list[str]) -> list[tuple[str, str]]:
+    """Parse markdown pipe-table data rows, pipe-safe, skipping separator lines.
 
     Stops at the first non-pipe-prefixed line (table has ended).
-    Returns a list of cell lists (one inner list per data row).
+    Returns a list of (first_cell, remainder) tuples per data row.
+
+    CR-01 / WR-02 fix: splits only on the FIRST interior pipe so that embedded
+    ``|`` characters inside quoted phrases (e.g. ``(my|the|this)``) are preserved
+    in the remainder. GFM colon-alignment separators (``| :--- | ---: |``) are
+    recognized by including ``:`` in the stripped character set.
     """
-    rows: list[list[str]] = []
+    rows: list[tuple[str, str]] = []
     for line in lines:
         stripped = line.strip()
         if not stripped.startswith("|"):
             break  # table ended
-        # Skip separator rows like |---|---|
-        inner = stripped.replace("|", "").replace("-", "").replace(" ", "")
-        if not inner or set(inner) <= set("-"):
+        body = stripped[1:]  # drop the leading pipe
+        # Skip separator rows like |---|---| and | :--- | ---: |
+        # WR-02: include ':' so colon-aligned GFM separators are recognized.
+        # IN-01: use a single fullmatch — the old ``set(inner) <= set("-")``
+        # disjunct was unreachable dead code after the replace("-") had already
+        # stripped all dashes.
+        if re.fullmatch(r"[\s\-:|]+", body):
             continue
-        # Split on | and strip each cell; drop empty leading/trailing entries
-        cells = [c.strip() for c in stripped.split("|")]
-        cells = [c for c in cells if c != ""]
-        if cells:
-            rows.append(cells)
+        # technique = text up to the first unquoted pipe; remainder = rest of line
+        first_pipe = body.index("|")
+        first_cell = body[:first_pipe].strip()
+        remainder = body[first_pipe + 1:]
+        rows.append((first_cell, remainder))
     return rows
 
 
@@ -148,16 +159,16 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
         sys.exit(1)
 
     rules: list[tuple[str, list[re.Pattern[str]]]] = []
-    for row in data_rows:
-        if len(row) < 2:
+    for technique, cell in data_rows:
+        # WR-03: balanced-quote guard — an odd number of '"' means the cell has
+        # an unterminated quoted phrase (D-05-class corruption).  Fail loudly
+        # rather than silently extracting a partial phrase list.
+        if cell.count('"') % 2 != 0:
             sys.stderr.write(
-                "check-step0-emulator: FAIL — phrase detection table: "
-                f"malformed row (expected 2 cells, got {len(row)}): {row!r}\n"
+                f"check-step0-emulator: FAIL — technique '{technique}' phrase cell "
+                f"has an unbalanced quote (possible pipe-split corruption): {cell!r}\n"
             )
             sys.exit(1)
-
-        technique = row[0]
-        cell = row[1]
 
         # D-05.2: empty pattern cell
         phrases = _extract_phrases(cell)
@@ -221,7 +232,13 @@ def _read_catalog(path: Path) -> list[tuple[str, str, str]]:
 
     Expects a markdown pipe-table with columns: ID | Prompt | Expected MODE | Notes.
     Skips the header row and separator row automatically.
+
+    WR-01: validates ``expected_mode`` against the known MODE allowlist and
+    exits non-zero if the value is unrecognized — a column-shift (e.g. from a
+    prompt cell containing a bare ``|``) must never pass silently.
     """
+    valid_modes = {"full-composer"} | {f"focused-{t}" for t in KNOWN_TECHNIQUES}
+
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
 
@@ -243,14 +260,28 @@ def _read_catalog(path: Path) -> list[tuple[str, str, str]]:
     data_rows = all_rows[1:] if all_rows else []
 
     result: list[tuple[str, str, str]] = []
-    for row in data_rows:
-        if len(row) < 3:
+    for row_id, remainder in data_rows:
+        # Catalog columns: ID | Prompt | Expected MODE | Notes
+        # remainder contains " Prompt | Expected MODE | Notes |" after the ID cell.
+        # Split on the first two pipes to extract prompt and expected_mode.
+        parts = remainder.split("|")
+        if len(parts) < 2:
             sys.stderr.write(
                 f"check-step0-emulator: FAIL — malformed catalog row "
-                f"(expected >=3 cells, got {len(row)}): {row!r}\n"
+                f"(expected >=3 columns, got fewer after ID '{row_id}'): "
+                f"{remainder!r}\n"
             )
             sys.exit(1)
-        row_id, prompt, expected_mode = row[0], row[1], row[2]
+        prompt = parts[0].strip()
+        expected_mode = parts[1].strip()
+        # WR-01: validate against the known MODE allowlist
+        if expected_mode not in valid_modes:
+            sys.stderr.write(
+                f"check-step0-emulator: FAIL — catalog row {row_id}: "
+                f"unrecognized MODE {expected_mode!r} "
+                f"(not in KNOWN_TECHNIQUES allowlist; possible column-shift)\n"
+            )
+            sys.exit(1)
         result.append((row_id, prompt, expected_mode))
 
     return result
@@ -324,8 +355,6 @@ def _run_self_test() -> None:
     for label, table_text, expected_substring in fault_fixtures:
         # Write the malformed table to a temporary file and run the parser
         # via subprocess so we can capture exit code + stderr
-        import tempfile
-        import os
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".md", delete=False, encoding="utf-8"
         ) as tmp:
