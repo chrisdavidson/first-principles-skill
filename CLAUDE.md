@@ -38,11 +38,11 @@ python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
 
-### Step 0 measurement harness
+### Step 0 measurement harness (commands)
 
 ```sh
 # Live manual full run — 60 live claude invocations (manual only, not run in CI).
-# Run from /tmp with an absolute --catalog path. Baseline: tests/step0-baseline-v5.0.md
+# Run from the repo root so the relative --catalog path resolves. Baseline: tests/step0-baseline-v5.0.md
 python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
 
 # Live harness offline self-test — STEP0-06 CI gate (no live claude session)
@@ -160,7 +160,7 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 
 | Tool | Measured layer | Run command | CI gate |
 |------|---------------|-------------|---------|
-| `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | Non-blocking routing CI job (no hard gate) |
+| `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | None — developer tool, not wired into `validation.yml` |
 | `check-routing-battery.py` | Merged dual-signal: boundary + focused-output (FU-21 gate, FOCUS-01) | `--repeat 5 --min-pass 3` / offline `--self-test` | BATT-06 |
 | `check-step0-emulator.py` | Offline Step 0 phrase-detection classifier (deterministic, no live session) | `--self-test` | STEP0-08 |
 | `check-step0-live.py` | Live Step 0 MODE classification via approach-② bypass channel | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | STEP0-06 |
