@@ -131,6 +131,25 @@ Two verifiers cover different layers of routing correctness. All issue prompts f
 
 Catalog fixtures: `tests/routing-catalog.md` (main agent routing battery), `tests/routing-battery-catalog.md` (merged boundary + focused-output battery).
 
+See also: [Step 0 measurement harness](#step-0-measurement-harness) for the two-layer Step 0 classifier measurement tools that sit below the routing layer.
+
+## Step 0 measurement harness
+
+Two tools measure the agent body's Step 0 technique-selection logic, at different layers. They complement the routing battery (see [Routing battery](#routing-battery)) and each other.
+
+**`scripts/check-step0-emulator.py`** — offline Step 0 phrase-detection emulator. Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each trigger phrase into a deterministic regex classifier, and classifies an input prompt to `MODE` (`focused-<technique>` or `full-composer`). No live `claude` session required. `--self-test` runs fault-injection fixtures (D-05 corruption modes) and the full `tests/step0-fixture-catalog.md` classification suite; it is the **STEP0-08 CI gate**. There is no heavy manual run — `--self-test` is the only supported batch mode.
+
+**`scripts/check-step0-live.py`** — live Step 0 agent-body harness. Forces invocation of the agent body against the verbatim oblique prompt via the approach-② `_wrap_for_bypass` bypass channel, over the Plan-36-locked `claude -p --output-format stream-json --verbose` transport. Classifies each run's `MODE` from the captured `.jsonl` stream using `_classify_mode` (with the harness-side `none`→`full-composer` inference fix — D-01/D-02). Scores K-of-N results across the 12-row `tests/step0-fixture-catalog.md`. The full manual run uses `--repeat 5 --min-pass 3` (60 live `claude` invocations — manual only, not run in CI); the canonical baseline is `tests/step0-baseline-v5.0.md`. Its offline `--self-test` (no `claude` invocation) is the **STEP0-06 CI gate**.
+
+### Measurement comparison
+
+| Tool | Measured layer | Run command | CI gate |
+|------|---------------|-------------|---------|
+| `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | Non-blocking routing CI job (no hard gate) |
+| `check-routing-battery.py` | Merged dual-signal: boundary + focused-output (FU-21 gate, FOCUS-01) | `--repeat 5 --min-pass 3` / offline `--self-test` | BATT-06 |
+| `check-step0-emulator.py` | Offline Step 0 phrase-detection classifier (deterministic, no live session) | `--self-test` | STEP0-08 |
+| `check-step0-live.py` | Live Step 0 MODE classification via approach-② bypass channel | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | STEP0-06 |
+
 ### Key invariants
 
 - All reference file links use forward slashes and are one level deep from the file that references them (never nested `a.md → b.md → c.md`).
