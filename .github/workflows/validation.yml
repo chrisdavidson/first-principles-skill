@@ -124,3 +124,14 @@ jobs:
         with:
           python-version: '3.12'
       - run: python3 scripts/check-step0-emulator.py --self-test
+
+  check-step0-live:
+    name: check-step0-live (STEP0-06)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/check-step0-live.py --self-test
