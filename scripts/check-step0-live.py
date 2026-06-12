@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v5.0.md"
+        --baseline "$REPO/tests/step0-baseline-v5.1.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v5.0 baseline .md to this path
+    --baseline PATH     If supplied, write the v5.1 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -483,7 +483,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v5.0.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v5.1.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -526,7 +526,7 @@ def _write_baseline(
         recorded_ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     lines: list[str] = [
-        "# Step 0 Live Harness Baseline — v5.0",
+        "# Step 0 Live Harness Baseline — v5.1",
         "",
         f"**Recorded:** {recorded_ts} ({repeat * len(results)} live `claude` invocations: {len(results)} prompts × {repeat} repeats)",
         f"**Script version:** `scripts/check-step0-live.py` (commit `{script_sha}`)",
@@ -573,13 +573,13 @@ def _write_baseline(
         "",
         "```bash",
         "REPO=/path/to/first-principles-skills",
-        "OUT_DIR=/tmp/step0-live-v5.0-$(date -u +%Y%m%dT%H%M%SZ)",
+        "OUT_DIR=/tmp/step0-live-v5.1-$(date -u +%Y%m%dT%H%M%SZ)",
         "cd /tmp && python3 \"$REPO/scripts/check-step0-live.py\" \\",
         "  --catalog \"$REPO/tests/step0-fixture-catalog.md\" \\",
         "  --plugin-dir \"$REPO/first-principles\" \\",
         f"  --repeat {repeat} --min-pass {min_pass} \\",
         "  --out \"$OUT_DIR\" \\",
-        "  --baseline \"$REPO/tests/step0-baseline-v5.0.md\"",
+        "  --baseline \"$REPO/tests/step0-baseline-v5.1.md\"",
         "```",
         "",
         f"**Run date:** {recorded_ts}",
@@ -606,6 +606,10 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
+    RR_ID_MAP = {
+        "S-P01": "RR-75-01", "S-P02": "RR-75-02", "S-P03": "RR-75-03",
+        "S-P04": "RR-75-04", "S-P05": "RR-75-05", "S-P06": "RR-75-06",
+    }
     if residual_risk_rows:
         lines += [
             "",
@@ -618,7 +622,7 @@ def _write_baseline(
                 f"- `{r.prompt.id}`: {r.match_count}/{repeat} FAIL"
                 f" — expected `{r.prompt.expected}`;"
                 f" observed modes: {r.modes}."
-                f" Residual-risk tracked as {r.prompt.id}-RR01."
+                f" Residual-risk tracked as {RR_ID_MAP.get(r.prompt.id, 'RR-75-XX')}."
             )
 
     lines += [
@@ -641,14 +645,14 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline establishes the first live K-of-N measurement of Step 0 technique",
-        "selection. It covers all 12 rows of `tests/step0-fixture-catalog.md` (S-P01–S-P08,",
-        "S-N01–S-N04) using approach-② bypass (`_wrap_for_bypass`) over the Plan-36-locked",
-        "transport, measured by `detect_output_structure_from_file` with the harness-side",
-        "`_classify_mode` inference wrapper (D-01/D-02 fix).",
+        "This baseline records the Phase 75 live re-baseline of Step 0 technique selection,",
+        "closing the deferred S-P-RR-DETECTOR follow-up from v5.0. Fixtures (S-P01–S-P06)",
+        "now carry concrete context (Phase 74 FIX-01, commit 03d5ec5); detector markers",
+        "broadened to recognize natural focused-output phrasing (Phase 74 DET-01, commit 739d5e1).",
         "",
-        "Prior measurement: Phase 71 spike (`scripts/check-step0-live-spike.py`) — 2-fixture",
-        "proof of approach ②, renamed in place to this script (D-04).",
+        "Prior baseline: tests/step0-baseline-v5.0.md (Phase 72, commit 5d0af40) — BATTERY: FAIL,",
+        "P 0/8 | N 4/4; S-P side dominated by context-free clarification requests and detector",
+        "false-negatives. Both root causes fixed in Phase 74.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -703,7 +707,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v5.0 baseline .md to this path after the run",
+        help="If supplied, write the v5.1 baseline .md to this path after the run",
     )
     p.add_argument(
         "--quiet",
