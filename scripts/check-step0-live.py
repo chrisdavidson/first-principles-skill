@@ -651,7 +651,7 @@ def _write_baseline(
         "broadened to recognize natural focused-output phrasing (Phase 74 DET-01, commit 739d5e1).",
         "",
         "Prior baseline: tests/step0-baseline-v5.0.md (Phase 72, commit 5d0af40) — BATTERY: FAIL,",
-        "P 0/8 | N 4/4; S-P side dominated by context-free clarification requests and detector",
+        "all 8 S-P rows FAIL, N 4/4 PASS; S-P side dominated by context-free clarification requests and detector",
         "false-negatives. Both root causes fixed in Phase 74.",
     ]
 
