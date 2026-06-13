@@ -159,12 +159,12 @@ S-P08	5	focused-pre-mortem	full-composer	0
 
 This baseline records the Phase 78 live re-baseline of Step 0 technique selection,
 measuring the effect of the Phase 77 detector and routing fixes:
-- **DET-10** (commit `995236c`): broadened `_TECHNIQUE_CATEGORIES` markers for pre-mortem,
+- **DET-10** (commit `be02bd3`): broadened `_TECHNIQUE_CATEGORIES` markers for pre-mortem,
   inversion, five-whys, and second-order techniques (+2–3 patterns per technique, capture-backed).
-- **DET-11** (commit `1a848d4`): reordered `classify()` with `n==1` early-return before
-  the composer-structure override and bounded the ceiling at `_COMPOSER_FOCUS_CEILING=4`.
-- **DET-12** (commit `d1505ec`): de-nested second-order pattern B with heading-anchor disjunction.
-- **ROUTE-10** (commit `d1505ec`): tightened pre-mortem trigger to require
+- **DET-11** (commit `7a9eaab`): reordered `classify()` with `n==1` early-return before
+  the composer-structure override (ceiling bound `_COMPOSER_FOCUS_CEILING=4` refined in `d1505ec`).
+- **DET-12** (commit `1a848d4`): de-nested second-order pattern B with heading-anchor disjunction.
+- **ROUTE-10** (commit `251eff3`): tightened pre-mortem trigger to require
   `(I am|I'm) nervous about (my|the|this) plan` prefix (prevents loose semantic co-occurrence).
 
 Result: RR-75-04 (S-P04: five-whys), RR-75-06 (S-P06: second-order), and RR-75-07
