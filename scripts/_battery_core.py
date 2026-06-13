@@ -1063,19 +1063,33 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # MIN_HEADER_HITS=2 ensures a single "second-order" mention alone does
         # not fire the technique.
         re.compile(r"\bsecond[- ]?order\b", re.IGNORECASE),
-        # v5.1 capture-backed: S-P06 orchestrator assistant text on ALL 5 runs
-        # contains "second-order effects", "second-order analysis", or "second-order
-        # mode" — the more specific phrase that includes the qualified noun. This is
-        # a DISTINCT pattern from the bare `second[- ]?order` entry above (it adds a
-        # required qualifier: mode/analysis/effects). Together the two patterns supply
-        # 2 distinct hits on every S-P06 run, lifting second-order from 0→2.
+        # v5.1 capture-backed (CR-01 de-nested replacement): S-P06 orchestrator assistant
+        # text on ALL 5 runs includes a Markdown section heading of the form
+        # "## Second-Order Effects", "## Second-order effects", "# Second-Order Effects",
+        # or "## Focused Second-Order Mode" (heading-anchored), plus run5 includes
+        # "effect chains" in the prose summary. The heading-anchored disjunction here
+        # is NOT a lexical subset/superset of pattern A (`\bsecond[- ]?order\b`):
+        #   - disjunct-1 (`^#{1,3}\s*(focused\s+)?second[- ]?order\b.*\b(effects?|mode|analysis)\b`)
+        #     requires a leading Markdown heading anchor `^#{1,3}`, so it does NOT fire
+        #     on bare-prose "second-order effects" (no heading) — closes CR-01.
+        #   - disjunct-2 (`\beffect\s+chains?\b`) does not contain the substring
+        #     "second-order" at all — completely non-overlapping with pattern A.
+        # Together the two patterns supply >= 2 distinct hits on every S-P06 run:
+        #   run1/2/3/4/5: disjunct-1 fires on the "## Second-Order Effects:" heading;
+        #   run5: both disjuncts fire (heading + "effect chains" in prose).
+        # Verify-first firing matrix (2026-06-13): run1=2, run2=2, run3=2, run4=2, run5=2
+        #   (all via A + heading-disjunct-1; run5 additionally via disjunct-2).
         # Source: .planning/v5.2-inputs/rr75-evidence/S-P06-run1.jsonl through
         # S-P06-run5.jsonl (Q1/Q2 verify-first, 2026-06-13).
-        # False-positive guard: "second-order effects/analysis/mode" is specific to
-        # second-order technique invocations. In routing battery N-cases or full-
-        # composer outputs, neither of the above two patterns is likely to co-occur
-        # without the existing precise technique markers also firing. MIN_HEADER_HITS=2.
-        re.compile(r"\bsecond[- ]?order\s+(mode|analysis|effects?)\b", re.IGNORECASE),
+        # False-positive guard: the heading anchor `^#{1,3}` requires a real Markdown
+        # heading prefix; bare "second-order effects" in incidental prose matches only
+        # pattern A (1 distinct hit), staying below MIN_HEADER_HITS=2 (CR-01 closed).
+        # The `_FIXTURE_SECONDORDER_EFFECTS_NEGATIVE` fixture guards this invariant.
+        re.compile(
+            r"(^#{1,3}\s*(focused\s+)?second[- ]?order\b.*\b(effects?|mode|analysis)\b)"
+            r"|(\beffect\s+chains?\b)",
+            re.IGNORECASE | re.MULTILINE,
+        ),
     ),
 }
 
@@ -1841,6 +1855,26 @@ _FIXTURE_SECONDORDER_SINGLE_MARKER = "\n".join(
     ]
 )
 
+# Fixture D-09 (second-order / CR-01) — falsifying fixture: bare-prose "second-order
+# effects" (no Markdown heading, no "effect chains", no other second-order marker).
+# Under the pre-CR-01-fix nested patterns (B is subset of A), this bare phrase matched
+# BOTH `\bsecond[- ]?order\b` (A) AND `\bsecond[- ]?order\s+(mode|analysis|effects?)\b`
+# (B) simultaneously, yielding 2 distinct hits and firing `focused-second-order`.
+# After the CR-01 fix (de-nested B with heading-anchor), the bare phrase matches only
+# A (1 hit) — below MIN_HEADER_HITS=2 — so classify returns `none`.
+# If this fixture classifies as anything other than `none`, the nested-pattern
+# anti-masking violation has been re-introduced and CR-01 is open again.
+_FIXTURE_SECONDORDER_EFFECTS_NEGATIVE = "\n".join(
+    [
+        _fixture_assistant_text(
+            "The team flagged second-order effects as a concern during the planning session. "
+            "The risk register captures this as a deferred item for the next sprint. "
+            "No structured consequence trace was performed in this session. "
+            "The concern is noted but not analyzed further here."
+        ),
+    ]
+)
+
 
 # ---------------------------------------------------------------------------
 # Focused self-test runner (renamed from self_test — CR-4/Pitfall 5)
@@ -1979,6 +2013,9 @@ def self_test_focused() -> int:
         ("focused_secondorder_v51_natural_phrasing", _FIXTURE_FOCUSED_SECONDORDER_V51, "focused-second-order"),
         # D-09 (second-order): single broad second-order marker alone must NOT fire
         ("secondorder_single_new_marker_negative", _FIXTURE_SECONDORDER_SINGLE_MARKER, "none"),
+        # D-09 (second-order / CR-01): bare-prose "second-order effects" only (no heading,
+        # no "effect chains") must classify `none` — guards the de-nested pattern B.
+        ("secondorder_effects_negative", _FIXTURE_SECONDORDER_EFFECTS_NEGATIVE, "none"),
         # DET-11: focused trade-off output + ## Ground Truths + ## Derivation Chains
         # (n==1 + composer_hits==2) must classify focused-trade-off after the
         # classify() reorder (was full-composer before DET-11 fix)
