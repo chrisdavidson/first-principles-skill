@@ -855,6 +855,28 @@ def _verdict_matches(actual: OutputStructure, expected: str) -> bool:
 # phrase repeated — should NOT fire the trade-off technique.
 MIN_HEADER_HITS: int = 2
 
+# Composer-structure hit ceiling for the classify() n==1 early-return (CR-02 / DET-11).
+# When exactly one technique fires (n==1) AND composer_structure_hits reaches this
+# ceiling, the n==1 early-return is suppressed and the composer-structure override
+# fires instead — returning `full-composer`.
+#
+# Justification: there are exactly four _COMPOSER_STRUCTURE_PATTERNS (Ground Truths,
+# Assumption Audit, Derivation Chains, Verdict). A focused-with-methodology output
+# (e.g. focused trade-off with ## Ground Truths + ## Derivation Chains) fires <= 3
+# composer hits because _composer_structure_hits uses findall (total occurrences),
+# and the generic word "verdict" may appear in technique prose (e.g. "flips the
+# verdict"). A genuine full-composer synthesis that includes all four canonical
+# scaffold sections (each appearing as a heading) fires 4-5 composer hits.
+# CEILING=4 is the correct value that:
+#   - PRESERVES _FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY (composer_hits=3 < 4):
+#     n==1 early-return still fires → focused-trade-off (correct). The fixture
+#     has 3 hits because "verdict" appears in the prose ("flips the verdict"),
+#     not from a ## Verdict heading; the ceiling must be above 3 to be safe.
+#   - CLOSES CR-02 for _FIXTURE_FULLCOMPOSER_SINGLE_TECHNIQUE (composer_hits=5 >= 4):
+#     n==1 early-return suppressed → composer override fires → full-composer (correct).
+#   - classify({'pre-mortem'}, 4) → 4 >= CEILING=4 → suppressed → full-composer (correct).
+_COMPOSER_FOCUS_CEILING: int = 4
+
 
 # ---------------------------------------------------------------------------
 # Technique marker tables
@@ -1305,9 +1327,10 @@ def classify(
     Per 46-RESEARCH §Q4 cardinality table, calibrated by 46-01-SUMMARY
     Probe 3 finding (OPTION B — composer-structure signal).
 
-    Precedence order (DET-11 reorder, Phase 77):
+    Precedence order (DET-11 reorder + CR-02 ceiling bound, Phase 77-04):
 
-        n == 1                        → "focused-<technique>"  (NEW: checked first)
+        n == 1 AND composer < _COMPOSER_FOCUS_CEILING
+                                      → "focused-<technique>"
         composer_structure_hits >= MIN_HEADER_HITS
                                       → "full-composer"  (structural override)
         n == 0                        → "none"
@@ -1322,6 +1345,17 @@ def classify(
     its standard methodology — classifying such output as `full-composer`
     was a false negative for S-P05-run2/3/5.
 
+    CR-02 / DET-11 ceiling bound: the n==1 early-return is suppressed when
+    composer_structure_hits >= _COMPOSER_FOCUS_CEILING (==4). A full-composer
+    synthesis that legitimately includes a single-technique section heading
+    (e.g. "## Pre-Mortem: Risk Assessment" + "failure causes" → 2 pre-mortem
+    markers, n==1) alongside all four canonical scaffold headers (Ground Truths,
+    Assumption Audit, Derivation Chains, Verdict → composer_hits >= 4) must
+    classify `full-composer`, not `focused-pre-mortem`. The ceiling is chosen
+    so that focused-with-methodology output (composer_hits <= 3, e.g.
+    _FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY with composer_hits=3 because
+    "verdict" appears in prose as "flips the verdict") is unaffected.
+
     The structural override is preserved for the n == 0 case: when NO
     technique markers fire but >=2 composer scaffold tokens appear, the
     output is a full-composer run (the override prevents Pitfall 1 —
@@ -1330,14 +1364,16 @@ def classify(
     must still return `full-composer` after this reorder.
     """
     n = len(fired)
-    # DET-11: check single-technique focus BEFORE the composer override.
-    # A genuine full-composer run fires multiple techniques (n >= 2); n == 1
-    # reliably signals focused mode regardless of methodology-section headers.
-    if n == 1:
+    # DET-11 + CR-02: check single-technique focus BEFORE the composer override,
+    # but ONLY when composer hits are below the ceiling. When composer_structure_hits
+    # reaches _COMPOSER_FOCUS_CEILING, the output is a full-composer synthesis that
+    # happens to include a technique-specific section — the composer override must win.
+    if n == 1 and composer_structure_hits < _COMPOSER_FOCUS_CEILING:
         tech = next(iter(fired))
         return f"focused-{tech}"  # type: ignore[return-value]
     # Composer-structure override: n == 0 with scaffold headers → full-composer.
-    # Also applies for n >= 2 paths below when composer hits are high.
+    # Also applies for n == 1 when composer hits reach the ceiling (CR-02), and
+    # for n >= 2 paths below when composer hits are high.
     if composer_structure_hits >= MIN_HEADER_HITS:
         return "full-composer"
     if n == 0:
@@ -1703,6 +1739,36 @@ _FIXTURE_STRUCTURAL_OVERRIDE = "\n".join(
     ]
 )
 
+# Fixture CR-02 adversarial — full-composer synthesis with exactly ONE fired technique
+# (n==1) AND all four composer scaffold markers (composer_structure_hits >= 4).
+# A genuine full-composer output can legitimately include a "## Pre-Mortem: ..." section
+# heading AND a "failure causes" mention (2 distinct pre-mortem markers → n==1) alongside
+# all four canonical 5-phase scaffold headers (Ground Truths, Assumption Audit,
+# Derivation Chains, Verdict → composer_hits >= 4).
+# Under the pre-CR-02-fix unconditional n==1 early-return, this returns `focused-pre-mortem`.
+# After the CR-02 fix (n==1 bounded by composer_structure_hits < _COMPOSER_FOCUS_CEILING),
+# composer_hits=4 >= CEILING=3 so the n==1 early-return is skipped and the composer
+# override fires, returning `full-composer`.
+# Modelled on the VERIFICATION CR-02 reproduction text (77-VERIFICATION.md §"CR-02
+# Reproduction"). The fixture must classify `full-composer`, NOT `focused-pre-mortem`.
+_FIXTURE_FULLCOMPOSER_SINGLE_TECHNIQUE = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Ground Truths\n"
+            "The established constraints and facts that bound this analysis.\n\n"
+            "## Assumption Audit\n"
+            "All load-bearing assumptions have been audited and surfaced.\n\n"
+            "## Derivation Chains\n"
+            "Each conclusion traces back to a verified ground truth.\n\n"
+            "## Pre-Mortem: Risk Assessment\n"
+            "The potential failure causes include schema drift and rollback gaps. "
+            "This section surfaces every way the plan could fail.\n\n"
+            "## Verdict\n"
+            "The plan is sound with the flagged risks mitigated before go-live.\n"
+        ),
+    ]
+)
+
 # Fixture D-08 — capture-backed positive: v5.0 inversion natural-phrasing guard.
 # S-P02-run1 emitted "## Claim, inverted" / "## Inverted claim" / "## Verdict"
 # but scored `none` due to missing markers. S-P02-run2 emitted "## Inverted claim".
@@ -2023,6 +2089,15 @@ def self_test_focused() -> int:
             "focused_tradeoff_with_methodology",
             _FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY,
             "focused-trade-off",
+        ),
+        # CR-02 adversarial: full-composer synthesis with one fired technique (n==1)
+        # and composer_structure_hits >= 4 must classify `full-composer`, not `focused-`.
+        # Guards the _COMPOSER_FOCUS_CEILING bound in classify() — if this fixture
+        # returns `focused-pre-mortem`, CR-02 is open and the ceiling is too high or absent.
+        (
+            "fullcomposer_single_technique",
+            _FIXTURE_FULLCOMPOSER_SINGLE_TECHNIQUE,
+            "full-composer",
         ),
     ]
     all_passed = True
