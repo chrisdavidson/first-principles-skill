@@ -1701,8 +1701,11 @@ _FIXTURE_BUG2_NATURAL_VARIATION = "\n".join(
 # Modelled on S-P05-run2/run3/run5 output shapes from:
 # .planning/v5.2-inputs/rr75-evidence/S-P05-run2.jsonl, run3.jsonl, run5.jsonl
 # (Q1/Q2 verify-first, 2026-06-13). The fixture fires: trade-off >= 2 distinct
-# (weighted total + sensitivity check), composer_hits = 2 (Ground Truths + Derivation
-# Chains), n == 1 -> focused-trade-off after the reorder.
+# (weighted total + sensitivity check), composer_hits = 3 — Ground Truths + Derivation
+# Chains PLUS one incidental "verdict" match in the prose "flips the verdict" that
+# _composer_structure_hits counts via re.findall; 3 < _COMPOSER_FOCUS_CEILING (=4) so
+# the n == 1 branch wins -> focused-trade-off after the reorder. (This composer_hits=3
+# reality — not the 2 the 77-04 plan assumed — is why the ceiling is 4, not 3.)
 # DET-11 regression: _FIXTURE_STRUCTURAL_OVERRIDE (n=0, composer>=2) must still
 # return full-composer — the reorder only changes behaviour for the n==1 branch.
 _FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY = "\n".join(
@@ -1754,7 +1757,7 @@ _FIXTURE_STRUCTURAL_OVERRIDE = "\n".join(
 # Derivation Chains, Verdict → composer_hits >= 4).
 # Under the pre-CR-02-fix unconditional n==1 early-return, this returns `focused-pre-mortem`.
 # After the CR-02 fix (n==1 bounded by composer_structure_hits < _COMPOSER_FOCUS_CEILING),
-# composer_hits=4 >= CEILING=3 so the n==1 early-return is skipped and the composer
+# composer_hits=5 >= CEILING=4 so the n==1 early-return is skipped and the composer
 # override fires, returning `full-composer`.
 # Modelled on the VERIFICATION CR-02 reproduction text (77-VERIFICATION.md §"CR-02
 # Reproduction"). The fixture must classify `full-composer`, NOT `focused-pre-mortem`.
