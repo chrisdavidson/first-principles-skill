@@ -955,10 +955,17 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # assistant text for S-P01-run1,2,3,4,5.
         # Source: .planning/v5.2-inputs/rr75-evidence/S-P01-run1.jsonl through
         # S-P01-run5.jsonl (Q1/Q2 verify-first, 2026-06-13).
-        # False-positive guard: full-composer outputs use technique-neutral section
-        # headers ("## Phase 2 — Pre-mortem"), not a bare "## Pre-Mortem:". This
-        # pattern requires `#` or `##` immediately before the technique name.
-        # MIN_HEADER_HITS=2 means a second distinct marker must also fire.
+        # False-positive guard (WR-01 corrected): `#\s*` matches one or more `#`
+        # then optional whitespace, so the pattern matches ANY Markdown heading level
+        # including `### Pre-mortem` subsections that a full-composer synthesis can
+        # legitimately emit. The actual false-positive guard is:
+        #   (a) _COMPOSER_FOCUS_CEILING bound in classify(): when a full-composer
+        #       synthesis fires both this header pattern and a second pre-mortem
+        #       marker (n==1) but also reaches composer_structure_hits >= 4,
+        #       the n==1 early-return is suppressed and the composer override wins
+        #       → full-composer (CR-02 closed).
+        #   (b) MIN_HEADER_HITS=2: a second distinct pre-mortem marker must also fire;
+        #       the header pattern alone cannot fire the technique.
         re.compile(r"#\s*(focused\s+)?pre[-\s]?mortem\b", re.IGNORECASE),
         # v5.1 capture-backed: S-P01-run1 orchestrator assistant text includes
         # "### Failure Causes" (echoed section header from the sub-agent's output);
