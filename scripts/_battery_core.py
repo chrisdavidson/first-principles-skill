@@ -1067,6 +1067,40 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # mentions everywhere). Detected separately as a tiebreaker (see
         # `_TRADEOFF_BARE_TOKEN_RE` below) but not counted toward
         # MIN_HEADER_HITS for the trade-off technique.
+        #
+        # v5.2 CARRY-FORWARD (DET-15 / RR-79-03): Extended grep over all 5 S-P05
+        # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P05-run1..5.jsonl)
+        # found only ONE phrase clearing the D-08 all-5-present + S-N-absent bar:
+        #   "trade-off analysis": run1=1, run2=1, run3=2, run4=2, run5=2 → 5/5; 0/20 S-N.
+        # No second phrase clears the bar. D-04 requires TWO distinct markers for
+        # MIN_HEADER_HITS=2 to fire; one phrase alone is insufficient.
+        #
+        # Phrases tested that FAILED the D-08 bar (per-run S-P05 counts / S-N hits):
+        #   "trade-off matrix":          run1=1, run2=0, run3=1, run4=0, run5=0 → 2/5
+        #   "weighted decision matrix":  run1=0, run2=1, run3=0, run4=1, run5=0 → 2/5
+        #   "weighted scorecard":        run1=0, run2=0, run3=0, run4=0, run5=1 → 1/5
+        #   "weighted total" (existing): run1=1, run2=1, run3=0, run4=0, run5=1 → 3/5
+        #   "weights locked before scoring": run1=0, run2=0, run3=1, run4=0, run5=0 → 1/5
+        #   "lock the weights":          0/5 across all runs
+        #   "score the options":         0/5 across all runs
+        #   "weights before scoring":    0/5 across all runs
+        #
+        # Verbatim captured headers per run (the focused signal not yet matched):
+        #   run1: "## The trade-off matrix" + "## Key cost ground truths"
+        #   run2: "## Weighted decision matrix"
+        #   run3: "## 4. Trade-Off Matrix" + "## 2-3. Key Ground Truths"
+        #   run4: "## Weighted decision matrix"
+        #   run5: "## Weighted scorecard"
+        # Ground Truths / Key Ground Truths headers in runs 1 and 3 trip the
+        # composer-structure override (composer_hits >= _COMPOSER_FOCUS_CEILING=4
+        # is not yet reached, but trade-off hits < MIN_HEADER_HITS=2 → returns none).
+        #
+        # "trade-off analysis" appears in the orchestrator's own introductory
+        # framing ("completed the trade-off analysis") — it clears the mechanical
+        # bar but is topic-specific rather than technique-specific, and has no safe
+        # partner phrase. Adding it alone would not recover the score (D-04: two
+        # markers required) and is not added. Honest observed score: 0/5.
+        # Phase 80 live re-baseline will record the true K/N.
     ),
     "second-order": (
         # second-order.md — "2nd-order consequence" / "3rd-order consequence"
