@@ -2029,7 +2029,7 @@ def _run_probe3_sanity_feed() -> bool | None:
 def self_test_focused() -> int:
     """Validate focused-output detection logic against in-module fixtures.
 
-    Runs 18 deterministic fixtures plus the Probe 3 sanity feed when its
+    Runs 20 deterministic fixtures plus the Probe 3 sanity feed when its
     local-only capture is present (soft-skipped otherwise — 66 review WR-05).
     No claude invocation.
 
@@ -2037,7 +2037,9 @@ def self_test_focused() -> int:
       11 original (Fixtures 1-12 minus skipped) + 2 Phase-74 inversion D-08/D-09
       + 6 Phase-77 DET-10 D-08/D-09 (pre-mortem, five-whys, second-order)
       + 1 Phase-77 DET-11 (focused_tradeoff_with_methodology)
-      = 18 inline + 1 soft-skip (Probe 3).
+      + 1 Phase-77-04 CR-01 (secondorder_effects_negative)
+      + 1 Phase-77-04 CR-02 (fullcomposer_single_technique)
+      = 20 inline + 1 soft-skip (Probe 3).
 
     The K>N rejection sub-test (which calls main()) is NOT included here —
     it lives in the merged battery's own self_test() which can call
