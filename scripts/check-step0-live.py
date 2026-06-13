@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v5.1.md"
+        --baseline "$REPO/tests/step0-baseline-v5.2.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v5.1 baseline .md to this path
+    --baseline PATH     If supplied, write the v5.2 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,6 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
+_BASELINE_VERSION: str = "v5.2"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -502,7 +503,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v5.1.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v5.2.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -539,7 +540,7 @@ def _write_baseline(
         recorded_ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     lines: list[str] = [
-        "# Step 0 Live Harness Baseline — v5.1",
+        f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}",
         "",
         f"**Recorded:** {recorded_ts} ({repeat * len(results)} live `claude` invocations: {len(results)} prompts × {repeat} repeats)",
         f"**Script version:** `scripts/check-step0-live.py` (commit `{script_sha}`)",
@@ -585,13 +586,13 @@ def _write_baseline(
         "",
         "```bash",
         "REPO=/path/to/first-principles-skills",
-        "OUT_DIR=/tmp/step0-live-v5.1-$(date -u +%Y%m%dT%H%M%SZ)",
+        f"OUT_DIR=/tmp/step0-live-{_BASELINE_VERSION}-$(date -u +%Y%m%dT%H%M%SZ)",
         "cd /tmp && python3 \"$REPO/scripts/check-step0-live.py\" \\",
         "  --catalog \"$REPO/tests/step0-fixture-catalog.md\" \\",
         "  --plugin-dir \"$REPO/first-principles\" \\",
         f"  --repeat {repeat} --min-pass {min_pass} \\",
         "  --out \"$OUT_DIR\" \\",
-        "  --baseline \"$REPO/tests/step0-baseline-v5.1.md\"",
+        f"  --baseline \"$REPO/tests/step0-baseline-{_BASELINE_VERSION}.md\"",
         "```",
         "",
         f"**Run date:** {recorded_ts}",
@@ -719,7 +720,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v5.1 baseline .md to this path after the run",
+        help="If supplied, write the v5.2 baseline .md to this path after the run",
     )
     p.add_argument(
         "--quiet",
