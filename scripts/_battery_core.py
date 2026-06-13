@@ -979,6 +979,29 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # co-occurs with a "## Pre-Mortem" section header in the same output.
         # MIN_HEADER_HITS=2 ensures one alone cannot fire pre-mortem.
         re.compile(r"\bfailure\s+causes?\b", re.IGNORECASE),
+        #
+        # v5.2 CARRY-FORWARD (DET-13 / RR-79-01): Extended grep over all 5 S-P01
+        # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P01-run1..5.jsonl)
+        # found no phrase clearing the D-08 all-5-present + S-N-absent bar.
+        # Per-run distinct technique-hit counts:
+        #   run1=0 (free-form "Bottom line" executive framing; no Pre-Mortem header,
+        #           no "already failed", no "working backward", no "failure causes")
+        #   run2=1 (# Pre-Mortem header only; no second distinct marker)
+        #   run3=2 (# Pre-Mortem + "already failed Saturday morning") → PASS
+        #   run4=1 (# Pre-Mortem appears twice but counts as 1 distinct hit; no second)
+        #   run5=3 (# Pre-Mortem + "already failed" + "working backward") → PASS
+        # Observed score: 2/5. Run 1 is the blocking constraint: it uses free-form
+        # executive framing with no technique markers at all — any new marker must
+        # appear in run 1 to clear the all-5 bar, but run 1 contains only engineering
+        # recommendations (big-bang, canary, rollback, Friday).
+        #
+        # Candidate phrases tested and disqualified:
+        #   "structural weakness": run1=0, run2=1, run3=0, run4=1, run5=1 → 3/5 AND S-N=4
+        #   "failure mode":        run1=0, run2=1, run3=1, run4=2, run5=0 → 3/5 AND S-N=12
+        #   "staged rollout":      run1=0, run2=1, run3=1, run4=1, run5=1 → 4/5 (misses run1)
+        #   "friday" (context-specific): 5/5 but not a technique marker (prompt-specific)
+        # No phrase passes both the all-5 bar and the S-N-absent bar. No new marker added.
+        # Honest observed score: 2/5. Phase 80 live re-baseline will record the true K/N.
     ),
     "inversion": (
         # inversion.md frontmatter / opening — "Invert, always invert"
@@ -1001,6 +1024,29 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # v5.0 capture-backed: S-P02-run2 "## Inverted claim", run3 "## Inverted claim",
         # run4 "**Inverted claim:**". Clean in S-N captures. Same provenance as above.
         re.compile(r"\binverted\s+claim\b", re.IGNORECASE),
+        #
+        # v5.2 CARRY-FORWARD (DET-14 / RR-79-02): All 5 S-P02 v5.2 captures
+        # (.planning/v5.2-inputs/rebase-evidence/S-P02-run1..5.jsonl) contain
+        # ZERO canonical inversion vocabulary across all runs:
+        #   "invert, always invert":           0/5 across all runs
+        #   "inverted claim" / "inverted form": 0/5 across all runs
+        #   "failure-guaranteeing condition":   0/5 across all runs
+        #   "necessary precondition":           0/5 across all runs
+        # All 5 runs use generic "When/Where ... breaks down" framing to express
+        # the inversion result. "breaks down" appears in 4/5 runs (misses run2
+        # which uses "breaks" without "down") and is NOT false-positive-safe —
+        # it would fire on any full-composer output discussing a challenged
+        # assumption or business claim (SAFE-04 hazard). Phase 77 DET-10 already
+        # broadened inversion markers with no score movement; blind re-broadening
+        # is disallowed (D-06).
+        #
+        # Per-run captured headers (the focused signal using no inversion vocabulary):
+        #   run1: "When 'Faster Ships → Better Retention' Breaks Down"
+        #   run2: "The four ways it breaks" (no "down"; "breaks down" grep misses run2)
+        #   run3: variations of "Breaks Down" / "breaks down"
+        #   run4: variations of "Breaks Down" / "breaks down"
+        #   run5: variations of "Breaks Down" / "breaks down"
+        # Honest observed score: 0/5. Phase 80 live re-baseline will record the true K/N.
     ),
     "fishbone": (
         # fishbone.md procedure section — "cause categories"
