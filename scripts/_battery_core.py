@@ -1289,29 +1289,45 @@ def classify(
     """Cardinality-based output-structure classifier.
 
     Per 46-RESEARCH §Q4 cardinality table, calibrated by 46-01-SUMMARY
-    Probe 3 finding (OPTION B — composer-structure signal):
+    Probe 3 finding (OPTION B — composer-structure signal).
 
+    Precedence order (DET-11 reorder, Phase 77):
+
+        n == 1                        → "focused-<technique>"  (NEW: checked first)
         composer_structure_hits >= MIN_HEADER_HITS
                                       → "full-composer"  (structural override)
         n == 0                        → "none"
-        n == 1                        → "focused-<technique>"
         n in {2, 3}                   → "ambiguous"
         n >= 4                        → "full-composer"
 
-    The structural override is the LOAD-BEARING calibration — real
-    composer outputs may fire only 1-2 technique-name markers but always
-    emit the canonical 5-phase scaffold. The override prevents Pitfall 1
-    (misclassifying a full-composer walkthrough as `focused-<technique>`
-    just because one technique's markers happen to fire).
+    DET-11 rationale: a genuine full-composer run fires MULTIPLE techniques
+    (n >= 2); when exactly one technique has fired (n == 1), the output is
+    a focused-technique run even if it includes canonical procedure section
+    headers (e.g. `## Ground Truths` and `## Derivation Chains`). The
+    focused trade-off procedure legitimately emits these headers as part of
+    its standard methodology — classifying such output as `full-composer`
+    was a false negative for S-P05-run2/3/5.
+
+    The structural override is preserved for the n == 0 case: when NO
+    technique markers fire but >=2 composer scaffold tokens appear, the
+    output is a full-composer run (the override prevents Pitfall 1 —
+    misclassifying a lightly-fired full-composer run as `none`). The
+    `_FIXTURE_STRUCTURAL_OVERRIDE` regression test (n=0, composer_hits=3)
+    must still return `full-composer` after this reorder.
     """
-    if composer_structure_hits >= MIN_HEADER_HITS:
-        return "full-composer"
     n = len(fired)
-    if n == 0:
-        return "none"
+    # DET-11: check single-technique focus BEFORE the composer override.
+    # A genuine full-composer run fires multiple techniques (n >= 2); n == 1
+    # reliably signals focused mode regardless of methodology-section headers.
     if n == 1:
         tech = next(iter(fired))
         return f"focused-{tech}"  # type: ignore[return-value]
+    # Composer-structure override: n == 0 with scaffold headers → full-composer.
+    # Also applies for n >= 2 paths below when composer hits are high.
+    if composer_structure_hits >= MIN_HEADER_HITS:
+        return "full-composer"
+    if n == 0:
+        return "none"
     if n in (2, 3):
         return "ambiguous"
     return "full-composer"
@@ -1619,6 +1635,40 @@ _FIXTURE_BUG2_NATURAL_VARIATION = "\n".join(
     ]
 )
 
+# Fixture DET-11 — focused trade-off output that contains methodology sections.
+# The standard 5-phase procedure places "## Ground Truths" and "## Derivation
+# Chains" as canonical sections even in focused-trade-off mode. With the pre-DET-11
+# classify() code these 2 composer-structure hits returned "full-composer" before
+# trade-off technique cardinality (n==1) was checked. After the DET-11 reorder
+# (n==1 wins before composer override), this must classify `focused-trade-off`.
+# Modelled on S-P05-run2/run3/run5 output shapes from:
+# .planning/v5.2-inputs/rr75-evidence/S-P05-run2.jsonl, run3.jsonl, run5.jsonl
+# (Q1/Q2 verify-first, 2026-06-13). The fixture fires: trade-off >= 2 distinct
+# (weighted total + sensitivity check), composer_hits = 2 (Ground Truths + Derivation
+# Chains), n == 1 -> focused-trade-off after the reorder.
+# DET-11 regression: _FIXTURE_STRUCTURAL_OVERRIDE (n=0, composer>=2) must still
+# return full-composer — the reorder only changes behaviour for the n==1 branch.
+_FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY = "\n".join(
+    [
+        _fixture_assistant_text(
+            "## Trade-off Analysis: Build vs Buy\n\n"
+            "The agent completed a focused trade-off analysis. "
+            "Assign weights. Lock them now.\n\n"
+            "| Option | weighted total |\n"
+            "|--------|---------------|\n"
+            "| Build  | 0.72           |\n"
+            "| Buy    | 0.65           |\n\n"
+            "Sensitivity check: dropping the 'team velocity' criterion flips "
+            "the verdict.\n\n"
+            "## Ground Truths\n"
+            "Fact: the in-house team has capacity for a 6-week build.\n\n"
+            "## Derivation Chains\n"
+            "The weighted total of 0.72 (Build) vs 0.65 (Buy) is stable unless "
+            "the team velocity assumption changes by more than 30 percent.\n"
+        ),
+    ]
+)
+
 # Fixture 12 — structural-override regression guard (LOAD-BEARING;
 # 66 review WR-04). Canonical composer scaffold tokens with ZERO
 # techniques firing. The OPTION B structural override (see calibration
@@ -1872,14 +1922,15 @@ def _run_probe3_sanity_feed() -> bool | None:
 def self_test_focused() -> int:
     """Validate focused-output detection logic against in-module fixtures.
 
-    Runs 17 deterministic fixtures plus the Probe 3 sanity feed when its
+    Runs 18 deterministic fixtures plus the Probe 3 sanity feed when its
     local-only capture is present (soft-skipped otherwise — 66 review WR-05).
     No claude invocation.
 
     Fixture count breakdown:
       11 original (Fixtures 1-12 minus skipped) + 2 Phase-74 inversion D-08/D-09
       + 6 Phase-77 DET-10 D-08/D-09 (pre-mortem, five-whys, second-order)
-      = 17 inline + 1 soft-skip (Probe 3).
+      + 1 Phase-77 DET-11 (focused_tradeoff_with_methodology)
+      = 18 inline + 1 soft-skip (Probe 3).
 
     The K>N rejection sub-test (which calls main()) is NOT included here —
     it lives in the merged battery's own self_test() which can call
@@ -1928,6 +1979,14 @@ def self_test_focused() -> int:
         ("focused_secondorder_v51_natural_phrasing", _FIXTURE_FOCUSED_SECONDORDER_V51, "focused-second-order"),
         # D-09 (second-order): single broad second-order marker alone must NOT fire
         ("secondorder_single_new_marker_negative", _FIXTURE_SECONDORDER_SINGLE_MARKER, "none"),
+        # DET-11: focused trade-off output + ## Ground Truths + ## Derivation Chains
+        # (n==1 + composer_hits==2) must classify focused-trade-off after the
+        # classify() reorder (was full-composer before DET-11 fix)
+        (
+            "focused_tradeoff_with_methodology",
+            _FIXTURE_FOCUSED_TRADEOFF_WITH_METHODOLOGY,
+            "focused-trade-off",
+        ),
     ]
     all_passed = True
     for name, body, expected in fixtures:
