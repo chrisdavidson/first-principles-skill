@@ -476,6 +476,25 @@ def self_test() -> int:
 # Baseline emitter
 # ---------------------------------------------------------------------------
 
+# Context-free parser-robustness fixtures (S-P07/08): catalog rows that are
+# expected-FAIL and excluded from the S-P battery bar (D-02).
+CONTEXT_FREE_IDS = ("S-P07", "S-P08")
+
+
+def _battery_gate(
+    p_rows: list[PromptResult], n_rows: list[PromptResult]
+) -> tuple[list[PromptResult], int, int, bool]:
+    """v5.1 split battery gate, shared by the baseline emitter and main()'s
+    exit code so the two can never drift (CR-01). Context-free fixtures
+    (S-P07/08) are excluded from the S-P bar: the gate is
+    (all S-P01–06 pass) AND (all S-N pass). Returns
+    (p_context, p_context_pass, n_pass, battery_pass)."""
+    p_context = [r for r in p_rows if r.prompt.id not in CONTEXT_FREE_IDS]
+    p_context_pass = sum(1 for r in p_context if r.row_pass)
+    n_pass = sum(1 for r in n_rows if r.row_pass)
+    battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_rows))
+    return p_context, p_context_pass, n_pass, battery_pass
+
 
 def _write_baseline(
     results: list[PromptResult],
@@ -512,14 +531,8 @@ def _write_baseline(
 
     p_rows = [r for r in results if r.prompt.id.startswith("S-P")]
     n_rows = [r for r in results if r.prompt.id.startswith("S-N")]
-    p_pass = sum(1 for r in p_rows if r.row_pass)
-    n_pass = sum(1 for r in n_rows if r.row_pass)
-    # NEW: split p_rows into context-fixed (S-P01–06) and context-free (S-P07/08)
-    p_context = [r for r in p_rows if r.prompt.id not in ("S-P07", "S-P08")]
-    p_context_free = [r for r in p_rows if r.prompt.id in ("S-P07", "S-P08")]
-    p_context_pass = sum(1 for r in p_context if r.row_pass)
-    # battery_pass now excludes context-free rows from the gate
-    battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_rows))
+    # Shared v5.1 split gate — S-P07/08 (context-free) excluded from the bar.
+    p_context, p_context_pass, n_pass, battery_pass = _battery_gate(p_rows, n_rows)
     battery_verdict = "PASS" if battery_pass else "FAIL"
 
     if not recorded_ts:
@@ -546,7 +559,6 @@ def _write_baseline(
         "|----|---------------|-----|---------|",
     ]
 
-    CONTEXT_FREE_IDS = ("S-P07", "S-P08")
     residual_risk_rows: list[PromptResult] = []
     for r in results:
         kn_str = f"{r.match_count}/{repeat} {'PASS' if r.row_pass else 'FAIL'}"
@@ -622,7 +634,7 @@ def _write_baseline(
                 f"- `{r.prompt.id}`: {r.match_count}/{repeat} FAIL"
                 f" — expected `{r.prompt.expected}`;"
                 f" observed modes: {r.modes}."
-                f" Residual-risk tracked as {RR_ID_MAP.get(r.prompt.id, 'RR-75-XX')}."
+                f" Residual-risk tracked as {RR_ID_MAP.get(r.prompt.id, 'RR-75-NN (unassigned — needs a tracked RR ID)')}."
             )
 
     lines += [
@@ -853,14 +865,14 @@ def main(argv: list[str] | None = None) -> int:
     # (10) Battery verdict
     p_rows = [r for r in results if r.prompt.id.startswith("S-P")]
     n_rows = [r for r in results if r.prompt.id.startswith("S-N")]
-    p_pass = sum(1 for r in p_rows if r.row_pass)
-    n_pass = sum(1 for r in n_rows if r.row_pass)
-    battery_pass = (p_pass == len(p_rows)) and (n_pass == len(n_rows))
+    # Same v5.1 split gate as the baseline emitter (S-P07/08 excluded) so the
+    # process exit code and the written baseline verdict can never disagree (CR-01).
+    p_context, p_context_pass, n_pass, battery_pass = _battery_gate(p_rows, n_rows)
 
     print()
     print("=" * 60)
     print(f"BATTERY: {'PASS' if battery_pass else 'FAIL'}")
-    print(f"  P: {p_pass}/{len(p_rows)} rows passed")
+    print(f"  P: {p_context_pass}/{len(p_context)} rows passed (S-P01–06; S-P07/08 context-free, excluded)")
     print(f"  N: {n_pass}/{len(n_rows)} rows passed")
     print(f"  scores.tsv: {scores_path}")
 
