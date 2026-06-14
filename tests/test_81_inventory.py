@@ -125,6 +125,95 @@ def test_all_26_requirements_files_present() -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Task 1 (Plan 02): Structural guards — collision and orphan functions
+# ---------------------------------------------------------------------------
+
+
+def test_script_has_collision_and_orphan_functions() -> None:
+    """check-inventory.py must define detect_collisions and find_orphan_candidates."""
+    text = SCRIPT.read_text(encoding="utf-8")
+    assert "def detect_collisions(" in text, (
+        "check-inventory.py does not define detect_collisions"
+    )
+    assert "def find_orphan_candidates(" in text, (
+        "check-inventory.py does not define find_orphan_candidates"
+    )
+    assert "def _enumerate_corpus(" in text, (
+        "check-inventory.py does not define _enumerate_corpus"
+    )
+
+
+def test_check_coverage_visits_all_26_files() -> None:
+    """``python3 scripts/check-inventory.py --check-coverage`` exits 0 and reports 26 files.
+
+    This is the AUDIT-01 file-coverage round-trip guard: every one of the 26
+    .planning/milestones/vX.Y-REQUIREMENTS.md files must be visited and must
+    yield at least one ID. A zero-ID file exits non-zero.
+    """
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--check-coverage"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"check-inventory.py --check-coverage exited {result.returncode} (expected 0).\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
+    assert "26" in result.stdout, (
+        f"Expected '26' in --check-coverage stdout but got:\n{result.stdout}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Task 2 (Plan 02): --output path-confinement and Markdown path notice
+# ---------------------------------------------------------------------------
+
+
+def test_output_path_confinement() -> None:
+    """``--output /tmp/escape-inventory.md`` must exit 2 without creating the file (T-81-01)."""
+    import os
+    escape_path = "/tmp/escape-inventory-test-81-02.md"
+    # Ensure the file does not already exist from a prior failed run
+    if os.path.exists(escape_path):
+        os.unlink(escape_path)
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "--output", escape_path],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2, (
+        f"Expected exit 2 for escaping --output path, got {result.returncode}.\n"
+        f"stdout:\n{result.stdout}\n"
+        f"stderr:\n{result.stderr}"
+    )
+    assert not os.path.exists(escape_path), (
+        f"File {escape_path!r} was created despite the confinement check (T-81-01 violated)"
+    )
+
+
+def test_render_has_path_notice() -> None:
+    """No-flag stdout must contain the D-09 documented-vs-actual path notice substring."""
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"check-inventory.py (no flags) exited {result.returncode}.\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    assert ".planning/milestones" in result.stdout, (
+        f"Expected D-09 path notice substring '.planning/milestones' in stdout but not found.\n"
+        f"stdout (first 500 chars):\n{result.stdout[:500]}"
+    )
+    assert "# Requirements Inventory" in result.stdout, (
+        f"Expected '# Requirements Inventory' header in stdout but not found.\n"
+        f"stdout (first 500 chars):\n{result.stdout[:500]}"
+    )
+
+
 if __name__ == "__main__":
     import pytest
     sys.exit(pytest.main([__file__, "-v"]))
