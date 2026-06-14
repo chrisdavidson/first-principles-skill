@@ -74,10 +74,10 @@ class MatrixRow:
 # Matrix row content — curated in Plan 02 (two inclusion paths per D-05)
 # ---------------------------------------------------------------------------
 
-# PROVISIONAL: residual/ key prefix for non-milestone RR and S-N residuals.
-# RESEARCH Open Question 1 [ASSUMED] — awaiting Task 3 human confirmation.
-# If human rejects "residual/<ID>" at Task 3, update only this single
-# constant and re-run emit + check; the key form changes everywhere at once.
+# residual/ key prefix for non-milestone RR and S-N residuals.
+# CONFIRMED at Task 3 checkpoint (82-02 Plan, 2026-06-14) — key scheme approved;
+# no re-keying required. If scheme ever changes, update only this constant
+# and re-run emit + check; the key form changes everywhere at once.
 _RESIDUAL_KEY_PREFIX = "residual"
 
 
@@ -723,14 +723,14 @@ def _rows_active_tail() -> list[MatrixRow]:
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
     prefix. S-N04, RR-79-01/02/03, and RR-77-08 are non-milestone residuals
-    that use the PROVISIONAL _RESIDUAL_KEY_PREFIX (see module-level note above).
+    that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint, 82-02).
     """
-    p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — PROVISIONAL, Task 3 confirms
+    p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_sn04 = (
         "Negative-control over-routing dip recorded in tests/step0-baseline-v5.3.md "
         "(S-N04 2/5 pass rate); no RR-ID assigned; no owning phase; not in any "
-        "milestone REQUIREMENTS checkbox. Synthetic residual qualifier pending "
-        "Task 3 key-scheme confirmation."
+        "milestone REQUIREMENTS checkbox. Synthetic residual/ qualifier confirmed "
+        "at Task 3 checkpoint (82-02, 2026-06-14)."
     )
     tail_rationale_gen01 = (
         "Full Step 0 classifier rearchitecture; perpetually deferred "
@@ -785,9 +785,8 @@ def build_matrix_rows() -> list[MatrixRow]:
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail (7 rows) — included unconditionally, tagged gap (D-05b).
 
-    The 'residual/' key prefix for non-milestone residuals is PROVISIONAL
-    pending Task 3 human confirmation (RESEARCH Open Question 1 [ASSUMED]).
-    See _RESIDUAL_KEY_PREFIX comment above for the single change point.
+    The 'residual/' key prefix for non-milestone residuals is confirmed
+    (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
     """
     rows: list[MatrixRow] = []
     # --- Methodology capability ---
@@ -937,12 +936,6 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
 # Severity matrix per D-14: coverage-tier × capability-undermined
 # gap+Test-Network=CRITICAL, gap+Methodology=HIGH,
 # audit-only+Test-Network=HIGH, audit-only+Methodology=MEDIUM
-_SEVERITY_SORT_KEY: dict[tuple[str, str], int] = {
-    ("gap", "Test-Network"): 0,       # CRITICAL
-    ("gap", "Methodology"): 1,         # HIGH
-    ("audit-only", "Test-Network"): 2, # HIGH
-    ("audit-only", "Methodology"): 3,  # MEDIUM
-}
 _SEVERITY_LABEL: dict[tuple[str, str], str] = {
     ("gap", "Test-Network"): "CRITICAL",
     ("gap", "Methodology"): "HIGH",
@@ -950,15 +943,44 @@ _SEVERITY_LABEL: dict[tuple[str, str], str] = {
     ("audit-only", "Methodology"): "MEDIUM",
 }
 
+# Human-curated per-item severity overrides for the 7 active-tail gap rows.
+# Approved at Task 3 checkpoint (82-02 Plan, 2026-06-14); rationale in
+# 82-RESEARCH.md §Gap Prioritization Model lines 719-724.
+# These override the pure D-14 2×2 formula for the named bare_ids only;
+# all other rows continue to use the _SEVERITY_LABEL 2×2 map.
+_ACTIVE_TAIL_SEVERITY: dict[str, str] = {
+    "S-N04":    "CRITICAL",   # negative-control regression in step0-baseline
+    "GEN-01":   "CRITICAL",   # Test-Network integrity (classifier rearchitecture)
+    "GEN-02":   "HIGH",       # measurement cadence unestablished (periodic live)
+    "RR-79-01": "HIGH",       # live S-P routing unresolved
+    "RR-79-02": "HIGH",       # live S-P routing unresolved
+    "RR-79-03": "HIGH",       # live S-P routing unresolved
+    "RR-77-08": "MEDIUM",     # ceiling warning, non-blocking
+}
+
+# Sort rank keyed on final label (CRITICAL first → MEDIUM last).
+# Using label→rank keeps sort correct even when override changes the label.
+_SEVERITY_RANK: dict[str, int] = {
+    "CRITICAL": 0,
+    "HIGH":     1,
+    "MEDIUM":   2,
+    "UNKNOWN":  99,
+}
+
 
 def _gap_severity(row: MatrixRow) -> str:
-    """Return the D-14 severity label for an audit-only or gap row.
+    """Return the effective severity label for an audit-only or gap row.
 
-    severity = coverage_tier × capability_undermined (pure helper, ≤ 80 lines).
-    CRITICAL: gap + Test-Network (verification system itself is unverified).
-    HIGH:     gap + Methodology OR audit-only + Test-Network.
-    MEDIUM:   audit-only + Methodology (soft gap in methodology layer).
+    Checks the human-curated _ACTIVE_TAIL_SEVERITY override FIRST (approved
+    at Task 3 checkpoint, 82-02, for the 7 active-tail rows). Falls back to
+    the D-14 2×2 _SEVERITY_LABEL map for all other rows.
+
+    CRITICAL: gap + Test-Network (or override). Verification system unverified.
+    HIGH:     gap + Methodology OR audit-only + Test-Network (or override).
+    MEDIUM:   audit-only + Methodology (or override).
     """
+    if row.bare_id in _ACTIVE_TAIL_SEVERITY:
+        return _ACTIVE_TAIL_SEVERITY[row.bare_id]
     return _SEVERITY_LABEL.get((row.coverage_tier, row.capability), "UNKNOWN")
 
 
@@ -967,13 +989,12 @@ def _render_gap_findings(uncovered: list[MatrixRow]) -> list[str]:
 
     Implements GAP-01 (named gap findings) + GAP-02 (prioritized carry-forward).
     Uncovered rows = audit-only + gap rows, sorted CRITICAL -> HIGH -> MEDIUM.
+    Sort is by final label rank (_SEVERITY_RANK) so override labels sort correctly.
     """
-    # Sort by D-14 severity (ascending sort key = descending severity)
+    # Sort by final severity label rank (ascending rank = descending severity)
     sorted_rows = sorted(
         uncovered,
-        key=lambda r: _SEVERITY_SORT_KEY.get(
-            (r.coverage_tier, r.capability), 99
-        ),
+        key=lambda r: _SEVERITY_RANK.get(_gap_severity(r), 99),
     )
     lines: list[str] = []
     lines.append("## Gap Findings (GAP-01)")
