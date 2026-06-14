@@ -12,20 +12,23 @@ entry milestone-qualified (D-08: `vX.Y/ID`) so reused bare IDs across
 milestones stay distinct.
 
 Usage:
-    python3 scripts/check-inventory.py [--output PATH] [--self-test]
+    python3 scripts/check-inventory.py [--output PATH] [--check-coverage] [--self-test]
 
 Exit codes:
     0  all inline fixtures pass (--self-test) or enumeration complete
     1  fixture mismatch, file-coverage gap, or output path violation
     2  environment error (Python <3.12, or .planning/milestones/ not found)
 
---self-test: runs 6 in-process format/edge fixtures (no disk I/O, no
+--self-test: runs 8 in-process format/edge fixtures (no disk I/O, no
              .planning/ reads) and verifies each ID classification is correct.
              Catches the v3.9-v3.12 **ID:** pitfall and the embedded-prose
-             false-positive trap. Exits 0 only if all 6 classify correctly.
+             false-positive trap. Exits 0 only if all 8 classify correctly.
+
+--check-coverage: enumerate all 26 milestone files, print per-file ID count,
+                  exit 1 if any file is unvisited or yields 0 IDs (AUDIT-01).
 
 --output PATH: write the Markdown inventory to PATH (must be under
-               .planning/ to stay in the gitignored zone).
+               .planning/ to stay in the gitignored zone; T-81-01).
 """
 
 from __future__ import annotations
@@ -174,6 +177,25 @@ def find_orphan_candidates(entries: list[dict]) -> list[dict]:
     return [e for e in entries if e["checkbox"] in ("obsoleted", "open", "none")]
 
 
+def _enumerate_corpus() -> tuple[list[dict], list[Path]]:
+    """Glob all vX.Y-REQUIREMENTS.md files and extract IDs from each.
+
+    Returns (all_entries, visited_files).
+    visited_files is the sorted list of Path objects actually processed.
+    all_entries is the aggregated list across all files.
+
+    Never raises — a file yielding 0 IDs is still in visited_files;
+    callers must check for zero-ID files explicitly (AUDIT-01 coverage gate).
+    """
+    req_files = sorted(MILESTONES_DIR.glob("v*-REQUIREMENTS.md"))
+    all_entries: list[dict] = []
+    for req_file in req_files:
+        milestone = _milestone_from_filename(req_file)
+        file_entries = _extract_ids_from_file(req_file, milestone)
+        all_entries.extend(file_entries)
+    return all_entries, req_files
+
+
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
         sys.stderr.write(
@@ -184,7 +206,7 @@ def _require_python_version() -> None:
 
 
 def _run_self_test() -> None:
-    """Run 6 inline format/edge fixtures — no disk I/O, no .planning/ reads.
+    """Run 8 inline format/edge fixtures — no disk I/O, no .planning/ reads.
 
     Fixtures per VALIDATION.md §Wave 0 Requirements:
       (1) **ID** bold-close → extracted
@@ -193,6 +215,8 @@ def _run_self_test() -> None:
       (4) embedded prose bold → NOT extracted (no list anchor)
       (5) **FU-21-1 / FU-21-2** dual-ID → two records
       (6) [~] checkbox **ROUTE-01** → extracted with checkbox='obsoleted'
+      (7) collision fixture: GEN-01 in 3 milestones → detect_collisions reports it
+      (8) orphan fixture: [~] ROUTE-01 entry → find_orphan_candidates flags it
     """
     wrong_results: list[str] = []
 
@@ -271,6 +295,54 @@ def _run_self_test() -> None:
         print("check-inventory --self-test: fixture(6) [~] checkbox correctly classified as 'obsoleted'")
 
     # ------------------------------------------------------------------
+    # Fixture (7): collision fixture — GEN-01 in three milestones → reported
+    # ------------------------------------------------------------------
+    collision_entries = [
+        {"id": "GEN-01", "milestone": "v5.1", "key": "v5.1/GEN-01",
+         "source_path": "fake", "line_no": 1, "checkbox": "none"},
+        {"id": "GEN-01", "milestone": "v5.2", "key": "v5.2/GEN-01",
+         "source_path": "fake", "line_no": 1, "checkbox": "none"},
+        {"id": "GEN-01", "milestone": "v5.3", "key": "v5.3/GEN-01",
+         "source_path": "fake", "line_no": 1, "checkbox": "none"},
+        {"id": "SOLO-01", "milestone": "v5.1", "key": "v5.1/SOLO-01",
+         "source_path": "fake", "line_no": 2, "checkbox": "checked"},
+    ]
+    collisions7 = detect_collisions(collision_entries)
+    if "GEN-01" not in collisions7:
+        print(f"check-inventory --self-test: fixture(7) FAIL — GEN-01 not in collisions: {collisions7!r}")
+        wrong_results.append("fixture(7) collision fixture: GEN-01 cross-milestone not detected")
+    elif "SOLO-01" in collisions7:
+        print(f"check-inventory --self-test: fixture(7) FAIL — SOLO-01 wrongly reported as collision")
+        wrong_results.append("fixture(7) collision fixture: single-milestone ID SOLO-01 wrongly flagged")
+    else:
+        milestones7 = collisions7["GEN-01"]
+        if sorted(milestones7) != ["v5.1", "v5.2", "v5.3"]:
+            print(f"check-inventory --self-test: fixture(7) FAIL — milestones={milestones7!r}")
+            wrong_results.append(f"fixture(7) GEN-01 milestones wrong: {milestones7!r}")
+        else:
+            print("check-inventory --self-test: fixture(7) collision fixture correctly detected GEN-01×3")
+
+    # ------------------------------------------------------------------
+    # Fixture (8): orphan fixture — [~] ROUTE-01 → find_orphan_candidates flags it
+    # ------------------------------------------------------------------
+    orphan_entries = [
+        {"id": "ROUTE-01", "milestone": "v3.8", "key": "v3.8/ROUTE-01",
+         "source_path": "fake", "line_no": 10, "checkbox": "obsoleted"},
+        {"id": "BASE-01", "milestone": "v3.8", "key": "v3.8/BASE-01",
+         "source_path": "fake", "line_no": 11, "checkbox": "checked"},
+    ]
+    orphans8 = find_orphan_candidates(orphan_entries)
+    orphan_ids8 = [e["id"] for e in orphans8]
+    if "ROUTE-01" not in orphan_ids8:
+        print(f"check-inventory --self-test: fixture(8) FAIL — ROUTE-01 not flagged as orphan: {orphan_ids8!r}")
+        wrong_results.append("fixture(8) orphan fixture: [~] ROUTE-01 not flagged")
+    elif "BASE-01" in orphan_ids8:
+        print(f"check-inventory --self-test: fixture(8) FAIL — checked BASE-01 wrongly flagged as orphan")
+        wrong_results.append("fixture(8) orphan fixture: checked BASE-01 wrongly flagged")
+    else:
+        print("check-inventory --self-test: fixture(8) orphan fixture correctly flagged ROUTE-01 only")
+
+    # ------------------------------------------------------------------
     # Final verdict
     # ------------------------------------------------------------------
     if wrong_results:
@@ -342,6 +414,27 @@ def render_inventory_markdown(
     return "\n".join(lines)
 
 
+def _resolve_confined_output(path: Path) -> Path:
+    """Resolve path and enforce T-81-01: must be under REPO_ROOT/.planning/.
+
+    Returns the resolved absolute path if confined.
+    Writes a stderr message and calls sys.exit(2) if the path escapes.
+    """
+    resolved = path.resolve()
+    allowed_root = (REPO_ROOT / ".planning").resolve()
+    confined = (
+        resolved == allowed_root
+        or str(resolved).startswith(str(allowed_root) + "/")
+    )
+    if not confined:
+        sys.stderr.write(
+            f"check-inventory: --output path must be under .planning/ "
+            f"(got: {resolved})\n"
+        )
+        sys.exit(2)
+    return resolved
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -352,13 +445,21 @@ def main() -> None:
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="run 6 inline format/edge fixtures; exit 0 only if all pass",
+        help="run 8 inline format/edge fixtures; exit 0 only if all pass",
+    )
+    parser.add_argument(
+        "--check-coverage",
+        action="store_true",
+        help=(
+            "enumerate all 26 files and print per-file ID count; "
+            "exit 1 if any file yields 0 IDs (AUDIT-01)"
+        ),
     )
     parser.add_argument(
         "--output",
         type=Path,
         default=None,
-        help="write Markdown inventory to this path (must be under .planning/)",
+        help="write Markdown inventory to this path (must be under .planning/; T-81-01)",
     )
     args = parser.parse_args()
 
@@ -376,20 +477,61 @@ def main() -> None:
         )
         sys.exit(2)
 
-    # Validate --output path confinement (T-81-01 security mitigation)
+    if args.check_coverage:
+        _run_check_coverage()
+        return
+
+    # Validate --output path confinement (T-81-01 via named helper)
+    resolved_output: Path | None = None
     if args.output is not None:
-        resolved_output = args.output.resolve()
-        planning_dir = (REPO_ROOT / ".planning").resolve()
-        if resolved_output != planning_dir and not str(resolved_output).startswith(
-            str(planning_dir) + "/"
-        ):
-            sys.stderr.write(
-                f"check-inventory: --output path must be under .planning/ "
-                f"(got: {resolved_output})\n"
-            )
-            sys.exit(2)
+        resolved_output = _resolve_confined_output(args.output)
 
     # Enumerate all milestone REQUIREMENTS files
+    all_entries, req_files = _enumerate_corpus()
+    if not req_files:
+        sys.stderr.write(
+            f"check-inventory: no v*-REQUIREMENTS.md files found in {MILESTONES_DIR}\n"
+        )
+        sys.exit(1)
+
+    zero_id_files = [
+        rf.name for rf in req_files
+        if not any(e["milestone"] == _milestone_from_filename(rf) for e in all_entries)
+    ]
+
+    collisions = detect_collisions(all_entries)
+    orphans = find_orphan_candidates(all_entries)
+    markdown = render_inventory_markdown(
+        all_entries, collisions, orphans, len(req_files)
+    )
+
+    if resolved_output is not None:
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        resolved_output.write_text(markdown, encoding="utf-8")
+        print(
+            f"check-inventory: PASS — {len(all_entries)} IDs extracted from "
+            f"{len(req_files)} files"
+        )
+        print(f"  Cross-milestone collisions: {len(collisions)}")
+        print(f"  Orphan candidates: {len(orphans)}")
+        print(f"  Inventory written to: {resolved_output}")
+    else:
+        # No flag: print Markdown to stdout (D-02; D-09 path notice included)
+        print(markdown)
+
+    if zero_id_files:
+        sys.stderr.write(
+            f"check-inventory: WARNING — 0 IDs found in: {', '.join(zero_id_files)}\n"
+            f"  This may indicate a broken regex (Pitfall 1: v3.9-v3.12 **ID:** form).\n"
+        )
+
+
+def _run_check_coverage() -> None:
+    """Enumerate corpus and print per-file ID count; exit 1 on any zero-ID file.
+
+    This is the AUDIT-01 file-coverage round-trip: every v*-REQUIREMENTS.md
+    file must be visited and yield at least one ID. Exits 0 on full coverage.
+    """
     req_files = sorted(MILESTONES_DIR.glob("v*-REQUIREMENTS.md"))
     if not req_files:
         sys.stderr.write(
@@ -397,37 +539,30 @@ def main() -> None:
         )
         sys.exit(1)
 
-    all_entries: list[dict] = []
     zero_id_files: list[str] = []
+    total_ids = 0
     for req_file in req_files:
         milestone = _milestone_from_filename(req_file)
         file_entries = _extract_ids_from_file(req_file, milestone)
-        if not file_entries:
+        n = len(file_entries)
+        total_ids += n
+        status = "OK" if n > 0 else "ZERO-IDs"
+        print(f"  {milestone}: {n} IDs [{status}]")
+        if n == 0:
             zero_id_files.append(req_file.name)
-        all_entries.extend(file_entries)
 
-    collisions = detect_collisions(all_entries)
-    orphans = find_orphan_candidates(all_entries)
-
-    print(
-        f"check-inventory: PASS — {len(all_entries)} IDs extracted from "
-        f"{len(req_files)} files"
-    )
     if zero_id_files:
         sys.stderr.write(
-            f"check-inventory: WARNING — 0 IDs found in: {', '.join(zero_id_files)}\n"
-            f"  This may indicate a broken regex (Pitfall 1: v3.9-v3.12 **ID:** form).\n"
+            f"check-inventory --check-coverage: FAIL — 0 IDs in: "
+            f"{', '.join(zero_id_files)}\n"
+            f"  Likely broken regex (Pitfall 1: v3.9-v3.12 **ID:** form).\n"
         )
-    print(f"  Cross-milestone collisions: {len(collisions)}")
-    print(f"  Orphan candidates: {len(orphans)}")
+        sys.exit(1)
 
-    if args.output is not None:
-        markdown = render_inventory_markdown(
-            all_entries, collisions, orphans, len(req_files)
-        )
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(markdown, encoding="utf-8")
-        print(f"  Inventory written to: {args.output}")
+    print(
+        f"check-inventory --check-coverage: PASS — {total_ids} IDs across "
+        f"{len(req_files)} files (all 26 visited, no zero-ID file)"
+    )
 
 
 if __name__ == "__main__":
