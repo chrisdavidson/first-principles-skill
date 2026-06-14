@@ -934,12 +934,92 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
 # Emitter: dual output from one row list (D-12 anti-drift)
 # ---------------------------------------------------------------------------
 
+# Severity matrix per D-14: coverage-tier × capability-undermined
+# gap+Test-Network=CRITICAL, gap+Methodology=HIGH,
+# audit-only+Test-Network=HIGH, audit-only+Methodology=MEDIUM
+_SEVERITY_SORT_KEY: dict[tuple[str, str], int] = {
+    ("gap", "Test-Network"): 0,       # CRITICAL
+    ("gap", "Methodology"): 1,         # HIGH
+    ("audit-only", "Test-Network"): 2, # HIGH
+    ("audit-only", "Methodology"): 3,  # MEDIUM
+}
+_SEVERITY_LABEL: dict[tuple[str, str], str] = {
+    ("gap", "Test-Network"): "CRITICAL",
+    ("gap", "Methodology"): "HIGH",
+    ("audit-only", "Test-Network"): "HIGH",
+    ("audit-only", "Methodology"): "MEDIUM",
+}
+
+
+def _gap_severity(row: MatrixRow) -> str:
+    """Return the D-14 severity label for an audit-only or gap row.
+
+    severity = coverage_tier × capability_undermined (pure helper, ≤ 80 lines).
+    CRITICAL: gap + Test-Network (verification system itself is unverified).
+    HIGH:     gap + Methodology OR audit-only + Test-Network.
+    MEDIUM:   audit-only + Methodology (soft gap in methodology layer).
+    """
+    return _SEVERITY_LABEL.get((row.coverage_tier, row.capability), "UNKNOWN")
+
+
+def _render_gap_findings(uncovered: list[MatrixRow]) -> list[str]:
+    """Render the severity-ordered Gap Findings + Candidate Work List sections.
+
+    Implements GAP-01 (named gap findings) + GAP-02 (prioritized carry-forward).
+    Uncovered rows = audit-only + gap rows, sorted CRITICAL -> HIGH -> MEDIUM.
+    """
+    # Sort by D-14 severity (ascending sort key = descending severity)
+    sorted_rows = sorted(
+        uncovered,
+        key=lambda r: _SEVERITY_SORT_KEY.get(
+            (r.coverage_tier, r.capability), 99
+        ),
+    )
+    lines: list[str] = []
+    lines.append("## Gap Findings (GAP-01)")
+    lines.append("")
+    lines.append(
+        "> **D-15 honesty note:** A non-zero audit-only+gap count is the "
+        "expected success state — an honest 'N requirements are uncovered' "
+        "finding is the goal, not a zero-gap matrix."
+    )
+    lines.append("")
+    current_sev = ""
+    for r in sorted_rows:
+        sev = _gap_severity(r)
+        if sev != current_sev:
+            lines.append(f"### {sev}")
+            lines.append("")
+            current_sev = sev
+        lines.append(
+            f"- **{r.bare_id}** ({r.key}) [{r.coverage_tier}] "
+            f"[{r.capability}]: {r.gap_rationale}"
+        )
+    lines.append("")
+    lines.append("## Future-Milestone Candidate Work List (GAP-02)")
+    lines.append("")
+    lines.append(
+        "The following items are carried forward as candidate work for a "
+        "future milestone. No new confirming tests are written this phase."
+    )
+    lines.append("")
+    for r in sorted_rows:
+        sev = _gap_severity(r)
+        lines.append(
+            f"- [{sev}] **{r.bare_id}** ({r.key}): Add a confirming "
+            f"{r.capability} gate/test. Rationale: {r.gap_rationale[:80]}"
+            f"{'...' if len(r.gap_rationale) > 80 else ''}"
+        )
+    lines.append("")
+    return lines
+
 
 def render_matrix_markdown(rows: list[MatrixRow]) -> str:
     """Render the matrix as a Markdown string (list[str] → join pattern)."""
     reproducible = [r for r in rows if r.coverage_tier == "reproducible"]
     audit_only = [r for r in rows if r.coverage_tier == "audit-only"]
     gap = [r for r in rows if r.coverage_tier == "gap"]
+    uncovered = audit_only + gap
 
     lines: list[str] = []
     lines.append("# Traceability Matrix — Phase 82")
@@ -970,11 +1050,8 @@ def render_matrix_markdown(rows: list[MatrixRow]) -> str:
             f"{r.artifact_link} | {r.gap_rationale} |"
         )
     lines.append("")
-    if gap:
-        lines.append("## Gap Findings (GAP-01)")
-        for r in gap:
-            lines.append(f"- **{r.bare_id}** ({r.key}): {r.gap_rationale}")
-        lines.append("")
+    if uncovered:
+        lines.extend(_render_gap_findings(uncovered))
     return "\n".join(lines)
 
 

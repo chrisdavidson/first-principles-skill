@@ -125,6 +125,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | GATE-01 | `check-agent.py` | Agent structural checks |
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
+| TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; matrix.json is gitignored so only --self-test runs in CI) |
 
 ### Pre-commit gates
 
