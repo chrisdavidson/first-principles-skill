@@ -17,12 +17,21 @@ Run from repo root:
 
 from __future__ import annotations
 
+import importlib.util
 import subprocess
 import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "check-inventory.py"
+
+
+def _load_check_inventory():
+    """Load check-inventory.py as a module (hyphenated name, so importlib needed)."""
+    spec = importlib.util.spec_from_file_location("check_inventory", SCRIPT)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 # ---------------------------------------------------------------------------
@@ -211,6 +220,82 @@ def test_render_has_path_notice() -> None:
     assert "# Requirements Inventory" in result.stdout, (
         f"Expected '# Requirements Inventory' header in stdout but not found.\n"
         f"stdout (first 500 chars):\n{result.stdout[:500]}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Plan 04 (RED): parenthetical-title ID extraction and MKT-F1 collision
+# ---------------------------------------------------------------------------
+
+
+def test_paren_title_id_extracted(tmp_path: Path) -> None:
+    """_extract_ids_from_file must extract IDs from bold list-item titles in (ID) form.
+
+    Three sub-cases encoded in a single temp file:
+      (a) Single-ID parenthetical: `- **Title (MKT-F1)** — text` → MKT-F1 extracted
+      (b) Dual-ID parenthetical:   `- **Title (FU-21-1 / FU-21-2)** — text`
+              → FU-21-1 and FU-21-2 both extracted
+      (c) Pipe-table cell (precision guard): `| Title (MKT-F1) | ... |`
+              → zero entries (no list-item anchor)
+
+    Currently FAILS (RED) — _ID_RE only matches when bold-terminator follows the ID.
+    """
+    mod = _load_check_inventory()
+
+    tmp_file = tmp_path / "vTEST-REQUIREMENTS.md"
+    tmp_file.write_text(
+        "- **Community marketplace submission (MKT-F1)** — description text\n"
+        "- **Routing-regression hardening (FU-21-1 / FU-21-2)** — description text\n"
+        "| Community marketplace submission (MKT-F1) | Not selected |\n",
+        encoding="utf-8",
+    )
+
+    entries = mod._extract_ids_from_file(tmp_file, "vTEST")
+    extracted_ids = {e["id"] for e in entries}
+
+    # (a) single-ID parenthetical
+    assert "MKT-F1" in extracted_ids, (
+        f"Expected MKT-F1 from parenthetical-title form; got ids={extracted_ids!r}"
+    )
+    # (b) dual-ID parenthetical — both IDs must appear
+    assert "FU-21-1" in extracted_ids, (
+        f"Expected FU-21-1 from dual parenthetical-title form; got ids={extracted_ids!r}"
+    )
+    assert "FU-21-2" in extracted_ids, (
+        f"Expected FU-21-2 from dual parenthetical-title form; got ids={extracted_ids!r}"
+    )
+    # (c) precision guard — pipe-table cell must NOT be extracted
+    assert extracted_ids == {"MKT-F1", "FU-21-1", "FU-21-2"}, (
+        f"Unexpected IDs extracted (pipe-table cell must not match): {extracted_ids!r}"
+    )
+
+
+def test_mkt_f1_multi_milestone_detected() -> None:
+    """detect_collisions must report MKT-F1 across at least 4 milestones.
+
+    MKT-F1 appears as:
+      v2.0  line 100: `- **MKT-F1**: ...`              (standard form — already matched)
+      v3.0  line 82:  `- **Community marketplace submission (MKT-F1)** — ...` (paren)
+      v3.1  line 52:  `- **Community marketplace submission (MKT-F1):** ...`  (paren+colon)
+      v3.2  line 71:  `- **Community marketplace submission (MKT-F1):** ...`  (paren+colon)
+
+    Currently FAILS (RED) — only v2.0/MKT-F1 is captured so MKT-F1 is absent from the
+    collision map entirely (len == 1, not in detect_collisions output).
+    """
+    mod = _load_check_inventory()
+
+    all_entries, _files = mod._enumerate_corpus()
+    collisions = mod.detect_collisions(all_entries)
+
+    assert "MKT-F1" in collisions, (
+        f"Expected MKT-F1 in collision map (>=4 milestones); "
+        f"MKT-F1 milestones found: "
+        f"{[e['milestone'] for e in all_entries if e['id'] == 'MKT-F1']!r}"
+    )
+    mkt_milestones = set(collisions["MKT-F1"])
+    required = {"v2.0", "v3.0", "v3.1", "v3.2"}
+    assert required <= mkt_milestones, (
+        f"MKT-F1 must appear in milestones {required}; got {sorted(mkt_milestones)!r}"
     )
 
 
