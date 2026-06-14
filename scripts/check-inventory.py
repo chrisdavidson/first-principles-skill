@@ -19,16 +19,26 @@ Exit codes:
     1  fixture mismatch, file-coverage gap, or output path violation
     2  environment error (Python <3.12, or .planning/milestones/ not found)
 
---self-test: runs 8 in-process format/edge fixtures (no disk I/O, no
+--self-test: runs 9 in-process format/edge fixtures (no disk I/O, no
              .planning/ reads) and verifies each ID classification is correct.
              Catches the v3.9-v3.12 **ID:** pitfall and the embedded-prose
-             false-positive trap. Exits 0 only if all 8 classify correctly.
+             false-positive trap. Exits 0 only if all 9 classify correctly.
 
 --check-coverage: enumerate all 26 milestone files, print per-file ID count,
                   exit 1 if any file is unvisited or yields 0 IDs (AUDIT-01).
 
 --output PATH: write the Markdown inventory to PATH (must be under
                .planning/ to stay in the gitignored zone; T-81-01).
+
+Corpus ID format variants handled:
+  Form 1: - [ ] **ID**              (checkbox + closing **)
+  Form 2: - [ ] **ID:**             (colon-inside-bold; v3.9-v3.12)
+  Form 3: - **ID**                  (no checkbox; future/deferred items)
+  Form 4: - **ID:**                 (no checkbox + colon-inside-bold)
+  Form 5: - **FU-21-1 / FU-21-2**  (dual-ID bare bold span; secondary scan)
+  Form 6: - **Prose title (ID)**    (parenthetical-in-title; tertiary scan)
+  Form 7: - **Prose title (ID):**   (parenthetical-in-title + colon; tertiary)
+  Form 8: - **Prose title (A / B)** (dual parenthetical-in-title; tertiary)
 """
 
 from __future__ import annotations
@@ -86,6 +96,41 @@ _DUAL_ID_RE = re.compile(
         [A-Z0-9]+-[A-Z0-9]+(?:-[A-Z0-9]+)*
     )
     \s*\*\*                                # bold close
+    """,
+    re.VERBOSE | re.MULTILINE,
+)
+
+# Tertiary pattern: parenthetical-in-title form
+# Matches list items where the requirement ID appears inside parentheses at the
+# end of a bold prose title, e.g.:
+#   - **Community marketplace submission (MKT-F1)** — text
+#   - **Routing-regression hardening (FU-21-1 / FU-21-2)** — text
+#   - **Community marketplace submission (MKT-F1):** deferred from v2.0
+#
+# ReDoS-safe: title class [^*()\n]* is linear with no nested quantifier and
+# excludes the delimiters (* and parentheses) so there is no ambiguous overlap
+# that could cause catastrophic backtracking on adversarial input (T-81-04).
+#
+# Captures group(1): the content inside the parentheses, which may be a single
+# ID or a dual "A / B" pair (split on "/" in the extraction loop, as _DUAL_ID_RE
+# does). Does NOT match pipe-table cells (requires list-item anchor ^-\s).
+_PAREN_ID_RE = re.compile(
+    r"""
+    ^-\s                                   # list-item start (anchored)
+    (?:\[[x~\.\s]\]\s)?                   # optional checkbox
+    \*\*                                   # bold open
+    [^*()\n]*                              # prose title — excludes *, (, ), newline (linear)
+    \(                                     # opening paren of the ID group
+    (                                      # capture: one or two IDs
+        [A-Z0-9]+-[A-Z0-9]+(?:-[A-Z0-9]+)*  # first ID
+        (?:                                  # optional second ID
+            \s*/\s*
+            [A-Z0-9]+-[A-Z0-9]+(?:-[A-Z0-9]+)*
+        )?
+    )
+    \)                                     # closing paren
+    [^*()\n]*                              # optional trailing prose before bold-close
+    \*\*:?                                 # bold close (** or **:)
     """,
     re.VERBOSE | re.MULTILINE,
 )
@@ -159,6 +204,24 @@ def _extract_ids_from_file(path: Path, milestone: str) -> list[dict]:
                     "line_no": line_no,
                     "checkbox": checkbox,
                 })
+            seen_lines.add(line_no)
+            continue
+
+        # Tertiary scan: parenthetical-in-title form "**Prose title (ID)**"
+        pm = _PAREN_ID_RE.match(line)
+        if pm:
+            checkbox = _extract_checkbox(line)
+            raw_ids = [part.strip() for part in pm.group(1).split("/")]
+            for req_id in raw_ids:
+                if req_id:
+                    entries.append({
+                        "key": f"{milestone}/{req_id}",
+                        "id": req_id,
+                        "milestone": milestone,
+                        "source_path": str(path),
+                        "line_no": line_no,
+                        "checkbox": checkbox,
+                    })
             seen_lines.add(line_no)
 
     return entries
@@ -308,8 +371,50 @@ def _self_test_collision_orphan_fixtures(wrong_results: list[str]) -> None:
         print("check-inventory --self-test: fixture(8) orphan fixture correctly flagged ROUTE-01 only")
 
 
+def _self_test_paren_fixtures(wrong_results: list[str]) -> None:
+    """Parenthetical-in-title fixtures (9a)-(9c) — no disk I/O."""
+    # Fixture (9a): single-ID parenthetical title → one record
+    fix9a = "- **Community marketplace submission (MKT-F1)** — text\n"
+    entries9a = []
+    pm9a = _PAREN_ID_RE.match(fix9a)
+    if pm9a:
+        for part in pm9a.group(1).split("/"):
+            part = part.strip()
+            if part:
+                entries9a.append(part)
+    if entries9a != ["MKT-F1"]:
+        print(f"check-inventory --self-test: fixture(9a) FAIL — got {entries9a!r}")
+        wrong_results.append("fixture(9a) single parenthetical-title ID not extracted")
+    else:
+        print("check-inventory --self-test: fixture(9a) single parenthetical-title correctly extracted")
+
+    # Fixture (9b): dual-ID parenthetical title → two records
+    fix9b = "- **Routing-regression hardening (FU-21-1 / FU-21-2)** — text\n"
+    entries9b = []
+    pm9b = _PAREN_ID_RE.match(fix9b)
+    if pm9b:
+        for part in pm9b.group(1).split("/"):
+            part = part.strip()
+            if part:
+                entries9b.append(part)
+    if entries9b != ["FU-21-1", "FU-21-2"]:
+        print(f"check-inventory --self-test: fixture(9b) FAIL — got {entries9b!r}")
+        wrong_results.append("fixture(9b) dual parenthetical-title IDs not split into two records")
+    else:
+        print("check-inventory --self-test: fixture(9b) dual parenthetical-title correctly split")
+
+    # Fixture (9c): pipe-table cell precision guard → NOT matched
+    fix9c = "| Community marketplace submission (MKT-F1) | Not selected |\n"
+    pm9c = _PAREN_ID_RE.match(fix9c)
+    if pm9c:
+        print(f"check-inventory --self-test: fixture(9c) FAIL — pipe-table cell wrongly matched: {pm9c.group()!r}")
+        wrong_results.append("fixture(9c) pipe-table cell wrongly matched by _PAREN_ID_RE (precision violation)")
+    else:
+        print("check-inventory --self-test: fixture(9c) pipe-table cell correctly excluded")
+
+
 def _run_self_test() -> None:
-    """Run 8 inline format/edge fixtures — no disk I/O, no .planning/ reads.
+    """Run 9 inline format/edge fixtures — no disk I/O, no .planning/ reads.
 
     Fixtures per VALIDATION.md §Wave 0 Requirements:
       (1) **ID** bold-close → extracted
@@ -320,10 +425,12 @@ def _run_self_test() -> None:
       (6) [~] checkbox **ROUTE-01** → extracted with checkbox='obsoleted'
       (7) collision fixture: GEN-01 in 3 milestones → detect_collisions reports it
       (8) orphan fixture: [~] ROUTE-01 entry → find_orphan_candidates flags it
+      (9) parenthetical-in-title fixtures: (9a) single ID, (9b) dual ID, (9c) pipe-table guard
     """
     wrong_results: list[str] = []
     _self_test_regex_fixtures(wrong_results)
     _self_test_collision_orphan_fixtures(wrong_results)
+    _self_test_paren_fixtures(wrong_results)
     if wrong_results:
         sys.stderr.write(
             f"check-inventory --self-test: FAIL — {', '.join(wrong_results)}\n"
@@ -466,7 +573,7 @@ def main() -> None:
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="run 8 inline format/edge fixtures; exit 0 only if all pass",
+        help="run 9 inline format/edge fixtures; exit 0 only if all pass",
     )
     parser.add_argument(
         "--check-coverage",
