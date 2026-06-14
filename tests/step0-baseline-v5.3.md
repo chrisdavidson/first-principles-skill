@@ -158,7 +158,7 @@ This baseline records the Phase 80 live re-baseline of Step 0 technique selectio
 following the Phase 79 capture-grounded detector resolution. Phase 79 applied three
 carry-forward provenance fixes (DET-13: S-P01 pre-mortem comment, commit 000cafc;
 DET-14: S-P02 inversion comment, commit 7d4f9fc; DET-15: S-P05 trade-off comment,
-commit c5d5d3f). No new detector markers were added for S-P01/02/05 because grep proofs
+commit 7d4f9fc). No new detector markers were added for S-P01/02/05 because grep proofs
 over all Phase 79 captures confirmed no false-positive-safe phrase exists for those rows.
 The three residuals are carried forward as RR-79-01 (S-P01), RR-79-02 (S-P02),
 and RR-79-03 (S-P05) — renamed from RR-75-01/02/05 after Phase 79 evidence.
