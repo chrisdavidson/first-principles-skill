@@ -1019,10 +1019,18 @@ def _render_gap_findings(uncovered: list[MatrixRow]) -> list[str]:
 
 
 def render_matrix_markdown(rows: list[MatrixRow]) -> str:
-    """Render the matrix as a Markdown string (list[str] → join pattern)."""
+    """Render the matrix as a Markdown string (list[str] → join pattern).
+
+    Coverage Distribution folds scheduled rows into the reproducible bucket
+    (D-01/WR-01): the reproducible bullet shows len(reproducible)+len(scheduled)
+    with an `(incl. N scheduled)` annotation when N > 0. No standalone scheduled
+    bullet is emitted. uncovered = audit_only + gap only (scheduled is not
+    uncovered and must not enter _render_gap_findings).
+    """
     reproducible = [r for r in rows if r.coverage_tier == "reproducible"]
     audit_only = [r for r in rows if r.coverage_tier == "audit-only"]
     gap = [r for r in rows if r.coverage_tier == "gap"]
+    scheduled = [r for r in rows if r.coverage_tier == "scheduled"]
     uncovered = audit_only + gap
 
     lines: list[str] = []
@@ -1043,7 +1051,13 @@ def render_matrix_markdown(rows: list[MatrixRow]) -> str:
     )
     lines.append("")
     lines.append("## Coverage Distribution")
-    lines.append(f"- reproducible: {len(reproducible)}")
+    _folded_reproducible = len(reproducible) + len(scheduled)
+    if len(scheduled) > 0:
+        lines.append(
+            f"- reproducible: {_folded_reproducible} (incl. {len(scheduled)} scheduled)"
+        )
+    else:
+        lines.append(f"- reproducible: {_folded_reproducible}")
     lines.append(f"- audit-only: {len(audit_only)}")
     lines.append(f"- gap: {len(gap)}")
     lines.append(f"- total: {len(rows)}")
