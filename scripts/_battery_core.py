@@ -1048,8 +1048,154 @@ def self_test_boundary() -> int:
         )
         all_passed = False
 
+    # ---------------------------------------------------------------------------
+    # RR-79-03 named honest-state sentinel (Phase 85, Plan 02)
+    #
+    # RR-79-03 is the S-P05 trade-off single-marker barrier state: across the
+    # five S-P05 v5.2 captures, the canonical trade-off detector never reaches
+    # the two-distinct-marker threshold required to enter `fired`.  Per-run
+    # distinct trade-off marker counts: [1, 1, 0, 0, 1] — all < MIN_HEADER_HITS (2).
+    #
+    # HONESTY RECONCILIATION (authoritative per 85-RESEARCH §RG-04): The
+    # requirement text describes "trade-off analysis" as the clearing phrase, but
+    # "trade-off analysis" is NOT in _TECHNIQUE_CATEGORIES["trade-off"] (it is a
+    # DOCUMENTED REJECTED CANDIDATE — see code comment at DET-14 / RR-79-03).
+    # The phrase appears in the orchestrator framing of all 5 S-P05 runs but was
+    # deliberately excluded from the canonical marker set.  The detector actually
+    # fires only on the canonical `weighted total` marker (runs 1, 2, 5 = count 1).
+    # The load-bearing property this sentinel asserts is that distinct canonical
+    # trade-off marker count < MIN_HEADER_HITS (2) on every real excerpt.
+    #
+    # Pitfall 6 (from 85-RESEARCH §"Common Pitfalls"): do NOT add "trade-off
+    # analysis" to _TECHNIQUE_CATEGORIES to "fix" the zero counts on runs 3/4 —
+    # it is intentionally excluded; the canonical 4-pattern set is the gate.
+    #
+    # This gate asserts the DOCUMENTED state (honesty-not-score, C-02).
+    # ---------------------------------------------------------------------------
+    _rr7903_to_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt("S-P05", _run)
+        _hits = _technique_hits(_text)
+        _rr7903_to_counts.append(_hits.get("trade-off", 0))
+
+    # Drift guard (WR-02): trade-off canonical marker set must not silently grow.
+    # If a 5th trade-off pattern is added, a new match on a S-P05 excerpt could
+    # push the distinct count to >= MIN_HEADER_HITS — fail loudly so the sentinel
+    # is updated with verified new per-run counts.
+    _rr7903_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
+    if _rr7903_to_pattern_count != 4:
+        print(
+            f"  RR-79-03 FAIL: trade-off pattern count drifted "
+            f"(expected 4, got {_rr7903_to_pattern_count}) — update sentinel "
+            f"after verifying new per-run trade-off counts over S-P05-run1..5."
+        )
+        all_passed = False
+
+    # Positive counter-check (WR-01): the `weighted total` canonical pattern
+    # fires in runs 1, 2, and 5 (count=1 each), proving the detector IS scanning
+    # the text and finding partial matches — the barrier is approached but not
+    # cleared.  max(counts) >= 1 proves this is not vacuous zero from an empty
+    # or dead detector.
+    _rr7903_ok = (
+        all(c < MIN_HEADER_HITS for c in _rr7903_to_counts)    # barrier never cleared
+        and max(_rr7903_to_counts) >= 1                          # positive counter-check
+        and _rr7903_to_pattern_count == 4                        # drift guard
+    )
+    if _rr7903_ok:
+        print(
+            f"  RR-79-03 PASS: S-P05 trade-off distinct counts {_rr7903_to_counts} "
+            f"all < MIN_HEADER_HITS={MIN_HEADER_HITS} (barrier never cleared); "
+            f"max={max(_rr7903_to_counts)} >= 1 (`weighted total` fires on runs 1/2/5, "
+            f"non-vacuous); to_patterns={_rr7903_to_pattern_count}."
+        )
+    else:
+        _offending_to = [
+            f"run{i+1}={c}" for i, c in enumerate(_rr7903_to_counts)
+            if c >= MIN_HEADER_HITS
+        ]
+        _offending_to_str = ", ".join(_offending_to) if _offending_to else "none"
+        print(
+            f"  RR-79-03 FAIL: S-P05 trade-off distinct counts {_rr7903_to_counts} "
+            f"(offending runs >= MIN_HEADER_HITS={MIN_HEADER_HITS}: {_offending_to_str}); "
+            f"max={max(_rr7903_to_counts) if _rr7903_to_counts else '?'} "
+            f"(must be >= 1 — positive counter-check); "
+            f"to_patterns={_rr7903_to_pattern_count} (expected 4)."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
+    # RR-77-08 named anti-masking boundary sentinel (Phase 85, Plan 02)
+    #
+    # RR-77-08 is the _COMPOSER_FOCUS_CEILING=4 calibration lock: a legitimate
+    # single-technique (n==1) focused pre-mortem output that also contains
+    # incidental composer-structure headers (Ground Truths + Derivation Chains +
+    # Verdict) yields composer_hits=3 and must still classify `focused-pre-mortem`,
+    # NOT `full-composer`.
+    #
+    # This is a LOCK-ONLY sentinel (D-05): no production code change.  Research
+    # confirmed that the adversarial fixture below classifies correctly at CEILING=4
+    # (no current misclassification); refining `_composer_structure_hits` would only
+    # be warranted if the fixture surfaced a real regression — it does not.
+    #
+    # Adversarial fixture: a pre-mortem-dominant output (3 distinct pre-mortem
+    # markers: `already failed` + `Working backward` + `# Pre-Mortem` heading)
+    # with three incidental composer-structure headers (Ground Truths + Derivation
+    # Chains + Verdict) mixed in.  composer_hits=3 because Assumption Audit is
+    # absent.  At CEILING=4: 3 < 4 → n==1 branch fires → focused-pre-mortem
+    # (correct).  At a hypothetical CEILING=3: 3 >= 3 → n==1 suppressed →
+    # full-composer (regression!).
+    # ---------------------------------------------------------------------------
+    _rr7708_adv_text = (
+        "## Pre-Mortem: Deployment Risk Analysis\n\n"
+        "Imagine the deployment has already failed. What caused it?\n\n"
+        "Working backward from the failure, we identify these risks:\n\n"
+        "## Ground Truths\n"
+        "Fact: the system handles 2k requests per second at peak.\n\n"
+        "## Derivation Chains\n"
+        "Each risk traces back to the facts above.\n\n"
+        "## Verdict\n"
+        "Proceed with staged rollout, addressing each risk."
+    )
+    _rr7708_text = _fixture_assistant_text(_rr7708_adv_text)
+    _rr7708_parsed = [json.loads(_rr7708_text)]
+    _rr7708_extracted = _extract_assistant_text(_rr7708_parsed)
+    _rr7708_hits = _technique_hits(_rr7708_extracted)
+    _rr7708_fired = {t for t, c in _rr7708_hits.items() if c >= MIN_HEADER_HITS}
+    _rr7708_composer = _composer_structure_hits(_rr7708_extracted)
+    _rr7708_result = classify(_rr7708_fired, _rr7708_composer)
+
+    # Positive counter-check (WR-01 / C-04): prove CEILING=4 is load-bearing.
+    # composer_hits == 3 == CEILING - 1, meaning at a hypothetical CEILING=3 the
+    # n==1 early-return would be suppressed (3 >= 3) and classify() would return
+    # full-composer — a regression.  Asserting composer == CEILING - 1 makes the
+    # "correct at CEILING=4" clause non-vacuous.
+    _rr7708_assertions_ok = (
+        _COMPOSER_FOCUS_CEILING == 4                              # literal drift guard
+        and _rr7708_composer == 3                                 # exact composer hits
+        and _rr7708_fired == {"pre-mortem"}                       # exactly n==1
+        and _rr7708_result == "focused-pre-mortem"                # correct at CEILING=4
+        and _rr7708_composer == _COMPOSER_FOCUS_CEILING - 1       # load-bearing check
+    )
+    if _rr7708_assertions_ok:
+        print(
+            f"  RR-77-08 PASS: _COMPOSER_FOCUS_CEILING={_COMPOSER_FOCUS_CEILING} "
+            f"is load-bearing; adversarial fixture composer_hits={_rr7708_composer} "
+            f"== CEILING-1; fired={_rr7708_fired}; "
+            f"classify() returned '{_rr7708_result}' (correct at CEILING=4; "
+            f"would flip to 'full-composer' at hypothetical CEILING=3)."
+        )
+    else:
+        print(
+            f"  RR-77-08 FAIL: _COMPOSER_FOCUS_CEILING={_COMPOSER_FOCUS_CEILING} "
+            f"(expected 4); composer_hits={_rr7708_composer} (expected 3); "
+            f"fired={_rr7708_fired} (expected {{'pre-mortem'}}); "
+            f"result='{_rr7708_result}' (expected 'focused-pre-mortem'); "
+            f"composer == CEILING-1: {_rr7708_composer} == {_COMPOSER_FOCUS_CEILING - 1}."
+        )
+        all_passed = False
+
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 + RR-79-02 named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01/02/03 + RR-77-08 named assertions)")
         return 0
     return 1
 
