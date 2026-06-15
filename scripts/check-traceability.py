@@ -733,8 +733,8 @@ def _rows_active_tail() -> list[MatrixRow]:
         "Designated next live-routing milestone after v6.2 closes."
     )
     tail_rationale_gen02 = (
-        "Periodic live monitoring cadence; perpetually deferred; no confirming phase. "
-        "STATE.md carry_forward to v6.0+."
+        "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + "
+        "detector-surface changes. See docs/live-monitoring-runbook.md."
     )
     return [
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
@@ -743,7 +743,8 @@ def _rows_active_tail() -> list[MatrixRow]:
                   "active-tail", "scheduled", "docs/gen-01-rearch-milestone.md",
                   tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_gen02),
+                  "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
+                  tail_rationale_gen02),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-79-02", "RR-79-02", p, "Test-Network",
@@ -933,7 +934,7 @@ _SEVERITY_LABEL: dict[tuple[str, str], str] = {
 _ACTIVE_TAIL_SEVERITY: dict[str, str] = {
     "RR-80-01": "CRITICAL",   # negative-control regression in step0-baseline
     # GEN-01 removed — now "scheduled" (committed future milestone GEN-01-REARCH)
-    "GEN-02":   "HIGH",       # measurement cadence unestablished (periodic live)
+    # GEN-02 removed — now "reproducible" (runbook + wrapper script, Phase 89)
     "RR-79-01": "HIGH",       # live S-P routing unresolved
     "RR-79-02": "HIGH",       # live S-P routing unresolved
     "RR-79-03": "HIGH",       # live S-P routing unresolved
