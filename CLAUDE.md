@@ -42,7 +42,7 @@ python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  #
 
 ```sh
 # Live manual full run — 60 live claude invocations (manual only, not run in CI).
-# Run from the repo root so the relative --catalog path resolves. Baseline: tests/step0-baseline-v5.0.md
+# Run from the repo root so the relative --catalog path resolves. Baseline: tests/step0-baseline-v5.3.md
 python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
 
 # Live harness offline self-test — STEP0-06 CI gate (no live claude session)
@@ -172,7 +172,7 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 
 **`scripts/check-step0-emulator.py`** — offline Step 0 phrase-detection emulator. Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each trigger phrase into a deterministic regex classifier, and classifies an input prompt to `MODE` (`focused-<technique>` or `full-composer`). No live `claude` session required. `--self-test` runs fault-injection fixtures (D-05 corruption modes) and the full `tests/step0-fixture-catalog.md` classification suite; it is the **STEP0-08 CI gate**. There is no heavy manual run — `--self-test` is the only supported batch mode.
 
-**`scripts/check-step0-live.py`** — live Step 0 agent-body harness. Forces invocation of the agent body against the verbatim oblique prompt via the approach-② `_wrap_for_bypass` bypass channel, over the Plan-36-locked `claude -p --output-format stream-json --verbose` transport. Classifies each run's `MODE` from the captured `.jsonl` stream using `_classify_mode` (with the harness-side `none`→`full-composer` inference fix — D-01/D-02). Scores K-of-N results across the 12-row `tests/step0-fixture-catalog.md`. The full manual run uses `--repeat 5 --min-pass 3` (60 live `claude` invocations — manual only, not run in CI); the canonical baseline is `tests/step0-baseline-v5.0.md`. Its offline `--self-test` (no `claude` invocation) is the **STEP0-06 CI gate**.
+**`scripts/check-step0-live.py`** — live Step 0 agent-body harness. Forces invocation of the agent body against the verbatim oblique prompt via the approach-② `_wrap_for_bypass` bypass channel, over the Plan-36-locked `claude -p --output-format stream-json --verbose` transport. Classifies each run's `MODE` from the captured `.jsonl` stream using `_classify_mode` (with the harness-side `none`→`full-composer` inference fix — D-01/D-02). Scores K-of-N results across the 12-row `tests/step0-fixture-catalog.md`. The full manual run uses `--repeat 5 --min-pass 3` (60 live `claude` invocations — manual only, not run in CI); the canonical baseline is `tests/step0-baseline-v5.3.md`. Its offline `--self-test` (no `claude` invocation) is the **STEP0-06 CI gate**.
 
 ### Measurement comparison
 
