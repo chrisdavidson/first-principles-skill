@@ -22,8 +22,8 @@ Exit codes:
     1  fixture mismatch or consistency failure
     2  environment error (Python <3.12) or path confinement violation
 
---self-test: runs 8 in-process fixtures (no disk I/O beyond checking that
-             known-present repo files exist) and exits 0 only if all pass.
+--self-test: runs 9 in-process fixtures + named sentinels (no disk I/O beyond
+             checking known-present repo files) and exits 0 only if all pass.
              This is the CI gate entry point (TRACE-03 + STEP0-08 pattern).
 
 emit: writes MATRIX.md + matrix.json from build_matrix_rows(); both paths
@@ -1153,6 +1153,8 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         print("check-traceability --self-test: fixture(5) audit-only no-artifact PASS")
 
     # Fixture (6): gap row with rationale, no artifact link — valid state (D-06)
+    # Generic gap-row STRUCTURAL test; coverage_tier="gap" is still a valid tier.
+    # NOT tied to the live GEN-01 state (GEN-01 is now "scheduled" after Phase 88).
     row6 = MatrixRow(
         key="v5.3/GEN-01",
         bare_id="GEN-01",
@@ -1171,6 +1173,28 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         )
     else:
         print("check-traceability --self-test: fixture(6) gap row with rationale PASS")
+
+    # Fixture (9): scheduled row with artifact link — valid state (D-02/Phase 88)
+    # Proves that coverage_tier="scheduled" is accepted by check_consistency().
+    # check_consistency() only deep-resolves artifact links for "reproducible" rows,
+    # so this fixture passes regardless of whether the file exists at test time.
+    # The GEN-01-SCHEDULED sentinel (below) is what verifies the file actually exists.
+    row9 = MatrixRow(
+        key="v5.3/GEN-01",
+        bare_id="GEN-01",
+        milestone="v5.3",
+        capability="Test-Network",
+        deliverable_path="active-tail",
+        coverage_tier="scheduled",
+        artifact_link="docs/gen-01-rearch-milestone.md",
+        gap_rationale="Committed future milestone GEN-01-REARCH",
+    )
+    issues9 = check_consistency([row9])
+    if issues9:
+        print(f"check-traceability --self-test: fixture(9) FAIL — {issues9!r}")
+        wrong_results.append("fixture(9) scheduled row flagged (should be valid)")
+    else:
+        print("check-traceability --self-test: fixture(9) scheduled row with artifact PASS")
 
 
 def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
@@ -1283,7 +1307,7 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
 
 
 def _run_self_test() -> None:
-    """Run 8 inline fixtures — no .planning/ reads required.
+    """Run 9 inline fixtures — no .planning/ reads required.
 
     Fixtures per PATTERNS.md §Required fixtures:
       (1) valid reproducible row → PASS
@@ -1291,9 +1315,14 @@ def _run_self_test() -> None:
       (3) reproducible row with dangling catalog row → flagged
       (4) reproducible row with missing rubric anchor → flagged
       (5) audit-only row, no artifact link → PASS (valid state)
-      (6) gap row with rationale, no artifact link → PASS (valid state)
+      (6) gap row with rationale, no artifact link → PASS (valid state; generic structural test)
       (7) row missing capability → flagged
       (8) row missing coverage_tier → flagged
+      (9) scheduled row with artifact link → PASS (valid state; D-02/Phase 88)
+
+    Named sentinels:
+      GEN-01-SCHEDULED: live tier assertion + counter-check + drift guard + docs/ROADMAP
+                        dual-placement (D-04/Phase 88)
     """
     wrong_results: list[str] = []
     _self_test_valid_rows_fixtures(wrong_results)
@@ -1351,7 +1380,7 @@ def main() -> None:
         "--self-test",
         action="store_true",
         help=(
-            "run 8 inline fixtures (no .planning/ reads); "
+            "run 9 inline fixtures + named sentinels (no .planning/ reads required); "
             "exit 0 only if all pass (CI gate entry point)"
         ),
     )
