@@ -904,8 +904,80 @@ def self_test_boundary() -> int:
         )
         all_passed = False
 
+    # ---------------------------------------------------------------------------
+    # _load_excerpt helper — reads vendored v5.2 assistant-text excerpts.
+    # Files are the output of _extract_assistant_text() applied to the source
+    # .jsonl captures; they live under tests/step0-captures-v5.2/ (git-tracked).
+    # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
+    # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
+    # ---------------------------------------------------------------------------
+    _V52_DIR = REPO_ROOT / "tests" / "step0-captures-v5.2"
+
+    def _load_excerpt(prompt_id: str, run: int) -> str:
+        return (_V52_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
+    # ---------------------------------------------------------------------------
+    # RR-79-01 named honest-state sentinel (Phase 85, Plan 01)
+    #
+    # RR-79-01 is the S-P01 pre-mortem detector false-negative: the live agent
+    # correctly routes to focused-pre-mortem on most runs, but the marker
+    # detector fires on only 2/5 v5.2 runs (runs 3 and 5).  This offline gate
+    # does NOT assert the live pass rate; it asserts the DOCUMENTED per-run
+    # distinct pre-mortem marker count vector [0, 1, 2, 1, 3] over the real
+    # vendored v5.2 excerpts (honesty-not-score principle, D-06).
+    #
+    # run1 = 0 is the load-bearing constraint: the "Bottom line" executive
+    # framing in run1 fires zero pre-mortem technique markers, so no single
+    # marker clears the all-5-and-S-N-absent D-08 bar.  Any new marker that
+    # fires run1 would change this constraint — the sentinel catches that.
+    # ---------------------------------------------------------------------------
+    _rr7901_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt("S-P01", _run)
+        _hits = _technique_hits(_text)
+        _rr7901_counts.append(_hits.get("pre-mortem", 0))
+
+    # Drift guard (WR-02): pre-mortem marker set size must not silently grow.
+    # If a 7th pre-mortem pattern is added, the documented zero-count for run1
+    # may no longer hold — fail loudly so the sentinel is updated.
+    _rr7901_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
+    if _rr7901_pm_pattern_count != 6:
+        print(
+            f"  RR-79-01 FAIL: pre-mortem pattern count drifted "
+            f"(expected 6, got {_rr7901_pm_pattern_count}) — update sentinel "
+            f"after verifying new count vector over S-P01-run1..5."
+        )
+        all_passed = False
+
+    # Positive counter-check (WR-01): run3=2 and run5=3 both clear the
+    # MIN_HEADER_HITS barrier, proving the barrier IS exercised on real data
+    # (non-vacuous: the below-barrier clauses for run1/2/4 are meaningful
+    # because we can confirm the barrier IS reachable on runs 3 and 5).
+    _rr7901_ok = (
+        _rr7901_counts == [0, 1, 2, 1, 3]
+        and _rr7901_counts[2] >= MIN_HEADER_HITS    # run3 fires (counter-check)
+        and _rr7901_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
+        and _rr7901_pm_pattern_count == 6           # drift guard
+    )
+    if _rr7901_ok:
+        print(
+            f"  RR-79-01 PASS: S-P01 pre-mortem count vector {_rr7901_counts} "
+            f"== [0, 1, 2, 1, 3] (run1=0 'Bottom line' exec-framing zero-marker "
+            f"anchor; run3={_rr7901_counts[2]} and run5={_rr7901_counts[4]} each "
+            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; pm_patterns={_rr7901_pm_pattern_count})."
+        )
+    else:
+        print(
+            f"  RR-79-01 FAIL: S-P01 pre-mortem count vector {_rr7901_counts} "
+            f"(expected [0, 1, 2, 1, 3]); pm_patterns={_rr7901_pm_pattern_count} "
+            f"(expected 6); run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
+            f"run5={_rr7901_counts[4] if len(_rr7901_counts) > 4 else '?'} "
+            f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+        )
+        all_passed = False
+
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 named assertion)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 named assertions)")
         return 0
     return 1
 
