@@ -12,8 +12,8 @@ validates the sidecar for consistency.
 Usage:
     python3 scripts/check-traceability.py --self-test
     python3 scripts/check-traceability.py emit \\
-        --md-output .planning/phases/82-.../MATRIX.md \\
-        --json-output .planning/phases/82-.../matrix.json
+        --md-output docs/requirements-matrix.md \\
+        --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
     python3 scripts/check-traceability.py check \\
         --input .planning/phases/82-.../matrix.json
 
@@ -27,7 +27,7 @@ Exit codes:
              This is the CI gate entry point (TRACE-03 + STEP0-08 pattern).
 
 emit: writes MATRIX.md + matrix.json from build_matrix_rows(); both paths
-      must be under .planning/ (T-82-01 path-confinement guard).
+      must be under .planning/ or docs/ (T-82-01 path-confinement guard).
 
 check: reads matrix.json, validates every row has a valid capability and
        coverage_tier, and deep-resolves every reproducible artifact_link (D-08).
@@ -823,25 +823,29 @@ def _require_python_version() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Path-confinement guard (T-82-01; reused verbatim from check-inventory.py)
+# Path-confinement guard (T-82-01; loosened in Phase 83 to allow docs/)
 # ---------------------------------------------------------------------------
+
+ALLOWED_OUTPUT_ROOTS: tuple[Path, ...] = (
+    (REPO_ROOT / ".planning").resolve(),
+    (REPO_ROOT / "docs").resolve(),
+)
 
 
 def _resolve_confined_output(path: Path) -> Path:
-    """Resolve path and enforce T-82-01: must be under REPO_ROOT/.planning/.
+    """Resolve path and enforce T-82-01: must be under REPO_ROOT/.planning/ or docs/.
 
     Returns the resolved absolute path if confined.
     Writes a stderr message and calls sys.exit(2) if the path escapes.
     """
     resolved = path.resolve()
-    allowed_root = (REPO_ROOT / ".planning").resolve()
-    confined = (
-        resolved == allowed_root
-        or str(resolved).startswith(str(allowed_root) + "/")
+    confined = any(
+        resolved == root or str(resolved).startswith(str(root) + "/")
+        for root in ALLOWED_OUTPUT_ROOTS
     )
     if not confined:
         sys.stderr.write(
-            f"check-traceability: --output path must be under .planning/ "
+            f"check-traceability: --output path must be under .planning/ or docs/ "
             f"(got: {resolved})\n"
         )
         sys.exit(2)
@@ -1374,13 +1378,13 @@ def main() -> None:
         "--md-output",
         type=Path,
         required=True,
-        help="Path for MATRIX.md (must be under .planning/; T-82-01)",
+        help="Path for requirements-matrix.md (must be under .planning/ or docs/; T-82-01)",
     )
     emit_parser.add_argument(
         "--json-output",
         type=Path,
         required=True,
-        help="Path for matrix.json (must be under .planning/; T-82-01)",
+        help="Path for matrix.json (must be under .planning/ or docs/; T-82-01)",
     )
 
     check_parser = subparsers.add_parser(
