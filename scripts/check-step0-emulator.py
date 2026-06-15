@@ -458,6 +458,26 @@ def _run_self_test() -> None:
     )
     _RR80_01_EXPECTED = "full-composer"
 
+    # Drift guard (WR-02): the hardcoded literal must still match the live catalog
+    # S-N04 row, OR the row must be absent.  Deletion is the survivable case D-04
+    # targets (the literal — not the catalog — is what gets classified below, so the
+    # gate keeps running catalog-independently).  But a silent *edit* to the catalog
+    # row (e.g. the fragile em-dash mangled to `--` or a different dash codepoint)
+    # now fails loudly here instead of leaving the gate testing a stale prompt.
+    _sn04_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N04"), None
+    )
+    if _sn04_catalog_prompt is not None and _sn04_catalog_prompt != _RR80_01_PROMPT:
+        print(
+            "check-step0-emulator --self-test: RR-80-01 S-N04 FAIL "
+            "(hardcoded literal drifted from the live catalog S-N04 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            "RR-80-01 S-N04 (literal drifted from catalog row "
+            f"{_sn04_catalog_prompt!r} != {_RR80_01_PROMPT!r})"
+        )
+
     rr80_01_computed = classify(_RR80_01_PROMPT, rules)
     if rr80_01_computed == _RR80_01_EXPECTED:
         print(

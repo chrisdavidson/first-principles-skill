@@ -103,6 +103,30 @@ def _is_separator_row(cells: list[str]) -> bool:
     return all(re.fullmatch(r":?-{3,}:?", c) is not None for c in cells)
 
 
+def _lookup_catalog_prompt(catalog_path: Path, row_id: str) -> str | None:
+    """Return the prompt cell of the Markdown row whose first cell == ``row_id``.
+
+    Returns ``None`` if the catalog file is absent or the row is not present.
+    Used only by the RR-80-01 drift guard (WR-02); the hardcoded inline literal
+    — not this lookup — remains the value actually classified, so deletion of the
+    row stays survivable (D-04) while an *edit* to the row is caught loudly.
+
+    The S-N04 prompt cell contains no embedded ``|`` characters, so the simple
+    cell split is safe for this row.
+    """
+    try:
+        text = catalog_path.read_text(encoding="utf-8")
+    except OSError:
+        return None
+    for line in text.splitlines():
+        if "|" not in line:
+            continue
+        cells = _split_row(line)
+        if len(cells) >= 2 and cells[0] == row_id:
+            return cells[1]
+    return None
+
+
 # ---------------------------------------------------------------------------
 # Structured walker
 # verbatim-move-from: scripts/check-sub-skill-routing.py lines 247-255
@@ -816,6 +840,22 @@ def self_test_boundary() -> int:
         " teams next quarter. Before we lock the timeline, walk through how this could"
         " go badly — what failure modes should we prepare for?"
     )
+    # Drift guard (WR-02): the hardcoded literal must still match the live catalog
+    # S-N04 row, OR the row must be absent.  Deletion is the survivable case D-04
+    # targets (the literal — not the catalog — is what drives the assertion, so the
+    # gate keeps running catalog-independently).  But a silent *edit* to the catalog
+    # row (e.g. a mangled em-dash) now fails loudly here instead of leaving the gate
+    # testing a stale prompt.
+    _sn04_catalog_prompt = _lookup_catalog_prompt(
+        REPO_ROOT / "tests" / "step0-fixture-catalog.md", "S-N04"
+    )
+    if _sn04_catalog_prompt is not None and _sn04_catalog_prompt != _SN04_PROMPT:
+        print(
+            "  RR-80-01 FAIL: hardcoded S-N04 literal drifted from the live catalog "
+            "row (tests/step0-fixture-catalog.md) — re-sync the literal or update the "
+            f"gate.\n    literal : {_SN04_PROMPT!r}\n    catalog : {_sn04_catalog_prompt!r}"
+        )
+        all_passed = False
     # Minimal text: exactly ONE distinct pre-mortem pattern fires (the section header),
     # no second distinct marker (no "working backward", no "already failed", no
     # "failure causes").  Mirror the _FIXTURE_PREMORTEM_SINGLE_MARKER pattern.
