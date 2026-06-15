@@ -1,0 +1,96 @@
+# Requirements and Traceability
+
+This file is the active canonical source of truth for requirements and traceability in this project; it supersedes the 26 scattered `milestones/vX.Y-REQUIREMENTS.md` files for all forward use (CANON-01).
+
+## Status
+
+**Coverage headline:** 114 reproducible / 85 audit-only / 7 gap / 206 total
+
+The full 206-row capability-to-requirement-to-test mapping is in the generated matrix:
+[`requirements-matrix.md`](requirements-matrix.md)
+
+> **Honesty note (D-07):** A non-zero audit-only + gap count is the expected honest success state.
+> 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
+> 7 requirements have no confirming evidence and remain open gaps.
+
+## Active Surface
+
+Exactly 7 live items. Nothing shipped or superseded belongs here.
+
+1. **RR-79-01** [HIGH] — S-P01 pre-mortem carry-forward (Phase 79): no false-positive-safe marker cleared the D-08 evidence bar; "Bottom line" framing has zero technique markers.
+
+2. **RR-79-02** [HIGH] — S-P02 inversion carry-forward (Phase 79): zero canonical inversion vocabulary across all five v5.2 captures.
+
+3. **RR-79-03** [HIGH] — S-P05 trade-off carry-forward (Phase 79): only "trade-off analysis" cleared D-08 but D-04 requires two distinct markers.
+
+4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved.
+
+5. **GEN-01** [CRITICAL/deferred] — Full Step 0 classifier rearchitecture; perpetually deferred v5.1 → v5.2 → v5.3 → v6.0+; no confirming phase.
+
+6. **GEN-02** [HIGH/deferred] — Periodic live monitoring cadence; perpetually deferred; STATE.md carry_forward to v6.0+.
+
+7. **RR-80-01** [CRITICAL] — Negative-control over-routing dip in `tests/step0-baseline-v5.3.md` (2/5 pass rate).
+   **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 this phase (Phase 83, D-05). See `tests/step0-baseline-v5.3.md` for the v5.3 re-baseline capture.
+
+## Gap Findings
+
+Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](requirements-matrix.md) (sections "Gap Findings (GAP-01)" and "Future-Milestone Candidate Work List (GAP-02)").
+
+### GAP-01: Current gap picture
+
+**7 gap rows** (no confirming evidence; open):
+
+- **RR-80-01 / S-N04** [CRITICAL] — Negative-control over-routing dip; no owning phase, no milestone checkbox.
+- **GEN-01** [CRITICAL] — Full Step 0 classifier rearchitecture; perpetually deferred.
+- **GEN-02** [HIGH] — Periodic live monitoring; perpetually deferred.
+- **RR-79-01** [HIGH] — S-P01 honest carry-forward; no safe marker.
+- **RR-79-02** [HIGH] — S-P02 honest carry-forward; zero inversion vocabulary.
+- **RR-79-03** [HIGH] — S-P05 honest carry-forward; single-marker barrier.
+- **RR-77-08** [MEDIUM] — CEILING=4 warning; incidental `composer_hits` match.
+
+**85 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
+
+### GAP-02: Candidate work list
+
+Future-milestone candidates identified in Phase 82: add a confirming Test-Network gate or Methodology gate for each audit-only and gap row. Priority order: CRITICAL gaps first, then HIGH audit-only items, then MEDIUM. No confirming tests were written in Phase 82 — this is forward work per the Phase 83+ roadmap.
+
+## Historical Ledger
+
+One row per milestone. Each links into [`history/`](history/) for the frozen snapshots.
+Milestones with no audit file did not produce one at the time of shipping.
+
+| Milestone | Status | Requirements | Roadmap | Audit |
+|-----------|--------|-------------|---------|-------|
+| v1.0 | shipped 2026-05-18 | [v1.0-REQUIREMENTS.md](history/v1.0-REQUIREMENTS.md) | [v1.0-ROADMAP.md](history/v1.0-ROADMAP.md) | [v1.0-MILESTONE-AUDIT.md](history/v1.0-MILESTONE-AUDIT.md) |
+| v1.1 | shipped 2026-05-19 | [v1.1-REQUIREMENTS.md](history/v1.1-REQUIREMENTS.md) | [v1.1-ROADMAP.md](history/v1.1-ROADMAP.md) | — |
+| v1.2 | shipped 2026-05-20 | [v1.2-REQUIREMENTS.md](history/v1.2-REQUIREMENTS.md) | [v1.2-ROADMAP.md](history/v1.2-ROADMAP.md) | — |
+| v2.0 | shipped 2026-05-22 | [v2.0-REQUIREMENTS.md](history/v2.0-REQUIREMENTS.md) | [v2.0-ROADMAP.md](history/v2.0-ROADMAP.md) | [v2.0-MILESTONE-AUDIT.md](history/v2.0-MILESTONE-AUDIT.md) |
+| v3.0 | shipped 2026-05-23 | [v3.0-REQUIREMENTS.md](history/v3.0-REQUIREMENTS.md) | [v3.0-ROADMAP.md](history/v3.0-ROADMAP.md) | [v3.0-MILESTONE-AUDIT.md](history/v3.0-MILESTONE-AUDIT.md) |
+| v3.1 | shipped 2026-05-23 | [v3.1-REQUIREMENTS.md](history/v3.1-REQUIREMENTS.md) | [v3.1-ROADMAP.md](history/v3.1-ROADMAP.md) | — |
+| v3.2 | shipped 2026-05-24 | [v3.2-REQUIREMENTS.md](history/v3.2-REQUIREMENTS.md) | [v3.2-ROADMAP.md](history/v3.2-ROADMAP.md) | [v3.2-MILESTONE-AUDIT.md](history/v3.2-MILESTONE-AUDIT.md) |
+| v3.3 | shipped 2026-05-25 | [v3.3-REQUIREMENTS.md](history/v3.3-REQUIREMENTS.md) | [v3.3-ROADMAP.md](history/v3.3-ROADMAP.md) | [v3.3-MILESTONE-AUDIT.md](history/v3.3-MILESTONE-AUDIT.md) |
+| v3.4 | shipped 2026-05-25 | [v3.4-REQUIREMENTS.md](history/v3.4-REQUIREMENTS.md) | [v3.4-ROADMAP.md](history/v3.4-ROADMAP.md) | — |
+| v3.5 | shipped 2026-05-25 | [v3.5-REQUIREMENTS.md](history/v3.5-REQUIREMENTS.md) | [v3.5-ROADMAP.md](history/v3.5-ROADMAP.md) | — |
+| v3.6 | shipped 2026-05-26 | [v3.6-REQUIREMENTS.md](history/v3.6-REQUIREMENTS.md) | [v3.6-ROADMAP.md](history/v3.6-ROADMAP.md) | — |
+| v3.7 | shipped 2026-05-27 | [v3.7-REQUIREMENTS.md](history/v3.7-REQUIREMENTS.md) | [v3.7-ROADMAP.md](history/v3.7-ROADMAP.md) | — |
+| v3.8 | shipped 2026-05-28 | [v3.8-REQUIREMENTS.md](history/v3.8-REQUIREMENTS.md) | [v3.8-ROADMAP.md](history/v3.8-ROADMAP.md) | [v3.8-MILESTONE-AUDIT.md](history/v3.8-MILESTONE-AUDIT.md) |
+| v3.9 | shipped 2026-05-29 | [v3.9-REQUIREMENTS.md](history/v3.9-REQUIREMENTS.md) | [v3.9-ROADMAP.md](history/v3.9-ROADMAP.md) | — |
+| v3.10 | shipped 2026-05-29 | [v3.10-REQUIREMENTS.md](history/v3.10-REQUIREMENTS.md) | [v3.10-ROADMAP.md](history/v3.10-ROADMAP.md) | — |
+| v3.11 | shipped 2026-05-30 | [v3.11-REQUIREMENTS.md](history/v3.11-REQUIREMENTS.md) | [v3.11-ROADMAP.md](history/v3.11-ROADMAP.md) | — |
+| v3.12 | shipped 2026-05-30 | [v3.12-REQUIREMENTS.md](history/v3.12-REQUIREMENTS.md) | [v3.12-ROADMAP.md](history/v3.12-ROADMAP.md) | [v3.12-MILESTONE-AUDIT.md](history/v3.12-MILESTONE-AUDIT.md) |
+| v3.13 | shipped 2026-06-03 | [v3.13-REQUIREMENTS.md](history/v3.13-REQUIREMENTS.md) | [v3.13-ROADMAP.md](history/v3.13-ROADMAP.md) | [v3.13-MILESTONE-AUDIT.md](history/v3.13-MILESTONE-AUDIT.md) |
+| v4.0 | shipped 2026-06-04 | [v4.0-REQUIREMENTS.md](history/v4.0-REQUIREMENTS.md) | [v4.0-ROADMAP.md](history/v4.0-ROADMAP.md) | [v4.0-MILESTONE-AUDIT.md](history/v4.0-MILESTONE-AUDIT.md) |
+| v4.1 | shipped 2026-06-06 | [v4.1-REQUIREMENTS.md](history/v4.1-REQUIREMENTS.md) | [v4.1-ROADMAP.md](history/v4.1-ROADMAP.md) | [v4.1-MILESTONE-AUDIT.md](history/v4.1-MILESTONE-AUDIT.md) |
+| v4.2 | shipped 2026-06-11 | [v4.2-REQUIREMENTS.md](history/v4.2-REQUIREMENTS.md) | [v4.2-ROADMAP.md](history/v4.2-ROADMAP.md) | [v4.2-MILESTONE-AUDIT.md](history/v4.2-MILESTONE-AUDIT.md) |
+| v4.3 | shipped 2026-06-11 | [v4.3-REQUIREMENTS.md](history/v4.3-REQUIREMENTS.md) | [v4.3-ROADMAP.md](history/v4.3-ROADMAP.md) | [v4.3-MILESTONE-AUDIT.md](history/v4.3-MILESTONE-AUDIT.md) |
+| v5.0 | shipped 2026-06-12 | [v5.0-REQUIREMENTS.md](history/v5.0-REQUIREMENTS.md) | [v5.0-ROADMAP.md](history/v5.0-ROADMAP.md) | — |
+| v5.1 | shipped 2026-06-13 | [v5.1-REQUIREMENTS.md](history/v5.1-REQUIREMENTS.md) | [v5.1-ROADMAP.md](history/v5.1-ROADMAP.md) | [v5.1-MILESTONE-AUDIT.md](history/v5.1-MILESTONE-AUDIT.md) |
+| v5.2 | shipped 2026-06-13 | [v5.2-REQUIREMENTS.md](history/v5.2-REQUIREMENTS.md) | [v5.2-ROADMAP.md](history/v5.2-ROADMAP.md) | [v5.2-MILESTONE-AUDIT.md](history/v5.2-MILESTONE-AUDIT.md) |
+| v5.3 | shipped 2026-06-14 | [v5.3-REQUIREMENTS.md](history/v5.3-REQUIREMENTS.md) | [v5.3-ROADMAP.md](history/v5.3-ROADMAP.md) | [v5.3-MILESTONE-AUDIT.md](history/v5.3-MILESTONE-AUDIT.md) |
+
+## Cross-links
+
+- **Generated matrix (206 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Frozen milestone history:** [`history/`](history/)
+- **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
+  *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*
