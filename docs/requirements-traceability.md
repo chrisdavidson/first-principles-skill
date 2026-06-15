@@ -4,33 +4,35 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 114 reproducible / 85 audit-only / 7 gap / 206 total
+**Coverage headline:** 119 reproducible / 85 audit-only / 2 gap / 206 total
 
 The full 206-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only + gap count is the expected honest success state.
 > 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
-> 7 requirements have no confirming evidence and remain open gaps.
+> 2 requirements have no confirming evidence and remain open gaps (GEN-01, GEN-02);
+> 5 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08).
 
 ## Active Surface
 
 Exactly 7 live items. Nothing shipped or superseded belongs here.
 
-1. **RR-79-01** [HIGH] — S-P01 pre-mortem carry-forward (Phase 79): no false-positive-safe marker cleared the D-08 evidence bar; "Bottom line" framing has zero technique markers.
+1. **RR-79-01** [HIGH] — S-P01 pre-mortem carry-forward (Phase 79): no false-positive-safe marker cleared the D-08 evidence bar; "Bottom line" framing has zero technique markers. Confirmed by BATT-06 (RR-79-01 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
-2. **RR-79-02** [HIGH] — S-P02 inversion carry-forward (Phase 79): zero canonical inversion vocabulary across all five v5.2 captures.
+2. **RR-79-02** [HIGH] — S-P02 inversion carry-forward (Phase 79): zero canonical inversion vocabulary across all five v5.2 captures. Confirmed by BATT-06 (RR-79-02 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
-3. **RR-79-03** [HIGH] — S-P05 trade-off carry-forward (Phase 79): only "trade-off analysis" cleared D-08 but D-04 requires two distinct markers.
+3. **RR-79-03** [HIGH] — S-P05 trade-off carry-forward (Phase 79): only "trade-off analysis" cleared D-08 but D-04 requires two distinct markers. Confirmed by BATT-06 (RR-79-03 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
-4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved.
+4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved. Locked by BATT-06 anti-masking sentinel (CEILING=4) in `_battery_core.self_test_boundary()`.
 
 5. **GEN-01** [CRITICAL/deferred] — Full Step 0 classifier rearchitecture; perpetually deferred v5.1 → v5.2 → v5.3 → v6.0+; no confirming phase.
 
 6. **GEN-02** [HIGH/deferred] — Periodic live monitoring cadence; perpetually deferred; STATE.md carry_forward to v6.0+.
 
 7. **RR-80-01** [CRITICAL] — Negative-control over-routing dip in `tests/step0-baseline-v5.3.md` (2/5 pass rate).
-   **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 this phase (Phase 83, D-05). See `tests/step0-baseline-v5.3.md` for the v5.3 re-baseline capture.
+   **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 in Phase 83 (D-05). See `tests/step0-baseline-v5.3.md` for the v5.3 re-baseline capture.
+   Confirmed by STEP0-08 (S-N04 emulator assertion in `check-step0-emulator.py --self-test`) and BATT-06 (marker-counting assertion in `_battery_core.self_test_boundary()`); honest live carry-forward at 2/5 (not resolved).
 
 ## Gap Findings
 
@@ -38,21 +40,24 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 ### GAP-01: Current gap picture
 
-**7 gap rows** (no confirming evidence; open):
+**2 gap rows** (no confirming evidence; open):
 
-- **RR-80-01 / S-N04** [CRITICAL] — Negative-control over-routing dip; no owning phase, no milestone checkbox.
 - **GEN-01** [CRITICAL] — Full Step 0 classifier rearchitecture; perpetually deferred.
 - **GEN-02** [HIGH] — Periodic live monitoring; perpetually deferred.
-- **RR-79-01** [HIGH] — S-P01 honest carry-forward; no safe marker.
-- **RR-79-02** [HIGH] — S-P02 honest carry-forward; zero inversion vocabulary.
-- **RR-79-03** [HIGH] — S-P05 honest carry-forward; single-marker barrier.
-- **RR-77-08** [MEDIUM] — CEILING=4 warning; incidental `composer_hits` match.
+
+**5 reproducible rows with honest carry-forward** (confirming offline gate exists; live behavior not yet resolved):
+
+- **RR-80-01** [CRITICAL] — Negative-control over-routing dip; confirmed by STEP0-08 + BATT-06; honest live carry-forward at 2/5 (not resolved). Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-79-01** [HIGH] — S-P01 honest carry-forward; confirmed by BATT-06; honest live carry-forward (not resolved). Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-79-02** [HIGH] — S-P02 honest carry-forward; confirmed by BATT-06; honest live carry-forward (not resolved). Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-79-03** [HIGH] — S-P05 honest carry-forward; confirmed by BATT-06; honest live carry-forward (not resolved). Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-77-08** [MEDIUM] — CEILING=4 warning; locked by BATT-06 anti-masking sentinel (CEILING=4). Artifact: `scripts/_battery_core.py#self_test_boundary`.
 
 **85 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
 
 ### GAP-02: Candidate work list
 
-Future-milestone candidates identified in Phase 82: add a confirming Test-Network gate or Methodology gate for each audit-only and gap row. Priority order: CRITICAL gaps first, then HIGH audit-only items, then MEDIUM. No confirming tests were written in Phase 82 — this is forward work per the Phase 83+ roadmap.
+Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only and gap row. Priority: CRITICAL gaps first (GEN-01), then HIGH deferred items (GEN-02), then MEDIUM audit-only items. The 5 rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08) now have confirming offline gates and are no longer open candidates; closing their live routing dips is a future live-routing milestone, not a documentation task.
 
 ## Historical Ledger
 
