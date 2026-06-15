@@ -726,12 +726,6 @@ def _rows_active_tail() -> list[MatrixRow]:
     that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint, 82-02).
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
-    tail_rationale_sn04 = (
-        "Negative-control over-routing dip recorded in tests/step0-baseline-v5.3.md "
-        "(S-N04 2/5 pass rate); assigned RR-80-01 (Phase 83, D-05); Lineage: S-N04 negative-control dip, v5.3 re-baseline. "
-        "No owning phase; not in any milestone REQUIREMENTS checkbox. Synthetic residual/ qualifier confirmed "
-        "at Task 3 checkpoint (82-02, 2026-06-14)."
-    )
     tail_rationale_gen01 = (
         "Full Step 0 classifier rearchitecture; perpetually deferred "
         "(v5.1->v5.2->v5.3->v6.0+); no confirming phase. "
@@ -741,39 +735,21 @@ def _rows_active_tail() -> list[MatrixRow]:
         "Periodic live monitoring cadence; perpetually deferred; no confirming phase. "
         "STATE.md carry_forward to v6.0+."
     )
-    tail_rationale_rr7901 = (
-        "S-P01 honest carry-forward (Phase 79): no false-positive-safe marker "
-        "cleared D-08 evidence bar across 5 v5.2 captures; "
-        "'Bottom line' framing has zero technique markers. RETROSPECTIVE.md Phase 79."
-    )
-    tail_rationale_rr7902 = (
-        "S-P02 honest carry-forward (Phase 79): zero canonical inversion vocabulary "
-        "in all five v5.2 captures. RETROSPECTIVE.md Phase 79."
-    )
-    tail_rationale_rr7903 = (
-        "S-P05 honest carry-forward (Phase 79): only 'trade-off analysis' cleared "
-        "D-08 but D-04 requires two distinct markers. RETROSPECTIVE.md Phase 79."
-    )
-    tail_rationale_rr7708 = (
-        "Warning residual: CEILING=4 vs expected=3 deviation caused by incidental "
-        "\\bVerdict\\b IGNORECASE match in composer_hits. Not a blocking defect but "
-        "not resolved. RETROSPECTIVE.md Phase 77 (RR-77-08)."
-    )
     return [
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_sn04),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
                   "active-tail", "gap", "", tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "gap", "", tail_rationale_gen02),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_rr7901),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-79-02", "RR-79-02", p, "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_rr7902),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-79-03", "RR-79-03", p, "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_rr7903),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-77-08", "RR-77-08", p, "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_rr7708),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
     ]
 
 
