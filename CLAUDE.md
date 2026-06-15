@@ -123,7 +123,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-01 | `check-agent.py` | Agent structural checks |
-| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session) |
+| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
 | TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; matrix.json is gitignored so only --self-test runs in CI) |
 
@@ -141,7 +141,7 @@ Two verifiers cover different layers of routing correctness. All issue prompts f
 
 **`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE.
 
-**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate).
+**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate); the BATT-06 `--self-test` (`_battery_core.self_test_boundary()`) owns the RR-80-01 marker-counting assertion (one bare pre-mortem hit < MIN_HEADER_HITS → classify() returns "none", not "focused-pre-mortem").
 
 `check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims** that translate the old per-script flags onto the merged battery and forward to `check-routing-battery.py`. They exist for backward compatibility only; new callers should invoke `check-routing-battery.py` directly.
 
@@ -182,6 +182,15 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 | `check-routing-battery.py` | Merged dual-signal: boundary + focused-output (FU-21 gate, FOCUS-01) | `--repeat 5 --min-pass 3` / offline `--self-test` | BATT-06 |
 | `check-step0-emulator.py` | Offline Step 0 phrase-detection classifier (deterministic, no live session) | `--self-test` | STEP0-08 |
 | `check-step0-live.py` | Live Step 0 MODE classification via approach-② bypass channel | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | STEP0-06 |
+
+### RR-80-01 dual-layer ownership (S-N04 confirming gate)
+
+**RR-80-01** (the S-N04 negative-control over-routing residual) is owned by a dual-layer offline confirming gate:
+
+- **STEP0-08** (`check-step0-emulator.py --self-test`): a hardcoded named S-N04 assertion proving the phrase-detection emulator fires no trigger phrase on the S-N04 prompt and classifies it `full-composer` (catalog-independent inline literal).
+- **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`): a hardcoded named marker-counting assertion proving one bare pre-mortem header hit (count=1) is below `MIN_HEADER_HITS` (2), so `pre-mortem` does NOT enter the `fired` set and `classify()` returns `"none"` (not `"focused-pre-mortem"`).
+
+RR-80-01 remains a **tracked, honest live carry-forward at 2/5** (per `tests/step0-baseline-v5.3.md`). The offline gate asserts the **intended classification, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
 
 ### Key invariants
 
