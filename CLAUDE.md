@@ -149,6 +149,23 @@ Catalog fixtures: `tests/routing-catalog.md` (main agent routing battery), `test
 
 See also: [Step 0 measurement harness](#step-0-measurement-harness) for the two-layer Step 0 classifier measurement tools that sit below the routing layer.
 
+## Requirements surface
+
+The canonical requirements and traceability surface lives in the git-tracked tree:
+
+- **`docs/requirements-traceability.md`** — authoritative source of truth: active
+  residuals, coverage headline (114 reproducible / 85 audit-only / 7 gap / 206 total),
+  compact historical ledger, and gap findings. Start here.
+- **`docs/requirements-matrix.md`** — generated 206-row capability→requirement→test
+  matrix. Regenerate with:
+  ```sh
+  python3 scripts/check-traceability.py emit \
+      --md-output docs/requirements-matrix.md \
+      --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
+  ```
+- **`docs/history/`** — frozen per-milestone REQUIREMENTS.md / ROADMAP.md /
+  MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3).
+
 ## Step 0 measurement harness
 
 Two tools measure the agent body's Step 0 technique-selection logic, at different layers. They complement the routing battery (see [Routing battery](#routing-battery)) and each other.
