@@ -80,7 +80,7 @@ Their true observed K/N is recorded below; a forced PASS is never written.
 - `S-P01`: 1/5 FAIL — expected `focused-pre-mortem`; observed modes: ['full-composer', 'full-composer', 'focused-pre-mortem', 'full-composer', 'full-composer']. Residual-risk tracked as RR-79-01.
 - `S-P02`: 0/5 FAIL — expected `focused-inversion`; observed modes: ['full-composer', 'full-composer', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-79-02.
 - `S-P05`: 0/5 FAIL — expected `focused-trade-off`; observed modes: ['full-composer', 'full-composer', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-79-03.
-- `S-N04`: 2/5 FAIL — expected `full-composer`; observed modes: ['focused-pre-mortem', 'full-composer', 'full-composer', 'focused-pre-mortem', 'focused-pre-mortem']. Residual-risk tracked as RR-75-NN (unassigned — needs a tracked RR ID).
+- `S-N04`: 2/5 FAIL — expected `full-composer`; observed modes: ['focused-pre-mortem', 'full-composer', 'full-composer', 'focused-pre-mortem', 'focused-pre-mortem']. Residual-risk tracked as RR-80-01.
 
 ---
 

@@ -622,6 +622,7 @@ def _write_baseline(
     RR_ID_MAP = {
         "S-P01": "RR-79-01", "S-P02": "RR-79-02", "S-P03": "RR-75-03",
         "S-P04": "RR-75-04", "S-P05": "RR-79-03", "S-P06": "RR-75-06",
+        "S-N04": "RR-80-01",
     }
     if residual_risk_rows:
         lines += [
