@@ -50,7 +50,7 @@ KNOWN_CLI_GATES: set[str] = {
 
 # Valid values for capability and coverage_tier fields
 VALID_CAPABILITIES: set[str] = {"Methodology", "Test-Network"}
-VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap"}
+VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 
 
 # ---------------------------------------------------------------------------
@@ -715,11 +715,12 @@ def _rows_testnet_v52_v53() -> list[MatrixRow]:
 
 
 def _rows_active_tail() -> list[MatrixRow]:
-    """D-05 path (b): 7 active-tail gap rows — included unconditionally.
+    """D-05 path (b): 6 active-tail gap rows + 1 scheduled row — included unconditionally.
 
-    These 7 residuals are exempt from the deliverable-existence gate. They
-    use deliverable_path='active-tail' and coverage_tier='gap'. They are the
-    primary GAP-01 findings.
+    These residuals are exempt from the deliverable-existence gate. The 6 gap
+    rows use deliverable_path='active-tail' and coverage_tier='gap'. GEN-01 has
+    been converted to coverage_tier='scheduled' (committed future milestone
+    GEN-01-REARCH, Phase 88 path c) and no longer belongs to the open-gap set.
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
     prefix. RR-80-01, RR-79-01/02/03, and RR-77-08 are non-milestone residuals
@@ -727,9 +728,9 @@ def _rows_active_tail() -> list[MatrixRow]:
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_gen01 = (
-        "Full Step 0 classifier rearchitecture; perpetually deferred "
-        "(v5.1->v5.2->v5.3->v6.0+); no confirming phase. "
-        "STATE.md carry_forward to v6.0+."
+        "Full Step 0 classifier rearchitecture; converted to committed future milestone "
+        "GEN-01-REARCH (Phase 88, path c). Stub: docs/gen-01-rearch-milestone.md. "
+        "Designated next live-routing milestone after v6.2 closes."
     )
     tail_rationale_gen02 = (
         "Periodic live monitoring cadence; perpetually deferred; no confirming phase. "
@@ -739,7 +740,8 @@ def _rows_active_tail() -> list[MatrixRow]:
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
-                  "active-tail", "gap", "", tail_rationale_gen01),
+                  "active-tail", "scheduled", "docs/gen-01-rearch-milestone.md",
+                  tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "gap", "", tail_rationale_gen02),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
@@ -930,7 +932,7 @@ _SEVERITY_LABEL: dict[tuple[str, str], str] = {
 # all other rows continue to use the _SEVERITY_LABEL 2×2 map.
 _ACTIVE_TAIL_SEVERITY: dict[str, str] = {
     "RR-80-01": "CRITICAL",   # negative-control regression in step0-baseline
-    "GEN-01":   "CRITICAL",   # Test-Network integrity (classifier rearchitecture)
+    # GEN-01 removed — now "scheduled" (committed future milestone GEN-01-REARCH)
     "GEN-02":   "HIGH",       # measurement cadence unestablished (periodic live)
     "RR-79-01": "HIGH",       # live S-P routing unresolved
     "RR-79-02": "HIGH",       # live S-P routing unresolved
