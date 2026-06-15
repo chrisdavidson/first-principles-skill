@@ -438,6 +438,43 @@ def _run_self_test() -> None:
             )
 
     # -----------------------------------------------------------------------
+    # Category 3: RR-80-01 named emulator assertion (D-02 / D-04)
+    #
+    # RR-80-01 is the S-N04 negative-control over-routing residual recorded at
+    # 2/5 FAIL in tests/step0-baseline-v5.3.md (live agent over-routes to
+    # focused-pre-mortem on oblique pre-mortem-adjacent prompts).  This
+    # assertion confirms the INTENDED emulator classification (full-composer —
+    # no trigger phrase fires), not the live pass rate (honesty-not-score
+    # principle). The assertion hardcodes the literal RR-80-01 ID and the
+    # verbatim S-N04 prompt so RR-80-01 coverage is catalog-independent (D-04):
+    # deleting the S-N04 row from tests/step0-fixture-catalog.md cannot
+    # silently drop this gate.
+    # -----------------------------------------------------------------------
+
+    _RR80_01_PROMPT = (
+        "We have a written plan to roll out the new authentication system across "
+        "all teams next quarter. Before we lock the timeline, "
+        "walk through how this could go badly — what failure modes should we prepare for?"
+    )
+    _RR80_01_EXPECTED = "full-composer"
+
+    rr80_01_computed = classify(_RR80_01_PROMPT, rules)
+    if rr80_01_computed == _RR80_01_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: RR-80-01 S-N04 PASS "
+            f"(oblique pre-mortem-adjacent prompt → {rr80_01_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: RR-80-01 S-N04 FAIL "
+            f"(expected {_RR80_01_EXPECTED!r}, got {rr80_01_computed!r}; "
+            f"a trigger phrase fired on the S-N04 oblique prompt)"
+        )
+        wrong.append(
+            f"RR-80-01 S-N04 (expected {_RR80_01_EXPECTED!r}, got {rr80_01_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
