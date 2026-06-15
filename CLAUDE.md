@@ -141,7 +141,7 @@ Two verifiers cover different layers of routing correctness. All issue prompts f
 
 **`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE.
 
-**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate); the BATT-06 `--self-test` (`_battery_core.self_test_boundary()`) owns the RR-80-01 marker-counting assertion (one bare pre-mortem hit < MIN_HEADER_HITS → classify() returns "none", not "focused-pre-mortem").
+**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate); the BATT-06 `--self-test` (`_battery_core.self_test_boundary()`) owns the RR-80-01 marker-counting assertion (one bare pre-mortem hit < MIN_HEADER_HITS → classify() returns "none", not "focused-pre-mortem") and the RR-79-01 / RR-79-02 honest-state sentinels (S-P01 pre-mortem count vector [0,1,2,1,3] and S-P02 inversion zero-vocabulary over real vendored v5.2 excerpts under `tests/step0-captures-v5.2/`).
 
 `check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims** that translate the old per-script flags onto the merged battery and forward to `check-routing-battery.py`. They exist for backward compatibility only; new callers should invoke `check-routing-battery.py` directly.
 
@@ -191,6 +191,15 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 - **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`): a hardcoded named marker-counting assertion proving one bare pre-mortem header hit (count=1) is below `MIN_HEADER_HITS` (2), so `pre-mortem` does NOT enter the `fired` set and `classify()` returns `"none"` (not `"focused-pre-mortem"`).
 
 RR-80-01 remains a **tracked, honest live carry-forward at 2/5** (per `tests/step0-baseline-v5.3.md`). The offline gate asserts the **intended classification, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
+
+### RR-79-01 / RR-79-02 honest-state sentinels (Phase 85, Plan 01)
+
+**RR-79-01** and **RR-79-02** are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`):
+
+- **RR-79-01**: asserts the S-P01 per-run pre-mortem distinct-marker count vector == [0, 1, 2, 1, 3] over the 5 real vendored v5.2 excerpts in `tests/step0-captures-v5.2/S-P01-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["pre-mortem"]) == 6`. Positive counter-check: run3=2 and run5=3 each >= `MIN_HEADER_HITS=2`.
+- **RR-79-02**: asserts 0 inversion markers across all 5 S-P02 v5.2 excerpts in `tests/step0-captures-v5.2/S-P02-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["inversion"]) == 6`. Positive counter-check: synthetic 2-marker inversion text yields `inversion >= MIN_HEADER_HITS`.
+
+Both sentinels assert the **documented honest state, not the live pass rate** (honesty-not-score, C-02). Excerpts are frozen read-only v5.2 evidence (D-04); they are git-tracked so any tampering is visible in diff/PR review.
 
 ### Key invariants
 
