@@ -1196,6 +1196,79 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     else:
         print("check-traceability --self-test: fixture(9) scheduled row with artifact PASS")
 
+    # ---------------------------------------------------------------------------
+    # GEN-01-SCHEDULED named sentinel (D-04 / Phase 88)
+    # Asserts (a) GEN-01's tier is "scheduled" (not "gap") in _rows_active_tail()
+    # and (b) docs↔ROADMAP dual-placement consistency.
+    # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
+    # positive counter-check + drift guard. No live claude session required.
+    # Honesty-not-score (D-01): asserts the documented committed state, not a
+    # live pass-rate. Any future revert of the tier, deletion of the GEN-01 row,
+    # removal of the docs stub, or dropping the ROADMAP mirror fails CI.
+    # ---------------------------------------------------------------------------
+
+    # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 4:
+    # do NOT hardcode a MatrixRow literal; the function is the source of truth).
+    _gen01_rows = [r for r in _rows_active_tail() if r.bare_id == "GEN-01"]
+    _gen01_count = len(_gen01_rows)
+    _gen01_tier = _gen01_rows[0].coverage_tier if _gen01_rows else "MISSING"
+    _gen01_artifact = _gen01_rows[0].artifact_link if _gen01_rows else ""
+
+    # (3) Drift guard: GEN-01 must exist exactly once (not deleted, not duplicated).
+    if _gen01_count != 1:
+        print(
+            f"  GEN-01-SCHEDULED FAIL: expected exactly 1 GEN-01 row in "
+            f"_rows_active_tail(), got {_gen01_count} — drift guard failed."
+        )
+        wrong_results.append("GEN-01-SCHEDULED: row count drift")
+
+    # (2) Positive counter-check: _gen01_was_gap proves the transition is non-vacuous.
+    # _gen01_was_gap would have been True pre-Phase 88; asserting NOT gap is meaningful.
+    _gen01_was_gap = _gen01_tier == "gap"
+    _gen01_is_scheduled = _gen01_tier == "scheduled"
+
+    if _gen01_is_scheduled and not _gen01_was_gap:
+        print(
+            f"  GEN-01-SCHEDULED PASS: GEN-01 tier={_gen01_tier!r} (not 'gap'); "
+            f"artifact_link={_gen01_artifact!r}"
+        )
+    else:
+        print(
+            f"  GEN-01-SCHEDULED FAIL: GEN-01 tier={_gen01_tier!r} "
+            f"(expected 'scheduled', not 'gap'). "
+            f"ADR path (c) not executed or tier reverted. "
+            f"See docs/gen-01-decision.md."
+        )
+        wrong_results.append("GEN-01-SCHEDULED: tier not 'scheduled'")
+
+    # (b) Dual-placement consistency (D-03): docs stub exists AND ROADMAP mirrors it.
+    _gen01_stub_path = REPO_ROOT / "docs" / "gen-01-rearch-milestone.md"
+    if _gen01_stub_path.exists():
+        print("  GEN-01-SCHEDULED PASS: docs/gen-01-rearch-milestone.md exists.")
+    else:
+        print(
+            "  GEN-01-SCHEDULED FAIL: docs/gen-01-rearch-milestone.md does not exist "
+            "— D-03 dual-placement (part 1) not satisfied."
+        )
+        wrong_results.append("GEN-01-SCHEDULED: docs stub missing")
+
+    _roadmap_path = REPO_ROOT / ".planning" / "ROADMAP.md"
+    _roadmap_text = (
+        _roadmap_path.read_text(encoding="utf-8") if _roadmap_path.exists() else ""
+    )
+    _roadmap_mentions_stub = "gen-01-rearch-milestone.md" in _roadmap_text
+    if _roadmap_mentions_stub:
+        print(
+            "  GEN-01-SCHEDULED PASS: ROADMAP.md contains mirror pointer "
+            "to gen-01-rearch-milestone.md."
+        )
+    else:
+        print(
+            "  GEN-01-SCHEDULED FAIL: ROADMAP.md does not reference "
+            "gen-01-rearch-milestone.md — D-03 dual-placement (part 2) not satisfied."
+        )
+        wrong_results.append("GEN-01-SCHEDULED: ROADMAP mirror pointer missing")
+
 
 def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
     """Fixtures 2, 3, 4: dangling references that must flag non-zero."""
