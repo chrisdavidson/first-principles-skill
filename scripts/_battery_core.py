@@ -976,8 +976,80 @@ def self_test_boundary() -> int:
         )
         all_passed = False
 
+    # ---------------------------------------------------------------------------
+    # RR-79-02 named honest-state sentinel (Phase 85, Plan 01)
+    #
+    # RR-79-02 is the S-P02 inversion zero-vocabulary state: all 5 v5.2 captures
+    # of S-P02 contain ZERO hits for every canonical inversion marker (6 patterns
+    # × 5 runs = 30 checks, all zero).  The captures use generic "breaks down"
+    # framing instead of the canonical inversion vocabulary.  run2 classifies
+    # full-composer NOT via inversion but via composer_hits=2 (ground_truths +
+    # verdict); the inversion technique itself has zero distinct hits on all runs.
+    #
+    # This gate asserts the DOCUMENTED zero-vocabulary honest state (honesty-not-
+    # score, C-02).  Any future inversion marker addition that fires on any S-P02
+    # run would flip the documented zero — the sentinel catches that.
+    # See the code comment at _TECHNIQUE_CATEGORIES["inversion"] (DET-14 / RR-79-02).
+    # ---------------------------------------------------------------------------
+    _rr7902_inv_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt("S-P02", _run)
+        _hits = _technique_hits(_text)
+        _rr7902_inv_counts.append(_hits.get("inversion", 0))
+
+    # Drift guard (WR-02): inversion marker set size must not silently grow.
+    # A 7th inversion pattern could match the S-P02 "breaks down" framing and
+    # break the documented zero-count — fail loudly so the sentinel is updated.
+    _rr7902_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
+    if _rr7902_inv_pattern_count != 6:
+        print(
+            f"  RR-79-02 FAIL: inversion pattern count drifted "
+            f"(expected 6, got {_rr7902_inv_pattern_count}) — update sentinel "
+            f"after verifying new per-run inversion counts over S-P02-run1..5."
+        )
+        all_passed = False
+
+    # Positive counter-check (WR-01): prove the inversion detector IS live
+    # and CAN fire on this text — so the real-excerpt zero is a genuine absence,
+    # not a dead detector.  A synthetic 2-marker text using two canonical
+    # inversion phrases must yield inversion >= MIN_HEADER_HITS.
+    _rr7902_synth_text = _fixture_assistant_text(
+        "Invert, always invert — the canonical inversion move.\n\n"
+        "Start by identifying the necessary precondition for success."
+    )
+    _rr7902_synth_parsed = [json.loads(_rr7902_synth_text)]
+    _rr7902_synth_extracted = _extract_assistant_text(_rr7902_synth_parsed)
+    _rr7902_synth_hits = _technique_hits(_rr7902_synth_extracted)
+    _rr7902_synth_inv = _rr7902_synth_hits.get("inversion", 0)
+
+    _rr7902_ok = (
+        _rr7902_inv_counts == [0, 0, 0, 0, 0]
+        and _rr7902_inv_pattern_count == 6              # drift guard
+        and _rr7902_synth_inv >= MIN_HEADER_HITS        # detector is reachable
+    )
+    if _rr7902_ok:
+        print(
+            f"  RR-79-02 PASS: 0 inversion markers across all 5 S-P02 v5.2 captures "
+            f"{_rr7902_inv_counts}; inversion detector reachable "
+            f"(synthetic 2-marker text → inv_hits={_rr7902_synth_inv} "
+            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); inv_patterns={_rr7902_inv_pattern_count}."
+        )
+    else:
+        _offending = [
+            f"run{i+1}={c}" for i, c in enumerate(_rr7902_inv_counts) if c != 0
+        ]
+        _offending_str = ", ".join(_offending) if _offending else "none"
+        print(
+            f"  RR-79-02 FAIL: S-P02 inversion counts {_rr7902_inv_counts} "
+            f"(expected all-zero; offending runs: {_offending_str}); "
+            f"inv_patterns={_rr7902_inv_pattern_count} (expected 6); "
+            f"synthetic 2-marker inv_hits={_rr7902_synth_inv} "
+            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+        )
+        all_passed = False
+
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 + RR-79-02 named assertions)")
         return 0
     return 1
 
