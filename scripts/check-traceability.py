@@ -65,7 +65,7 @@ class MatrixRow:
     milestone: str        # "v3.1"
     capability: str       # "Methodology" | "Test-Network"
     deliverable_path: str # live file path or "active-tail" sentinel
-    coverage_tier: str    # "reproducible" | "audit-only" | "gap"
+    coverage_tier: str    # "reproducible" | "audit-only" | "gap" | "scheduled"
     artifact_link: str    # resolves to real path/row/section or whitelist CLI
     gap_rationale: str    # non-empty when coverage_tier != "reproducible"
 
@@ -715,12 +715,13 @@ def _rows_testnet_v52_v53() -> list[MatrixRow]:
 
 
 def _rows_active_tail() -> list[MatrixRow]:
-    """D-05 path (b): 6 active-tail gap rows + 1 scheduled row — included unconditionally.
+    """D-05 path (b): active-tail rows — included unconditionally, mixed tiers.
 
-    These residuals are exempt from the deliverable-existence gate. The 6 gap
-    rows use deliverable_path='active-tail' and coverage_tier='gap'. GEN-01 has
+    These residuals are exempt from the deliverable-existence gate. GEN-01 has
     been converted to coverage_tier='scheduled' (committed future milestone
     GEN-01-REARCH, Phase 88 path c) and no longer belongs to the open-gap set.
+    GEN-02 has been converted to coverage_tier='reproducible' (runbook + wrapper
+    script, Phase 89) and no longer belongs to the open-gap set.
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
     prefix. RR-80-01, RR-79-01/02/03, and RR-77-08 are non-milestone residuals
@@ -762,7 +763,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     Two inclusion paths per D-05:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
-    (b) Active tail (7 rows) — included unconditionally, tagged gap (D-05b).
+    (b) Active tail (7 rows) — included unconditionally; mixed tiers:
+        GEN-01 scheduled, GEN-02 + 5 residuals reproducible (D-05b).
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -890,7 +892,9 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
     Per-row checks:
       - capability must be in VALID_CAPABILITIES (TRACE-01)
       - coverage_tier must be in VALID_TIERS (TRACE-03)
-      - for reproducible rows: artifact_link must resolve via _resolve_artifact
+      - for reproducible AND scheduled rows: artifact_link must resolve via
+        _resolve_artifact (WR-02/D-02); a dangling scheduled artifact FAILS check
+        the same as a dangling reproducible artifact
       - audit-only and gap rows with no artifact link are valid states (D-06)
     """
     issues: list[str] = []
@@ -905,7 +909,7 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
                 f"{row.key}: invalid coverage_tier {row.coverage_tier!r} "
                 f"(must be one of {sorted(VALID_TIERS)!r})"
             )
-        if row.coverage_tier == "reproducible":
+        if row.coverage_tier in ("reproducible", "scheduled"):
             link_issues = _resolve_artifact(row.artifact_link)
             for issue in link_issues:
                 issues.append(f"{row.key}: {issue}")
@@ -1189,11 +1193,12 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     else:
         print("check-traceability --self-test: fixture(6) gap row with rationale PASS")
 
-    # Fixture (9): scheduled row with artifact link — valid state (D-02/Phase 88)
-    # Proves that coverage_tier="scheduled" is accepted by check_consistency().
-    # check_consistency() only deep-resolves artifact links for "reproducible" rows,
-    # so this fixture passes regardless of whether the file exists at test time.
-    # The GEN-01-SCHEDULED sentinel (below) is what verifies the file actually exists.
+    # Fixture (9): scheduled row with resolvable artifact link — valid state (D-02/Phase 88)
+    # Proves that coverage_tier="scheduled" is accepted by check_consistency() AND
+    # that deep-resolve passes for a scheduled row with a real artifact (WR-02/Phase 90).
+    # check_consistency() now deep-resolves artifact links for both "reproducible" AND
+    # "scheduled" rows. Fixture passes because docs/gen-01-rearch-milestone.md exists.
+    # The GEN-01-SCHEDULED sentinel (below) also verifies the file exists.
     row9 = MatrixRow(
         key="v5.3/GEN-01",
         bare_id="GEN-01",
