@@ -10,7 +10,7 @@ Requirements covered:
   TRACE-01 — capability assignment + script structure
   TRACE-02 — emit writes both MATRIX.md and matrix.json
   TRACE-03 — consistency gate fixtures (dangling file/catalog/rubric/schema)
-  GAP-01   — active-tail rows (S-N04/GEN-01/GEN-02 + RR residuals) emitted
+  GAP-01   — active-tail rows (RR-80-01/GEN-01/GEN-02 + RR residuals) emitted
   GAP-02   — path confinement rejects /tmp paths (T-81-01 reuse)
 
 Run from repo root:
@@ -338,7 +338,8 @@ def test_active_tail_items_present() -> None:
     """GAP-01 emission guard: build_matrix_rows() must include 7 active-tail rows.
 
     The 7 active-tail rows (D-05 path b) are:
-      bare IDs: GEN-01, GEN-02, S-N04, RR-79-01, RR-79-02, RR-79-03, RR-77-08
+      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08
+      (RR-80-01 = the former S-N04 residual, assigned its tracked ID in Phase 83)
       Each must be tagged:
         coverage_tier == "gap"
         capability == "Test-Network"
@@ -351,7 +352,7 @@ def test_active_tail_items_present() -> None:
     rows = mod.build_matrix_rows()
 
     required_bare_ids = {
-        "GEN-01", "GEN-02", "S-N04",
+        "GEN-01", "GEN-02", "RR-80-01",
         "RR-79-01", "RR-79-02", "RR-79-03", "RR-77-08",
     }
 
