@@ -22,7 +22,7 @@ Exit codes:
     1  fixture mismatch or consistency failure
     2  environment error (Python <3.12) or path confinement violation
 
---self-test: runs 9 in-process fixtures + named sentinels (no disk I/O beyond
+--self-test: runs 10 in-process fixtures + named sentinels (no disk I/O beyond
              checking known-present repo files) and exits 0 only if all pass.
              This is the CI gate entry point (TRACE-03 + STEP0-08 pattern).
 
@@ -1217,6 +1217,95 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         print("check-traceability --self-test: fixture(9) scheduled row with artifact PASS")
 
     # ---------------------------------------------------------------------------
+    # DISTRIBUTION-FOLD fixture (10) — WR-01 renderer fold lock (TRACE-03)
+    # Calls render_matrix_markdown on a tiny SYNTHETIC row set (hardcoded, NOT
+    # live build_matrix_rows) so the fixture can never go vacuous if live counts
+    # shift. Asserts the three WR-01 regression conditions:
+    #   (a) Sum guard: Coverage Distribution bullets sum to len(rows).
+    #   (b) Annotation guard: "(incl. 1 scheduled)" appears in the rendered output.
+    #   (c) Positive counter-check (non-vacuous): folded reproducible count
+    #       strictly > bare reproducible count (mirrors GEN-01-SCHEDULED
+    #       _gen01_was_gap and RR-77-08 composer_hits == CEILING-1 idioms).
+    # Honesty-not-score: asserts renderer math, not any live pass-rate.
+    # Any revert of the scheduled-fold in render_matrix_markdown fails this fixture.
+    # ---------------------------------------------------------------------------
+    _fold_repro1 = MatrixRow(
+        key="fixture/FOLD-REPRO-01", bare_id="FOLD-REPRO-01", milestone="fixture",
+        capability="Test-Network", deliverable_path="active-tail",
+        coverage_tier="reproducible", artifact_link="", gap_rationale="",
+    )
+    _fold_repro2 = MatrixRow(
+        key="fixture/FOLD-REPRO-02", bare_id="FOLD-REPRO-02", milestone="fixture",
+        capability="Test-Network", deliverable_path="active-tail",
+        coverage_tier="reproducible", artifact_link="", gap_rationale="",
+    )
+    _fold_sched1 = MatrixRow(
+        key="fixture/FOLD-SCHED-01", bare_id="FOLD-SCHED-01", milestone="fixture",
+        capability="Test-Network", deliverable_path="active-tail",
+        coverage_tier="scheduled", artifact_link="",
+        gap_rationale="Synthetic scheduled row for DISTRIBUTION-FOLD fixture",
+    )
+    _fold_rows = [_fold_repro1, _fold_repro2, _fold_sched1]  # 2 repro + 1 scheduled
+    _fold_bare_reproducible = 2   # bare count (before fold)
+    _fold_rendered = render_matrix_markdown(_fold_rows)
+    _fold_dist = _fold_rendered.split("## Coverage Distribution")[1].split("## Matrix Table")[0]
+
+    # (a) Sum guard: the total bullet must equal len(rows); reproducible+audit+gap
+    # must equal len(rows) (the scheduled rows are folded into reproducible).
+    # Parse the total bullet and the three tier bullets separately.
+    import re as _re
+    _fold_total_match = _re.search(r"^- total: (\d+)", _fold_dist, _re.MULTILINE)
+    _fold_total_val = int(_fold_total_match.group(1)) if _fold_total_match else -1
+    _fold_sum_ok = _fold_total_val == len(_fold_rows)
+    if not _fold_sum_ok:
+        print(
+            f"check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD FAIL "
+            f"— total bullet is {_fold_total_val}, expected {len(_fold_rows)} "
+            f"(scheduled row dropped, sum is wrong)"
+        )
+        wrong_results.append(
+            "DISTRIBUTION-FOLD: total bullet does not equal len(rows) (scheduled row dropped)"
+        )
+    else:
+        print(
+            "check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD sum guard PASS "
+            f"(total={_fold_total_val} == {len(_fold_rows)})"
+        )
+
+    # (b) Annotation guard: "(incl. 1 scheduled)" must appear in the rendered output
+    _fold_annotation_ok = "(incl. 1 scheduled)" in _fold_dist
+    if not _fold_annotation_ok:
+        print(
+            "check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD FAIL "
+            "— annotation '(incl. 1 scheduled)' not found in Coverage Distribution"
+        )
+        wrong_results.append("DISTRIBUTION-FOLD: (incl. 1 scheduled) annotation missing")
+    else:
+        print(
+            "check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD annotation PASS"
+        )
+
+    # (c) Positive counter-check: folded reproducible count (3) > bare count (2)
+    # Extract the reproducible bullet value from the rendered distribution
+    _fold_repro_match = _re.search(r"^- reproducible: (\d+)", _fold_dist, _re.MULTILINE)
+    _fold_folded_count = int(_fold_repro_match.group(1)) if _fold_repro_match else -1
+    _fold_noop = _fold_folded_count <= _fold_bare_reproducible
+    if _fold_noop or _fold_folded_count < 0:
+        print(
+            f"check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD FAIL "
+            f"— folded reproducible count ({_fold_folded_count}) not strictly > "
+            f"bare reproducible count ({_fold_bare_reproducible}); fold is a no-op or missing"
+        )
+        wrong_results.append(
+            "DISTRIBUTION-FOLD: folded count not strictly > bare reproducible count"
+        )
+    else:
+        print(
+            f"check-traceability --self-test: fixture(10) DISTRIBUTION-FOLD positive "
+            f"counter-check PASS ({_fold_folded_count} > {_fold_bare_reproducible})"
+        )
+
+    # ---------------------------------------------------------------------------
     # GEN-01-SCHEDULED named sentinel (D-04 / Phase 88)
     # Asserts (a) GEN-01's tier is "scheduled" (not "gap") in _rows_active_tail()
     # and (b) docs↔ROADMAP dual-placement consistency.
@@ -1467,7 +1556,7 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
 
 
 def _run_self_test() -> None:
-    """Run 9 inline fixtures — no .planning/ reads required.
+    """Run 10 inline fixtures — no .planning/ reads required.
 
     Fixtures per PATTERNS.md §Required fixtures:
       (1) valid reproducible row → PASS
@@ -1478,7 +1567,10 @@ def _run_self_test() -> None:
       (6) gap row with rationale, no artifact link → PASS (valid state; generic structural test)
       (7) row missing capability → flagged
       (8) row missing coverage_tier → flagged
-      (9) scheduled row with artifact link → PASS (valid state; D-02/Phase 88)
+      (9) scheduled row with resolvable artifact link → PASS (WR-02/D-02/Phase 90)
+      (10) DISTRIBUTION-FOLD: render_matrix_markdown on synthetic 2-repro+1-scheduled set;
+           asserts bullets sum to len(rows), (incl. 1 scheduled) annotation present,
+           folded count strictly > bare reproducible count (WR-01 fold lock / TRACE-03)
 
     Named sentinels:
       GEN-01-SCHEDULED: live tier assertion + counter-check + drift guard + docs/ROADMAP
