@@ -1270,6 +1270,73 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         )
         wrong_results.append("GEN-01-SCHEDULED: ROADMAP mirror pointer missing")
 
+    # ---------------------------------------------------------------------------
+    # GEN-02-RUNBOOK named sentinel (D-03 / Phase 89)
+    # Asserts (a) GEN-02's tier is "reproducible" (not "gap") in _rows_active_tail()
+    # and (b) dual artifact-existence: docs/live-monitoring-runbook.md exists AND
+    # scripts/run-live-monitoring.sh exists.
+    # Mirrors the Phase 88 GEN-01-SCHEDULED idiom: live _rows_active_tail() read +
+    # positive counter-check + drift guard + existence checks. No live claude session.
+    # Honesty-not-score (D-06): asserts the documented reproducible confirming state,
+    # not a live pass-rate. Any future revert of the tier, deletion of the GEN-02 row,
+    # or removal of the runbook/wrapper fails CI.
+    # ---------------------------------------------------------------------------
+
+    # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 1:
+    # do NOT hardcode a MatrixRow literal; the function is the source of truth).
+    _gen02_rows = [r for r in _rows_active_tail() if r.bare_id == "GEN-02"]
+    _gen02_count = len(_gen02_rows)
+    _gen02_tier = _gen02_rows[0].coverage_tier if _gen02_rows else "MISSING"
+    _gen02_artifact = _gen02_rows[0].artifact_link if _gen02_rows else ""
+
+    # (3) Drift guard: GEN-02 must exist exactly once (not deleted, not duplicated).
+    if _gen02_count != 1:
+        print(
+            f"  GEN-02-RUNBOOK FAIL: expected exactly 1 GEN-02 row in "
+            f"_rows_active_tail(), got {_gen02_count} — drift guard failed."
+        )
+        wrong_results.append("GEN-02-RUNBOOK: row count drift")
+
+    # (2) Positive counter-check: _gen02_was_gap proves the transition is non-vacuous.
+    # _gen02_was_gap would have been True pre-Phase 89; asserting NOT gap is meaningful.
+    _gen02_was_gap = _gen02_tier == "gap"
+    _gen02_is_reproducible = _gen02_tier == "reproducible"
+
+    if _gen02_is_reproducible and not _gen02_was_gap:
+        print(
+            f"  GEN-02-RUNBOOK PASS: GEN-02 tier={_gen02_tier!r} (not 'gap'); "
+            f"artifact_link={_gen02_artifact!r}"
+        )
+    else:
+        print(
+            f"  GEN-02-RUNBOOK FAIL: GEN-02 tier={_gen02_tier!r} "
+            f"(expected 'reproducible', not 'gap'). "
+            f"Runbook + wrapper not established or tier reverted. "
+            f"See docs/live-monitoring-runbook.md."
+        )
+        wrong_results.append("GEN-02-RUNBOOK: tier not 'reproducible'")
+
+    # (b) Dual artifact-existence check (D-03): runbook AND wrapper must both exist.
+    _gen02_runbook_path = REPO_ROOT / "docs" / "live-monitoring-runbook.md"
+    if _gen02_runbook_path.exists():
+        print("  GEN-02-RUNBOOK PASS: docs/live-monitoring-runbook.md exists.")
+    else:
+        print(
+            "  GEN-02-RUNBOOK FAIL: docs/live-monitoring-runbook.md does not exist "
+            "— D-03 dual-artifact check (part 1) not satisfied."
+        )
+        wrong_results.append("GEN-02-RUNBOOK: docs/live-monitoring-runbook.md missing")
+
+    _gen02_wrapper_path = REPO_ROOT / "scripts" / "run-live-monitoring.sh"
+    if _gen02_wrapper_path.exists():
+        print("  GEN-02-RUNBOOK PASS: scripts/run-live-monitoring.sh exists.")
+    else:
+        print(
+            "  GEN-02-RUNBOOK FAIL: scripts/run-live-monitoring.sh does not exist "
+            "— D-03 dual-artifact check (part 2) not satisfied."
+        )
+        wrong_results.append("GEN-02-RUNBOOK: scripts/run-live-monitoring.sh missing")
+
 
 def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
     """Fixtures 2, 3, 4: dangling references that must flag non-zero."""
@@ -1397,6 +1464,8 @@ def _run_self_test() -> None:
     Named sentinels:
       GEN-01-SCHEDULED: live tier assertion + counter-check + drift guard + docs/ROADMAP
                         dual-placement (D-04/Phase 88)
+      GEN-02-RUNBOOK: live tier assertion + counter-check + drift guard + dual-file existence
+                      check (runbook + wrapper) (D-03/Phase 89)
     """
     wrong_results: list[str] = []
     _self_test_valid_rows_fixtures(wrong_results)
