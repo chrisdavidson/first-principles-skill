@@ -1,0 +1,27 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## The verdict: the claim is conditionally true, not universal
+
+"Faster ships → better retention" holds **only when extra shipments deliver perceived, correctly-directed, low-change-cost value.** It breaks under four specific preconditions:
+
+### The four ways it breaks
+
+1. **Invisibility** — Your faster output is internal/plumbing, not user-perceived. Velocity decouples from delivery. *Watch:* % of releases that are actually user-facing.
+
+2. **Wrong direction** — Cadence outruns discovery; you ship the *wrong* things faster, reaching non-value sooner. **This is the most likely break for a team proud of its two-week cadence** — the "shipping = progress" convention hides it. *Diagnose by an honest answer to:* "Do we decide *what* to ship with the same rigor we decide *that* we ship?"
+
+3. **Change-cost flips the sign** — Regressions, UI churn, forced migrations, or change-fatigue make each release cost the user more than it delivers. At that point faster shipping *reduces* retention. *Watch:* support tickets/rollbacks correlated to release dates; whether QA degraded as you sped up.
+
+4. **Unreachable churn cause** — Churn is actually driven by price, a structural capability gap, or a competitor. No cadence helps. **This is load-bearing — verify it first**, because if true the whole assumption is moot.
+
+### The underlying ground truth
+
+Retention is caused by *delivered value exceeding the user's cost of staying/switching* — not by shipping activity itself. Shipping is only an *instrument*. Frequency and *direction* are independent variables: you can ship fast in the wrong direction.
+
+### Three cheap checks to find which one is breaking for you
+
+- Categorize your last 6 releases as user-facing vs. internal → tests **Break #1**
+- Pull your last 20–30 churn reasons → tests **Break #4** (do this first; it's load-bearing)
+- Correlate support-ticket spikes with release dates → tests **Break #3**
+
+**Takeaway:** Cadence only converts to retention through perceived, correctly-directed, low-change-cost value — measure those three and you'll know which precondition is breaking before you change how you ship.

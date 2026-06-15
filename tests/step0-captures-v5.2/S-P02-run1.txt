@@ -1,0 +1,24 @@
+The first-principles agent completed the inversion. Here's its analysis:
+
+# When "Faster Ships → Better Retention" Breaks Down
+
+The agent reframed your assumption as an **envelope, not a law**, governed by one inequality:
+
+> **Faster shipping helps retention only when the marginal value of a ship exceeds its marginal cost** (where cost includes the adaptation/change burden on existing users).
+
+When that inequality flips, speed decouples from retention. It breaks down in **four detectable regimes:**
+
+| Regime | What happens | Detection signal |
+|--------|-------------|------------------|
+| **A — Wrong target** | Ships are fast but aimed at things that don't drive *your* churn (price, missing core capability, onboarding, dead use case) | Ship consistently for a quarter, retention curve doesn't move; churn interviews cite reasons outside what you shipped |
+| **B — Velocity eats quality** | The cadence introduces regressions/instability — now shipping faster *actively lowers* value (assumption goes **negative**) | Bug/regression rate, support tickets, or rollback frequency climb with cadence |
+| **C — Change-cost saturation** | Each ship imposes adaptation cost; above users' change tolerance, disruption/re-learning/notification fatigue exceeds value added | Power/long-tenured users churn *more* than new users; "you keep changing things"; longer feature-adoption times |
+| **D — Diminishing returns** | Product is already "good enough"; marginal features don't move retention, and cadence pressure biases toward small safe ships over high-impact bets | New-feature usage low, retention flat near a ceiling, backlog full of polish |
+
+**Second-order trap:** Once "ships per sprint" becomes the visible team metric, effort structurally migrates toward shippable-and-safe work — which drifts you *into* Regime D over time even if you started healthy. The metric corrodes the value it was proxying for.
+
+## The key caveat
+
+The whole assumption rests on one **unverified, team-specific** ground truth: *that your churn is actually addressable by what you ship.* Until you run churn interviews / cohort analysis confirming departing users leave for reasons your two-week ships can fix, you can't rule out that you're **already in Regime A**.
+
+**Diagnostic to run every sprint:** *"Did this ship change* ***why a user would stay***, *or just* ***what the product contains****?"* When the honest answer is consistently the latter, you've left the envelope.

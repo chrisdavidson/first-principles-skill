@@ -1,0 +1,16 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim is **conditional, not a general law.** It silently depends on six preconditions, and breaks the moment any one of them fails. The core insight: *ship count and value-per-ship are independent variables* — only value drives retention, so raising velocity without protecting value/ship snaps the link.
+
+**Six warning signs to watch at your two-week cadence:**
+
+1. **No closing feedback loop** — you ship but can't say which features actually get used. *Watch: feature-adoption rate per release.*
+2. **Rising defects/incidents** correlated with cadence. *Watch: bug/incident rate per release — if it climbs with velocity, speed is now eroding retention.*
+3. **Change fatigue** — relearning cost of constant churn exceeds each increment's value, hitting power users hardest. *Watch: support tickets and churn timed to releases.*
+4. **Churn isn't about missing features** — it's price, onboarding, support, or weak core value. Then faster shipping moves nothing. *Watch: churn-reason tagging.*
+5. **Velocity slowing despite same effort / rising outages** — the tech-debt bill arriving; the link will invert later.
+6. **"Ships" increasingly invisible to users** — the velocity metric decoupling from user-perceived value.
+
+**The single sharpest test (highest stakes):** Before optimizing velocity further, verify that **feature availability is actually your binding retention constraint.** If churn is driven by anything else, the entire assumption is false for your team regardless of the other five — and faster shipping is effort spent against the wrong bottleneck. This precondition is load-bearing and currently unverified — verify it first.

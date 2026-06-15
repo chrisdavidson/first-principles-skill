@@ -1,0 +1,30 @@
+The first-principles agent completed the pre-mortem. Here's its analysis:
+
+## Pre-Mortem: Payments-Rewrite Launch
+
+**Premise:** It's next Friday. The full EU cutover has already failed. Working backward from that.
+
+### Three structural weaknesses (the real findings)
+
+1. **No reversibility — the dominant risk.** "Replacing" the legacy Stripe integration implies the fallback is being removed, not kept warm. Same-day full cutover with no escape hatch means *any* failure becomes a forward-fix under fire. This amplifies every other risk.
+
+2. **First contact with reality is in production.** No staged rollout means there's no shadow traffic, no canary, no percentage ramp — correctness is *assumed* until 100% of EU money flows through it. And payment defects are money-movement defects (double-charges, dropped captures, ledger drift), where being wrong is unusually expensive.
+
+3. **Worst-possible timing.** Friday + EU + weekend banking windows maximizes detection-to-resolution time exactly when on-call staffing is lowest and SEPA/banking windows are closed.
+
+### The questions a go/no-go meeting would suppress
+- "Do we actually have a tested rollback?"
+- "Has anyone reconciled the legacy and new ledgers on real production data?"
+
+These are precisely the two that turn a bad day into a financial-integrity incident.
+
+### Plan changes the pre-mortem demands
+- **Keep legacy Stripe warm** as a hot fallback with a tested traffic-switch.
+- **Stage the rollout:** shadow/replay traffic → 1% → one small EU market → full.
+- **Move the cutover off Friday** to Tuesday morning (full runway, full staffing, open banking windows).
+- **Gate go/no-go** on two artifacts: a tested rollback runbook + a completed ledger-reconciliation dry-run on production-shaped data.
+
+### One question it flagged for you
+The whole severity assessment hinges on one load-bearing fact: **when you say "replacing," is the legacy Stripe integration being fully decommissioned at cutover, or can it be switched back on?** If it can be switched back, the top risk drops from critical to manageable. If it's truly gone, the rollback-and-reconciliation gate is non-negotiable.
+
+The agent is still available if you'd like to answer that question or push the analysis further.

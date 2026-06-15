@@ -1,0 +1,1 @@
+Frozen read-only v5.2 assistant-text excerpts — `_extract_assistant_text()` output of `.planning/v5.2-inputs/rebase-evidence/S-P0{1,2,5}-run{1..5}.jsonl`; consumed read-only by the RR-79-01/02/03 sentinels in scripts/_battery_core.py; never regenerated (D-04).

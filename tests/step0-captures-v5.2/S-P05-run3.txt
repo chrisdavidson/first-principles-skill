@@ -1,0 +1,47 @@
+The first-principles agent completed the trade-off analysis. Here is the result:
+
+---
+
+# First-Principles Trade-Off Analysis: Database Selection for Transactional E-Commerce Backend
+
+**Mode:** focused-trade-off
+
+## 1. Problem Essence
+
+Select the database that best supports correct, durable order/payment transactions at 500 writes/sec peak, within $3k/month over 12 months. **Key insight:** the budget frame is *not* the essence — at this scale all three options cost well under budget, so price is a qualifier, not the discriminator. The real question is **correctness-fit**.
+
+## 2–3. Key Ground Truths
+
+- **GT-1:** E-commerce order placement spans ≥3 distinct entities (order, inventory, payment ledger) that must commit atomically.
+- **GT-2:** PostgreSQL provides unrestricted ACID across any number of tables in one transaction.
+- **GT-3:** DynamoDB transactions are capped at 100 items / 4MB, can't touch the same item twice, single-region, 2× write cost.
+- **GT-4:** MongoDB supports multi-document ACID, but it's the costlier non-default path.
+- **GT-8:** All three fit **well under $3k/month** with HA (Postgres Multi-AZ ~$500–600, DynamoDB provisioned ~$237–470, Atlas M30 ~$360–576).
+
+## 4. Trade-Off Matrix (weights locked before scoring)
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Txn correctness (5) | 25 | 15 | 10 |
+| Data-model fit (4) | 20 | 16 | 8 |
+| Query flexibility (4) | 20 | 16 | 4 |
+| Cost within budget (2) | 10 | 8 | 10 |
+| Write headroom (3) | 12 | 12 | 15 |
+| Op. simplicity (3) | 12 | 12 | 15 |
+| Scaling ceiling (2) | 6 | 8 | 10 |
+| **Total** | **105** | **87** | **72** |
+
+**Sensitivity:** PostgreSQL leads by ~21% — robust, not a knife-edge. No single weight flip changes the ranking.
+
+## 6. Conclusion
+
+**Recommendation: PostgreSQL (managed via RDS) — score 105, clear winner.**
+
+- **DynamoDB** (72): excellent throughput/cost/simplicity, but GT-3's transaction constraints push order-correctness into application saga/compensation code, and it can't serve storefront/reporting joins. Right answer for a *different* workload.
+- **MongoDB** (87): competent generalist, viable if the catalog is genuinely document-shaped, but wins on no criterion that matters most here.
+
+**Confidence:** HIGH on the ranking; MEDIUM on absolute cost numbers pending two unverified inputs — (1) is 500 writes/sec peak or average, and (2) read volume / reporting needs.
+
+---
+
+The agent offers to re-run the cost rows for a specific peak/average and read-throughput figure if you want sharper absolute numbers. Let me know.

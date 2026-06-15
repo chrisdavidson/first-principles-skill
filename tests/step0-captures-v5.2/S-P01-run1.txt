@@ -1,0 +1,30 @@
+The first-principles pre-mortem is complete. Here's the verdict:
+
+## Bottom line: **No-go as currently scoped.** Don't ship next Friday with a big-bang, no-rollback cutover.
+
+The core asymmetry: legacy Stripe **already works**, the rewrite is unproven at scale, and the blast radius is **100% of EU on day one**. You're betting an unbounded downside against an upside that's merely "shipped on a Friday."
+
+### The three decisions are one compounding mistake
+1. **Big-bang cutover** — no traffic slice is small enough to fail safely; the first failure is a *mass* failure by design.
+2. **No tested rollback** (likely one-way vault migration) — the multiplier that turns every recoverable bug into an *irreversible* one.
+3. **Fixed Friday date** — forces corners to be cut, surfaces failures Saturday when engineers are offline, and silences the concerns that would otherwise stop the launch.
+
+> The date forces the corners, the big-bang maximizes blast radius, the missing rollback removes the escape hatch. Any one alone is survivable. All three together is the catastrophe.
+
+### Highest-signal failures (the ones a team suppresses)
+- **No rollback path** — most dangerous unsaid item; admitting it implies the whole plan is reckless.
+- **Rounding / reconciliation drift** — waved off as "reconcile later"; half-cent × millions = material and un-auditable.
+- **Single point of knowledge** — the one engineer who understands the vault migration, possibly on PTO.
+- **PSD2/SCA per-issuer breakage** — "works on test cards" masks the real EU 3DS2 long tail.
+
+### What to change before shipping (priority order)
+1. **Add a canary ramp** (1%→5%→25%→100%, region-by-region) — non-negotiable; shrinks blast radius from 100% to recoverable.
+2. **Build and rehearse a rollback** — dry-run the reverse migration. If the vault migration is truly one-way, that alone blocks big-bang.
+3. **Run shadow / dual-write mode** — rewrite parallel, legacy authoritative, diff every charge/refund/SCA outcome with zero customer impact.
+4. **Move off Friday** to Tuesday/Wednesday for full 72h post-launch capacity.
+5. **Verify load-bearing assumptions** — idempotency-key continuity, rounding parity on replayed transactions, SCA across real EU issuer suites.
+6. **Staff and rehearse on-call** — runbooks, tuned alerts, real-time drift detection.
+7. **Force suppressed concerns into the open** — run this pre-mortem *with the team*.
+
+### The reframe
+Keep the Friday *target* if you must — but ship it as a **mid-week canary ramp, behind a rehearsed rollback, after a shadow-mode reconciliation pass that proves money parity.** That converts an irreversible 100% bet into small, reversible, observable steps. **Move the strategy, not just the date** — the fixed Friday is the root cause.

@@ -1,0 +1,43 @@
+The first-principles agent completed the pre-mortem. Here is the analysis:
+
+# Pre-Mortem: Payments-Rewrite Launch (EU, big-bang, next Friday)
+
+## The premise
+Imagine it's two weeks from now. The payments-rewrite went live last Friday to all EU customers, replaced legacy Stripe with no staged rollout — and it failed. What caused it?
+
+The launch shape encodes **three risk amplifiers** worth naming up front: **(a) all EU customers at once**, **(b) hard cutover of a money-moving system**, **(c) no rollout gradient / no fallback.** None are bugs themselves — they remove every safety net that would let you survive a bug.
+
+## Ground truths
+- Payments move real money — defects cost money and carry legal exposure, not just UX.
+- EU card payments require SCA/PSD2 + 3DS2; non-compliant payments are declined or illegal (non-negotiable).
+- No staged rollout → failure blast radius = 100% of EU customers from minute one.
+- Big-bang Friday → failures surface into the weekend, when staffing and bank/Stripe support are thinnest.
+- A rewrite replacing a battle-tested integration carries unknown unknowns legacy already absorbed.
+
+## The structural weaknesses (clustered)
+
+| Cluster | Root weakness | Sample failure modes |
+|---|---|---|
+| **No containment gradient** | The no-rollout decision itself | Load buckles, SCA breaks, double-charge — all at 100% blast radius |
+| **Irreversibility** | Rollback unverified / impossible after data writes | Webhook divergence, corrupted records, finance mismatch |
+| **Recovery capacity mismatch** | Friday + weekend = lowest staffing vs. highest stakes | MTTR in days, support buried, no runbook |
+| **Observability blind spot** | Reacting to customers, not metrics | Success rate drops, no alert, found via complaints |
+| **Rewrite parity debt** | New code lacks years of absorbed edge cases | Missing refund/retry/3DS paths, saved cards don't migrate |
+
+**The highest-signal findings are the ones a go/no-go meeting would suppress:** "rollback works" (tested the *document*, not a reverted transaction), "parity is basically done" (the edge-case long tail gets waved through under deadline), "Friday is fine" (chosen for deployer convenience, not recovery capacity), "we'll watch it closely" (human vigilance substituting for absent alerting).
+
+## Plan changes (the actionable output)
+
+**Strongly recommended:**
+1. **Add a staged rollout** — canary 1% → 10% → 50% → 100% over days. Single highest-leverage change; catches defects at 1% blast radius.
+2. **Verify rollback with a real reverted transaction** — not a plan review. If it's impossible after data writes, that fact alone should block the big-bang.
+3. **Move off Friday** — cut over Tue/Wed morning for full-staffed days + bank/Stripe support.
+
+**Required before any cutover:**
+4. Real-issuer-bank SCA/3DS2 end-to-end test across major EU banks.
+5. Automated alert on payment success rate + auto-rollback trigger.
+6. Shadow/parallel run (mirror traffic, compare outputs) — closest thing to a load + parity test without staging.
+7. Idempotency/double-charge test across the cutover boundary; saved-card/mandate migration verification.
+8. "Payments down" support runbook + surge plan.
+
+**The blunt version:** the launch shape stacks four amplifiers on a rewrite of a money-moving system. Any one is survivable; together they mean the first bug you ship is a company-wide EU incident with no off-ramp, discovered over a weekend. **If you change only one thing, add the staged rollout. If you can change two, add verified rollback. If neither is possible by Friday, that's the strongest signal to move the date.**

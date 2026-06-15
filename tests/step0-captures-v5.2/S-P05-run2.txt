@@ -1,0 +1,34 @@
+The first-principles analysis is complete. Here's the result:
+
+# Trade-Off Analysis: PostgreSQL vs MongoDB vs DynamoDB
+
+**Recommendation: managed PostgreSQL (RDS/Aurora) — HIGH confidence.**
+
+## The decisive insight
+The analysis flagged and rejected the load-bearing false assumption: that **500 writes/s implies a need for NoSQL scale-out**. A single modern Postgres instance handles 5,000–10,000+ writes/s — 500/s is ~7% of capacity (~14× headroom). The premise that justifies reaching for DynamoDB/MongoDB **never activates at this scale**.
+
+## Weighted decision matrix
+
+| Criterion | Wt | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional correctness | 5 | 5 | 3 | 3 |
+| Throughput fit (500 w/s) | 2 | 4 | 4 | 5 |
+| Cost fit & predictability | 4 | 5 | 3 | 3 |
+| Query flexibility | 4 | 5 | 4 | 2 |
+| Operational simplicity / team fit | 4 | 4 | 3 | 3 |
+| Vendor portability | 2 | 4 | 4 | 1 |
+| **Weighted total** | | **97** | **71** | **59** |
+
+*Throughput is deliberately weighted low (2) — not because speed doesn't matter, but because all three options trivially clear 500 w/s, so it can't discriminate.*
+
+## Why PostgreSQL wins
+- **Correctness (highest weight):** Native, idiomatic multi-entity ACID for money-touching flows (order + line items + inventory + payment). Mongo and Dynamo support ACID but with constraints — Dynamo caps at 100 items/4MB single-region at 2× cost; Mongo's multi-doc transactions run against its aggregate model.
+- **Cost:** ~$700–1,200/month for multi-AZ HA — roughly a third of the $3k budget, and *fixed/predictable* vs Dynamo's consumption-based, hot-partition-sensitive billing.
+- **Query flexibility:** Full SQL for the ad-hoc/relational needs e-commerce always grows into (admin search, refunds, fraud rules, reporting). DynamoDB scores lowest here — access-pattern-locked, expensive scans.
+
+## Robustness
+The 97 vs 71 vs 59 margin is wide, not a near-tie. The only weight that could flip the ranking is Throughput — and that would require write volume *far* above 500/s. Result is robust for the 12-month horizon.
+
+## Caveats
+- **Expiry condition:** If writes grow >10×, revisit (read replicas, partitioning, Aurora). Not a present concern.
+- **One unverified input:** team SQL competency was assumed (e-commerce default), not confirmed. It doesn't change the ranking — Postgres wins on correctness, cost, and flexibility regardless — but worth verifying.

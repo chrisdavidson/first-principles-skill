@@ -1,0 +1,27 @@
+The first-principles agent ran a focused inversion. Here's what it found:
+
+## Where "faster ships → better retention" breaks down
+
+The claim isn't a law — it's a conditional that holds **only while seven hidden preconditions all hold**. Invert it ("faster shipping does *not* improve retention") and you can enumerate exactly what must be true for the original to work:
+
+| Precondition the claim silently assumes | Breaks when... |
+|---|---|
+| **P1** Roadmap targets actual churn drivers | You ship the wrong things, just faster |
+| **P2** Quality holds as frequency rises | Compressed QA buys instability |
+| **P3** Per-release value > per-release disruption | Change fatigue, constant UI churn |
+| **P4** Retention is elastic to product at all | Churn is price/fit/market-driven |
+| **P5** Releases big enough to be *noticed* | 2-week scope-fitting → invisible increments |
+| **P6** Support/docs/onboarding keep pace | Non-eng functions lag the release train |
+| **P7** At-risk users still see your ships | The churning cohort already disengaged |
+
+## The three to check first (ranked for a 2-week cadence)
+
+1. **Quality doesn't scale with cadence (P2)** — the most common inversion. 2-week cycles compress QA windows; if test automation/rollback hasn't scaled with frequency, faster shipping actively degrades retention. *Check: is your defect-escape or rollback rate trending up?*
+
+2. **Releases too small to notice (P5)** — 2-week scope-fitting biases toward increments below the perceptual threshold. *Check: can a user name one thing that improved last quarter?*
+
+3. **Churn isn't product-elastic (P4)** — the hard invalidator. If users leave for price, fit, or a competitor, *no* cadence helps. *Check: exit-survey churn reasons.*
+
+**Concrete next step:** pull three numbers — defect-escape/rollback trend (P2), retention-vs-velocity correlation over time (P5), and top churn reasons from exit data (P4). Those readings tell you which breakpoint, if any, you've already crossed.
+
+Caveat the agent flagged: it had no data on your product, retention metric, or QA maturity, so all seven preconditions are *unverified* — the ranking reflects what's structurally most fragile at a 2-week cadence, not a diagnosis of your specific situation.

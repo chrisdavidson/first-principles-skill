@@ -1,0 +1,33 @@
+The first-principles agent completed the pre-mortem. Here's what it found.
+
+# Pre-Mortem: Payments-Rewrite Launch — Verdict
+
+**As specified** — all EU customers, hard legacy replacement, no staged rollout, fixed Friday — this launch has a **high probability of a severe, possibly unrecoverable, money-affecting incident.** The three defining choices (big-bang, hard-replace, fixed date) are each independently dangerous for a payments rewrite; together they remove every safety net at once.
+
+## The three structural weaknesses (not 12 isolated risks)
+
+1. **No reversibility** — Replacing legacy removes the fallback. A 20-minute bug becomes a multi-hour total payments outage with nowhere to fall back to.
+2. **No graduated exposure** — "All at once" means the first time real production load hits new code, 100% of EU customers are exposed. A canary catches it at 1%; big-bang catches fire at 100%.
+3. **The deadline is driving the engineering** — A fixed one-week date means the safety work (load testing, rollback rehearsal, reconciliation parity) is exactly what gets cut — and that work *is* the entire risk surface.
+
+## Highest-severity failure modes
+- **F1 — Couldn't roll back** (legacy decommissioned → unrecoverable)
+- **F3 — Double-charges** from broken idempotency under retry storms
+- **F4/F5 — Saved tokens fail to migrate / in-flight transactions lost** at the cutover boundary
+- **F6/F7 — Silent failure**: payments "succeed" but webhooks never confirm; nobody notices for hours
+- **F8 — Reconciliation breaks**: finance can't prove what was charged to whom
+- **F9/F10 — EU payment methods (iDEAL, SEPA, Bancontact) and SCA/3DS flows** regress → whole-country segments can't pay + regulatory exposure
+
+## Recommended changes, by leverage
+1. **Keep legacy warm and instantly switchable** behind a flag for ~2 weeks post-cutover. Don't decommission on launch day. *Non-negotiable.*
+2. **Replace big-bang with a canary** — 1% → 10% → 50% → 100%, auto-halt on success-rate regression.
+3. **Gate launch on three verifications, not the calendar**: full-EU load test passed, rollback rehearsed in prod-like conditions, reconciliation matches legacy on a replayed day. If not green by Friday, the *date* slips — not the safety.
+4. **Add a real-time payment-success-rate alert** vs. legacy baseline (page on regression).
+5. **Don't cut over on a Friday** — go Tuesday/Wednesday for a full staffed week. Nearly free.
+6. **Specify in-flight transaction handling + dry-run token migration** against production data.
+
+**If only one thing changes:** keep legacy warm and switchable (#1). It converts every other failure mode from "incident" into "flip the flag back."
+
+---
+
+⚠️ **One flag from the agent:** recommendations #1 and #2 directly contradict two stated constraints ("replacing legacy" and "no staged rollout"). The analysis concludes those two constraints *are* the primary risk drivers, so it recommends relaxing them rather than working around them. If they're genuinely immovable (e.g., a legacy contract terminating that Friday), say so and the pre-mortem can be re-run treating them as fixed — the recommendations would shift toward maximizing detection speed and rehearsing recovery.

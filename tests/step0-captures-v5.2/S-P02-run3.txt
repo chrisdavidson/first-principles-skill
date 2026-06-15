@@ -1,0 +1,23 @@
+The first-principles agent ran an inversion analysis. Here's the result:
+
+# When "Faster Ships → Better Retention" Breaks Down
+
+The core finding: **faster shipping is a multiplier, not an additive force.** It multiplies whatever your discovery, quality, and perceived-value already are. If any of those is near zero or negative, more speed multiplies the wrong thing — and the assumption inverts.
+
+The claim isn't a law; it's a **conditional** that holds only while seven preconditions hold. Invert each and you get a specific break-down signal:
+
+| Break point | Watch for | Priority |
+|---|---|---|
+| **Quality erosion** | Defect-escape, rollback, incident rates climbing with cadence — bugs out-churn features | 🔴 Highest |
+| **Velocity on wrong things** | Shipping fast but feature adoption is low; output decoupled from demand | High |
+| **Retention gated elsewhere** | Churn-reason analysis shows price/fit/support dominate — speed can't fix pricing | High |
+| **Change fatigue** | "Where did X go?" complaints, disruption tickets rising per release | Medium |
+| **Invisible velocity** | You ship but users don't notice; flat changelog engagement / adoption | Medium |
+| **Ceiling effect** | Retention curve already plateaued — no headroom for cadence to move | Medium |
+| **Never causal** | Retention gains actually track a marketing push or seasonality, not your ships | Low–check |
+
+**Cheapest two indicators to dashboard now** (they catch the most common break points *before* retention numbers move):
+1. **Quality metrics per release** — defect-escape / rollback / incident rate
+2. **Feature adoption per release** — proves shipped value is perceived and wanted
+
+For your two-week cadence specifically: the fastest way faster shipping *inverts* into worse retention is quality erosion (#1), so that's the one to instrument first.

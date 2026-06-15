@@ -1,0 +1,34 @@
+The first-principles agent completed its trade-off analysis. Here is its verdict:
+
+# Trade-Off Analysis: PostgreSQL vs MongoDB vs DynamoDB
+
+**Recommendation: PostgreSQL** (managed via RDS or Aurora Serverless v2)
+
+## The decisive insight
+
+The analysis hinges on one fact that collapses the decision: at **500 writes/sec with a $3k/month budget, all three options pass the throughput and cost gates comfortably**. A single well-provisioned node handles thousands of write transactions/sec, so this scale never forces a distributed/scale-out engine. Once cost and throughput stop discriminating, the choice reduces to *which engine models atomic cross-entity commerce natively* — and that's PostgreSQL.
+
+## Weighted decision matrix
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional correctness | 5 | **25** | 15 | 10 |
+| Throughput headroom | 2 | 8 | 8 | 10 |
+| Cost fit (≤$3k/mo) | 2 | 8 | 6 | 8 |
+| Operational simplicity | 4 | 16 | 12 | 12 |
+| Data-model fit | 4 | 20 | 12 | 8 |
+| **Total** | | **77** | **53** | **48** |
+
+## Why the others lose
+
+- **DynamoDB** scores lowest *despite* best raw throughput. Its transactions cap at 100 items, cost 2× WCU, and are single-region. It optimizes for a scale dimension this problem doesn't have, while taxing the one it does (relational correctness). The "Amazon uses it" reasoning was explicitly rejected — that imports Amazon's scale requirement, which this workload lacks.
+- **MongoDB** sits in the middle. It *has* ACID transactions (since 4.0), but multi-document transactions run against the document model's grain — a persistent mild tax with no offsetting benefit at this scale.
+
+## Robustness & caveats
+
+- The 77-vs-53 lead is **not a near-tie** — it would only flip if "transactional correctness" weight collapsed, which contradicts the verified ground truth that e-commerce order placement requires multi-entity atomic commits.
+- **Confirm team skills first:** if the team has deep DynamoDB/Mongo expertise and zero SQL, the operational scores shift (though correctness + data-model lead would likely still hold).
+- **If "transactional" was loose shorthand** for append-heavy logging or a catalog with no cross-entity invariants, the analysis should be re-run — that's a genuinely different problem.
+- Future-proofing note: Postgres extends via Aurora/Citus/read replicas if scale grows, and JSONB columns absorb document-shaped data without abandoning the relational core.
+
+**Net:** PostgreSQL is the low-regret, model-aligned choice with the longest clean runway.

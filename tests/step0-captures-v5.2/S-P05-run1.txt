@@ -1,0 +1,33 @@
+The first-principles agent completed the analysis. Here are its findings:
+
+# Database Trade-Off Analysis: Transactional E-Commerce Backend
+
+**Recommendation: PostgreSQL on Amazon RDS (db.m6g.xlarge Multi-AZ)**
+
+It wins decisively in the weighted matrix (**77 vs DynamoDB 62 vs MongoDB 56**) because the workload's defining trait — multi-item ACID transactions for checkout (order + inventory + payment committing atomically) — is PostgreSQL's native strength, while 500 writes/sec sits comfortably within a sub-$600/month Multi-AZ instance, leaving large headroom inside the $3k budget for storage, IOPS, and read replicas.
+
+## The trade-off matrix
+
+| Criterion | Weight | PostgreSQL | MongoDB Atlas | DynamoDB |
+|---|---|---|---|---|
+| ACID transaction fit | 5 | 5 | 4 | 3 |
+| Throughput headroom @500 w/s | 4 | 4 | 4 | 5 |
+| Cost fit within $3k | 4 | 5 | 2 | 4 |
+| Operational/data-model fit | 3 | 5 | 3 | 2 |
+| Scaling ceiling (future) | 2 | 3 | 4 | 5 |
+| **Weighted total** | | **77** | **56** | **62** |
+
+## Key cost ground truths
+- **PostgreSQL:** db.m6g.xlarge Multi-AZ ≈ ~$540/mo compute — large budget margin.
+- **DynamoDB:** the catch is that **transactional writes consume 2× WCU**. Provisioned+reserved ≈ ~$468/mo (fits), but **on-demand ≈ ~$3,376/mo (breaks budget)**. Only viable if you commit to provisioned capacity *and* items stay ~1KB.
+- **MongoDB Atlas:** production multi-document transactions require a dedicated M40 3-node replica set ≈ ~$2,200/mo — thin margin, no offsetting advantage for relationally-shaped data.
+
+## Runners-up
+- **DynamoDB** — viable only with provisioned+reserved capacity and ~1KB items; its scaling ceiling makes it the choice *if* you expect 10–20× growth, but transaction limits (100 items, no nested/long-running) and relational-modeling friction count against it.
+- **MongoDB Atlas** — weakest fit; priced into a dedicated cluster with no compensating advantage for order/inventory data.
+
+## Two caveats flagged before committing
+1. **Verify actual item size** — it's load-bearing for the DynamoDB cost line (2KB items would double that cost again).
+2. **Confirm 500 w/s is true peak, not average** — changes the RDS instance sizing.
+
+The full analysis (with derivation chains, abandoned reasoning, and sources) is above in the agent's output.

@@ -1,0 +1,32 @@
+The first-principles agent completed the trade-off analysis. Here's the result:
+
+# Database Selection: First-Principles Trade-Off Analysis
+
+**Recommendation: PostgreSQL on RDS (Multi-AZ) — HIGH confidence.**
+
+## The decisive reasoning
+
+The agent reasoned up from the workload's data-integrity requirement (not engine popularity), and three ground truths settled it:
+
+1. **Correctness gate** — E-commerce checkout requires atomic multi-record writes (order + inventory + payment, all-or-nothing). PostgreSQL provides exactly these semantics natively. MongoDB *can* (ACID since 4.0, but fights its document model) and DynamoDB *can* (`TransactWriteItems`, but capped at 100 items/transaction, 2× write cost, and forces app-side joins/referential integrity).
+
+2. **Capacity gate** — All three sustain 500 writes/s; this is **not** the discriminator. A single mid-tier RDS node handles it easily.
+
+3. **Budget gate (decisive)** — Provisioned RDS bills a flat **~$900–1,200/mo all-in**, *invariant* to peak-vs-average traffic. DynamoDB swings from ~$650/mo to **~$6,480/mo** depending entirely on whether the 500/s peak is sustained — at sustained peak it blows 2× past the $3k ceiling. Atlas M40 lands ~$1,000–1,600/mo.
+
+## Weighted scorecard
+
+| Database | Weighted total |
+|---|---|
+| **PostgreSQL** | **103** |
+| MongoDB | 82 |
+| DynamoDB | 68 |
+
+The gap is driven by *correctness fit* and *cost predictability* — too wide for a single weight change to flip.
+
+## Two flags you should resolve
+
+- **FLAG 1 (peak vs. average + read volume):** This is the largest uncertainty and the *only* thing that could revive DynamoDB. If the 500/s is rare spikes over a low average **and** the data is single-aggregate/key-value, DynamoDB becomes competitive. If peak is sustained, it's out on budget.
+- **FLAG 2 (data model):** If the model is genuinely relational (orders ↔ line-items ↔ inventory, with reporting), Postgres's lead holds. If it's a self-contained aggregate per write, the document/KV options rise.
+
+For a typical read-heavy, relational, spiky-but-not-extreme e-commerce backend, **PostgreSQL is correct with HIGH confidence — and is also the cheapest of the three at this scale.** It also noted Aurora Serverless v2 (out of the given option set) would dominate on the peak/average dimension if you ever want to revisit the candidate list.
