@@ -767,9 +767,10 @@ def _run_one_fixture_boundary(name: str, body: str, expected: SubSkill) -> bool:
 def self_test_boundary() -> int:
     """Validate boundary detection logic against in-module fixtures. No claude invocation.
 
-    Runs 8 fixtures. The K>N rejection sub-test (which calls main()) is NOT
-    included here — it lives in the merged battery's own self_test() which
-    can call check-routing-battery.py's main() directly.
+    Runs 8 boundary fixtures plus 1 named RR-80-01 marker-counting assertion.
+    The K>N rejection sub-test (which calls main()) is NOT included here — it
+    lives in the merged battery's own self_test() which can call
+    check-routing-battery.py's main() directly.
     """
     fixtures: list[tuple[str, str, SubSkill]] = [
         ("pre-mortem_via_skill", _FIXTURE_PREMORTEM_VIA_SKILL, "pre-mortem"),
@@ -786,8 +787,71 @@ def self_test_boundary() -> int:
         if not _run_one_fixture_boundary(name, body, expected):
             all_passed = False
 
+    # ---------------------------------------------------------------------------
+    # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02)
+    #
+    # RR-80-01 is the S-N04 negative-control over-routing residual: the live agent
+    # genuinely over-routes to focused-pre-mortem in 3/5 runs (recorded at 2/5 FAIL
+    # in tests/step0-baseline-v5.3.md).  This offline gate does NOT assert the live
+    # pass rate; it asserts the INTENDED classification via the MIN_HEADER_HITS=2
+    # barrier mechanism (honesty-not-score principle).
+    #
+    # Exact S-N04 prompt (verbatim from tests/step0-fixture-catalog.md line 47,
+    # catalog-independent inline literal per D-04 — grep locates this assertion):
+    #   "We have a written plan to roll out the new authentication system across all
+    #    teams next quarter. Before we lock the timeline, walk through how this could
+    #    go badly — what failure modes should we prepare for?"
+    #
+    # SC#2 mechanism: the focused-output classifier fires pre-mortem ONLY when
+    # _technique_hits returns >= MIN_HEADER_HITS (2) DISTINCT pre-mortem marker
+    # patterns.  The S-N04 prompt produces assistant text that typically contains at
+    # most ONE bare pre-mortem header hit (e.g. "## Pre-Mortem") with no second
+    # distinct marker such as "working backward", "already failed", or "failure causes".
+    # One hit < MIN_HEADER_HITS (2) → pre-mortem does NOT enter the fired set →
+    # classify(fired, composer_hits) returns "none" (live MODE-inference: none →
+    # full-composer).  This assertion proves that one-bare-hit mechanism in isolation.
+    # ---------------------------------------------------------------------------
+    _SN04_PROMPT = (
+        "We have a written plan to roll out the new authentication system across all"
+        " teams next quarter. Before we lock the timeline, walk through how this could"
+        " go badly — what failure modes should we prepare for?"
+    )
+    # Minimal text: exactly ONE distinct pre-mortem pattern fires (the section header),
+    # no second distinct marker (no "working backward", no "already failed", no
+    # "failure causes").  Mirror the _FIXTURE_PREMORTEM_SINGLE_MARKER pattern.
+    _rr8001_text = _fixture_assistant_text(
+        "## Pre-Mortem\n\n"
+        "Here are some general considerations for this plan. "
+        "The team should review each area carefully."
+    )
+    _rr8001_hits = _technique_hits(_rr8001_text)
+    _rr8001_pm_count = _rr8001_hits.get("pre-mortem", 0)
+    _rr8001_fired = {t for t, c in _rr8001_hits.items() if c >= MIN_HEADER_HITS}
+    _rr8001_result = classify(_rr8001_fired, _composer_structure_hits(_rr8001_text))
+
+    _rr8001_assertions_ok = (
+        _rr8001_pm_count == 1
+        and _rr8001_pm_count < MIN_HEADER_HITS
+        and _rr8001_result != "focused-pre-mortem"
+    )
+    if _rr8001_assertions_ok:
+        print(
+            f"  RR-80-01 PASS: one bare pre-mortem hit ({_rr8001_pm_count}) "
+            f"< MIN_HEADER_HITS ({MIN_HEADER_HITS}); "
+            f"classify() returned '{_rr8001_result}' (not 'focused-pre-mortem'). "
+            f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
+        )
+    else:
+        print(
+            f"  RR-80-01 FAIL: pre-mortem hits={_rr8001_pm_count}, "
+            f"MIN_HEADER_HITS={MIN_HEADER_HITS}, "
+            f"classify() returned '{_rr8001_result}' (expected not 'focused-pre-mortem'). "
+            f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
+        )
+        all_passed = False
+
     if all_passed:
-        print(f"self-test PASS (8 fixtures)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 named assertion)")
         return 0
     return 1
 
