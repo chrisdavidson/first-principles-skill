@@ -829,9 +829,23 @@ def self_test_boundary() -> int:
     _rr8001_fired = {t for t, c in _rr8001_hits.items() if c >= MIN_HEADER_HITS}
     _rr8001_result = classify(_rr8001_fired, _composer_structure_hits(_rr8001_text))
 
+    # Counter-check that the focused branch is load-bearing (WR-01 fix): if the
+    # MIN_HEADER_HITS barrier were lowered to 1, this one-hit text WOULD enter
+    # `fired`, and classify() WOULD return "focused-pre-mortem".  Asserting the
+    # positive case makes clause 3 (`_rr8001_result != "focused-pre-mortem"`)
+    # non-vacuous: a regression in classify()'s `n == 1 → focused-<tech>` branch
+    # now fails the assertion instead of passing trivially via the empty-set path.
+    _rr8001_would_fire_at_1 = {t for t, c in _rr8001_hits.items() if c >= 1}
+    _rr8001_at_1_result = classify(
+        _rr8001_would_fire_at_1, _composer_structure_hits(_rr8001_text)
+    )
+
     _rr8001_assertions_ok = (
         _rr8001_pm_count == 1
         and _rr8001_pm_count < MIN_HEADER_HITS
+        and "pre-mortem" not in _rr8001_fired               # barrier holds at MIN_HEADER_HITS=2
+        and "pre-mortem" in _rr8001_would_fire_at_1          # barrier is load-bearing (>=1 would fire)
+        and _rr8001_at_1_result == "focused-pre-mortem"      # mechanism counter-check (focused branch live)
         and _rr8001_result != "focused-pre-mortem"
     )
     if _rr8001_assertions_ok:
