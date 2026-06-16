@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v5.3.md"
+        --baseline "$REPO/tests/step0-baseline-v6.3.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v5.3 baseline .md to this path
+    --baseline PATH     If supplied, write the v6.3 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v5.3"
+_BASELINE_VERSION: str = "v6.3"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -503,7 +503,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v5.3.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v6.3.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -659,17 +659,18 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 80 live re-baseline of Step 0 technique selection,",
-        "following the Phase 79 capture-grounded detector resolution. Phase 79 applied three",
-        "carry-forward provenance fixes (DET-13: S-P01 pre-mortem comment, commit 000cafc;",
-        "DET-14: S-P02 inversion comment, commit 7d4f9fc; DET-15: S-P05 trade-off comment,",
-        "commit 7d4f9fc). No new detector markers were added for S-P01/02/05 because grep proofs",
-        "over all Phase 79 captures confirmed no false-positive-safe phrase exists for those rows.",
-        "The three residuals are carried forward as RR-79-01 (S-P01), RR-79-02 (S-P02),",
-        "and RR-79-03 (S-P05) — renamed from RR-75-01/02/05 after Phase 79 evidence.",
+        "This baseline records the Phase 92 live re-baseline of Step 0 technique selection",
+        "against the Phase 91 rearchitectured detector (`scripts/_battery_core.py`,",
+        "capture-backed `_TECHNIQUE_CATEGORIES` markers, `MIN_HEADER_HITS=2`,",
+        "`_COMPOSER_FOCUS_CEILING=4` unchanged). Phase 91 replaced the prior DET-13/14/15",
+        "comment-provenance markers with live-capture-backed additive markers validated",
+        "over 20 vendored v6.3 captures (REARCH-01/02). The four tracked residuals",
+        "(RR-79-01 S-P01, RR-79-02 S-P02, RR-79-03 S-P05, RR-80-01 S-N04) are resolved",
+        "in-place under their existing IDs: CLOSED at observed K/N if ≥3/5 (min-pass),",
+        "or CARRIED FORWARD with true observed K/N otherwise (D-04/D-05, honesty-not-score).",
         "",
-        "Prior baseline: tests/step0-baseline-v5." + "2.md (Phase 78, commit 6cc52b5) — BATTERY: FAIL,",
-        "P 3/6 (S-P01-06), S-N 4/4; residuals RR-75-01/02/05 renamed RR-79-01/02/03 after Phase 79 evidence.",
+        "Prior baseline: tests/step0-baseline-v5." + "3.md (Phase 80) — BATTERY: FAIL,",
+        "P 3/6 (S-P01-06), S-N 3/4; residuals RR-79-01/02/03 (S-P01/02/05) + RR-80-01 (S-N04) carried forward.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -724,7 +725,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v5.3 baseline .md to this path after the run",
+        help="If supplied, write the v6.3 baseline .md to this path after the run",
     )
     p.add_argument(
         "--quiet",
