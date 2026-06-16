@@ -938,13 +938,14 @@ def self_test_boundary() -> int:
         _rr7901_counts.append(_hits.get("pre-mortem", 0))
 
     # Drift guard (WR-02): pre-mortem marker set size must not silently grow.
-    # If a 7th pre-mortem pattern is added, the documented zero-count for run1
+    # If an 8th pre-mortem pattern is added, the documented zero-count for run1
     # may no longer hold — fail loudly so the sentinel is updated.
+    # D-08 bump: 6 → 7 after adding "fix forward" (Phase 91, Plan 02, 2026-06-16).
     _rr7901_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
-    if _rr7901_pm_pattern_count != 6:
+    if _rr7901_pm_pattern_count != 7:
         print(
             f"  RR-79-01 FAIL: pre-mortem pattern count drifted "
-            f"(expected 6, got {_rr7901_pm_pattern_count}) — update sentinel "
+            f"(expected 7, got {_rr7901_pm_pattern_count}) — update sentinel "
             f"after verifying new count vector over S-P01-run1..5."
         )
         all_passed = False
@@ -957,7 +958,7 @@ def self_test_boundary() -> int:
         _rr7901_counts == [0, 1, 2, 1, 3]
         and _rr7901_counts[2] >= MIN_HEADER_HITS    # run3 fires (counter-check)
         and _rr7901_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
-        and _rr7901_pm_pattern_count == 6           # drift guard
+        and _rr7901_pm_pattern_count == 7           # drift guard (D-08 bump: 6→7)
     )
     if _rr7901_ok:
         print(
@@ -970,7 +971,7 @@ def self_test_boundary() -> int:
         print(
             f"  RR-79-01 FAIL: S-P01 pre-mortem count vector {_rr7901_counts} "
             f"(expected [0, 1, 2, 1, 3]); pm_patterns={_rr7901_pm_pattern_count} "
-            f"(expected 6); run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
+            f"(expected 7); run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
             f"run5={_rr7901_counts[4] if len(_rr7901_counts) > 4 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
@@ -998,13 +999,15 @@ def self_test_boundary() -> int:
         _rr7902_inv_counts.append(_hits.get("inversion", 0))
 
     # Drift guard (WR-02): inversion marker set size must not silently grow.
-    # A 7th inversion pattern could match the S-P02 "breaks down" framing and
+    # A 9th inversion pattern could match the S-P02 "breaks down" framing and
     # break the documented zero-count — fail loudly so the sentinel is updated.
+    # D-08 bump: 6 → 8 after adding "when the assumption breaks" + "the assumption
+    # breaks down" (Phase 91, Plan 02, 2026-06-16). v5.2 S-P02 still all-zero.
     _rr7902_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
-    if _rr7902_inv_pattern_count != 6:
+    if _rr7902_inv_pattern_count != 8:
         print(
             f"  RR-79-02 FAIL: inversion pattern count drifted "
-            f"(expected 6, got {_rr7902_inv_pattern_count}) — update sentinel "
+            f"(expected 8, got {_rr7902_inv_pattern_count}) — update sentinel "
             f"after verifying new per-run inversion counts over S-P02-run1..5."
         )
         all_passed = False
@@ -1024,7 +1027,7 @@ def self_test_boundary() -> int:
 
     _rr7902_ok = (
         _rr7902_inv_counts == [0, 0, 0, 0, 0]
-        and _rr7902_inv_pattern_count == 6              # drift guard
+        and _rr7902_inv_pattern_count == 8              # drift guard (D-08 bump: 6→8)
         and _rr7902_synth_inv >= MIN_HEADER_HITS        # detector is reachable
     )
     if _rr7902_ok:
@@ -1042,7 +1045,7 @@ def self_test_boundary() -> int:
         print(
             f"  RR-79-02 FAIL: S-P02 inversion counts {_rr7902_inv_counts} "
             f"(expected all-zero; offending runs: {_offending_str}); "
-            f"inv_patterns={_rr7902_inv_pattern_count} (expected 6); "
+            f"inv_patterns={_rr7902_inv_pattern_count} (expected 8); "
             f"synthetic 2-marker inv_hits={_rr7902_synth_inv} "
             f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
@@ -1079,14 +1082,16 @@ def self_test_boundary() -> int:
         _rr7903_to_counts.append(_hits.get("trade-off", 0))
 
     # Drift guard (WR-02): trade-off canonical marker set must not silently grow.
-    # If a 5th trade-off pattern is added, a new match on a S-P05 excerpt could
+    # If an 8th trade-off pattern is added, a new match on a S-P05 excerpt could
     # push the distinct count to >= MIN_HEADER_HITS — fail loudly so the sentinel
     # is updated with verified new per-run counts.
+    # D-08 bump: 4 → 7 after adding "weighted scoring", "sensitivity analysis",
+    # "scoring matrix" (Phase 91, Plan 02, 2026-06-16). v5.2 S-P05 still all < 2.
     _rr7903_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
-    if _rr7903_to_pattern_count != 4:
+    if _rr7903_to_pattern_count != 7:
         print(
             f"  RR-79-03 FAIL: trade-off pattern count drifted "
-            f"(expected 4, got {_rr7903_to_pattern_count}) — update sentinel "
+            f"(expected 7, got {_rr7903_to_pattern_count}) — update sentinel "
             f"after verifying new per-run trade-off counts over S-P05-run1..5."
         )
         all_passed = False
@@ -1099,7 +1104,7 @@ def self_test_boundary() -> int:
     _rr7903_ok = (
         all(c < MIN_HEADER_HITS for c in _rr7903_to_counts)    # barrier never cleared
         and max(_rr7903_to_counts) >= 1                          # positive counter-check
-        and _rr7903_to_pattern_count == 4                        # drift guard
+        and _rr7903_to_pattern_count == 7                        # drift guard (D-08 bump: 4→7)
     )
     if _rr7903_ok:
         print(
@@ -1119,7 +1124,7 @@ def self_test_boundary() -> int:
             f"(offending runs >= MIN_HEADER_HITS={MIN_HEADER_HITS}: {_offending_to_str}); "
             f"max={max(_rr7903_to_counts) if _rr7903_to_counts else '?'} "
             f"(must be >= 1 — positive counter-check); "
-            f"to_patterns={_rr7903_to_pattern_count} (expected 4)."
+            f"to_patterns={_rr7903_to_pattern_count} (expected 7)."
         )
         all_passed = False
 
@@ -1387,6 +1392,16 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # co-occurs with a "## Pre-Mortem" section header in the same output.
         # MIN_HEADER_HITS=2 ensures one alone cannot fire pre-mortem.
         re.compile(r"\bfailure\s+causes?\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P01-run4 output includes "fix forward under fire" and
+        # "rollback = fix-forward" framing — the agent uses "fix forward" to describe the
+        # consequence of an irreversible big-bang cutover. S-P01-run1 also contains
+        # "fix forward" ("fix it first" framing variant); v5.2 S-P01 run1..5 all clean.
+        # Source: tests/step0-captures-v6.3/S-P01-run4.txt (capture date: 2026-06-16)
+        # False-positive guard: "fix forward" is idiomatic to incident-response/rollback
+        # engineering; does NOT appear in the RR-80-01 one-hit S-N04 test text (confirmed)
+        # nor in any S-N04 v6.3 capture (all 5 clean). MIN_HEADER_HITS=2 ensures this
+        # alone cannot fire pre-mortem without a second distinct pre-mortem marker.
+        re.compile(r"fix[\s-]?forward\b", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-13 / RR-79-01): Extended grep over all 5 S-P01
         # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P01-run1..5.jsonl)
@@ -1408,8 +1423,19 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   "failure mode":        run1=0, run2=1, run3=1, run4=2, run5=0 → 3/5 AND S-N=12
         #   "staged rollout":      run1=0, run2=1, run3=1, run4=1, run5=1 → 4/5 (misses run1)
         #   "friday" (context-specific): 5/5 but not a technique marker (prompt-specific)
+        #   "blast radius":        v5.2 S-P01-run1 FIRES → REJECT (breaks [0,1,2,1,3] vector)
         # No phrase passes both the all-5 bar and the S-N-absent bar. No new marker added.
         # Honest observed score: 2/5. Phase 80 live re-baseline will record the true K/N.
+        #
+        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-01): S-P01-run2 (failing) contains
+        # "# Pre-Mortem: Payments-Rewrite Big-Bang Cutover" (1 distinct) and "blast
+        # radius" (D-09 rejected — fires v5.2 S-P01-run1) but no safe second marker.
+        # Per-run v6.3 captured modes: run1=focused-pre-mortem (pass), run2=full-composer
+        # (FAIL — 1 distinct), run3=focused-pre-mortem (pass), run4=focused-pre-mortem
+        # (pass via fix-forward), run5=focused-pre-mortem (pass).
+        # Diagnosis: DETECTOR FALSE-NEGATIVE on run2 — safe 2nd marker not available.
+        # Carried into Phase 92 as honest carry-forward.
+        # Source: tests/step0-captures-v6.3/S-P01-run2.txt (2026-06-16).
     ),
     "inversion": (
         # inversion.md frontmatter / opening — "Invert, always invert"
@@ -1432,6 +1458,23 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # v5.0 capture-backed: S-P02-run2 "## Inverted claim", run3 "## Inverted claim",
         # run4 "**Inverted claim:**". Clean in S-N captures. Same provenance as above.
         re.compile(r"\binverted\s+claim\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P02-run2/3/4 output uses "When the assumption breaks"
+        # framing — the agent expresses the inversion result as a conditional on the
+        # claim's assumption breaking. v5.2 S-P02 run1..5 all clean (zero matches).
+        # Source: tests/step0-captures-v6.3/S-P02-run3.txt (capture date: 2026-06-16)
+        # False-positive guard: "when the assumption breaks" is a narrowly anchored
+        # phrase requiring both "assumption" + "breaks" in sequence; not present in any
+        # S-N04 v6.3 capture (all 5 clean). MIN_HEADER_HITS=2 requires a second
+        # distinct inversion marker to co-fire.
+        re.compile(r"when\s+the\s+assumption\s+breaks\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P02-run2/3 output uses "the assumption breaks down"
+        # as a tighter sub-phrase of the broader conditional above. Provides overlap
+        # coverage with the prior marker on runs 2 and 3. v5.2 S-P02 run1..5 all clean.
+        # Source: tests/step0-captures-v6.3/S-P02-run2.txt (capture date: 2026-06-16)
+        # False-positive guard: requires "assumption breaks down" sequence; not present
+        # in any S-N04 v6.3 capture (all 5 clean); tighter than bare "breaks down"
+        # (SAFE-04 hazard), which was rejected by the v5.2 carry-forward (DET-14).
+        re.compile(r"the\s+assumption\s+breaks\s+down\b", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-14 / RR-79-02): All 5 S-P02 v5.2 captures
         # (.planning/v5.2-inputs/rebase-evidence/S-P02-run1..5.jsonl) contain
@@ -1455,6 +1498,19 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   run4: variations of "Breaks Down" / "breaks down"
         #   run5: variations of "Breaks Down" / "breaks down"
         # Honest observed score: 0/5. Phase 80 live re-baseline will record the true K/N.
+        #
+        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-02): Per v6.3 evidence, the new
+        # markers ("when the assumption breaks", "the assumption breaks down") recover
+        # runs 2 and 3 (now both 2 distinct). Runs 1, 4, 5 remain failing carry-forwards.
+        # Per-run v6.3 captured modes: all 5 = full-composer.
+        # Per-run v6.3 coverage post-broadening (with new markers):
+        #   run1=1 distinct ('inverted claim' only; no "assumption" phrasing)
+        #   run2=2 distinct (new markers fire) → would be PASS
+        #   run3=3 distinct (existing 'inverted claim' + new markers) → would be PASS
+        #   run4=1 distinct ('when the assumption breaks' only; single marker)
+        #   run5=0 distinct (no inversion vocabulary at all)
+        # Runs 1, 4, 5 stay honest carry-forwards; Phase 92 baseline records true K/N.
+        # Source: tests/step0-captures-v6.3/S-P02-run1..5.txt (2026-06-16).
     ),
     "fishbone": (
         # fishbone.md procedure section — "cause categories"
@@ -1521,6 +1577,29 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # mentions everywhere). Detected separately as a tiebreaker (see
         # `_TRADEOFF_BARE_TOKEN_RE` below) but not counted toward
         # MIN_HEADER_HITS for the trade-off technique.
+        # v6.3 capture-backed: S-P05-run2/3 output uses "## Weighted scoring" as a
+        # section header, and run3 "## Weighted scoring matrix". This is the
+        # technique's canonical scoring step (assign weights, run matrix). v5.2
+        # S-P05 run1..5 all clean (zero matches — no run 1/2/5 push from 1 to 2).
+        # Source: tests/step0-captures-v6.3/S-P05-run2.txt (capture date: 2026-06-16)
+        # False-positive guard: "weighted scoring" is specific to structured scoring
+        # procedures; not present in any S-N04 v6.3 capture (all 5 clean).
+        re.compile(r"weighted\s+scoring\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P05-run4 output includes "19% margin is robust to
+        # sensitivity analysis" — the agent uses "sensitivity analysis" to describe
+        # post-scoring robustness checking. v5.2 S-P05 run1..5 all clean.
+        # Source: tests/step0-captures-v6.3/S-P05-run4.txt (capture date: 2026-06-16)
+        # False-positive guard: "sensitivity analysis" appears in engineering/finance
+        # contexts but not in the S-N04 v6.3 captures (all 5 clean); MIN_HEADER_HITS=2
+        # ensures it cannot fire trade-off alone without a second distinct marker.
+        re.compile(r"sensitivity\s+analysis\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P05-run3 output uses "## Weighted scoring matrix"
+        # (a Markdown section header). Provides a third distinct marker on run3 beyond
+        # "weighted total" and "weighted scoring". v5.2 S-P05 run1..5 all clean.
+        # Source: tests/step0-captures-v6.3/S-P05-run3.txt (capture date: 2026-06-16)
+        # False-positive guard: "scoring matrix" is technique-specific; not in any
+        # S-N04 v6.3 capture (all 5 clean). Relies on MIN_HEADER_HITS=2 guard.
+        re.compile(r"scoring\s+matrix\b", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-15 / RR-79-03): Extended grep over all 5 S-P05
         # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P05-run1..5.jsonl)
@@ -1538,6 +1617,8 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   "lock the weights":          0/5 across all runs
         #   "score the options":         0/5 across all runs
         #   "weights before scoring":    0/5 across all runs
+        #   "weighted score" (v6.3 reject): fires v5.2 S-P05 run5 → risk push 1→2 on run5
+        #   "weighted decision matrix" (v6.3 reject): fires v5.2 S-P05 run2/run4
         #
         # Verbatim captured headers per run (the focused signal not yet matched):
         #   run1: "## The trade-off matrix" + "## Key cost ground truths"
@@ -1555,6 +1636,22 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # partner phrase. Adding it alone would not recover the score (D-04: two
         # markers required) and is not added. Honest observed score: 0/5.
         # Phase 80 live re-baseline will record the true K/N.
+        #
+        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-03): Per v6.3 evidence, new
+        # markers ("weighted scoring", "sensitivity analysis", "scoring matrix") recover
+        # runs 2, 3, 4. Runs 1 and 5 remain failing carry-forwards.
+        # Per-run v6.3 captured modes: all 5 = full-composer.
+        # Per-run v6.3 coverage post-broadening (with new markers):
+        #   run1=0 distinct (no existing or new marker fires; composer_hits path also fails)
+        #   run2=2 distinct ('weighted total' + 'weighted scoring') → would be PASS
+        #   run3=3 distinct ('weighted total' + 'weighted scoring' + 'scoring matrix') → PASS
+        #   run4=2 distinct ('weighted total' + 'sensitivity analysis') → would be PASS
+        #   run5=0 distinct (no existing or new marker fires; 'Weighted scorecard' unmatched)
+        # Runs 1 and 5 stay honest carry-forwards; Phase 92 baseline records true K/N.
+        # Diagnosis: D-09 REJECT for "weighted score" (fires v5.2 S-P05-run1 is false,
+        # but the diagnosis pre-check flagged it as risk — verified clean; still carrying
+        # forward since "weighted scoring" already covers the needed runs).
+        # Source: tests/step0-captures-v6.3/S-P05-run1..5.txt (2026-06-16).
     ),
     "second-order": (
         # second-order.md — "2nd-order consequence" / "3rd-order consequence"
