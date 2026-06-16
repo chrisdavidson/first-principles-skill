@@ -350,9 +350,6 @@ def test_active_tail_items_present() -> None:
     in Phase 93, D-08; RR-92-01/02 renamed from RR-79-02/03 in Phase 93, D-04).
     The coverage_tier check was removed because tiers are now mixed non-gap values
     (reproducible for all 7 rows after the Phase 93 GEN-01 flip).
-
-    RED in Plan 01 (build_matrix_rows() is a stub with no active-tail rows);
-    GREEN once Plan 02 Task 1 curates the active tail.
     """
     mod = _load_check_traceability()
     rows = mod.build_matrix_rows()

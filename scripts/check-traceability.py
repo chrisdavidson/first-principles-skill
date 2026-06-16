@@ -947,11 +947,13 @@ _SEVERITY_LABEL: dict[tuple[str, str], str] = {
 # all other rows continue to use the _SEVERITY_LABEL 2×2 map.
 _ACTIVE_TAIL_SEVERITY: dict[str, str] = {
     "RR-80-01": "CRITICAL",   # negative-control regression in step0-baseline
-    # GEN-01 removed — now "scheduled" (committed future milestone GEN-01-REARCH)
+    # GEN-01 removed — now "reproducible" (committed v6.3 live re-baseline, Phase 92)
     # GEN-02 removed — now "reproducible" (runbook + wrapper script, Phase 89)
     "RR-79-01": "HIGH",       # live S-P routing unresolved
-    "RR-79-02": "HIGH",       # live S-P routing unresolved
-    "RR-79-03": "HIGH",       # live S-P routing unresolved
+    # RR-92-01 supersedes RR-79-02 (Phase 92 v6.3 carry-forward, S-P02 inversion CARRIED 0/5)
+    "RR-92-01": "HIGH",       # live S-P routing unresolved
+    # RR-92-02 supersedes RR-79-03 (Phase 92 v6.3 carry-forward, S-P05 trade-off CARRIED 1/5)
+    "RR-92-02": "HIGH",       # live S-P routing unresolved
     "RR-77-08": "MEDIUM",     # ceiling warning, non-blocking
 }
 

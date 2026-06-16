@@ -1117,11 +1117,6 @@ def self_test_boundary() -> int:
             f"inv_patterns={_rr9201_inv_pattern_count}."
         )
     else:
-        _offending = [
-            f"run{i+1}={c}" for i, c in enumerate(_rr9201_inv_counts) if c not in (0, 1, 2)
-            or (i == 0 and c != 1) or (i == 1 and c != 1) or (i == 2 and c != 2)
-            or (i == 3 and c != 0) or (i == 4 and c != 0)
-        ]
         print(
             f"  RR-92-01 FAIL: S-P02 inversion count vector {_rr9201_inv_counts} "
             f"(expected [1, 1, 2, 0, 0] from v6.3 S-P02 captures); "
