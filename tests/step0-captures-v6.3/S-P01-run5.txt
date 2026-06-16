@@ -1,0 +1,20 @@
+The first-principles pre-mortem is complete. Here's the summary:
+
+## Pre-Mortem: Payments-Rewrite Big-Bang Cutover
+
+The analysis worked backward from "it's the Friday after launch and it failed badly" and reduced ten raw failure causes into **three reinforcing structural weaknesses**:
+
+**Cluster A — No reversibility.** Big-bang to 100% removes every safety gradient at once: no canary, no rollback gradient, no partial blast radius. The first defect is also the maximum defect. The load-bearing unknown: *has rollback to legacy actually been tested end-to-end?* If not, it's likely impossible once the new service owns the source of truth.
+
+**Cluster B — Unverifiable correctness reaches production cold.** The most failure-prone surfaces — in-flight state migration (saved cards, subscriptions, pending charges), real-issuer 3DS/SCA flows, webhook idempotency, money reconciliation, VAT/rounding — are exactly the ones that *cannot* be fully validated pre-prod (test cards don't exercise real issuer behavior), yet they all go live at full scale with no observation phase.
+
+**Cluster C — Time pressure as root cause.** A fixed Friday date plus a weekend launch (skeleton on-call) is forcing the cut and shrinking detection/recovery capacity. The deadline is likely driving readiness rather than following from it.
+
+### Recommended plan changes (not "don't ship")
+- **Reversibility (highest leverage):** Add a staged rollout (1%→5%→25%→100%) or dual-write/shadow traffic. If no-staged-rollout is truly fixed, a *tested, rehearsed rollback* becomes mandatory and blocking.
+- **Correctness:** Run the new service in shadow mode against live traffic (compare to legacy, move no money); stand up automated Stripe-ledger-vs-service reconciliation with alerting; explicitly test 3DS, token migration, idempotency, VAT.
+- **Timing:** Don't launch on a Friday — move to early in the week with full on-call.
+
+**Confidence:** HIGH that the combination (big-bang + unverifiable correctness + Friday + untested rollback) is structurally fragile; MEDIUM on specific failure modes pending verification.
+
+**The one question to answer before Friday:** Has rollback to legacy actually been tested end-to-end? If the honest answer is no, the no-staged-rollout decision should be reversed.

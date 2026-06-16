@@ -1,0 +1,35 @@
+The first-principles agent completed the trade-off analysis. Here are its findings:
+
+# Database Trade-Off Analysis — First-Principles Verdict
+
+**Recommendation: Managed PostgreSQL (RDS or Aurora)** — weighted score **93** vs MongoDB **84** vs DynamoDB **70**.
+
+## The key reframe
+All three options fit comfortably under $3k/month at 500 writes/sec, so **budget is not your binding constraint**. The decision turns on *correctness-model fit*, not cost.
+
+## Verified ground truths
+- **500 w/s = 1.314B writes/month** (sustained worst case).
+- **PostgreSQL**: ~$700–1,100/mo all-in for a Multi-AZ instance that handles 500 w/s with full ACID and large headroom.
+- **DynamoDB cost is mode-dependent** — and the common "on-demand is cheapest" belief is **false at this volume**:
+  - On-demand *transactional* writes ≈ **$1,642/mo** (writes only, before reads/GSIs)
+  - Provisioned ≈ **$474/mo**; provisioned + reserved ≈ **$142–237/mo**
+- **DynamoDB transactions are capped at 100 items / 4MB, single-table** (GT-6) — not general-purpose cross-entity ACID.
+- **MongoDB Atlas** M30/M40 ≈ $400–800/mo with multi-doc ACID since v4.0.
+
+## Scored trade-off (weighted)
+| Criterion (weight) | Postgres | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional integrity (5) | 5 | 4 | 2 |
+| Write throughput headroom (4) | 4 | 4 | 5 |
+| Cost fit ≤$3k (3) | 5 | 4 | 4 |
+| Operational simplicity (4) | 4 | 4 | 3 |
+| Query flexibility (3) | 5 | 4 | 2 |
+| Scaling ceiling (2) | 3 | 4 | 5 |
+| **Total** | **93** | **84** | **70** |
+
+## The one hinge assumption
+The analysis assumes **"transactional" = relational multi-item ACID** (cart → order → inventory → payment atomic in one commit). This is load-bearing:
+- If **true** → PostgreSQL, HIGH confidence.
+- If your "transactional" really means high-volume *independent* writes → re-weight, and **DynamoDB provisioned (~$474/mo)** becomes the contender.
+
+**Confirm before committing:** does your transactional requirement span multiple entities in a single atomic commit? That answer is the single decision hinge. MongoDB Atlas is the defensible runner-up if your data is naturally document-shaped and you expect to need horizontal write-scaling.

@@ -1,0 +1,23 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## The load-bearing finding
+
+The dominant risk is **structural, not contingent**: "all teams next quarter" is a near-big-bang cutover, and authentication is the one system where big-bang sequencing strips away exactly the safety nets you most need — incremental learning, a working fallback, and an unaffected control group. Auth sits on the critical path of every request (an auth outage is a *total* outage), and cutover is really a data migration of credentials/sessions/roles, with an irreversible failure class on both ends: lock everyone out, or let the wrong people in.
+
+## Failure modes to prepare for, in priority order
+
+1. **Big-bang blast radius** — a defect that only shows under production load hits every team at once, with no unaffected team to learn from. → **Phase it:** pilot 1–2 low-risk teams first.
+2. **No rollback path** — no dual-run window where old and new auth coexist; old-system sessions aren't honored, logging everyone out at cutover. → **Guarantee rollback** and session continuity.
+3. **Silent permission drift** — role/permission mappings don't translate; users quietly lose access or, worse, *gain* it (a quiet privilege escalation). → **Dry-run the migration** at production scale with explicit access-diff verification.
+4. **Slowest team gates everyone** — one team's deeper legacy coupling or already-committed capacity slips the whole all-at-once schedule. → **Verify per-team readiness and capacity** before setting the date.
+5. **Feature-parity gaps** — a capability the old system supported (a grant type, service-to-service tokens, admin impersonation, a legacy SSO config) is missing and found live. → **Build a parity inventory** of what old auth actually does in production.
+6. **The cutover window itself as the vulnerability** — a misconfiguration during transition weakens auth system-wide; third-party IdPs may rate-limit under the new call pattern.
+
+## Key assumptions the agent flagged as unverified and load-bearing
+- That teams actually have spare capacity next quarter (often already committed elsewhere)
+- That the new system is at feature parity with the old
+- That rollback stays possible during cutover
+- That identity data migrates cleanly
+
+**Confidence:** HIGH on the structural conclusion (phase it + guarantee rollback hold regardless of your plan's details), MEDIUM on the specifics, which depend on your environment. The agent offered to sharpen this into a verified assessment if you share the actual plan — sequencing, rollback strategy, migration approach, and per-team readiness.

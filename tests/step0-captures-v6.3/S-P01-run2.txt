@@ -1,0 +1,35 @@
+The first-principles agent completed the pre-mortem. Here's its analysis:
+
+# Pre-Mortem: Payments-Rewrite Big-Bang Cutover (all EU customers, next Friday)
+
+**Verdict: NO-GO on the plan as written.**
+
+## The six structural weaknesses
+The agent reduced dozens of individual failure modes to six underlying flaws:
+
+1. **No reversibility** *(the master flaw)* — big-bang + legacy decommission = irreversible. The moment the new service mutates payment state, there's nothing to flip back to. This turns every other bug into an unrecoverable, company-level incident.
+2. **No blast-radius control** — 100% at once means the minimum incident size is "all EU customers."
+3. **Money correctness is unverifiable before production** — rounding, currency/minor-units, VAT, idempotency never confirmed against real banks or a parallel run. "Tests pass" ≠ "money is right."
+4. **No failure-detection layer** — no reconciliation job, no shadow run, weak alerting → high time-to-detect on errors that compound every minute.
+5. **Compliance treated as inherited, not re-validated** — SCA/3DS, VAT-per-member-state, PCI scope, GDPR all assumed to carry over with no fresh proof.
+6. **Schedule-driven, not readiness-driven** — and Friday is the worst day (weekend on-call, finance off, slowest bank support).
+
+## Top risks ranked (most likely to kill it)
+1. **No rollback on irreversible big-bang** — high × total blast radius (the master risk)
+2. **SCA/3DS failure → mass EU declines** — passes in sandbox, fails in prod
+3. **Double-charges via idempotency/webhook duplication** — most visible, most regulator-attracting
+4. **Saved payment methods / in-flight state migration corruption** — every customer's next charge wrong
+5. **Money errors invisible (no reconciliation)** — accumulate silently for days
+6. **Friday + weekend fragility** — an amplifier on all of the above
+
+## Concrete launch blockers (in order)
+1. Build the safety net first: reconciliation job, per-country/currency dashboards, idempotency + webhook dedupe, and a *tested* one-switch flip-back to legacy
+2. Shadow/parallel run new vs legacy in production (legacy stays authoritative) until money math matches
+3. Verify SCA/3DS with real EU issuer cards in live mode across member states
+4. Migration dry-run + reconciliation of every customer/method/subscription; reuse existing Stripe tokens (don't re-tokenize — confirm PCI scope in writing)
+5. Staged ramp on a business-day morning, fully staffed, with a named rollback DRI and trigger threshold
+6. Decommission legacy only after a full clean billing cycle at 100%
+
+**Bottom line:** Reject both defining constraints — "no staged rollout" (replace with a reversible country-by-country ramp with auto-rollback) and "next Friday" as a hard cutover (gate go-live on readiness criteria, not the calendar). The single most likely cause of death is holding the big-bang Friday date.
+
+The agent offered to turn the launch-blocker list into a go/no-go checklist or readiness scorecard for your decision meeting — let me know if you'd like that.

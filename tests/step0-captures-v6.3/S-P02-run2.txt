@@ -1,0 +1,29 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## The core reframe
+
+"Faster ships → better retention" isn't false — it's **conditional**, and you're running it without instrumenting any of its conditions. Inversion turns the claim into a checklist of six preconditions that must silently hold for ship-speed to convert into retention.
+
+## When the assumption breaks down
+
+The claim fails when **any one** of these preconditions fails (in priority order for a two-week team):
+
+| # | Precondition | Breakdown signal to watch |
+|---|---|---|
+| **P1** | Shipped work comes from validated demand, not backlog convenience | Ship rate flat-or-up while retention flat-or-down |
+| **P6** | Cadence wasn't bought by shortening the validate→build→measure loop | Discovery/research time per feature falling as ship rate rises |
+| **P2** | Defect/regression rate stays flat as cadence rises | Rollback / escaped-bug rate rising with velocity |
+| **P3** | Retention's binding constraint is the product, not price/onboarding/fit | Cohort retention insensitive to releases |
+| **P4** | Value per release > relearning/disruption cost per release | Engagement dip + support tickets rising after each release |
+| **P5** | The improvement surface isn't saturated | Retention-lift-per-release trending toward zero |
+
+## The two that bite first
+
+**Value-decoupling (P1)** and **a compressed feedback loop (P6)** — these are the dangerous ones because going faster actively makes retention *worse*, not just neutral. You industrialize shipping the wrong thing.
+
+## The single highest-value action
+
+**Track retention-lift-per-release, not release count.** The moment ship rate climbs while that number stays flat, P1 or P6 has already broken.
+
+**Caveat from the agent:** every precondition is currently *unverified* because no retention or defect data was supplied. Plug in your actual cohort-retention-vs-release-date series and the analysis sharpens from "where it *could* break" to "where it *is* breaking."

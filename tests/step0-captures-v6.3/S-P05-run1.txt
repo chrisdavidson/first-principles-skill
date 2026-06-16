@@ -1,0 +1,29 @@
+The first-principles agent completed its trade-off analysis. Here's the result:
+
+## Recommendation: PostgreSQL — HIGH confidence (weighted score 91 vs MongoDB 68, DynamoDB 64)
+
+### Why the 500 w/s figure isn't the deciding factor
+The agent's key insight is that **500 writes/second is modest** — all three engines clear it comfortably within budget. So throughput, the headline number in the prompt, was deliberately under-weighted (2/5). The decision is driven instead by the two highest-weighted criteria:
+
+1. **Transactional correctness (weight 5)** — Order placement is an atomic multi-entity operation (order header + line items + inventory decrement + payment). Partial commits corrupt money/inventory state. PostgreSQL does this natively; MongoDB and DynamoDB *can* via multi-document transactions / `TransactWriteItems`, but only off their "happy path" and with caveats.
+2. **Relational data-model fit (weight 4)** — E-commerce entities are inherently relational.
+
+### Scoring summary
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Tx correctness (5) | 25 | 15 | 15 |
+| Data-model fit (4) | 20 | 12 | 8 |
+| Cost predictability (4) | 20 | 16 | 12 |
+| Throughput @500 w/s (2) | 8 | 8 | 10 |
+| Ops simplicity (3) | 12 | 9 | 9 |
+| Scaling ceiling (2) | 6 | 8 | 10 |
+| **Total** | **91** | **68** | **64** |
+
+### Cost finding
+Managed PostgreSQL (RDS/Aurora/Cloud SQL) at a mid-tier instance + read replica runs ≈ **$500–$1,500/month** — well under the $3k budget with headroom. DynamoDB's request/IO-based pricing is the cost-predictability risk (transactional writes cost ~2x).
+
+### The one caveat worth acting on
+The analysis flags that **read load, working-set size, and access patterns were unspecified** (GT-6). The only scenario that would shift the result toward DynamoDB is if the workload is actually small key-lookups at extreme scale with no cross-entity transactions — which contradicts the "transactional e-commerce" framing. To make it unqualified, confirm peak read QPS, working-set size, and that order-placement atomicity is required.
+
+**Next step suggested:** Provision managed PostgreSQL (mid-tier instance + one read replica), model orders/line-items/inventory/payments relationally, and wrap order placement in a single transaction.

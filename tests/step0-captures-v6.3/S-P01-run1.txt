@@ -1,0 +1,36 @@
+I'll invoke the first-principles agent with the exact prompt as instructed.
+The first-principles agent completed the pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite Big-Bang Launch to All EU Customers
+
+**The framing:** It's the Friday after launch. The rewrite is live for 100% of EU customers, legacy Stripe is gone, and the launch has failed. What caused it?
+
+## The structural conclusion
+
+**The launch design is the failure mode — not the code.** Three decisions compound *multiplicatively*:
+
+1. **No staged rollout** → 100% blast radius from minute one. Any latent bug (rounding, currency, timezone, 3DS edge case) hits every customer at once, with no cheap canary to catch it.
+2. **Legacy Stripe removed** → no rollback path. When something breaks at 2am, the only option is "fix forward" under live revenue loss.
+3. **Friday** → minimum staffing during the highest-risk window (the weekend), so MTTR balloons.
+
+The recurring pattern: *this plan removes every cheap, early, reversible failure-detection mechanism simultaneously*, converting any ordinary bug into a maximal-blast, hard-to-reverse, understaffed incident.
+
+## Highest-signal risks (the ones go/no-go meetings suppress)
+
+- A latent bug hits all customers at once with no canary to catch it cheaply
+- No rehearsed rollback — discovered impossible at 2am because legacy webhooks/credentials are already torn down
+- 3DS2/SCA misimplementation for some EU banks shows up as "low conversion," masking a compliance bug
+- Service degrades only at 100% traffic — no smaller cohort ever warned us
+- Plus: double-charge from idempotency gaps, silent token-migration loss, no day-1 reconciliation against Stripe's ledger
+
+## Recommended changes (priority order)
+
+1. **Add a staged ramp** — 1% → 5% → 25% → 100% with auto-rollback on success/decline-rate thresholds. *Highest leverage — defuses the dominant failure mode entirely.*
+2. **Keep legacy Stripe warm** until the new service proves itself at full volume for one billing cycle. Don't decommission on day one.
+3. **Move off Friday** to Tuesday/Wednesday morning.
+4. **Verify the load-bearing unknowns first:** full-volume load test, rehearsed rollback drill, day-1 reconciliation, idempotency proof, token-migration dry-run, SCA/3DS2 conformance across major EU banks.
+5. **Recalibrate alerting** to the new service's failure modes before traffic arrives.
+
+**If you adopt only one: #1** — staged rollout with auto-rollback. It's the cheapest mechanism that restores the early, reversible, low-blast-radius detection this plan currently throws away.
+
+**Confidence:** HIGH on the structural conclusion (follows directly from the no-rollout/no-rollback/Friday facts); MEDIUM on which specific bug fires first — which is exactly the argument for staging it.

@@ -1,0 +1,36 @@
+The first-principles agent completed the trade-off analysis. Here's the result:
+
+---
+
+# Database Selection Trade-Off Analysis
+
+**Recommendation: managed PostgreSQL (AWS RDS or Aurora PostgreSQL). Confidence: HIGH.**
+
+## The reframe that drives everything
+
+The agent's key finding: **500 writes/second is a modest load** that all three engines handle comfortably within the $3k/month budget. So throughput — the thing the framing emphasizes — is *not* the discriminator. The real decision is governed by **transactional correctness** and **relational fit**.
+
+## Verified ground truths
+- **500 w/s is easy for all three** — DynamoDB ~$234/mo provisioned; a mid-tier RDS instance handles thousands of simple writes/s.
+- **E-commerce orders require multi-record atomicity** (order + inventory + payment) or you get overselling/double-charging — this is the load-bearing requirement.
+- **All three fit the budget**: DynamoDB ~$234–700/mo, RDS PostgreSQL ~$700–1,500/mo, Atlas ~$700–2,000/mo.
+
+## Weighted decision matrix
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional correctness (5) | 5 | 4 | 3 |
+| Relational fit (4) | 5 | 3 | 2 |
+| Cost at load (3) | 3 | 3 | 5 |
+| Operational fit (3) | 4 | 3 | 4 |
+| Scalability headroom (2) | 3 | 4 | 5 |
+| Portability / low lock-in (3) | 5 | 4 | 1 |
+| **Weighted total** | **87** | **70** | **63** |
+
+PostgreSQL wins decisively, and the 19% margin is robust to sensitivity analysis — flipping to DynamoDB requires zeroing out relational-fit and portability, which contradicts the relational reality of e-commerce data.
+
+## Two open items to confirm before sign-off
+1. **Load profile** — is 500 w/s sustained or a brief daily peak? Doesn't change the recommendation, but affects instance sizing/cost headroom.
+2. **Team competency** — the analysis assumes a small, relationally-competent team. If the team is deeply NoSQL-native *and* the product is genuinely document-shaped, re-weight and MongoDB becomes competitive. This is the assumption most likely to move the result.
+
+**Reconsider DynamoDB only if** the access pattern is provably key-value, reporting lives in a separate system, and AWS lock-in is acceptable.

@@ -1,0 +1,24 @@
+The first-principles agent completed the inversion. Here's what it found:
+
+## The inverted claim
+"Faster shipping does **not** improve retention" — it leaves it flat or actively lowers it.
+
+## When the assumption breaks down — 3 watch conditions
+
+**1. Wrong lever (most likely breakdown)**
+Your dominant churn cause isn't something shipping speed touches — it's price, market fit, a missing capability, or a user segment velocity can't reach. The claim silently assumes your retention bottleneck is addressable by incremental shipping.
+→ *Test:* tag your churn reasons. If the top reasons aren't "stale product / missing fixes," cadence is the wrong lever.
+
+**2. No perceived value**
+You ship faster, but increments carry no user-visible value, or users never learn the releases happened (silent backend ships, no changelogs). The link depends on *value delivered and perceived* — not *releases counted*.
+
+**3. Change cost exceeds change benefit**
+Past some rate, faster shipping raises defect/regression rates and imposes change fatigue, retraining, and broken-workflow costs. The real relationship is an **inverted-U, not a line** — "faster is always better" is false at the limit, even if two weeks is currently fine.
+
+## The load-bearing caveat
+Every precondition is **unverified for your product** — the agent had no data on your churn drivers, quality trends, or perceived value. The fastest way to ground this:
+
+- Pull your **last two quarters of churn reasons** → if dominated by non-velocity causes, the assumption is *already* broken for you now.
+- Pull your **defect-rate-vs-cadence trend** → if quality degrades as cadence rises, you're on the downslope of the inverted-U.
+
+**Bottom line:** the assumption holds only if you're shipping the *right things*, at *constant quality*, to a *segment velocity can reach*. Frequency alone guarantees none of those three.

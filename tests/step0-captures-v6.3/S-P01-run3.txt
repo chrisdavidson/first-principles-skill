@@ -1,0 +1,36 @@
+I'll invoke the first-principles agent with the exact prompt as specified.
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite EU Launch
+
+**Core verdict (HIGH confidence): The launch as scoped is structurally fragile — and the fragility doesn't depend on any specific bug. It follows directly from the design itself.**
+
+### The root structural weakness
+Every major failure mode traces to **two compounding decisions**:
+- **No staged rollout** → removes your ability to *limit* damage (blast radius = 100% of EU customers from minute one)
+- **Friday before a weekend** → removes your ability to *respond* to it (failure surfaces under peak weekend traffic with skeleton staffing)
+
+Together they convert any single bug into a maximal-blast-radius, slow-recovery, possibly-irreversible financial incident.
+
+### Top failure causes
+1. **100% blast radius** — first production-only bug hits everyone at once; no canary catches it
+2. **Friday-night failure, skeleton crew** — worst time to detect and recover
+3. **No tested rollback / one-way door** — the most dangerous and least-discussed item; if legacy Stripe is decommissioned or drifts out of sync, you can't fall back
+4. **Payment-method parity gaps** — SEPA, iDEAL, Bancontact, 3DS/SCA likely under-tested vs. card happy-path
+5. **Correctness bugs that lose/double money** — idempotency/webhook-ordering issues found days later in reconciliation
+6. **Load collapse** — new service has never seen peak EU volume
+7. **Regulatory breach** — SCA/PSD2 regression or data-residency misconfig becomes a fine, not just an incident
+8. **No clean detection signal** — without a control group, a 5% success drop looks like "normal Friday variance"
+
+### Recommended changes (priority order)
+1. **Add a staged rollout** (1% → 10% → 50% → 100%) — the single structural fix; neutralizes failure modes #1, #4, #6, #8
+2. **Don't launch Friday** — move to a fully-staffed Tue/Wed morning
+3. **Prove rollback before cutover** — keep legacy Stripe warm and in-sync, rehearse the fallback
+4. **Get compliance sign-off + full payment-method parity matrix** before go
+5. **Define kill-switch criteria + live reconciliation check** on day one
+
+**If only one thing changes: add the staged rollout.** Everything else is mitigation around a design that doesn't need to be this risky.
+
+**Key caveat flagged:** the load-bearing unknown is whether a tested rollback path exists (legacy Stripe staying warm). If rollback is genuinely real, the irreversibility risk drops sharply — verify that next.
+
+The agent offered to turn this into a concrete go/no-go checklist or a staged-rollout ramp plan with kill-switch thresholds. Want me to have it do either?

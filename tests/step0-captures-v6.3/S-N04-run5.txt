@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## First-Principles Pre-Mortem: Authentication Rollout
+
+The agent ran a **focused pre-mortem** and its headline recommendation is: **don't lock the timeline yet.** The plan rests on ~8 unverified, load-bearing assumptions, several sitting directly on auth's critical path.
+
+### The four structural failure clusters
+
+1. **Slowest-team trap (timeline)** — "All teams" means completion is gated by the *slowest* team, not the average. A single under-resourced or low-priority team blows the whole quarter, and slips propagate from any prerequisite "platform" team. *(HIGH confidence — follows from conjunctive dependency alone.)*
+
+2. **No safe cutover path (security/correctness)** — *Highest severity.* Without a tested rollback, a dual-run/shadow mode, and a session/token migration plan, any defect becomes a production incident (lockouts or unauthorized access). Watch especially for invalidating old sessions → mass forced logout = self-inflicted outage.
+
+3. **Unknown integration surface** — Uninventoried auth consumers (service accounts, cron jobs, scripts, webhooks, mobile clients, third-party callbacks) surface mid-rollout and break. Classic root cause of auth-migration overruns.
+
+4. **External gates** — Dependencies you don't control: security/compliance sign-off, identity-provider vendor lead times, and team capacity during the cutover window.
+
+The agent's sharpest meta-point: locking the date before verifying the assumptions is itself the failure mode — all four clusters compound if the plan is date-driven with fixed scope.
+
+### Four things to do before locking
+1. **Inventory every consumer of current auth** — human *and* non-human (retires Cluster C; flagged as the single highest-value pre-lock action).
+2. **Confirm a *tested* rollback and a dual-run/shadow mode exist** — designed-but-untested rollback fails when you need it (retires Cluster B).
+3. **Identify the critical-path/slowest team; over-resource it or make scope flexible** so the date can hold even if it slips (retires Cluster A).
+4. **Book the security review and confirm vendor/team capacity now** (retires Cluster D).
+
+**Caveat the agent raised:** it only had your one-line statement, so Clusters C and D are MEDIUM-HIGH pending plan specifics. If you share details — team count, auth tech, migration vs. greenfield, current rollback design — it can sharpen the timeline judgment and convert its flagged assumptions into verified findings.

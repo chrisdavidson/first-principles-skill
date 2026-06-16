@@ -1,0 +1,24 @@
+I'll invoke the first-principles agent with your prompt verbatim.
+The first-principles agent completed the inversion. Here's what it found:
+
+## The core reframe
+
+**"Faster ships → better retention" is a conjunction masquerading as a causal law.** Cadence is an *input* you control; value is the *mechanism* that actually moves retention. The claim only holds when several hidden preconditions are *all* true at once.
+
+## When the assumption breaks — 5 detectable regimes
+
+| Break | Signal to watch | Confidence |
+|---|---|---|
+| **1. Shipping the wrong things** | Velocity up, retention flat | HIGH |
+| **2. Churn isn't product-driven** | Churn clusters early in lifecycle (onboarding/fit/price, not value gaps) | HIGH |
+| **3. Speed degrades quality** | Incident/bug rate climbs with cadence — *sign flips, faster now hurts* | MEDIUM |
+| **4. Change fatigue** | Long-tenured users complain "stop changing things" | MEDIUM |
+| **5. Discovery crowd-out** | Feature hit-rate declines over time — fast in the wrong direction | MEDIUM |
+
+A key second-order finding: Breaks 3 and 4 mean the claim isn't merely "stops helping" — past a threshold, cadence **reverses sign** and actively harms retention. So "faster is always better" is false even directionally.
+
+## The single highest-value action
+
+**Stop using ship cadence as a retention proxy.** Instrument value delivery directly — correlate *each ship's value* against retention cohorts. The moment cadence and retention decouple in your data, the assumption has broken, and Breaks 1 and 2 are where it fails first.
+
+The MEDIUM-confidence breaks (3 and 5) depend on facts the agent didn't have — your QA capacity and discovery hit-rate. Checking defect-rate-vs-cadence and feature-hit-rate trends would firm those up.

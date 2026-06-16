@@ -1,0 +1,26 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Authentication Rollout
+
+The agent reframed your question as a **pre-mortem** ("it's end of quarter, the rollout failed — what caused it?") and reached a sharp central conclusion:
+
+> **The biggest risks aren't in the auth technology — they're in the *delivery shape*: simultaneous, fixed-date, all-teams.** That shape maximizes blast radius, removes phasing as a pressure valve, and pushes risk onto quality.
+
+### Two facts to verify *before* locking the timeline
+Nearly every mitigation depends on these, and they're currently unverified:
+1. **Can old and new auth coexist?** (Determines whether phased rollout is even possible.)
+2. **Is there a *tested* rollback path?** (Without it, the rollout is a one-way door under pressure.)
+
+### Five failure modes to prepare for (priority order)
+1. **Org-wide blast radius** — auth is on the critical path for every action; a simultaneous all-teams cutover turns any single defect into an org-wide outage. → *Phase it; start with a canary cohort.* (Highest leverage.)
+2. **No safe retreat** — credential cutover is irreversible without an explicit rollback. → *Drill rollback live; keep the old system warm through a soak period.*
+3. **Quality squeezed by the date** — with date and scope fixed, testing/QA becomes the release valve, which directly raises security-incident risk. → *Make first-wave scope the flex variable; set a non-waivable security/test gate.*
+4. **Late discovery of edge cases** — "all teams" hides heterogeneity: service accounts, machine identities, legacy apps, and dirty identity data (orphaned/duplicate accounts, stale role grants). → *Run a discovery/inventory sprint now, before the lock.*
+5. **Support flood + key-person bottleneck** — auth friction is felt instantly by everyone; the few people who understand both systems become a chokepoint. → *Wave-tied surge support; cross-train the experts.*
+
+### Notable methodological flag
+The agent called out that **#2 (no real rollback), #3 (timeline squeezes QA), and the key-person bottleneck** are the failure modes most likely to go *politely unsaid* in a planning meeting committed to the timeline — organizational rather than technical failures — and therefore high-signal.
+
+**Confidence: MEDIUM.** The structural patterns are high-confidence (they follow from the nature of auth and the plan's shape). The specific likelihoods are medium because the agent worked only from your high-level description, not the actual plan document.
+
+It offered to sharpen the analysis if you share whether the rollout is genuinely big-bang vs. already phased, and whether a tested rollback exists — those two answers move the whole picture. Want me to send the plan details back to it?

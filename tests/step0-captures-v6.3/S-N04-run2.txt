@@ -1,0 +1,27 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Authentication Rollout Failure Modes
+
+The agent reframed your "lock the timeline" question into a pre-mortem — imagining the rollout *has already failed* and working backward. A key insight up front: a rollout can **hit its dates and still fail** (users locked out, security regression, silent fallback), so it analyzed both "missed the date" and "hit the date but failed."
+
+### The dominant failure pattern
+**Correlated, all-at-once cutover with an untested rollback and unverified team capacity.** Because authentication is on the critical path for every app it fronts, failures are *total, not partial* — and a simultaneous all-teams cutover means one shared defect hits everyone at once, with no unaffected team to learn from.
+
+### Five failure clusters
+- **A — Big-bang correlated failure:** A single shared-layer defect locks out all teams simultaneously; no canary, so you find out in production. The slowest team also becomes the long pole.
+- **B — Theoretical rollback:** A blocking bug hits, but the rollback was never actually tested and doesn't work → extended outage.
+- **C — Dirty identity data:** Stale/mis-mapped users and roles cause lockouts or over-permissioned access (a security finding), and cleanup blows the schedule.
+- **D — Team capacity / long pole:** The timeline assumes slack teams don't have; auth integration competes with their own roadmaps and slips.
+- **E — Cutover-day operational gaps:** No clear incident owner when login breaks; help-desk unbriefed and overwhelmed by lockout/reset volume.
+
+The agent also ran an **adversarial check** flagging the socially-costly-but-high-signal risks a group meeting would suppress: "the all-at-once date is political, not technical," "team X already told us informally they can't make it," and "we've never actually run the rollback."
+
+### Three gating preconditions (before locking the timeline)
+1. **Phase the rollout** — pilot → cohort → rest, not all teams at once (highest-leverage change).
+2. **Prove the rollback and a parallel-run window** by *testing* them, not designing them.
+3. **Get written per-team capacity confirmation** and **audit identity data quality** this quarter.
+
+**Confidence: MEDIUM** — grounded in how auth rollouts characteristically fail, but several assumptions are unverified because the agent worked without your actual plan document. It asks two questions to sharpen to HIGH: **Is the cutover currently all-teams-at-once or phased, and does a tested rollback exist?**
+
+If you'd like, share the plan (cutover shape, rollback design, per-team integration status) and I can have the agent tighten the analysis to your specifics.

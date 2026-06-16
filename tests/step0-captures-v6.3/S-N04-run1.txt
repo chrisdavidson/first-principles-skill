@@ -1,0 +1,24 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+## Pre-Mortem: Auth Rollout Failure Modes
+
+The agent ran a working-backward pre-mortem and prioritized the risks that tend to get quietly waved through in planning meetings. One framing note up front: it couldn't ask you clarifying questions, so it **assumed worst-case defaults** (a migration from an existing system, near-simultaneous cutover, untested rollback, compliance exposure). If those are wrong, several top risks de-escalate.
+
+### P0 — Fix before locking the timeline
+1. **The rollback is theater** — an untested rollback is a wish. Test it end-to-end in a prod-mirror, keep the old system in warm dual-run, and add a dated point-of-no-return gate. *(Highest-leverage action.)*
+2. **Unbounded blast radius from a big-bang cutover** — auth is a synchronous dependency for nearly everything. Phase by cohort/rings with per-ring go/no-go gates.
+3. **The dependency surface is unknown** — the real trust inventory is always bigger than the documented one. Especially **service accounts, machine identities, and break-glass admin accounts**. Discover it from IdP logs/configs, not memory.
+
+### P1
+4. **Calendar-driven date** — if "next quarter" is for optics, safety work gets compressed first. Make cutover evidence-gated, not date-gated.
+5. **Partial failure is invisible / success is mis-defined** — define success as a measured "user-can-work" SLO with per-cohort dashboards live *before* cutover.
+6. **Enrollment throughput is the hidden bottleneck** — MFA enrollment is per-user human work; a compressed cutover creates a helpdesk storm. Pre-enroll, stagger, staff up, and build a path for no-smartphone/frontline/contractor users.
+
+### P2
+7. **Silent security/compliance regressions** — fail-open authz, weaker session/MFA defaults, broken audit-log continuity. Default-deny, verify audit continuity across the boundary.
+8. **Users self-route to shadow credentials** — a rough cutover recreates the fragmentation you're trying to eliminate. Name one accountable decision-owner; pre-brief every team.
+
+### Five unknowns that would sharpen the ranking
+Build vs. buy vs. OSS · greenfield vs. migration · scale + internal-vs-customer-facing · whether a real rollback/dual-run period exists · compliance exposure (SOC2, MFA mandate, audit).
+
+If you answer those five, the agent can re-rank into a tighter, higher-confidence list (continue it via agent `a8130809d4622d381`).

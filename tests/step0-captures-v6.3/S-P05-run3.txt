@@ -1,0 +1,35 @@
+The first-principles agent completed the analysis. Here's its trade-off study:
+
+# Database Selection: First-Principles Trade-off Analysis
+
+**Recommendation: PostgreSQL (managed — RDS or Aurora)** — wins decisively (91 vs MongoDB 71 vs DynamoDB 67).
+
+## Key insight
+The triggering framing (throughput + cost) is misleading. At 500 writes/s (~1.8M/hr) and a $3k/month ceiling, **all three options fit budget and throughput easily** — so neither dimension actually decides anything. The real discriminator is **transactional correctness fit** and **access-pattern flexibility**, which "transactional e-commerce" demands.
+
+## Weighted scoring matrix
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Tx correctness fit (5) | 5 | 3 | 2 |
+| Cost fit (4) | 4 | 3 | 4 |
+| Access-pattern flexibility (4) | 5 | 4 | 2 |
+| Operational simplicity (3) | 4 | 4 | 5 |
+| Throughput + headroom (2) | 4 | 4 | 5 |
+| Ecosystem maturity (2) | 5 | 4 | 4 |
+| **Weighted total** | **91** | **71** | **67** |
+
+## Reasoning per option
+- **PostgreSQL** — Only option with full multi-table ACID at arbitrary scope; ~$300–900/mo managed; arbitrary-query flexibility for evolving e-commerce requirements.
+- **MongoDB** — Multi-document transactions supported since 4.0 but not design-optimal; its document-flexibility strength isn't what a transaction-heavy order/payment/inventory core needs. Viable but dominated.
+- **DynamoDB** — Transactions capped at 100 items/4MB, 2× write cost, single-region, and demands upfront access-pattern lock-in. Rejected for this case **unless** the real requirement is multi-region active-active (Global Tables), which would flip its standing.
+
+## Two flagged caveats that could change the verdict
+1. **Region count (unverified):** Multi-region active-active strongly favors DynamoDB Global Tables — re-run if that's a real requirement.
+2. **Read:write ratio (unverified):** Extreme read load adds Postgres read replicas (+cost); still expected under $3k near-term but worth confirming.
+
+**Confidence: HIGH.** Cost figures are order-of-magnitude (directionally safe — all well under $3k) but should be confirmed against a current AWS calculator before sign-off.
+
+**Next action the agent recommends:** confirm region count and read:write ratio; if single-region (the stated assumption), proceed with managed PostgreSQL.
+
+The agent offered two follow-ups if you want them: (a) concrete sizing + a current AWS pricing estimate for a specific RDS/Aurora instance class, or (b) re-running the matrix under a multi-region assumption to pressure-test the DynamoDB case. Just let me know.

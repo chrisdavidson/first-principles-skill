@@ -1,0 +1,25 @@
+The first-principles agent completed the inversion analysis. Here's what it found.
+
+## The inverted claim
+"Faster shipping **fails to improve, or actively harms,** retention."
+
+This becomes true whenever any one of **six silent preconditions** your assumption depends on breaks. For each, the agent identified the observable signal to watch:
+
+| # | Your assumption breaks when… | Watch this signal |
+|---|---|---|
+| **1. Wrong thing, faster** | You ship things users don't want | Velocity rises but feature-adoption stays flat; usage stuck in old features |
+| **2. Speed costs quality** | Cadence pressure shrinks scope/QA | Escaped-defect rate, rollback rate, P1 incidents climb per release |
+| **3. Users can't absorb the pace** | Change rate exceeds tolerance | "Where did X go?" support spikes, opt-out/settings usage rises after releases |
+| **4. Velocity isn't the binding lever** | Retention gated by onboarding/pricing/fit | Retention flat or falling *while* velocity rises; drop-off concentrated at onboarding |
+| **5. Invisible ships** | Releases are mostly internal (refactors/infra) | High release count, no user-perceived value |
+| **6. Speed funded by cutting retention work** | Research/support/polish sacrificed for cadence | Support response degrading, "feels rushed" churn reasons |
+
+## Key insights
+
+- **There is no universal "ship every N days is too fast" threshold.** The breakdown point is set by *which precondition binds first* — your two-week cadence might be perfectly fine on quality (A2) but already broken on user absorption (A3).
+
+- **The single highest-leverage check:** plot cohort retention against release cadence. If retention is flat or declining while you ship every two weeks, suspect #4 first — velocity was never the lever actually moving retention for your product.
+
+- **Earliest-warning instruments to add now:** per-release feature-adoption rate, escaped-defect rate, and change-fatigue support volume.
+
+**Confidence: MEDIUM** — the breakdown logic is sound, but it's capped because you didn't supply your actual retention-vs-cadence data. Providing those cohort curves would raise it to HIGH and pinpoint *which* of the six is breaking for your team specifically.

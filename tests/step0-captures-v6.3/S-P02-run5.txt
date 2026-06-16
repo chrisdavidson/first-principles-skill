@@ -1,0 +1,22 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim silently depends on **seven preconditions**. It breaks the moment any of these becomes true for your team:
+
+1. **Velocity outpaces value** — you ship more, but not more of what users actually want. Cadence measures throughput, not worth; the two are independent variables.
+2. **Quality degrades with cadence** — defect/rollback rate rises faster than features retain. *(Confidence depends on whether your test automation scales with shipping — verify against your own defect rate.)*
+3. **Change fatigue** — your 2-week cadence exceeds users' absorption rate, and the relearning tax exceeds the value of the changes. **This is the counterintuitive one: faster shipping actively *causes* churn here**, especially among long-tenured users.
+4. **Wrong cohort** — fast shipping serves new-user activation while your retention metric tracks mature cohorts. You're optimizing the wrong people.
+5. **Product maturity** — past PMF, marginal features barely move realized value. The assumption was true early and *silently expired*.
+6. **Non-product churn driver** — churn is really price, support, onboarding, or market fit. No cadence fixes a non-product cause.
+
+## The two earliest tripwires for a 2-week team
+
+- **Ship count rising while feature-level adoption stays flat** (Breakdown 1)
+- **Churn concentrating in long-tenured users + "too much keeps changing" complaints** (Breakdown 3)
+
+These are the clearest, earliest signals the assumption has broken for you.
+
+**One thing to verify on your end:** Breakdown 2 rests on an unverified premise — that faster cadence erodes quality. Check whether your defect/rollback rate actually moves with cadence. If your CI/test automation scales with shipping, that breakdown may not apply to you at all.

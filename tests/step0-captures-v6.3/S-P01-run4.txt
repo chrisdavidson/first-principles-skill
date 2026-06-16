@@ -1,0 +1,27 @@
+The first-principles agent completed the pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite Launch (EU, all-at-once, next Friday)
+
+**Verdict: No-go in its current shape.**
+
+The launch rests on two unverified, load-bearing assumptions — that **rollback is clean** and that **no canary is possible** — either of which, if it breaks wrong, takes down 100% of EU payments with no escape hatch over a weekend.
+
+## The four failure clusters (reasoning backward from "we rolled it back Monday")
+
+**A — The cutover is irreversible in practice (highest signal).** Once new payment state (charges, tokens, mandates, subscription anchors) lives only in the new service, you can't cleanly roll back — you're forced to *fix forward under fire* on all EU traffic. "We'll just roll back" is the assumption most likely to be false exactly when it matters.
+
+**B — EU is the worst jurisdiction to big-bang.** SCA/3DS2 edge cases, exemptions, soft declines, SEPA mandates, multi-currency, VAT — the long tail that integration tests miss and only real issuer traffic exposes. No canary means you discover these on every customer at once. Auth-rate regressions = silent revenue loss.
+
+**C — Blast radius × reduced capacity.** Maximum blast radius (100% cutover) landing on minimum coverage (Friday/weekend on-call). The compounding is the weakness.
+
+**D — Migration / in-flight state.** Subscriptions, saved-card tokens (Stripe tokens aren't freely portable), pending captures, open disputes must reconcile across the boundary. Silent failure here under-bills or double-bills — discovered days later.
+
+## Three plan changes, in priority order
+
+1. **Add a staged rollout** (1% → 5% → 25% → 100%). Collapses blast radius and surfaces EU/SCA edge cases cheaply. If a canary is *technically impossible*, that is itself the no-go finding — fix it first.
+2. **Rehearse rollback against live-like payment state.** Prove you can return to legacy with new-service transactions/tokens/subscriptions intact. If you can't, you don't have a rollback — you have fix-forward, and the plan must say so and staff for it.
+3. **Don't ship Friday.** Move to early-week with full on-call — the cheapest change, and it unblocks fast response.
+
+**The single question to answer before anything else: is a percentage-based canary actually possible here, or not?** Everything else follows from that answer.
+
+If the team ships anyway, the minimum honest version is a *named accepted risk* that rollback = fix-forward, full weekend on-call, and live auth-rate + reconciliation dashboards watched from cutover.
