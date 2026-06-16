@@ -338,12 +338,18 @@ def test_active_tail_items_present() -> None:
     """GAP-01 emission guard: build_matrix_rows() must include 7 active-tail rows.
 
     The 7 active-tail rows (D-05 path b) are:
-      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08
+      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-92-01, RR-92-02, RR-77-08
       (RR-80-01 = the former S-N04 residual, assigned its tracked ID in Phase 83)
+      (RR-92-01 supersedes RR-79-02, Phase 92 v6.3 carry-forward, S-P02 inversion)
+      (RR-92-02 supersedes RR-79-03, Phase 92 v6.3 carry-forward, S-P05 trade-off)
       Each must be tagged:
-        coverage_tier == "gap"
         capability == "Test-Network"
         deliverable_path == "active-tail"
+
+    All active-tail rows are now reproducible (GEN-01 flipped scheduled->reproducible
+    in Phase 93, D-08; RR-92-01/02 renamed from RR-79-02/03 in Phase 93, D-04).
+    The coverage_tier check was removed because tiers are now mixed non-gap values
+    (reproducible for all 7 rows after the Phase 93 GEN-01 flip).
 
     RED in Plan 01 (build_matrix_rows() is a stub with no active-tail rows);
     GREEN once Plan 02 Task 1 curates the active tail.
@@ -353,7 +359,7 @@ def test_active_tail_items_present() -> None:
 
     required_bare_ids = {
         "GEN-01", "GEN-02", "RR-80-01",
-        "RR-79-01", "RR-79-02", "RR-79-03", "RR-77-08",
+        "RR-79-01", "RR-92-01", "RR-92-02", "RR-77-08",
     }
 
     found_ids = {r.bare_id for r in rows}
@@ -363,15 +369,12 @@ def test_active_tail_items_present() -> None:
         f"Found bare_ids: {sorted(found_ids)!r}"
     )
 
-    # Each active-tail row must be tagged gap + Test-Network + active-tail
+    # Each active-tail row must be tagged Test-Network + active-tail
+    # (coverage_tier check removed: all rows are now non-gap; see docstring)
     errors: list[str] = []
     for row in rows:
         if row.bare_id not in required_bare_ids:
             continue
-        if row.coverage_tier != "gap":
-            errors.append(
-                f"{row.bare_id}: expected coverage_tier='gap', got {row.coverage_tier!r}"
-            )
         if row.capability != "Test-Network":
             errors.append(
                 f"{row.bare_id}: expected capability='Test-Network', "

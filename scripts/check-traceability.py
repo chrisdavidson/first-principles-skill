@@ -718,20 +718,27 @@ def _rows_active_tail() -> list[MatrixRow]:
     """D-05 path (b): active-tail rows — included unconditionally, mixed tiers.
 
     These residuals are exempt from the deliverable-existence gate. GEN-01 has
-    been converted to coverage_tier='scheduled' (committed future milestone
-    GEN-01-REARCH, Phase 88 path c) and no longer belongs to the open-gap set.
-    GEN-02 has been converted to coverage_tier='reproducible' (runbook + wrapper
-    script, Phase 89) and no longer belongs to the open-gap set.
+    been flipped from 'scheduled' to 'reproducible' (Phase 93, D-08) — the Step 0
+    classifier capability is now reproducibly measured by the committed v6.3 live
+    re-baseline (tests/step0-baseline-v6.3.md, Phase 92). Earned by the committed
+    baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — honest
+    v6.3 success state). GEN-02 has been converted to coverage_tier='reproducible'
+    (runbook + wrapper script, Phase 89) and no longer belongs to the open-gap set.
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
-    prefix. RR-80-01, RR-79-01/02/03, and RR-77-08 are non-milestone residuals
-    that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint, 82-02).
+    prefix. RR-80-01, RR-79-01, RR-92-01, RR-92-02, and RR-77-08 are non-milestone
+    residuals that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint,
+    82-02). RR-92-01 supersedes RR-79-02 (Phase 92 v6.3 carry-forward, S-P02
+    inversion); RR-92-02 supersedes RR-79-03 (Phase 92 v6.3 carry-forward, S-P05
+    trade-off).
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_gen01 = (
-        "Full Step 0 classifier rearchitecture; converted to committed future milestone "
-        "GEN-01-REARCH (Phase 88, path c). Stub: docs/gen-01-rearch-milestone.md. "
-        "Designated next live-routing milestone after v6.2 closes."
+        "Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). "
+        "GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly "
+        "measured by the committed v6.3 live re-baseline (Phase 92). Earned by the "
+        "committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried "
+        "— legitimate v6.3 success state). Confirming artifact: tests/step0-baseline-v6.3.md."
     )
     tail_rationale_gen02 = (
         "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + "
@@ -741,16 +748,18 @@ def _rows_active_tail() -> list[MatrixRow]:
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
-                  "active-tail", "scheduled", "docs/gen-01-rearch-milestone.md",
+                  "active-tail", "reproducible", "tests/step0-baseline-v6.3.md",
                   tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
                   tail_rationale_gen02),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
-        MatrixRow(f"{p}/RR-79-02", "RR-79-02", p, "Test-Network",
+        # RR-92-01 supersedes RR-79-02 (Phase 92 v6.3 carry-forward, S-P02 inversion CARRIED 0/5)
+        MatrixRow(f"{p}/RR-92-01", "RR-92-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
-        MatrixRow(f"{p}/RR-79-03", "RR-79-03", p, "Test-Network",
+        # RR-92-02 supersedes RR-79-03 (Phase 92 v6.3 carry-forward, S-P05 trade-off CARRIED 1/5)
+        MatrixRow(f"{p}/RR-92-02", "RR-92-02", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-77-08", "RR-77-08", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
@@ -763,8 +772,9 @@ def build_matrix_rows() -> list[MatrixRow]:
     Two inclusion paths per D-05:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
-    (b) Active tail (7 rows) — included unconditionally; mixed tiers:
-        GEN-01 scheduled, GEN-02 + 5 residuals reproducible (D-05b).
+    (b) Active tail (7 rows) — included unconditionally; all reproducible (D-05b):
+        GEN-01 reproducible (Phase 93 flip, v6.3 baseline earned), GEN-02 + 5
+        residuals reproducible. RR-92-01/02 supersede RR-79-02/03 (Phase 92).
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1306,14 +1316,23 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         )
 
     # ---------------------------------------------------------------------------
-    # GEN-01-SCHEDULED named sentinel (D-04 / Phase 88)
-    # Asserts (a) GEN-01's tier is "scheduled" (not "gap") in _rows_active_tail()
-    # and (b) docs↔ROADMAP dual-placement consistency.
+    # GEN-01-REPRODUCIBLE named sentinel (D-09 / Phase 93)
+    # Repurposed from GEN-01-SCHEDULED (Phase 88) — GEN-01 is now 'reproducible'
+    # (Phase 93 flip, D-08) because the Step 0 classifier capability is reproducibly
+    # measured by the committed v6.3 live re-baseline (tests/step0-baseline-v6.3.md,
+    # Phase 92). The flip is earned by the committed baseline, not a passing score
+    # (BATTERY: FAIL, 2/4 residuals carried — legitimate v6.3 success state).
+    # Asserts:
+    #   (a) GEN-01's tier is "reproducible" (not "scheduled", not "gap")
+    #   (b) GEN-01's artifact_link is the committed v6.3 baseline (deep-resolved)
+    #   (c) Exactly-one GEN-01 row drift guard
+    #   (d) Not-scheduled counter-check (transition non-vacuous)
     # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
     # positive counter-check + drift guard. No live claude session required.
-    # Honesty-not-score (D-01): asserts the documented committed state, not a
+    # No gitignored-file dependency (.planning/ROADMAP.md removed — ABSENT in CI).
+    # Honesty-not-score (D-01): asserts the documented reproducible state, not a
     # live pass-rate. Any future revert of the tier, deletion of the GEN-01 row,
-    # removal of the docs stub, or dropping the ROADMAP mirror fails CI.
+    # or removal of the v6.3 baseline file fails CI.
     # ---------------------------------------------------------------------------
 
     # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 4:
@@ -1323,60 +1342,59 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     _gen01_tier = _gen01_rows[0].coverage_tier if _gen01_rows else "MISSING"
     _gen01_artifact = _gen01_rows[0].artifact_link if _gen01_rows else ""
 
-    # (3) Drift guard: GEN-01 must exist exactly once (not deleted, not duplicated).
+    # (c) Drift guard: GEN-01 must exist exactly once (not deleted, not duplicated).
     if _gen01_count != 1:
         print(
-            f"  GEN-01-SCHEDULED FAIL: expected exactly 1 GEN-01 row in "
+            f"  GEN-01-REPRODUCIBLE FAIL: expected exactly 1 GEN-01 row in "
             f"_rows_active_tail(), got {_gen01_count} — drift guard failed."
         )
-        wrong_results.append("GEN-01-SCHEDULED: row count drift")
+        wrong_results.append("GEN-01-REPRODUCIBLE: row count drift")
 
-    # (2) Positive counter-check: _gen01_was_gap proves the transition is non-vacuous.
-    # _gen01_was_gap would have been True pre-Phase 88; asserting NOT gap is meaningful.
-    _gen01_was_gap = _gen01_tier == "gap"
-    _gen01_is_scheduled = _gen01_tier == "scheduled"
+    # (d) Not-scheduled counter-check: proves the scheduled→reproducible transition
+    # is non-vacuous. _gen01_was_scheduled would have been True pre-Phase 93; asserting
+    # NOT scheduled is meaningful (mirrors the old _gen01_was_gap idiom from Phase 88).
+    _gen01_was_scheduled = _gen01_tier == "scheduled"
+    _gen01_is_reproducible = _gen01_tier == "reproducible"
 
-    if _gen01_is_scheduled and not _gen01_was_gap:
+    if _gen01_is_reproducible and not _gen01_was_scheduled:
         print(
-            f"  GEN-01-SCHEDULED PASS: GEN-01 tier={_gen01_tier!r} (not 'gap'); "
-            f"artifact_link={_gen01_artifact!r}"
+            f"  GEN-01-REPRODUCIBLE PASS: GEN-01 tier={_gen01_tier!r} "
+            f"(not 'scheduled', not 'gap'); artifact_link={_gen01_artifact!r}"
         )
     else:
         print(
-            f"  GEN-01-SCHEDULED FAIL: GEN-01 tier={_gen01_tier!r} "
-            f"(expected 'scheduled', not 'gap'). "
-            f"ADR path (c) not executed or tier reverted. "
-            f"See docs/gen-01-decision.md."
+            f"  GEN-01-REPRODUCIBLE FAIL: GEN-01 tier={_gen01_tier!r} "
+            f"(expected 'reproducible', not 'scheduled' or 'gap'). "
+            f"Phase 93 flip not applied or tier reverted. "
+            f"See D-08 in 93-02-PLAN.md."
         )
-        wrong_results.append("GEN-01-SCHEDULED: tier not 'scheduled'")
+        wrong_results.append("GEN-01-REPRODUCIBLE: tier not 'reproducible'")
 
-    # (b) Dual-placement consistency (D-03): docs stub exists AND ROADMAP mirrors it.
-    _gen01_stub_path = REPO_ROOT / "docs" / "gen-01-rearch-milestone.md"
-    if _gen01_stub_path.exists():
-        print("  GEN-01-SCHEDULED PASS: docs/gen-01-rearch-milestone.md exists.")
+    # (b) Artifact deep-resolve (D-09): GEN-01's artifact_link must be the committed
+    # v6.3 baseline. Deep-resolve via _resolve_artifact (git-tracked, present in CI).
+    _gen01_expected_artifact = "tests/step0-baseline-v6.3.md"
+    if _gen01_artifact != _gen01_expected_artifact:
+        print(
+            f"  GEN-01-REPRODUCIBLE FAIL: artifact_link={_gen01_artifact!r} "
+            f"(expected {_gen01_expected_artifact!r})."
+        )
+        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v6.3 baseline")
     else:
-        print(
-            "  GEN-01-SCHEDULED FAIL: docs/gen-01-rearch-milestone.md does not exist "
-            "— D-03 dual-placement (part 1) not satisfied."
-        )
-        wrong_results.append("GEN-01-SCHEDULED: docs stub missing")
-
-    _roadmap_path = REPO_ROOT / ".planning" / "ROADMAP.md"
-    _roadmap_text = (
-        _roadmap_path.read_text(encoding="utf-8") if _roadmap_path.exists() else ""
-    )
-    _roadmap_mentions_stub = "gen-01-rearch-milestone.md" in _roadmap_text
-    if _roadmap_mentions_stub:
-        print(
-            "  GEN-01-SCHEDULED PASS: ROADMAP.md contains mirror pointer "
-            "to gen-01-rearch-milestone.md."
-        )
-    else:
-        print(
-            "  GEN-01-SCHEDULED FAIL: ROADMAP.md does not reference "
-            "gen-01-rearch-milestone.md — D-03 dual-placement (part 2) not satisfied."
-        )
-        wrong_results.append("GEN-01-SCHEDULED: ROADMAP mirror pointer missing")
+        _gen01_resolve_issues = _resolve_artifact(_gen01_artifact)
+        # Belt-and-suspenders: explicit path existence check
+        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v6.3.md"
+        if _gen01_resolve_issues or not _gen01_baseline_path.exists():
+            print(
+                f"  GEN-01-REPRODUCIBLE FAIL: artifact deep-resolve failed for "
+                f"{_gen01_artifact!r}: {_gen01_resolve_issues}; "
+                f"file exists={_gen01_baseline_path.exists()}"
+            )
+            wrong_results.append("GEN-01-REPRODUCIBLE: v6.3 baseline not resolvable")
+        else:
+            print(
+                f"  GEN-01-REPRODUCIBLE PASS: artifact_link={_gen01_artifact!r} "
+                f"deep-resolves OK (tests/step0-baseline-v6.3.md exists, git-tracked)."
+            )
 
     # ---------------------------------------------------------------------------
     # GEN-02-RUNBOOK named sentinel (D-03 / Phase 89)
@@ -1573,8 +1591,9 @@ def _run_self_test() -> None:
            folded count strictly > bare reproducible count (WR-01 fold lock / TRACE-03)
 
     Named sentinels:
-      GEN-01-SCHEDULED: live tier assertion + counter-check + drift guard + docs/ROADMAP
-                        dual-placement (D-04/Phase 88)
+      GEN-01-REPRODUCIBLE: live tier assertion (reproducible) + not-scheduled counter-check
+                           + drift guard + deep-resolve of tests/step0-baseline-v6.3.md
+                           (D-09/Phase 93; repurposed from GEN-01-SCHEDULED Phase 88)
       GEN-02-RUNBOOK: live tier assertion + counter-check + drift guard + dual-file existence
                       check (runbook + wrapper) (D-03/Phase 89)
     """
