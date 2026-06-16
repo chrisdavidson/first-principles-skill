@@ -1634,7 +1634,7 @@ def main() -> None:
         "--self-test",
         action="store_true",
         help=(
-            "run 9 inline fixtures + named sentinels (no .planning/ reads required); "
+            "run 10 inline fixtures + named sentinels (no .planning/ reads required); "
             "exit 0 only if all pass (CI gate entry point)"
         ),
     )
