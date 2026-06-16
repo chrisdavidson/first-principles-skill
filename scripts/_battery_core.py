@@ -1045,157 +1045,172 @@ def self_test_boundary() -> int:
         all_passed = False
 
     # ---------------------------------------------------------------------------
-    # RR-79-02 named honest-state sentinel (Phase 85, Plan 01)
+    # RR-92-01 named honest-state sentinel (Phase 93, Plan 01)
+    # RR-92-01 supersedes RR-79-02 (Phase 92 carry-forward, v6.3 re-baseline)
     #
-    # RR-79-02 is the S-P02 inversion zero-vocabulary state: all 5 v5.2 captures
-    # of S-P02 contain ZERO hits for every canonical inversion marker (6 patterns
-    # × 5 runs = 30 checks, all zero).  The captures use generic "breaks down"
-    # framing instead of the canonical inversion vocabulary.  run2 classifies
-    # full-composer NOT via inversion but via composer_hits=2 (ground_truths +
-    # verdict); the inversion technique itself has zero distinct hits on all runs.
+    # RR-92-01 is the S-P02 inversion carry-forward: observed 0/5 FAIL in the
+    # Phase 92 v6.3 live re-baseline (tests/step0-baseline-v6.3.md).  The live
+    # agent routes to full-composer on all 5 runs.  However, the detector IS NOT
+    # all-zero on v6.3 evidence: run3 fires 2 distinct inversion markers
+    # ("inverted claim" + "the assumption breaks down") — meeting MIN_HEADER_HITS.
+    # The offline detector classifies run3 as focused-inversion; the live MODE
+    # was full-composer, so the live row stays at 0/5 (the detector and live
+    # classification are different layers — honesty-not-score, D-01).
     #
-    # This gate asserts the DOCUMENTED zero-vocabulary honest state (honesty-not-
-    # score, C-02).  Any future inversion marker addition that fires on any S-P02
-    # run would flip the documented zero — the sentinel catches that.
-    # See the code comment at _TECHNIQUE_CATEGORIES["inversion"] (DET-14 / RR-79-02).
+    # This gate asserts the DOCUMENTED per-run v6.3 inversion count vector
+    # [1, 1, 2, 0, 0] over tests/step0-captures-v6.3/S-P02-run{1..5}.txt.
+    # The v5.2 excerpts (tests/step0-captures-v5.2/) remain byte-frozen (D-03).
+    #
+    # Supersession comment for old ID:
+    #   RR-79-02 → RR-92-01 (renamed Phase 93 Plan 01; S-P02 inversion;
+    #   re-pointed from v5.2 all-zero to v6.3 vector [1, 1, 2, 0, 0])
     # ---------------------------------------------------------------------------
-    _rr7902_inv_counts: list[int] = []
+    _rr9201_inv_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt("S-P02", _run)
+        _text = _load_excerpt_v63("S-P02", _run)
         _hits = _technique_hits(_text)
-        _rr7902_inv_counts.append(_hits.get("inversion", 0))
+        _rr9201_inv_counts.append(_hits.get("inversion", 0))
 
     # Drift guard (WR-02): inversion marker set size must not silently grow.
-    # A 9th inversion pattern could match the S-P02 "breaks down" framing and
-    # break the documented zero-count — fail loudly so the sentinel is updated.
+    # An 8th inversion pattern could alter the v6.3 count vector —
+    # fail loudly so the sentinel is updated with the new vector.
     # D-08 bump: 6 → 7 after adding "the assumption breaks down" (CR-01 fix removed the
     # overlapping "when the assumption breaks" sibling; only one inversion marker added).
-    # Prior in-flight note (superseded): 6 → 8 after adding "when the assumption breaks" + "the assumption
-    # breaks down" (Phase 91, Plan 02, 2026-06-16). v5.2 S-P02 still all-zero.
-    _rr7902_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
-    if _rr7902_inv_pattern_count != 7:
+    _rr9201_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
+    if _rr9201_inv_pattern_count != 7:
         print(
-            f"  RR-79-02 FAIL: inversion pattern count drifted "
-            f"(expected 7, got {_rr7902_inv_pattern_count}) — update sentinel "
-            f"after verifying new per-run inversion counts over S-P02-run1..5."
+            f"  RR-92-01 FAIL: inversion pattern count drifted "
+            f"(expected 7, got {_rr9201_inv_pattern_count}) — update sentinel "
+            f"after verifying new per-run inversion counts over S-P02-run1..5 (v6.3)."
         )
         all_passed = False
 
     # Positive counter-check (WR-01): prove the inversion detector IS live
-    # and CAN fire on this text — so the real-excerpt zero is a genuine absence,
-    # not a dead detector.  A synthetic 2-marker text using two canonical
+    # and CAN fire on v6.3 text — the real-excerpt vector is a genuine partial-hit
+    # picture, not a dead detector.  A synthetic 2-marker text using two canonical
     # inversion phrases must yield inversion >= MIN_HEADER_HITS.
-    _rr7902_synth_text = _fixture_assistant_text(
+    # (Also: run3=2 >= MIN_HEADER_HITS in the real v6.3 captures, proving non-vacuous.)
+    _rr9201_synth_text = _fixture_assistant_text(
         "Invert, always invert — the canonical inversion move.\n\n"
         "Start by identifying the necessary precondition for success."
     )
-    _rr7902_synth_parsed = [json.loads(_rr7902_synth_text)]
-    _rr7902_synth_extracted = _extract_assistant_text(_rr7902_synth_parsed)
-    _rr7902_synth_hits = _technique_hits(_rr7902_synth_extracted)
-    _rr7902_synth_inv = _rr7902_synth_hits.get("inversion", 0)
+    _rr9201_synth_parsed = [json.loads(_rr9201_synth_text)]
+    _rr9201_synth_extracted = _extract_assistant_text(_rr9201_synth_parsed)
+    _rr9201_synth_hits = _technique_hits(_rr9201_synth_extracted)
+    _rr9201_synth_inv = _rr9201_synth_hits.get("inversion", 0)
 
-    _rr7902_ok = (
-        _rr7902_inv_counts == [0, 0, 0, 0, 0]
-        and _rr7902_inv_pattern_count == 7              # drift guard (D-08 bump: 6→7, CR-01 fix)
-        and _rr7902_synth_inv >= MIN_HEADER_HITS        # detector is reachable
+    _rr9201_ok = (
+        _rr9201_inv_counts == [1, 1, 2, 0, 0]
+        and _rr9201_inv_counts[2] >= MIN_HEADER_HITS    # run3 fires (positive counter-check)
+        and _rr9201_inv_pattern_count == 7              # drift guard (D-08 bump: 6→7, CR-01 fix)
+        and _rr9201_synth_inv >= MIN_HEADER_HITS        # detector is reachable (synthetic check)
     )
-    if _rr7902_ok:
+    if _rr9201_ok:
         print(
-            f"  RR-79-02 PASS: 0 inversion markers across all 5 S-P02 v5.2 captures "
-            f"{_rr7902_inv_counts}; inversion detector reachable "
-            f"(synthetic 2-marker text → inv_hits={_rr7902_synth_inv} "
-            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); inv_patterns={_rr7902_inv_pattern_count}."
+            f"  RR-92-01 PASS: S-P02 inversion count vector {_rr9201_inv_counts} "
+            f"== [1, 1, 2, 0, 0] (v6.3 evidence; run3={_rr9201_inv_counts[2]} "
+            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; inversion detector reachable "
+            f"(synthetic 2-marker text → inv_hits={_rr9201_synth_inv} "
+            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
+            f"S-P02 CARRIED FORWARD 0/5 at Phase 92 re-baseline (live MODE all "
+            f"full-composer; detector fires on run3 but live path diverged); "
+            f"inv_patterns={_rr9201_inv_pattern_count}."
         )
     else:
         _offending = [
-            f"run{i+1}={c}" for i, c in enumerate(_rr7902_inv_counts) if c != 0
+            f"run{i+1}={c}" for i, c in enumerate(_rr9201_inv_counts) if c not in (0, 1, 2)
+            or (i == 0 and c != 1) or (i == 1 and c != 1) or (i == 2 and c != 2)
+            or (i == 3 and c != 0) or (i == 4 and c != 0)
         ]
-        _offending_str = ", ".join(_offending) if _offending else "none"
         print(
-            f"  RR-79-02 FAIL: S-P02 inversion counts {_rr7902_inv_counts} "
-            f"(expected all-zero; offending runs: {_offending_str}); "
-            f"inv_patterns={_rr7902_inv_pattern_count} (expected 7); "
-            f"synthetic 2-marker inv_hits={_rr7902_synth_inv} "
+            f"  RR-92-01 FAIL: S-P02 inversion count vector {_rr9201_inv_counts} "
+            f"(expected [1, 1, 2, 0, 0] from v6.3 S-P02 captures); "
+            f"inv_patterns={_rr9201_inv_pattern_count} (expected 7); "
+            f"run3={_rr9201_inv_counts[2] if len(_rr9201_inv_counts) > 2 else '?'} "
+            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
+            f"synthetic 2-marker inv_hits={_rr9201_synth_inv} "
             f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
         all_passed = False
 
     # ---------------------------------------------------------------------------
-    # RR-79-03 named honest-state sentinel (Phase 85, Plan 02)
+    # RR-92-02 named honest-state sentinel (Phase 93, Plan 01)
+    # RR-92-02 supersedes RR-79-03 (Phase 92 carry-forward, v6.3 re-baseline)
     #
-    # RR-79-03 is the S-P05 trade-off single-marker barrier state: across the
-    # five S-P05 v5.2 captures, the canonical trade-off detector never reaches
-    # the two-distinct-marker threshold required to enter `fired`.  Per-run
-    # distinct trade-off marker counts: [1, 1, 0, 0, 1] — all < MIN_HEADER_HITS (2).
+    # RR-92-02 is the S-P05 trade-off carry-forward: observed 1/5 FAIL in the
+    # Phase 92 v6.3 live re-baseline (tests/step0-baseline-v6.3.md).  The live
+    # agent routes to full-composer on 4/5 runs (run2 was focused-trade-off).
+    # On v6.3 evidence the detector DOES clear MIN_HEADER_HITS on runs 2 and 3
+    # (count 2 each: "weighted total" + "weighted scoring" co-fire); runs 1, 4, 5
+    # are at or below 1.  The old v5.2 "barrier never cleared, all < MIN" claim
+    # is NOT applicable to v6.3 — the barrier IS cleared on runs 2/3.
+    # The carried-forward status comes from the live 1/5 MODE outcome, not from
+    # a zero/below-MIN detector vector (honesty-not-score, D-01).
     #
-    # HONESTY RECONCILIATION (authoritative per 85-RESEARCH §RG-04): The
-    # requirement text describes "trade-off analysis" as the clearing phrase, but
-    # "trade-off analysis" is NOT in _TECHNIQUE_CATEGORIES["trade-off"] (it is a
-    # DOCUMENTED REJECTED CANDIDATE — see code comment at DET-14 / RR-79-03).
-    # The phrase appears in the orchestrator framing of all 5 S-P05 runs but was
-    # deliberately excluded from the canonical marker set.  The detector actually
-    # fires only on the canonical `weighted total` marker (runs 1, 2, 5 = count 1).
-    # The load-bearing property this sentinel asserts is that distinct canonical
-    # trade-off marker count < MIN_HEADER_HITS (2) on every real excerpt.
+    # This gate asserts the DOCUMENTED per-run v6.3 trade-off count vector
+    # [0, 2, 2, 1, 0] over tests/step0-captures-v6.3/S-P05-run{1..5}.txt.
+    # The v5.2 excerpts (tests/step0-captures-v5.2/) remain byte-frozen (D-03).
     #
-    # Pitfall 6 (from 85-RESEARCH §"Common Pitfalls"): do NOT add "trade-off
-    # analysis" to _TECHNIQUE_CATEGORIES to "fix" the zero counts on runs 3/4 —
-    # it is intentionally excluded; the canonical 4-pattern set is the gate.
+    # Note: "trade-off analysis" remains a DOCUMENTED REJECTED CANDIDATE —
+    # it is NOT in _TECHNIQUE_CATEGORIES["trade-off"]. Pitfall 6 preserved.
     #
-    # This gate asserts the DOCUMENTED state (honesty-not-score, C-02).
+    # Supersession comment for old ID:
+    #   RR-79-03 → RR-92-02 (renamed Phase 93 Plan 01; S-P05 trade-off;
+    #   re-pointed from v5.2 all-below-MIN to v6.3 vector [0, 2, 2, 1, 0])
     # ---------------------------------------------------------------------------
-    _rr7903_to_counts: list[int] = []
+    _rr9202_to_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt("S-P05", _run)
+        _text = _load_excerpt_v63("S-P05", _run)
         _hits = _technique_hits(_text)
-        _rr7903_to_counts.append(_hits.get("trade-off", 0))
+        _rr9202_to_counts.append(_hits.get("trade-off", 0))
 
     # Drift guard (WR-02): trade-off canonical marker set must not silently grow.
-    # If an 8th trade-off pattern is added, a new match on a S-P05 excerpt could
-    # push the distinct count to >= MIN_HEADER_HITS — fail loudly so the sentinel
-    # is updated with verified new per-run counts.
-    # D-08 bump: 4 → 5 after adding "weighted scoring" (CR-01/WR-01/WR-02 fix removed the
-    # overlapping "scoring matrix" and the broad "sensitivity analysis"; one marker added).
-    # Prior in-flight note (superseded): 4 → 7 after adding "weighted scoring",
-    # "sensitivity analysis", "scoring matrix". v5.2 S-P05 still all < 2.
-    _rr7903_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
-    if _rr7903_to_pattern_count != 5:
+    # If a 6th trade-off pattern is added, the v6.3 count vector may change —
+    # fail loudly so the sentinel is updated with verified new per-run counts.
+    # D-08 bump: 4 → 5 after adding "weighted scoring" (CR-01/WR-01/WR-02 fix removed
+    # the overlapping "scoring matrix" and the broad "sensitivity analysis"; one marker added).
+    _rr9202_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
+    if _rr9202_to_pattern_count != 5:
         print(
-            f"  RR-79-03 FAIL: trade-off pattern count drifted "
-            f"(expected 5, got {_rr7903_to_pattern_count}) — update sentinel "
-            f"after verifying new per-run trade-off counts over S-P05-run1..5."
+            f"  RR-92-02 FAIL: trade-off pattern count drifted "
+            f"(expected 5, got {_rr9202_to_pattern_count}) — update sentinel "
+            f"after verifying new per-run trade-off counts over S-P05-run1..5 (v6.3)."
         )
         all_passed = False
 
-    # Positive counter-check (WR-01): the `weighted total` canonical pattern
-    # fires in runs 1, 2, and 5 (count=1 each), proving the detector IS scanning
-    # the text and finding partial matches — the barrier is approached but not
-    # cleared.  max(counts) >= 1 proves this is not vacuous zero from an empty
-    # or dead detector.
-    _rr7903_ok = (
-        all(c < MIN_HEADER_HITS for c in _rr7903_to_counts)    # barrier never cleared
-        and max(_rr7903_to_counts) >= 1                          # positive counter-check
-        and _rr7903_to_pattern_count == 5                        # drift guard (D-08 bump: 4→5, CR-01/WR fix)
+    # Positive counter-check (WR-01): runs 2 and 3 both clear MIN_HEADER_HITS
+    # (count=2 each: "weighted total" + "weighted scoring" co-fire), proving the
+    # detector IS live and CAN fire on v6.3 S-P05 text (non-vacuous).
+    _rr9202_ok = (
+        _rr9202_to_counts == [0, 2, 2, 1, 0]
+        and _rr9202_to_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
+        and _rr9202_to_counts[2] >= MIN_HEADER_HITS    # run3 fires (positive counter-check)
+        and _rr9202_to_pattern_count == 5              # drift guard (D-08 bump: 4→5, CR-01/WR fix)
     )
-    if _rr7903_ok:
+    if _rr9202_ok:
         print(
-            f"  RR-79-03 PASS: S-P05 trade-off distinct counts {_rr7903_to_counts} "
-            f"all < MIN_HEADER_HITS={MIN_HEADER_HITS} (barrier never cleared); "
-            f"max={max(_rr7903_to_counts)} >= 1 (`weighted total` fires on runs 1/2/5, "
-            f"non-vacuous); to_patterns={_rr7903_to_pattern_count}."
+            f"  RR-92-02 PASS: S-P05 trade-off count vector {_rr9202_to_counts} "
+            f"== [0, 2, 2, 1, 0] (v6.3 evidence; run2={_rr9202_to_counts[1]} "
+            f"and run3={_rr9202_to_counts[2]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"S-P05 CARRIED FORWARD 1/5 at Phase 92 re-baseline (live MODE 4/5 "
+            f"full-composer; detector fires on runs 2/3 but live path diverged); "
+            f"to_patterns={_rr9202_to_pattern_count}."
         )
     else:
         _offending_to = [
-            f"run{i+1}={c}" for i, c in enumerate(_rr7903_to_counts)
-            if c >= MIN_HEADER_HITS
+            f"run{i+1}={c}" for i, c in enumerate(_rr9202_to_counts)
+            if (i == 0 and c != 0) or (i == 1 and c != 2) or (i == 2 and c != 2)
+            or (i == 3 and c != 1) or (i == 4 and c != 0)
         ]
         _offending_to_str = ", ".join(_offending_to) if _offending_to else "none"
         print(
-            f"  RR-79-03 FAIL: S-P05 trade-off distinct counts {_rr7903_to_counts} "
-            f"(offending runs >= MIN_HEADER_HITS={MIN_HEADER_HITS}: {_offending_to_str}); "
-            f"max={max(_rr7903_to_counts) if _rr7903_to_counts else '?'} "
-            f"(must be >= 1 — positive counter-check); "
-            f"to_patterns={_rr7903_to_pattern_count} (expected 5)."
+            f"  RR-92-02 FAIL: S-P05 trade-off count vector {_rr9202_to_counts} "
+            f"(expected [0, 2, 2, 1, 0] from v6.3 S-P05 captures; "
+            f"offending: {_offending_to_str}); "
+            f"to_patterns={_rr9202_to_pattern_count} (expected 5); "
+            f"run2={_rr9202_to_counts[1] if len(_rr9202_to_counts) > 1 else '?'} "
+            f"run3={_rr9202_to_counts[2] if len(_rr9202_to_counts) > 2 else '?'} "
+            f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
         all_passed = False
 
@@ -1271,7 +1286,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01/02/03 + RR-77-08 named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 + RR-92-01 + RR-92-02 + RR-77-08 named assertions)")
         return 0
     return 1
 
@@ -1546,7 +1561,7 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # (SAFE-04 hazard), rejected by the v5.2 carry-forward (DET-14). v5.2 S-P02 all clean.
         re.compile(r"the\s+assumption\s+breaks\s+down\b", re.IGNORECASE),
         #
-        # v5.2 CARRY-FORWARD (DET-14 / RR-79-02): All 5 S-P02 v5.2 captures
+        # v5.2 CARRY-FORWARD (DET-14 / RR-79-02 → RR-92-01 [superseded Phase 93 Plan 01]): All 5 S-P02 v5.2 captures
         # (.planning/v5.2-inputs/rebase-evidence/S-P02-run1..5.jsonl) contain
         # ZERO canonical inversion vocabulary across all runs:
         #   "invert, always invert":           0/5 across all runs
@@ -1569,12 +1584,12 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   run5: variations of "Breaks Down" / "breaks down"
         # Honest observed score: 0/5. Phase 80 live re-baseline will record the true K/N.
         #
-        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-02): Per v6.3 evidence, the single new
-        # marker ("the assumption breaks down") recovers ONLY run3, where it co-fires with
-        # the existing "inverted claim" for a genuine 2-distinct corroboration. The
-        # overlapping "when the assumption breaks" sibling was REMOVED in the CR-01 code-
-        # review fix (it was a substring → double-counted one span), so no run fires
-        # inversion on a single phrase anymore.
+        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-02 → RR-92-01 [superseded Phase 93 Plan 01]):
+        # Per v6.3 evidence, the single new marker ("the assumption breaks down") recovers
+        # ONLY run3, where it co-fires with the existing "inverted claim" for a genuine
+        # 2-distinct corroboration. The overlapping "when the assumption breaks" sibling was
+        # REMOVED in the CR-01 code-review fix (it was a substring → double-counted one span),
+        # so no run fires inversion on a single phrase anymore.
         # Per-run v6.3 captured modes: all 5 = full-composer (live).
         # Per-run v6.3 offline distinct-hit coverage post-fix (verified 2026-06-16):
         #   run1=1 distinct ('inverted claim' only; "assumption breaks down" absent)
@@ -1583,6 +1598,7 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   run4=0 distinct (no inversion marker matches the run4 phrasing)
         #   run5=0 distinct (no inversion vocabulary at all)
         # Runs 1, 2, 4, 5 stay honest carry-forwards (D-01); Phase 92 baseline records true K/N.
+        # Sentinel now owned by RR-92-01 in self_test_boundary() (renamed from RR-79-02).
         # Source: tests/step0-captures-v6.3/S-P02-run1..5.txt (2026-06-16).
     ),
     "fishbone": (
@@ -1653,7 +1669,7 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # v6.3 capture-backed: S-P05-run2/3 output uses "## Weighted scoring" as a
         # section header. This is the technique's canonical scoring step (assign
         # weights, run the matrix). v5.2 S-P05 run1..5 all clean (zero matches — no
-        # run 1/2/5 push from 1 to 2; RR-79-03 barrier intact).
+        # run 1/2/5 push from 1 to 2; RR-79-03 → RR-92-02 barrier intact).
         # Source: tests/step0-captures-v6.3/S-P05-run2.txt (capture date: 2026-06-16)
         # False-positive guard: "weighted scoring" is specific to structured scoring
         # procedures; not present in any S-N04 v6.3 capture (all 5 clean).
@@ -1666,7 +1682,7 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # non-overlapping "weighted scoring" addition remains (trade-off set 4 → 5).
         re.compile(r"weighted\s+scoring\b", re.IGNORECASE),
         #
-        # v5.2 CARRY-FORWARD (DET-15 / RR-79-03): Extended grep over all 5 S-P05
+        # v5.2 CARRY-FORWARD (DET-15 / RR-79-03 → RR-92-02 [superseded Phase 93 Plan 01]): Extended grep over all 5 S-P05
         # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P05-run1..5.jsonl)
         # found only ONE phrase clearing the D-08 all-5-present + S-N-absent bar:
         #   "trade-off analysis": run1=1, run2=1, run3=2, run4=2, run5=2 → 5/5; 0/20 S-N.
@@ -1702,11 +1718,11 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # markers required) and is not added. Honest observed score: 0/5.
         # Phase 80 live re-baseline will record the true K/N.
         #
-        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-03): Per v6.3 evidence, the single new
-        # non-overlapping marker ("weighted scoring") recovers runs 2 and 3, where it
-        # co-fires with the existing "weighted total" for a genuine 2-distinct
-        # corroboration. The overlapping "scoring matrix" and the broad "sensitivity
-        # analysis" markers were REMOVED in the CR-01/WR-01/WR-02 code-review fix.
+        # v6.3 CARRY-FORWARD (REARCH-02 / RR-79-03 → RR-92-02 [superseded Phase 93 Plan 01]):
+        # Per v6.3 evidence, the single new non-overlapping marker ("weighted scoring")
+        # recovers runs 2 and 3, where it co-fires with the existing "weighted total" for
+        # a genuine 2-distinct corroboration. The overlapping "scoring matrix" and the broad
+        # "sensitivity analysis" markers were REMOVED in the CR-01/WR-01/WR-02 code-review fix.
         # Per-run v6.3 captured modes: all 5 = full-composer (live).
         # Per-run v6.3 offline distinct-hit coverage post-fix (verified 2026-06-16):
         #   run1=0 distinct (no existing or new marker fires)
@@ -1715,8 +1731,9 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         #   run4=1 distinct ('weighted total' only; broad 'sensitivity analysis' marker removed)
         #   run5=0 distinct ('Weighted scorecard' unmatched; composer-override path)
         # Runs 1, 4, 5 stay honest carry-forwards (D-01); Phase 92 baseline records true K/N.
-        # D-09 note: "weighted score" stays REJECTED (fires a v5.2 S-P05 capture → RR-79-03
+        # D-09 note: "weighted score" stays REJECTED (fires a v5.2 S-P05 capture → RR-79-03/RR-92-02
         # barrier risk); "weighted scoring" is the safe non-overlapping replacement.
+        # Sentinel now owned by RR-92-02 in self_test_boundary() (renamed from RR-79-03).
         # Source: tests/step0-captures-v6.3/S-P05-run1..5.txt (2026-06-16).
     ),
     "second-order": (
