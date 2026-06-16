@@ -42,12 +42,12 @@ GEN-01-REARCH resolves the full Step 0 classifier rearchitecture gap that remain
 v6.2. The gap is defined by four live-routing rows in `tests/step0-baseline-v5.3.md` that
 fail at the K-of-N threshold under the current `scripts/_battery_core.py` detector:
 
-| Row | Expected MODE | Honest K/N (v5.3 baseline) | Residual |
-|-----|---------------|----------------------------|----------|
-| S-P01 | focused-pre-mortem | 1/5 | RR-79-01 |
-| S-P02 | focused-inversion | 0/5 | RR-79-02 |
-| S-P05 | focused-trade-off | 0/5 | RR-79-03 |
-| S-N04 | full-composer | 2/5 | RR-80-01 |
+| Row | Expected MODE | Honest K/N (v5.3 baseline) | Residual | v6.3 outcome |
+|-----|---------------|----------------------------|----------|--------------|
+| S-P01 | focused-pre-mortem | 1/5 | RR-79-01 | CLOSED 3/5 (Phase 92) |
+| S-P02 | focused-inversion | 0/5 | RR-79-02 → RR-92-01 (supersedes) | CARRIED 0/5 (Phase 92) |
+| S-P05 | focused-trade-off | 0/5 | RR-79-03 → RR-92-02 (supersedes) | CARRIED 1/5 (Phase 92) |
+| S-N04 | full-composer | 2/5 | RR-80-01 | CLOSED 4/5 (Phase 92) |
 
 These figures are honest carry-forwards from the v5.3 live re-baseline (Phase 80,
 60 live `claude` invocations, `--repeat 5 --min-pass 3`). They are NOT chased to a
@@ -82,10 +82,12 @@ v5.2). All offline gates must be green before any live spend in REARCH-02.
 
 **Goal:** Run the single authoritative 60-invocation live harness
 (`python3 scripts/check-step0-live.py --repeat 5 --min-pass 3`) against the rearchitectured
-detector. Record an honest `tests/step0-baseline-vX.Y.md` with true K/N for every row —
+detector. Record an honest `tests/step0-baseline-v6.3.md` with true K/N for every row —
 never a forced or masked PASS. Each of RR-79-01, RR-79-02, RR-79-03, and RR-80-01 is
 either closed (row reaches min-pass) or honestly carried forward with an updated residual ID
 and the true observed K/N. Prior baselines (v5.0 through v5.3) are preserved byte-for-byte.
+**Executed:** Phase 92. RR-79-01 CLOSED 3/5; RR-80-01 CLOSED 4/5; RR-79-02 CARRIED 0/5
+(renamed RR-92-01); RR-79-03 CARRIED 1/5 (renamed RR-92-02). See `tests/step0-baseline-v6.3.md`.
 
 **Requirements:** REARCH-04, REARCH-05
 
@@ -117,7 +119,7 @@ gates green simultaneously: TRACE-03, BATT-06, STEP0-06, STEP0-08, DUAL-04.
 | REARCH-02 | Broaden `scripts/_battery_core.py` `_TECHNIQUE_CATEGORIES` markers based on REARCH-01 captures (capture-backed per marker, provenance comments citing capture file + run date, `MIN_HEADER_HITS=2` preserved, no anti-masking regression — `_COMPOSER_FOCUS_CEILING=4` unchanged) | code change |
 | REARCH-03 | All offline gates green simultaneously before any live spend in REARCH-02: STEP0-08 (`check-step0-emulator.py --self-test`), BATT-06/FU-21 (`check-routing-battery.py --self-test`), DUAL-04 (`sync-content.py --check`) | offline gate |
 | REARCH-04 | Single authoritative 60-invocation live run (`python3 scripts/check-step0-live.py --repeat 5 --min-pass 3`, from `/tmp`, one run only) records honest baseline `tests/step0-baseline-vX.Y.md` with true K/N for every row; never forced; prior baselines v5.0–v5.3 preserved byte-for-byte | live run |
-| REARCH-05 | Each of RR-79-01, RR-79-02, RR-79-03, and RR-80-01 is explicitly resolved in the new baseline: closed if the row reaches min-pass (K/N ≥ 3/5), or carried forward with an updated residual ID and documented honest K/N if still below min-pass | honesty gate |
+| REARCH-05 | Each of RR-79-01, RR-79-02, RR-79-03, and RR-80-01 is explicitly resolved in the new baseline: closed if the row reaches min-pass (K/N ≥ 3/5), or carried forward with an updated residual ID and documented honest K/N if still below min-pass. Outcome: RR-79-01 CLOSED 3/5; RR-80-01 CLOSED 4/5; RR-79-02 CARRIED → RR-92-01 (S-P02, 0/5); RR-79-03 CARRIED → RR-92-02 (S-P05, 1/5) | honesty gate |
 | REARCH-06 | Offline sentinels updated to lock the resolved or carried-forward states from REARCH-05; GEN-01 row in `check-traceability.py _rows_active_tail()` flipped from `scheduled` to `reproducible` with confirming artifact link to the new baseline file; `docs/requirements-matrix.md` regenerated; all offline gates green simultaneously: TRACE-03, BATT-06, STEP0-06, STEP0-08, DUAL-04 | sentinel + reconciliation |
 
 ---

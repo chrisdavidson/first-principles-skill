@@ -77,8 +77,8 @@ applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).
 **Residual risk notes (D-03).** The following rows did not reach `min_pass`.
 Their true observed K/N is recorded below; a forced PASS is never written.
 
-- `S-P02`: 0/5 FAIL — expected `focused-inversion`; observed modes: ['full-composer', 'full-composer', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-79-02.
-- `S-P05`: 1/5 FAIL — expected `focused-trade-off`; observed modes: ['full-composer', 'focused-trade-off', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-79-03.
+- `S-P02`: 0/5 FAIL — expected `focused-inversion`; observed modes: ['full-composer', 'full-composer', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-92-01 (supersedes RR-79-02).
+- `S-P05`: 1/5 FAIL — expected `focused-trade-off`; observed modes: ['full-composer', 'focused-trade-off', 'full-composer', 'full-composer', 'full-composer']. Residual-risk tracked as RR-92-02 (supersedes RR-79-03).
 
 ---
 
@@ -158,9 +158,10 @@ capture-backed `_TECHNIQUE_CATEGORIES` markers, `MIN_HEADER_HITS=2`,
 `_COMPOSER_FOCUS_CEILING=4` unchanged). Phase 91 replaced the prior DET-13/14/15
 comment-provenance markers with live-capture-backed additive markers validated
 over 20 vendored v6.3 captures (REARCH-01/02). The four tracked residuals
-(RR-79-01 S-P01, RR-79-02 S-P02, RR-79-03 S-P05, RR-80-01 S-N04) are resolved
-in-place under their existing IDs: CLOSED at observed K/N if ≥3/5 (min-pass),
-or CARRIED FORWARD with true observed K/N otherwise (D-04/D-05, honesty-not-score).
+(RR-79-01 S-P01, RR-79-02 S-P02, RR-79-03 S-P05, RR-80-01 S-N04) are resolved:
+CLOSED at observed K/N if ≥3/5 (min-pass), or CARRIED FORWARD with updated residual
+IDs for v6.3 otherwise (D-04/D-05, honesty-not-score). RR-92-01 supersedes RR-79-02
+(S-P02 inversion CARRIED 0/5); RR-92-02 supersedes RR-79-03 (S-P05 trade-off CARRIED 1/5).
 
 Prior baseline: tests/step0-baseline-v5.3.md (Phase 80) — BATTERY: FAIL,
 P 3/6 (S-P01-06), S-N 3/4; residuals RR-79-01/02/03 (S-P01/02/05) + RR-80-01 (S-N04) carried forward.

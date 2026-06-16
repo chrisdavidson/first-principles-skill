@@ -141,7 +141,7 @@ Two verifiers cover different layers of routing correctness. All issue prompts f
 
 **`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 8/10 DELEGATE **and** N-cases ≥ 15/17 NO-DELEGATE.
 
-**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate); the BATT-06 `--self-test` (`_battery_core.self_test_boundary()`) owns the RR-80-01 marker-counting assertion (one bare pre-mortem hit < MIN_HEADER_HITS → classify() returns "none", not "focused-pre-mortem"), the RR-79-01 / RR-79-02 / RR-79-03 honest-state sentinels (S-P01 pre-mortem count vector [0,1,2,1,3]; S-P02 inversion zero-vocabulary; S-P05 distinct trade-off count < MIN_HEADER_HITS — all over real vendored v5.2 excerpts under `tests/step0-captures-v5.2/`), and the RR-77-08 lock-only anti-masking boundary sentinel (`_COMPOSER_FOCUS_CEILING == 4` asserted via adversarial fixture, no production code change).
+**`check-routing-battery.py`** — merged dual-signal battery. Captures each prompt once from `tests/routing-battery-catalog.md` and scores BOTH the boundary-discipline signal AND the focused-output signal (FU-21 gate, FOCUS-01) from the same stream, with a both-match per-prompt verdict. Namespaced thresholds default: boundary `--p-threshold 2`; focused-output `--p-threshold 4 --n-threshold 1`. Supports `--self-test` for an offline, deterministic self-check with no live claude session (BATT-06 CI gate); the BATT-06 `--self-test` (`_battery_core.self_test_boundary()`) owns the RR-80-01 marker-counting assertion (one bare pre-mortem hit < MIN_HEADER_HITS → classify() returns "none", not "focused-pre-mortem"), the RR-79-01 / RR-92-01 (supersedes RR-79-02) / RR-92-02 (supersedes RR-79-03) honest-state sentinels over real v6.3 capture excerpts under `tests/step0-captures-v6.3/` (S-P01 pre-mortem count vector [3,1,2,2,2]; S-P02 inversion count vector [1,1,2,0,0]; S-P05 trade-off count vector [0,2,2,1,0]), and the RR-77-08 lock-only anti-masking boundary sentinel (`_COMPOSER_FOCUS_CEILING == 4` asserted via adversarial fixture, no production code change).
 
 `check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims** that translate the old per-script flags onto the merged battery and forward to `check-routing-battery.py`. They exist for backward compatibility only; new callers should invoke `check-routing-battery.py` directly.
 
@@ -154,7 +154,7 @@ See also: [Step 0 measurement harness](#step-0-measurement-harness) for the two-
 The canonical requirements and traceability surface lives in the git-tracked tree:
 
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
-  residuals, coverage headline (121 reproducible (incl. 1 scheduled) / 85 audit-only / 0 gap / 206 total),
+  residuals, coverage headline (121 reproducible / 85 audit-only / 0 gap / 206 total),
   compact historical ledger, and gap findings. Start here.
 - **`docs/requirements-matrix.md`** — generated 206-row capability→requirement→test
   matrix. Regenerate with:
@@ -190,25 +190,25 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 - **STEP0-08** (`check-step0-emulator.py --self-test`): a hardcoded named S-N04 assertion proving the phrase-detection emulator fires no trigger phrase on the S-N04 prompt and classifies it `full-composer` (catalog-independent inline literal).
 - **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`): a hardcoded named marker-counting assertion proving one bare pre-mortem header hit (count=1) is below `MIN_HEADER_HITS` (2), so `pre-mortem` does NOT enter the `fired` set and `classify()` returns `"none"` (not `"focused-pre-mortem"`).
 
-RR-80-01 remains a **tracked, honest live carry-forward at 2/5** (per `tests/step0-baseline-v5.3.md`). The offline gate asserts the **intended classification, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
+RR-80-01 is **CLOSED 4/5 at Phase 92 re-baseline** (per `tests/step0-baseline-v6.3.md`). The offline gate asserts the **intended classification, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
 
-### RR-79-01 / RR-79-02 honest-state sentinels (Phase 85, Plan 01)
+### RR-79-01 / RR-92-01 (supersedes RR-79-02) honest-state sentinels (Phase 85 + Phase 93)
 
-**RR-79-01** and **RR-79-02** are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`):
+**RR-79-01** and **RR-92-01** (supersedes RR-79-02, Phase 92 carry-forward) are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`):
 
-- **RR-79-01**: asserts the S-P01 per-run pre-mortem distinct-marker count vector == [0, 1, 2, 1, 3] over the 5 real vendored v5.2 excerpts in `tests/step0-captures-v5.2/S-P01-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["pre-mortem"]) == 6`. Positive counter-check: run3=2 and run5=3 each >= `MIN_HEADER_HITS=2`.
-- **RR-79-02**: asserts 0 inversion markers across all 5 S-P02 v5.2 excerpts in `tests/step0-captures-v5.2/S-P02-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["inversion"]) == 6`. Positive counter-check: synthetic 2-marker inversion text yields `inversion >= MIN_HEADER_HITS`.
+- **RR-79-01**: re-pointed to v6.3 captures (Phase 93). Asserts the S-P01 per-run pre-mortem distinct-marker count vector == [3, 1, 2, 2, 2] over the 5 v6.3 excerpts in `tests/step0-captures-v6.3/S-P01-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["pre-mortem"]) == 7`. Positive counter-check: run1=3 and run3=2 each >= `MIN_HEADER_HITS=2`. S-P01 CLOSED 3/5 at Phase 92 re-baseline.
+- **RR-92-01** (supersedes RR-79-02, S-P02 inversion CARRIED 0/5 at Phase 92 re-baseline): asserts the per-run inversion count vector == [1, 1, 2, 0, 0] over the 5 v6.3 excerpts in `tests/step0-captures-v6.3/S-P02-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["inversion"]) == 7`. Positive counter-checks: run3=2 >= MIN_HEADER_HITS (detector reachable); synthetic 2-marker text confirms detector fires.
 
-Both sentinels assert the **documented honest state, not the live pass rate** (honesty-not-score, C-02). Excerpts are frozen read-only v5.2 evidence (D-04); they are git-tracked so any tampering is visible in diff/PR review.
+Both sentinels assert the **documented honest state, not the live pass rate** (honesty-not-score, C-02). Excerpts are frozen read-only v6.3 evidence; they are git-tracked so any tampering is visible in diff/PR review.
 
-### RR-79-03 / RR-77-08 sentinels (Phase 85, Plan 02)
+### RR-92-02 (supersedes RR-79-03) / RR-77-08 sentinels (Phase 85 + Phase 93)
 
-**RR-79-03** and **RR-77-08** are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`):
+**RR-92-02** (supersedes RR-79-03, Phase 92 carry-forward) and **RR-77-08** are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`):
 
-- **RR-79-03**: asserts that across all 5 S-P05 v5.2 excerpts (`tests/step0-captures-v5.2/S-P05-run{1..5}.txt`), the distinct canonical trade-off marker count is always `< MIN_HEADER_HITS (2)` — the two-distinct-marker barrier is never cleared. Per-run counts: [1, 1, 0, 0, 1]; the only firing pattern is `weighted total` (runs 1, 2, 5). Note: "trade-off analysis" is a documented rejected candidate phrase (not in `_TECHNIQUE_CATEGORIES["trade-off"]`) that appears in orchestrator framing on all runs but is intentionally excluded from the canonical 4-pattern set. Drift guard: `len(_TECHNIQUE_CATEGORIES["trade-off"]) == 4`. Positive counter-check: `max(counts) >= 1` (weighted-total partial match fires, proving non-vacuous).
+- **RR-92-02** (supersedes RR-79-03, S-P05 trade-off CARRIED 1/5 at Phase 92 re-baseline): asserts the per-run trade-off distinct-marker count vector == [0, 2, 2, 1, 0] over the 5 v6.3 excerpts in `tests/step0-captures-v6.3/S-P05-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["trade-off"]) == 5`. Positive counter-checks: run2=2 and run3=2 each >= MIN_HEADER_HITS (barrier cleared on these runs in v6.3; live MODE was still 4/5 full-composer — different layers). Note: unlike v5.2, the two-distinct-marker barrier IS cleared on some v6.3 runs; the old "barrier never cleared" claim was v5.2-specific.
 - **RR-77-08**: a lock-only anti-masking boundary sentinel asserting `_COMPOSER_FOCUS_CEILING == 4` is load-bearing via a synthetic adversarial fixture (a focused pre-mortem output containing Ground Truths + Derivation Chains + Verdict headers → `composer_hits=3`). At `CEILING=4`: `3 < 4` → `n==1` branch fires → `focused-pre-mortem` (correct). At a hypothetical `CEILING=3`: `3 >= 3` → `n==1` suppressed → `full-composer` (regression). The sentinel asserts `composer_hits == CEILING - 1` (positive counter-check proving the ceiling is load-bearing). No production code change (D-05; research confirmed no current misclassification).
 
-**RR-79-03** is an honest live carry-forward (per `tests/step0-baseline-v5.3.md`) whose offline sentinel asserts the documented count, not the live pass rate (honesty-not-score). **RR-77-08** is a lock-only boundary sentinel: `_COMPOSER_FOCUS_CEILING` is already correctly set to 4 (Phase 77); this sentinel prevents silent regression.
+**RR-92-02** is an honest live carry-forward (per `tests/step0-baseline-v6.3.md`) whose offline sentinel asserts the documented v6.3 count vector, not the live pass rate (honesty-not-score). **RR-77-08** is a lock-only boundary sentinel: `_COMPOSER_FOCUS_CEILING` is already correctly set to 4 (Phase 77); this sentinel prevents silent regression.
 
 ### Key invariants
 
