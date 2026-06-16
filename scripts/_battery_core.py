@@ -812,28 +812,57 @@ def self_test_boundary() -> int:
             all_passed = False
 
     # ---------------------------------------------------------------------------
-    # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02)
+    # _load_excerpt helper — reads vendored v5.2 assistant-text excerpts.
+    # Files are the output of _extract_assistant_text() applied to the source
+    # .jsonl captures; they live under tests/step0-captures-v5.2/ (git-tracked).
+    # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
+    # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
+    # ---------------------------------------------------------------------------
+    _V52_DIR = REPO_ROOT / "tests" / "step0-captures-v5.2"
+
+    def _load_excerpt(prompt_id: str, run: int) -> str:
+        return (_V52_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
+    # ---------------------------------------------------------------------------
+    # _load_excerpt_v63 helper — reads Phase 91 v6.3 assistant-text excerpts.
+    # Files live under tests/step0-captures-v6.3/ (git-tracked, Phase 91 REARCH-01).
+    # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
+    # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
+    # ---------------------------------------------------------------------------
+    _V63_DIR = REPO_ROOT / "tests" / "step0-captures-v6.3"
+
+    def _load_excerpt_v63(prompt_id: str, run: int) -> str:
+        return (_V63_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
+    # ---------------------------------------------------------------------------
+    # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
+    #          re-pointed to v6.3 evidence Phase 93, Plan 01)
     #
-    # RR-80-01 is the S-N04 negative-control over-routing residual: the live agent
-    # genuinely over-routes to focused-pre-mortem in 3/5 runs (recorded at 2/5 FAIL
-    # in tests/step0-baseline-v5.3.md).  This offline gate does NOT assert the live
-    # pass rate; it asserts the INTENDED classification via the MIN_HEADER_HITS=2
-    # barrier mechanism (honesty-not-score principle).
+    # RR-80-01 is the S-N04 negative-control row: the live agent correctly routes
+    # to full-composer on 4/5 v6.3 runs (CLOSED at Phase 92 re-baseline,
+    # tests/step0-baseline-v6.3.md).  Run 5 is the documented honest dip — the
+    # live MODE was "none" (inferred full-composer), not an over-routing event.
+    # This offline gate asserts TWO things (honesty-not-score principle, D-01):
+    #
+    # (1) SC#2 mechanism check (synthetic): the focused-output classifier fires
+    #     pre-mortem ONLY when _technique_hits returns >= MIN_HEADER_HITS (2)
+    #     DISTINCT pre-mortem marker patterns.  One bare hit < MIN keeps the S-N04
+    #     prompt below the threshold.  This assertion proves the mechanism in isolation.
+    #
+    # (2) v6.3 per-run marker-count vector: [1, 3, 1, 0, 0] over the real
+    #     tests/step0-captures-v6.3/S-N04-run{1..5}.txt excerpts.  Run2=3 is the
+    #     one over-routing run (3 distinct pre-mortem markers fire); runs 1, 3, 4, 5
+    #     stay at or below 1 (correct negative-control behavior).  Positive counter-
+    #     check: run2 >= MIN proves the detector CAN fire on S-N04 text (non-vacuous).
+    #
+    # Drift guard: _COMPOSER_FOCUS_CEILING == 4 locked here; any future threshold
+    # edit now fails this sentinel.  Pre-mortem pattern count drift guard: 7.
     #
     # Exact S-N04 prompt (verbatim from tests/step0-fixture-catalog.md line 47,
     # catalog-independent inline literal per D-04 — grep locates this assertion):
     #   "We have a written plan to roll out the new authentication system across all
     #    teams next quarter. Before we lock the timeline, walk through how this could
     #    go badly — what failure modes should we prepare for?"
-    #
-    # SC#2 mechanism: the focused-output classifier fires pre-mortem ONLY when
-    # _technique_hits returns >= MIN_HEADER_HITS (2) DISTINCT pre-mortem marker
-    # patterns.  The S-N04 prompt produces assistant text that typically contains at
-    # most ONE bare pre-mortem header hit (e.g. "## Pre-Mortem") with no second
-    # distinct marker such as "working backward", "already failed", or "failure causes".
-    # One hit < MIN_HEADER_HITS (2) → pre-mortem does NOT enter the fired set →
-    # classify(fired, composer_hits) returns "none" (live MODE-inference: none →
-    # full-composer).  This assertion proves that one-bare-hit mechanism in isolation.
     # ---------------------------------------------------------------------------
     _SN04_PROMPT = (
         "We have a written plan to roll out the new authentication system across all"
@@ -856,6 +885,8 @@ def self_test_boundary() -> int:
             f"gate.\n    literal : {_SN04_PROMPT!r}\n    catalog : {_sn04_catalog_prompt!r}"
         )
         all_passed = False
+
+    # --- (1) SC#2 mechanism check (synthetic one-bare-hit fixture) ---
     # Minimal text: exactly ONE distinct pre-mortem pattern fires (the section header),
     # no second distinct marker (no "working backward", no "already failed", no
     # "failure causes").  Mirror the _FIXTURE_PREMORTEM_SINGLE_MARKER pattern.
@@ -880,7 +911,7 @@ def self_test_boundary() -> int:
         _rr8001_would_fire_at_1, _composer_structure_hits(_rr8001_text)
     )
 
-    _rr8001_assertions_ok = (
+    _rr8001_mechanism_ok = (
         _rr8001_pm_count == 1
         and _rr8001_pm_count < MIN_HEADER_HITS
         and "pre-mortem" not in _rr8001_fired               # barrier holds at MIN_HEADER_HITS=2
@@ -888,91 +919,127 @@ def self_test_boundary() -> int:
         and _rr8001_at_1_result == "focused-pre-mortem"      # mechanism counter-check (focused branch live)
         and _rr8001_result != "focused-pre-mortem"
     )
+
+    # --- (2) v6.3 S-N04 per-run pre-mortem distinct-marker count vector ---
+    # Asserts the documented honest v6.3 vector [1, 3, 1, 0, 0] over the real
+    # vendored excerpts (tests/step0-captures-v6.3/S-N04-run{1..5}.txt, D-01).
+    # Run2=3 is the documented over-routing run (the dip that keeps S-N04 at 4/5).
+    # Runs 1, 3, 4, 5 are at or below 1 distinct marker (correct negative-control).
+    _rr8001_sn04_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt_v63("S-N04", _run)
+        _hits = _technique_hits(_text)
+        _rr8001_sn04_counts.append(_hits.get("pre-mortem", 0))
+
+    # Drift guard: pre-mortem pattern count must not silently grow.
+    # D-08 bump: 6 → 7 after adding "fix forward" (Phase 91, Plan 02, 2026-06-16).
+    _rr8001_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
+
+    # Positive counter-check: run2=3 >= MIN_HEADER_HITS proves the detector CAN
+    # fire on S-N04 text (the v6.3 vector is non-vacuous — this is the documented
+    # honest dip that keeps S-N04 at 4/5 not 5/5 in the Phase 92 re-baseline).
+    # _COMPOSER_FOCUS_CEILING lock: any edit to this threshold will now trip this gate.
+    _rr8001_v63_ok = (
+        _rr8001_sn04_counts == [1, 3, 1, 0, 0]
+        and _rr8001_sn04_counts[1] >= MIN_HEADER_HITS    # run2 over-routes (counter-check, non-vacuous)
+        and _rr8001_pm_pattern_count == 7                # drift guard (D-08 bump: 6→7)
+        and _COMPOSER_FOCUS_CEILING == 4                 # lock: threshold byte-unchanged
+    )
+
+    _rr8001_assertions_ok = _rr8001_mechanism_ok and _rr8001_v63_ok
+
     if _rr8001_assertions_ok:
         print(
             f"  RR-80-01 PASS: one bare pre-mortem hit ({_rr8001_pm_count}) "
             f"< MIN_HEADER_HITS ({MIN_HEADER_HITS}); "
-            f"classify() returned '{_rr8001_result}' (not 'focused-pre-mortem'). "
+            f"classify() returned '{_rr8001_result}' (not 'focused-pre-mortem'); "
+            f"v6.3 S-N04 count vector {_rr8001_sn04_counts} == [1, 3, 1, 0, 0] "
+            f"(run2={_rr8001_sn04_counts[1]} >= MIN — documented honest dip; "
+            f"S-N04 CLOSED 4/5 at Phase 92 re-baseline); "
+            f"pm_patterns={_rr8001_pm_pattern_count}; CEILING={_COMPOSER_FOCUS_CEILING}. "
             f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
         )
     else:
-        print(
-            f"  RR-80-01 FAIL: pre-mortem hits={_rr8001_pm_count}, "
-            f"MIN_HEADER_HITS={MIN_HEADER_HITS}, "
-            f"classify() returned '{_rr8001_result}' (expected not 'focused-pre-mortem'). "
-            f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
-        )
+        if not _rr8001_mechanism_ok:
+            print(
+                f"  RR-80-01 FAIL: mechanism check failed — pre-mortem hits={_rr8001_pm_count}, "
+                f"MIN_HEADER_HITS={MIN_HEADER_HITS}, "
+                f"classify() returned '{_rr8001_result}' (expected not 'focused-pre-mortem'). "
+                f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
+            )
+        if not _rr8001_v63_ok:
+            print(
+                f"  RR-80-01 FAIL: v6.3 S-N04 count vector {_rr8001_sn04_counts} "
+                f"(expected [1, 3, 1, 0, 0]); "
+                f"pm_patterns={_rr8001_pm_pattern_count} (expected 7); "
+                f"CEILING={_COMPOSER_FOCUS_CEILING} (expected 4); "
+                f"run2={_rr8001_sn04_counts[1] if len(_rr8001_sn04_counts) > 1 else '?'} "
+                f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+            )
         all_passed = False
 
     # ---------------------------------------------------------------------------
-    # _load_excerpt helper — reads vendored v5.2 assistant-text excerpts.
-    # Files are the output of _extract_assistant_text() applied to the source
-    # .jsonl captures; they live under tests/step0-captures-v5.2/ (git-tracked).
-    # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
-    # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
-    # ---------------------------------------------------------------------------
-    _V52_DIR = REPO_ROOT / "tests" / "step0-captures-v5.2"
-
-    def _load_excerpt(prompt_id: str, run: int) -> str:
-        return (_V52_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
-
-    # ---------------------------------------------------------------------------
-    # RR-79-01 named honest-state sentinel (Phase 85, Plan 01)
+    # RR-79-01 named honest-state sentinel (Phase 85, Plan 01; re-pointed Phase 93, Plan 01)
     #
-    # RR-79-01 is the S-P01 pre-mortem detector false-negative: the live agent
-    # correctly routes to focused-pre-mortem on most runs, but the marker
-    # detector fires on only 2/5 v5.2 runs (runs 3 and 5).  This offline gate
-    # does NOT assert the live pass rate; it asserts the DOCUMENTED per-run
-    # distinct pre-mortem marker count vector [0, 1, 2, 1, 3] over the real
-    # vendored v5.2 excerpts (honesty-not-score principle, D-06).
+    # RR-79-01 is the S-P01 pre-mortem row: the live agent correctly routes to
+    # focused-pre-mortem on 3/5 v6.3 runs (CLOSED at Phase 92 re-baseline,
+    # tests/step0-baseline-v6.3.md).  This offline gate does NOT assert the live
+    # pass rate; it asserts the DOCUMENTED per-run distinct pre-mortem marker count
+    # vector [3, 1, 2, 2, 2] over the real vendored v6.3 excerpts
+    # (tests/step0-captures-v6.3/S-P01-run{1..5}.txt, honesty-not-score principle, D-01).
     #
-    # run1 = 0 is the load-bearing constraint: the "Bottom line" executive
-    # framing in run1 fires zero pre-mortem technique markers, so no single
-    # marker clears the all-5-and-S-N-absent D-08 bar.  Any new marker that
-    # fires run1 would change this constraint — the sentinel catches that.
+    # Re-pointed from v5.2 to v6.3 evidence (Phase 93, Plan 01): the v6.3 captures
+    # record the Phase 91 rearchitectured detector firing on real live outputs.
+    # v5.2 excerpts remain byte-frozen in tests/step0-captures-v5.2/ (D-03).
+    #
+    # run1=3 is the high-count anchor in v6.3: three distinct pre-mortem markers
+    # fire on run1, confirming the Phase 91 capture-backed marker broadening works.
+    # runs 2 and 4 fire only 1 distinct marker each (below MIN_HEADER_HITS); runs
+    # 3, 4, 5 fire >= 2 (the row CLOSED at 3/5 in the live baseline).
     # ---------------------------------------------------------------------------
     _rr7901_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt("S-P01", _run)
+        _text = _load_excerpt_v63("S-P01", _run)
         _hits = _technique_hits(_text)
         _rr7901_counts.append(_hits.get("pre-mortem", 0))
 
     # Drift guard (WR-02): pre-mortem marker set size must not silently grow.
-    # If an 8th pre-mortem pattern is added, the documented zero-count for run1
-    # may no longer hold — fail loudly so the sentinel is updated.
+    # If an 8th pre-mortem pattern is added, the documented v6.3 count vector
+    # may change — fail loudly so the sentinel is updated with the new vector.
     # D-08 bump: 6 → 7 after adding "fix forward" (Phase 91, Plan 02, 2026-06-16).
     _rr7901_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
     if _rr7901_pm_pattern_count != 7:
         print(
             f"  RR-79-01 FAIL: pre-mortem pattern count drifted "
             f"(expected 7, got {_rr7901_pm_pattern_count}) — update sentinel "
-            f"after verifying new count vector over S-P01-run1..5."
+            f"after verifying new count vector over S-P01-run1..5 (v6.3)."
         )
         all_passed = False
 
-    # Positive counter-check (WR-01): run3=2 and run5=3 both clear the
-    # MIN_HEADER_HITS barrier, proving the barrier IS exercised on real data
-    # (non-vacuous: the below-barrier clauses for run1/2/4 are meaningful
-    # because we can confirm the barrier IS reachable on runs 3 and 5).
+    # Positive counter-check (WR-01): run1=3, run3=2, run4=2, and run5=2 all clear
+    # the MIN_HEADER_HITS barrier, proving the barrier IS exercised on real v6.3 data
+    # (non-vacuous: the below-barrier clause for run2=1 is meaningful because we can
+    # confirm the barrier IS reachable on all other runs).
     _rr7901_ok = (
-        _rr7901_counts == [0, 1, 2, 1, 3]
+        _rr7901_counts == [3, 1, 2, 2, 2]
+        and _rr7901_counts[0] >= MIN_HEADER_HITS    # run1 fires (counter-check)
         and _rr7901_counts[2] >= MIN_HEADER_HITS    # run3 fires (counter-check)
-        and _rr7901_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
         and _rr7901_pm_pattern_count == 7           # drift guard (D-08 bump: 6→7)
     )
     if _rr7901_ok:
         print(
             f"  RR-79-01 PASS: S-P01 pre-mortem count vector {_rr7901_counts} "
-            f"== [0, 1, 2, 1, 3] (run1=0 'Bottom line' exec-framing zero-marker "
-            f"anchor; run3={_rr7901_counts[2]} and run5={_rr7901_counts[4]} each "
-            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; pm_patterns={_rr7901_pm_pattern_count})."
+            f"== [3, 1, 2, 2, 2] (v6.3 evidence; run1={_rr7901_counts[0]} "
+            f"and run3={_rr7901_counts[2]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"S-P01 CLOSED 3/5 at Phase 92 re-baseline; pm_patterns={_rr7901_pm_pattern_count})."
         )
     else:
         print(
             f"  RR-79-01 FAIL: S-P01 pre-mortem count vector {_rr7901_counts} "
-            f"(expected [0, 1, 2, 1, 3]); pm_patterns={_rr7901_pm_pattern_count} "
-            f"(expected 7); run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
-            f"run5={_rr7901_counts[4] if len(_rr7901_counts) > 4 else '?'} "
+            f"(expected [3, 1, 2, 2, 2] from v6.3 S-P01 captures); "
+            f"pm_patterns={_rr7901_pm_pattern_count} "
+            f"(expected 7); run1={_rr7901_counts[0] if len(_rr7901_counts) > 0 else '?'} "
+            f"run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
         all_passed = False
