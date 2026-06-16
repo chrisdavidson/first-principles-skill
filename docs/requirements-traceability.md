@@ -4,14 +4,14 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 119 reproducible / 85 audit-only / 2 gap / 206 total
+**Coverage headline:** 121 reproducible (incl. 1 scheduled) / 85 audit-only / 0 gap / 206 total
 
 The full 206-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
-> **Honesty note (D-07):** A non-zero audit-only + gap count is the expected honest success state.
+> **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
 > 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
-> 2 requirements have no confirming evidence and remain open gaps (GEN-01, GEN-02);
+> No current open gaps — GEN-01 → scheduled (committed future milestone GEN-01-REARCH; artifact `docs/gen-01-rearch-milestone.md`) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > 5 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08).
 
 ## Active Surface
@@ -26,9 +26,9 @@ Exactly 7 live items. Nothing shipped or superseded belongs here.
 
 4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved. Locked by BATT-06 anti-masking sentinel (CEILING=4) in `_battery_core.self_test_boundary()`.
 
-5. **GEN-01** [CRITICAL/deferred] — Full Step 0 classifier rearchitecture; perpetually deferred v5.1 → v5.2 → v5.3 → v6.0+; no confirming phase.
+5. **GEN-01** [scheduled] — Full Step 0 classifier rearchitecture; converted to committed future milestone GEN-01-REARCH (Phase 88, path c). Confirmed by decision artifact; artifact: `docs/gen-01-rearch-milestone.md`. No longer an open gap — scheduled for a dedicated future live-routing milestone.
 
-6. **GEN-02** [HIGH/deferred] — Periodic live monitoring cadence; perpetually deferred; STATE.md carry_forward to v6.0+.
+6. **GEN-02** [reproducible] — Periodic live monitoring cadence; runbook + wrapper script established (Phase 89). Confirmed by git-tracked runbook and wrapper; artifact: `docs/live-monitoring-runbook.md`. No longer an open gap.
 
 7. **RR-80-01** [CRITICAL] — Negative-control over-routing dip in `tests/step0-baseline-v5.3.md` (2/5 pass rate).
    **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 in Phase 83 (D-05). See `tests/step0-baseline-v5.3.md` for the v5.3 re-baseline capture.
@@ -40,10 +40,10 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 ### GAP-01: Current gap picture
 
-**2 gap rows** (no confirming evidence; open):
+**No current open gaps.** Both previously-open gap rows are resolved:
 
-- **GEN-01** [CRITICAL] — Full Step 0 classifier rearchitecture; perpetually deferred.
-- **GEN-02** [HIGH] — Periodic live monitoring; perpetually deferred.
+- **GEN-01** → **scheduled** (committed future milestone GEN-01-REARCH; Phase 88, path c). Artifact: `docs/gen-01-rearch-milestone.md`. The full Step 0 classifier rearchitecture is designated a dedicated future live-routing milestone; it is removed from the open-gap set.
+- **GEN-02** → **reproducible** (runbook + wrapper script; Phase 89). Artifact: `docs/live-monitoring-runbook.md`. The periodic live monitoring cadence is now confirmed by a git-tracked runbook with re-runnable harness invocations; it is removed from the open-gap set.
 
 **5 reproducible rows with honest carry-forward** (confirming offline gate exists; live behavior not yet resolved):
 
@@ -57,7 +57,7 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 ### GAP-02: Candidate work list
 
-Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only and gap row. Priority: CRITICAL gaps first (GEN-01), then HIGH deferred items (GEN-02), then MEDIUM audit-only items. The 5 rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08) now have confirming offline gates and are no longer open candidates; closing their live routing dips is a future live-routing milestone, not a documentation task.
+Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only row. Priority: MEDIUM audit-only items (85 rows). The 5 rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02, RR-79-03, RR-77-08) now have confirming offline gates and are no longer open candidates; closing their live routing dips is a future live-routing milestone, not a documentation task. GEN-01 and GEN-02 are resolved (see GAP-01 above) and no longer appear in this work list.
 
 ## Historical Ledger
 
