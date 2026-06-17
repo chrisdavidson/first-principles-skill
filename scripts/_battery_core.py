@@ -1045,25 +1045,32 @@ def self_test_boundary() -> int:
         all_passed = False
 
     # ---------------------------------------------------------------------------
-    # RR-92-01 named honest-state sentinel (Phase 93, Plan 01)
+    # RR-92-01 named honest-state sentinel (Phase 93, Plan 01; WR-01 fix Phase 94)
     # RR-92-01 supersedes RR-79-02 (Phase 92 carry-forward, v6.3 re-baseline)
     #
     # RR-92-01 is the S-P02 inversion carry-forward: observed 0/5 FAIL in the
     # Phase 92 v6.3 live re-baseline (tests/step0-baseline-v6.3.md).  The live
-    # agent routes to full-composer on all 5 runs.  However, the detector IS NOT
-    # all-zero on v6.3 evidence: run3 fires 2 distinct inversion markers
-    # ("inverted claim" + "the assumption breaks down") — meeting MIN_HEADER_HITS.
-    # The offline detector classifies run3 as focused-inversion; the live MODE
-    # was full-composer, so the live row stays at 0/5 (the detector and live
-    # classification are different layers — honesty-not-score, D-01).
+    # agent routes to full-composer on all 5 runs.  Phase 94 Plan 03 added two
+    # new markers ('inversion analysis' + 'when the assumption breaks(?!\s+down)'),
+    # recovering runs 1, 2, and 3 offline (though live status remains carry-forward
+    # until the Phase 95 live re-baseline).  The offline detector now classifies
+    # runs 1/2/3 as focused-inversion; the live MODE was full-composer on all 5.
+    #
+    # WR-01 fix (Phase 94): the original `when\s+the\s+assumption\s+breaks` without
+    # a negative lookahead double-counted runs 2 and 3 (both markers fired on the
+    # same "When the assumption breaks down" span), inflating the vector to
+    # [2, 3, 3, 1, 1].  The lookahead (?!\s+down) restores Phase 91 CR-01
+    # non-overlap discipline — the honest vector is [2, 2, 2, 1, 1].
     #
     # This gate asserts the DOCUMENTED per-run v6.3 inversion count vector
-    # [1, 1, 2, 0, 0] over tests/step0-captures-v6.3/S-P02-run{1..5}.txt.
+    # [2, 2, 2, 1, 1] over tests/step0-captures-v6.3/S-P02-run{1..5}.txt.
     # The v5.2 excerpts (tests/step0-captures-v5.2/) remain byte-frozen (D-03).
     #
     # Supersession comment for old ID:
     #   RR-79-02 → RR-92-01 (renamed Phase 93 Plan 01; S-P02 inversion;
-    #   re-pointed from v5.2 all-zero to v6.3 vector [1, 1, 2, 0, 0])
+    #   re-pointed from v5.2 all-zero to v6.3 vector [1, 1, 2, 0, 0];
+    #   WR-01 fix Phase 94 corrects vector to [2, 2, 2, 1, 1] after adding
+    #   'inversion analysis' + 'when the assumption breaks(?!\s+down)')
     # ---------------------------------------------------------------------------
     _rr9201_inv_counts: list[int] = []
     for _run in range(1, 6):
@@ -1102,7 +1109,7 @@ def self_test_boundary() -> int:
     _rr9201_synth_inv = _rr9201_synth_hits.get("inversion", 0)
 
     _rr9201_ok = (
-        _rr9201_inv_counts == [2, 3, 3, 1, 1]
+        _rr9201_inv_counts == [2, 2, 2, 1, 1]
         and _rr9201_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
         and _rr9201_inv_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
         and _rr9201_inv_counts[2] >= MIN_HEADER_HITS    # run3 fires (positive counter-check)
@@ -1112,18 +1119,19 @@ def self_test_boundary() -> int:
     if _rr9201_ok:
         print(
             f"  RR-92-01 PASS: S-P02 inversion count vector {_rr9201_inv_counts} "
-            f"== [2, 3, 3, 1, 1] (v6.3 evidence + Phase 94 Plan 03 D-09 re-validation; "
+            f"== [2, 2, 2, 1, 1] (v6.3 evidence + Phase 94 WR-01 fix: negative-lookahead "
+            f"on 'when the assumption breaks(?!\\s+down)' removes double-count on runs 2/3; "
             f"run1={_rr9201_inv_counts[0]}, run2={_rr9201_inv_counts[1]}, "
             f"run3={_rr9201_inv_counts[2]} all >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
             f"inversion detector reachable (synthetic 2-marker text → inv_hits={_rr9201_synth_inv} "
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
             f"S-P02 carried forward from Phase 92; Phase 94 adds 'inversion analysis' "
-            f"+ 'when the assumption breaks' (D-08 bump 7→9); inv_patterns={_rr9201_inv_pattern_count}."
+            f"+ 'when the assumption breaks(?!\\s+down)' (D-08 bump 7→9); inv_patterns={_rr9201_inv_pattern_count}."
         )
     else:
         print(
             f"  RR-92-01 FAIL: S-P02 inversion count vector {_rr9201_inv_counts} "
-            f"(expected [2, 3, 3, 1, 1] from v6.3 S-P02 captures + Phase 94 D-09 re-validation); "
+            f"(expected [2, 2, 2, 1, 1] from v6.3 S-P02 captures + Phase 94 WR-01 fix); "
             f"inv_patterns={_rr9201_inv_pattern_count} (expected 9); "
             f"run1={_rr9201_inv_counts[0] if len(_rr9201_inv_counts) > 0 else '?'}, "
             f"run2={_rr9201_inv_counts[1] if len(_rr9201_inv_counts) > 1 else '?'}, "
@@ -1572,24 +1580,25 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # present in any S-N04 v6.3 capture (all 5 clean) or S-P01 v6.3 capture (all 5 clean).
         # D-08 bump (Phase 94, Plan 03, 2026-06-17): inversion pattern count 7 → 8 (this marker).
         re.compile(r"inversion\s+analysis", re.IGNORECASE),
-        # v6.3 capture-backed: S-P02 run2 uses "When the assumption breaks down" as a
-        # section header; run3 uses "When the assumption breaks down — 3 watch conditions";
-        # run4 uses "When the assumption breaks — 5 detectable regimes" (no trailing "down").
-        # Run4's use is INDEPENDENT of the existing `the assumption breaks down` marker
-        # (which requires the word "down" — run4 is clean for that marker). On runs 2 and 3,
-        # "when the assumption breaks" and "the assumption breaks down" co-fire on the same
-        # span — this is an acknowledged textual overlap (CR-01 lineage). However:
-        # (a) run4 fires "when the assumption breaks" WITHOUT triggering the existing marker,
-        #     proving genuine independent signal; (b) the CR-01 removal was to prevent a
-        #     SINGLE span from being the ONLY evidence (prior code: only those two markers);
-        #     now "inversion analysis" provides an additional independent pathway. With both
-        #     new markers, the 3-pattern independent corroboration holds for runs 1, 2, 5.
-        # Source: tests/step0-captures-v6.3/S-P02-run2.txt, run3.txt, run4.txt (capture date: 2026-06-16)
+        # v6.3 capture-backed: S-P02 run4 uses "When the assumption breaks — 5 detectable
+        # regimes" (no trailing "down"). Run4's use is INDEPENDENT of the existing
+        # `the assumption breaks down` marker (which requires the word "down"). Runs 2 and 3
+        # use "When the assumption breaks down", which is caught by the existing marker above.
+        # The negative lookahead (?!\s+down) prevents this pattern from co-firing with
+        # `the assumption breaks down` on the same span — restoring the Phase 91 CR-01
+        # non-overlap discipline (a second DIFFERENT phrase must corroborate, not a substring
+        # of an already-counted phrase).
+        # WR-01 fix (Phase 94, Plan 03, 2026-06-17): the original `when\s+the\s+assumption\s+breaks`
+        # without the lookahead double-counted runs 2 and 3 (both markers fired on "When the
+        # assumption breaks down"), inflating the count vector to [2,3,3,1,1]. The lookahead
+        # corrects this to the honest [2,2,2,1,1] — run2=2 ('the assumption breaks down' +
+        # 'inversion analysis') and run3=2 ('inverted claim' + 'the assumption breaks down').
+        # Source: tests/step0-captures-v6.3/S-P02-run4.txt (capture date: 2026-06-16)
         # False-positive guard: not present in any S-N04 v6.3 capture (all 5 clean) or
         # S-P01 v6.3 capture (all 5 clean). "when the assumption breaks" is specific to
         # formal inversion framing (conditional-precondition enumeration).
         # D-08 bump (Phase 94, Plan 03, 2026-06-17): inversion pattern count 8 → 9 (this marker).
-        re.compile(r"when\s+the\s+assumption\s+breaks", re.IGNORECASE),
+        re.compile(r"when\s+the\s+assumption\s+breaks(?!\s+down)", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-14 / RR-79-02 → RR-92-01 [superseded Phase 93 Plan 01]): All 5 S-P02 v5.2 captures
         # (.planning/v5.2-inputs/rebase-evidence/S-P02-run1..5.jsonl) contain
@@ -1621,15 +1630,17 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # REMOVED in the CR-01 code-review fix (it was a substring → double-counted one span),
         # so no run fires inversion on a single phrase anymore.
         # Per-run v6.3 captured modes: all 5 = full-composer (live).
-        # Per-run v6.3 offline distinct-hit coverage (Phase 94, Plan 03 update — WITH new markers):
+        # Per-run v6.3 offline distinct-hit coverage (Phase 94, WR-01 fix — WITH lookahead):
         #   run1=2 distinct ('inverted claim' + 'inversion analysis') → fires focused
-        #   run2=3 distinct ('the assumption breaks down' + 'inversion analysis' + 'when the assumption breaks')
-        #   run3=3 distinct ('inverted claim' + 'the assumption breaks down' + 'when the assumption breaks')
-        #   run4=1 distinct ('when the assumption breaks' only; no 2nd distinct)
+        #   run2=2 distinct ('the assumption breaks down' + 'inversion analysis')
+        #          Note: 'when the assumption breaks(?!\s+down)' does NOT fire on run2 ("breaks down")
+        #   run3=2 distinct ('inverted claim' + 'the assumption breaks down')
+        #          Note: 'when the assumption breaks(?!\s+down)' does NOT fire on run3 ("breaks down")
+        #   run4=1 distinct ('when the assumption breaks(?!\s+down)' only — "breaks — 5 detectable")
         #   run5=1 distinct ('inversion analysis' only; no 2nd distinct)
-        # New count vector (D-09 re-validation): [2, 3, 3, 1, 1] — runs 1, 2, 3 fire focused.
+        # Honest count vector (WR-01 fix): [2, 2, 2, 1, 1] — runs 1, 2, 3 fire focused.
         # Runs 4, 5 stay honest carry-forwards (D-01); Phase 95 baseline records true K/N.
-        # Sentinel RR-92-01 in self_test_boundary() updated to new vector [2, 3, 3, 1, 1] (D-09).
+        # Sentinel RR-92-01 in self_test_boundary() updated to honest vector [2, 2, 2, 1, 1] (WR-01).
         # Source: tests/step0-captures-v6.3/S-P02-run1..5.txt (2026-06-16).
     ),
     "fishbone": (
