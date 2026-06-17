@@ -160,7 +160,7 @@ with `git commit --no-verify` for intentional in-progress work.
 
 All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
 The full CI gate inventory — all 12 gates with their owning scripts — is maintained
-canonically in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-gates). Refer there for the
+canonically in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
 authoritative gate table.
 
 ## Key invariants
