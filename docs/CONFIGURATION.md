@@ -159,20 +159,9 @@ with `git commit --no-verify` for intentional in-progress work.
 ## CI gates
 
 All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
-Each job has a 10-minute timeout and runs on `ubuntu-latest`.
-
-| Gate ID | Job name | Script | What it checks |
-|---------|----------|--------|----------------|
-| VAL-01 | `plugin-validate` | `claude plugin validate ./first-principles` | Plugin schema validity (requires `@anthropic-ai/claude-code` installed via npm) |
-| VAL-02 | `markdownlint` | `markdownlint-cli2-action@v23` | MD003, MD040, MD041 across `first-principles/**/*.md` |
-| VAL-03 | `check-links` | `scripts/check-links.py` | Relative Markdown links resolve |
-| VAL-04 / GATE-02 | `check-trigger-collisions` | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
-| VAL-05 | `check-description-budget` | `scripts/check-description-budget.py` | All skill listings under 2,000-character cap |
-| DUAL-04 | `sync-check` | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |
-| GATE-01 | `check-agent` | `scripts/check-agent.py` | Agent structural checks |
-
-Python-based gates all require Python 3.12 and `pyyaml>=6.0` (installed with
-`pip install 'pyyaml>=6.0'` in each job).
+The full CI gate inventory — all 12 gates with their owning scripts — is maintained
+canonically in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-gates). Refer there for the
+authoritative gate table.
 
 ## Key invariants
 
