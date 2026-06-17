@@ -689,7 +689,7 @@ def _write_baseline(
         "accompanies this baseline file (Commit 2, post-run finalize).",
         "",
         "Prior baseline: tests/step0-baseline-v6.3.md (Phase 92) — BATTERY: FAIL,",
-        "P 3/6 (S-P01-06), S-N 4/5; residuals RR-92-01 (S-P02) + RR-92-02 (S-P05) carried forward.",
+        "P 4/6 (S-P01-06), S-N 4/4; residuals RR-92-01 (S-P02) + RR-92-02 (S-P05) carried forward.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
