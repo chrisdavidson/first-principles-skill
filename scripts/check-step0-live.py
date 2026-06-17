@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v6.3.md"
+        --baseline "$REPO/tests/step0-baseline-v6.4.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v6.3 baseline .md to this path
+    --baseline PATH     If supplied, write the v6.4 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v6.3"
+_BASELINE_VERSION: str = "v6.4"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -503,7 +503,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v6.3.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v6.4.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -668,21 +668,27 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 92 live re-baseline of Step 0 technique selection",
-        "against the Phase 91 rearchitectured detector (`scripts/_battery_core.py`,",
-        "capture-backed `_TECHNIQUE_CATEGORIES` markers, `MIN_HEADER_HITS=2`,",
-        "`_COMPOSER_FOCUS_CEILING=4` unchanged). Phase 91 replaced the prior DET-13/14/15",
-        "comment-provenance markers with live-capture-backed additive markers validated",
-        "over 20 vendored v6.3 captures (REARCH-01/02). The four tracked residuals",
-        "(RR-79-01 S-P01, RR-92-01 S-P02, RR-92-02 S-P05, RR-80-01 S-N04) are resolved",
-        "in-place under their existing IDs: CLOSED at observed K/N if ≥3/5 (min-pass),",
-        "or CARRIED FORWARD with true observed K/N otherwise (D-04/D-05, honesty-not-score).",
+        "This baseline records the Phase 95 live re-baseline of Step 0 technique selection",
+        "against the Phase 94 directed-fix detector+agent-body (`scripts/_battery_core.py`,",
+        "capture-backed `_TECHNIQUE_CATEGORIES` markers — inversion strengthened 7→9,",
+        "trade-off strengthened 5→6 — `MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4`",
+        "unchanged). Phase 94 applied a directed fix to the S-P02 (inversion) and S-P05",
+        "(trade-off) pipeline: additive `_TECHNIQUE_CATEGORIES` markers plus Step 0 trigger",
+        "tightening in `shared/spine/SKILL-body.md` (D-03 deviation, approved). This run",
+        "measures the expected lift; honesty-not-score (D-01) governs the committed verdict.",
+        "The two carried residuals (RR-92-01 S-P02, RR-92-02 S-P05) are resolved in-place:",
+        "CLOSED at observed K/N if ≥3/5 (min-pass), or CARRIED FORWARD under a freshly-minted",
+        "superseding RR-95-NN ID with the true observed K/N otherwise (D-03/D-04).",
+        "RR-79-01 (S-P01) and RR-80-01 (S-N04) were already CLOSED at v6.3; they are",
+        "re-measured here but no new action is required unless they regress.",
         "",
         "Successor note: RR-79-02 (S-P02 inversion) superseded by RR-92-01 (Phase 93);",
-        "RR-79-03 (S-P05 trade-off) superseded by RR-92-02 (Phase 93). The v6.3→v6.4",
-        "lineage carries these forward under the superseded IDs.",
+        "RR-79-03 (S-P05 trade-off) superseded by RR-92-02 (Phase 93). On carry-forward,",
+        "RR-92-01 and/or RR-92-02 are in turn superseded by a freshly-minted Phase 95",
+        "residual ID — the conditional mint is recorded in the RR_ID_MAP update that",
+        "accompanies this baseline file (Commit 2, post-run finalize).",
         "",
-        "Prior baseline: tests/step0-baseline-v6." + "3.md (Phase 92) — BATTERY: FAIL,",
+        "Prior baseline: tests/step0-baseline-v6.3.md (Phase 92) — BATTERY: FAIL,",
         "P 3/6 (S-P01-06), S-N 4/5; residuals RR-92-01 (S-P02) + RR-92-02 (S-P05) carried forward.",
     ]
 
@@ -738,7 +744,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v6.3 baseline .md to this path after the run",
+        help="If supplied, write the v6.4 baseline .md to this path after the run",
     )
     p.add_argument(
         "--quiet",
