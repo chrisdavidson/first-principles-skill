@@ -28,10 +28,10 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | Technique | Trigger phrases (any one fires) |
 |---|---|
 | pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused" |
-| inversion | "invert", "invert this claim", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break" |
+| inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" |
 | fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space" |
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
-| trade-off | "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting" |
+| trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
