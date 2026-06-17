@@ -1,65 +1,49 @@
 <!-- generated-by: gsd-doc-writer -->
 # Testing
 
-This document covers all validation scripts, the routing battery, pre-commit gates, and CI gates for the first-principles-skills plugin.
+This document covers how to run every CI gate and the two pre-commit gates locally (including offline `--self-test` modes), the anti-masking measurement invariants, and what each pre-commit gate checks.
 
-## Quick reference
+For the full at-a-glance gate inventory — every gate mapped to its owning script and job name — see [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
-Run all local checks in sequence:
+## CI gates — operational run-detail
 
-```sh
-python3 scripts/check-body-budget.py
-python3 scripts/check-agent.py
-python3 scripts/check-links.py
-python3 scripts/check-trigger-collisions.py
-python3 scripts/check-description-budget.py
-python3 scripts/sync-content.py --check
-```
+All CI gates run in `.github/workflows/validation.yml` on push/PR to master. Run them locally before pushing.
 
-Or with `uv`:
+### VAL-01 — plugin-validate
+
+Validates the plugin schema. Requires the Claude Code CLI.
 
 ```sh
-uv run scripts/check-agent.py
-uv run scripts/sync-content.py --check
+claude plugin validate ./first-principles
 ```
 
-## Validation scripts
+### VAL-02 — markdownlint
 
-### `check-body-budget.py` (pre-commit)
-
-Verifies that `first-principles/agents/first-principles.md` does not exceed the 500-line body budget.
+Checks Markdown style across `first-principles/**/*.md` using `.markdownlint.jsonc` rules.
 
 ```sh
-python3 scripts/check-body-budget.py
-# Exit 0: within budget
-# Exit 1: over budget — reduce shared/spine/SKILL-body.md or agent/ fragments
+# CI uses the markdownlint-cli2-action; run locally:
+npx markdownlint-cli2 "first-principles/**/*.md"
 ```
 
-### `check-agent.py` (GATE-01)
+### VAL-03 — check-links
 
-Structural integrity check for the assembled agent: frontmatter schema, required fields, disallowedTools, version format, and description constraints.
-
-```sh
-python3 scripts/check-agent.py
-```
-
-### `check-links.py` (VAL-03)
-
-Scans all relative Markdown links in the `first-principles/` tree and verifies they resolve to existing files.
+Scans all relative Markdown links in the `first-principles/` and `shared/` trees and verifies they resolve to existing files. Note: `docs/` is **not** scanned by this gate — cross-doc links in `docs/` are unvalidated by CI.
 
 ```sh
 python3 scripts/check-links.py
 ```
 
-### `check-trigger-collisions.py` (VAL-04)
+### VAL-04 / GATE-02 — check-trigger-collisions
 
-Scans all skill `description` fields for 4-gram collisions — phrases shared between skills that could cause ambiguous routing.
+Scans all skill `description` fields for 4-gram collisions (shared phrases that could cause ambiguous routing). In CI, the `--self-test` fixture runs first, then the live scan.
 
 ```sh
-python3 scripts/check-trigger-collisions.py
+python3 scripts/check-trigger-collisions.py --self-test   # offline fixture
+python3 scripts/check-trigger-collisions.py               # live scan
 ```
 
-### `check-description-budget.py` (VAL-05)
+### VAL-05 — check-description-budget
 
 Verifies that every skill listing (name + description combined) stays under the 2000-character cap.
 
@@ -67,9 +51,9 @@ Verifies that every skill listing (name + description combined) stays under the 
 python3 scripts/check-description-budget.py
 ```
 
-### `sync-content.py --check` (DUAL-04)
+### DUAL-04 — sync-check
 
-Verifies that `shared/` and the generated `first-principles/` tree are in sync. Exits 1 if any file has drifted.
+Verifies that `shared/` and the generated `first-principles/` tree are in sync. Exit 1 on any drift. This is the pre-commit sync-drift gate run on every commit and also wired into CI.
 
 ```sh
 python3 scripts/sync-content.py --check
@@ -77,71 +61,167 @@ python3 scripts/sync-content.py --check
 python3 scripts/sync-content.py --write && git add -u
 ```
 
-## Routing battery
+### GATE-01 — check-agent
 
-The routing battery tests whether the agent auto-delegates correctly for a set of prompts. It requires a running `claude` CLI session.
-
-### Catalogs
-
-| File | What it tests |
-|------|--------------|
-| `tests/routing-catalog.md` | Agent routing — when `first-principles:first-principles` should and should not delegate |
-| `tests/sub-skill-routing-catalog.md` | Companion skill routing — when focused-mode skills should trigger |
-
-### Running the battery
+Structural integrity check for the assembled agent: frontmatter schema, required fields, `disallowedTools`, version format, and description constraints. In CI, the `--self-test` fixture runs first, then the live file check.
 
 ```sh
-python3 scripts/check-routing.py --catalog tests/routing-catalog.md
-python3 scripts/check-routing.py --catalog tests/sub-skill-routing-catalog.md
-
-# Parse-only (no live session needed):
-python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md
+python3 scripts/check-agent.py --self-test                                         # offline fixture
+python3 scripts/check-agent.py --file first-principles/agents/first-principles.md  # live check
 ```
 
-Each prompt gets a fresh `claude -p` session. The script scores DELEGATE / NO-DELEGATE from the `stream-json` event stream.
+### BATT-06 — check-routing-battery
 
-### Pass thresholds
+Merged dual-signal routing battery — captures each prompt in `tests/routing-battery-catalog.md` once and scores both the boundary-discipline signal and the focused-output signal. In CI only the offline `--self-test` runs; the full live battery is a developer tool.
 
-| Case type | Pass criterion |
-|-----------|---------------|
-| P-cases (expect DELEGATE) | ≥ 8/10 |
-| N-cases (expect NO-DELEGATE) | ≥ 15/17 |
+```sh
+# CI gate (offline, deterministic — no live Claude session):
+python3 scripts/check-routing-battery.py --self-test
 
-Both thresholds must be met. A single mis-route does not fail the battery — the threshold counts are the criterion.
+# Full live run (developer tool — requires a running Claude session):
+python3 scripts/check-routing-battery.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
+```
 
-### Non-determinism note
+The `--self-test` mode exercises the boundary and focused-output fixture suites from `scripts/_battery_core.py`, including the anti-masking sentinels (see [Anti-masking measurement invariants](#anti-masking-measurement-invariants) below).
 
-Routing outcomes vary between sessions, plugin sets, and Claude routing-model versions. Never attribute a single FAIL to one commit without a same-window control run. See `docs/testing-agents-headlessly.md` for the underlying methodology (two-signal detection rule, `--permission-mode bypassPermissions` requirement, jq extraction strategies).
+### STEP0-08 — check-step0-emulator
+
+Offline Step 0 phrase-detection classifier. Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each trigger phrase into a deterministic regex classifier, and classifies a prompt to `MODE` (`focused-<technique>` or `full-composer`). No live Claude session required.
+
+```sh
+python3 scripts/check-step0-emulator.py --self-test
+```
+
+The `--self-test` mode runs two fixture categories: fault-injection fixtures (D-05 corruption modes) and the full `tests/step0-fixture-catalog.md` classification suite.
+
+### STEP0-06 — check-step0-live
+
+Live Step 0 harness. Forces invocation of the agent body via the approach-② bypass channel against a running `claude` session. Classifies each run's `MODE` from the captured stream.
+
+```sh
+# CI gate (offline deterministic self-test — no live Claude invoked):
+python3 scripts/check-step0-live.py --self-test
+
+# Full live run (manual only — 60 invocations, requires a live Claude session):
+python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
+```
+
+The offline `--self-test` asserts the scoring and parsing logic without invoking Claude. The full live run against `tests/step0-fixture-catalog.md` is the canonical manual baseline (see `tests/step0-baseline-v6.4.md`).
+
+### TRACE-03 — check-traceability
+
+Traceability matrix gate. The `--self-test` mode runs in-process fixtures and named sentinels with no disk I/O beyond the script itself.
+
+```sh
+python3 scripts/check-traceability.py --self-test
+```
+
+To regenerate the capability → requirement → test matrix:
+
+```sh
+python3 scripts/check-traceability.py emit \
+    --md-output docs/requirements-matrix.md \
+    --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
+```
+
+## Routing battery (developer tools — not in CI)
+
+Two developer tools let you run live routing batteries against a Claude session. Neither is wired into CI.
+
+**Main-agent routing battery** — tests DELEGATE / NO-DELEGATE routing for the orchestrating agent:
+
+```sh
+python3 scripts/check-routing.py --catalog tests/routing-catalog.md --repeat 5 --min-pass 3
+python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md   # parse-only, no live session
+```
+
+**Merged dual-signal battery (live run)** — see BATT-06 above for the `check-routing-battery.py` live invocation.
+
+Routing outcomes vary between sessions, plugin sets, and Claude routing-model versions. Never attribute a single FAIL to one commit without a same-window control run. Each prompt gets a fresh `claude -p` session.
+
+**Deprecated shims** (delegate to `check-routing-battery.py` — do not use for new invocations):
+
+- `scripts/check-sub-skill-routing.py`
+- `scripts/check-focused-output.py`
 
 ## Pre-commit gates
 
-Two gates fire on every `git commit` when either hook mechanism is active:
+Two gates fire on every `git commit` when a hook mechanism is installed. For how to install the hooks, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-1. **Body-budget gate** — blocks if `first-principles/agents/first-principles.md` exceeds 500 lines
-2. **Sync-drift gate** — blocks if `shared/` and the generated tree have drifted
+### Body-budget gate
 
-Install with `./scripts/install-hooks.sh` (recommended) or `git config core.hooksPath .githooks`. See [DEVELOPMENT.md](DEVELOPMENT.md) for setup details.
+**Owning script:** `scripts/check-body-budget.py`
 
-Bypass: `git commit --no-verify`
+Blocks the commit if `first-principles/agents/first-principles.md` exceeds 500 lines. The limit is a hard-coded constant (`MAX_LINES: int = 500` in the script) — changing it requires a code edit plus commit.
 
-## CI gates
+```sh
+python3 scripts/check-body-budget.py           # check the live agent body
+python3 scripts/check-body-budget.py --self-test  # run offline pass/fail fixtures
+```
 
-All gates run in `.github/workflows/validation.yml` on push/PR to master:
+If the gate trips, reduce `shared/spine/SKILL-body.md` or the `shared/agent/` phase fragments before committing.
 
-| Gate ID | Job | Script | What it checks |
-|---------|-----|--------|----------------|
-| VAL-01 | plugin-validate | `claude plugin validate` | Plugin schema validity |
-| VAL-02 | markdownlint | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
-| VAL-03 | check-links | `check-links.py` | Relative MD links resolve |
-| VAL-04 | check-trigger-collisions | `check-trigger-collisions.py` | No 4-gram collision across skills |
-| VAL-05 | check-description-budget | `check-description-budget.py` | All skill listings under 2000-char cap |
-| DUAL-04 | sync-check | `sync-content.py --check` | `shared/` and generated tree in sync |
-| GATE-01 | check-agent | `check-agent.py` | Agent structural checks |
+### Sync-drift gate
 
-All gates must pass before a PR can merge.
+**Owning script:** `scripts/sync-content.py --check`
+
+Blocks the commit if `shared/` and the generated `first-principles/` tree have diverged. This is the same check as CI gate DUAL-04 — it fires before the commit to catch drift locally.
+
+```sh
+python3 scripts/sync-content.py --check    # detect drift
+python3 scripts/sync-content.py --write    # fix drift (regenerate)
+```
+
+**Bypass** for intentional in-progress work:
+
+```sh
+git commit --no-verify
+```
+
+## Anti-masking measurement invariants
+
+The routing battery's focused-output scoring depends on two constants in `scripts/_battery_core.py`:
+
+```
+MIN_HEADER_HITS: int = 2       # scripts/_battery_core.py, line 1393
+_COMPOSER_FOCUS_CEILING: int = 4   # scripts/_battery_core.py, line 1415
+```
+
+**`MIN_HEADER_HITS=2`** — the minimum number of distinct technique-category header hits required for the battery to classify an output as a focused single-technique response. An output must match at least two distinct headers from the technique's category set; a single incidental match does not trigger focused-mode classification. This prevents false-positive focused classifications from incidental prose matches.
+
+**`_COMPOSER_FOCUS_CEILING=4`** — the threshold above which the battery classifies an output as full-composer rather than focused single-technique. An output scoring four or more composer-structure hits is classified `full-composer`; an output scoring fewer hits may still be classified as focused if the single-technique signal is strong enough. This ceiling distinguishes a focused output that touches a few structural elements from a full multi-technique composition.
+
+Both constants are locked by the `self_test_boundary()` sentinels inside `scripts/_battery_core.py`, which run as part of the BATT-06 `--self-test` CI gate. Any edit to either constant will trip those sentinels. Do not change these values without understanding the full downstream impact on the battery classification logic.
+
+## Quick reference
+
+Run all offline gates locally in sequence:
+
+```sh
+python3 scripts/check-body-budget.py
+python3 scripts/check-agent.py --self-test
+python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
+python3 scripts/check-links.py
+python3 scripts/check-trigger-collisions.py --self-test
+python3 scripts/check-trigger-collisions.py
+python3 scripts/check-description-budget.py
+python3 scripts/sync-content.py --check
+python3 scripts/check-routing-battery.py --self-test
+python3 scripts/check-step0-emulator.py --self-test
+python3 scripts/check-step0-live.py --self-test
+python3 scripts/check-traceability.py --self-test
+```
+
+Or with `uv` (auto-resolves Python deps):
+
+```sh
+uv run scripts/sync-content.py --check
+uv run scripts/check-agent.py --file first-principles/agents/first-principles.md
+```
 
 ## See also
 
-- [docs/testing-agents-headlessly.md](testing-agents-headlessly.md) — methodology behind the routing battery
-- [DEVELOPMENT.md](DEVELOPMENT.md) — standard editing loop and contributor workflow
-- [CONFIGURATION.md](CONFIGURATION.md) — gate configuration options
+- [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — full gate inventory (canonical source)
+- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — pre-commit hook install paths and standard editing loop
+- [docs/CONFIGURATION.md](docs/CONFIGURATION.md) — frontmatter invariants and plugin configuration
+- [docs/testing-agents-headlessly.md](testing-agents-headlessly.md) — methodology behind the routing battery (two-signal detection, `--permission-mode bypassPermissions`)
