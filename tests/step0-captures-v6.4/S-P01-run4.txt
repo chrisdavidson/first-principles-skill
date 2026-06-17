@@ -1,0 +1,28 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite Big-Bang Launch (EU, all customers, Friday)
+
+**Core verdict: the failure is not random — it's designed in.** Two decisions create almost all the risk: (1) 100% exposure with no staged rollout, and (2) a Friday window. Both are likely changeable.
+
+### Failure modes (reasoning backward from "it failed")
+
+- **Cluster A — Data/migration failure** *(highest probability + severity)*: Saved payment-method / customer-ID mapping is wrong or incomplete → customers can't pay with stored cards, subscriptions silently stop, or charges hit the wrong customer. With no staged rollout, this hits everyone at once and may corrupt data before detection.
+- **Cluster B — Regulatory/SCA failure**: New service mishandles 3DS2 step-up, decline cohorts, or data residency → EU auth rates drop, some transactions non-compliant. Detected late if dashboards don't segment by SCA path.
+- **Cluster C — No real rollback**: "Rollback to legacy" is assumed but never tested; the new service has already written state legacy can't read. *This is what turns an incident into a disaster.*
+- **Cluster D — Capacity / cutover-moment failure**: Degradation under real EU peak, or in-flight transactions orphaned at the switch.
+- **Cluster E — Timing amplifier**: Whatever breaks Friday breaks with skeleton on-call and reduced Stripe support over the weekend.
+
+**The suppressed item:** "No staged rollout" is almost certainly a deadline artifact, not an engineering requirement — and it was never forced to justify itself against blast radius.
+
+### Recommendations (priority order)
+
+1. **Kill the big-bang. Stage it.** Canary 1% → 5% → 25% → 100%. Converts every failure cluster from "everyone, irreversibly" to "few, observed, contained."
+2. **Prove the rollback** — execute a real rollback in staging, including reversing data the new service wrote. An untested rollback is not a rollback.
+3. **Reconcile the payment-method migration** — full dry-run, reconcile counts/IDs against Stripe before any live traffic.
+4. **Replay real EU traffic** (SCA/3DS2, multi-currency, declines, subscriptions) and compare auth rates to legacy.
+5. **Don't launch Friday** — move to Tuesday/Wednesday morning with full on-call and Stripe support, behind a go/no-go gate with dashboards segmented by SCA path.
+
+**Confidence:** HIGH that the big-bang + Friday combination is the dominant risk; MEDIUM on which cluster fires first (depends on migration/rollback testing status not visible from here — which is itself the tell).
+
+The agent offered to turn items 1–5 into a concrete go/no-go checklist with owners and pass/fail gates. Want me to have it do that?

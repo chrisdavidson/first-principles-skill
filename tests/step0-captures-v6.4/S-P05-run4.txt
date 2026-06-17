@@ -1,0 +1,35 @@
+The first-principles agent completed the trade-off analysis. Here's the result:
+
+# Database Trade-Off Analysis: PostgreSQL vs. MongoDB vs. DynamoDB
+
+## Bottom line
+**Choose PostgreSQL** (managed via AWS RDS or Aurora). Weighted score **91**, vs. MongoDB **74** and DynamoDB **66**.
+
+## Why — reasoning from the essence
+
+The workload's defining trait is **transactional e-commerce**, where atomic multi-item writes (order + inventory decrement + payment state) are a correctness requirement, not a nicety. Eventual consistency permits overselling and double-charging — direct financial harms. That single ground truth dominates the decision.
+
+The two stated constraints turn out **not** to be the differentiators:
+- **Throughput (500 writes/sec at peak):** all three engines clear this comfortably within budget. "At peak" implies a blended average of ~100–170 w/s, well within a single Postgres primary's capacity.
+- **Cost ($3k/month):** all three fit under the ceiling, but Postgres has the most headroom (~$380/mo base on a db.r6g.large Multi-AZ), leaving ~$2,600/mo for replicas, storage, and 12 months of growth.
+
+## Scoring matrix
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|:---:|:---:|:---:|
+| Transactional correctness (5) | 25 | 15 | 10 |
+| Cost headroom (4) | 20 | 12 | 16 |
+| Throughput (3) | 12 | 12 | 15 |
+| Ops maturity (3) | 15 | 12 | 12 |
+| Schema flexibility (3) | 9 | 15 | 9 |
+| Lock-in safety (2) | 10 | 8 | 4 |
+| **Total** | **91** | **74** | **66** |
+
+**Key drivers:** DynamoDB wins raw throughput/cost but is penalized where it matters most — `TransactWriteItems` caps at 100 items, single-region, with a 2× write-cost multiplier plus GSI cost multiplication on the transactional path. MongoDB sits in the middle: capable multi-document ACID since 4.0, but a higher fixed cost floor (M40 ≈ $720–1,150/mo) and document-model friction for ledger-style atomicity.
+
+## Confidence and caveats
+- **HIGH confidence on the ranking** — robust to sensitivity analysis. It would only flip toward DynamoDB if you decided transactional correctness barely matters, which contradicts the workload's essence.
+- **MEDIUM confidence on exact cost figures** — these are list-price approximations; confirm against AWS/Atlas calculators for your region.
+- **Worth acting on:** the strongest real-world architecture is **polyglot** — Postgres for the transactional core, DynamoDB/Redis for cart/session/catalog — but that exceeds the "choose one" scope of the question.
+
+The full analysis with verified ground truths and pricing citations is above in the agent's output.

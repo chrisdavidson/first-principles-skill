@@ -1,0 +1,25 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## How the auth rollout could go badly — failure modes to prepare for
+
+The agent reframed this as a **pre-mortem** (assume the rollout failed, reason backward to causes) and clustered the risks. In priority order by blast radius:
+
+**1. No validated rollback / point-of-no-return crossed too early** *(highest priority)*
+Once credential/session migration starts, any single failure becomes unrecoverable. **Fix:** require a tested rollback at every cutover and a go/no-go gate before any irreversible migration step.
+
+**2. Unenumerated identity edge cases**
+Service accounts, SSO federations, API keys, and long-lived tokens break silently if not inventoried. **Fix:** explicit identity inventory and test matrix before scheduling any team.
+
+**3. Capacity overcommit + serial dependencies**
+Teams deprioritize rollout work against their own deadlines; one team's slip propagates through a serial schedule. **Fix:** sequence team-by-team with containment between cutovers, and build the timeline around the *slowest* team, not the average.
+
+**4. Detection-by-user, not by monitoring**
+Failures get found by locked-out users instead of dashboards. **Fix:** auth-specific monitoring plus a named per-cutover owner with rollback authority *before* the first team migrates.
+
+**5. Suppressed slippage (the political failure)** — the agent flagged this as its highest-signal finding because group reviews tend to suppress it: once leadership locks the timeline publicly, teams hide slippage rather than flag it. **Fix:** measure the owning team on adoption health (not ship date) and create a blameless early-warning channel.
+
+**The load-bearing insight:** the safe path (sequenced, rollback-gated) is *slower*, which creates schedule pressure to revert to parallelism — silently abandoning the very mitigations that prevent failure. So **the timeline you lock must already price in the slower safe sequence.**
+
+**Confidence: MEDIUM** — because the analysis ran without the actual plan contents. To firm it up, the agent wants three things confirmed against the written plan: (a) whether a tested rollback exists at each step, (b) whether the rollout is sequenced or big-bang, and (c) whether the identity edge-case inventory has been done.
+
+If you share the plan document, I can re-run the analysis against its real contents and convert those flagged assumptions into verified findings.

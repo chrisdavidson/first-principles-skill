@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+## Pre-Mortem: Authentication Rollout Failure Modes
+
+The agent ran a **pre-mortem** — imagining the rollout has already failed and working backward — and flagged upfront that it was working *without your actual plan document*, so several findings rest on assumptions you should verify.
+
+### The two structural weaknesses (the real findings)
+
+1. **Synchronization is the dominant risk.** Authentication is a *total-failure* dependency (when it breaks, everything downstream is inaccessible), and in a synchronized cutover the slowest team gates the whole rollout. Combine those with big-bang sequencing and one team's problem becomes everyone's outage. **Recommendation: restructure away from big-bang — stagger by team, canary first, per-team go/no-go gates.**
+
+2. **Adoption is the silently-suppressed killer.** Each team has its own roadmap; the auth migration is *your* priority, not theirs. Without executive air cover and named owners, integration work slips quietly. This feels "too obvious to plan for," which is exactly why pre-mortems catch it.
+
+### Failure clusters identified
+- **Coordination/sequencing** — hidden inter-team dependencies, no canary, big-bang blast radius
+- **Adoption/people** — deprioritization, docs gaps, skills gap on the new auth model
+- **Migration/data** — corrupted identity data, mass session logout, *silent* permission-mapping errors
+- **Rollback/recovery** — no per-team rollback, or one that's untested when you need it
+- **Schedule/quality** — fixed date + fixed scope means testing is the only variable left to sacrifice
+- **Security/environment** — production misconfig (token expiry, CORS, redirect URIs), IdP becoming a new single point of failure
+
+### Priority actions before locking the timeline
+1. Stagger + canary instead of big-bang (HIGH confidence)
+2. Treat rollback as a **tested, named-owner capability**, not an assumption — verify your plan actually has per-team rollback
+3. Plan adoption like a project (owners, executive mandate, staffed support)
+4. Protect the testing/security gate from deadline compression
+5. Dry-run the identity/permission migration with reconciliation (permission errors fail silently)
+
+**Key caveat from the agent:** Several MEDIUM risks become HIGH if your plan lacks per-team rollback. It offered to convert its assumptions into verified findings if you share the actual plan (sequencing, team inventory, rollback strategy, timeline buffer) — I can send that back to the same agent if you'd like.

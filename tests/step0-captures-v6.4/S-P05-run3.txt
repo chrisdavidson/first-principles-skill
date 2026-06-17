@@ -1,0 +1,31 @@
+The first-principles agent completed the trade-off analysis. Here's the result:
+
+## Recommendation: PostgreSQL (managed — RDS/Aurora/Cloud SQL)
+
+The agent worked the decision through its full five-phase first-principles structure. The key moves:
+
+**It reframed the problem.** The essence isn't throughput — it's *transactional correctness*. E-commerce checkout requires atomic multi-record operations (order + line items + inventory decrement + payment state must commit or roll back together). That ground truth dominates everything else.
+
+**It found the discriminators — and the non-discriminators.** 500 writes/sec is modest for all three engines, and all three fit the $3k/month budget. So throughput and cost are *not* tiebreakers. The decision turns on correctness fit, operational burden, and cost *predictability*.
+
+**Weighted trade-off matrix:**
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional correctness (5) | 5 | 3 | 3 |
+| Throughput headroom (3) | 4 | 5 | 5 |
+| Cost predictability (4) | 4 | 4 | 3 |
+| Operational simplicity (4) | 4 | 3 | 5 |
+| Schema flexibility (2) | 3 | 5 | 4 |
+| Lock-in / optionality (3) | 5 | 4 | 2 |
+| **Weighted total** | **88** | **78** | **77** |
+
+**Why the runners-up fall short:** MongoDB *can* do multi-document transactions but they fight its idiomatic single-document model. DynamoDB's transactions cap at 100 items and bill at 2x write cost — straining exactly where e-commerce uses them (large carts, batch inventory), and it's AWS-only.
+
+**Sensitivity finding:** Mongo (78) and Dynamo (77) are a near-tie — your existing cloud/ops posture decides between them, not the database. But Postgres's lead is outside the sensitivity band, making it a robust winner.
+
+**Confidence: HIGH on Postgres, MEDIUM on runner-up ordering** — gated on two unverified inputs the agent flagged:
+1. Is peak load **sustained or bursty**? (decides DynamoDB on-demand vs. provisioned Postgres on cost)
+2. What's the **12-month write-volume growth curve**? (decides whether DynamoDB's linear cost scaling breaches $3k before month 12)
+
+If you can supply the traffic shape and growth projection, the agent offered to refine the runner-up ordering to HIGH confidence.

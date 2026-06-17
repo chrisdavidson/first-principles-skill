@@ -1,0 +1,48 @@
+The first-principles agent completed the analysis. Here's the result:
+
+# Database Trade-Off Analysis: Transactional E-Commerce Backend
+
+## Recommendation: AWS RDS PostgreSQL (Multi-AZ) — ~$306/month
+
+It wins the weighted trade-off decisively. The lead is robust because the two highest-stakes criteria — ACID fit and cost-fit — both favor it.
+
+## Decision Matrix (weights locked before scoring)
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|:---:|:---:|:---:|
+| ACID / transactional fit (5) | 5 | 3 | 3 |
+| Cost-fit within $3k/mo (5) | 5 | 5 | 2 |
+| Data-model fit for e-commerce (4) | 5 | 4 | 2 |
+| Operational burden / managed (3) | 4 | 4 | 4 |
+| Write-throughput headroom @500 w/s (2) | 4 | 4 | 5 |
+| Scaling ceiling (3) | 3 | 4 | 5 |
+| Ecosystem / talent (3) | 5 | 4 | 3 |
+| **Weighted total** | **123** | **107** | **80** |
+
+PostgreSQL leads MongoDB by 13% (outside the ~10% near-tie band, so the lead is sensitivity-robust). DynamoDB is a clear third.
+
+## Load-bearing finding: cost arithmetic at 500 writes/sec
+
+500 writes/sec = 1.314 billion writes/month, with transactional semantics (orders + inventory + payments applied atomically):
+
+- **PostgreSQL** (Multi-AZ, 200GB): $259.88 compute + $46 storage = **$305.88/mo**. Transactional writes are native — no per-write surcharge.
+- **MongoDB Atlas** M30: $389 base + ~30% transfer/backup ≈ **~$506/mo** (uplift estimated, not verified).
+- **DynamoDB on-demand, transactional** (2× WRU): 1,314M × 2 × $1.25/M = **$3,285/mo — over budget**, before any GSI. One GSI doubles it to $6,570/mo. Provisioned mode ($475–$949/mo) fits on cost but reintroduces capacity-planning/throttling risk and doesn't fix the relational mismatch.
+
+## Two challenged assumptions
+
+1. **"Transactional" doesn't mandate one engine** — all three have a transaction primitive; the differentiator is how *naturally* each supports it. Native multi-row ACID (PG) beats multi-document txns (Mongo) beats TransactWriteItems (2× cost + 100-item limit).
+2. **500 w/s isn't the binding constraint** — it's modest; all three clear it easily. The real deciders are ACID/relational fit and cost.
+
+## Why not the others
+
+- **MongoDB** (viable fallback): fits budget, scales well, but weaker multi-document transaction story for tightly-coupled order/inventory/payment integrity; core entities are relational, not document-shaped.
+- **DynamoDB** (rejected): breaches budget on transactional on-demand writes; key-value model fights relational queries/reporting; proprietary API imposes the highest future migration cost.
+
+## Confidence: HIGH on the ranking
+
+**Weakest link — read load is unspecified.** E-commerce reads usually dwarf writes; this is the one open input affecting *sizing*. But it would *strengthen* Postgres (mature read-replica + caching ecosystem), not overturn the choice.
+
+**Next step:** specify peak reads/sec and catalog size to finalize Postgres instance/replica sizing — that resolves the weakest link without changing the engine selection.
+
+*Pricing sources (web-verified June 2026): CloudZero RDS/MongoDB/DynamoDB pricing pages, Usage.ai DynamoDB on-demand, MongoDB pricing.*

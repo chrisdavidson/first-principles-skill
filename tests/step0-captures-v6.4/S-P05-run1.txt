@@ -1,0 +1,35 @@
+The first-principles agent completed the analysis. Here's the result:
+
+# First Principles Trade-Off Analysis: PostgreSQL vs. MongoDB vs. DynamoDB
+
+## The reframing
+The agent's headline finding: **budget is not the differentiator.** At 500 writes/sec peak, all three options fit comfortably under $3k/month:
+
+- **DynamoDB** — ~$237/mo provisioned (500 WCU steady), or ~$325/mo on-demand for peaky traffic
+- **RDS PostgreSQL** — ~$400–900/mo (db.m6g.large/xlarge, Multi-AZ + storage)
+- **MongoDB Atlas** — ~$500–1,200/mo (M30 replica set with HA), the least headroom
+
+Since budget is a qualifying gate rather than a discriminator, the decision turns on **transactional fit** — the essence of the word "transactional" in an e-commerce backend (orders touch inventory + payment + order records atomically).
+
+## Weighted trade-off matrix
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional integrity (ACID) | 5 | 25 | 15 | 10 |
+| Cost headroom | 3 | 12 | 9 | 15 |
+| Operational simplicity | 4 | 16 | 16 | 20 |
+| Query flexibility | 3 | 15 | 12 | 6 |
+| Scaling ceiling | 3 | 9 | 12 | 15 |
+| Ecosystem/hiring | 2 | 10 | 8 | 6 |
+| **Total** | | **87** | **72** | **72** |
+
+## Recommendation
+**PostgreSQL (managed via RDS or Aurora)** — wins decisively (87 vs 72/72) because it provides native multi-entity ACID by default, fits budget with headroom, and 500 w/s is trivial for it.
+
+**When this flips:**
+- Not truly transactional (event/session/catalog store) → **DynamoDB** (best cost + scaling, transaction caps stop mattering)
+- Highly variable schema, iteration speed dominates → **MongoDB** (but works against the transactional grain)
+
+**Confidence:** HIGH on the ranking; MEDIUM on exact cost figures (validate instance sizing against your real read:write ratio and storage footprint before committing).
+
+The agent also debunked several outdated assumptions along the way — e.g., MongoDB *does* support multi-doc transactions (since v4.0/4.2) and DynamoDB has `TransactWriteItems`, but the latter is capped at 100 items, costs 2x, and doesn't span regions.

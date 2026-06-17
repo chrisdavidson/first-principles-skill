@@ -1,0 +1,21 @@
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim is **conditionally true, not a law.** The agent inverted it ("when does shipping every two weeks *fail* to improve, or actively harm, retention?") and identified **five breakdown regimes**, each with a monitorable trigger:
+
+| # | Breakdown regime | What's happening | Trigger to watch |
+|---|---|---|---|
+| 1 | **Quality erosion** | Cadence outruns QA capacity; defect rate climbs | Incident/regression rate rising with release frequency |
+| 2 | **Wrong-target shipping** | Cadence pressure starves discovery → you ship the wrong things faster | Declining % of ships tied to validated churn drivers |
+| 3 | **Saturation** | Dominant churn cause is non-iterable (price, market fit, onboarding, competitor) | Churn-reason breakdown shows top causes outside your product surface |
+| 4 | **Perception / fatigue** | Changes too small to notice, or so frequent they disrupt users | Low feature adoption; "things keep changing" support tickets |
+| 5 | **Measurement blindness** | Retention window longer than ship gap → effect is unattributable | Retention window ≥ ~2× your ship gap (e.g. 28-day window vs 2-week cadence) |
+
+**Grounding:** The whole thing rests on one key ground truth — *retention is a function of delivered user value over time, not of deployment count.* Shipping is a delivery mechanism, not value itself. Frequency only helps when each cycle delivers a perceptible improvement to a real, iteration-addressable churn driver.
+
+**The single most important monitor (Break 3):** Periodically classify your *actual* churn reasons. If the top reasons live outside the surface your two-week ships touch, your cadence is optimizing a lever that isn't connected to the outcome — that's the cleanest signal the assumption has broken.
+
+**Confidence caveat:** Breaks 1, 2, 3, and 5 rest on mechanically sound ground truths (HIGH confidence). Break 4 is segment-dependent (MEDIUM) — change-averse enterprise/low-savvy users are more vulnerable to it than others, so verify against your specific user base before acting.
+
+A useful structural note from the analysis: with a typical 28-day retention window and a 2-week cadence, releases overlap *within a single measurement window*, so attribution is structurally ambiguous (Break 5). That one is worth checking first because it can make the entire question unanswerable — you'd be "confirming" or "rejecting" the assumption on noise.

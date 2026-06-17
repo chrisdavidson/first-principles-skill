@@ -1,0 +1,25 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite EU Launch
+
+The agent ran prospective hindsight ("it's three weeks from now, the launch failed — why?") and surfaced four structural weaknesses that matter more than any individual bug:
+
+**1. No reverse gear** — The defining choice (big-bang, no staged rollout) removes your two cheapest safety nets: gradual exposure and fast rollback. This is the single highest-leverage risk. If a load-only bug or a one-way cutover hits, a catastrophic failure can't be contained.
+
+**2. State-migration fragility** — Payments are stateful. Failures hide in the seams: stored card/token migration, in-flight transactions at the cutover instant, webhook idempotency/replay, and idempotency-key compatibility (duplicate charges).
+
+**3. Blind operation** — A Friday ship + weak real-time monitoring means a failure surfaces over the weekend with skeleton on-call. You can survive a bug seen in 2 minutes; not one seen in 6 hours on a Saturday.
+
+**4. EU-specific correctness** — SCA/PSD2 3DS flows and GDPR/data-residency are exactly what a Stripe-integration rewrite is most likely to get subtly wrong, and the most expensive to get wrong.
+
+### Recommended plan changes (priority order)
+1. **Reintroduce a staged rollout** (1%→10%→50%→100% canary gated on a success-rate dashboard) — neutralizes most of the analysis. If big-bang is truly required, that reason needs to be stated explicitly.
+2. **Require a tested rollback** — keep legacy Stripe reversible for a full billing cycle; don't decommission in the cutover change; rehearse the rollback.
+3. **Move off Friday** — ship mid-week with full team coverage, or guarantee weekend on-call.
+4. **Prove the state migration** — 1:1 reconciliation dry-run, freeze/drain window for in-flight payments, verified webhook idempotency + post-cutover reconciliation job.
+5. **Real-time monitoring before cutover** — per-minute success rate vs. legacy baseline, alerting, and an explicit abort threshold.
+6. **Written EU compliance sign-off** — 3DS/SCA tested against EU-issued cards across major banks; GDPR/data-residency DPA confirmed.
+
+**Three load-bearing unknowns** the agent flagged that would sharpen the analysis: (a) does any rollback path exist, (b) has full-volume load + EU 3DS testing happened, (c) is there a hard reason it must be big-bang on Friday.
+
+The agent offered to convert recommendation #1 into a concrete canary rollout plan or turn this into a go/no-go checklist — let me know if you'd like either and I can continue with the same agent.

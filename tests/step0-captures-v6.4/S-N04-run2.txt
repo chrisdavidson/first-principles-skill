@@ -1,0 +1,32 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Pre-Mortem: How the Auth Rollout Could Go Badly
+
+The agent framed this as a pre-mortem and worked backward from "the rollout failed" to root causes. The core insight anchoring everything:
+
+> **Authentication is on the critical path for every user action.** A failed auth deploy doesn't degrade one feature — it can lock everyone out of everything. That's what makes auth rollouts categorically riskier than most.
+
+### The failure modes to prepare for
+
+| Cluster | Failure mode |
+|---|---|
+| **Big-bang / no rollback** | Simultaneous cutover hits an auth bug with only a theoretical rollback → outage. Worse: break-glass admin access itself depends on the new system, so no one can get in to fix it. |
+| **Feature parity gaps** | A team relies on something the new system doesn't do (legacy protocol, service-account auth, a specific MFA method, session/token behavior) — discovered *at cutover*. |
+| **Capacity collision** | "All teams in one quarter" assumed teams had free time. Migration competes with their own deadlines and slips. The supporting platform team becomes the bottleneck. |
+| **"All teams" was wrong** | Contractors, external partners, service accounts, or a forgotten legacy system were never counted — so "done" was never reachable. |
+| **Identity data problems** | Dirty user/group/permission data → migration fails, or silently grants *wrong* access (over-permissioning is a security incident, worse than an outage). |
+| **Deadline as the goal** | The date drives decisions; teams cut testing to hit it, and the cutover breaks. |
+| **Coordination/comms** | Users aren't told they need to re-enroll MFA / use a new flow; support is overwhelmed, adoption stalls. |
+
+The agent flagged **capacity collision** and **feature-parity gaps** as the "quiet" failures — the ones a planning meeting tends to suppress — and both are checkable *before* locking the date.
+
+### Its recommendation before locking the timeline
+
+Don't lock until you've done three things:
+1. **Parity inventory** — catalog every auth pattern in use today and confirm each is covered.
+2. **Literal "all teams" enumeration** — including service accounts, contractors, external partners, forgotten systems.
+3. **Capacity check** — ask each team what *else* they own next quarter; treat platform-team bandwidth as the real constraint.
+
+Plus: phase it (never big-bang), test rollback for real, keep break-glass access independent of the new system, and audit identity data before migrating.
+
+One caveat the agent raised: it worked only from your message, without the actual plan document — so these failure modes are generic to cross-team auth rollouts. If you share the written plan, it offered to re-run the analysis against its specifics and tell you which modes the plan already addresses versus leaves open.

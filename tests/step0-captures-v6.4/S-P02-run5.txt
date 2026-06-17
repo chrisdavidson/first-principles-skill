@@ -1,0 +1,3 @@
+The agent hit a transient server error (529 Overloaded). Let me retry.
+Two consecutive 529 overload errors. The API is temporarily overloaded server-side. Let me wait a moment before retrying.
+I've hit two consecutive `529 Overloaded` errors trying to launch the first-principles agent — this is a temporary server-side issue, not a problem with the request. I've scheduled a retry in ~90 seconds and will re-attempt then.

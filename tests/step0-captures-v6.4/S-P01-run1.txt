@@ -1,0 +1,24 @@
+The pre-mortem is complete. Here's what the first-principles agent found:
+
+## Pre-Mortem: Big-Bang EU Payments Cutover
+
+**Setup:** Imagine it's the Saturday after launch and it failed. Working backward, the analysis identified the dominant failure modes.
+
+### The core structural flaw
+**No blast-radius containment + likely no fast rollback.** A big-bang cutover exposes 100% of EU payment traffic to any defect simultaneously. "Replacing" the legacy integration with "no staged rollout" implies legacy is being decommissioned — which removes the cheapest recovery path. This single weakness converts any individual bug from a contained hiccup into a company-level event.
+
+### Four dominant failure modes
+1. **Unrecoverable defect** (catastrophic) — a defect hits everyone at once with no rollback; damage can't be stopped while you forward-fix.
+2. **Silent money/state corruption** — migrated subscriptions/cards or dropped webhooks produce wrong charges and reconciliation drift, undetected until books close.
+3. **EU compliance/auth failure** — 3DS/SCA edge cases or PII data-residency breaks; 3DS is the most under-tested surface.
+4. **Detection-and-response lag** — Friday-before-weekend skeleton staffing turns a small problem large before anyone acts (an amplifier on all the others).
+
+### Highest-leverage fixes (priority order)
+1. **Verify/build a tested fast rollback to legacy Stripe.** This is the gate — if legacy can't stay hot, don't ship big-bang.
+2. **Replace big-bang with a staged rollout** (internal → 1% → 5% → 25% → 100%) with auth-rate auto-halt.
+3. **Migration dry-run + shadow reconciliation + webhook replay/ordering test** before cutover.
+4. **Don't launch Friday** — go early in the week with full staffing and reachable vendor/bank support.
+5. **Baseline-comparison dashboards and auth-rate-delta alerts** before any traffic shifts.
+
+### The one question that changes everything
+**Is the legacy Stripe integration kept hot and rollback-ready, or switched off at cutover?** If a tested rollback exists, this drops from "do not ship" to "high-risk but recoverable." If not, fix #1 is a hard launch-blocker.

@@ -1,0 +1,22 @@
+The first-principles inversion analysis is complete. Here's what it found:
+
+## The core finding
+
+**The claim breaks down whenever ship *frequency* substitutes for ship *value*.** Cadence (how often you ship) and value (whether what you ship matters to users) are mathematically independent variables — so "faster = better retention" is fragile by construction, not by accident.
+
+## Six conditions where the assumption breaks
+
+1. **Relevance decoupling** — shipping fast, but not shipping what actually drives retention.
+2. **Quality erosion** — regression/defect rate climbs with cadence (the most common real-world failure mode).
+3. **Change fatigue** — users read constant UI/workflow churn as *instability*; support tickets and churn rise after releases.
+4. **Retention ceiling** — already-sticky users can't get more retained, so speed adds cost with no upside.
+5. **Reverse causality** — speed is a *result* of a healthy product, not its cause. Your correlation is fully consistent with this.
+6. **Feedback starvation** — cadence outruns your ability to learn, so you ship more wrong things faster.
+
+## The catch on your own data
+
+Confidence was capped at **MEDIUM** because the load-bearing premise — that your two-week cadence actually correlates with retention — is itself unverified and possibly confounded with general product health.
+
+## The single sharpest test
+
+**Hold cadence fixed and vary value-per-release.** Regress retention on *value-per-release* rather than *release-count*. If retention tracks value but not raw frequency, the assumption has already broken — and the team should optimize for shipped value, not shipping speed.

@@ -1,0 +1,36 @@
+The first-principles agent completed the trade-off analysis. Here's its result:
+
+## Recommendation: Managed PostgreSQL (Aurora/RDS)
+
+**Weighted scores:** PostgreSQL **94** · MongoDB Atlas **84** · DynamoDB **74**
+
+The agent framed this as a *fit* problem, not a "best database" contest — e-commerce loses money two ways (corrupted state under concurrency and runaway cost), so correctness and cost-fit carried the heaviest weights.
+
+### Weighted criteria matrix
+
+| Criterion (weight) | PostgreSQL | MongoDB Atlas | DynamoDB |
+|---|---|---|---|
+| ACID/transactional fit (5) | 25 | 20 | 15 |
+| Relational data-model fit (4) | 20 | 12 | 8 |
+| Cost fit under $3k (4) | 16 | 16 | 8 |
+| Low operational burden (3) | 9 | 12 | 15 |
+| Write headroom @500 w/s (2) | 8 | 8 | 10 |
+| Ecosystem/maturity (2) | 10 | 8 | 8 |
+| Scaling path (2) | 6 | 8 | 10 |
+| **TOTAL** | **94** | **84** | **74** |
+
+### Why PostgreSQL
+- **Correctness (top weight):** Native FKs/constraints + SERIALIZABLE isolation — best fit for inventory + order + payment committing atomically. MongoDB has ACID but only snapshot isolation; DynamoDB transactions are bounded (100 items/4 MB, no cross-index, single-region).
+- **Data model:** Orders↔line-items↔products↔inventory is inherently relational with reporting joins.
+
+### Cost reality check (500 w/s — MEDIUM confidence, list prices)
+- **PostgreSQL:** ~$600–1,500/mo (comfortable)
+- **MongoDB Atlas (M40-class):** ~$800–1,400/mo (comfortable)
+- **DynamoDB:** transactional writes cost **2 WCU/item** → ~$1,620/mo for writes *alone*, realistically **$2k–$3k+** — pressing the $3k ceiling.
+
+### When it flips
+DynamoDB would win only if write volume grows 10–50× within the year, or the workload were genuinely single-aggregate key-value (cart/session store) rather than transactional commerce. Neither holds here.
+
+**Confidence:** HIGH on the correctness ranking (verified against engine docs); MEDIUM on cost (confirm in AWS/Atlas pricing calculators with your real item sizes and read:write ratio).
+
+The agent offers a full annotated first-principles document or a pricing-calculator sizing pass with your actual item sizes and read:write ratio if you'd like either.

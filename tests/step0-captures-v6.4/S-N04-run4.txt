@@ -1,0 +1,26 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## Pre-Mortem: Authentication Rollout
+
+The agent first flagged **two framing assumptions** it had to make (no clarification tool was available): that this is a centralized SSO/identity platform replacing legacy auth, and that "all teams next quarter" means a near-simultaneous cutover within ~13 weeks. It noted both materially change the risk weighting if wrong.
+
+**Ground truths it reasoned up from:**
+- Auth is on the critical path for nearly every app — failure means full outage, not degradation
+- A quarter is finite, pre-committed capacity
+- Shared infrastructure migrations force serialization — not every team can be the unblocked first mover
+- Rollback cost rises monotonically once sessions/users exist on the new system
+
+**Failure modes, clustered by structural root:**
+
+| Cluster | The way it goes badly |
+|---|---|
+| **A — Timeline compression** | The long-tail 20% of legacy/custom apps eats the quarter; migration work collides with teams' existing shipping commitments; a late-discovered bug forces rework on teams already cut over |
+| **B — Cutover blast radius** | Bad cutover takes down a critical app with no degraded mode; rollback becomes impossible past a threshold; token/session model mismatch causes mass lockout |
+| **C — Identity data quality** | Dirty group/role mappings cause privilege errors (a *security* incident, not just availability); forgotten **non-human/service accounts** (CI, integrations) silently break |
+| **D — Coordination & people** | No single owner with cross-team authority → stalls; helpdesk not scaled for the lockout spike |
+
+**Highest-leverage finding:** The timeline risk is driven by the *long tail and shared-dependency serialization*, not the average team. **Do a per-app auth-integration inventory before locking the date** — it converts the biggest unverified assumption into a known quantity.
+
+The agent's adversarial check flagged two modes most likely to be glossed over in a status meeting: **security regressions from dirty role mappings** and **forgotten service/non-human accounts**.
+
+It offered to turn any cluster into a concrete pre-cutover checklist, or to pressure-test the actual plan document if you share it. Want me to pursue either?

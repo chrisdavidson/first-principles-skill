@@ -1,0 +1,32 @@
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The agent sharpened the claim, inverted it, and identified **six conditions that each break the causal link**. The assumption holds *only while all six hold at once*:
+
+| # | The link breaks when… | Precondition the claim silently assumes |
+|---|---|---|
+| 1 | **Motion without value** — releases ship faster but contain nothing users care about | Each release delivers *perceived* value, not just more diffs |
+| 2 | **Quality erosion** — faster cadence trades away validation time, defect rate rises | Cadence increase doesn't raise per-release defect rate |
+| 3 | **Change fatigue** — UI churn, relearning, and notification noise outpace tolerance | Ship rate stays *below* users' absorption rate |
+| 4 | **Wrong root cause** — churn is driven by price, onboarding, support, or fit | Churn is actually caused by feature gaps ← **pivotal** |
+| 5 | **Crowd-out** — small two-week slices starve a flagship/architecture effort | Slices don't starve a needle-moving large effort |
+| 6 | **Commoditized speed** — competitors already match your cadence | Your cadence is still a market *differentiator* |
+
+### Key reasoning chains
+- **Quality break (HIGH confidence):** constant effort + higher cadence → less validation time → more regressions → perceived value drops *despite* shipping more.
+- **Root-cause break (MEDIUM):** if churn comes from price/fit/support, faster features address a non-cause → no retention change.
+- **Fatigue break (MEDIUM-HIGH):** when ship rate exceeds absorption, relearning cost per release exceeds delivered value → faster *actively hurts*.
+
+### Highest-leverage action
+**Verify the root cause of churn first (#4).** If churn is driven by price, onboarding, support, or fit, the whole assumption rests on a non-cause and cadence is the wrong lever regardless of the other five.
+
+### Early-warning instrumentation
+Track these to catch the break before it shows up in retention numbers:
+- Value-per-release adoption
+- Defect-rate-per-release trend
+- Feature-adoption lag (fatigue proxy)
+- Churn-reason tagging
+- Competitor cadence
+
+The first three crossing a threshold are your signal that two-week shipping has stopped buying retention.

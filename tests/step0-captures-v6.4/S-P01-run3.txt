@@ -1,0 +1,26 @@
+The first-principles pre-mortem is complete. Here's what it surfaced:
+
+## Pre-Mortem: Payments-Rewrite EU Launch
+
+The premise: it's two weeks out, the launch failed, and we work backward to find why. The 15 individual failure causes collapse into **four structural weaknesses** — and the danger is that all four stack at once:
+
+| Pattern | What it means |
+|---|---|
+| **A. No reversibility** | Payment writes (mandates, charges, tokens) can't be unwound with a feature flag. A hard cutover with no rollback is a **one-way door over irreversible financial state**. |
+| **B. Maximum blast radius** | 100%-at-once removes the only cheap way to catch the unknown-unknowns every rewrite has. |
+| **C. Invisible-until-later correctness** | The scariest bugs (reconciliation drift, missed webhooks, SCA edge cases, disputes) surface *days* later — so passing launch-day testing proves almost nothing. |
+| **D. Worst recovery window** | Friday + skeleton weekend on-call = maximum time-to-recovery for an incident over irreversible state. |
+
+### Recommended plan changes
+
+**Must-fix (reversibility):** rehearsed rollback runbook accounting for divergent state; prove idempotency keys survive the cutover; verify token/SEPA-mandate migration against *real* data; build continuous new-vs-Stripe reconciliation with per-customer discrepancy reporting.
+
+**Strongly recommended (blast radius):** replace hard cutover with a staged rollout (internal → 1% → 10% → 50% → 100%); load-test at EU-peak volume; stand up per-payment success-rate dashboards + alerting.
+
+**Nearly free (recovery window):** **don't ship Friday** — ship Tue/Wed with full team and bank support available for the days the long-tail failures actually appear.
+
+**Compliance gate:** confirm SCA/PSD2 3-D Secure against real EU bank flows, not Stripe sandbox.
+
+**The headline:** the cheapest two changes (don't ship Friday, do a staged rollout) defuse two of the four patterns for almost no cost. But the one to resolve *before committing* is **A — can you actually roll back?** If the honest answer is no, that single finding should reshape the entire plan.
+
+The agent offered to turn this into a launch-readiness checklist with owners, or to draft the rollback runbook structure — let me know if you'd like either.

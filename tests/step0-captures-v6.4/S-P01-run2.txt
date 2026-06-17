@@ -1,0 +1,31 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite EU Launch
+
+The agent imagined the Friday launch had already failed and worked backward. Its core conclusion: **the rewrite may be fine — the rollout strategy is the failure mode.**
+
+### Two structural weaknesses (load-bearing, not incidental)
+
+**1. Uncontrolled blast radius (no staged rollout)**
+With a big-bang cutover, every plausible defect hits 100% of EU customers simultaneously, with zero containment:
+- SCA/3DS breaking for specific EU issuer banks (PSD2 is mandatory and varies by country)
+- Double-charges from idempotency gaps under retry/load
+- Webhook loss at the cutover seam
+- Silent token-migration data loss
+- Reconciliation drift between new service and legacy Stripe
+
+The first signal of any defect *is* the full-population incident — there's no canary to catch it small.
+
+**2. Unproven recovery (untested rollback + Friday timing)**
+- Money movement isn't idempotent, and rollback to legacy Stripe is almost certainly *not* atomic (in-flight transactions, half-migrated tokens, divergent webhook state). The "we can just revert" safety net may be imaginary.
+- Friday cutover puts detection-to-recovery time at its annual worst exactly when blast radius is at maximum.
+
+### Recommended plan changes (priority order)
+1. **Add a staged rollout** — 1% → 5% → 25% → 100% by EU country/cohort. Highest-leverage fix; neutralizes the blast-radius problem.
+2. **Prove the rollback** — rehearse a full revert in a prod-like environment, including in-flight state. If it can't be made clean, treat forward-only as reality and build a forward-fix runbook.
+3. **Don't cut over on a Friday** — move to Tue/Wed morning for full eng + finance capacity in the 72 hours after.
+4. **Verify before launch** — idempotency under load, SCA against real issuer banks in top EU markets, token-migration completeness, webhook drain/replay at the seam.
+
+**Confidence caveat:** The probability estimates hinge on one unverified ground truth — that the service hasn't yet faced real EU production traffic. If the team *has* validated against production-shadow traffic, idempotency, and a tested rollback, several risks drop from HIGH to MEDIUM. But the structural conclusions hold regardless, because they're properties of the deployment strategy, not the code.
+
+**Bottom line from the agent:** it would not ship this configuration as specified.

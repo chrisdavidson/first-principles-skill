@@ -1,0 +1,26 @@
+The first-principles agent ran a full pre-mortem on the rollout. Here's what it surfaced.
+
+## Framing
+It treated this correctly as a **pre-mortem** ("assume it's already failed, look back at why") rather than a generic risk list. One caveat it flagged: it didn't have your actual plan document, so the findings are drawn from near-universal auth-rollout failure structure. Sharing the plan would let it confirm which risks are load-bearing for *your* specific rollout.
+
+## Six failure clusters (priority order by blast radius)
+
+1. **Cutover blast radius** — A big-bang cutover locks out every team at once. → Phase the rollout (canary → wave → wave); first confirm old and new auth can run concurrently, or phasing isn't even possible.
+
+2. **Untested rollback** — "We can roll back" is assumed far more often than tested. → Drill it against production-scale data before any cutover. Until it passes, it's not a capability.
+
+3. **Identity/session migration** — Dirty/legacy identity data corrupts roles or drops sessions; a re-login storm hits at peak. → Audit data, dry-run on a copy, cut over off-peak.
+
+4. **Slowest-team dependency** — Pace is bounded by the *least-ready* team, not the auth team. → Lock explicit per-team capacity commitments *before* the date; decouple teams so one laggard doesn't block all.
+
+5. **Hidden auth edges** — MFA, service accounts, long-lived API tokens, downstream services holding old tokens — missed because timelines reward the happy path. → Explicit test matrix for non-interactive auth; a security gate that can't be waived for schedule.
+
+6. **"Deployed" ≠ "done"** — Timelines date the deploy, not the stabilization tail. → Define done as "all teams stable for N days post-cutover" and budget the hardening tail into the locked date.
+
+## Key insight (second-order)
+Phasing extends the calendar → pressures the timeline → tempts skipping the security gate. So if you phase properly, the locked date must *absorb* that time — don't claw it back from the exact safety gate phasing was meant to protect.
+
+## The single highest-signal takeaway
+**Don't lock the timeline until (a) rollback has been tested, not assumed, and (b) each team has given an explicit, dated capacity commitment.** Those two are the assumptions most likely to be quietly false and most catastrophic if they are.
+
+The agent offered to either re-run against your actual plan document or turn these six clusters into a checklist for the timeline-lock meeting. Want me to pursue either?

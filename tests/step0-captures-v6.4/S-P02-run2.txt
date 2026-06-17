@@ -1,0 +1,21 @@
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## "Faster ships → better retention" — when it breaks down
+
+The claim is **conditionally true**, resting on seven silent preconditions. It holds best for consumer/power-user products where feature delivery is the binding retention constraint, quality is gated, and users welcome change.
+
+**It breaks down — and can even invert — when:**
+
+1. **Retention is gated by something else** (price, market fit, reliability, support, a competitor). Then velocity moves a non-causal lever — you're optimizing a non-constraint.
+2. **Speed erodes quality.** Less bake time → more regressions → trust erosion outpaces feature value. You've crossed the speed/quality frontier.
+3. **Change itself is a cost to your users.** UI churn, relearning, update fatigue, change-management/retraining tax. Most acute in **B2B / enterprise / regulated / workflow-critical** products — this is where the relationship most often *inverts*.
+4. **"Faster" means more output, not more validated value** — and the two-week pressure starves discovery, so you ship the wrong things faster.
+
+**Signals to watch for in your two-week-cadence team:**
+- Churn-reason data doesn't list "missing/stagnant features" near the top → velocity is the wrong lever
+- Regression/rollback rate climbs → quality frontier crossed
+- Low feature adoption + rising post-release support tickets → shipping output, not value
+- Your users are enterprise/regulated → cadence may actively hurt
+- Discovery time getting squeezed to hit the cadence → shipping wrong things faster
+
+**Highest-leverage check (confidence: MEDIUM until verified against your data):** Run a churn-reason analysis on the last two quarters. If "missing/stagnant features" isn't near the top, the core precondition fails and the whole assumption is moot for your team — no matter how fast you ship. Pair it with post-release defect/adoption rates to confirm quality is holding.
