@@ -620,8 +620,8 @@ def _write_baseline(
     ]
 
     RR_ID_MAP = {
-        "S-P01": "RR-79-01", "S-P02": "RR-79-02", "S-P03": "RR-75-03",
-        "S-P04": "RR-75-04", "S-P05": "RR-79-03", "S-P06": "RR-75-06",
+        "S-P01": "RR-79-01", "S-P02": "RR-92-01", "S-P03": "RR-75-03",
+        "S-P04": "RR-75-04", "S-P05": "RR-92-02", "S-P06": "RR-75-06",
         "S-N04": "RR-80-01",
     }
     if residual_risk_rows:
@@ -632,11 +632,17 @@ def _write_baseline(
             "",
         ]
         for r in residual_risk_rows:
+            rr_id = RR_ID_MAP.get(r.prompt.id)
+            if rr_id is None:
+                raise ValueError(
+                    f"_write_baseline: failing row {r.prompt.id} has no RR ID in RR_ID_MAP; "
+                    f"allocate a tracked RR ID before recording this baseline (RR-75-NN is retired)."
+                )
             lines.append(
                 f"- `{r.prompt.id}`: {r.match_count}/{repeat} FAIL"
                 f" — expected `{r.prompt.expected}`;"
                 f" observed modes: {r.modes}."
-                f" Residual-risk tracked as {RR_ID_MAP.get(r.prompt.id, 'RR-75-NN (unassigned — needs a tracked RR ID)')}."
+                f" Residual-risk tracked as {rr_id}."
             )
 
     lines += [
@@ -665,12 +671,16 @@ def _write_baseline(
         "`_COMPOSER_FOCUS_CEILING=4` unchanged). Phase 91 replaced the prior DET-13/14/15",
         "comment-provenance markers with live-capture-backed additive markers validated",
         "over 20 vendored v6.3 captures (REARCH-01/02). The four tracked residuals",
-        "(RR-79-01 S-P01, RR-79-02 S-P02, RR-79-03 S-P05, RR-80-01 S-N04) are resolved",
+        "(RR-79-01 S-P01, RR-92-01 S-P02, RR-92-02 S-P05, RR-80-01 S-N04) are resolved",
         "in-place under their existing IDs: CLOSED at observed K/N if ≥3/5 (min-pass),",
         "or CARRIED FORWARD with true observed K/N otherwise (D-04/D-05, honesty-not-score).",
         "",
-        "Prior baseline: tests/step0-baseline-v5." + "3.md (Phase 80) — BATTERY: FAIL,",
-        "P 3/6 (S-P01-06), S-N 3/4; residuals RR-79-01/02/03 (S-P01/02/05) + RR-80-01 (S-N04) carried forward.",
+        "Successor note: RR-79-02 (S-P02 inversion) superseded by RR-92-01 (Phase 93);",
+        "RR-79-03 (S-P05 trade-off) superseded by RR-92-02 (Phase 93). The v6.3→v6.4",
+        "lineage carries these forward under the superseded IDs.",
+        "",
+        "Prior baseline: tests/step0-baseline-v6." + "3.md (Phase 92) — BATTERY: FAIL,",
+        "P 3/6 (S-P01-06), S-N 4/5; residuals RR-92-01 (S-P02) + RR-92-02 (S-P05) carried forward.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
