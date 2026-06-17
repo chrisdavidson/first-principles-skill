@@ -1,17 +1,17 @@
 <!-- generated-by: gsd-doc-writer -->
 # Architecture
 
-This document describes the source-of-truth layout, the generation pipeline, plugin registration, the five-phase agent methodology, and the CI and pre-commit gate system for the first-principles-skills plugin.
+This document describes the source-of-truth layout, the generation pipeline, plugin registration, the five-phase agent methodology, the measurement subsystem (inventory), and the canonical CI and pre-commit gate inventory for the first-principles-skills plugin.
 
 ## Overview
 
 The plugin ships a single orchestrating agent (`first-principles:first-principles`) plus eleven slash-only companion skills. The entire deliverable is pure Markdown — no executable code ships inside the plugin tree. A Python generation script (`scripts/sync-content.py`) assembles the generated tree from canonical source files in `shared/`.
 
 ```
-shared/          ← canonical source (edit here)
+shared/           ← canonical source (edit here)
 first-principles/ ← generated plugin (committed, never hand-edited)
-scripts/          ← generation, validation, and routing-battery scripts
-tests/            ← routing catalog fixtures
+scripts/          ← generation, validation, and measurement-battery scripts
+tests/            ← routing catalog fixtures and step 0 capture files
 ```
 
 ## Source-of-truth vs. generated surface
@@ -92,34 +92,44 @@ The agent applies a five-phase procedure. Each phase produces a named artifact t
 
 Six companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) are available as on-demand reference siblings of the agent and as standalone slash skills.
 
-## CI gates
+## CI and pre-commit gate inventory
 
-All gates run in `.github/workflows/validation.yml` on push/PR to master:
+All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The two pre-commit gates fire on `git commit` via the project hook mechanism.
 
-| Gate | Script | What it checks |
-|------|--------|----------------|
-| VAL-01 | `claude plugin validate` | Plugin schema validity |
-| VAL-02 | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
-| VAL-03 | `check-links.py` | Relative MD links resolve |
-| VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
-| VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
-| DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
-| GATE-01 | `check-agent.py` | Agent structural checks |
+| Gate | Job / Mechanism | Script | What it checks |
+|------|----------------|--------|----------------|
+| VAL-01 | `plugin-validate` (CI) | `claude plugin validate` | Plugin schema validity |
+| VAL-02 | `markdownlint` (CI) | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
+| VAL-03 | `check-links` (CI) | `scripts/check-links.py` | Relative MD links resolve in plugin + shared trees |
+| VAL-04 / GATE-02 | `check-trigger-collisions` (CI) | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
+| VAL-05 | `check-description-budget` (CI) | `scripts/check-description-budget.py` | All skill listings under 2000-char cap |
+| DUAL-04 | `sync-check` (CI) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |
+| GATE-01 | `check-agent` (CI) | `scripts/check-agent.py` | Agent structural checks |
+| BATT-06 | `check-routing-battery` (CI) | `scripts/check-routing-battery.py --self-test` | Merged dual-signal battery self-test (boundary + focused-output); anti-masking sentinels |
+| STEP0-08 | `check-step0-emulator` (CI) | `scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
+| STEP0-06 | `check-step0-live` (CI) | `scripts/check-step0-live.py --self-test` | Step 0 live-harness scoring/parsing logic self-test |
+| TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution) |
+| — | body-budget gate (pre-commit) | `scripts/check-body-budget.py` | Agent body (`first-principles/agents/first-principles.md`) stays under 500 lines |
+| — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
 
-## Pre-commit gates
+Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).
 
-Two gates fire on `git commit`. Either hook mechanism below provides full coverage — do not use both simultaneously:
+For operational run-detail — how to invoke each gate locally, `--self-test` modes, and what the pre-commit hook checks — see [docs/TESTING.md](docs/TESTING.md).
 
-| Mechanism | How to activate |
-|-----------|----------------|
-| `install-hooks.sh` (recommended) | `./scripts/install-hooks.sh` |
-| `core.hooksPath` | `git config core.hooksPath .githooks` |
+## Measurement subsystem
 
-Both gates in the hook:
-1. **Body-budget gate** — blocks if `first-principles/agents/first-principles.md` exceeds 500 lines
-2. **Sync-drift gate** — blocks if `shared/` and the generated tree have diverged
+The following scripts form the measurement subsystem. They sit alongside the validation scripts in `scripts/` and are named here at inventory altitude. For anti-masking invariants, constant values, and the full inter-layer wiring detail see [docs/TESTING.md](docs/TESTING.md).
 
-Bypass for intentional in-progress work: `git commit --no-verify`
+| Component | Script | Role |
+|-----------|--------|------|
+| Step 0 emulator | `scripts/check-step0-emulator.py` | Offline phrase-detection classifier; reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md` and classifies a prompt to `MODE` (STEP0-08) |
+| Step 0 live harness | `scripts/check-step0-live.py` | Live MODE classification via the approach-② bypass channel against a running `claude` session (STEP0-06 offline self-test) |
+| Routing battery | `scripts/check-routing-battery.py` | Merged dual-signal battery: boundary-discipline + focused-output signals scored together (BATT-06 `--self-test`) |
+| Routing battery (developer tool) | `scripts/check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing battery; developer tool, not wired into CI |
+| Battery core | `scripts/_battery_core.py` | Shared battery logic; home of the anti-masking invariant constants and the `self_test_boundary()` sentinels |
+| Traceability matrix | `scripts/check-traceability.py` | Capability → requirement → test traceability matrix; `emit` generates the matrix, `--self-test` is TRACE-03 |
+
+Two deprecated thin shims (`scripts/check-sub-skill-routing.py`, `scripts/check-focused-output.py`) delegate to `check-routing-battery.py` for backward compatibility; new callers should invoke `check-routing-battery.py` directly.
 
 ## Key invariants
 
