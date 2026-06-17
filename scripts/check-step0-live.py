@@ -564,7 +564,10 @@ def _write_baseline(
     for r in results:
         kn_str = f"{r.match_count}/{repeat} {'PASS' if r.row_pass else 'FAIL'}"
         if r.prompt.id in CONTEXT_FREE_IDS:
-            verdict_str = "FAIL (expected — context-free parser-robustness fixture, not part of the 4/6 live-technique bar)"
+            verdict_str = (
+                f"FAIL (expected — context-free parser-robustness fixture, "
+                f"not part of the {p_context_pass}/{len(p_context)} live-technique bar)"
+            )
         else:
             verdict_str = "PASS" if r.row_pass else "FAIL"
             if not r.row_pass:
