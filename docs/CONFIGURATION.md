@@ -173,3 +173,12 @@ authoritative gate table.
 - All reference file links use forward slashes and are one level deep from the referencing file.
 - The generated agent body must not exceed 500 lines.
 - Edit `shared/` only. Never edit the generated tree (`first-principles/`) directly.
+
+## Anti-masking measurement invariants
+
+The routing battery enforces two anti-masking constants defined in
+`scripts/_battery_core.py`: `MIN_HEADER_HITS=2` and `_COMPOSER_FOCUS_CEILING=4`. These
+constants govern how the battery distinguishes a focused-technique output from a
+full-composer output. Their definitions, rationale, and the sentinel tests that lock them
+are documented canonically in
+[docs/TESTING.md#anti-masking-measurement-invariants](docs/TESTING.md#anti-masking-measurement-invariants).
