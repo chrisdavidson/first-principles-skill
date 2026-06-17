@@ -835,6 +835,18 @@ def self_test_boundary() -> int:
         return (_V63_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
     # ---------------------------------------------------------------------------
+    # _load_excerpt_v64 helper — reads Phase 96 v6.4 assistant-text excerpts.
+    # Files live under tests/step0-captures-v6.4/ (git-tracked, Phase 96 D-01/D-02).
+    # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
+    # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
+    # DORMANT until Plan 02 wires it into the re-pointed sentinels.
+    # ---------------------------------------------------------------------------
+    _V64_DIR = REPO_ROOT / "tests" / "step0-captures-v6.4"
+
+    def _load_excerpt_v64(prompt_id: str, run: int) -> str:
+        return (_V64_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
+    # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
     #          re-pointed to v6.3 evidence Phase 93, Plan 01)
     #
