@@ -951,7 +951,7 @@ _SEVERITY_LABEL: dict[tuple[str, str], str] = {
 # all other rows continue to use the _SEVERITY_LABEL 2×2 map.
 _ACTIVE_TAIL_SEVERITY: dict[str, str] = {
     "RR-80-01": "CRITICAL",   # negative-control regression in step0-baseline
-    # GEN-01 removed — now "reproducible" (committed v6.3 live re-baseline, Phase 92)
+    # GEN-01 removed — now "reproducible" (committed live re-baseline; flip Phase 93 on v6.3 Phase 92, now tracks v6.4 Phase 95)
     # GEN-02 removed — now "reproducible" (runbook + wrapper script, Phase 89)
     "RR-79-01": "HIGH",       # live S-P routing unresolved
     # RR-95-01 supersedes RR-92-01 (Phase 95 v6.4 carry-forward, S-P02 inversion CARRIED 1/5)
@@ -1327,12 +1327,14 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # GEN-01-REPRODUCIBLE named sentinel (D-09 / Phase 93)
     # Repurposed from GEN-01-SCHEDULED (Phase 88) — GEN-01 is now 'reproducible'
     # (Phase 93 flip, D-08) because the Step 0 classifier capability is reproducibly
-    # measured by the committed v6.3 live re-baseline (tests/step0-baseline-v6.3.md,
-    # Phase 92). The flip is earned by the committed baseline, not a passing score
-    # (BATTERY: FAIL, 2/4 residuals carried — legitimate v6.3 success state).
+    # measured by a committed live re-baseline. The flip was earned in Phase 93 on
+    # tests/step0-baseline-v6.3.md (Phase 92); the artifact_link now tracks the current
+    # authoritative re-baseline tests/step0-baseline-v6.4.md (Phase 95). The flip is
+    # earned by the committed baseline, not a passing score
+    # (BATTERY: FAIL, 2/4 residuals carried — legitimate honest success state).
     # Asserts:
     #   (a) GEN-01's tier is "reproducible" (not "scheduled", not "gap")
-    #   (b) GEN-01's artifact_link is the committed v6.3 baseline (deep-resolved)
+    #   (b) GEN-01's artifact_link is the committed v6.4 baseline (deep-resolved)
     #   (c) Exactly-one GEN-01 row drift guard
     #   (d) Not-scheduled counter-check (transition non-vacuous)
     # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
