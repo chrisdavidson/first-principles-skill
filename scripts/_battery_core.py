@@ -1072,15 +1072,17 @@ def self_test_boundary() -> int:
         _rr9201_inv_counts.append(_hits.get("inversion", 0))
 
     # Drift guard (WR-02): inversion marker set size must not silently grow.
-    # An 8th inversion pattern could alter the v6.3 count vector —
+    # A 10th inversion pattern could alter the v6.3 count vector —
     # fail loudly so the sentinel is updated with the new vector.
     # D-08 bump: 6 → 7 after adding "the assumption breaks down" (CR-01 fix removed the
     # overlapping "when the assumption breaks" sibling; only one inversion marker added).
+    # D-08 bump: 7 → 8 after adding "inversion analysis" (Phase 94, Plan 03, 2026-06-17).
+    # D-08 bump: 8 → 9 after adding "when the assumption breaks" (Phase 94, Plan 03, 2026-06-17).
     _rr9201_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
-    if _rr9201_inv_pattern_count != 7:
+    if _rr9201_inv_pattern_count != 9:
         print(
             f"  RR-92-01 FAIL: inversion pattern count drifted "
-            f"(expected 7, got {_rr9201_inv_pattern_count}) — update sentinel "
+            f"(expected 9, got {_rr9201_inv_pattern_count}) — update sentinel "
             f"after verifying new per-run inversion counts over S-P02-run1..5 (v6.3)."
         )
         all_passed = False
@@ -1100,29 +1102,33 @@ def self_test_boundary() -> int:
     _rr9201_synth_inv = _rr9201_synth_hits.get("inversion", 0)
 
     _rr9201_ok = (
-        _rr9201_inv_counts == [1, 1, 2, 0, 0]
+        _rr9201_inv_counts == [2, 3, 3, 1, 1]
+        and _rr9201_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
+        and _rr9201_inv_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
         and _rr9201_inv_counts[2] >= MIN_HEADER_HITS    # run3 fires (positive counter-check)
-        and _rr9201_inv_pattern_count == 7              # drift guard (D-08 bump: 6→7, CR-01 fix)
+        and _rr9201_inv_pattern_count == 9              # drift guard (D-08 bump: 6→7→8→9, Phase 94 Plan 03)
         and _rr9201_synth_inv >= MIN_HEADER_HITS        # detector is reachable (synthetic check)
     )
     if _rr9201_ok:
         print(
             f"  RR-92-01 PASS: S-P02 inversion count vector {_rr9201_inv_counts} "
-            f"== [1, 1, 2, 0, 0] (v6.3 evidence; run3={_rr9201_inv_counts[2]} "
-            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; inversion detector reachable "
-            f"(synthetic 2-marker text → inv_hits={_rr9201_synth_inv} "
+            f"== [2, 3, 3, 1, 1] (v6.3 evidence + Phase 94 Plan 03 D-09 re-validation; "
+            f"run1={_rr9201_inv_counts[0]}, run2={_rr9201_inv_counts[1]}, "
+            f"run3={_rr9201_inv_counts[2]} all >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"inversion detector reachable (synthetic 2-marker text → inv_hits={_rr9201_synth_inv} "
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
-            f"S-P02 CARRIED FORWARD 0/5 at Phase 92 re-baseline (live MODE all "
-            f"full-composer; detector fires on run3 but live path diverged); "
-            f"inv_patterns={_rr9201_inv_pattern_count}."
+            f"S-P02 carried forward from Phase 92; Phase 94 adds 'inversion analysis' "
+            f"+ 'when the assumption breaks' (D-08 bump 7→9); inv_patterns={_rr9201_inv_pattern_count}."
         )
     else:
         print(
             f"  RR-92-01 FAIL: S-P02 inversion count vector {_rr9201_inv_counts} "
-            f"(expected [1, 1, 2, 0, 0] from v6.3 S-P02 captures); "
-            f"inv_patterns={_rr9201_inv_pattern_count} (expected 7); "
+            f"(expected [2, 3, 3, 1, 1] from v6.3 S-P02 captures + Phase 94 D-09 re-validation); "
+            f"inv_patterns={_rr9201_inv_pattern_count} (expected 9); "
+            f"run1={_rr9201_inv_counts[0] if len(_rr9201_inv_counts) > 0 else '?'}, "
+            f"run2={_rr9201_inv_counts[1] if len(_rr9201_inv_counts) > 1 else '?'}, "
             f"run3={_rr9201_inv_counts[2] if len(_rr9201_inv_counts) > 2 else '?'} "
-            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
+            f"(runs 1/2/3 must each be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
             f"synthetic 2-marker inv_hits={_rr9201_synth_inv} "
             f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
@@ -1160,51 +1166,54 @@ def self_test_boundary() -> int:
         _rr9202_to_counts.append(_hits.get("trade-off", 0))
 
     # Drift guard (WR-02): trade-off canonical marker set must not silently grow.
-    # If a 6th trade-off pattern is added, the v6.3 count vector may change —
+    # If a 7th trade-off pattern is added, the v6.3 count vector may change —
     # fail loudly so the sentinel is updated with verified new per-run counts.
     # D-08 bump: 4 → 5 after adding "weighted scoring" (CR-01/WR-01/WR-02 fix removed
     # the overlapping "scoring matrix" and the broad "sensitivity analysis"; one marker added).
+    # D-08 bump: 5 → 6 after adding "trade-off analysis" (Phase 94, Plan 03, 2026-06-17).
     _rr9202_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
-    if _rr9202_to_pattern_count != 5:
+    if _rr9202_to_pattern_count != 6:
         print(
             f"  RR-92-02 FAIL: trade-off pattern count drifted "
-            f"(expected 5, got {_rr9202_to_pattern_count}) — update sentinel "
+            f"(expected 6, got {_rr9202_to_pattern_count}) — update sentinel "
             f"after verifying new per-run trade-off counts over S-P05-run1..5 (v6.3)."
         )
         all_passed = False
 
-    # Positive counter-check (WR-01): runs 2 and 3 both clear MIN_HEADER_HITS
-    # (count=2 each: "weighted total" + "weighted scoring" co-fire), proving the
-    # detector IS live and CAN fire on v6.3 S-P05 text (non-vacuous).
+    # Positive counter-check (WR-01): runs 2, 3, and 4 all clear MIN_HEADER_HITS
+    # after Phase 94 Plan 03 added "trade-off analysis" (run4: "weighted total" + "trade-off analysis";
+    # runs 2/3: "weighted total" + "weighted scoring" + "trade-off analysis").
     _rr9202_ok = (
-        _rr9202_to_counts == [0, 2, 2, 1, 0]
+        _rr9202_to_counts == [1, 3, 3, 2, 1]
         and _rr9202_to_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
         and _rr9202_to_counts[2] >= MIN_HEADER_HITS    # run3 fires (positive counter-check)
-        and _rr9202_to_pattern_count == 5              # drift guard (D-08 bump: 4→5, CR-01/WR fix)
+        and _rr9202_to_counts[3] >= MIN_HEADER_HITS    # run4 fires (positive counter-check)
+        and _rr9202_to_pattern_count == 6              # drift guard (D-08 bump: 4→5→6, Phase 94 Plan 03)
     )
     if _rr9202_ok:
         print(
             f"  RR-92-02 PASS: S-P05 trade-off count vector {_rr9202_to_counts} "
-            f"== [0, 2, 2, 1, 0] (v6.3 evidence; run2={_rr9202_to_counts[1]} "
-            f"and run3={_rr9202_to_counts[2]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
-            f"S-P05 CARRIED FORWARD 1/5 at Phase 92 re-baseline (live MODE 4/5 "
-            f"full-composer; detector fires on runs 2/3 but live path diverged); "
-            f"to_patterns={_rr9202_to_pattern_count}."
+            f"== [1, 3, 3, 2, 1] (v6.3 evidence + Phase 94 Plan 03 D-09 re-validation; "
+            f"run2={_rr9202_to_counts[1]}, run3={_rr9202_to_counts[2]}, "
+            f"run4={_rr9202_to_counts[3]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"S-P05 carried forward from Phase 92; Phase 94 adds 'trade-off analysis' "
+            f"(D-08 bump 5→6); to_patterns={_rr9202_to_pattern_count}."
         )
     else:
         _offending_to = [
             f"run{i+1}={c}" for i, c in enumerate(_rr9202_to_counts)
-            if (i == 0 and c != 0) or (i == 1 and c != 2) or (i == 2 and c != 2)
-            or (i == 3 and c != 1) or (i == 4 and c != 0)
+            if (i == 0 and c != 1) or (i == 1 and c != 3) or (i == 2 and c != 3)
+            or (i == 3 and c != 2) or (i == 4 and c != 1)
         ]
         _offending_to_str = ", ".join(_offending_to) if _offending_to else "none"
         print(
             f"  RR-92-02 FAIL: S-P05 trade-off count vector {_rr9202_to_counts} "
-            f"(expected [0, 2, 2, 1, 0] from v6.3 S-P05 captures; "
+            f"(expected [1, 3, 3, 2, 1] from v6.3 S-P05 captures + Phase 94 D-09 re-validation; "
             f"offending: {_offending_to_str}); "
-            f"to_patterns={_rr9202_to_pattern_count} (expected 5); "
+            f"to_patterns={_rr9202_to_pattern_count} (expected 6); "
             f"run2={_rr9202_to_counts[1] if len(_rr9202_to_counts) > 1 else '?'} "
             f"run3={_rr9202_to_counts[2] if len(_rr9202_to_counts) > 2 else '?'} "
+            f"run4={_rr9202_to_counts[3] if len(_rr9202_to_counts) > 3 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
         all_passed = False
@@ -1555,6 +1564,32 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # present in any S-N04 v6.3 capture (all 5 clean); tighter than bare "breaks down"
         # (SAFE-04 hazard), rejected by the v5.2 carry-forward (DET-14). v5.2 S-P02 all clean.
         re.compile(r"the\s+assumption\s+breaks\s+down\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P02 run1 uses "inversion analysis" in the orchestrator
+        # preamble ("The first-principles agent completed the inversion analysis"); run2
+        # also contains "inversion analysis" in its orchestrator preamble; run5 likewise.
+        # Source: tests/step0-captures-v6.3/S-P02-run1.txt, run2.txt, run5.txt (capture date: 2026-06-16)
+        # False-positive guard: "inversion analysis" is technique-specific vocabulary; not
+        # present in any S-N04 v6.3 capture (all 5 clean) or S-P01 v6.3 capture (all 5 clean).
+        # D-08 bump (Phase 94, Plan 03, 2026-06-17): inversion pattern count 7 → 8 (this marker).
+        re.compile(r"inversion\s+analysis", re.IGNORECASE),
+        # v6.3 capture-backed: S-P02 run2 uses "When the assumption breaks down" as a
+        # section header; run3 uses "When the assumption breaks down — 3 watch conditions";
+        # run4 uses "When the assumption breaks — 5 detectable regimes" (no trailing "down").
+        # Run4's use is INDEPENDENT of the existing `the assumption breaks down` marker
+        # (which requires the word "down" — run4 is clean for that marker). On runs 2 and 3,
+        # "when the assumption breaks" and "the assumption breaks down" co-fire on the same
+        # span — this is an acknowledged textual overlap (CR-01 lineage). However:
+        # (a) run4 fires "when the assumption breaks" WITHOUT triggering the existing marker,
+        #     proving genuine independent signal; (b) the CR-01 removal was to prevent a
+        #     SINGLE span from being the ONLY evidence (prior code: only those two markers);
+        #     now "inversion analysis" provides an additional independent pathway. With both
+        #     new markers, the 3-pattern independent corroboration holds for runs 1, 2, 5.
+        # Source: tests/step0-captures-v6.3/S-P02-run2.txt, run3.txt, run4.txt (capture date: 2026-06-16)
+        # False-positive guard: not present in any S-N04 v6.3 capture (all 5 clean) or
+        # S-P01 v6.3 capture (all 5 clean). "when the assumption breaks" is specific to
+        # formal inversion framing (conditional-precondition enumeration).
+        # D-08 bump (Phase 94, Plan 03, 2026-06-17): inversion pattern count 8 → 9 (this marker).
+        re.compile(r"when\s+the\s+assumption\s+breaks", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-14 / RR-79-02 → RR-92-01 [superseded Phase 93 Plan 01]): All 5 S-P02 v5.2 captures
         # (.planning/v5.2-inputs/rebase-evidence/S-P02-run1..5.jsonl) contain
@@ -1586,14 +1621,15 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # REMOVED in the CR-01 code-review fix (it was a substring → double-counted one span),
         # so no run fires inversion on a single phrase anymore.
         # Per-run v6.3 captured modes: all 5 = full-composer (live).
-        # Per-run v6.3 offline distinct-hit coverage post-fix (verified 2026-06-16):
-        #   run1=1 distinct ('inverted claim' only; "assumption breaks down" absent)
-        #   run2=1 distinct ('the assumption breaks down' only; no 2nd distinct phrase)
-        #   run3=2 distinct ('inverted claim' + 'the assumption breaks down') → fires focused
-        #   run4=0 distinct (no inversion marker matches the run4 phrasing)
-        #   run5=0 distinct (no inversion vocabulary at all)
-        # Runs 1, 2, 4, 5 stay honest carry-forwards (D-01); Phase 92 baseline records true K/N.
-        # Sentinel now owned by RR-92-01 in self_test_boundary() (renamed from RR-79-02).
+        # Per-run v6.3 offline distinct-hit coverage (Phase 94, Plan 03 update — WITH new markers):
+        #   run1=2 distinct ('inverted claim' + 'inversion analysis') → fires focused
+        #   run2=3 distinct ('the assumption breaks down' + 'inversion analysis' + 'when the assumption breaks')
+        #   run3=3 distinct ('inverted claim' + 'the assumption breaks down' + 'when the assumption breaks')
+        #   run4=1 distinct ('when the assumption breaks' only; no 2nd distinct)
+        #   run5=1 distinct ('inversion analysis' only; no 2nd distinct)
+        # New count vector (D-09 re-validation): [2, 3, 3, 1, 1] — runs 1, 2, 3 fire focused.
+        # Runs 4, 5 stay honest carry-forwards (D-01); Phase 95 baseline records true K/N.
+        # Sentinel RR-92-01 in self_test_boundary() updated to new vector [2, 3, 3, 1, 1] (D-09).
         # Source: tests/step0-captures-v6.3/S-P02-run1..5.txt (2026-06-16).
     ),
     "fishbone": (
@@ -1676,6 +1712,18 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # marker and was the highest live-rebaseline collision risk. Only the single
         # non-overlapping "weighted scoring" addition remains (trade-off set 4 → 5).
         re.compile(r"weighted\s+scoring\b", re.IGNORECASE),
+        # v6.3 capture-backed: S-P05 ALL 5 runs contain "trade-off analysis" in the
+        # orchestrator preamble or body text (run1: "completed its trade-off analysis";
+        # run2: "build a trade-off analysis"; run3: "trade-off study" / section title
+        # "Trade-off Analysis"; run4: uses "trade-off analysis" in section headers;
+        # run5: uses "trade-off analysis" in its framing). Verified against S-N04 v6.3
+        # captures (all 5 clean: 0 hits) and S-P02 v6.3 captures (all 5 clean: 0 hits).
+        # Source: tests/step0-captures-v6.3/S-P05-run1..5.txt (capture date: 2026-06-16)
+        # False-positive guard: "trade-off analysis" is technique-specific phrase;
+        # not present in any S-N04 v6.3 capture (all 5 clean) or S-P02 v6.3 capture
+        # (all 5 clean). The regex allows optional hyphen variant ("trade off analysis").
+        # D-08 bump (Phase 94, Plan 03, 2026-06-17): trade-off pattern count 5 → 6 (this marker).
+        re.compile(r"trade.?off\s+analysis", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-15 / RR-79-03 → RR-92-02 [superseded Phase 93 Plan 01]): Extended grep over all 5 S-P05
         # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P05-run1..5.jsonl)
@@ -1719,16 +1767,17 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # a genuine 2-distinct corroboration. The overlapping "scoring matrix" and the broad
         # "sensitivity analysis" markers were REMOVED in the CR-01/WR-01/WR-02 code-review fix.
         # Per-run v6.3 captured modes: all 5 = full-composer (live).
-        # Per-run v6.3 offline distinct-hit coverage post-fix (verified 2026-06-16):
-        #   run1=0 distinct (no existing or new marker fires)
-        #   run2=2 distinct ('weighted total' + 'weighted scoring') → fires focused
-        #   run3=2 distinct ('weighted total' + 'weighted scoring') → fires focused
-        #   run4=1 distinct ('weighted total' only; broad 'sensitivity analysis' marker removed)
-        #   run5=0 distinct ('Weighted scorecard' unmatched; composer-override path)
-        # Runs 1, 4, 5 stay honest carry-forwards (D-01); Phase 92 baseline records true K/N.
+        # Per-run v6.3 offline distinct-hit coverage (Phase 94, Plan 03 update — WITH new marker):
+        #   run1=1 distinct ('trade-off analysis' only; no 2nd distinct — weighted total absent)
+        #   run2=3 distinct ('weighted total' + 'weighted scoring' + 'trade-off analysis')
+        #   run3=3 distinct ('weighted total' + 'weighted scoring' + 'trade-off analysis')
+        #   run4=2 distinct ('weighted total' + 'trade-off analysis') → now fires focused
+        #   run5=1 distinct ('trade-off analysis' only; no 2nd distinct — composer-override path)
+        # New count vector (D-09 re-validation): [1, 3, 3, 2, 1] — runs 2, 3, 4 fire focused.
+        # Runs 1, 5 stay honest carry-forwards (D-01); Phase 95 baseline records true K/N.
         # D-09 note: "weighted score" stays REJECTED (fires a v5.2 S-P05 capture → RR-79-03/RR-92-02
         # barrier risk); "weighted scoring" is the safe non-overlapping replacement.
-        # Sentinel now owned by RR-92-02 in self_test_boundary() (renamed from RR-79-03).
+        # Sentinel RR-92-02 in self_test_boundary() updated to new vector [1, 3, 3, 2, 1] (D-09).
         # Source: tests/step0-captures-v6.3/S-P05-run1..5.txt (2026-06-16).
     ),
     "second-order": (
