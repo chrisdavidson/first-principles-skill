@@ -52,42 +52,76 @@ uv run scripts/sync-content.py --write
 
 ## Validation scripts
 
-Run these locally before pushing:
+Run these locally before pushing. For the full CI gate inventory (every gate mapped to its owning script), see [ARCHITECTURE.md](ARCHITECTURE.md). For how to run each gate and interpret results, see [TESTING.md](TESTING.md).
+
+### Sync pipeline
+
+| Script | Gate | Command |
+|--------|------|---------|
+| `sync-content.py` | DUAL-04 | `python3 scripts/sync-content.py --write` (regenerate) / `python3 scripts/sync-content.py --check` (verify no drift) |
+
+### Static validation gates
 
 | Script | Gate | Command | What it checks |
 |--------|------|---------|----------------|
-| `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 500 lines |
 | `check-agent.py` | GATE-01 | `python3 scripts/check-agent.py` | Agent structural integrity |
-| `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve |
-| `check-trigger-collisions.py` | VAL-04 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
+| `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/` and `shared/`) |
+| `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
-| `sync-content.py --check` | DUAL-04 | `python3 scripts/sync-content.py --check` | `shared/` and generated tree in sync |
+| `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 500 lines |
+| `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files |
+
+### Measurement and routing gates
+
+| Script | Gate | Command | Notes |
+|--------|------|---------|-------|
+| `check-routing.py` | (developer tool) | `python3 scripts/check-routing.py --catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | Main-agent DELEGATE / NO-DELEGATE routing battery. **Not wired into CI** — developer tool only. |
+| `check-routing-battery.py` | BATT-06 | `python3 scripts/check-routing-battery.py --repeat 5 --min-pass 3` / `python3 scripts/check-routing-battery.py --self-test` | Merged dual-signal battery (boundary + focused-output). `--self-test` is the BATT-06 CI gate (offline, deterministic). |
+| `check-step0-emulator.py` | STEP0-08 | `python3 scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier (no live Claude session). STEP0-08 CI gate. |
+| `check-step0-live.py` | STEP0-06 | `python3 scripts/check-step0-live.py --self-test` (CI) / `python3 scripts/check-step0-live.py --repeat 5 --min-pass 3` (full manual, 60 invocations) | Live Step 0 harness via approach-② bypass channel. `--self-test` is STEP0-06 CI gate. Full manual run requires a live Claude session. |
+| `check-traceability.py` | TRACE-03 | `python3 scripts/check-traceability.py --self-test` | Traceability matrix gate. `emit` subcommand regenerates `docs/requirements-matrix.md`. |
+
+**Deprecated shims** (backward compatibility only — do not use for new invocations):
+
+| Script | Delegates to |
+|--------|-------------|
+| `check-sub-skill-routing.py` | `check-routing-battery.py` (boundary signal) |
+| `check-focused-output.py` | `check-routing-battery.py` (focused-output signal) |
+
+**Internal helpers** (underscore-prefixed, not directly invoked):
+
+- `_battery_core.py` — battery core logic; home of `MIN_HEADER_HITS=2` and `_COMPOSER_FOCUS_CEILING=4` constants and the `self_test_boundary()` sentinels
+- `_skill_io.py` — shared I/O utilities for skill validation scripts
 
 ## Pre-commit hooks
 
-Install one of the following mechanisms (not both — they are mutually exclusive at the Git level):
+Two gates fire on `git commit`: the **body-budget gate** (blocks if the agent body exceeds 500 lines) and the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged).
 
-**Option A — install-hooks.sh (recommended):**
+Install one of the following mechanisms. **Do not enable both — they are mutually exclusive at the Git level.**
+
+**Option A — `install-hooks.sh` (recommended):**
 
 ```sh
 ./scripts/install-hooks.sh
 ```
 
-This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` and covers both the body-budget gate and the sync-drift gate.
+This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, running both gates on every commit.
 
-**Option B — core.hooksPath:**
+**Option B — `core.hooksPath`:**
 
 ```sh
 git config core.hooksPath .githooks
 ```
 
-`.githooks/pre-commit` also runs both gates.
+This points Git at the `.githooks/pre-commit` entry point, which also runs both gates.
 
 **Bypass** for intentional in-progress work:
 
 ```sh
 git commit --no-verify
 ```
+
+For what each gate checks in detail, see [TESTING.md](TESTING.md).
 
 ## Editing focused-mode skills
 
@@ -114,7 +148,7 @@ Keep these invariants intact when authoring or editing:
 
 ## CI gates
 
-All gates run on push/PR to master in `.github/workflows/validation.yml`. A PR cannot merge if any gate fails. See [TESTING.md](TESTING.md) for how to run each gate locally.
+All gates run on push/PR to master in `.github/workflows/validation.yml`. A PR cannot merge if any gate fails. For the full gate inventory, see [ARCHITECTURE.md](ARCHITECTURE.md). For how to run each gate locally and interpret results, see [TESTING.md](TESTING.md).
 
 ## Commit conventions
 
@@ -131,6 +165,6 @@ chore: <description>
 
 ## See also
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — source-of-truth vs. generated surface layout
-- [TESTING.md](TESTING.md) — full validation script and routing battery reference
-- [CONFIGURATION.md](CONFIGURATION.md) — frontmatter fields and gate configuration
+- [ARCHITECTURE.md](ARCHITECTURE.md) — full CI gate inventory, source-of-truth vs. generated surface layout
+- [TESTING.md](TESTING.md) — validation script run-detail, routing battery reference, pre-commit gate behavior
+- [CONFIGURATION.md](CONFIGURATION.md) — frontmatter fields and invariants
