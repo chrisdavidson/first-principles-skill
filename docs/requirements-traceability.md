@@ -11,8 +11,8 @@ The full 206-row capability-to-requirement-to-test mapping is in the generated m
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
 > 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
-> No current open gaps — GEN-01 → reproducible (Phase 93, committed v6.3 baseline; artifact `tests/step0-baseline-v6.3.md`) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
-> 5 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-79-01, RR-92-01 (supersedes RR-79-02), RR-92-02 (supersedes RR-79-03), RR-77-08).
+> No current open gaps — GEN-01 → reproducible (Phase 93, committed v6.4 baseline Phase 95; artifact `tests/step0-baseline-v6.4.md`) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
+> 5 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-79-01, RR-95-01 (supersedes RR-92-01, supersedes RR-79-02), RR-95-02 (supersedes RR-92-02, supersedes RR-79-03), RR-77-08).
 
 ## Active Surface
 
@@ -20,19 +20,19 @@ Exactly 7 live items. Nothing shipped or superseded belongs here.
 
 1. **RR-79-01** [HIGH] — S-P01 pre-mortem carry-forward (Phase 79): no false-positive-safe marker cleared the D-08 evidence bar; "Bottom line" framing has zero technique markers. Confirmed by BATT-06 (RR-79-01 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
-2. **RR-92-01** [HIGH] — S-P02 inversion carry-forward (Phase 92, supersedes RR-79-02). Zero canonical inversion vocabulary in v6.3 (0/5 FAIL at Phase 92 re-baseline). Confirmed by BATT-06 (RR-92-01 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
+2. **RR-95-01** [HIGH] — S-P02 inversion carry-forward (Phase 95, supersedes RR-92-01, supersedes RR-79-02; full chain: RR-79-02 -> RR-92-01 -> RR-95-01). 1/5 FAIL at Phase 95 v6.4 re-baseline (+1 vs v6.3 0/5 but below min-pass 3/5). Confirmed by BATT-06 (RR-95-01 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
-3. **RR-92-02** [HIGH] — S-P05 trade-off carry-forward (Phase 92, supersedes RR-79-03). 1/5 FAIL at Phase 92 re-baseline; the two-distinct-marker barrier is cleared by runs 2 and 3 in v6.3 evidence, but live MODE was 4/5 full-composer. Confirmed by BATT-06 (RR-92-02 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
+3. **RR-95-02** [HIGH] — S-P05 trade-off carry-forward (Phase 95, supersedes RR-92-02, supersedes RR-79-03; full chain: RR-79-03 -> RR-92-02 -> RR-95-02). 2/5 FAIL at Phase 95 v6.4 re-baseline (+1 vs v6.3 1/5 but below min-pass 3/5). The two-distinct-marker barrier is cleared by runs 2 and 3 in v6.4 evidence, but live MODE was 3/5 full-composer. Confirmed by BATT-06 (RR-95-02 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved).
 
 4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved. Locked by BATT-06 anti-masking sentinel (CEILING=4) in `_battery_core.self_test_boundary()`.
 
-5. **GEN-01** [reproducible] — Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v6.3 live re-baseline (Phase 92). Earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — legitimate v6.3 success state). Artifact: `tests/step0-baseline-v6.3.md`. No longer an open gap.
+5. **GEN-01** [reproducible] — Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v6.4 live re-baseline (Phase 95). Earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — RR-95-01 S-P02 inversion CARRIED 1/5, RR-95-02 S-P05 trade-off CARRIED 2/5 — legitimate v6.4 success state). Artifact: `tests/step0-baseline-v6.4.md`. No longer an open gap.
 
 6. **GEN-02** [reproducible] — Periodic live monitoring cadence; runbook + wrapper script established (Phase 89). Confirmed by git-tracked runbook and wrapper; artifact: `docs/live-monitoring-runbook.md`. No longer an open gap.
 
-7. **RR-80-01** [CRITICAL] — Negative-control over-routing dip. CLOSED 4/5 at Phase 92 re-baseline (v6.3).
-   **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 in Phase 83 (D-05). See `tests/step0-baseline-v6.3.md` for the v6.3 re-baseline capture (CLOSED 4/5).
-   Confirmed by STEP0-08 (S-N04 emulator assertion in `check-step0-emulator.py --self-test`) and BATT-06 (marker-counting assertion in `_battery_core.self_test_boundary()`); CLOSED at Phase 92 re-baseline (4/5 pass rate).
+7. **RR-80-01** [CRITICAL] — Negative-control over-routing dip. CLOSED 4/5 at Phase 95 re-baseline (v6.4).
+   **Lineage:** Formerly tracked as S-N04 (placeholder `RR-75-NN`). The dip was first recorded in Phase 80's live re-baseline run. Assigned the ID RR-80-01 in Phase 83 (D-05). See `tests/step0-baseline-v6.4.md` for the v6.4 re-baseline capture (CLOSED 4/5).
+   Confirmed by STEP0-08 (S-N04 emulator assertion in `check-step0-emulator.py --self-test`) and BATT-06 (marker-counting assertion in `_battery_core.self_test_boundary()`); CLOSED at Phase 95 re-baseline (4/5 pass rate).
 
 ## Gap Findings
 
@@ -42,22 +42,22 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 **No current open gaps.** Both previously-open gap rows are resolved:
 
-- **GEN-01** → **reproducible** (Phase 93, GEN-01-REARCH Phases 91-93). Artifact: `tests/step0-baseline-v6.3.md`. The Step 0 classifier capability is now reproducibly measured by the committed v6.3 live re-baseline; earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — legitimate v6.3 success state). Removed from the open-gap set.
+- **GEN-01** → **reproducible** (Phase 93, GEN-01-REARCH Phases 91-93; artifact pointer updated to v6.4 baseline in Phase 96). Artifact: `tests/step0-baseline-v6.4.md`. The Step 0 classifier capability is now reproducibly measured by the committed v6.4 live re-baseline (Phase 95); earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — RR-95-01 S-P02 1/5, RR-95-02 S-P05 2/5 — legitimate v6.4 success state). Removed from the open-gap set.
 - **GEN-02** → **reproducible** (runbook + wrapper script; Phase 89). Artifact: `docs/live-monitoring-runbook.md`. The periodic live monitoring cadence is now confirmed by a git-tracked runbook with re-runnable harness invocations; it is removed from the open-gap set.
 
 **5 reproducible rows with confirming offline gates** (live behavior documented at Phase 92 re-baseline):
 
-- **RR-80-01** [CRITICAL] — Negative-control over-routing; CLOSED 4/5 at Phase 92 re-baseline. Confirmed by STEP0-08 + BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
-- **RR-79-01** [HIGH] — S-P01 honest carry-forward; CLOSED 3/5 at Phase 92 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
-- **RR-92-01** [HIGH] — S-P02 honest carry-forward (supersedes RR-79-02); CARRIED 0/5 at Phase 92 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
-- **RR-92-02** [HIGH] — S-P05 honest carry-forward (supersedes RR-79-03); CARRIED 1/5 at Phase 92 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-80-01** [CRITICAL] — Negative-control over-routing; CLOSED 4/5 at Phase 95 v6.4 re-baseline. Confirmed by STEP0-08 + BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-79-01** [HIGH] — S-P01 honest carry-forward; CLOSED 4/5 at Phase 95 v6.4 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-95-01** [HIGH] — S-P02 honest carry-forward (supersedes RR-92-01, supersedes RR-79-02; chain: RR-79-02 -> RR-92-01 -> RR-95-01); CARRIED 1/5 at Phase 95 v6.4 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-95-02** [HIGH] — S-P05 honest carry-forward (supersedes RR-92-02, supersedes RR-79-03; chain: RR-79-03 -> RR-92-02 -> RR-95-02); CARRIED 2/5 at Phase 95 v6.4 re-baseline. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-77-08** [MEDIUM] — CEILING=4 warning; locked by BATT-06 anti-masking sentinel (CEILING=4). Artifact: `scripts/_battery_core.py#self_test_boundary`.
 
 **85 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
 
 ### GAP-02: Candidate work list
 
-Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only row. Priority: MEDIUM audit-only items (85 rows). The 5 rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02/now-RR-92-01, RR-79-03/now-RR-92-02, RR-77-08) now have confirming offline gates and are no longer open candidates; closing the remaining live routing dips (RR-92-01, RR-92-02) is a future live-routing milestone. GEN-01 and GEN-02 are resolved (see GAP-01 above) and no longer appear in this work list.
+Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only row. Priority: MEDIUM audit-only items (85 rows). The 5 rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02/now-RR-92-01/now-RR-95-01, RR-79-03/now-RR-92-02/now-RR-95-02, RR-77-08) now have confirming offline gates and are no longer open candidates; closing the remaining live routing dips (RR-95-01, RR-95-02) is a future live-routing milestone. GEN-01 and GEN-02 are resolved (see GAP-01 above) and no longer appear in this work list.
 
 ## Historical Ledger
 

@@ -215,11 +215,11 @@
 | v5.3/REBASE-05 | REBASE-05 | Test-Network | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
 | v5.3/TOOL-01 | TOOL-01 | Test-Network | scripts/check-routing.py | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
 | residual/RR-80-01 | RR-80-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| v5.3/GEN-01 | GEN-01 | Test-Network | active-tail | reproducible | tests/step0-baseline-v6.3.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v6.3 live re-baseline (Phase 92). Earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — legitimate v6.3 success state). Confirming artifact: tests/step0-baseline-v6.3.md. |
+| v5.3/GEN-01 | GEN-01 | Test-Network | active-tail | reproducible | tests/step0-baseline-v6.4.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v6.4 live re-baseline (Phase 95). Earned by the committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — RR-95-01 S-P02 inversion CARRIED 1/5, RR-95-02 S-P05 trade-off CARRIED 2/5 — legitimate v6.4 success state). Confirming artifact: tests/step0-baseline-v6.4.md. |
 | v5.3/GEN-02 | GEN-02 | Test-Network | active-tail | reproducible | docs/live-monitoring-runbook.md | Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + detector-surface changes. See docs/live-monitoring-runbook.md. |
 | residual/RR-79-01 | RR-79-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-92-01 | RR-92-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-92-02 | RR-92-02 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-95-01 | RR-95-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-95-02 | RR-95-02 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
 | residual/RR-77-08 | RR-77-08 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
 
 ## Gap Findings (GAP-01)
