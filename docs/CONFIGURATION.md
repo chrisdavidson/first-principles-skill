@@ -160,7 +160,7 @@ with `git commit --no-verify` for intentional in-progress work.
 
 All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
 The full CI gate inventory — all 12 gates with their owning scripts — is maintained
-canonically in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
+canonically in [docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
 authoritative gate table.
 
 ## Key invariants
@@ -181,4 +181,4 @@ The routing battery enforces two anti-masking constants defined in
 constants govern how the battery distinguishes a focused-technique output from a
 full-composer output. Their definitions, rationale, and the sentinel tests that lock them
 are documented canonically in
-[docs/TESTING.md#anti-masking-measurement-invariants](docs/TESTING.md#anti-masking-measurement-invariants).
+[docs/TESTING.md#anti-masking-measurement-invariants](TESTING.md#anti-masking-measurement-invariants).

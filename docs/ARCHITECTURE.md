@@ -90,7 +90,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact t
 | 4 | Reason Upward | Derivation Chains (`GT-N + GT-M → conclusion`) |
 | 5 | Validate | Signed-off analysis with validation rubric pass |
 
-Six companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) are available as on-demand reference siblings of the agent and as standalone slash skills.
+Six of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) are inlined into the agent body via `{{TOOL:slug}}` tokens and are also available as on-demand reference siblings. All eleven companion skills — these six techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
 
 ## CI and pre-commit gate inventory
 
@@ -114,11 +114,11 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 
 Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).
 
-For operational run-detail — how to invoke each gate locally, `--self-test` modes, and what the pre-commit hook checks — see [docs/TESTING.md](docs/TESTING.md).
+For operational run-detail — how to invoke each gate locally, `--self-test` modes, and what the pre-commit hook checks — see [docs/TESTING.md](TESTING.md).
 
 ## Measurement subsystem
 
-The following scripts form the measurement subsystem. They sit alongside the validation scripts in `scripts/` and are named here at inventory altitude. For anti-masking invariants, constant values, and the full inter-layer wiring detail see [docs/TESTING.md](docs/TESTING.md).
+The following scripts form the measurement subsystem. They sit alongside the validation scripts in `scripts/` and are named here at inventory altitude. For anti-masking invariants, constant values, and the full inter-layer wiring detail see [docs/TESTING.md](TESTING.md).
 
 | Component | Script | Role |
 |-----------|--------|------|

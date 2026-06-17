@@ -3,7 +3,7 @@
 
 This document covers how to run every CI gate and the two pre-commit gates locally (including offline `--self-test` modes), the anti-masking measurement invariants, and what each pre-commit gate checks.
 
-For the full at-a-glance gate inventory — every gate mapped to its owning script and job name — see [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
+For the full at-a-glance gate inventory — every gate mapped to its owning script and job name — see [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
 ## CI gates — operational run-detail
 
@@ -146,7 +146,7 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-Two gates fire on every `git commit` when a hook mechanism is installed. For how to install the hooks, see [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
+Two gates fire on every `git commit` when a hook mechanism is installed. For how to install the hooks, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Body-budget gate
 
@@ -221,7 +221,7 @@ uv run scripts/check-agent.py --file first-principles/agents/first-principles.md
 
 ## See also
 
-- [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — full gate inventory (canonical source)
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — pre-commit hook install paths and standard editing loop
-- [docs/CONFIGURATION.md](docs/CONFIGURATION.md) — frontmatter invariants and plugin configuration
+- [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — full gate inventory (canonical source)
+- [docs/DEVELOPMENT.md](DEVELOPMENT.md) — pre-commit hook install paths and standard editing loop
+- [docs/CONFIGURATION.md](CONFIGURATION.md) — frontmatter invariants and plugin configuration
 - [docs/testing-agents-headlessly.md](testing-agents-headlessly.md) — methodology behind the routing battery (two-signal detection, `--permission-mode bypassPermissions`)
