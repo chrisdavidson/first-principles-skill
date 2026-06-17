@@ -839,7 +839,6 @@ def self_test_boundary() -> int:
     # Files live under tests/step0-captures-v6.4/ (git-tracked, Phase 96 D-01/D-02).
     # Uses Path.read_text() so a missing file raises FileNotFoundError loudly —
     # no try/except that would produce a vacuous empty-string zero-count (Pitfall 5).
-    # DORMANT until Plan 02 wires it into the re-pointed sentinels.
     # ---------------------------------------------------------------------------
     _V64_DIR = REPO_ROOT / "tests" / "step0-captures-v6.4"
 
