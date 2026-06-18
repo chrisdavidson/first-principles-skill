@@ -189,13 +189,20 @@ def _resolve_link(raw_target: str, source_file: Path) -> Path:
 def _github_slug(heading: str) -> str:
     """Convert an ATX Markdown heading to a github-slugger anchor slug.
 
+    This is the pure BASE-slug function — it does NOT apply github-slugger's
+    duplicate-heading dedup suffix (`-1`, `-2`, …). Dedup is occurrence-aware
+    and therefore lives in _doc_anchors, which has per-file heading order.
+
     Algorithm (per github-slugger v1/v2, D-04):
       1. Strip leading '#' characters and surrounding whitespace.
       2. Lowercase.
       3. Remove every character that is NOT an ASCII letter, ASCII digit,
-         a space (' '), or a hyphen ('-'). This strips punctuation including
-         em-dash (U+2014), colons, parentheses, backticks, slashes, periods,
-         and all other Unicode non-alphanumeric characters.
+         an underscore ('_'), a space (' '), or a hyphen ('-'). The underscore
+         is a word character and github-slugger PRESERVES it (e.g. a code-span
+         heading like '`scripts/_battery_core.py`' keeps its leading '_'). This
+         step strips punctuation including em-dash (U+2014), colons, parentheses,
+         backticks, slashes, periods, and all other Unicode non-alphanumeric
+         characters — but NOT the underscore.
       4. Replace EACH remaining space individually with one hyphen — do NOT
          collapse runs of spaces. This is the load-bearing rule: an em-dash
          '—' between two spaces leaves two spaces after step 3, which become
@@ -212,11 +219,11 @@ def _github_slug(heading: str) -> str:
     text = heading.lstrip("#").strip()
     # Lowercase.
     text = text.lower()
-    # Remove all non-ASCII-alphanumeric, non-space, non-hyphen characters.
-    # unicodedata.category helps but a simple keep-list is clearer and correct.
+    # Remove all non-ASCII-alphanumeric, non-underscore, non-space, non-hyphen
+    # characters. The underscore is kept because github-slugger preserves it.
     kept: list[str] = []
     for ch in text:
-        if ch == " " or ch == "-" or ("a" <= ch <= "z") or ("0" <= ch <= "9"):
+        if ch in " -_" or ("a" <= ch <= "z") or ("0" <= ch <= "9"):
             kept.append(ch)
     # Per-space replacement: each space → one hyphen (no collapse).
     return "".join("-" if ch == " " else ch for ch in kept)
@@ -232,13 +239,27 @@ def _doc_anchors(path: Path) -> set[str]:
     Reads the file at `path`, strips frontmatter, and slugs every ATX heading
     via _github_slug. Inline HTML anchors (<a name="...">) are NOT collected —
     the docs/ surface uses only ATX headings for navigation (D-04).
+
+    Implements github-slugger's duplicate-heading dedup: the first occurrence
+    of a base slug registers as-is; the Nth (N>=2) occurrence of the SAME base
+    slug registers with a '-{N-1}' suffix (`overview`, `overview-1`,
+    `overview-2`, …). Headings are processed in document order so the suffix
+    assignment matches github-slugger exactly.
     """
     try:
         full_text = path.read_text(encoding="utf-8")
     except OSError:
         return set()
     body = _strip_frontmatter(full_text)
-    return {_github_slug(m.group(0)) for m in _ATX_HEADING_RE.finditer(body)}
+    anchors: set[str] = set()
+    counts: dict[str, int] = {}
+    for m in _ATX_HEADING_RE.finditer(body):
+        base = _github_slug(m.group(0))
+        seen = counts.get(base, 0)
+        anchor = base if seen == 0 else f"{base}-{seen}"
+        counts[base] = seen + 1
+        anchors.add(anchor)
+    return anchors
 
 
 def _check_docs_file(

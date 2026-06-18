@@ -159,6 +159,38 @@ def test_c_github_slug_val03(check_links_mod):
     )
 
 
+def test_c_github_slug_preserves_underscore(check_links_mod):
+    """_github_slug must KEEP underscores (github-slugger preserves word chars).
+
+    Locks WR-01: a code-span heading like '`scripts/_battery_core.py`' slugs to
+    'scripts_battery_corepy' — the underscore survives, the slash/period/backticks
+    are stripped. A naive keep-list that drops '_' would yield 'scriptsbatterycorepy'.
+    """
+    mod = check_links_mod
+    assert mod._github_slug("## foo_bar") == "foo_bar", (
+        f"Underscore must be preserved; got {mod._github_slug('## foo_bar')!r}"
+    )
+    result = mod._github_slug("### Anti-masking constants (`scripts/_battery_core.py`)")
+    assert result == "anti-masking-constants-scripts_battery_corepy", (
+        f"Expected 'anti-masking-constants-scripts_battery_corepy' but got {result!r}. "
+        "github-slugger preserves the underscore as a word character."
+    )
+
+
+def test_c_doc_anchors_dedup_duplicate_headings(check_links_mod, tmp_path):
+    """_doc_anchors must dedup duplicate headings: slug, slug-1, slug-2 (WR-02)."""
+    mod = check_links_mod
+    doc = tmp_path / "DUP.md"
+    doc.write_text(
+        "# Title\n\n## Overview\n\ntext\n\n## Overview\n\ntext\n\n## Overview\n",
+        encoding="utf-8",
+    )
+    anchors = mod._doc_anchors(doc)
+    assert "overview" in anchors, f"first occurrence base slug missing; got {anchors}"
+    assert "overview-1" in anchors, f"second occurrence '-1' suffix missing; got {anchors}"
+    assert "overview-2" in anchors, f"third occurrence '-2' suffix missing; got {anchors}"
+
+
 def test_c_real_em_dash_anchor_passes(check_links_mod, tmp_path):
     """A link to the real docs/TESTING.md#ci-gates--operational-run-detail resolves."""
     mod = check_links_mod
