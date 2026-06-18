@@ -677,7 +677,7 @@ def generate_all() -> dict[Path, str]:
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 9 agent reference siblings (first-principles/agents/references/*.md:
-        7 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+        6 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
       - 11 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
       - 11 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
     Total: 1 + 9 + 11 + 11 = 32.
