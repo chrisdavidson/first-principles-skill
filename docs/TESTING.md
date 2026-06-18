@@ -28,7 +28,7 @@ npx markdownlint-cli2 "first-principles/**/*.md"
 
 ### VAL-03 — check-links
 
-Scans all relative Markdown links in the `first-principles/` and `shared/` trees and verifies they resolve to existing files. Note: `docs/` is **not** scanned by this gate — cross-doc links in `docs/` are unvalidated by CI.
+Scans all relative Markdown links in the `first-principles/`, `shared/`, and `docs/` trees and verifies they resolve to existing files. For `docs/` links, anchor targets are also validated against the target heading's github-slugger slug (em-dash headings produce double-hyphen anchors). `docs/-prefixed` links inside `docs/` are flagged as CF-04 violations. `docs/history/**` is excluded (frozen archives).
 
 ```sh
 python3 scripts/check-links.py

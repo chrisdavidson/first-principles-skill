@@ -100,7 +100,7 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 |------|----------------|--------|----------------|
 | VAL-01 | `plugin-validate` (CI) | `claude plugin validate` | Plugin schema validity |
 | VAL-02 | `markdownlint` (CI) | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
-| VAL-03 | `check-links` (CI) | `scripts/check-links.py` | Relative MD links resolve in plugin + shared trees |
+| VAL-03 | `check-links` (CI) | `scripts/check-links.py` | Relative MD links resolve in plugin, shared, and docs trees; `docs/` anchors validated with github-slugger rule |
 | VAL-04 / GATE-02 | `check-trigger-collisions` (CI) | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
 | VAL-05 | `check-description-budget` (CI) | `scripts/check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-check` (CI) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |

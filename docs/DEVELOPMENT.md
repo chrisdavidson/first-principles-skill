@@ -65,7 +65,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | Script | Gate | Command | What it checks |
 |--------|------|---------|----------------|
 | `check-agent.py` | GATE-01 | `python3 scripts/check-agent.py` | Agent structural integrity |
-| `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/` and `shared/`) |
+| `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
 | `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 500 lines |
