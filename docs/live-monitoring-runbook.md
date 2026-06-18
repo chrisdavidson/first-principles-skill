@@ -103,16 +103,14 @@ All K/N thresholds are met. No action required. Record the result per §"Where t
 
 A BATTERY:FAIL is **not a blocker** if the failing rows are already documented as carry-forward
 residuals in the prior baseline. The following residuals are known carry-forwards from
-`tests/step0-baseline-v5.3.md` — **do not chase them**:
+`tests/step0-baseline-v6.4.md` — **do not chase them**:
 
-| Prompt ID | Expected MODE | v5.3 K/N | Status |
+| Prompt ID | Expected MODE | v6.4 K/N | Status |
 |-----------|--------------|----------|--------|
-| S-P01 | focused-pre-mortem | 1/5 | Carry-forward — expected FAIL |
-| S-P02 | focused-inversion | 0/5 | Carry-forward — expected FAIL |
-| S-P05 | focused-trade-off | 0/5 | Carry-forward — expected FAIL |
-| S-N04 | full-composer | 2/5 | Carry-forward — expected FAIL |
+| S-P02 | focused-inversion | 1/5 | Carry-forward — expected FAIL (RR-95-01) |
+| S-P05 | focused-trade-off | 2/5 | Carry-forward — expected FAIL (RR-95-02) |
 
-These residuals reflect genuine detection limits documented at the time of the v5.3 baseline.
+These residuals reflect genuine detection limits documented at the time of the v6.4 baseline.
 A BATTERY:FAIL that matches this exact set of rows is **honesty-not-score** — the mechanism is
 working correctly and honestly reporting its limits.
 
@@ -122,7 +120,7 @@ A new failure is a row that was **PASS** in the prior baseline and is now **FAIL
 a regression introduced since the last baseline run. Investigate before closing the milestone.
 
 To detect a new regression: compare the current per-prompt K/N table against the prior baseline
-file (`tests/step0-baseline-v5.3.md` or the most recent versioned file in `tests/`).
+file (`tests/step0-baseline-v6.4.md` or the most recent versioned file in `tests/`).
 
 ---
 
@@ -134,7 +132,7 @@ Each cadence run records its honest K/N outcome **two ways** (D-05 dual-record p
 
 Create a new `tests/step0-baseline-vN.md` file, where `N` = the active milestone label at the
 time of the run (e.g., `v6.2` for milestone v6.2). Follow the existing header convention from
-`tests/step0-baseline-v5.3.md` (Recorded, Script version, Core version, Fixture version, Agent
+`tests/step0-baseline-v6.4.md` (Recorded, Script version, Core version, Fixture version, Agent
 version, Run flags, Run cwd, Baseline verdict, Summary — then the per-prompt results table).
 
 Labeling rule: `tests/step0-baseline-v<milestone>.md` (e.g., `tests/step0-baseline-v6.2.md` for
@@ -155,7 +153,7 @@ S-N PASS count, known carry-forward residuals, and a link to the new baseline fi
 
 | Date | Milestone | BATTERY verdict | Step-0 S-P PASS | S-N PASS | Carry-forward residuals | Baseline file |
 |------|-----------|----------------|-----------------|----------|------------------------|---------------|
-| (initial — no live run yet) | v6.2 | — | — | — | S-P01, S-P02, S-P05, S-N04 | [step0-baseline-v5.3.md](../tests/step0-baseline-v5.3.md) |
+| (initial — no live run yet) | v7.0 | — | — | — | S-P02, S-P05 | [step0-baseline-v6.4.md](../tests/step0-baseline-v6.4.md) |
 
 ---
 
