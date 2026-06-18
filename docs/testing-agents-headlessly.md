@@ -5,9 +5,10 @@
 > parse the JSONL event stream with `jq` — `--output-format text` only surfaces
 > the orchestrator's synthesized final answer, not the subagent's verbatim output.
 
-This is the canonical, in-repo home for the routing-test methodology used by
-`scripts/check-routing.py` and `tests/routing-catalog.md`. Future agent authors:
-inherit this pattern; do not re-derive it.
+This is the canonical, in-repo home for the routing-test methodology. The capture
+technique described here is the reference pattern inherited by all measurement
+scripts in `scripts/`. See [§8 Script inventory](#8-script-inventory) for the
+current set of scripts and their CI status.
 
 ---
 
@@ -16,10 +17,10 @@ inherit this pattern; do not re-derive it.
 When you invoke `claude -p "<prompt>"` with the default `--output-format text`,
 stdout returns a single string: the **orchestrator's** synthesized final
 response. If the orchestrator delegated the work to a subagent (via the `Task`
-tool), the subagent's analysis — its 5-phase output, its section headers, its
-verbatim reasoning — is consumed inside the orchestrator's context and folded
-into a paraphrase. From `text` output alone you cannot prove that delegation
-actually happened, nor inspect what the subagent said.
+tool), the subagent's analysis — its 6-section output document, its section
+headers, its verbatim reasoning — is consumed inside the orchestrator's context
+and folded into a paraphrase. From `text` output alone you cannot prove that
+delegation actually happened, nor inspect what the subagent said.
 
 This was discovered the hard way in Phase 28 (v3.0 Behavioral Validation): early
 routing batteries grepped stdout for agent section headers, saw nothing, and
@@ -55,7 +56,7 @@ Flag-by-flag:
 - `--verbose`: ensures `Task` tool_use events appear in the stream. Without it,
   some internal events are suppressed.
 - `--permission-mode bypassPermissions`: required for non-interactive Task tool
-  calls — see §6.
+  calls — see [§5](#5---permission-mode-bypasspermissions----why-its-load-bearing).
 
 **No `--agent` flag.** Pinning an agent bypasses the routing decision. For a
 routing test, leave the agent unpinned — that is what is being measured.
@@ -89,20 +90,31 @@ A non-zero count fires Signal A.
 
 ### Signal B — ≥ 4 of 6 expected agent section headers
 
-The first-principles agent emits a 6-section output document. Count Markdown
-headings that match the canonical section names:
+The first-principles agent emits a **6-section output document**: Problem
+Essence, Assumptions Table, Ground Truths, Derivation Chains, Abandoned
+Reasoning, and Conclusion — in that fixed order (per
+`shared/spine/references/output-template.md`). Count Markdown headings that
+match the canonical section names:
 
 ```bash
 jq -r '.. | .text? // empty' "$file" \
   | grep -ciE '^#+[[:space:]]*(.*(essence|assumption|ground[- ]?truth|derivation|abandoned|dead[- ]?end|conclusion|verdict))'
 ```
 
-A count ≥ 4 fires Signal B. (Threshold is 4/6 rather than 6/6 to tolerate
-partial outputs and section-name variants.)
+A count ≥ 4 fires Signal B. (Threshold is 4 of the 6 output sections rather
+than all 6 to tolerate partial outputs and section-name variants.)
 
 ### Verdict
 
 `DELEGATE` if Signal A OR Signal B fires; `NO-DELEGATE` otherwise.
+
+This two-signal rule is implemented in `scripts/check-routing.py`. The merged
+battery (`scripts/check-routing-battery.py`, CI gate BATT-06) extends this
+methodology with a second focused-output signal. The focused-output classifier
+in `scripts/_battery_core.py` uses the constants `MIN_HEADER_HITS=2` and
+`_COMPOSER_FOCUS_CEILING=4` to control technique-detection sensitivity and
+anti-masking behavior — see [`TESTING.md#anti-masking-measurement-invariants`](TESTING.md#anti-masking-measurement-invariants)
+for the canonical invariant documentation.
 
 ---
 
@@ -177,24 +189,74 @@ to `stream-json`.
 
 ---
 
-## 8. Reference implementation
+## 8. Script inventory
 
-`scripts/check-routing.py` is the committed Python implementation of every
-pattern in this doc. It parses a catalog of P/N prompts, issues each via the
-locked flag set above, and scores DELEGATE/NO-DELEGATE using the two-signal
-rule. Its `--self-test` mode validates the detection logic offline against
-mocked event streams — no `claude` invocation required.
+The capture methodology in this doc is implemented across several scripts.
+For gate run-commands see
+[`TESTING.md#batt-06--check-routing-battery`](TESTING.md#batt-06--check-routing-battery).
+For the full CI and pre-commit gate table see
+[`ARCHITECTURE.md#ci-and-pre-commit-gate-inventory`](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
-```bash
-# Self-test the detection logic (no live claude calls):
-python3 scripts/check-routing.py --self-test
+### `scripts/check-routing.py` — developer-tool reference implementation
 
-# Run the live battery against the checked-in catalog:
-python3 scripts/check-routing.py --catalog tests/routing-catalog.md
-```
+The original committed Python implementation of the capture method in this
+doc. Parses a catalog of P/N prompts, issues each via the locked flag set
+above, and scores DELEGATE/NO-DELEGATE using the two-signal rule.
 
-The original bash harness pattern is in
-`.planning/milestones/v3.0-phases/29-routing-catalog-rewrite/29-01-PLAN.md`.
+**Not wired into CI.** This is a developer tool for local investigation and
+regression testing. Its `--self-test` validates detection logic offline
+against mocked event streams; its defaults are `--p-threshold 11`
+(P-cases ≥ 11/13 DELEGATE) and `--n-threshold 18` (N-cases ≥ 18/20
+NO-DELEGATE), with `--repeat 3 --min-pass 2`.
+
+### `scripts/check-routing-battery.py` — merged dual-signal battery (BATT-06)
+
+The current CI-wired battery. Captures each prompt in
+`tests/routing-battery-catalog.md` once and scores **both** the
+boundary-discipline signal (DELEGATE/NO-DELEGATE) and the focused-output
+signal from the same `.jsonl` file. Wired into CI as **BATT-06** via
+`--self-test` (offline deterministic self-check, no live `claude` session).
+
+### `scripts/_battery_core.py` — battery core and detection constants
+
+Houses the shared detection logic, catalog parsers, and transport used by
+`check-routing-battery.py`. The authoritative home of the anti-masking
+detection constants:
+
+- `MIN_HEADER_HITS = 2` — minimum distinct technique-marker patterns that
+  must match before a technique fires in the focused-output classifier.
+- `_COMPOSER_FOCUS_CEILING = 4` — composer-structure hit ceiling controlling
+  the `classify()` anti-masking override.
+
+These constants are byte-locked. See
+[`TESTING.md#anti-masking-measurement-invariants`](TESTING.md#anti-masking-measurement-invariants)
+for the canonical invariant documentation.
+
+### Two-layer Step 0 harness
+
+The Step 0 harness measures the agent body's technique-selection logic at two
+independent layers:
+
+- **`scripts/check-step0-emulator.py`** (STEP0-08) — offline phrase-detection
+  classifier. Reads the `**Phrase detection rules**` table from
+  `shared/spine/SKILL-body.md` and compiles it into a deterministic regex
+  classifier. No live `claude` session required. CI gate:
+  [`TESTING.md#step0-08--check-step0-emulator`](TESTING.md#step0-08--check-step0-emulator).
+
+- **`scripts/check-step0-live.py`** (STEP0-06) — live agent-body harness.
+  Forces Step 0 classification through the approach-② `_wrap_for_bypass`
+  bypass channel over the `stream-json` transport. Scores K-of-N results
+  across the 12-row `tests/step0-fixture-catalog.md`. CI gate (offline
+  self-test only):
+  [`TESTING.md#step0-06--check-step0-live`](TESTING.md#step0-06--check-step0-live).
+
+### Deprecated shims
+
+`scripts/check-sub-skill-routing.py` and `scripts/check-focused-output.py`
+are **deprecated thin shims** that translate old per-signal CLI flags onto the
+merged battery's namespaced flags and delegate to `check-routing-battery.py`.
+They exist for backwards compatibility only; new callers should invoke
+`scripts/check-routing-battery.py` directly.
 
 ---
 
@@ -207,6 +269,12 @@ The original bash harness pattern is in
 - **Hardened:** Phase 30 (v3.1 Routing Quality Patch) — promoted the bash
   harness into the version-controlled `scripts/check-routing.py` and
   documented the pattern in this file.
+- **Merged battery:** Phase 67–69 (v4.3 Unified Routing/Output Battery) —
+  `check-routing-battery.py` and `_battery_core.py` introduced; the two
+  deprecated shims reduced to thin delegating wrappers.
+- **Two-layer Step 0 harness:** Phases 70–75 (v5.0–v5.1) —
+  `check-step0-emulator.py` (STEP0-08) and `check-step0-live.py` (STEP0-06)
+  added.
 - **Cross-AI methodology context:** `.planning/RETROSPECTIVE.md` (v3.0 section
   "Patterns Established" and "Key Lessons").
 
@@ -221,8 +289,7 @@ specific commit — the noise envelope is too wide.
 
 v3.4 fixes this at the runner level with `--repeat N --min-pass K`: each prompt
 runs N times and counts as PASS only if the expected verdict occurs in at least K
-of those N runs. Session noise is absorbed without changing the pass thresholds
-(P≥8/10, N≥15/17).
+of those N runs. Session noise is absorbed without changing the P/N thresholds.
 
 ### Default (best-of-3)
 
@@ -232,7 +299,7 @@ python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 
 No extra flags needed. The defaults are `--repeat 3 --min-pass 2`: each prompt
 runs 3 times; it passes only if the expected verdict occurs in ≥ 2 of 3 runs.
-Wall-clock time: approximately 45–70 minutes for the full 27-prompt catalog.
+Wall-clock time: approximately 45–70 minutes for the full catalog.
 
 ### When to override
 
