@@ -56,7 +56,7 @@ Flag-by-flag:
 - `--verbose`: ensures `Task` tool_use events appear in the stream. Without it,
   some internal events are suppressed.
 - `--permission-mode bypassPermissions`: required for non-interactive Task tool
-  calls — see [§5](#5---permission-mode-bypasspermissions----why-its-load-bearing).
+  calls — see [§5](#5---permission-mode-bypasspermissions--why-its-load-bearing).
 
 **No `--agent` flag.** Pinning an agent bypasses the routing decision. For a
 routing test, leave the agent unpinned — that is what is being measured.

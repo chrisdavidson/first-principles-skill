@@ -29,9 +29,20 @@ Scan surfaces (namespace ref checking only — not relative-link-checked):
     - shared/**/*.md  (source templates — per D-19-6, scanned to catch namespace
       ref typos; relative links in shared/ use the monolith filename convention)
 
+Scan surfaces (docs/ cross-doc link checking — D-04, DOCTOOL-01):
+    - docs/*.md  (user-facing documentation; relative cross-doc links + anchor
+      validation via github-slugger rule; docs/-prefixed links flagged as CF-04
+      violations; docs/history/** excluded — frozen archives)
+
 Namespace-ref enforcement (D-19-6, open question #3):
     Strict backtick-only: bare /first-principles:name in prose is ignored.
     Only `/first-principles:name` (backtick-enclosed) is checked.
+
+Anchor validation (docs/ surface only, D-04):
+    Per-space github-slugger rule: lowercase, strip punctuation (incl. em-dash),
+    replace EACH remaining space individually with a hyphen (no collapsing).
+    Em-dash headings produce double-hyphen anchors, e.g.:
+      '## CI gates — operational run-detail' -> '#ci-gates--operational-run-detail'
 
 <see also> research §VAL-03 for the em-dash tokenization tangent (P6) and
     the frontmatter double-counting edge case (P1, handled via _strip_frontmatter).
@@ -42,6 +53,7 @@ from __future__ import annotations
 import os
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 # Path resolution: relative to this script's location, not Path.cwd() (mirrors sync-content.py).
@@ -73,6 +85,13 @@ FULL_CHECK_GLOBS = [
 # that tree, after which the glob would match zero files (dead config).
 NAMESPACE_ONLY_GLOBS = [
     "shared/**/*.md",
+]
+
+# Scan globs: docs/ surface — relative cross-doc links + anchor validation (D-04).
+# docs/history/** is excluded: frozen per-milestone archives with stale links that
+# are intentionally not gated (per REQUIREMENTS Out-of-Scope).
+DOCS_CHECK_GLOBS = [
+    "docs/*.md",
 ]
 
 # Markdown link pattern: [label](target)
@@ -167,6 +186,175 @@ def _resolve_link(raw_target: str, source_file: Path) -> Path:
     return (source_file.parent / target).resolve()
 
 
+def _github_slug(heading: str) -> str:
+    """Convert an ATX Markdown heading to a github-slugger anchor slug.
+
+    Algorithm (per github-slugger v1/v2, D-04):
+      1. Strip leading '#' characters and surrounding whitespace.
+      2. Lowercase.
+      3. Remove every character that is NOT an ASCII letter, ASCII digit,
+         a space (' '), or a hyphen ('-'). This strips punctuation including
+         em-dash (U+2014), colons, parentheses, backticks, slashes, periods,
+         and all other Unicode non-alphanumeric characters.
+      4. Replace EACH remaining space individually with one hyphen — do NOT
+         collapse runs of spaces. This is the load-bearing rule: an em-dash
+         '—' between two spaces leaves two spaces after step 3, which become
+         two consecutive hyphens in step 4:
+             '## CI gates — operational run-detail'
+             -> 'ci gates  operational run-detail'  (two spaces)
+             -> 'ci-gates--operational-run-detail'  (double hyphen)
+
+    Do NOT use re.sub(r'\\s+', '-', ...) — that collapses multi-space runs
+    into a single hyphen and false-positives every em-dash heading (the exact
+    bug in the P99 orchestrator's first resolver, per D-04).
+    """
+    # Strip leading '#' marks and surrounding whitespace.
+    text = heading.lstrip("#").strip()
+    # Lowercase.
+    text = text.lower()
+    # Remove all non-ASCII-alphanumeric, non-space, non-hyphen characters.
+    # unicodedata.category helps but a simple keep-list is clearer and correct.
+    kept: list[str] = []
+    for ch in text:
+        if ch == " " or ch == "-" or ("a" <= ch <= "z") or ("0" <= ch <= "9"):
+            kept.append(ch)
+    # Per-space replacement: each space → one hyphen (no collapse).
+    return "".join("-" if ch == " " else ch for ch in kept)
+
+
+# ATX heading pattern: one or more '#' at line start followed by text.
+_ATX_HEADING_RE = re.compile(r"^(#{1,6})\s+(.+)$", re.MULTILINE)
+
+
+def _doc_anchors(path: Path) -> set[str]:
+    """Return the set of heading-slug anchors defined in a Markdown doc.
+
+    Reads the file at `path`, strips frontmatter, and slugs every ATX heading
+    via _github_slug. Inline HTML anchors (<a name="...">) are NOT collected —
+    the docs/ surface uses only ATX headings for navigation (D-04).
+    """
+    try:
+        full_text = path.read_text(encoding="utf-8")
+    except OSError:
+        return set()
+    body = _strip_frontmatter(full_text)
+    return {_github_slug(m.group(0)) for m in _ATX_HEADING_RE.finditer(body)}
+
+
+def _check_docs_file(
+    source_file: Path,
+    docs_dir: Path,
+    broken: list[tuple[Path, int, str, str]],
+    total_links: list[int],
+    total_refs: list[int],
+) -> None:
+    """Check one docs/ file for broken relative cross-doc links (D-04, DOCTOOL-01).
+
+    Validation rules:
+      1. A link target beginning with 'docs/' is flagged BROKEN — it would
+         resolve relative to docs/ as docs/docs/X.md (a 404). The correct form
+         is the bare filename (CF-04).
+      2. A bare-filename '.md' link (e.g. 'TESTING.md' or 'TESTING.md#anchor')
+         is resolved relative to the source file's parent (which is docs/).
+         If the file does not exist → BROKEN (file not found).
+         If a '#anchor' is present and does not match any heading slug → BROKEN.
+      3. A pure '#anchor' link (no file component) validates against the source
+         file's own headings.
+      4. URL links (http://, https://, mailto:) and links to ../ paths are skipped.
+    """
+    try:
+        full_text = source_file.read_text(encoding="utf-8")
+    except OSError as exc:
+        sys.stderr.write(f"check-links: cannot read {source_file}: {exc}\n")
+        sys.exit(2)
+
+    body = _strip_frontmatter(full_text)
+    fm_offset = _frontmatter_line_offset(full_text, body)
+
+    try:
+        rel = source_file.relative_to(REPO_ROOT)
+    except ValueError:
+        rel = source_file
+
+    # Heading slugs for this source file (used for pure-anchor validation).
+    source_anchors: set[str] | None = None
+
+    for match in LINK_RE.finditer(body):
+        raw_target = match.group(2)
+
+        # Skip URLs and mailto.
+        if raw_target.startswith(("http://", "https://", "mailto:")):
+            continue
+
+        # Line number (1-indexed, relative to original file).
+        line_in_body = body[: match.start()].count("\n") + 1
+        line_in_file = line_in_body + fm_offset
+
+        # --- Rule 1: docs/-prefixed link (CF-04 violation) ---
+        if raw_target.startswith("docs/"):
+            total_links[0] += 1
+            broken.append((
+                rel,
+                line_in_file,
+                raw_target,
+                (
+                    "docs/-prefixed link resolves to docs/docs/... (404); "
+                    "use bare filename (CF-04)"
+                ),
+            ))
+            continue
+
+        # --- Pure anchor (no file component): validate against own headings ---
+        if raw_target.startswith("#"):
+            total_links[0] += 1
+            anchor = raw_target[1:]
+            if source_anchors is None:
+                source_anchors = _doc_anchors(source_file)
+            if anchor not in source_anchors:
+                broken.append((
+                    rel,
+                    line_in_file,
+                    raw_target,
+                    f"anchor #{anchor} not found in {source_file.name}",
+                ))
+            continue
+
+        # --- Skip non-.md links and relative-up paths (../) ---
+        file_part = raw_target.split("#")[0]
+        if not file_part.endswith(".md"):
+            continue
+        if file_part.startswith("../") or file_part == "..":
+            continue
+
+        total_links[0] += 1
+
+        # --- Resolve bare-filename link relative to docs/ ---
+        target_path = (source_file.parent / file_part).resolve()
+
+        if not target_path.exists():
+            broken.append((rel, line_in_file, raw_target, "file not found"))
+            continue
+
+        # --- Validate anchor (if present) ---
+        if "#" in raw_target:
+            anchor = raw_target.split("#", 1)[1]
+            if anchor:  # Non-empty anchor
+                target_anchors = _doc_anchors(target_path)
+                if anchor not in target_anchors:
+                    broken.append((
+                        rel,
+                        line_in_file,
+                        raw_target,
+                        (
+                            f"anchor #{anchor} not found in {target_path.name} "
+                            f"(heading anchors: {sorted(target_anchors)[:5]}...)"
+                            if len(target_anchors) > 5
+                            else f"anchor #{anchor} not found in {target_path.name} "
+                            f"(heading anchors: {sorted(target_anchors)})"
+                        ),
+                    ))
+
+
 def _check_file(
     source_file: Path,
     check_links: bool,
@@ -256,10 +444,14 @@ def main() -> int:
 
     full_check_files = _collect_files(FULL_CHECK_GLOBS)
     namespace_only_files = _collect_files(NAMESPACE_ONLY_GLOBS)
+    docs_files = _collect_files(DOCS_CHECK_GLOBS)
 
     # Deduplicate: files in full_check_files should not also appear in namespace_only_files.
     full_check_set = set(full_check_files)
     namespace_only_files = [f for f in namespace_only_files if f not in full_check_set]
+
+    # docs/ scan uses a separate docs_dir root for CF-04 prefix detection.
+    docs_dir = REPO_ROOT / "docs"
 
     broken: list[tuple[Path, int, str, str]] = []
     total_links: list[int] = [0]
@@ -271,7 +463,10 @@ def main() -> int:
     for source_file in namespace_only_files:
         _check_file(source_file, False, valid_slugs, broken, total_links, total_refs)
 
-    total_files = len(full_check_files) + len(namespace_only_files)
+    for source_file in docs_files:
+        _check_docs_file(source_file, docs_dir, broken, total_links, total_refs)
+
+    total_files = len(full_check_files) + len(namespace_only_files) + len(docs_files)
 
     # --- Report ---
     if broken:
