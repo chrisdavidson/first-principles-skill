@@ -12,7 +12,7 @@ Everything you edit lives under `shared/`. The generated `first-principles/` tre
 
 ## Stage 2 — Generation (`scripts/sync-content.py`)
 
-Running `python3 scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree and all `first-principles/skills/*/SKILL.md` files (13 target files in total). Running `--check` instead performs a dry-run comparison and exits with code 1 on any drift.
+Running `python3 scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree (the agent body, its `references/` siblings, and the worked examples) and all `first-principles/skills/*/SKILL.md` stubs. Running `--check` instead performs a dry-run comparison and exits with code 1 on any drift.
 
 The non-obvious wiring this stage introduces is **token substitution** — two token types expand inline content from `shared/references/` at generation time:
 
