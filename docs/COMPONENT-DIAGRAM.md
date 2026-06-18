@@ -70,10 +70,13 @@ For the token-substitution mechanics see
 
 ## Diagram 2 — Measurement stack
 
-`scripts/_battery_core.py` is the shared core. The scripts that sit above it exercise
-different layers of routing and Step 0 correctness. `check-step0-emulator.py` reads the
-phrase-detection table directly from the canonical source — the key cross-subsystem edge
-connecting the measurement stack back to `shared/`.
+`scripts/_battery_core.py` is the shared core. `check-routing-battery.py` (BATT-06) and
+`check-step0-live.py` (STEP0-06) import it; `check-step0-emulator.py` (STEP0-08) is
+stdlib-only and instead reads the phrase-detection table directly from
+`shared/spine/SKILL-body.md` — the key cross-subsystem edge connecting the measurement
+stack back to `shared/`. `check-routing.py` is a standalone developer tool (stdlib-only,
+not in CI) that reads its own catalog independently of the core; it appears here for
+completeness, unconnected to the import graph.
 
 ```mermaid
 flowchart LR
@@ -93,11 +96,8 @@ flowchart LR
 
     SKILLBODY -->|"reads phrase table"| EMU
 
-    CORE -->|"imports"| BATT
-    CORE -->|"imports"| ROUTING
-
-    BATT -->|"self-test (BATT-06)"| CORE
-    ROUTING -->|"reads catalog"| BATT
+    BATT -->|"imports + self-test (BATT-06)"| CORE
+    LIVE -->|"imports _battery_core"| CORE
 
     TRACE -->|"emits"| MATRIX
     TRACE -->|"reads"| TRACEABILITY
