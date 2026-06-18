@@ -88,13 +88,16 @@ Eleven focused-mode skills extend the methodology. Each can be invoked directly:
 
 ## What the agent produces
 
-A complete first-principles analysis produces five named artifacts in sequence:
+A complete first-principles analysis produces a six-section document (the fixed-shape output defined in `shared/spine/references/output-template.md`):
 
-1. **Essence Statement** — the core question plus checkable success criteria
-2. **Classified Assumptions Table** — every assumption with type and treatment
-3. **Ground Truths list** — verified facts with stable GT-N IDs and source citations
+1. **Problem Essence** — the core question stated in one sentence, plus checkable success criteria
+2. **Assumptions Table** — every assumption classified by type with a prescribed treatment and verdict
+3. **Ground Truths** — verified facts with stable GT-N IDs and source citations
 4. **Derivation Chains** — conclusions in the form `GT-N + GT-M → [intermediate] → [conclusion]`
-5. **Signed-off analysis** — all conclusions traced, all weak links resolved or flagged
+5. **Abandoned Reasoning** — dead ends that were explored and ruled out, so future analysts do not re-explore them
+6. **Conclusion** — synthesis of what the chains established, with recommended approach, key insight, trade-offs, and confidence level
+
+All six sections are always present in this fixed order. If a section has no content for a given analysis, the template requires an explicit `Nothing material here — [reason]` note rather than omitting the heading.
 
 ## Common issues
 
