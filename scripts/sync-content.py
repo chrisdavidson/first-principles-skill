@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 13 target files
+    python3 scripts/sync-content.py --write    # regenerate all 32 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -673,15 +673,14 @@ def generate_all() -> dict[Path, str]:
 
     Phase 52 extends SKILLS to 11 entries; the 5 phase stubs are emitted
     starting Phase 53 once their shared/skills/<slug>/SKILL.md sources exist.
-    Post-Phase-53 target count: 25 total.
+    Current target count: 32 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 6 agent reference siblings (first-principles/agents/references/<tool>.md)
-      - 1 agent spine-reference sibling
-        (first-principles/agents/references/assumption-taxonomy.md)
-      - 6 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
+      - 9 agent reference siblings (first-principles/agents/references/*.md:
+        7 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+      - 11 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
       - 11 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
-    Total after Phase 53: 1 + 6 + 1 + 6 + 11 = 25.
+    Total: 1 + 9 + 11 + 11 = 32.
     """
     import yaml
 
