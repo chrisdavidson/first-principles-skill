@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 32 target files
+    python3 scripts/sync-content.py --write    # regenerate all 35 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -17,10 +17,10 @@ Exit codes:
 Source of truth: shared/  (canonical)
 Target surface:
     - first-principles/agents/first-principles.md           (orchestrating agent)
-    - first-principles/agents/references/<tool>.md          (6 companion-tool refs)
+    - first-principles/agents/references/<tool>.md          (7 companion-tool refs)
     - first-principles/agents/references/<spine-ref>.md     (3 spine refs)
     - first-principles/agents/references/examples/<name>.md (worked-example siblings)
-    - first-principles/skills/<slug>/SKILL.md               (6 focused-mode stubs, Phase 46-02)
+    - first-principles/skills/<slug>/SKILL.md               (12 focused-mode stubs)
 """
 
 from __future__ import annotations
@@ -544,7 +544,7 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
         hint="shared/agent/input-contract.md is required; add it per Phase 23 D-02",
     )
 
-    # --- Companion Techniques: 6 ## Procedure sections in TOOLS order ---
+    # --- Companion Techniques: 7 ## Procedure sections in TOOLS order ---
     companion_header = "\n## Companion Techniques\n\n"
     companion_blocks = "".join(_extract_procedure(slug) + "\n" for slug in TOOLS)
 
@@ -576,7 +576,7 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
 
 
 def generate_agent_references() -> dict[Path, str]:
-    """Return {AGENT_DIR/references/{slug}.md: body} for the 6 companion tools.
+    """Return {AGENT_DIR/references/{slug}.md: body} for the 7 companion tools.
 
     Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
     the agent's on-demand reference siblings ship verbatim — NO frontmatter,
@@ -639,7 +639,7 @@ def generate_agent_spine_references() -> dict[Path, str]:
 
 
 def generate_agent_examples() -> dict[Path, str]:
-    """Return {AGENT_DIR/references/examples/{name}.md: body} for the 6 worked examples.
+    """Return {AGENT_DIR/references/examples/{name}.md: body} for the 12 worked examples.
 
     Source = shared/examples/{name}.md (the source-of-truth tree established
     in Plan 26.1-03 Task 0 — NOT the monolith path). This preserves the
@@ -673,16 +673,16 @@ def generate_agent_examples() -> dict[Path, str]:
 def generate_all() -> dict[Path, str]:
     """Return {target_path: content} for every emitted file.
 
-    Phase 52 extends SKILLS to 11 entries; the 5 phase stubs are emitted
-    starting Phase 53 once their shared/skills/<slug>/SKILL.md sources exist.
-    Current target count: 32 total.
+    Phase 52 extended SKILLS to 11 entries; v7.1 (Phase 101) adds decompose,
+    bringing TOOLS to 7, SKILLS to 12, and EXAMPLES to 12.
+    Current target count: 35 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 9 agent reference siblings (first-principles/agents/references/*.md:
-        6 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
-      - 11 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
-      - 11 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
-    Total: 1 + 9 + 11 + 11 = 32.
+      - 10 agent reference siblings (first-principles/agents/references/*.md:
+        7 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+      - 12 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
+      - 12 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
+    Total: 1 + 10 + 12 + 12 = 35.
     """
     import yaml
 

@@ -191,7 +191,7 @@ those site-specific inputs.
 | Branch | Anchor | Status |
 |--------|--------|--------|
 | C1a — electricity-to-heat (Joule heating) | Physical law (Joule/Ohm) + equipment datasheet | Verified |
-| C1b — thermal storage loss rate | Physical law (Fourier) anchored; specific loss rate per design | Assumed — unverified |
+| C1b — thermal storage loss rate | Physical law (Fourier) anchored; specific loss rate per design | Partially verified |
 | C1c — heat-to-electricity (Rankine) | Physical law (2nd law / Carnot) + published turbine data | Verified |
 | **C1 — round-trip efficiency > 85%** | Refuted by C1c physical-law anchor (≈38%, not 85%) | **Refuted** |
 | C2 — molten-salt stability window | Direct measurement (phase diagrams, plant records) | Verified |

@@ -132,6 +132,10 @@ roughly one day of good sunlight."
 datasheet is in hand; C2 is unverified for any claim that omits the specific
 site. The parent claim inherits C2's uncertainty — "roughly one day of good
 sunlight" is not verified until the site is named and the PSH figure is confirmed.
+The energy balance is also marginal independent of C2: C3 caps delivered energy at
+200 W × 5 PSH = 1,000 Wh *before* efficiency losses, already below C4's 1,200 Wh
+demand — so the "one day" claim is quantitatively tight on the energy budget alone,
+which the decomposition surfaces even though the drill stops at C2's site question.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: first-principles
-description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all seven companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths or reason up from first principles to a conclusion, or to identify the fundamental ground truths about a phenomenon and reason up from them. Not for routine code review, debugging, performance optimization, or general Q&A.'
+description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all seven companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths and reason up from first principles to a conclusion. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
   version: "3.0.0"
@@ -74,7 +74,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
-| decompose | "decompose", "reduce to primitives", "reduce to first principles", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
+| decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
 
