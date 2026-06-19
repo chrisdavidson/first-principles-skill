@@ -51,7 +51,7 @@ CATALOG_PATH: Path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
 # D-06: hardcoded allowlist — intentional second source of truth.
 # Do NOT derive this from the parsed table: the independence is what makes
 # D-05.3 actually catch renames/typos in the table.
-KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "decompose")
+KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "decompose", "estimate")
 
 
 # ---------------------------------------------------------------------------
