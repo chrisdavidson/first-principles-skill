@@ -12,3 +12,5 @@ second-order:
   agent: the inlined second-order thinking procedure
 decompose:
   agent: the inlined decompose procedure
+estimate:
+  agent: the inlined estimate procedure
