@@ -189,7 +189,7 @@ established in the decompose example) that anchor each factor:
 
 **Chain: Molten-Salt TES Cost-Competitiveness**
 
-```
+```text
 GT-4  (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/kg·°C — direct measurement)
 GT-5  (Molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement)
 GT-6  (Lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
