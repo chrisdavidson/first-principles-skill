@@ -599,7 +599,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print("check-step0-emulator --self-test: PASS — 8 fixtures + RR-80-01 + DECOMP-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 named assertions")
 
 
 def _require_python_version() -> None:
