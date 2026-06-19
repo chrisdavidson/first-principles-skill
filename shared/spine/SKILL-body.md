@@ -19,7 +19,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ### Step 0: Technique selection
 
-Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full six-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
+Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full seven-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
 
 **Pre-set MODE honour.** When invoked via a slash-stub with `MODE` pre-set in the calling context, skip detection and honour the pre-set value.
 
@@ -33,13 +33,14 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
+| decompose | "decompose", "reduce to primitives", "reduce to first principles", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other five companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full six-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
-- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all six companion techniques.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other six companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full seven-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all seven companion techniques.
 
 ---
 
@@ -90,7 +91,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Classified Assumptions Table from Phase 2 is finalized. Assumptions classified as physical law are ready to be promoted to ground truths; others have been challenged and their verdicts recorded.
 
-**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
+**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. To apply the irreducibility test rigorously, use {{TOOL:decompose}} — it recursively reduces a candidate claim to its constituent facts until each branch bottoms out at a physical law, a definition, or a direct measurement, producing verified primitives that become ground truths. (Decompose = definitional/physical reduction; contrast with 5-Whys = causal depth, fishbone = causal breadth.) Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs and source citations. Unverified entries are marked with the `?` suffix.
 
@@ -210,6 +211,17 @@ handing off to Phase 5. Contradicting effects route the conclusion back
 to Phase 2 for re-challenging. Pairs with Inversion: Inversion looks back
 at preconditions; Second-Order looks forward at consequences.
 
+**{{TOOL:decompose}}** — Irreducibility drill
+and definitional/physical reduction procedure. Use during Phase 3 (Establish
+Ground Truths) to recursively reduce a compound claim to its constituent
+facts until each branch bottoms out at a physical law, a definition, or a
+direct measurement — producing verified primitives for the Ground Truths
+list. Decision rule: Decompose = definitional/physical reduction (what is
+this claim made of?); 5-Whys = causal depth (why does this symptom recur?);
+Fishbone = causal breadth (what categories of cause could explain this?).
+Pairs with 5-Whys and Fishbone at Phase 3 boundaries: Decompose hands off
+verified primitives; 5-Whys hands off causal root causes.
+
 ### Reference docs
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
@@ -229,3 +241,4 @@ at preconditions; Second-Order looks forward at consequences.
 - [Ishikawa (Fishbone)](references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
 - [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
 - [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
+- [Decompose (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
