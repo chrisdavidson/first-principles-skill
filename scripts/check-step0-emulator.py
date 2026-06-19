@@ -589,6 +589,103 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 5: ESTIMATE-07 named emulator assertions (D-02 / D-04)
+    #
+    # Two catalog-independent hardcoded assertions that lock in estimate
+    # phrase-detection behavior:
+    #   (a) A positive prompt fires the estimate trigger → focused-estimate.
+    #   (b) The S-N06 over-firing prompt ("estimate the impact of …") does NOT
+    #       fire any estimate trigger → full-composer.
+    #       This is the only CI gate catching an estimate over-firing regression:
+    #       check-trigger-collisions.py scans only skill descriptions, never the
+    #       Step 0 phrase table, so this hardcoded assertion is the only CI gate
+    #       that catches a phrase over-firing regression on 'estimate the impact
+    #       of' vs 'estimate the (size|number|magnitude|cost) of'.
+    # Both literals are catalog-independent (D-04): deleting S-P10 or S-N06
+    # from step0-fixture-catalog.md cannot silently drop these gates.
+    # -----------------------------------------------------------------------
+
+    _ESTIMATE07_POS_PROMPT = (
+        "roughly how much does a molten-salt thermal storage system cost per kWh "
+        "of usable capacity for a 200 MWh utility-scale installation — assume a "
+        "30-year plant lifetime, a charging cycle once per day, and that the salt "
+        "tanks are pre-commissioned"
+    )
+    _ESTIMATE07_POS_EXPECTED = "focused-estimate"
+
+    _ESTIMATE07_NEG_PROMPT = (
+        "estimate the impact of migrating our monolith to microservices next "
+        "quarter — the platform team is planning a phased decomposition over six "
+        "sprints and we want to understand the downstream effects on developer "
+        "velocity and incident rate"
+    )
+    _ESTIMATE07_NEG_EXPECTED = "full-composer"
+
+    # Drift guard: hardcoded positive literal must still match the live catalog
+    # S-P10 row, OR the row must be absent.
+    _sp10_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P10"), None
+    )
+    if _sp10_catalog_prompt is not None and _sp10_catalog_prompt != _ESTIMATE07_POS_PROMPT:
+        print(
+            "check-step0-emulator --self-test: ESTIMATE-07 S-P10 FAIL "
+            "(hardcoded positive literal drifted from the live catalog S-P10 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"ESTIMATE-07 S-P10 (literal drifted from catalog row "
+            f"{_sp10_catalog_prompt!r} != {_ESTIMATE07_POS_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded negative literal must still match the live catalog
+    # S-N06 row, OR the row must be absent.
+    _sn06_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N06"), None
+    )
+    if _sn06_catalog_prompt is not None and _sn06_catalog_prompt != _ESTIMATE07_NEG_PROMPT:
+        print(
+            "check-step0-emulator --self-test: ESTIMATE-07 S-N06 FAIL "
+            "(hardcoded negative literal drifted from the live catalog S-N06 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"ESTIMATE-07 S-N06 (literal drifted from catalog row "
+            f"{_sn06_catalog_prompt!r} != {_ESTIMATE07_NEG_PROMPT!r})"
+        )
+
+    estimate07_pos_computed = classify(_ESTIMATE07_POS_PROMPT, rules)
+    if estimate07_pos_computed == _ESTIMATE07_POS_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: ESTIMATE-07 S-P10 PASS "
+            f"(estimate trigger prompt → {estimate07_pos_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: ESTIMATE-07 S-P10 FAIL "
+            f"(expected {_ESTIMATE07_POS_EXPECTED!r}, got {estimate07_pos_computed!r})"
+        )
+        wrong.append(
+            f"ESTIMATE-07 S-P10 (expected {_ESTIMATE07_POS_EXPECTED!r}, got {estimate07_pos_computed!r})"
+        )
+
+    estimate07_neg_computed = classify(_ESTIMATE07_NEG_PROMPT, rules)
+    if estimate07_neg_computed == _ESTIMATE07_NEG_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: ESTIMATE-07 S-N06 PASS "
+            f"(over-firing boundary prompt → {estimate07_neg_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: ESTIMATE-07 S-N06 FAIL "
+            f"(expected {_ESTIMATE07_NEG_EXPECTED!r}, got {estimate07_neg_computed!r}; "
+            f"over-firing regression: 'estimate the impact of' now fires a trigger "
+            f"(estimate the (size/number/magnitude/cost) of must not match 'impact'))"
+        )
+        wrong.append(
+            f"ESTIMATE-07 S-N06 (expected {_ESTIMATE07_NEG_EXPECTED!r}, got {estimate07_neg_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -599,7 +696,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 named assertions")
 
 
 def _require_python_version() -> None:
