@@ -38,7 +38,9 @@ AGENT_FILE: Path = REPO_ROOT / "first-principles" / "agents" / "first-principles
 # Hard-coded per D-03: the line budget is a code constant, not a CLI flag, env
 # var, or config-file value. Changing the budget requires a code edit + commit
 # so the change is reviewed, attributed, and traceable in git history.
-MAX_LINES: int = 500
+# Recalibrated for the 8th inlined technique procedure (estimate, v7.2 / D-10):
+# body grew 500→560 when estimate was wired; limit raised to 560 + 20 buffer.
+MAX_LINES: int = 580
 
 
 def _count_lines(text: str) -> int:

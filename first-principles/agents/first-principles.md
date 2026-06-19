@@ -1,6 +1,6 @@
 ---
 name: first-principles
-description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all seven companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths and reason up from first principles to a conclusion. Not for routine code review, debugging, performance optimization, or general Q&A.'
+description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose, estimate) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths and reason up from first principles to a conclusion. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
   version: "3.0.0"
@@ -60,7 +60,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ### Step 0: Technique selection
 
-Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full seven-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
+Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full eight-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
 
 **Pre-set MODE honour.** When invoked via a slash-stub with `MODE` pre-set in the calling context, skip detection and honour the pre-set value.
 
@@ -75,13 +75,14 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
 | decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
+| estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other six companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full seven-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
-- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all seven companion techniques.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all eight companion techniques.
 
 ---
 
@@ -146,7 +147,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Ground Truths list is complete — all ground truths carry IDs and verification notes — and the Classified Assumptions Table from Phase 2 is finalized.
 
-**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. Before handing off to Phase 5, apply the inlined second-order thinking procedure to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
+**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. When a conclusion turns on a quantity whose magnitude is uncertain, apply the inlined estimate procedure to rebuild that magnitude from constituent first-principles unit-factors and bracket it with explicit lower/upper bounds, producing a quantitative Derivation Chain step. (Decision rule: estimate = quantitative magnitude rebuild from units; trade-off = qualitative weighted scoring; decompose = definitional/physical reduction.) Before handing off to Phase 5, apply the inlined second-order thinking procedure to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
@@ -263,6 +264,20 @@ Fishbone = causal breadth (what categories of cause could explain this?).
 Pairs with 5-Whys and Fishbone at Phase 3 boundaries: Decompose hands off
 verified primitives; 5-Whys hands off causal root causes.
 
+**the inlined estimate procedure** — Quantitative magnitude-rebuild
+procedure (Fermi / dimensional analysis); routes to focused-estimate mode
+via `/estimate`. Use during Phase 4 (Reason Upward) when a conclusion turns
+on a quantity whose magnitude is uncertain. Rebuilds the magnitude from
+constituent unit-factors whose product reconstructs the target's units,
+computes a central value, and brackets it with explicit lower/upper bounds —
+producing a quantitative Derivation Chain step.
+Decision rule: estimate = quantitative magnitude rebuild from units;
+trade-off = qualitative weighted scoring; decompose = definitional/physical
+reduction. Pairs with Decompose at the Phase 3→Phase 4 boundary (Decompose
+verifies the per-unit primitives; Estimate rebuilds the magnitude from them)
+and with Second-Order at Phase 4 (Estimate sizes the chain; Second-Order
+extends it forward).
+
 ### Reference docs
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
@@ -283,6 +298,7 @@ verified primitives; 5-Whys hands off causal root causes.
 - [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
 - [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
 - [Decompose (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
+- [Estimate (Fermi)](references/examples/estimate-fermi.md) — Fermi magnitude rebuild from unit-factors bracketed with bounds, feeding Phase 4
 
 ## Companion Techniques
 
@@ -496,5 +512,49 @@ has **not** passed the stop test — flag it as assumed.
 **Validate the parent claim.** Once all branches are exhausted, re-read the
 original claim. A claim is verified only if every branch that feeds it is verified.
 A claim that contains even one assumed branch inherits the `?` flag.
+
+---
+
+## Procedure
+
+**State the target quantity and its units.** Write one sentence naming the quantity
+you intend to estimate and the units the answer must be in (e.g., "Estimate the
+levelised cost of molten-salt thermal storage, in $/kWh of delivered energy.").
+Do not begin building the estimate yet — just fix the target and units.
+
+**Decompose the target into constituent unit-factors.** Ask: "What sub-quantities,
+when multiplied together, reconstruct the target's units?" List each factor and
+confirm that the units cancel correctly (dimensional analysis — the factor product's
+units must equal the target's units). This is the visible unit arithmetic; do not
+skip it.
+
+**Assign a first-principles value to each factor.** For every factor, supply a
+value sourced from one of:
+
+- A **physical constant or definition** (e.g., specific heat capacity, a standard
+  unit conversion) — traceable and invariant.
+- A **direct measurement** (e.g., a published material cost from an engineering
+  survey, a datasheet spec) — empirically anchored.
+
+Do **not** cite a similar past project as the value — "a comparable project cost X"
+is an analogy, not a first-principles value. If no first-principles value is
+available for a factor, flag it as assumed and assign a defensible range.
+
+**Compute the central magnitude.** Multiply the central values of all factors.
+Show the unit arithmetic so the cancellation is explicit (e.g., "kg/kWh × $/kg
+× 1/cycles → $/kWh"). The product is the central estimate.
+
+**Bracket the result: lower bound and upper bound.** For each factor that carries
+uncertainty, substitute its conservative value (produces a lower end-result) and
+its aggressive value (produces an upper end-result). Compute the bracketed range:
+[lower bound, central estimate, upper bound]. A Fermi estimate without an explicit
+bound range is incomplete — the bracket, not the single central value, is the
+deliverable.
+
+**Apply the decision-resolution stop criterion.** The estimate is "good enough"
+when the bracket is narrow enough that both its lower and upper ends drive the same
+decision. If the bracket spans an order of magnitude and straddles the decision
+threshold, identify which factor dominates the uncertainty and either tighten it
+with a better measurement or escalate the uncertainty explicitly.
 
 ---
