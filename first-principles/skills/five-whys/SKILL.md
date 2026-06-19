@@ -1,6 +1,6 @@
 ---
 name: five-whys
-description: Runs a focused 5-Whys only — depth-first root-cause drill on a single recurring symptom. Invoke via /five-whys only.
+description: Runs a focused 5-Whys only — root-cause drill on a recurring symptom. Invoke via /five-whys only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"

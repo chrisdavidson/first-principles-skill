@@ -1,6 +1,6 @@
 ---
 name: fishbone
-description: Runs a focused fishbone (Ishikawa) only — breadth-first cause-category map for a multi-causal effect. Invoke via /fishbone only.
+description: Runs a focused fishbone only — cause-category map for a multi-causal effect. Invoke via /fishbone only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"
