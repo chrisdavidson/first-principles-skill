@@ -1,6 +1,6 @@
 ---
 name: decompose
-description: Runs a focused decompose only — reduces a claim to its irreducible primitives. Invoke via /decompose only.
+description: Runs a focused decompose only — irreducibility drill. Invoke via /decompose only.
 disable-model-invocation: true
 metadata:
   version: "7.1.0"

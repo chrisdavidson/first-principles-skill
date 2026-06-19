@@ -1,6 +1,6 @@
 ---
 name: first-principles
-description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose, estimate) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths and reason up from first principles to a conclusion. Not for routine code review, debugging, performance optimization, or general Q&A.'
+description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all nine companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, decompose, estimate, theoretical-limit) internally. Delegate when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Use when the user needs to identify fundamental ground truths and reason up from first principles to a conclusion. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
   version: "3.0.0"
@@ -60,7 +60,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ### Step 0: Technique selection
 
-Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full eight-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
+Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full nine-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
 
 **Pre-set MODE honour.** When invoked via a slash-stub with `MODE` pre-set in the calling context, skip detection and honour the pre-set value.
 
@@ -76,13 +76,14 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
 | decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
 | estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" |
+| theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on (what.?s achievable|.*)", "what.?s physically possible" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
-- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all eight companion techniques.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other eight companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full nine-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all nine companion techniques.
 
 ---
 
@@ -92,7 +93,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Entry criterion:** The problem or decision to be analyzed has been stated. It need not be perfectly framed — clarifying the frame is part of this phase's work.
 
-**Operation:** Strip away implementation details, constraints, historical context, and framing artifacts to expose the core question. Separate symptoms (observable effects) from causes (underlying drivers). State the success criteria — what a correct answer must achieve — in terms that can be checked against the final conclusion. Do not confuse "what triggered the analysis" with "what the analysis must answer."
+**Operation:** Strip away implementation details, constraints, historical context, and framing artifacts to expose the core question. Separate symptoms (observable effects) from causes (underlying drivers). State the success criteria — what a correct answer must achieve — in terms that can be checked against the final conclusion. Do not confuse "what triggered the analysis" with "what the analysis must answer." When the core question may be limited by a convention rather than a physical law, theoretical-limit reframes the essence by asking what the fundamentals actually permit — consider this reframe if the analysis hinges on whether a current figure is a convention or a hard bound.
 
 **Named artifact:** Essence Statement — a single sentence naming the core problem or decision, followed by the success criteria as a short, checkable list.
 
@@ -147,7 +148,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Ground Truths list is complete — all ground truths carry IDs and verification notes — and the Classified Assumptions Table from Phase 2 is finalized.
 
-**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. When a conclusion turns on a quantity whose magnitude is uncertain, apply the inlined estimate procedure to rebuild that magnitude from constituent first-principles unit-factors and bracket it with explicit lower/upper bounds, producing a quantitative Derivation Chain step. (Decision rule: estimate = quantitative magnitude rebuild from units; trade-off = qualitative weighted scoring; decompose = definitional/physical reduction.) Before handing off to Phase 5, apply the inlined second-order thinking procedure to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
+**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. When a conclusion turns on a quantity whose magnitude is uncertain, apply the inlined estimate procedure to rebuild that magnitude from constituent first-principles unit-factors and bracket it with explicit lower/upper bounds, producing a quantitative Derivation Chain step. (Decision rule: estimate = quantitative magnitude rebuild from units; trade-off = qualitative weighted scoring; decompose = definitional/physical reduction.) When a conclusion needs the ceiling the fundamentals permit once conventions are stripped, apply the inlined theoretical-limit procedure to name the governing law, derive the law-permitted limit, and bracket the gap to the conventional figure, rendering the result as a Derivation Chain step. (Decision rule: theoretical-limit = what the laws permit once conventions are stripped; inversion = adversarial attack on what would guarantee failure; estimate = quantitative magnitude rebuild from units.) Before handing off to Phase 5, apply the inlined second-order thinking procedure to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
@@ -278,6 +279,21 @@ verifies the per-unit primitives; Estimate rebuilds the magnitude from them)
 and with Second-Order at Phase 4 (Estimate sizes the chain; Second-Order
 extends it forward).
 
+**the inlined theoretical-limit procedure** — Constraint-relaxation upper-bound derivation;
+routes to focused-theoretical-limit mode via `/theoretical-limit`. Use during
+Phase 4 (Reason Upward) when a conclusion needs the ceiling the fundamentals
+permit once conventions are stripped. Names the governing physical law,
+derives the law-permitted limit from first-principles values, and brackets
+the gap between that limit and the conventional figure — producing a
+Derivation Chain step for the physical-bound.
+Decision rule: theoretical-limit = what the laws permit once conventions are
+stripped (*what is the ceiling?*); inversion = adversarial attack on a
+claim/plan (*what would guarantee failure?* — the closest neighbour);
+estimate = quantitative magnitude rebuild from units (*how big?*).
+Pairs with inversion at Phase 4 (inversion attacks what is fatal;
+theoretical-limit derives what is possible) and with estimate (theoretical-limit
+names the ceiling; estimate sizes the quantities under it).
+
 ### Reference docs
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
@@ -299,6 +315,7 @@ extends it forward).
 - [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
 - [Decompose (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
 - [Estimate (Fermi)](references/examples/estimate-fermi.md) — Fermi magnitude rebuild from unit-factors bracketed with bounds, feeding Phase 4
+- [Theoretical Limit (Carnot)](references/examples/theoretical-limit-carnot.md) — constraint-relaxation to the law-permitted ceiling, bracketing the gap to convention, feeding Phase 4
 
 ## Companion Techniques
 
@@ -556,5 +573,50 @@ when the bracket is narrow enough that both its lower and upper ends drive the s
 decision. If the bracket spans an order of magnitude and straddles the decision
 threshold, identify which factor dominates the uncertainty and either tighten it
 with a better measurement or escalate the uncertainty explicitly.
+
+---
+
+## Procedure
+
+**Name the conventional figure and the conventions embedded in it.** Write one
+sentence naming the target figure — a performance metric, an efficiency, a cost
+ceiling, a throughput rate — and describe the conventions it rests on: industry
+practice, current engineering norms, historical precedent, or accepted defaults.
+Do not strip yet — first make the convention visible.
+
+**Strip each convention back to a governing physical law, definition, or direct
+measurement.** For each convention identified, ask: "What physical law, formal
+definition, or direct measurement determines what is actually possible here?"
+Name the law explicitly (e.g., "the Second Law of Thermodynamics," "Carnot
+efficiency bound," "Planck's radiation law," "Betz limit for wind turbines").
+Do not reason by analogy to what others currently achieve — the ceiling is set
+by the laws, not by the best incumbent.
+
+**Derive the limit the fundamentals permit.** Using the governing law and the
+first-principles values already in play (physical constants, definitions,
+direct measurements), compute the theoretical upper bound the law allows. This
+is the law-permitted ceiling: the highest the figure can go if every convention
+is removed and only physics remains as a constraint.
+
+**Bracket the gap between the law-permitted ceiling and the conventional
+figure.** State explicitly:
+
+- **Law-permitted ceiling:** the value the governing law allows.
+- **Conventional figure:** the figure in current practice.
+- **Gap:** the difference — how much headroom the fundamentals leave between
+  current practice and what the laws actually permit.
+
+Identify how much of the gap is irreducible (the laws impose it: a process that
+converts X → Y can never be 100% efficient if the Second Law applies) versus
+how much is convention (engineering headroom not yet captured — the laws allow
+more, but practice has not reached it).
+
+**Apply the stop criterion.** The analysis is complete when: (1) the governing
+law is named explicitly, (2) the limit it imposes is derived from first-principles
+values (constants, definitions, or direct measurements — not from what competitors
+currently achieve), and (3) the gap between the law-permitted ceiling and the
+conventional figure is stated explicitly. A theoretical-limit analysis that names
+a ceiling without bracketing the gap to the conventional figure is incomplete —
+the bracket, not the ceiling alone, is the deliverable.
 
 ---
