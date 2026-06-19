@@ -57,9 +57,10 @@ def _count_lines(text: str) -> int:
 def _check_body_text(text: str) -> list[str]:
     """Validate body text against the line budget.
 
-    Returns a list of failure-message strings (empty list == valid). The exact
-    substring ``"exceeds MAX_LINES=500"`` appears in the failure message so the
-    self-test can pin on a wrong-reason failure.
+    Returns a list of failure-message strings (empty list == valid). The failure
+    message embeds the current ``MAX_LINES`` value as the substring
+    ``"exceeds MAX_LINES=<MAX_LINES>"`` so the self-test can pin on a wrong-reason
+    failure.
     """
     count = _count_lines(text)
     if count <= MAX_LINES:
