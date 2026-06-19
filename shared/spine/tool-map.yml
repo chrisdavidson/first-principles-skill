@@ -14,3 +14,5 @@ decompose:
   agent: the inlined decompose procedure
 estimate:
   agent: the inlined estimate procedure
+theoretical-limit:
+  agent: the inlined theoretical-limit procedure
