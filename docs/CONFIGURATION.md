@@ -68,7 +68,7 @@ frontmatter is passed through verbatim — the source author must use quoted str
 ## Body line budget
 
 The generated agent body at `first-principles/agents/first-principles.md` must not
-exceed **500 lines** (`MAX_LINES = 500` in `scripts/check-body-budget.py`). This limit
+exceed **580 lines** (`MAX_LINES = 580` in `scripts/check-body-budget.py`). This limit
 is a hard-coded constant — changing it requires a code edit and a reviewed commit.
 
 Check the current count without committing:
@@ -148,7 +148,7 @@ Both hook paths run identical gates:
    `shared/spine/input-contract.md`, `shared/spine/SKILL.meta.yml`,
    `shared/spine/references/output-template.md`,
    `shared/spine/references/validation-rubric.md`, `scripts/sync-content.py`).
-   Invokes `scripts/check-body-budget.py`; blocks the commit if the body exceeds 500 lines.
+   Invokes `scripts/check-body-budget.py`; blocks the commit if the body exceeds 580 lines.
 
 2. **Sync-drift gate** — always runs; invokes `scripts/sync-content.py --check`.
    Blocks the commit if `shared/` and the generated tree have diverged.
@@ -171,7 +171,7 @@ authoritative gate table.
 - `disable-model-invocation: true` must be present on every focused-mode skill stub.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes and are one level deep from the referencing file.
-- The generated agent body must not exceed 500 lines.
+- The generated agent body must not exceed 580 lines.
 - Edit `shared/` only. Never edit the generated tree (`first-principles/`) directly.
 
 ## Anti-masking measurement invariants

@@ -45,7 +45,7 @@ For the plugin registration details and the full companion skill slug list, see 
 
 Every `git commit` fires two pre-commit gates locally before the commit lands:
 
-- **Body-budget gate** — blocks if the agent body (`first-principles/agents/first-principles.md`) exceeds 500 lines.
+- **Body-budget gate** — blocks if the agent body (`first-principles/agents/first-principles.md`) exceeds 580 lines.
 - **Sync-drift gate** — runs `scripts/sync-content.py --check` and blocks if `shared/` and the generated tree have diverged.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.

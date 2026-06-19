@@ -152,7 +152,7 @@ Two gates fire on every `git commit` when a hook mechanism is installed. For how
 
 **Owning script:** `scripts/check-body-budget.py`
 
-Blocks the commit if `first-principles/agents/first-principles.md` exceeds 500 lines. The limit is a hard-coded constant (`MAX_LINES: int = 500` in the script) — changing it requires a code edit plus commit.
+Blocks the commit if `first-principles/agents/first-principles.md` exceeds 580 lines. The limit is a hard-coded constant (`MAX_LINES: int = 580` in the script) — changing it requires a code edit plus commit.
 
 ```sh
 python3 scripts/check-body-budget.py           # check the live agent body

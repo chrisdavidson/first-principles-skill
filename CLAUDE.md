@@ -23,7 +23,7 @@ python3 scripts/check-agent.py            # GATE-01: agent structural checks
 python3 scripts/check-links.py            # VAL-03: broken relative MD links
 python3 scripts/check-trigger-collisions.py  # VAL-04: 4-gram collision scan across skills
 python3 scripts/check-description-budget.py  # VAL-05: skill listing under 2000-char ceiling
-python3 scripts/check-body-budget.py      # pre-commit body budget (500-line limit)
+python3 scripts/check-body-budget.py      # pre-commit body budget (580-line limit)
 ```
 
 ### Routing battery (requires a running Claude Code session)
@@ -130,7 +130,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 ### Pre-commit gates
 
 Two gates fire on `git commit` (whichever hook mechanism is active):
-1. **Body-budget gate** — blocks if `first-principles/agents/first-principles.md` would exceed 500 lines
+1. **Body-budget gate** — blocks if `first-principles/agents/first-principles.md` would exceed 580 lines
 2. **Sync-drift gate** — blocks if `shared/` and the generated tree have diverged
 
 Bypass for intentional in-progress work: `git commit --no-verify`
