@@ -495,6 +495,100 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 4: DECOMP-07 named emulator assertions (D-02 / D-04)
+    #
+    # Two catalog-independent hardcoded assertions that lock in decompose
+    # phrase-detection behavior:
+    #   (a) A positive prompt fires the decompose trigger → focused-decompose.
+    #   (b) The WR-01 mis-route prompt ("decompose this problem from first
+    #       principles: …") does NOT fire any decompose trigger → full-composer.
+    #       This is the CI-invisible WR-01 guard: check-trigger-collisions.py
+    #       scans only skill descriptions, never the Step 0 phrase table, so
+    #       this hardcoded assertion is the only CI gate that catches a
+    #       mis-route regression.
+    # Both literals are catalog-independent (D-04): deleting S-P09 or S-N05
+    # from step0-fixture-catalog.md cannot silently drop these gates.
+    # -----------------------------------------------------------------------
+
+    _DECOMP07_POS_PROMPT = (
+        "decompose this claim: a molten-salt thermal storage system achieves "
+        "85% round-trip electricity efficiency when paired with a combined-cycle "
+        "gas turbine — the vendor has published test data from a pilot plant in "
+        "the Atacama Desert"
+    )
+    _DECOMP07_POS_EXPECTED = "focused-decompose"
+
+    _DECOMP07_NEG_PROMPT = (
+        "decompose this problem from first principles: a molten-salt thermal "
+        "storage system achieves 85% round-trip electricity efficiency — "
+        "walk me through how to approach this"
+    )
+    _DECOMP07_NEG_EXPECTED = "full-composer"
+
+    # Drift guard: hardcoded positive literal must still match the live catalog
+    # S-P09 row, OR the row must be absent.
+    _sp09_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P09"), None
+    )
+    if _sp09_catalog_prompt is not None and _sp09_catalog_prompt != _DECOMP07_POS_PROMPT:
+        print(
+            "check-step0-emulator --self-test: DECOMP-07 S-P09 FAIL "
+            "(hardcoded positive literal drifted from the live catalog S-P09 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"DECOMP-07 S-P09 (literal drifted from catalog row "
+            f"{_sp09_catalog_prompt!r} != {_DECOMP07_POS_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded negative literal must still match the live catalog
+    # S-N05 row, OR the row must be absent.
+    _sn05_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N05"), None
+    )
+    if _sn05_catalog_prompt is not None and _sn05_catalog_prompt != _DECOMP07_NEG_PROMPT:
+        print(
+            "check-step0-emulator --self-test: DECOMP-07 S-N05 FAIL "
+            "(hardcoded negative literal drifted from the live catalog S-N05 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"DECOMP-07 S-N05 (literal drifted from catalog row "
+            f"{_sn05_catalog_prompt!r} != {_DECOMP07_NEG_PROMPT!r})"
+        )
+
+    decomp07_pos_computed = classify(_DECOMP07_POS_PROMPT, rules)
+    if decomp07_pos_computed == _DECOMP07_POS_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: DECOMP-07 S-P09 PASS "
+            f"(decompose trigger prompt → {decomp07_pos_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: DECOMP-07 S-P09 FAIL "
+            f"(expected {_DECOMP07_POS_EXPECTED!r}, got {decomp07_pos_computed!r})"
+        )
+        wrong.append(
+            f"DECOMP-07 S-P09 (expected {_DECOMP07_POS_EXPECTED!r}, got {decomp07_pos_computed!r})"
+        )
+
+    decomp07_neg_computed = classify(_DECOMP07_NEG_PROMPT, rules)
+    if decomp07_neg_computed == _DECOMP07_NEG_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: DECOMP-07 S-N05 PASS "
+            f"(WR-01 mis-route prompt → {decomp07_neg_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: DECOMP-07 S-N05 FAIL "
+            f"(expected {_DECOMP07_NEG_EXPECTED!r}, got {decomp07_neg_computed!r}; "
+            f"WR-01 regression: mis-route prompt now fires a trigger)"
+        )
+        wrong.append(
+            f"DECOMP-07 S-N05 (expected {_DECOMP07_NEG_EXPECTED!r}, got {decomp07_neg_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -505,7 +599,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print("check-step0-emulator --self-test: PASS")
+    print("check-step0-emulator --self-test: PASS — 8 fixtures + RR-80-01 + DECOMP-07 named assertions")
 
 
 def _require_python_version() -> None:
