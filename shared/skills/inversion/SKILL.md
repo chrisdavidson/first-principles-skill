@@ -1,6 +1,6 @@
 ---
 name: inversion
-description: Runs a focused inversion only — enumerates what would guarantee failure. Invoke via /inversion only.
+description: Runs a focused inversion only — enumerates failure preconditions. Invoke via /inversion only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"

@@ -1,6 +1,6 @@
 ---
 name: second-order
-description: Runs a focused second-order analysis — maps 2nd/3rd-order downstream effects. Invoke via /second-order only.
+description: Runs a focused second-order only — 2nd/3rd-order effects. Invoke via /second-order only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"
