@@ -1,6 +1,6 @@
 ---
 name: trade-off
-description: Runs a focused trade-off analysis only — weighted-criteria scoring across viable options. Invoke via /trade-off only.
+description: Runs a focused trade-off analysis only — weighted-criteria scoring across options. Invoke via /trade-off only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"
