@@ -99,7 +99,7 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
     return out
 
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
-TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order")
+TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order", "decompose")
 
 # Canonical slash-invocable focused-mode stub list (Phase 46-02, DEC-46-B).
 # Each entry maps to a `shared/skills/<slug>/SKILL.md` source and a generated
@@ -114,6 +114,7 @@ TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "secon
 SKILLS = (
     "pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order",
     "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
+    "decompose",
 )
 
 # Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
@@ -154,6 +155,7 @@ SKILLS_DIR = REPO_ROOT / "first-principles" / "skills"
 # sole source consumed by generate_agent_examples().
 EXAMPLES = (
     "composed-inversion-second-order",
+    "decompose-irreducibility",
     "ishikawa-fishbone",
     "personal-general",
     "personal-general-2",

@@ -10,3 +10,5 @@ trade-off:
   agent: the inlined trade-off analysis procedure
 second-order:
   agent: the inlined second-order thinking procedure
+decompose:
+  agent: the inlined decompose procedure
