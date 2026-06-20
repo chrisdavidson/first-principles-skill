@@ -674,10 +674,10 @@ def _write_baseline(
     # invariant below cannot trip for ANY row that fails during the live run.
     # Rows already tracked keep their IDs (S-P01/02/03/04/05/06, S-N04). Rows
     # with no tracked ID yet carry a clearly-provisional placeholder — NO real
-    # RR-108-NN is minted here (the CF-01/CF-02 firewall). The conditional mint
-    # of the actual superseding/first-time RR IDs happens post-checkpoint in
-    # plan 108-02 (Commit 2), only for rows that actually carry forward; these
-    # placeholders are resolved at finalize.
+    # Phase-108 residual ID is minted here (the CF-01/CF-02 firewall). The
+    # conditional mint of the actual superseding/first-time RR IDs happens
+    # post-checkpoint in plan 108-02 (Commit 2), only for rows that actually
+    # carry forward; these placeholders are resolved at finalize.
     _PENDING = "PENDING-108-live"  # provisional sentinel, resolved at finalize (108-02)
     RR_ID_MAP = {
         "S-P01": "RR-79-01", "S-P02": "RR-95-01", "S-P03": "RR-75-03",
