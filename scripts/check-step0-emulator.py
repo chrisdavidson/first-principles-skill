@@ -785,6 +785,228 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 7: SEMGATE named emulator assertions (D-02 / D-03 / D-04)
+    #
+    # Three catalog-independent hardcoded assertions that lock the intended winner
+    # for each documented semantic-overlap pair (SEMGATE-01 / SEMGATE-02).
+    #
+    # Motivation (D-04 catalog-independence): the S-A catalog rows added in Plan
+    # 107-02 can be silently deleted without breaking these assertions — the
+    # hardcoded literals below, not the catalog rows, are what get classified.
+    # Any silent edit to a catalog row fails loudly via the drift guard.
+    #
+    # This also makes GT-6 demonstrable: each co-fire literal fires BOTH triggers
+    # of an overlap pair simultaneously, but classify() returns exactly ONE winner
+    # via first-row-wins precedence on the post-reorder SKILL-body phrase table
+    # (Plan 107-01 moved decompose above five-whys and theoretical-limit above
+    # inversion).  check-trigger-collisions.py (VAL-04) is structurally blind to
+    # this disambiguation — it scans only skill description text, never the Step 0
+    # phrase table — so this Category 7 block is the only CI gate that locks the
+    # post-reorder intended winner for each pair (VAL-04 complementarity, GT-6).
+    #
+    # Pair 1: decompose vs. five-whys (S-A01)
+    #   Both triggers fire: "decompose this claim" fires phrase 1 of decompose;
+    #   "root cause" fires the five-whys trigger.
+    #   Post-reorder winner: decompose (row 5 beats row 6 under first-row-wins).
+    #   VAL-04 complementarity: a 4-gram collision scan on the SKILL-body text
+    #   cannot detect this precedence — the same phrase fires two independent rows
+    #   and only the row ORDER determines the winner.
+    #
+    # Pair 2: theoretical-limit vs. inversion (S-A03)
+    #   Both triggers fire: "theoretical limit" fires theoretical-limit; the
+    #   inversion trigger "what would guarantee .* fail(ure)?" fires on
+    #   "what would guarantee that a planned storage upgrade fails".
+    #   Post-reorder winner: theoretical-limit (row 2 beats row 3 under first-row-wins).
+    #
+    # Pair 3: inversion vs. pre-mortem (S-A05)
+    #   Both triggers fire: "I'm nervous about this plan" fires pre-mortem;
+    #   "invert" fires inversion.
+    #   Intended winner: pre-mortem (row 1 beats row 3 — already correct, no reorder
+    #   needed, D-05 flagship-first kept intentionally).
+    # -----------------------------------------------------------------------
+
+    _SEMGATE07_DECOMP_FW_PROMPT = (
+        "decompose this claim into its constituent parts: for a molten-salt thermal "
+        "storage system, why did the round-trip electricity efficiency drop below "
+        "projections — what is the root cause of the performance gap?"
+    )
+    _SEMGATE07_DECOMP_FW_EXPECTED = "focused-decompose"
+
+    _SEMGATE07_TL_INV_PROMPT = (
+        "For a molten-salt thermal storage system, what is the theoretical limit on "
+        "round-trip efficiency given thermodynamic laws — and separately, what would "
+        "guarantee that a planned storage upgrade fails to meet its performance targets?"
+    )
+    _SEMGATE07_TL_INV_EXPECTED = "focused-theoretical-limit"
+
+    _SEMGATE07_INV_PM_PROMPT = (
+        "I'm nervous about this plan to expand our molten-salt thermal storage system "
+        "to a second site — before we finalize, invert the assumptions: what would "
+        "have to be true for this expansion to go badly?"
+    )
+    _SEMGATE07_INV_PM_EXPECTED = "focused-pre-mortem"
+
+    # Drift guard: hardcoded decompose↔five-whys literal must still match the live
+    # catalog S-A01 row, OR the row must be absent (deletion is the survivable case).
+    _sa01_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-A01"), None
+    )
+    if _sa01_catalog_prompt is not None and _sa01_catalog_prompt != _SEMGATE07_DECOMP_FW_PROMPT:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A01 FAIL "
+            "(hardcoded decompose↔five-whys literal drifted from the live catalog S-A01 row — "
+            "re-sync the literal or update the gate)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A01 (literal drifted from catalog row "
+            f"{_sa01_catalog_prompt!r} != {_SEMGATE07_DECOMP_FW_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded theoretical-limit↔inversion literal must still match
+    # the live catalog S-A03 row, OR the row must be absent.
+    _sa03_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-A03"), None
+    )
+    if _sa03_catalog_prompt is not None and _sa03_catalog_prompt != _SEMGATE07_TL_INV_PROMPT:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A03 FAIL "
+            "(hardcoded theoretical-limit↔inversion literal drifted from the live catalog S-A03 row — "
+            "re-sync the literal or update the gate)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A03 (literal drifted from catalog row "
+            f"{_sa03_catalog_prompt!r} != {_SEMGATE07_TL_INV_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded inversion↔pre-mortem literal must still match the live
+    # catalog S-A05 row, OR the row must be absent.
+    _sa05_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-A05"), None
+    )
+    if _sa05_catalog_prompt is not None and _sa05_catalog_prompt != _SEMGATE07_INV_PM_PROMPT:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A05 FAIL "
+            "(hardcoded inversion↔pre-mortem literal drifted from the live catalog S-A05 row — "
+            "re-sync the literal or update the gate)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A05 (literal drifted from catalog row "
+            f"{_sa05_catalog_prompt!r} != {_SEMGATE07_INV_PM_PROMPT!r})"
+        )
+
+    semgate07_decomp_fw_computed = classify(_SEMGATE07_DECOMP_FW_PROMPT, rules)
+    if semgate07_decomp_fw_computed == _SEMGATE07_DECOMP_FW_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A01 PASS "
+            f"(decompose↔five-whys co-fire → {semgate07_decomp_fw_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: SEMGATE-07 S-A01 FAIL "
+            f"(expected {_SEMGATE07_DECOMP_FW_EXPECTED!r}, got {semgate07_decomp_fw_computed!r}; "
+            f"pair: decompose↔five-whys; regression: five-whys may be above decompose in row order)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A01 (expected {_SEMGATE07_DECOMP_FW_EXPECTED!r}, got {semgate07_decomp_fw_computed!r})"
+        )
+
+    semgate07_tl_inv_computed = classify(_SEMGATE07_TL_INV_PROMPT, rules)
+    if semgate07_tl_inv_computed == _SEMGATE07_TL_INV_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A03 PASS "
+            f"(theoretical-limit↔inversion co-fire → {semgate07_tl_inv_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: SEMGATE-07 S-A03 FAIL "
+            f"(expected {_SEMGATE07_TL_INV_EXPECTED!r}, got {semgate07_tl_inv_computed!r}; "
+            f"pair: theoretical-limit↔inversion; regression: inversion may be above theoretical-limit in row order)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A03 (expected {_SEMGATE07_TL_INV_EXPECTED!r}, got {semgate07_tl_inv_computed!r})"
+        )
+
+    semgate07_inv_pm_computed = classify(_SEMGATE07_INV_PM_PROMPT, rules)
+    if semgate07_inv_pm_computed == _SEMGATE07_INV_PM_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: SEMGATE-07 S-A05 PASS "
+            f"(inversion↔pre-mortem co-fire → {semgate07_inv_pm_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: SEMGATE-07 S-A05 FAIL "
+            f"(expected {_SEMGATE07_INV_PM_EXPECTED!r}, got {semgate07_inv_pm_computed!r}; "
+            f"pair: inversion↔pre-mortem; regression: pre-mortem may have moved below inversion in row order)"
+        )
+        wrong.append(
+            f"SEMGATE-07 S-A05 (expected {_SEMGATE07_INV_PM_EXPECTED!r}, got {semgate07_inv_pm_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
+    # Category 7 (continued): All-9-coverage assertion (D-09)
+    #
+    # Confirms that every technique in KNOWN_TECHNIQUES has at least one positive
+    # catalog fixture (expected_mode == f"focused-{technique}") so the Phase 108
+    # live re-baseline harness (check-step0-live.py --catalog) is re-baseline-ready
+    # across all 9 techniques.  This is a confirm-don't-expand check (D-09):
+    # we verify the existing catalog covers all 9, not author new fixtures.
+    # -----------------------------------------------------------------------
+
+    covered_techniques = {
+        mode.removeprefix("focused-")
+        for _, _, mode in fixtures
+        if mode.startswith("focused-")
+    }
+    for technique in KNOWN_TECHNIQUES:
+        if technique not in covered_techniques:
+            print(
+                f"check-step0-emulator --self-test: SEMGATE-07 all-9-coverage FAIL "
+                f"(technique '{technique}' has no positive catalog fixture with "
+                f"expected_mode='focused-{technique}' — catalog is not re-baseline-ready "
+                f"for this technique)"
+            )
+            wrong.append(
+                f"SEMGATE-07 all-9-coverage (technique '{technique}' uncovered)"
+            )
+        else:
+            print(
+                f"check-step0-emulator --self-test: SEMGATE-07 all-9-coverage PASS "
+                f"(technique '{technique}' has >=1 positive catalog fixture)"
+            )
+
+    # -----------------------------------------------------------------------
+    # Category 7 (continued): VAL-04 complementarity assertion (GT-6)
+    #
+    # GT-6: check-trigger-collisions.py (VAL-04) scans skill description text
+    # for lexical 4-gram collisions between skill names.  It is structurally
+    # blind to the Step 0 phrase table: it never reads SKILL-body.md and cannot
+    # detect that two technique rows share a common trigger phrase.  SEMGATE
+    # fills this gap.
+    #
+    # Assertion: the S-A01 co-fire literal (decompose↔five-whys) classifies
+    # to focused-decompose — a semantic-overlap case that VAL-04 cannot detect
+    # because: (a) VAL-04 scans description text, not phrase-table rows, and
+    # (b) even if it found a collision, it would not know which row-ORDER wins.
+    # The assertion above (SEMGATE-07 S-A01) already proved this.  The comment
+    # below makes the GT-6 complementarity explicit and findable.
+    #
+    # Complementarity summary:
+    #   VAL-04 asks: "do two skills share a 4-gram in their descriptions?"
+    #   SEMGATE asks: "when two phrase-table rows BOTH fire on the same prompt,
+    #                  does first-row-wins return the INTENDED winner?"
+    # These are orthogonal checks — VAL-04 never reads the phrase table, so a
+    # row-order regression is CI-invisible to VAL-04.  SEMGATE-07 is the only
+    # CI gate that catches it.
+    # -----------------------------------------------------------------------
+
+    # VAL-04 complementarity is demonstrated by the SEMGATE-07 S-A01 assertion
+    # above: the co-fire literal was classified to focused-decompose by classify()
+    # using the post-reorder phrase table.  The classify() call uses SKILL-body.md
+    # row order — information VAL-04 never accesses.  No additional runtime check
+    # is needed here; the assertion is already recorded in the wrong[] list if it
+    # failed.  The comment above satisfies the GT-6 documentation requirement.
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -795,7 +1017,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 + TLIMIT-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 named assertions")
 
 
 def _require_python_version() -> None:
