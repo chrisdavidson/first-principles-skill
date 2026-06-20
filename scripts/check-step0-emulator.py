@@ -686,6 +686,105 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 6: TLIMIT-07 named emulator assertions (D-02 / D-03 / D-04)
+    #
+    # Two catalog-independent hardcoded assertions that lock in theoretical-limit
+    # phrase-detection behavior:
+    #   (a) A positive prompt fires the theoretical-limit trigger → focused-theoretical-limit.
+    #   (b) The S-N07 WR-01 regression boundary prompt ("upper bound on our Q3 cloud
+    #       spend") does NOT fire any theoretical-limit trigger → full-composer.
+    #       This is the ONLY CI guard for the WR-01 'upper bound on' narrowing boundary
+    #       (the Phase-105 over-firing fix narrowed 'upper bound on |.*' to
+    #       'upper bound on what.?s achievable' in commit 57bf737):
+    #       check-trigger-collisions.py scans only skill descriptions, never the
+    #       Step 0 phrase table, so this hardcoded assertion is the only CI gate
+    #       that catches a WR-01 regression where the narrowed phrase re-broadens
+    #       to match a generic 'upper bound on [other]' prompt.
+    #       This makes S-N07 analogous to decompose's S-N05 (a real mis-route guard),
+    #       not estimate's S-N06 (mere over-firing guard).
+    # Both literals are catalog-independent (D-04): deleting S-P14 or S-N07
+    # from step0-fixture-catalog.md cannot silently drop these gates.
+    # -----------------------------------------------------------------------
+
+    _TLIMIT07_POS_PROMPT = (
+        "For a molten-salt thermal-storage plant, what's the theoretical limit on "
+        "conversion efficiency the laws of thermodynamics actually permit, setting "
+        "aside current engineering practice?"
+    )
+    _TLIMIT07_POS_EXPECTED = "focused-theoretical-limit"
+
+    _TLIMIT07_NEG_PROMPT = (
+        "We're forecasting infrastructure costs for next year and need the upper "
+        "bound on our Q3 cloud spend given current usage trends and committed-use "
+        "discounts — what's the most it could realistically reach?"
+    )
+    _TLIMIT07_NEG_EXPECTED = "full-composer"
+
+    # Drift guard: hardcoded positive literal must still match the live catalog
+    # S-P14 row, OR the row must be absent.
+    _sp14_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P14"), None
+    )
+    if _sp14_catalog_prompt is not None and _sp14_catalog_prompt != _TLIMIT07_POS_PROMPT:
+        print(
+            "check-step0-emulator --self-test: TLIMIT-07 S-P14 FAIL "
+            "(hardcoded positive literal drifted from the live catalog S-P14 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"TLIMIT-07 S-P14 (literal drifted from catalog row "
+            f"{_sp14_catalog_prompt!r} != {_TLIMIT07_POS_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded negative literal must still match the live catalog
+    # S-N07 row, OR the row must be absent.
+    _sn07_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N07"), None
+    )
+    if _sn07_catalog_prompt is not None and _sn07_catalog_prompt != _TLIMIT07_NEG_PROMPT:
+        print(
+            "check-step0-emulator --self-test: TLIMIT-07 S-N07 FAIL "
+            "(hardcoded negative literal drifted from the live catalog S-N07 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            f"TLIMIT-07 S-N07 (literal drifted from catalog row "
+            f"{_sn07_catalog_prompt!r} != {_TLIMIT07_NEG_PROMPT!r})"
+        )
+
+    tlimit07_pos_computed = classify(_TLIMIT07_POS_PROMPT, rules)
+    if tlimit07_pos_computed == _TLIMIT07_POS_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: TLIMIT-07 S-P14 PASS "
+            f"(theoretical-limit trigger prompt → {tlimit07_pos_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: TLIMIT-07 S-P14 FAIL "
+            f"(expected {_TLIMIT07_POS_EXPECTED!r}, got {tlimit07_pos_computed!r})"
+        )
+        wrong.append(
+            f"TLIMIT-07 S-P14 (expected {_TLIMIT07_POS_EXPECTED!r}, got {tlimit07_pos_computed!r})"
+        )
+
+    tlimit07_neg_computed = classify(_TLIMIT07_NEG_PROMPT, rules)
+    if tlimit07_neg_computed == _TLIMIT07_NEG_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: TLIMIT-07 S-N07 PASS "
+            f"(WR-01 boundary prompt → {tlimit07_neg_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: TLIMIT-07 S-N07 FAIL "
+            f"(expected {_TLIMIT07_NEG_EXPECTED!r}, got {tlimit07_neg_computed!r}; "
+            f"WR-01 regression: narrowed phrase 'upper bound on what's achievable' now matches "
+            f"a generic cloud-spend prompt (must NOT match without 'what's achievable' phrasing))"
+        )
+        wrong.append(
+            f"TLIMIT-07 S-N07 (expected {_TLIMIT07_NEG_EXPECTED!r}, got {tlimit07_neg_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -696,7 +795,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 + TLIMIT-07 named assertions")
 
 
 def _require_python_version() -> None:
