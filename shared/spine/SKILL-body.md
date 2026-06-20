@@ -28,14 +28,14 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | Technique | Trigger phrases (any one fires) |
 |---|---|
 | pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused" |
+| theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" |
 | inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" |
 | fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space" |
+| decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
-| decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
 | estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" |
-| theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" |
 
 **Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
 
