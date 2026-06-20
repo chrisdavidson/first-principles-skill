@@ -1,0 +1,37 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here are its findings:
+
+# Pre-Mortem: Payments-Rewrite Launch
+
+**Bottom line: the launch as specified is high-risk and should not ship Friday in its current form.**
+
+## The dominant risk cluster
+Three of the worst failure modes all trace back to **one decision: no staged rollout**. Combined with a **Friday cutover** and a **likely-untested rollback**, this is the core danger.
+
+## How it fails (working backward from "it's Saturday and it failed")
+1. **No rollback path** — error rate spikes at hour 2, no tested way back to legacy. Turns a bug into a catastrophe.
+2. **Load only appears at production peak** — passes staging, falls over at real EU peak with no smaller cohort to reveal it first.
+3. **In-flight transactions lost or double-charged** at the switchover moment — nobody owns the handoff.
+4. **Reconciliation drift** discovered days later when finance closes the books — money already misallocated.
+5. **SCA/PSD2 edge cases fail** silently as "declines," depressing success rate with no obvious cause.
+6. **Webhook semantics drift** from legacy (refunds, disputes, async confirmations) — surfaces as complaints, not alerts.
+7. **Detection too slow** — infra dashboards green while payment business metrics quietly crater.
+8. **Friday-night failure, skeleton crew** — incident hits Saturday, authors offline, Stripe weekend support slow.
+
+## Four structural weaknesses
+- **No blast-radius control** (causes 1–3) — root weakness, all from "no staged rollout"
+- **No pre-cutover truth-comparison** (causes 4, 6) — never ran shadow mode against legacy
+- **Detection gap** (causes 5, 7) — alerting on infra, not payment metrics
+- **Timing** (cause 8) — Friday-into-weekend maximizes time-to-recovery
+
+## Required changes, in priority order
+1. **Add blast-radius control (non-negotiable):** 1% → 10% → 50% → 100% canary with automated rollback on payment-success-rate regression. *If you change one thing, change this.*
+2. **Build and actually test a fast rollback** to legacy — rehearse it; untested rollback doesn't count.
+3. **Run shadow mode + shadow reconciliation** before cutover, long enough to cover a full reconciliation cycle.
+4. **Define an explicit in-flight transaction handoff** with idempotency keys.
+5. **Add payment-business-metric alerting** (auth rate, SCA step-up success, decline-reason mix) with paging thresholds.
+6. **Move the cutover off Friday** — ship Tuesday/Wednesday EU morning with full on-call and confirmed Stripe support.
+
+**Confidence:** HIGH that *no staged rollout + Friday + untested rollback* is the dominant risk cluster. The cheapest insurance is to stop treating this as a launch *date* and treat it as a *progressive rollout* — the staged rollout you removed is exactly the control that makes every other failure mode survivable.
+
+The agent remains available (`a8b6ebd01fd535834`) if you'd like to push on any specific failure mode or pressure-test a revised plan.

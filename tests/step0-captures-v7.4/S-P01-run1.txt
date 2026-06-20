@@ -1,0 +1,32 @@
+The first-principles agent completed the pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite EU Launch
+
+The agent treated this as a focused pre-mortem (imagining it's already Saturday and the launch has failed, then reasoning backward).
+
+## The two structurally fatal choices — both embedded in the plan itself
+- **"Replacing" legacy** → removes reversibility. If a bug appears at hour 2, there's no warm fallback, so mean-time-to-recovery has no floor.
+- **"No staged rollout"** → removes the early-warning signal. The first evidence of failure arrives from production at 100% blast radius.
+
+## Four failure patterns that cluster
+- **Pattern A — No reversibility:** big-bang + no warm legacy = unbounded recovery time. *Dominant weakness.*
+- **Pattern B — No early signal:** no canary + correctness-blind monitoring = you learn late, at full scale.
+- **Pattern C — Timing amplifier:** Friday-into-weekend multiplies every failure's duration (thin staffing, slow vendor/bank response).
+- **Pattern D — Silent money corruption:** double-charges and reconciliation drift harm customers before dashboards show anything.
+
+## The most likely actual Saturday-morning state
+Not a clean outage, but an **ambiguous partial failure** (e.g. 92% vs 99% success rate) where no one is confident enough to pull the trigger — and hours burn in decision paralysis.
+
+## Recommendation (HIGH confidence on direction)
+**Do not ship as specified.** Three non-negotiables before any EU-wide launch:
+1. **Keep legacy warm behind a kill-switch** — reversal in seconds, not a redeploy *(highest-leverage single change)*.
+2. **Stage the rollout** (1% → 10% → 50% → 100%) — even hours at 1% surfaces latent defects at 1% blast radius.
+3. **Move off Friday** — ship Tue/Wed with full staffing through the 72h danger window.
+
+Plus two go/no-go gates: **prod-scale load test** and **SCA/3DS conformance pass**.
+
+## Open items the agent flagged for verification
+- Is legacy actually being torn down Friday, or just disabled? (Determines whether rollback exists at all.)
+- Prod-scale load test results, and SCA/PSD2 conformance evidence.
+
+The agent offered to turn the Step-5 actions into a go/no-go checklist or draft the staged-rollout flag plan — let me know if you'd like either.

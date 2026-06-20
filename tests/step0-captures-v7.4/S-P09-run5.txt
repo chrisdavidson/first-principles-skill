@@ -1,0 +1,26 @@
+The first-principles agent completed its decomposition. Here's the result:
+
+## Verdict: NOT VERIFIED — the claim's headline reading is refuted by physics
+
+The agent decomposed the claim into **three branches** and found the central term load-bearing and ambiguous.
+
+### The core finding (high confidence)
+An **electricity → heat → electricity** round trip cannot hit 85%, because the discharge step is a heat engine bounded by **Carnot**:
+- Molten salt hot tank ≈ 565 °C (838 K); cold sink ≈ 300 K
+- Carnot ceiling = 1 − 300/838 ≈ **64%** — and real cycles reach only ~40–45%
+
+So an 85% *electricity* round-trip efficiency **violates the Second Law**.
+
+### The charitable reconciliations (the claim is likely mislabeled, not fraudulent)
+1. **"85%" is thermal RTE, relabeled as electrical** — molten-salt thermal round-trip of 90–99% (just tank charge/store/discharge losses, excluding the heat-engine step) is physically real. Calling it "electricity efficiency" is the error.
+2. **Boundary-gaming via the CCGT** — a CCGT's real energy input is *natural gas*, not the tank. If gas-derived electricity sits in the numerator while gas fuel is excluded from the denominator, "round-trip" is measuring a hybrid plant, not storage.
+
+Also physically: salt at 565 °C is far too cool to drive a *gas turbine* (combustor exit ~1300–1500 °C). It can only augment the steam bottoming cycle — so "paired with CCGT" can't mean salt replaces the combustor.
+
+### Three unverified constituents
+- **Metric** — mislabeled or boundary-gamed
+- **System boundary** — gas accounting undefined in the claim
+- **Evidence** — single-source vendor pilot, not independently traceable; pilot results routinely overstate commercial performance. (Atacama's low ambient *helps* the Carnot ceiling slightly, but nowhere near enough to rescue 85%.)
+
+### What would settle it
+The vendor's energy-accounting boundary diagram (what's in numerator vs. denominator), independent third-party in/out measurements, and confirmation of whether gas fuel is counted. Until then, treat "85% round-trip electricity efficiency" as **a thermal or hybrid figure mislabeled as electrical RTE.**

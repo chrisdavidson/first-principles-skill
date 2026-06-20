@@ -1,0 +1,29 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its pre-mortem. Here's what it found.
+
+## Pre-Mortem Verdict: The current plan should not ship as stated
+
+The analysis identified **one structural weakness that recurs across nearly every failure mode: the plan has no blast-radius containment and no proven recovery path.**
+
+### Top failure modes (if the launch fails)
+
+| # | Failure Mode | Confidence |
+|---|---|---|
+| **A** | **No blast-radius containment** — first real traffic is 100% of EU at once; any latent defect hits every customer simultaneously | HIGH |
+| **B** | **Rollback is a myth** — once the new service authoritatively writes payment state, legacy no longer holds truth; "rolling back" orphans/duplicates in-flight charges. Effective point of no return at cutover | HIGH |
+| **C** | **EU issuer/SCA variance** — an issuer-specific 3-D Secure failure passes internal tests but fails for real EU banks → silent declines + regulatory exposure | MED-HIGH |
+| **D** | **Double-charge / idempotency** — retries at scale double-charge customers | MED→HIGH at scale |
+| **E** | **Friday weekend trap** — defect surfaces Friday evening with thin on-call and no bank/issuer support over the weekend → recovery in days, not hours | HIGH |
+| **F** | **Token migration gap** — stored Stripe cards don't carry over → returning customers must re-enter cards → day-one conversion cliff | MEDIUM |
+
+**Key second-order insight:** Failure Mode B amplifies all the others — without a real recovery path, any single defect becomes a multi-day, EU-wide revenue and regulatory event.
+
+### Recommended changes (priority order)
+
+1. **Introduce a staged rollout** (canary → 1% → 10% → 50% → 100%) — highest leverage; defeats A, C, D, F and finally produces real-traffic parity data.
+2. **Build and rehearse a real rollback** — dual-write to legacy + tested, automated cutback that reconciles in-flight charges. Without this, don't ship.
+3. **Don't ship Friday** — move to Tue/Wed so the recovery window precedes the weekend.
+4. **Verify before cutover:** peak-volume load test, per-issuer SCA testing, idempotency under retry/timeout, token-migration reconciliation.
+5. **If 1–4 can't be done by the date, slip the date** — don't remove the safeguards.
+
+**One open input to sharpen this:** confirming whether stored payment-method tokens are portable from your legacy Stripe setup would either escalate or clear Failure Mode F.

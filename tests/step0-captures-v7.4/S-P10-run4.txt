@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Molten-Salt Thermal Storage Cost — First-Principles Result
+
+The key move the agent made was resolving a critical ambiguity: **"$/kWh" is underspecified by ~100×**, and the inputs you gave (30-year life, daily cycling, pre-commissioned tanks) are precisely the parameters for a **levelised cost of storage (LCOS)** calculation — not an installed-capex quote.
+
+### Headline answer (LCOS — cost per kWh *delivered*)
+- **Central: ~0.7 ¢/kWh delivered (~$0.007/kWh)**
+- **Range: ~0.4–1.2 ¢/kWh** (discounted); ~0.2–0.6 ¢/kWh undiscounted
+
+### Why so low
+With tanks pre-commissioned, the dominant capital item is removed, and the system delivers **~2 TWh over ~10,000+ cycles** (200 MWh × ~10,400 cycles × ~95% efficiency). The remaining capex spreads thin across enormous lifetime throughput.
+
+### If you actually meant installed capital cost
+- **Marginal (non-tank) cost: ~$15–35/kWh**
+- **Full system incl. tanks + salt: ~$20–60/kWh** (NREL/IRENA range)
+
+### Confidence: MEDIUM
+The two load-bearing, unverified inputs are:
+- **Non-tank balance-of-system capex** ($15–35/kWh) — the single largest swing in the numerator, and poorly disaggregated in public data
+- **Round-trip efficiency** (~95%)
+
+To raise to HIGH: get a project-specific quote for the non-tank subsystem (heat exchangers, pumps, immersion heaters, BOP, EPC) and confirm the intended discount rate (which alone moves LCOS by 2–3×).
+
+The agent also flagged a conceptual point worth keeping in mind: **with tanks excluded, this isn't really a "storage medium cost" question anymore** — the answer is governed almost entirely by lifetime throughput and power-conversion/BOP capex, not by the salt itself.

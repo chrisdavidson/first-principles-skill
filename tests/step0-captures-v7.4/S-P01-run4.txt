@@ -1,0 +1,27 @@
+The first-principles agent completed the pre-mortem. Here are its findings:
+
+## Pre-mortem: Payments-rewrite cutover (next Friday, 100% EU, no staged rollout)
+
+**The core problem:** the plan stacks **three independent single-points-of-failure** on top of each other — 100% blast radius, an unverified rollback path, and a Friday-into-weekend timing window. Each removes a different safety net (no canary, no recovery time, no reversal), and they compound multiplicatively.
+
+### Highest-stakes findings
+- **No rollback path** — once legacy is decommissioned and tokens/customer mappings diverge, you can't revert without data reconciliation. This is the one finding that turns *any* other failure into an unrecoverable one.
+- **100% blast radius** — any defect hits all EU revenue simultaneously, with no canary to catch it small.
+- **Friday cutover** — a defect surfacing Friday evening meets thin weekend on-call → MTTR balloons, revenue bleeds 48–72h.
+
+### Other failure modes enumerated
+- **Payment correctness:** 3DS/SCA edge cases, idempotency-key mismatches → duplicate charges, in-flight transactions dropped at cutover, lost webhooks.
+- **Data migration:** incomplete saved-card/token mapping, subscription/recurring billing state drift.
+- **EU regulatory (hard boundary):** PSD2/SCA exemption logic, VAT/invoicing, GDPR data residency regressions.
+- **Observability gap:** no per-transaction parity dashboard → a silent 1–2% failure rate goes unnoticed until finance reconciles weeks later.
+
+### Recommended plan changes (before Friday)
+1. **Add a staged rollout** (1%→5%→25%→100%) — highest leverage; if "no staged rollout" is truly fixed, get the reason in writing.
+2. **Prove a rollback path** end-to-end — keep legacy Stripe warm with a tested switch-back and reconciliation plan.
+3. **Run shadow/replay traffic** now to find correctness/data/regulatory failures before real money moves.
+4. **Move the cutover off Friday** to Tue/Wed with full on-call coverage.
+5. **Stand up a per-transaction parity dashboard** so silent regressions surface in minutes.
+
+**If only one change is possible:** establish and test the rollback path — it's the difference between an incident and a disaster.
+
+The agent offered to turn any of these into a concrete checklist or runbook for the team — let me know if you'd like that.

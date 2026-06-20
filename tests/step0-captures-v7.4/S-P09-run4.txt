@@ -1,0 +1,25 @@
+The first-principles agent completed its decomposition. Here's the result:
+
+## Verdict: The claim does not survive decomposition — one branch is physically contradicted, and the whole inherits a `?` (unverified) flag.
+
+### How it breaks down into constituent facts
+
+The claim has three parts, each reduced until it bottoms out at a law, definition, or measurement:
+
+**1. "85% round-trip electricity efficiency"** — *Contradicted by physical law.*
+Round-trip means electricity-in → electricity-out, so it decomposes into a conversion chain:
+- electricity → heat: ~99% (Joule heating)
+- heat held in molten salt: ~95–99% retention
+- **heat → electricity (the crux):** Carnot-bounded at ~64% for 565 °C salt, actually achieved at ~40% in operating CSP plants (Gemasolar, Crescent Dunes)
+- Product ≈ **38%, not 85%.** An 85% *electricity* round-trip through a steam cycle is thermodynamically implausible.
+
+**2. "combined-cycle gas turbine"** — *Category error (bottoms out at a definition).*
+A CCGT burns natural gas; its energy input is chemical fuel, not stored electricity. Pairing a storage *round-trip* metric with a *fuel-burning* generator conflates two incompatible definitions. The 85% likely either counts the gas fuel's chemical energy as "free" or is really a total thermal-utilization figure — not an electricity round-trip.
+
+**3. "published Atacama pilot test data"** — *Unverified leaf.*
+Single-source, vendor-published, no independent replication. Fails the stop test.
+
+### Bottom line
+The most likely resolution: **"85%" is not an electricity-to-electricity round-trip efficiency.** It's probably a total *thermal* utilization number (physically reasonable for heat storage) that's been mislabeled, or it folds in gas fuel energy — making the "round-trip" framing a category error.
+
+**The single weak link that resolves everything:** the vendor's exact definition of "round-trip efficiency," the energy-flow boundary diagram, and whether the 85% counts gas fuel input. Pin that down and the contradiction collapses into either a relabeling or an outright debunk.

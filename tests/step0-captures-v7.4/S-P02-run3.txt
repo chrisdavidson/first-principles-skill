@@ -1,0 +1,19 @@
+The first-principles agent completed the inversion analysis. Here's the result:
+
+## When "faster ships → better retention" breaks down
+
+The agent inverted the claim and found it's **conditionally true**, silently resting on four preconditions. It breaks in four identifiable regimes:
+
+1. **Velocity decoupled from churn drivers** (HIGH) — you ship more, but not on the axes that actually retain users. Signal: rising release count, flat/declining cohort retention.
+
+2. **Retention gated by price, fit, or a competitor** (HIGH, most common) — shipping speed is orthogonal to the binding constraint. Signal: exit surveys cite reasons no feature pace can address.
+
+3. **Change volume outruns per-change value** (MEDIUM, the true inversion) — accumulated adaptation cost crosses over and faster shipping *actively reduces* retention. Signal: retention dips concentrated in the days right after releases; "constant changes" complaints.
+
+4. **The two-week ritual excludes high-impact bets** (MEDIUM) — the cadence is a convention, not a law, and caps the ceiling when retention-moving work can't fit in a sprint. Signal: roadmap full of small items, large bets perpetually deferred.
+
+**Ground truths it rested on:** retention is driven by ongoing value vs. switching cost; ship frequency measures *change throughput*, not *value per change* (independent axes); every user-facing change imposes non-zero adaptation cost; two weeks is an internal convention, not a constraint.
+
+**Highest-leverage next step:** Verify the shipping-elasticity assumption (A4) first — pull exit-survey/churn-reason data. If your dominant churn driver isn't something a release can touch, the whole assumption is misframed regardless of cadence, and it's the cheapest precondition to check. Then correlate cohort retention against *what* shipped, not *how often*.
+
+The single weakest link is **shipping-elasticity** — unverified, load-bearing, and the most likely to be silently false.

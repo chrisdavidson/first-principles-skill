@@ -1,0 +1,30 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Pre-Mortem: Authentication Rollout — How It Could Go Badly
+
+The agent reframed your request as a **pre-mortem** (imagine the rollout has already failed, then work backward to the causes) and surfaced the load-bearing assumptions in the plan before mapping failure modes.
+
+### The two failure modes most likely to turn a delay into a crisis
+- **No tested rollback → org-wide outage.** Because auth is a hard dependency for nearly everything, if the cutover makes the new system authoritative without a *rehearsed* rollback, a failure isn't a slip — it locks everyone out of everything at once. (Including, potentially, the recovery team locking itself out.)
+- **Forgotten non-human accounts → silent failures.** Service accounts, batch jobs, and break-glass admin paths get missed in identity migration and fail quietly (e.g., at 2am), or worse, get silently over-permissioned.
+
+### The full set of failure clusters
+1. **Calendar-driven, not readiness-driven timeline** — the most common root cause. The slowest/most-complex team either breaks or blocks the whole "all teams" goal.
+2. **Blast radius & rollback** — the catastrophic tail (above).
+3. **Dirty identity data** — stale accounts, broken group mappings, orphaned service accounts.
+4. **Coordination & human readiness** — N× support load at cutover, no single accountable owner, users adopting workarounds.
+5. **Functional non-equivalence** — a team relies on auth behavior the new system doesn't replicate.
+
+A notable **second-order effect**: a security-tightening migration that goes badly trains users to seek bypasses, leaving you *less* secure than before — defeating the rollout's own purpose.
+
+### Recommended preparations before locking the timeline
+1. Re-derive the timeline from per-team readiness; pilot with one representative team first.
+2. Make a **tested** rollback the gating requirement — keep the old system authoritative and reversible.
+3. Audit identity data, including service and break-glass accounts.
+4. Name a single accountable rollout owner; over-resource cutover-day support.
+5. Validate functional equivalence per team, especially atypical ones.
+
+### The agent flagged three open questions that would sharpen the analysis
+(a) What is the system replacing — an adopted IdP or custom-built? (b) Cutover or parallel-run? (c) How many teams, and is readiness already assessed?
+
+It offered to re-run the analysis with those filled in. If you'd like, share those details and I can send them back to the same agent to refine the findings.

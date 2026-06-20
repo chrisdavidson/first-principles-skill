@@ -669,29 +669,40 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
-    # D-03b — pre-populate RR_ID_MAP for EVERY live S-P row (canonical +
-    # falsifier) plus S-N04 so the "a failing row must map to an RR ID"
-    # invariant below cannot trip for ANY row that fails during the live run.
-    # Rows already tracked keep their IDs (S-P01/02/03/04/05/06, S-N04). Rows
-    # with no tracked ID yet carry a clearly-provisional placeholder — NO real
-    # Phase-108 residual ID is minted here (the CF-01/CF-02 firewall). The
-    # conditional mint of the actual superseding/first-time RR IDs happens
-    # post-checkpoint in plan 108-02 (Commit 2), only for rows that actually
-    # carry forward; these placeholders are resolved at finalize.
-    _PENDING = "PENDING-108-live"  # provisional sentinel, resolved at finalize (108-02)
+    # D-03/D-03a — RR_ID_MAP RESOLVED at the Phase-108 finalize (Commit 2,
+    # plan 108-02). The 108-01 provisional placeholders are replaced with the
+    # real RR-108-NN IDs per the human-approved close-vs-carry verdict surfaced
+    # at the Task 1 blocking checkpoint:
+    #   - S-P02 inversion live 1/5 < min-pass → CARRY FORWARD as RR-108-01
+    #     (supersedes RR-95-01; chain RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01).
+    #   - S-P05 trade-off live 2/5 < min-pass → CARRY FORWARD as RR-108-02
+    #     (supersedes RR-95-02; chain RR-79-03 → RR-92-02 → RR-95-02 → RR-108-02).
+    #   - S-P09 decompose live 0/5 → first-time RR-108-03 (no supersession).
+    #   - S-P10 estimate  live 0/5 → first-time RR-108-04 (no supersession).
+    #   - S-P14 theoretical-limit live 0/5 → first-time RR-108-05 (no supersession).
+    # No RR-95-NN was CLOSED (both S-P02 and S-P05 stayed below the ≥3/5 bar).
+    # No provisional placeholder survives. The falsifier rows still need a tracked
+    # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
+    # and never reach residual_risk_rows, but a non-None entry is required); they
+    # share the closest minted canonical-technique ID for their falsified technique.
     RR_ID_MAP = {
-        "S-P01": "RR-79-01", "S-P02": "RR-95-01", "S-P03": "RR-75-03",
-        "S-P04": "RR-75-04", "S-P05": "RR-95-02", "S-P06": "RR-75-06",
+        "S-P01": "RR-79-01", "S-P02": "RR-108-01", "S-P03": "RR-75-03",
+        "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
         "S-N04": "RR-80-01",
+        # Newly-measured canonical techniques — CARRIED FORWARD at 0/5 (D-03a,
+        # first-time IDs, no supersession). These CAN reach the residual-risk branch.
+        "S-P09": "RR-108-03",  # decompose         (first-ever live measurement)
+        "S-P10": "RR-108-04",  # estimate          (first-ever live measurement)
+        "S-P14": "RR-108-05",  # theoretical-limit (first-ever live measurement)
         # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
-        # never appended to residual_risk_rows) — placeholders for invariant safety.
-        "S-P07": _PENDING, "S-P08": _PENDING, "S-P11": _PENDING,
-        "S-P12": _PENDING, "S-P13": _PENDING, "S-P15": _PENDING,
-        # Never-before-measured canonical techniques — CAN fail and reach the
-        # residual-risk branch, so each MUST have a non-None placeholder.
-        "S-P09": _PENDING,  # decompose
-        "S-P10": _PENDING,  # estimate
-        "S-P14": _PENDING,  # theoretical-limit
+        # never appended to residual_risk_rows) — share the minted ID of the
+        # technique they falsify so no provisional placeholder survives.
+        "S-P07": "RR-79-01",   # pre-mortem falsifier
+        "S-P08": "RR-79-01",   # pre-mortem falsifier
+        "S-P11": "RR-108-04",  # estimate falsifier
+        "S-P12": "RR-108-04",  # estimate falsifier
+        "S-P13": "RR-108-04",  # estimate falsifier
+        "S-P15": "RR-108-05",  # theoretical-limit falsifier
     }
     if residual_risk_rows:
         lines += [

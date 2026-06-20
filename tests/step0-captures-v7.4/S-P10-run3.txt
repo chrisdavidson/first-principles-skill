@@ -1,0 +1,20 @@
+The first-principles agent completed its analysis. Here's its conclusion:
+
+## Bottom line: ~$15–30 per usable kWh (thermal), central estimate ≈ $20/kWh_th
+
+For a 200 MWh molten-salt TES with pre-commissioned tanks excluded, that works out to roughly **$3–6M** for the priced scope.
+
+### Cost breakdown
+| Component | $/kWh_th |
+|---|---|
+| Salt inventory (~8–9 kg solar salt per kWh @ ~$0.7–1.0/kg) | $7–10 |
+| Balance of system (heat exchangers, pumps, salt-handling — tanks excluded) | $8–18 |
+| **Total** | **$15–30** |
+
+Excluding the tank shells matters a lot — an **all-in figure including tanks** is typically **$20–30/kWh_th**, with the tanks/civil works often the single largest line item.
+
+### Two caveats that move the number most
+1. **Operating ΔT is load-bearing.** The estimate assumes a CSP-grade ~275 K temperature swing (~0.115 kWh_th/kg). A lower-temperature industrial config (ΔT ~100–150 K) roughly doubles the salt mass and pushes toward or past the upper bound.
+2. **Thermal vs. electrical.** This is cost per *thermal* kWh — appropriate since molten-salt TES stores heat. For cost per kWh of *electricity*, divide by power-block efficiency (~38–42%), giving very roughly **$40–75/kWh_e** — but that cost belongs to the power block, not the storage.
+
+The agent noted it can tighten the bracket considerably if you specify the operating temperature range and whether you want a thermal or electrical basis.

@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Answer: ~$25–30/kWh of usable thermal capacity (central ~$27/kWh)
+
+The agent built this from the ground up rather than quoting an analogue:
+
+**Bottom-up derivation:**
+1. Solar salt stores **0.117 kWh/kg** (cp ≈ 1.5 kJ/kg·K × usable ΔT ≈ 280 K) → **8.57 kg salt per kWh**
+2. At ~$1.0/kg, that's **~$8.6/kWh in salt alone** (~1,700 tonnes total for 200 MWh)
+3. Salt is ~30% of total two-tank system capex (tanks, foundations, heat exchanger, pumps, BOP make up the rest) → divide through → **~$27/kWh**
+4. Pre-commissioned tanks shave ~5–8% off
+
+| Bound | $/kWh usable thermal |
+|---|---|
+| Lower | ~$17 |
+| **Central** | **~$27** |
+| Upper | ~$41 |
+
+Total for the 200 MWh system: **~$5–8M installed (central ~$5.4M)**. This was cross-checked against published NREL/IRENA figures (~$20–30/kWh-thermal), which bracket the bottom-up result.
+
+**Two important caveats the agent flagged:**
+- **The 30-year life and daily-cycle assumptions don't affect this number.** "$/kWh of usable capacity" is an installed-cost intensity. Those assumptions only matter for **LCOS** (levelized cost per kWh-cycled), which works out to roughly **$0.01–0.03/kWh-cycle** including O&M and discounting. The agent offered to build that chain fully if that's what you actually wanted.
+- **It assumed "200 MWh" means thermal.** If it means *electric* output, you'd divide by round-trip efficiency (~0.40), needing ~2.5× more salt — though the $/kWh-*thermal* unit figure stays the same.
+
+Confidence: **MEDIUM**, with the salt-cost-fraction assumption being the widest swing factor.
+
+Let me know if you'd like the LCOS version, or if "200 MWh" was meant as electric capacity.

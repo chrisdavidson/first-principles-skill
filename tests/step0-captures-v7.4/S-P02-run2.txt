@@ -1,0 +1,27 @@
+The first-principles agent ran the inversion. Here's what it found.
+
+## The inverted claim
+"Faster shipping does **not** improve retention" — and in some regimes actively harms it. The claim is **conditional, not causal**: it only holds while seven hidden preconditions all hold.
+
+## When the assumption breaks down
+
+The original claim silently depends on seven things being true. It breaks when any of them fail:
+
+1. **Churn is driven by something you don't ship against** — pricing, support, onboarding, or a core value gap. Then cadence is decoupled from retention entirely.
+2. **Quality erodes as you speed up** — if faster cadence raises defect/rollback/incident rates, each release nets negative.
+3. **Users can't absorb the change rate** — change fatigue and re-learning cost. *This is the dangerous one for enterprise/workflow tools, where faster shipping can actively lower retention.*
+4. **Speed comes from smaller, unnoticed changes** — frequency without user-perceptible significance.
+5. **Retention is already near its ceiling** — no headroom left for speed to capture.
+6. **Shipped work misses the at-risk cohorts** — velocity serves new-user/acquisition features while churning users get nothing.
+7. **You go faster by cutting validation/QA** — speed just amplifies bad bets.
+
+## The non-obvious finding
+Pushing cadence *higher* pressures #2 and #7 at the same time — you tend to go faster by cutting QA and validation. So past some rate the claim is **self-undermining**: the act of speeding up manufactures the conditions that break it.
+
+## Most actionable watch-triggers for your two-week team
+Before going faster, monitor three signals — if any move the wrong way as cadence rises, the assumption has broken for you:
+- **Per-release defect/rollback rate** (#2)
+- **Feature adoption per release** (#4)
+- **Change-fatigue signals in your stickiest cohorts** (#3)
+
+One caveat the agent flagged honestly: all seven conditions are **unverified** — they're a map of what to test against your own retention and release data, not conclusions it could draw without it.

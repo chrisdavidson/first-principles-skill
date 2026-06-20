@@ -1,0 +1,27 @@
+The first-principles agent completed the trade-off analysis. Here is its verdict:
+
+## Recommendation: PostgreSQL (managed — RDS/Aurora or Cloud SQL)
+
+The agent ran a weighted-criteria trade-off and produced this ranking:
+
+| Database | Weighted Score (/135) |
+|---|---|
+| **PostgreSQL** | **105** |
+| DynamoDB | 95 |
+| MongoDB | 82 |
+
+**The key reframe:** It identified that the binding constraints are *transactional integrity* and *cost* — **not throughput**. All three engines clear 500 writes/sec trivially, so capacity is a non-discriminator. Choosing on raw throughput was explicitly abandoned as a dead-end path.
+
+**Why PostgreSQL wins:**
+- Only option with frictionless native multi-item ACID (orders + line items + inventory + payment committing atomically)
+- Models relational commerce entities natively
+- Fits the $3k/month budget comfortably (~$300–900/mo at this scale)
+
+**The runner-up tension:** DynamoDB (95) is close — it has the largest cost headroom (~$150–600/mo for writes) — but gets penalized exactly where commerce hurts: relational data modeling (single-table design is hard) and 2× write-capacity cost for transactions.
+
+**Confidence: MEDIUM-HIGH**, with three things flagged for verification that could shift the call:
+1. **Per-write payload size** (assumed ~1KB) — load-bearing for DynamoDB's cost advantage
+2. **Read:write ratio** — heavy reads erode DynamoDB's cost edge
+3. **Whether 500 w/s is sustained peak or burst** — flash-sale spikes above ~10k w/s are the single factor most likely to favor DynamoDB instead
+
+The agent transparently labeled its unverified assumptions (payload size, read load, team SQL familiarity) rather than burying them, and noted no files were created — the analysis was delivered inline.

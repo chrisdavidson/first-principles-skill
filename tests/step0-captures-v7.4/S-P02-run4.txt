@@ -1,0 +1,22 @@
+The first-principles agent ran a focused-inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim is a hidden causal chain — `ship frequency → product improvement → user value → retention` — and each arrow is a separate assumption. Inverting it surfaces **four breakdown regimes**, ordered by how commonly they bite:
+
+1. **Quality erosion** (most common) — if your test/QA capacity isn't scaling with the two-week cadence, faster shipping injects regressions and the effect *flips negative*. Watch: defect escape rate and rollback rate per release.
+
+2. **Wrong constraint** — if retention is actually gated by onboarding, pricing, support, or market fit rather than product capability, faster shipping relieves a non-binding constraint and retention doesn't move. **This is the load-bearing unknown** — verify it first via churn-reason cohort analysis: are users leaving *before* or *after* activation?
+
+3. **Misaligned output** — if you ship fast but not the things users value, frequency and retention decouple entirely (output ≠ outcome).
+
+4. **Change saturation** — past an absorption threshold, more change raises cognitive load faster than value, eroding satisfaction.
+
+## The two key takeaways
+
+- **Verify the binding constraint before trusting the claim.** If churn is pre-activation or pricing-driven, your two-week cadence is optimizing something that isn't the bottleneck — the whole assumption is moot for your team.
+- **The two-week cadence is a convention, not a derived optimum.** It carries sprint-ceremony inertia, not a retention derivation — don't treat it as a fixed input when diagnosing retention.
+
+There's also a second-order warning: making "ship frequency" a *goal* (vs. an instrument) invites Goodhart — teams ship smaller, safer, lower-value changes to protect the metric, which actively undermines the value the claim assumed.
+
+The analysis was returned inline; no files were created.

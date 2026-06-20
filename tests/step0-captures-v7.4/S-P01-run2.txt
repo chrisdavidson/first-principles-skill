@@ -1,0 +1,32 @@
+The first-principles agent completed the pre-mortem. Here's its analysis:
+
+# Pre-Mortem: Payments-Rewrite Launch (EU, Big-Bang Cutover)
+
+The agent reframed the question as prospective hindsight — *"It's the Friday after launch and the cutover has already failed; what caused it?"* — and worked backward.
+
+## The core finding
+
+The launch is most likely to fail **not from a single bug but from two structural weaknesses in the launch design itself**:
+
+- **Irreversibility** — payments are stateful and money-moving (charges, mandates, settlements land in seconds). With no validated rollback, the first serious defect is unrecoverable.
+- **Blindness** — shipping to 100% at once destroys the control cohort and gradual signal you'd need to *detect* a problem and *justify* aborting. The launch design destroys its own observability.
+- **Friday amplifier** — an incident surfaces into reduced weekend coverage, stretching detection-to-fix latency.
+
+## Highest-leverage recommendation
+
+**Challenge "no staged rollout" — it's a decision/convention, not a hard constraint.** A canary rollout (1% → 10% → 50% → 100%) defuses *both* dominant failure modes at once by restoring a fallback cohort and gradual signal.
+
+If big-bang is genuinely mandated:
+- A **rehearsed, reconciled rollback** to legacy becomes a ship-blocker — prove it with a drill, or don't ship.
+- **Move off Friday**, or staff a weekend war room with a named incident commander.
+- **Pre-commit abort thresholds** (auth-success rate, SCA completion, error rate, settlement reconciliation) *before* launch, so the "is it us or the market?" paralysis can't happen.
+
+## Verify-before-ship cluster
+Parity test matrix across every legacy path (incl. SCA/3DS), migration dry-run with row-count/reconciliation parity, production-scale load test, webhook re-pointing verified end-to-end.
+
+## The one question that determines everything
+> **Has a rollback from the new service back to legacy actually been built and rehearsed — or is the plan one-way?**
+
+The answer reclassifies the launch as either *merely risky* or *structurally unrecoverable*.
+
+**Confidence: MEDIUM** — several conclusions hinge on whether rollback is feasible (currently unverified). Verifying rollback feasibility and running the migration dry-run would raise it to HIGH, and those are themselves the two most important pre-launch actions.

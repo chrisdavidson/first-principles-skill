@@ -1,0 +1,23 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its analysis. Here's the result:
+
+## The claim does not hold up — it contains a fatal category error plus an unverified source.
+
+The agent decomposed the claim into five constituents and reduced each to a physical law, definition, or measurement. Three branches failed the irreducibility stop test:
+
+### The two HIGH-confidence failures
+
+**1. 85% electricity round-trip is physically impossible at these temperatures.**
+Molten salt operates around 565°C; ambient in the Atacama ~25°C. The Carnot ceiling is 1 − 298/838 ≈ **64%**, and real heat→electricity conversion (steam Rankine) is ~40%. So an electricity→heat→electricity round trip is ≈ 0.99 × 0.40 ≈ **~40%**. 85% violates the Second Law.
+
+**2. The metric is undefined for the architecture.**
+"Round-trip electricity efficiency" requires a store *charged by electricity* and *discharged to electricity*. But a combined-cycle gas turbine is **fuel-fired** — it's a generator, not a charger. You cannot divide electricity-out by an electricity-in that doesn't exist. The claim splices a thermal-storage concept onto a fuel-fired generator and mislabels the result.
+
+### The MEDIUM-confidence failure
+
+**3. The empirical anchor is unverified.** The 85% rests on single-source, self-reported vendor data with no independent replication. (A molten-salt CSP plant in the Atacama is plausible — Cerro Dominador exists — but a CSP/CCGT hybrid claiming 85% electricity round-trip is not corroborated.)
+
+### Most likely charitable explanation
+The 85% is probably a **thermal** retention figure (salt holds ~98% of stored heat) or a **fuel-utilization** figure for the hybrid — *neither of which is "round-trip electricity efficiency."* Someone relabeled a real number with the wrong metric.
+
+**Bottom line:** physically inconsistent as worded, and empirically unverified. To rehabilitate it you'd need: (1) a precise numerator/denominator definition, (2) the storage charging mechanism, and (3) independent peer-reviewed measurement.

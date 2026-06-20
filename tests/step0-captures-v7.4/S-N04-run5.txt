@@ -1,0 +1,23 @@
+I'll invoke the agent with your prompt exactly as written.
+The first-principles agent completed its pre-mortem analysis. Here's what it found.
+
+## Pre-Mortem: Authentication Rollout
+
+The agent reframed your request as a pre-mortem — *assume the rollout already failed, then work backward to the causes* — and clustered the failure modes into five you should prepare for before locking the timeline.
+
+### The five failure modes (with the plan change each implies)
+
+1. **Bottleneck team blows the schedule (HIGH).** A cross-team rollout finishes at the pace of the *slowest, most-coupled* team — not the average. If the timeline is planned as uniform, the laggard breaks it. → Size each team's integration effort individually; pace the timeline by the slowest team plus buffer, and name the bottleneck out loud.
+
+2. **Capacity was assumed, not committed (HIGH).** The single most common silent cause of cross-team slippage: teams' bandwidth next quarter is currently a *belief*, not a fact. → Get explicit written capacity commitment from each team lead before locking. Cheapest high-impact fix.
+
+3. **Forgotten edge clients break silently (HIGH).** Service accounts, cron jobs, mobile apps, partner integrations, and API keys often use old auth and break without warning. → Build a complete inventory of every auth consumer and assign each a migration path before launch.
+
+4. **Critical-path production breakage with no rollback (MEDIUM-HIGH).** Auth is on every dependent service's critical path; load tested only at average, plus clock-skew/unreachable-endpoint failures, plus no tested rollback = emergency freeze. → Load-test at peak-plus-headroom; document and rehearse staged rollback; verify clock-skew tolerance.
+
+5. **Big-bang cutover with mass re-login shock (MEDIUM).** Simultaneous cutover removes any healthy cohort to fall back to; session invalidation forces a mass re-login that looks like an outage. → Stage the rollout (pilot → cohorts), keep a fallback cohort, stagger re-login, pre-stage support.
+
+### The agent's bottom line
+> The two changes most likely to prevent the slip are **#2 (written capacity commitments)** and **#1 (timeline paced by the bottleneck)** — do those before locking the timeline.
+
+**One caveat it flagged:** this analysis reasons about the *structure* of a cross-team auth rollout, not your specific plan, stack, or dates. Items 1–3 partly rest on the unverified assumption about team capacity. If you share the actual plan document, the agent offered to re-run the pre-mortem against its real dependencies and dates to raise confidence across the board — just let me know and I can pass it along.

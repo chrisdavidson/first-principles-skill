@@ -1,0 +1,17 @@
+The first-principles agent completed its decomposition. Here's the result:
+
+## Verdict: The claim does not hold up
+
+The agent broke the claim into four constituent sub-claims and tested each against physical law, definition, or measurement:
+
+**C1 — "round-trip electricity efficiency" (definition):** ✓ Verified. The metric requires *electrical* energy both in (charging) and out (discharging).
+
+**C2 — the architecture (the load-bearing flaw):** ✗ **Incoherent.** A combined-cycle gas turbine generates power by *combusting natural gas* — it is not a discharge path for previously-stored grid electricity. A molten-salt store + CCGT does not form a closed electricity round-trip loop, so there's no valid denominator for "round-trip electricity efficiency."
+
+**C3 — the 85% value:** ✗ **Violates physical law** as an electricity figure. Molten salt at ~565 °C gives a Carnot ceiling of ~64% theoretical (~40–50% realized) for heat→electricity conversion. 85% electrical round-trip is *above the Carnot limit* and therefore impossible. However, 85% is perfectly normal for a *thermal* (heat-in/heat-out) round trip of a well-insulated tank.
+
+**C4 — the Atacama pilot evidence:** ⚠ Vendor-sourced and unverified. The Atacama location is itself a tell — it's the world's premier *concentrated-solar* site, suggesting the store is charged by solar heat, not grid electricity.
+
+**Most likely underlying truth:** The vendor measured ~85% *thermal* round-trip efficiency (heat retention of an insulated salt tank, probably solar-charged) and mislabeled it as "round-trip electricity efficiency" — conflating three distinct quantities: thermal storage retention, heat-engine conversion efficiency, and electrical round-trip efficiency.
+
+**The single highest-value check:** Get the vendor's explicit definition of the numerator and denominator. If both are grid electricity, the claim violates the Carnot limit and is false; if either is thermal/solar, the claim is true but mislabeled.

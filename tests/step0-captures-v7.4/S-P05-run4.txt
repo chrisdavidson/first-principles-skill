@@ -1,0 +1,40 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# Database Trade-Off Analysis: Transactional E-Commerce Backend
+
+**Recommendation: PostgreSQL** (managed via RDS or Aurora Serverless v2) — wins decisively. *Confidence: HIGH*
+
+## Weighted Decision Matrix
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional fit for e-commerce (5) | 5 | 4 | 2 |
+| Write throughput @ 500/s peak (4) | 4 | 4 | 5 |
+| Cost within $3k/mo (2) | 4 | 3 | 4 |
+| Operational simplicity / ecosystem (3) | 4 | 4 | 4 |
+| Schema flexibility for evolving catalog (2) | 3 | 5 | 4 |
+| Data-model fit (relational orders/inventory) (4) | 5 | 3 | 2 |
+| **Weighted total** | **85** | **74** | **66** |
+
+## Why PostgreSQL Wins
+The word **"transactional"** is load-bearing. E-commerce orders require atomic multi-entity writes (inventory decrement + order row + payment record). PostgreSQL leads on the two heaviest-weighted criteria — transaction fit and relational data-model fit — which are exactly what the workload demands.
+
+## Cost Is a Near-Tie, Not a Differentiator
+A Fermi estimate on DynamoDB write cost showed:
+- **At realistic diurnal load** (~185M writes/mo): ~$231–463/mo
+- **At sustained 24/7 peak** (1.3B writes/mo): ~$3,250/mo → *breaks budget*
+
+All three fit $3k at realistic load, so cost reduces to a low-weight near-tie. The decision turns on the **transaction model**, not price.
+
+## Why DynamoDB Loses Despite Winning Throughput
+Verified ground truths penalize exactly the workload's needs:
+- Transactional writes consume **2x WCU**
+- Transactions cap at **100 items / 4 MB** per transaction
+- Forces single-table design + application-side invariant enforcement
+
+## Key Caveats (unverified inputs worth confirming)
+1. **Peak vs. sustained load:** If 500/s is sustained 24/7, switch DynamoDB to *provisioned capacity* for a fair cost comparison (doesn't change the ranking).
+2. **Budget scope:** If $3k must also cover app/network/backup, PostgreSQL with HA + replicas is most likely to approach the ceiling.
+3. **Choose MongoDB only if** the catalog/order data is genuinely document-shaped with high schema churn — but that contradicts the relational nature of the stated workload.
+
+The result is robust to sensitivity analysis: PostgreSQL's lead (85 vs 74) exceeds 10%, and the only re-weighting that flips it would contradict the established relational nature of the workload.

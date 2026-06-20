@@ -1,0 +1,27 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## The core finding
+
+"Faster ships → better retention" is **not a causal law — it's a conditional**. Shipping frequency only multiplies the *sign* of per-ship net value (perceived value delivered − cost imposed on the user). If that net value is zero or negative, faster shipping holds retention flat or actively hurts it.
+
+## The three ways the assumption breaks
+
+| Break type | Cause | Detectable symptom |
+|---|---|---|
+| **Ceiling** | Retention bottlenecked by price/fit/competitor, or you're shipping the wrong things | Retention flat *regardless* of cadence |
+| **Inversion** | Each release imposes switching cost, defects, or goes unnoticed | Churn/support **spikes after releases** |
+| **Misallocation** | Velocity diverts effort from existing-user pain to new-user features | Existing-base churn rises *while* output rises |
+
+## Tripwires to monitor (declare the assumption broken when...)
+
+1. Post-release churn/support tickets spike in the 1–2 weeks after ships
+2. Cohort retention is flat across periods of differing cadence
+3. Churn-interview reasons don't map to anything on your roadmap
+4. <~50% of releases are ever noticed/surfaced to users
+5. Existing-user-pain backlog grows while feature throughput rises
+
+## The single highest-leverage check
+
+**Confirm your churn-interview reasons actually map to your roadmap.** If they don't, your two-week cadence is optimizing a rate that never touches the metric you care about — and the assumption is *already* broken whether you've noticed or not.
+
+The agent flagged that every supporting precondition is an *untested belief against your data* — the claim has no law-grade backing. It offered to also run a forward-direction pre-mortem ("we kept shipping fast and retention still cratered — why?") if useful.

@@ -1,0 +1,18 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Bottom line: ~$14–21 per kWh of usable thermal capacity (central ≈ **$18/kWh**)
+
+This is for the **in-scope storage block** — salt inventory + foundations + heat-exchange/balance-of-plant — with the tank vessels excluded since they're pre-commissioned.
+
+### How it breaks down
+- **Salt inventory (~$6–8/kWh)** is the dominant in-scope line. The 200 MWh requires ~1,684 tonnes of solar-salt (60% NaNO₃ / 40% KNO₃), derived from cp ≈ 1.5 kJ/(kg·K) over a ~285 °C swing → ~0.119 kWh-th/kg, at $0.70–1.00/kg.
+- **Non-tank BOS (~$7–11/kWh)** — foundations, pumps, transfer piping, heat exchangers.
+- Gross figure (~$13–19/kWh) is divided by a ~0.90 usable fraction (freeze heel + thermal margin) to get usable capacity.
+
+### Useful context
+- A *complete* TES block **including** tanks typically runs **~$20–30/kWh-th** — this estimate is lower precisely because the costly tank vessels are out of scope.
+- **Levelized over the 30-yr / daily-cycle life: ~0.18 ¢/kWh-thermal delivered.** At ~9,855 effective cycles, the capital is essentially negligible per cycle — i.e., storage capital is *not* the economic constraint; power-block efficiency and HTF losses dominate delivered economics.
+
+### Caveats the agent flagged
+- **Confidence: MEDIUM.** Rests on one unverified input (the ~0.90 usable fraction) and a convention-based BOS cost split.
+- These are first-principles figures, **not a sourced 2026 vendor quote.** To harden into a procurement number, pin down (1) the delivered salt price ($/kg) and (2) the itemized non-tank BOS scope.

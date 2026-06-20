@@ -1,0 +1,23 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## Bottom line: Don't lock the timeline yet.
+
+The 13 individual failure modes collapse into **four structural weaknesses** — and three of them are cheapest to fix *now*, before dates are committed:
+
+**A. Timeline coupling** — A synchronized "all teams at once" cutover means the slowest or most-blocked team gates everyone, and a central support team becomes a bottleneck.
+- *Fix:* Per-team independent migrations within a window, named owner per team, pilot with 1–2 low-risk teams first.
+
+**B. Coverage gaps** — The plan likely *assumes* the new system covers every auth flow (interactive login, service-to-service, API keys, webhooks, mobile, cron, third-party). Forgotten integrations and un-upgradeable clients (mobile/cached) break silently after decommission.
+- *Fix:* Complete a per-team use-case/integration matrix *before* locking the date.
+
+**C. No safe cutover path** — Risk of a big-bang cutover with no dual-run, untested rollback, and insufficient prod-scale load testing.
+- *Fix:* Make dual-run coexistence and *tested* rollback hard gates. Load-test at production auth volume before the first real migration.
+
+**D. Security under deadline pressure** — Auth is high-blast-radius and failures can be silent (token leaks, scope misconfigs). A deadline incentivizes cutting review.
+- *Fix:* Make security sign-off uncompressible by the timeline.
+
+## The two questions to answer before locking anything
+1. **Can the old and new auth systems run in parallel?** (If not, the timeline is the wrong discussion.)
+2. **Have you tested a rollback?**
+
+The agent rated its confidence **MEDIUM** — the failure modes are robust and domain-general, but severity depends on facts specific to your environment (team capacity, dual-run support, real client inventory) that it flagged as unverified. Answering those two questions is what would tell you which cluster is your *actual* risk.

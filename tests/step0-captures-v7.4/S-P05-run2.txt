@@ -1,0 +1,27 @@
+The first-principles agent completed the trade-off analysis. Here's what it concluded:
+
+## Recommendation: PostgreSQL
+
+**Weighted scores:** PostgreSQL **93** · DynamoDB **80** · MongoDB **73**
+
+### The core insight
+The agent's key move was challenging the framing. **500 writes/second is not a high load** — it's comfortably single-node territory for any mid-tier managed RDBMS. So the decision is *not* "which can handle the scale" (all three can) but "which fits a workload whose defining trait is **multi-item transactional integrity** over relational data."
+
+### Cost is not the discriminator
+All three fit the $3k/month budget at this scale:
+- **DynamoDB:** ~$300–900/mo
+- **PostgreSQL (RDS/Aurora):** ~$700–1,400/mo
+- **MongoDB Atlas (M40):** ~$1,500–2,200/mo (tightest)
+
+### Why Postgres wins
+E-commerce checkout requires atomic multi-entity writes (order + line items + inventory decrement + payment) to prevent overselling and double-charging. That's PostgreSQL's **native, uncompromised** path. MongoDB's multi-document transactions are a non-default-optimized path; DynamoDB's `TransactWriteItems` works but at 2× write cost and demands rigid access-pattern-first modeling that fights e-commerce's varied relational queries.
+
+The margin (93 vs 80, ~16%) is outside the near-tie band, so the result is robust.
+
+### Two caveats that would flip it (tied to unverified assumptions)
+1. **If your data is genuinely document-shaped** (schemaless, few cross-entity transactions) → re-weight toward MongoDB.
+2. **If you expect unpredictable 100×+ growth AND your team is AWS-serverless-native with no DBA** → DynamoDB's seamless scale + zero-ops can overtake.
+
+Neither matches the stated case. The agent flagged that confirming (a) your team's SQL familiarity and (b) that your schema is relationship-rich would raise confidence from "high prior" to "verified" — both quick to check.
+
+**Bottom line:** Choose PostgreSQL now; its growth path (read replicas → partitioning → Citus sharding) is incremental, not a forced re-platform.

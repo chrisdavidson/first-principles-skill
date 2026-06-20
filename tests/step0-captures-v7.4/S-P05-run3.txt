@@ -1,0 +1,37 @@
+The first-principles agent completed the analysis. Here's the result:
+
+# First-Principles Trade-Off Analysis: Database Selection
+
+## Recommendation: **PostgreSQL** — weighted score **91** vs **68** (MongoDB) vs **66** (DynamoDB)
+
+## How it got there
+
+**Problem essence:** Not "which DB is best?" but "which managed DB clears *all four* bars for *this* workload" — 500 w/s peak, transactional correctness, $3k/mo budget, no disqualifying 12-month risk.
+
+**The decisive ground truths:**
+- **GT-1:** 500 writes/sec is *low* (~5% of a single commodity node's capacity). This neutralizes throughput as a differentiator — DynamoDB's and MongoDB's signature scale strength is largely irrelevant at this load.
+- **GT-2:** PostgreSQL gives native multi-row/multi-table ACID.
+- **GT-3:** DynamoDB transactions exist but are capped (100 items / 4MB, single-region).
+- **GT-4:** MongoDB multi-document transactions are a documented anti-pattern under load.
+
+## Weighted scorecard
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional correctness | 5 | 5 | 3 | 4 |
+| Relational data-model fit | 4 | 5 | 3 | 2 |
+| Cost-fit & predictability | 4 | 4 | 4 | 3 |
+| Throughput headroom | 2 | 4 | 5 | 5 |
+| Operational simplicity / labor | 3 | 4 | 3 | 4 |
+| Ecosystem / query flexibility | 2 | 5 | 3 | 2 |
+| **Weighted total** | | **91** | **68** | **66** |
+
+PostgreSQL wins by maximizing the two highest-weighted criteria (correctness + relational fit) — both intrinsic to e-commerce checkout — while the modest throughput doesn't reward the NoSQL options. The MongoDB/DynamoDB near-tie for second place is flagged as a real finding; both sit ~25 points (~34%) below PostgreSQL, so the result is robust to plausible weight changes.
+
+## Confidence: HIGH on ranking, MEDIUM on absolute cost-fit
+
+Two unverified inputs gate full confidence:
+- **Cost (GT-5?):** Run each provider's pricing calculator with your *actual* read:write ratio and item size. RDS/Aurora and Atlas are instance-predictable and very likely well under $3k/mo; DynamoDB's request-driven cost needs checking under read amplification. This confirms the budget bar but doesn't change the ranking.
+- **Team skills (GT-6?):** Only matters if the team has zero SQL and deep DynamoDB expertise — and even then the 25-point margin holds.
+
+**The agent's one follow-up question:** What is your expected read:write ratio and average order/item size? That resolves the cost uncertainty and would tighten the analysis to HIGH overall.

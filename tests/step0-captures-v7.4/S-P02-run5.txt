@@ -1,0 +1,21 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## The core finding
+
+Your assumption breaks down because **"faster shipping" and "more retained value" are independent axes** — cadence measures *how often you deploy change*, not *how much value you add*. Speed is a proxy, not a cause. The claim only holds when **all seven hidden preconditions hold at once**; fail any one and faster shipping becomes neutral or actively harmful.
+
+## When it breaks (concrete tripwires for your two-week cadence)
+
+1. **Value-per-release is falling** while frequency holds — track feature-adoption per release, not release count.
+2. **"Where did X go?" / disruption tickets rise** after releases — change cost is exceeding change value.
+3. **Bug or incident rate climbs with cadence** — the most common failure for two-week teams under deadline pressure.
+4. **Exit surveys cite price, integrations, or competitors — not "stale product"** — retention isn't product-limited, so shipping speed optimizes the wrong constraint entirely.
+5. **Telemetry shows users don't touch what you ship** — changes aren't perceived.
+6. **A stability-preferring segment (enterprise/infrequent users) churns faster than power users** — they experience constant change as erosion.
+7. **"Stop notifying me" / changelog opt-out rates rise** — notification fatigue.
+
+## The single highest-leverage action
+
+Verify **P4 first**: pull your churn-exit reason data. The load-bearing unknown is whether your retention is even product-change-limited. If churn is actually about price or missing integrations, the faster-ships assumption is **already false today** — no matter how clean your releases are — and the whole lever isn't worth pulling.
+
+For a two-week team specifically, the two preconditions most likely to break first are **P3 (quality buckling under cadence pressure)** and **P4 (retention not actually product-limited)**.

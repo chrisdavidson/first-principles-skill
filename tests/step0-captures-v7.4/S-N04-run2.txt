@@ -1,0 +1,34 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Authentication System Rollout
+
+The agent reframed your request as a **pre-mortem** (imagining the rollout has already failed and working backward to causes), composed with **inversion**. One caveat it flagged: it didn't have your actual plan document, so it reasoned from the structure of a typical multi-team auth rollout — share the plan and it can re-run against your specifics.
+
+### Ground truths it anchored on
+- Auth is on the critical path for **everything** — if it fails, access fails.
+- An all-teams simultaneous cutover makes failures **correlated, not isolated** — one shared-component defect hits everyone at once.
+- Migration effort scales with **integration points, not team count**.
+- Rollback cost rises the moment new tokens are issued and old ones invalidated.
+- Team capacity next quarter is finite and already partly committed.
+
+### Six failure modes
+- **A. Capacity collision** — timeline set top-down rather than from a per-team integration inventory; the most critical teams (most integrations) slip.
+- **B. Coverage gap mid-flight** — new system doesn't support some in-use auth pattern (service accounts, legacy OAuth, SAML quirks), blocking a team with no clean path forward or back.
+- **C. Correlated big-bang failure** — a shared-component defect takes everyone down at once, with rollback already expensive. *The catastrophic case.*
+- **D. Identity-data corruption** — permission mappings migrate subtly wrong; users authenticate but get wrong access. *A silent security incident disguised as success.*
+- **E. Rollback trap** — no per-team rollback window, forcing an all-or-nothing decision under pressure.
+- **F. External dependency not ready** — IdP/vendor isn't ready on your dates.
+
+**Highest-signal finding (second-order):** schedule pressure is the *common root* — capacity failure (A) feeds the catastrophic failures (C, D) by forcing corner-cut validation and load testing. These risks are not independent.
+
+### Priority actions before locking the timeline
+1. **Verify coverage now** — confirm the new system handles every in-use auth pattern (the single most load-bearing unknown).
+2. **Rebuild the timeline bottom-up** from an integration-point inventory, not team count.
+3. **Reject big-bang** — phase per-team cutover with a rollback window to decorrelate failure.
+4. **Dry-run the identity-data migration** and validate permission mappings.
+5. **Confirm external dependency readiness** against your dates.
+6. **Track schedule pressure itself** as the root risk.
+
+> The agent's strongest single recommendation: **don't lock the timeline until items 1 and 2 are answered with evidence** — that's the difference between a calendar built on facts and one built on hope.
+
+If you'd like, share the actual plan document and I can have the agent re-run the analysis against your specific cutover strategy, team list, and dependencies.

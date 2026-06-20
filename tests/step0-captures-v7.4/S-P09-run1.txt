@@ -1,0 +1,29 @@
+The first-principles agent completed its decomposition. Here's the result:
+
+## Decomposition: 85% Round-Trip Efficiency Claim
+
+The claim bundles **five independent sub-claims**, and decomposing them reveals the headline number is almost certainly **real but mislabeled**.
+
+### Verdict by sub-claim
+
+| Sub-claim | Status | Why |
+|---|---|---|
+| "Round-trip *electricity* efficiency" = elec-in/elec-out | **FALSIFIED if literal** | Second Law caps salt→steam→electricity near ~40% |
+| "85%" is achievable | Only as a **thermal** RTE, not electric | Charge/store/recover heat is genuinely ~85–95% |
+| Molten-salt storage works at scale | **Verified** | Operating CSP plants demonstrate it |
+| CCGT pairing yields a "round trip" | **Category error** | A gas turbine burns *fuel* — that energy was never "stored electricity" |
+| Atacama pilot data | **Unverified** | Single vendor source, no third-party audit |
+
+### The core physics
+- **Carnot bound** (838 K hot / 563 K cold) → ceiling ~33%; real Rankine cycle ~40% net.
+- So electricity → heat (~98%) → electricity (~40%) gives a true *electric* RTE of **~38–40%**, not 85%.
+- Even advanced sCO₂ cycles top out near 50% — the gap to 85% can't be closed by cycle choice.
+
+### What 85% most likely means
+1. A **thermal** round trip (heat-in / heat-out, no reconversion to electricity), or
+2. A **fuel-utilization / thermal-integration** metric created by the CCGT pairing — where burned natural gas, not stored electricity, supplies most of the output.
+
+### The tell
+The phrase **"combined-cycle gas turbine"** injects chemical fuel energy that no genuine electricity round-trip metric can include. 
+
+**Single most important verification step:** demand the **boundary diagram and the energy-in / energy-out definitions** from the Atacama test report — that resolves whether 85% is a thermal metric, a fuel-utilization metric, or an impossible electric-RTE claim.

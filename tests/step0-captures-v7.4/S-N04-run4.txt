@@ -1,0 +1,29 @@
+I'll invoke the agent with your prompt exactly as written.
+The first-principles agent ran a pre-mortem on your authentication rollout. Here's what it surfaced:
+
+## Four structural weaknesses (the roots, not symptoms)
+
+1. **Single simultaneous cutover** — A big-bang across all teams converts any localized failure into a company-wide outage. Auth fails *closed* (no login = no access), so the blast radius is everyone at once. This is the dominant weakness.
+2. **Date locked before scope is known** — When the date is fixed but per-team integration effort isn't scoped, every unknown gets absorbed by cutting testing or the security review under pressure.
+3. **No verified rollback** — If the old system is decommissioned or can't run in parallel, recoverable incidents become crises.
+4. **Heterogeneity treated as uniformity** — "All teams" hides N different integration problems; "done" ends up meaning 12 different things.
+
+## High-signal failure modes (the ones a planning meeting tends to suppress)
+
+- A team no-shows because their own roadmap outranks yours — and you have no authority to force it
+- Optimistic capacity math: "next quarter" estimated from the easy team, ignoring holidays/freezes/other launches
+- Security review traded away to hold the date — the worst place to cut it
+- **Service accounts, cron jobs, API clients break *silently*** — they don't complain like humans, so failures surface days later
+
+## Six recommended plan changes
+
+1. **Phase the rollout; kill the big-bang** (pilot → wave 1 → wave N). If you must keep simultaneous cutover, put that in writing as a named accepted risk.
+2. **Verify coexistence + rollback before locking the date** — don't decommission anything until every wave is green.
+3. **Lock scope-readiness gates, not just the date** — make the date conditional on per-team sign-off and a passed security review.
+4. **Inventory non-human auth now** (service accounts, SCIM/deprovisioning, API clients).
+5. **Test the login storm and recovery paths** (concurrent logins, password reset, MFA enrollment, account recovery, external users).
+6. **Map the calendar against real working time.**
+
+**If only one thing changes before you lock the timeline: phase the rollout (#1).**
+
+The agent rated its confidence **MEDIUM**, gated on two unverified assumptions: whether the cutover is actually big-bang, and whether rollback/coexistence exists. Confirming those would sharpen the analysis. It also offered to pressure-test your actual written plan if you share it, or turn the six actions into gated milestones with entry/exit criteria — let me know if you'd like either.
