@@ -120,7 +120,8 @@ verbatim from the run out-dir. A second authoritative run was NOT performed
 
 **Spend-limit note (honesty, D-01).** During the back half of the run the live
 `claude` session hit its monthly spend limit. The affected rows (all five S-P14 runs,
-S-P10 run 5, and the S-P11/S-P12/S-P13/S-N06/S-N07 fal/control rows) returned the
+all five S-P15 runs, S-P10 run 5, and the S-P11/S-P12/S-P13/S-N06/S-N07 fal/control
+rows) returned the
 verbatim message `"You've hit your monthly spend limit · raise it at
 claude.ai/settings/usage"` instead of an agent response; the harness classifies these
 as `none` (no output structure, no agent dispatch). These are recorded verbatim and
