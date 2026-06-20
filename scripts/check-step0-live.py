@@ -909,13 +909,22 @@ def main(argv: list[str] | None = None) -> int:
     args.out_dir.mkdir(parents=True, exist_ok=True)
 
     # (7) Load catalog and run K-of-N loop (S-P01-first order preserved)
-    catalog = _read_step0_catalog(args.catalog)
+    parsed_catalog = _read_step0_catalog(args.catalog)
+    # D-02 — filter the 6 S-A semantic-ambiguity rows out of the LIVE run. They
+    # are offline-emulator-only by Phase 107 design (deterministic intended-winner
+    # disambiguation gated by STEP0-08/SEMGATE); the live agent's focused-output is
+    # not what they assert, so a live run adds non-deterministic noise + cost with
+    # no new signal. The catalog file keeps them (offline fixtures); only the live
+    # invocation loop excludes them — the live run iterates exactly the 22 S-P/S-N
+    # rows (~110 invocations at --repeat 5).
+    catalog = [p for p in parsed_catalog if not p.id.startswith("S-A")]
     repeat = args.repeat
     min_pass = args.min_pass
     plugin_dir = args.plugin_dir
     out_dir = args.out_dir
 
-    print(f"Step 0 live harness — {len(catalog)} rows × {repeat} repeats")
+    print(f"Step 0 live harness — {len(catalog)} rows × {repeat} repeats "
+          f"(S-A* excluded from live run; {len(parsed_catalog)} parsed)")
     print(f"  min-pass: {min_pass}/{repeat}")
     print(f"  plugin-dir: {plugin_dir}")
     print(f"  out-dir: {out_dir}")
