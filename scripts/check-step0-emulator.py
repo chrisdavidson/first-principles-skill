@@ -708,8 +708,8 @@ def _run_self_test() -> None:
 
     _TLIMIT07_POS_PROMPT = (
         "For a molten-salt thermal-storage plant, what's the theoretical limit on "
-        "conversion efficiency the laws of thermodynamics actually permit, setting "
-        "aside current engineering practice?"
+        "thermodynamic conversion efficiency, setting aside current engineering "
+        "practice — what do the laws actually permit?"
     )
     _TLIMIT07_POS_EXPECTED = "focused-theoretical-limit"
 
