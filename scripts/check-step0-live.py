@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v6.4.md"
+        --baseline "$REPO/tests/step0-baseline-v7.4.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v6.4 baseline .md to this path
+    --baseline PATH     If supplied, write the v7.4 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v6.4"
+_BASELINE_VERSION: str = "v7.4"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -136,6 +136,13 @@ KNOWN_MODES: frozenset[str] = frozenset(
             "ground-truths",
             "reason-upward",
             "validate",
+            # v7.4 9-technique re-baseline (Phase 108, REBASE-01): the 3 newest
+            # Tier-1 techniques. Without these slugs, _read_step0_catalog exits
+            # non-zero on row S-P09 (focused-decompose) before any live run can
+            # start. Load-bearing harness-readiness fix.
+            "decompose",
+            "estimate",
+            "theoretical-limit",
         )
     }
 )
@@ -503,7 +510,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v6.4.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v7.4.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -668,30 +675,37 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 95 live re-baseline of Step 0 technique selection",
-        "against the Phase 94 directed-fix detector+agent-body (`scripts/_battery_core.py`,",
-        "capture-backed `_TECHNIQUE_CATEGORIES` markers — inversion strengthened 7→9,",
-        "trade-off strengthened 5→6 — `MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4`",
-        "unchanged). Phase 94 applied a directed fix to the S-P02 (inversion) and S-P05",
-        "(trade-off) pipeline: additive `_TECHNIQUE_CATEGORIES` markers plus Step 0 trigger",
-        "tightening in `shared/spine/SKILL-body.md` (D-03 deviation, approved). This run",
-        "measures the expected lift; honesty-not-score (D-01) governs the committed verdict.",
-        "The two carried residuals were resolved in-place at Phase 95 (v6.4 baseline):",
-        "RR-92-01 (S-P02) → CARRIED 1/5 → minted as RR-95-01 (Phase 95 v6.4 carry-forward);",
-        "RR-92-02 (S-P05) → CARRIED 2/5 → minted as RR-95-02 (Phase 95 v6.4 carry-forward).",
-        "RR-79-01 (S-P01) and RR-80-01 (S-N04) were already CLOSED; re-measured at v6.4,",
-        "CLOSED 4/5 each.",
+        "This baseline records the Phase 108 v7.4 **9-technique live re-baseline** of Step 0",
+        "technique selection. Unlike the v6.4 re-baseline (Phase 95, which followed the Phase",
+        "94 directed fix), this is a **measurement-only** re-baseline of the 9-technique",
+        "expansion: there is NO detector change and NO agent-body change this milestone. The",
+        "agent body is measured **as-shipped (v7.3)** and the detector `scripts/_battery_core.py`",
+        "is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged — inversion 9 markers, trade-off 6",
+        "markers — `MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run",
+        "extends the per-technique tally from 6 to the 9 canonical rows: the six original",
+        "techniques (S-P01 pre-mortem, S-P02 inversion, S-P03 fishbone, S-P04 five-whys, S-P05",
+        "trade-off, S-P06 second-order) plus the three never-before-live-measured Tier-1",
+        "techniques — **decompose (S-P09), estimate (S-P10), theoretical-limit (S-P14)** — each",
+        "enumerated for the first time. Honesty-not-score (D-01) governs the committed verdict;",
+        "the falsifiable ≥7/9-refute / ≤~4/9-confirm criterion is applied at a blocking human",
+        "checkpoint, not forced.",
         "",
-        "Successor note: RR-79-02 (S-P02 inversion) superseded by RR-92-01 (Phase 93),",
-        "which is in turn superseded by RR-95-01 (Phase 95 v6.4 carry-forward).",
-        "Full chain: RR-79-02 -> RR-92-01 -> RR-95-01 (S-P02 inversion CARRIED 1/5).",
-        "RR-79-03 (S-P05 trade-off) superseded by RR-92-02 (Phase 93),",
-        "which is in turn superseded by RR-95-02 (Phase 95 v6.4 carry-forward).",
-        "Full chain: RR-79-03 -> RR-92-02 -> RR-95-02 (S-P05 trade-off CARRIED 2/5).",
+        "Two carried residuals are resolved in this v7.4 baseline against their observed K/N:",
+        "RR-95-01 (S-P02 inversion, v6.4 live 1/5) and RR-95-02 (S-P05 trade-off, v6.4 live",
+        "2/5). Each is CLOSED at its observed K/N if it reaches min-pass (≥3/5), or CARRIED",
+        "FORWARD under a freshly-minted superseding Phase-108 RR ID otherwise (that mint is",
+        "conditional and post-run — it is NOT pre-baked in the offline firewall commit).",
         "",
-        "Prior baseline: tests/step0-baseline-v6.3.md (Phase 92) — BATTERY: FAIL,",
-        "P 4/6 (S-P01-06), S-N 4/4; residuals RR-92-01 (S-P02, superseded by RR-95-01)",
-        "+ RR-92-02 (S-P05, superseded by RR-95-02) carried forward.",
+        "Successor note: the inversion chain is RR-79-02 -> RR-92-01 -> RR-95-01 (S-P02);",
+        "the trade-off chain is RR-79-03 -> RR-92-02 -> RR-95-02 (S-P05). On carry-forward at",
+        "v7.4, each chain continues to its respective freshly-minted Phase-108 superseding ID",
+        "(S-P02 supersedes RR-95-01; S-P05 supersedes RR-95-02) — the actual mint happens",
+        "post-run. Newly-measured techniques (decompose/estimate/theoretical-limit) receive",
+        "first-time Phase-108 residual IDs on failure (no supersession — never measured).",
+        "",
+        "Prior baseline: tests/step0-baseline-v6.4.md (Phase 95) — BATTERY: FAIL,",
+        "P 4/6 (S-P01-06), S-N 4/4; residuals RR-95-01 (S-P02 inversion, CARRIED 1/5)",
+        "+ RR-95-02 (S-P05 trade-off, CARRIED 2/5) carried forward.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -746,7 +760,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v6.4 baseline .md to this path after the run",
+        help="If supplied, write the v7.4 baseline .md to this path after the run",
     )
     p.add_argument(
         "--quiet",
