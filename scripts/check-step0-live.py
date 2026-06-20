@@ -484,9 +484,30 @@ def self_test() -> int:
 # Baseline emitter
 # ---------------------------------------------------------------------------
 
-# Context-free parser-robustness fixtures (S-P07/08): catalog rows that are
-# expected-FAIL and excluded from the S-P battery bar (D-02).
-CONTEXT_FREE_IDS = ("S-P07", "S-P08")
+# Context-free / alternation-falsifier fixtures: catalog rows that guard the
+# offline pipe-split parser (an emulator concern), not live technique routing.
+# They are MEASURED and RECORDED but EXCLUDED from the 9-technique tally (D-01a).
+# v5.1 origin: S-P07/08 (context-free). v7.4 (Phase 108, D-01a): extended to the
+# full 6-falsifier set so a falsifier failure never breaks the technique bar and
+# never over-weights estimate (4 rows) / theoretical-limit (1 extra row).
+CONTEXT_FREE_IDS = ("S-P07", "S-P08", "S-P11", "S-P12", "S-P13", "S-P15")
+
+# The 9 canonical positive rows — one per technique (D-01) — over which the
+# v7.4 9-technique pass-rate (the ≥7/9-refute / ≤~4/9-confirm criterion) is
+# computed. The instrument emits this per-technique tally (D-01b, REBASE-02),
+# it is not hand-assembled. S-P09 (decompose), S-P10 (estimate), S-P14
+# (theoretical-limit) are the three never-before-live-measured techniques.
+CANONICAL_TALLY_IDS = (
+    "S-P01",  # pre-mortem
+    "S-P02",  # inversion
+    "S-P03",  # fishbone
+    "S-P04",  # five-whys
+    "S-P05",  # trade-off
+    "S-P06",  # second-order
+    "S-P09",  # decompose       (first-ever live measurement)
+    "S-P10",  # estimate        (first-ever live measurement)
+    "S-P14",  # theoretical-limit (first-ever live measurement)
+)
 
 
 def _battery_gate(
@@ -539,9 +560,24 @@ def _write_baseline(
 
     p_rows = [r for r in results if r.prompt.id.startswith("S-P")]
     n_rows = [r for r in results if r.prompt.id.startswith("S-N")]
-    # Shared v5.1 split gate — S-P07/08 (context-free) excluded from the bar.
+    # Shared v5.1 split gate — the 6 falsifier rows (CONTEXT_FREE_IDS) are
+    # excluded from the bar. With the D-01a extension, p_context == the 9
+    # canonical rows.
     p_context, p_context_pass, n_pass, battery_pass = _battery_gate(p_rows, n_rows)
     battery_verdict = "PASS" if battery_pass else "FAIL"
+
+    # D-01b — the 9-canonical-row per-technique tally surfaced at the human
+    # checkpoint for the ≥7/9-refute / ≤~4/9-confirm criterion (REBASE-02/03).
+    # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /9
+    # even if the falsifier-exclusion set ever drifts from the canonical set.
+    canonical_rows = [r for r in results if r.prompt.id in CANONICAL_TALLY_IDS]
+    canonical_pass = sum(1 for r in canonical_rows if r.row_pass)
+    canonical_n = len(CANONICAL_TALLY_IDS)
+    # Name the three never-before-live-measured techniques explicitly.
+    _new_tech_status = ", ".join(
+        f"{tid}={'PASS' if any(r.prompt.id == tid and r.row_pass for r in results) else 'FAIL'}"
+        for tid in ("S-P09", "S-P10", "S-P14")
+    )
 
     if not recorded_ts:
         recorded_ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -557,7 +593,11 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        f"**Summary:** P {p_context_pass}/{len(p_context)} (S-P01–06) | S-N {n_pass}/{len(n_rows)} | S-P07/08 expected-FAIL (context-free)",
+        f"**Summary:** P {canonical_pass}/{canonical_n} (9-technique canonical bar: "
+        f"S-P01–06 + S-P09 decompose, S-P10 estimate, S-P14 theoretical-limit; "
+        f"new-technique status: {_new_tech_status}) | "
+        f"S-N {n_pass}/{len(n_rows)} | "
+        f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar)",
         "",
         "---",
         "",
@@ -629,10 +669,29 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
+    # D-03b — pre-populate RR_ID_MAP for EVERY live S-P row (canonical +
+    # falsifier) plus S-N04 so the "a failing row must map to an RR ID"
+    # invariant below cannot trip for ANY row that fails during the live run.
+    # Rows already tracked keep their IDs (S-P01/02/03/04/05/06, S-N04). Rows
+    # with no tracked ID yet carry a clearly-provisional placeholder — NO real
+    # RR-108-NN is minted here (the CF-01/CF-02 firewall). The conditional mint
+    # of the actual superseding/first-time RR IDs happens post-checkpoint in
+    # plan 108-02 (Commit 2), only for rows that actually carry forward; these
+    # placeholders are resolved at finalize.
+    _PENDING = "PENDING-108-live"  # provisional sentinel, resolved at finalize (108-02)
     RR_ID_MAP = {
         "S-P01": "RR-79-01", "S-P02": "RR-95-01", "S-P03": "RR-75-03",
         "S-P04": "RR-75-04", "S-P05": "RR-95-02", "S-P06": "RR-75-06",
         "S-N04": "RR-80-01",
+        # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
+        # never appended to residual_risk_rows) — placeholders for invariant safety.
+        "S-P07": _PENDING, "S-P08": _PENDING, "S-P11": _PENDING,
+        "S-P12": _PENDING, "S-P13": _PENDING, "S-P15": _PENDING,
+        # Never-before-measured canonical techniques — CAN fail and reach the
+        # residual-risk branch, so each MUST have a non-None placeholder.
+        "S-P09": _PENDING,  # decompose
+        "S-P10": _PENDING,  # estimate
+        "S-P14": _PENDING,  # theoretical-limit
     }
     if residual_risk_rows:
         lines += [
