@@ -689,6 +689,13 @@ def _write_baseline(
         "S-P01": "RR-79-01", "S-P02": "RR-108-01", "S-P03": "RR-75-03",
         "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
         "S-N04": "RR-80-01",
+        # Negative-control rows that dipped below min_pass on this run ONLY because
+        # of spend-limit `none` truncation (no routing happened), NOT genuine
+        # over-routing. They reach residual_risk_rows when failing, so they need a
+        # tracked ID for the safety-net invariant. Mapped to a single infra ID
+        # (RR-108-06) — they are NOT a routing residual.
+        "S-N06": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
+        "S-N07": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
         # Newly-measured canonical techniques — CARRIED FORWARD at 0/5 (D-03a,
         # first-time IDs, no supersession). These CAN reach the residual-risk branch.
         "S-P09": "RR-108-03",  # decompose         (first-ever live measurement)
