@@ -68,7 +68,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
-| `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 580 lines |
+| `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 644 lines |
 | `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files. **Not wired into CI** — manual audit tool. |
 
 ### Measurement and routing gates
@@ -95,7 +95,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-Two gates fire on `git commit`: the **body-budget gate** (blocks if the agent body exceeds 580 lines) and the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged).
+Two gates fire on `git commit`: the **body-budget gate** (blocks if the agent body exceeds 644 lines) and the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged).
 
 Install one of the following mechanisms. **Do not enable both — they are mutually exclusive at the Git level.**
 
@@ -144,7 +144,7 @@ Keep these invariants intact when authoring or editing:
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes, one level deep — no `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 580 lines.
+- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
 
 ## CI gates
 

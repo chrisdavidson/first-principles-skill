@@ -109,7 +109,7 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 | STEP0-08 | `check-step0-emulator` (CI) | `scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
 | STEP0-06 | `check-step0-live` (CI) | `scripts/check-step0-live.py --self-test` | Step 0 live-harness scoring/parsing logic self-test |
 | TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution) |
-| — | body-budget gate (pre-commit) | `scripts/check-body-budget.py` | Agent body (`first-principles/agents/first-principles.md`) stays under 580 lines |
+| — | body-budget gate (pre-commit) | `scripts/check-body-budget.py` | Agent body (`first-principles/agents/first-principles.md`) stays under 644 lines |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
 
 Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).
@@ -138,4 +138,4 @@ Two deprecated thin shims (`scripts/check-sub-skill-routing.py`, `scripts/check-
 - Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 580 lines.
+- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
