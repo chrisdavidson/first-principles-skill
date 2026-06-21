@@ -719,28 +719,31 @@ def _rows_active_tail() -> list[MatrixRow]:
 
     These residuals are exempt from the deliverable-existence gate. GEN-01 has
     been flipped from 'scheduled' to 'reproducible' (Phase 93, D-08) — the Step 0
-    classifier capability is now reproducibly measured by the committed v6.4 live
-    re-baseline (tests/step0-baseline-v6.4.md, Phase 95). Earned by the committed
-    baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried — honest
-    v6.4 success state). GEN-02 has been converted to coverage_tier='reproducible'
+    classifier capability is now reproducibly measured by the committed v7.4 live
+    re-baseline (tests/step0-baseline-v7.4.md, Phase 108). Earned by the committed
+    baseline, not a passing score (BATTERY: FAIL, P 4/9 CONFIRMED — honest
+    v7.4 success state). GEN-02 has been converted to coverage_tier='reproducible'
     (runbook + wrapper script, Phase 89) and no longer belongs to the open-gap set.
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
-    prefix. RR-80-01, RR-79-01, RR-95-01, RR-95-02, and RR-77-08 are non-milestone
+    prefix. RR-80-01, RR-79-01, RR-108-01, RR-108-02, and RR-77-08 are non-milestone
     residuals that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint,
-    82-02). RR-95-01 supersedes RR-92-01 (Phase 95 v6.4 carry-forward, S-P02
-    inversion CARRIED 1/5); RR-95-02 supersedes RR-92-02 (Phase 95 v6.4
-    carry-forward, S-P05 trade-off CARRIED 2/5). Full chains: RR-79-02 -> RR-92-01
-    -> RR-95-01 (S-P02); RR-79-03 -> RR-92-02 -> RR-95-02 (S-P05).
+    82-02). RR-108-01 supersedes RR-95-01 (Phase 108 v7.4 carry-forward, S-P02
+    inversion CARRIED 1/5); RR-108-02 supersedes RR-95-02 (Phase 108 v7.4
+    carry-forward, S-P05 trade-off CARRIED 2/5). Full chains: RR-79-02 ->
+    RR-92-01 -> RR-95-01 -> RR-108-01 (S-P02); RR-79-03 -> RR-92-02 ->
+    RR-95-02 -> RR-108-02 (S-P05).
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_gen01 = (
         "Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). "
         "GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly "
-        "measured by the committed v6.4 live re-baseline (Phase 95). Earned by the "
-        "committed baseline, not a passing score (BATTERY: FAIL, 2/4 residuals carried "
-        "— RR-95-01 S-P02 inversion CARRIED 1/5, RR-95-02 S-P05 trade-off CARRIED 2/5 "
-        "— legitimate v6.4 success state). Confirming artifact: tests/step0-baseline-v6.4.md."
+        "measured by the committed v7.4 live re-baseline (Phase 108). Earned by the "
+        "committed baseline, not a passing score (BATTERY: FAIL, P 4/9 CONFIRMED "
+        "— RR-108-01 S-P02 inversion CARRIED 1/5, RR-108-02 S-P05 trade-off CARRIED 2/5, "
+        "RR-108-03 decompose 0/5, RR-108-04 estimate 0/5, RR-108-05 theoretical-limit 0/5 "
+        "spend-limit-indeterminate — legitimate v7.4 success state). "
+        "Confirming artifact: tests/step0-baseline-v7.4.md."
     )
     tail_rationale_gen02 = (
         "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + "
@@ -750,20 +753,20 @@ def _rows_active_tail() -> list[MatrixRow]:
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
-                  "active-tail", "reproducible", "tests/step0-baseline-v6.4.md",
+                  "active-tail", "reproducible", "tests/step0-baseline-v7.4.md",
                   tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
                   tail_rationale_gen02),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
-        # RR-95-01 supersedes RR-92-01 (Phase 95 v6.4 carry-forward, S-P02 inversion CARRIED 1/5)
-        # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01
-        MatrixRow(f"{p}/RR-95-01", "RR-95-01", p, "Test-Network",
+        # RR-108-01 supersedes RR-95-01 (Phase 108 v7.4 carry-forward, S-P02 inversion CARRIED 1/5)
+        # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01
+        MatrixRow(f"{p}/RR-108-01", "RR-108-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
-        # RR-95-02 supersedes RR-92-02 (Phase 95 v6.4 carry-forward, S-P05 trade-off CARRIED 2/5)
-        # Full chain: RR-79-03 -> RR-92-02 -> RR-95-02
-        MatrixRow(f"{p}/RR-95-02", "RR-95-02", p, "Test-Network",
+        # RR-108-02 supersedes RR-95-02 (Phase 108 v7.4 carry-forward, S-P05 trade-off CARRIED 2/5)
+        # Full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02
+        MatrixRow(f"{p}/RR-108-02", "RR-108-02", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-77-08", "RR-77-08", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
@@ -777,8 +780,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail (7 rows) — included unconditionally; all reproducible (D-05b):
-        GEN-01 reproducible (Phase 93 flip, v6.4 baseline earned Phase 95), GEN-02 + 5
-        residuals reproducible. RR-95-01/02 supersede RR-92-01/02 (Phase 95 v6.4).
+        GEN-01 reproducible (Phase 93 flip, v7.4 baseline earned Phase 108), GEN-02 + 5
+        residuals reproducible. RR-108-01/02 supersede RR-95-01/02 (Phase 108 v7.4).
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -954,12 +957,12 @@ _ACTIVE_TAIL_SEVERITY: dict[str, str] = {
     # GEN-01 removed — now "reproducible" (committed live re-baseline; flip Phase 93 on v6.3 Phase 92, now tracks v6.4 Phase 95)
     # GEN-02 removed — now "reproducible" (runbook + wrapper script, Phase 89)
     "RR-79-01": "HIGH",       # live S-P routing unresolved
-    # RR-95-01 supersedes RR-92-01 (Phase 95 v6.4 carry-forward, S-P02 inversion CARRIED 1/5)
-    # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01
-    "RR-95-01": "HIGH",       # live S-P routing unresolved
-    # RR-95-02 supersedes RR-92-02 (Phase 95 v6.4 carry-forward, S-P05 trade-off CARRIED 2/5)
-    # Full chain: RR-79-03 -> RR-92-02 -> RR-95-02
-    "RR-95-02": "HIGH",       # live S-P routing unresolved
+    # RR-108-01 supersedes RR-95-01 (Phase 108 v7.4 carry-forward, S-P02 inversion CARRIED 1/5)
+    # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01
+    "RR-108-01": "HIGH",      # live S-P routing unresolved
+    # RR-108-02 supersedes RR-95-02 (Phase 108 v7.4 carry-forward, S-P05 trade-off CARRIED 2/5)
+    # Full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02
+    "RR-108-02": "HIGH",      # live S-P routing unresolved
     "RR-77-08": "MEDIUM",     # ceiling warning, non-blocking
 }
 
@@ -1329,12 +1332,12 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # (Phase 93 flip, D-08) because the Step 0 classifier capability is reproducibly
     # measured by a committed live re-baseline. The flip was earned in Phase 93 on
     # tests/step0-baseline-v6.3.md (Phase 92); the artifact_link now tracks the current
-    # authoritative re-baseline tests/step0-baseline-v6.4.md (Phase 95). The flip is
+    # authoritative re-baseline tests/step0-baseline-v7.4.md (Phase 108). The flip is
     # earned by the committed baseline, not a passing score
-    # (BATTERY: FAIL, 2/4 residuals carried — legitimate honest success state).
+    # (BATTERY: FAIL, P 4/9 CONFIRMED — legitimate honest success state).
     # Asserts:
     #   (a) GEN-01's tier is "reproducible" (not "scheduled", not "gap")
-    #   (b) GEN-01's artifact_link is the committed v6.4 baseline (deep-resolved)
+    #   (b) GEN-01's artifact_link is the committed v7.4 baseline (deep-resolved)
     #   (c) Exactly-one GEN-01 row drift guard
     #   (d) Not-scheduled counter-check (transition non-vacuous)
     # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
@@ -1342,7 +1345,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # No gitignored-file dependency (.planning/ROADMAP.md removed — ABSENT in CI).
     # Honesty-not-score (D-01): asserts the documented reproducible state, not a
     # live pass-rate. Any future revert of the tier, deletion of the GEN-01 row,
-    # or removal of the v6.4 baseline file fails CI.
+    # or removal of the v7.4 baseline file fails CI.
     # ---------------------------------------------------------------------------
 
     # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 4:
@@ -1381,29 +1384,29 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         wrong_results.append("GEN-01-REPRODUCIBLE: tier not 'reproducible'")
 
     # (b) Artifact deep-resolve (D-09): GEN-01's artifact_link must be the committed
-    # v6.4 baseline. Deep-resolve via _resolve_artifact (git-tracked, present in CI).
-    _gen01_expected_artifact = "tests/step0-baseline-v6.4.md"
+    # v7.4 baseline. Deep-resolve via _resolve_artifact (git-tracked, present in CI).
+    _gen01_expected_artifact = "tests/step0-baseline-v7.4.md"
     if _gen01_artifact != _gen01_expected_artifact:
         print(
             f"  GEN-01-REPRODUCIBLE FAIL: artifact_link={_gen01_artifact!r} "
             f"(expected {_gen01_expected_artifact!r})."
         )
-        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v6.4 baseline")
+        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v7.4 baseline")
     else:
         _gen01_resolve_issues = _resolve_artifact(_gen01_artifact)
         # Belt-and-suspenders: explicit path existence check
-        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v6.4.md"
+        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v7.4.md"
         if _gen01_resolve_issues or not _gen01_baseline_path.exists():
             print(
                 f"  GEN-01-REPRODUCIBLE FAIL: artifact deep-resolve failed for "
                 f"{_gen01_artifact!r}: {_gen01_resolve_issues}; "
                 f"file exists={_gen01_baseline_path.exists()}"
             )
-            wrong_results.append("GEN-01-REPRODUCIBLE: v6.4 baseline not resolvable")
+            wrong_results.append("GEN-01-REPRODUCIBLE: v7.4 baseline not resolvable")
         else:
             print(
                 f"  GEN-01-REPRODUCIBLE PASS: artifact_link={_gen01_artifact!r} "
-                f"deep-resolves OK (tests/step0-baseline-v6.4.md exists, git-tracked)."
+                f"deep-resolves OK (tests/step0-baseline-v7.4.md exists, git-tracked)."
             )
 
     # ---------------------------------------------------------------------------
@@ -1602,8 +1605,9 @@ def _run_self_test() -> None:
 
     Named sentinels:
       GEN-01-REPRODUCIBLE: live tier assertion (reproducible) + not-scheduled counter-check
-                           + drift guard + deep-resolve of tests/step0-baseline-v6.4.md
-                           (D-09/Phase 93; repurposed from GEN-01-SCHEDULED Phase 88)
+                           + drift guard + deep-resolve of tests/step0-baseline-v7.4.md
+                           (D-09/Phase 93; repurposed from GEN-01-SCHEDULED Phase 88;
+                           artifact bumped v6.4->v7.4 Phase 108)
       GEN-02-RUNBOOK: live tier assertion + counter-check + drift guard + dual-file existence
                       check (runbook + wrapper) (D-03/Phase 89)
     """
