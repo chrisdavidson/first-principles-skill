@@ -19,7 +19,7 @@ The accumulated artifacts together form the standardized output document, whose 
 
 ### Step 0: Technique selection
 
-Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full nine-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
+Before executing the 5-phase procedure, classify the user's input contract to decide whether to run a focused single-technique analysis or the full eight-technique walkthrough. This avoids paying the full-composer cost on prompts that ask for one specific technique.
 
 **Pre-set MODE honour.** When invoked via a slash-stub with `MODE` pre-set in the calling context, skip detection and honour the pre-set value.
 
@@ -31,8 +31,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 | theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" |
 | inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" |
 | fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space" |
-| decompose | "decompose (this )?(claim|into primitives)", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of" |
-| five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause" |
+| five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of", "decompose (this )?(claim|into primitives)" |
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
 | estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" |
@@ -41,8 +40,8 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other eight companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full nine-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
-- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all nine companion techniques.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all eight companion techniques.
 
 ---
 
@@ -93,7 +92,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Classified Assumptions Table from Phase 2 is finalized. Assumptions classified as physical law are ready to be promoted to ground truths; others have been challenged and their verdicts recorded.
 
-**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. To apply the irreducibility test rigorously, use {{TOOL:decompose}} — it recursively reduces a candidate claim to its constituent facts until each branch bottoms out at a physical law, a definition, or a direct measurement, producing verified primitives that become ground truths. (Decompose = definitional/physical reduction; contrast with 5-Whys = causal depth, fishbone = causal breadth.) Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
+**Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. To apply the irreducibility test rigorously, use {{TOOL:five-whys}} (reduce-to-primitives mode) — it recursively reduces a candidate claim to its constituent facts until each branch bottoms out at a physical law, a definition, or a direct measurement, producing verified primitives that become ground truths. (Decision rule: five-whys reduce-to-primitives mode = definitional/physical reduction; five-whys causal mode = causal depth; fishbone = causal breadth.) Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs and source citations. Unverified entries are marked with the `?` suffix.
 
@@ -107,7 +106,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Ground Truths list is complete — all ground truths carry IDs and verification notes — and the Classified Assumptions Table from Phase 2 is finalized.
 
-**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. When a conclusion turns on a quantity whose magnitude is uncertain, apply {{TOOL:estimate}} to rebuild that magnitude from constituent first-principles unit-factors and bracket it with explicit lower/upper bounds, producing a quantitative Derivation Chain step. (Decision rule: estimate = quantitative magnitude rebuild from units; trade-off = qualitative weighted scoring; decompose = definitional/physical reduction.) When a conclusion needs the ceiling the fundamentals permit once conventions are stripped, apply {{TOOL:theoretical-limit}} to name the governing law, derive the law-permitted limit, and bracket the gap to the conventional figure, rendering the result as a Derivation Chain step. (Decision rule: theoretical-limit = what the laws permit once conventions are stripped; inversion = adversarial attack on what would guarantee failure; estimate = quantitative magnitude rebuild from units.) Before handing off to Phase 5, apply {{TOOL:second-order}} to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
+**Operation:** Reason upward from the ground truths toward an answer using whatever approach the problem calls for. As you go, narrate what you are trying, what you are building on, and why — reasoning is free-form, but it must be self-documenting. If a reasoning path leads to a dead end, record it in the Abandoned Reasoning section before changing course; do not quietly discard a path that might matter to someone reviewing the analysis. Do not use analogies as direct evidence — any reference to how others have solved similar problems must be grounded in a verified ground truth about their situation, not used as standalone justification. When a conclusion turns on a quantity whose magnitude is uncertain, apply {{TOOL:estimate}} to rebuild that magnitude from constituent first-principles unit-factors and bracket it with explicit lower/upper bounds, producing a quantitative Derivation Chain step. (Decision rule: estimate = quantitative magnitude rebuild from units; trade-off = qualitative weighted scoring; five-whys (reduce-to-primitives mode) = definitional/physical reduction.) When a conclusion needs the ceiling the fundamentals permit once conventions are stripped, apply {{TOOL:theoretical-limit}} to name the governing law, derive the law-permitted limit, and bracket the gap to the conventional figure, rendering the result as a Derivation Chain step. (Decision rule: theoretical-limit = what the laws permit once conventions are stripped; inversion = adversarial attack on what would guarantee failure; estimate = quantitative magnitude rebuild from units.) Before handing off to Phase 5, apply {{TOOL:second-order}} to extend the relevant Derivation Chain with 2nd/3rd-order effects. If any extension step contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging.
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07. Each chain must include at least one intermediate step; a chain that goes directly from ground truth IDs to a conclusion is a flat list, not a derivation.
 
@@ -177,10 +176,19 @@ Do not present conclusions until the rubric gate is cleared.
 
 ### Companion tools
 
-**{{TOOL:five-whys}}** — Root-cause drill-down procedure. Use when an
-analysis is stuck on *why* something is true and the surface explanation feels insufficient.
-The tool branches causal chains iteratively until a root cause passes a testability check,
-then hands back to Phase 3 (Establish Ground Truths) with a verified causal fact.
+**{{TOOL:five-whys}}** — Root-cause & reduce-to-primitives dual-mode procedure. In
+**causal mode**, use when an analysis is stuck on *why* something is true and the surface
+explanation feels insufficient — branches causal chains iteratively until a root cause passes
+a testability check, then hands back to Phase 3 (Establish Ground Truths) with a verified
+causal fact. In **reduce-to-primitives mode**, use during Phase 3 to recursively reduce a
+compound claim to its constituent facts until each branch bottoms out at a physical law, a
+definition, or a direct measurement — producing verified primitives for the Ground Truths
+list. Decision rule (intra-technique): five-whys reduce-to-primitives mode = definitional/
+physical reduction (what is this claim made of?); five-whys causal mode = causal depth
+(why does this symptom recur?); fishbone = causal breadth (what categories of cause could
+explain this? — external technique). Pairs with fishbone at Phase 2/3 boundaries: the
+reduce-to-primitives mode hands off verified primitives; the causal mode hands off causal
+root causes.
 
 **{{TOOL:fishbone}}** — Breadth-first
 cause-category brainstorm. Use during Phase 2 (Challenge Assumptions) when
@@ -213,17 +221,6 @@ handing off to Phase 5. Contradicting effects route the conclusion back
 to Phase 2 for re-challenging. Pairs with Inversion: Inversion looks back
 at preconditions; Second-Order looks forward at consequences.
 
-**{{TOOL:decompose}}** — Irreducibility drill
-and definitional/physical reduction procedure. Use during Phase 3 (Establish
-Ground Truths) to recursively reduce a compound claim to its constituent
-facts until each branch bottoms out at a physical law, a definition, or a
-direct measurement — producing verified primitives for the Ground Truths
-list. Decision rule: Decompose = definitional/physical reduction (what is
-this claim made of?); 5-Whys = causal depth (why does this symptom recur?);
-Fishbone = causal breadth (what categories of cause could explain this?).
-Pairs with 5-Whys and Fishbone at Phase 3 boundaries: Decompose hands off
-verified primitives; 5-Whys hands off causal root causes.
-
 **{{TOOL:estimate}}** — Quantitative magnitude-rebuild
 procedure (Fermi / dimensional analysis); routes to focused-estimate mode
 via `/estimate`. Use during Phase 4 (Reason Upward) when a conclusion turns
@@ -232,8 +229,8 @@ constituent unit-factors whose product reconstructs the target's units,
 computes a central value, and brackets it with explicit lower/upper bounds —
 producing a quantitative Derivation Chain step.
 Decision rule: estimate = quantitative magnitude rebuild from units;
-trade-off = qualitative weighted scoring; decompose = definitional/physical
-reduction. Pairs with Decompose at the Phase 3→Phase 4 boundary (Decompose
+trade-off = qualitative weighted scoring; five-whys (reduce-to-primitives) = definitional/physical
+reduction. Pairs with five-whys (reduce-to-primitives) at the Phase 3→Phase 4 boundary (the five-whys reduce-to-primitives pass
 verifies the per-unit primitives; Estimate rebuilds the magnitude from them)
 and with Second-Order at Phase 4 (Estimate sizes the chain; Second-Order
 extends it forward).
@@ -272,6 +269,6 @@ names the ceiling; estimate sizes the quantities under it).
 - [Ishikawa (Fishbone)](references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
 - [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
 - [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
-- [Decompose (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
+- [5-Whys: Reduce-to-Primitives (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
 - [Estimate (Fermi)](references/examples/estimate-fermi.md) — Fermi magnitude rebuild from unit-factors bracketed with bounds, feeding Phase 4
 - [Theoretical Limit (Carnot)](references/examples/theoretical-limit-carnot.md) — constraint-relaxation to the law-permitted ceiling, bracketing the gap to convention, feeding Phase 4
