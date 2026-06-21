@@ -23,9 +23,8 @@ by **clean** evidence:
 
 - **decompose (S-P09): 0/5 FAIL — clean.** Zero spend-limit truncations on any run; all
   5 runs routed to full-composer. This is the strongest confirming signal.
-- **estimate (S-P10): 0/5 FAIL — clean on runs 1–4.** Runs 1–4 routed to full-composer;
-  run 5 returned the spend-limit message and is indeterminate. Four clean under-routes are
-  sufficient confirming evidence on their own.
+- **estimate (S-P10): 0/5 FAIL — clean.** The baseline `scores.tsv` records `full-composer`
+  for all 5 runs — a clean under-route on every run. Confirming evidence on its own.
 - **theoretical-limit (S-P14): 0/5 — spend-limit-INDETERMINATE.** All five runs returned
   the verbatim spend-limit message (`"You've hit your monthly spend limit"`), so the
   classifier received `none` with no agent dispatch. S-P14's 0/5 is therefore **an artifact
@@ -68,8 +67,8 @@ verbatim and NOT masked:
 
 - **S-P09 (decompose) 0/5 — CLEAN.** Not spend-limited on any run. All 5 observed
   modes: `full-composer`. The strongest confirming signal.
-- **S-P10 (estimate) 0/5 — CLEAN on runs 1–4.** Runs 1–4 observed modes: `full-composer`.
-  Run 5 returned the spend-limit message (`none`). Four non-truncated clean under-routes.
+- **S-P10 (estimate) 0/5 — CLEAN.** All 5 observed modes in the baseline `scores.tsv`:
+  `full-composer` — a clean under-route on every run.
 - **S-P14 (theoretical-limit) 0/5 — SPEND-LIMIT-INDETERMINATE.** All 5 observed modes:
   `none` (spend-limit message, no agent dispatch). This row could not be cleanly measured
   before the session spend limit was reached. Its 0/5 is an artifact, not a confirmed
@@ -92,8 +91,8 @@ zero result breadth**:
   5/5) are **exactly the original-6 subset** that already passed in the prior v6.4 baseline.
 - The **original-6 subset itself is 4/6** — identical to the 4/6 prior. Expanding from 6
   to 9 techniques did not change the set of techniques whose Step 0 trigger fires.
-- All **three newly-measured techniques** scored 0/5: decompose (clean), estimate (clean
-  runs 1–4), theoretical-limit (indeterminate). Zero new techniques joined the passing set.
+- All **three newly-measured techniques** scored 0/5: decompose (clean), estimate (clean),
+  theoretical-limit (indeterminate). Zero new techniques joined the passing set.
 
 This result directly confirms the finding from the **v7.3 first-principles self-analysis**
 (the activating prediction that v7.4 was run to verify): "capability breadth ≠ result
@@ -146,11 +145,11 @@ available.
 ### Newly-evidenced candidate: `estimate` — partner needs scoping
 
 **Newly evidenced, no pre-named partner.** `estimate` (S-P10) scored **0/5 FAIL on clean
-evidence** — runs 1–4 all routed to full-composer (run 5 spend-limited but the conclusion
-holds on the four clean runs). This is a genuine clean fail on first-ever live measurement.
+evidence** — all 5 runs routed to full-composer per the baseline `scores.tsv`. This is a
+genuine clean fail on first-ever live measurement.
 However, `estimate` had **no pre-named merge partner** in the prior overlap analysis.
 
-**Flag:** `estimate` (S-P10, **0/5 FAIL, clean runs 1–4**) is a newly-confirmed merge
+**Flag:** `estimate` (S-P10, **0/5 FAIL, clean**) is a newly-confirmed merge
 candidate. Its merge partner needs scoping in the follow-up milestone before pair selection
 can proceed. Do not pre-select a partner here without live evidence of the overlap.
 
