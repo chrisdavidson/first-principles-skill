@@ -142,8 +142,8 @@ merge:
     Category-4 hardcoded decompose assertion retired; S-P16/S-N08 re-homed per Phase 111
     reconcile).
   - Count references in `sync-content.py`'s target-count assertions.
-  - VAL-05 skill-listing budget: from 1991/2000 (9-technique, 9-char slack) to 1950/2000
-    (8-technique, 50-char slack) after the `decompose` skill listing was removed.
+  - VAL-05 skill-listing budget: from 1991/2000 (9-technique, 9-char slack) to 1958/2000
+    (8-technique, 42-char slack) after the `decompose` skill listing was removed.
   - Agent body lines: from 622/644 before Phase 110 to 598/644 after regeneration (the
     removal of `{{TOOL:decompose}}` content freed 24 lines without requiring the body ceiling
     to be raised).
@@ -168,7 +168,7 @@ All offline gates were green after the merge landed (Phase 111 completion):
 | VAL-02 | `markdownlint-cli2` | Green |
 | VAL-03 | `check-links.py` | Green |
 | VAL-04 | `check-trigger-collisions.py` | Green |
-| VAL-05 | `check-description-budget.py` | Green (1950/2000, 50-char slack) |
+| VAL-05 | `check-description-budget.py` | Green (1958/2000, 42-char slack) |
 | GATE-01 | `check-agent.py` | Green |
 | BATT-06 | `check-routing-battery.py --self-test` | Green |
 | TRACE-03 | `check-traceability.py --self-test` | Green |
