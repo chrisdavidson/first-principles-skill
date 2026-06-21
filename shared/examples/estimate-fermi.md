@@ -2,7 +2,7 @@
 
 A focused demonstration of the **estimate** (Fermi / dimensional-analysis) technique applied to
 a science and engineering cost question in the molten-salt thermal energy storage domain —
-the same domain used in the decompose example, showing the cross-technique handoff
+the same domain used in the five-whys (reduce-to-primitives) example, showing the cross-technique handoff
 from Phase 3 (verified primitives) to Phase 4 (quantitative derivation chain).
 The drill makes the unit-factor rebuild visible and the explicit lower/upper bracket legible:
 the bracket, not the single central value, is the deliverable.
@@ -11,7 +11,7 @@ the bracket, not the single central value, is the deliverable.
 (TES) system, in **$/kWh of storage capacity**, rebuilt from constituent first-principles
 unit-factors — then amortised over cycle life to a levelised cost per kWh delivered.
 
-**Why this estimate matters.** The decompose example (Phase 3) established ground truths
+**Why this estimate matters.** The five-whys (reduce-to-primitives) example (Phase 3) established ground truths
 GT-5 and GT-6: molten-salt TES capital cost ≈ $20–50/kWh installed vs. lithium-ion
 ≈ $150–300/kWh installed. The estimate drill rebuilds that installed figure from the
 underlying unit-factors, showing *why* those numbers hold and making the uncertainty source
@@ -123,7 +123,7 @@ over the plant life, from NREL CSP O&M data):
     central installed capital ≈ $25–35/kWh of capacity (take ~$30/kWh)
 
 This is consistent with NREL's published TES installed-cost range of $20–50/kWh and confirms
-the GT-5 anchor from the decompose example. The unit-factor rebuild explains the range.
+the GT-5 anchor from the five-whys (reduce-to-primitives) example. The unit-factor rebuild explains the range.
 
 ---
 
@@ -183,7 +183,7 @@ cost-competitive under all combinations of factor uncertainty. The estimate is d
 
 The unit-factor rebuild and bracketed result enter **Phase 4 (Reason Upward)** as a
 quantitative **Derivation Chain**, citing the Phase 3 ground truths (GT-1 through GT-8
-established in the decompose example) that anchor each factor:
+established in the five-whys (reduce-to-primitives) example) that anchor each factor:
 
 **Chain: Molten-Salt TES Cost-Competitiveness**
 
@@ -204,11 +204,11 @@ GT-6  (Lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct 
    lithium-ion installed lower bound ($150/kWh), and the levelised gap is larger still.]
 ```
 
-**Cross-technique continuity.** The decompose drill (Phase 3) produced GT-4, which
+**Cross-technique continuity.** The five-whys reduce-to-primitives drill (Phase 3) produced GT-4, which
 anchored the Solar Salt specific heat and operating window. The estimate drill (Phase 4)
 consumed GT-4 to derive `material_mass`, converting a verified primitive into a
 quantitative unit-factor. The Phase 3 → Phase 4 handoff is complete: verified
-primitives (decompose output) become the anchored per-unit values the estimate rebuilds
+primitives (five-whys reduce-to-primitives output) become the anchored per-unit values the estimate rebuilds
 the magnitude from. The derivation chain cites GT-N ids so the connection is traceable.
 
 **Uncertainty carried forward.** The installed bracket width [$15–$42/kWh] reflects the

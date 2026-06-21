@@ -22,7 +22,7 @@ would be unverifiable.
 different importance — that is trade-off analysis, which scores options on weighted
 criteria rather than rebuilding a magnitude. It is also not the right tool when the
 task is to verify whether a compound claim's constituents reduce to irreducible
-primitives — that is decompose, which traces a claim's structure down to physical
+primitives — that is the five-whys reduce-to-primitives mode, which traces a claim's structure down to physical
 laws and definitions rather than rebuilding a quantity's order of magnitude.
 
 **Decision rule — choosing among the three quantitative-ish techniques:**
@@ -33,7 +33,7 @@ laws and definitions rather than rebuilding a quantity's order of magnitude.
 - **Trade-off** = qualitative weighted scoring: *WHICH option wins on weighted
   criteria?* Assigns importance weights to criteria before scoring, preventing the
   reverse-engineering of weights to justify an intuitive pick.
-- **Decompose** = definitional/physical reduction: *WHAT is this claim made of?*
+- **Five-whys (reduce-to-primitives)** = definitional/physical reduction: *WHAT is this claim made of?*
   Traces constituent sub-claims to irreducible primitives (physical laws, definitions,
   direct measurements). Stops when every branch bottoms out at an anchor.
 
@@ -156,7 +156,7 @@ values), not the central estimate.
 
 **Using estimate for structural verification.** If the question is "What is this
 claim made of — does every constituent reduce to a verified primitive?" you want
-decompose, not estimate. Estimate answers HOW BIG; decompose answers WHAT IS IT.
+the five-whys reduce-to-primitives mode, not estimate. Estimate answers HOW BIG; five-whys reduce-to-primitives answers WHAT IS IT.
 
 ---
 
@@ -175,7 +175,7 @@ single claim in the chain, carrying its uncertainty forward. A conclusion that
 depends on this claim is sound if the bracket's entire width drives the same
 conclusion; it is contingent if the lower and upper ends drive different conclusions.
 
-**Cross-technique handoff from decompose → estimate:** Decompose (Phase 3) hands
+**Cross-technique handoff from five-whys (reduce-to-primitives) → estimate:** The five-whys reduce-to-primitives pass (Phase 3) hands
 off verified primitives — physical laws and definitions confirmed as ground truths.
 Estimate (Phase 4) consumes those anchored primitives as the per-unit values it
 rebuilds the magnitude from. The GT-N ids assigned in Phase 3 become the citation

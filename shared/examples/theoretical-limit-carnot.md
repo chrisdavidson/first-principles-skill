@@ -2,7 +2,7 @@
 
 A focused demonstration of the **theoretical-limit** (constraint relaxation / physical-bound
 derivation) technique applied to the same molten-salt thermal energy storage domain used in
-the decompose and estimate examples — showing the cross-technique handoff from Phase 3
+the five-whys (reduce-to-primitives) and estimate examples — showing the cross-technique handoff from Phase 3
 (verified primitives) and Phase 4 (quantitative derivation chain) to the physical-bound step.
 The drill makes the constraint-relaxation story visible: strip the conventional figure,
 name the governing law explicitly, derive the law-permitted ceiling from first-principles
@@ -10,13 +10,13 @@ values, and bracket the gap between that ceiling and current practice.
 
 **Target:** the thermal-to-electric conversion efficiency of the Rankine-cycle heat engine
 operating across the molten-salt reservoir temperature pair — the same 290–565 °C window
-established in the decompose example as GT-4. The conventional (engineering-practice) figure
+established in the five-whys (reduce-to-primitives) example as GT-4. The conventional (engineering-practice) figure
 for this temperature pair is the efficiency a real Rankine cycle achieves at these reservoir
 conditions. The question: how far below the law-permitted ceiling is current practice?
 
 **Why this matters.** The estimate example (Phase 4) rebuilt the cost magnitude from
 unit-factors. This theoretical-limit drill asks a different question of the same domain:
-given the reservoir temperatures that decompose established as ground truths, what does
+given the reservoir temperatures that the five-whys reduce-to-primitives pass established as ground truths, what does
 the Second Law permit for the heat engine operating between them? The ceiling-vs-convention
 bracket reveals whether the efficiency headroom is real or illusory.
 
@@ -59,7 +59,7 @@ T_cold (both in kelvin) is:
 
     η_Carnot = 1 − T_cold / T_hot
 
-**First-principles values** (from GT-4, established in the decompose example):
+**First-principles values** (from GT-4, established in the five-whys (reduce-to-primitives) example):
 
 The Solar Salt operating window is 290–565 °C. Converting to kelvin (the conversion
 definition: T [K] = T [°C] + 273.15):
@@ -129,7 +129,7 @@ anchor the governing law and the reservoir temperatures:
 **Chain: Molten-Salt TES Heat-Engine Efficiency Bound**
 
     GT-4  (Solar Salt stable 290–565 °C; T_cold ≈ 563 K, T_hot ≈ 838 K — direct measurement,
-           decompose example Phase 3 ground truth)
+           five-whys (reduce-to-primitives) example Phase 3 ground truth)
       +
       Second Law of Thermodynamics: Carnot bound η = 1 − T_cold/T_hot
       →
@@ -146,12 +146,12 @@ anchor the governing law and the reservoir temperatures:
        Confidence: HIGH — the Carnot ceiling is irreducible; the conventional figure
        is anchored in published turbine operating data for this temperature range.]
 
-**Cross-technique continuity.** The decompose drill (Phase 3) established GT-4 — the
+**Cross-technique continuity.** The five-whys reduce-to-primitives drill (Phase 3) established GT-4 — the
 Solar Salt temperature window. The estimate drill (Phase 4) consumed GT-4 to rebuild the
 cost magnitude from unit-factors. This theoretical-limit drill (Phase 4) consumes GT-4
 to derive the physical ceiling the Second Law imposes on the heat engine operating across
 those same reservoir temperatures. The three techniques form a traceable chain:
-decompose → estimate → theoretical-limit, all anchored to GT-4.
+five-whys reduce-to-primitives → estimate → theoretical-limit, all anchored to GT-4.
 
 **Phase 1 reframe.** The theoretical-limit result invites a Phase 1 (Identify Essence)
 reframe: the core question is no longer "is 20–25% acceptable?" but "is the ~8–13 point
