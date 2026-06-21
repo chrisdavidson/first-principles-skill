@@ -1,6 +1,6 @@
 ---
 name: five-whys
-description: Runs a focused 5-Whys only — root-cause drill on a symptom. Invoke via /five-whys only.
+description: Runs a focused 5-Whys only — root-cause drill on a symptom or a reduce-to-primitives irreducibility drill on a claim. Invoke via /five-whys only.
 disable-model-invocation: true
 metadata:
   version: "3.8.0"

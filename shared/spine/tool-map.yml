@@ -1,5 +1,5 @@
 five-whys:
-  agent: the inlined 5-Whys procedure
+  agent: the inlined 5-Whys & Decompose (root-cause & reduce-to-primitives) procedure
 fishbone:
   agent: the inlined fishbone procedure
 inversion:
