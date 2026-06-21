@@ -741,8 +741,12 @@ def _rows_active_tail() -> list[MatrixRow]:
         "measured by the committed v7.4 live re-baseline (Phase 108). Earned by the "
         "committed baseline, not a passing score (BATTERY: FAIL, P 4/9 CONFIRMED "
         "— RR-108-01 S-P02 inversion CARRIED 1/5, RR-108-02 S-P05 trade-off CARRIED 2/5, "
-        "RR-108-03 decompose 0/5, RR-108-04 estimate 0/5, RR-108-05 theoretical-limit 0/5 "
-        "spend-limit-indeterminate — legitimate v7.4 success state). "
+        "RR-108-03 decompose 0/5 RESOLVED-BY-MERGE (v7.5 decompose→five-whys merge, Phases "
+        "110-112; decompose absorbed into five-whys as co-equal dual mode, standalone surface "
+        "retired; see docs/decompose-five-whys-merge.md), "
+        "RR-108-04 estimate 0/5 CARRIED, RR-108-05 theoretical-limit 0/5 "
+        "spend-limit-indeterminate CARRIED — legitimate v7.4 success state; deferred merge "
+        "pairs: theoretical-limit↔inversion (SECOND), estimate↔? (FLAG, partner unscoped)). "
         "Confirming artifact: tests/step0-baseline-v7.4.md."
     )
     tail_rationale_gen02 = (
