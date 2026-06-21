@@ -46,10 +46,14 @@ def test_harness_file_exists():
     )
 
 
-def test_read_step0_catalog_returns_12_rows(harness):
-    """_read_step0_catalog must return 12 Step0Prompt objects."""
+def test_read_step0_catalog_returns_28_rows(harness):
+    """_read_step0_catalog must return 28 Step0Prompt objects.
+
+    Phase 111 reconcile: S-P09/S-N05 removed (decompose), S-P16/S-N08 added
+    (five-whys absorbed-phrase coverage). Post-reconcile catalog has 28 rows.
+    """
     rows = harness._read_step0_catalog(CATALOG)
-    assert len(rows) == 12, f"Expected 12 rows, got {len(rows)}"
+    assert len(rows) == 28, f"Expected 28 rows, got {len(rows)}"
 
 
 def test_read_step0_catalog_sp01_first(harness):

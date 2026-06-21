@@ -1293,6 +1293,14 @@ def self_test_boundary() -> int:
     #   S-P10 estimate          composer = [0, 0, 0, 0, 0]  (runs 1-4 full-composer, run5 spend-limit none)
     #   S-P14 theoretical-limit composer = [0, 0, 0, 0, 0]  (all 5 runs spend-limit none)
     # ---------------------------------------------------------------------------
+    # NOTE (Phase 111): RR-108-03 (S-P09 decompose) is resolved-by-merge — the
+    # decompose technique was merged into five-whys in Phase 110 and the S-P09
+    # catalog row was removed + re-homed onto S-P16/S-N08 in Phase 111; this
+    # honest-state sentinel is LEFT as a historical v7.4 record (formal
+    # RR-108-03 traceability resolution is Phase 112). The vector [1, 0, 1, 1, 1]
+    # is frozen-capture data read from tests/step0-captures-v7.4/ via
+    # _load_excerpt_v74 — it does NOT look up the live catalog, so removing the
+    # S-P09 catalog row does NOT affect BATT-06.
     _NEW_TECH_SENTINELS = (
         ("RR-108-03", "S-P09", "decompose", [1, 0, 1, 1, 1]),
         ("RR-108-04", "S-P10", "estimate", [0, 0, 0, 0, 0]),

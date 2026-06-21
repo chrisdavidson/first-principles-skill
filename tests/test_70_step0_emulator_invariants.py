@@ -38,7 +38,10 @@ def test_emulator_script_exists() -> None:
 
 
 def test_emulator_contains_known_techniques_constant() -> None:
-    """check-step0-emulator.py must contain the KNOWN_TECHNIQUES six-name tuple.
+    """check-step0-emulator.py must contain the KNOWN_TECHNIQUES eight-name tuple.
+
+    Phase 110 merged decompose into five-whys (9→8 techniques).
+    Phase 111 removed "decompose" from the tuple.
 
     This is a cheap structural anti-drift pin: if the constant is accidentally
     removed or renamed, this test surfaces the breakage immediately.
@@ -46,11 +49,11 @@ def test_emulator_contains_known_techniques_constant() -> None:
     text = EMULATOR.read_text(encoding="utf-8")
     expected = (
         'KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", '
-        '"five-whys", "trade-off", "second-order")'
+        '"five-whys", "trade-off", "second-order", "estimate", "theoretical-limit")'
     )
     assert expected in text, (
         f"check-step0-emulator.py does not contain the expected KNOWN_TECHNIQUES "
-        f"six-name tuple. Expected to find:\n  {expected!r}"
+        f"eight-name tuple. Expected to find:\n  {expected!r}"
     )
 
 
