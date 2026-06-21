@@ -196,11 +196,11 @@ the Essence Statement may need to be revised to name the real constraint — not
 "can we exceed 42%?" but "what engineering convention is blocking capture of the
 21-point headroom the laws allow?"
 
-**Cross-technique continuity (decompose → estimate → theoretical-limit):**
-In the molten-salt running example, decompose (Phase 3) produced the verified
+**Cross-technique continuity (five-whys reduce-to-primitives → estimate → theoretical-limit):**
+In the molten-salt running example, the five-whys reduce-to-primitives pass (Phase 3) produced the verified
 primitives for the operating window and material properties; estimate (Phase 4)
 rebuilt the cost magnitude from unit-factors. Theoretical-limit takes the same
-domain and asks: given the reservoir temperatures that decompose established as
+domain and asks: given the reservoir temperatures that the five-whys reduce-to-primitives pass established as
 ground truths, what does the Second Law permit? The three techniques form a
 traceable chain across the same set of GT-N identifiers.
 

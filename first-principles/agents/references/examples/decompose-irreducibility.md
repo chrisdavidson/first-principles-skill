@@ -1,8 +1,8 @@
 <!-- GENERATED — DO NOT EDIT. Source: shared/examples/decompose-irreducibility.md. Regenerate via: scripts/sync-content.py --write. -->
 
-# Worked Example: Decompose — Irreducibility Drill (Thermal Energy Storage)
+# Worked Example: 5-Whys (Reduce-to-Primitives) — Irreducibility Drill (Thermal Energy Storage)
 
-A focused demonstration of the **decompose** (reduce-to-primitives) technique applied to
+A focused demonstration of the **five-whys (reduce-to-primitives)** mode of the merged technique applied to
 a science and engineering cost-feasibility claim, showing how the recursive drill terminates
 at a physical law and how the verified primitives feed **Phase 3 (Establish Ground Truths)**.
 The drill makes the stop test visible: each branch either reaches an irreducible anchor
@@ -206,7 +206,7 @@ supported but not fully verified without site-specific LCOS inputs.
 
 ## Phase 3 Handoff — Ground Truths
 
-The verified primitives produced by the decompose drill become the anchor points
+The verified primitives produced by the five-whys reduce-to-primitives drill become the anchor points
 for **Phase 3 (Establish Ground Truths)**:
 
 - **GT-1** Joule heating law: electrical energy converts to thermal energy at
