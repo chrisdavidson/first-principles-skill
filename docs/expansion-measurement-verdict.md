@@ -215,6 +215,20 @@ Phase 109, or in the v7.4 milestone:
 
 ### Forward pointer: the technique-merge-execution milestone
 
+**CLOSED by v7.5 merge.** The technique-merge-execution milestone named here has been
+executed as the **v7.5 milestone** (Phases 110-112): the PRIMARY recommendation
+(`decompose`→`five-whys`) was merged using the absorb-and-retire pattern. VERDICT-01 is
+now closed. See the durable merge-execution record:
+[decompose-five-whys-merge.md](decompose-five-whys-merge.md).
+
+The second and FLAG candidates remain open for future milestones: `theoretical-limit`↔
+`inversion` (gated on a clean S-P14 live re-measurement) and `estimate`↔? (merge partner
+unscoped). These were explicitly out of scope for v7.5.
+
+---
+
+*Original forward-pointer text (preserved for historical context):*
+
 **Merge execution is deferred to a named follow-up milestone**: the
 **technique-merge-execution milestone**, gated on this verdict (VERDICT-01).
 
