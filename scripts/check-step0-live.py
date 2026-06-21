@@ -473,8 +473,68 @@ def self_test() -> int:
         except OSError:
             pass
 
+    # --- _apply_priority reorder sub-test (READY-03 / D-03) ---
+    # Build four in-memory rows — IDs deliberately chosen from the 8-technique
+    # canonical set so no scrubbed literal appears here.
+    _prows = [
+        Step0Prompt(id="S-P01", text="t1", expected="focused-pre-mortem"),
+        Step0Prompt(id="S-P04", text="t4", expected="focused-five-whys"),
+        Step0Prompt(id="S-P10", text="t10", expected="focused-estimate"),
+        Step0Prompt(id="S-P16", text="t16", expected="focused-five-whys"),
+    ]
+    _prows_ids_before = [r.id for r in _prows]  # snapshot for immutability check
+    # With [] (flag present, no value) → uses DEFAULT_PRIORITY_IDS = (S-P04, S-P16) first
+    _reordered = _apply_priority(_prows, [])
+    _expected_order = ["S-P04", "S-P16", "S-P01", "S-P10"]
+    _actual_order = [r.id for r in _reordered]
+    if _actual_order != _expected_order:
+        print(
+            f"self-test FAIL: priority-subset reorder — expected {_expected_order}, got {_actual_order}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    # With None → passthrough (unchanged order)
+    _passthrough = _apply_priority(_prows, None)
+    _passthrough_order = [r.id for r in _passthrough]
+    if _passthrough_order != _prows_ids_before:
+        print(
+            f"self-test FAIL: priority-subset None passthrough — expected {_prows_ids_before}, got {_passthrough_order}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    # Input list must not be mutated by either call
+    _prows_ids_after = [r.id for r in _prows]
+    if _prows_ids_after != _prows_ids_before:
+        print(
+            f"self-test FAIL: priority-subset mutated input — before {_prows_ids_before}, after {_prows_ids_after}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
+    # --- /8 tally drift guard (READY-03 / D-03) ---
+    # Assert the 8-technique canonical tally count exactly, without naming any scrubbed ID.
+    # A len mismatch means a technique was added or removed and this guard must be updated.
+    if len(CANONICAL_TALLY_IDS) != 8:
+        print(
+            f"self-test FAIL: /8-tally drift — expected len(CANONICAL_TALLY_IDS)==8, got {len(CANONICAL_TALLY_IDS)}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
+    # --- KNOWN_MODES size drift guard (READY-03 / D-03) ---
+    # The 8-technique set produces exactly 14 KNOWN_MODES entries:
+    #   1 × full-composer + 13 × focused-<technique> (including estimate + theoretical-limit,
+    #   excluding the ninth technique removed in v7.5). If the count rises to 15 a scrubbed
+    #   slug was re-introduced; if it falls below 14 an active technique was lost.
+    if len(KNOWN_MODES) != 14:
+        print(
+            f"self-test FAIL: KNOWN_MODES size drift — expected 14, got {len(KNOWN_MODES)}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
-        print("self-test PASS (4 fixtures + K>N rejection + catalog parse)")
+        print("self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset + /8-tally)")
         return 0
     return 1
 
