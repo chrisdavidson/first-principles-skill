@@ -136,11 +136,10 @@ KNOWN_MODES: frozenset[str] = frozenset(
             "ground-truths",
             "reason-upward",
             "validate",
-            # v7.4 9-technique re-baseline (Phase 108, REBASE-01): the 3 newest
-            # Tier-1 techniques. Without these slugs, _read_step0_catalog exits
-            # non-zero on row S-P09 (focused-decompose) before any live run can
-            # start. Load-bearing harness-readiness fix.
-            "decompose",
+            # v7.6 8-technique re-baseline (Phase 108→v7.6): estimate and
+            # theoretical-limit remain active Tier-1 techniques. The ninth
+            # technique was merged into five-whys in v7.5 and its slug removed.
+            # S-P16 routes to focused-five-whys (slug already present above).
             "estimate",
             "theoretical-limit",
         )
@@ -486,17 +485,16 @@ def self_test() -> int:
 
 # Context-free / alternation-falsifier fixtures: catalog rows that guard the
 # offline pipe-split parser (an emulator concern), not live technique routing.
-# They are MEASURED and RECORDED but EXCLUDED from the 9-technique tally (D-01a).
+# They are MEASURED and RECORDED but EXCLUDED from the 8-technique tally (D-01a).
 # v5.1 origin: S-P07/08 (context-free). v7.4 (Phase 108, D-01a): extended to the
 # full 6-falsifier set so a falsifier failure never breaks the technique bar and
 # never over-weights estimate (4 rows) / theoretical-limit (1 extra row).
 CONTEXT_FREE_IDS = ("S-P07", "S-P08", "S-P11", "S-P12", "S-P13", "S-P15")
 
-# The 9 canonical positive rows — one per technique (D-01) — over which the
-# v7.4 9-technique pass-rate (the ≥7/9-refute / ≤~4/9-confirm criterion) is
-# computed. The instrument emits this per-technique tally (D-01b, REBASE-02),
-# it is not hand-assembled. S-P09 (decompose), S-P10 (estimate), S-P14
-# (theoretical-limit) are the three never-before-live-measured techniques.
+# The 8 canonical positive rows — one per technique (D-01) — over which the
+# v7.6 8-technique pass-rate is computed. The instrument emits this per-technique
+# tally (D-01b, REBASE-02), it is not hand-assembled. All 8 techniques have a
+# v7.4 prior K/N; there is no "newly-measured" subset in this re-baseline.
 CANONICAL_TALLY_IDS = (
     "S-P01",  # pre-mortem
     "S-P02",  # inversion
@@ -504,9 +502,8 @@ CANONICAL_TALLY_IDS = (
     "S-P04",  # five-whys
     "S-P05",  # trade-off
     "S-P06",  # second-order
-    "S-P09",  # decompose       (first-ever live measurement)
-    "S-P10",  # estimate        (first-ever live measurement)
-    "S-P14",  # theoretical-limit (first-ever live measurement)
+    "S-P10",  # estimate
+    "S-P14",  # theoretical-limit
 )
 
 
@@ -531,7 +528,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v7.4.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v7.6.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -561,23 +558,22 @@ def _write_baseline(
     p_rows = [r for r in results if r.prompt.id.startswith("S-P")]
     n_rows = [r for r in results if r.prompt.id.startswith("S-N")]
     # Shared v5.1 split gate — the 6 falsifier rows (CONTEXT_FREE_IDS) are
-    # excluded from the bar. With the D-01a extension, p_context == the 9
+    # excluded from the bar. With the D-01a extension, p_context == the 8
     # canonical rows.
     p_context, p_context_pass, n_pass, battery_pass = _battery_gate(p_rows, n_rows)
     battery_verdict = "PASS" if battery_pass else "FAIL"
 
-    # D-01b — the 9-canonical-row per-technique tally surfaced at the human
-    # checkpoint for the ≥7/9-refute / ≤~4/9-confirm criterion (REBASE-02/03).
-    # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /9
+    # D-01b — the 8-canonical-row per-technique tally surfaced at the human
+    # checkpoint for the falsifiable criterion (REBASE-02/03).
+    # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /8
     # even if the falsifier-exclusion set ever drifts from the canonical set.
+    # All 8 techniques have a v7.4 prior K/N; no "newly-measured" subset exists
+    # in this v7.6 re-baseline.
     canonical_rows = [r for r in results if r.prompt.id in CANONICAL_TALLY_IDS]
     canonical_pass = sum(1 for r in canonical_rows if r.row_pass)
     canonical_n = len(CANONICAL_TALLY_IDS)
-    # Name the three never-before-live-measured techniques explicitly.
-    _new_tech_status = ", ".join(
-        f"{tid}={'PASS' if any(r.prompt.id == tid and r.row_pass for r in results) else 'FAIL'}"
-        for tid in ("S-P09", "S-P10", "S-P14")
-    )
+    # S-P16 merge-validation: tracked outside the /8 canonical bar (D-01a).
+    _s_p16_result = next((r for r in results if r.prompt.id == "S-P16"), None)
 
     if not recorded_ts:
         recorded_ts = _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -593,11 +589,14 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        f"**Summary:** P {canonical_pass}/{canonical_n} (9-technique canonical bar: "
-        f"S-P01–06 + S-P09 decompose, S-P10 estimate, S-P14 theoretical-limit; "
-        f"new-technique status: {_new_tech_status}) | "
+        f"**Summary:** P {canonical_pass}/{canonical_n} (8-technique canonical bar: "
+        f"S-P01–06 + S-P10 estimate, S-P14 theoretical-limit) | "
         f"S-N {n_pass}/{len(n_rows)} | "
-        f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar)",
+        f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar) | "
+        f"S-P16 merge-validation (outside /8): "
+        f"{(_s_p16_result.match_count if _s_p16_result else 'N/A')}/"
+        f"{(args.repeat if _s_p16_result else 'N/A')} "
+        f"({'PASS' if _s_p16_result and _s_p16_result.row_pass else ('FAIL' if _s_p16_result else 'not measured this run')})",
         "",
         "---",
         "",
@@ -677,9 +676,10 @@ def _write_baseline(
     #     (supersedes RR-95-01; chain RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01).
     #   - S-P05 trade-off live 2/5 < min-pass → CARRY FORWARD as RR-108-02
     #     (supersedes RR-95-02; chain RR-79-03 → RR-92-02 → RR-95-02 → RR-108-02).
-    #   - S-P09 decompose live 0/5 → first-time RR-108-03 (no supersession).
-    #   - S-P10 estimate  live 0/5 → first-time RR-108-04 (no supersession).
-    #   - S-P14 theoretical-limit live 0/5 → first-time RR-108-05 (no supersession).
+    #   - The ninth technique (v7.4): removed in v7.5 (absorbed into five-whys,
+    #     RR-108-03 resolved-by-merge). Not present in the v7.6 8-technique run.
+    #   - S-P10 estimate  live 0/5 → RR-108-04 (v7.4 carry-forward).
+    #   - S-P14 theoretical-limit live 0/5 → RR-108-05 (v7.4 carry-forward).
     # No RR-95-NN was CLOSED (both S-P02 and S-P05 stayed below the ≥3/5 bar).
     # No provisional placeholder survives. The falsifier rows still need a tracked
     # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
@@ -696,11 +696,10 @@ def _write_baseline(
         # (RR-108-06) — they are NOT a routing residual.
         "S-N06": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
         "S-N07": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
-        # Newly-measured canonical techniques — CARRIED FORWARD at 0/5 (D-03a,
-        # first-time IDs, no supersession). These CAN reach the residual-risk branch.
-        "S-P09": "RR-108-03",  # decompose         (first-ever live measurement)
-        "S-P10": "RR-108-04",  # estimate          (first-ever live measurement)
-        "S-P14": "RR-108-05",  # theoretical-limit (first-ever live measurement)
+        # Canonical techniques with v7.4 carry-forward residuals. These CAN
+        # reach the residual-risk branch if below min-pass in this v7.6 run.
+        "S-P10": "RR-108-04",  # estimate          (v7.4 carry-forward)
+        "S-P14": "RR-108-05",  # theoretical-limit (v7.4 carry-forward)
         # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
         # never appended to residual_risk_rows) — share the minted ID of the
         # technique they falsify so no provisional placeholder survives.
@@ -752,37 +751,32 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 108 v7.4 **9-technique live re-baseline** of Step 0",
-        "technique selection. Unlike the v6.4 re-baseline (Phase 95, which followed the Phase",
-        "94 directed fix), this is a **measurement-only** re-baseline of the 9-technique",
-        "expansion: there is NO detector change and NO agent-body change this milestone. The",
-        "agent body is measured **as-shipped (v7.3)** and the detector `scripts/_battery_core.py`",
-        "is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged — inversion 9 markers, trade-off 6",
-        "markers — `MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run",
-        "extends the per-technique tally from 6 to the 9 canonical rows: the six original",
-        "techniques (S-P01 pre-mortem, S-P02 inversion, S-P03 fishbone, S-P04 five-whys, S-P05",
-        "trade-off, S-P06 second-order) plus the three never-before-live-measured Tier-1",
-        "techniques — **decompose (S-P09), estimate (S-P10), theoretical-limit (S-P14)** — each",
-        "enumerated for the first time. Honesty-not-score (D-01) governs the committed verdict;",
-        "the falsifiable ≥7/9-refute / ≤~4/9-confirm criterion is applied at a blocking human",
-        "checkpoint, not forced.",
+        "This baseline records the Phase 113-114 v7.6 **8-technique live re-baseline** of Step 0",
+        "technique selection. This is a **measurement-only** re-baseline following the v7.5",
+        "five-whys consolidation merge: there is NO detector change and NO agent-body change this",
+        "milestone. The agent body is measured **as-shipped (v7.5)** and the detector",
+        "`scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
+        "inversion 9 markers, trade-off 6 markers — `MIN_HEADER_HITS=2`,",
+        "`_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run uses the 8 canonical rows:",
+        "S-P01 pre-mortem, S-P02 inversion, S-P03 fishbone, S-P04 five-whys, S-P05",
+        "trade-off, S-P06 second-order, S-P10 estimate, S-P14 theoretical-limit. All 8",
+        "techniques have a v7.4 prior K/N. S-P16 (the absorbed reduce-to-primitives prompt",
+        "routing to focused-five-whys) is measured as a dedicated merge-validation signal",
+        "outside the /8 canonical bar (D-01a). Honesty-not-score (D-01) governs the committed",
+        "verdict; the falsifiable criterion is applied at a blocking human checkpoint, not forced.",
         "",
-        "Two carried residuals are resolved in this v7.4 baseline against their observed K/N:",
-        "RR-95-01 (S-P02 inversion, v6.4 live 1/5) and RR-95-02 (S-P05 trade-off, v6.4 live",
-        "2/5). Each is CLOSED at its observed K/N if it reaches min-pass (≥3/5), or CARRIED",
-        "FORWARD under a freshly-minted superseding Phase-108 RR ID otherwise (that mint is",
-        "conditional and post-run — it is NOT pre-baked in the offline firewall commit).",
+        "Four carried residuals from v7.4 may be resolved-or-carried in this run: RR-108-01",
+        "(S-P02 inversion, v7.4 live 1/5), RR-108-02 (S-P05 trade-off, v7.4 live 2/5),",
+        "RR-108-04 (S-P10 estimate, v7.4 live 0/5), RR-108-05 (S-P14 theoretical-limit,",
+        "v7.4 spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
+        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-114",
+        "RR ID otherwise (that mint is conditional and post-run — it is NOT pre-baked in",
+        "the offline firewall commit).",
         "",
-        "Successor note: the inversion chain is RR-79-02 -> RR-92-01 -> RR-95-01 (S-P02);",
-        "the trade-off chain is RR-79-03 -> RR-92-02 -> RR-95-02 (S-P05). On carry-forward at",
-        "v7.4, each chain continues to its respective freshly-minted Phase-108 superseding ID",
-        "(S-P02 supersedes RR-95-01; S-P05 supersedes RR-95-02) — the actual mint happens",
-        "post-run. Newly-measured techniques (decompose/estimate/theoretical-limit) receive",
-        "first-time Phase-108 residual IDs on failure (no supersession — never measured).",
-        "",
-        "Prior baseline: tests/step0-baseline-v6.4.md (Phase 95) — BATTERY: FAIL,",
-        "P 4/6 (S-P01-06), S-N 4/4; residuals RR-95-01 (S-P02 inversion, CARRIED 1/5)",
-        "+ RR-95-02 (S-P05 trade-off, CARRIED 2/5) carried forward.",
+        "Prior baseline: tests/step0-baseline-v7.4.md (Phase 108) — BATTERY: FAIL,",
+        "P 4/9 (S-P01-06 + three expanded techniques), S-N 4/4; residuals RR-108-01 (S-P02 inversion, CARRIED 1/5),",
+        "RR-108-02 (S-P05 trade-off, CARRIED 2/5), RR-108-04 (S-P10 estimate, CARRIED 0/5),",
+        "RR-108-05 (S-P14 theoretical-limit, spend-limit-indeterminate) carried forward.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
