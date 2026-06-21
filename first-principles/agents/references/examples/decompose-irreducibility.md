@@ -19,7 +19,7 @@ irreducible primitive before the composite claim can be trusted.
 
 ---
 
-## Decompose Drill
+## Reduce-to-Primitives Drill
 
 ### Level 0 — The composite claim
 

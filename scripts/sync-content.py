@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 35 target files
+    python3 scripts/sync-content.py --write    # regenerate all 39 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -680,16 +680,16 @@ def generate_all() -> dict[Path, str]:
     v7.5 (Phase 110) folds decompose into five-whys and removes the standalone
     decompose surface, bringing TOOLS to 8, SKILLS to 13, and EXAMPLES to 14
     (the worked example file is kept at its current path per D-04, rebranded).
-    Current target count: 34 total.
+    Current target count: 39 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 9 agent reference siblings (first-principles/agents/references/*.md:
+      - 11 agent reference siblings (first-principles/agents/references/*.md:
         8 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
       - 14 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
       - 13 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
-    Total: 1 + 9 + 14 + 13 = 37.
+    Total: 1 + 11 + 14 + 13 = 39.
 
-    Note: the total count (37) reflects the 8 TOOLS + 3 spine-refs (for the
+    Note: the total count (39) reflects the 8 TOOLS + 3 spine-refs (for the
     reference siblings), 14 EXAMPLES, and 13 SKILLS. The sync-content.py --check
     validates byte-identity per-file but does not gate on this count.
     """
