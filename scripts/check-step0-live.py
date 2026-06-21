@@ -506,6 +506,36 @@ CANONICAL_TALLY_IDS = (
     "S-P14",  # theoretical-limit
 )
 
+# Default merge-validation priority subset (D-02): the two rows that answer
+# "did the five-whys consolidation improve routing?". Running these first
+# guarantees the core finding lands even if a spend cutoff hits mid-run.
+# S-P04 = five-whys (the surviving technique); S-P16 = the absorbed trigger
+# re-homed to focused-five-whys (merge-validation signal, outside /8).
+DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
+
+
+def _apply_priority(
+    catalog: list[Step0Prompt], priority: list[str] | None
+) -> list[Step0Prompt]:
+    """Return a NEW stably-reordered catalog with priority rows first.
+
+    If priority is None, returns a copy of the catalog in unchanged order.
+    Otherwise, computes priority_ids = priority (if non-empty) or
+    DEFAULT_PRIORITY_IDS (if --priority flag was given with no value, so
+    args.priority == []), builds a set, and returns front + rest where:
+      front = rows whose id is in the priority set (file order preserved)
+      rest  = remaining rows (file order preserved)
+
+    Never mutates the input list. Safe to call with an empty priority list
+    (falls back to DEFAULT_PRIORITY_IDS).
+    """
+    if priority is None:
+        return list(catalog)
+    priority_ids: set[str] = set(priority) if priority else set(DEFAULT_PRIORITY_IDS)
+    front = [p for p in catalog if p.id in priority_ids]
+    rest = [p for p in catalog if p.id not in priority_ids]
+    return front + rest
+
 
 def _battery_gate(
     p_rows: list[PromptResult], n_rows: list[PromptResult]
@@ -831,7 +861,21 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v7.4 baseline .md to this path after the run",
+        help="If supplied, write the v7.6 baseline .md to this path after the run",
+    )
+    p.add_argument(
+        "--priority",
+        "--only",
+        dest="priority",
+        nargs="*",
+        default=None,
+        help=(
+            "Run a named subset of row IDs first, then the full catalog. "
+            "With no value, uses the default merge-validation subset "
+            f"({' + '.join(DEFAULT_PRIORITY_IDS)}). "
+            "Pass explicit IDs to override the default subset. "
+            "Example: --priority S-P04 S-P16 S-P02"
+        ),
     )
     p.add_argument(
         "--quiet",
@@ -880,12 +924,16 @@ def main(argv: list[str] | None = None) -> int:
     # --dry-run: parse and print without calling claude
     if args.dry_run:
         catalog = _read_step0_catalog(args.catalog)
+        catalog = _apply_priority(catalog, args.priority)
         print(
             f"Dry run: {len(catalog)} rows × {args.repeat} repeats"
             f" = {len(catalog) * args.repeat} invocations"
         )
         print(f"  min-pass: {args.min_pass} / {args.repeat}")
         print(f"  plugin-dir: {args.plugin_dir}")
+        if args.priority is not None:
+            priority_ids = args.priority or list(DEFAULT_PRIORITY_IDS)
+            print(f"  priority subset: {priority_ids} (first)")
         for row in catalog:
             truncated = row.text[:60] + ("..." if len(row.text) > 60 else "")
             print(f"  {row.id}: {row.expected!r}  {truncated!r}")
@@ -930,6 +978,7 @@ def main(argv: list[str] | None = None) -> int:
     # invocation loop excludes them — the live run iterates exactly the 22 S-P/S-N
     # rows (~110 invocations at --repeat 5).
     catalog = [p for p in parsed_catalog if not p.id.startswith("S-A")]
+    catalog = _apply_priority(catalog, args.priority)
     repeat = args.repeat
     min_pass = args.min_pass
     plugin_dir = args.plugin_dir
