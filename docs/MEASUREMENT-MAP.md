@@ -27,8 +27,8 @@ This table is the core lookup. Source: `CLAUDE.md`, `scripts/_battery_core.py` (
 
 | Residual | Description | Owning gate(s) | Artifact |
 |----------|-------------|----------------|---------|
-| **RR-95-01** | S-P02 inversion carry-forward (1/5 at v6.4 re-baseline) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-95-01 sentinel |
-| **RR-95-02** | S-P05 trade-off carry-forward (2/5 at v6.4 re-baseline) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-95-02 sentinel |
+| **RR-108-01** (supersedes RR-95-01; chain: RR-79-02->RR-92-01->RR-95-01->RR-108-01) | S-P02 inversion carry-forward (1/5 at v7.4 re-baseline, no change vs v6.4 1/5) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-108-01 sentinel |
+| **RR-108-02** (supersedes RR-95-02; chain: RR-79-03->RR-92-02->RR-95-02->RR-108-02) | S-P05 trade-off carry-forward (2/5 at v7.4 re-baseline, no change vs v6.4 2/5) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-108-02 sentinel |
 | **RR-79-01** | S-P01 pre-mortem honest carry-forward (4/5 at v6.4 re-baseline) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-79-01 sentinel |
 | **RR-77-08** | `_COMPOSER_FOCUS_CEILING=4` lock (anti-masking) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-77-08 sentinel |
 | **RR-80-01** | S-N04 negative-control over-routing dip (CLOSED 4/5 at v6.4) | **STEP0-08** (emulator assertion) **+ BATT-06** (marker-counting assertion) — dual-layer | `check-step0-emulator.py --self-test` Category 3; `_battery_core.self_test_boundary()` RR-80-01 |

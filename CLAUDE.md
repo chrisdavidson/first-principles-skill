@@ -155,7 +155,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
   residuals, coverage headline (121 reproducible / 85 audit-only / 0 gap / 206 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 96.)
+  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 109.)
 - **`docs/requirements-matrix.md`** — generated 206-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
