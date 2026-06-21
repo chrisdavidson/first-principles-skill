@@ -99,7 +99,7 @@ def _decorate_for_emission(meta: dict, surface: str, kind: str) -> dict:
     return out
 
 # Canonical companion-tool list (slug = plugin sibling skill directory name).
-TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order", "decompose", "estimate", "theoretical-limit")
+TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "second-order", "estimate", "theoretical-limit")
 
 # Canonical slash-invocable focused-mode stub list (Phase 46-02, DEC-46-B).
 # Each entry maps to a `shared/skills/<slug>/SKILL.md` source and a generated
@@ -114,7 +114,7 @@ TOOLS = ("five-whys", "fishbone", "inversion", "pre-mortem", "trade-off", "secon
 SKILLS = (
     "pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order",
     "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
-    "decompose", "estimate", "theoretical-limit",
+    "estimate", "theoretical-limit",
 )
 
 # Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
@@ -677,14 +677,21 @@ def generate_all() -> dict[Path, str]:
 
     Phase 52 extended SKILLS to 11 entries; v7.1 (Phase 101) adds decompose,
     bringing TOOLS to 7, SKILLS to 12, and EXAMPLES to 12.
-    Current target count: 35 total.
+    v7.5 (Phase 110) folds decompose into five-whys and removes the standalone
+    decompose surface, bringing TOOLS to 8, SKILLS to 13, and EXAMPLES to 14
+    (the worked example file is kept at its current path per D-04, rebranded).
+    Current target count: 34 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
-      - 10 agent reference siblings (first-principles/agents/references/*.md:
-        7 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
-      - 12 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
-      - 12 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
-    Total: 1 + 10 + 12 + 12 = 35.
+      - 9 agent reference siblings (first-principles/agents/references/*.md:
+        8 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+      - 14 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
+      - 13 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
+    Total: 1 + 9 + 14 + 13 = 37.
+
+    Note: the total count (37) reflects the 8 TOOLS + 3 spine-refs (for the
+    reference siblings), 14 EXAMPLES, and 13 SKILLS. The sync-content.py --check
+    validates byte-identity per-file but does not gate on this count.
     """
     import yaml
 
