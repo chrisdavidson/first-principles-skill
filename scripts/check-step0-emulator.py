@@ -51,7 +51,8 @@ CATALOG_PATH: Path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
 # D-06: hardcoded allowlist — intentional second source of truth.
 # Do NOT derive this from the parsed table: the independence is what makes
 # D-05.3 actually catch renames/typos in the table.
-KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "decompose", "estimate", "theoretical-limit")
+# Phase 110 merged decompose into five-whys; Phase 111 removes it here (9→8).
+KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "estimate", "theoretical-limit")
 
 
 # ---------------------------------------------------------------------------
@@ -495,97 +496,106 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
-    # Category 4: DECOMP-07 named emulator assertions (D-02 / D-04)
+    # Category 4: FIVEWHYS-ABSORB named emulator assertions (D-02 / D-04)
     #
-    # Two catalog-independent hardcoded assertions that lock in decompose
-    # phrase-detection behavior:
-    #   (a) A positive prompt fires the decompose trigger → focused-decompose.
-    #   (b) The WR-01 mis-route prompt ("decompose this problem from first
-    #       principles: …") does NOT fire any decompose trigger → full-composer.
+    # Phase 110 merged the decompose technique into five-whys; Phase 111
+    # renamed this block from the prior decompose-named block to FIVEWHYS-ABSORB
+    # to reflect that these assertions now verify absorbed-phrase routing to
+    # five-whys, not a standalone decompose technique.
+    #
+    # Two catalog-independent hardcoded assertions that lock in absorbed-phrase
+    # routing behavior:
+    #   (a) A positive prompt fires the absorbed reduce-to-primitives trigger
+    #       (decompose (this )?(claim|into primitives)) → focused-five-whys.
+    #       The prompt contains the generic verb "decompose" but the trigger
+    #       is now owned by the merged five-whys row in the phrase table.
+    #   (b) The WR-01 mis-route framing ("decompose this problem from first
+    #       principles: …") does NOT fire any trigger → full-composer.
     #       This is the CI-invisible WR-01 guard: check-trigger-collisions.py
     #       scans only skill descriptions, never the Step 0 phrase table, so
     #       this hardcoded assertion is the only CI gate that catches a
-    #       mis-route regression.
-    # Both literals are catalog-independent (D-04): deleting S-P09 or S-N05
+    #       mis-route regression. The absorbed phrase requires "claim" or
+    #       "into primitives", not "problem from first principles".
+    # Both literals are catalog-independent (D-04): deleting S-P16 or S-N08
     # from step0-fixture-catalog.md cannot silently drop these gates.
     # -----------------------------------------------------------------------
 
-    _DECOMP07_POS_PROMPT = (
+    _FIVEWHYS_ABSORB_POS_PROMPT = (
         "decompose this claim: a molten-salt thermal storage system achieves "
         "85% round-trip electricity efficiency when paired with a combined-cycle "
         "gas turbine — the vendor has published test data from a pilot plant in "
         "the Atacama Desert"
     )
-    _DECOMP07_POS_EXPECTED = "focused-decompose"
+    _FIVEWHYS_ABSORB_POS_EXPECTED = "focused-five-whys"
 
-    _DECOMP07_NEG_PROMPT = (
+    _FIVEWHYS_ABSORB_NEG_PROMPT = (
         "decompose this problem from first principles: a molten-salt thermal "
         "storage system achieves 85% round-trip electricity efficiency — "
         "walk me through how to approach this"
     )
-    _DECOMP07_NEG_EXPECTED = "full-composer"
+    _FIVEWHYS_ABSORB_NEG_EXPECTED = "full-composer"
 
     # Drift guard: hardcoded positive literal must still match the live catalog
-    # S-P09 row, OR the row must be absent.
-    _sp09_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-P09"), None
+    # S-P16 row, OR the row must be absent.
+    _sp16_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P16"), None
     )
-    if _sp09_catalog_prompt is not None and _sp09_catalog_prompt != _DECOMP07_POS_PROMPT:
+    if _sp16_catalog_prompt is not None and _sp16_catalog_prompt != _FIVEWHYS_ABSORB_POS_PROMPT:
         print(
-            "check-step0-emulator --self-test: DECOMP-07 S-P09 FAIL "
-            "(hardcoded positive literal drifted from the live catalog S-P09 row — re-sync "
+            "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-P16 FAIL "
+            "(hardcoded positive literal drifted from the live catalog S-P16 row — re-sync "
             "the literal or update the gate)"
         )
         wrong.append(
-            f"DECOMP-07 S-P09 (literal drifted from catalog row "
-            f"{_sp09_catalog_prompt!r} != {_DECOMP07_POS_PROMPT!r})"
+            f"FIVEWHYS-ABSORB S-P16 (literal drifted from catalog row "
+            f"{_sp16_catalog_prompt!r} != {_FIVEWHYS_ABSORB_POS_PROMPT!r})"
         )
 
     # Drift guard: hardcoded negative literal must still match the live catalog
-    # S-N05 row, OR the row must be absent.
-    _sn05_catalog_prompt = next(
-        (p for rid, p, _ in fixtures if rid == "S-N05"), None
+    # S-N08 row, OR the row must be absent.
+    _sn08_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N08"), None
     )
-    if _sn05_catalog_prompt is not None and _sn05_catalog_prompt != _DECOMP07_NEG_PROMPT:
+    if _sn08_catalog_prompt is not None and _sn08_catalog_prompt != _FIVEWHYS_ABSORB_NEG_PROMPT:
         print(
-            "check-step0-emulator --self-test: DECOMP-07 S-N05 FAIL "
-            "(hardcoded negative literal drifted from the live catalog S-N05 row — re-sync "
+            "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-N08 FAIL "
+            "(hardcoded negative literal drifted from the live catalog S-N08 row — re-sync "
             "the literal or update the gate)"
         )
         wrong.append(
-            f"DECOMP-07 S-N05 (literal drifted from catalog row "
-            f"{_sn05_catalog_prompt!r} != {_DECOMP07_NEG_PROMPT!r})"
+            f"FIVEWHYS-ABSORB S-N08 (literal drifted from catalog row "
+            f"{_sn08_catalog_prompt!r} != {_FIVEWHYS_ABSORB_NEG_PROMPT!r})"
         )
 
-    decomp07_pos_computed = classify(_DECOMP07_POS_PROMPT, rules)
-    if decomp07_pos_computed == _DECOMP07_POS_EXPECTED:
+    fivewhys_absorb_pos_computed = classify(_FIVEWHYS_ABSORB_POS_PROMPT, rules)
+    if fivewhys_absorb_pos_computed == _FIVEWHYS_ABSORB_POS_EXPECTED:
         print(
-            "check-step0-emulator --self-test: DECOMP-07 S-P09 PASS "
-            f"(decompose trigger prompt → {decomp07_pos_computed})"
+            "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-P16 PASS "
+            f"(absorbed reduce-to-primitives trigger → {fivewhys_absorb_pos_computed})"
         )
     else:
         print(
-            f"check-step0-emulator --self-test: DECOMP-07 S-P09 FAIL "
-            f"(expected {_DECOMP07_POS_EXPECTED!r}, got {decomp07_pos_computed!r})"
+            f"check-step0-emulator --self-test: FIVEWHYS-ABSORB S-P16 FAIL "
+            f"(expected {_FIVEWHYS_ABSORB_POS_EXPECTED!r}, got {fivewhys_absorb_pos_computed!r})"
         )
         wrong.append(
-            f"DECOMP-07 S-P09 (expected {_DECOMP07_POS_EXPECTED!r}, got {decomp07_pos_computed!r})"
+            f"FIVEWHYS-ABSORB S-P16 (expected {_FIVEWHYS_ABSORB_POS_EXPECTED!r}, got {fivewhys_absorb_pos_computed!r})"
         )
 
-    decomp07_neg_computed = classify(_DECOMP07_NEG_PROMPT, rules)
-    if decomp07_neg_computed == _DECOMP07_NEG_EXPECTED:
+    fivewhys_absorb_neg_computed = classify(_FIVEWHYS_ABSORB_NEG_PROMPT, rules)
+    if fivewhys_absorb_neg_computed == _FIVEWHYS_ABSORB_NEG_EXPECTED:
         print(
-            "check-step0-emulator --self-test: DECOMP-07 S-N05 PASS "
-            f"(WR-01 mis-route prompt → {decomp07_neg_computed})"
+            "check-step0-emulator --self-test: FIVEWHYS-ABSORB S-N08 PASS "
+            f"(WR-01 mis-route guard → {fivewhys_absorb_neg_computed})"
         )
     else:
         print(
-            f"check-step0-emulator --self-test: DECOMP-07 S-N05 FAIL "
-            f"(expected {_DECOMP07_NEG_EXPECTED!r}, got {decomp07_neg_computed!r}; "
+            f"check-step0-emulator --self-test: FIVEWHYS-ABSORB S-N08 FAIL "
+            f"(expected {_FIVEWHYS_ABSORB_NEG_EXPECTED!r}, got {fivewhys_absorb_neg_computed!r}; "
             f"WR-01 regression: mis-route prompt now fires a trigger)"
         )
         wrong.append(
-            f"DECOMP-07 S-N05 (expected {_DECOMP07_NEG_EXPECTED!r}, got {decomp07_neg_computed!r})"
+            f"FIVEWHYS-ABSORB S-N08 (expected {_FIVEWHYS_ABSORB_NEG_EXPECTED!r}, got {fivewhys_absorb_neg_computed!r})"
         )
 
     # -----------------------------------------------------------------------
@@ -798,19 +808,26 @@ def _run_self_test() -> None:
     # This also makes GT-6 demonstrable: each co-fire literal fires BOTH triggers
     # of an overlap pair simultaneously, but classify() returns exactly ONE winner
     # via first-row-wins precedence on the post-reorder SKILL-body phrase table
-    # (Plan 107-01 moved decompose above five-whys and theoretical-limit above
-    # inversion).  check-trigger-collisions.py (VAL-04) is structurally blind to
-    # this disambiguation — it scans only skill description text, never the Step 0
+    # (Plan 107-01 moved theoretical-limit above inversion; Phase 110 merged
+    # decompose into five-whys — the formerly-separate decompose row no longer
+    # exists; its absorbed triggers are now part of the five-whys row).
+    # check-trigger-collisions.py (VAL-04) is structurally blind to this
+    # disambiguation — it scans only skill description text, never the Step 0
     # phrase table — so this Category 7 block is the only CI gate that locks the
     # post-reorder intended winner for each pair (VAL-04 complementarity, GT-6).
     #
-    # Pair 1: decompose vs. five-whys (S-A01)
-    #   Both triggers fire: "decompose this claim" fires phrase 1 of decompose;
-    #   "root cause" fires the five-whys trigger.
-    #   Post-reorder winner: decompose (row 5 beats row 6 under first-row-wins).
+    # Pair 1: absorbed-decompose phrase vs. five-whys native phrase (S-A01)
+    #   Both triggers fire within the merged five-whys row: the absorbed
+    #   "decompose (this )?(claim|into primitives)" phrase fires on "decompose
+    #   this claim"; the native "root cause" phrase fires on "root cause of the
+    #   performance gap".  Since both are now owned by the same merged five-whys
+    #   row, the co-fire resolves to focused-five-whys (first-row-wins within
+    #   the same row is not applicable — the whole merged row routes to one
+    #   technique).  This is an intra-merged-technique co-fire, not a
+    #   cross-technique disambiguation.
     #   VAL-04 complementarity: a 4-gram collision scan on the SKILL-body text
-    #   cannot detect this precedence — the same phrase fires two independent rows
-    #   and only the row ORDER determines the winner.
+    #   cannot detect this case — the classifier is phrase-table-aware, VAL-04
+    #   is not.
     #
     # Pair 2: theoretical-limit vs. inversion (S-A03)
     #   Both triggers fire: "theoretical limit" fires theoretical-limit; the
@@ -830,7 +847,7 @@ def _run_self_test() -> None:
         "storage system, why did the round-trip electricity efficiency drop below "
         "projections — what is the root cause of the performance gap?"
     )
-    _SEMGATE07_DECOMP_FW_EXPECTED = "focused-decompose"
+    _SEMGATE07_DECOMP_FW_EXPECTED = "focused-five-whys"
 
     _SEMGATE07_TL_INV_PROMPT = (
         "For a molten-salt thermal storage system, what is the theoretical limit on "
@@ -846,15 +863,16 @@ def _run_self_test() -> None:
     )
     _SEMGATE07_INV_PM_EXPECTED = "focused-pre-mortem"
 
-    # Drift guard: hardcoded decompose↔five-whys literal must still match the live
-    # catalog S-A01 row, OR the row must be absent (deletion is the survivable case).
+    # Drift guard: hardcoded absorbed-decompose↔five-whys literal must still match
+    # the live catalog S-A01 row, OR the row must be absent (deletion is the
+    # survivable case — the hardcoded literal is what gets classified below).
     _sa01_catalog_prompt = next(
         (p for rid, p, _ in fixtures if rid == "S-A01"), None
     )
     if _sa01_catalog_prompt is not None and _sa01_catalog_prompt != _SEMGATE07_DECOMP_FW_PROMPT:
         print(
             "check-step0-emulator --self-test: SEMGATE-07 S-A01 FAIL "
-            "(hardcoded decompose↔five-whys literal drifted from the live catalog S-A01 row — "
+            "(hardcoded absorbed-decompose-phrase literal drifted from the live catalog S-A01 row — "
             "re-sync the literal or update the gate)"
         )
         wrong.append(
@@ -898,13 +916,14 @@ def _run_self_test() -> None:
     if semgate07_decomp_fw_computed == _SEMGATE07_DECOMP_FW_EXPECTED:
         print(
             "check-step0-emulator --self-test: SEMGATE-07 S-A01 PASS "
-            f"(decompose↔five-whys co-fire → {semgate07_decomp_fw_computed})"
+            f"(absorbed-decompose-phrase + five-whys intra-merged co-fire → {semgate07_decomp_fw_computed})"
         )
     else:
         print(
             f"check-step0-emulator --self-test: SEMGATE-07 S-A01 FAIL "
             f"(expected {_SEMGATE07_DECOMP_FW_EXPECTED!r}, got {semgate07_decomp_fw_computed!r}; "
-            f"pair: decompose↔five-whys; regression: five-whys may be above decompose in row order)"
+            f"absorbed-decompose-phrase and root-cause both owned by merged five-whys row — "
+            f"regression: phrase table may have drifted from Phase 110 merge state)"
         )
         wrong.append(
             f"SEMGATE-07 S-A01 (expected {_SEMGATE07_DECOMP_FW_EXPECTED!r}, got {semgate07_decomp_fw_computed!r})"
@@ -943,13 +962,14 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
-    # Category 7 (continued): All-9-coverage assertion (D-09)
+    # Category 7 (continued): All-8-coverage assertion (D-09)
     #
     # Confirms that every technique in KNOWN_TECHNIQUES has at least one positive
-    # catalog fixture (expected_mode == f"focused-{technique}") so the Phase 108
-    # live re-baseline harness (check-step0-live.py --catalog) is re-baseline-ready
-    # across all 9 techniques.  This is a confirm-don't-expand check (D-09):
-    # we verify the existing catalog covers all 9, not author new fixtures.
+    # catalog fixture (expected_mode == f"focused-{technique}") so the live
+    # re-baseline harness (check-step0-live.py --catalog) is re-baseline-ready
+    # across all 8 surviving techniques (decompose removed in Phase 110/111).
+    # This is a confirm-don't-expand check (D-09):
+    # we verify the existing catalog covers all 8, not author new fixtures.
     # -----------------------------------------------------------------------
 
     covered_techniques = {
@@ -960,17 +980,17 @@ def _run_self_test() -> None:
     for technique in KNOWN_TECHNIQUES:
         if technique not in covered_techniques:
             print(
-                f"check-step0-emulator --self-test: SEMGATE-07 all-9-coverage FAIL "
+                f"check-step0-emulator --self-test: SEMGATE-07 all-8-coverage FAIL "
                 f"(technique '{technique}' has no positive catalog fixture with "
                 f"expected_mode='focused-{technique}' — catalog is not re-baseline-ready "
                 f"for this technique)"
             )
             wrong.append(
-                f"SEMGATE-07 all-9-coverage (technique '{technique}' uncovered)"
+                f"SEMGATE-07 all-8-coverage (technique '{technique}' uncovered)"
             )
         else:
             print(
-                f"check-step0-emulator --self-test: SEMGATE-07 all-9-coverage PASS "
+                f"check-step0-emulator --self-test: SEMGATE-07 all-8-coverage PASS "
                 f"(technique '{technique}' has >=1 positive catalog fixture)"
             )
 
@@ -983,10 +1003,12 @@ def _run_self_test() -> None:
     # detect that two technique rows share a common trigger phrase.  SEMGATE
     # fills this gap.
     #
-    # Assertion: the S-A01 co-fire literal (decompose↔five-whys) classifies
-    # to focused-decompose — a semantic-overlap case that VAL-04 cannot detect
-    # because: (a) VAL-04 scans description text, not phrase-table rows, and
-    # (b) even if it found a collision, it would not know which row-ORDER wins.
+    # Assertion: the S-A01 co-fire literal (absorbed-decompose-phrase + five-whys
+    # native phrase) classifies to focused-five-whys — a semantic-overlap case
+    # that VAL-04 cannot detect because: (a) VAL-04 scans description text, not
+    # phrase-table rows, and (b) even if it found a collision, it would not know
+    # which row-ORDER wins (or, after the Phase 110 merge, that both phrases are
+    # now owned by the same row).
     # The assertion above (SEMGATE-07 S-A01) already proved this.  The comment
     # below makes the GT-6 complementarity explicit and findable.
     #
@@ -1000,11 +1022,12 @@ def _run_self_test() -> None:
     # -----------------------------------------------------------------------
 
     # VAL-04 complementarity is demonstrated by the SEMGATE-07 S-A01 assertion
-    # above: the co-fire literal was classified to focused-decompose by classify()
-    # using the post-reorder phrase table.  The classify() call uses SKILL-body.md
-    # row order — information VAL-04 never accesses.  No additional runtime check
-    # is needed here; the assertion is already recorded in the wrong[] list if it
-    # failed.  The comment above satisfies the GT-6 documentation requirement.
+    # above: the co-fire literal was classified to focused-five-whys by classify()
+    # using the post-Phase-110-merge phrase table.  The classify() call uses
+    # SKILL-body.md row order — information VAL-04 never accesses.  No additional
+    # runtime check is needed here; the assertion is already recorded in the
+    # wrong[] list if it failed.  The comment above satisfies the GT-6
+    # documentation requirement.
 
     # -----------------------------------------------------------------------
     # Final verdict
@@ -1017,7 +1040,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + DECOMP-07 + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 named assertions")
 
 
 def _require_python_version() -> None:
