@@ -551,6 +551,13 @@ def self_test() -> int:
 # never over-weights estimate (4 rows) / theoretical-limit (1 extra row).
 CONTEXT_FREE_IDS = ("S-P07", "S-P08", "S-P11", "S-P12", "S-P13", "S-P15")
 
+# Merge-validation row: tracked OUTSIDE the /8 canonical bar (D-01a).
+# S-P16 answers "did the five-whys consolidation re-home the absorbed trigger?"
+# It is reported via a dedicated _s_p16_result Summary line and must never reach
+# residual_risk_rows or _battery_gate's p_context — it is neither a canonical
+# technique row nor a context-free falsifier.
+MERGE_VALIDATION_IDS = ("S-P16",)
+
 # The 8 canonical positive rows — one per technique (D-01) — over which the
 # v7.6 8-technique pass-rate is computed. The instrument emits this per-technique
 # tally (D-01b, REBASE-02), it is not hand-assembled. All 8 techniques have a
@@ -601,11 +608,18 @@ def _battery_gate(
     p_rows: list[PromptResult], n_rows: list[PromptResult]
 ) -> tuple[list[PromptResult], int, int, bool]:
     """v5.1 split battery gate, shared by the baseline emitter and main()'s
-    exit code so the two can never drift (CR-01). Context-free fixtures
-    (S-P07/08) are excluded from the S-P bar: the gate is
-    (all S-P01–06 pass) AND (all S-N pass). Returns
-    (p_context, p_context_pass, n_pass, battery_pass)."""
-    p_context = [r for r in p_rows if r.prompt.id not in CONTEXT_FREE_IDS]
+    exit code so the two can never drift (CR-01). Two exclusion sets apply:
+    - CONTEXT_FREE_IDS (6 rows: S-P07/08/11/12/13/15) — alternation-falsifier
+      fixtures excluded from the technique bar.
+    - MERGE_VALIDATION_IDS (S-P16) — merge-validation signal tracked outside
+      the /8 canonical bar (D-01a).
+    The gate is (all len(CANONICAL_TALLY_IDS)==8 canonical rows pass) AND
+    (all S-N pass). Returns (p_context, p_context_pass, n_pass, battery_pass)."""
+    p_context = [
+        r for r in p_rows
+        if r.prompt.id not in CONTEXT_FREE_IDS
+        and r.prompt.id not in MERGE_VALIDATION_IDS
+    ]
     p_context_pass = sum(1 for r in p_context if r.row_pass)
     n_pass = sum(1 for r in n_rows if r.row_pass)
     battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_rows))
@@ -704,6 +718,15 @@ def _write_baseline(
                 f"FAIL (expected — context-free parser-robustness fixture, "
                 f"not part of the {p_context_pass}/{len(p_context)} live-technique bar)"
             )
+        elif r.prompt.id in MERGE_VALIDATION_IDS:
+            # S-P16 merge-validation: reported via the dedicated _s_p16_result
+            # Summary line (see header block above). Never appended to
+            # residual_risk_rows and never written as expected-FAIL (CR-01/D-01a).
+            verdict_str = (
+                "PASS" if r.row_pass else
+                "FAIL (merge-validation signal — outside /8 canonical bar; "
+                "tracked via _s_p16_result line, not a residual-risk row)"
+            )
         else:
             verdict_str = "PASS" if r.row_pass else "FAIL"
             if not r.row_pass:
@@ -786,6 +809,14 @@ def _write_baseline(
         # (RR-108-06) — they are NOT a routing residual.
         "S-N06": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
         "S-N07": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
+        # Live negative-control over-routing rows (WR-04): S-N01/02/03/08 are
+        # canonical oblique prompts. An over-route (row_pass=False) is a
+        # high-signal result — they get a tracked infra ID so a failing row never
+        # aborts the run. RR-108-08 = live negative-control over-routing signal.
+        "S-N01": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+        "S-N02": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+        "S-N03": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+        "S-N08": "RR-108-08",  # over-routing negative-control (live oblique prompt)
         # Canonical techniques with v7.4 carry-forward residuals. These CAN
         # reach the residual-risk branch if below min-pass in this v7.6 run.
         "S-P10": "RR-108-04",  # estimate          (v7.4 carry-forward)
