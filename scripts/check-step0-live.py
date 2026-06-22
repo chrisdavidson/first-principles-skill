@@ -1015,6 +1015,19 @@ def main(argv: list[str] | None = None) -> int:
     # --dry-run: parse and print without calling claude
     if args.dry_run:
         catalog = _read_step0_catalog(args.catalog)
+        # WR-02: apply the same S-A exclusion filter as the live path BEFORE
+        # _apply_priority, so the preview count matches the actual run size
+        # (22 rows / ~110 invocations at --repeat 5, not 28/140).
+        catalog = [p for p in catalog if not p.id.startswith("S-A")]
+        # WR-03: validate explicit --priority IDs against the filtered catalog
+        if args.priority:
+            catalog_ids = {p.id for p in catalog}
+            unknown = [pid for pid in args.priority if pid not in catalog_ids]
+            if unknown:
+                print(
+                    f"warning: --priority IDs not found in catalog: {unknown}",
+                    file=sys.stderr,
+                )
         catalog = _apply_priority(catalog, args.priority)
         print(
             f"Dry run: {len(catalog)} rows × {args.repeat} repeats"
@@ -1069,6 +1082,17 @@ def main(argv: list[str] | None = None) -> int:
     # invocation loop excludes them — the live run iterates exactly the 22 S-P/S-N
     # rows (~110 invocations at --repeat 5).
     catalog = [p for p in parsed_catalog if not p.id.startswith("S-A")]
+    # WR-03: validate explicit --priority IDs against the live catalog so a
+    # typo'd ID (e.g. --priority S-P4 instead of S-P04) warns to stderr rather
+    # than silently reordering nothing and defeating the budget-guard guarantee.
+    if args.priority:
+        catalog_ids = {p.id for p in catalog}
+        unknown = [pid for pid in args.priority if pid not in catalog_ids]
+        if unknown:
+            print(
+                f"warning: --priority IDs not found in catalog: {unknown}",
+                file=sys.stderr,
+            )
     catalog = _apply_priority(catalog, args.priority)
     repeat = args.repeat
     min_pass = args.min_pass
@@ -1133,7 +1157,12 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print("=" * 60)
     print(f"BATTERY: {'PASS' if battery_pass else 'FAIL'}")
-    print(f"  P: {p_context_pass}/{len(p_context)} rows passed (S-P01–06; S-P07/08 context-free, excluded)")
+    print(
+        f"  P: {p_context_pass}/{len(p_context)} rows passed "
+        f"({len(CANONICAL_TALLY_IDS)}-technique canonical bar; "
+        f"{len(CONTEXT_FREE_IDS)} CONTEXT_FREE_IDS excluded; "
+        f"MERGE_VALIDATION_IDS excluded)"
+    )
     print(f"  N: {n_pass}/{len(n_rows)} rows passed")
     print(f"  scores.tsv: {scores_path}")
 
