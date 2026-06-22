@@ -533,8 +533,111 @@ def self_test() -> int:
         )
         all_passed = False
 
+    # --- D-01a firewall: failing S-P16 does not crash _write_baseline or flip battery ---
+    # Build a synthetic results list: all 8 canonical rows PASS + S-P16 FAILS.
+    # Assert (a) _write_baseline writes without raising (CR-01 regression guard),
+    # and (b) _battery_gate returns battery_pass=True (WR-01 regression guard).
+    _d01a_args = argparse.Namespace(repeat=5, min_pass=3)
+    _d01a_canonical = [
+        PromptResult(
+            prompt=Step0Prompt(id=cid, text="t", expected="focused-pre-mortem"),
+            modes=["focused-pre-mortem"] * 5,
+            match_count=5,
+            row_pass=True,
+        )
+        for cid in CANONICAL_TALLY_IDS
+    ]
+    _d01a_sp16 = PromptResult(
+        prompt=Step0Prompt(id="S-P16", text="t16", expected="focused-five-whys"),
+        modes=["full-composer"] * 5,
+        match_count=0,
+        row_pass=False,
+    )
+    _d01a_results = _d01a_canonical + [_d01a_sp16]
+    # (a) _write_baseline must write without ValueError
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as _d01a_tf:
+        _d01a_path = Path(_d01a_tf.name)
+    try:
+        try:
+            _write_baseline(_d01a_results, _d01a_args, _d01a_path,
+                            recorded_ts="2026-01-01T00:00:00Z")
+        except ValueError as _e:
+            print(
+                f"self-test FAIL: D-01a failing-S-P16 firewall — "
+                f"_write_baseline raised ValueError: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+        except Exception as _e:
+            print(
+                f"self-test FAIL: D-01a failing-S-P16 firewall — "
+                f"_write_baseline raised unexpected exception: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _d01a_path.unlink()
+        except OSError:
+            pass
+    # (b) _battery_gate must return battery_pass=True with all canonical rows PASS + S-P16 FAIL
+    _d01a_p_rows = [r for r in _d01a_results if r.prompt.id.startswith("S-P")]
+    _d01a_n_rows = [r for r in _d01a_results if r.prompt.id.startswith("S-N")]
+    _, _, _, _d01a_battery_pass = _battery_gate(_d01a_p_rows, _d01a_n_rows)
+    if not _d01a_battery_pass:
+        print(
+            "self-test FAIL: D-01a failing-S-P16 firewall — "
+            "_battery_gate returned battery_pass=False with all canonical rows passing "
+            "(failing S-P16 must not flip the battery — WR-01)",
+            file=sys.stderr,
+        )
+        all_passed = False
+
+    # --- D-01a firewall: failing S-N row does not crash _write_baseline (WR-04) ---
+    # Build a synthetic results list: all 8 canonical rows PASS + S-N01 FAILS.
+    # Assert _write_baseline writes without raising (WR-04 regression guard).
+    _d01a_sn01 = PromptResult(
+        prompt=Step0Prompt(id="S-N01", text="oblique prompt", expected="full-composer"),
+        modes=["focused-pre-mortem"] * 5,   # over-routes — fails
+        match_count=0,
+        row_pass=False,
+    )
+    _d01a_sn_results = _d01a_canonical + [_d01a_sn01]
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as _d01a_sn_tf:
+        _d01a_sn_path = Path(_d01a_sn_tf.name)
+    try:
+        try:
+            _write_baseline(_d01a_sn_results, _d01a_args, _d01a_sn_path,
+                            recorded_ts="2026-01-01T00:00:00Z")
+        except ValueError as _e:
+            print(
+                f"self-test FAIL: D-01a failing-S-N firewall — "
+                f"_write_baseline raised ValueError on failing S-N01: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+        except Exception as _e:
+            print(
+                f"self-test FAIL: D-01a failing-S-N firewall — "
+                f"_write_baseline raised unexpected exception on failing S-N01: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _d01a_sn_path.unlink()
+        except OSError:
+            pass
+
     if all_passed:
-        print("self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset + /8-tally)")
+        print(
+            "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
+            " + /8-tally + failing-S-P16 firewall + failing-S-N firewall)"
+        )
         return 0
     return 1
 
