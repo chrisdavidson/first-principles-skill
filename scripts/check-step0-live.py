@@ -884,25 +884,32 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
-    # D-03/D-03a — RR_ID_MAP RESOLVED at the Phase-108 finalize (Commit 2,
-    # plan 108-02). The 108-01 provisional placeholders are replaced with the
-    # real RR-108-NN IDs per the human-approved close-vs-carry verdict surfaced
-    # at the Task 1 blocking checkpoint:
-    #   - S-P02 inversion live 1/5 < min-pass → CARRY FORWARD as RR-108-01
-    #     (supersedes RR-95-01; chain RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01).
-    #   - S-P05 trade-off live 2/5 < min-pass → CARRY FORWARD as RR-108-02
-    #     (supersedes RR-95-02; chain RR-79-03 → RR-92-02 → RR-95-02 → RR-108-02).
-    #   - The ninth technique (v7.4): removed in v7.5 (absorbed into five-whys,
-    #     RR-108-03 resolved-by-merge). Not present in the v7.6 8-technique run.
-    #   - S-P10 estimate  live 0/5 → RR-108-04 (v7.4 carry-forward).
-    #   - S-P14 theoretical-limit live 0/5 → RR-108-05 (v7.4 carry-forward).
-    # No RR-95-NN was CLOSED (both S-P02 and S-P05 stayed below the ≥3/5 bar).
+    # D-03/D-04 — RR_ID_MAP RESOLVED at the Phase-114 finalize (Task 2, plan
+    # 114-02) per the human-approved close-vs-carry verdict surfaced at the Task 1
+    # blocking checkpoint over the single authoritative v7.6 partial run (truncated
+    # at the monthly spend limit after 55/110 calls; --priority front-load landed
+    # S-P04 + S-P16 in the genuine zone):
+    #   - S-P02 inversion live 1/5 < min-pass → CARRY FORWARD as RR-114-01
+    #     (supersedes RR-108-01; chain RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01
+    #     → RR-114-01).
+    #   - S-P05 trade-off live 4/5 ≥ min-pass → CLOSE RR-108-02. No new ID minted
+    #     (the close bar is exactly ≥3/5; RR-108-02 marked CLOSED in the baseline).
+    #   - S-P10 estimate: spend-limit-truncated this run (all 5 runs returned the
+    #     spend-limit message → `none`), NOT a clean measurement → CARRY-indeterminate,
+    #     keep RR-108-04 (no fresh K/N to supersede; documented as truncated in the
+    #     baseline, NOT a forced 0/5).
+    #   - S-P14 theoretical-limit: spend-limit-truncated this run (all 5 runs `none`)
+    #     → CARRY-indeterminate, keep RR-108-05.
+    # RR-108-02 is the only residual CLOSED this baseline; S-P02 is the only fresh
+    # RR-114-NN mint. Newly-regressed canonical rows (S-P01 pre-mortem 2/5,
+    # S-P03 fishbone 1/5) are recorded as REGRESSION findings in the baseline prose
+    # with full traceability reconciliation deferred to Phase 115 (out of scope here).
     # No provisional placeholder survives. The falsifier rows still need a tracked
     # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
     # and never reach residual_risk_rows, but a non-None entry is required); they
     # share the closest minted canonical-technique ID for their falsified technique.
     RR_ID_MAP = {
-        "S-P01": "RR-79-01", "S-P02": "RR-108-01", "S-P03": "RR-75-03",
+        "S-P01": "RR-79-01", "S-P02": "RR-114-01", "S-P03": "RR-75-03",
         "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
         "S-N04": "RR-80-01",
         # Negative-control rows that dipped below min_pass on this run ONLY because
