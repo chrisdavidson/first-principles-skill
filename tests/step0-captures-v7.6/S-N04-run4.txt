@@ -1,0 +1,34 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it found.
+
+## Pre-Mortem: Authentication Rollout Failure Modes
+
+The agent reframed the question as a pre-mortem — assuming the rollout *has already failed* by end of quarter — and worked backward to root causes, then clustered them.
+
+**Working assumptions** (worth confirming): real login change (likely SSO/MFA), all teams org-wide including non-technical staff, a migration with cutover, and timeline-driven — which the agent flagged as a risk signal in itself.
+
+### The five failure clusters
+
+**1. The cutover locks people out (highest severity)** — auth is binary; when it breaks, people can't even log in to report it.
+- No *tested* rollback path under real load
+- The "locked out of the tool you need to fix the lockout" trap (admin console / VPN / paging behind the new auth)
+- Service accounts and machine-to-machine auth forgotten
+- Session invalidation storm — everyone re-auths at once, IdP falls over
+
+**2. The long tail of edge-case identities (most underestimated)** — contractors, shared accounts, kiosks, offshore, M&A domains; MFA enrollment friction that doesn't scale to "all teams in a quarter"; people on PTO returning locked out; mobile/native re-auth lagging.
+
+**3. The timeline assumed parallelism that doesn't exist** — one central IAM team doing N migrations serially; no buffer for the team with the gnarly legacy integration; external IdP vendor dependencies; holiday/freeze windows eating the quarter.
+
+**4. Adoption & communication failure (non-technical, often fatal)** — no named per-team owner; help desk swamped on day 1 (looks like system failure → panic rollback); users routing around it, killing the security benefit.
+
+**5. Security regression (silent)** — legacy fallback left enabled and never closed; over-broad bulk-provisioned permissions; audit-log gaps during transition.
+
+### Recommended before locking the timeline
+1. **Pilot the hardest team first** — the easy team validates nothing
+2. **Prove rollback and break-glass paths** under realistic conditions first
+3. **Stagger, don't big-bang** — per-team waves, named owners, "stop the line" gates instead of one quarter-end deadline
+4. **Inventory non-human identities** explicitly
+5. **Pre-stage MFA enrollment** with an explicit plan for people on leave
+
+The agent's bet: clusters **1 (cutover lockout)** and **3 (false parallelism)** are where the real risk lives for a timeline-locked, all-teams, single-quarter rollout.
+
+It offered to run a full first-principles analysis on the actual plan document or stress-test your proposed mitigations if you share specifics (SSO/MFA scope, central-team vs. self-service, whether a rollback path already exists). Want me to follow up on either?

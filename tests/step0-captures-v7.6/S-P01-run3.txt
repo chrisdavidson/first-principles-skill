@@ -1,0 +1,29 @@
+The first-principles agent completed its pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite Big-Bang Launch to All EU Customers
+
+## Bottom line
+**The plan as stated is not survivable and should change.** The risk isn't code quality — it's the *rollout topology* itself: a big-bang cutover with no rollback, applied to a payments system, where the first exposure to real traffic, real card data, and real edge cases happens at 100% scale from minute one.
+
+## The dominant risk
+**No reverse gear.** "No staged rollout" almost always means no rehearsed rollback either. If the new service misbehaves at 02:00 Saturday, the only option is forward-fixing under live financial bleed across the entire EU base.
+
+> The single question to answer before Friday: **Can you cut back to legacy Stripe in minutes, and have you actually tested it?** If no, the date is the first thing that should move.
+
+## Four reinforcing structural weaknesses
+1. **Token/state migration discontinuity** — Stripe card tokens aren't portable without Stripe's migration tooling. A botched migration silently breaks recurring billing for the whole base → mass involuntary churn.
+2. **Silent partial failure** — payments bugs often don't crash; they decline a slice or double-charge. Without a success-rate-delta alert vs. the legacy baseline, you find out from chargebacks days later.
+3. **Window + scale collision** — Friday cutover stacks peak weekend volume + untested-at-scale service + weekend skeleton on-call on the same moment.
+4. **SCA/3DS compliance regression** — an SCA regression declines legitimate EU payments at scale and creates regulatory exposure.
+
+## Recommended changes (priority order)
+1. **Build and rehearse a rollback to legacy Stripe** before any cutover. If it can't exist by Friday, don't ship Friday.
+2. **Replace big-bang with a staged rollout** (employees → 1% → 5% → 25% → 100%, gated on payment-success-rate SLO). This one change neutralizes risks 1–3 by bounding blast radius.
+3. **Verify token/state migration** via Stripe's official tooling with a reconciliation report; treat any gap as a launch blocker.
+4. **Ship a success-rate-delta alert** (auth, capture, 3DS-completion, refund rates) vs. legacy baseline.
+5. **Move the window off Friday** to low-volume + full-staff with Stripe escalation standing by.
+6. **Verify SCA/3DS parity** against EU transaction types before exposure.
+
+**If staged rollout is truly impossible**, the non-negotiable minimum is #1 (rehearsed rollback) + #4 (silent-failure detection), signed off as explicitly named risks by an owner.
+
+**Confidence:** HIGH that the big-bang topology is the core problem and that staged rollout + rehearsed rollback resolves the dominant risks. The key unverified fact is whether a tested rollback and flow-parity suite currently exist — if confirmed absent, this moves from "risky" to "do not ship Friday."

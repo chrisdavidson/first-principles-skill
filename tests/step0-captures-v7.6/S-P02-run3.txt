@@ -1,0 +1,21 @@
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim is a causal chain with **four hidden preconditions**. It breaks whenever any one fails:
+
+1. **You're shipping at the binding constraint** — not at price, market fit, or wrong-fit churn. If retention is gated by something shipping can't touch, faster cadence moves a lever that isn't binding.
+
+2. **Cadence stays below the quality/fatigue threshold** — past a point, defect rate and change-annoyance per ship overtake the value per ship, and the relationship *inverts* from positive to negative.
+
+3. **Users discover and adopt what you ship** — improvements that land without onboarding/changelog/in-app surfacing don't move perception.
+
+4. **Cadence is coupled to a measurement loop** — shipping every two weeks while learning what worked every two quarters decouples speed from outcome.
+
+### The two flags worth acting on
+
+- **Highest-stakes unknown:** Is your churn even *feature-addressable*? If a meaningful slice is price- or fit-driven, faster shipping is provably the wrong lever. **Verify first** by segmenting churn by cause.
+
+- **Most dangerous mode for a healthy team (Regime 3b):** shipping every two weeks but learning every two quarters. You'd *feel* productive, the assumption would *feel* true, and it would be untestable. Fix: treat ship cadence and learning rate as separate things — only the learning rate drives retention.
+
+The agent offered to pinpoint which regime you're actually in if you share your **churn breakdown by cause** and whether you **measure per-release retention deltas**.

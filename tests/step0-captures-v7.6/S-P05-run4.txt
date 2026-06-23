@@ -1,0 +1,39 @@
+The first-principles agent completed the trade-off analysis. Here are the results:
+
+# Database Selection: First-Principles Trade-Off Analysis
+
+**Recommendation: PostgreSQL (managed — AWS RDS or Aurora). Confidence: HIGH.**
+
+## Why cost and throughput don't decide this
+
+The agent's first move was to verify the constraints against reality, and two "obvious" decision factors collapsed:
+
+- **Budget is not a discriminator.** A quick estimate showed all three engines land well under $3k/month at this load: DynamoDB ~$475/mo for write capacity alone, Aurora/RDS ~$300–700/mo, Atlas M30/M40 ~$500–1,000/mo. Realistic all-in (reads + storage + HA) tops out around ~$2,500 even on the high end.
+- **500 writes/sec is light** for all three engines — well below their ceilings on modest tiers. Throughput is a must-have but easily met by everyone.
+
+With cost and raw throughput off the table, the decision **collapses onto transactional integrity and data-model fit** — exactly the defining traits of e-commerce.
+
+## The scored matrix (weights locked before scoring)
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional integrity (×5) | 5 | 3 | 3 |
+| Cost-fit (×2) | 4 | 3 | 5 |
+| Throughput headroom (×3) | 4 | 4 | 5 |
+| OLTP ops maturity (×4) | 5 | 4 | 3 |
+| Relational data-model fit (×4) | 5 | 3 | 2 |
+| **Weighted total** | **89** | **64** | **63** |
+
+PostgreSQL wins by a ~28-point margin — not a near-tie. Its lead rests on native multi-table ACID (no 2× capacity penalty like DynamoDB transactions, no item-count limits) and a relational model that fits orders/line-items/inventory/payments natively.
+
+## Notable findings
+
+- **The runner-ups tie each other (64 vs 63), not Postgres.** That near-tie is itself a real signal: between Mongo and Dynamo, the choice depends on whether your workload leans relational (→Mongo) or key-value/scale-driven (→Dynamo). Neither displaces Postgres.
+- **One unverified assumption, flagged as non-load-bearing:** the team's SQL familiarity was never stated. Even scoring Postgres's ops maturity down to Mongo's level, it still leads by ~24 points.
+
+## When this recommendation flips
+- If "transactional" was loose wording and writes are actually independent single-entity events at much higher future scale (50k+ w/s) → reconsider DynamoDB.
+- If the data is genuinely document-shaped (heavy nested catalog, few cross-entity transactions) → MongoDB closes the gap.
+- **Verify before committing:** (1) confirm the team's SQL skills, and (2) confirm 500 w/s is the *peak*, not an average masking a higher peak.
+
+You can reply to continue refining this with the agent (e.g., to model a polyglot Postgres-for-orders + DynamoDB-for-catalog split, which it noted as a deliberately out-of-scope option).

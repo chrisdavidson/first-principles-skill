@@ -1,0 +1,36 @@
+The first-principles agent completed the pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite EU Launch
+
+The agent framed it from the failure-forward stance: *it's two weeks post-launch and the cutover has failed catastrophically — what caused it?*
+
+## The dominant finding
+
+Three decisions form **one fragile spine**, and each amplifies the others:
+
+1. **No control group** (big-bang to 100% EU) — any defect hits all EU revenue simultaneously; there's no canary baseline to catch a silent decline-rate spike.
+2. **Date beats readiness** — "next Friday" is fixed independent of any readiness signal, so if testing is incomplete, the date wins by construction.
+3. **Rollback is theoretical, not rehearsed** — replacing legacy removes the proven fallback, and if the new service has already written state legacy can't read, rollback may be impossible under pressure.
+
+> Each alone is survivable. Together they mean: *you ship before you're sure, to everyone at once, with no proven way back.* The "no staged rollout" decision is load-bearing for nearly every catastrophic branch.
+
+## Other structural weaknesses
+
+- **Payments fail silently and financially** — not degraded UX, but lost/duplicated funds and compliance breaches that bleed for as long as detection lags.
+- **Friday/weekend timing** maximizes detection lag with skeleton on-call.
+- **EU regulatory surface** (SCA/3DS PSD2, VAT, SEPA, data residency) is all-or-nothing — divergence from legacy is both likely and high-consequence.
+
+## Recommended plan changes (priority order)
+
+1. **Introduce a staged rollout** (1% → 5% → 25% → 100%). Single highest-leverage change — neutralizes the most failure branches. If "no staged rollout" is a hard constraint, that constraint itself must be challenged.
+2. **Make rollback real** — rehearse full cutover-and-rollback end-to-end, including in-flight state, before launch.
+3. **Move the cutover off Friday** — Tuesday/Wednesday morning, full staffing, full week to respond.
+4. **Decouple date from readiness** — explicit go/no-go gates: transaction-replay parity, peak-volume load test, SCA/3DS pass, reconciliation match.
+5. **Verify the unverified assumptions** — parity, idempotency/no-double-charge, EU regulatory flows, reconciliation — via transaction replay against legacy traffic.
+6. **Add payment-specific alerting** on auth-rate and decline-rate deltas vs. baseline.
+
+**If a staged rollout and the Friday date are truly immovable**, then items 2, 4, 5, 6 become mandatory, a war room must staff the Friday window, and a hard rollback trigger (e.g., decline rate exceeds baseline by N%) must be pre-authorized so on-call can act without escalation.
+
+The agent's closing note: *the single most consequential change is reinstating a staged rollout; everything else is a mitigation for proceeding without one.*
+
+The agent is still available (ID `ae55fe5ee23007b36`) if you'd like to push on any cluster — e.g., drilling into the EU regulatory gaps or pressure-testing whether the "no staged rollout" constraint is genuinely immovable.

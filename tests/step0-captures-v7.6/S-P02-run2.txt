@@ -1,0 +1,23 @@
+The first-principles agent completed the inversion. Here's its analysis:
+
+## Inverting "faster ships → better retention"
+
+The agent inverted the claim to "faster cadence does *not* improve retention — and may hurt it," then worked backward from each failure mode to the **silent precondition** your claim depends on. The assumption breaks the moment any one of these seven fails:
+
+| Precondition (must hold for the claim to be true) | Breakpoint symptom |
+|---|---|
+| **P1** Releases target the actual reasons users churn | Retention flat across release-heavy vs. release-light periods |
+| **P2** Two-week cadence doesn't degrade quality below the trust threshold | Bug/rollback/support-ticket rate rises with cadence |
+| **P3** Users perceive change as net-positive (relearning cost < value) | "Stop changing things" feedback; power-user churn after redesigns |
+| **P4** Release *value* is positive/increasing, not just release *count* | High frequency, flat engagement per release |
+| **P5** Your remaining base is actually cadence-sensitive | Mature cohorts indifferent to cadence |
+| **P6** The release stream — not onboarding — is the dominant retention lever | Churn concentrated at first-run, not steady state |
+| **P7** Speed isn't funded by neglecting reliability/support/docs | Cadence up, NPS/reliability down |
+
+**Most common breaks for a two-week team:** the **quality break (P2)** — speed bought by compressed QA — and the **empty-velocity break (P4)** — mistaking output for outcome.
+
+**The reframe:** your real metric isn't ship *frequency*, it's **value-per-release ÷ change-cost-per-release**. Ship fast only while that ratio stays positive.
+
+**Highest-value next check:** segment your retention curve by release activity and by regression/quality rate. Flat against release activity → P1/P6 already broke. Falling as cadence rises → P2/P3 is breaking.
+
+The agent offered to turn any breakpoint into a measurable test against your retention data, or to run a second-order analysis on what the two-week cadence sets in motion downstream. Want me to send it back in for either?

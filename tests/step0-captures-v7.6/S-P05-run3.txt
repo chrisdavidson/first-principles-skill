@@ -1,0 +1,37 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# Database Trade-Off Analysis: PostgreSQL vs MongoDB vs DynamoDB
+
+**Recommendation: Managed PostgreSQL (AWS RDS Multi-AZ or Aurora) — HIGH confidence.**
+
+## The key insight: the decision is settled at the correctness gate, not the budget line
+
+The agent reframed the question. The triggering prompt was "which database," but the essence is **which database clears the ACID-correctness bar first**, then wins on cost/throughput. A cheaper database that can corrupt orders isn't a candidate.
+
+E-commerce order placement is irreducibly a **multi-entity atomic operation** — inventory decrement + order insert + payment record must all-or-nothing commit, or you get overselling/double-charging.
+
+| Engine | Transaction support | Verdict |
+|---|---|---|
+| **PostgreSQL** | Native, unconstrained multi-row ACID + FK enforcement | Clears the gate cleanly |
+| **MongoDB** | Multi-doc ACID (v4.0+) but retrofitted onto a document model that prefers embedding; fights normalized commerce schemas | Clears with moderate friction |
+| **DynamoDB** | Capped at 100 items/txn, single-region, no referential integrity, ~2× WCU cost | Clears only with heavy app-layer compensation |
+
+## Cost reality (the surprise)
+
+Budget is **not** the binding constraint — 500 writes/sec is modest. All three fit $3k easily **except DynamoDB on its on-demand transactional path**:
+- **PostgreSQL:** ~$250–450/month
+- **MongoDB Atlas (M30):** ~$190–350/month
+- **DynamoDB on-demand:** 1.296B writes/month × $1.25/M = **~$1,620/month writes alone**, doubling toward **$3,000+** with TransactWriteItems — breaching budget.
+
+The "serverless is cheapest" intuition is wrong for *sustained predictable* load; it only holds for spiky/low-baseline traffic.
+
+## Weighted matrix
+
+**PostgreSQL 88 · MongoDB 66 · DynamoDB 51** — gap driven by the highest-weighted criterion (correctness), exactly where the essence said the decision turns. Sensitivity check: only zeroing out the correctness weight could flip it, and GT-1 makes correctness non-optional for commerce.
+
+## Caveats flagged
+- **Team NoSQL skill composition was unverified** — load-bearing for the operational-fit score, but *not* for the correctness gate. Even an expert MongoDB team wouldn't flip the result.
+- **PostgreSQL's single-primary write ceiling** is comfortable at 500 w/s but is your future scaling constraint — budget headroom covers read replicas; 10× growth would eventually need sharding (Citus/Aurora Limitless).
+- A **polyglot split** (Postgres for orders, Mongo for catalog) is a legitimate adjacent option but exceeds the single-database question asked.
+
+**One-line answer:** Choose managed PostgreSQL — the only option that clears the ACID-correctness gate cleanly, and it does so as one of the cheapest options well within your $3k budget.

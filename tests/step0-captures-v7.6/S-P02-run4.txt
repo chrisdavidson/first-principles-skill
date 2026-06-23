@@ -1,0 +1,20 @@
+The first-principles agent ran an inversion analysis. Here's what it found:
+
+## "Faster ships → better retention" — when it breaks down
+
+The claim isn't a law; it's a conditional. Faster cadence is just a **multiplier on the value-per-ship** — and multiplying a non-positive number doesn't help. The belief silently depends on one crux: *the changes you ship are net value-additive to the segment that actually drives your retention.*
+
+**Five regimes where it breaks down:**
+
+1. **Wrong-lever** — Churn is driven by something you don't ship (pricing, onboarding, support, product-market fit). Cadence is then orthogonal to retention. *Most common silent killer.*
+2. **Quality-erosion** — Faster cadence raises escaped defects / destabilizes reliability. Past a threshold the relationship *inverts* — users feel breakage faster than value.
+3. **Change-fatigue** — Power users / enterprise / workflow-dependent segments pay a retraining cost per change. More ships = more churn in your most valuable cohort.
+4. **Shallow-work** — The two-week box structurally caps scope, so the deep work that actually moves retention gets perpetually deferred. Cadence stays high; needle doesn't move.
+5. **Measurement-artifact** — Retention is saturated/floored, the window is too short to register effects, or the signal is confounded by season/marketing/cohort mix.
+
+**What to instrument first (ranked by leverage):**
+1. **Tag churn reasons** — confirm what you ship maps to why people actually leave. *If this fails, stop — cadence is the wrong tool.*
+2. **Segment retention by user type** — look for a *negative* cadence correlation in high-value cohorts.
+3. **Track defect-escape + deploy-correlated incident rates** as cadence holds or rises.
+
+Confidence: HIGH that the claim is conditional and these are the breakdown regimes; MEDIUM on which one *you're* in — that needs your own churn data (start with #1).

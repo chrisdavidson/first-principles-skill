@@ -1,0 +1,26 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## Summary
+
+The agent reframed your request as a **pre-mortem** — assuming the rollout has already failed and working backward to causes. It clustered the failure modes into five groups:
+
+**1. Lockout / availability failures (highest severity)** — Auth is on the critical path for everything; when it breaks, it locks people out rather than degrading. Hard cutover with no fallback, mass session invalidation, SSO misconfiguration for outlier teams, and **service-to-service auth breaking** (machine identities discovered failing in production).
+
+**2. Migration sequencing** — Big-bang across all teams, no canary, or an *easy* (unrepresentative) pilot team that surfaces no real edge cases.
+
+**3. Human / readiness** — Insufficient MFA enrollment lead time, unprepared helpdesk, uninventoried team-specific workflows (shared accounts, contractors).
+
+**4. Validation / observability** — No defined success metric, can't see partial failures fast enough.
+
+**5. Timeline-structural** (most relevant to locking the date) — Fixed quarter boundary + happy-path estimate means slippage gets absorbed by cutting testing.
+
+## The load-bearing findings (structural weaknesses)
+1. **No fallback / irreversibility** — the single most dangerous property; it converts every other risk from recoverable to catastrophic.
+2. **Over-optimistic, fixed-date timeline** — slippage cuts the exact things that prevent failures.
+3. **Untested coverage assumption** — "works in the pilot" hides service accounts, odd directory configs, external partners.
+
+## Two non-negotiables before locking the date
+- **A tested rollback path** (parallel-run, not hard cutover)
+- **Metric-gated waves with explicit permission for the date to slip**
+
+The agent also listed five questions it would want answered against your actual plan (is the cutover reversible? staged or big-bang? is the quarter truly fixed? were machine identities inventoried? is there a go/no-go gate?). If you share the plan document, it can run this against the specifics and tell you what's already handled versus genuinely open.

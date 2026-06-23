@@ -1,0 +1,27 @@
+The first-principles inversion analysis is complete. Here's what the agent found:
+
+## The verdict
+
+"Faster ships means better retention" is **conditionally true** — it silently rests on seven preconditions, and it breaks down in **four identifiable regimes**:
+
+### When the assumption breaks down
+
+| # | Breakdown regime | What's happening | Confidence |
+|---|---|---|---|
+| **A** | **Aim is off** | You ship fast but not at the things that actually drive churn. Cadence multiplies *output*, not *relevance* — they're independent variables. Most common failure. | HIGH |
+| **B** | **Speed costs quality** | Two-week pressure raises regression/incident rate. Here faster cadence *actively reduces* retention. | HIGH |
+| **C** | **Product isn't the bottleneck** | Users leave for price, fit, or market reasons. Ship-speed has near-zero leverage regardless of aim or quality. | MEDIUM |
+| **D** | **Maturity / change-fatigue** | Product is "good enough"; each change's switching cost exceeds its marginal value. Past this threshold, faster cadence *net-hurts* retention. | MEDIUM-HIGH |
+
+### The load-bearing gap
+The whole claim hinges on an **unverified ground truth (GT-5): the dominant reason your users churn is unknown.** Until you know that, you can't know whether cadence is even the right lever.
+
+### What to verify (to harden the analysis)
+1. **Churn-reason breakdown** (product vs. price vs. fit) — the single dataset that decides whether ship-speed matters at all
+2. **Feature-adoption telemetry** — are shipped changes even noticed/adopted?
+3. **Regression-rate vs. cadence trend** — is speed silently degrading quality?
+
+### The sharp version
+> Cadence only buys retention **while shipping-speed is the binding constraint on delivering relevant, stable, noticed value** — and it inverts into a *liability* once change-cost dominates marginal value.
+
+One notable second-order warning: a team that treats cadence as *the* retention lever tends to optimize the measurable (ship count) over the causal (ship relevance) — a Goodhart's-law trap that reinforces breakdown regime A.

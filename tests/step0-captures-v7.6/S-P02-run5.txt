@@ -1,0 +1,18 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The core insight: **ship frequency is a proxy, not a cause.** It only improves retention while it tracks the real driver — value reaching the actual reasons users leave. The assumption breaks the moment cadence rises *without* a matched rise in churn-addressing value.
+
+**Four breakdown regimes, ranked by likelihood for a 2-week team:**
+
+1. **Value decoupling** (most common) — You ship more, but increments don't touch why users churn. *Tripwire: velocity up, churn flat.* The "velocity = value" convention hides this.
+2. **Quality erosion** — Speed buys defects or disruptive change. *Tripwire: support tickets/bugs rise with releases; retention dips right after ships.*
+3. **Wrong lever / ceiling** — Retention is bound by price, market, or support, not the product. *Tripwire: exit surveys cite non-product reasons.*
+4. **Measurement lag** — The link may be real but invisible because retention lags cadence. *Tripwire: you read retention before a full churn cycle completes and falsely conclude "no effect."*
+
+**The single highest-value action:** instrument *why* users churn (exit surveys, cohort behavior), then check whether your two-week increments actually target those reasons. Every breakdown mode traces back to one unverified precondition — that what you ship addresses what causes people to leave. Verify that, and faster shipping is a retention strategy; leave it unverified, and it's just activity.
+
+**Caveat from the agent:** it took "every two weeks" as given and had no data on your team's actual churn drivers, quality trend, or product maturity — so the regimes are ranked by general likelihood, not measured for your case.
+
+You can reply to continue this analysis (e.g., pressure-test a specific regime against your metrics) and I'll route it back to the same agent.

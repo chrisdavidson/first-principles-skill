@@ -1,0 +1,31 @@
+I'll invoke the agent with the exact prompt as instructed.
+The first-principles agent completed the pre-mortem. Here are its findings.
+
+# Pre-Mortem: Payments-Rewrite Hard Cutover to All EU Customers
+
+**Frame:** Treating launch as ~2026-07-03 (next Friday), "all EU customers" as hard cutover, "no staged rollout" as a fixed constraint to stress-test around.
+
+## Most likely failure causes, ranked
+
+1. **Unrehearsed rollback that doesn't actually work.** The deepest structural weakness: the plan's implicit safety net is an illusion. Once the new service writes money-moving state to Stripe, legacy is no longer ground truth — so an untested rollback is itself a corruption risk, not a safety net. Most likely cluster to be suppressed in a planning meeting. (Confidence: HIGH)
+
+2. **A long-tail defect hitting 100% of EU customers with no canary.** Hard cutover converts any unknown-unknown directly into a full-population incident; the first signal of a defect is customer-facing failure. (Confidence: HIGH)
+
+3. **SCA/3DS2 regression as a compliance event.** EU-specific and legal (PSD2/SCA), so its cost is categorically worse than a generic outage — not just lost revenue. (Confidence: HIGH)
+
+4. **Weekend timing maximizing recovery time.** A Saturday-morning failure meets skeleton on-call staffing and slow vendor support exactly when blast radius is maximal. (Confidence: MEDIUM — depends on staffing)
+
+5. **No pre-agreed abort threshold or business-metric monitoring.** Failure gets debated instead of acted on; dashboards watch system health (latency, 5xx) rather than authorization success rate vs. legacy baseline.
+
+## Highest-leverage changes
+
+- **Rehearse rollback against production-like diverged state before committing.** If it can't be made to work, you have no safety net — know that now.
+- **Define a kill-switch now:** an explicit threshold on authorization success rate vs. legacy baseline, owned by a named person with authority to abort.
+- **Move the launch off Friday** to early in the week with full staffing and vendor support reachable.
+- **Dedicated SCA/3DS2 conformance pass** including declines, exemptions, and MIT/recurring flows.
+- **Run parallel reconciliation** (new-service ledger vs. Stripe truth) for the first 72 hours to catch money-moved ≠ money-recorded drift.
+- **Consider a shadow run** (mirror real traffic to the new service without it being authoritative) — converts risk #2 from a full-population incident into a caught defect, even within the "no staged rollout" constraint.
+
+**Open question the agent flagged:** Confirm weekend on-call/vendor-support staffing. If staffing is full through the weekend, the timing risk drops from top-4 to minor.
+
+You can reply if you'd like me to push the analysis further on any cluster (e.g., the rollback mechanics or the SCA conformance details).

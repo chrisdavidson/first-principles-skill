@@ -1,0 +1,21 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+## Summary
+
+The agent reframed your "single auth rollout" as what it likely actually is — **N independent team integrations wearing one timeline** — and ran a structured pre-mortem. The failure modes, by priority:
+
+**1. Untested rollback (highest stakes).** Auth gates everything, so a cutover you can't reverse turns a delay into an org-wide outage. Require a *rehearsed* rollback as an exit criterion — not just a documented one.
+
+**2. The slowest team + the fixed-date trap (structural).** Completion is governed by the worst team's critical path, not the average. And you can't fix scope, date, and quality simultaneously — lock at most two of the three.
+
+**3. Silent behavioral & data breakage.** Subtle differences in token/session semantics and identity-data migration (service accounts, duplicate emails, disabled-but-needed users) stay invisible until real traffic hits them. Mandate production-parity testing and a dry-run migration.
+
+**4. External review lead times.** Security/compliance sign-off and pen-test slots have lead times you don't control — get real dates on the critical-path calendar now.
+
+**The one structural change it recommends:** Don't lock a fixed-date, full-scope, big-bang plan. Convert to a **phased rollout with a rehearsed rollback gate**, letting per-phase scope absorb the unknown-unknowns.
+
+**Confidence: MEDIUM** — several conclusions rest on assumptions the agent couldn't verify. It flagged two questions that would sharpen the analysis most:
+- Is the current plan **big-bang or phased**?
+- Is the date driven by an **external hard deadline** (contract, audit, license) or chosen internally?
+
+If you answer those, I can have the agent convert this into a ranked, probability-weighted risk register with concrete mitigations and owners.

@@ -1,0 +1,30 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here's what it found.
+
+## Bottom line: **No-go on the Friday big-bang as scoped.**
+
+The plan rests on three structural weaknesses that *compound* each other:
+
+| Pattern | Cause | Effect |
+|---|---|---|
+| **A — No reversibility** | Legacy Stripe removed at cutover + payments are irreversible | A defect can't be undone, only compensated under fire. No escape hatch *by design.* |
+| **B — No early warning** | Big-bang to 100%, no canary | The first time you observe the system at full load *is* the incident. |
+| **C — Worst window, weakest response** | Friday cutover | Highest-risk window (first weekend) lands on skeleton staffing. |
+
+Any one is survivable. Together, a payment defect is **undetectable early, unrecoverable when found, and discovered when nobody's staffed to fix it** — the highest-risk launch shape available for an irreversible, regulated, money-moving system.
+
+The killer assumption: *"we can roll back if it goes wrong."* Since legacy is removed at cutover, that's **false** — there is no rollback.
+
+## Mitigations (priority order)
+1. **Keep legacy as a live fallback** through one full settlement cycle — feature-flag traffic so you can flip back instantly. *(If only one change is possible, make it this.)*
+2. **Stage the rollout** — 1% → 5% → 25% → 100% with success-rate gates.
+3. **Don't cut over on a Friday** — move early in the week with full staffing.
+4. **Add per-flow success-rate alerting** (by card scheme, SCA path, refund, capture), not just uptime.
+5. **Dry-run the in-flight cutover + reconciliation** against a real settlement cycle; test idempotency/retry, refunds, disputes, SCA.
+6. **Verify the unverified assumptions** — peak-load test, edge-case parity with legacy, compliance review — before committing the date.
+
+With #1–#3 in place, it becomes a defensible launch.
+
+**One question that changes everything:** Is keeping legacy in parallel *actually impossible* (a contractual or data-migration constraint), or is removal just the current plan? If it's just the plan, mitigation #1 is cheap — take it.
+
+Want me to turn this into a go/no-go checklist, or have the agent run a trade-off matrix on the rollout strategies?

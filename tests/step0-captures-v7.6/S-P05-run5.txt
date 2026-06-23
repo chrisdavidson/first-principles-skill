@@ -1,0 +1,32 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# Trade-Off Analysis: PostgreSQL vs MongoDB vs DynamoDB
+
+**Recommendation: PostgreSQL (managed RDS or Aurora)** — weighted score **94**, vs MongoDB **75**, vs DynamoDB **67**.
+
+## How it scored
+
+| Criterion (weight) | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|
+| Transactional correctness (5) | 25 | 15 | 15 |
+| Throughput @ 500 w/s (3) | 12 | 12 | 15 |
+| Cost fit (4) | 20 | 16 | 12 |
+| Operability/maturity (3) | 15 | 12 | 12 |
+| Data-model fit (3) | 12 | 12 | 9 |
+| Cost predictability (2) | 10 | 8 | 4 |
+| **Total** | **94** | **75** | **67** |
+
+## Why PostgreSQL wins
+The two highest-weighted criteria converge on it: **native, default-grain ACID transactions** (critical for atomic order + inventory + payment writes) *and* the **lowest cost band** at ~$260–$700/mo against your $3k ceiling — 4–10× headroom. JSONB columns also absorb document-shaped catalog data, neutralizing the main reason to reach for MongoDB.
+
+## Why the others ranked lower
+- **DynamoDB (last):** Strongest on raw throughput, but loses on what e-commerce weights most — constrained transactions (100-item cap, 2× write cost, single-region), highest cost here (~$1,600–$2,600/mo), and unpredictable per-request billing under spikes.
+- **MongoDB (second):** ACID exists since v4.0 but is off the engine's default grain; beaten on every weighted axis.
+
+## Key facts established
+- 500 w/s ≈ 1.3B writes/month — a modest load all three handle; throughput is a gate, not a discriminator.
+- The real discriminator is **transactional correctness**, not speed or cost.
+
+**Confidence: HIGH.** One flagged caveat: team operational familiarity wasn't specified. Sensitivity analysis shows PostgreSQL still wins (79 vs 75) even if that resolves maximally against it — so confirm your team's relational experience, but the recommendation is unlikely to flip.
+
+Sources: AWS DynamoDB pricing, CloudZero, Mydbops, Aurora pricing, MongoDB pricing.

@@ -1,0 +1,31 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## Authentication Rollout Pre-Mortem — Key Findings
+
+The agent treated your adoption decision as settled and stress-tested the **execution risk** under a fixed timeline. It identified three load-bearing weaknesses, in priority order:
+
+**1. Big-bang cutover assumption (HIGH risk)**
+Auth credentials are issuer-bound and auth is a hard dependency — an instantaneous switch is the highest-blast-radius failure mode. Old-system tokens in flight at cutover cause mass logouts/errors; without a designed rollback, the first serious bug forces a choice between "push forward broken" and "emergency revert that was never designed."
+→ *Design a bounded dual-run/coexistence period with tested rollback before locking the date.*
+
+**2. Cross-team capacity & authority gap (HIGH risk)**
+"All teams next quarter" assumes parallelism and capacity you haven't verified. Migration is *each team's* work, competing with their own roadmaps — and the platform team has no authority over their backlogs.
+→ *Get per-team capacity commitments and name an accountable owner with escalation authority before locking.*
+
+**3. Silent permission drift (HIGH risk — most insidious)**
+Identity/permission migration fails silently and bidirectionally: some users lose access (visible outage), others *gain* access (undetected security breach). Can look successful while being broken.
+→ *Require automated pre/post permission diffs and audit any access the migration grants.*
+
+**Two secondary gates:**
+- **Security regression under deadline pressure** — make the timeline flex before the security bar does.
+- **Scale/external-dependency surprises** — load-test at production QPS; map IdP/SSO/compliance lead times as explicit gates.
+
+**Compounding risk it flagged:** if teams slip *and* there's no coexistence period, you keep the old system alive "temporarily" → two auth systems forever → permanently doubled attack surface. So coexistence must be a *bounded* state with a hard decommission gate, not an open-ended fallback.
+
+**Single most important pre-lock action:** Don't lock the timeline against the optimistic assumption of clean parallel cutover — lock it against a *sequenced, dual-run, per-team-committed* plan with a hard decommission gate.
+
+---
+
+The agent noted its two secondary risks rest on unknowns and asked four questions to sharpen the analysis into a plan-specific risk register: **(1)** how many teams and how varied their integration patterns, **(2)** whether a dual-run period is already in the plan or it's a clean cutover, **(3)** whether a tested rollback path exists, and **(4)** whether external dependencies (IdP/SSO vendor, compliance sign-off) sit on the critical path.
+
+If you'd like, I can send those answers back to the same agent to get a ranked, plan-specific risk register.

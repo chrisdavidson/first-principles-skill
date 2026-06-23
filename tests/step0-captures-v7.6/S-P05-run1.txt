@@ -1,0 +1,36 @@
+The first-principles agent completed the trade-off analysis. Here is its result:
+
+# Database Trade-off Analysis: Transactional E-commerce Backend
+
+**Recommendation: PostgreSQL (managed RDS, Multi-AZ db.r6g.large)**
+
+## Decision Matrix
+
+| Criterion | Wt | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional integrity fit | 5 | 5 | 3 | 2 |
+| Cost within $3k all-in | 4 | 5 | 3 | 4 |
+| Throughput headroom @ 500 w/s | 3 | 4 | 4 | 5 |
+| Operational simplicity | 3 | 4 | 4 | 3 |
+| Data-model flexibility | 2 | 4 | 5 | 2 |
+| Scaling ceiling beyond yr-1 | 2 | 3 | 4 | 5 |
+| **Weighted total** | | **83** | **69** | **64** |
+
+## Cost (verified)
+- **PostgreSQL** — ~$437/mo all-in (Multi-AZ db.r6g.large), leaving ~$2,500/mo budget headroom
+- **MongoDB Atlas** — ~$900–1,500/mo all-in (3-node M30), most expensive in-budget option
+- **DynamoDB** — ~$237/mo writes (provisioned, the correct mode for steady load); on-demand would be ~$1,010/mo
+
+## Key reasoning
+- **The "high writes → NoSQL" instinct is false here.** A single managed Postgres primary handles thousands of simple write TPS; 500 w/s is modest. Throughput does not discriminate between the options, so the decision turns on transactional integrity and cost — where Postgres wins decisively.
+- **E-commerce's defining hazard is atomic multi-entity transactions** (order + inventory + payment, no oversell/lost payment). Postgres provides this natively; MongoDB's multi-document transactions are a retrofit; DynamoDB's are constrained (100-item cap, 2× WCU cost, single-region).
+- **Robust result:** Postgres leads by ~20%, and wins even if transactional fit is weighted to zero (58 vs 54 vs 54).
+
+## When the others fit
+- **DynamoDB** — only if you later need extreme scale and can redesign around its access patterns (single-table design).
+- **MongoDB** — wins on data-model flexibility but loses where it matters most, at the highest cost.
+
+## One open item
+Confirm whether the **$3k/month is all-in vs. compute-only**. It doesn't change the ranking (Postgres wins either way) but determines how much replica/backup headroom you actually have.
+
+*Sources: AWS RDS, MongoDB Atlas, and AWS DynamoDB pricing pages (2026), cross-checked against CloudZero and Economize pricing breakdowns.*

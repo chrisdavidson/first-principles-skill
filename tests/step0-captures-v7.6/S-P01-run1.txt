@@ -1,0 +1,29 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Bottom line: **Don't ship this plan as stated.**
+
+The agent's load-bearing finding: **the fatal flaw is the rollout design, not the new code.** "Big-bang + Friday + (assumed) no rehearsed rollback" is a structural weakness that converts any ordinary defect into a 100%-customer, weekend, hard-to-reverse revenue event.
+
+## The four failure chains
+
+| Chain | Failure | Root cause |
+|---|---|---|
+| **A — Undetected revenue leak** | A silently failing payment method/currency/SCA path hits all customers; detected hours late → unrecoverable revenue loss | No early-warning cohort + no per-method alerting |
+| **B — Weekend failure, no clean rollback** | Failure surfaces Saturday with skeleton staffing/vendor support; untested rollback path of unknown duration | Friday + unrehearsed rollback |
+| **C — Regulatory rejection at scale** | An SCA/3-DS or SEPA flow differs subtly from legacy → EU-wide declines + PSD2 liability | Assumed parity on EU payment law |
+| **D — Stateful migration corruption** | Lost idempotency keys / webhook ordering → double-charges or missed captures on straddling transactions | Treating a stateful swap as a stateless redeploy |
+
+The key insight: these aren't four separate risks — they all route through **one decision**. The big-bang design deletes every early-warning cohort and every cheap escape hatch. None of the chains require the rewrite to be *bad*, only *imperfect* — which all software is.
+
+## Five recommended changes (each kills a chain at its root)
+
+1. **Add a staged rollout (canary):** 1% → 10% → 50% → 100%, with shadow/parallel traffic first. Highest-leverage change.
+2. **Move off Friday** to Tue/Wed morning, so failures surface with full staffing + vendor support.
+3. **Rehearse the rollback** before cutover, state-aware. If it isn't clean and fast, the launch isn't ready.
+4. **Pre-wire per-payment-method success-rate alerting** with an auto-rollback threshold.
+5. **Define the in-flight-state cutover plan:** dual-write/drain pending captures, preserve idempotency keys + webhook ordering, run reconciliation.
+
+**The one thing to verify before any sign-off:** *Does a rehearsed, state-aware rollback path actually exist?* That single unknown is the difference between "risky but recoverable" and "betting the EU payments line on a Friday."
+
+If staged rollout is genuinely impossible (hard data-model cutover), then #3 and #4 become non-negotiable gates — and confidence stays MEDIUM at best.
