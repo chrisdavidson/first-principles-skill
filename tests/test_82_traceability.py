@@ -338,22 +338,25 @@ def test_active_tail_items_present() -> None:
     """GAP-01 emission guard: build_matrix_rows() must include 7 active-tail rows.
 
     The 7 active-tail rows (D-05 path b) are:
-      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-108-01, RR-108-02, RR-77-08
+      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-114-01, RR-108-02, RR-77-08
       (RR-80-01 = the former S-N04 residual, assigned its tracked ID in Phase 83)
-      (RR-108-01 supersedes RR-95-01 supersedes RR-92-01 supersedes RR-79-02,
-       Phase 108 v7.4 carry-forward, S-P02 inversion CARRIED 1/5;
-       full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01)
+      (RR-114-01 supersedes RR-108-01 supersedes RR-95-01 supersedes RR-92-01 supersedes RR-79-02,
+       Phase 114 v7.6 carry-forward, S-P02 inversion CARRIED 1/5;
+       full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01)
       (RR-108-02 supersedes RR-95-02 supersedes RR-92-02 supersedes RR-79-03,
-       Phase 108 v7.4 carry-forward, S-P05 trade-off CARRIED 2/5;
-       full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02)
+       Phase 108 v7.4 carry-forward, S-P05 trade-off; CLOSED at 4/5 ≥ min-pass
+       at Phase 114 v7.6 re-baseline — lone canonical improver; ID retained,
+       sentinel present in _battery_core.self_test_boundary() as regression guard;
+       full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED)
       Each must be tagged:
         capability == "Test-Network"
         deliverable_path == "active-tail"
 
     All active-tail rows are now reproducible (GEN-01 flipped scheduled->reproducible
     in Phase 93, D-08; GEN-01 artifact_link bumped v6.3->v6.4 baseline in Phase 96,
-    D-03; bumped v6.4->v7.4 baseline in Phase 109, D-04; RR-108-01/02 renamed from
-    RR-95-01/02 in Phase 109, Plan 02).
+    D-03; bumped v6.4->v7.4 baseline in Phase 109, D-04; bumped v7.4->v7.6 in Phase 114,
+    Plan 02 (this phase); RR-114-01 renamed from RR-108-01 in Phase 114, Plan 02;
+    RR-108-02 retained as CLOSED row — sentinel present, not removed).
     The coverage_tier check was removed because tiers are now mixed non-gap values
     (reproducible for all 7 rows after the Phase 93 GEN-01 flip).
     """
@@ -362,7 +365,7 @@ def test_active_tail_items_present() -> None:
 
     required_bare_ids = {
         "GEN-01", "GEN-02", "RR-80-01",
-        "RR-79-01", "RR-108-01", "RR-108-02", "RR-77-08",
+        "RR-79-01", "RR-114-01", "RR-108-02", "RR-77-08",
     }
 
     found_ids = {r.bare_id for r in rows}
