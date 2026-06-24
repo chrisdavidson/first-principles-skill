@@ -661,6 +661,20 @@ CONTEXT_FREE_IDS = ("S-P07", "S-P08", "S-P11", "S-P12", "S-P13", "S-P15")
 # technique row nor a context-free falsifier.
 MERGE_VALIDATION_IDS = ("S-P16",)
 
+# Non-blocking negative: S-N04 is MEASURED and RECORDED in every run but is
+# EXCLUDED from the blocking negative bar. S-N04's prompt ("walk through how
+# this could go badly — what failure modes should we prepare for?") is
+# semantically a pre-mortem request; the live agent legitimately routes it to
+# a focused pre-mortem (evidence from Phase 117 CONF-01: over-routes even with
+# FIX-01 reverted, ~1/5 without the fix — genuine routing, not a detector
+# artifact). Its v7.6 "3/5 PASS" was partly a detector false-negative (the
+# weaker v7.6 detector failed to recognise the pre-mortem the agent was already
+# running). The blocking oblique negatives are S-N01/S-N02/S-N03.
+# S-N04 STAYS an emulator/phrase-table negative (STEP0-08 unchanged — it fires
+# NO Step 0 trigger phrase); it is live non-blocking only (D-16/D-17).
+# Phase 117 re-scope, D-16/D-17.
+NON_BLOCKING_NEGATIVE_IDS = ("S-N04",)
+
 # The 8 canonical positive rows — one per technique (D-01) — over which the
 # v7.6 8-technique pass-rate is computed. The instrument emits this per-technique
 # tally (D-01b, REBASE-02), it is not hand-assembled. All 8 techniques have a
@@ -711,21 +725,27 @@ def _battery_gate(
     p_rows: list[PromptResult], n_rows: list[PromptResult]
 ) -> tuple[list[PromptResult], int, int, bool]:
     """v5.1 split battery gate, shared by the baseline emitter and main()'s
-    exit code so the two can never drift (CR-01). Two exclusion sets apply:
+    exit code so the two can never drift (CR-01). Three exclusion sets apply:
     - CONTEXT_FREE_IDS (6 rows: S-P07/08/11/12/13/15) — alternation-falsifier
       fixtures excluded from the technique bar.
     - MERGE_VALIDATION_IDS (S-P16) — merge-validation signal tracked outside
       the /8 canonical bar (D-01a).
+    - NON_BLOCKING_NEGATIVE_IDS (S-N04) — semantically a pre-mortem request;
+      the live agent legitimately routes it to a focused pre-mortem; MEASURED
+      and RECORDED but excluded from the blocking negative bar (D-16/D-17).
+      The blocking oblique negatives are S-N01/S-N02/S-N03.
     The gate is (all len(CANONICAL_TALLY_IDS)==8 canonical rows pass) AND
-    (all S-N pass). Returns (p_context, p_context_pass, n_pass, battery_pass)."""
+    (all blocking S-N pass). Returns (p_context, p_context_pass, n_pass,
+    battery_pass) where n_pass counts only blocking negatives."""
     p_context = [
         r for r in p_rows
         if r.prompt.id not in CONTEXT_FREE_IDS
         and r.prompt.id not in MERGE_VALIDATION_IDS
     ]
     p_context_pass = sum(1 for r in p_context if r.row_pass)
-    n_pass = sum(1 for r in n_rows if r.row_pass)
-    battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_rows))
+    n_blocking = [r for r in n_rows if r.prompt.id not in NON_BLOCKING_NEGATIVE_IDS]
+    n_pass = sum(1 for r in n_blocking if r.row_pass)
+    battery_pass = (p_context_pass == len(p_context)) and (n_pass == len(n_blocking))
     return p_context, p_context_pass, n_pass, battery_pass
 
 
@@ -1273,7 +1293,16 @@ def main(argv: list[str] | None = None) -> int:
         f"{len(CONTEXT_FREE_IDS)} CONTEXT_FREE_IDS excluded; "
         f"MERGE_VALIDATION_IDS excluded)"
     )
-    print(f"  N: {n_pass}/{len(n_rows)} rows passed")
+    n_blocking_count = len(n_rows) - sum(
+        1 for r in n_rows if r.prompt.id in NON_BLOCKING_NEGATIVE_IDS
+    )
+    n_non_blocking = [r for r in n_rows if r.prompt.id in NON_BLOCKING_NEGATIVE_IDS]
+    n_non_blocking_str = ", ".join(r.prompt.id for r in n_non_blocking) or "none"
+    print(
+        f"  N: {n_pass}/{n_blocking_count} blocking-negative rows passed; "
+        f"{len(NON_BLOCKING_NEGATIVE_IDS)} NON_BLOCKING_NEGATIVE_IDS excluded "
+        f"({n_non_blocking_str}, live non-blocking)"
+    )
     print(f"  scores.tsv: {scores_path}")
 
     return 0 if battery_pass else 1
