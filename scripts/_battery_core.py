@@ -1631,6 +1631,22 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # nor in any S-N04 v6.3 capture (all 5 clean). MIN_HEADER_HITS=2 ensures this
         # alone cannot fire pre-mortem without a second distinct pre-mortem marker.
         re.compile(r"fix[\s-]?forward\b", re.IGNORECASE),
+        # v7.6 capture-backed: "structural weakness(es)" fires across all 5 v7.6 S-P01 runs
+        # (confirmed by marker re-score over tests/step0-captures-v7.6/S-P01-run{1..5}.txt).
+        # In run3 it supplies the needed 2nd marker (run3 already has the Pre-Mortem heading
+        # from pattern #4; structural-weakness gives the second distinct hit).
+        # In run1 it supplies the only marker (combined with failure-chain below, gives 2 hits
+        # → PASS on run1). False-positive guard: fires in S-N04-run2 but S-N04-run2 already
+        # has 2 pre-mortem markers (adding a 3rd changes count but not firing outcome).
+        # S-N04-run1 fires SW but has 0 pre-existing markers → new count = 1 < 2 → SAFE.
+        # FIX-01, Phase 117, D-03 fence: additive only, pre-mortem 7→9 markers.
+        re.compile(r"\bstructural weakness(es)?\b", re.IGNORECASE),
+        # v7.6 capture-backed: "## The four failure chains" frame fires in S-P01-run1 only
+        # (tests/step0-captures-v7.6/S-P01-run1.txt). Combined with structural-weakness
+        # (also fires in run1), this gives run1 exactly 2 distinct pre-mortem markers → PASS.
+        # Not present in S-P03 fishbone outputs or S-N04 negative controls.
+        # FIX-01, Phase 117, D-03 fence: additive only, pre-mortem 7→9 markers.
+        re.compile(r"\bfailure\s+chains?\b", re.IGNORECASE),
         #
         # v5.2 CARRY-FORWARD (DET-13 / RR-79-01): Extended grep over all 5 S-P01
         # v5.2 captures (.planning/v5.2-inputs/rebase-evidence/S-P01-run1..5.jsonl)
@@ -1796,6 +1812,13 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # structure override fires first (>=2 scaffold tokens from Ground Truths /
         # Assumption Audit / Verdict), correctly labeling the run full-composer.
         re.compile(r"\bPeople[,;]?\s+(and\s+)?Process[,;]?\s+(Technology|Tools)\b", re.IGNORECASE),
+        # v7.7-diag capture-backed: "candidate cause(s)" fires in S-P03-run2, run3, run5
+        # (tests/step0-captures-v7.7-diag/S-P03-run{1..5}.txt). In run5 (a genuine false
+        # negative with only 1 existing fishbone marker) candidate-causes supplies the 2nd
+        # distinct hit → run5 becomes PASS. Does NOT fire in S-N04 v7.6 negative controls
+        # or v7.4 S-P01 pre-mortem captures (cross-verified).
+        # FIX-01, Phase 117, D-03 fence: additive only, fishbone 6→7 markers.
+        re.compile(r"\bcandidate\s+causes?\b", re.IGNORECASE),
     ),
     "five-whys": (
         # five-whys.md — the canonical drill question
