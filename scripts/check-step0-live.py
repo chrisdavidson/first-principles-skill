@@ -633,10 +633,57 @@ def self_test() -> int:
         except OSError:
             pass
 
+    # --- NON-BLOCK-NEG: non-blocking negative semantics (D-16/D-17) ---
+    # Assert (a) a synthetic results set with all 8 canonical positives PASS +
+    # S-N04 FAILS returns battery_pass=True (S-N04 is non-blocking); and
+    # (b) the same set with S-N01 FAILS instead returns battery_pass=False
+    # (S-N01 is a blocking oblique negative).
+    _nb_canonical = [
+        PromptResult(
+            prompt=Step0Prompt(id=cid, text="t", expected="focused-pre-mortem"),
+            modes=["focused-pre-mortem"] * 5,
+            match_count=5,
+            row_pass=True,
+        )
+        for cid in CANONICAL_TALLY_IDS
+    ]
+    _nb_sn04_fail = PromptResult(
+        prompt=Step0Prompt(id="S-N04", text="walk through failure modes", expected="full-composer"),
+        modes=["focused-pre-mortem"] * 5,
+        match_count=0,
+        row_pass=False,
+    )
+    _nb_sn01_fail = PromptResult(
+        prompt=Step0Prompt(id="S-N01", text="oblique prompt", expected="full-composer"),
+        modes=["focused-pre-mortem"] * 5,
+        match_count=0,
+        row_pass=False,
+    )
+    # (a) Failing S-N04 must NOT flip battery (non-blocking)
+    _, _, _, _nb_bp_sn04 = _battery_gate(_nb_canonical, [_nb_sn04_fail])
+    if not _nb_bp_sn04:
+        print(
+            "self-test FAIL: NON-BLOCK-NEG — failing S-N04 flipped battery_pass=False "
+            "(S-N04 must be excluded from the blocking negative bar via "
+            "NON_BLOCKING_NEGATIVE_IDS; D-16/D-17)",
+            file=sys.stderr,
+        )
+        all_passed = False
+    # (b) Failing S-N01 MUST flip battery (blocking)
+    _, _, _, _nb_bp_sn01 = _battery_gate(_nb_canonical, [_nb_sn01_fail])
+    if _nb_bp_sn01:
+        print(
+            "self-test FAIL: NON-BLOCK-NEG — failing S-N01 did NOT flip battery_pass=False "
+            "(S-N01 must remain a blocking negative; D-16/D-17)",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
-            " + /8-tally + failing-S-P16 firewall + failing-S-N firewall)"
+            " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
+            " + non-blocking-S-N04)"
         )
         return 0
     return 1
