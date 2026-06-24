@@ -68,10 +68,10 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 | Technique | Trigger phrases (any one fires) |
 |---|---|
-| pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused" |
+| pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused", "structural weakness", "failure chain" |
 | theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" |
 | inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" |
-| fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space" |
+| fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space", "candidate causes" |
 | five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of", "decompose (this )?(claim|into primitives)" |
 | trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
 | second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
