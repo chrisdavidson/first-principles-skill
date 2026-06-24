@@ -1,0 +1,42 @@
+The first-principles agent produced the fishbone analysis. Here's the result:
+
+# Fishbone Diagram — Checkout API 503 Errors
+
+## Effect
+> Checkout API returned 503 errors for 40 minutes starting 14:10 UTC yesterday, affecting all users. Database layer ruled out.
+
+A 503 with this shape — all-users, time-boxed, sudden onset — favors a **shared chokepoint** (capacity, dependency, or config) over a slow-burn or partial-segment cause.
+
+## Diagram
+
+```
+                  PEOPLE                    PROCESS                          ┌─ no warm pool / cold start storm
+                    │                          │                            │
+   bad deploy ──────┤      no canary/staged ───┤     autoscaler too slow ───┤
+   manual config ───┤      rollout             │     pod evictions ─────────┤
+   on-call gap ─────┤      no circuit breaker ─┤     (OOM/CPU) ─────────────┤
+                    │      change at 14:10? ───┤                            │
+  ──────────────────┼──────────────────────────┼────────────────────────────┼─► 503 errors,
+                    │                          │                            │   all users,
+   payment gateway ─┤      LB health-check ────┤     traffic spike ─────────┤   40 min,
+   auth service ────┤      stale DNS / cert ───┤     retry storm ───────────┤   14:10 UTC
+   thread-pool ─────┤      conn-pool exhaust ──┤     thundering herd ───────┤
+   exhaustion ──────┤      (non-DB) ───────────┤                            │
+                    │                          │                            │
+                DEPENDENCIES               TECHNOLOGY                   RESOURCES
+                  (external)                & TOOLS                     (capacity)
+```
+
+## Prioritized branches (investigate in this order)
+
+1. **Dependencies — synchronous upstream failure** (payment/auth). Cleanest single explanation for total 503s with a healthy DB. *Verify: upstream dependency dashboards, 14:10–14:50.*
+2. **People/Process — change at 14:10.** Sharp onset time is the strongest correlation signal; pull the deploy/config timeline first — fastest to confirm or eliminate.
+3. **Technology — LB health-check misfire.** Textbook "everything's 503 but the DB is fine." Cheap to check via target-group health history.
+
+## Onset vs. duration
+The **40-minute duration** is likely a *separate* sub-cause from the trigger — most often a **retry storm** or **slow on-call/autoscaler response** that prolonged the outage.
+
+## Scope note
+All branches are unverified candidate causes — a fishbone maps the cause *space*, it doesn't diagnose. "Database ruled out" is taken as verified ground truth, which is why capacity/connection-pool branches are scoped to *non-DB* dependencies.
+
+The agent offered to run a **Five Whys drill** on whichever branch the logs implicate, once you know where the evidence points.

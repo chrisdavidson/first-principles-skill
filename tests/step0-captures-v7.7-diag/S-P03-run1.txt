@@ -1,0 +1,42 @@
+The first-principles agent produced the fishbone analysis. Here it is:
+
+# Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+## Effect (the problem head)
+**Checkout API returned HTTP 503 for ~40 minutes (14:10–14:50 UTC), affecting 100% of users. Database layer ruled out.**
+
+A 503 across *all* users for a sustained window points at a shared app-tier or infrastructure-tier resource — not a per-user fault.
+
+## Cause branches (six-category software set)
+
+```
+   People                    Process                   Technology & Tools
+      \                         \                            /
+   Recent deploy by         Deploy/release             App pods crash-looping
+     on-call eng ──┐         during peak ──┐              (OOM / panic) ──┐
+   No one watching   \      No canary /      \         LB/ingress health   \
+     dashboards       \      gradual rollout   \         checks failing      \
+   Runbook unknown     \    Autoscaling         \      Non-DB upstream        \
+     / not followed     \     misconfigured      \       timeout / pool        \
+                          >========================>====== exhaustion =========>===[ 503, 40 min,
+                          /                        /                            /    all users,
+   Traffic spike ────────┘   Missing alert ──────┘    Service-discovery ──────┘     DB ruled out ]
+   Cloud AZ degradation     Capacity not             / DNS failure
+   Network / CDN partition    provisioned            Secrets/config unreachable
+      Environment              Resources              Information
+```
+
+**Key sub-causes by branch:** deploy/config change at ~14:10 (Process); pods crash-looping or LB health checks failing → 503 with zero healthy backends (Technology); non-DB upstream timeout — cache/auth/payment — or pool exhaustion (Technology); feature-flag flip at 14:10 (Information); capacity/quota/AZ degradation (Resources/Environment).
+
+## Prioritised candidates to verify
+
+| Priority | Branch | Why it fits | Evidence to pull |
+|---|---|---|---|
+| 1 | Deploy/config change at ~14:10 | Sharp 14:10 onset screams a change event | Deploy log, feature-flag audit, config-store history 14:05–14:12 |
+| 2 | Pods crash-looping / health checks failing | All-users 503 when zero healthy backends | Pod restarts, OOMKilled events, LB healthy-target graph |
+| 3 | Non-DB dependency timeout / pool exhaustion | DB ruled out, but another upstream wasn't | Latency/errors on cache, auth, payment; pool saturation |
+| 4 | Capacity / AZ degradation | Explains 40-min sustained, no-deploy case | Provider status page, autoscaler events, quota throttling |
+
+**Recommended next step:** confirm or eliminate Priority 1 first — a change-event at 14:10 is the most common 503 cause and the cheapest to check.
+
+**Caveat on the DB exclusion:** it removes the DB *branch* but not DB-adjacent causes elsewhere (e.g., a pool sized for the DB exhausting against another dependency, or a DB-credentials config change crash-looping the app). Worth confirming "ruled out" means the DB was *healthy and serving*, not merely that the host was up.

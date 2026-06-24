@@ -1,0 +1,35 @@
+The first-principles agent produced the fishbone diagram. Here is its analysis:
+
+# Fishbone Diagram — Checkout API 503 Errors
+
+## Effect (problem head)
+**Checkout API returned 503 (Service Unavailable) for ~40 minutes starting 14:10 UTC, affecting 100% of users.** Database layer ruled out.
+
+The **503** is load-bearing: it signals the service was reachable but couldn't handle requests — typically an upstream/proxy returning it because backends were unhealthy, saturated, or unreachable.
+
+```
+   PEOPLE              PROCESS              TECHNOLOGY & TOOLS     ┌─────────────────┐
+      ├─ On-call gap      ├─ Deploy at ~14:10?    ├─ App crash/OOM │  Checkout API   │
+      ├─ Manual config    ├─ Autoscaling mistune  ├─ LB health-chk │  503 for 40 min │
+      ├─ Cert rotation    ├─ No canary/rollback   ├─ Conn-pool exh │  ALL users      │
+      ─────────────────────────────────────────────────────────►  │  (DB ruled out) │
+      ├─ Upstream dep down├─ TLS cert expiry      ├─ Traffic spike └────────┬────────┘
+      ├─ Cloud-zone event ├─ Poisoned config/flag ├─ Mass-5xx input         │
+      ├─ DNS failure      ├─ Secret expiry        ├─ Cache outage→herd      │
+   ENVIRONMENT         INFORMATION             RESOURCES
+```
+
+## Prioritised branches (sharp 14:10 onset + 100% users + 503 + DB excluded → points to a *discrete change event* or *precise-timestamp expiry*)
+
+| Priority | Candidate | Why it fits | First evidence |
+|---|---|---|---|
+| 1 | **Deploy/manual change at 14:10** | 100%-user sharp onset = global change, not organic load | Deploy/audit log 14:00–14:15 |
+| 2 | **TLS cert expiry** | Certs die at exact timestamps; fits onset-then-recovery | Cert `notAfter` on LB→backend & upstream hops |
+| 3 | **App crash-loop / LB health-check failure** | 503 = canonical "no healthy backend" | LB target health, pod restarts, OOM logs |
+| 4 | **Upstream dependency outage** | Checkout fans out to payment/auth externals | Upstream status + outbound error-rate by dep |
+
+## Two notes the agent flagged
+- **DB caveat:** app-tier DB connection-pool exhaustion (C-T3) can masquerade as an app fault while the DB itself looks healthy — worth revisiting *how* the DB was ruled out if other branches don't corroborate.
+- **Duration ≠ onset:** the 40-minute window is a separate sub-question (detection + mitigation lag), and its cause may differ from the trigger.
+
+All candidate causes are unverified hypotheses until checked against logs/metrics. The agent offered to drill into the top branch with a focused Five Whys once you've pulled the deploy/audit log, or to run a full first-principles incident analysis.

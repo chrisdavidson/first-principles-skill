@@ -1,0 +1,18 @@
+The first-principles agent completed the fishbone (Ishikawa) analysis on your checkout API incident. Here's what it produced:
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned 503s for ~40 min (14:10–14:50 UTC), 100% of users.
+
+It mapped candidate causes across the six standard categories, ranked by prior likelihood given the 503 semantics:
+
+**Highest-priority branches to investigate first:**
+1. **Process → deploy/config event at ~14:10** — the sharp onset + total blast radius strongly implies a global change event. Pull the deploy timeline for that minute.
+2. **Technology → load balancer reports zero healthy backends** — the native meaning of a 503 (pods failing readiness/liveness probes → removed from rotation). Check pod-restart and probe metrics across the window.
+3. **Environment → TLS cert / secret expiry** — best explanation for a knife-edge onset at a specific minute *if no deploy correlates* (clock-driven cutoff).
+
+**Other branches enumerated:** crashloop/OOM, non-DB connection/thread-pool exhaustion, upstream dependency (auth/payment/cache) failures, circuit-breaker trips, AZ/network outage, DNS failure, resource quotas, and slow-diagnosis factors (ambiguous alerts, lagging dashboards) that explain the *40-min duration* vs. the onset.
+
+**Key caveat it flagged:** Your "database ruled out" ground truth is worth double-checking *how* it was ruled out. If it was "DB metrics looked normal," that does **not** exclude **app-side DB connection-pool exhaustion** (the app can't get a connection while the DB itself is healthy). If the exclusion was metrics-based rather than pool-based, that branch should be reinstated.
+
+The agent offered to drill any single branch to root cause with a Five-Whys chain, or to run the full first-principles analysis. Let me know if you'd like either.

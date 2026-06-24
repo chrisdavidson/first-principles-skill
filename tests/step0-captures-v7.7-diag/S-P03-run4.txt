@@ -1,0 +1,46 @@
+The first-principles agent produced the fishbone (Ishikawa) diagram. Here's the result:
+
+**Effect:** Checkout API returned HTTP 503 for ~40 min starting 14:10 UTC yesterday, all users affected — database layer ruled out (used as a pruning constraint).
+
+```
+                                                                  ┌─ checkout pods OOM-killed / crash-looping
+                                                                  ├─ upstream dependency (payment gateway,
+                                                                  │   auth, inventory svc) timing out → 503
+                       PEOPLE                  TECHNOLOGY & TOOLS │   cascades through checkout
+                          │                          │           ├─ load balancer / ingress had no healthy
+   recent deploy by on-call ─┐                       │           │   backends (readiness probe failing)
+   without staged rollout   │                        ├───────────┤
+   alert fatigue → slow      ├──┐                     ├─ TLS cert / service-mesh sidecar failure
+   ack (40-min window)      │   │                     ├─ connection-pool / thread-pool exhaustion
+   missing on-call coverage ─┘   │                     │   (NOT db pool — app-tier or to upstream)
+   at 14:10 UTC             │     │                    └─ memory leak crossing threshold at 14:10
+                            │      \                                            │
+   PROCESS                  │       \___________________________               │
+      │                      │                                  \              │
+   no canary / instant ──────┤                                   ●  503 for 40 min, all users,
+     full rollout            │                                      14:10 UTC (DB ruled out)
+   no auto-rollback ─────────┤        ┌─ traffic spike / retry storm
+   runbook missing/stale ────┘        ├─ rate limiter / WAF shedding legit traffic
+                            ENVIRONMENT├─ DNS / region failover; cloud zone degradation
+                                       └─ expired secret/credential at 14:10
+```
+
+## Cause map by category
+
+- **People** — deploy pushed without staged rollout; alert fatigue/thin coverage → slow ack (explains *duration*, not *onset*)
+- **Process** — no canary; no auto-rollback on error spike; stale runbook
+- **Technology & Tools** — pods OOM/crash-looping; upstream dependency timeout cascade; LB/ingress with zero healthy backends; app-tier or upstream pool exhaustion (*not* DB pool); TLS/sidecar failure; memory leak
+- **Environment / Infra** — traffic spike / thundering herd; WAF/rate-limiter shedding; DNS/region failover; node-pool autoscaling failure; expired secret/cert at 14:10
+- **Information** — no 503-source-attribution dashboard; logs not aggregated; misleading alert routing
+- **Resources** — CPU/memory quota exhausted; replica count too low; upstream paid-API quota hit
+
+## Prioritized branches to investigate
+
+1. **Upstream-dependency timeout cascade or zero healthy backends** — a 503 (vs 500) usually means the proxy has no backend to route to. *Check ingress/LB backend-health + upstream latency at 14:10.*
+2. **A deploy at ~14:10 with no canary/rollback** — sharp onset suggests a change event. *Check the change log.*
+3. **Expired secret/cert or autoscaling failure at 14:10** — also produces sharp onset.
+4. **Traffic spike + capacity shortfall.**
+
+**Key structural insight:** the sharp **14:10 onset** points to a discrete trigger (deploy, expiry, dependency failure, traffic step-change), while the **40-min duration** is a separate detection/rollback question. Explain them as two distinct things.
+
+The agent's single recommended next step: **pull the deploy/change log and the ingress backend-health graph for 14:00–15:00 UTC** — together they confirm or eliminate the top two branches. It also offered to drill the top branches into a five-whys causal chain or run a full first-principles incident analysis if you want to go deeper.
