@@ -1211,6 +1211,31 @@ def self_test_boundary() -> int:
         all_passed = False
 
     # ---------------------------------------------------------------------------
+    # Fishbone count drift guard (Phase 117, Plan 02 — FIX-02, D-09 partial)
+    #
+    # The DIAG-01-prescribed FIX-01 added "candidate causes" as the 7th fishbone
+    # marker (Phase 117, Plan 01, 2026-06-24; _TECHNIQUE_CATEGORIES["fishbone"]
+    # grew from 6 to 7).  This drift guard locks that new count against future
+    # silent regression — mirroring the pre-mortem, inversion, and trade-off
+    # drift-guard idiom.  No capture-based vector is asserted (there are no
+    # fishbone v7.6 excerpts in tests/step0-captures-v7.6/); this is a
+    # count-only drift guard.
+    # ---------------------------------------------------------------------------
+    _fishbone_pattern_count = len(_TECHNIQUE_CATEGORIES["fishbone"])
+    if _fishbone_pattern_count == 7:
+        print(
+            f"  Fishbone drift guard PASS: len(_TECHNIQUE_CATEGORIES['fishbone']) == 7 "
+            f"(Phase 117 FIX-02 added 'candidate causes'; 6→7; count locked)."
+        )
+    else:
+        print(
+            f"  Fishbone drift guard FAIL: len(_TECHNIQUE_CATEGORIES['fishbone']) == "
+            f"{_fishbone_pattern_count} (expected 7 after Phase 117 FIX-02 'candidate causes' "
+            f"addition; fishbone drift guard added Phase 117 FIX-02, D-09 partial)."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
     # RR-108-02 named honest-state sentinel (Phase 108, Plan 02)
     # RR-108-02 supersedes RR-95-02 (Phase 108 v7.4 carry-forward, S-P05 trade-off)
     # Supersession chain: RR-79-03 → RR-92-02 → RR-95-02 → RR-108-02
