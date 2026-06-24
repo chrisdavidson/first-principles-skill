@@ -1030,6 +1030,107 @@ def _run_self_test() -> None:
     # documentation requirement.
 
     # -----------------------------------------------------------------------
+    # Category 8: FIX01-LOCK named emulator assertions (FIX-01 / D-04 / D-11)
+    #
+    # Two catalog-independent hardcoded positive-lock assertions (modelled on
+    # FIVEWHYS-ABSORB) that prove the augmented phrase table (Phase 117 FIX-01)
+    # still routes S-P01 and S-P03 to their focused modes via the phrase
+    # classifier.
+    #
+    # Motivation: FIX-01 added new trigger phrases to pre-mortem (row 30:
+    # "structural weakness", "failure chain") and fishbone (row 33:
+    # "candidate causes"). These additions make the _battery_core.py detector
+    # more sensitive, but the STEP0-08 phrase-table classifier must still
+    # route the *original* S-P01 and S-P03 prompts correctly — they contain
+    # literal primary triggers ("pre-mortem" and "fishbone") so the expected
+    # outcomes are unchanged. These assertions lock that invariant.
+    #
+    # Both literals are catalog-independent (D-04): deleting S-P01 or S-P03
+    # from step0-fixture-catalog.md cannot silently drop these gates. Any
+    # silent edit to a catalog row fails loudly via the drift guard below.
+    # -----------------------------------------------------------------------
+
+    _FIX01_LOCK_SP01_PROMPT = (
+        "run a pre-mortem on this launch — we are shipping the payments-rewrite "
+        "service to all EU customers next Friday, replacing the legacy stripe "
+        "integration, with no staged rollout"
+    )
+    _FIX01_LOCK_SP01_EXPECTED = "focused-pre-mortem"
+
+    _FIX01_LOCK_SP03_PROMPT = (
+        "draw a fishbone diagram on the production incident — our checkout API "
+        "returned 503 errors for 40 minutes starting 14:10 UTC yesterday, "
+        "affecting all users; we have ruled out the database layer"
+    )
+    _FIX01_LOCK_SP03_EXPECTED = "focused-fishbone"
+
+    # Drift guard: hardcoded S-P01 literal must still match the live catalog
+    # S-P01 row, OR the row must be absent (deletion is the survivable case).
+    _sp01_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P01"), None
+    )
+    if _sp01_catalog_prompt is not None and _sp01_catalog_prompt != _FIX01_LOCK_SP01_PROMPT:
+        print(
+            "check-step0-emulator --self-test: FIX01-LOCK S-P01 FAIL "
+            "(hardcoded S-P01 literal drifted from the live catalog S-P01 row — "
+            "re-sync the literal or update the gate)"
+        )
+        wrong.append(
+            f"FIX01-LOCK S-P01 (literal drifted from catalog row "
+            f"{_sp01_catalog_prompt!r} != {_FIX01_LOCK_SP01_PROMPT!r})"
+        )
+
+    # Drift guard: hardcoded S-P03 literal must still match the live catalog
+    # S-P03 row, OR the row must be absent.
+    _sp03_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-P03"), None
+    )
+    if _sp03_catalog_prompt is not None and _sp03_catalog_prompt != _FIX01_LOCK_SP03_PROMPT:
+        print(
+            "check-step0-emulator --self-test: FIX01-LOCK S-P03 FAIL "
+            "(hardcoded S-P03 literal drifted from the live catalog S-P03 row — "
+            "re-sync the literal or update the gate)"
+        )
+        wrong.append(
+            f"FIX01-LOCK S-P03 (literal drifted from catalog row "
+            f"{_sp03_catalog_prompt!r} != {_FIX01_LOCK_SP03_PROMPT!r})"
+        )
+
+    fix01_lock_sp01_computed = classify(_FIX01_LOCK_SP01_PROMPT, rules)
+    if fix01_lock_sp01_computed == _FIX01_LOCK_SP01_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: FIX01-LOCK S-P01 PASS "
+            f"(augmented pre-mortem trigger → {fix01_lock_sp01_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: FIX01-LOCK S-P01 FAIL "
+            f"(expected {_FIX01_LOCK_SP01_EXPECTED!r}, got {fix01_lock_sp01_computed!r}; "
+            f"FIX-01 regression: augmented pre-mortem row 30 no longer routes the "
+            f"primary S-P01 trigger to focused-pre-mortem)"
+        )
+        wrong.append(
+            f"FIX01-LOCK S-P01 (expected {_FIX01_LOCK_SP01_EXPECTED!r}, got {fix01_lock_sp01_computed!r})"
+        )
+
+    fix01_lock_sp03_computed = classify(_FIX01_LOCK_SP03_PROMPT, rules)
+    if fix01_lock_sp03_computed == _FIX01_LOCK_SP03_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: FIX01-LOCK S-P03 PASS "
+            f"(augmented fishbone trigger → {fix01_lock_sp03_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: FIX01-LOCK S-P03 FAIL "
+            f"(expected {_FIX01_LOCK_SP03_EXPECTED!r}, got {fix01_lock_sp03_computed!r}; "
+            f"FIX-01 regression: augmented fishbone row 33 no longer routes the "
+            f"primary S-P03 trigger to focused-fishbone)"
+        )
+        wrong.append(
+            f"FIX01-LOCK S-P03 (expected {_FIX01_LOCK_SP03_EXPECTED!r}, got {fix01_lock_sp03_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -1040,7 +1141,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK named assertions")
 
 
 def _require_python_version() -> None:
