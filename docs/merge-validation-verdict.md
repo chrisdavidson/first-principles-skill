@@ -231,6 +231,53 @@ forward-committed to a scoped follow-up milestone per the measure+decide+defer s
 
 ---
 
+## Phase 117 Fix Outcome (v7.7 CONF-01 — added Phase 117, Plan 07, CONF-02)
+
+The forward-committed fix named above was applied in the **v7.7 milestone** (Phase 117).
+The fix targeted the two v7.6 regressions: **S-P01 pre-mortem** and **S-P03 fishbone**
+under-routing. The method was detector recalibration per DIAG-01 (Phase 116): adding
+two new pre-mortem markers ("structural weakness" / "failure chain", 7→9) and one new
+fishbone marker ("candidate causes", 6→7) in `scripts/_battery_core.py` + syncing
+the trigger-phrase table in `shared/spine/SKILL-body.md` (FIX-01/FIX-02, Phase 117
+Plans 01–02).
+
+**Phase 117 D-17 revised CONF-01 verdict (tests/step0-baseline-v7.7.md): SHORT OF BAR.**
+
+| Row | Expected | v7.4 floor | v7.7 (post-fix) | D-17 role |
+|-----|----------|:---:|:---:|---|
+| S-P01 | focused-pre-mortem | 3/5 | **3/5 PASS** | positive ✓ — fix confirmed out-of-sample |
+| S-P03 | focused-fishbone | 3/5 | **5/5 PASS** | positive ✓ — fix confirmed out-of-sample |
+| S-N01 | full-composer | — | **0/5 FAIL** | blocking ✗ |
+| S-N02 | full-composer | — | **2/5 FAIL** | blocking ✗ |
+| S-N03 | full-composer | — | **5/5 PASS** | blocking ✓ |
+| S-N04 | full-composer | — | **2/5** | non-blocking (NON_BLOCKING_NEGATIVE_IDS, D-16) |
+
+**Positives confirmed (S-P01 3/5, S-P03 5/5)**: the FIX-01 detector recalibration
+restored both techniques to their v7.4 floors out-of-sample. The fix works.
+
+**Short of bar — reason**: S-N01 (0/5) and S-N02 (2/5) fail the blocking-negative
+conjunct. Transcript evidence confirms these are **semantically pre-mortem prompts**
+that the live agent genuinely routes to focused pre-mortem — the same phenomenon
+discovered for S-N04 in Plan 117-03, now shown to apply to S-N01/S-N02. S-N03
+(debugging request) passes 5/5 — the clean precision signal. The negative-control set
+(S-N01/S-N02/S-N03) was mis-chosen; the failures reflect prompt semantics, not a
+fix-induced precision regression. Per honesty-not-score (D-13) markers were NOT tuned
+and the run was NOT repeated.
+
+**Residual dispositions at Phase 117 CONF-02 (Plan 07):**
+
+| Residual | Technique | v7.7 K/N | Disposition |
+|----------|-----------|:---------:|-------------|
+| RR-79-01 | S-P01 pre-mortem | 3/5 PASS | **CLOSED** at v7.7 (≥ min-pass; ID retained, sentinel re-pointed to v7.7 as regression guard) |
+| RR-117-01 | S-P03 fishbone | 5/5 PASS | **NEW sentinel minted, CLOSED** (first fishbone vector sentinel; RR-75-03 lineage) |
+| RR-117-02 | S-N03 precision | 5/5 PASS | **NEW precision sentinel minted** (D-17 precision finding: FIX-01 did not hurt genuinely-oblique routing) |
+| RR-114-01 | S-P02 inversion | (not measured) | **Carried untouched** (out of scope) |
+
+*Fix outcome recorded: 2026-06-24*
+*Authored in: Phase 117-apply-the-fix-targeted-live-confirmation-reconciliation, Plan 07*
+
+---
+
 *Decision recorded: 2026-06-23*
 *Authored in: Phase 115-verdict-artifact-traceability-reconciliation, Plan 01*
 *Supersedes: nothing (first v7.6 merge-validation verdict artifact)*

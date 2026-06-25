@@ -155,7 +155,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
   residuals, coverage headline (121 reproducible / 85 audit-only / 0 gap / 206 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 115 Plan 02.)
+  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 117 Plan 07.)
 - **`docs/requirements-matrix.md`** — generated 206-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
@@ -172,7 +172,7 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 
 **`scripts/check-step0-emulator.py`** — offline Step 0 phrase-detection emulator. Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each trigger phrase into a deterministic regex classifier, and classifies an input prompt to `MODE` (`focused-<technique>` or `full-composer`). No live `claude` session required. `--self-test` runs fault-injection fixtures (D-05 corruption modes) and the full `tests/step0-fixture-catalog.md` classification suite; it is the **STEP0-08 CI gate**. There is no heavy manual run — `--self-test` is the only supported batch mode.
 
-**`scripts/check-step0-live.py`** — live Step 0 agent-body harness. Forces invocation of the agent body against the verbatim oblique prompt via the approach-② `_wrap_for_bypass` bypass channel, over the Plan-36-locked `claude -p --output-format stream-json --verbose` transport. Classifies each run's `MODE` from the captured `.jsonl` stream using `_classify_mode` (with the harness-side `none`→`full-composer` inference fix — D-01/D-02). Scores K-of-N results across the 12-row `tests/step0-fixture-catalog.md`. The full manual run uses `--repeat 5 --min-pass 3` (60 live `claude` invocations — manual only, not run in CI); the canonical baseline is `tests/step0-baseline-v6.4.md`. Its offline `--self-test` (no `claude` invocation) is the **STEP0-06 CI gate**.
+**`scripts/check-step0-live.py`** — live Step 0 agent-body harness. Forces invocation of the agent body against the verbatim oblique prompt via the approach-② `_wrap_for_bypass` bypass channel, over the Plan-36-locked `claude -p --output-format stream-json --verbose` transport. Classifies each run's `MODE` from the captured `.jsonl` stream using `_classify_mode` (with the harness-side `none`→`full-composer` inference fix — D-01/D-02). Scores K-of-N results across the 12-row `tests/step0-fixture-catalog.md`. The full manual run uses `--repeat 5 --min-pass 3` (60 live `claude` invocations — manual only, not run in CI); the canonical baseline is `tests/step0-baseline-v7.7.md` (Phase 117 v7.7 CONF-01; prior baselines are frozen in `tests/step0-baseline-v*.md`). Its offline `--self-test` (no `claude` invocation) is the **STEP0-06 CI gate**.
 
 ### Measurement comparison
 
@@ -185,21 +185,23 @@ Two tools measure the agent body's Step 0 technique-selection logic, at differen
 
 ### RR-80-01 dual-layer ownership (S-N04 confirming gate)
 
-**RR-80-01** (the S-N04 negative-control over-routing residual) is owned by a dual-layer offline confirming gate:
+**RR-80-01** (the S-N04 semantically-pre-mortem over-routing residual; NON_BLOCKING per `NON_BLOCKING_NEGATIVE_IDS`, D-16) is owned by a dual-layer offline confirming gate:
 
 - **STEP0-08** (`check-step0-emulator.py --self-test`): a hardcoded named S-N04 assertion proving the phrase-detection emulator fires no trigger phrase on the S-N04 prompt and classifies it `full-composer` (catalog-independent inline literal).
 - **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`): a hardcoded named marker-counting assertion proving one bare pre-mortem header hit (count=1) is below `MIN_HEADER_HITS` (2), so `pre-mortem` does NOT enter the `fired` set and `classify()` returns `"none"` (not `"focused-pre-mortem"`).
 
-RR-80-01 (S-N04) re-pointed through v6.4 → v7.4 (Phase 108) → **v7.6 (Phase 114)**: at the v7.6 re-baseline S-N04 is **3/5 PASS** (per `tests/step0-baseline-v7.6.md`) but over-routes to focused-pre-mortem on runs 2/4 (v7.6 vector `[0, 2, 0, 2, 0]` over `tests/step0-captures-v7.6/`). The offline gate asserts the **documented count vector, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
+RR-80-01 (S-N04) re-pointed through v6.4 → v7.4 (Phase 108) → v7.6 (Phase 114) → **v7.7 (Phase 117 CONF-02)**: at the v7.7 CONF-01 re-baseline S-N04 is **2/5** (non-blocking; transcript-confirmed genuine pre-mortem routing on a semantically-pre-mortem prompt, D-16). The v7.7 vector is `[1, 2, 2, 1, 3]` over `tests/step0-captures-v7.7/S-N04-run{1..5}.txt`. The offline gate asserts the **documented count vector, not the live pass rate** (honesty-not-score). Both assertions are hardcoded (catalog-independent) per D-04.
 
-### RR-79-01 / RR-114-01 (supersedes RR-108-01) honest-state sentinels (Phase 85 → Phase 114)
+### RR-79-01 (CLOSED v7.7) / RR-114-01 (supersedes RR-108-01) / RR-117-01 fishbone / RR-117-02 precision sentinels (Phase 85 → Phase 117)
 
-**RR-79-01** and **RR-114-01** (supersedes RR-108-01; full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01; Phase 114 v7.6 carry-forward) are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`). Re-pointed v6.4 → v7.4 (Phase 108) → **v7.6 (Phase 114)** evidence:
+**RR-79-01**, **RR-114-01**, **RR-117-01**, and **RR-117-02** are owned by **BATT-06** (`check-routing-battery.py --self-test` → `_battery_core.self_test_boundary()`). The `_load_excerpt_v77` helper (added Phase 117 CONF-02, Plan 07) reads `tests/step0-captures-v7.7/<id>-run<n>.txt`; `_load_excerpt_v76` retained for lineage (RR-114-01, RR-108-02 still read v7.6).
 
-- **RR-79-01**: re-pointed to v7.6 captures (Phase 114). Asserts the S-P01 per-run pre-mortem distinct-marker count vector == [0, 2, 1, 2, 0] over the 5 v7.6 excerpts in `tests/step0-captures-v7.6/S-P01-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["pre-mortem"]) == 7`. Positive counter-check: run2=2 and run4=2 each >= `MIN_HEADER_HITS=2`. **S-P01 REGRESSED to 2/5 FAIL** at the Phase 114 v7.6 re-baseline (from v7.4's 3/5 PASS) — a recorded REGRESSION finding (fix deferred to Phase 115).
-- **RR-114-01** (supersedes RR-108-01, S-P02 inversion CARRIED 1/5 at the Phase 114 v7.6 re-baseline): asserts the per-run inversion count vector == [2, 0, 1, 1, 1] over the 5 v7.6 excerpts in `tests/step0-captures-v7.6/S-P02-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["inversion"]) == 9`. Positive counter-checks: run1=2 >= MIN_HEADER_HITS (detector reachable); synthetic 2-marker text confirms detector fires.
+- **RR-79-01** (**CLOSED at Phase 117 v7.7 CONF-01** — S-P01 pre-mortem 3/5 ≥ min-pass; FIX-01 confirmed out-of-sample): re-pointed to v7.7 captures (Phase 117 CONF-02, D-04 step two). Asserts the S-P01 per-run pre-mortem distinct-marker count vector == [0, 2, 3, 1, 4] over the 5 v7.7 live CONF-01 excerpts in `tests/step0-captures-v7.7/S-P01-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["pre-mortem"]) == 9`. Positive counter-checks: run2=2 and run3=3 each >= `MIN_HEADER_HITS=2`. CLOSE keeps the RR-79-01 ID (RR-108-02 CLOSE precedent per D-09); sentinel retained as regression guard.
+- **RR-114-01** (supersedes RR-108-01, S-P02 inversion CARRIED 1/5 at the Phase 114 v7.6 re-baseline; out of scope at Phase 117 — **carried untouched, D-09**): asserts the per-run inversion count vector == [2, 0, 1, 1, 1] over the 5 v7.6 excerpts in `tests/step0-captures-v7.6/S-P02-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["inversion"]) == 9`. Positive counter-checks: run1=2 >= MIN_HEADER_HITS (detector reachable); synthetic 2-marker text confirms detector fires.
+- **RR-117-01** (**NEW, CLOSED at Phase 117 v7.7 CONF-01** — S-P03 fishbone 5/5; first fishbone vector sentinel; RR-75-03 lineage): minted Phase 117 CONF-02, Plan 07. Asserts the S-P03 per-run fishbone distinct-marker count vector == [3, 3, 2, 2, 2] over the 5 v7.7 live CONF-01 excerpts in `tests/step0-captures-v7.7/S-P03-run{1..5}.txt`. Drift guard: `len(_TECHNIQUE_CATEGORIES["fishbone"]) == 7`. Positive counter-checks: run1=3 and run5=2 each >= MIN_HEADER_HITS. Retained as regression guard.
+- **RR-117-02** (**NEW, Phase 117 CONF-02** — S-N03 precision sentinel): proves FIX-01 did NOT hurt routing on genuinely-oblique prompts. Asserts S-N03 per-run pre-mortem count vector == [0, 0, 0, 0, 0] over `tests/step0-captures-v7.7/S-N03-run{1..5}.txt` (9-marker post-fix detector; debugging prompt; all 5 runs stay below MIN_HEADER_HITS → full-composer 5/5). D-17 precision finding locked.
 
-Both sentinels assert the **documented honest state, not the live pass rate** (honesty-not-score, C-02). Excerpts are frozen read-only v7.6 evidence; they are git-tracked so any tampering is visible in diff/PR review.
+All sentinels assert the **documented honest state, not the live pass rate** (honesty-not-score, C-02). Excerpts are frozen read-only evidence; they are git-tracked so any tampering is visible in diff/PR review.
 
 ### RR-108-02 (CLOSED at v7.6) / RR-77-08 sentinels (Phase 85 → Phase 114)
 
