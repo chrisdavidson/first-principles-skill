@@ -1,0 +1,40 @@
+I'll invoke the agent with the exact prompt.
+The first-principles agent has completed the fishbone analysis. Here's the result:
+
+## Fishbone Diagram — Checkout API 503 Outage
+
+**Effect:** Checkout API returned 503 errors for all users for 40 minutes, starting 14:10 UTC. The agent flagged that **503 is the load-bearing clue** — requests reached the LB/gateway but no healthy upstream was available — which shapes the whole analysis.
+
+```
+   PEOPLE                    PROCESS                    TECHNOLOGY & TOOLS
+      |                         |                              |
+  On-call unaware          Deploy ~14:10 ◄─time-correlated   All instances unhealthy
+  Manual config push       No canary rollout                 → LB has no upstream → 503
+  Manual credential        Failed rollback                   Pool/thread exhaustion
+    rotation               Freeze not enforced               Memory leak / OOM crash-loop
+                                                             Health-check misconfig
+                                                             Expired TLS cert / token
+                            ════════════════►  ┌──────────────────┐
+                            ════════════════►  │ 503, all users,  │
+                                               │ 40 min, 14:10 UTC│
+                                               └──────────────────┘
+  Traffic spike            Slow detection                    Autoscaler at max
+  Cloud/region incident    Stale runbook                     CPU starvation
+  DNS failure              High alert thresholds             Too few replicas
+  LB↔service partition     Wrong dashboards
+   ENVIRONMENT             INFORMATION                       RESOURCES
+
+  RULED OUT: Database layer (all DB branches pruned)
+```
+
+## Top branches to investigate (ranked by the 503 signature + timing)
+
+1. **Deploy/release at ~14:10** (Process) — sharp onset suggests a human-triggered change → check CI/CD & git history
+2. **All instances unhealthy → LB has no upstream** (Tech) — directly explains 503-for-everyone → LB health-check logs
+3. **Downstream dependency timeout** (Tech) — payment/auth hanging → trace latency
+4. **Health-check misconfig** marking all nodes down (Tech)
+5. **Resource exhaustion** — pool/memory; ~40-min recovery fits a restart/scale-out
+
+**Key insight:** The two time anchors — 14:10 onset and ~14:50 recovery — are the fastest path to root cause. Pin down *what changed at ~14:50* (auto-recovery, manual rollback, or dependency self-healing). Every branch except the database is an **unverified candidate** — this is a search plan, not a conclusion.
+
+The agent offered to run a **Five Whys** drill on the deploy branch once you have the change log, to move from breadth to depth on root cause. Let me know if you'd like that.

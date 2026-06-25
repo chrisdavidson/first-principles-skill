@@ -1,0 +1,16 @@
+I invoked the **first-principles** agent with your prompt exactly as written. It's ready to run a full pre-mortem, but it needs the actual plan to work from — without it, the analysis can't be concrete. Here's what it's asking for:
+
+1. **What is the plan?** A paragraph or bulleted summary of what you're committing to.
+2. **What's the goal / success criteria?** So "blowing up" can be defined precisely (missed deadline? blown budget? wrong thing built? irreversible damage?).
+3. **Key constraints** — deadline, budget, headcount, technical/regulatory boundaries.
+4. **What's locked vs. still changeable?** A pre-mortem only earns its keep if findings can still move the plan.
+
+Once you share the plan, here's how it will run the analysis:
+
+- **Restate the premise** — "It's [launch + N months]. The plan failed. Why?" — to lock in the prospective-hindsight frame.
+- **Generate failure causes unfiltered** — full raw list before any judgment.
+- **Interrogate adversarially** — flag each cause you'd have suppressed *because the team was excited* (highest-signal items).
+- **Cluster into structural weaknesses** — recurring roots, not isolated risks.
+- **Turn each into an action** — a plan change or an explicitly accepted risk with an owner and mitigation.
+
+Paste the plan (or point me at a doc/repo path) and I'll hand it straight to the agent to continue.

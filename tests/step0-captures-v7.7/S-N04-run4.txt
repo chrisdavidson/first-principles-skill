@@ -1,0 +1,26 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## Pre-Mortem: Authentication Rollout
+
+The analysis reframed your request as a pre-mortem (plan exists, timeline not yet locked) and worked up from ground truths to failure clusters.
+
+**Ground truths it anchored on:**
+- Auth is on every team's critical path — failure is a total outage, not a degradation
+- Coordinated cross-team changes fail at the *slowest* team, not the average
+- Credential/session migration is typically **one-way** — rollback is harder after cutover than before
+- Auth failures are high-blast-radius and surface at peak login traffic, not at deploy
+
+**Four failure clusters to prepare for:**
+
+| Cluster | Failure mode | Mitigation |
+|---|---|---|
+| **A — Long tail dominates** | One or two teams with legacy integrations / service accounts can't migrate on schedule, forcing indefinite dual-running | Per-team auth-integration inventory *before* locking the date; named owner + drop-dead date for laggards |
+| **B — Rollback is a myth** | Problem surfaces hours post-cutover, no clean path back because sessions already migrated | Rehearse rollback at each stage; make any one-way point an explicit gated decision |
+| **C — Fails at peak, not deploy** | Green deploy, then token-refresh/expiry/rate-limits break under real volume | Realistic peak load-test; canary team in a low-traffic window; watch refresh/expiry paths specifically |
+| **D — Timeline rigidity** | External date forces teams to ship half-migrated state | Decide *now* whether date or scope flexes |
+
+**Adversarial items it flagged** (the "would I suppress this in the meeting?" risks): overconfidence in functional equivalence (untested consumer edge cases), top-down sizing to fit the quarter rather than bottom-up readiness, no clear owner of cross-team shared dependencies (IdP config, shared session store, DNS/certs), and a runbook never executed end-to-end against production-like data.
+
+**Bottom line:** The dominant weakness is *structural, not technical* — the collision between a locked timeline and an unverified per-team readiness assumption (Clusters A + D). Before locking, it recommends (1) a bottom-up per-team integration inventory, and (2) an explicit decision on whether date or scope flexes. Two things to verify first, both high-stakes: rollback reversibility past cutover, and functional equivalence for **non-human auth** (service accounts, long-lived tokens).
+
+The agent ended with a question back to you: **what's driving "next quarter" — readiness or an external date?** That answer changes the whole risk posture. If you'd like, I can send it the team count, IdP setup (in-house vs. vendor), whether customer/external auth is in scope, and the timeline driver — and it will turn these clusters into a concrete sequenced rollout plan with named gates.

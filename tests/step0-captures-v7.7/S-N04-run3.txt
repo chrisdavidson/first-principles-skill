@@ -1,0 +1,32 @@
+The first-principles agent ran a pre-mortem and returned its analysis. Here's what it found.
+
+## Six structural weaknesses in the auth rollout
+
+It assumed the rollout had already failed and worked backward to root causes, which collapsed into six recurring patterns:
+
+**SW-1 — Big-bang cutover with an untested rollback.** Cutting everyone over at once with a rollback never exercised end-to-end. *Prepare:* phase into waves, write pre-agreed rollback criteria, rehearse a real rollback including data restoration. *Warning sign:* a single cutover date for all teams, or no one can say when rollback was last tested.
+
+**SW-2 — Identity-data quality assumed, not measured.** Duplicates, orphans, email collisions, lost group memberships, forgotten service accounts. *Prepare:* run an identity-data audit now; size reconciliation as its own work item. *Warning sign:* no one can state account count, source-system count, or duplicate rate.
+
+**SW-3 — Coordination debt: the critical path runs through teams you don't control.** The slowest, least-ready team gates the shared date. *Prepare:* wave-based rollout, named integration owner per team, readiness checklist as a gate. *Warning sign:* per-team readiness burn-down stays flat as the date nears.
+
+**SW-4 — Security posture silently regresses during transition.** Over-broad role mappings, long-lived tokens, MFA gaps — "works" while being less secure. *Prepare:* security-parity checklist, default-deny least-privilege mapping, verified token TTL/revocation, dedicated review. *Warning sign:* role mappings that say "grant existing access" with no privilege diff.
+
+**SW-5 — Single point of failure in the IdP / vendor dependency.** The IdP becomes the chokepoint; vendor rate limits, outages, or under-provisioning bite. *Prepare:* load-test at peak concurrency, check rate limits against batch size, verify tier features, define a break-glass path. *Warning sign:* no load test scheduled; break-glass undefined.
+
+**SW-6 — Timeline fit by compression, not estimation (the amplifier).** If "next quarter" was chosen first and the plan compressed to fit, the de-risking work (audit, load test, rehearsal) gets squeezed out — the exact work that prevents the other five. *Prepare:* bottom-up re-estimate of those de-risking activities; if they don't fit with buffer, descope wave 1 or extend.
+
+## The recommendation
+
+Don't lock the timeline until the team can produce four things, each doubling as an early-warning instrument:
+
+1. An identity-data audit with real counts (SW-2)
+2. A tested rollback including identity-data restoration (SW-1)
+3. An IdP load test at peak concurrency plus confirmed vendor limits (SW-5)
+4. A bottom-up estimate of the above that fits the quarter with buffer (SW-6)
+
+If those four can't be produced before lock, that's the strongest signal the quarter is too aggressive — and the cheapest mitigation is to descope wave 1 (canary + low-risk teams now, critical teams next quarter) rather than compress.
+
+One tension flagged: wave-based phasing prolongs the window where old and new systems run in parallel, so security-parity (SW-4) must hold for the entire transition, not just cutover day.
+
+The agent offered to sharpen this into plan-specific findings if you provide three numbers: **account/user count, number of source identity systems, and whether rollback has ever been tested end-to-end.** Want me to pass those back to it?

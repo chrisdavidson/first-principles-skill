@@ -1,0 +1,30 @@
+The first-principles agent ran a full pre-mortem on the migration. Here's what it surfaced.
+
+## The core insight
+It inverted your premise on purpose: the confidence that "it'll go fine" *is itself the risk*. Confidence without a full-scale rehearsal is a prediction, not a measurement.
+
+## Four structural weaknesses (where dozens of failure modes collapse)
+
+1. **No measured ground truth (the rehearsal gap)** — the master weakness. It both causes window overruns and hides every other risk below.
+2. **Asymmetric, untested reversibility** — rollback is the least-tested path but decides whether a bad cutover is a clean abort or a multi-day outage. Once the new system takes writes, rollback stops being cheap.
+3. **Incomplete coupling inventory** — every unknown DB consumer (a report, cron job, third-party feed) is a guaranteed post-cutover break.
+4. **Silent-correctness blind spots** — corruption that passes the load but fails the data (charset/collation, type truncation, un-reseeded sequences). Discovered last, hurts most.
+
+## Hard go/no-go gates — any single NO means do not cut over
+
+1. Full-scale rehearsal done; forward-load ≤60% of the window
+2. Rollback rehearsed end-to-end, fits in remaining window
+3. Verified-restorable backup taken immediately before cutover
+4. Per-table row-count **and** checksum reconciliation passes
+5. Every distinct DB-connecting client inventoried and tested
+6. Byte-level match on a non-ASCII / edge-case sample
+
+Soft gates also flagged: schema diff, stored-proc porting, query-plan comparison, grants/encryption/audit, monitoring baselines, and a runbook with a named point-of-no-return and go/no-go owner.
+
+## Two load-bearing assumptions it needs you to confirm
+- It assumed a **big-bang cutover** of a large relational DB with a bounded downtime window. If you're actually doing **trickle/dual-write/zero-downtime**, the whole window-overrun risk class largely dissolves.
+- The most dangerous assumption: **that your confidence reflects a successful rehearsal rather than optimism.** If no full-scale rehearsal has run, weakness #1 is live right now.
+
+**Highest-leverage next move:** run a full-scale rehearsal including a timed rollback drill — it directly attacks the master weakness and converts your confidence into a measurement.
+
+If you want, share the real stack (source/target engines, cutover tooling, dataset size, downtime budget) and I can have it sharpen these into concrete numeric thresholds and commands.

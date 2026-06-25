@@ -1,0 +1,18 @@
+The first-principles agent ran a full pre-mortem on the migration. Here's what it surfaced:
+
+## The core move
+It inverted your confidence: **assume the migration already failed, then work backward.** The confidence itself is the most dangerous assumption — it silently presumes a set of preconditions are satisfied that nobody has actually verified.
+
+## Five structural weaknesses (where failure concentrates)
+
+1. **Data reality differs from the model** — nulls, orphans, duplicate keys, encoding/timezone surprises, precision drift between engines. The schema doc lies; the production data tells the truth.
+2. **No trustworthy reconciliation** — "the job exited 0" is not "the data is correct." Counts can match while contents are corrupted. And you can't check post-migration numbers without a pre-migration baseline.
+3. **The rollback is fiction** — a rollback that's written but never executed is a belief, not a safety net. Especially dangerous if the source gets mutated in place or new writes are accepted before reconciliation passes.
+4. **Cutover under pressure** — runs longer than the window, untested manual steps, wrong dependency ordering, and nobody who owns the abort decision.
+5. **Downstream blast radius** — reports, integrations, caches, CDC/replication, and *undocumented* consumers reading the old store directly.
+
+## The single highest-leverage action
+**A full-scale, timed dry-run that includes reconciliation and an actual rollback execution.** It directly tests weaknesses 1–4 and surfaces most of 5. The agent's pointed note: the most common root of post-migration surprises is "staging is close enough" — it rarely is.
+
+## To sharpen this
+The agent flagged that failure modes differ by migration *type* and offered to re-run with type-specific detail. It asked: **is this a database engine/version change, a cloud/datacenter relocation, an app-platform migration, or a storage migration?** If you tell me which (plus rough data scale), I can send it back for a targeted second pass.

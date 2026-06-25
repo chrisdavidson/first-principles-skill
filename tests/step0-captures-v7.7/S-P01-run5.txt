@@ -1,0 +1,30 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here's what it found.
+
+## Pre-mortem: payments-rewrite cutover to all EU customers, Friday, no staged rollout
+
+The agent imagined it's the Saturday after launch and the service has failed catastrophically, then reasoned backward. Its central finding: **the two design choices driving the most risk — "all customers at once" and "no staged rollout" — are conventions you've adopted, not constraints physics imposes.** Four of five failure clusters trace back to them.
+
+### Five structural weaknesses
+
+| Cluster | Failure mode |
+|---|---|
+| **A — No blast-radius containment** *(dominant)* | 100% of EU customers exposed at T+0. Any escaped defect hits everyone at once. This isn't one risk — it's the amplifier on every other risk. |
+| **B — Rollback assumed, not proven** | "We'll just roll back" is rarely tested in payments rewrites. New tokens, webhook subscriptions, and ledger writes often can't cleanly reverse → forced to fix-forward under live financial bleeding. |
+| **C — Async/edge-case state divergence** | In-flight 3DS/SCA sessions, retried webhooks, idempotency keys behave subtly differently → double charges, missed captures, reconciliation breaks. Testing rarely covers this without real async production traffic. |
+| **D — Regulatory (SCA/PSD2) failure** | EU-specific. SCA flows that pass in sandbox can fail against real issuing banks → mass declines or non-compliant transactions. Legally non-recoverable. |
+| **E — Worst-possible timing** | Friday → failures surface Saturday with skeleton on-call and slower Stripe/bank support. |
+
+### Recommended plan changes (priority order)
+
+1. **Kill the big-bang — add a canary** (1% → 5% → 25% → 100%). Collapses Cluster A, de-risks B/C/D.
+2. **Prove rollback before cutover** with live-like state. If it's genuinely impossible, that alone should block the launch.
+3. **Shadow/parallel run** against mirrored production traffic, diffing auth results, captures, SCA outcomes, and ledger entries until divergence is near-zero.
+4. **Move off Friday** to Tue/Wed with full staffing for the following 72 hours.
+5. **Automate reconciliation + alerting** between old and new ledgers from T+0.
+
+If the date is immovable and staged rollout is truly off the table, items 2–5 become non-negotiable, and the team should sign off **in writing** that they accept 100% blast radius with an untested rollback — the discomfort of writing that sentence being the whole point.
+
+**The agent's highest-value next step:** a 30-minute conversation answering one question — *why no staged rollout?* The answer determines whether this is a fixable plan or an accepted gamble.
+
+The agent is still available if you'd like to push on any cluster (e.g., have it design the canary plan or stress-test the rollback assumption).

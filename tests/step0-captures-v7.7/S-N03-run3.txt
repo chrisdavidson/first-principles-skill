@@ -1,0 +1,35 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+It identified that `/tmp/116-01-extract.py` is the script with real startup-crash exposure (it ruled out a second file, `build_fishbone.py`, which takes no inputs and can't produce your symptom).
+
+## The core finding
+
+Your error handling is **effectively absent at every startup-critical boundary** — argument access, module import, input read, and output write are all unguarded. The agent enumerated six unguarded failure points:
+
+| # | Line | Trigger | Exception |
+|---|------|---------|-----------|
+| 1 | `sys.argv[1]` (L4) | Run with no argument | `IndexError` |
+| 2 | `sys.path.insert(0, "scripts")` + import (L2-3) | Run from wrong directory | `ModuleNotFoundError` |
+| 3 | `src.read_text(...)` (L9) | Input `.jsonl` missing | `FileNotFoundError` |
+| 4 | `dst.write_text(...)` (L19) | Output dir doesn't exist | `FileNotFoundError` |
+| 5 | `src.read_text(encoding="utf-8")` (L9) | Invalid UTF-8 bytes | `UnicodeDecodeError` |
+| 6 | private import `_extract_assistant_text` (L3) | Renamed/removed private API | `ImportError` |
+
+## Why it's hard to debug
+
+The two most likely culprits (**#1** bare `sys.argv[1]` and **#2** the CWD-relative `sys.path.insert`) both depend on an unstated precondition: *the script is always launched from one specific directory with exactly one argument.* Nothing enforces or documents that, so when it breaks you get a raw exception with no explanatory message — that opacity is the actual "can't figure out why."
+
+**Tell-tale from your traceback's last line:**
+- `IndexError` → #1 (no arg)
+- `ModuleNotFoundError: No module named '_battery_core'` → #2 (wrong directory)
+- `FileNotFoundError` → #3 or #4 (the filename distinguishes them)
+
+## Minimal fixes (highest-leverage first)
+
+1. Guard the arg: `if len(sys.argv) < 2: sys.exit("usage: 116-01-extract.py <diag-dir>")`
+2. Make the import path absolute: `sys.path.insert(0, str(pathlib.Path(__file__).parent / "scripts"))`
+3. Create the output dir: `out.mkdir(parents=True, exist_ok=True)`
+4. Skip missing inputs: `if not src.exists(): print(f"skip {src}"); continue`
+5. Decode tolerantly: `src.read_text(encoding="utf-8", errors="replace")`
+
+If you paste the last 3 lines of your traceback, I can point you at the exact failing line — or apply these fixes directly to the script.

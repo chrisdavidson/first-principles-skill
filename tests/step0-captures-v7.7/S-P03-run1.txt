@@ -1,0 +1,30 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced:
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned 503s for all users for 40 minutes starting 14:10 UTC. Database layer is shown explicitly greyed-out (ruled out of scope).
+
+**Categories** (software/SRE incident set): People, Process, Technology & Tools, Environment, Information, Resources.
+
+**Candidate causes by category:**
+
+- **People** — late on-call ack; a deploy at 14:08 (2 min before onset); manual config change / runbook gap
+- **Process** — no canary/staged rollout; deploy in peak window; slow or failed auto-rollback
+- **Technology & Tools** — thread/connection-pool exhaustion; LB/ingress with unhealthy targets; upstream dependency timeout; bad deploy artifact / crash loop
+- **Environment** — autoscaler failure; AZ/region degradation; DNS/service-mesh disruption; cert/TLS expiry at 14:10
+- **Information** — bad config or feature flag; stale/expired secret or token; noisy alerts / missing dashboards
+- **Resources** — CPU/memory saturation (OOM); quota/rate-limit exhaustion; insufficient replicas; traffic spike / thundering herd
+
+**Top branches to verify first** (driven by onset ~2 min after a deploy):
+1. **Deploy-induced regression** — People (14:08 deploy) + Process (no canary / failed rollback)
+2. **Technology** — bad artifact/crash loop or pool exhaustion (classic 503: no healthy upstream behind LB)
+3. **Environment** — cert/TLS expiry, since a sharp clock-boundary onset can indicate scheduled expiry
+
+All causes are flagged as unverified candidates. Next step: pull the deploy log, LB target-health metrics, and pod restart/OOM counts for the 14:08–14:50 window.
+
+**Generated files:**
+- SVG: `/tmp/fishbone.svg`
+- PNG preview (2x): `/tmp/fishbone.png`
+- Spec JSON: `/tmp/fishbone_spec.json`
+
+The agent offered to drill into the top branch with a Five Whys analysis once you have the deploy/LB evidence, or to adjust the diagram (e.g., add probability weighting or swap in your actual service names). Let me know if you'd like either.

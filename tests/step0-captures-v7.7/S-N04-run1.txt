@@ -1,0 +1,30 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## How the auth rollout could go badly
+
+The agent ran a **pre-mortem** ("it's end of next quarter, the rollout failed — what caused it?") and clustered 12 raw failure modes into five structural weaknesses:
+
+**Cluster A — Timeline set independently of per-team effort.** The phrase "all teams next quarter" is the tell: if the quarter boundary was picked first and migration work estimated second, this is the dominant failure mode. Parallel rollout also hides serialization bottlenecks on shared identity dependencies.
+
+**Cluster B — No tested controlled-retreat path.** Auth is uniquely unforgiving — a bad deploy locks everyone out at once. Without a rehearsed rollback and production-parity staging, the first incident becomes a crisis instead of a controlled step-back. *(Flagged as the most dangerous finding.)*
+
+**Cluster C — Non-interactive/edge identities under-scoped.** Service accounts, M2M tokens, API keys, SCIM provisioning, contractors, legacy/mobile clients — plans built around human login discover these late, and they need the most rework.
+
+**Cluster D — Late gates.** Security/compliance sign-off and load testing landing at quarter-end can surface blocking findings after the build is frozen.
+
+**Cluster E — Human-channel readiness.** Bus-factor on the platform team plus unprepared help desk and uninformed users.
+
+## Recommended actions before locking the timeline
+
+The agent says three are non-negotiable (don't accept as risk):
+1. **Wave-based sequencing** (pilot → early adopters → rest) from bottom-up estimates, not parallel "all teams"
+2. **Rehearsed rollback with dual-run** old+new auth
+3. **Edge-identity inventory**
+
+Clusters D and E can be accepted risks *with named owners*.
+
+## What it needs from you
+
+It reasoned from the generic shape of cross-team auth rollouts (it didn't have your actual plan document). It flagged five assumptions to verify — chiefly: **was the quarter chosen before or after per-team effort estimation?** If you share the real plan, it can re-run the pre-mortem against its actual structure.
+
+The single highest-signal takeaway: "all teams next quarter" reads as a **deadline-first plan**, making **Cluster A** the most likely root cause of failure.

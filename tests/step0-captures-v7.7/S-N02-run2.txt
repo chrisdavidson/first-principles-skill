@@ -1,0 +1,33 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran its full pre-mortem analysis. Here's what it found.
+
+## Pre-Mortem: "The migration already failed — what killed it?"
+
+The agent reframed your request as prospective hindsight (the right instinct — confidence is exactly when failure modes hide) and reduced a long raw list of failure modes down to **four structural roots**, ranked by how load-bearing they are:
+
+| Root | Why it's fatal | The tell |
+|---|---|---|
+| **R1 — No tested path back** | Every other failure is survivable *if you can roll back*. Irreversibility turns a bug into a disaster. | "We won't need rollback, it'll be fine." |
+| **R2 — Validation proves the wrong thing** | Row counts match while contents are silently corrupted. False confidence. | "Counts match, we're good." |
+| **R3 — The dry run wasn't real** | Tested on small/clean/static data, so prod scale, edge cases, and concurrent writes were never exercised. | "It worked in staging." |
+| **R4 — The boundary wasn't frozen** | Source kept changing mid-migration; downstream consumers weren't inventoried. | "It's just a copy." |
+
+Notably, it flagged that **your stated confidence is itself the risk signal** — R1 and R3 are precisely the two patterns confidence conceals best, because both feel unnecessary right up until they're the only thing that would have saved you.
+
+### Concrete mitigations
+- **R1:** Keep the old system live and writable until validation passes. Write *and rehearse* rollback. Set an explicit abort criterion + point-of-no-return before starting.
+- **R2:** Validate fidelity, not counts — row hashes/checksums on critical+sampled data, plus reconcile business aggregates (balances, totals, FK integrity).
+- **R3:** Full-scale rehearsal on a production-sized, production-shaped copy. Time it against your downtime budget with margin.
+- **R4:** Freeze the source (read-only) or use dual-write/CDC backfill for in-flight changes. Inventory and test every downstream consumer against the new schema.
+
+### To sharpen this further
+The agent's analysis is necessarily generic because it had no specifics. It can tighten each root to your actual architecture if you answer four framing questions:
+
+1. **What kind of migration?** (DB engine swap, schema change, cloud move, re-platform, ETL)
+2. **Cutover style?** (big-bang, phased/trickle, dual-write + backfill)
+3. **Can you roll back?** (old system kept live, or decommissioned at cutover)
+4. **Volume + downtime budget?** (rough size, and acceptable downtime)
+
+And its closing question worth sitting with: **what part of the migration are you quietly least sure about?** That's usually where the real answer is.
+
+Want me to send those answers back to the agent to get architecture-specific mitigations (especially the rollback and validation design)?

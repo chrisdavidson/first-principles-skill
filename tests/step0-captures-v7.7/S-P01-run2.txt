@@ -1,0 +1,29 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite Launch
+
+**Bottom line:** The failure isn't any single bug — it's that **three risk-amplifiers are stacked into one decision**, and each one independently determines how *severe* any defect becomes:
+
+1. **Big-bang 100% exposure** — no blast-radius containment; one uncaught bug fails all EU payments at once.
+2. **Legacy replacement likely removes fast rollback** — if rollback isn't rehearsed (or legacy goes stale), outage *duration* becomes unknown.
+3. **Friday timing** — removes incident-response capacity exactly when stakes peak.
+
+> The pattern across every high-signal failure chain: **severity is set by the rollout shape, not by the defect itself. The plan is fragile by construction.**
+
+### Top failure chains
+- **A — Defect hits everyone at once** (HIGH): unbounded blast radius, no "only 5% affected" cushion.
+- **B — Rollback not actually available** (HIGH): the multiplier on every other failure.
+- **C — Token/mandate migration silently breaks recurring revenue** (MED-HIGH): one-off payments pass testing; recurring charges fail days later.
+- **D — SCA/3DS regression** (MED-HIGH): mass declines + PSD2 compliance exposure.
+- **E — Friday turns a 1-hour incident into a weekend outage** (HIGH, self-inflicted).
+- **F — Silent revenue leak** (MED): no per-flow alerting, loss accumulates until reconciliation.
+
+### Recommended plan changes (priority order)
+1. **Stage the rollout** — canary 1% → 5% → 25% → 100%, gated on auth/decline-rate parity. *Single highest-leverage change.*
+2. **Build and rehearse fast rollback** (or dual-write keeping legacy authoritative until parity proven).
+3. **Don't launch Friday** — ship Tue/Wed morning with full staffing. Zero-cost fix.
+4. **Shadow/parity-test on real production traffic** before cutover.
+5. **Verify token/mandate migration with reconciliation** — test recurring charges specifically.
+6. **Add per-flow observability + alerting** (auth rate, decline rate, 3DS abandon, by currency/BIN) with hard rollback thresholds.
+
+The agent remains available (ID `a0ddc2d3a2ee24159`) if you want to drill into any chain or pressure-test a specific mitigation.

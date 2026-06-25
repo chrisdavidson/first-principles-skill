@@ -1,0 +1,12 @@
+I invoked the first-principles agent with your prompt exactly as written. It's ready to run a full pre-mortem, but it pushed back on one thing: a pre-mortem on an unnamed plan just produces generic anxiety with bullet points. To make the failure chains concrete, it needs the actual plan.
+
+It's asking for:
+
+1. **What the plan is** — in a sentence or two. What are you committing to build/ship/do?
+2. **Deadline and hard constraints** — launch date, budget, headcount, anything non-negotiable.
+3. **What "blow up" means to you** — missed deadline, blown budget, a production quality/security failure, team burnout, or shipping something nobody uses. The worst-case you're picturing shapes which failure chains matter.
+4. **A written plan to read**, if one exists — point it at an absolute file path (PRD, roadmap, spec) and it'll work from the real artifact.
+
+Even just a paste of the plan or a file path is enough — it'll take it from there and run the full analysis: assume it's already failed six months out, work backward to every cause, then cluster those into the structural weaknesses worth fixing before you lock it in.
+
+What's the plan? (The agent is still live — I can pass your answer straight back to it with its full context intact.)

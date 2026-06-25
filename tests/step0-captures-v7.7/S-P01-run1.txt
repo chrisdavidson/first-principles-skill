@@ -1,0 +1,23 @@
+The first-principles agent ran the pre-mortem. Here's what it found.
+
+## Bottom line
+The plan as stated is **not survivable** — not because the rewrite is necessarily buggy, but because it has **no blast-radius control and no proven recovery path, scheduled into the worst recovery window of the week.** Even an excellent rewrite fails catastrophically if any one of several unverified assumptions is wrong.
+
+## The three findings most likely to get suppressed in a meeting (priority order)
+
+1. **No tested rollback (CRITICAL).** Confirm a rehearsed end-to-end rollback to legacy exists. If it doesn't, the launch should not proceed — that alone is grounds to delay.
+2. **No staged rollout removes your cheapest safety net.** A canary (1%→10%→50%→100%) turns a full-volume catastrophe into a contained, observable one. If a true canary is impossible, a shadow/dual-run (charge via legacy, compare new-service results) buys most of the safety.
+3. **Friday + weekend maximizes recovery time.** Lowest on-call staffing and slowest Stripe support exactly when an incident is most likely. Move to a Tue/Wed morning.
+
+## Why it's structural
+The damage equation is `full-EU-volume × (detection time + recovery time)`. With 100% cutover and no canary, *any* single false assumption hits all EU revenue at once; with no rollback on a Friday, recovery time is maximized. The conclusion holds regardless of code quality.
+
+## Pre-conditions before shipping (each closes a failure cluster)
+- **Recovery:** Rehearsed rollback + cutover moved off Friday.
+- **Blast radius:** Staged rollout or shadow run; if truly impossible, a documented kill-switch to legacy.
+- **Visibility:** Payment-success-rate and error dashboards/alerts live and *watched* before T0, with explicit go/no-go thresholds.
+- **EU-specific:** SCA/3DS tested against real EU issuer behavior (not just test cards); saved-card migration reconciled with a count-match; in-flight transaction draining plan for the cutover moment.
+
+Every UNVERIFIED assumption (SCA parity, token migration, in-flight handling, rollback, load test, webhook idempotency, observability) is a go/no-go checklist item.
+
+**The one question to answer before Friday: is there a tested rollback to legacy?** If no — delay.

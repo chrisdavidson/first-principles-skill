@@ -1,0 +1,29 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## Pre-Mortem: Auth Rollout Failure Modes
+
+The agent reframed your request as a pre-mortem ("assume it already failed — what caused it?") and surfaced failure modes across four categories, then identified the **structural clusters** that matter most.
+
+### The three load-bearing weaknesses
+
+1. **No tested rollback + no slack + silent permission errors** — A compressed single-quarter window plus a cutover plus the highest-severity silent failure (wrong role/permission mapping) means your *worst* failure is also the *hardest to undo*. **Fix this before locking the timeline.**
+
+2. **Distributed integration ownership** — You can ship a flawless auth system and still fail because N teams must each integrate correctly, on schedules they don't fully own, with unclear failure ownership. The timeline is only as good as the *least-committed team*.
+
+3. **Happy-path testing of a non-happy-path domain** — Auth fails at the edges: service accounts, shared/federated accounts, session/token semantics, 9am login storms, undocumented downstream dependencies. A typical-user test plan will pass and still let the rollout fail in production.
+
+### What to prepare for, in priority order
+
+1. **Rehearse the rollback** before committing — an untested rollback is not a rollback.
+2. **Stage by lowest-blast-radius team first**, add slack, require named owners per team.
+3. **Full migration dry-run on a copy of production identity data** — diff resulting permissions against current state.
+4. **Build an edge-case + load test set**, not a happy-path one.
+5. **Pre-assign incident ownership** at the auth/consumer boundary; prep support for a lockout/reset spike.
+
+### The timeline verdict
+
+> **Do not lock the timeline until two things are verified: that rollback works, and that identity data migrates cleanly.** Both are currently unverified assumptions, and both are load-bearing for whether the quarter is achievable.
+
+**Confidence: MEDIUM** — the failure taxonomy is high-confidence (these recur across nearly all multi-team auth rollouts), but the priority ranking depends on plan details the agent couldn't see, chiefly your **migration strategy** (cutover vs. parallel run) and **sequencing** (big-bang vs. staged).
+
+The agent offered a next step: if you share the actual written plan, it can re-run this pre-mortem against your real sequencing and rollback design, resolving the flagged assumptions into verified facts. Want me to do that?

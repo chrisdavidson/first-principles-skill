@@ -1,0 +1,13 @@
+I invoked the **first-principles** agent with your prompt exactly as written. It can't analyze the error handling blind — it needs to see the actual code or the crash output. Here's what it's asking for:
+
+**To proceed, provide one (ideally both):**
+1. **The script** — paste it, or give the absolute path and the agent will read it.
+2. **The crash output** — the full traceback or whatever shows on startup.
+
+**One question that shapes the whole analysis:** when it crashes, do you get a **Python traceback**, or does it die **silently / with an unhelpful message**?
+
+That distinction is itself the first clue:
+- **Silent death on startup** → likely an exception being caught and swallowed, or a failure happening *before* logging is initialized.
+- **Clean traceback** → error handling probably isn't the culprit; it's an unhandled condition the traceback will name directly.
+
+Drop in the file (or its path) and the traceback, and I'll send it straight back to the agent to trace the failure to root cause rather than guess at hypotheticals.

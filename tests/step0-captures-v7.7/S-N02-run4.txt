@@ -1,0 +1,33 @@
+The first-principles agent ran the analysis as an inverted pre-mortem — assuming the migration *has already failed* and reasoning backward to causes. Here's what it found.
+
+## The core reframe
+Your confidence is itself the top risk. Certainty is uncorrelated with readiness — it predicts *under-rehearsal*, which is the exact condition under which migrations fail. The single highest-leverage cause of failure is **the absence of a production-scale dry run**, because that one gap leaves throughput, data integrity, rollback, and app-compatibility all unvalidated at once.
+
+## Failure modes, by cluster
+
+**Data integrity (most common, least visible)**
+- Source violates target constraints (NULLs, dup keys, orphan FKs, bad dates) → load aborts half-populated
+- Encoding/collation mismatch (latin1→UTF-8) silently corrupts text
+- Type coercion shifts timezones, drops float precision, turns NULL into `""`
+- Validation checks only row counts — matching counts ≠ matching content
+
+**Cutover / continuity**
+- Migration overruns the downtime window (full-scale throughput ≪ dry-run estimate; index/constraint rebuilds dominate)
+- Source still being written during cutover (forgotten cron, integration, straggler node) → target stale on arrival
+- Auto-increment/sequence counters not reset → new inserts collide with migrated IDs
+
+**Recovery (turns an incident into a disaster)**
+- Rollback never rehearsed → doesn't work when needed, or source already mutated/decommissioned
+- No point-in-time backup taken immediately before cutover
+
+**Application compatibility**
+- Queries behave differently on target (collation-dependent sorts, dialect differences, missing indexes → timeouts under load)
+
+## Priority mitigations
+1. **Full production-scale dry run** — the root fix; surfaces 1, 3, 5, 8, 10 at once
+2. **Content-level reconciliation** — checksums/hashes on key columns + sampled value comparison, not just row counts
+3. **Rehearse the rollback** in the dry run; take an immutable backup right before cutover
+4. **Freeze all source writers** — enumerate every app/cron/integration and prove it's stopped or captured
+5. **Profile the source first** for encoding/NULL/type/FK hazards; reset sequences on target
+
+The agent flagged that it worked from stated assumptions. To turn items 4, 5, and the throughput estimate into concrete checks, it needs: **source/target systems, data volume, and downtime budget**. Share those and I can sharpen this into specific verification steps.

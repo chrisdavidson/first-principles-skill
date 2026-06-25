@@ -1,0 +1,34 @@
+The first-principles agent ran its analysis. Here's what it found:
+
+## The startup crash — most likely cause
+
+It located a script at `/tmp/116-01-extract.py` and identified the **CWD-relative import** as the prime suspect:
+
+- **Lines 2–3:** `sys.path.insert(0, "scripts")` resolves relative to your *current working directory*, not the script's location. Launch it from anywhere else and you get `ModuleNotFoundError: No module named '_battery_core'` — before any of your logic runs, which matches "crashes on startup" exactly.
+
+## The error-handling flaw to actually worry about
+
+> **Lines 13–16:** `except json.JSONDecodeError: continue` silently discards every malformed line.
+
+This is the inverse of a crash and arguably worse: a truncated or corrupt capture won't error — it produces quietly incomplete output plus a confident "success" message. Silent data loss masquerading as success.
+
+## The structural pattern
+
+Every boundary is **unguarded except the one place handling exists, where it's too aggressive and hides failure**:
+
+| Location | Risk | Status |
+|---|---|---|
+| Import path (L2–3) | `ModuleNotFoundError` | unguarded — **prime suspect** |
+| `sys.argv[1]` (L4) | `IndexError` | unguarded |
+| Output dir (L5,19) | `FileNotFoundError` on write | never `mkdir`'d |
+| Input read (L7,9) | `FileNotFoundError` | unguarded |
+| JSON parse (L13–16) | silent data loss | over-guarded |
+
+## One-second confirmation
+
+The agent's diagnostic: **check the last line of your traceback** —
+- `ModuleNotFoundError` → the import path
+- `IndexError` → missing argv
+- `FileNotFoundError` → missing dir/file
+
+It offered to apply all five fixes (script-relative import, argv guard, `mkdir`, per-file try/except, logged JSON skip) to the script. Want me to have it proceed, or would you rather paste your traceback first to confirm which crash you're actually hitting?

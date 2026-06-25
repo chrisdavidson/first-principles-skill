@@ -1,0 +1,32 @@
+The first-principles agent ran its analysis. Here's what it found.
+
+## Summary
+
+The agent identified your crasher as `/tmp/116-01-extract.py` and ran a focused pre-mortem on its error handling. The core finding: **your error handling is inverted.**
+
+Four startup operations that can genuinely abort the process have *no* error handling, while your single `try/except` guards the one operation where failing loud would actually help you.
+
+### The failure list
+
+| # | What crashes | Exception | Handled? |
+|---|--------------|-----------|----------|
+| F1 | Import `_extract_assistant_text` from `scripts/_battery_core.py` (relative `sys.path`, tied to CWD) | `ModuleNotFoundError`/`ImportError` | ❌ No |
+| F2 | `sys.argv[1]` with no argument | `IndexError` | ❌ No |
+| F3 | Input file doesn't exist → `src.read_text()` | `FileNotFoundError` | ❌ No |
+| F4 | Output dir doesn't exist → `dst.write_text()` | `FileNotFoundError` | ❌ No |
+| F5 | Malformed JSON line | `JSONDecodeError` | ⚠️ Caught — but **silently swallowed** |
+
+### Top suspect (MEDIUM-HIGH confidence)
+**F1 — the import on line 3.** It's the first non-stdlib line, and `sys.path.insert(0, "scripts")` is relative to your *current working directory*. Launch from anywhere other than the dir containing `scripts/` and it dies instantly. This matches "crashes on startup" precisely.
+
+### The real error-handling bug
+**F5** — your `try/except JSONDecodeError: continue` is silent data loss, not robustness. If every line fails to parse, you write an empty output file with zero indication anything went wrong.
+
+### Recommended fixes
+1. **F1:** `sys.path.insert(0, str(pathlib.Path(__file__).parent / "scripts"))` — anchor to the file, not CWD
+2. **F2:** guard with `if len(sys.argv) < 2: sys.exit("usage: ...")`
+3. **F4:** `out.mkdir(parents=True, exist_ok=True)` before the loop
+4. **F3:** check `src.exists()` per run, warn instead of dying mid-loop
+5. **F5:** count skipped lines; warn loudly if `parsed` ends up empty
+
+**The fastest path to certainty:** paste the last line of your actual traceback — that collapses the F1-vs-F2 ambiguity into a definite answer. Want me to apply the fixes, or shall we look at the traceback first?

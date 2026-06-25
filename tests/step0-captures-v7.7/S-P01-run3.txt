@@ -1,0 +1,26 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite Big-Bang EU Cutover
+
+The core finding: **the risk here is structural, not incidental** — it comes from the *shape* of the plan (big-bang, all-EU, regulated, no rollback ramp), so hardening the plan matters more than hardening the code.
+
+### The dominant failure chains
+
+- **F1 — Silent authorization regression** (HIGH/HIGH): The new service has near-zero production hours, so its true defect rate is unmeasured. A subset of cards/3DS flows could decline silently while dashboards stay green (no 500s). Revenue bleeds for hours before anyone correlates — and big-bang means it hits every EU customer at once.
+- **F2 — SCA/PSD2 compliance miss** (MED/CRITICAL): One payment method's 3DS2 flow being subtly wrong → mass issuer declines. This is regulatory exposure, not just lost sales.
+- **F3 — Unrecoverable cutover** (the disaster-multiplier): If rollback was never rehearsed, or the new service already wrote state legacy can't read, there's no clean path back — forcing a fix-forward under live fire with the whole base down.
+- **F4 — In-flight state corruption**: Pending charges, subscriptions, saved tokens, webhook idempotency keys migrating badly → double-charges, missed renewals.
+- **F5 — Weekend response collapse**: Friday deploy + skeleton weekend staffing turns a 2-hour incident into a 2-day one.
+
+### The three highest-leverage changes
+
+1. **Insert a canary** — even shadow-traffic diffing + a 1–5% slice for 24–48h. If a canary is genuinely *impossible*, that itself is the most important thing to escalate (it means "no staged rollout" is a capability gap, not a choice).
+2. **Rehearse rollback as a tested runbook**, including reverse-migration of any state the new service writes. This is the chain that converts a normal incident into a disaster.
+3. **Instrument auth-success-rate by payment method and 3DS outcome** with alerting — uptime dashboards won't catch the silent-decline class.
+
+Plus two concrete pushes: **move off Friday** (full staffing through the risk window) and **verify SCA/PSD2 per EU payment method** with issuer-level test transactions.
+
+**The one-line takeaway:** If only one thing changes before next Friday, *make the cutover recoverable* (rehearsed rollback + canary). Every other failure chain is survivable if you can get back to legacy quickly — and none of them are if you can't.
+
+The agent also flagged two questions as the real go/no-go drivers: **Is a canary actually feasible?** and **Is rollback rehearsed?** Answering those two would let you downgrade most of the critical chains.

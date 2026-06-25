@@ -1,0 +1,25 @@
+The first-principles agent completed the pre-mortem. Here's what it found.
+
+## Bottom line
+Three structural weaknesses dominate — they're not isolated risks, they're properties of the plan itself:
+
+- **P1 — No staged rollout removes your cheapest failure detector.** Every defect is discovered at 100% blast radius. The first contact with real production load, data variety, and edge cases happens for *all* EU customers simultaneously.
+- **P2 — Friday timing maximizes time-to-recovery exactly when failure is most likely.** The post-launch danger window overlaps the weekend, when engineering, on-call, and Stripe/bank vendor support are all at skeleton coverage.
+- **P3 — Stateful cutover with no proven rollback is a one-way door.** In-flight charges, retries, refunds, disputes, and subscription cycles all exist at the cutover instant. If rollback was assumed-but-never-rehearsed, invoking it at 2am Saturday may orphan data that exists only in the new system.
+
+## Highest-leverage changes (in order)
+1. **Add a staged rollout** — even a compressed 1%→10%→50%→100% canary with an automated success-rate gate vs. the legacy baseline. This directly contradicts the stated "no staged rollout" constraint; the agent recommends challenging that constraint with stakeholders. Single biggest risk reduction.
+2. **Move the cutover off Friday** to a staffed business morning (Tue/Wed). If the date is fixed, pre-position full on-call + vendor escalation for the weekend.
+3. **Rehearse rollback end-to-end and define the point-of-no-return.** If a true rollback is actually impossible, say so out loud — it changes the entire risk calculus.
+4. **Run shadow/mirror traffic** against the new service in production before cutover for evidence without customer exposure.
+5. **Verify four high-risk migrations** before launch: Stripe token/payment-method portability, recurring-subscription state, reconciliation-key continuity, and PSD2/SCA + 3DS coverage across EU banks.
+6. **Ship monitoring parity first** — real-time side-by-side success-rate, decline-reason, and revenue dashboards before any traffic moves.
+
+## The one question that most changes the analysis
+**Does the rewrite still use Stripe under the hood, or move to a different processor/PCI vault?**
+- If it still uses Stripe → token-portability risk (Cluster C) drops sharply.
+- If it moves processors → data/state migration becomes your dominant threat.
+
+Confidence: the structural conclusions (P1–P3) are **high** — they follow directly from the plan and payments-domain ground truths. The specific data-migration narratives are **medium**, pending the architecture question above.
+
+Want me to take any of these further — e.g., draft a staged-rollout plan, a rollback rehearsal checklist, or a launch-day monitoring spec?

@@ -1,0 +1,29 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced:
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Files generated:**
+- Diagram (SVG): `/tmp/fishbone.svg`
+- Preview (PNG, 2x): `/tmp/fishbone.png`
+- Spec JSON: `/tmp/fishbone_spec.json`
+
+**Method notes:** It used the standard six-category software/ops set, locked the categories before brainstorming, then explicitly greyed out the **Information/Database** branch as "ruled out" (rather than silently dropping it) so the exclusion stays auditable.
+
+### Five active cause categories
+
+| Category | Candidate (unverified) causes |
+|----------|-------------------------------|
+| **People** | On-call slow to detect/page; manual deploy / human error; runbook gap, slow rollback |
+| **Process** | Bad deploy at ~14:10; config / feature-flag change; no canary / staged rollout |
+| **Technology / Tools** | LB/gateway has no healthy upstream; app crash-loop / OOM; downstream dependency timeout |
+| **Environment** | Pod evictions / node failure; network / DNS / TLS fault; cloud provider / AZ outage |
+| **Resources** | Capacity / autoscale lag; connection-pool / thread exhaustion; quota / rate-limit / cert expiry |
+
+### Highest-priority branches to verify first
+
+1. **Process → bad deploy/config change at ~14:10** — sharp onset at a round time, all-users blast radius, clean 40-min window. Check deploy/CI and feature-flag audit logs for a change landing 14:08–14:12.
+2. **Technology → no healthy upstream behind the LB/gateway** — a 503 literally means "service unavailable" from the proxy, so the proximate mechanism is almost certainly zero healthy backends. Check pod readiness, restart counts, and OOM events.
+
+**Linked chain:** A bad deploy (cause) commonly produces a crash-loop that drains healthy upstreams (mechanism → 503). Pull the deploy log and pod-health timeline for **14:05–14:55 UTC** to confirm or eliminate this before chasing Environment/Resources. Also note whether the 40-min recovery coincided with a rollback (favors branch 1) or node/pod recycling (favors branch 2) — that timing is itself strong evidence.
+
+You can open `/tmp/fishbone.png` to view the rendered diagram.

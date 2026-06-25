@@ -1,0 +1,19 @@
+The first-principles agent ran and came back needing more from you before it can do real work. Here's what it said:
+
+It flagged that this is a **pre-mortem situation** (surfacing failure modes for a plan not yet executed), not a debugging one — but it can't produce anything useful without the actual plan. A pre-mortem against an unknown plan just yields generic platitudes.
+
+It needs two things from you:
+
+**1. The plan itself** — paste it, summarize it, or point to the doc. Specifically:
+- **What** you're building/shipping/changing (the deliverable)
+- **Constraints** that can't move — deadline, budget, headcount, tech/compatibility, regulatory
+- **Key dependencies** — people or things you rely on but don't fully control
+- **What "blow up" means** to you — missed deadline? blown budget? user churn? data loss? reputational hit? The failure that scares you most directs where it digs hardest
+
+**2. How deep to go:**
+- **Pre-mortem only** (faster) — imagines it's 6–12 months later and the plan has already failed, then works backward to enumerate every plausible cause, adversarially interrogated and clustered into structural weaknesses with named mitigations. Directly answers "every way this could blow up."
+- **Full first-principles** (deeper) — the pre-mortem *plus* challenging the assumptions the plan rests on. Better if you suspect the plan's *premises* might be wrong, not just its execution.
+
+Its recommendation: **lean pre-mortem**, escalate to full first-principles only if the assumptions turn out shaky.
+
+Drop the plan and pick a depth, and I'll send it straight back to the agent (its context is still live, so it'll pick up right where it left off).

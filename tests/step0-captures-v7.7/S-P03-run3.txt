@@ -1,0 +1,32 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the fishbone analysis. Here's the result:
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned HTTP 503 for 100% of users for 40 minutes, starting 14:10 UTC yesterday (DB layer ruled out).
+
+The agent flagged a useful framing point up front: **503 itself is a signal.** It's typically emitted by a load balancer/proxy/gateway when no healthy upstream exists, or by the service shedding load — which weights the diagram toward infrastructure, capacity, and dependencies rather than app-logic bugs (those usually yield 500s).
+
+### Cause categories
+
+1. **Process (deploy/change)** — Bad deploy or config change at ~14:10 (no canary stage); slow/capped autoscaling; health-check draining healthy pods; no circuit breaker.
+2. **Technology & Tools (the 503 emitter)** — LB found no healthy upstream targets; gateway/proxy misconfig; TLS cert expiry; connection-pool exhaustion; container OOM/crash-loop.
+3. **Environment / External Deps** — Traffic spike; a *non-DB* upstream down (payment/auth/inventory); DNS failure; cloud/AZ outage; network partition; broken secret/token rotation.
+4. **Information & Signals** — Stale feature flag; missing 503 runbook; incomplete deploy checklist; no alert on upstream 503 rate.
+5. **People** — Late paging/alert fatigue; LB-config knowledge gap; slow manual rollback; single owner unavailable.
+
+### Priority branches to chase first
+
+| Priority | Branch | Why it fits |
+|---|---|---|
+| **1** | Bad deploy/config at ~14:10 | Clean start time implies a change event; "all users" implies global change |
+| **2** | LB/gateway: no healthy upstream | Literally what emits a 503 |
+| **3** | Non-DB upstream dependency down | DB ruled out → next most likely external cause |
+| **4** | Crash-loop / OOM / pool exhaustion | Explains fleet-wide "all users" failure |
+| 5 | Detection/rollback gaps | Explain the 40-min *duration*, not the 503 itself |
+
+**Recommended next step:** Pull the deploy/change log for 14:00–14:15 UTC and the LB upstream-health metrics for that window — those confirm or eliminate priorities 1 and 2. Then switch to **Five Whys** on the confirmed branch to drill to root cause.
+
+**One caveat the agent raised:** If "ruled out the database layer" was based on green DB dashboards rather than direct query-path verification, re-confirm it — a healthy DB primary can still coexist with app-tier connection-pool exhaustion, which is a distinct failure mode.
+
+The agent remains available (ID `a56e91731d912a733`) if you'd like to drill into any branch with a Five Whys analysis.

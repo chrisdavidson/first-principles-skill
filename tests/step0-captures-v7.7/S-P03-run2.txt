@@ -1,0 +1,38 @@
+The first-principles agent completed the fishbone analysis. Here's the result:
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned 503s for all users, 40 min from 14:10 UTC (2026-06-23). DB layer excluded.
+
+The agent anchored on the 503 semantics ("server reachable but can't handle request" — overload, unhealthy upstream, tripped breaker, failing health check, or no live backends) and mapped causes across the six standard Ishikawa categories:
+
+```
+   PEOPLE          PROCESS         TECHNOLOGY/TOOLS
+   Manual config   Bad rollout     Pods crashed/OOMKilled
+   change @14:10   (no canary)     Circuit breaker tripped
+   On-call lag     No auto-        LB/health check failing
+                   rollback                              ╲
+                                                          ──► 503 ERRORS
+   ENVIRONMENT     INFORMATION     RESOURCES             ╱   (all users,
+   Node/AZ event   Expired TLS     Upstream dep timeout      40 min)
+   DNS/mesh        Secret rotation Pool exhaustion
+   disruption      Bad flag flip   Rate-limit/quota
+```
+
+**Two key signals drove prioritization:**
+- *All users affected* → a shared/global cause, not regional/partial
+- *Sharp 40-min bounded window* → either a change that was reverted, or a dependency that self-healed
+
+**Ranked branches to verify:**
+
+| # | Branch | Verification |
+|---|--------|-------------|
+| 1 | **Upstream dependency timeout** (auth/payment/inventory) — strongest, since DB is ruled out but checkout has other hard deps | Upstream dashboards/SLOs for 14:10–14:50; trace the 503 call path |
+| 2 | App instances crashed / breaker open / LB no-healthy-backend | Pod restarts, OOMKills, breaker state, LB healthy-host count |
+| 3 | Bad rollout, no auto-rollback | Correlate deploy timeline vs. 14:10 onset / ~14:50 recovery |
+| 4 | Expired cert / secret rotation / bad flag flip | Cert expiry, rotation logs, flag audit log |
+| 5 | Node/AZ/DNS/mesh event | Cloud status, node events, mesh control plane |
+
+**Recommended first action:** In parallel, pull the **deploy/release timeline** and the **upstream-dependency dashboards** for 14:10–14:50. The recovery mechanism (rollback vs. self-heal) is the single most discriminating clue.
+
+All candidates are marked unverified `[?]` — this is a breadth-first map of the cause space, not a root-cause finding. The agent offered to render it as an SVG or run a focused 5-Whys drill on the surviving branch once you have the deploy timeline and dependency dashboards.

@@ -1,0 +1,16 @@
+The first-principles agent ran, but it can't do the analysis without seeing the actual plan. It needs four things from you before it can surface failure modes:
+
+1. **The plan itself** — a one-paragraph description of what you're committing to
+2. **The domain** — software architecture, product launch, business decision, migration, hiring, etc.
+3. **Key constraints** — the hard boundaries that can't move (deadline, budget, headcount, dependencies, regulatory)
+4. **What "blowing up" means to you** — total failure? Schedule slip? Cost overrun? Reputational damage? Silent decay? The failure you most fear shapes where it digs hardest
+
+Once you share the plan, here's what it will produce:
+
+- A **pre-mortem frame** — assuming the plan *has already failed* 6–12 months out, reasoning backward to causes (this surfaces more than a forward "what are the risks" pass, because assuming failure defeats optimism bias)
+- An **assumptions table** — every load-bearing belief, classified and stress-tested, with untested beliefs flagged as the likely death points
+- **Failure chains** — concrete causal paths from a ground truth to "and that's why it blew up," with the weakest link in each
+- **Failure clusters** — single points of fragility where multiple failure paths share one root cause
+- The **suppressed objections** — it specifically flagged "the team is excited" as a risk signal, since excitement suppresses dissent, and will hunt for the concerns nobody wants to raise
+
+Share the plan (and the other three details) and I'll pass them straight back to the agent to run the full analysis.

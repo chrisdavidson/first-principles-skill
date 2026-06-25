@@ -1,0 +1,25 @@
+The first-principles agent ran a pre-mortem against your code and identified the crashing script as `/tmp/116-01-extract.py`. Here's what it surfaced about your error handling:
+
+## The core weakness
+Your error handling guards **content** but not **boundaries**. You carefully catch `JSONDecodeError` when parsing lines, but every input *into* the script — CLI args, the input directory, each file, the output directory — is consumed with zero validation. So real failures produce raw tracebacks instead of clear messages.
+
+## Most likely causes of the startup crash (start here)
+1. **Missing `sys.argv[1]`** (line 4) — running with no argument throws `IndexError` instantly. No usage message, no `len()` check.
+2. **Wrong working directory** — `sys.path.insert(0, "scripts")` and the `tests/...` paths are relative to CWD, not the script. Run from anywhere else → `ModuleNotFoundError` at import time (the earliest possible crash). Classic "works on my machine."
+3. **Output dir never created** — no `mkdir`, so `write_text` hits `FileNotFoundError`.
+4. **Missing input file** mid-loop — `read_text` on a missing `.jsonl` crashes partway through, leaving half-written output.
+
+## Fast way to disambiguate
+```
+python 116-01-extract.py somedir 2>&1 | head
+```
+Read the **first** traceback line: `ModuleNotFoundError` → CWD problem; `IndexError` → missing arg; `FileNotFoundError` → check whether it names the input or output path.
+
+## Minimum hardening (priority order)
+1. Check `len(sys.argv) >= 2`, print a usage line
+2. Anchor paths to `pathlib.Path(__file__).resolve().parent` instead of CWD
+3. `out.mkdir(parents=True, exist_ok=True)` before the loop
+4. Validate `diag.is_dir()` and each `src.exists()` up front with named errors
+5. **Warn instead of silently `continue`** when a file yields zero parsed lines — right now an all-malformed file writes `0 lines` with no signal
+
+One caveat the agent flagged: it couldn't see `scripts/_battery_core.py`, so it can't confirm whether `_extract_assistant_text` itself raises. If you paste the actual traceback, it can collapse the ranked suspects into a definite root cause.

@@ -1,0 +1,43 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+# Data Migration Pre-Mortem
+
+The agent inverted your confidence — assuming the migration *had already failed* — and worked backward to the causes. Key insight: **confidence is highest exactly when the failure modes are silent ones**, the kind that look like success on the day and surface weeks later as wrong data.
+
+## The silent assumptions your confidence rests on
+
+Each is a precondition that must hold; anything unverified is a live risk:
+
+- Source data is actually as clean as the schema claims (no nulls in "non-null" fields, no encoding garbage, no orphaned FKs)
+- Counts **and checksums** are validated after load — not just "the script finished"
+- Rollback has been **rehearsed end-to-end**, not just documented
+- The cutover window includes verify + rollback time, not just copy time
+- Encoding / collation / timezone / numeric precision are identical or explicitly mapped
+- **Every** downstream consumer (ETL jobs, reports, caches, integrations) is inventoried
+- The **full volume** was tested, not a sample
+
+## The seven failure chains
+
+1. **Silent data corruption** — encoding/timezone/precision/NULL substitution mutates values; counts still match; nobody notices until a customer sees a wrong number.
+2. **Dirty-data ambush** — target constraints reject rows mid-load; job dies at 60% with a half-migrated target and a running clock.
+3. **Paper rollback** — rollback was never run end-to-end; source already mutated or backup stale; restore takes hours nobody budgeted.
+4. **Volume cliff** — passed on 10k rows, dies on 400M (timeout, full transaction log, table locks).
+5. **Forgotten consumer** — DB migrates fine, but a nightly job / report / cached API still points at the old connection or renamed column.
+6. **Cutover overrun** — only copy time was estimated; go/no-go gets called on fatigue instead of criteria.
+7. **Point-in-time skew** (live source) — data changes between snapshot and cutover; deltas missed or double-applied.
+
+## The single highest-signal finding
+
+The recurring structural weakness: **verification means "script exited 0" rather than "data is provably equivalent."** Your confidence is itself the risk amplifier — it's the condition under which teams skip post-load reconciliation.
+
+> If you do one thing: make post-migration data-equivalence verification (counts + checksums + field-level sampling) a **mandatory gate** with a named owner and pre-agreed pass/fail bar — before any consumer points at the new target, and before the source is touched.
+
+## To sharpen this to your actual case
+
+The agent flagged it ran without specifics. Give me these five and I'll turn the generic pre-mortem into your concrete failure chains:
+
+1. Source and target systems
+2. Approximate data volume
+3. Whether the source stays live during migration
+4. Downtime tolerance
+5. Whether a rollback has ever been executed end-to-end

@@ -1,0 +1,30 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Cross-Team Authentication Rollout
+
+The agent reframed your request as a **pre-mortem** — assume the rollout already failed, then work backward to the structural weaknesses. It flagged up front that it doesn't have your actual plan (team count, current/new architecture, rollback maturity), so its findings are structural rather than plan-specific.
+
+### The core finding
+The plan's central weakness is the phrase **"across all teams"** read as *simultaneously*. That converts every local failure into a company-wide one, since authentication is on the critical path for everything (an auth failure is a total outage, not a degraded feature).
+
+### Four structural weaknesses
+1. **Synchronized failure surface** — an all-teams cutover means one shared-component failure (token service, IdP) breaks every team at once. *Highest priority.*
+2. **Critical path masked by averaging** — timelines built on average team capacity hide the slowest, most-behind team, which actually determines the outcome.
+3. **Untested safety net** — a rollback or data migration that's never been rehearsed is an assumption, not a safeguard; first real execution during an incident is the worst time to find out.
+4. **Incomplete scope inventory** — unmapped edge cases (service accounts, legacy tokens, SSO quirks, cached mobile tokens, vendor integrations) ship and fail silently.
+
+### The high-signal part
+It explicitly called out the three things a team tends to *suppress* in status meetings:
+- "We never actually tested rollback at production scale."
+- "Team X has been quietly saying they can't make the date."
+- "We don't actually know every way auth is used across all services."
+
+### Recommended actions before locking the timeline
+1. **Phase the rollout** (pilot → small wave → broad) — or make big-bang a *named, signed-off* accepted risk.
+2. **Plan to the slowest team**, with explicit per-team readiness commitments and deferral checkpoints.
+3. **Rehearse rollback and a dry-run data migration** at production scale before cutover.
+4. **Inventory actual auth usage** across all services, plus monitoring that distinguishes *degraded* from *down*, with named cutover ownership and a pre-agreed rollback trigger.
+
+**Confidence: MEDIUM** — the structural findings hold for any cross-team auth migration, but specifics depend on details the agent didn't have.
+
+The agent offered to sharpen this into prioritized, plan-specific actions if you share three things: **how many teams, whether the cutover is simultaneous or already phased, and whether rollback has ever been executed in production.** I can send those back to it (its context is still live) if you'd like to continue.
