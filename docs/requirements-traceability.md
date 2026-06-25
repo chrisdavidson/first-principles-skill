@@ -108,7 +108,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (206 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (210 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** [`history/`](history/)
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*
