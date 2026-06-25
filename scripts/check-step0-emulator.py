@@ -104,17 +104,19 @@ def _parse_table_rows(lines: list[str]) -> list[tuple[str, str]]:
     return rows
 
 
-def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
+def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]:
     """Parse the phrase-detection table from the canonical SKILL-body.md source.
 
-    Returns a list of ``(technique, [compiled_regex, ...])`` pairs in declaration
-    order (first-row-wins precedence, D-04).
+    Returns a list of ``(technique, [compiled_trigger_regex, ...], [compiled_guard_regex, ...])``
+    3-tuples in declaration order (first-row-wins precedence, D-04).  The third
+    element is an empty list when the guard cell is absent or empty (no-guard default).
 
-    Exits non-zero with a loud error message on any of the four D-05 modes:
+    Exits non-zero with a loud error message on any of the D-05 modes:
       D-05.1 — anchor ``**Phrase detection rules**`` not found
-      D-05.2 — zero technique rows parsed, or a row has an empty pattern cell
+      D-05.2 — zero technique rows parsed, or a row has an empty trigger cell
       D-05.3 — a technique name is not in KNOWN_TECHNIQUES
       D-05.4 — a quoted phrase fails re.compile (caught at load time)
+      D-05.5 — guard cell has an unbalanced quote (WR-03 applied to guard cell too)
     """
     text = path.read_text(encoding="utf-8")
 
@@ -159,11 +161,34 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
         )
         sys.exit(1)
 
-    rules: list[tuple[str, list[re.Pattern[str]]]] = []
-    for technique, cell in data_rows:
-        # WR-03: balanced-quote guard — an odd number of '"' means the cell has
-        # an unterminated quoted phrase (D-05-class corruption).  Fail loudly
-        # rather than silently extracting a partial phrase list.
+    rules: list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]] = []
+    for technique, remainder in data_rows:
+        # Split remainder into trigger cell and guard cell.
+        # _parse_table_rows strips the leading '|' and splits on the FIRST interior
+        # pipe, so remainder is: " trigger_cell | guard_cell |"  (3-column row)
+        # or just: " trigger_cell |" (ragged 2-column row, older format).
+        # Use rsplit("|", 2) to split off the trailing empty part and the guard cell:
+        #   3-column: [trigger, guard, ""]  (3 parts)
+        #   2-column ragged: [trigger, ""]  (2 parts — D-G: graceful no-guard)
+        # D-G: a ragged row missing the guard column is treated as no-guard (graceful
+        # default) rather than a loud failure. This is intentional: the guard column
+        # is additive and a 2-column table is a valid older format.  Loud failure is
+        # reserved for the guard cell *content* being malformed (D-05.5 unbalanced
+        # quote), not for the column being absent.
+        parts = remainder.rsplit("|", 2)
+        if len(parts) >= 3:
+            trigger_cell = parts[0]
+            guard_cell = parts[1]
+        else:
+            # Ragged row: no guard column — treat as empty guard (D-G default)
+            trigger_cell = parts[0] if parts else remainder
+            guard_cell = ""
+
+        cell = trigger_cell  # alias for backward-compat error messages below
+
+        # WR-03: balanced-quote guard on trigger cell — an odd number of '"' means
+        # the cell has an unterminated quoted phrase (D-05-class corruption).
+        # Fail loudly rather than silently extracting a partial phrase list.
         if cell.count('"') % 2 != 0:
             sys.stderr.write(
                 f"check-step0-emulator: FAIL — technique '{technique}' phrase cell "
@@ -171,7 +196,7 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
             )
             sys.exit(1)
 
-        # D-05.2: empty pattern cell
+        # D-05.2: empty trigger pattern cell
         phrases = _extract_phrases(cell)
         if not phrases:
             sys.stderr.write(
@@ -188,7 +213,7 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
             )
             sys.exit(1)
 
-        # D-05.4: uncompilable regex — caught at load time, not per-prompt
+        # D-05.4: uncompilable regex in trigger cell — caught at load time, not per-prompt
         compiled: list[re.Pattern[str]] = []
         for phrase in phrases:
             try:
@@ -200,7 +225,28 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
                 )
                 sys.exit(1)
 
-        rules.append((technique, compiled))
+        # D-05.5: WR-03 balanced-quote guard on guard cell
+        if guard_cell.count('"') % 2 != 0:
+            sys.stderr.write(
+                f"check-step0-emulator: FAIL — technique '{technique}' guard cell "
+                f"has an unbalanced quote (possible pipe-split corruption): {guard_cell!r}\n"
+            )
+            sys.exit(1)
+
+        # Compile guard phrases (empty cell → empty list = no guard)
+        guard_phrases = _extract_phrases(guard_cell)
+        compiled_guard: list[re.Pattern[str]] = []
+        for phrase in guard_phrases:
+            try:
+                compiled_guard.append(re.compile(phrase, re.IGNORECASE))
+            except re.error as exc:
+                sys.stderr.write(
+                    f"check-step0-emulator: FAIL — technique '{technique}' "
+                    f"guard phrase {phrase!r} is not a valid Python regex: {exc}\n"
+                )
+                sys.exit(1)
+
+        rules.append((technique, compiled, compiled_guard))
 
     return rules
 
@@ -209,17 +255,26 @@ def _parse_phrase_table(path: Path) -> list[tuple[str, list[re.Pattern[str]]]]:
 # Classifier
 # ---------------------------------------------------------------------------
 
-def classify(prompt: str, rules: list[tuple[str, list[re.Pattern[str]]]]) -> str:
+def classify(prompt: str, rules: list[tuple[str, list[re.Pattern[str]], list[re.Pattern[str]]]]) -> str:
     """Classify a prompt string to a MODE.
 
     Iterates rules in declaration order (D-04, first-row-wins). Returns
     ``f"focused-{technique}"`` for the first technique whose any compiled
-    pattern fires via ``re.search``. Returns ``"full-composer"`` if no
-    pattern fires (D-04 default).
+    trigger pattern fires AND no guard phrase fires. Returns ``"full-composer"``
+    if no unguarded trigger fires (D-04 default).
+
+    Guard suppression (D-B/FIX-03): when a trigger fires but any guard phrase
+    also matches, the trigger is suppressed via ``break`` (drops to the next
+    technique in declaration order without returning).  This preserves
+    first-trigger-wins and the full-composer default — later techniques can
+    still fire if the guard only suppresses this one.
     """
-    for technique, patterns in rules:
+    for technique, patterns, guard_patterns in rules:
         for pattern in patterns:
             if pattern.search(prompt):
+                # Guard suppression: if any guard phrase matches, skip this technique
+                if any(g.search(prompt) for g in guard_patterns):
+                    break  # trigger fired but guard suppresses — try next technique
                 return f"focused-{technique}"
     return "full-composer"
 
@@ -351,7 +406,69 @@ def _run_self_test() -> None:
             '| pre-mortem | "[" |\n',
             "not a valid Python regex",
         ),
+        # D-05.5: guard cell with unbalanced quote (D-G / WR-03 applied to guard cell)
+        # A 3-column row where the guard cell has an odd number of '"' → loud failure.
+        (
+            "D-05.5 guard-unbalanced-quote",
+            "**Phrase detection rules** (case-insensitive)\n"
+            "\n"
+            "| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |\n"
+            "|---|---|---|\n"
+            '| pre-mortem | "pre-mortem" | "unmatched quote |\n',
+            "unbalanced quote",
+        ),
+        # D-05.6: ragged row missing the guard cell in a 3-column table (D-G)
+        # A 2-cell row where the table has a 3-column header → graceful no-guard parse
+        # (the D-G locked behavior: treat as empty guard, not a loud failure).
+        # This fixture must NOT appear in the fault_fixtures list (which expects non-zero exit).
+        # It is tested separately below as a graceful-parse assertion.
     ]
+
+    # D-05.6: ragged-row-no-guard — a 2-cell row in a 3-column table must parse
+    # gracefully as no-guard (D-G locked behavior: graceful, not loud failure).
+    # Unlike D-05.1–D-05.5, D-05.6 expects exit 0 (graceful), so it is NOT in
+    # fault_fixtures (which expects non-zero exit).  It is tested via a subprocess
+    # parse that must succeed and produce a rules list.
+    _dg_ragged_text = (
+        "**Phrase detection rules** (case-insensitive)\n"
+        "\n"
+        "| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |\n"
+        "|---|---|---|\n"
+        '| pre-mortem | "pre-mortem" |\n'  # only 2 cells — ragged row, no guard cell
+    )
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as tmp:
+        tmp.write(_dg_ragged_text)
+        _dg_ragged_path = tmp.name
+
+    try:
+        _dg_result = subprocess.run(
+            [
+                sys.executable,
+                str(Path(__file__).resolve()),
+                "--_parse-table-test",
+                _dg_ragged_path,
+            ],
+            capture_output=True,
+            text=True,
+        )
+        _dg_exit_code = _dg_result.returncode
+    finally:
+        os.unlink(_dg_ragged_path)
+
+    if _dg_exit_code == 0:
+        print(
+            "check-step0-emulator --self-test: D-05.6 ragged-row-no-guard PASS "
+            "(2-cell row in 3-column table parsed gracefully as no-guard)"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: D-05.6 ragged-row-no-guard FAIL "
+            f"(expected exit 0 / graceful no-guard, got exit {_dg_exit_code}; "
+            f"stderr: {_dg_result.stderr.strip()!r})"
+        )
+        wrong.append("D-05.6 ragged-row-no-guard (expected graceful parse, got non-zero exit)")
 
     for label, table_text, expected_substring in fault_fixtures:
         # Write the malformed table to a temporary file and run the parser
@@ -1131,6 +1248,102 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 6: PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE
+    #   named emulator assertions (FIX-03 / FIX-04 / D-B / D-C / D-D)
+    #
+    # These three assertions lock the guard-suppression mechanism and the
+    # stay-in-composer tiebreaker behavior introduced in Phase 118.
+    #
+    # PREMORTEM-GUARD (D-B / D-C):
+    #   A synthetic prompt containing BOTH a literal pre-mortem trigger phrase
+    #   AND an oblique guard phrase → expect full-composer (trigger suppressed).
+    #   This is a catalog-INDEPENDENT synthetic fixture (no drift guard against
+    #   catalog needed — no catalog row exists for this synthetic combo).
+    #   Mirrors the RR-77-08 / Category-N synthetic-fixture idiom in _battery_core.py.
+    #
+    # TIEBREAK-OBLIQUE (D-D / FIX-04 prose lock):
+    #   An oblique prompt with no trigger → full-composer.
+    #   Confirms the tiebreaker prose: oblique worry-phrasing without a decisive
+    #   trigger stays in full-composer at the emulator layer.
+    #
+    # TIEBREAK-DECISIVE (D-D / FIX-04 prose lock):
+    #   A decisive trigger prompt → focused-<technique>.
+    #   Confirms the tiebreaker does NOT suppress legitimate focused routes.
+    # -----------------------------------------------------------------------
+
+    # PREMORTEM-GUARD: trigger fires ("pre-mortem" literal) AND guard fires
+    # ("before we lock it in" from the pre-mortem guard cell) → full-composer suppressed.
+    _PREMORTEM_GUARD_PROMPT = (
+        "run a pre-mortem on our API gateway redesign — before we lock it in, "
+        "let's surface every risk the team might have missed"
+    )
+    _PREMORTEM_GUARD_EXPECTED = "full-composer"  # trigger fired, guard suppressed
+
+    premortem_guard_computed = classify(_PREMORTEM_GUARD_PROMPT, rules)
+    if premortem_guard_computed == _PREMORTEM_GUARD_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: PREMORTEM-GUARD PASS "
+            f"(pre-mortem trigger + guard phrase → {premortem_guard_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: PREMORTEM-GUARD FAIL "
+            f"(expected {_PREMORTEM_GUARD_EXPECTED!r}, got {premortem_guard_computed!r}; "
+            f"guard suppression not working: trigger fired but guard phrase did not suppress it)"
+        )
+        wrong.append(
+            f"PREMORTEM-GUARD (expected {_PREMORTEM_GUARD_EXPECTED!r}, got {premortem_guard_computed!r})"
+        )
+
+    # TIEBREAK-OBLIQUE: oblique prompt, no trigger phrase → full-composer.
+    # Uses the S-N01 oblique worry-phrasing (no literal trigger fires).
+    _TIEBREAK_OBLIQUE_PROMPT = (
+        "The plan looks solid and the team is excited, but I am nervous. "
+        "Before we lock it in, I want to surface every way this could blow up."
+    )
+    _TIEBREAK_OBLIQUE_EXPECTED = "full-composer"
+
+    tiebreak_oblique_computed = classify(_TIEBREAK_OBLIQUE_PROMPT, rules)
+    if tiebreak_oblique_computed == _TIEBREAK_OBLIQUE_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: TIEBREAK-OBLIQUE PASS "
+            f"(oblique no-trigger prompt → {tiebreak_oblique_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: TIEBREAK-OBLIQUE FAIL "
+            f"(expected {_TIEBREAK_OBLIQUE_EXPECTED!r}, got {tiebreak_oblique_computed!r}; "
+            f"oblique worry-phrasing should not route to any focused mode)"
+        )
+        wrong.append(
+            f"TIEBREAK-OBLIQUE (expected {_TIEBREAK_OBLIQUE_EXPECTED!r}, got {tiebreak_oblique_computed!r})"
+        )
+
+    # TIEBREAK-DECISIVE: decisive trigger prompt → focused-inversion.
+    # Confirms the tiebreaker does NOT suppress legitimate focused routes:
+    # a prompt with a clear decisive trigger ("invert this claim") must still route correctly.
+    _TIEBREAK_DECISIVE_PROMPT = (
+        "invert this claim: our deployment pipeline is reliable enough for daily releases"
+    )
+    _TIEBREAK_DECISIVE_EXPECTED = "focused-inversion"
+
+    tiebreak_decisive_computed = classify(_TIEBREAK_DECISIVE_PROMPT, rules)
+    if tiebreak_decisive_computed == _TIEBREAK_DECISIVE_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: TIEBREAK-DECISIVE PASS "
+            f"(decisive inversion trigger → {tiebreak_decisive_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: TIEBREAK-DECISIVE FAIL "
+            f"(expected {_TIEBREAK_DECISIVE_EXPECTED!r}, got {tiebreak_decisive_computed!r}; "
+            f"decisive triggers must still route to focused mode)"
+        )
+        wrong.append(
+            f"TIEBREAK-DECISIVE (expected {_TIEBREAK_DECISIVE_EXPECTED!r}, got {tiebreak_decisive_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -1141,7 +1354,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE named assertions")
 
 
 def _require_python_version() -> None:

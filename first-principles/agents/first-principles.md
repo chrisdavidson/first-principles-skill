@@ -66,18 +66,18 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Phrase detection rules** (case-insensitive; first technique whose pattern fires wins; ties resolve in declaration order):
 
-| Technique | Trigger phrases (any one fires) |
-|---|---|
-| pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused", "structural weakness", "failure chain" |
-| theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" |
-| inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" |
-| fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space", "candidate causes" |
-| five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of", "decompose (this )?(claim|into primitives)" |
-| trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" |
-| second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" |
-| estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" |
+| Technique | Trigger phrases (any one fires) | Guard phrases (suppress if any fires) |
+|---|---|---|
+| pre-mortem | "pre-mortem", "prospective-hindsight", "(I am|I'm) nervous about (my|the|this) plan", "(walk|run) through what would have caused", "imagine .* failed .* what caused", "structural weakness", "failure chain" | "surface every way this could blow up", "before we lock it in", "everything that would make it go wrong", "what failure modes should we prepare for", "how this could go badly" |
+| theoretical-limit | "theoretical limit", "physical limit", "what (do )?the laws (actually )?permit", "if every convention were removed", "upper bound on what.?s achievable", "what.?s physically possible" | |
+| inversion | "invert", "invert this claim", "inversion analysis", "what would guarantee .* fail(ure)?", "necessary precondition(s)?", "what would have to be true for .* to break", "when .* assumption breaks" | |
+| fishbone | "fishbone", "Ishikawa", "cause categor(y|ies)", "breadth-first .* causes", "map the .* cause space", "candidate causes" | |
+| five-whys | "five whys", "5 whys", "root cause", "why did this happen", "drill down to a root cause", "reduce to primitives", "irreducibility (drill|test)", "break .* (down )?into (its )?constituent (parts|facts)", "what is .* (actually )?made of", "decompose (this )?(claim|into primitives)" | |
+| trade-off | "trade-off analysis", "trade-off", "weighted criteria", "score the options", "decision matrix", "lock the weighting", "build .* trade.?off" | |
+| second-order | "second-order", "2nd-order", "downstream consequences", "ripple effects", "what does this set in motion" | |
+| estimate | "order.of.magnitude", "order-of-magnitude", "Fermi (estimate|calculation)", "ballpark", "back.of.the.envelope", "roughly how much", "how many .* (are there|would)", "estimate the (size|number|magnitude|cost) of" | |
 
-**Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full.
+**Default rule.** If no technique-specific phrase fires, set `MODE = full-composer` and execute all phases (1–5) of the procedure below in full. **When no decisive technique-specific trigger fires — or when the prompt mentions trigger vocabulary only obliquely (e.g., worry-phrasing or failure-mode curiosity without a literal technique name or structural-analysis request) — stay in `full-composer` mode and run the holistic analysis rather than routing to a focused technique.**
 
 **Execution branching.**
 
