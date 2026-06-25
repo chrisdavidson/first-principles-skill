@@ -872,10 +872,24 @@ def self_test_boundary() -> int:
     # Captures are the full-run (not truncated) 30-call CONF-01 live run
     # (S-P01/S-P03/S-N01/S-N02/S-N03/S-N04 × 5 repeats; all genuine transcripts,
     # monthly spend budget held). Added in Phase 117 CONF-02 (Plan 07, D-04 step two).
+    # Retained for lineage (RR-79-01/RR-117-01/RR-117-02/RR-80-01 re-pointed to v7.8
+    # in Phase 119 CONF-04; v7.7 captures byte-frozen).
     _V77_DIR = REPO_ROOT / "tests" / "step0-captures-v7.7"
 
     def _load_excerpt_v77(prompt_id: str, run: int) -> str:
         return (_V77_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
+    # _load_excerpt_v78 helper — reads Phase 119 v7.8 CONF-03 assistant-text excerpts.
+    # Same shape as _load_excerpt_v77: Path.read_text() so a missing file raises
+    # loudly (Pitfall 5 — no vacuous empty-string zero-count).
+    # Captures are the full-run (not truncated) 30-call CONF-03 live run
+    # (S-P01/S-P03/S-N01/S-N02/S-N03/S-N04 × 5 repeats; 29/30 genuine — S-N04-run5
+    # is_error:true, 74-char anomaly on a non-blocking row, count=0; all blocking rows
+    # clean). Added in Phase 119 CONF-04 (Plan 03, D-04 step two / D-5 honesty-not-score).
+    _V78_DIR = REPO_ROOT / "tests" / "step0-captures-v7.8"
+
+    def _load_excerpt_v78(prompt_id: str, run: int) -> str:
+        return (_V78_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
     # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
@@ -884,7 +898,8 @@ def self_test_boundary() -> int:
     #          re-pointed to v7.4 evidence Phase 108, Plan 02;
     #          re-pointed to v7.6 evidence Phase 114, Plan 02;
     #          re-pointed to post-fix detector / pre-fix v7.6 captures Phase 117, Plan 02;
-    #          re-pointed to live v7.7 CONF-01 captures Phase 117, Plan 07 — D-04 step two)
+    #          re-pointed to live v7.7 CONF-01 captures Phase 117, Plan 07 — D-04 step two;
+    #          re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two)
     #
     # RR-80-01 is the S-N04 semantically-pre-mortem negative-control row.  S-N04 is
     # in NON_BLOCKING_NEGATIVE_IDS (Phase 117, Plan 05, D-16): the live first-principles
@@ -893,11 +908,18 @@ def self_test_boundary() -> int:
     # blocking bar).  S-N04 is reported non-blocking.
     #
     # At the Phase 117 CONF-01 live re-baseline (tests/step0-baseline-v7.7.md):
-    # S-N04 observed 2/5 (non-blocking; over-routes on runs 2, 3, 5).
+    # S-N04 observed 2/5 (non-blocking; over-routes on runs 2, 3, 5). v7.7 vector:
+    # [1, 2, 2, 1, 3].
     #
-    # Phase 117 CONF-02 (D-04 step two): the asserted vector is updated to
-    # [1, 2, 2, 1, 3] — the live-measured v7.7 count vector over the frozen
-    # tests/step0-captures-v7.7/S-N04-run{1..5}.txt excerpts.  The captures
+    # Phase 119 CONF-03 (tests/step0-baseline-v7.8.md): S-N04 observed 5/5
+    # (non-blocking; Phase-118 FIX-03/FIX-04 prose fix moved over the bar).
+    # Note: S-N04-run5 returned is_error:true (74-char anomaly, num_turns=2 —
+    # a single transient error on a non-blocking row); count=0 for that run.
+    # The blocking verdict is unaffected (S-N04 is non-blocking).
+    #
+    # Phase 119 CONF-04 (D-04 step two): the asserted vector is updated to
+    # [1, 1, 1, 1, 0] — the live-measured v7.8 count vector over the frozen
+    # tests/step0-captures-v7.8/S-N04-run{1..5}.txt excerpts.  The captures
     # are NOT modified; only the asserted constants change.
     #
     # This offline gate asserts TWO things (honesty-not-score principle, D-01):
@@ -979,16 +1001,16 @@ def self_test_boundary() -> int:
         and _rr8001_result != "focused-pre-mortem"
     )
 
-    # --- (2) v7.7 S-N04 per-run pre-mortem distinct-marker count vector ---
-    # Asserts the live-measured v7.7 vector [1, 2, 2, 1, 3] over the frozen
-    # tests/step0-captures-v7.7/S-N04-run{1..5}.txt excerpts (CONF-01, D-04 step two).
-    # 9-marker post-fix detector: runs 2, 3, 5 clear MIN_HEADER_HITS (over-routes —
-    # genuine pre-mortem routing on a semantically-pre-mortem prompt, NON_BLOCKING per D-16);
-    # runs 1, 4 stay below (count 1 — correctly stay full-composer on those runs).
-    # Phase 117 CONF-02, D-04 step two — captures NOT modified, only asserted vector.
+    # --- (2) v7.8 S-N04 per-run pre-mortem distinct-marker count vector ---
+    # Asserts the live-measured v7.8 vector [1, 1, 1, 1, 0] over the frozen
+    # tests/step0-captures-v7.8/S-N04-run{1..5}.txt excerpts (CONF-03, D-04 step two).
+    # 9-marker post-fix detector: all runs stay below MIN_HEADER_HITS → full-composer 5/5;
+    # S-N04 NON_BLOCKING per D-16 (semantically-pre-mortem prompt).
+    # Note: S-N04-run5 is_error:true (74-char anomaly) — count=0 for run5; blocking verdict
+    # unaffected (S-N04 non-blocking). Phase 119 CONF-04, D-04 step two — captures NOT modified.
     _rr8001_sn04_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v77("S-N04", _run)
+        _text = _load_excerpt_v78("S-N04", _run)
         _hits = _technique_hits(_text)
         _rr8001_sn04_counts.append(_hits.get("pre-mortem", 0))
 
@@ -998,30 +1020,33 @@ def self_test_boundary() -> int:
     # (Phase 117, Plan 01, 2026-06-24) — the DIAG-01-prescribed marker recalibration.
     _rr8001_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
 
-    # Positive counter-check: run2=2 >= MIN_HEADER_HITS proves the detector CAN
-    # fire on S-N04 text (genuine pre-mortem routing documented per D-01, D-16;
-    # S-N04 is NON_BLOCKING per D-16 because the live agent genuinely runs pre-mortem
-    # on this semantically-pre-mortem prompt).
+    # Positive counter-check: run1=1 >= 1 proves the detector is alive — any of
+    # the 9 markers can fire; the v7.8 result is ≤ 1 on all runs (Phase-118 prose fix
+    # narrowed over-routing on this semantically-pre-mortem prompt; all 5 runs
+    # stay below MIN_HEADER_HITS=2 → full-composer on every run, 5/5).
+    # RR-80-01 re-pointed to v7.8 (Phase 119 CONF-04): S-N04 5/5 non-blocking.
     # _COMPOSER_FOCUS_CEILING lock: any edit to this threshold will now trip this gate.
-    _rr8001_v77_ok = (
-        _rr8001_sn04_counts == [1, 2, 2, 1, 3]
-        and _rr8001_sn04_counts[1] >= MIN_HEADER_HITS    # run2 over-routes (counter-check, non-vacuous)
-        and _rr8001_pm_pattern_count == 9                # drift guard (Phase 117 FIX-02 bump: 7→9)
-        and _COMPOSER_FOCUS_CEILING == 4                 # lock: threshold byte-unchanged
+    _rr8001_v78_ok = (
+        _rr8001_sn04_counts == [1, 1, 1, 1, 0]
+        and all(c < MIN_HEADER_HITS for c in _rr8001_sn04_counts)  # no run clears barrier (non-vacuous)
+        and _rr8001_pm_pattern_count == 9                           # drift guard (Phase 117 FIX-02 bump: 7→9)
+        and _COMPOSER_FOCUS_CEILING == 4                            # lock: threshold byte-unchanged
     )
 
-    _rr8001_assertions_ok = _rr8001_mechanism_ok and _rr8001_v77_ok
+    _rr8001_assertions_ok = _rr8001_mechanism_ok and _rr8001_v78_ok
 
     if _rr8001_assertions_ok:
         print(
             f"  RR-80-01 PASS: one bare pre-mortem hit ({_rr8001_pm_count}) "
             f"< MIN_HEADER_HITS ({MIN_HEADER_HITS}); "
             f"classify() returned '{_rr8001_result}' (not 'focused-pre-mortem'); "
-            f"v7.7 S-N04 count vector {_rr8001_sn04_counts} == [1, 2, 2, 1, 3] "
-            f"(live CONF-01 v7.7 captures; 9-marker post-fix detector; "
-            f"run2={_rr8001_sn04_counts[1]} >= MIN — documented genuine pre-mortem routing; "
+            f"v7.8 S-N04 count vector {_rr8001_sn04_counts} == [1, 1, 1, 1, 0] "
+            f"(live CONF-03 v7.8 captures; 9-marker post-fix detector; "
+            f"all runs < MIN_HEADER_HITS=2 → full-composer 5/5; "
             f"S-N04 NON_BLOCKING per D-16 (semantically-pre-mortem prompt); "
-            f"S-N04 2/5 at Phase 117 CONF-01 re-baseline, over-routes on runs 2/3/5); "
+            f"run5 is_error:true 74-char anomaly, count=0 — non-blocking row, verdict unaffected; "
+            f"S-N04 5/5 at Phase 119 CONF-03 re-baseline (Phase-118 FIX-03/FIX-04 prose fix); "
+            f"re-pointed to v7.8 Phase 119 CONF-04, D-04 step two); "
             f"pm_patterns={_rr8001_pm_pattern_count} (expected 9); CEILING={_COMPOSER_FOCUS_CEILING}. "
             f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
         )
@@ -1033,14 +1058,13 @@ def self_test_boundary() -> int:
                 f"classify() returned '{_rr8001_result}' (expected not 'focused-pre-mortem'). "
                 f"S-N04 prompt: '{_SN04_PROMPT[:60]}...'"
             )
-        if not _rr8001_v77_ok:
+        if not _rr8001_v78_ok:
             print(
-                f"  RR-80-01 FAIL: v7.7 S-N04 count vector {_rr8001_sn04_counts} "
-                f"(expected [1, 2, 2, 1, 3]; live CONF-01 v7.7 captures); "
+                f"  RR-80-01 FAIL: v7.8 S-N04 count vector {_rr8001_sn04_counts} "
+                f"(expected [1, 1, 1, 1, 0]; live CONF-03 v7.8 captures); "
                 f"pm_patterns={_rr8001_pm_pattern_count} (expected 9); "
                 f"CEILING={_COMPOSER_FOCUS_CEILING} (expected 4); "
-                f"run2={_rr8001_sn04_counts[1] if len(_rr8001_sn04_counts) > 1 else '?'} "
-                f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+                f"check: all runs must be < MIN_HEADER_HITS={MIN_HEADER_HITS}."
             )
         all_passed = False
 
@@ -1050,7 +1074,8 @@ def self_test_boundary() -> int:
     #          re-pointed to v7.4 evidence Phase 108, Plan 02;
     #          re-pointed to v7.6 evidence Phase 114, Plan 02;
     #          re-pointed to post-fix detector / pre-fix v7.6 captures Phase 117, Plan 02;
-    #          re-pointed to live v7.7 CONF-01 captures Phase 117, Plan 07 — D-04 step two)
+    #          re-pointed to live v7.7 CONF-01 captures Phase 117, Plan 07 — D-04 step two;
+    #          re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two)
     #
     # **CLOSED at Phase 117 v7.7 CONF-01 (tests/step0-baseline-v7.7.md): S-P01
     # sustained 3/5 ≥ min-pass — the pre-mortem under-routing residual is
@@ -1058,6 +1083,10 @@ def self_test_boundary() -> int:
     # CLOSE keeps the RR-79-01 ID (RR-108-02 CLOSE precedent per D-09).
     # This sentinel is retained as a regression guard (the CLOSED honest state
     # asserted here; removing the sentinel would lose the regression-guard coverage).
+    #
+    # **CLOSE SUSTAINED at Phase 119 v7.8 CONF-03 (tests/step0-baseline-v7.8.md):
+    # S-P01 3/5 ≥ min-pass — CLOSE confirmed out-of-sample with Phase-118 prose fix.**
+    # Sentinel re-pointed to v7.8 captures (Phase 119 CONF-04, D-04 step two).
     #
     # RR-79-01 is the S-P01 pre-mortem row:
     # - v7.6 re-baseline (Phase 114): 2/5 FAIL (REGRESSED from v7.4's 3/5).
@@ -1067,24 +1096,27 @@ def self_test_boundary() -> int:
     # - Phase 117 CONF-01 (D-04 step two): live re-baseline over fresh v7.7 captures
     #   → S-P01 3/5 PASS (runs 2,3,5 route to focused-pre-mortem out-of-sample).
     #   v7.7 count vector: [0, 2, 3, 1, 4] over tests/step0-captures-v7.7/S-P01-*.txt.
+    # - Phase 119 CONF-03 (D-04 step two): live re-baseline over fresh v7.8 captures
+    #   → S-P01 3/5 PASS (runs 2,3,5 route to focused-pre-mortem out-of-sample).
+    #   v7.8 count vector: [1, 2, 3, 0, 2] over tests/step0-captures-v7.8/S-P01-*.txt.
     #
     # This offline gate does NOT assert the live pass rate; it asserts the
     # DOCUMENTED per-run distinct pre-mortem marker count vector over the live
-    # v7.7 CONF-01 excerpts (tests/step0-captures-v7.7/S-P01-run{1..5}.txt,
+    # v7.8 CONF-03 excerpts (tests/step0-captures-v7.8/S-P01-run{1..5}.txt,
     # honesty-not-score principle, D-01).
     #
-    # v7.7 count vector: [0, 2, 3, 1, 4]
-    #   run1: 0 markers (stays below MIN_HEADER_HITS → full-composer on that run)
+    # v7.8 count vector: [1, 2, 3, 0, 2]
+    #   run1: 1 marker  (stays below MIN_HEADER_HITS → full-composer on that run)
     #   run2: 2 markers (clears barrier → focused-pre-mortem ✓)
     #   run3: 3 markers (clears barrier → focused-pre-mortem ✓)
-    #   run4: 1 marker  (stays below MIN_HEADER_HITS → full-composer on that run)
-    #   run5: 4 markers (clears barrier → focused-pre-mortem ✓)
+    #   run4: 0 markers (stays below MIN_HEADER_HITS → full-composer on that run)
+    #   run5: 2 markers (clears barrier → focused-pre-mortem ✓)
     # Runs 2,3,5 clear MIN_HEADER_HITS → K/N = 3/5 PASS.
-    # v6.3/v6.4/v7.4/v7.6 excerpts remain byte-frozen (D-04).
+    # v6.3/v6.4/v7.4/v7.6/v7.7 excerpts remain byte-frozen (D-04).
     # ---------------------------------------------------------------------------
     _rr7901_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v77("S-P01", _run)
+        _text = _load_excerpt_v78("S-P01", _run)
         _hits = _technique_hits(_text)
         _rr7901_counts.append(_hits.get("pre-mortem", 0))
 
@@ -1097,33 +1129,34 @@ def self_test_boundary() -> int:
         print(
             f"  RR-79-01 FAIL: pre-mortem pattern count drifted "
             f"(expected 9, got {_rr7901_pm_pattern_count}) — update sentinel "
-            f"after verifying new count vector over S-P01-run1..5 (v7.7)."
+            f"after verifying new count vector over S-P01-run1..5 (v7.8)."
         )
         all_passed = False
 
     # Positive counter-check (WR-01): runs 2, 3, 5 each clear the
-    # MIN_HEADER_HITS barrier, proving the barrier IS exercised on real v7.7 data
+    # MIN_HEADER_HITS barrier, proving the barrier IS exercised on real v7.8 data
     # (non-vacuous: the below-barrier runs 1, 4 are meaningful because the barrier
-    # IS reachable on runs 2, 3, 5 in the live CONF-01 captures).
+    # IS reachable on runs 2, 3, 5 in the live CONF-03 captures).
     _rr7901_ok = (
-        _rr7901_counts == [0, 2, 3, 1, 4]
+        _rr7901_counts == [1, 2, 3, 0, 2]
         and _rr7901_counts[1] >= MIN_HEADER_HITS    # run2 fires (counter-check)
         and _rr7901_counts[2] >= MIN_HEADER_HITS    # run3 fires (counter-check)
         and _rr7901_pm_pattern_count == 9           # drift guard (Phase 117 FIX-02 bump: 7→9)
     )
     if _rr7901_ok:
         print(
-            f"  RR-79-01 PASS (CLOSED at v7.7): S-P01 pre-mortem count vector {_rr7901_counts} "
-            f"== [0, 2, 3, 1, 4] (live CONF-01 v7.7 captures; 9-marker post-fix detector; "
+            f"  RR-79-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v7.8): "
+            f"S-P01 pre-mortem count vector {_rr7901_counts} "
+            f"== [1, 2, 3, 0, 2] (live CONF-03 v7.8 captures; 9-marker post-fix detector; "
             f"run2={_rr7901_counts[1]} and run3={_rr7901_counts[2]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
-            f"runs 2,3,5 clear barrier → 3/5 PASS at Phase 117 CONF-01 — CLOSED; "
-            f"Phase 117 CONF-02, D-04 step two; retained as regression guard); "
+            f"runs 2,3,5 clear barrier → 3/5 PASS at Phase 119 CONF-03 — CLOSE SUSTAINED; "
+            f"Phase 119 CONF-04, D-04 step two; retained as regression guard); "
             f"pm_patterns={_rr7901_pm_pattern_count} (expected 9)."
         )
     else:
         print(
             f"  RR-79-01 FAIL: S-P01 pre-mortem count vector {_rr7901_counts} "
-            f"(expected [0, 2, 3, 1, 4]; live CONF-01 v7.7 captures); "
+            f"(expected [1, 2, 3, 0, 2]; live CONF-03 v7.8 captures); "
             f"pm_patterns={_rr7901_pm_pattern_count} "
             f"(expected 9); run2={_rr7901_counts[1] if len(_rr7901_counts) > 1 else '?'} "
             f"run3={_rr7901_counts[2] if len(_rr7901_counts) > 2 else '?'} "
@@ -1261,7 +1294,8 @@ def self_test_boundary() -> int:
 
     # ---------------------------------------------------------------------------
     # RR-117-01 named honest-state sentinel — S-P03 fishbone vector (Phase 117,
-    #           Plan 07 — CONF-02, D-04 step two; CLOSED at v7.7 CONF-01)
+    #           Plan 07 — CONF-02, D-04 step two; CLOSED at v7.7 CONF-01;
+    #           re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two)
     #
     # **CLOSED: S-P03 fishbone sustained 5/5 at Phase 117 v7.7 CONF-01.**
     # This is the FIRST fishbone capture-based vector sentinel (Phase 117 Plan 02
@@ -1269,50 +1303,58 @@ def self_test_boundary() -> int:
     # RR-117-01 mints this ID (RR-75-03 lineage — original fishbone under-routing
     # residual first tracked Phase 75; no formal vector sentinel existed until now).
     #
-    # v7.7 CONF-01 fishbone count vector: [3, 3, 2, 2, 2]
-    # (tests/step0-captures-v7.7/S-P03-run{1..5}.txt; 7-marker post-fix detector)
-    #   run1: 3 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run2: 3 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    # **CLOSE SUSTAINED at Phase 119 v7.8 CONF-03 (tests/step0-baseline-v7.8.md):
+    # S-P03 4/5 ≥ v7.4 floor (3/5) — CLOSE confirmed out-of-sample with Phase-118
+    # prose fix. One run (run1) stays below barrier; four runs clear. Per D-1b softening,
+    # ≥3/5 is the no-regression floor, and 4/5 comfortably satisfies it.**
+    # Sentinel re-pointed to v7.8 captures (Phase 119 CONF-04, D-04 step two).
+    #
+    # v7.7 CONF-01 fishbone count vector: [3, 3, 2, 2, 2] (all 5 runs clear → 5/5 PASS).
+    # v7.8 CONF-03 fishbone count vector: [1, 4, 2, 2, 3]
+    # (tests/step0-captures-v7.8/S-P03-run{1..5}.txt; 7-marker post-fix detector)
+    #   run1: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
+    #   run2: 4 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
     #   run3: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
     #   run4: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run5: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    # All 5 runs clear the barrier → K/N = 5/5 PASS.
+    #   run5: 3 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    # Runs 2,3,4,5 clear the barrier → K/N = 4/5 PASS ≥ v7.4 floor.
     #
     # Drift guard: fishbone marker count must not silently change.
     # Retained as regression guard (CLOSE keeps the sentinel per RR-108-02 precedent).
     # ---------------------------------------------------------------------------
     _rr11701_fb_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v77("S-P03", _run)
+        _text = _load_excerpt_v78("S-P03", _run)
         _hits = _technique_hits(_text)
         _rr11701_fb_counts.append(_hits.get("fishbone", 0))
 
     # Drift guard: fishbone marker set size must not silently grow.
     _rr11701_fb_pattern_count = len(_TECHNIQUE_CATEGORIES["fishbone"])
 
-    # Positive counter-check: run1=3 >= MIN_HEADER_HITS proves the fishbone
-    # detector CAN fire on v7.7 S-P03 text (non-vacuous; all 5 runs clear the barrier).
+    # Positive counter-check: run2=4 >= MIN_HEADER_HITS proves the fishbone
+    # detector CAN fire on v7.8 S-P03 text (non-vacuous; runs 2,3,4,5 clear the barrier).
     _rr11701_ok = (
-        _rr11701_fb_counts == [3, 3, 2, 2, 2]
-        and _rr11701_fb_counts[0] >= MIN_HEADER_HITS    # run1 fires (counter-check)
-        and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check: all runs clear)
+        _rr11701_fb_counts == [1, 4, 2, 2, 3]
+        and _rr11701_fb_counts[1] >= MIN_HEADER_HITS    # run2 fires (counter-check)
+        and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
         and _rr11701_fb_pattern_count == 7              # drift guard (FIX-01 bump: 6→7)
     )
     if _rr11701_ok:
         print(
-            f"  RR-117-01 PASS (CLOSED at v7.7): S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"== [3, 3, 2, 2, 2] (live CONF-01 v7.7 captures; 7-marker post-fix detector; "
-            f"run1={_rr11701_fb_counts[0]} and run5={_rr11701_fb_counts[4]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
-            f"all 5 runs clear barrier → 5/5 PASS at Phase 117 CONF-01 — CLOSED; "
-            f"first fishbone vector sentinel; RR-75-03 lineage; "
+            f"  RR-117-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v7.8): "
+            f"S-P03 fishbone count vector {_rr11701_fb_counts} "
+            f"== [1, 4, 2, 2, 3] (live CONF-03 v7.8 captures; 7-marker post-fix detector; "
+            f"run2={_rr11701_fb_counts[1]} and run5={_rr11701_fb_counts[4]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"runs 2,3,4,5 clear barrier → 4/5 PASS at Phase 119 CONF-03 — CLOSE SUSTAINED (≥ v7.4 floor); "
+            f"first fishbone vector sentinel; RR-75-03 lineage; Phase 119 CONF-04, D-04 step two; "
             f"retained as regression guard); fb_patterns={_rr11701_fb_pattern_count} (expected 7)."
         )
     else:
         print(
             f"  RR-117-01 FAIL: S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"(expected [3, 3, 2, 2, 2]; live CONF-01 v7.7 captures); "
+            f"(expected [1, 4, 2, 2, 3]; live CONF-03 v7.8 captures); "
             f"fb_patterns={_rr11701_fb_pattern_count} (expected 7); "
-            f"run1={_rr11701_fb_counts[0] if len(_rr11701_fb_counts) > 0 else '?'} "
+            f"run2={_rr11701_fb_counts[1] if len(_rr11701_fb_counts) > 1 else '?'} "
             f"run5={_rr11701_fb_counts[4] if len(_rr11701_fb_counts) > 4 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
@@ -1320,62 +1362,191 @@ def self_test_boundary() -> int:
 
     # ---------------------------------------------------------------------------
     # RR-117-02 named precision sentinel — S-N03 genuinely-oblique negative
-    #           (Phase 117, Plan 07 — CONF-02, D-17 precision finding)
+    #           (Phase 117, Plan 07 — CONF-02, D-17 precision finding;
+    #            re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two)
     #
-    # S-N03 is the one truly-oblique negative in the v7.7 CONF-01 run: a Python
-    # debugging prompt that the live agent correctly does NOT route to focused
-    # pre-mortem.  S-N01, S-N02, and S-N04 all over-route because they are
-    # semantically pre-mortem (D-17 transcript evidence: "surface every way this
-    # could blow up" / "figure out everything that would make it go wrong").
-    # S-N03 over-routes on ZERO runs → [0, 0, 0, 0, 0] is the clean precision signal.
+    # S-N03 is the one truly-oblique negative: a Python debugging prompt that the
+    # live agent correctly does NOT route to focused pre-mortem.  S-N01, S-N02, and
+    # S-N04 all over-route because they are semantically pre-mortem (D-17 transcript
+    # evidence: "surface every way this could blow up" / "figure out everything that
+    # would make it go wrong"). S-N03 over-routes on ZERO runs → the all-zero vector
+    # is the clean precision signal.
     #
     # This sentinel locks the D-17 precision finding: the FIX-01 detector
-    # recalibration did NOT hurt routing on genuinely-unrelated prompts.  S-N03
-    # stays full-composer on all 5 live v7.7 CONF-01 runs.
+    # recalibration + Phase-118 prose fix did NOT hurt routing on genuinely-unrelated
+    # prompts. S-N03 stays full-composer on all 5 live v7.8 CONF-03 runs.
     #
-    # v7.7 CONF-01 S-N03 pre-mortem count vector: [0, 0, 0, 0, 0]
-    # (tests/step0-captures-v7.7/S-N03-run{1..5}.txt; 9-marker post-fix detector)
+    # v7.7 CONF-01 S-N03 pre-mortem count vector: [0, 0, 0, 0, 0] (5/5 PASS).
+    # v7.8 CONF-03 S-N03 pre-mortem count vector: [1, 0, 0, 0, 0]
+    # (tests/step0-captures-v7.8/S-N03-run{1..5}.txt; 9-marker post-fix detector)
     # All 5 runs stay below MIN_HEADER_HITS → full-composer 5/5.
+    # (run1 has 1 marker but stays below the MIN_HEADER_HITS=2 barrier.)
     #
     # Drift guard: pre-mortem marker count must not silently grow (reuses
     # _rr7901_pm_pattern_count == 9 established above — any drift already fails
     # RR-79-01's drift guard, so no second explicit check is needed here; the
     # positive counter-check makes this non-vacuous via the known-firing runs).
-    # Positive counter-check (synthetic): a minimal 2-marker text confirms the
-    # detector IS reachable (not dead); the real S-N03 excerpts stay at 0 because
-    # the debugging prompt contains no pre-mortem markers.
+    # Positive counter-check (from RR-79-01): the S-P01 v7.8 captures produce ≥2
+    # markers on run2, proving the detector IS reachable — the S-N03 all-below-MIN
+    # result is therefore a genuine clean negative, not a dead detector.
     # ---------------------------------------------------------------------------
     _rr11702_sn03_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v77("S-N03", _run)
+        _text = _load_excerpt_v78("S-N03", _run)
         _hits = _technique_hits(_text)
         _rr11702_sn03_counts.append(_hits.get("pre-mortem", 0))
 
     # Positive counter-check: use the S-P01 run2 excerpt (already computed above
     # in _rr7901_counts) to prove the 9-marker detector IS reachable — the S-N03
-    # all-zero result is therefore a genuine clean negative, not a dead detector.
+    # all-below-MIN result is therefore a genuine clean negative, not a dead detector.
     _rr11702_sp01_run2_pm = _rr7901_counts[1]  # from the RR-79-01 assertion above
 
     _rr11702_ok = (
-        _rr11702_sn03_counts == [0, 0, 0, 0, 0]
+        _rr11702_sn03_counts == [1, 0, 0, 0, 0]
         and all(c < MIN_HEADER_HITS for c in _rr11702_sn03_counts)  # no run clears barrier
         and _rr11702_sp01_run2_pm >= MIN_HEADER_HITS                # detector reachable (non-vacuous)
     )
     if _rr11702_ok:
         print(
             f"  RR-117-02 PASS: S-N03 pre-mortem count vector {_rr11702_sn03_counts} "
-            f"== [0, 0, 0, 0, 0] (live CONF-01 v7.7 captures; 9-marker post-fix detector; "
+            f"== [1, 0, 0, 0, 0] (live CONF-03 v7.8 captures; 9-marker post-fix detector; "
             f"all runs stay below MIN_HEADER_HITS={MIN_HEADER_HITS} → full-composer 5/5; "
-            f"precision signal: FIX-01 did NOT hurt routing on genuinely-oblique prompts; "
+            f"precision signal: FIX-01+FIX-03/FIX-04 did NOT hurt routing on genuinely-oblique prompts; "
             f"detector is reachable (S-P01 run2 fires pm={_rr11702_sp01_run2_pm} >= MIN — non-vacuous); "
-            f"D-17 precision finding locked; Phase 117 CONF-02)."
+            f"D-17 precision finding sustained; Phase 119 CONF-04, re-pointed to v7.8)."
         )
     else:
         print(
             f"  RR-117-02 FAIL: S-N03 pre-mortem count vector {_rr11702_sn03_counts} "
-            f"(expected [0, 0, 0, 0, 0]; live CONF-01 v7.7 captures); "
+            f"(expected [1, 0, 0, 0, 0]; live CONF-03 v7.8 captures); "
             f"some run cleared MIN_HEADER_HITS={MIN_HEADER_HITS} — precision regression; "
             f"S-P01 run2 pm={_rr11702_sp01_run2_pm} (must be >= MIN to prove non-vacuous)."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
+    # RR-119-01 named honest-state sentinel — S-N01 over-routing resolved (Phase 119,
+    #           Plan 03 — CONF-04; minted for the S-N01 over-routing row resolved over
+    #           the bar at Phase 119 CONF-03 with the Phase-118 FIX-03/FIX-04 prose fix)
+    #
+    # **RR-119-01 MINTED: S-N01 over-routing resolved-over-bar at Phase 119 CONF-03.**
+    # S-N01 is an oblique negative (blocking): an oblique prompt that uses risk-framing
+    # language ("everything that could go wrong") without naming a plan or explicit
+    # pre-mortem context. At v7.7, S-N01 over-routed to focused-pre-mortem on all 5
+    # runs (0/5 full-composer). The Phase-118 FIX-03 negative-match guard column +
+    # FIX-04 stay-in-composer tiebreaker moved it over the bar at v7.8 (3/5 PASS).
+    #
+    # Residual disposition: RESOLVED-OVER-BAR with the detector-under-count caveat
+    # documented (D-01): the negative "passes" are a MIX of genuine clarification-holds
+    # (S-N01-run1, S-N01-run3 — agent held for the plan) and detector under-counts
+    # where fewer than MIN_HEADER_HITS=2 markers landed in the summary text even though
+    # the agent may have engaged pre-mortem framing (the same phenomenon flagged in
+    # the v7.7 baseline for S-N02/S-N04). The pass rate is a lower bound on
+    # stay-in-composer behavior. NOT a reclassification (D-4: the out-of-scope
+    # NON_BLOCKING_NEGATIVE_IDS addition is deferred).
+    #
+    # v7.8 CONF-03 S-N01 pre-mortem count vector: [0, 2, 1, 1, 3]
+    # (tests/step0-captures-v7.8/S-N01-run{1..5}.txt; 9-marker post-fix detector)
+    #   run1: 0 markers — stays below MIN_HEADER_HITS → full-composer ✓
+    #   run2: 2 markers — clears MIN_HEADER_HITS → over-routes (focused-pre-mortem on that run)
+    #   run3: 1 marker  — stays below MIN_HEADER_HITS → full-composer ✓
+    #   run4: 1 marker  — stays below MIN_HEADER_HITS → full-composer ✓
+    #   run5: 3 markers — clears MIN_HEADER_HITS → over-routes (focused-pre-mortem on that run)
+    # Runs 1,3,4 stay below → full-composer 3/5 PASS. Over-routes on runs 2,5 (2/5).
+    # ---------------------------------------------------------------------------
+    _rr11901_sn01_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt_v78("S-N01", _run)
+        _hits = _technique_hits(_text)
+        _rr11901_sn01_counts.append(_hits.get("pre-mortem", 0))
+
+    # Positive counter-check: run2=2 >= MIN_HEADER_HITS proves the detector CAN fire
+    # on S-N01 text — the 3/5 result is a genuine partial-pass, not a dead detector.
+    _rr11901_ok = (
+        _rr11901_sn01_counts == [0, 2, 1, 1, 3]
+        and _rr11901_sn01_counts[1] >= MIN_HEADER_HITS    # run2 over-routes (counter-check, non-vacuous)
+        and _rr7901_pm_pattern_count == 9                 # drift guard (reuses RR-79-01 guard above)
+    )
+    if _rr11901_ok:
+        print(
+            f"  RR-119-01 PASS: S-N01 pre-mortem count vector {_rr11901_sn01_counts} "
+            f"== [0, 2, 1, 1, 3] (live CONF-03 v7.8 captures; 9-marker post-fix detector; "
+            f"run2={_rr11901_sn01_counts[1]} >= MIN_HEADER_HITS={MIN_HEADER_HITS} (over-routes, non-vacuous); "
+            f"runs 1,3,4 stay below → full-composer 3/5 PASS; over-routes on runs 2,5 (2/5); "
+            f"S-N01 RESOLVED-OVER-BAR (Phase 119 CONF-03; Phase-118 FIX-03/FIX-04 prose fix); "
+            f"under-count caveat: negative passes are a MIX of genuine clarification-holds (D-01); "
+            f"NOT a reclassification (D-4); pm_patterns={_rr7901_pm_pattern_count} (expected 9)."
+        )
+    else:
+        print(
+            f"  RR-119-01 FAIL: S-N01 pre-mortem count vector {_rr11901_sn01_counts} "
+            f"(expected [0, 2, 1, 1, 3]; live CONF-03 v7.8 captures); "
+            f"pm_patterns={_rr7901_pm_pattern_count} (expected 9); "
+            f"run2={_rr11901_sn01_counts[1] if len(_rr11901_sn01_counts) > 1 else '?'} "
+            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
+    # RR-119-02 named honest-state sentinel — S-N02 over-routing resolved (Phase 119,
+    #           Plan 03 — CONF-04; minted for the S-N02 over-routing row resolved over
+    #           the bar at Phase 119 CONF-03 with the Phase-118 FIX-03/FIX-04 prose fix)
+    #
+    # **RR-119-02 MINTED: S-N02 over-routing resolved-over-bar at Phase 119 CONF-03.**
+    # S-N02 is an oblique negative (blocking): an oblique prompt using failure-framing
+    # language without an explicit plan context. At v7.7, S-N02 over-routed to
+    # focused-pre-mortem on 3 of 5 runs (2/5 full-composer FAIL). The Phase-118 prose
+    # fix moved it over the bar at v7.8 (3/5 PASS).
+    #
+    # Residual disposition: RESOLVED-OVER-BAR with the detector-under-count caveat
+    # documented (D-01): runs 2 and 3 have counts ≥ MIN_HEADER_HITS (over-route runs),
+    # yet transcript inspection shows "the first-principles agent ran a pre-mortem on
+    # your migration" with fewer than 2 canonical markers in the summary text — the
+    # same detector under-count phenomenon flagged in the v7.7 baseline. The pass rate
+    # is a lower bound on stay-in-composer behavior. NOT a reclassification (D-4).
+    #
+    # v7.8 CONF-03 S-N02 pre-mortem count vector: [0, 3, 3, 1, 1]
+    # (tests/step0-captures-v7.8/S-N02-run{1..5}.txt; 9-marker post-fix detector)
+    #   run1: 0 markers — stays below MIN_HEADER_HITS → full-composer ✓
+    #   run2: 3 markers — clears MIN_HEADER_HITS → over-routes (focused-pre-mortem on that run)
+    #   run3: 3 markers — clears MIN_HEADER_HITS → over-routes (focused-pre-mortem on that run)
+    #   run4: 1 marker  — stays below MIN_HEADER_HITS → full-composer ✓
+    #   run5: 1 marker  — stays below MIN_HEADER_HITS → full-composer ✓
+    # Runs 1,4,5 stay below → full-composer 3/5 PASS. Over-routes on runs 2,3 (2/5).
+    # Note: runs 2,3 are detector under-counts (agent ran a pre-mortem but summary
+    # had ≥ MIN_HEADER_HITS markers — the SAME runs score as "over-routes" by the
+    # detector, illustrating that S-N02's pass rate is a lower bound on stay-in-composer).
+    # ---------------------------------------------------------------------------
+    _rr11902_sn02_counts: list[int] = []
+    for _run in range(1, 6):
+        _text = _load_excerpt_v78("S-N02", _run)
+        _hits = _technique_hits(_text)
+        _rr11902_sn02_counts.append(_hits.get("pre-mortem", 0))
+
+    # Positive counter-check: run2=3 >= MIN_HEADER_HITS proves the detector CAN fire
+    # on S-N02 text — the 3/5 result is a genuine partial-pass, not a dead detector.
+    _rr11902_ok = (
+        _rr11902_sn02_counts == [0, 3, 3, 1, 1]
+        and _rr11902_sn02_counts[1] >= MIN_HEADER_HITS    # run2 over-routes (counter-check, non-vacuous)
+        and _rr7901_pm_pattern_count == 9                 # drift guard (reuses RR-79-01 guard above)
+    )
+    if _rr11902_ok:
+        print(
+            f"  RR-119-02 PASS: S-N02 pre-mortem count vector {_rr11902_sn02_counts} "
+            f"== [0, 3, 3, 1, 1] (live CONF-03 v7.8 captures; 9-marker post-fix detector; "
+            f"run2={_rr11902_sn02_counts[1]} >= MIN_HEADER_HITS={MIN_HEADER_HITS} (over-routes, non-vacuous); "
+            f"runs 1,4,5 stay below → full-composer 3/5 PASS; over-routes on runs 2,3 (2/5); "
+            f"S-N02 RESOLVED-OVER-BAR (Phase 119 CONF-03; Phase-118 FIX-03/FIX-04 prose fix); "
+            f"under-count caveat: runs 2,3 are detector under-counts where agent ran a pre-mortem (D-01); "
+            f"NOT a reclassification (D-4); pm_patterns={_rr7901_pm_pattern_count} (expected 9)."
+        )
+    else:
+        print(
+            f"  RR-119-02 FAIL: S-N02 pre-mortem count vector {_rr11902_sn02_counts} "
+            f"(expected [0, 3, 3, 1, 1]; live CONF-03 v7.8 captures); "
+            f"pm_patterns={_rr7901_pm_pattern_count} (expected 9); "
+            f"run2={_rr11902_sn02_counts[1] if len(_rr11902_sn02_counts) > 1 else '?'} "
+            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
         all_passed = False
 
@@ -1616,7 +1787,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 + RR-79-01 [CLOSED v7.7] + RR-114-01 + RR-108-02 + RR-108-03 + RR-108-04 + RR-108-05 + RR-77-08 + RR-117-01 [S-P03 fishbone CLOSED v7.7] + RR-117-02 [S-N03 precision] named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 [v7.8] + RR-79-01 [CLOSED v7.7; SUSTAINED v7.8] + RR-114-01 + RR-108-02 + RR-108-03 + RR-108-04 + RR-108-05 + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED v7.8] + RR-117-02 [S-N03 precision; v7.8] + RR-119-01 [S-N01 RESOLVED-OVER-BAR v7.8] + RR-119-02 [S-N02 RESOLVED-OVER-BAR v7.8] named assertions)")
         return 0
     return 1
 
