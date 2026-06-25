@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v7.6"
+_BASELINE_VERSION: str = "v7.8"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
