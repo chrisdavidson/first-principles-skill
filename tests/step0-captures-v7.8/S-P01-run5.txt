@@ -1,0 +1,30 @@
+The first-principles agent completed the pre-mortem. Here's what it surfaced:
+
+## Pre-Mortem: Payments-Rewrite Full EU Cutover
+
+The analysis identified that **"no staged rollout + full replacement on a Friday"** is the dominant risk multiplier, and traced the failure modes back to that single design decision.
+
+### The two structural weaknesses that matter most
+
+1. **No canary = no early warning (fragile).** With a big-bang cutover, the blast radius at T=0 is 100% of EU customers. A latent bug — an untested payment method, a throughput ceiling, a memory leak under load — gets exposed to everyone at once. Staged rollout doesn't remove bugs; it removes your ability to find them cheaply.
+
+2. **Rollback is assumed, not engineered (unrecoverable).** "Replacing" legacy means rollback isn't free — it must be explicitly built and *tested*. Once the new service writes transactions in its own schema, that data may not replay cleanly into legacy. If a rollback hasn't been rehearsed, assume it doesn't work → risk of double-charging EU customers (a trust + chargeback + regulatory event).
+
+### Other clusters
+- **Friday + EU timezone** — failure surfaces when on-call depth and Stripe/bank support are thinnest; a 4-hour fix becomes a 60-hour weekend bleed.
+- **Coverage gaps** — SCA/3DS2, SEPA, iDEAL, subscriptions, refunds, disputes failing *silently* (payment failures often return HTTP 200 and show as customer drop-off, not server errors).
+- **In-flight transactions** at the cutover seam — auth'd-not-captured, pending SEPA, scheduled charges dropped or double-processed.
+- **Compliance** — PSD2/SCA or PCI scope regression turns a bad weekend into a legal event.
+
+### Recommended plan changes (ranked)
+1. **Add a canary** — ramp 1% → 5% → 25% → 100% via feature flag/LB split. The single highest-value change.
+2. **Rehearse the rollback** (dual-write/shadow so rollback is a traffic flip) — until executed in a drill, treat it as nonexistent.
+3. **Don't cut over on a Friday** — move to Tue/Wed morning EU time. Near-zero cost, materially shorter incidents.
+4. Build a payment-flow coverage matrix from real traffic.
+5. Define the in-flight-transaction reconciliation plan.
+6. Verify alerting fires on **auth-success-rate drop**, not just 5xx.
+7. Get explicit PSD2/SCA + PCI sign-off.
+
+**Bottom line:** You don't have to abandon the rewrite — but big-bang, on a Friday, with an untested rollback is the exact configuration most likely to produce a failed launch. Add a canary, rehearse the rollback, and move off Friday.
+
+The agent offered to turn mitigations 1, 2, and 5 into a concrete cutover runbook (freeze window, traffic-ramp schedule, reconciliation steps) — let me know if you'd like that.

@@ -1,0 +1,14 @@
+The first-principles agent ran and came back with a request for the specifics it needs before it can stress-test your plan. Here's what it's asking for:
+
+To run a proper pre-mortem (it works backward from "assume it's 12 months out and this already failed"), it needs:
+
+1. **The plan itself** — what you're actually committing to (product launch, architecture, migration, go-to-market, restructure, etc.). A few substantive sentences.
+2. **The commitment** — what "lock it in" means: what becomes hard or expensive to reverse once you commit.
+3. **Key constraints** — deadline, budget, headcount, dependencies, regulatory, technical. The non-negotiables.
+4. **Success definition** — how you'll know at 3/6/12 months whether it worked.
+
+Its method, once it has those: restate the premise as an already-failed outcome → enumerate every failure cause unfiltered → interrogate which ones the excited team would have suppressed → cluster into structural roots → route each to either a plan change or an explicitly accepted risk with an early-warning signal.
+
+One note it flagged: it will argue against your plan harder than your team will — that's the design, not a verdict.
+
+**Paste the plan details and I'll send them straight back to the same agent so it can continue with full context.**

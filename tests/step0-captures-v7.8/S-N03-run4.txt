@@ -1,0 +1,17 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Headline: your error handling probably isn't the crash
+
+In its inspection, `main.py` started cleanly — passing both startup guards and reaching the menu. The startup error handling is actually solid (catches missing Python, missing PyYAML, `EOFError`/`KeyboardInterrupt`, with distinct exit codes). So "fix the error handling" is likely the wrong lever. The ranked findings:
+
+**1. Most likely cause — `python` vs `python3` mismatch.** In this environment `command -v python` returns *not found*; only `python3` (3.13) exists. If anything launches the script with bare `python` (a shell alias, Makefile, IDE run-config, or virtualenv), you get `command not found` *before Python ever starts* — so no error handler can fire. It looks like a startup crash but isn't a Python error at all.
+
+**2. A real gap in the error handling — `main.py:189`.** `string.Template(...).substitute(mapping)` is unguarded. It raises `KeyError` on a missing `$marker` or `ValueError` on malformed `$`. Works today because your templates are fixed, but a future template edit throws a raw, uncaught traceback. The fix is a `try/except (KeyError, ValueError)` matching the file's existing handler style.
+
+**3. Lower-likelihood:**
+- `GENERATED_DIR.mkdir(exist_ok=True)` at line 447 — unguarded `OSError`/`FileExistsError` if `generated/` can't be created (read-only checkout, permissions, or a file by that name exists).
+- Empty/bad-syntax template files fall through `exists()` into the unguarded `.substitute()`.
+
+**What it couldn't do:** reproduce your crash — the script ran fine in its environment.
+
+To pin it down, the agent needs two things from you: **the actual traceback/error text you see, and the exact command you use to launch the script.** Paste those and it (or I) can confirm whether it's the interpreter mismatch or something else, and patch the right spot.

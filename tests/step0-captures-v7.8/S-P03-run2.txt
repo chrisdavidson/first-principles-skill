@@ -1,0 +1,31 @@
+The first-principles agent produced the fishbone diagram. Here's the analysis:
+
+## Effect (the "head")
+**Checkout API returned 503s for all users, 40 minutes, starting 14:10 UTC (2026-06-24).** A 503 means the service was reachable but couldn't handle requests — pointing toward capacity, dependency, or deploy/config causes rather than network or code-bug 5xx. DB layer is ruled out.
+
+## Fishbone — six cause categories
+
+```
+   PEOPLE                  PROCESS                  TECHNOLOGY          CHECKOUT API
+        \                      \                        \              503 / ALL USERS
+         +-- On-call gap        +-- Deploy at ~14:10?    +-- Pod crashloop  40 MIN @14:10
+         +-- Manual config      +-- No canary rollout    +-- Upstream dep down (non-DB)
+         +-- Stale runbook      +-- No auto-rollback      +-- Conn-pool exhaustion
+         +-- Recent handoff     +-- Weak load test        +-- TLS cert/secret expiry
+   ===================================================== HEAD =====
+         +-- Traffic spike      +-- Missing 503 alert     +-- LB health-check misconfig
+         +-- Retry storm        +-- Log/metric gaps       +-- Resource limit hit
+         +-- AZ/region outage   +-- No circuit breaker     +-- Autoscaler maxed/failed
+        /                      /                        /
+   ENVIRONMENT            INFORMATION              RESOURCES
+```
+
+## Prioritized branches to verify first
+The two strongest signals — **"all users"** (full blast radius) and **"40 minutes"** (slow detect/recover) — with DB excluded, point to:
+
+1. **Process → deploy at ~14:10** — highest-prior cause; sharp onset + all-user impact fits a full release. Check deploy logs first.
+2. **Technology → non-DB dependency failure / LB health check** — 503 + all-users fits "no healthy backends" (crashloop, failed probe, or critical upstream like payment/auth/cache down).
+3. **Resources → autoscaler maxed / LB health-check misconfig** — 503 is the canonical "no available backend."
+4. **Information → alerting gap** — the 40-minute window flags a detection/rollback weakness worth a corrective action regardless of root cause.
+
+All four are candidate causes — confirm against deploy logs, pod restart events, LB health metrics, and the alert timeline before assigning root cause. The agent offered a **Five Whys** drill on the most likely branch (the deploy) as the natural depth-first next step — say the word and I'll have it run that.

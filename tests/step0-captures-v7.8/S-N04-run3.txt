@@ -1,0 +1,19 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it surfaced:
+
+## Pre-Mortem: Cross-Team Auth Rollout
+
+The agent ran a structured first-principles pre-mortem. A key caveat up front: **it didn't have your actual plan document**, so it worked from the typical structural shape of a cross-team auth rollout and flagged unverified assumptions. Sharing the plan would sharpen the analysis considerably.
+
+**Failure modes, in priority order:**
+
+1. **Untested rollback + no dual-run period (highest severity)** — Auth failure means total app failure, and identity cutover is effectively irreversible once users re-authenticate. The agent's strongest recommendation: don't lock the timeline until a rollback is *rehearsed* (not assumed) and a dual-run/shadow period exists per team.
+
+2. **Timeline gated by the wrong team** — Plans tend to assume average velocity, but a cross-team rollout is gated by the *slowest/most-constrained* team. Risk of one team's slip cascading into a missed quarter. Mitigation: size against the slowest team; decouple cutovers so slips don't cascade.
+
+3. **Dirty identity data** — Duplicate accounts, orphaned roles, inconsistent records surfacing mid-cutover in production. Mitigation: data-quality audit + dry-run migration *before* locking the timeline.
+
+4. **Silent deprioritization + suppressed edge cases** — Teams nod in the planning meeting, then quietly put auth work behind their own deadlines. Plus things people won't say in a group review: "I don't understand the new flow," "our tests don't cover the auth boundary," "we have a custom SSO/service-account edge case the new system may not handle." Mitigation: written per-team capacity commitments and surfacing edge cases individually (1:1s, not group reviews).
+
+**Three gating preconditions before locking the timeline:** (1) a rehearsed rollback, (2) a per-team data dry-run, (3) written capacity confirmation from each team's roadmap owner — with the timeline set by the slowest team's reality.
+
+The agent offered to go deeper on any single cluster, or to re-run the analysis against the actual plan if you share the document, team list, and current build/data status. Want me to pursue either?

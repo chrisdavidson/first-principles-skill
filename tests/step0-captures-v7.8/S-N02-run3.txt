@@ -1,0 +1,25 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its analysis. Here's what it surfaced — a pre-mortem that flips your confidence into a question: *"The migration already failed. What caused it?"*
+
+## The load-bearing finding
+
+The agent's central conclusion is that **your confidence is itself the risk** — not because optimism causes failures, but because it tends to *displace* the three safeguards that catch them. Stated confidence + no rehearsal is the danger zone.
+
+## Five failure clusters
+
+- **A — Source-reality gap:** Data is dirtier than its documented schema. Encoding mismatches, NULLs into NOT-NULL columns, orphaned foreign keys, duplicate keys silently dropped, type/precision loss (timezones, decimal truncation). *The most common real cause.*
+- **B — Validation that didn't validate:** Migration throws no errors, row counts match — but *contents* diverged. Silent corruption surfaces weeks later in a wrong report. "No errors" ≠ "correct."
+- **C — Scale/timing:** The dry run lied because it ran on a sample. Full volume blows past the cutover window, hits lock contention, or exhausts disk/memory mid-run.
+- **D — No way back:** Rollback was theoretical. Problem appears at hour 3, but rollback was never rehearsed — or the old system was already decommissioned (one-way door crossed unknowingly).
+- **E — The confidence itself:** Because the team was confident, no dry run / reconciliation / rollback rehearsal was scheduled. This is the structural weakness that lets A–D go undetected.
+
+## Highest-leverage actions before cutover
+
+1. **Profile the source at full scale** — assume it's dirtier than documented.
+2. **Redefine validation as reconciliation** — row counts *and* per-column checksums/aggregate comparisons, not absence of errors.
+3. **Timed, full-volume dry run** into staging — measure against the real window.
+4. **Rehearse the rollback end-to-end** before the one-way door.
+
+**The single most diagnostic question the agent leaves you with:** *Has the rollback ever actually been executed, and has the migration been timed at full production volume?* If either answer is no — that gap is your most likely failure chain.
+
+The agent noted its findings are HIGH-confidence as *patterns* but couldn't calibrate them to your specific migration. If you share the source→target shape, cutover style, data volume, and rollback status, I can have it sharpen this from a strong generic pre-mortem into one tailored to your actual plan.

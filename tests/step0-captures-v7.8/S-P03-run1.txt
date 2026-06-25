@@ -1,0 +1,36 @@
+The first-principles agent completed its fishbone analysis. Here's the result:
+
+---
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+**Effect (problem head):** Checkout API returned 503 (Service Unavailable) for all users for 40 minutes, 14:10–14:50 UTC. Database layer ruled out, so those bones are cropped. A 503 means the service is up enough to answer but can't/won't serve — overload, no healthy upstream, dependency timeout, or open circuit breaker.
+
+```
+        CHANGE / DEPLOY                          DEPENDENCIES (non-DB)
+   deploy ~14:10? ───┐                  payment gateway timeout ───┐
+   config/flag flip ─┤                  auth service down ─────────┤
+   bad image/rollback┤                  3rd-party rate-limit ──────┤
+   cert/secret rotate┤                  cache (Redis) eviction ────┤
+                     └──────────────────────────────────────────────►  [ Checkout API:
+   pod OOM ──────────┐                  LB no healthy upstream ────┐       503, all users,
+   CPU/thread sat ───┤                  health checks failing ─────┤       40 min,
+   conn-pool exhaust ┤                  ingress/mesh fault ────────┤       14:10–14:50 UTC ]
+   HPA at max ───────┤                  traffic spike / retry storm┤
+   CAPACITY/RESOURCES                   INFRA/NETWORK + LOAD/TRAFFIC
+```
+
+### Prioritized branches to investigate
+
+| Priority | Branch | Why |
+|---|---|---|
+| **1** | **Change/Deploy at 14:10** | Sharp onset aligned to a round clock time strongly implies a triggering event — check CD logs, config/flag audit for 14:05–14:15 |
+| **2** | **Infra: no healthy upstream** | 503 (not 500) points at LB/ingress having no servable backend — check target-group health, pod readiness |
+| **3** | **Non-DB dependency timeout** (payment/auth) | All-user, checkout-specific impact fits a shared critical dependency |
+| **4** | **Retry storm / traffic** | Explains the 40-min *duration* even after a transient trigger |
+
+**Key insight:** Separate the **trigger** (likely a deploy/config event at 14:10, mechanism = no healthy upstream) from the **sustaining factor** (the 40-min duration suggests either slow detection or a retry storm holding the outage open). Investigate both in parallel.
+
+**Recommended next step:** Pull the change-management timeline for 14:00–14:15 UTC first. All causes listed are unverified hypotheses pending log/metric evidence.
+
+The agent offered to follow up with a **5-Whys drill** on the top branch once you share the change timeline, or to render this as a proper SVG fishbone — just let me know.

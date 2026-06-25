@@ -1,0 +1,15 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+I invoked the **first-principles** agent with your prompt verbatim. It's ready to run a structured pre-mortem, but it surfaced a blocker: it can't enumerate failure modes for a plan it can't see. Here's what it needs from you to proceed:
+
+1. **What is the plan?** One or two sentences — what are you building/shipping/doing?
+2. **Deadline or key milestone?** (Timeline assumptions are where many plans die.)
+3. **What does "blow up" mean to you?** Missed deadline, blown budget, wrong thing built, team burnout, production incident — the failure that scares you most shapes where it digs.
+4. **Hard constraints?** Budget, headcount, cross-team dependencies, regulatory, technical compatibility.
+
+The agent also left a framing note worth holding onto:
+
+> The moment of maximum excitement and consensus is exactly when a pre-mortem is most valuable *and* most resisted. Your nervousness is a feature — it's the part of you that hasn't been captured by the group consensus yet.
+
+Once it has the plan, it will run the pre-mortem: restate it as already-failed, enumerate failure modes unfiltered, cluster them into structural weaknesses, stress-test the load-bearing assumptions (including "the team is excited" as a possible optimism-bias signal), and hand back each weakness with either a mitigation or a consciously-accepted risk with a named owner.
+
+**Just paste the plan — even a rough paragraph is enough to start**, and I'll relay it to the same agent so it keeps its context.

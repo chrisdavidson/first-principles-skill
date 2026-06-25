@@ -1,0 +1,21 @@
+The first-principles agent completed its analysis. Here's what it surfaced:
+
+## Summary
+
+The agent ran a **pre-mortem** on your startup crash but flagged a key limitation up front: **it can't diagnose the specific crash without seeing your code or traceback** — so it mapped the full failure-mode space instead.
+
+**Fastest next step it recommends:** Run the script and read the full traceback bottom-up. The last line names the exception; the frame above it in *your* code names the culprit. If there's *no* traceback (silent exit), that silence is itself the bug.
+
+**Startup error-handling failure modes, by likelihood:**
+
+1. **Swallowing/over-broad handlers** (prime suspect) — `except: pass`, `except Exception: pass`, or printing useless empty messages. This is exactly what produces "it dies and I can't tell why."
+2. **Import-time failures** — missing dependency/wrong venv, top-level code that throws on import, circular imports.
+3. **Config/environment** — `os.environ["X"]` KeyError, relative-path `FileNotFoundError`, unguarded JSON/YAML parsing.
+4. **Resource acquisition in init** — DB/network/socket connections at module load with no timeout/handler.
+5. **Structural defects** — `finally` blocks that raise and mask the original error, bad re-raising, logging configured *after* the failing code.
+
+**Its conclusion (MEDIUM confidence):** evidence points hardest at **category 1 (a swallowing handler hiding the real exception) combined with category 2 (import/config-time failure)** — these two specifically produce the "can't figure out why" symptom.
+
+**To get a HIGH-confidence root cause, share any of:** the full traceback (most valuable), the script's import block + `__main__`/startup section, or how you run it (command, venv, directory).
+
+If you paste your script or the traceback here, I can continue with the same agent (its context is preserved) to pin down the actual cause.

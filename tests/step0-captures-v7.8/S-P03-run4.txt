@@ -1,0 +1,29 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced:
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503
+
+**Files generated:**
+- SVG: `/tmp/checkout_503_fishbone.svg`
+- PNG: `/tmp/checkout_503_fishbone.png`
+
+**Effect (fish head):** 503 Service Unavailable · 40 min from 14:10 UTC · all users · DB layer ruled out
+
+| Category | Candidate causes |
+|---|---|
+| **People** | Manual config change near 14:10; on-call/paging lag; rollback knowledge gap |
+| **Process** | No canary/staged rollout; missing pre-deploy load test; slow detection / runbook gap |
+| **Technology & Tools** | Bad deploy/release at 14:10; pod crash-loop / OOMKilled; thread/connection-pool exhaustion; LB health-check failing |
+| **Environment** | Autoscaling/scheduler failure; network/DNS to a dependency; cloud zone/provider outage |
+| **Information** | Upstream non-DB dependency timeout (auth/payment gateway); expired TLS cert/secret; bad feature-flag/config payload |
+| **Resources** | CPU/memory limits hit; undersized capacity vs. traffic; rate-limit/quota exhausted |
+
+## Where to verify first
+
+The agent reasoned from the specific signals to prioritize two branches:
+
+1. **Sharp 14:10 onset → change event.** Check the deploy/change log at 14:08–14:12 UTC. A clean 40-min recovery fits a rollback or config revert.
+2. **"All users" + 503 → shared chokepoint.** A 503 means no healthy capacity at the service layer (not a 500 code error, not a 504 upstream timeout). Check pod restart/OOM counts and LB healthy-target count — all replicas going unhealthy makes the LB return 503 fleet-wide.
+
+**Caveat on the DB exclusion:** ruling out the DB *engine* still leaves data-layer-*adjacent* paths live — e.g. a connection pool exhausted by a non-DB upstream, or a bad DB-connection-string config change failing at the app tier. Worth confirming the ruling-out covered the app→DB connection pool, not just DB server health.
+
+The agent offered to drill any branch into a 5-Whys chain (e.g. "why were all replicas unhealthy?") if you want to push toward an actionable root cause.

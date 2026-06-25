@@ -1,0 +1,31 @@
+The first-principles agent ran and came back with a clarifying question rather than a finished analysis. Here's its response:
+
+---
+
+It found multiple Python scripts in the environment and **doesn't know which one is yours**, so it declined to guess — analyzing the wrong file would be wasted effort. It needs **the exact file path** before it can give line-specific findings.
+
+In the meantime, it laid out the failure-mode framing it'll apply once it has your file — the categories of "what crashes a Python script on startup, masked or worsened by bad error handling":
+
+**1. Import-time failures** (the most common "on startup" cause)
+- Missing dependency → `ModuleNotFoundError` *before* any `try/except` runs. Function-level error handling can't catch an import-time crash.
+- Top-level code running on import (DB connections, file reads, network) with no guard.
+- Circular imports.
+
+**2. Error handling that hides the real cause**
+- Bare `except:` or `except Exception: pass` swallowing the real error → misleading downstream traceback.
+- Re-raising a generic exception and losing the original (no `raise ... from e`).
+- Logging configured *after* the failing code, so nothing gets logged.
+
+**3. Environment/config assumptions**
+- Reading a missing env var/config key (`os.environ['X']` vs `.get()`).
+- Hardcoded paths absent in the run environment.
+- Missing secrets/credentials with an unhelpful message.
+
+**4. Entry-point / execution-context issues**
+- Code outside `if __name__ == "__main__":` running unintentionally.
+- `sys.argv` indexing with no arg-count check.
+- Working-directory-relative paths breaking when run from elsewhere.
+
+---
+
+**To get concrete, line-specific findings, tell me which script** — the exact path (e.g. `/tmp/your_script.py`). I'll pass it back to the same agent (its context is still live) and it'll read the actual code and pinpoint which line crashes and what your error handling is or isn't doing about it.

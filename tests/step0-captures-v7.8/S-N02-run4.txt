@@ -1,0 +1,30 @@
+The first-principles agent ran a **pre-mortem** on the migration. Here's what it surfaced.
+
+## The core insight
+Your confidence isn't reassurance — it's the **mechanism of failure**. The belief "it'll go fine" is exactly what removes the dry runs, the field-level reconciliation, and the rehearsed rollback. The bias is the root cause feeding everything else.
+
+## Failure modes, by phase
+
+**Data quality** — dirty source data nobody profiled ("it's our system of record, it must be fine"), silent type truncation, encoding/timezone/null corruption, broken referential integrity from wrong table ordering.
+
+**Completeness** — row counts match but *content* doesn't (totals reconciled, fields weren't); delta records created mid-migration on a live source get dropped; deletes reappear or active records vanish.
+
+**Window/scale** — tested on a sample, blew the cutover window at full volume; table locks halt the business; ran out of disk/connections mid-run leaving a half-migrated state.
+
+**Cutover/rollback** ⭐ highest priority — no *rehearsed* rollback; passed the point of no return before validation finished; a manual runbook step skipped at 2am under pressure.
+
+**Downstream** — integrations, reports, caches, search indexes break on new schema/IDs because they were out of migration scope.
+
+## The two structural weaknesses
+1. **Confidence-induced under-testing** — the bias removes profiling, full-scale dry runs, and field-level checks.
+2. **No rehearsed reverse path** — a failed migration you can cleanly reverse is an inconvenience; one you can't is an incident.
+
+## Recommended actions (convert confidence into evidence)
+1. **Full-scale dry run** at production volume, timed against the cutover window
+2. **Field-level reconciliation** (checksums/hashes), not just row counts
+3. **Profile the source now** — duplicates, orphan FKs, nulls, encoding
+4. **Rehearse the rollback** as a timed drill with a hard go/no-go checkpoint ← top priority
+5. **Inventory downstream consumers** and test the critical ones against migrated data
+6. **Build incremental-delta handling** if the source stays live during migration
+
+The agent flagged that it worked without your actual plan. If you share the **source/target systems, data volume, cutover window length, whether the source stays live, and whether a rollback path exists today**, it can re-run the pre-mortem against your specific migration instead of the generic structural map.

@@ -1,0 +1,29 @@
+The first-principles agent ran the analysis. Here's what it surfaced.
+
+## The core finding
+
+Your confidence rests almost entirely on **untested beliefs, not verified facts**. "It'll go fine" decomposes into eight silent assumptions — and for the migration to fail, only one needs to be false. Most are unverified.
+
+## Five structural weaknesses (the root clusters)
+
+| Weakness | Why it bites |
+|---|---|
+| **W1 — Verification-by-completion** | You can confirm the job *ran*, but cannot prove the data is *correct*. Wrong/partial data ships and is found weeks later. **The load-bearing risk.** |
+| **W2 — Unrehearsed rollback** | A backup you've never *restored* is faith, not a safety net. |
+| **W3 — Untested at true scale/dirtiness** | Clean subsets validate the happy path only. Production data is bigger and uglier — encoding, timezones, nulls, orphans, precision. |
+| **W4 — No empowered abort** | Confidence + sunk cost = warnings overridden at 2am because "we already started." Nobody owns "stop." |
+| **W5 — Unmapped blast radius** | The list of downstream consumers (reports, ETL, partner feeds, API clients) is *assumed* complete, not enumerated. One unknown breaks silently. |
+
+## What to actually do — fixes, not a worry list
+
+1. **Define reconciliation before the run** — row counts per table, checksums on key columns, aggregate sums (money columns), spot-checks of high-risk records. "Exit 0" is not success. *(Do this even if you do nothing else.)*
+2. **Rehearse the rollback end-to-end** — actually restore the backup into a scratch env, confirm recovery, time it.
+3. **Full-volume dry run on a copy of real production data** — profile first (nulls, orphans, encoding); this also gives you a *real* window estimate.
+4. **Name one go/no-go owner + written abort criteria** before cutover night — neutralizes sunk-cost momentum.
+5. **Enumerate every downstream consumer explicitly** — anything not on the list is your silent breakage.
+
+Plus two cross-cutting moves: **freeze the source / capture deltas** during the copy (so in-flight writes aren't lost), and **make the load resumable/checkpointed** (so an 80% failure doesn't mean restarting from zero with no window left).
+
+**Bottom line:** The two things a confident team talks past are W1 (*can we prove correctness?*) and W2 (*does rollback actually work?*). If you do only two things before this migration, make it those.
+
+If you tell me the migration type and rough data volume, I can turn this into a concrete pre-cutover checklist with the actual reconciliation queries and a realistic window estimate.

@@ -1,0 +1,30 @@
+The first-principles agent ran and traced your startup crash to its root. Here's what it found.
+
+## The crash
+The agent found three Python scripts in `/tmp`, and the one edited today — **`/tmp/analyze_v78.py`** — crashes on startup exactly as you describe:
+
+```python
+out_dir = Path(sys.argv[1])   # line 31 → IndexError when run with no argument
+```
+
+The usage docstring promises `python3 analyze_v78.py <OUT_DIR>`, but nothing enforces it, so the script dies before doing any work. (A second script, `116-01-extract.py`, also crashes — `ModuleNotFoundError` on `_battery_core` at line 3 — but that's the older broken pattern; `analyze_v78.py` already solves that one correctly.)
+
+## What's actually wrong with your error handling
+The root cause, stated once: **the script validates its *inner* boundary (per-line JSON) but skips its *outer* boundaries (argv, imports, paths).** Every process-entry input is trusted without a guard:
+
+1. **CLI argv (line 31)** — no arity check. *This is your startup crash.* Fix:
+   ```python
+   if len(sys.argv) < 2:
+       sys.exit(f"usage: {sys.argv[0]} <OUT_DIR>")
+   out_dir = Path(sys.argv[1])
+   if not out_dir.is_dir():
+       sys.exit(f"error: {out_dir} is not a directory")
+   ```
+2. **Module loading (`_load`, lines 17-22)** — no failure handling; a bad path surfaces an opaque `importlib` traceback instead of naming the real culprit.
+3. **Hardcoded `REPO` path (line 15)** — unchecked; validate `REPO.exists()` once, up front.
+4. **`summary[rid]` (lines 88-92)** — assumes every row is populated; `KeyError` risk if the loop ever skips one. Lower priority.
+5. **Good news:** JSON parsing *is* robust — `json.JSONDecodeError` is caught per line and reads use `errors="replace"`. The gap is purely at process-entry boundaries.
+
+**Highest-value fix:** the argv guard at line 31 alone stops the startup crash.
+
+One caveat the agent flagged: it inferred `analyze_v78.py` is "your script" because it was edited today and matches your symptom. If you actually meant a different file, tell me which and I'll refocus.

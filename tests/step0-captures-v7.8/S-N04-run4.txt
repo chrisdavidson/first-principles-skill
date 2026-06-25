@@ -1,0 +1,27 @@
+I'll invoke that agent with the exact prompt you specified.
+The first-principles agent ran a pre-mortem on the rollout. Here's what it surfaced:
+
+## The core finding
+The dominant risk **isn't a specific bug — it's the shape of the rollout itself.** Auth sits on the critical path of every request for every team simultaneously, so there's no "small blast radius" version of a big-bang cutover.
+
+## Four structural weaknesses (not 13 separate risks)
+
+| | Weakness | Why it's structural |
+|---|---|---|
+| **S1** | **No incremental path / large blast radius** | A big-bang cutover means the *first* defect is also the *worst* one — everyone locked out at once. |
+| **S2** | **Timeline built on the happy path** | No slack for defects, team unavailability, key-person risk, or dependency cascades. Optimism is baked into the date. |
+| **S3** | **Recovery is assumed, not proven** | Rollback and observability are named but never rehearsed — you find out if they work when you most need them. |
+| **S4** | **Long-tail identity & compliance blind spots** | The plan reasons about humans logging in; failures live in service accounts, CI tokens, SSO/SAML, API keys, break-glass admin, and silent authz regressions. |
+
+## The four highest-signal failure modes
+The ones a status meeting tends to smooth over: teams not actually resourced (vs. "aligned" on paper), happy-path timeline, untested rollback, and silent security regression.
+
+## Recommended changes before locking
+- **S1 → make it incremental:** migrate by team/cohort with a dual-run/shadow period and per-team go/no-go gates.
+- **S2 → re-baseline the date:** confirm *committed* engineer-time per team in writing, identify the critical-path team, add slack, name a backup owner.
+- **S3 → rehearse recovery:** run a rollback drill and a lockout game-day before locking.
+- **S4 → inventory the long tail now:** enumerate every non-human/federated identity and get compliance sign-off *before* the timeline locks.
+
+**Single highest-leverage move:** convert big-bang into a staged, dual-run migration with per-team gates — it defuses S1 and gives S2/S3 room to work.
+
+One caveat the agent flagged: it reasoned from the structural shape of cross-team auth rollouts, not your actual plan document. The failure *categories* are high-confidence, but whether each is already mitigated is unverified. If you share the plan, the agent offered to map S1–S4 against it and produce a concrete gap list (you can continue that thread).

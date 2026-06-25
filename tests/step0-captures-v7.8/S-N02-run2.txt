@@ -1,0 +1,30 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran a full pre-mortem on your migration. Here's what it surfaced.
+
+## The core move
+Your confidence ("it'll go fine") *is* the most dangerous assumption — so the agent inverted it: assume the migration already failed, then trace backward to what caused it.
+
+## Three structural weaknesses (where most migrations actually die)
+These are clusters where multiple failure chains share one root — fix these first:
+
+1. **Untested rollback** — A rollback plan on paper is a hope, not a plan. If you haven't *executed* it end-to-end (and test-restored the snapshot), you don't have one.
+2. **Validation-by-counting** — Matching row counts hides silent corruption: wrong units, timezones, enums, truncation. Counts pass; meaning is wrong; a consumer finds out weeks later.
+3. **Scale-gap between rehearsal and production** — Timing, locking, and partial-failure modes only appear at full volume. A 10-min sample run can become a 14-hour run that blows the cutover window.
+
+## Other failure modes worth mapping to your situation
+- **Source data**: unprofiled nulls, duplicates, encoding issues, orphaned foreign keys, decade-old legacy formats breaking the run mid-stream
+- **Mid-run failure**: partial target state with no clean resume point
+- **Writes during cutover**: no freeze → in-flight writes lost
+- **Downstream consumers**: a report/integration depending on the old shape breaks silently
+- **Human single-point**: the one person who understands the legacy schema is on vacation at cutover
+
+## Corrective actions (turn confidence into *earned* confidence)
+1. Profile the source data — trust nothing unprofiled
+2. Full-scale **timed** dry run on production-volume data in staging
+3. **Execute** the rollback end-to-end, don't just document it
+4. Semantic/field-level validation on the **full** set, not a sample
+5. Freeze writes during cutover (or capture-and-replay deltas)
+6. Confirm every downstream consumer tolerates the new shape
+7. Define the **abort criterion** in advance, so rollback isn't decided under pressure
+
+If you share the specifics — source/target systems, data volume, cutover window, and what "fine" actually means — the agent can sharpen this general pre-mortem into one targeted at your real migration. Want me to follow up with those details filled in?

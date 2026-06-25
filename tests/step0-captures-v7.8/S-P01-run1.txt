@@ -1,0 +1,28 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Verdict: Do not ship as designed
+
+The analysis concluded this plan has a **structurally guaranteed catastrophic failure mode, not a probabilistic one**. The core problem isn't any single bug — it's that the design strips out all three safety mechanisms at once:
+
+- **No canary** (no early signal)
+- **No tested rollback** (no recovery)
+- **Friday/weekend timing** (no staffing to respond)
+
+...while exposing 100% of EU customers and live money movement simultaneously.
+
+### The four failure chains (all sharing one root)
+1. **Blast radius with no early signal** — a defect a 1% canary catches in minutes instead hits every EU customer at once.
+2. **No way back** — "replacing legacy" means the rollback path is gone exactly when you need it most. *(Flagged as the single most dangerous chain.)*
+3. **Friday inverts the safety story** — the weekend is your worst response window, not a buffer.
+4. **SCA/compliance + money-movement correctness** — unverified idempotency, reconciliation, and per-country 3-D Secure flows risk irreversible double-charges and silent PSD2 non-compliance.
+
+### Highest-leverage fixes (priority order)
+1. **Add a staged rollout** (1%→5%→25%→100%) — the one change that breaks the pattern.
+2. **Keep legacy Stripe live and test the rollback** before cutover.
+3. **Don't ship Friday** — go Tuesday/Wednesday with full staffing ahead.
+4. **Prove the money invariants** — idempotency, ledger reconciliation, recurring-mandate migration.
+5. **Add per-country SCA monitoring** so failures are loud, not silent.
+
+The agent's parting question: **Is "no staged rollout" a constraint someone imposed, or a default nobody challenged?** That determines whether fix #1 is a config change or a contract renegotiation.
+
+The agent is still available (ID `a160edad8d1f3bf08`) if you'd like to push on any chain — e.g., pressure-test the rollback assumption or scope out a concrete staged-rollout plan.

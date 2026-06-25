@@ -1,0 +1,50 @@
+The first-principles agent produced the fishbone analysis. Here it is:
+
+# Fishbone Diagram: Checkout API 503 Errors
+
+**Effect (problem head):** Checkout API returned 503 (Service Unavailable) for ~40 min starting 14:10 UTC, affecting 100% of users. Database layer ruled out.
+
+A 503 is the key signal: the service was reachable but couldn't handle requests — typically an upstream/proxy returning 503 because backends were unhealthy, saturated, or absent.
+
+```
+   PEOPLE                  PROCESS                 TECHNOLOGY & TOOLS
+      \                       \                        /
+       \  on-call delay        \  deploy at 14:10       /  app pods OOM/crashloop
+        \  alert ignored        \  no canary/rollback    /  thread/conn pool exhausted
+         \  manual config        \  unreviewed change      /  LB/proxy no healthy upstream
+          \  change              \  autoscaling misconfig   /  TLS cert expiry
+           \                      \                          /  memory leak tipped over
+            \______________________\________________________/
+            /                      /                        \      ===> 503 errors,
+           /                      /                          \           all users,
+          /  traffic spike       /  bad config/feature flag    \         14:10–14:50 UTC
+         /  upstream dependency  /  missing/wrong env var        \
+        /  DNS/network blip     /  stale or wrong values          \  insufficient replicas
+       /  cloud-AZ event       /  secret/token rotation            \  CPU/mem limits too low
+      /                       /                                      \  quota/rate-limit hit
+   ENVIRONMENT            INFORMATION                              RESOURCES
+```
+
+## Branches (candidate causes)
+
+- **Technology & Tools** (highest prior for a 503): no healthy upstream behind LB/proxy; pods crashlooping/OOM-killed; connection/thread pool exhaustion (note: the *app's pool to the DB* can exhaust even when the DB is healthy); memory leak crossing a threshold; internal TLS cert expiry.
+- **Process:** a deploy or config push at ~14:10 (the precise start is suspicious); no canary/staged rollout (explains 100% blast radius); autoscaling misconfig; no automated rollback (explains the 40-min duration).
+- **Information:** bad feature flag/config value flipped; missing/wrong env var or secret; expired/rotated non-DB token.
+- **Resources:** insufficient replicas; CPU/memory limits too low; quota/rate limit hit.
+- **Environment:** traffic spike (event/bot/DDoS); upstream non-DB dependency failure (auth, payment gateway, cache/Redis, broker); cloud-provider/single-AZ or DNS event.
+- **People:** manual config change at 14:10; on-call detection delay; ignored/misrouted alert.
+
+## Where to look first
+
+1. **Process → deploy/config push at 14:10** — check the deploy/CI log and config-change audit for 14:08–14:12. Highest signal; explains precise start + full blast radius.
+2. **Technology → no healthy upstream / pod crashloop** — check LB upstream-health and pod restart/OOM metrics. This is the mechanism that actually emits the 503.
+3. **Information → feature flag / env var / secret rotation** at 14:10.
+4. **Resources/Environment → traffic spike vs. capacity** — request-rate and replica-count graphs rule a spike in/out fast.
+
+## Caveats
+
+- A fishbone enumerates the cause space — it doesn't diagnose. Each surviving branch is an unverified candidate to test against telemetry.
+- **"Database ruled out" is narrower than it looks:** it excludes DB-internal faults, but *not* the app's DB connection pool exhausting or a misbehaving DB client/driver. Confirm what "ruled out" actually covered.
+- The clean 14:10 start strongly favors a **discrete trigger** (deploy/flag/config/cert) over organic resource creep — though a leak crossing a threshold at 14:10 stays consistent until disproven.
+
+If you share the deploy log, LB upstream-health metrics, and pod restart counts around 14:10, the agent can collapse this to the one or two branches the evidence supports.

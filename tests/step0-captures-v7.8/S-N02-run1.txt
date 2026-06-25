@@ -1,0 +1,32 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran a pre-mortem on your migration. Here's what it found.
+
+## The two things that turn a bug into a disaster
+
+The whole risk picture hinges on two weaknesses that don't *cause* failure but make every other failure **silent and irreversible**:
+
+- **The validation gap.** Most migration plans verify the job *ran* (exit code, "no errors"), not that the data is *correct*. A clean exit tells you nothing about dropped rows, corrupted encodings, or coerced types. The migration passes its own check while silently broken — gets declared a success — and the rollback window closes over a corrupt state.
+- **Untested rollback.** A rollback path never executed has unknown correctness *and* unknown duration. "We can roll back" is an assumption, not a capability. By the time users find the corruption, the path back may be gone.
+
+Combined, ordinary recoverable bugs become a late-discovered, irreversible incident.
+
+## The other six failure clusters
+
+- **Correctness/integrity** — silent corruption, encoding/collation mojibake, truncation, type coercion, constraints disabled-for-load and never re-validated
+- **Completeness** — dropped/duplicated rows from non-idempotent loads
+- **Performance/window overrun** — no timed full-volume rehearsal
+- **In-flight write drift** — source not frozen, snapshot diverges during cutover
+- **Downstream consumers** — reports/APIs/ETL breaking on the new schema
+- **Operational gaps** — first prod-scale run *is* the real cutover; big-bang flip = 100% blast radius
+
+## What to do before locking it in (highest leverage first)
+
+1. **Define "go fine" as a falsifiable gate** — sign-off requires row counts match, content checksums/aggregates match, key-set diff empty, sampled values equal, constraints re-validated, critical queries smoke-tested, all green with a named owner.
+2. **Rehearse rollback end-to-end and time it** — source read-only through a bake period, restore-tested pre-cutover backup, explicit rollback triggers and a decision owner.
+3. **Timed dry run at full volume on a production clone** — real volume, real dirtiness; confirm window ≥ load + verify + rollback.
+4. **Decide the write-during-cutover strategy** — freeze, or CDC-replay the delta with verified zero lag.
+5. Field-level mapping + encoding/constraint audit; per-table reconciliation with idempotent loads; inventory + contract-test downstream consumers; rehearse the full runbook with on-call and stage the rollout if feasible.
+
+**The single most important shift:** stop treating "the job ran" as success. Items 1 and 2 close the gap between "we're confident it'll go fine" and "we can prove it did, and undo it if it didn't."
+
+The agent noted it could sharpen five of these findings — and run an actual time-budget calculation on whether the migration fits your window — if you provide specifics: **source/target systems, data volume, downtime window, reversibility guarantees, and your downstream consumer list.** Want to feed those in?

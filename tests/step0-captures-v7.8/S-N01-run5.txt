@@ -1,0 +1,19 @@
+I'll invoke the first-principles agent with your exact prompt.
+The first-principles agent ran and came back with a request for more detail rather than a finished analysis. Here's its response:
+
+---
+
+The agent recognized this as a **pre-mortem** situation — plan exists, team is bullish, you want failure modes surfaced before committing — but it stopped short of running the analysis because **the actual plan wasn't included in the prompt.**
+
+Its reasoning: a generic risk checklist would be box-ticking. The failure modes that matter are specific to your plan's structure, dependencies, and assumptions. So it asked for four things before it'll take the plan apart:
+
+1. **The plan itself** — one or two sentences on what you're committing to.
+2. **Key constraints** — deadline, budget, headcount, tech stack, regulatory, cross-team dependencies.
+3. **What "locked in" means** — what becomes hard or expensive to reverse once you commit (where risk concentrates).
+4. **Verified vs. assumed** — anything treated as a given that hasn't actually been confirmed (a partner delivering on time, an API scaling, budget approval, user demand).
+
+Once it has the plan, it will run the full pre-mortem: imagine the plan has already failed six months out, work backward through the failure chains, cluster them into structural weaknesses, and return the load-bearing risks with mitigations.
+
+---
+
+**To continue:** share those four things (at minimum #1 — the plan) and I'll pass them straight back to the agent, which still has full context from this run. What's the plan you're about to lock in?

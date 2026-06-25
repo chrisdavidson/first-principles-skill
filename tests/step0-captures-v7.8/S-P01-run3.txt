@@ -1,0 +1,31 @@
+The first-principles pre-mortem agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite EU Launch
+
+The agent framed the failure prospectively — *"It's Saturday, the launch failed catastrophically, customers can't pay, what caused it?"* — and reasoned backward.
+
+### Headline finding
+**The absence of a staged rollout is not one risk among many — it's the structural weakness that turns every other item on the list from a recoverable incident into a catastrophic, hard-to-reverse outage.** If you change only one thing, change that.
+
+### The failure causes clustered into three structural weaknesses
+
+1. **Single blast radius with no reversibility** — Big-bang to 100% of EU revenue means the first bug is also the worst bug. Rollback was *designed but never rehearsed*; in-flight transactions in the new service have no legacy equivalent, making it a one-way door.
+
+2. **Worst-possible timing** — Friday afternoon → failure surfaces over the weekend when on-call depth and Stripe support are thinnest, likely colliding with an EU end-of-month billing spike.
+
+3. **Thin detection + no abort criterion** — No pre-agreed "success rate < X% → revert" trigger, so the team debates while money bleeds; monitoring thinner than legacy means you learn of failures from customer complaints.
+
+### EU-specific landmines flagged
+- **SCA / 3DS2 exemption logic** wrong → either decline valid payments or skip required auth (regulatory + liability)
+- **Idempotency key** mismatch between old/new paths → double-charges on retry
+- **Multi-currency rounding** (PLN, SEK, DKK, HUF, RON), webhook coverage gaps, ledger reconciliation, PCI/GDPR scope changes
+
+### Recommended plan changes (priority order)
+1. **Kill the big-bang** — shadow/dual-write first, then canary 1% → 5% → 25% → 100% with bake time
+2. **Don't ship Friday** — cut over Tue/Wed morning, avoid month-end billing window
+3. **Rehearse rollback end-to-end** in prod-like env (hard blocker if not truly reversible)
+4. **Pre-commit an abort trigger** with a named owner — no live debate
+5. **Achieve detection parity** before cutover
+6. **Verify EU correctness/compliance items explicitly** before any traffic
+
+The agent offered to turn this into a **go/no-go checklist** or a **staged-rollout plan** — let me know if you'd like either and I can continue with it.

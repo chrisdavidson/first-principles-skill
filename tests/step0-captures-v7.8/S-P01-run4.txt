@@ -1,0 +1,24 @@
+The first-principles agent ran the pre-mortem. Here's what it found:
+
+## Core finding
+The dominant risk **isn't the new code — it's the launch shape**. Three decisions in the plan ("all EU at once," "no staged rollout," "next Friday") each strip away a different safety mechanism, and two of the four root-cause clusters are created by the plan itself, independent of code quality.
+
+## The four structural roots
+| Cluster | Weakness |
+|---|---|
+| **A. No blast-radius containment** | Any single failure is region-wide and simultaneous |
+| **B. Irreversibility** | Schema migration + repointed webhooks make rollback impossible or harmful — yet it's your *only* safety net under big-bang |
+| **C. Money-correctness unverified** | Idempotency, token migration, renewals, VAT, SCA — where "deploy is green" ≠ "money moved correctly" |
+| **D. Can't see / can't respond** | No payment-success baseline, weak alerting, Friday-into-weekend skeleton on-call |
+
+## Highest-leverage plan changes
+1. **Kill the big-bang** — stage the rollout (1% → 10% → 50% → 100%), or run new+legacy in parallel (shadow/dual-write) with legacy as source of truth until the new system matches under real load.
+2. **Rehearse the rollback for real** against a migrated DB with in-flight transactions, before committing the date. Use an expand/contract schema migration so old code can run on the new schema.
+3. **Move off Friday** — launch Tue/Wed morning for full-staffed business days and live Stripe support.
+4. **Prove money-correctness at the boundary** — reconcile real transactions old-vs-new, test-charge a sample of migrated tokens, explicitly test the 3DS2/SCA *challenge* path.
+5. **Instrument before launch** — baseline the legacy success rate, alert on deviation, pre-agree a numeric auto-rollback trigger.
+6. **Re-confirm EU compliance** (PSD2/SCA, GDPR residency, exemption logic) matches what was signed off.
+
+**Bottom line:** if a hard constraint truly forces big-bang on that date, that constraint needs to be named explicitly — it's the single most important input to whether the launch should proceed at all.
+
+The agent offered to turn Section 5 into a go/no-go checklist with owners and a filled-in rollback trigger. Want me to have it do that?

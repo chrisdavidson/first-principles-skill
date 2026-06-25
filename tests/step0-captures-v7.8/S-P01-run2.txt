@@ -1,0 +1,24 @@
+The first-principles agent ran the pre-mortem. Here's what it surfaced:
+
+## Pre-Mortem: Payments-Rewrite Cutover
+
+The agent reframed to the failure-already-happened premise and worked backward. The two plan decisions that dominate every failure mode are **"no staged rollout"** and **"hard cutover on a Friday."**
+
+### Four structural weakness clusters
+
+- **A — Irreversibility:** No proven escape hatch. If legacy is decommissioned or the data migration is one-way, rollback is impossible — this is the single most dangerous risk because it makes every other failure unrecoverable.
+- **B — No progressive exposure:** Every defect (load, missing edge cases, bad config/secret, observability gaps) hits 100% of EU customers from minute one, with no early-warning population.
+- **C — Detection & response latency:** Friday cutover places the highest-risk event immediately before the lowest-staffing window (weekend), turning a 2-hour incident into a 48-hour one.
+- **D — EU correctness:** SCA/PSD2/3-D Secure, SEPA, per-country VAT, and silently-handled legacy edge cases (disputes, partial refunds, retries, idempotency, webhook signing) are unverified.
+
+### Recommended plan changes (by leverage)
+
+1. **Prove rollback before shipping** — keep legacy warm and dual-runnable. If rollback isn't possible, that's a stop condition.
+2. **Replace big-bang with progressive exposure** — 1%→10%→50%→100% canary, or at minimum shadow/dark-launch traffic for a few days.
+3. **Move off Friday** — ship Tue/Wed morning with payments on-call coverage for 72 hours.
+4. **Close the EU-correctness gap** before cutover.
+5. **Verify observability parity and continuous reconciliation.**
+
+**Confidence: MEDIUM.** The agent flagged that the decisive unknown is **whether validated rollback exists.** To tighten this to a go/no-go, it needs: (a) does legacy stay warm / is migration reversible, (b) has any shadow traffic run, (c) load-test status.
+
+The agent is still alive if you want to feed it those three answers for a concrete go/no-go call.

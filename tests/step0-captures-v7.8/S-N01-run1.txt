@@ -1,0 +1,14 @@
+I invoked the **first-principles** agent with your prompt exactly as written. It can't run a meaningful pre-mortem without knowing what plan you're worried about, so it's holding for details. Here's what it needs and what you'll get:
+
+**To run the analysis, it needs:**
+1. **The plan** — a sentence or two on what you're about to commit to (launch, migration, architecture change, hire, deal, feature, etc.), or a file path / link.
+2. **What "blow up" means to you** — the outcome you're trying to avoid (missed deadline, blown budget, data loss, churn, reputational hit, regulatory problem, burnout).
+3. **Key constraints** — deadline, budget, headcount, hard dependencies, anything non-negotiable.
+4. **What you've already de-risked** — so it doesn't re-flag what you've handled.
+
+**The method it'll apply once you supply the plan:**
+- A **pre-mortem** — assume the plan has *already* failed six months out, then work backward to causes (this surfaces what optimism suppresses while the team is still excited).
+- A sweep across **people, process, technology/dependencies, timeline, external/market, and "the unspoken"** (what you'd hesitate to say out loud in the team meeting — usually the highest-signal items).
+- **Clustering** to separate isolated risks from recurring roots (e.g., one optimistic timeline assumption, a single undiagnosed point of failure) — then a concrete plan change or an explicitly-accepted-risk-with-mitigation for each.
+
+Send the plan (paste it or give me a path/link) and I'll continue the same agent session so it keeps full context.

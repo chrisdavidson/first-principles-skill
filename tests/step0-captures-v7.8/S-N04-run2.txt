@@ -1,0 +1,28 @@
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## Five actions before locking the timeline
+
+1. **Verify four load-bearing unknowns in Weeks 1–2 as go/no-go gates** — per-team auth inventory, identity-data quality audit + dry-run migration, team-capacity commitments, and an adoption pilot. These are currently *assumed* by the plan and cap the confidence of every estimate.
+2. **Do a bottom-up estimate now and renegotiate before locking** if it exceeds the ~13-week window.
+3. **Reject big-bang; mandate a phased canary** with auto-halt SLOs, *rehearsed* per-team rollback, and a tested break-glass path. Name each team's point-of-no-return — once credentials migrate, rollback isn't symmetric.
+4. **Freeze MVP scope; make security review + authz regression non-deferrable gates.** Under deadline pressure, cut features, never the gate.
+5. **Decouple cross-team cutovers and assign an owner to every team and shared component.**
+
+## Six structural weaknesses (where the ~18 failure modes cluster)
+
+| | Weakness | Highest-priority failure mode |
+|---|---|---|
+| SW-1 | Hidden Migration Surface | Uninventoried legacy/service-account path breaks at cutover |
+| SW-2 | **Concentrated Blast Radius** | IdP outage = org-wide lockout; no clean rollback post-migration |
+| SW-3 | Slowest-Team Coupling | One blocked team stalls the whole rollout |
+| SW-4 | Deadline vs. Unfrozen Scope | Scope creep eats the buffer; quality gets cut |
+| SW-5 | **Security Compressed by Speed** | Misconfig → mass lockout or security regression |
+| SW-6 | Adoption Friction | Support overwhelmed; "shipped" ≠ adopted |
+
+**Priority read:** Fix SW-2 and SW-5 first (largest blast radius). SW-1, SW-3, SW-4 are most *likely* to trigger. SW-6 (adoption) is the most consistently *underestimated* — the modal failure is a working system nobody migrated to smoothly.
+
+**Confidence:** HIGH on SW-2/SW-4/SW-5; MEDIUM on timeline-feasibility and adoption — deliberately capped until the four unknowns in action #1 are verified.
+
+The agent's key caveat: the sharpest levers (#1 and #2) are verification work that must happen **before** the lock, not during the quarter. If you're locking this week, that tension is what to resolve first.
+
+The analysis assumed a centralized SSO/IdP setup, a mid-to-large org with heterogeneous existing auth, a fixed ~13-week window, and a live production migration. If any of those don't match your situation, let me know and I can have the agent re-weight the priorities or expand any structural weakness into its full failure-chain detail.

@@ -1,0 +1,34 @@
+The first-principles agent produced the fishbone analysis. Here it is:
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned HTTP 503 for all users for ~40 minutes starting 14:10 UTC (2026-06-24).
+
+```
+                         PEOPLE                          PROCESS                       TECHNOLOGY & TOOLS
+                            │                               │                                  │
+      manual config change at ~14:10 ──┐      bad deploy / release rollout ──┐    LB has no healthy upstreams (503) ──┐
+      on-call response delay ───────┐  │      autoscaling policy misconfig ─┐│    pod crashloop / OOMKill ──────────┐ │
+      missing runbook / knowledge ──┐│ │      change-freeze bypassed ──────┐││    readiness/liveness probe failing ─┐││
+                                    ││ │                                   │││                                      │││
+                                    ▼▼ ▼                                   ▼▼▼                                      ▼▼▼
+   ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════►
+                                    ▲▲ ▲                                   ▲▲▲                  CHECKOUT API: total 503s,
+                                    ││ │                                   │││                  14:10 UTC, ~40 min, all users
+      rate-limit / quota tripped ──┘│ │      stale/expired TLS cert ──────┘││    upstream dependency timeout (503 propagated) ─┘││
+      thread/conn pool exhausted ───┘ │      DNS / service-discovery fail ──┘│    container registry / image pull fail ─────────┘│
+      memory/CPU saturation ──────────┘      secret/token rotation expiry ───┘    network partition / mesh fault ────────────────┘
+                            │                               │                                  │
+                        RESOURCES                      INFORMATION                        ENVIRONMENT
+```
+
+**Key reasoning:** A 503 (per RFC 9110) means the edge is reachable but no healthy backend can serve the request — steering the analysis toward capacity, upstream-health, and load-shedding causes. The database layer was deliberately excluded per your input.
+
+**Top branches to investigate first:**
+1. **Bad deploy / manual config change at 14:10** — the sharp onset time is the strongest clue; check change/deploy logs for 14:05–14:12.
+2. **LB has no healthy upstreams** — the most direct 503 mechanism; check target-health and pod-ready counts.
+3. **Expired TLS cert / token rotation** — the abrupt boundary and ~40-min duration fit a rotation event.
+
+One caveat the agent flagged: "database ruled out" was taken as given and not independently verified — worth confirming *how* it was ruled out if the top branches come back clean.
+
+The agent offered to drill the top branch into a **Five Whys** root-cause analysis or render this as a proper **SVG fishbone**. Want either?

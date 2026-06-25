@@ -1,0 +1,29 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Pre-Mortem: Authentication System Rollout
+
+The agent treated this as a pre-mortem ("it's quarter-end, the rollout failed — what caused it?") and flagged that it was working without your actual plan, so it made three load-bearing assumptions you should confirm.
+
+**Ground truths it reasoned from:**
+- Auth is a hard dependency — if it fails, everything behind it is inaccessible
+- Cross-team rollout requires coordination across teams with no shared owner or priority stack
+- Migration means two systems coexist during transition, with identity state that must stay consistent
+- Fixed date + fixed scope forces testing/quality to absorb all schedule pressure
+
+**Failure modes, clustered by root cause:**
+- **Coordination (A):** teams desync into a half-migrated dual-state; no single accountable cutover owner; auth loses to local roadmaps for teams where "login already works"
+- **Migration/cutover (B):** identity-state inconsistency, token/session incompatibility in the coexistence window, and missed edge-case identities (service accounts, API keys, SSO/SAML, mobile cached creds)
+- **Timeline pressure (C):** testing gets compressed because the date is fixed and scope isn't cut
+- **Blast radius (D):** big-bang cutover makes any failure total; untested/absent rollback; silent security regression
+
+**Top recommendations before locking the timeline:**
+1. Stage the rollout — kill the big-bang (highest leverage)
+2. Make scope the flex variable, not testing
+3. Build *and rehearse* a rollback
+4. Name one accountable cutover owner with per-team readiness gates
+5. Enumerate non-human identities now
+6. Define "done" as verified, not deployed
+
+**Confidence: MEDIUM.** The agent asks you to confirm three things to sharpen the analysis: **(a)** migration or greenfield, **(b)** whether a tested rollback exists, **(c)** whether the quarter date is genuinely immovable.
+
+The agent is still alive if you'd like me to send those three answers back to deepen the analysis.

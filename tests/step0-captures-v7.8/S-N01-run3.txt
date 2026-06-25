@@ -1,0 +1,23 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran and came back. Here's its response:
+
+---
+
+It recognized this as a **pre-mortem** situation — your exact phrasing ("before we lock it in, I want to surface every way this could blow up") is what prospective-hindsight analysis is built for. But it hit a blocker: **it can't see the plan**, so it can't produce real failure modes rather than generic platitudes.
+
+To run the analysis, it needs:
+
+1. **What is the plan?** A few sentences on what you're committing to (building / launching / deciding).
+2. **What domain?** (software architecture, product launch, business strategy, hiring, infra migration, etc.)
+3. **What are the hard constraints?** Non-negotiables — deadline, budget, headcount, regulatory, compatibility, etc.
+4. **What's already locked / verified?** Things to treat as fixed rather than challenge.
+
+Optionally, to sharpen the pre-mortem:
+- **Time horizon of "blow up"** — failed at launch / in 6 months / fails to scale in 2 years?
+- **What does "the team is excited" attach to?** Excitement often clusters around the under-scrutinized part of a plan — frequently where the load-bearing untested assumption hides.
+
+You can paste the plan directly, or drop in the PRD / architecture sketch / planning doc and it'll work from that.
+
+---
+
+The agent is still alive and holding context. If you share the plan, I can pass it straight back to the same agent to continue the analysis. What's the plan?

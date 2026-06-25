@@ -1,0 +1,29 @@
+I invoked the **first-principles** agent with your prompt verbatim. Here's what it came back with:
+
+## It needs your code to do a real analysis
+
+The agent declined to guess. Its core point: surfacing what's wrong with your error handling without the actual script would be reasoning by analogy ("crashes like this are usually X") — which first-principles analysis specifically rejects. To run the real analysis it needs:
+
+1. **The script** (at minimum the startup portion — imports, module-level code, `__main__` block, config loading)
+2. **The full traceback** — the highest-value item; its last line names the exact exception, file, and line
+3. **How you run it** (`python app.py`, entry point, venv/Docker) and Python version
+
+## Pre-mortem frame it gave you in the meantime
+
+Scan your own startup code against these recurring error-handling failure modes:
+
+**The crash is in the error handling itself**
+- A broad `except` that catches the real error then fails inside the handler (you see the handler's error, not the cause)
+- A handler referencing a variable that was never defined because init failed (e.g. logging `config.path` when `config` didn't load)
+- `sys.exit()` / `raise SystemExit` in a handler making a recoverable error look fatal
+
+**Error handling runs too late**
+- Import-time code (config reads, env vars, DB connections, file opens) running *before* any `try/except` in `main()` can protect it
+
+**Swallowed errors surfacing later**
+- An early `except: pass` hiding a failed init, then a downstream crash on the half-initialized object
+
+**Environment-shaped failures often misread as "error handling"**
+- Missing env vars / `.env`, wrong working directory, wrong virtualenv (`ModuleNotFoundError`), circular imports
+
+**Fastest path:** paste the full traceback (or give me the file path). That alone usually collapses the whole space to one cause. Share it and I'll send it back to the same agent — it's still live and can continue with full context.
