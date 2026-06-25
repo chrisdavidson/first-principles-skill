@@ -739,21 +739,25 @@ def _rows_active_tail() -> list[MatrixRow]:
     tail_rationale_gen01 = (
         "Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). "
         "GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly "
-        "measured by the committed v7.6 live re-baseline (Phase 114). Earned by the "
-        "committed baseline, not a passing score (BATTERY: FAIL, P 3/8 REGRESSION "
-        "— human-confirmed at blocking checkpoint; RR-114-01 S-P02 inversion CARRIED 1/5 "
-        "(supersedes RR-108-01), RR-108-02 S-P05 trade-off CLOSED 4/5 (lone canonical "
-        "improver; ID retained, sentinel present as regression guard), "
+        "measured by the committed v7.8 live re-baseline (Phase 119 CONF-03). Earned by the "
+        "committed baseline, not a passing score. Phase 119 CONF-03 targeted 6-row BATTERY: PASS "
+        "(S-P01 3/5, S-P03 4/5, S-N01 3/5, S-N02 3/5, S-N03 5/5, S-N04 5/5 non-blocking) — "
+        "D-1c CONFIRMED: Phase-118 FIX-03/FIX-04 prose fix confirmed; all five blocking conjuncts hold. "
+        "Honesty-not-score caveat: negative passes are a MIX of genuine clarification-holds "
+        "and detector under-counts (D-01); pass rate is a lower bound on stay-in-composer behavior. "
+        "Prior baselines frozen: v7.6 (Phase 114, BATTERY: FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR). "
+        "RR-79-01 S-P01 CLOSE SUSTAINED 3/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5 (≥ v7.4 floor); "
+        "RR-119-01 S-N01 RESOLVED-OVER-BAR (minted Phase 119 CONF-04); "
+        "RR-119-02 S-N02 RESOLVED-OVER-BAR (minted Phase 119 CONF-04); "
+        "RR-114-01 S-P02 inversion CARRIED 1/5 (supersedes RR-108-01, out of scope this run); "
+        "RR-108-02 S-P05 trade-off CLOSED 4/5 (ID retained, sentinel present as regression guard); "
         "RR-108-03 decompose 0/5 RESOLVED-BY-MERGE (v7.5 decompose→five-whys merge, Phases "
         "110-112; decompose absorbed into five-whys as co-equal dual mode, standalone surface "
-        "retired; see docs/decompose-five-whys-merge.md), "
-        "RR-108-04 estimate 0/5 CARRIED-INDETERMINATE (spend-limit-truncated this run), "
-        "RR-108-05 theoretical-limit 0/5 CARRIED-INDETERMINATE (spend-limit-truncated); "
-        "new regressions: S-P01 pre-mortem (3/5→2/5) + S-P03 fishbone (3/5→1/5) below "
-        "v7.4 floors; S-P16 0/5 == decompose anchor (v7.5 merge did NOT improve five-whys "
-        "routing — REGRESSION verdict; fix forward-committed in docs/merge-validation-verdict.md); "
-        "deferred merge pairs: theoretical-limit↔inversion (SECOND), estimate↔? (FLAG, partner unscoped)). "
-        "Confirming artifact: tests/step0-baseline-v7.6.md."
+        "retired; see docs/decompose-five-whys-merge.md); "
+        "RR-108-04 estimate 0/5 CARRIED-INDETERMINATE (spend-limit-truncated at v7.4); "
+        "RR-108-05 theoretical-limit 0/5 CARRIED-INDETERMINATE (spend-limit-truncated at v7.4); "
+        "deferred merge pairs: theoretical-limit↔inversion (SECOND), estimate↔? (FLAG, partner unscoped). "
+        "Confirming artifact: tests/step0-baseline-v7.8.md."
     )
     tail_rationale_gen02 = (
         "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + "
@@ -763,7 +767,7 @@ def _rows_active_tail() -> list[MatrixRow]:
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
-                  "active-tail", "reproducible", "tests/step0-baseline-v7.6.md",
+                  "active-tail", "reproducible", "tests/step0-baseline-v7.8.md",
                   tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
@@ -782,6 +786,21 @@ def _rows_active_tail() -> list[MatrixRow]:
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow(f"{p}/RR-77-08", "RR-77-08", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+        # RR-117-01: S-P03 fishbone CLOSED at 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at v7.8 CONF-03.
+        # First fishbone vector sentinel; RR-75-03 lineage; re-pointed to v7.8 in Phase 119 CONF-04.
+        MatrixRow(f"{p}/RR-117-01", "RR-117-01", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+        # RR-117-02: S-N03 precision sentinel; D-17 precision finding; re-pointed to v7.8 in Phase 119 CONF-04.
+        MatrixRow(f"{p}/RR-117-02", "RR-117-02", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+        # RR-119-01: S-N01 over-routing RESOLVED-OVER-BAR at Phase 119 CONF-03 (v7.8 vector [0,2,1,1,3]).
+        # Under-count caveat documented; NOT a reclassification (D-4, Phase 119 CONF-04).
+        MatrixRow(f"{p}/RR-119-01", "RR-119-01", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+        # RR-119-02: S-N02 over-routing RESOLVED-OVER-BAR at Phase 119 CONF-03 (v7.8 vector [0,3,3,1,1]).
+        # Under-count caveat documented; NOT a reclassification (D-4, Phase 119 CONF-04).
+        MatrixRow(f"{p}/RR-119-02", "RR-119-02", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
     ]
 
 
@@ -791,10 +810,11 @@ def build_matrix_rows() -> list[MatrixRow]:
     Two inclusion paths per D-05:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
-    (b) Active tail (7 rows) — included unconditionally; all reproducible (D-05b):
-        GEN-01 reproducible (Phase 93 flip, v7.6 baseline earned Phase 114), GEN-02 + 5
-        residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
-        RR-108-02 CLOSED at 4/5 v7.6 (ID retained, sentinel present).
+    (b) Active tail (11 rows) — included unconditionally; all reproducible (D-05b):
+        GEN-01 reproducible (Phase 93 flip, v7.8 baseline earned Phase 119 CONF-03),
+        GEN-02 + 9 residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
+        RR-108-02 CLOSED at 4/5 v7.6 (ID retained, sentinel present);
+        RR-117-01/RR-117-02 added Phase 117 CONF-02; RR-119-01/RR-119-02 added Phase 119 CONF-04.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1346,12 +1366,13 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # (Phase 93 flip, D-08) because the Step 0 classifier capability is reproducibly
     # measured by a committed live re-baseline. The flip was earned in Phase 93 on
     # tests/step0-baseline-v6.3.md (Phase 92); the artifact_link now tracks the current
-    # authoritative re-baseline tests/step0-baseline-v7.6.md (Phase 114). The flip is
-    # earned by the committed baseline, not a passing score
-    # (BATTERY: FAIL, P 3/8 REGRESSION — legitimate honest v7.6 measured state).
+    # authoritative re-baseline tests/step0-baseline-v7.8.md (Phase 119 CONF-03).
+    # Artifact bump history: v7.6 (Phase 114) → v7.8 (Phase 119 CONF-04, D-04 step two).
+    # The flip is earned by the committed baseline, not a passing score
+    # (Phase 119 CONF-03: BATTERY: PASS, D-1c CONFIRMED — Phase-118 prose fix confirmed).
     # Asserts:
     #   (a) GEN-01's tier is "reproducible" (not "scheduled", not "gap")
-    #   (b) GEN-01's artifact_link is the committed v7.6 baseline (deep-resolved)
+    #   (b) GEN-01's artifact_link is the committed v7.8 baseline (deep-resolved)
     #   (c) Exactly-one GEN-01 row drift guard
     #   (d) Not-scheduled counter-check (transition non-vacuous)
     # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
@@ -1359,7 +1380,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # No gitignored-file dependency (.planning/ROADMAP.md removed — ABSENT in CI).
     # Honesty-not-score (D-01): asserts the documented reproducible state, not a
     # live pass-rate. Any future revert of the tier, deletion of the GEN-01 row,
-    # or removal of the v7.6 baseline file fails CI.
+    # or removal of the v7.8 baseline file fails CI.
     # ---------------------------------------------------------------------------
 
     # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 4:
@@ -1398,29 +1419,31 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         wrong_results.append("GEN-01-REPRODUCIBLE: tier not 'reproducible'")
 
     # (b) Artifact deep-resolve (D-09): GEN-01's artifact_link must be the committed
-    # v7.6 baseline. Deep-resolve via _resolve_artifact (git-tracked, present in CI).
-    _gen01_expected_artifact = "tests/step0-baseline-v7.6.md"
+    # v7.8 baseline (Phase 119 CONF-03 — the latest authoritative re-baseline).
+    # Deep-resolve via _resolve_artifact (git-tracked, present in CI).
+    # Bump history: v7.6 (Phase 114) → v7.8 (Phase 119 CONF-04, Plan 03, D-04 step two).
+    _gen01_expected_artifact = "tests/step0-baseline-v7.8.md"
     if _gen01_artifact != _gen01_expected_artifact:
         print(
             f"  GEN-01-REPRODUCIBLE FAIL: artifact_link={_gen01_artifact!r} "
             f"(expected {_gen01_expected_artifact!r})."
         )
-        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v7.6 baseline")
+        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v7.8 baseline")
     else:
         _gen01_resolve_issues = _resolve_artifact(_gen01_artifact)
         # Belt-and-suspenders: explicit path existence check
-        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v7.6.md"
+        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v7.8.md"
         if _gen01_resolve_issues or not _gen01_baseline_path.exists():
             print(
                 f"  GEN-01-REPRODUCIBLE FAIL: artifact deep-resolve failed for "
                 f"{_gen01_artifact!r}: {_gen01_resolve_issues}; "
                 f"file exists={_gen01_baseline_path.exists()}"
             )
-            wrong_results.append("GEN-01-REPRODUCIBLE: v7.6 baseline not resolvable")
+            wrong_results.append("GEN-01-REPRODUCIBLE: v7.8 baseline not resolvable")
         else:
             print(
                 f"  GEN-01-REPRODUCIBLE PASS: artifact_link={_gen01_artifact!r} "
-                f"deep-resolves OK (tests/step0-baseline-v7.6.md exists, git-tracked)."
+                f"deep-resolves OK (tests/step0-baseline-v7.8.md exists, git-tracked)."
             )
 
     # ---------------------------------------------------------------------------
