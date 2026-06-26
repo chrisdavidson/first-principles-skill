@@ -99,6 +99,21 @@ support. Recommendation: buy new.
 
 ---
 
+## Output contract
+
+The focused trade-off output MUST include these four level-2 section headers, verbatim,
+as real `##` headings in the response. Strict on the header strings; soft on content.
+This structure enables reliable downstream detection.
+
+Required headers:
+
+- `## Options`
+- `## Criteria & Weights`
+- `## Scoring`
+- `## Recommendation`
+
+---
+
 ## Handoff
 
 The output is the recommended option with its weighted justification and the

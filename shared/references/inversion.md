@@ -12,6 +12,7 @@
 - [Procedure](#procedure)
 - [Worked mini-example](#worked-mini-example)
 - [Failure modes](#failure-modes)
+- [Output contract](#output-contract)
 - [Handoff](#handoff)
 
 ---
@@ -107,6 +108,21 @@ invert it" is the same error as "the cause is real because I drew it on a fishbo
 analysis is a plan with timelines and dependencies, claim-level inversion will
 miss the implementation-failure modes that [pre-mortem](pre-mortem.md) is
 designed to surface. Use the claim-vs-plan decision rule above.
+
+---
+
+## Output contract
+
+The focused inversion output MUST include these four level-2 section headers, verbatim,
+as real `##` headings in the response. Strict on the header strings; soft on content.
+This structure enables reliable downstream detection.
+
+Required headers:
+
+- `## Inverted Claim`
+- `## Failure-Guaranteeing Conditions`
+- `## Necessary Preconditions`
+- `## Stress-Test Verdict`
 
 ---
 
