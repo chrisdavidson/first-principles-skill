@@ -1344,6 +1344,254 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # Category 7: NEGCAT — guard-suppressed + no-decisive-trigger named assertions
+    #
+    # Phase 120 Fix #3: broaden the oblique-negative boundary coverage by adding
+    # four individually-named guard-suppressed assertions (one per unexercised
+    # pre-mortem guard phrase) and one catalog-coupled no-decisive-trigger
+    # assertion.  These lock the v7.8 Fix #1 guard-suppression mechanism and
+    # Fix #2 stay-in-composer tiebreaker against novel boundary prompts.
+    #
+    # NEGCAT-GUARD-1..4 (inline-synthetic, catalog-independent, D-04):
+    #   Each assertion pairs a literal pre-mortem trigger with exactly one of
+    #   the four previously-unexercised guard phrases, expects full-composer
+    #   (guard suppresses the trigger), and includes an anti-vacuity counter-
+    #   check (same trigger WITHOUT the guard phrase must route to focused-pre-
+    #   mortem — proving the trigger is genuine and the full-composer result is
+    #   caused by the guard, not by a missing trigger).
+    #
+    # NEGCAT-OBLIQUE (catalog-coupled, drift-guarded, RR-80-01/S-N04 idiom):
+    #   Locks the no-decisive-trigger oblique catalog row S-N13. Hardcodes the
+    #   literal and adds a drift guard so a silent catalog edit fails loudly.
+    # -----------------------------------------------------------------------
+
+    # NEGCAT-GUARD-1: trigger fires ("prospective-hindsight") AND guard fires
+    # ("surface every way this could blow up") → full-composer suppressed.
+    _NEGCAT_GUARD1_PROMPT = (
+        "I need a prospective-hindsight on this deployment — "
+        "surface every way this could blow up before we flip the switch"
+    )
+    _NEGCAT_GUARD1_EXPECTED = "full-composer"  # trigger fired, guard suppressed
+
+    negcat_guard1_computed = classify(_NEGCAT_GUARD1_PROMPT, rules)
+    if negcat_guard1_computed == _NEGCAT_GUARD1_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-1 PASS "
+            f"(pre-mortem trigger + guard 'surface every way this could blow up' → {negcat_guard1_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-1 FAIL "
+            f"(expected {_NEGCAT_GUARD1_EXPECTED!r}, got {negcat_guard1_computed!r}; "
+            f"guard suppression not working: guard phrase 'surface every way this could blow up' "
+            f"did not suppress the pre-mortem trigger)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-1 (expected {_NEGCAT_GUARD1_EXPECTED!r}, got {negcat_guard1_computed!r})"
+        )
+
+    # Anti-vacuity counter-check: same trigger WITHOUT the guard phrase → focused-pre-mortem
+    _NEGCAT_GUARD1_POSITIVE_PROMPT = (
+        "I need a prospective-hindsight on this deployment — "
+        "please enumerate the risks before we flip the switch"
+    )
+    negcat_guard1_positive_computed = classify(_NEGCAT_GUARD1_POSITIVE_PROMPT, rules)
+    if negcat_guard1_positive_computed == "focused-pre-mortem":
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-1-positive PASS "
+            f"(pre-mortem trigger without guard phrase → {negcat_guard1_positive_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-1-positive FAIL "
+            f"(expected 'focused-pre-mortem', got {negcat_guard1_positive_computed!r}; "
+            f"anti-vacuity: the pre-mortem trigger must fire when guard phrase is absent)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-1-positive (expected 'focused-pre-mortem', got {negcat_guard1_positive_computed!r})"
+        )
+
+    # NEGCAT-GUARD-2: trigger fires (plan-nervousness alternation: "I'm nervous about this plan")
+    # AND guard fires ("everything that would make it go wrong") → full-composer suppressed.
+    _NEGCAT_GUARD2_PROMPT = (
+        "I'm nervous about this plan to expand the data center — "
+        "walk me through everything that would make it go wrong"
+    )
+    _NEGCAT_GUARD2_EXPECTED = "full-composer"  # trigger fired, guard suppressed
+
+    negcat_guard2_computed = classify(_NEGCAT_GUARD2_PROMPT, rules)
+    if negcat_guard2_computed == _NEGCAT_GUARD2_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-2 PASS "
+            f"(pre-mortem trigger + guard 'everything that would make it go wrong' → {negcat_guard2_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-2 FAIL "
+            f"(expected {_NEGCAT_GUARD2_EXPECTED!r}, got {negcat_guard2_computed!r}; "
+            f"guard suppression not working: guard phrase 'everything that would make it go wrong' "
+            f"did not suppress the pre-mortem trigger)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-2 (expected {_NEGCAT_GUARD2_EXPECTED!r}, got {negcat_guard2_computed!r})"
+        )
+
+    # Anti-vacuity counter-check
+    _NEGCAT_GUARD2_POSITIVE_PROMPT = (
+        "I'm nervous about this plan to expand the data center — "
+        "walk me through the main risk factors"
+    )
+    negcat_guard2_positive_computed = classify(_NEGCAT_GUARD2_POSITIVE_PROMPT, rules)
+    if negcat_guard2_positive_computed == "focused-pre-mortem":
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-2-positive PASS "
+            f"(pre-mortem trigger without guard phrase → {negcat_guard2_positive_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-2-positive FAIL "
+            f"(expected 'focused-pre-mortem', got {negcat_guard2_positive_computed!r}; "
+            f"anti-vacuity: the pre-mortem trigger must fire when guard phrase is absent)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-2-positive (expected 'focused-pre-mortem', got {negcat_guard2_positive_computed!r})"
+        )
+
+    # NEGCAT-GUARD-3: trigger fires ("pre-mortem" literal) AND guard fires
+    # ("what failure modes should we prepare for") → full-composer suppressed.
+    _NEGCAT_GUARD3_PROMPT = (
+        "run a pre-mortem on the new CI pipeline — "
+        "what failure modes should we prepare for before we enable auto-merge"
+    )
+    _NEGCAT_GUARD3_EXPECTED = "full-composer"  # trigger fired, guard suppressed
+
+    negcat_guard3_computed = classify(_NEGCAT_GUARD3_PROMPT, rules)
+    if negcat_guard3_computed == _NEGCAT_GUARD3_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-3 PASS "
+            f"(pre-mortem trigger + guard 'what failure modes should we prepare for' → {negcat_guard3_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-3 FAIL "
+            f"(expected {_NEGCAT_GUARD3_EXPECTED!r}, got {negcat_guard3_computed!r}; "
+            f"guard suppression not working: guard phrase 'what failure modes should we prepare for' "
+            f"did not suppress the pre-mortem trigger)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-3 (expected {_NEGCAT_GUARD3_EXPECTED!r}, got {negcat_guard3_computed!r})"
+        )
+
+    # Anti-vacuity counter-check
+    _NEGCAT_GUARD3_POSITIVE_PROMPT = (
+        "run a pre-mortem on the new CI pipeline before we enable auto-merge"
+    )
+    negcat_guard3_positive_computed = classify(_NEGCAT_GUARD3_POSITIVE_PROMPT, rules)
+    if negcat_guard3_positive_computed == "focused-pre-mortem":
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-3-positive PASS "
+            f"(pre-mortem trigger without guard phrase → {negcat_guard3_positive_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-3-positive FAIL "
+            f"(expected 'focused-pre-mortem', got {negcat_guard3_positive_computed!r}; "
+            f"anti-vacuity: the pre-mortem trigger must fire when guard phrase is absent)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-3-positive (expected 'focused-pre-mortem', got {negcat_guard3_positive_computed!r})"
+        )
+
+    # NEGCAT-GUARD-4: trigger fires ("failure chain") AND guard fires
+    # ("how this could go badly") → full-composer suppressed.
+    _NEGCAT_GUARD4_PROMPT = (
+        "there is a failure chain risk in the handoff protocol — "
+        "walk me through how this could go badly in the production environment"
+    )
+    _NEGCAT_GUARD4_EXPECTED = "full-composer"  # trigger fired, guard suppressed
+
+    negcat_guard4_computed = classify(_NEGCAT_GUARD4_PROMPT, rules)
+    if negcat_guard4_computed == _NEGCAT_GUARD4_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-4 PASS "
+            f"(pre-mortem trigger + guard 'how this could go badly' → {negcat_guard4_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-4 FAIL "
+            f"(expected {_NEGCAT_GUARD4_EXPECTED!r}, got {negcat_guard4_computed!r}; "
+            f"guard suppression not working: guard phrase 'how this could go badly' "
+            f"did not suppress the pre-mortem trigger)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-4 (expected {_NEGCAT_GUARD4_EXPECTED!r}, got {negcat_guard4_computed!r})"
+        )
+
+    # Anti-vacuity counter-check
+    _NEGCAT_GUARD4_POSITIVE_PROMPT = (
+        "there is a failure chain risk in the handoff protocol — "
+        "walk me through the main concerns for production"
+    )
+    negcat_guard4_positive_computed = classify(_NEGCAT_GUARD4_POSITIVE_PROMPT, rules)
+    if negcat_guard4_positive_computed == "focused-pre-mortem":
+        print(
+            "check-step0-emulator --self-test: NEGCAT-GUARD-4-positive PASS "
+            f"(pre-mortem trigger without guard phrase → {negcat_guard4_positive_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-GUARD-4-positive FAIL "
+            f"(expected 'focused-pre-mortem', got {negcat_guard4_positive_computed!r}; "
+            f"anti-vacuity: the pre-mortem trigger must fire when guard phrase is absent)"
+        )
+        wrong.append(
+            f"NEGCAT-GUARD-4-positive (expected 'focused-pre-mortem', got {negcat_guard4_positive_computed!r})"
+        )
+
+    # NEGCAT-OBLIQUE: catalog-coupled drift-guarded no-decisive-trigger assertion.
+    # Hardcodes the S-N13 literal (oblique worry-phrasing, no trigger phrase fires).
+    # Mirrors the RR-80-01/S-N04 idiom (Category 3, lines 559–613): the hardcoded
+    # literal is what gets classified (catalog-independent per D-04), while the drift
+    # guard ensures a silent catalog edit fails loudly instead of leaving the gate
+    # testing a stale prompt.
+    _NEGCAT_OBLIQUE_PROMPT = (
+        "I have a nagging feeling the molten-salt thermal storage upgrade might unravel "
+        "— can we do a sanity check on the project assumptions before the design review?"
+    )
+    _NEGCAT_OBLIQUE_EXPECTED = "full-composer"
+
+    # Drift guard: hardcoded literal must still match the live S-N13 catalog row (or be absent)
+    _sn13_catalog_prompt = next(
+        (p for rid, p, _ in fixtures if rid == "S-N13"), None
+    )
+    if _sn13_catalog_prompt is not None and _sn13_catalog_prompt != _NEGCAT_OBLIQUE_PROMPT:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-OBLIQUE FAIL "
+            "(hardcoded literal drifted from the live catalog S-N13 row — re-sync "
+            "the literal or update the gate)"
+        )
+        wrong.append(
+            "NEGCAT-OBLIQUE S-N13 (literal drifted from catalog row "
+            f"{_sn13_catalog_prompt!r} != {_NEGCAT_OBLIQUE_PROMPT!r})"
+        )
+
+    negcat_oblique_computed = classify(_NEGCAT_OBLIQUE_PROMPT, rules)
+    if negcat_oblique_computed == _NEGCAT_OBLIQUE_EXPECTED:
+        print(
+            "check-step0-emulator --self-test: NEGCAT-OBLIQUE PASS "
+            f"(oblique no-trigger worry-phrasing S-N13 → {negcat_oblique_computed})"
+        )
+    else:
+        print(
+            f"check-step0-emulator --self-test: NEGCAT-OBLIQUE FAIL "
+            f"(expected {_NEGCAT_OBLIQUE_EXPECTED!r}, got {negcat_oblique_computed!r}; "
+            f"oblique no-trigger prompt should not route to any focused mode)"
+        )
+        wrong.append(
+            f"NEGCAT-OBLIQUE (expected {_NEGCAT_OBLIQUE_EXPECTED!r}, got {negcat_oblique_computed!r})"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -1354,7 +1602,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE + NEGCAT-GUARD-1 + NEGCAT-GUARD-2 + NEGCAT-GUARD-3 + NEGCAT-GUARD-4 + NEGCAT-OBLIQUE named assertions")
 
 
 def _require_python_version() -> None:
