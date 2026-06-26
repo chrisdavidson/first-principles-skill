@@ -67,6 +67,18 @@ jobs:
       - run: python3 scripts/check-trigger-collisions.py --self-test
       - run: python3 scripts/check-trigger-collisions.py
 
+  check-install-collisions:
+    name: check-install-collisions (COLLIDE-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 scripts/check-install-collisions.py --self-test
+      - run: python3 scripts/check-install-collisions.py
+
   check-description-budget:
     name: check-description-budget (VAL-05)
     runs-on: ubuntu-latest

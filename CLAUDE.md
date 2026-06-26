@@ -16,7 +16,7 @@ python3 scripts/sync-content.py --check   # verify no drift (exit 1 on drift)
 uv run scripts/sync-content.py --write    # uv alternative (auto-resolves deps)
 ```
 
-### Validation scripts (all need Python ≥ 3.12 + PyYAML)
+### Validation scripts (most need Python ≥ 3.12 + PyYAML; check-install-collisions.py is stdlib-only)
 
 ```sh
 python3 scripts/check-agent.py            # GATE-01: agent structural checks
@@ -24,6 +24,8 @@ python3 scripts/check-links.py            # VAL-03: broken relative MD links
 python3 scripts/check-trigger-collisions.py  # VAL-04: 4-gram collision scan across skills
 python3 scripts/check-description-budget.py  # VAL-05: skill listing under 2000-char ceiling
 python3 scripts/check-body-budget.py      # pre-commit body budget (644-line limit)
+python3 scripts/check-install-collisions.py --self-test  # COLLIDE-01: dual-install name-collision self-test
+python3 scripts/check-install-collisions.py              # COLLIDE-01: live-tree scan (vacuous if monolith absent)
 ```
 
 ### Routing battery (requires a running Claude Code session)
@@ -126,6 +128,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
 | TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; matrix.json is gitignored so only --self-test runs in CI) |
+| COLLIDE-01 | `check-install-collisions.py --self-test` | Offline dual-install name-collision self-test — detects skill/agent name collisions between plugin (`first-principles/`) and monolith (`first-principles-thinking/`) install surfaces (D-02: relaxes VAL-04's monolith exclusion for the NAME axis only; VAL-04 owns the trigger 4-gram axis, this gate owns the name-collision axis — orthogonal concerns; absent monolith dir is vacuously clean; deterministic, no live session) |
 
 ### Pre-commit gates
 
