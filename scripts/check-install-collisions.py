@@ -124,13 +124,17 @@ def _run_self_test() -> None:
     production _find_collisions() helper and assert the scanner flags it.
     A silent no-op extension must not be able to pass.
 
-    If no collision is detected: FAIL exit 1.
-    If collision is detected as expected: PASS exit 0.
+    Two-part test:
+    1. Positive fixture: colliding pair → assert collision IS detected (exit 1 if not).
+    2. Negative control: disjoint pair → assert NO collision reported (exit 1 if wrong).
+
+    If no collision is detected on the colliding fixture: FAIL exit 1.
+    If collision is detected AND disjoint pair is clean: PASS exit 0.
     Fixture is inline (no external files).
     """
-    # Synthetic colliding pair: same name on both surfaces.
+    # Positive fixture — same name on both surfaces (deliberate collision).
     fixture_plugin_names: set[str] = {"first-principles"}
-    fixture_monolith_names: set[str] = {"first-principles"}  # deliberate collision
+    fixture_monolith_names: set[str] = {"first-principles"}
 
     # Invoke the PRODUCTION helper — not an inline intersection — so a broken
     # or no-op _find_collisions() implementation cannot silently pass (D-04).
@@ -143,9 +147,20 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    # Negative control — disjoint pair must produce empty set (proves detector
+    # is not a constant that always reports a collision).
+    disjoint_collisions = _find_collisions({"x"}, {"y"})
+    if disjoint_collisions:
+        sys.stderr.write(
+            "check-install-collisions --self-test: FAIL — disjoint pair "
+            f"incorrectly reported a collision: {disjoint_collisions}\n"
+        )
+        sys.exit(1)
+
     print(
         f"check-install-collisions --self-test: PASS "
-        f"(fixture collision detected: {sorted(collisions)[0]!r})"
+        f"(fixture collision detected: {sorted(collisions)[0]!r}; "
+        f"disjoint pair clean)"
     )
     sys.exit(0)
 
