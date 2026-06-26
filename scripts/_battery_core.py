@@ -1169,7 +1169,7 @@ def self_test_boundary() -> int:
     # RR-114-01 supersedes RR-108-01 (Phase 114 v7.6 carry-forward, S-P02 inversion)
     # Supersession chain: RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01 → RR-114-01
     #
-    # RR-114-01 is the S-P02 inversion carry-forward: observed 1/5 FAIL in the
+    # RR-114-01 was the S-P02 inversion carry-forward: observed 1/5 FAIL in the
     # Phase 114 v7.6 live re-baseline (tests/step0-baseline-v7.6.md).  The live
     # agent routes to focused-inversion on run 1 only; 4/5 runs return full-composer.
     # v7.6 is 1/5 — no change from v7.4's 1/5 (the inversion trigger still
@@ -1188,6 +1188,20 @@ def self_test_boundary() -> int:
     # This gate asserts the DOCUMENTED per-run v7.6 inversion count vector
     # [2, 0, 1, 1, 1] over tests/step0-captures-v7.6/S-P02-run{1..5}.txt.
     # The v6.3/v6.4/v7.4 excerpts remain byte-frozen (D-04).
+    #
+    # Phase 121 OCH-01/02 structural resolution — RESOLVED-STRUCTURALLY-OFFLINE:
+    # 4 output-contract heading-anchored markers (## Inverted Claim /
+    # ## Failure-Guaranteeing Conditions / ## Necessary Preconditions /
+    # ## Stress-Test Verdict) were added in Phase 121 OCH-02 (D-03 additive
+    # extension; inversion 9→13). The detector CAN now read the headers (proven
+    # by the synthetic fixture below); whether the agent reliably EMITS them is
+    # the forward-committed live half. The frozen v7.6 vector [2, 0, 1, 1, 1]
+    # is UNCHANGED — the captures predate the headers, confirming the extension
+    # did not break old-capture scoring. The live pass-rate re-measure of S-P02
+    # inversion at the new detection fidelity is forward-committed to a future
+    # budgeted milestone (offline-only milestone, honesty-not-score, D-01).
+    # ID kept; no successor minted (D-04 step 3; keep-the-ID-on-resolve
+    # precedent: RR-79-01 / RR-108-02).
     #
     # Supersession comment for old IDs:
     #   RR-79-02 → RR-92-01 (renamed Phase 93 Plan 01; S-P02 inversion;
@@ -1250,8 +1264,13 @@ def self_test_boundary() -> int:
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
             f"inversion detector reachable (synthetic 2-marker text → inv_hits={_rr11401_synth_inv} "
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
-            f"S-P02 CARRIED 1/5 at Phase 114 re-baseline (live 1/5 < min-pass; "
-            f"offline detector fires on run1 but not enough live runs to CLOSE); "
+            f"RESOLVED-STRUCTURALLY-OFFLINE (Phase 121 OCH-02): "
+            f"the detector CAN now read the headers (proven by the synthetic fixture); "
+            f"whether the agent reliably EMITS them is the forward-committed live half; "
+            f"frozen v7.6 vector [2, 0, 1, 1, 1] UNCHANGED (captures predate the headers — "
+            f"unchanged vector proves the extension did not break old-capture scoring); "
+            f"live S-P02 pass-rate re-measure forward-committed (offline-only milestone, honesty-not-score D-01); "
+            f"ID kept, no successor minted (D-04 step 3); "
             f"inv_patterns={_rr11401_inv_pattern_count}. "
             f"Supersedes RR-108-01 (Phase 114 v7.6 carry-forward). "
             f"Chain: RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01 → RR-114-01."
@@ -1636,6 +1655,17 @@ def self_test_boundary() -> int:
     # _TECHNIQUE_CATEGORIES["trade-off"] (added Phase 94 Plan 03).  The
     # REJECTED CANDIDATES note (Pitfall 6) refers to "weighted score" staying out.
     #
+    # Phase 121 OCH-02 structural extension:
+    # 4 output-contract heading-anchored markers (## Options / ## Criteria & Weights /
+    # ## Scoring / ## Recommendation) were added in Phase 121 OCH-02 (D-03 additive
+    # extension; trade-off 6→10). The detector now also reads the trade-off
+    # output-contract headers, proven by the RR-108-02 synthetic teeth below.
+    # The frozen v7.6 vector [2, 2, 2, 2, 1] is UNCHANGED — the captures predate
+    # the headers, confirming the extension did not break old-capture scoring.
+    # Any future live re-measure of trade-off emission at the new detection fidelity
+    # is forward-committed (offline-only milestone, honesty-not-score, D-01).
+    # ID kept; RR-108-02 remains CLOSED at 4/5 PASS (live bar met at Phase 114).
+    #
     # Supersession comment for old IDs:
     #   RR-79-03 → RR-92-02 (renamed Phase 93 Plan 01; S-P05 trade-off;
     #   re-pointed from v5.2 all-below-MIN to v6.3 vector [0, 2, 2, 1, 0])
@@ -1684,6 +1714,11 @@ def self_test_boundary() -> int:
             f"each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
             f"S-P05 CLOSED at 4/5 PASS at Phase 114 re-baseline (live 4/5 >= min-pass; "
             f"improved from v7.4's 2/5 — residual resolved, no successor ID); "
+            f"structurally extended Phase 121 OCH-02: detector now also reads trade-off "
+            f"output-contract headers (Options/Criteria & Weights/Scoring/Recommendation), "
+            f"proven by RR-108-02 synthetic teeth; frozen v7.6 vector [2, 2, 2, 2, 1] "
+            f"UNCHANGED (captures predate the headers); live trade-off emission re-measure "
+            f"forward-committed (honesty-not-score D-01); "
             f"to_patterns={_rr10802_to_pattern_count}. "
             f"Chain CLOSED: RR-79-03 → RR-92-02 → RR-95-02 → RR-108-02 → CLOSED."
         )
