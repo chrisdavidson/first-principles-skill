@@ -1207,17 +1207,18 @@ def self_test_boundary() -> int:
         _rr11401_inv_counts.append(_hits.get("inversion", 0))
 
     # Drift guard (WR-02): inversion marker set size must not silently grow.
-    # A 10th inversion pattern could alter the v7.4 count vector —
+    # A new inversion pattern could alter the v7.4 count vector —
     # fail loudly so the sentinel is updated with the new vector.
     # D-08 bump: 6 → 7 after adding "the assumption breaks down" (CR-01 fix removed the
     # overlapping "when the assumption breaks" sibling; only one inversion marker added).
     # D-08 bump: 7 → 8 after adding "inversion analysis" (Phase 94, Plan 03, 2026-06-17).
     # D-08 bump: 8 → 9 after adding "when the assumption breaks" (Phase 94, Plan 03, 2026-06-17).
+    # D-03 bump: 9 → 13 (4 output-contract header markers, Phase 121 OCH-02, 2026-06-26).
     _rr11401_inv_pattern_count = len(_TECHNIQUE_CATEGORIES["inversion"])
-    if _rr11401_inv_pattern_count != 9:
+    if _rr11401_inv_pattern_count != 13:
         print(
             f"  RR-114-01 FAIL: inversion pattern count drifted "
-            f"(expected 9, got {_rr11401_inv_pattern_count}) — update sentinel "
+            f"(expected 13, got {_rr11401_inv_pattern_count}) — update sentinel "
             f"after verifying new per-run inversion counts over S-P02-run1..5 (v7.6)."
         )
         all_passed = False
@@ -1239,7 +1240,7 @@ def self_test_boundary() -> int:
     _rr11401_ok = (
         _rr11401_inv_counts == [2, 0, 1, 1, 1]
         and _rr11401_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
-        and _rr11401_inv_pattern_count == 9              # drift guard (D-08 bump: 6→7→8→9, Phase 94 Plan 03)
+        and _rr11401_inv_pattern_count == 13             # drift guard (D-08 bump: 6→7→8→9, Phase 94; D-03 bump: 9→13, Phase 121 OCH-02)
         and _rr11401_synth_inv >= MIN_HEADER_HITS         # detector is reachable (synthetic check)
     )
     if _rr11401_ok:
@@ -1259,7 +1260,7 @@ def self_test_boundary() -> int:
         print(
             f"  RR-114-01 FAIL: S-P02 inversion count vector {_rr11401_inv_counts} "
             f"(expected [2, 0, 1, 1, 1] from v7.6 S-P02 captures); "
-            f"inv_patterns={_rr11401_inv_pattern_count} (expected 9); "
+            f"inv_patterns={_rr11401_inv_pattern_count} (expected 13); "
             f"run1={_rr11401_inv_counts[0] if len(_rr11401_inv_counts) > 0 else '?'} "
             f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
             f"synthetic 2-marker inv_hits={_rr11401_synth_inv} "
@@ -1589,16 +1590,17 @@ def self_test_boundary() -> int:
         _rr10802_to_counts.append(_hits.get("trade-off", 0))
 
     # Drift guard (WR-02): trade-off canonical marker set must not silently grow.
-    # If a 7th trade-off pattern is added, the v7.4 count vector may change —
+    # A new trade-off pattern could alter the v7.4 count vector —
     # fail loudly so the sentinel is updated with verified new per-run counts.
     # D-08 bump: 4 → 5 after adding "weighted scoring" (CR-01/WR-01/WR-02 fix removed
     # the overlapping "scoring matrix" and the broad "sensitivity analysis"; one marker added).
     # D-08 bump: 5 → 6 after adding "trade-off analysis" (Phase 94, Plan 03, 2026-06-17).
+    # D-03 bump: 6 → 10 (4 output-contract header markers, Phase 121 OCH-02, 2026-06-26).
     _rr10802_to_pattern_count = len(_TECHNIQUE_CATEGORIES["trade-off"])
-    if _rr10802_to_pattern_count != 6:
+    if _rr10802_to_pattern_count != 10:
         print(
             f"  RR-108-02 FAIL: trade-off pattern count drifted "
-            f"(expected 6, got {_rr10802_to_pattern_count}) — update sentinel "
+            f"(expected 10, got {_rr10802_to_pattern_count}) — update sentinel "
             f"after verifying new per-run trade-off counts over S-P05-run1..5 (v7.6)."
         )
         all_passed = False
@@ -1609,7 +1611,7 @@ def self_test_boundary() -> int:
         _rr10802_to_counts == [2, 2, 2, 2, 1]
         and _rr10802_to_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
         and _rr10802_to_counts[1] >= MIN_HEADER_HITS    # run2 fires (positive counter-check)
-        and _rr10802_to_pattern_count == 6              # drift guard (D-08 bump: 4→5→6, Phase 94 Plan 03)
+        and _rr10802_to_pattern_count == 10             # drift guard (D-08 bump: 4→5→6, Phase 94; D-03 bump: 6→10, Phase 121 OCH-02)
     )
     if _rr10802_ok:
         print(
@@ -1633,7 +1635,7 @@ def self_test_boundary() -> int:
             f"  RR-108-02 FAIL: S-P05 trade-off count vector {_rr10802_to_counts} "
             f"(expected [2, 2, 2, 2, 1] from v7.6 S-P05 captures; "
             f"offending: {_offending_to_str}); "
-            f"to_patterns={_rr10802_to_pattern_count} (expected 6); "
+            f"to_patterns={_rr10802_to_pattern_count} (expected 10); "
             f"run1={_rr10802_to_counts[0] if len(_rr10802_to_counts) > 0 else '?'} "
             f"run2={_rr10802_to_counts[1] if len(_rr10802_to_counts) > 1 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
@@ -2147,6 +2149,24 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # Runs 4, 5 stay honest carry-forwards (D-01); Phase 95 baseline records true K/N.
         # Sentinel RR-92-01 → RR-95-01 → RR-108-01 in self_test_boundary() (renamed Phase 108 Plan 02; re-pointed to v7.4 vector [1, 2, 1, 1, 1]; prior v6.4 vector [2, 1, 1, 1, 0]).
         # Source: tests/step0-captures-v6.3/S-P02-run1..5.txt (2026-06-16).
+        #
+        # OCH-02, Phase 121, D-03: additive heading-anchored markers, inversion 9→13.
+        # These four markers anchor on the ## Output-contract headers defined in D-01.
+        # Heading-anchored (re.MULTILINE): fires on real focused inversion output
+        # headings but NOT on prose mentions — the frozen v7.6 S-P02 captures have
+        # no such headings, so the regression vector [2,0,1,1,1] stays unchanged
+        # (D-04 step 2). ADD only; do not remove any of the 9 existing markers above.
+        re.compile(r"^#{2,6}\s+Inverted\s+Claim\b", re.IGNORECASE | re.MULTILINE),
+        re.compile(
+            r"^#{2,6}\s+Failure[-\s]?Guaranteeing\s+Conditions\b",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+        re.compile(r"^#{2,6}\s+Necessary\s+Preconditions\b", re.IGNORECASE | re.MULTILINE),
+        # Clean teeth anchor (no overlapping existing inversion marker):
+        # "## Stress-Test Verdict" has NO corresponding old-prose marker, so a
+        # synthetic fixture containing only this heading can prove this new marker
+        # fires independently. Does not appear in any frozen S-P02 v7.6 capture.
+        re.compile(r"^#{2,6}\s+Stress[-\s]?Test\s+Verdict\b", re.IGNORECASE | re.MULTILINE),
     ),
     "fishbone": (
         # fishbone.md procedure section — "cause categories"
@@ -2302,6 +2322,22 @@ _TECHNIQUE_CATEGORIES: dict[str, tuple[re.Pattern[str], ...]] = {
         # barrier risk); "weighted scoring" is the safe non-overlapping replacement.
         # Sentinel RR-92-02 → RR-95-02 → RR-108-02 in self_test_boundary() (renamed Phase 108 Plan 02; re-pointed to v7.4 vector [1, 1, 2, 2, 0]; prior v6.4 vector [1, 2, 2, 1, 1]).
         # Source: tests/step0-captures-v6.3/S-P05-run1..5.txt (2026-06-16).
+        #
+        # OCH-02, Phase 121, D-03: additive heading-anchored markers, trade-off 6→10.
+        # These four markers anchor on the ## Output-contract headers defined in D-01.
+        # None of the four trade-off headers overlap any existing trade-off marker —
+        # a header-only synthetic fixture reaches MIN_HEADER_HITS ONLY via these new
+        # markers (genuine teeth). Heading-anchored (re.MULTILINE): fires on focused
+        # trade-off output headings but NOT on prose. The frozen S-P05 v7.6 captures
+        # contain these words as prose substrings only (never as ## headings), so the
+        # [2,2,2,2,1] regression vector stays unchanged (D-04 step 2). ADD only.
+        re.compile(r"^#{2,6}\s+Options\b", re.IGNORECASE | re.MULTILINE),
+        re.compile(
+            r"^#{2,6}\s+Criteria\s+(?:&|and)\s+Weights\b",
+            re.IGNORECASE | re.MULTILINE,
+        ),
+        re.compile(r"^#{2,6}\s+Scoring\b", re.IGNORECASE | re.MULTILINE),
+        re.compile(r"^#{2,6}\s+Recommendation\b", re.IGNORECASE | re.MULTILINE),
     ),
     "second-order": (
         # second-order.md — "2nd-order consequence" / "3rd-order consequence"
