@@ -63,11 +63,16 @@ def _extract_name(md_path: Path) -> str | None:
     except OSError:
         return None
 
+    # Require a *leading* frontmatter block: the file must start with a `---`
+    # fence (parts[0] empty) and contain a closing fence (>=3 parts). Anything
+    # else (no fence, partial fence, or content before the first fence) has no
+    # isolatable frontmatter, so there is no name — do NOT fall back to scanning
+    # the whole body, which would let a column-0 `name:` in prose/code masquerade
+    # as the surface name (WR-02).
     parts = _FENCE_RE.split(text, maxsplit=2)
-    if len(parts) >= 3:
-        block = parts[1]
-    else:
-        block = text
+    if len(parts) < 3 or parts[0].strip():
+        return None
+    block = parts[1]
 
     m = re.search(r"^name:\s*(.+?)\s*$", block, re.MULTILINE)
     if m is None:
