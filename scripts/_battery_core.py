@@ -1269,6 +1269,69 @@ def self_test_boundary() -> int:
         all_passed = False
 
     # ---------------------------------------------------------------------------
+    # RR-114-01 teeth: extended inversion detector reads output-contract headers
+    # (Phase 121 OCH-02, D-04 step 1 — synthetic header-bearing fixture)
+    #
+    # Two complementary checks prove the NEW heading-anchored markers fire:
+    # (a) A header-only fixture built from the four new inversion ## headings
+    #     (no old prose phrases) — _technique_hits inversion count >= MIN_HEADER_HITS.
+    # (b) A single-heading check: ## Stress-Test Verdict has NO overlapping old
+    #     marker, so a fixture containing only that heading gives inversion >= 1
+    #     ONLY if the new Stress-Test Verdict marker exists and is correct. If the
+    #     new marker is broken/removed, this check gives 0 and fails.
+    #
+    # Without these teeth, a no-op extension (markers never firing) would leave the
+    # old-marker counts unchanged and the drift guard would still pass — the teeth
+    # ensure a broken NEW marker is caught.
+    # ---------------------------------------------------------------------------
+    # (a) Header-only inversion fixture: all 4 D-01 output-contract headings,
+    # no old prose markers (no "invert, always invert", no "necessary precondition", etc.)
+    _rr11401_hdr_text = _fixture_assistant_text(
+        "## Inverted Claim\n"
+        "The inverted claim stated here.\n\n"
+        "## Failure-Guaranteeing Conditions\n"
+        "Conditions that guarantee failure.\n\n"
+        "## Necessary Preconditions\n"
+        "Preconditions that must hold for the claim.\n\n"
+        "## Stress-Test Verdict\n"
+        "Verdict after stress-testing the inversion."
+    )
+    _rr11401_hdr_parsed = [json.loads(_rr11401_hdr_text)]
+    _rr11401_hdr_extracted = _extract_assistant_text(_rr11401_hdr_parsed)
+    _rr11401_hdr_inv = _technique_hits(_rr11401_hdr_extracted).get("inversion", 0)
+
+    # (b) Single-heading check: ## Stress-Test Verdict (no overlapping existing marker).
+    # Gives inversion == 1 only via the new Stress-Test Verdict heading-anchored pattern.
+    _rr11401_sv_text = _fixture_assistant_text(
+        "## Stress-Test Verdict\n"
+        "The stress-test verdict for this inversion."
+    )
+    _rr11401_sv_parsed = [json.loads(_rr11401_sv_text)]
+    _rr11401_sv_extracted = _extract_assistant_text(_rr11401_sv_parsed)
+    _rr11401_sv_inv = _technique_hits(_rr11401_sv_extracted).get("inversion", 0)
+
+    _rr11401_teeth_ok = (
+        _rr11401_hdr_inv >= MIN_HEADER_HITS   # (a) 4-header fixture reaches bar
+        and _rr11401_sv_inv >= 1              # (b) clean anchor: Stress-Test Verdict fires
+    )
+    if _rr11401_teeth_ok:
+        print(
+            f"  RR-114-01 teeth: extended inversion detector reads output-contract headers "
+            f"(4-header fixture inv_hits={_rr11401_hdr_inv} >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"Stress-Test Verdict anchor fires: sv_inv={_rr11401_sv_inv} >= 1; "
+            f"OCH-02 Phase 121, D-03 additive marker extension, inversion 9→13)."
+        )
+    else:
+        print(
+            f"  RR-114-01 FAIL teeth: extended inversion detector does NOT read output-contract headers "
+            f"(4-header fixture inv_hits={_rr11401_hdr_inv}, expected >= {MIN_HEADER_HITS}; "
+            f"Stress-Test Verdict anchor: sv_inv={_rr11401_sv_inv}, expected >= 1; "
+            f"check that the new heading-anchored inversion markers are correctly compiled, "
+            f"OCH-02 Phase 121 D-03)."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
     # Fishbone count drift guard (Phase 117, Plan 02 — FIX-02, D-09 partial)
     #
     # The DIAG-01-prescribed FIX-01 added "candidate causes" as the 7th fishbone
@@ -1643,6 +1706,53 @@ def self_test_boundary() -> int:
         all_passed = False
 
     # ---------------------------------------------------------------------------
+    # RR-108-02 teeth: extended trade-off detector reads output-contract headers
+    # (Phase 121 OCH-02, D-04 step 1 — synthetic header-bearing fixture)
+    #
+    # A header-only fixture built from the four new trade-off ## headings (no old
+    # prose markers). None of the four headers overlap any existing trade-off marker:
+    #   "## Options"         — no existing marker fires on this heading
+    #   "## Criteria & Weights" — no existing marker fires on this heading
+    #   "## Scoring"         — "weighted scoring" requires "weighted" prefix, doesn't fire
+    #   "## Recommendation"  — no existing marker fires on this heading
+    # Therefore the fixture reaches MIN_HEADER_HITS ONLY via the new heading-anchored
+    # markers. A broken/removed new marker reduces the hit count; breaking two or more
+    # drops it below MIN_HEADER_HITS=2 and fails this assertion.
+    # (This contrasts with the inversion case where old prose markers overlap 3 of 4
+    # headers; here ALL 4 headers are clean non-overlapping — genuine trade-off teeth.)
+    # ---------------------------------------------------------------------------
+    _rr10802_hdr_text = _fixture_assistant_text(
+        "## Options\n"
+        "The available options under consideration.\n\n"
+        "## Criteria & Weights\n"
+        "Criteria and their assigned weights.\n\n"
+        "## Scoring\n"
+        "Option scores against each criterion.\n\n"
+        "## Recommendation\n"
+        "The recommended option and rationale."
+    )
+    _rr10802_hdr_parsed = [json.loads(_rr10802_hdr_text)]
+    _rr10802_hdr_extracted = _extract_assistant_text(_rr10802_hdr_parsed)
+    _rr10802_hdr_to = _technique_hits(_rr10802_hdr_extracted).get("trade-off", 0)
+
+    _rr10802_teeth_ok = _rr10802_hdr_to >= MIN_HEADER_HITS
+    if _rr10802_teeth_ok:
+        print(
+            f"  RR-108-02 teeth: extended trade-off detector reads output-contract headers "
+            f"(4-header fixture to_hits={_rr10802_hdr_to} >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"all 4 trade-off headers non-overlapping → reaching bar requires new markers; "
+            f"OCH-02 Phase 121, D-03 additive marker extension, trade-off 6→10)."
+        )
+    else:
+        print(
+            f"  RR-108-02 FAIL teeth: extended trade-off detector does NOT read output-contract headers "
+            f"(4-header fixture to_hits={_rr10802_hdr_to}, expected >= {MIN_HEADER_HITS}; "
+            f"check that the new heading-anchored trade-off markers are correctly compiled, "
+            f"OCH-02 Phase 121 D-03)."
+        )
+        all_passed = False
+
+    # ---------------------------------------------------------------------------
     # RR-108-03 / RR-108-04 / RR-108-05 named first-time new-technique sentinels
     # (Phase 108, Plan 02 — D-03a/D-04a)
     #
@@ -1789,7 +1899,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 [v7.8] + RR-79-01 [CLOSED v7.7; SUSTAINED v7.8] + RR-114-01 + RR-108-02 + RR-108-03 + RR-108-04 + RR-108-05 + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED v7.8] + RR-117-02 [S-N03 precision; v7.8] + RR-119-01 [S-N01 RESOLVED-OVER-BAR v7.8] + RR-119-02 [S-N02 RESOLVED-OVER-BAR v7.8] named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 [v7.8] + RR-79-01 [CLOSED v7.7; SUSTAINED v7.8] + RR-114-01 + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 + RR-108-04 + RR-108-05 + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED v7.8] + RR-117-02 [S-N03 precision; v7.8] + RR-119-01 [S-N01 RESOLVED-OVER-BAR v7.8] + RR-119-02 [S-N02 RESOLVED-OVER-BAR v7.8] named assertions)")
         return 0
     return 1
 
