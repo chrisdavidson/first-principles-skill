@@ -113,3 +113,4 @@ Milestones with no audit file did not produce one at the time of shipping.
 - **Frozen milestone history:** [`history/`](history/)
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*
+- **v7.10 agent-goal alignment audit** (ALIGN-01/02/03 — authoritative prioritized inventory of method-fidelity gaps and technical debt behind the DEBT-*/METHFID-* split): [`agent-goal-alignment-audit.md`](agent-goal-alignment-audit.md)
