@@ -1692,6 +1692,10 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
       (d) Every artifact_link deep-resolves via _resolve_artifact (zero issues).
       (e) Positive counter-check: RECON-01 is present and reproducible, proving
           the assertion is non-vacuous (mirrors GEN-01-REPRODUCIBLE idiom).
+      (f) milestone/key lock: every row has milestone == "v7.9" AND a key prefixed
+          "v7.9/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
+          TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
 
     Called from _rows_v79() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01): asserts the documented reproducible registration,
@@ -1762,6 +1766,34 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
             f"(present={_recon01_present}, reproducible={_recon01_repro})"
         )
         wrong_results.append("V79-ROWS: RECON-01 counter-check failed")
+
+    # (f) milestone/key lock: every v7.9 row must carry milestone == "v7.9" AND a
+    #     milestone-qualified key of the form "v7.9/<bare_id>". A mis-attributed row
+    #     (e.g. key "v8.0/OCH-01" with milestone="v8.0") keeps bare_id/count/tier/link
+    #     valid and would otherwise pass silently — this assertion is the attribution lock.
+    _bad_ms = [
+        r.key for r in _v79_rows
+        if r.milestone != "v7.9" or not r.key.startswith("v7.9/")
+    ]
+    if _bad_ms:
+        print(f"  V79-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V79-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V79-ROWS PASS: all {_v79_count} rows carry milestone='v7.9' and 'v7.9/' key prefix")
+
+    # (g) capability lock: reuse the module-level VALID_CAPABILITIES whitelist (the same
+    #     set check_consistency enforces, TRACE-01). A capability typo such as
+    #     "methodology" (lowercase) is invalid and must fail here, since TRACE-03
+    #     --self-test does not run check_consistency() over the live matrix.
+    _bad_cap = [r.bare_id for r in _v79_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V79-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V79-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V79-ROWS PASS: all {_v79_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
 
 
 def _run_self_test() -> None:
