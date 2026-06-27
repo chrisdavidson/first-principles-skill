@@ -804,6 +804,60 @@ def _rows_active_tail() -> list[MatrixRow]:
     ]
 
 
+def _rows_v79() -> list[MatrixRow]:
+    """v7.9 milestone rows — 8 reproducible requirements (D-01 / Phase 123).
+
+    All rows carry milestone="v7.9", coverage_tier="reproducible", gap_rationale="".
+    Keys use the milestone-qualified form "v7.9/<bare_id>".
+
+    D-02 PROHIBITION: no coverage_tier="scheduled" row here; RR-114-01 / trade-off
+    live re-measure is a documented residual handled as prose in 123-02 (not a
+    matrix row).
+
+    The 8 requirements and their V79-ROWS TRACE-03 sentinel lock are added here
+    as the first milestone block since v5.3. Three fix phases produce them:
+      Phase 120 (Fix #3): NEGCAT-01/02 — Step 0 negative-catalog expansion
+      Phase 121 (Fix #4): OCH-01/02/03 — output-contract headers + detector
+      Phase 122 (Fix #5): COLLIDE-01/02 — dual-install collision checker
+      Phase 123 (RECON):  RECON-01 — traceability reconcile + battery green
+
+    Artifact_link resolution notes:
+      NEGCAT-01/02: scripts/check-step0-emulator.py (owns STEP0-08 NEGCAT assertions)
+      OCH-01:       scripts/sync-content.py (DUAL-04 gate; agent body zero-drift proven)
+      OCH-02:       scripts/check-routing-battery.py (BATT-06 owns inversion/trade-off
+                    heading-anchored marker assertions)
+      OCH-03:       scripts/_battery_core.py#self_test_boundary (anchor substring in file)
+      COLLIDE-01/02: scripts/check-install-collisions.py (COLLIDE-01 CI gate)
+      RECON-01:     scripts/check-traceability.py (TRACE-03 self-test, this file)
+    """
+    return [
+        MatrixRow("v7.9/NEGCAT-01", "NEGCAT-01", "v7.9", "Test-Network",
+                  "tests/step0-fixture-catalog.md",
+                  "reproducible", "scripts/check-step0-emulator.py", ""),
+        MatrixRow("v7.9/NEGCAT-02", "NEGCAT-02", "v7.9", "Test-Network",
+                  "scripts/check-step0-emulator.py",
+                  "reproducible", "scripts/check-step0-emulator.py", ""),
+        MatrixRow("v7.9/OCH-01", "OCH-01", "v7.9", "Methodology",
+                  "shared/references/inversion.md",
+                  "reproducible", "scripts/sync-content.py", ""),
+        MatrixRow("v7.9/OCH-02", "OCH-02", "v7.9", "Test-Network",
+                  "scripts/_battery_core.py",
+                  "reproducible", "scripts/check-routing-battery.py", ""),
+        MatrixRow("v7.9/OCH-03", "OCH-03", "v7.9", "Test-Network",
+                  "scripts/_battery_core.py",
+                  "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+        MatrixRow("v7.9/COLLIDE-01", "COLLIDE-01", "v7.9", "Test-Network",
+                  "scripts/check-install-collisions.py",
+                  "reproducible", "scripts/check-install-collisions.py", ""),
+        MatrixRow("v7.9/COLLIDE-02", "COLLIDE-02", "v7.9", "Test-Network",
+                  ".github/workflows/validation.yml",
+                  "reproducible", "scripts/check-install-collisions.py", ""),
+        MatrixRow("v7.9/RECON-01", "RECON-01", "v7.9", "Test-Network",
+                  "docs/requirements-traceability.md",
+                  "reproducible", "scripts/check-traceability.py", ""),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
@@ -815,6 +869,9 @@ def build_matrix_rows() -> list[MatrixRow]:
         GEN-02 + 9 residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
         RR-108-02 CLOSED at 4/5 v7.6 (ID retained, sentinel present);
         RR-117-01/RR-117-02 added Phase 117 CONF-02; RR-119-01/RR-119-02 added Phase 119 CONF-04.
+    (c) v7.9 milestone (8 rows) — first milestone block since v5.3; all reproducible
+        (Phase 123, D-01). NEGCAT-01/02 (Phase 120), OCH-01/02/03 (Phase 121),
+        COLLIDE-01/02 (Phase 122), RECON-01 (Phase 123).
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -836,6 +893,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_testnet_v52_v53())
     # --- Active tail (D-05 path b) ---
     rows.extend(_rows_active_tail())
+    # --- v7.9 milestone (D-01 / Phase 123) ---
+    rows.extend(_rows_v79())
     return rows
 
 
@@ -1623,6 +1682,88 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
         print("check-traceability --self-test: fixture(8) missing coverage_tier detected PASS")
 
 
+def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
+    """V79-ROWS named sentinel (D-01 / Phase 123).
+
+    Asserts the 8 v7.9 milestone rows registered in _rows_v79():
+      (a) Exactly 8 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 8 IDs.
+      (c) Every row's coverage_tier == "reproducible" (D-02: no "scheduled" rows).
+      (d) Every artifact_link deep-resolves via _resolve_artifact (zero issues).
+      (e) Positive counter-check: RECON-01 is present and reproducible, proving
+          the assertion is non-vacuous (mirrors GEN-01-REPRODUCIBLE idiom).
+
+    Called from _rows_v79() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Honesty-not-score (D-01): asserts the documented reproducible registration,
+    not a live pass-rate. Any deletion, tier revert, or dangling artifact_link fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 8 rows.
+    _v79_rows = _rows_v79()
+    _v79_count = len(_v79_rows)
+    _EXPECTED_V79_IDS = {
+        "NEGCAT-01", "NEGCAT-02", "OCH-01", "OCH-02", "OCH-03",
+        "COLLIDE-01", "COLLIDE-02", "RECON-01",
+    }
+    if _v79_count != 8:
+        print(
+            f"  V79-ROWS FAIL: expected exactly 8 rows in _rows_v79(), "
+            f"got {_v79_count} — drift guard failed."
+        )
+        wrong_results.append("V79-ROWS: row count drift (expected 8)")
+
+    # (b) bare_id set assertion.
+    _v79_ids = {r.bare_id for r in _v79_rows}
+    if _v79_ids != _EXPECTED_V79_IDS:
+        _missing = _EXPECTED_V79_IDS - _v79_ids
+        _extra = _v79_ids - _EXPECTED_V79_IDS
+        print(
+            f"  V79-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V79-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V79-ROWS PASS: bare_id set = {sorted(_v79_ids)!r}")
+
+    # (c) Every row must be reproducible (D-02 prohibition on "scheduled" rows).
+    _non_repro = [r for r in _v79_rows if r.coverage_tier != "reproducible"]
+    if _non_repro:
+        print(
+            f"  V79-ROWS FAIL: {len(_non_repro)} row(s) are not 'reproducible': "
+            f"{[r.bare_id for r in _non_repro]!r}"
+        )
+        wrong_results.append("V79-ROWS: non-reproducible row(s) found")
+    else:
+        print(f"  V79-ROWS PASS: all {_v79_count} rows are coverage_tier='reproducible'")
+
+    # (d) Deep-resolve every artifact_link; assert zero issues.
+    _link_issues: list[str] = []
+    for _row in _v79_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V79-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V79-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    else:
+        print(f"  V79-ROWS PASS: all {_v79_count} artifact_links deep-resolve OK")
+
+    # (e) Positive counter-check: RECON-01 is present and reproducible.
+    _recon01_rows = [r for r in _v79_rows if r.bare_id == "RECON-01"]
+    _recon01_present = len(_recon01_rows) == 1
+    _recon01_repro = _recon01_rows[0].coverage_tier == "reproducible" if _recon01_rows else False
+    if _recon01_present and _recon01_repro:
+        print(
+            f"  V79-ROWS PASS: RECON-01 present and reproducible "
+            f"(artifact_link={_recon01_rows[0].artifact_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V79-ROWS FAIL: RECON-01 positive counter-check failed "
+            f"(present={_recon01_present}, reproducible={_recon01_repro})"
+        )
+        wrong_results.append("V79-ROWS: RECON-01 counter-check failed")
+
+
 def _run_self_test() -> None:
     """Run 10 inline fixtures — no .planning/ reads required.
 
@@ -1647,11 +1788,15 @@ def _run_self_test() -> None:
                            artifact bumped v6.4->v7.4 Phase 108; bumped v7.4->v7.6 Phase 114)
       GEN-02-RUNBOOK: live tier assertion + counter-check + drift guard + dual-file existence
                       check (runbook + wrapper) (D-03/Phase 89)
+      V79-ROWS: live row count + bare_id set + reproducible-tier + deep-resolve + RECON-01
+                positive counter-check (D-01 / Phase 123); locks all 8 v7.9 milestone rows
+                against silent drift; no live claude session required.
     """
     wrong_results: list[str] = []
     _self_test_valid_rows_fixtures(wrong_results)
     _self_test_dangling_fixtures(wrong_results)
     _self_test_schema_fixtures(wrong_results)
+    _self_test_v79_rows_sentinel(wrong_results)
     if wrong_results:
         sys.stderr.write(
             f"check-traceability --self-test: FAIL — {', '.join(wrong_results)}\n"
