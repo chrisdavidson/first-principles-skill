@@ -4,15 +4,16 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 125 reproducible / 85 audit-only / 0 gap / 210 total
+**Coverage headline:** 133 reproducible / 85 audit-only / 0 gap / 218 total
 
-The full 210-row capability-to-requirement-to-test mapping is in the generated matrix:
+The full 218-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
 > 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93, committed v7.8 CONF-03 baseline Phase 119; latest artifact `tests/step0-baseline-v7.8.md`; "live re-baseline deferred" carry-forward carried since v7.1 is now RESOLVED) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > Headline change vs prior 121/85/0/206: +4 reproducible rows added to the active tail in Phase 119 CONF-04 — RR-117-01 (S-P03 fishbone, minted Phase 117 CONF-02), RR-117-02 (S-N03 precision, minted Phase 117 CONF-02), RR-119-01 (S-N01 resolved, minted Phase 119 CONF-04), RR-119-02 (S-N02 resolved, minted Phase 119 CONF-04). These rows existed as sentinels in _battery_core.py but were not previously registered in the matrix.
+> Headline change vs prior 125/85/0/210: +8 reproducible rows added in Phase 123 RECON-01 — the v7.9 milestone requirements NEGCAT-01, NEGCAT-02, OCH-01, OCH-02, OCH-03, COLLIDE-01, COLLIDE-02, RECON-01, each backed by a deterministic offline gate (STEP0-08 for NEGCAT-01/02; DUAL-04 + BATT-06 for OCH-01/02/03; COLLIDE-01 gate for COLLIDE-01/02; TRACE-03 for RECON-01).
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 
 ## Active Surface
@@ -21,9 +22,9 @@ Exactly 11 live items (FIX-01/FIX-02/CONF-01/CONF-02/CONF-03/CONF-04 done: RR-79
 
 1. **RR-79-01** [HIGH] — S-P01 pre-mortem. **CLOSED at Phase 117 v7.7 CONF-01** (S-P01 3/5 ≥ min-pass; FIX-01 detector recalibration confirmed out-of-sample). **CLOSE SUSTAINED at Phase 119 v7.8 CONF-03** (S-P01 3/5 = v7.4 floor). ID retained; sentinel re-pointed to v7.8 live captures, vector [1,2,3,0,2], retained as regression guard. Confirmed by BATT-06 (RR-79-01 sentinel in `_battery_core.self_test_boundary()`).
 
-2. **RR-114-01** [HIGH] — S-P02 inversion carry-forward (Phase 114, supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02; full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01). 1/5 FAIL at Phase 114 v7.6 re-baseline (no change vs v7.4 1/5; below min-pass 3/5). Confirmed by BATT-06 (RR-114-01 sentinel in `_battery_core.self_test_boundary()`); honest live carry-forward (not resolved; out of scope at Phase 117/119).
+2. **RR-114-01** [HIGH] — S-P02 inversion (Phase 114, supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02; full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01). 1/5 FAIL at Phase 114 v7.6 re-baseline (no change vs v7.4 1/5; below min-pass 3/5). **RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02**: the detector now reads the heading-anchored output-contract headers (inversion extended 9→13 by adding ## Inverted Claim / ## Failure-Guaranteeing Conditions / ## Necessary Preconditions / ## Stress-Test Verdict); the frozen v7.6 vector [2,0,1,1,1] is UNCHANGED (captures predate the headers); the live S-P02 pass-rate re-measure is the forward-committed half (honesty-not-score, D-01). ID kept; no successor minted. Confirmed by BATT-06 (RR-114-01 sentinel in `_battery_core.self_test_boundary()`).
 
-3. **RR-108-02** [HIGH] — S-P05 trade-off (Phase 108, supersedes RR-95-02, supersedes RR-92-02, supersedes RR-79-03; full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED). **CLOSED at 4/5 ≥ min-pass at Phase 114 v7.6 re-baseline** (the lone canonical improver; S-P05 trade-off cleared min-pass). ID retained; sentinel in `_battery_core.self_test_boundary()` re-pointed to the v7.6 count vector [2,2,2,2,1] and remains present as a regression guard.
+3. **RR-108-02** [HIGH] — S-P05 trade-off (Phase 108, supersedes RR-95-02, supersedes RR-92-02, supersedes RR-79-03; full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED). **CLOSED at 4/5 ≥ min-pass at Phase 114 v7.6 re-baseline** (the lone canonical improver; S-P05 trade-off cleared min-pass). **Structurally extended Phase 121 OCH-02**: trade-off extended 6→10 by adding 4 heading-anchored output-contract markers (## Options / ## Criteria & Weights / ## Scoring / ## Recommendation); frozen v7.6 vector [2,2,2,2,1] UNCHANGED (captures predate the headers); live trade-off emission re-measure forward-committed (honesty-not-score, D-01). ID retained; sentinel re-pointed to v7.6 count vector [2,2,2,2,1] and remains present as a regression guard.
 
 4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved. Locked by BATT-06 anti-masking sentinel (CEILING=4) in `_battery_core.self_test_boundary()`.
 
@@ -58,8 +59,8 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 - **RR-80-01** [CRITICAL] — S-N04 semantically-pre-mortem over-routing; NON_BLOCKING per D-16. Observed 5/5 at Phase 119 v7.8 CONF-03 (Phase-118 prose fix moved over bar; run5 is_error anomaly). Sentinel re-pointed to v7.8 vector [1,1,1,1,0]. Confirmed by STEP0-08 + BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-79-01** [HIGH] — S-P01 **CLOSED** at 3/5 ≥ min-pass at Phase 117 v7.7 CONF-01; **CLOSE SUSTAINED** 3/5 at Phase 119 v7.8 CONF-03 (FIX-01 confirmed; v7.8 vector [1,2,3,0,2]; ID retained, sentinel retained as regression guard). Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
-- **RR-114-01** [HIGH] — S-P02 honest carry-forward (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02; chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01); CARRIED 1/5 at Phase 114 v7.6 re-baseline; out of scope at Phase 117/119. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
-- **RR-108-02** [HIGH] — S-P05 CLOSED at 4/5 ≥ min-pass at Phase 114 v7.6 re-baseline (chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED). ID retained, sentinel re-pointed to v7.6 vector [2,2,2,2,1]. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-114-01** [HIGH] — S-P02 inversion (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02; chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01); CARRIED 1/5 at Phase 114 v7.6 re-baseline; **RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02** (inversion extended 9→13; detector now reads heading-anchored output-contract headers; frozen v7.6 vector [2,0,1,1,1] UNCHANGED; live S-P02 re-measure forward-committed, honesty-not-score D-01; ID kept, no successor). Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
+- **RR-108-02** [HIGH] — S-P05 CLOSED at 4/5 ≥ min-pass at Phase 114 v7.6 re-baseline (chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED). Structurally extended Phase 121 OCH-02 (trade-off extended 6→10; live emission re-measure forward-committed, honesty-not-score D-01). ID retained, sentinel re-pointed to v7.6 vector [2,2,2,2,1]. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-77-08** [MEDIUM] — CEILING=4 warning; locked by BATT-06 anti-masking sentinel (CEILING=4). Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-117-01** [HIGH] — S-P03 fishbone **CLOSED** at 5/5 at Phase 117 v7.7 CONF-01; **CLOSE SUSTAINED** 4/5 (≥ v7.4 floor) at Phase 119 v7.8 CONF-03 (first fishbone vector sentinel; v7.8 vector [1,4,2,2,3]; RR-75-03 lineage; retained as regression guard). Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-117-02** [MEDIUM] — S-N03 precision sentinel; re-pointed to v7.8 vector [1,0,0,0,0] at Phase 119 CONF-04. All runs stay below MIN_HEADER_HITS → full-composer 5/5 at v7.8. Proves FIX-01+FIX-03/FIX-04 did not hurt routing on genuinely-oblique prompts. D-17 precision finding sustained. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
@@ -108,7 +109,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (210 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (218 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** [`history/`](history/)
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*

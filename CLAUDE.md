@@ -157,9 +157,9 @@ See also: [Step 0 measurement harness](#step-0-measurement-harness) for the two-
 The canonical requirements and traceability surface lives in the git-tracked tree:
 
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
-  residuals, coverage headline (125 reproducible / 85 audit-only / 0 gap / 210 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 119 Plan 03.)
-- **`docs/requirements-matrix.md`** — generated 210-row capability→requirement→test
+  residuals, coverage headline (133 reproducible / 85 audit-only / 0 gap / 218 total),
+  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 123 Plan 01.)
+- **`docs/requirements-matrix.md`** — generated 218-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
   python3 scripts/check-traceability.py emit \
