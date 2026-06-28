@@ -786,12 +786,52 @@ def self_test() -> int:
             )
             all_passed = False
 
+    # --- rr-id-coverage drift guard (CR-01 structural hole-closer, STEP0-06) ---
+    # Parse the live catalog and assert every residual-reachable row ID has a
+    # non-None entry in _RR_ID_MAP. This prevents a catalog-grows-but-map-doesn't-update
+    # regression from silently passing STEP0-06 while _write_baseline would crash
+    # on a live run (the exact class of defect that CR-01 found in Phase 128).
+    _rr_cov_label = "rr-id-coverage"
+    _rr_cov_catalog_path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
+    try:
+        _rr_cov_catalog = _read_step0_catalog(_rr_cov_catalog_path)
+        # Reachable = rows that the live invocation loop runs AND that reach the
+        # generic else branch in _write_baseline's verdict loop. The live path
+        # excludes S-A rows before invoking; CONTEXT_FREE_IDS and
+        # MERGE_VALIDATION_IDS are handled by their own branches and never reach
+        # residual_risk_rows. Any unmapped row that slips through would raise
+        # ValueError in _write_baseline after 145 live invocations.
+        _rr_cov_reachable = {
+            row.id for row in _rr_cov_catalog
+            if not row.id.startswith("S-A")
+            and row.id not in CONTEXT_FREE_IDS
+            and row.id not in MERGE_VALIDATION_IDS
+        }
+        _rr_cov_missing = sorted(
+            rid for rid in _rr_cov_reachable if _RR_ID_MAP.get(rid) is None
+        )
+        if _rr_cov_missing:
+            print(
+                f"self-test FAIL: {_rr_cov_label} — catalog rows reachable by"
+                f" _write_baseline but missing from _RR_ID_MAP: {_rr_cov_missing}."
+                f" Add each ID to _RR_ID_MAP with an appropriate RR tracking ID.",
+                file=sys.stderr,
+            )
+            all_passed = False
+    except Exception as _rr_cov_err:
+        print(
+            f"self-test FAIL: {_rr_cov_label} — could not parse catalog"
+            f" {_rr_cov_catalog_path}: {_rr_cov_err}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
-            f" + {_v711_label} + {_rea_label})"
+            f" + {_v711_label} + {_rea_label} + {_rr_cov_label})"
         )
         return 0
     return 1
@@ -851,6 +891,73 @@ CANONICAL_TALLY_IDS = (
 # S-P04 = five-whys (the surviving technique); S-P16 = the absorbed trigger
 # re-homed to focused-five-whys (merge-validation signal, outside /8).
 DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
+
+# D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.11
+# whole-system live re-measure (Phase 128-129, uncapped — no spend-limit
+# constraint; all 29 S-P/S-N fixture rows measured, S-A excluded from live run).
+# Residual state entering this run:
+#   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
+#     RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02: detector extended 9→13
+#     markers; offline proof shows detector CAN read the new headers. Live
+#     pass-rate re-measure is the deliverable of this v7.11 run. May be CLOSED
+#     (≥3/5) or CARRIED FORWARD under a fresh Phase-129 RR ID (post-run mint).
+#   - RR-108-04 (S-P10 estimate): v7.6 spend-limit-indeterminate (all 5 runs
+#     truncated → `none`). This v7.11 run is uncapped — a clean measurement is
+#     expected. May be CLOSED (≥3/5) or CARRIED FORWARD (fresh ID, post-run).
+#   - RR-108-05 (S-P14 theoretical-limit): v7.6 spend-limit-indeterminate (all
+#     5 runs truncated → `none`). Same — uncapped; clean measurement expected.
+#     May be CLOSED or CARRIED FORWARD (fresh ID, post-run).
+# RR-108-02 (S-P05 trade-off) is CLOSED (Phase 114, live 4/5 ≥ min-pass).
+# No provisional placeholder survives. The falsifier rows still need a tracked
+# ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
+# and never reach residual_risk_rows, but a non-None entry is required); they
+# share the closest minted canonical-technique ID for their falsified technique.
+# Module-level constant so both _write_baseline and self_test() reference the
+# same object — drift-proofing against RR_ID_MAP growing stale (CR-01).
+_RR_ID_MAP: dict[str, str] = {
+    "S-P01": "RR-79-01", "S-P02": "RR-114-01", "S-P03": "RR-75-03",
+    "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
+    "S-N04": "RR-80-01",
+    # Negative-control rows that dipped below min_pass on this run ONLY because
+    # of spend-limit `none` truncation (no routing happened), NOT genuine
+    # over-routing. They reach residual_risk_rows when failing, so they need a
+    # tracked ID for the safety-net invariant. Mapped to a single infra ID
+    # (RR-108-06) — they are NOT a routing residual.
+    "S-N06": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
+    "S-N07": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
+    # Live negative-control over-routing rows (WR-04): S-N01/02/03/08 are
+    # canonical oblique prompts. An over-route (row_pass=False) is a
+    # high-signal result — they get a tracked infra ID so a failing row never
+    # aborts the run. RR-108-08 = live negative-control over-routing signal.
+    "S-N01": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+    "S-N02": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+    "S-N03": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+    "S-N08": "RR-108-08",  # over-routing negative-control (live oblique prompt)
+    # Guard-suppressed / oblique pre-mortem-flavored negatives (molten-salt-TES
+    # domain). Same class as S-N01/02/03/08 — an over-route is a high-signal
+    # result; they get the same tracked infra ID (RR-108-08) so a failing row
+    # never aborts the run.
+    "S-N09": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N10": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N11": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N12": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N13": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N14": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    "S-N15": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
+    # Canonical techniques with v7.6 spend-limit-indeterminate residuals. These CAN
+    # reach the residual-risk branch if below min-pass in this v7.11 run.
+    "S-P10": "RR-108-04",  # estimate          (v7.6 spend-limit-indeterminate)
+    "S-P14": "RR-108-05",  # theoretical-limit (v7.6 spend-limit-indeterminate)
+    # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
+    # never appended to residual_risk_rows) — share the minted ID of the
+    # technique they falsify so no provisional placeholder survives.
+    "S-P07": "RR-79-01",   # pre-mortem falsifier
+    "S-P08": "RR-79-01",   # pre-mortem falsifier
+    "S-P11": "RR-108-04",  # estimate falsifier
+    "S-P12": "RR-108-04",  # estimate falsifier
+    "S-P13": "RR-108-04",  # estimate falsifier
+    "S-P15": "RR-108-05",  # theoretical-limit falsifier
+}
 
 
 def _apply_priority(
@@ -1059,58 +1166,6 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
-    # D-03/D-04 — RR_ID_MAP carries the residual-tracking IDs for this v7.11
-    # whole-system live re-measure (Phase 128-129, uncapped — no spend-limit
-    # constraint; all 35 fixture rows measured). Residual state entering this run:
-    #   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
-    #     RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02: detector extended 9→13
-    #     markers; offline proof shows detector CAN read the new headers. Live
-    #     pass-rate re-measure is the deliverable of this v7.11 run. May be CLOSED
-    #     (≥3/5) or CARRIED FORWARD under a fresh Phase-129 RR ID (post-run mint).
-    #   - RR-108-04 (S-P10 estimate): v7.6 spend-limit-indeterminate (all 5 runs
-    #     truncated → `none`). This v7.11 run is uncapped — a clean measurement is
-    #     expected. May be CLOSED (≥3/5) or CARRIED FORWARD (fresh ID, post-run).
-    #   - RR-108-05 (S-P14 theoretical-limit): v7.6 spend-limit-indeterminate (all
-    #     5 runs truncated → `none`). Same — uncapped; clean measurement expected.
-    #     May be CLOSED or CARRIED FORWARD (fresh ID, post-run).
-    # RR-108-02 (S-P05 trade-off) is CLOSED (Phase 114, live 4/5 ≥ min-pass).
-    # No provisional placeholder survives. The falsifier rows still need a tracked
-    # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
-    # and never reach residual_risk_rows, but a non-None entry is required); they
-    # share the closest minted canonical-technique ID for their falsified technique.
-    RR_ID_MAP = {
-        "S-P01": "RR-79-01", "S-P02": "RR-114-01", "S-P03": "RR-75-03",
-        "S-P04": "RR-75-04", "S-P05": "RR-108-02", "S-P06": "RR-75-06",
-        "S-N04": "RR-80-01",
-        # Negative-control rows that dipped below min_pass on this run ONLY because
-        # of spend-limit `none` truncation (no routing happened), NOT genuine
-        # over-routing. They reach residual_risk_rows when failing, so they need a
-        # tracked ID for the safety-net invariant. Mapped to a single infra ID
-        # (RR-108-06) — they are NOT a routing residual.
-        "S-N06": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
-        "S-N07": "RR-108-06",  # spend-limit truncation (infra), not a routing residual
-        # Live negative-control over-routing rows (WR-04): S-N01/02/03/08 are
-        # canonical oblique prompts. An over-route (row_pass=False) is a
-        # high-signal result — they get a tracked infra ID so a failing row never
-        # aborts the run. RR-108-08 = live negative-control over-routing signal.
-        "S-N01": "RR-108-08",  # over-routing negative-control (live oblique prompt)
-        "S-N02": "RR-108-08",  # over-routing negative-control (live oblique prompt)
-        "S-N03": "RR-108-08",  # over-routing negative-control (live oblique prompt)
-        "S-N08": "RR-108-08",  # over-routing negative-control (live oblique prompt)
-        # Canonical techniques with v7.6 spend-limit-indeterminate residuals. These CAN
-        # reach the residual-risk branch if below min-pass in this v7.11 run.
-        "S-P10": "RR-108-04",  # estimate          (v7.6 spend-limit-indeterminate)
-        "S-P14": "RR-108-05",  # theoretical-limit (v7.6 spend-limit-indeterminate)
-        # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
-        # never appended to residual_risk_rows) — share the minted ID of the
-        # technique they falsify so no provisional placeholder survives.
-        "S-P07": "RR-79-01",   # pre-mortem falsifier
-        "S-P08": "RR-79-01",   # pre-mortem falsifier
-        "S-P11": "RR-108-04",  # estimate falsifier
-        "S-P12": "RR-108-04",  # estimate falsifier
-        "S-P13": "RR-108-04",  # estimate falsifier
-        "S-P15": "RR-108-05",  # theoretical-limit falsifier
-    }
     if residual_risk_rows:
         lines += [
             "",
@@ -1119,10 +1174,10 @@ def _write_baseline(
             "",
         ]
         for r in residual_risk_rows:
-            rr_id = RR_ID_MAP.get(r.prompt.id)
+            rr_id = _RR_ID_MAP.get(r.prompt.id)
             if rr_id is None:
                 raise ValueError(
-                    f"_write_baseline: failing row {r.prompt.id} has no RR ID in RR_ID_MAP; "
+                    f"_write_baseline: failing row {r.prompt.id} has no RR ID in _RR_ID_MAP; "
                     f"allocate a tracked RR ID before recording this baseline (RR-75-NN is retired)."
                 )
             lines.append(
@@ -1164,7 +1219,8 @@ def _write_baseline(
         "routing to focused-five-whys) is measured as a dedicated merge-validation signal",
         "outside the /8 canonical bar (D-01a). Honesty-not-score (D-01) governs the committed",
         "verdict; the falsifiable criterion is applied at a blocking human checkpoint, not forced.",
-        "This run is uncapped (no spend-limit constraint); all 35 fixture rows are measured.",
+        "This run is uncapped (no spend-limit constraint); all 29 S-P/S-N fixture rows are measured",
+        "(S-A semantic-ambiguity rows excluded from live run).",
         "",
         "Three carried residuals from v7.8 may be resolved-or-carried in this run: RR-114-01",
         "(S-P02 inversion, v7.6 live 1/5; RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02;",
@@ -1299,7 +1355,7 @@ def main(argv: list[str] | None = None) -> int:
         catalog = _read_step0_catalog(args.catalog)
         # WR-02: apply the same S-A exclusion filter as the live path BEFORE
         # _apply_priority, so the preview count matches the actual run size
-        # (22 rows / ~110 invocations at --repeat 5, not 28/140).
+        # (29 rows / 145 invocations at --repeat 5, not 35/175).
         catalog = [p for p in catalog if not p.id.startswith("S-A")]
         # WR-03: validate explicit --priority IDs against the filtered catalog
         if args.priority:
@@ -1361,8 +1417,8 @@ def main(argv: list[str] | None = None) -> int:
     # disambiguation gated by STEP0-08/SEMGATE); the live agent's focused-output is
     # not what they assert, so a live run adds non-deterministic noise + cost with
     # no new signal. The catalog file keeps them (offline fixtures); only the live
-    # invocation loop excludes them — the live run iterates exactly the 22 S-P/S-N
-    # rows (~110 invocations at --repeat 5).
+    # invocation loop excludes them — the live run iterates exactly the 29 S-P/S-N
+    # rows (145 invocations at --repeat 5).
     catalog = [p for p in parsed_catalog if not p.id.startswith("S-A")]
     # WR-03: validate explicit --priority IDs against the live catalog so a
     # typo'd ID (e.g. --priority S-P4 instead of S-P04) warns to stderr rather
