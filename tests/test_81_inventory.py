@@ -44,6 +44,23 @@ SCRIPT = REPO / "scripts" / "check-inventory.py"
 # set from the verified on-disk count, not from a milestone-set derivation.
 MIN_MILESTONE_REQUIREMENTS_FILES = 40
 
+# Single source of truth for the corpus glob pattern AND the floor predicate
+# (WR-04). Both the real corpus test and its teeth test call these helpers, so
+# the teeth test exercises the same code path the real test relies on — if the
+# glob pattern or the floor comparison ever drifts, the teeth test moves with it
+# instead of silently re-verifying a stale literal pattern.
+_CORPUS_GLOB = "v*-REQUIREMENTS.md"
+
+
+def _find_corpus(directory: Path) -> list[Path]:
+    """Return the milestone-REQUIREMENTS files under ``directory`` (shared glob)."""
+    return list(directory.glob(_CORPUS_GLOB))
+
+
+def _corpus_meets_floor(found: list[Path]) -> bool:
+    """The one floor predicate shared by the real test and the teeth test."""
+    return len(found) >= MIN_MILESTONE_REQUIREMENTS_FILES
+
 
 def _load_check_inventory():
     """Load check-inventory.py as a module (hyphenated name, so importlib needed)."""
@@ -160,9 +177,9 @@ def test_milestone_requirements_corpus_present() -> None:
         glob silently matched nothing on a future refactor.
     """
     milestones = REPO / ".planning" / "milestones"
-    found = list(milestones.glob("v*-REQUIREMENTS.md"))
+    found = _find_corpus(milestones)
     found_names = sorted(f.name for f in found)
-    assert len(found) >= MIN_MILESTONE_REQUIREMENTS_FILES, (
+    assert _corpus_meets_floor(found), (
         f"Expected at least {MIN_MILESTONE_REQUIREMENTS_FILES} vX.Y-REQUIREMENTS.md files "
         f"(monotonic floor), found {len(found)}: {found_names}"
     )
@@ -179,21 +196,25 @@ def test_corpus_floor_logic_fails_below_floor(tmp_path: Path) -> None:
     predicate is False, then adds one more file (reaching the floor) and asserts it
     is True.  This proves the guard still catches net corpus loss without reading the
     real corpus.
+
+    WR-04: exercises the SAME ``_find_corpus`` / ``_corpus_meets_floor`` helpers the
+    real test uses, so the teeth bite the production predicate (and its glob pattern)
+    rather than re-implementing ``>=`` inline against a duplicated literal pattern.
     """
     # Create MIN - 1 empty placeholder files (below floor — predicate must be False)
     for i in range(MIN_MILESTONE_REQUIREMENTS_FILES - 1):
         (tmp_path / f"v{i}.0-REQUIREMENTS.md").touch()
 
-    below_floor = list(tmp_path.glob("v*-REQUIREMENTS.md"))
-    assert not (len(below_floor) >= MIN_MILESTONE_REQUIREMENTS_FILES), (
+    below_floor = _find_corpus(tmp_path)
+    assert not _corpus_meets_floor(below_floor), (
         f"Floor predicate must be False with {len(below_floor)} files "
         f"(floor={MIN_MILESTONE_REQUIREMENTS_FILES})"
     )
 
     # Add one more to reach exactly the floor — predicate must now be True
     (tmp_path / f"v{MIN_MILESTONE_REQUIREMENTS_FILES - 1}.0-REQUIREMENTS.md").touch()
-    at_floor = list(tmp_path.glob("v*-REQUIREMENTS.md"))
-    assert len(at_floor) >= MIN_MILESTONE_REQUIREMENTS_FILES, (
+    at_floor = _find_corpus(tmp_path)
+    assert _corpus_meets_floor(at_floor), (
         f"Floor predicate must be True with {len(at_floor)} files "
         f"(floor={MIN_MILESTONE_REQUIREMENTS_FILES})"
     )
