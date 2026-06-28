@@ -497,6 +497,30 @@ def generate_skill_stub(slug: str) -> tuple[Path, str]:
     return SKILLS_DIR / slug / "SKILL.md", content
 
 
+def _warn_orphan_skill_dirs(skills_root: Path | None = None) -> list[str]:
+    """Warn (non-fatally) about any shared/skills/<dir> that lacks a SKILL.md.
+
+    Iterates the immediate subdirectories of skills_root (default: SHARED/"skills")
+    and writes a single stderr advisory for each subdir that has no SKILL.md — the
+    dir is skipped by the generator and generates nothing.  Returns the sorted list
+    of orphan subdir names.  Never raises and never changes the exit code (D-05:
+    the guard is informational only; a transient empty dir must not block --check).
+
+    The skills_root parameter lets --self-test (and unit fixtures) point the guard
+    at a temp directory without touching the real shared/skills/ tree.
+    """
+    if skills_root is None:
+        skills_root = SHARED / "skills"
+    orphans: list[str] = []
+    for subdir in sorted(skills_root.iterdir()):
+        if subdir.is_dir() and not (subdir / "SKILL.md").exists():
+            sys.stderr.write(
+                f"WARNING: {subdir.name!r} skipped — no SKILL.md found; generates nothing\n"
+            )
+            orphans.append(subdir.name)
+    return sorted(orphans)
+
+
 def generate_skill_stubs() -> dict[Path, str]:
     """Return {target_path: content} for every focused-mode stub (Phase 46-02).
 
@@ -742,6 +766,7 @@ def generate_all() -> dict[Path, str]:
 
 
 def cmd_write() -> int:
+    _warn_orphan_skill_dirs()
     targets = generate_all()
     for path, content in targets.items():
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -752,6 +777,7 @@ def cmd_write() -> int:
 
 
 def cmd_check() -> int:
+    _warn_orphan_skill_dirs()
     # Idempotency self-test (Pitfall 7): two in-memory generations must be equal.
     pass1 = generate_all()
     pass2 = generate_all()
