@@ -115,9 +115,15 @@ debt classes. Unknown debt outside those classes is not in scope for this audit.
 
 One sortable table per D-01. Composite = Severity × Leverage × Offline-fixability (range
 1..27). The composite drives sort order (descending); the Disposition column records the
-v7.10-scope decision: the five offline-provable hygiene items (Offline-fixability 3) are the
-fix-now subset; all other items are deferred because they require either a full
-technique-authoring milestone or fresh live budget (Offline-fixability 1).
+v7.10-scope decision: the fix-now subset is exactly the offline-provable hygiene items with a
+DEBT-* requirement (all Offline-fixability 3), chosen for v7.10 scope. The remaining items are
+deferred for a **mix** of reasons — *not* uniformly because they are un-fixable offline: the
+method-fidelity gaps (METHFID-*) need a full technique-authoring milestone, the live
+re-measures (LIVE-RR114 / LIVE-SP10SP14) need fresh live budget, the merge candidates
+(TLINV-01 / ESTPART-01) are gated on a future re-measure, and the advisory / low-impact
+code-review residuals are deferred for being non-blocking and out of v7.10 scope (even where
+their Offline-fixability is 2-3). Offline-fixability 3 is therefore necessary but not
+sufficient for fix-now — several deferred rows also carry Offline-fixability 2-3.
 
 | Item | Severity | Leverage | Offline-fixability | Composite | Disposition |
 |------|----------|----------|--------------------|-----------|-------------|
