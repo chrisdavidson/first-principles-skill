@@ -35,7 +35,9 @@ check: reads matrix.json, validates every row has a valid capability and
 
 import argparse
 import json
+import re
 import sys
+import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -973,10 +975,29 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
         if not file_path.exists():
             return [f"artifact file not found: {file_part!r}"]
         content = file_path.read_text(encoding="utf-8")
-        # Catalog-row form: anchor is a row ID like B-P12, S-P01, etc.
-        # Rubric anchor: anchor is a slug like criterion-1-identify-essence.
-        # Use plain substring membership (RESEARCH.md §Parenthetical gotcha:
-        # avoid pipe-table split over content with | alternation characters).
+
+        if file_part.endswith(".py"):
+            # For .py files: require the anchor to match a real top-level symbol.
+            # Arm 1: def/class (functions, classes; indented methods also matched).
+            # Arm 2: module constant / annotated assignment at column 0.
+            # This prevents a comment-only substring from falsely resolving (WR-03).
+            escaped = re.escape(anchor)
+            _def_class_pat = re.compile(
+                r"^\s*(def|class)\s+" + escaped + r"\b", re.MULTILINE
+            )
+            _const_pat = re.compile(
+                r"^" + escaped + r"\s*[=:]", re.MULTILINE
+            )
+            if not (_def_class_pat.search(content) or _const_pat.search(content)):
+                return [
+                    f"anchor {anchor!r} is not a def/class/module-level symbol in {file_part!r}"
+                ]
+            return []
+
+        # Non-.py files: catalog-row form (row ID like B-P12, S-P01, etc.) and
+        # rubric anchors (heading slugs). Use plain substring membership
+        # (RESEARCH.md §Parenthetical gotcha: avoid pipe-table split over content
+        # with | alternation characters).
         if anchor not in content:
             return [
                 f"anchor {anchor!r} not found in {file_part!r}"
@@ -1682,6 +1703,89 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
         print("check-traceability --self-test: fixture(8) missing coverage_tier detected PASS")
 
 
+def _self_test_pyanchor_resolver(wrong_results: list[str]) -> None:
+    """WR-03 teeth: 2 positive controls + 1 negative control + substring non-vacuity check.
+
+    Proves the extension-gated .py#anchor resolver is non-vacuous:
+      (a) def-arm positive: scripts/_battery_core.py#self_test_boundary resolves (real def).
+      (b) constant-arm positive: scripts/_battery_core.py#MIN_HEADER_HITS resolves (module const).
+      (c) negative control: a .py file whose content mentions a token ONLY in a comment
+          is rejected by the stricter resolver; the substring non-vacuity counter-check
+          proves the OLD loose resolver would have falsely passed it (the name IS a substring).
+    """
+    # (a) Positive control — def-arm: live OCH-03 anchor must still resolve.
+    issues_a = _resolve_artifact("scripts/_battery_core.py#self_test_boundary")
+    if issues_a:
+        print(
+            f"  PYANCHOR FAIL (a): def-arm regressed — "
+            f"self_test_boundary not resolved: {issues_a}"
+        )
+        wrong_results.append(
+            "PYANCHOR (a): scripts/_battery_core.py#self_test_boundary def-arm regressed"
+        )
+    else:
+        print(
+            "  PYANCHOR PASS (a): scripts/_battery_core.py#self_test_boundary def-arm resolves OK"
+        )
+
+    # (b) Positive control — constant-arm: MIN_HEADER_HITS is a module-level constant.
+    issues_b = _resolve_artifact("scripts/_battery_core.py#MIN_HEADER_HITS")
+    if issues_b:
+        print(
+            f"  PYANCHOR FAIL (b): constant-arm broken — "
+            f"MIN_HEADER_HITS not resolved: {issues_b}"
+        )
+        wrong_results.append(
+            "PYANCHOR (b): scripts/_battery_core.py#MIN_HEADER_HITS constant-arm broken"
+        )
+    else:
+        print(
+            "  PYANCHOR PASS (b): scripts/_battery_core.py#MIN_HEADER_HITS constant-arm resolves OK"
+        )
+
+    # (c) Negative control + substring non-vacuity counter-check.
+    # Write a .py file with the token ONLY in a comment — no def/class/module-const.
+    with tempfile.TemporaryDirectory() as _tmpdir:
+        _fake_py = Path(_tmpdir) / "fake.py"
+        _fake_py.write_text(
+            "# comment_only_symbol mentioned here\nx = 1\n", encoding="utf-8"
+        )
+        _fake_content = _fake_py.read_text(encoding="utf-8")
+
+        # Counter-check: the name IS a plain substring — proves the old loose resolver
+        # would have falsely passed it, so the fix is non-vacuous.
+        if "comment_only_symbol" not in _fake_content:
+            print(
+                "  PYANCHOR FAIL (c-counter): fixture not a substring — non-vacuity check invalid"
+            )
+            wrong_results.append(
+                "PYANCHOR (c-counter): comment_only_symbol not a substring of fake.py"
+            )
+        else:
+            print(
+                "  PYANCHOR PASS (c-counter): comment_only_symbol IS a substring "
+                "(old loose resolver would have falsely passed — fix is non-vacuous)"
+            )
+
+        # Negative control: the stricter resolver must REJECT this comment-only anchor.
+        # pathlib absolute-path joining: REPO_ROOT / absolute_path keeps the absolute path.
+        issues_c = _resolve_artifact(str(_fake_py))
+        # The artifact_link has no "#", so the plain-file path branch fires — we need the
+        # "#" form for anchor resolution. Build the anchor link directly.
+        issues_c = _resolve_artifact(f"{_fake_py}#comment_only_symbol")
+        if not issues_c:
+            print(
+                "  PYANCHOR FAIL (c): stricter resolver did not reject comment-only anchor"
+            )
+            wrong_results.append(
+                "PYANCHOR (c): comment_only_symbol in comment not rejected by .py resolver"
+            )
+        else:
+            print(
+                f"  PYANCHOR PASS (c): comment-only anchor correctly rejected: {issues_c}"
+            )
+
+
 def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
     """V79-ROWS named sentinel (D-01 / Phase 123).
 
@@ -1828,6 +1932,7 @@ def _run_self_test() -> None:
     _self_test_valid_rows_fixtures(wrong_results)
     _self_test_dangling_fixtures(wrong_results)
     _self_test_schema_fixtures(wrong_results)
+    _self_test_pyanchor_resolver(wrong_results)
     _self_test_v79_rows_sentinel(wrong_results)
     if wrong_results:
         sys.stderr.write(
