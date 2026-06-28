@@ -754,12 +754,44 @@ def self_test() -> int:
                 )
                 all_passed = False
 
+    # --- routing-emitter-absence guard (READY-02 / D-05 confirm-only) ---
+    # Asserts neither check-routing.py nor check-routing-battery.py contains a
+    # version-driven emitter (i.e. the _BASELINE_VERSION token is absent from
+    # both routing scripts). This makes "routing scripts stay emitter-free" a
+    # CI-gated regression assertion — not a no-op edit (D-02) — and explicitly
+    # does NOT add any emitter machinery to the routing scripts (D-03).
+    # The guard searches the routing files only (naturally safe; no fragment
+    # concatenation needed since check-step0-live.py itself is never searched here).
+    _rea_label = "routing-emitter-absence"
+    _routing_scripts = [
+        Path(__file__).resolve().parent / "check-routing.py",
+        Path(__file__).resolve().parent / "check-routing-battery.py",
+    ]
+    _emitter_token = "_BASELINE_VERSION"
+    for _rscript in _routing_scripts:
+        try:
+            _rsrc = _rscript.read_text(encoding="utf-8")
+        except OSError as _e:
+            print(
+                f"self-test FAIL: {_rea_label} — could not read {_rscript.name}: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+            continue
+        if _emitter_token in _rsrc:
+            print(
+                f"self-test FAIL: {_rea_label} — {_emitter_token!r} appeared in"
+                f" {_rscript.name} (routing scripts must stay emitter-free; D-05)",
+                file=sys.stderr,
+            )
+            all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
-            f" + {_v711_label})"
+            f" + {_v711_label} + {_rea_label})"
         )
         return 0
     return 1
