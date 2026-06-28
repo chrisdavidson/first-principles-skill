@@ -24,7 +24,7 @@ Exit codes:
              Catches the v3.9-v3.12 **ID:** pitfall and the embedded-prose
              false-positive trap. Exits 0 only if all 9 classify correctly.
 
---check-coverage: enumerate all 26 milestone files, print per-file ID count,
+--check-coverage: enumerate all milestone files, print per-file ID count,
                   exit 1 if any file is unvisited or yields 0 IDs (AUDIT-01).
 
 --output PATH: write the Markdown inventory to PATH (must be under
@@ -579,7 +579,7 @@ def main() -> None:
         "--check-coverage",
         action="store_true",
         help=(
-            "enumerate all 26 files and print per-file ID count; "
+            "enumerate all milestone files and print per-file ID count; "
             "exit 1 if any file yields 0 IDs (AUDIT-01)"
         ),
     )
@@ -649,7 +649,7 @@ def _run_check_coverage() -> None:
 
     print(
         f"check-inventory --check-coverage: PASS — {total_ids} IDs across "
-        f"{len(req_files)} files (all 26 visited, no zero-ID file)"
+        f"{len(req_files)} files (all {len(req_files)} visited, no zero-ID file)"
     )
 
 

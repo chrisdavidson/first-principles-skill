@@ -131,7 +131,7 @@ def test_self_test_exits_zero() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Corpus coverage: the 26 milestone REQUIREMENTS files must exist
+# Corpus coverage: the milestone REQUIREMENTS files must exist
 # ---------------------------------------------------------------------------
 
 
@@ -218,13 +218,22 @@ def test_script_has_collision_and_orphan_functions() -> None:
     )
 
 
-def test_check_coverage_visits_all_26_files() -> None:
-    """``python3 scripts/check-inventory.py --check-coverage`` exits 0 and reports 26 files.
+def test_check_coverage_visits_all_milestone_files() -> None:
+    """``python3 scripts/check-inventory.py --check-coverage`` exits 0 and reports the real visited count.
 
-    This is the AUDIT-01 file-coverage round-trip guard: every one of the 26
+    This is the AUDIT-01 file-coverage round-trip guard: every one of the
     .planning/milestones/vX.Y-REQUIREMENTS.md files must be visited and must
     yield at least one ID. A zero-ID file exits non-zero.
+
+    Drift-proof (WR-01): the visited count is DERIVED from the on-disk corpus,
+    not a hardcoded literal. The prior assertion (``"26" in stdout``) passed only
+    because the script emitted a factually-wrong "all 26 visited" message while
+    visiting 40 files — green for the wrong reason. This now asserts the script
+    reports the EXACT number of files it actually visited, so it fails if
+    check-inventory.py ever miscounts the visited corpus.
     """
+    milestones = REPO / ".planning" / "milestones"
+    actual = len(list(milestones.glob("v*-REQUIREMENTS.md")))
     result = subprocess.run(
         [sys.executable, str(SCRIPT), "--check-coverage"],
         capture_output=True,
@@ -235,8 +244,12 @@ def test_check_coverage_visits_all_26_files() -> None:
         f"stdout:\n{result.stdout}\n"
         f"stderr:\n{result.stderr}"
     )
-    assert "26" in result.stdout, (
-        f"Expected '26' in --check-coverage stdout but got:\n{result.stdout}"
+    assert f"all {actual} visited" in result.stdout, (
+        f"Expected the script to report 'all {actual} visited' (derived from the on-disk "
+        f"corpus) but got:\n{result.stdout}"
+    )
+    assert "no zero-ID file" in result.stdout, (
+        f"Expected 'no zero-ID file' in --check-coverage stdout but got:\n{result.stdout}"
     )
 
 
