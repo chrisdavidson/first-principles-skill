@@ -978,12 +978,24 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
 
         if file_part.endswith(".py"):
             # For .py files: require the anchor to match a real top-level symbol.
-            # Arm 1: def/class (functions, classes; indented methods also matched).
+            # Arm 1: def/class (functions incl. `async def`, classes; indented
+            #        methods also matched).
             # Arm 2: module constant / annotated assignment at column 0.
-            # This prevents a comment-only substring from falsely resolving (WR-03).
+            # This prevents a comment-only substring from falsely resolving.
+            #
+            # Known, accepted limitation (WR-02): this is a line-anchored regex,
+            # NOT an AST walk (D-03 — AST was intentionally rejected as
+            # over-engineered for a CI gate whose only live anchor is
+            # `#self_test_boundary`). A symbol-like line sitting at column 0
+            # inside a triple-quoted string or docstring can therefore
+            # false-positive. The self-test proves comment-only rejection +
+            # substring non-vacuity; it does not claim string-literal rejection.
             escaped = re.escape(anchor)
+            # Arm 1 allows an optional `async ` prefix so `async def <anchor>`
+            # resolves (WR-03 — a bare `(def|class)` alternation misses it
+            # because the line begins with `async`, not `def`).
             _def_class_pat = re.compile(
-                r"^\s*(def|class)\s+" + escaped + r"\b", re.MULTILINE
+                r"^\s*(?:async\s+def|def|class)\s+" + escaped + r"\b", re.MULTILINE
             )
             _const_pat = re.compile(
                 r"^" + escaped + r"\s*[=:]", re.MULTILINE
@@ -1704,14 +1716,23 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
 
 
 def _self_test_pyanchor_resolver(wrong_results: list[str]) -> None:
-    """WR-03 teeth: 2 positive controls + 1 negative control + substring non-vacuity check.
+    """pyanchor teeth: 3 positive controls + 1 comment-only negative control + non-vacuity check.
 
     Proves the extension-gated .py#anchor resolver is non-vacuous:
       (a) def-arm positive: scripts/_battery_core.py#self_test_boundary resolves (real def).
       (b) constant-arm positive: scripts/_battery_core.py#MIN_HEADER_HITS resolves (module const).
-      (c) negative control: a .py file whose content mentions a token ONLY in a comment
-          is rejected by the stricter resolver; the substring non-vacuity counter-check
-          proves the OLD loose resolver would have falsely passed it (the name IS a substring).
+      (c) comment-only negative control: a .py file whose content mentions a token ONLY
+          in a comment is rejected by the stricter resolver; the substring non-vacuity
+          counter-check proves the OLD loose resolver would have falsely passed it
+          (the name IS a substring).
+      (d) async-def positive control (WR-03): `async def <anchor>` must resolve — guards
+          the optional `async ` prefix in the def-arm against regression.
+
+    Scope note (WR-02): these controls prove comment-only rejection + substring
+    non-vacuity + async-def acceptance. They deliberately do NOT assert
+    string-literal rejection, because the line-anchored regex (D-03, not AST)
+    genuinely cannot reject a symbol-like line inside a docstring/string — that is
+    a known, accepted limitation, not a defect this self-test claims to cover.
     """
     # (a) Positive control — def-arm: live OCH-03 anchor must still resolve.
     issues_a = _resolve_artifact("scripts/_battery_core.py#self_test_boundary")
@@ -1768,10 +1789,8 @@ def _self_test_pyanchor_resolver(wrong_results: list[str]) -> None:
             )
 
         # Negative control: the stricter resolver must REJECT this comment-only anchor.
-        # pathlib absolute-path joining: REPO_ROOT / absolute_path keeps the absolute path.
-        issues_c = _resolve_artifact(str(_fake_py))
-        # The artifact_link has no "#", so the plain-file path branch fires — we need the
-        # "#" form for anchor resolution. Build the anchor link directly.
+        # The "#" form drives anchor resolution; pathlib absolute-path joining keeps the
+        # absolute path (REPO_ROOT / absolute_path == absolute_path).
         issues_c = _resolve_artifact(f"{_fake_py}#comment_only_symbol")
         if not issues_c:
             print(
@@ -1783,6 +1802,28 @@ def _self_test_pyanchor_resolver(wrong_results: list[str]) -> None:
         else:
             print(
                 f"  PYANCHOR PASS (c): comment-only anchor correctly rejected: {issues_c}"
+            )
+
+    # (d) Positive control — async-def arm (WR-03): `async def <anchor>` must resolve.
+    # Gives the optional `async ` prefix teeth — a bare `(def|class)` alternation
+    # would FALSE-NEGATIVE here because the line begins with `async`, not `def`.
+    with tempfile.TemporaryDirectory() as _tmpdir_d:
+        _async_py = Path(_tmpdir_d) / "fake_async.py"
+        _async_py.write_text(
+            "async def some_async_anchor():\n    return 1\n", encoding="utf-8"
+        )
+        issues_d = _resolve_artifact(f"{_async_py}#some_async_anchor")
+        if issues_d:
+            print(
+                f"  PYANCHOR FAIL (d): async-def arm did not resolve "
+                f"`async def some_async_anchor`: {issues_d}"
+            )
+            wrong_results.append(
+                "PYANCHOR (d): async def anchor not resolved by .py resolver (WR-03 regression)"
+            )
+        else:
+            print(
+                "  PYANCHOR PASS (d): async-def anchor `some_async_anchor` resolves OK"
             )
 
 
