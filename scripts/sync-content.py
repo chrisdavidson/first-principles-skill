@@ -838,6 +838,86 @@ def cmd_check() -> int:
     return 0
 
 
+def cmd_self_test() -> int:
+    """Prove both DEBT guards are non-vacuous.  Returns 0 on all-pass, 1 on any failure.
+
+    (a) Count positive control: len(generate_all()) == GENERATED_TARGET_COUNT.
+    (b) Count negative control: temporarily set GENERATED_TARGET_COUNT to a wrong value
+        and assert generate_all() raises ValueError, then restore the original.  Proves
+        the raise-on-drift guard actually fires.
+    (c) Orphan-guard teeth: create a temp dir with one SKILL.md-less subdir and one with
+        a SKILL.md; assert _warn_orphan_skill_dirs distinguishes them correctly.
+    """
+    import contextlib
+    import io
+    import tempfile
+
+    failures: list[str] = []
+
+    # (a) Count positive control.
+    try:
+        result = generate_all()
+        if len(result) != GENERATED_TARGET_COUNT:
+            failures.append(
+                f"FAIL (a): len(generate_all()) == {len(result)}, "
+                f"expected {GENERATED_TARGET_COUNT}"
+            )
+        else:
+            print(f"(a) count positive control: PASS — {len(result)} targets")
+    except Exception as exc:
+        failures.append(f"FAIL (a): generate_all() raised unexpectedly: {exc}")
+
+    # (b) Count negative control — temporarily set GENERATED_TARGET_COUNT to wrong value.
+    import sys as _sys
+    import types as _types
+
+    original_count = GENERATED_TARGET_COUNT
+    # Reference the module-level variable via the module's globals dict so the
+    # generate_all() closure sees the patched value (same module, no importlib needed).
+    _this_module = _sys.modules[__name__]
+    try:
+        _this_module.GENERATED_TARGET_COUNT = original_count + 1  # wrong value
+        try:
+            generate_all()
+            failures.append("FAIL (b): generate_all() did NOT raise on wrong count")
+        except ValueError:
+            print("(b) count negative control: PASS — generate_all() raised ValueError on drift")
+        except Exception as exc:
+            failures.append(f"FAIL (b): unexpected exception type: {exc!r}")
+    finally:
+        _this_module.GENERATED_TARGET_COUNT = original_count  # always restore
+
+    # (c) Orphan-guard teeth.
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "orphan").mkdir()  # no SKILL.md — must be flagged
+            good = root / "good"
+            good.mkdir()
+            (good / "SKILL.md").write_text("x")
+            err_buf = io.StringIO()
+            with contextlib.redirect_stderr(err_buf):
+                names = _warn_orphan_skill_dirs(root)
+            if "orphan" not in names:
+                failures.append("FAIL (c): 'orphan' not in returned orphan list")
+            elif "good" in names:
+                failures.append("FAIL (c): 'good' (has SKILL.md) wrongly flagged as orphan")
+            elif "orphan" not in err_buf.getvalue():
+                failures.append("FAIL (c): guard did not write 'orphan' to stderr")
+            else:
+                print("(c) orphan-guard teeth: PASS — flags SKILL.md-less, skips SKILL.md-present")
+    except Exception as exc:
+        failures.append(f"FAIL (c): unexpected exception: {exc!r}")
+
+    if failures:
+        for msg in failures:
+            sys.stderr.write(msg + "\n")
+        return 1
+
+    print("sync-content.py --self-test: ALL PASS")
+    return 0
+
+
 def main() -> int:
     _require_python_version()
     _require_pyyaml()
@@ -848,8 +928,17 @@ def main() -> int:
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--check", action="store_true", help="Compare; exit 1 on drift.")
     g.add_argument("--write", action="store_true", help="Regenerate all targets.")
+    g.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Prove DEBT-01 orphan-guard and DEBT-02 count-drift guard are non-vacuous.",
+    )
     args = p.parse_args()
-    return cmd_check() if args.check else cmd_write()
+    if args.check:
+        return cmd_check()
+    if args.self_test:
+        return cmd_self_test()
+    return cmd_write()
 
 
 if __name__ == "__main__":
