@@ -17,7 +17,7 @@ Exit codes:
 Source of truth: shared/  (canonical)
 Target surface:
     - first-principles/agents/first-principles.md           (orchestrating agent)
-    - first-principles/agents/references/<tool>.md          (7 companion-tool refs)
+    - first-principles/agents/references/<tool>.md          (8 companion-tool refs)
     - first-principles/agents/references/<spine-ref>.md     (3 spine refs)
     - first-principles/agents/references/examples/<name>.md (worked-example siblings)
     - first-principles/skills/<slug>/SKILL.md               (13 focused-mode stubs)
@@ -195,8 +195,9 @@ SPINE_REFERENCES = (
 # Breakdown: 1 agent + 11 reference siblings + 14 worked-example siblings + 13 skill stubs.
 # Three committed-but-hand-maintained files (first-principles/README.md,
 # first-principles/LICENSE, first-principles/.claude-plugin/plugin.json) are NOT
-# counted here because the path-safety assertion (generate_all():733-739) forbids the
-# generator from emitting outside AGENT_DIR / SKILLS_DIR — they are out-of-generator-scope.
+# counted here because the path-safety assertion in generate_all() (the allowed_roots
+# loop) forbids the generator from emitting outside AGENT_DIR / SKILLS_DIR — they are
+# out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
 GENERATED_TARGET_COUNT = 39
@@ -521,6 +522,11 @@ def _warn_orphan_skill_dirs(skills_root: Path | None = None) -> list[str]:
     """
     if skills_root is None:
         skills_root = SHARED / "skills"
+    if not skills_root.is_dir():
+        # Missing or non-directory root: nothing to warn about. Stay non-fatal
+        # per D-05 so the structured downstream error in generate_all() (the
+        # _read_required() path) remains the single source of truth.
+        return []
     orphans: list[str] = []
     for subdir in sorted(skills_root.iterdir()):
         if subdir.is_dir() and not (subdir / "SKILL.md").exists():
@@ -612,7 +618,7 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
 
 
 def generate_agent_references() -> dict[Path, str]:
-    """Return {AGENT_DIR/references/{slug}.md: body} for the 7 companion tools.
+    """Return {AGENT_DIR/references/{slug}.md: body} for the 8 companion tools.
 
     Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
     the agent's on-demand reference siblings ship verbatim — NO frontmatter,
@@ -869,13 +875,10 @@ def cmd_self_test() -> int:
         failures.append(f"FAIL (a): generate_all() raised unexpectedly: {exc}")
 
     # (b) Count negative control — temporarily set GENERATED_TARGET_COUNT to wrong value.
-    import sys as _sys
-    import types as _types
-
     original_count = GENERATED_TARGET_COUNT
     # Reference the module-level variable via the module's globals dict so the
     # generate_all() closure sees the patched value (same module, no importlib needed).
-    _this_module = _sys.modules[__name__]
+    _this_module = sys.modules[__name__]
     try:
         _this_module.GENERATED_TARGET_COUNT = original_count + 1  # wrong value
         try:
