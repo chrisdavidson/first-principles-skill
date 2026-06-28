@@ -724,8 +724,9 @@ def generate_all() -> dict[Path, str]:
     Total: 1 + 11 + 14 + 13 = 39.
 
     Note: the total count (39) reflects the 8 TOOLS + 3 spine-refs (for the
-    reference siblings), 14 EXAMPLES, and 13 SKILLS. The sync-content.py --check
-    validates byte-identity per-file but does not gate on this count.
+    reference siblings), 14 EXAMPLES, and 13 SKILLS. generate_all() now gates on
+    this count via the GENERATED_TARGET_COUNT invariant (raises on drift), and the
+    sync-content.py --check pass additionally validates byte-identity per-file.
     """
     import yaml
 
