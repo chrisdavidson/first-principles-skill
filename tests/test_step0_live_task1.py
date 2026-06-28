@@ -2,7 +2,7 @@
 
 These assertions will FAIL until check-step0-live.py is renamed and
 hardened with:
-  - _read_step0_catalog (returns 28 Step0Prompt objects, S-P01 first)
+  - _read_step0_catalog (returns 35 Step0Prompt objects, S-P01 first)
   - _agent_was_dispatched (dispatch detection)
   - _classify_mode (none->full-composer inference)
   - KNOWN_MODES allowlist validation
