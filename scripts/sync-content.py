@@ -20,7 +20,7 @@ Target surface:
     - first-principles/agents/references/<tool>.md          (7 companion-tool refs)
     - first-principles/agents/references/<spine-ref>.md     (3 spine refs)
     - first-principles/agents/references/examples/<name>.md (worked-example siblings)
-    - first-principles/skills/<slug>/SKILL.md               (12 focused-mode stubs)
+    - first-principles/skills/<slug>/SKILL.md               (13 focused-mode stubs)
 """
 
 from __future__ import annotations
@@ -190,6 +190,16 @@ SPINE_REFERENCES = (
     "output-template",
     "validation-rubric",
 )
+
+# Canonical total count of files that sync-content.py generates (len(generate_all())).
+# Breakdown: 1 agent + 11 reference siblings + 14 worked-example siblings + 13 skill stubs.
+# Three committed-but-hand-maintained files (first-principles/README.md,
+# first-principles/LICENSE, first-principles/.claude-plugin/plugin.json) are NOT
+# counted here because the path-safety assertion (generate_all():733-739) forbids the
+# generator from emitting outside AGENT_DIR / SKILLS_DIR — they are out-of-generator-scope.
+# generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
+# number cannot silently drift again (D-01, DEBT-02).
+GENERATED_TARGET_COUNT = 39
 
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
@@ -761,6 +771,17 @@ def generate_all() -> dict[Path, str]:
                 f"Generated path {path} resolves outside allowed trees "
                 f"{[str(r) for r in allowed_roots]}"
             )
+
+    # --- Count invariant (DEBT-02 / D-01): len(targets) must match the documented
+    # constant so any future surface-change is caught immediately on --check/--write.
+    # Use explicit if/raise (not assert) so the check survives python -O.
+    if len(targets) != GENERATED_TARGET_COUNT:
+        raise ValueError(
+            f"generate_all() produced {len(targets)} targets but "
+            f"GENERATED_TARGET_COUNT == {GENERATED_TARGET_COUNT}. "
+            f"Update GENERATED_TARGET_COUNT (and the docstrings) when the "
+            f"generated surface legitimately changes."
+        )
 
     return targets
 
