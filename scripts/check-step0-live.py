@@ -679,11 +679,30 @@ def self_test() -> int:
         )
         all_passed = False
 
+    # --- scrubbed-slug absence guard (READY-01 / D-02) ---
+    # Reads this file's own source and asserts the three scrubbed slugs are absent.
+    # Tokens built by fragment concatenation so no forbidden literal appears verbatim;
+    # any re-introduction would trip this guard and turn STEP0-06 red.
+    _dca_label = "de" + "compose-absence"
+    _own_src = Path(__file__).read_text(encoding="utf-8")
+    for _tok in [
+        "de" + "com" + "pose",
+        "S" + "-P" + "09",
+        "focused-" + "de" + "com" + "pose",
+    ]:
+        if _tok in _own_src:
+            print(
+                f"self-test FAIL: {_dca_label} drift"
+                f" — {_tok!r} reappeared in check-step0-live.py",
+                file=sys.stderr,
+            )
+            all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
-            " + non-blocking-S-N04)"
+            f" + non-blocking-S-N04 + {_dca_label})"
         )
         return 0
     return 1
