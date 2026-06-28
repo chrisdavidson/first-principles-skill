@@ -3,11 +3,11 @@
 
 Pins the ``--self-test`` exit code to 0 so a breakage in the parser or its
 inline format/edge fixtures is caught immediately by pytest without reading
-any .planning/ files. Also guards the 26-file corpus presence and script
+any .planning/ files. Also guards the milestone-REQUIREMENTS corpus floor and script
 structure.
 
 Requirements covered:
-  AUDIT-01 — every ID extracted from all 26 milestone REQUIREMENTS files
+  AUDIT-01 — every ID extracted from all milestone REQUIREMENTS files
   AUDIT-03 — collision report lists all cross-milestone ID reuses
   AUDIT-04 — unresolved [~] and deferred items flagged as orphan candidates
 
@@ -24,6 +24,25 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "check-inventory.py"
+
+# ---------------------------------------------------------------------------
+# Drift-proof corpus floor constant (DEBT-04 / D-01)
+# ---------------------------------------------------------------------------
+
+# The on-disk count of .planning/milestones/v*-REQUIREMENTS.md files as of
+# milestone v7.10 initialization (verified 2026-06-28). This is a MONOTONIC
+# FLOOR: each /gsd-complete-milestone call archives one more file so the corpus
+# only grows. Asserting >= (not ==) means the test tolerates growth without
+# re-staling while still failing on net corpus loss.
+#
+# Deliberately NOT derived from the same glob it guards — a self-derived count
+# would be tautological (would never catch accidental file deletion).
+#
+# Note: the count does NOT equal the number of shipped milestones because
+# /gsd-complete-milestone at v7.5 plain-rm'd v7.5-REQUIREMENTS.md (no archive),
+# so the on-disk count and the milestone count diverge by one. The floor is
+# set from the verified on-disk count, not from a milestone-set derivation.
+MIN_MILESTONE_REQUIREMENTS_FILES = 40
 
 
 def _load_check_inventory():
@@ -124,13 +143,59 @@ def test_milestones_directory_exists() -> None:
     )
 
 
-def test_all_26_requirements_files_present() -> None:
-    """All 26 vX.Y-REQUIREMENTS.md files confirmed by RESEARCH.md must be present."""
+def test_milestone_requirements_corpus_present() -> None:
+    """The milestone-REQUIREMENTS corpus must meet the monotonic floor with a structural anchor.
+
+    Two assertions over ``found = list(milestones.glob("v*-REQUIREMENTS.md"))``:
+
+    (1) Monotonic floor: ``len(found) >= MIN_MILESTONE_REQUIREMENTS_FILES``.
+        Each ``/gsd-complete-milestone`` run archives one more file, so the corpus
+        only grows.  The floor catches net corpus loss (accidental deletion) while
+        tolerating growth without re-staling.  The constant is a documented literal,
+        NOT derived from the same glob (a self-derived count would be tautological).
+
+    (2) Structural non-vacuity anchor: ``v1.0-REQUIREMENTS.md`` is present in the
+        glob result, proving the glob resolved the real corpus and not an empty or
+        wrong directory.  Without this anchor the floor could pass vacuously if the
+        glob silently matched nothing on a future refactor.
+    """
     milestones = REPO / ".planning" / "milestones"
     found = list(milestones.glob("v*-REQUIREMENTS.md"))
-    assert len(found) == 26, (
-        f"Expected 26 vX.Y-REQUIREMENTS.md files, found {len(found)}: "
-        f"{sorted(f.name for f in found)}"
+    found_names = sorted(f.name for f in found)
+    assert len(found) >= MIN_MILESTONE_REQUIREMENTS_FILES, (
+        f"Expected at least {MIN_MILESTONE_REQUIREMENTS_FILES} vX.Y-REQUIREMENTS.md files "
+        f"(monotonic floor), found {len(found)}: {found_names}"
+    )
+    assert "v1.0-REQUIREMENTS.md" in {f.name for f in found}, (
+        f"Structural anchor v1.0-REQUIREMENTS.md not found in corpus glob result. "
+        f"Found files: {found_names}"
+    )
+
+
+def test_corpus_floor_logic_fails_below_floor(tmp_path: Path) -> None:
+    """The floor predicate (>= MIN_MILESTONE_REQUIREMENTS_FILES) is non-vacuous.
+
+    Builds a temp corpus with exactly MIN - 1 files (below floor) and asserts the
+    predicate is False, then adds one more file (reaching the floor) and asserts it
+    is True.  This proves the guard still catches net corpus loss without reading the
+    real corpus.
+    """
+    # Create MIN - 1 empty placeholder files (below floor — predicate must be False)
+    for i in range(MIN_MILESTONE_REQUIREMENTS_FILES - 1):
+        (tmp_path / f"v{i}.0-REQUIREMENTS.md").touch()
+
+    below_floor = list(tmp_path.glob("v*-REQUIREMENTS.md"))
+    assert not (len(below_floor) >= MIN_MILESTONE_REQUIREMENTS_FILES), (
+        f"Floor predicate must be False with {len(below_floor)} files "
+        f"(floor={MIN_MILESTONE_REQUIREMENTS_FILES})"
+    )
+
+    # Add one more to reach exactly the floor — predicate must now be True
+    (tmp_path / f"v{MIN_MILESTONE_REQUIREMENTS_FILES - 1}.0-REQUIREMENTS.md").touch()
+    at_floor = list(tmp_path.glob("v*-REQUIREMENTS.md"))
+    assert len(at_floor) >= MIN_MILESTONE_REQUIREMENTS_FILES, (
+        f"Floor predicate must be True with {len(at_floor)} files "
+        f"(floor={MIN_MILESTONE_REQUIREMENTS_FILES})"
     )
 
 
