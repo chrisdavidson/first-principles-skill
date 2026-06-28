@@ -5,7 +5,7 @@
 # ///
 """Live Step 0 harness — K-of-N classification and baseline recorder (STEP0-06).
 
-Runs the full 12-row Step 0 fixture catalog (`tests/step0-fixture-catalog.md`)
+Runs the full 35-row Step 0 fixture catalog (`tests/step0-fixture-catalog.md`)
 over the proven approach-② `_wrap_for_bypass` bypass channel, classifies each
 run's MODE from the captured `.jsonl` stream using `_classify_mode` (with the
 harness-side `none`→`full-composer` inference fix — D-01/D-02), and scores
@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v7.6.md"
+        --baseline "$REPO/tests/step0-baseline-v7.11.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v7.6 baseline .md to this path
+    --baseline PATH     If supplied, write the v7.11 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v7.8"
+_BASELINE_VERSION: str = "v7.11"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -759,9 +759,9 @@ MERGE_VALIDATION_IDS = ("S-P16",)
 NON_BLOCKING_NEGATIVE_IDS = ("S-N04",)
 
 # The 8 canonical positive rows — one per technique (D-01) — over which the
-# v7.6 8-technique pass-rate is computed. The instrument emits this per-technique
+# v7.11 8-technique pass-rate is computed. The instrument emits this per-technique
 # tally (D-01b, REBASE-02), it is not hand-assembled. All 8 techniques have a
-# v7.4 prior K/N; there is no "newly-measured" subset in this re-baseline.
+# v7.8 prior K/N; there is no "newly-measured" subset in this re-measure.
 CANONICAL_TALLY_IDS = (
     "S-P01",  # pre-mortem
     "S-P02",  # inversion
@@ -838,7 +838,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v7.6.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v7.11.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -877,8 +877,8 @@ def _write_baseline(
     # checkpoint for the falsifiable criterion (REBASE-02/03).
     # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /8
     # even if the falsifier-exclusion set ever drifts from the canonical set.
-    # All 8 techniques have a v7.4 prior K/N; no "newly-measured" subset exists
-    # in this v7.6 re-baseline.
+    # All 8 techniques have a v7.8 prior K/N; no "newly-measured" subset exists
+    # in this v7.11 re-measure.
     canonical_rows = [r for r in results if r.prompt.id in CANONICAL_TALLY_IDS]
     canonical_pass = sum(1 for r in canonical_rows if r.row_pass)
     canonical_n = len(CANONICAL_TALLY_IDS)
@@ -987,26 +987,21 @@ def _write_baseline(
         "applied only in the Step 0 harness; `_battery_core.py` is not modified (D-02).",
     ]
 
-    # D-03/D-04 — RR_ID_MAP RESOLVED at the Phase-114 finalize (Task 2, plan
-    # 114-02) per the human-approved close-vs-carry verdict surfaced at the Task 1
-    # blocking checkpoint over the single authoritative v7.6 partial run (truncated
-    # at the monthly spend limit after 55/110 calls; --priority front-load landed
-    # S-P04 + S-P16 in the genuine zone):
-    #   - S-P02 inversion live 1/5 < min-pass → CARRY FORWARD as RR-114-01
-    #     (supersedes RR-108-01; chain RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01
-    #     → RR-114-01).
-    #   - S-P05 trade-off live 4/5 ≥ min-pass → CLOSE RR-108-02. No new ID minted
-    #     (the close bar is exactly ≥3/5; RR-108-02 marked CLOSED in the baseline).
-    #   - S-P10 estimate: spend-limit-truncated this run (all 5 runs returned the
-    #     spend-limit message → `none`), NOT a clean measurement → CARRY-indeterminate,
-    #     keep RR-108-04 (no fresh K/N to supersede; documented as truncated in the
-    #     baseline, NOT a forced 0/5).
-    #   - S-P14 theoretical-limit: spend-limit-truncated this run (all 5 runs `none`)
-    #     → CARRY-indeterminate, keep RR-108-05.
-    # RR-108-02 is the only residual CLOSED this baseline; S-P02 is the only fresh
-    # RR-114-NN mint. Newly-regressed canonical rows (S-P01 pre-mortem 2/5,
-    # S-P03 fishbone 1/5) are recorded as REGRESSION findings in the baseline prose
-    # with full traceability reconciliation deferred to Phase 115 (out of scope here).
+    # D-03/D-04 — RR_ID_MAP carries the residual-tracking IDs for this v7.11
+    # whole-system live re-measure (Phase 128-129, uncapped — no spend-limit
+    # constraint; all 35 fixture rows measured). Residual state entering this run:
+    #   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
+    #     RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02: detector extended 9→13
+    #     markers; offline proof shows detector CAN read the new headers. Live
+    #     pass-rate re-measure is the deliverable of this v7.11 run. May be CLOSED
+    #     (≥3/5) or CARRIED FORWARD under a fresh Phase-129 RR ID (post-run mint).
+    #   - RR-108-04 (S-P10 estimate): v7.6 spend-limit-indeterminate (all 5 runs
+    #     truncated → `none`). This v7.11 run is uncapped — a clean measurement is
+    #     expected. May be CLOSED (≥3/5) or CARRIED FORWARD (fresh ID, post-run).
+    #   - RR-108-05 (S-P14 theoretical-limit): v7.6 spend-limit-indeterminate (all
+    #     5 runs truncated → `none`). Same — uncapped; clean measurement expected.
+    #     May be CLOSED or CARRIED FORWARD (fresh ID, post-run).
+    # RR-108-02 (S-P05 trade-off) is CLOSED (Phase 114, live 4/5 ≥ min-pass).
     # No provisional placeholder survives. The falsifier rows still need a tracked
     # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
     # and never reach residual_risk_rows, but a non-None entry is required); they
@@ -1030,10 +1025,10 @@ def _write_baseline(
         "S-N02": "RR-108-08",  # over-routing negative-control (live oblique prompt)
         "S-N03": "RR-108-08",  # over-routing negative-control (live oblique prompt)
         "S-N08": "RR-108-08",  # over-routing negative-control (live oblique prompt)
-        # Canonical techniques with v7.4 carry-forward residuals. These CAN
-        # reach the residual-risk branch if below min-pass in this v7.6 run.
-        "S-P10": "RR-108-04",  # estimate          (v7.4 carry-forward)
-        "S-P14": "RR-108-05",  # theoretical-limit (v7.4 carry-forward)
+        # Canonical techniques with v7.6 spend-limit-indeterminate residuals. These CAN
+        # reach the residual-risk branch if below min-pass in this v7.11 run.
+        "S-P10": "RR-108-04",  # estimate          (v7.6 spend-limit-indeterminate)
+        "S-P14": "RR-108-05",  # theoretical-limit (v7.6 spend-limit-indeterminate)
         # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
         # never appended to residual_risk_rows) — share the minted ID of the
         # technique they falsify so no provisional placeholder survives.
@@ -1085,32 +1080,34 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 113-114 v7.6 **8-technique live re-baseline** of Step 0",
-        "technique selection. This is a **measurement-only** re-baseline following the v7.5",
-        "five-whys consolidation merge: there is NO detector change and NO agent-body change this",
-        "milestone. The agent body is measured **as-shipped (v7.5)** and the detector",
-        "`scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
-        "inversion 9 markers, trade-off 6 markers — `MIN_HEADER_HITS=2`,",
+        "This baseline records the Phase 128-129 v7.11 **whole-system live re-measure** of Step 0",
+        "technique selection. This is a **measurement-only** re-measure: there is NO detector change",
+        "and NO agent-body change this milestone. The agent body is measured **as-shipped (v7.10)**",
+        "and the detector `scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
+        "inversion 13 markers, trade-off 10 markers (post-Phase-121 OCH-02) — `MIN_HEADER_HITS=2`,",
         "`_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run uses the 8 canonical rows:",
         "S-P01 pre-mortem, S-P02 inversion, S-P03 fishbone, S-P04 five-whys, S-P05",
         "trade-off, S-P06 second-order, S-P10 estimate, S-P14 theoretical-limit. All 8",
-        "techniques have a v7.4 prior K/N. S-P16 (the absorbed reduce-to-primitives prompt",
+        "techniques have a v7.8 prior K/N. S-P16 (the absorbed reduce-to-primitives prompt",
         "routing to focused-five-whys) is measured as a dedicated merge-validation signal",
         "outside the /8 canonical bar (D-01a). Honesty-not-score (D-01) governs the committed",
         "verdict; the falsifiable criterion is applied at a blocking human checkpoint, not forced.",
+        "This run is uncapped (no spend-limit constraint); all 35 fixture rows are measured.",
         "",
-        "Four carried residuals from v7.4 may be resolved-or-carried in this run: RR-108-01",
-        "(S-P02 inversion, v7.4 live 1/5), RR-108-02 (S-P05 trade-off, v7.4 live 2/5),",
-        "RR-108-04 (S-P10 estimate, v7.4 live 0/5), RR-108-05 (S-P14 theoretical-limit,",
-        "v7.4 spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
-        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-114",
+        "Three carried residuals from v7.8 may be resolved-or-carried in this run: RR-114-01",
+        "(S-P02 inversion, v7.6 live 1/5; RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02;",
+        "live pass-rate re-measure this run), RR-108-04 (S-P10 estimate, v7.6",
+        "spend-limit-indeterminate), RR-108-05 (S-P14 theoretical-limit, v7.6",
+        "spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
+        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-129",
         "RR ID otherwise (that mint is conditional and post-run — it is NOT pre-baked in",
         "the offline firewall commit).",
         "",
-        "Prior baseline: tests/step0-baseline-v7.4.md (Phase 108) — BATTERY: FAIL,",
-        "P 4/9 (S-P01-06 + three expanded techniques), S-N 4/4; residuals RR-108-01 (S-P02 inversion, CARRIED 1/5),",
-        "RR-108-02 (S-P05 trade-off, CARRIED 2/5), RR-108-04 (S-P10 estimate, CARRIED 0/5),",
-        "RR-108-05 (S-P14 theoretical-limit, spend-limit-indeterminate) carried forward.",
+        "Prior baseline: tests/step0-baseline-v7.8.md (Phase 118-119 CONF-03) — BATTERY: PASS,",
+        "targeted 6-row confirmation (S-P01/S-P03 + S-N01/S-N02/S-N03/S-N04); residuals",
+        "RR-114-01 (S-P02 inversion, CARRIED — structural offline resolution Phase 121),",
+        "RR-108-04 (S-P10 estimate, CARRIED-indeterminate), RR-108-05 (S-P14 theoretical-limit,",
+        "CARRIED-indeterminate) carried forward into this v7.11 run.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1165,7 +1162,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v7.6 baseline .md to this path after the run",
+        help="If supplied, write the v7.11 baseline .md to this path after the run",
     )
     p.add_argument(
         "--priority",
