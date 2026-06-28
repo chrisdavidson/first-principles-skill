@@ -698,11 +698,28 @@ def self_test() -> int:
             )
             all_passed = False
 
+    # --- routing-count drift guard (READY-01 / D-02) ---
+    # Asserts tests/routing-catalog.md parses to exactly 13 P / 20 N,
+    # reusing the live check-routing.parse_catalog (no hand-rolled parser).
+    _rcheck_path = Path(__file__).resolve().parent / "check-routing.py"
+    _rcheck_spec = importlib.util.spec_from_file_location("_check_routing_module", _rcheck_path)
+    _rcheck_mod = importlib.util.module_from_spec(_rcheck_spec)  # type: ignore[arg-type]
+    sys.modules["_check_routing_module"] = _rcheck_mod
+    _rcheck_spec.loader.exec_module(_rcheck_mod)  # type: ignore[union-attr]
+    _rc_pos, _rc_neg = _rcheck_mod.parse_catalog(REPO_ROOT / "tests" / "routing-catalog.md")
+    if len(_rc_pos) != 13 or len(_rc_neg) != 20:
+        print(
+            f"self-test FAIL: routing-count drift"
+            f" — expected 13 P / 20 N, got {len(_rc_pos)}/{len(_rc_neg)}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
-            f" + non-blocking-S-N04 + {_dca_label})"
+            f" + non-blocking-S-N04 + {_dca_label} + routing-count)"
         )
         return 0
     return 1
