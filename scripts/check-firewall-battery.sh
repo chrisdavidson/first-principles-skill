@@ -130,6 +130,67 @@ gate "body-budget" \
     "python3 scripts/check-body-budget.py"
 
 # ---------------------------------------------------------------------------
+# Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
+#
+# BATT-06 and STEP0-08 self-tests already internally assert these six constants;
+# this block provides explicit value-greps as a direct double-check:
+#   pre-mortem=9  fishbone=7  inversion=13  trade-off=10
+#   MIN_HEADER_HITS=2  _COMPOSER_FOCUS_CEILING=4
+# No constant is changed here (re-confirm only, D-07).
+# ---------------------------------------------------------------------------
+python3 - <<'PYEOF' >/dev/null 2>&1
+import sys
+sys.path.insert(0, 'scripts')
+from _battery_core import _TECHNIQUE_CATEGORIES as T, MIN_HEADER_HITS as MH, _COMPOSER_FOCUS_CEILING as CC
+assert len(T['pre-mortem'])==9,  f"pre-mortem expected 9, got {len(T['pre-mortem'])}"
+assert len(T['fishbone'])==7,    f"fishbone expected 7, got {len(T['fishbone'])}"
+assert len(T['inversion'])==13,  f"inversion expected 13, got {len(T['inversion'])}"
+assert len(T['trade-off'])==10,  f"trade-off expected 10, got {len(T['trade-off'])}"
+assert MH==2,  f"MIN_HEADER_HITS expected 2, got {MH}"
+assert CC==4,  f"_COMPOSER_FOCUS_CEILING expected 4, got {CC}"
+PYEOF
+_inv_exit=$?
+
+TOTAL=$((TOTAL + 1))
+if [ "$_inv_exit" -eq 0 ]; then
+    printf "[PASS] %-14s  %s\n" "INVARIANT-CHECK" \
+        "pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2 _COMPOSER_FOCUS_CEILING=4"
+    PASS=$((PASS + 1))
+else
+    printf "[FAIL] %-14s  %s\n" "INVARIANT-CHECK" \
+        "marker count or threshold mismatch in _battery_core.py — see constants above"
+    FAIL=$((FAIL + 1))
+fi
+
+# ---------------------------------------------------------------------------
+# Frozen-evidence re-confirm (D-04) — prior baselines byte-for-byte untouched.
+#
+# git diff --quiet over all frozen baseline + capture paths must produce zero
+# diff.  Any non-zero result means a frozen file has uncommitted modifications,
+# which is a D-04 violation.
+# ---------------------------------------------------------------------------
+git diff --quiet -- \
+    'tests/step0-baseline-v*.md' \
+    'tests/step0-captures-v*' \
+    'tests/routing-baseline-v3.*.md' \
+    'tests/routing-battery-baseline-v4.3.md' \
+    'tests/focused-output-baseline-v*.md' \
+    'tests/sub-skill-routing-baseline-v*.md' \
+    2>/dev/null
+_frozen_exit=$?
+
+TOTAL=$((TOTAL + 1))
+if [ "$_frozen_exit" -eq 0 ]; then
+    printf "[PASS] %-14s  %s\n" "FROZEN-EVIDENCE" \
+        "git diff --quiet: frozen baselines/captures unmodified (D-04)"
+    PASS=$((PASS + 1))
+else
+    printf "[FAIL] %-14s  %s\n" "FROZEN-EVIDENCE" \
+        "frozen baseline/capture files have uncommitted modifications (D-04 violation)"
+    FAIL=$((FAIL + 1))
+fi
+
+# ---------------------------------------------------------------------------
 # Final verdict
 # ---------------------------------------------------------------------------
 echo ""
