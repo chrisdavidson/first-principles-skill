@@ -715,11 +715,51 @@ def self_test() -> int:
         )
         all_passed = False
 
+    # --- v7.11 emitter-target drift guard (READY-02 / D-05) ---
+    # Pins _BASELINE_VERSION == "v7.11" and asserts the three emitter-derived
+    # strings contain "v7.11" and not "v7.6" / "v7.8".  The not-v7.6/not-v7.8
+    # check is scoped to these three strings ONLY — the lineage prose legitimately
+    # cites the prior v7.8 baseline as a comparison anchor, so a whole-file grep
+    # for "v7.8" would produce false failures.
+    _v711_label = "v7.11-emitter-target"
+    if _BASELINE_VERSION != "v7.11":
+        print(
+            f"self-test FAIL: {_v711_label} — _BASELINE_VERSION is {_BASELINE_VERSION!r},"
+            f" expected 'v7.11'",
+            file=sys.stderr,
+        )
+        all_passed = False
+    # Construct the three emitter-derived strings the same way _write_baseline does.
+    _v711_header = f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}"
+    _v711_out_dir = f"/tmp/step0-live-{_BASELINE_VERSION}-placeholder"
+    _v711_baseline = f"step0-baseline-{_BASELINE_VERSION}.md"
+    for _v711_label_str, _v711_s in [
+        ("header", _v711_header),
+        ("OUT_DIR", _v711_out_dir),
+        ("--baseline", _v711_baseline),
+    ]:
+        if "v7.11" not in _v711_s:
+            print(
+                f"self-test FAIL: {_v711_label} — {_v711_label_str!r} string"
+                f" does not contain 'v7.11': {_v711_s!r}",
+                file=sys.stderr,
+            )
+            all_passed = False
+        for _stale in ("v7.6", "v7.8"):
+            if _stale in _v711_s:
+                print(
+                    f"self-test FAIL: {_v711_label} — {_v711_label_str!r} string"
+                    f" contains stale {_stale!r}: {_v711_s!r}",
+                    file=sys.stderr,
+                )
+                all_passed = False
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
-            f" + non-blocking-S-N04 + {_dca_label} + routing-count)"
+            f" + non-blocking-S-N04 + {_dca_label} + routing-count"
+            f" + {_v711_label})"
         )
         return 0
     return 1
