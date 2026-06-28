@@ -22,7 +22,7 @@ Exit codes:
     1  fixture mismatch or consistency failure
     2  environment error (Python <3.12) or path confinement violation
 
---self-test: runs 10 in-process fixtures + named sentinels (no disk I/O beyond
+--self-test: runs the inline fixtures + named sentinels (no disk I/O beyond
              checking known-present repo files) and exits 0 only if all pass.
              This is the CI gate entry point (TRACE-03 + STEP0-08 pattern).
 
@@ -866,9 +866,9 @@ def build_matrix_rows() -> list[MatrixRow]:
     Two inclusion paths per D-05:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
-    (b) Active tail (11 rows) — included unconditionally; all reproducible (D-05b):
+    (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
         GEN-01 reproducible (Phase 93 flip, v7.8 baseline earned Phase 119 CONF-03),
-        GEN-02 + 9 residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
+        GEN-02 + residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
         RR-108-02 CLOSED at 4/5 v7.6 (ID retained, sentinel present);
         RR-117-01/RR-117-02 added Phase 117 CONF-02; RR-119-01/RR-119-02 added Phase 119 CONF-04.
     (c) v7.9 milestone (8 rows) — first milestone block since v5.3; all reproducible
@@ -1901,7 +1901,7 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
 
 
 def _run_self_test() -> None:
-    """Run 10 inline fixtures — no .planning/ reads required.
+    """Run the inline artifact-resolution / schema / sentinel fixtures — no .planning/ reads required.
 
     Fixtures per PATTERNS.md §Required fixtures:
       (1) valid reproducible row → PASS
@@ -1986,7 +1986,7 @@ def main() -> None:
         "--self-test",
         action="store_true",
         help=(
-            "run 10 inline fixtures + named sentinels (no .planning/ reads required); "
+            "run the inline fixtures + named sentinels (no .planning/ reads required); "
             "exit 0 only if all pass (CI gate entry point)"
         ),
     )
