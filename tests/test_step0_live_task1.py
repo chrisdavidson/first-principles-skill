@@ -46,14 +46,17 @@ def test_harness_file_exists():
     )
 
 
-def test_read_step0_catalog_returns_28_rows(harness):
-    """_read_step0_catalog must return 28 Step0Prompt objects.
+def test_read_step0_catalog_returns_35_rows(harness):
+    """_read_step0_catalog must return exactly 35 Step0Prompt objects.
 
-    Phase 111 reconcile: S-P09/S-N05 removed (decompose), S-P16/S-N08 added
-    (five-whys absorbed-phrase coverage). Post-reconcile catalog has 28 rows.
+    v7.9 NEGCAT fixtures (S-N09..S-N15, Phase 120) added 7 negative-category
+    boundary cases, bringing the catalog from 28 to 35 rows.  This exact count
+    is a deliberate regression guard: the catalog changes only on intentional
+    fixture edits, so a frozen literal is correct — deriving the expected value
+    from the same _read_step0_catalog parse would be tautological.
     """
     rows = harness._read_step0_catalog(CATALOG)
-    assert len(rows) == 28, f"Expected 28 rows, got {len(rows)}"
+    assert len(rows) == 35, f"Expected 35 rows, got {len(rows)}"
 
 
 def test_read_step0_catalog_sp01_first(harness):
