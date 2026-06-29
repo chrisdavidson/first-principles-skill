@@ -291,3 +291,19 @@ targeted 6-row confirmation (S-P01/S-P03 + S-N01/S-N02/S-N03/S-N04); residuals
 RR-114-01 (S-P02 inversion, CARRIED — structural offline resolution Phase 121),
 RR-108-04 (S-P10 estimate, CARRIED-indeterminate), RR-108-05 (S-P14 theoretical-limit,
 CARRIED-indeterminate) carried forward into this v7.11 run.
+
+---
+
+## Residual Dispositions (v7.11)
+
+Disposition applied per D-04 (K/N ≥ 3/5 → CLOSED; below → CARRIED keeping the existing RR ID per
+D-09 CLOSE-keeps-ID precedent — no RR-129-NN successor is minted; this explicitly supersedes the
+auto-Lineage "freshly-minted superseding Phase-129 RR ID" note above); `_RR_ID_MAP` / BATT-06
+`_load_excerpt_v711` sentinel re-point deferred to Phase 131 (D-05). Human-confirmed at the Phase
+129 Plan 03 blocking checkpoint (honesty-not-score, D-01).
+
+| Prompt | Technique | v7.11 K/N | Disposition | RR ID (kept) |
+|--------|-----------|-----------|-------------|--------------|
+| S-P02 | inversion | 2/5 FAIL | CARRIED (2/5 < 3/5) | RR-114-01 |
+| S-P10 | estimate | 0/5 FAIL | CARRIED (0/5 < 3/5) | RR-108-04 |
+| S-P14 | theoretical-limit | 0/5 FAIL | CARRIED (0/5 < 3/5) | RR-108-05 |
