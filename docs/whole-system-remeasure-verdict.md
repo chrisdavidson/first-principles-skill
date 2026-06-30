@@ -129,11 +129,13 @@ slot was free — Phase 129 minted no RR-129-NN).
 > orchestrator model running these `claude -p` invocations (vs the 2026-06-03 v3.13 era): it is
 > capable enough to satisfy the prompt directly and so does not route to the sub-agent.
 
-**Disposition:** documented residual, fix **forward-committed** to a later routing-delegation
-diagnosis/fix milestone (§7). RR-130-01 is the open whole-system gap named by this verdict. Per
-the v7.9 D-02 "documented residual with no matrix row" precedent it is recorded as prose in
-`docs/requirements-traceability.md` (active surface) and `.planning/REQUIREMENTS.md` Future
-Requirements, without a `gap`-tier matrix row.
+**Disposition:** fix **applied at Phase 133** (imperative `description:` rewrite of
+`shared/spine/SKILL.meta.yml`, regenerated at zero drift, full offline battery green — STRENGTHEN
+verdict per `docs/rr-130-01-diagnosis.md`). Residual **OPEN** — no resolution tier claimed; the
+authoritative live P re-measure is forward-committed (§7). ID kept (RR-130-01; D-02 / D-04
+precedent). Per the v7.9 D-02 "documented residual with no matrix row" precedent it is recorded as
+prose in `docs/requirements-traceability.md` (active surface) and `.planning/REQUIREMENTS.md`
+Future Requirements, without a `gap`-tier matrix row.
 
 ---
 
@@ -192,10 +194,10 @@ Per the v7.11 milestone's standing constraint (measure + record + reconcile; nev
 measured surface), every fix surfaced by this re-measure is forward-committed to a future
 milestone. None is applied in Phase 131.
 
-- **RR-130-01** (main-routing inline-answering regression) — forward-committed to a later
-  routing-delegation diagnosis/fix milestone. The fix question is whether to strengthen the
-  agent's auto-delegation triggers or to re-evaluate whether inline first-principles analysis by a
-  more-capable orchestrator model is acceptable.
+- **RR-130-01** (main-routing inline-answering regression) — offline fix applied at Phase 133
+  (imperative `description:` rewrite; STRENGTHEN verdict). Authoritative **live P re-measure**
+  forward-committed to a future measurement milestone (gated on fresh `claude` budget; honesty-
+  not-score, D-01: no live pass-rate claimed without a live run).
 - **RR-114-01** (S-P02 inversion) — inversion live re-measure on its gated future milestone.
 - **RR-108-04** (S-P10 estimate) — gated on **ESTPART-01** (estimate merge-partner scoping).
 - **RR-108-05** (S-P14 theoretical-limit) — gated on **TLINV-01** (theoretical-limit ↔ inversion
