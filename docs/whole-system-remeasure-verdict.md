@@ -191,8 +191,9 @@ final capture sets are fully genuine after recovery.
 ## 7. Forward commitments
 
 Per the v7.11 milestone's standing constraint (measure + record + reconcile; never change the
-measured surface), every fix surfaced by this re-measure is forward-committed to a future
-milestone. None is applied in Phase 131.
+measured surface), every fix surfaced by this re-measure was forward-committed to a future
+milestone; none was applied in Phase 131. One commitment — **RR-130-01** — was subsequently
+fulfilled by an offline fix at Phase 133 (see below); the remaining three stay live.
 
 - **RR-130-01** (main-routing inline-answering regression) — offline fix applied at Phase 133
   (imperative `description:` rewrite; STRENGTHEN verdict). Authoritative **live P re-measure**

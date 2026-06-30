@@ -6,7 +6,7 @@ This file is the active canonical source of truth for requirements and traceabil
 
 **Coverage headline:** 133 reproducible / 96 audit-only / 0 gap / 229 total
 
-The full 218-row capability-to-requirement-to-test mapping is in the generated matrix:
+The full 229-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
@@ -56,7 +56,7 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 
 **No current open gaps.** Both previously-open gap rows are resolved:
 
-- **GEN-01** → **reproducible** (Phase 93, GEN-01-REARCH Phases 91-93; artifact pointer updated to v7.8 baseline in Phase 119 Plan 03). Artifact: `tests/step0-baseline-v7.8.md`. The Step 0 classifier capability is now reproducibly measured by the committed v7.8 live re-baseline (Phase 119 CONF-03); earned by the committed baseline, not a passing score (BATTERY: PASS, D-1c CONFIRMED — Phase-118 FIX-03/FIX-04 prose fix confirmed; all 5 blocking conjuncts hold). The "live re-baseline deferred" carry-forward (carried since v7.1) is RESOLVED. Removed from the open-gap set.
+- **GEN-01** → **reproducible** (Phase 93, GEN-01-REARCH Phases 91-93; artifact pointer bumped to the committed v7.11 live re-baseline in Phase 129). Artifact: `tests/step0-baseline-v7.11.md`. The Step 0 classifier capability is now reproducibly measured by the committed v7.11 live re-baseline (Phase 129); earned by the committed baseline, not a passing score (reproducible = measured, not passing — v7.11 BATTERY: FAIL P 4/8). The "live re-baseline deferred" carry-forward (carried since v7.1) is RESOLVED. Removed from the open-gap set.
 - **GEN-02** → **reproducible** (runbook + wrapper script; Phase 89). Artifact: `docs/live-monitoring-runbook.md`. The periodic live monitoring cadence is now confirmed by a git-tracked runbook with re-runnable harness invocations; it is removed from the open-gap set.
 
 **11 reproducible rows with confirming offline gates** (live behavior documented at Phase 114 v7.6 re-baseline + Phase 117 v7.7 CONF-01 + Phase 119 v7.8 CONF-03):
@@ -71,7 +71,7 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 - **RR-119-01** [MEDIUM] — S-N01 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,2,1,1,3]; under-count caveat; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-119-02** [MEDIUM] — S-N02 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,3,3,1,1]; under-count caveat documented — runs 2,3 are detector under-counts where agent still ran a pre-mortem; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 
-**85 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
+**96 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
 
 ### GAP-02: Candidate work list
 
@@ -113,7 +113,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (218 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (229 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** [`history/`](history/)
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*
