@@ -8,9 +8,9 @@
 
 ## Coverage Distribution
 - reproducible: 133
-- audit-only: 85
+- audit-only: 96
 - gap: 0
-- total: 218
+- total: 229
 
 ## Matrix Table
 | Key | Bare ID | Capability | Deliverable | Tier | Artifact | Gap Rationale |
@@ -215,7 +215,7 @@
 | v5.3/REBASE-05 | REBASE-05 | Test-Network | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
 | v5.3/TOOL-01 | TOOL-01 | Test-Network | scripts/check-routing.py | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
 | residual/RR-80-01 | RR-80-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| v5.3/GEN-01 | GEN-01 | Test-Network | active-tail | reproducible | tests/step0-baseline-v7.8.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v7.8 live re-baseline (Phase 119 CONF-03). Earned by the committed baseline, not a passing score. Phase 119 CONF-03 targeted 6-row BATTERY: PASS (S-P01 3/5, S-P03 4/5, S-N01 3/5, S-N02 3/5, S-N03 5/5, S-N04 5/5 non-blocking) — D-1c CONFIRMED: Phase-118 FIX-03/FIX-04 prose fix confirmed; all five blocking conjuncts hold. Honesty-not-score caveat: negative passes are a MIX of genuine clarification-holds and detector under-counts (D-01); pass rate is a lower bound on stay-in-composer behavior. Prior baselines frozen: v7.6 (Phase 114, BATTERY: FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR). RR-79-01 S-P01 CLOSE SUSTAINED 3/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5 (≥ v7.4 floor); RR-119-01 S-N01 RESOLVED-OVER-BAR (minted Phase 119 CONF-04); RR-119-02 S-N02 RESOLVED-OVER-BAR (minted Phase 119 CONF-04); RR-114-01 S-P02 inversion CARRIED 1/5 (supersedes RR-108-01, out of scope this run); RR-108-02 S-P05 trade-off CLOSED 4/5 (ID retained, sentinel present as regression guard); RR-108-03 decompose 0/5 RESOLVED-BY-MERGE (v7.5 decompose→five-whys merge, Phases 110-112; decompose absorbed into five-whys as co-equal dual mode, standalone surface retired; see docs/decompose-five-whys-merge.md); RR-108-04 estimate 0/5 CARRIED-INDETERMINATE (spend-limit-truncated at v7.4); RR-108-05 theoretical-limit 0/5 CARRIED-INDETERMINATE (spend-limit-truncated at v7.4); deferred merge pairs: theoretical-limit↔inversion (SECOND), estimate↔? (FLAG, partner unscoped). Confirming artifact: tests/step0-baseline-v7.8.md. |
+| v5.3/GEN-01 | GEN-01 | Test-Network | active-tail | reproducible | tests/step0-baseline-v7.11.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed v7.11 live re-baseline (Phase 129). Earned by the committed baseline, not a passing score (reproducible = measured, not passing). Phase 129 v7.11 8-technique BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) — honest measured state (honesty-not-score, D-01). Prior baselines frozen: v7.6 (Phase 114, FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR), v7.8 (Phase 119 CONF-03, targeted 6-row PASS). v7.11 dispositions (Phase 129; see docs/whole-system-remeasure-verdict.md): RR-79-01 S-P01 CLOSE SUSTAINED 5/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5; RR-108-02 S-P05 trade-off CLOSE SUSTAINED 5/5; RR-114-01 S-P02 inversion CARRIED 2/5 (supersedes RR-108-01); RR-108-04 estimate CARRIED 0/5; RR-108-05 theoretical-limit CARRIED 0/5 (both first genuine live measurement, v7.4 was spend-limit-indeterminate); RR-108-03 decompose RESOLVED-BY-MERGE (v7.5; sentinel stays on frozen v7.4 evidence). Confirming artifact: tests/step0-baseline-v7.11.md. |
 | v5.3/GEN-02 | GEN-02 | Test-Network | active-tail | reproducible | docs/live-monitoring-runbook.md | Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + detector-surface changes. See docs/live-monitoring-runbook.md. |
 | residual/RR-79-01 | RR-79-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
 | residual/RR-114-01 | RR-114-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
@@ -233,6 +233,17 @@
 | v7.9/COLLIDE-01 | COLLIDE-01 | Test-Network | scripts/check-install-collisions.py | reproducible | scripts/check-install-collisions.py |  |
 | v7.9/COLLIDE-02 | COLLIDE-02 | Test-Network | .github/workflows/validation.yml | reproducible | scripts/check-install-collisions.py |  |
 | v7.9/RECON-01 | RECON-01 | Test-Network | docs/requirements-traceability.md | reproducible | scripts/check-traceability.py |  |
+| v7.11/READY-01 | READY-01 | Test-Network | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/READY-02 | READY-02 | Test-Network | scripts/check-step0-live.py | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/READY-03 | READY-03 | Test-Network | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-01 | STEP0L-01 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-02 | STEP0L-02 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-03 | STEP0L-03 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/ROUTEL-01 | ROUTEL-01 | Test-Network | tests/routing-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/ROUTEL-02 | ROUTEL-02 | Test-Network | tests/routing-battery-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-01 | RECON-01 | Test-Network | docs/whole-system-remeasure-verdict.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-02 | RECON-02 | Test-Network | tests/step0-captures-v7.11 | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-03 | RECON-03 | Test-Network | docs/requirements-matrix.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
 
 ## Gap Findings (GAP-01)
 
@@ -267,6 +278,17 @@
 - **REBASE-04** (v5.3/REBASE-04) [audit-only] [Test-Network]: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
 - **REBASE-05** (v5.3/REBASE-05) [audit-only] [Test-Network]: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
 - **TOOL-01** (v5.3/TOOL-01) [audit-only] [Test-Network]: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
+- **READY-01** (v7.11/READY-01) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **READY-02** (v7.11/READY-02) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **READY-03** (v7.11/READY-03) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **STEP0L-01** (v7.11/STEP0L-01) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **STEP0L-02** (v7.11/STEP0L-02) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **STEP0L-03** (v7.11/STEP0L-03) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **ROUTEL-01** (v7.11/ROUTEL-01) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **ROUTEL-02** (v7.11/ROUTEL-02) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **RECON-01** (v7.11/RECON-01) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **RECON-02** (v7.11/RECON-02) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
+- **RECON-03** (v7.11/RECON-03) [audit-only] [Test-Network]: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md.
 ### MEDIUM
 
 - **AGENT-01** (v3.0/AGENT-01) [audit-only] [Methodology]: Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate
@@ -359,6 +381,17 @@ The following items are carried forward as candidate work for a future milestone
 - [HIGH] **REBASE-04** (v5.3/REBASE-04): Add a confirming Test-Network gate/test. Rationale: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
 - [HIGH] **REBASE-05** (v5.3/REBASE-05): Add a confirming Test-Network gate/test. Rationale: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
 - [HIGH] **TOOL-01** (v5.3/TOOL-01): Add a confirming Test-Network gate/test. Rationale: Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate
+- [HIGH] **READY-01** (v7.11/READY-01): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **READY-02** (v7.11/READY-02): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **READY-03** (v7.11/READY-03): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **STEP0L-01** (v7.11/STEP0L-01): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **STEP0L-02** (v7.11/STEP0L-02): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **STEP0L-03** (v7.11/STEP0L-03): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **ROUTEL-01** (v7.11/ROUTEL-01): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **ROUTEL-02** (v7.11/ROUTEL-02): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **RECON-01** (v7.11/RECON-01): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **RECON-02** (v7.11/RECON-02): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
+- [HIGH] **RECON-03** (v7.11/RECON-03): Add a confirming Test-Network gate/test. Rationale: Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot ...
 - [MEDIUM] **AGENT-01** (v3.0/AGENT-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate
 - [MEDIUM] **AGENT-02** (v3.0/AGENT-02): Add a confirming Methodology gate/test. Rationale: Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate
 - [MEDIUM] **AGENT-03** (v3.0/AGENT-03): Add a confirming Methodology gate/test. Rationale: Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate

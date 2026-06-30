@@ -4,21 +4,22 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 133 reproducible / 85 audit-only / 0 gap / 218 total
+**Coverage headline:** 133 reproducible / 96 audit-only / 0 gap / 229 total
 
 The full 218-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
-> 85 requirements are validated by milestone audit without a re-runnable gate (audit-only);
-> No current open gaps — GEN-01 → reproducible (Phase 93, committed v7.8 CONF-03 baseline Phase 119; latest artifact `tests/step0-baseline-v7.8.md`; "live re-baseline deferred" carry-forward carried since v7.1 is now RESOLVED) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
+> 96 requirements are validated by milestone audit without a re-runnable gate (audit-only);
+> No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.11 live re-baseline Phase 129; latest artifact `tests/step0-baseline-v7.11.md`; reproducible = measured, not passing — v7.11 BATTERY: FAIL P 4/8) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > Headline change vs prior 121/85/0/206: +4 reproducible rows added to the active tail in Phase 119 CONF-04 — RR-117-01 (S-P03 fishbone, minted Phase 117 CONF-02), RR-117-02 (S-N03 precision, minted Phase 117 CONF-02), RR-119-01 (S-N01 resolved, minted Phase 119 CONF-04), RR-119-02 (S-N02 resolved, minted Phase 119 CONF-04). These rows existed as sentinels in _battery_core.py but were not previously registered in the matrix.
 > Headline change vs prior 125/85/0/210: +8 reproducible rows added in Phase 123 RECON-01 — the v7.9 milestone requirements NEGCAT-01, NEGCAT-02, OCH-01, OCH-02, OCH-03, COLLIDE-01, COLLIDE-02, RECON-01, each backed by a deterministic offline gate (STEP0-08 for NEGCAT-01/02; DUAL-04 + BATT-06 for OCH-01/02/03; COLLIDE-01 gate for COLLIDE-01/02; TRACE-03 for RECON-01).
+> Headline change vs prior 133/85/0/218: +11 audit-only rows added in Phase 131 RECON-03 — the v7.11 milestone requirements READY-01/02/03, STEP0L-01/02/03, ROUTEL-01/02, RECON-01/02/03 (audit-only; validated by one-shot manual live runs, not deterministic offline CI gates, D-04). GEN-01's artifact_link bumped v7.8 → v7.11 (paired data + gate-code edit, D-05). RR-130-01 (main-routing inline-answering regression) recorded as a documented residual with NO matrix row (v7.9 D-02 precedent).
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 
 ## Active Surface
 
-Exactly 11 live items (FIX-01/FIX-02/CONF-01/CONF-02/CONF-03/CONF-04 done: RR-79-01 and RR-117-01 CLOSE SUSTAINED at v7.8; RR-119-01/RR-119-02 minted; sentinels re-pointed to v7.8). Nothing shipped or superseded belongs here.
+Exactly 12 live items (v7.11 RECON: BATT-06 sentinels re-pointed to v7.11; RR-130-01 main-routing regression newly recorded). Nothing shipped or superseded belongs here.
 
 1. **RR-79-01** [HIGH] — S-P01 pre-mortem. **CLOSED at Phase 117 v7.7 CONF-01** (S-P01 3/5 ≥ min-pass; FIX-01 detector recalibration confirmed out-of-sample). **CLOSE SUSTAINED at Phase 119 v7.8 CONF-03** (S-P01 3/5 = v7.4 floor). ID retained; sentinel re-pointed to v7.8 live captures, vector [1,2,3,0,2], retained as regression guard. Confirmed by BATT-06 (RR-79-01 sentinel in `_battery_core.self_test_boundary()`).
 
@@ -28,7 +29,7 @@ Exactly 11 live items (FIX-01/FIX-02/CONF-01/CONF-02/CONF-03/CONF-04 done: RR-79
 
 4. **RR-77-08** [MEDIUM] — CEILING=4 vs expected=3 warning: incidental `\bVerdict\b` IGNORECASE match in `composer_hits`; not a blocking defect but unresolved. Locked by BATT-06 anti-masking sentinel (CEILING=4) in `_battery_core.self_test_boundary()`.
 
-5. **GEN-01** [reproducible] — Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed baselines — v7.6 (Phase 114), v7.7 CONF-01 (Phase 117), and v7.8 CONF-03 (Phase 119). Latest artifact: `tests/step0-baseline-v7.8.md`. Earned by the committed baselines, not passing scores. Phase 119 CONF-03 verdict: D-1c CONFIRMED, BATTERY: PASS (all 5 blocking conjuncts hold; S-P01 3/5, S-P03 4/5, S-N01 3/5, S-N02 3/5, S-N03 5/5; S-N04 5/5 non-blocking). Under-count caveat documented (negative passes are a MIX of genuine clarification-holds and detector under-counts per D-01). Phase-118 FIX-03/FIX-04 prose fix confirmed. No longer an open gap.
+5. **GEN-01** [reproducible] — Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by the committed baselines — v7.6 (Phase 114), v7.7 CONF-01 (Phase 117), v7.8 CONF-03 (Phase 119), and the v7.11 whole-system live re-baseline (Phase 129). Latest artifact: `tests/step0-baseline-v7.11.md` (bumped Phase 131 RECON-03, paired data + gate-code edit D-05). Reproducible = measured, not passing. Phase 129 v7.11 verdict: BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) — honest measured state (honesty-not-score, D-01). No open gap (the tier reflects reproducible measurement, not a passing score).
 
 6. **GEN-02** [reproducible] — Periodic live monitoring cadence; runbook + wrapper script established (Phase 89). Confirmed by git-tracked runbook and wrapper; artifact: `docs/live-monitoring-runbook.md`. No longer an open gap.
 
@@ -43,6 +44,8 @@ Exactly 11 live items (FIX-01/FIX-02/CONF-01/CONF-02/CONF-03/CONF-04 done: RR-79
 10. **RR-119-01** [MEDIUM] — S-N01 over-routing, resolved-over-bar (Phase 119 CONF-04, minted). At v7.7: S-N01 0/5 (all-over-route). At v7.8 CONF-03: S-N01 3/5 PASS (Phase-118 FIX-03/FIX-04 prose fix moved over bar). Residual disposition: RESOLVED-OVER-BAR with detector-under-count caveat (negative passes are a MIX of genuine clarification-holds and under-counts; D-01). NOT a reclassification (D-4). Sentinel asserts v7.8 vector [0,2,1,1,3]. Confirmed by BATT-06 (RR-119-01 sentinel in `_battery_core.self_test_boundary()`).
 
 11. **RR-119-02** [MEDIUM] — S-N02 over-routing, resolved-over-bar (Phase 119 CONF-04, minted). At v7.7: S-N02 2/5 (over-routes on 3 of 5 runs). At v7.8 CONF-03: S-N02 3/5 PASS (Phase-118 FIX-03/FIX-04 prose fix moved over bar). Residual disposition: RESOLVED-OVER-BAR with detector-under-count caveat (runs 2,3 are documented detector under-counts where agent still ran a pre-mortem; D-01). NOT a reclassification (D-4). Sentinel asserts v7.8 vector [0,3,3,1,1]. Confirmed by BATT-06 (RR-119-02 sentinel in `_battery_core.self_test_boundary()`)..
+
+12. **RR-130-01** [HIGH] — Main-routing inline-answering regression (Phase 130). P **1/13** DELEGATE FAIL at the v7.11 live re-baseline (`tests/routing-baseline-v7.11.md`) vs the v3.13 anchor (P 11/13); the orchestrator answers the first-principles prompt **inline** (`num_turns:1`, `stop_reason:end_turn`, no `Task` tool_use) instead of auto-delegating — only P4 delegated. Likely a newer/more-capable orchestrator model satisfying the prompt directly. Negatives unchanged (N 20/20). Fix **forward-committed** to a later routing-delegation diagnosis/fix milestone. ID kept (RR-`<phase>`-NN convention; Phase-130 slot free). **Documented residual with NO matrix row** (v7.9 D-02 precedent); named the open whole-system gap by `docs/whole-system-remeasure-verdict.md`. honesty-not-score (D-01): recorded as observed, never forced.
 
 ## Gap Findings
 
