@@ -1,0 +1,21 @@
+The first-principles agent completed its analysis. Here is its summary.
+
+## Pre-Mortem: Turbine Coupling Assembly Failure Modes
+
+The agent worked through a structured first-principles pre-mortem, but flagged an important caveat up front: **it had no design documents, FMEA data, salt chemistry, or details of the specific failure chain your engineering team flagged.** So it reasoned from general molten-salt turbine-coupling principles and rated its own confidence as **LOW-to-MEDIUM**.
+
+### Five priority failure modes (in order)
+
+1. **A1 — Hot misalignment** — alignment set cold; differential thermal growth pushes the coupling past its misalignment window at temperature → flex-element overload and vibration. *Precursor:* rising vibration during ramp.
+2. **B1 — Freeze-lock shock** — a cold spot (seal, bearing housing, guard) freezes salt and shock-loads the coupling on startup. *Precursor:* heat-trace zone temps.
+3. **C1 — Warm-up resonance crossing** — natural frequency sweeps through running speed as stiffness changes with temperature. *Precursor:* vibration spectrum vs. temperature.
+4. **D1 — Fastener relaxation** — thermal cycling relaxes hub bolt preload → fretting and slip. *Precursor:* torque-mark witness checks.
+5. **A2 — Constrained axial growth** — trapped expansion loads the coupling and thrust bearing. *Precursor:* axial/thrust readings.
+
+### The unifying root
+All five share one pattern: **components set and verified cold, then failing hot.** The agent's highest-leverage recommendation is a **staged, instrumented thermal ramp with hold-and-recheck gates** on vibration, alignment/thrust, and minimum wetted-boundary temperature before reaching full operating temperature.
+
+### To sharpen this
+The agent noted it could move from a general sweep to a targeted analysis if given: (1) the coupling type and what it connects, (2) salt liquidus temperature and heat-trace design, (3) the cold-vs-hot alignment approach, and (4) **the specific failure chain engineering actually flagged** — which it called out as the most valuable missing input.
+
+The agent left its context open if you'd like to provide any of those details for a focused follow-up.

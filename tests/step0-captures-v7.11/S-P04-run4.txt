@@ -1,0 +1,29 @@
+The first-principles agent completed the Five Whys analysis. Here's what it found:
+
+## Root cause chain
+
+**500s → pod stuck in unrecoverable bad state → no automated detection/remediation → human restart needed → resilience safeguards absent from design/testing**
+
+The agent flagged an important methodological caveat up front: a Five Whys on the incident description *alone* can't produce verified causal links — only one root cause is provable from the facts given, the rest are hypotheses needing telemetry.
+
+## The one confirmed root cause
+
+**R1 — The system could not self-heal.** A human had to restart the pod, which the 12-minute timeline confirms directly. There was no liveness probe or auto-restart that caught the unhealthy pod within that window.
+
+## The most likely (but unverified) technical genesis
+
+**R2 — Pod-local resource exhaustion** (connection pool / memory / thread saturation). The decisive clue is that *a restart fixed it* — which rules out a pure external dependency outage as the sole cause and points at pod-local state that the process couldn't recover from on its own.
+
+## Corrective actions
+
+| Priority | Fix |
+|---|---|
+| **Immediate** (caps blast radius regardless of cause) | Deep liveness/readiness probes + auto-restart (~1–2 min), and 500-rate alerting |
+| **After telemetry** | Bounded connection pools w/ timeouts, OOM auto-restart, circuit breakers on outbound calls |
+| **Systemic** | Resilience in definition-of-done; chaos/load testing of dependency-degradation paths |
+
+## Before acting — evidence to pull (09:25–09:45 UTC)
+
+Pod metrics (memory/connections/threads), application logs (the actual exception behind the 500s), downstream dependency health, probe config, **any deploy near 09:30** (a common unscanned trigger), and traffic shape.
+
+The headline recommendation: **implement R1 + alerting now** — they cap *any* future pod-local failure to ~1–2 minutes instead of 12+, independent of which exhaustion mode caused this one. The agent offered to tighten the assumed links into a verified single chain if you share the logs/metrics from that window.

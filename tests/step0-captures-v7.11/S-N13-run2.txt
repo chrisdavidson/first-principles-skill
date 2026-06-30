@@ -1,0 +1,52 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background now and will do a full first-principles sanity check on the molten-salt thermal storage upgrade assumptions. I'll let you know as soon as it completes.
+I'll run a first-principles sanity check on this. This is squarely a pre-mortem situation — you have a nagging feeling the upgrade might unravel, and you want to surface structural weaknesses before the design review locks things in.
+
+Before I can do a real analysis rather than generic hand-waving, I need the actual project assumptions. Right now I have a one-line worry but none of the substance the analysis has to bite into. Let me check whether there's project material I can pull from, then I'll tell you exactly what I need.
+There's a fishbone analysis on disk that looks like it may already be about this project. Let me check it before I ask you for things you may have already captured.
+Those fishbone files are about a Checkout API 503 incident — unrelated to your molten-salt thermal storage upgrade. So there's no existing project material on disk I can anchor to. I'm not going to invent numbers for a thermal-storage design; a sanity check built on fabricated assumptions is worse than no sanity check.
+
+What I have is a one-line worry. What a real pre-mortem needs is the actual assumptions you're carrying into the design review. Before I run the analysis, I need you to give me the substance. The more concrete you are, the sharper the failure modes I can surface.
+
+Here's what would let me do this properly:
+
+**1. The essence — what is the upgrade actually changing?**
+- Are you adding molten-salt thermal storage to an existing plant (e.g., a CSP/solar-thermal facility, a fossil plant, an industrial heat process), or upgrading an existing salt system (e.g., changing salt chemistry, raising operating temperature, expanding tank capacity)?
+- What is the upgrade meant to achieve — more storage hours, higher round-trip efficiency, lower LCOE, dispatchability, grid services?
+
+**2. The headline numbers you're treating as given.** Whatever the design rests on, e.g.:
+- Salt type and operating temperature range (e.g., solar salt 60/40 NaNO₃-KNO₃, cold ~290°C / hot ~565°C)
+- Storage capacity (MWh-thermal) and target storage duration (hours)
+- Target round-trip or thermal efficiency, target LCOE / $-per-kWh
+- Tank sizing, heat-exchanger duty, charge/discharge power (MW)
+- Timeline and budget
+
+**3. Hard constraints** — non-negotiables (budget cap, in-service date, footprint, grid interconnect limit, salt freeze-point floor, existing-equipment compatibility, regulatory/permitting).
+
+**4. Verified ground truths** — anything already measured or confirmed that I should treat as fixed rather than challenge (e.g., "salt freeze point is confirmed at 238°C," "tank vendor quote is firm," "we've run this salt at 565°C for 2 years").
+
+**5. The specific nagging feeling** — even vague. "The schedule feels too tight," "I don't trust the freeze-protection margin," "the cost number looks too clean," "I think we're assuming the old heat exchanger can take the new temperature." The hunch usually points straight at the load-bearing assumption.
+
+If it's easier, paste the design-review deck, the assumptions register, or the spec, and I'll extract all of this myself.
+
+Once I have even a rough version of the above, I'll run the full pre-mortem-led first-principles pass: isolate the essence, classify and challenge every assumption (physical law vs. current constraint vs. convention vs. untested belief), establish the verified ground truths, reason upward to where it's most likely to unravel, and hand you back a ranked list of structural weaknesses with confidence levels — in time for the design review.
+
+Which of these can you give me?
+The first-principles agent ran and came back. Here's the key finding:
+
+**The agent couldn't find any project material on disk for the molten-salt thermal storage upgrade.** The only fishbone/analysis files it located are about an unrelated Checkout API 503 incident. Rather than fabricate thermal-storage numbers (which would make for a worse-than-useless sanity check), it stopped and asked for the actual substance.
+
+To run a real pre-mortem before your design review, it needs some concrete inputs. You don't need to answer all of this — even rough versions sharpen the analysis a lot:
+
+1. **What the upgrade actually changes** — adding salt storage to an existing plant vs. modifying an existing salt system (chemistry, temperature, capacity)? And what it's meant to achieve (more storage hours, higher round-trip efficiency, lower LCOE, dispatchability)?
+
+2. **The headline numbers you're treating as given** — salt type & operating temps (e.g. solar salt 290°C cold / 565°C hot), storage capacity (MWh-th) and duration, target efficiency/LCOE, tank sizing, charge/discharge power (MW), timeline and budget.
+
+3. **Hard constraints** — budget cap, in-service date, footprint, grid interconnect limit, salt freeze-point floor, existing-equipment compatibility, permitting.
+
+4. **Verified ground truths** — anything already measured/confirmed it should treat as fixed rather than challenge.
+
+5. **The specific nagging feeling** — even vague ("schedule feels too tight," "freeze-protection margin," "I think we're assuming the old heat exchanger can take the new temperature"). The hunch usually points straight at the load-bearing assumption.
+
+Easiest path: **paste the design-review deck, assumptions register, or spec**, and the agent will extract all of this itself.
+
+Want me to send any of this back to resume the same agent (it still has its context), or would you rather pull the relevant files into `/tmp` first so it has something concrete to anchor to?

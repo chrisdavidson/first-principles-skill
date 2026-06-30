@@ -1,0 +1,32 @@
+The first-principles agent worked the problem. Here's its Fermi estimate:
+
+## The core move
+Let units drive the decomposition. The target is a *count of tuners*, so build it from two sides that cancel:
+
+$$\text{tuners} = \frac{\text{tunings / year (demand)}}{\text{tunings / year / tuner (supply)}}$$
+
+## Demand side — tunings per year
+| Quantity | Value |
+|---|---|
+| Chicago population | ~2.7M |
+| People per household | ~2.5 → **~1.08M households** |
+| Households with a piano | ~5% → **~54,000 pianos** |
+| Tunings per piano per year | ~1 → **~54,000 home tunings** |
+| Institutional uplift (schools, churches, venues) | ×1.2 → **~65,000 tunings/yr** |
+
+## Supply side — one tuner's annual output
+| Quantity | Value |
+|---|---|
+| Tunings per working day | ~4 (limited by travel + ~1–1.5 hr/job) |
+| Working days per year | ~250 → **~1,000 tunings/tuner/yr** |
+
+## Multiply it out
+$$\frac{65{,}000 \text{ tunings/yr}}{1{,}000 \text{ tunings/yr/tuner}} \approx 65 \text{ tuners}$$
+
+## Bracket (swinging the two shakiest factors)
+- **Low** — 3% ownership, no uplift, 1,200 tunings/tuner/yr → **~27**
+- **High** — 8% ownership, ×1.3 uplift, 750 tunings/tuner/yr → **~150**
+
+**Answer: roughly 50–100, centered near ~65 piano tuners.** The bracket stays under one order of magnitude.
+
+**Load-bearing factor:** the piano-ownership rate — it alone moves the answer ~3×, so that's the one number worth replacing with real data if you want to tighten the estimate. The result is consistent with the classic Fermi/phone-directory answer for Chicago (50–100) without peeking at it.

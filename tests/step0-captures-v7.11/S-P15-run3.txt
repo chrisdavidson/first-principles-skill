@@ -1,0 +1,16 @@
+The first-principles agent ran, but it can't proceed without knowing **which plant** you mean. There's no prior context in this conversation identifying it, and the governing physics — and the entire derivation — changes completely depending on the type:
+
+- **Thermal power plant** (coal/gas/nuclear) → Carnot efficiency (2nd Law)
+- **Solar PV plant** → Shockley-Queisser / thermodynamic limit
+- **Wind plant** → Betz limit (59.3%)
+- **A biological/green plant** → photosynthetic efficiency limit (~11% theoretical)
+- **Desalination plant** → minimum thermodynamic work of separation
+- **Chemical/manufacturing plant** → reaction thermodynamics + minimum separation work
+
+To give you the rigorous answer, the agent needs three things:
+
+1. **Which plant** — name it or point to the file/prior analysis describing it.
+2. **Fixed operating parameters** to treat as ground truths (e.g., hot/cold-side temperatures for thermal; spectrum/concentration for solar; feed salinity and recovery ratio for desalination).
+3. **What's being bounded** — efficiency? throughput? output? cost floor? (needs a quantity and units).
+
+Tell me the plant type and its fixed parameters, and I'll send it back to the same agent to derive the physics-permitted ceiling and bracket the gap against the conventional figure.

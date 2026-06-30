@@ -1,0 +1,22 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Bottom line
+
+**Roughly $6–15 per kWh of usable thermal capacity, central ~$10/kWh-thermal**, for the in-scope portion of a 200 MWh molten-salt TES once the salt inventory and tank vessels are pre-commissioned (excluded).
+
+## How it built up
+
+- **Salt physics:** cp ≈ 1.5 kJ/kg·K × usable ΔT ≈ 285 K → **0.119 kWh/kg**. At ~$1/kg salt, that's ~$8.4/kWh for the salt material alone — a clean dimensional anchor.
+- **Greenfield benchmark:** a full two-tank molten-salt TES runs **~$20–30/kWh-thermal** (NREL/IRENA CSP surveys — among the cheapest grid storage media).
+- **Pre-commissioning subtraction:** salt + tanks are ~55–70% of that cost. Removing them leaves ~30–45% in scope (HX, pumps, BOP, EPC), then a ÷0.92 nameplate→usable correction → **~$6.5–15/kWh, central ~$10**.
+
+## Two caveats that swing the number most
+
+1. **Rating basis** — if the 200 MWh is *electrical* rather than thermal, multiply by ~2.5–3× → **~$25–35/kWh-electrical** (divide by power-block efficiency ~40%).
+2. **Scope of "pre-commissioned"** — if it excludes only tank erection labor but the salt inventory still counts, central rises to **~$18/kWh** (range ~$13–25).
+
+## On your stated assumptions
+
+The 30-year life and 1-cycle/day assumptions barely affect the *capital cost per unit capacity* answer — they only matter for a *levelized* figure. For reference: 30 yr × 365 = **10,950 cycles**, so the capital component amortizes to **~$0.2¢/kWh delivered** (before O&M, parasitics, and cost of capital) — which is precisely why molten-salt TES is economically attractive.
+
+Confidence: **MEDIUM** — well-anchored cost benchmarks, but the spread is driven by the thermal-vs-electrical rating basis and the exact meaning of "pre-commissioned," neither resolvable from the prompt alone.

@@ -1,0 +1,26 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Counts (mid-2026)
+- **Active LEO satellites: ~11,000–12,000**
+- **Starlink alone: ~10,400–10,600** — roughly **60% of every active satellite in LEO**
+- **Tracked objects >10 cm (including debris): ~35,000–40,000** — debris still dominates by object count
+
+## Does a Starlink-scale constellation meaningfully increase collision risk?
+
+**Yes — and it already has.** The premise is now partly historical: a Starlink-scale constellation isn't hypothetical, it's the dominant LEO population today.
+
+The order-of-magnitude logic:
+- Active LEO population rose ~10× (10³ → 10⁴) with megaconstellations
+- Collision frequency in a shell scales as **N²** (kinetic collision theory — a physical law)
+- So raw conjunction frequency rose **~100× (2 orders of magnitude)**
+- This is **measured, not modeled**: Starlink performed ~300,000 avoidance maneuvers in 2025 (~1 every 2 minutes), heading toward ~1M by 2027
+
+## The crucial nuance
+
+**Realized collisions ≠ conjunction frequency.** Active management — automated avoidance, deorbit, and low altitudes that self-clean via atmospheric drag — suppresses that 100× conjunction rate into a *currently* low realized-collision rate.
+
+But that suppression is a **fragile current constraint, not a physical law**. The realistic failure mode isn't routine operations — it's a multi-day loss of avoidance capability (e.g., a major solar storm) that leaves the elevated N² geometry unmanaged near altitudes (520–1000 km) already at or above the Kessler runaway threshold.
+
+**Bottom line:** ~100× more collision *opportunities*; far less increase in *realized* risk — as long as the active-avoidance layer holds. The risk is less about raw numbers and more about the reliability of the mitigation layer.
+
+*(Confidence: HIGH on the conjunction-frequency increase; MEDIUM and conditional on the realized-risk suppression.)*

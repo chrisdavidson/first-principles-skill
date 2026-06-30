@@ -1,0 +1,21 @@
+The first-principles agent recognized this as a **pre-mortem** exercise and ran into the central obstacle: it can't analyze a plan it can't see. Here's its response.
+
+---
+
+The agent correctly identified that your phrasing — *"surface every way this could blow up"* and *"before we lock it in"* — is a textbook pre-mortem trigger. But it declined to fabricate a plan to analyze, and explained why: a pre-mortem's entire value comes from specificity. Inventing failure modes for an imaginary plan would *feel* like diligence while missing the risks that actually matter.
+
+**To proceed, it needs four things from you:**
+
+1. **What is the plan?** — one or two sentences on what you're about to commit to.
+2. **What does success look like?** — the concrete winning outcome, ideally with a date.
+3. **Hard constraints** — budget, deadline, team size, tech/regulatory limits.
+4. **What's locked vs. still movable** — so failure analysis focuses on decisions you can still change.
+
+**Once you share that, you'll get back:**
+
+- **Independent failure enumeration** — every cause, unfiltered, including the uncomfortable ones.
+- **Pattern clustering** — grouping causes into the structural weaknesses they reveal.
+- **A "suppression check"** — explicitly flagging the risks that team excitement is most likely burying (it noted that *"the team is excited"* is itself a signal worth probing).
+- **Actionable output** — for each weakness, either a concrete plan change or a named, explicit decision to accept the risk.
+
+Paste the plan whenever you're ready — or give me a file path (PRD, roadmap, doc) and the agent will read it directly. I'll pass your details straight back to the same analysis.

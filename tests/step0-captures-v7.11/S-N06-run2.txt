@@ -1,0 +1,26 @@
+The first-principles agent has completed its analysis. Here's what it produced:
+
+# First-Principles Analysis: Monolith → Microservices Migration
+
+## The headline finding
+The agent flags up front that the outcome is **governed by three readiness factors you haven't measured yet** — not by the architectural decision itself:
+- **Boundary cleanliness** — do the monolith's modules separate along domain lines?
+- **Distributed-ops experience** — has the team run distributed systems on-call before?
+- **Observability maturity** — does per-service tracing/SLOs exist today, or is it deferred to "phase 2"?
+
+## Estimated impact
+
+| Metric | During the 6 sprints | Steady state (1–2 quarters after) |
+|---|---|---|
+| **Developer velocity** | **Down 20–35%** (central case), from split team capacity + firefighting | **+10–25% if boundaries are clean; −10% or worse if tangled** |
+| **Incident rate** | **Up 15–50%**, peaking in cutover sprints | **−10–30% if observability is upgraded in lockstep; flat-to-worse if not** |
+
+## Three things that matter more than the numbers
+1. **The ranges collapse once you measure the three readiness factors** — the architecture style is not the driver.
+2. **Transient and steady-state effects point in opposite directions.** Velocity *will* dip and incidents *will* rise during the quarter — that's the expected signature of decomposition, not failure. Pre-commit stakeholders to that expectation.
+3. **The dominant tail risk is the half-finished distributed monolith** — if incident pressure halts the migration mid-flight, you get all the cost and none of the benefit, permanently.
+
+## Confidence & next step
+**MEDIUM overall, LOW on the steady-state signs**, because the load-bearing assumptions are all unverified. The agent recommends measuring **before sprint 1**: run a coupling/cyclic-dependency analysis on the proposed boundaries, inventory the team's distributed-systems experience, audit whether observability is in-scope for the 6 sprints (not deferred), and confirm whether feature work continues in parallel.
+
+The agent offered to replace every bracketed range with calibrated estimates if given concrete inputs: **team size, current deploy frequency / cycle time, current incidents-per-month, and the proposed service boundaries.** If you can share those, I can send them back to continue the analysis.

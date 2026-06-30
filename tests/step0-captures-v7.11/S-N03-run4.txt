@@ -1,0 +1,41 @@
+I'll restate the premise: imagine your script has already failed at startup. Let me work backward to surface the failure modes in your error handling.
+
+This is a pre-mortem / failure-surfacing request, so I'll run the focused analysis. The most useful thing I can do is look at the actual script. I don't have it yet, so let me search for it.
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background now and I'll report back its analysis as soon as it completes.
+I found several Python scripts, but I don't know which one is yours. Before I surface failure modes, I need to point the analysis at the right file.
+
+Which script crashes on startup? You can give me the path, or tell me which project it's in. A few candidates from your repos that have a `main.py` startup entry point:
+
+- `/home/chrisdavidson/programming/rca/main.py`
+- `/home/chrisdavidson/programming/congressbills/main.py`
+- `/home/chrisdavidson/programming/mcp-ndc/main.py`
+- `/home/chrisdavidson/programming/drugenforcement/main.py`
+- `/home/chrisdavidson/programming/openrouter/main.py`
+- (many others under `~/programming/`)
+
+Also, two things that will sharpen the pre-mortem considerably:
+
+1. **The actual error.** Can you paste the traceback (or the last ~15 lines of output) from the crash? "Crashes on startup" plus a traceback usually localizes the fault in seconds. If there's *no* traceback at all — silent exit — that itself is a major error-handling finding.
+
+2. **How you start it.** The command you run (`python main.py`, `python -m ...`, via a venv, with env vars, etc.).
+
+Once you point me at the file, I'll restate the premise — "this script has already failed at startup" — and work backward through the error-handling failure modes: bare/over-broad `except` clauses swallowing the real error, import-time side effects that crash before `__main__`, missing config/env validation, unhandled file/network/DB connections at module load, exceptions in `__init__` or top-level code, and silent-exit paths. Which script is it?
+The first-principles agent ran and came back with questions before it could analyze. Here's what it needs from you:
+
+**It found several scripts but doesn't know which is yours.** Candidates with a `main.py` startup entry point:
+- `~/programming/rca/main.py`
+- `~/programming/congressbills/main.py`
+- `~/programming/mcp-ndc/main.py`
+- `~/programming/drugenforcement/main.py`
+- `~/programming/openrouter/main.py`
+- (others under `~/programming/`)
+
+To sharpen the analysis, it asked for three things:
+
+1. **Which script** — the path, or the project it's in.
+2. **The actual error** — paste the traceback (or last ~15 lines). Notably, it flagged that if there's *no* traceback at all (a silent exit), that itself is a major error-handling finding.
+3. **How you start it** — the exact command (`python main.py`, `python -m ...`, venv, env vars, etc.).
+
+Once you point it at the file, it'll work backward from "this script has already failed at startup" through the error-handling failure modes: bare/over-broad `except` clauses swallowing the real error, import-time side effects crashing before `__main__`, missing config/env validation, unhandled file/network/DB connections at module load, exceptions in `__init__` or top-level code, and silent-exit paths.
+
+Which script is it, and can you share the traceback and start command? I'll pass it straight back to the agent to continue.

@@ -1,0 +1,23 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its Five Whys analysis. Here's what it found:
+
+## Key Insight
+"Recovered after a pod restart" is the decisive clue: the fault was **in-process and ephemeral** (state a restart clears), not a downstream dependency being down — otherwise a restart wouldn't have helped. The agent split the investigation into two parallel causal chains.
+
+## Branch A — What broke (the trigger) — *UNRESOLVED, needs evidence*
+Since a restart fixed it, the fault lived in shared, long-lived process state, not a bad payload. Candidates it couldn't choose between from the report alone:
+- **Resource exhaustion** — connection-pool depletion, memory leak, FD/thread-pool exhaustion
+- **Stuck/poisoned state** — deadlock, wedged circuit breaker, cached bad credential
+- **Stale downstream connection** — a dependency failed over and the pod held dead connections
+
+**Highest-value action:** check for a **deploy or config change just before 09:30** — the most common cause of this outage shape.
+
+## Branch B — Why it lasted 12 minutes (the latent weakness) — *RESOLVED, actionable*
+A single degraded pod served errors for 12 minutes because **health checks didn't detect request-handling failure and a human had to restart it manually**. Likely root: a shallow `/health` liveness probe returning 200 while request handling was broken, and/or no readiness gating to pull the bad pod from rotation.
+
+**Fix:** deep liveness probe that exercises a real dependency-touching path + readiness gating + SLO-tuned thresholds. This turns the next incident of this class into a brief blip instead of a 12-minute outage — regardless of the trigger.
+
+## Critical operational note
+⚠️ **Before the next restart of any incident like this: capture a heap snapshot, thread dump, and connection-pool stats first** — restarting destroys the only evidence that can resolve Branch A.
+
+To pin down Branch A's exact root cause, the agent needs: the deploy/config audit log around 09:25–09:30, connection-pool + memory metrics into 09:30, and error stack traces from the window. Share those and it can name the trigger. The agent is still available if you want to continue the drill with that evidence.

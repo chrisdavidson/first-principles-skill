@@ -1,0 +1,15 @@
+The first-principles agent has started but needs the actual commissioning plan before it can produce a real (vs. generic) analysis. It's asking:
+
+**Where is the molten-salt TES commissioning plan, and what are its key parameters?** Specifically it wants:
+
+- **The plan itself** — step sequence, schedule, gating criteria for entering the on-site build phase
+- **System parameters** — salt type (solar salt 60/40 NaNO₃/KNO₃ vs. HITEC), tank volume, operating temperature band (e.g., 290 °C / 565 °C), salt freeze point, heat-trace/preheat design
+- **Constraints** — timeline, budget, site conditions (climate, seismic), permitting status, crew experience
+- **Known ground truths** — anything already verified to treat as fixed (foundations inspected, salt on-site, preheat factory-tested, etc.)
+
+It offered two paths:
+
+1. **Point it to the plan** (file path, pasted text, or key parameters) for a specific analysis, or
+2. **"Use typical parameters"** — it runs the pre-mortem against a typical two-tank solar-salt TES commissioning (290/565 °C) with all assumptions explicitly flagged as untested beliefs. The output will only be as specific as those assumptions.
+
+How would you like to proceed — do you have a plan document/parameters to share, or should I tell it to use typical industry parameters?

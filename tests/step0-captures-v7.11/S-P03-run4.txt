@@ -1,0 +1,27 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced:
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned HTTP 503 for all users, 40 min from 14:10 UTC yesterday.
+
+**Files generated:**
+- **SVG (source of truth):** `/tmp/fishbone.svg`
+- **PNG preview (2x):** `/tmp/fishbone.png`
+- **Spec JSON (editable):** `/tmp/fishbone.json`
+
+### The six cause categories
+
+| Category | Candidate causes |
+|---|---|
+| **People** | On-call paged late (alert mis-routed); recent deploy by unfamiliar engineer; no owned checkout runbook |
+| **Process** | Deploy at ~14:05 with no canary/staged rollout; no load test before release; slow/undocumented rollback |
+| **Technology & Tools** | App/thread-pool exhaustion; upstream payment-gateway timeout; DB connection pool undersized; ~~DB layer~~ (ruled out) |
+| **Environment** | Traffic spike with no autoscale headroom; load-balancer health-check flapping; pod OOM-kill / CPU throttle |
+| **Information** | Alert thresholds too loose; dashboards lack 503 breakdown; deploy-to-error onset not correlated |
+| **Resources** | Too few replicas for failover; rate limiter / quota exhausted; memory/CPU limits too low |
+
+### Where to investigate first
+1. **Process → deploy at 14:05, effect at 14:10.** The ~5-minute gap between an un-canaried deploy and total 503 is the strongest correlation. *Verify:* pull deploy log timestamps and diff; test rollback.
+2. **Technology → pool exhaustion / upstream timeout.** A 503 (not 500) across *all* users points at the serving tier refusing requests rather than a code bug. With the DB ruled out, an exhausted app/connection pool or hung upstream is the most consistent failure mode. *Verify:* check pool-saturation and upstream-latency metrics in the 14:08–14:12 window.
+
+The agent offered to extend any branch with a Five-Whys drill, build a trade-off table once you have deploy logs/pool metrics, or tweak the diagram (colors, 6M category set, or highlight prioritized branches in red). Let me know if you'd like any of those.

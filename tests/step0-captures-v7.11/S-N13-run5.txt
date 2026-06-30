@@ -1,0 +1,300 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background now and will analyze the molten-salt thermal storage upgrade's assumptions from the ground up. I'll report back as soon as it completes.
+This is a first-principles sanity check on a molten-salt thermal storage upgrade. Let me run the methodology on it.
+
+Before I go deep, I'm missing the specific project parameters (storage capacity, salt chemistry, operating temperatures, cost targets, the actual assumptions in the design doc). Rather than block, let me check whether there's a project file I can ground this in, and run the analysis structure I can run now.
+No project files exist for this. The analysis has to run against the generic physics and engineering of molten-salt thermal storage upgrades, with the project-specific parameters flagged as unverified inputs you'll need to supply.
+
+I'll delegate the full first-principles analysis to the dedicated agent, which will apply the methodology end-to-end.
+The analysis is running in the background. While it works, here's the honest framing so you know what you're getting and what you'll need to bring to the design review.
+
+## The core issue with this sanity check
+
+There's no project file or design doc anywhere on the system, so the analysis can't be grounded in your actual numbers. It's running against the physics and engineering fundamentals of molten-salt thermal storage that hold regardless of the specific project, and it will flag every project-specific quantity it had to assume as an unverified input you must supply.
+
+## What will make or break this analysis (have these ready)
+
+Solar salt (the dominant 60/40 NaNO3/KNO3 chemistry) lives in a brutally narrow thermal window — it freezes around 220-240 C and decomposes above roughly 565-600 C. Almost every classic molten-salt failure mode traces back to that window. The conclusion will turn heavily on parameters only you have:
+
+- Salt chemistry and the hot/cold tank operating temperatures (how much margin to freeze and to decomposition)
+- Heat-trace/freeze-protection design and its parasitic power draw
+- Materials of construction and corrosion allowance vs. design life
+- What's legacy vs. new in the retrofit — the interface mismatches are where retrofits unravel
+- Commissioning season / ambient (cold-weather commissioning is a known killer)
+- Capacity, charge/discharge power, schedule, budget
+
+The deliverable will be a prioritized list of the assumptions most likely to make the project unravel, ranked by how load-bearing and how unverified each one is — which is exactly the ammunition you want for interrogating the design at the review.
+
+I'll deliver the full six-section analysis as soon as the agent finishes. If you can drop in any of the parameters above in the meantime, I can have it tighten the fragile conclusions instead of leaving them bracketed.
+The first-principles sanity check is done. Here's what came back.
+
+## Bottom line
+There's no project file or design doc on this system, so the analysis couldn't be grounded in your actual numbers. It ran instead against the **physics and engineering fundamentals** of molten-salt thermal storage and flagged every project-specific quantity it had to assume as an unverified input you'll need to supply at the review.
+
+## The fundamental constraint everything hangs on
+Solar salt (the dominant 60/40 NaNO₃/KNO₃ chemistry) lives in a brutally narrow thermal window — it **freezes around 220–240 °C** and **decomposes above ~565–600 °C**. Nearly every classic molten-salt failure mode traces back to staying inside that window. So the verdict turns on parameters only you have.
+
+## Bring these to the design review (they make or break it)
+- **Salt chemistry + hot/cold tank operating temps** — your real margin to freezing and to decomposition
+- **Heat-trace / freeze-protection design** and its parasitic power draw
+- **Materials of construction + corrosion allowance** vs. design life
+- **Legacy vs. new scope** in the retrofit — interface mismatches are where retrofits unravel
+- **Commissioning season / ambient** — cold-weather commissioning is a known project killer
+- **Capacity, charge/discharge power, schedule, budget**
+
+## What you get
+A prioritized list of the assumptions most likely to make the project unravel, ranked by how *load-bearing* and how *unverified* each one is — i.e. the ammunition for interrogating the design at the review.
+
+If you can drop in any of those parameters (especially salt chemistry, tank temps, and what's legacy vs. new), I'll send them back to the agent to tighten the currently-bracketed conclusions into hard findings. Want me to do that?
+This is a self-contained analysis task using the first-principles methodology that is my core operating procedure. I have the physics fundamentals I need; the work is in the reasoning. No skill or subagent applies better than direct execution. Let me produce the full six-section document.
+
+---
+
+# First-Principles Analysis: Molten-Salt Thermal Storage UPGRADE — Pre-Design-Review Sanity Check
+
+**MODE:** `full-composer` (with Phase 2 weighted heavily per request; inversion run in Phase 2, pre-mortem run in Phase 5).
+
+---
+
+## ⚠️ PARAMETERS YOU MUST SUPPLY (read this first)
+
+This analysis runs on generic molten-salt physics because no project file exists. **Every conclusion below that depends on a project-specific number is flagged `GT-N?` and is fragile until you supply the real value.** The following parameters would change the conclusions. They are listed in rough order of how much they move the analysis:
+
+| # | Parameter needed | Why it changes the conclusion |
+|---|---|---|
+| P-1 | **What exactly is being upgraded** — (a) non-salt (oil/steam/water) → molten-salt conversion, or (b) existing solar-salt system → higher capacity, or (c) existing system → higher temperature? | Determines which failure modes dominate. (a) and (c) are far higher risk than (b). A temperature upgrade pushes toward the decomposition ceiling; a capacity upgrade stresses tanks/foundations; a chemistry conversion changes everything downstream. |
+| P-2 | **Salt chemistry** — confirmed 60/40 NaNO3/KNO3 solar salt, or a Hitec/Hitec-XL/ternary nitrate, or a chloride/carbonate "next-gen" salt? | Sets the liquidus and decomposition window. If the upgrade's selling point is "higher temperature," and the salt is still nitrate, the decomposition ceiling (~565-600 C) is a hard physical wall. |
+| P-3 | **Hot-tank and cold-tank operating temperatures** (design and excursion limits) | Distance from both the freeze point (~220-240 C) and the decomposition limit. Margin to each wall is the single most load-bearing safety number. |
+| P-4 | **Materials of construction** — tank/piping/HX alloys (carbon steel cold side? 304/316/347 hot side? cladding?), and the existing legacy materials being retained | Corrosion rate and corrosion-allowance lifetime depend entirely on alloy × temperature × salt purity. A temperature upgrade can invalidate the existing alloy selection. |
+| P-5 | **Heat-trace / freeze-protection design** — installed kW, redundancy, power source, backup, control zones, and whether it's being reused from the legacy system | Freeze-up is the #1 catastrophic failure mode. Reused/undersized heat-trace on new larger tankage is a classic unravel path. |
+| P-6 | **Storage capacity (MWh-th) and charge/discharge power (MW-th)**, before and after upgrade | Sizes tanks, foundations, HX, parasitic loads, and tells whether the energy/power decoupling is being exploited or violated. |
+| P-7 | **Cover-gas / ullage system** design and whether it's reused | Nitrate salts need controlled atmosphere; reused ullage on a hotter system risks accelerated decomposition/nitrite buildup. |
+| P-8 | **Ambient/site climate** — minimum winter temperature, commissioning season | Cold-ambient commissioning is a top schedule/freeze risk. |
+| P-9 | **Schedule and budget** — commissioning date, contingency %, season of first fill | Determines whether freeze risk and retrofit-interface risk are being met with adequate margin. |
+| P-10 | **Condition of legacy equipment being retained** — age, inspection records, remaining corrosion allowance, foundation settlement history | A retrofit inherits the legacy system's accumulated damage; this is invisible without records. |
+
+**Bottom line on grounding:** The conclusions in Section 6 are reliable as a *checklist of where this class of project unravels*. They are NOT reliable as a verdict on *your* project until P-1 through P-5 (at minimum) are supplied. The ranked list in the Conclusion tells you which to interrogate first.
+
+---
+
+## 1. Problem Essence
+
+**Essence Statement:** *Will upgrading this molten-salt (or to-molten-salt) thermal storage installation deliver the intended added capacity/temperature/capability without introducing a failure mode — physical, materials, controls, or interface — that the existing-system baseline did not have, such that it fails at or after the design review?*
+
+The triggering event is a feeling, not a number. Stripped of framing, the user is not asking "is molten-salt storage a good idea" (the technology works at scale — multiple operating CSP plants prove it). They are asking a narrower, sharper question: **does the *upgrade* — the delta from existing to new — cross a physical or engineering wall that the original design respected?** An upgrade is uniquely dangerous because it (a) inherits an installed base it did not design, and (b) is sold on pushing one parameter (capacity OR temperature) that may have been the original design's safety margin.
+
+**Success criteria** (what a correct answer must satisfy — checkable against Section 6):
+1. Identifies the *delta-specific* failure modes, not just generic molten-salt risks the original design already handled.
+2. Anchors every physical claim in a law or established engineering fact, independent of the missing project numbers.
+3. Ranks assumptions by (load-bearing-ness × un-verified-ness) so the user knows what to attack first at review.
+4. Makes explicit which conclusions collapse if a withheld parameter turns out adverse.
+
+A note on the theoretical-limit reframe: the user's fear may hinge on whether a target temperature is *a convention* (others run cooler for margin) or *a physical wall* (nitrate decomposition). That distinction is run explicitly in Phase 4 (DC-2).
+
+---
+
+## 2. Assumptions Table
+
+Phase 2 is weighted heavily per the request. I run the **inversion procedure** (what would *guarantee* the upgrade fails) and a **fishbone** breadth scan to populate it. Inversion output first, then the consolidated table.
+
+### Inversion pass — "What would GUARANTEE this upgrade fails?"
+
+Claim inverted: *"The upgrade succeeds."* → *"The upgrade fails."* Five+ sufficient causes of guaranteed failure, each yielding a necessary precondition the success-claim silently depends on:
+
+| Failure-guaranteeing condition | → Necessary precondition the project depends on |
+|---|---|
+| F1. Salt freezes/plugs in a line, HX, or instrument leg and cannot be re-melted | Heat-trace + drain-back design covers *every* low-flow/dead-leg location at upgraded scale, with redundancy and backup power |
+| F2. Hot-tank temperature target exceeds nitrate decomposition onset → salt degrades, nitrite/oxide buildup, off-gassing, loss of capacity | Design hot temperature sits below decomposition limit *with margin*, OR salt chemistry was changed to suit |
+| F3. Upgraded temperature/cycling invalidates the legacy alloy selection → accelerated corrosion / stress-corrosion / fatigue cracking | Materials re-qualified for the *new* temperature and cycle count, not inherited from the original duty |
+| F4. New (larger/hotter) equipment interfaces wrongly with retained legacy equipment — thermal expansion, flange ratings, foundation loads, control protocols | Full retrofit interface analysis done across the legacy/new boundary |
+| F5. First fill / commissioning occurs in cold ambient and salt freezes before steady state | Commissioning plan sequences pre-heat, fill temperature, and season; cold-ambient procedures exist |
+| F6. Cover-gas/ullage reused or under-designed for hotter operation → moisture ingress, decomposition acceleration, tank overpressure/vacuum | Ullage system re-rated for upgraded thermal/chemical duty |
+| F7. Tank foundation/structure not re-rated for added salt mass or higher thermal gradient → settlement, thermal ratcheting, weld failure | Structural re-analysis for upgraded inventory and ΔT |
+
+Each precondition that is not *known* to hold enters the table below as an `untested belief`.
+
+### Fishbone breadth scan (default six-category set: People, Process, Technology/Tools, Environment, Information, Resources)
+
+- **Technology/Tools:** heat-trace adequacy, alloy compatibility, HX freeze-points, instrumentation freeze, ullage.
+- **Process:** commissioning sequence, fill procedure, drain-back, control logic across legacy/new boundary.
+- **Environment:** winter ambient, commissioning season.
+- **Information:** legacy equipment condition records, original design margins, salt purity history.
+- **People:** crew experience with molten-salt commissioning (distinct from generic plant ops).
+- **Resources:** contingency budget, schedule float, spare heat-trace capacity/power.
+
+### Consolidated Classified Assumptions Table
+
+| # | Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|---|
+| A-1 | Salt is nitrate solar-salt (60/40) with freeze ~220-240 C, decomposition ~565-600 C | physical law / current constraint | Accept as ground-truth candidate (chemistry-dependent) | **VERIFIED for nitrate solar salt**; **UNVERIFIED that it's the project's salt** (P-2) | Established literature; project value missing → GT-1, GT-2 verified; salt identity = GT-12? |
+| A-2 | Upgraded hot temperature stays below decomposition onset with margin | untested belief | Verify or flag — load-bearing | **UNVERIFIED** (P-3) | Needs design hot temp. This is the #2 unravel candidate |
+| A-3 | Heat-trace re-sized & redundant for new (larger/hotter) tankage and all dead-legs | untested belief | Verify or flag — load-bearing | **UNVERIFIED** (P-5) | Needs installed kW, zones, backup power. #1 unravel candidate |
+| A-4 | Legacy alloys remain valid at upgraded temperature/cycle count | untested belief | Challenge — convention ("it worked before") | **UNVERIFIED** (P-4, P-1) | Corrosion ∝ T; original margin may be consumed |
+| A-5 | Retrofit interfaces (thermal expansion, flange ratings, foundations, controls) re-analyzed across legacy/new boundary | untested belief | Verify or flag | **UNVERIFIED** (P-1, P-10) | Classic retrofit unravel |
+| A-6 | Commissioning avoids cold-ambient freeze (season + pre-heat plan) | untested belief | Verify or flag | **UNVERIFIED** (P-8, P-9) | Needs site climate + schedule |
+| A-7 | Cover-gas/ullage re-rated for hotter/larger duty | untested belief | Verify or flag | **UNVERIFIED** (P-7) | Reuse is the risk |
+| A-8 | Tank foundation/structure re-rated for added mass and ΔT | untested belief | Verify or flag | **UNVERIFIED** (P-6, P-10) | Settlement/ratcheting |
+| A-9 | Two-tank sensible storage decouples energy (tank size) from power (HX/pump size) | physical law (thermodynamics) | Accept | **VERIFIED** | Sensible-heat storage principle |
+| A-10 | Parasitic heat-trace load is "small" relative to stored energy | untested belief | Verify via estimate | **UNVERIFIED — bracketed in DC-3** | Estimate procedure, Phase 4 |
+| A-11 | Legacy equipment retained is in known, documented condition | untested belief | Challenge — convention | **UNVERIFIED** (P-10) | Retrofit inherits hidden damage |
+| A-12 | "It worked before, so the upgrade is incremental" | convention | Challenge explicitly | **REJECTED as reasoning** | An upgrade often spends the original safety margin; incrementalism is the trap |
+| A-13 | Crew has molten-salt-specific commissioning experience | untested belief | Verify or flag | **UNVERIFIED** | Generic plant experience ≠ salt experience |
+| A-14 | Nitrate salt corrodes steels at a rate that consumes a finite corrosion allowance over plant life | physical law / engineering fact | Accept (rate is T-dependent) | **VERIFIED qualitatively; rate UNVERIFIED** | DC-4 brackets it |
+
+**Stakes-escalation note:** A-2, A-3, A-4 carry the highest stakes (catastrophic, not degrading, failure modes) and are all `untested belief`. Per the stakes-escalation rule, these must be pushed to verified status before the project is safe — they are the spine of the Conclusion ranking.
+
+---
+
+## 3. Ground Truths
+
+Verified facts that survive Phase 2. Stable IDs. `?` = unverified-but-used (untested belief elevated for use). Verified ones are anchored in physical law or established nitrate-salt engineering, independent of the missing project file.
+
+| ID | Ground truth | Status |
+|---|---|---|
+| GT-1 | 60/40 NaNO3/KNO3 solar salt has a freezing/liquidus point of ~220-240 C; below this it is solid. | VERIFIED (chemistry) |
+| GT-2 | Nitrate solar salt thermally decomposes above ~565-600 C (nitrate→nitrite→oxide, O2/NOx release); above this, irreversible degradation and gas release occur. | VERIFIED (chemistry) |
+| GT-3 | The usable liquidus window for solar salt is therefore narrow (~325-380 C wide). All operation must stay inside it everywhere, at all times. | VERIFIED (derived from GT-1, GT-2) |
+| GT-4 | Sensible-heat two-tank storage stores energy as ΔT across a mass of salt: E = m·cp·ΔT. Energy capacity scales with salt mass (tank size); power scales with flow through HX/pumps. The two are decoupled. | VERIFIED (thermodynamics) |
+| GT-5 | A liquid that freezes in a pipe, valve, instrument leg, or HX channel blocks flow and can damage the component on thaw (expansion, differential stress). Re-melting a plugged line is slow and sometimes impossible in situ. | VERIFIED (physics) |
+| GT-6 | Molten nitrate salt is corrosive to carbon and stainless steels; corrosion rate rises strongly (roughly Arrhenius) with temperature and with impurity/chloride content. | VERIFIED (materials engineering) |
+| GT-7 | Repeated thermal cycling induces low-cycle fatigue and thermal-ratcheting in tanks/welds; damage accumulates with cycle count and ΔT magnitude. | VERIFIED (mechanics) |
+| GT-8 | Maintaining salt above freezing in all lines requires continuous parasitic heat input (heat-trace) whenever flow is absent; this is a standing energy/power load with no off state in cold conditions. | VERIFIED (heat transfer) |
+| GT-9 | A retrofit inherits the installed base: legacy materials, foundations, control systems, and accumulated damage that the new design did not specify. | VERIFIED (engineering practice) |
+| GT-10 | An "upgrade" that increases temperature or capacity generally consumes margin (thermal, structural, corrosion-allowance) that the original design held in reserve. | VERIFIED (design-margin principle) |
+| GT-11 | Nitrate salt requires a controlled cover gas / ullage management; moisture and uncontrolled atmosphere accelerate decomposition and corrosion. | VERIFIED (chemistry/practice) |
+| GT-12? | The project's salt is in fact nitrate solar salt with the GT-1/GT-2 windows. | UNVERIFIED (P-2) |
+| GT-13? | Design hot-tank temperature and its margin to GT-2's decomposition onset. | UNVERIFIED (P-3) — load-bearing for DC-2 |
+| GT-14? | Installed heat-trace capacity, zoning, redundancy, and backup power at upgraded scale. | UNVERIFIED (P-5) — load-bearing for DC-1, DC-3 |
+| GT-15? | Legacy alloy set and remaining corrosion allowance at upgraded duty. | UNVERIFIED (P-4, P-10) — load-bearing for DC-4 |
+| GT-16? | Upgrade type (chemistry conversion / capacity / temperature). | UNVERIFIED (P-1) — load-bearing for all chains' severity weighting |
+| GT-17? | Commissioning season and minimum site ambient. | UNVERIFIED (P-8, P-9) — load-bearing for DC-5 |
+
+---
+
+## 4. Derivation Chains
+
+Each chain has ≥1 intermediate step and a confidence rating. Estimates (DC-3, DC-4) use the estimate procedure with explicit brackets. Conclusions inheriting a `GT-N?` input carry the caveat per D-07. A second-order pass follows.
+
+**DC-1 — Freeze/plugging is the dominant catastrophic risk, and an upgrade enlarges it.**
+GT-3 (narrow window) + GT-5 (frozen line blocks/damages) + GT-8 (continuous heat-trace required) + GT-9/GT-10 (retrofit consumes margin) → an upgrade that adds tankage, lines, or HX surface adds dead-legs and surface-area-to-volume that all need freeze protection, while possibly *reusing* legacy heat-trace sized for the old plant → **if heat-trace (GT-14?) is not re-sized, zoned, redundant, and backup-powered for the new geometry, freeze-up at the weakest cold spot is not merely possible but probable over plant life.**
+Confidence: **HIGH** that this is the dominant mode; **MEDIUM** on whether *this* project is exposed — collapses to HIGH-risk if GT-14? shows reused/undersized trace. *Verification that raises to HIGH: heat-trace load calc + redundancy + backup-power one-line for the upgraded geometry.*
+
+**DC-2 — If the upgrade's purpose is higher temperature, the decomposition ceiling is a physical wall, not a convention (theoretical-limit reframe).**
+Named governing constraint: nitrate thermal-decomposition chemistry (GT-2). Law-permitted ceiling: ~565-600 C for nitrate solar salt — *set by chemistry, not by what competitors run.* Conventional figure: operators typically cap hot tanks ~565 C, often lower (~550 C) for margin. Gap analysis: the headroom between a typical 565 C operation and the ~600 C onset is **irreducible margin against an Arrhenius cliff**, not slack to be spent.
+GT-2 + GT-13? + GT-16? → **if the upgrade raises hot temperature toward or past ~565 C on a nitrate salt, it is spending the salt's chemical safety margin; "higher temperature" is achievable only by changing the salt (chloride/carbonate), which changes corrosion (GT-6), materials (GT-15?), and freeze point — i.e., it is a different project.**
+Confidence: **HIGH** on the physics; **fragile on applicability** — entirely gated by GT-16? (is this a temperature upgrade?) and GT-13?. *If P-1 = temperature upgrade on nitrate salt, this is likely the thing that unravels the project.*
+
+**DC-3 — Parasitic heat-trace energy: order-of-magnitude bracket (estimate procedure).**
+Target: standing heat-trace power as a fraction of storage throughput. Decompose: heat-trace load ≈ (piping + tank surface area) × heat-loss flux through insulation. Unit-factors: insulated hot-pipe heat loss is order **10-10 W/m** of pipe (≈ tens of W/m, insulation-dependent); large CSP-scale salt systems carry order **kilometres** of traced piping plus tank walls.
+- Central: ~10^3-10^4 m of pipe × ~10-10 W/m → **order 10^4-10^5 W = tens of kW to low hundreds of kW** continuous, plus tank standby losses.
+- Lower bound (short, well-insulated, small system): ~10 kW.
+- Upper bound (long runs, cold ambient, modest insulation, large tanks): several hundred kW to ~1 MW.
+Against a storage block of order hundreds of MWh-th / tens of MW-th, **standing parasitic load is typically low single-digit % of rated power** — *small in normal operation but never zero, and it is a* **standing OPEX and a single point of catastrophic failure** *(GT-8): its value is in availability, not energy.*
+Confidence: **MEDIUM** (order-of-magnitude; collapses to a real number only with GT-6/GT-14? geometry). Decision-resolution: the bracket straddles "annoying OPEX" to "material parasitic," so the load matters for economics — but for *failure* analysis the conclusion is robust regardless of where in the bracket it lands: loss of this load = freeze = catastrophic.
+
+**DC-4 — Corrosion-allowance lifetime: bracket and the upgrade's effect (estimate procedure).**
+Target: years of service before corrosion consumes the wall/corrosion allowance, and how a temperature upgrade changes it. GT-6: nitrate-salt corrosion of stainless is order **~10 µm/yr** at ~565 C for suitable austenitics, rising sharply with T and impurities; carbon steel is far worse and confined to the cold side.
+- Central: a corrosion allowance of order 1-3 mm ÷ ~10 µm/yr → **order 10^2 years** for a well-chosen hot-side alloy at design T (i.e., not life-limiting *if* the alloy and temperature match).
+- Lower bound: wrong alloy / higher T / chloride contamination → rate ×5-10 → allowance consumed in **~10-30 years** — life-limiting.
+- Upper bound: ideal alloy, clean salt, conservative T → effectively non-limiting.
+GT-6 + GT-10 + GT-15? → **a temperature upgrade moves the corrosion rate up the Arrhenius curve; an alloy adequate at the old temperature can become life-limiting at the new one. The legacy "it lasted X years" record is not transferable to the upgraded duty.**
+Confidence: **MEDIUM**; gated by GT-15? and GT-13?. *Verification to HIGH: alloy-specific corrosion data at the new design temperature + remaining-thickness inspection of retained equipment.*
+
+**DC-5 — Cold-ambient commissioning is a concentrated, schedule-driven freeze risk.**
+GT-1 (freeze ~220-240 C) + GT-5 + GT-17? → first fill and commissioning require the *entire* wetted system pre-heated above liquidus before salt enters and held there until steady state → **commissioning in cold ambient with incomplete heat-trace or schedule pressure to fill before pre-heat is validated is a direct path to a frozen first fill — a failure that occurs precisely "at/after the design review," matching the user's fear.**
+Confidence: **HIGH** on mechanism; applicability gated by GT-17?.
+
+### Second-order pass (Phase 4 forward extension)
+
+1. **DC-1 → 2nd order:** a freeze event forces a thaw-and-inspect outage → 3rd order: thaw-induced expansion damage (GT-5) → potential weld/HX failure → unplanned capital, not just downtime. *No contradiction with ground truths; extends DC-1.*
+2. **DC-2 → 2nd order:** pushing temperature for performance accelerates corrosion (DC-4) AND raises decomposition risk (DC-2) simultaneously → 3rd order: the two failure modes are *coupled* — the same knob worsens both. *This coupling is a load-bearing finding: temperature is not a free performance lever.* No contradiction; reinforces.
+3. **DC-3 → 2nd order:** heat-trace is a standing electrical load with a single-point-of-failure character → 3rd order: grid/backup-power loss in winter = system-wide freeze risk, not localized. Extends DC-1's severity. No contradiction.
+4. **DC-4 → 2nd order:** corrosion products contaminate the salt → accelerate further corrosion and alter melt point (impurities can *raise* freeze risk) → couples DC-4 back into DC-1. No contradiction; reveals a feedback loop.
+
+No second-order effect contradicts a Ground Truth, so no chain returns to Phase 2. The coupling findings (temperature worsens two modes; corrosion feeds freeze risk) are promoted into the Conclusion.
+
+---
+
+## 5. Abandoned Reasoning
+
+- **"Molten-salt storage is unproven, so the project is inherently risky."** Abandoned: contradicts the operating record of multiple commercial CSP plants. The technology is proven; the *upgrade delta* is the risk locus. Reasoning by analogy to "new tech = risky" would have mis-aimed the analysis (violates D: no analogy as evidence).
+- **Next-gen salts (chloride/carbonate) as the assumed chemistry.** Set aside as the *baseline* because the user specified nitrate solar-salt fundamentals; chloride/carbonate enters only conditionally in DC-2 *if* P-1/P-2 reveal a temperature-driven chemistry change. Recorded here so it is not silently dropped: if the upgrade's goal is higher temperature, this branch becomes primary.
+- **Detailed economics / LCOE of storage.** Abandoned for this sanity check: the user's question is "does it unravel," a reliability/physics question, not a returns question. DC-3 touches parasitic OPEX only insofar as it bears on the failure (availability) argument. *Nothing material lost for the stated purpose.*
+- **Pump/valve cavitation and detailed CFD of stratification.** Considered, then deprioritized: real but second-order relative to the freeze/decomposition/corrosion/retrofit spine, and not resolvable without the project file. Flagged for the design review, not chained here.
+
+---
+
+## 6. Conclusion
+
+### Pre-mortem (Phase 5 validation — "Assume it has already failed at/after the design review. What caused it?")
+
+Working backward from a failed upgrade, the recurring causes cluster exactly on the unverified, high-stakes assumptions:
+
+1. **Heat-trace reused/undersized for the new geometry** → salt froze in a dead-leg/instrument leg/HX during a cold spell or a power blip → thaw damage → outage. *(A-3 / DC-1)* — adversarially, this is the one a review team *suppresses* because "the old trace always worked."
+2. **Temperature target set for performance without margin to decomposition** → nitrate degraded, off-gassed, lost capacity, fouled salt → and *simultaneously* accelerated corrosion (the coupled knob). *(A-2 / DC-2 / DC-4)*
+3. **Legacy alloys/foundations/ullage inherited without re-qualification at new duty** → corrosion or structural/decomposition failure traced to consumed original margin. *(A-4, A-7, A-8, A-11 / GT-10)*
+4. **Retrofit interface mismatch** legacy↔new (thermal expansion, flange ratings, control logic) → leak or trip at commissioning. *(A-5 / DC-... interface)*
+5. **Cold-ambient first fill under schedule pressure** → frozen commissioning. *(A-6 / DC-5)*
+
+The pre-mortem produces the same spine as the inversion — convergent evidence that the ranking below is the real structure of the risk.
+
+### Validation against rubric
+
+Every conclusion traces to named ground truths; weakest links are the `GT-N?` inputs and are explicitly flagged; estimates are bracketed (DC-3, DC-4); no analogy used as evidence; the second-order pass found coupling but no ground-truth contradiction. Gate cleared, with the standing caveat that applicability is gated by P-1-P-5.
+
+### THE DELIVERABLE — Assumptions most likely to make this project unravel, ranked by (load-bearing × unverified)
+
+| Rank | Assumption to interrogate at the review | Failure mode if wrong | Load-bearing | Currently | Ask the team for |
+|---|---|---|---|---|---|
+| **1** | **Heat-trace / freeze-protection is re-sized, zoned, redundant, and backup-powered for the *upgraded* geometry — every dead-leg covered** (A-3) | Freeze/plug → thaw damage → catastrophic outage (DC-1) | Catastrophic | **Unverified (P-5)** | Heat-loss calc per zone, redundancy scheme, backup-power one-line, dead-leg inventory |
+| **2** | **Hot-tank design temperature has real margin below nitrate decomposition (~565-600 C)** (A-2) | Salt degradation + coupled corrosion acceleration (DC-2, DC-4) | Catastrophic / capacity-killing | **Unverified (P-3)** | Design hot temp, excursion limit, margin justification; if a temp upgrade, the salt-chemistry decision |
+| **3** | **Legacy alloys & corrosion allowance re-qualified at the *new* temperature/cycle count — not inherited** (A-4, A-11) | Accelerated/stress corrosion, fatigue cracking, consumed margin (DC-4, GT-10) | Life-limiting | **Unverified (P-4, P-10)** | Alloy list, corrosion data at new T, remaining-thickness inspection of retained equipment |
+| **4** | **Retrofit interfaces across legacy↔new boundary fully analyzed** (A-5) | Leak/trip/structural failure at commissioning | High | **Unverified (P-1, P-10)** | Interface analysis: thermal expansion, flange ratings, foundation loads, control-protocol mapping |
+| **5** | **Commissioning plan handles cold-ambient first fill (season + pre-heat validation before fill)** (A-6) | Frozen first fill at/after review (DC-5) | High, schedule-concentrated | **Unverified (P-8, P-9)** | Commissioning sequence, pre-heat validation gate, season, cold-weather procedures |
+| **6** | **Cover-gas/ullage re-rated for hotter/larger duty (not reused)** (A-7) | Moisture ingress, decomposition acceleration, over/under-pressure | Medium-High | **Unverified (P-7)** | Ullage re-rating calc |
+| **7** | **Tank foundation/structure re-rated for added mass + ΔT** (A-8) | Settlement, thermal ratcheting, weld failure (GT-7) | Medium-High | **Unverified (P-6, P-10)** | Structural re-analysis for new inventory |
+| **8** | **Crew has molten-salt-specific commissioning experience** (A-13) | Procedural errors during the highest-risk phase | Medium | **Unverified** | Commissioning team CVs / salt-specific experience |
+
+### The two findings worth saying plainly
+
+1. **The upgrade frame is the trap (GT-10 / A-12).** "It worked before, so this is incremental" is the single most dangerous assumption in the project, because an upgrade typically *spends the original design's safety margin* — in temperature, corrosion allowance, structure, and heat-trace capacity. Treat nothing legacy as automatically valid at the new duty.
+2. **Temperature is a coupled knob, not a free lever (DC-2 + DC-4 + second-order finding 2).** If this is a temperature upgrade on nitrate salt, raising hot temperature simultaneously eats decomposition margin *and* accelerates corrosion. There is no performance gain on this axis without paying both — and the ceiling (~565-600 C) is physical chemistry, not convention. If the team's answer to "how do we get more temperature" is "we just run it hotter," that is the most likely unravel point.
+
+**Fragility statement:** Ranks 1-3 are the spine. All three are `untested belief`s on catastrophic failure modes, and all three are unverified purely because the project file is absent. Supply **P-1, P-3, P-4, P-5** (upgrade type, hot temp, materials, heat-trace) and this analysis converts from a generic checklist into a project-specific verdict. Until then, the honest conclusion is: **the project's survival rests on four numbers you have not yet shown me, and the spine of failure modes is exactly where an upgrade is tempted to reuse what already exists.** Your nagging feeling is well-placed and points at a real structural pattern, not at a vague unease.
+
+---
+
+*Relevant outputs are inline above; no files were written per task instructions. The ranked table in Section 6 is the design-review interrogation list.*
+The full analysis is in. Here's the substance.
+
+## Your nagging feeling is well-placed — it points at a real structural pattern, not vague unease
+
+The agent couldn't find a project file, so it reasoned from molten-salt physics and flagged every project-specific number as something you must supply. The headline: **the project's survival rests on four numbers you haven't shown it yet, and the failure modes cluster exactly where an upgrade is tempted to reuse legacy equipment.**
+
+## The two findings worth stating plainly
+
+1. **The upgrade frame is the trap.** "It worked before, so this is incremental" is the single most dangerous assumption. An upgrade typically *spends the original design's safety margin* — thermal, corrosion-allowance, structural, heat-trace. Treat nothing legacy as automatically valid at the new duty.
+2. **Temperature is a coupled knob, not a free lever.** If this is a temperature upgrade on nitrate salt, running hotter simultaneously eats decomposition margin *and* accelerates corrosion — and the ~565–600 °C ceiling is physical chemistry, not convention. If the team's answer to "how do we get more temperature" is "we just run it hotter," that's the most likely unravel point.
+
+## Your design-review interrogation list (ranked by load-bearing × unverified)
+
+| # | Interrogate | If wrong | Ask the team for |
+|---|---|---|---|
+| **1** | Heat-trace re-sized, zoned, redundant, **backup-powered** for the new geometry — every dead-leg | Freeze/plug → thaw damage → catastrophic outage | Per-zone heat-loss calc, redundancy scheme, backup-power one-line, dead-leg inventory |
+| **2** | Hot-tank temp has real margin below decomposition (~565–600 °C) | Salt degradation + coupled corrosion | Design hot temp, excursion limit, margin justification; salt-chemistry decision |
+| **3** | Legacy alloys & corrosion allowance **re-qualified at new T/cycles** — not inherited | Accelerated/stress corrosion, fatigue cracking | Alloy list, corrosion data at new T, remaining-thickness inspection of retained kit |
+| **4** | Retrofit interfaces (legacy↔new) fully analyzed | Leak/trip/structural failure at commissioning | Thermal expansion, flange ratings, foundation loads, control-protocol mapping |
+| **5** | Cold-ambient first-fill handled (season + pre-heat gate) | Frozen first fill at/after review | Commissioning sequence, pre-heat validation gate, cold-weather procedures |
+| 6 | Cover-gas/ullage re-rated (not reused) | Moisture ingress, decomposition, pressure excursion | Ullage re-rating calc |
+| 7 | Tank foundation/structure re-rated for added mass + ΔT | Settlement, thermal ratcheting, weld failure | Structural re-analysis |
+| 8 | Crew has molten-salt-*specific* commissioning experience | Procedural errors in the highest-risk phase | Team CVs / salt experience |
+
+**Ranks 1–3 are the spine** — all three are catastrophic-or-life-limiting modes, all three currently unverified only because the project file is absent.
+
+## To convert this from checklist to verdict
+Give me four numbers and I'll send them back to tighten the bracketed conclusions into hard findings:
+- **P-1** — what's being upgraded (chemistry conversion / capacity / temperature?)
+- **P-3** — hot-tank design temperature + margin
+- **P-4** — materials of construction (legacy vs. new)
+- **P-5** — heat-trace design (installed kW, redundancy, backup power)
+
+Want me to feed those in once you have them?

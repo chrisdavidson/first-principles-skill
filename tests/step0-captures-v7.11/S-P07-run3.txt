@@ -1,0 +1,13 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran and came back with a request for more detail before it can give you a real analysis. Here's the gist:
+
+It can't run a meaningful pre-mortem on nervousness alone — it needs the actual plan to point the analysis at. Specifically, it's asking for:
+
+1. **What is launching?** — one-line description (product, feature, campaign, company?)
+2. **The plan itself** — key steps, sequence, and timing. *This is the most important one; the agent says if you only share one thing, make it this.*
+3. **Hard constraints** — fixed date, budget, team size, immovable dependencies
+4. **What specifically is making you nervous** — even a vague gut feeling, since the thing you can't quite name is often the highest-signal risk
+
+Once it has the plan, it will run it through: problem essence → pre-mortem (failure causes, clustered into structural weaknesses) → assumptions table (each load-bearing assumption classified and challenged) → concrete plan changes or explicitly-accepted-with-mitigation risks.
+
+If you share the details — especially the rough plan — I'll feed them back to the same agent (its context is preserved) and get you the full analysis. What's launching?

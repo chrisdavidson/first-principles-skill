@@ -1,0 +1,33 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## The core insight
+
+The agent reframed the question entirely: **don't audit the plant — interrogate the word "electricity."** That single word determines whether 85% is mundane or physically impossible.
+
+## The decisive thermodynamic chain
+
+A molten-salt system stores **electricity as heat**, so it pays a **Carnot tax** on the way back out that electrochemical batteries never pay. Deriving the ceiling from first principles at solar-salt temperatures (565°C hot / ~30°C cold):
+
+```
+η_Carnot = 1 − 303/838 = 0.638
+```
+
+- **Law-permitted ceiling:** ~64% (idealized Carnot)
+- **Realistic engineering:** ~35–45% (real turbines per GT-6)
+- **Claimed:** 85%
+
+The gap between 85% and 64% is **irreducible** — a Second-Law wall, not engineering headroom.
+
+## The three interpretations
+
+The verdict swings ~3× depending on two unverified facts (charge mechanism, discharge mechanism):
+
+1. **Electricity→electricity, resistive charge + turbine discharge** → 85% **violates the Second Law**. Impossible as stated. (HIGH confidence)
+2. **Thermal round-trip** (heat→heat retention) → 85% is **unremarkable and likely true**; tank insulation routinely retains 90%+. The word "electricity" is just mislabeled.
+3. **Heat-pump charging (Carnot battery)** → 85% is **aggressive but not law-violating**, since COP>1 relaxes the ceiling — though real systems land ~50–70%, so it'd be best-in-world.
+
+## How to approach it
+
+Start by extracting two facts from the system spec — **is charge resistive or a heat pump, and is discharge a turbine** — before auditing any losses. Those two facts flip the conclusion between "impossible," "trivial," and "aggressive-but-allowed."
+
+**Punchline:** Any round-trip *electricity* efficiency above ~64% at these temperatures is either mislabeled thermal efficiency or relies on heat-pump charging — and that distinction, not engineering polish, is where the investigation begins.

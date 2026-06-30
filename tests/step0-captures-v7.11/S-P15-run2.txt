@@ -1,0 +1,17 @@
+The first-principles agent ran but hit a genuine blocker: the prompt refers to **"that plant"** and its **"governing physics,"** but there's no prior context in this session establishing *which* plant. I passed the prompt exactly as written (no modification), and the agent can't run a theoretical-limit analysis without knowing which physical ceiling governs.
+
+To proceed, it needs from you:
+
+1. **Which plant?** The governing law changes completely depending on type:
+   - Thermal (coal/gas/nuclear) → **Carnot limit**
+   - Solar PV → **Shockley-Queisser** / Landsberg limit
+   - Wind → **Betz limit** (59.3%)
+   - Literal photosynthesis → **~11% theoretical photosynthetic limit**
+
+2. **What figure to bound?** Efficiency, power output, cost/kWh, or throughput?
+
+3. **The physics-fixed operating conditions** — e.g., for a thermal plant, hot-side and cold-side temperatures.
+
+If you give me even a rough version (e.g., *"a coal steam plant, 600 °C boiler, 25 °C cooling source — max efficiency?"*), I'll send it straight back to the same agent, which still has its context loaded, and it'll derive the ceiling from first principles.
+
+Which plant, and which figure?

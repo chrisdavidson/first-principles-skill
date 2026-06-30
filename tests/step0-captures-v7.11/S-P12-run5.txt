@@ -1,0 +1,21 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Counting: How many satellites are in LEO right now
+
+- **~12,000–13,000 active satellites** in LEO — order of magnitude **10⁴**. Starlink is ~10,000 of these (≈75–80% of the active fleet).
+- **~22,000 total tracked objects ≥10 cm** (active payloads + dead sats + rocket bodies + large debris) — this is the number that actually governs collision risk.
+- Plus **~1.2 million untracked-but-lethal fragments** (1–10 cm) and >140 million sub-cm objects.
+
+## Does a Starlink-scale constellation meaningfully raise collision risk?
+
+**Yes — but with a load-bearing asterisk.**
+
+**The geometric case (why it's meaningful):** Pairwise collision risk scales as **N²**. Injecting another ~10⁴ objects into the busy 500–600 km band roughly **doubles N in that band → ~4× the conjunction frequency**. ESA's measured **~20%/year** rise in LEO collision probability is the live signature of exactly this build-out. So it's *categorically* meaningful, not marginal.
+
+**The asterisk (the part that flips the intuition):** Starlink's contribution to *catastrophic, debris-generating* collisions is far smaller than its raw count suggests, because those satellites are **maneuverable, actively deconflicted, and decay within ~5 years**. The real Kessler-cascade driver is the ~10,000 *dead* tracked objects and the 1.2M untracked fragments — none of which can dodge.
+
+## The order-of-magnitude takeaway
+
+> ~10⁴ active sats / ~22,000 tracked objects in LEO. A Starlink-scale layer is a ~2× bump in N and thus a ~4× bump in conjunction rate in its band — meaningful and already measurable — but its catastrophic-cascade contribution is held ~an order of magnitude lower by maneuverability and atmospheric decay. **That proviso is the single assumption the benign case rests on; if maneuverability fails at scale, the N² term dominates and the framing flips.**
+
+The agent's own mean-free-path calculation bracketed system-wide collisions at [~1, ~80]/yr under a (deliberately crude) uniform-density model, then reconciled it against the observed real-world rate of ~1 catastrophic tracked-on-tracked collision per few years — noting the uniform model over-counts because real objects share near-circular, similarly-inclined orbits rather than crossing randomly.

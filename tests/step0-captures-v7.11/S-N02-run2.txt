@@ -1,0 +1,12 @@
+The first-principles agent ran your prompt as a **pre-mortem** ("assume the migration failed — work backward to the causes"). Before it can surface failure modes specific to *your* migration rather than generic platitudes, it needs the frame. It asked for:
+
+1. **Source → target** — what are you migrating from and to? (e.g., on-prem Postgres → Aurora; Mongo → Postgres; schema redesign; vendor A → vendor B)
+2. **Volume & shape** — rough record count, total size, any huge tables, foreign-key/relational integrity involved?
+3. **Cutover model** — big-bang (downtime window) or zero-downtime (dual-write, CDC, backfill)? Is the source writable during the migration?
+4. **Transformation** — straight lift-and-shift, or reshaping/cleaning/deduping in flight?
+5. **Constraints** — downtime budget, deadline, rollback requirement, compliance/PII, who's accountable if it fails?
+6. **Basis for "fine"** — *why* are you confident? (dry runs passed? small dataset? done it before?) — this reveals which assumptions are untested.
+
+Partial answers are fine and will sharpen the result. Alternatively, you can tell it to **just proceed** — it'll run the pre-mortem against an explicitly stated set of assumptions and flag every one as unverified.
+
+How would you like to proceed? Reply with whatever context you have (or "just proceed") and I'll pass it straight back to the agent.

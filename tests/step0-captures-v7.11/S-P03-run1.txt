@@ -1,0 +1,40 @@
+The first-principles agent completed the fishbone analysis. Here's the result:
+
+# Fishbone (Ishikawa) Analysis — Checkout API 503 Incident
+
+## Problem
+The checkout API returned HTTP 503 to **all users for 40 minutes** (14:10–~14:50 UTC, 2026-06-27). A 503 means the *service was reachable but unable/unwilling to serve* — which steers the analysis toward overload/health/de-registration rather than network black-holes (timeouts) or logic bugs (500s).
+
+## The Diagram (six-category set)
+
+```
+   PEOPLE                  PROCESS                TECHNOLOGY            CHECKOUT API
+      \__ on-call delay       \__ deploy ~14:10      /__ no healthy upstreams (probe fail)   503 / 40 min
+      \__ runbook gap         \__ config/flag push   /__ thread/conn pool exhaustion        (all users)
+      \__ manual change       \__ autoscaler→0       /__ upstream dependency timeout      ___/
+                                                     /__ TLS/WAF/edge 503              __/
+      /__ traffic spike       /__ stale registry/DNS \__ memory/CPU saturation, OOMKill
+      /__ retry storm/bot     /__ wrong env/secret    \__ cloud quota / rate-limit
+      /__ AZ/provider event   /   rotated             \__ fd / connection limit
+   ENVIRONMENT            INFORMATION             RESOURCES
+```
+
+## Key reasoning notes
+- **DB exclusion respected**, but the indirect path *slow-but-alive DB queries → app connection-pool exhaustion → 503* is **retained** — that's an app-tier failure, not a DB-layer one. Worth confirming *how* the DB was ruled out (normal DB CPU/connections ≠ ruling out slow queries starving the app pool).
+- **Sharp 14:10 onset** points to a discrete trigger (deploy/config/flag/spike), not a slow leak.
+- **Bounded ~40-min auto-recovery** fits a transient resource/health condition or a rollback/restart — less consistent with a code bug needing a fix-forward.
+- 503 (not 500) down-weights code-logic-bug branches.
+
+## Top 3 branches to investigate first
+1. **Process → deploy or config/flag change at ~14:10** (the sharp edge most implies a discrete trigger)
+2. **Technology → LB/ingress had no healthy upstreams** (failed readiness/liveness probes — the canonical all-users 503)
+3. **Technology/Resources → connection/thread-pool exhaustion** (incl. the DB-compatible slow-query path) or **upstream dependency timeout**
+
+## Recommended evidence order
+1. Pull the change/deploy log for 13:50–14:15 UTC (cheapest, highest-yield).
+2. **Identify which hop emitted the 503** (edge/CDN/WAF vs. ingress vs. app) — this single fact prunes whole branches and is the most decisive next step.
+3. Overlay request-rate, pod-readiness, and pool-utilization metrics across 14:00–14:55.
+
+All candidate causes remain **unverified** pending evidence (except the excluded DB layer).
+
+The agent offered to render this as an actual SVG fishbone diagram or expand any branch into a deeper sub-cause tree — let me know if you'd like either.

@@ -1,0 +1,26 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## The current count
+
+As of mid-2026:
+- **~15,000 active satellites** total in orbit; **~88% (~13,000) are in LEO** (below 2,000 km)
+- **Starlink alone is ~10,400 active satellites** — roughly two-thirds of all operational satellites worldwide
+- **~33,000+ total tracked objects** when you include dead satellites, spent rocket bodies, and cataloged debris ≥10 cm (sub-10 cm untracked debris runs into the hundreds of thousands–millions)
+
+**Direct answer: on the order of 10⁴ active satellites in LEO right now.** A Starlink-scale constellation isn't a hypothetical future increment — it's already the dominant population, so "would it increase risk" is partly retrospective: it already did.
+
+## Order-of-magnitude collision framing
+
+The key move is separating two risk channels that scale completely differently:
+
+**Channel 1 — managed satellites.** Active Starlinks autonomously dodge. Encounter rate scales as N². Going from ~10³ pre-mega-constellation active satellites to ~10⁴ today → **(10⁴/10³)² ≈ 100× rise in pairwise conjunction geometry**. That's the load-bearing number, and it's why SpaceX reports satellites executing on the order of a million+ automated avoidance maneuvers per ~6-month period. The risk is real but converted into *operational burden* and a dependence on every operator's autonomy working.
+
+**Channel 2 — debris / dead objects.** A failed object can't dodge. But at Starlink's ~550 km shell, atmospheric drag de-orbits objects in ~5 years — a self-cleaning timescale much shorter than the debris-accumulation timescale. Kessler-cascade susceptibility there is low.
+
+## The framing, stated plainly
+
+1. **Count:** ~10⁴ active LEO satellites; Starlink ≈ ⅔ of all operational satellites. Pairwise conjunction rates already rose ~100× (N² scaling).
+2. **Meaningful? Yes — but the meaning is "operational burden," not "Kessler cascade"** at Starlink's altitude. Risk is ~2 orders of magnitude higher but actively managed and self-cleaning. The system is fragile to *autonomy/operator failure*, not orbital-mechanics runaway.
+3. **The genuinely dangerous variable is altitude, not count.** The same constellation at 800–1,200 km (where drag is weak and de-orbit takes decades-to-centuries — where OneWeb, old Soviet hardware, and the 2009 Iridium-Cosmos and 2021 Russian ASAT debris sit) would be categorically worse.
+
+**Caveat the agent flagged:** the ~100× figure is a clean geometric approximation — treat it as "right order of magnitude," not a precise multiplier — and it assumes maneuver autonomy keeps working at fleet scale, which is the assumption actually worth worrying about.

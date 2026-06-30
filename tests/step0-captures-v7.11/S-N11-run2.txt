@@ -1,0 +1,23 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Pre-Mortem: Turbine Coupling Assembly — Salt Tank Commissioning
+
+The agent ran a rigorous pre-mortem but flagged up front that it lacks your actual design docs, so it populated the structure with failure physics generic to molten-salt thermal storage couplings — marking design-dependent branches as **unverified** for your team to close.
+
+### Six failure modes to prepare for (prioritized)
+
+1. **Hot misalignment beyond rated envelope** *(highest priority — the canonical commissioning-window mode)* — Cold-set alignment shifts when the first hot-salt thermal gradient causes differential growth, pushing shafts past the coupling's rated offset and dumping reaction loads into bearings. → *Verify thermal-growth offsets were pre-set in the cold alignment; plan a thermal soak before first roll.*
+
+2. **Salt freeze / thermal shock at the coupling boundary** — Fill brings salt near its freeze point; trace-heating gaps create steep local gradients and shock stress. → *Verify trace-heating coverage and warm-up ramp limits near the coupling.*
+
+3. **Lubricant breakdown OR disc-pack fatigue** *(mutually exclusive by coupling type)* — Gear/grid couplings can run dry if hot soak exceeds grease ceiling; dry disc/diaphragm couplings can fatigue-crack suddenly under combined steady+cyclic flexure. → *Resolve by confirming coupling type first.*
+
+4. **Guard/spacer interference + fastener relaxation** — Differential growth closes clearances and relaxes bolt preload on the first cycle. → *Check hot clearances; schedule a post-first-cycle re-torque.*
+
+5. **Critical-speed / rotor-bow exposure on first roll** — Uneven salt-side heating bows the rotor through critical speeds. → *Enforce slow-roll soak and vibration hold points.*
+
+### Two actions gate the entire ranking
+- **(a) Confirm the coupling type** — lubricated gear/grid vs. dry disc/diaphragm (decides whether mode 3 is lubricant or fatigue).
+- **(b) Confirm the salt freeze point and trace-heating coverage** near the coupling (decides how dominant the freeze/shock modes are).
+
+The agent noted that if you share the coupling drawing/type, salt spec, and commissioning sequence, it can re-run with the unverified branches closed and produce a design-specific pre-commissioning checklist with hold points. Let me know and I can pass that back to it.

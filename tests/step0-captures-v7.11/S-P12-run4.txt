@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+# How many satellites in LEO, and does Starlink-scale meaningfully increase collision risk?
+
+## The counts (mid-2026)
+- **Active satellites in LEO:** ~16,000 — of which **Starlink alone is ~10,400** (about two-thirds of all operational satellites).
+- **Tracked objects ≥10 cm** (active + dead sats + debris): ~29,000 in the catalog.
+- **Untracked but lethal:** ~1.2 million objects 1–10 cm, and ~140 million fragments under 1 cm. Anything above ~1 cm can disable a satellite at orbital velocity.
+
+The key reframe: active satellites are the *minority* of trackable hazards, and trackable hazards are a rounding error against untracked lethal debris.
+
+## The order-of-magnitude argument
+Collision rate naively scales as **n²**, which makes 10⁴ new satellites sound catastrophic. But the agent split it into two regimes:
+
+- **Active-vs-active:** Starlink satellites are **maneuverable** with autonomous collision avoidance, so raw count overstates risk by 1–2 orders of magnitude. A "collision probability" becomes a "maneuver." Low-order term.
+- **Active-vs-debris (dominant):** Adding ~10⁴ satellites raises the large-target cross-section by ~10⁴/2.9×10⁴ ≈ **+35%** — a real, same-order increase, consistent with ESA's reported ~20% jump in LEO collision probability in 2026.
+
+**The bracket:** Starlink-scale deployment raises collision *exposure* by roughly **1.2–1.5× (tens of percent), not 10×.** Maneuverability and a self-cleaning altitude band (~540–570 km, ~5-year drag-driven deorbit) absorb most of the naive n² growth.
+
+## The caveat that actually matters
+That benign answer is **conditional on disposal compliance staying ~95%+**. The dominant hazard is debris and *dead* satellites, not live ones — a controllable satellite is a low-order term, but the same satellite tumbling dead rejoins the n² debris term. So the real policy lever is **end-of-life reliability, not satellite count.**
+
+**Confidence: MEDIUM** — counts are high-confidence and directly sourced; the 1.2–1.5× bracket is an order-of-magnitude argument, not a propagation simulation (right scale and direction, not a precise probability).
+
+Sources included KeepTrack, Orbital Radar, the ESA Space Environment Report 2025, and ESA's 2026 update on LEO debris collision risk.

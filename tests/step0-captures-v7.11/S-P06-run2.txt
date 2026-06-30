@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Second-Order Effects: Real-Time Inventory Sync → Checkout (Ship This Week)
+
+**The core risk in one sentence:** You're wiring a *new external dependency* (the live inventory source) into your *most revenue-critical path* (checkout), under a *hard deadline with no remediation slack* — and the very success of Friday's demo is what will drive the production load that staging almost certainly never exercised.
+
+### The effect chains that matter
+
+| Order | Effect | Type |
+|---|---|---|
+| 2nd | Checkout now fails whenever the inventory source is slow/down — a failure mode checkout never had | ⚠️ adverse |
+| 2nd | Sync latency drags conversion across the *whole* checkout, even when it works | ⚠️ adverse |
+| 2nd | Landing the demo strengthens your position with your biggest customer | ✅ favourable |
+| 3rd | First sync outage becomes a *revenue incident* unless checkout degrades gracefully | ⚠️ highest leverage |
+| 3rd | Global conversion drag (everyone) may outweigh value to one customer (local gain) | ⚠️ adverse |
+| 3rd | **Demo success itself triggers the load that exposes the staging gap** — success and risk are causally linked | ⚠️ adverse |
+
+### Three things to act on before Friday
+
+1. **Graceful degradation (do regardless).** Make checkout *survive* the inventory source being slow or down — timeout + fallback to last-known stock or a non-blocking path. Without this, the first hiccup is a checkout revenue incident.
+2. **Measure the latency delta.** Compare p95 checkout latency with sync on vs. off. If global drag exceeds value to the one customer, gate sync behind a flag.
+3. **Plan for post-demo load.** Add monitoring/alerting on the sync path and a tested rollback, so a defect found after the demo doesn't force a risky hotfix into your most sensitive path.
+
+### The recommended de-risking move
+**Ship behind a feature flag scoped to the demo.** You still hit Friday's hard deadline with full functionality for the customer, but you limit the blast radius on global checkout until you've verified latency impact and load behaviour.
+
+### The one thing to test today
+**Does checkout still complete if the inventory source times out?** If yes, most of the adverse chain is already mitigated. If you don't know, that's the single load-bearing unknown to resolve before Friday.

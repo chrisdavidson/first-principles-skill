@@ -1,0 +1,20 @@
+The first-principles agent has run. Here's what it came back with.
+
+It couldn't run a *real* pre-mortem yet, because doing so on generic assumptions would just invent risks that aren't actually yours. To analyze your specific launch, it needs four things:
+
+1. **What's launching?** One sentence — product, feature, campaign, release, company.
+2. **The plan itself** — key steps, sequence, dates, and especially the critical path. A rough bullet list is fine.
+3. **The hard constraints** — what can't move (fixed date, budget cap, cross-team dependency, regulatory gate, runway).
+4. **What specifically is making you nervous?** — the thing you keep coming back to, even if it feels vague. Your gut usually points at the real structural weakness before you can articulate it.
+
+Once you provide those, the agent will run a structured pre-mortem:
+- **Assume it already failed** ("it's launch day +30 and it flopped — what caused it?")
+- **Enumerate every plausible failure mode**, including the uncomfortable ones
+- **Cluster them into structural weaknesses** (the recurring roots, which are design flaws in the plan rather than isolated risks)
+- **Convert each cluster into a concrete action** — fix it, or consciously accept it with a named mitigation and owner
+
+The output will be specific and actionable, not reassurance.
+
+You can either answer the four questions, or just paste the plan and dump your worries stream-of-consciousness — it'll structure things from there. **What's launching?**
+
+(When you reply, I can pass it straight back to the same agent so it keeps the full context.)

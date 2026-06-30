@@ -1,0 +1,29 @@
+I invoked the **first-principles** agent with your prompt exactly as written. It ran a pre-mortem framing but stopped short because it can't see the actual plan — it needs specifics before it can name concrete failure chains rather than generic ones.
+
+## It needs four things from you
+
+1. **What is the plan?** One or two sentences on what you're about to commit to.
+2. **What does "blow up" mean here?** The specific outcome you fear — missed deadline, data loss, cost overrun, churn, breach, burnout?
+3. **Key constraints** — deadline, budget, headcount, compatibility, regulatory, anything non-negotiable.
+4. **What you've already verified** — facts to treat as fixed rather than re-question.
+
+## What it gave you to start with now
+
+The core reframe: don't ask "what could go wrong?" Ask *"It's six months out. The plan failed badly. Write the post-mortem — what caused it?"* Prospective hindsight surfaces ~25-30% more causes.
+
+A checklist of failure categories teams under-weight when morale is high:
+
+| Category | Question | Bias countered |
+|---|---|---|
+| Scope & estimates | Which "quick" task wasn't? | Planning fallacy |
+| Single points of failure | What one person/vendor/system sinks us if it vanishes? | Dependency blindness |
+| Unvalidated assumptions | What did we treat as known but never checked? | Confirmation bias |
+| The "excited team" risk | What objection got waved away *because* everyone agreed? | Groupthink |
+| External / second-order | What outside our control lands at the worst time? | Inside view |
+| Success-induced failure | If it works *too well*, what breaks (load, cost, support)? | Optimism |
+| Integration & handoff | Where do two teams/systems meet, and who owns the seam? | Coordination gap |
+| Reversibility | How fast and cheap is rollback if we're wrong? | Lock-in |
+
+The sharpest filter it offered: for each cause, ask *"Would I have said this out loud in the room, or suppressed it because the team is excited?"* The suppressed ones are your highest-priority findings — and your nervousness is probably already pointing at one.
+
+**Want me to continue?** Send me the four items above and I'll pass them back to the same agent (its context is still live) to run the full analysis — naming specific failure chains, the load-bearing assumptions to verify first, and which weaknesses warrant changing the plan vs. accepting with a mitigation.

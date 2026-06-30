@@ -1,0 +1,23 @@
+The first-principles agent has run and come back. Here's what it returned.
+
+## It needs your specifics before it can run a real pre-mortem
+
+Rather than hand you a generic checklist, the agent identified that the single most valuable input is hiding in one word of your request — **"second."** A second installation means installation #1 already exists, which gives you ground-truth failure data most projects never have. Its key question back to you:
+
+> **What went wrong on installation #1?** Tell it that, and the pre-mortem gets sharp fast.
+
+### What it's asking for
+
+1. **Installation #1's actuals vs. plan** — cost overruns, schedule slips, thermal-spec underperformance, what broke or surprised you in commissioning and operation. Each is a *verified* risk, not a speculative one.
+2. **What's different this time** — site, salt chemistry/supplier, tank size, contractor, EPC structure, grid interconnect, climate, jurisdiction. Differences are where #1's data stops protecting you.
+3. **The plan's load-bearing numbers** — budget, contingency %, critical-path schedule, salt freeze-point margin / heat-trace design basis, storage capacity (MWh-th), round-trip target.
+4. **The contract structure** — fixed-price vs. cost-plus, who owns the thermal-performance guarantee, liquidated damages, force-majeure and salt-supply clauses. (This is where "technical" failures become *your* financial failures.)
+5. **Hard constraints** — commercial-operation deadline, financing covenants, offtake/PPA obligations tied to in-service date.
+
+### Your options
+
+- **Best:** point it at the plan documents (file paths or pasted budget/schedule/spec) plus a short post-mortem of installation #1.
+- **Faster but shallower:** answer items 1–5 in prose.
+- **Start now:** it can run a structured pre-mortem skeleton keyed to known molten-salt failure physics — salt freezing / heat-trace failure, tank thermal-cycling fatigue, salt supply & cost, dry-out and corrosion, commissioning sequence, contractor/EPC risk, interconnect — and you fill in your specifics against each branch.
+
+The agent is still live, so I can continue the same thread with full context once you tell me which path you want. **Which would you like — and what went wrong on installation #1?**

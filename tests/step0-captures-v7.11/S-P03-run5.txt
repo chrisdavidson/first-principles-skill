@@ -1,0 +1,30 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced.
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Files generated:**
+- `/tmp/fishbone.svg` (vector)
+- `/tmp/fishbone.png` (raster preview)
+
+**Effect (spine head):** Checkout API returned 503 for 40 minutes from 14:10 UTC, all users affected.
+
+### Candidate causes by category
+
+| Bone | Candidate causes |
+|------|-----------------|
+| **People** | Recent deploy/change by on-call; manual config misclick; handoff gap with no one watching dashboards |
+| **Process** | Deploy timed at 14:10 (strong timing correlation); no canary/staged rollout; slow rollback (~40 min looks like MTTR, not the fault's natural life) |
+| **Technology/Tools** | Upstream dependency timeout (payment/auth); thread/connection-pool exhaustion; LB health-check failing → no healthy pods. *Database greyed out as RULED OUT per your finding* |
+| **Environment** | Node/pod resource exhaustion (CPU/mem/OOM); autoscaler failed to scale; network/DNS/TLS issue |
+| **Information** | Late alert (detection delay); missing traces; stale config or bad feature-flag value |
+| **Resources** | Downstream 3rd-party quota/rate-limit; thin capacity headroom; expired cert/token/credential |
+
+### Two prioritization findings
+
+1. **503 semantics narrow the field** — "service unavailable" is typically emitted by the LB/proxy when no healthy backend exists, or by the app when a pool/dependency saturates. Points hardest at **Technology/Tools** and **Resources/Environment**; away from 5xx-from-logic causes.
+
+2. **Sharp 14:10 onset + all-users blast radius** favors a discrete trigger — a **deploy/config change** or a **shared dependency saturating** — over gradual organic load.
+
+**Highest-priority branches to verify first:** the deploy/change log around 14:10, LB/health-check status, and upstream-dependency latency. All causes remain candidate/unverified until log evidence confirms them.
+
+The agent offered to drill any branch into sub-causes (e.g., a 5-Whys on the deploy-at-14:10 path) or adjust styling. Let me know if you'd like to continue.

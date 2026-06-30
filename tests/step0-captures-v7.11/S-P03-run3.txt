@@ -1,0 +1,36 @@
+The first-principles agent completed its fishbone analysis. Here's the result:
+
+## Fishbone Diagram — Checkout API 503 Incident
+
+**Effect:** Checkout API returned HTTP 503 for all users, 40 minutes from 14:10 UTC. Database layer ruled out.
+
+```
+                              PEOPLE                          PROCESS
+                                 │                               │
+      ┌───────────────────────────┤                               ├───────────────────────────┐
+      │ • Erroneous manual deploy  │                               │ • Deploy/release at ~14:10 │
+      │ • On-call slow to detect   │                               │ • No auto-rollback         │
+      │ • Wrong runbook            │                               │ • Feature flag flipped     │
+      │                            ▼                               ▼ • Cert/secret rotation job  │
+  ═════════════════════════════════════════════════════════════════════════════════════►  EFFECT:
+      │                            ▲                               ▲                            │  503, all users,
+      │ • Healthy instances → 0    │                               │ • Upstream svc 503 cascade │  40 min @14:10
+      │ • Conn-pool exhaustion     │                               │ • Stale config / env var   │
+      │ • OOMKill / worker saturate│                               │ • DNS failure / expired TLS│
+      │ • LB no healthy targets    │                               │ • Bad health-check endpoint│
+      └───────────────────────────┤                               ├───────────────────────────┘
+                          RESOURCES                            ENVIRONMENT / INFORMATION
+```
+
+### Prioritized branches to verify
+| Priority | Hypothesis | Evidence to check |
+|---|---|---|
+| **1** | Deploy/config change at 14:10 | CI/CD logs, change audit 14:00–14:15 |
+| **2** | LB/ingress had no healthy upstreams | Target-health metrics, ingress logs |
+| **3** | Upstream dependency cascaded 503 | Payment/auth/inventory status |
+| **4** | Pods OOMKilled / crash-looped to 0 | Pod restart counts, replica timeline |
+| **5** | Expired TLS cert | Cert expiry, rotation jobs |
+
+**Key insight:** The bounded 40-min window + all-users blast radius most strongly implicates a **discrete change event at 14:10** (Process/People) or a **fleet-wide healthy-target collapse** (Technology/Resources) — not gradual degradation. The highest-value next step is correlating the 14:10 timestamp against deployment and change-audit logs.
+
+The agent offered two follow-ups: a Five Whys drill-down on the most likely branch once you've checked deploy logs, or rendering this as a clean SVG. Let me know if you'd like either — the agent is still available to continue.

@@ -1,0 +1,29 @@
+The first-principles agent completed the decomposition. Here is its analysis:
+
+# First-Principles Decomposition of the Claim
+
+**Claim:** *"A molten-salt thermal storage system achieves 85% round-trip electricity efficiency when paired with a combined-cycle gas turbine — vendor pilot data from the Atacama Desert."*
+
+## Verdict: The claim does not bottom out at irreducible facts — it decomposes into a contradiction.
+
+### Ground truths it reduces to
+- **Molten salt stores sensible heat** (mass × specific heat × ΔT) — *verified, definitional*.
+- **Recovering electricity from heat requires a heat engine** — *verified*.
+- **Any heat engine is Carnot-bounded:** η ≤ 1 − T_cold/T_hot — *Second Law, verified*.
+- **Solar salt runs ~290 °C → 565 °C**, giving a Carnot ceiling of ~33% and ~38–42% practical conversion — *verified*.
+- **A combined-cycle gas turbine burns fuel** (chemical energy in); its ~60% is fuel→electricity, *not* a storage round-trip — *verified*.
+
+### Two independent HIGH-confidence failure chains
+
+1. **Thermodynamic ceiling.** Electricity → heat → electricity at solar-salt temperatures is Carnot-limited to ~40% round-trip (0.99 charge × ~0.40 discharge). 85% is foreclosed by the Second Law — no salt chemistry (even 720 °C chloride salts, Carnot ≈ 43%) closes the gap.
+
+2. **Category error.** Round-trip efficiency counts *electricity in vs. electricity out*. A gas turbine's input is fuel, not discharged stored electricity. Counting the CCGT inside the "round-trip" conflates a primary fuel-burning generator with a storage device.
+
+### Most charitable reading
+A **label substitution**: 85% is plausibly the *thermal* recovery of the salt tank (heat-in vs. heat-out, where >90% is routine), mislabeled as *electricity* round-trip.
+
+### Flagged unverified inputs
+- Vendor pilot data is single-source, non-peer-reviewed.
+- Atacama siting is immaterial to electrical round-trip efficiency (it matters for solar input, not reconversion).
+
+**Bottom line:** As worded, the claim is physically implausible / mislabeled (HIGH confidence). What would settle it: an independent energy-balance audit specifying exactly which streams — electricity, fuel, or heat — the 85% numerator and denominator measure.

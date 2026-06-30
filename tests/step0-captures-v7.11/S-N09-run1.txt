@@ -1,0 +1,11 @@
+The first-principles agent ran but couldn't find any commissioning plan file in the filesystem, so it paused to ask how you want to proceed. Its questions, relayed:
+
+1. **The plan itself** — paste it or point to the file (commissioning sequence/order, timeline, team/contractor structure).
+2. **Salt chemistry & quantities** — which salt (e.g., solar salt 60/40 NaNO₃/KNO₃)? Tank tonnage? (drives the dominant freeze/melt failure category)
+3. **Heat-trace / freeze-protection design** — electric trace, impedance, redundancy, backup power?
+4. **Initial melt strategy** — how solid salt → first molten inventory (external melt skid, immersion heaters)?
+5. **Known constraints** — site/climate, regulatory regime, fixed go-live date, contractor lock-ins.
+
+Alternatively, you can tell it to **"proceed generic"** and it will run the pre-mortem against a representative solar-salt two-tank TES plan, stating its assumed plan up front. That still surfaces the major structural failure modes (freeze/plugging, initial-melt mishaps, heat-trace single points of failure, ullage gas / nitrate decomposition, level-measurement blind spots, pump/valve cold-start failures, schedule-compression traps) but can't catch failures specific to *your* sequence.
+
+**How do you want to proceed?** Paste the plan/details, or say "proceed generic" and I'll pass your answer straight back to the agent (which still has its context).

@@ -1,0 +1,17 @@
+The first-principles agent has responded. Here's what it came back with:
+
+---
+
+It heard you — and it flagged that "nervous about the launch" is exactly the right moment for a structured **pre-mortem** rather than pushing through the unease. But it can't surface real failure modes for a plan it can't see yet. To do this properly instead of offering generic reassurance, it needs the substance behind the feeling:
+
+1. **What is launching?** — a product, feature, service, marketing campaign, a release?
+2. **The plan itself** — even a 3–5 bullet sketch of the steps and sequence.
+3. **The hard date** — is there a fixed launch date, and what's driving it?
+4. **Key constraints** — team size, budget, dependencies on other teams/vendors, regulatory or compliance gates.
+5. **What specifically is making you nervous?** — name the thing your gut keeps circling back to, even if it feels vague. That instinct usually points at a real structural weakness.
+
+**What it will do with it:** Run a full pre-mortem — assume the launch already failed three months out and work backward to enumerate every cause, interrogate that list adversarially (including the failure modes you'd be tempted not to say out loud), cluster the recurring roots into structural weaknesses, and hand you concrete plan changes — a mitigation or a named, explicitly-accepted risk for each.
+
+---
+
+The agent is paused and waiting. Drop whatever details you have on those five points and I'll feed them straight back to it to run the pre-mortem.

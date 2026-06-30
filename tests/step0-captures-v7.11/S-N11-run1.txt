@@ -1,0 +1,41 @@
+The first-principles agent completed its analysis. Here is what it returned:
+
+---
+
+# Pre-Mortem: Turbine Coupling Assembly — Salt Tank Commissioning
+
+The agent ran this as a **pre-mortem / failure-chain analysis** (triggered by "failure chain") and flagged up front that it lacked the actual engineering details, so its conclusions are **MEDIUM confidence**, gated on verifying a few load-bearing assumptions.
+
+## Inputs it needs to firm up the analysis
+- The **specific failure chain** the team flagged
+- **Coupling type** (gear / disc / grid / diaphragm)
+- **Working-fluid temperature** (assumed molten nitrate salt, ~290–565 °C)
+- **Commissioning scope** (first salt fill, hot circulation, or turbine roll)
+
+## Failure modes to prepare for (ranked)
+
+**HIGH severity / HIGH likelihood**
+1. **Thermal-growth misalignment exceeds coupling capacity** — aligned cold, fails hot; cyclic bearing/fastener load → disc-pack fatigue.
+2. **Salt freeze / partial solidification at a cold spot** — tracing gap → flow blockage, shaft lock, or thermal shock on restart (salt freezes ~220–240 °C).
+
+**HIGH severity / MEDIUM likelihood**
+3. **Differential thermal-transient shock during ramp** — uneven heating → transient peak stress, warped alignment.
+4. **Fastener pre-load loss from thermal cycling** — bolt relaxation/creep → fretting → liberation.
+
+**MEDIUM**
+5. **Seal/lube degradation** at the hot coupling end.
+6. **Resonance / critical-speed shift** when hot, moving a critical speed into the operating band during roll-up.
+
+**Key insight (root pattern):** Most top failure modes share *one* structural root — **the assembly is set cold and first experiences its true thermal state at commissioning.** These are not six independent risks but one vulnerability with several expressions.
+
+## Recommended pre-commissioning actions (priority order)
+1. **Hot-alignment verification** — confirm cold offset lands in-tolerance hot; add a hold-point to re-check alignment at temperature.
+2. **Freeze-protection proof test** — verify heat tracing, redundancy, and controls response across the full coupling/seal zone *before* salt fill.
+3. **Controlled thermal-ramp procedure** — bound heating rates to limit transient differential stress; instrument for it.
+4. **Hot fastener-torque check** — re-verify coupling bolt pre-load after the first thermal cycle.
+
+**Single highest-leverage action:** treat **hot-vs-cold alignment** as the dominant risk, since it is the common root of the top failure modes.
+
+---
+
+The agent offered to replace its unverified assumptions with concrete alignment math if you provide the flagged failure chain, coupling type, shaft span, and operating temperatures. I can relay any of those details back to it (its context is still live) — just let me know.

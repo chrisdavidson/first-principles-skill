@@ -1,0 +1,34 @@
+The first-principles agent worked the classic Fermi problem end-to-end. Here's the walkthrough it produced:
+
+## The chain (units cancel into "tuners")
+
+**1. How many pianos?**
+`9.4M people × (1 piano / 100 people) = 94,000 pianos`
+
+**2. Tunings demanded per year?**
+`94,000 pianos × (1 tuning/piano/year) = 94,000 tunings/year`
+
+**3. Tunings one tuner can supply per year?**
+`4 tunings/day × 250 workdays/year = 1,000 tunings/tuner/year`
+
+**4. Divide demand by per-tuner supply:**
+`94,000 ÷ 1,000 = ~90 tuners`
+
+**Central estimate: ~90 piano tuners.**
+
+## The bracket (the real deliverable)
+
+| | Conservative | Aggressive |
+|---|---|---|
+| Pianos/person | 1/200 | 1/50 |
+| Tunings/piano/yr | 0.5 | 1.5 |
+| Tunings/tuner/yr | 1,250 | 750 |
+
+- **Lower:** `9.4M × 1/200 × 0.5 ÷ 1,250 ≈ 19`
+- **Upper:** `9.4M × 1/50 × 1.5 ÷ 750 ≈ 376`
+
+**Result: [~20, ~90, ~380] tuners** — i.e., "tens to a few hundred," which is exactly the resolution a Fermi estimate is meant to deliver.
+
+## Key takeaways
+- **Dominant uncertainty** is piano-ownership density (the assumed 1 piano per 100 people) — tightening that figure shrinks the spread far more than refining tuner productivity.
+- **The transferable move:** chain the factors so each one's units cancel into the next, leaving the final units as exactly the thing you're counting.

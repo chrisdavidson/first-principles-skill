@@ -1,0 +1,30 @@
+The first-principles agent completed the fishbone analysis. Here's what it produced:
+
+## Fishbone (Ishikawa) Diagram — Checkout API 503 Incident
+
+**Generated files:**
+- SVG (scalable): `/tmp/fishbone/fishbone.svg`
+- PNG preview: `/tmp/fishbone/fishbone.png`
+
+**Effect (fish head):** Checkout API returned 503 for all users for 40 min from 14:10 UTC.
+
+It used the default six-category set (People, Process, Technology & Tools, Environment, Information, Resources) — the right fit for a software/ops incident — and deliberately excluded the database layer per your ruling.
+
+### Candidate causes by branch (all unverified)
+
+| Branch | Candidate causes |
+|---|---|
+| **People** | On-call gap / slow paging; recent deploy w/o review; runbook unknown to responder |
+| **Process** | No staged/canary rollout; missing pre-deploy load test; no automated rollback trigger |
+| **Technology & Tools** | App pool / thread exhaustion; upstream dependency timeout; LB health-check misconfig; connection-pool saturation (non-DB) |
+| **Environment** | Pod/instance crash-loop (OOM); autoscaling failed to scale out; network / DNS fault |
+| **Information** | Alert thresholds too high; missing dashboards for 503 source; logs lacked request tracing |
+| **Resources** | CPU/memory limits hit; rate-limit / quota exceeded; cache outage → origin overload |
+
+### Where to verify first
+1. **Technology & Tools / Resources** — an all-users 503 usually means the app tier or LB had no healthy capacity. Check thread/connection pool saturation, LB backend health, CPU/memory limits.
+2. **Environment** — pod crash-loop (OOM) or failed scale-out fits this signature; check orchestrator + HPA events around 14:08–14:12.
+3. **Cache outage → origin overload** — the clean 14:10 onset is consistent with a cache layer dropping; correlate cache hit-rate with start time.
+4. The **40-minute duration** itself points at Process/People (slow detection, manual rollback) as contributing to *length* even if not the trigger.
+
+The agent notes every cause is an unverified hypothesis, not a finding, and offered to run a **5-Whys** drill on whichever branch the 14:10 telemetry implicates if you share the onset metrics.

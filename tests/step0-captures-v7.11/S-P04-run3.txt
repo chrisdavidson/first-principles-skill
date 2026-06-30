@@ -1,0 +1,20 @@
+The first-principles agent completed the Five Whys analysis. Here's what it found:
+
+## Five Whys: Payment Service 500 Outage
+
+**The key diagnostic clue:** A pod restart fixed it. That single fact narrows the cause space dramatically — it points to *in-process accumulated state* (pool exhaustion, memory leak, stuck circuit breaker), and largely rules out a bad-deploy or downstream hard-outage as the primary cause.
+
+### Two independent root causes (the most important finding — treat separately)
+
+**A. The triggering fault — why it broke:**
+Most likely **resource pool exhaustion** (DB connections/threads acquired but never released, possibly because a slow downstream held them until the pool drained). Root cause: no acquisition timeout, max-lifetime, or leak-detection guardrail. Alternates: memory leak/OOM pressure, or a stuck circuit breaker that never half-opened.
+
+**B. The recovery gap — why it lasted 12 min and needed a human:**
+A shallow liveness/health check that stayed green while the pod was non-serving, so the orchestrator never auto-restarted the wedged pod. **This is independent of the trigger** — fixing it would shrink a 12-min manual outage to a sub-minute self-heal regardless of what broke. Often the higher-leverage fix.
+
+### Critical caveat
+Every causal link is **ASSUMED** — the agent had no access to your logs/telemetry, so this is a structured hypothesis tree, not a verified conclusion. The two highest-value checks to collapse it to a verified chain:
+1. **DB connection pool metrics** (09:25–09:45) — active/idle/wait-queue depth
+2. **Liveness probe success metrics** during the window — did it stay green the whole 12 min?
+
+The agent offered to either draft an incident-postmortem template or write the specific alert/probe configs once it knows your stack. Want me to pursue either?

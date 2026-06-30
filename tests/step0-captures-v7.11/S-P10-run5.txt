@@ -1,0 +1,23 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Answer: ~$10–24 per usable thermal kWh (central ~$15/kWh_t)
+
+For a 200 MWh molten-salt installation with pre-commissioned tanks excluded.
+
+### How it derived this (from ground truths, not analogy)
+
+**Salt media — the tightly-bounded core (~$5–9/kWh_t):**
+- Usable energy per kg = c_p × ΔT = 1.5 kJ/(kg·K) × 275 K (290→565°C window) = **0.115 kWh_t/kg**
+- 200 MWh needs **~1,745 tonnes of solar salt**
+- At $0.6–1.0/kg → **$5–9 per usable thermal kWh** for raw media alone
+
+**Adding in-scope balance** (heat exchangers, pumps, insulation, BOP — but *not* the pre-commissioned tanks/foundations) applies a ~1.8–2.5× multiplier → **~$10–24/kWh_t**.
+
+**Converted to electrical kWh** through a typical 40%-efficient power block → **~$25–60/kWh_e (central ~$39)**.
+
+### Key caveats
+1. **Scope of "usable capacity"** — the answer is on a *thermal* kWh basis; the electrical figure is a flagged scope extension requiring a power block.
+2. **What "pre-commissioned" excludes** is the dominant uncertainty (more than salt price). The estimate assumes it removes tank vessels + foundations + commissioning only. Full systems *with* tanks typically run ~$20–30/kWh_t (~$50–80/kWh_e), so this sitting below that is internally consistent.
+3. **30-yr life / 1 cycle-day don't affect capex/kWh** — capacity capex is cycle-independent. They only matter for levelised cost, where media amortizes over ~11,000 cycles to a negligible ~$0.0006/kWh_t per cycle.
+
+**Confidence: MEDIUM** — to tighten, pin down exactly which subsystems "pre-commissioned" removes and whether you want a thermal- or electrical-kWh basis.

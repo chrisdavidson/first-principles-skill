@@ -1,0 +1,30 @@
+The first-principles agent ran the analysis as a **pre-mortem** — treating "it'll go fine" as a hypothesis to attack. Here's what it surfaced:
+
+## The core reframe
+Confidence *is* the risk. The plan was restated as: *the migration has already failed — what caused it?* The recurring root pattern is **belief substituted for inspection**, and **untested processes assumed to work**.
+
+## Failure modes it enumerated
+
+- **Data-quality** — dirty source data (orphan FKs, dupes, bad encodings, mixed charsets) that the script assumed away → silent drops or mangled text.
+- **Correctness-masking** — row counts match, sign-off given, but content is corrupted (truncated decimals, dropped timezones, NULL→default). *The most dangerous one because it passes the validation you trust.*
+- **Continuity** — live writes during the migration window land only in the old system and are lost at cutover; or a re-run double-inserts.
+- **Scale/timing** — tested on a sample, production volume blows the downtime budget, business pressure forces a dirty cutover.
+- **Recovery (catastrophic)** — something breaks AND rollback was never rehearsed AND the old system is already gone → no path back.
+- **Blast radius** — migration succeeds internally but breaks downstream reports, ETL, cached IDs, or external integrations.
+- **Human/ops** — an edge case appears, the runbook doesn't cover it, and the one person who understood the script isn't available.
+
+## Top 3 things to harden, in priority order
+
+1. **Rehearse the rollback** — an untested rollback is the single failure that makes everything else catastrophic. Rehearse on a production-scale copy until it's boring.
+2. **Validate content, not counts** — add row-level checksums/hashing and field-level comparison. Count parity is necessary but not sufficient.
+3. **Close the continuity gap** — explicitly decide: freeze writes or capture in-flight changes (CDC). "The source is quiet" must be *enforced*, not hoped.
+
+Then before cutover: profile the source for real, run one full-scale *timed* dry run, and confirm downstream consumers against migrated data.
+
+## To sharpen this
+The agent flagged that it doesn't have your specifics, and offered to collapse this into a concrete ranked risk list if you answer three questions:
+- Is the source **live** during migration (taking writes), or offline/frozen?
+- What's the **data volume**?
+- Has **rollback ever been rehearsed** end-to-end?
+
+Want me to send those answers back to the agent for a migration-specific ranked risk list?

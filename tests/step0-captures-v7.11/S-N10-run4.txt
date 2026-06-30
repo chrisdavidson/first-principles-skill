@@ -1,0 +1,30 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent has completed its analysis. Here's what it found.
+
+## Pre-Mortem: Second Molten-Salt Thermal Storage Installation
+
+The agent flagged three configuration assumptions it made (two-tank solar salt, ~565°C hot / ~290°C cold; a near-copy of an operating first plant; CSP-coupled) — worth confirming, as they shape everything downstream.
+
+### The core insight
+Your nervousness is correctly located: **the most dangerous assumption is "second install = first install."** A working first plant verifies the *design concept*, not the *site execution* of the second. Site, soil, supply chain, crew, and salt batch all differ — and over-confidence from plant #1's success tends to suppress scrutiny of exactly those differences.
+
+### Four structural weaknesses to disposition before signing
+
+| Weakness | Action | Type |
+|---|---|---|
+| **Analogy-as-safety** | Build a site-delta register: every way this site/batch/crew differs from plant #1, each with an owner | Mitigate |
+| **Schedule → winter commissioning** | Long-lead slips push first-fill into cold weather, compounding freeze risk. Add a commissioning-season constraint + LD clause | Renegotiate |
+| **Risk allocation (highest leverage)** | Read the contract's freeze/corrosion/performance-guarantee clauses — if unassigned, catastrophic-failure risk defaults to *you* | Renegotiate |
+| **Tacit-knowledge gap** | Drawings transfer; crew lessons don't. Contractually require named plant-#1 commissioning personnel | Mitigate |
+
+### Failure modes worth highlighting
+- **Freeze (the signature killer):** cold corners — drain lines, instrument taps, valve bonnets — freeze first and are under-traced. A grid outage killing heat-tracing is the canonical catastrophe.
+- **Salt batch:** procured per-project — "it worked last time" tells you nothing about *this* batch's chloride/perchlorate assay. Demand the assay.
+- **First fill** is the single riskiest day; schedule slip turns a delay risk into a thermal risk.
+
+### Physical limits you cannot engineer away
+Salt **will** freeze below ~230°C and **will** corrode/degrade above ~600°C. Trace-heating redundancy, backup power, and hot-tank temperature control must be treated as non-negotiable safety systems — not cost-optimizable line items.
+
+**Confidence: MEDIUM**, gated on the contract's risk-allocation terms (unseen) and the configuration assumptions.
+
+The agent asked which you'd like to tighten first — **the contract risk-allocation clauses** or **the site-delta register**. It also offered to run a deferred freeze-recovery cost estimate once you provide tank size and trace-heating specs. I can relay any of these back to it (its context is still live) — just let me know your configuration details or which thread to pull.

@@ -1,0 +1,30 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Pre-Mortem: Turbine Coupling Assembly Failure Modes
+
+The agent ran a **pre-mortem first-principles analysis**, working backward from "the coupling has already failed" to enumerate the failure space. Upfront caveat: it lacked the actual coupling spec, drivetrain layout, salt chemistry/temperature, and the specific chain your team flagged — so it analyzed the physically-grounded generic space and marked every domain-specific assumption.
+
+**Priority-ordered failure modes to prepare for:**
+
+1. **Frozen-salt start-against-locked-load ★ (highest unique severity)** — Salt below liquidus (~220–240 °C for nitrate salt) locks the rotor; turbine torque slams a stationary load → instantaneous shear at the weakest coupling element. *Mitigation: verify heat-trace coverage + a no-flow/low-temp interlock that blocks rotation until the salt path is proven molten.*
+
+2. **Cold-to-hot alignment validation (the structural root cause)** — Differential thermal growth, initial misalignment, and bad shimming all trace to **one root**: alignment set for cold/static conditions, never validated against the hot, thermally-grown state. Fixing this collapses three failure branches at once.
+
+3. **Overspeed/load-rejection trip proven before first roll.**
+
+4. **Fastener torque + locking verification + residual-unbalance/run-out check.**
+
+5. **Run-up critical-speed map reviewed for the as-built coupling.**
+
+6. **Lubricant/elastomer temperature rating confirmed against actual salt temp.**
+
+**Notably ruled out** (with reasoning): high-cycle fatigue (commissioning is the *lowest* cycle-count moment) and salt corrosion/SCC of the coupling (long-timescale, coupling is outside the wetted path) — both flagged for operations, not commissioning.
+
+**Confidence: MEDIUM.** The mechanism taxonomy is physically solid, but mapping to *your* assembly is unverified.
+
+**To raise to HIGH, the agent needs three things:**
+1. Coupling type (gear / disc-pack / grid / elastomeric / shear-pin)
+2. Salt chemistry and operating temperature
+3. The specific failure chain engineering flagged
+
+Want me to send those details back to the agent to get a verified, assembly-specific checklist?

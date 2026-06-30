@@ -1,0 +1,24 @@
+The first-principles agent completed its decomposition. Here is its analysis:
+
+## First-Principles Decomposition: Molten-Salt + CCGT 85% Efficiency Claim
+
+The agent unbundled the vendor claim into **three independent primitives**, each evaluated on its own footing:
+
+### 1. The physics primitive (HIGH confidence) — *impossible as stated*
+A true electricity→heat→electricity round trip through 565 °C molten salt is bounded by the Second Law:
+- Carnot ceiling ≈ 1 − 300/838 ≈ **64%**
+- Real heat engines reach **~40–55%**
+
+So **85% cannot be a genuine storage round-trip efficiency** — it exceeds the thermodynamic ceiling. Even an exotic 700 °C topping cycle only lifts Carnot to ~69%.
+
+### 2. The definitional primitive (HIGH confidence on mechanism) — *a relabeling*
+The **CCGT is the tell.** A gas turbine burns fresh natural gas, so its electrical output is *fuel chemical energy → electricity*, not stored electricity returned. The 85% is achievable only if **combustion energy enters the numerator** while only stored-electricity input sits in the denominator. That makes it a **combined-system utilization / fuel-blended metric wearing a "round-trip" label** — a category error, not a lie about a number.
+
+### 3. The evidentiary primitive (LOW confidence) — *unverified*
+The Atacama pilot data is **vendor self-reported**, not independently validated. It can't be treated as ground truth without disclosed methodology and independent metering of gas-in, electricity-in, and electricity-out.
+
+### The one question that collapses the ambiguity
+> *"Is natural-gas chemical energy included in the input denominator of your 85% figure?"*
+> — **No** → the figure violates thermodynamics. **Yes** → it isn't a round-trip efficiency at all, but a hybrid-system utilization metric.
+
+The agent remains available (ID `a61f8ccfafea2231d`) if you'd like to push on any primitive further.

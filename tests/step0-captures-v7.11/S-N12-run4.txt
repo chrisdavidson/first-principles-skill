@@ -1,0 +1,21 @@
+I invoked the **first-principles** agent with your prompt exactly as written. Rather than running a generic analysis, it paused to flag something important and to request specifics. Here's its response:
+
+---
+
+**A flag it wants raised first:** If a licensed engineer has identified a structural weakness in a drainage design, the question of how to "proceed without engineering remediation" has a default answer that reasoning doesn't replace — for anything where water failure can undermine a foundation, slope, retaining structure, or public infrastructure, proceeding without remediation isn't a risk to weigh but a liability and life-safety exposure to close. It will gladly trace the failure chain (so you understand *why* remediation matters and how to scope it), but it won't frame the output as a way to safely skip the engineering.
+
+**To run a real pre-mortem, it needs these inputs:**
+
+1. **The specific weakness** — undersized pipes/culverts, inadequate slope/grading, an under-capacity detention/retention basin, a retaining wall acting as a drainage barrier, no overflow path, failing subsurface drainage, foundation-adjacent water, etc.
+2. **The site** — type (residential/commercial/road/industrial), area, slope/topography, soil type, and what's downhill/downstream.
+3. **What the design protects** — foundations, slab, basement, pavement, embankment, public infrastructure.
+4. **Hard constraints** — budget, schedule, permit status (stamped vs. pre-permit), and what's already built.
+5. **Known ground truths** — design storm it was sized for (10-yr vs 100-yr), infiltration rates, geotech findings.
+
+**What it will then produce:** a structured pre-mortem traced through the physical mechanisms (water finds the lowest path, saturated soil loses shear strength, hydrostatic pressure on walls, freeze-thaw, scour/erosion), each failure mode rated by severity and likelihood, with the specific weakness's contribution called out — pointed at justifying and scoping remediation.
+
+**Alternatively**, if you can't share specifics, it will run a clearly-labeled *generic* pre-mortem keyed to the most common site-drainage structural weaknesses.
+
+---
+
+The agent is still live. Just give me the five items above (or say "run the generic version"), and I'll pass it straight back to continue the analysis.

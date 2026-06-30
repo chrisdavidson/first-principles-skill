@@ -1,0 +1,33 @@
+The first-principles agent worked through the estimate. Here's the result:
+
+## Fermi Estimate: Piano Tuners in Chicago
+
+**Answer: ~100 tuners**, bracketed **[40, 125, 375]**.
+
+### The four-step chain
+
+The whole thing is a demand-divided-by-capacity calculation. You build up annual tuning *demand*, then divide by what one tuner can *supply* in a year.
+
+| Step | Quantity | Value |
+|---|---|---|
+| 1 | Households (9.4M metro ÷ 2.5 per household) | ≈ 3.76M |
+| 2 | Pianos (× ownership rate ~1/30 — folds in homes, schools, churches, venues) | ≈ 125,000 |
+| 3 | Annual tuning demand (× ~1 tuning/piano/yr) | ≈ 125,000 tunings/yr |
+| 4 | One tuner's capacity (250 days/yr × 4 tunings/day) | ≈ 1,000 tunings/yr |
+
+**Multiply out:**
+```
+tuners = 125,000 tunings/yr ÷ 1,000 tunings/tuner/yr ≈ 125 tuners
+```
+
+The units cancel cleanly: `(households × pianos/household × tunings/piano/yr) ÷ (tunings/tuner/yr) → tuners`.
+
+### The bracket (why a range, not a point)
+
+Flexing the three softest inputs — piano ownership rate (1/50 → 1/20), tuning frequency (0.7 → 1.5×/yr), and tuner productivity — gives **[~40, ~125, ~375]**. That's roughly one order of magnitude, centered in the low hundreds. The takeaway a Fermi estimate is designed to deliver: it's **~100, not 10 and not 1,000.**
+
+### Cross-check
+
+The derivation implies ~75,000 people per tuner (9.4M ÷ 125), which independently reproduces the classic textbook coefficient of "1 tuner per ~50–75k people" — a reassuring sanity check rather than an assumed input.
+
+**Dominant uncertainty:** the piano-ownership rate. A single industry-survey figure there would tighten the whole bracket the most.

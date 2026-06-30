@@ -1,0 +1,16 @@
+The first-principles agent ran but stopped short of producing the analysis — it can't find a commissioning plan in the working directory (`/tmp`), and it refuses to fabricate a generic TES failure list, since that would violate its first-principles methodology.
+
+To proceed, it needs from you:
+
+**1. The commissioning plan** — either a file path (PLAN.md, runbook, schedule) or pasted inline. Ideally covering: phase sequence/dependencies, timeline/milestones, salt-fill and initial-heat procedure, instrumentation/control commissioning, named owners/crews, and go/no-go gates.
+
+**2. Five framing facts** so it challenges the right assumptions:
+- **Salt chemistry** — solar salt (60/40 NaNO₃/KNO₃, ~220 °C freeze) or another blend?
+- **Heat-trace / freeze-protection design** — electric trace, impedance heating, redundancy, backup power.
+- **Scale and config** — two-tank vs thermocline, tank volumes, design hot/cold temps.
+- **Site context** — greenfield vs retrofit, grid reliability, ambient minimum temp, crew experience with nitrate salts.
+- **Scope of "blow up"** — schedule, budget, equipment damage, safety/regulatory, or all — and the specific go/no-go decision this feeds (e.g., a fixed build-start date).
+
+It did flag one thing up front: the most common way molten-salt TES commissioning blows up is **a salt freeze in a line or component with no drain path and no working freeze-protection during a power interruption** — but whether that's live for you depends entirely on the salt-chemistry and site facts above.
+
+If you give me the plan (or a path) plus those facts, I'll send them straight back to the same agent and it'll run the full prospective-hindsight pass. How would you like to provide it?

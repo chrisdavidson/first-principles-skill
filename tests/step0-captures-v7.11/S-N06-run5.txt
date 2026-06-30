@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Migration Impact: A J-Curve
+
+The agent reframed the question from "endpoint impact" to the **shape of the velocity/incident curves over time** — which is the actually decision-relevant view.
+
+### Expected impact
+
+| Metric | During 6 sprints | Steady state (good seams + maturity) | Steady state (bad seams / low maturity) |
+|---|---|---|---|
+| **Developer velocity** | **0.4×–0.65×** baseline (dip) | **1.2×–1.6×** | 0.8×–1.0× (no gain) |
+| **Incident rate** | **1.1×–1.4×** (mature) / **1.8×–3.0×** (immature) | 0.7×–1.0× count, lower severity/MTTR | 1.2×–1.6×, worse MTTR |
+
+**Expect a dip then a payoff** — velocity drops and incidents rise during the quarter; gains only arrive afterward, and only if two conditions hold.
+
+### The two factors that determine the sign of the outcome
+1. **Operational maturity** (distributed tracing, per-service alerting, automated deploys, mature on-call). This single factor swings transition incidents from +10% to +200% — verify it *first*.
+2. **Bounded-context seams.** Bad seams produce a "distributed monolith" that loses on *both* metrics permanently.
+
+### Top risks flagged
+- Six sprints likely under-scopes a full decomposition → plan for a **hybrid end-state** and budget J-curve costs *beyond* the quarter.
+- The velocity dip creates **mid-migration abandonment pressure** (a half-finished split is the worst outcome) → secure stakeholder commitment to ride through the trough before sprint 1.
+- Keep feature work and migration on **separate capacity tracks** so the dip is planned, not a surprise.
+
+**Confidence: MEDIUM**, capped by the two unverified load-bearing assumptions. The agent notes that supplying four inputs — current DORA baselines, an observability/on-call maturity checklist, the seam map, and the feature-freeze posture — would collapse these ranges to HIGH-confidence, board-ready numbers.
+
+The analysis is paused and resumable if you'd like to feed it those inputs to tighten the estimates.

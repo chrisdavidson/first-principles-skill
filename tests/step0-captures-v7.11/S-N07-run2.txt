@@ -1,0 +1,34 @@
+The first-principles agent has completed its analysis. Here's what it returned:
+
+## Summary
+
+The agent treated this as an **upper-bound estimation task** but stopped short of producing a number — because a forecast is only as good as its inputs, and none of your actual figures were supplied. Instead it laid out the method and the load-bearing inputs it needs.
+
+**Key reasoning:**
+
+The upper bound decomposes into a fixed floor plus a variable runaway component:
+
+```
+Upper bound = [Committed spend (fixed, discounted)]
+            + [Variable spend × (1 + growth)^n_months × burst_multiplier]
+```
+
+The load-bearing insight: **committed-use discounts cap the downside on covered resources but do nothing to cap the upside on on-demand burst.** So "the most it could realistically reach" is driven almost entirely by your *uncommitted* variable spend and any Q3 demand spikes — not by the committed portion.
+
+**Five inputs it needs to produce a defensible bracket [lower, central, upper]:**
+
+1. **Baseline monthly run-rate** — latest month or trailing 3-mo average
+2. **Growth trend** — MoM or QoQ %
+3. **Committed-use coverage** — % of spend under CUD + the discount %
+4. **On-demand/burst headroom** — variable share + known Q3 events (launches, seasonal traffic, migrations)
+5. **Q3 calendar position** — months of compounding from your latest actual
+
+**How to proceed** — the agent offered two paths:
+- **Option A (recommended):** Supply the five inputs (even rough), get the full bracketed estimate with named drivers. The first three alone get ~80% of the way there.
+- **Option B:** Tell it to proceed on illustrative assumptions and get a worked template to drop real numbers into.
+
+It also noted that if you have a billing export (CSV from your cloud cost console), it can derive baseline and trend directly.
+
+---
+
+Want me to continue with the agent? If so, share the baseline run-rate, growth rate, and committed-use coverage — or point me at a billing export — and I'll relay it back to finish the estimate.

@@ -1,0 +1,25 @@
+The first-principles agent has completed its decomposition. Here's what it found:
+
+## Summary
+
+The claim decomposes into **three verified physical primitives** and **one load-bearing untested belief** — and that gap exposes a fatal ambiguity in the word **"efficiency."**
+
+### Verified ground truths
+- **Carnot bound (2nd Law):** any heat→work conversion is capped at η ≤ 1 − T_cold/T_hot.
+- **Salt temperature window:** solar nitrate salt runs ~290 °C → 565 °C.
+- **CCGT burns fuel:** a combined-cycle gas turbine *adds* primary chemical energy at the boundary — it's a generator, not a storage discharge path.
+
+### The load-bearing unknown
+What are the **numerator and denominator** of the "85%"? The claim never pins the boundary, and everything hinges on it.
+
+### Three derivation chains
+- **Chain A:** If "85% round-trip" means electricity-in → electricity-out, it's **physically impossible**. A 565 °C source caps electrical conversion at ~40–45% (Carnot ceiling ~64%). *(HIGH confidence)*
+- **Chain B:** The number is coherent if it's a **thermal** retention figure (heat-in → heat-out), where molten-salt tanks genuinely reach 90–99%. *(MEDIUM)*
+- **Chain C:** Or the **CCGT's fuel energy is excluded from the denominator**, making it not a storage RTE at all. *(MEDIUM-HIGH)*
+
+### Bottom line
+The headline is unverifiable as stated and most likely **mislabeled** — either a thermal figure dressed as electrical, or a fuel-subsidized boundary. Atacama siting is incidental (it helps *solar charging*, not the round-trip ratio). Confidence that the literal electricity-to-electricity reading is false: **HIGH** — it rests on a physical law, not opinion.
+
+**The one question that resolves everything:** *What are the numerator and denominator of the vendor's 85%?*
+
+The agent offered a follow-up `/theoretical-limit` pass to derive the exact electrical RTE ceiling and bracket precisely how far 85% sits above what physics permits — let me know if you'd like that.

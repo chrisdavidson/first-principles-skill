@@ -1,0 +1,17 @@
+I invoked the first-principles agent with your prompt exactly as written. It came back unable to proceed because the prompt references **"that plant"** with no prior context establishing which plant it means — and the entire theoretical-limit analysis depends on that.
+
+Here's what the agent needs from you to run the full analysis:
+
+1. **Which plant, and what does it convert?** The governing physical law is determined entirely by the conversion type:
+   - Thermal power plant (coal/gas/nuclear) → **Carnot limit** `1 − T_cold/T_hot`
+   - Solar PV → **Shockley-Queisser** (~33.7% single-junction; ~86% multi-junction thermodynamic ceiling)
+   - Wind farm → **Betz limit** (59.3%)
+   - Chemical/process plant → **reaction thermodynamics** (Gibbs free energy, equilibrium yield)
+   - Desalination → **minimum work of separation** (~1.06 kWh/m³ at seawater salinity, 50% recovery)
+   - Data center → **Landauer limit**
+
+2. **The current conventional performance figure** — so the analysis can bracket the *gap* between today's number and the physics ceiling.
+
+3. **Operating conditions that feed the law** — temperatures, feed salinity/recovery, concentration, scale, etc.
+
+If you give me those (or a concrete example like *"a 600 MW coal plant, steam at 565°C, condenser at 30°C, ~40% net efficiency"*), I'll send them back to the same agent — which is still alive with its context — and it'll run the complete five-phase derivation. Which plant did you have in mind?

@@ -1,0 +1,30 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## The core finding
+
+"Faster ships → better retention" isn't a law — it's a **conditional** that holds only inside a specific operating envelope. By inverting the claim (asking "what would *guarantee* faster shipping fails to help retention?"), the agent derived **eight necessary preconditions**. The assumption breaks down the moment *any single one* fails, because each is necessary, not just contributory.
+
+## The eight preconditions your cadence silently depends on
+
+| Precondition | Breaks down when… |
+|---|---|
+| **P1 — Right target** | Roadmap is set by internal priorities/competitor parity, not churn evidence |
+| **P2 — Reliable** | The two-week beat starts producing rollbacks, hotfixes, rising error rates |
+| **P3 — Wanted > disruptive** | You serve mature/power users where stability beats novelty |
+| **P4 — Product-limited churn** | Churn is actually driven by price, weak PMF, or a competitor |
+| **P5 — Reaches at-risk users** | Churn concentrates in early drop-off but you ship to the deep/late experience |
+| **P6 — Value held constant** | Hitting cadence forces scope-cutting; value-per-release silently declines |
+| **P7 — Headroom left** | Retention is near its ceiling or dominated by involuntary churn |
+| **P8 — Measured fast enough** | You ship faster than you can measure impact |
+
+## What to watch first (priority order)
+
+1. **You're cadence-limited on the wrong axis (P4)** — most common and most expensive. Faster shipping moves nothing because churn is price/fit/competitor-driven.
+2. **You ship faster than you can measure (P8)** — speed amplifies wrong-direction error.
+3. **Cadence becomes the goal (P6)** — this is where the claim flips from *neutral* to *actively harmful*: you protect the two-week beat by diluting per-release value.
+
+## Highest-value next step
+
+Instrument **value-per-release against retention impact (P6 + P8 together)**. If you can't attribute retention movement to specific releases, you can't know whether cadence is helping at all — and that measurement gap is itself one of the breakdown conditions.
+
+One caveat worth flagging: the agent rated **structure as MEDIUM-HIGH confidence but applicability as LOW** — all eight preconditions are untested against *your* actual data. The framework tells you where to look; your churn data tells you which ones are currently biting.

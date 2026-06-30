@@ -1,0 +1,20 @@
+I invoked the **first-principles** agent with your prompt verbatim. Here's what it came back with:
+
+---
+
+It recognized this as a **pre-mortem** situation and affirmed the instinct — *imagine the plan has already failed, then work backward to find what caused it* — as exactly right before locking in.
+
+But it can't surface failure modes for a plan it can't see. To run a real pre-mortem instead of generic hand-waving, it needs:
+
+1. **What is the plan?** — One or two sentences. (A launch? A migration? A reorg? An architecture choice? A go-to-market bet?)
+2. **What does success look like?** — The concrete outcome whose absence means the plan failed.
+3. **Key constraints / non-negotiables** — Deadline, budget, headcount, tech stack, compliance, cross-team dependencies, etc.
+4. **What's already locked vs. still movable?** — So it knows which failure modes are actionable versus ones you'd just brace for.
+
+Once you paste the plan (or PRD / roadmap / design doc), it will run the full pre-mortem: imagine it failed → enumerate every cause without filtering → flag which ones cluster into **structural weaknesses** versus **isolated risks**, plus which you can still design out before committing.
+
+It also offered to just start talking it through if you give it the gist.
+
+---
+
+The agent is still live — share the plan details and I'll pass them straight back to continue the analysis.

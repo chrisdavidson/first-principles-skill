@@ -1,0 +1,26 @@
+The first-principles agent completed its inversion analysis. Here's what it found:
+
+## When "faster ships → better retention" breaks down
+
+The claim holds **only inside a narrow envelope of preconditions**. The agent identified **five distinct break points**, each tied to a silent assumption the claim depends on:
+
+| Break point | When it triggers |
+|---|---|
+| **1. Velocity ≠ value** (dominant failure) | Shipped features don't address what actually drives churn → faster delivery of irrelevant work, retention flat |
+| **2. Speed–quality tradeoff** | The 2-week cadence forces thinner testing → more defects/regressions → *negative* retention impact |
+| **3. Wrong bottleneck** | Churn is gated by onboarding, pricing, or market fit → product velocity is orthogonal to the real constraint |
+| **4. Change fatigue** | Frequent UI/behavior changes raise cognitive load and erode trust → faster shipping *reduces* retention |
+| **5. Attribution horizon** | Retention lags shipping by weeks-to-months; on a 2-week loop you may never see the signal cleanly → you optimize cadence on noise |
+
+## The single highest-risk assumption
+**That churn is feature-gated at all.** If your week-1 cohort drop-off is steep, the bottleneck is onboarding/fit/pricing — and faster shipping cannot move retention no matter how fast you go.
+
+## What to instrument (priority order)
+1. **Cohort retention curve shape** — steep early drop (fit/onboarding; velocity won't help) vs. slow decay (feature depth; velocity might help)
+2. **Feature adoption → renewal correlation** — do shipped features get used by retained users?
+3. **Defect/rollback rate vs. cadence** — confirm you're not buying speed with quality
+4. **Post-release churn timing** — spikes after updates signal change fatigue
+
+**Bottom line:** Until #1 and #2 are measured, treat "faster ships → better retention" as an **unverified hypothesis (medium-low confidence)**, not an operating principle. The 2-week cadence is fine — it's the *causal claim attached to it* that's the liability.
+
+You can reply to dig into any specific break point or to scope out how to instrument these metrics.

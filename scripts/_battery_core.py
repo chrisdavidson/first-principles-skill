@@ -891,6 +891,19 @@ def self_test_boundary() -> int:
     def _load_excerpt_v78(prompt_id: str, run: int) -> str:
         return (_V78_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
+    # _load_excerpt_v711 helper — reads Phase 129 v7.11 live re-baseline
+    # assistant-text excerpts. Same shape as _load_excerpt_v78: Path.read_text()
+    # so a missing file raises FileNotFoundError loudly (Pitfall 5 — no vacuous
+    # empty-string zero-count). Captures are the full 145-call live run
+    # (29 catalog rows x 5 repeats; all genuine — spend-limit-truncated captures
+    # discarded per D-02 resume-to-complete). Added in Phase 131 RECON-02 (D-03 —
+    # re-point the BATT-06 honest-state sentinels to v7.11 vectors). S-P09
+    # (decompose, retired) has NO v7.11 capture; RR-108-03 keeps reading v7.4.
+    _V711_DIR = REPO_ROOT / "tests" / "step0-captures-v7.11"
+
+    def _load_excerpt_v711(prompt_id: str, run: int) -> str:
+        return (_V711_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
     # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
     #          re-pointed to v6.3 evidence Phase 93, Plan 01;

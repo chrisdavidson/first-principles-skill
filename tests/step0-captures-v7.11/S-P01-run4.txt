@@ -1,0 +1,27 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite Cutover
+
+**Premise re-anchored:** *It's the Friday after launch and we're in an incident. What caused it?*
+
+### Three dominant structural weaknesses
+
+1. **No reversibility** — Big-bang cutover + decommissioned legacy + forward-only data migration means there's no safe exit. This is the single largest flaw: every other failure becomes *catastrophic* specifically because there's no way back.
+2. **No graduated blast radius** — 100% at once means the first time you learn the truth about load, SCA coverage, and migration correctness is the moment *all* EU customers are exposed.
+3. **Worst-possible timing** — Friday concentrates risk into the lowest-staffing, slowest-vendor-response window.
+
+### Failure modes by severity
+
+- **Money-correctness (highest):** idempotency keys not carried over → double charges; dropped/duplicated in-flight auths; unmapped saved mandates → subscriptions silently stop billing (revenue leak found weeks later); reconciliation drift.
+- **EU-regulatory:** broken SCA/3-D Secure for specific issuers → blanket declines per country; data residency/GDPR routing violations; unhandled local methods (iDEAL, SEPA, Bancontact).
+- **Detection lag:** thin observability on new code → you learn from complaints, not dashboards; no pre-set abort threshold → debate instead of action.
+
+### Recommended changes (two non-negotiables in bold)
+
+1. **Add a staged rollout** — internal → 1% → 10% → 50% → 100%. Cheapest available risk reduction. If "no staged rollout" is just a default, drop it; if it's a hard constraint, get the reason on record.
+2. **Guarantee a *demonstrated* rollback** — run legacy in parallel, keep keys/webhooks live, rehearse cutover-and-back (including reverse migration) in staging.
+3. **Don't ship Friday** — move to Tue/Wed for full staff + vendor coverage.
+4. **Pre-commit an abort threshold** — e.g., success rate drops >X% for Y minutes → auto-rollback, decided now.
+5. **Verify before cutover:** SCA across top issuers per country, idempotency continuity, in-flight auth handling, mandate migration, reconciliation parity, data residency.
+
+The agent offered to turn items 4 and 5 into a concrete go/no-go checklist with thresholds and owners — let me know if you'd like that.

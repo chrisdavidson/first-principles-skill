@@ -1,0 +1,23 @@
+The first-principles agent completed its decomposition. Here's the result:
+
+## Verdict: FALSE as literally stated — a metric conflation
+
+The claim breaks into three independent branches, and it fails before the pilot data even matters:
+
+**Branch A — "85% round-trip *electricity* efficiency" is thermodynamically impossible.**
+Molten salt stores *heat*, not electricity. An electricity round-trip means: electricity → heat (~100%) → storage (~95%) → heat→electricity (~40–43%, capped by Carnot at salt's ~565°C operating temperature). That caps the real round-trip at **~40%**. 85% violates the Second Law. This rests on physical law, independent of any test data.
+
+**Branch B — the CCGT pairing exposes the source of the error.**
+A combined-cycle gas turbine burns **natural gas**. Its ~60% efficiency is *fuel-to-electricity*, not *electricity-to-electricity*. Counting injected chemical energy means the system is a hybrid gas + storage plant, **not a closed round-trip**. The 85% is almost certainly *fuel/thermal utilization efficiency* relabeled as round-trip efficiency.
+
+**Branch C — the vendor data is the weakest empirical link.**
+Vendor-published, un-audited, and contradicting physical law → treat as LOW confidence. But the claim fails on *definitions and physics* before it even reaches the data.
+
+**Atacama location:** immaterial — it affects charging cost and capacity factor, not the thermodynamic round-trip ceiling.
+
+**Three questions that collapse the ambiguity:**
+1. Electricity-in vs electricity-out (kWh), with **no gas burned during discharge**.
+2. How much natural gas was consumed during the test.
+3. Whether "85%" is LHV/HHV *fuel utilization* or true *electrical round-trip*.
+
+The claim is plausibly true only under a redefinition where 85% means combined-cycle fuel utilization of a hybrid plant — a much less impressive claim than advertised.

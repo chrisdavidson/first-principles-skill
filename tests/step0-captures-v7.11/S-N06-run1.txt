@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## First-Principles Analysis: Monolith → Microservices Migration
+
+**Key framing:** The agent flagged that it has no codebase-specific data, so it built the analysis on explicitly-marked unverified inputs you'll need to supply. It also separated two distinct questions that "impact" tends to conflate: the **transient cost during** the 6 sprints versus the **steady-state effect after**.
+
+### Estimates
+
+**During the 6 sprints (HIGH confidence on direction):**
+- **Developer velocity: down 20–35%** (range 10–50%). The dominant swing factor — by 5x — is whether migration work and feature work are done by the *same* engineers.
+- **Incident rate: up 1.3–2x**, concentrated at each service extraction, magnitude set by your operational maturity.
+
+**Steady-state after (MEDIUM confidence — the sign depends on your data):**
+- **Velocity: +10–25% IF you have 4+ teams bottlenecked on the monolith today; flat-to-negative if 1–2 teams or low coupling.**
+- **Incident rate: smaller blast radius but more network boundaries; net favorable only if observability + CI/CD maturity exist *before* cutover.**
+
+### The three numbers that determine your actual outcome
+1. **Team count** — below ~3–4 teams, the steady-state velocity case is weak.
+2. **Operational maturity** — without distributed tracing, centralized logging, and automated CI/CD in place *first*, incident rate rises with no offsetting MTTR improvement.
+3. **Engineer allocation** — a dedicated migration squad keeps the transient hit near 10%; shared engineers push it past 50%.
+
+### Biggest risk (from second-order analysis)
+Roadmap pressure mid-migration forcing an early stop → leaving a shared-database "distributed monolith" — the only outcome strictly **worse than doing nothing** on both metrics.
+
+The agent offered to tighten the brackets into a codebase-specific estimate if you provide your actual numbers for: current velocity baseline, current incident rate/MTTR, team count/headcount, and operational maturity level. I can relay those back to it (its context is still live) whenever you're ready.

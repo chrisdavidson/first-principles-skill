@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# 50 MW Solar-plus-Storage Microgrid, Rural Sub-Saharan Africa — Cost Estimate
+
+**All-in overnight CapEx ≈ $84M central, bracketed $64M–$119M** (~$1.3–2.4M per MW-AC). With standard remote-site contingency, budget **~$90M**.
+
+## Cost breakdown (central values)
+
+| Block | Basis | Central | Range |
+|---|---|---|---|
+| **Solar PV** (procurement + install) | 65 MWp DC × $0.75/Wdc | **$48.8M (58%)** | $39M–$62M |
+| **Battery storage** (4-hr) | 200 MWh × $125/kWh | **$25.0M (30%)** | $22M–$32M |
+| **Grid interconnection** civil works | 50 MW × $200/kW | **$10.0M (12%)** | $3M–$25M |
+
+## Key reasoning notes
+
+- **Sizing ambiguity flagged:** "50 MW" was interpreted as AC point-of-interconnection paired with ~65 MWp DC array (1.3 DC:AC ratio). This is the **single biggest swing factor** — alternative ratios move solar cost ±$8–11M.
+- **Storage:** 50 MW × 4 h = 200 MWh, costed at the global ex-US/China benchmark ($125/kWh), not US NREL figures (which embed US labor/tariffs).
+- **Interconnection** is the widest relative uncertainty and the only unverified ground truth: a 30–50 km rural spur could push the total toward the upper bound on its own.
+
+## Confidence: MEDIUM
+
+The ~1.9× bracket is fine for financing-scale sizing but not a final investment decision. To tighten: (a) confirm the DC:AC design ratio, and (b) obtain site-specific distance-to-grid and a host-utility interconnection study.
+
+**Explicitly excluded** (each a material additional layer): land, development/permitting fees, financing cost (notably high in SSA — roughly doubles lifetime LCOE but doesn't affect overnight CapEx), O&M, import duties/VAT, and grid-forming/islanding control equipment.
+
+Sources cited include IEA, IRENA, Ember (Oct 2025), NREL, LBNL, Thunder Said Energy, and DNV.

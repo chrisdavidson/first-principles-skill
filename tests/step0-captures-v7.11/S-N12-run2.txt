@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+## Summary
+
+The agent ran a **focused pre-mortem** (reasoning backward from "the failure already happened"). Its core finding holds even without site specifics: a known drainage deficiency fails through one of **four chains**, and the binding constraint is usually liability, not physics.
+
+**The four failure chains:**
+
+- **A — Foundation undermining** (high confidence): water saturates soil under/against foundations → loss of bearing capacity + hydrostatic uplift → differential settlement, cracked footings, basement wall failure.
+- **B — Slope/embankment failure** (high, if a slope exists): drainage fails to relieve pore pressure → effective stress drops → landslide. Fast, catastrophic, life-safety.
+- **C — Capacity exceedance & off-site flooding** (most common real outcome): a storm exceeds the deficient system → backup, ponding, uncontrolled discharge onto neighboring property → property loss **plus** regulatory/legal liability.
+- **D — Progressive latent degradation** (the dangerous one): chronic saturation + freeze-thaw degrade soils/materials over seasons → failure arrives *after* occupancy, when remediation is far costlier. This is why "it's been fine so far" is a false signal.
+
+**Key second-order insight:** the moment a defect is documented, proceeding without remediation converts an engineering problem into a **negligence/liability problem** — insurer denial, professional liability — which typically dwarfs the remediation cost. So the implicit premise that "proceed" is the cheaper path is likely false.
+
+**Grounded in physical invariants** the agent accepted as ground truth: gravity-driven flow, the effective-stress principle (saturated soil loses shear strength), hydrostatic pressure, finite conveyance capacity, and freeze-thaw cycling.
+
+## What it needs to sharpen the analysis
+
+The agent flagged that *which chain dominates* — life-safety (A/B) vs. property/liability (C) — depends on four unknowns it had to leave open:
+
+1. **What is the weakness, exactly?** (undersized capacity, inadequate grade/slope, missing detention, bad infiltration assumptions, foundation/retaining-wall drainage, outfall erosion?)
+2. **Site context?** (foundations nearby? slope? downstream structures or property boundary?)
+3. **Does "proceed" mean build-as-designed, or operate an already-built site?**
+4. **Stakes/constraints?** (occupied structures, permit obligations, what's driving the pressure to proceed?)
+
+The agent is paused and ready to redo Chains A–D with concrete, sized reasoning if you answer those. Want me to send it the details?

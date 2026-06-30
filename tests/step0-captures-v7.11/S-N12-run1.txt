@@ -1,0 +1,21 @@
+The first-principles agent ran and returned its analysis. Here's what it produced:
+
+## Summary
+
+The agent couldn't run its structured-question tool, so it stated what it needs to make the analysis specific, then gave a reusable failure-chain framework anchored to the one fact available.
+
+**What it needs from you to get specific:**
+1. **The concrete weakness** — undersized pipes/culverts, inadequate slope, no overflow path, outfall onto unstable slope, insufficient detention capacity, or a wall/embankment with poor subsurface drainage (its leading suspicion, given "structural")
+2. **What's downhill/downstream** — buildings, road, slope, neighbor, waterway
+3. **Site geology** — clay, fill, sandy/erodible, rock
+4. **Design storm vs. local reality** — sized for a 10-year storm in a 100-year-event region?
+
+**The failure-chain framework (drainage failures are "slow then sudden"):**
+- **Tier 1 — Water goes where it shouldn't:** ponding, backup, overtopping in a real storm
+- **Tier 2 — Water attacks the soil (the "structural" part):** saturates/weakens soil (raises pore pressure, drops shear strength), erodes (piping/voids under footings and walls), builds hydrostatic pressure behind walls and under slabs
+- **Tier 3 — The structure responds:** differential settlement, foundation cracks, walls bulge/tilt/fail, embankment slump, slab heave, pavement failure
+- **Tier 4 — Second-order cascade:** invisible for a season or two (which makes skipping remediation *feel* safe), then one large storm hits already-weakened soil and fails catastrophically and simultaneously. Plus liability: a *known, documented* weakness proceeded past without engineering sign-off shifts the framing from "act of God" to "negligence."
+
+**Its honest recommendation:** The fact that the weakness is already identified as structural and the question is whether to proceed *without* remediation is itself the answer — this requires a stamped opinion from a licensed civil or geotechnical engineer, not a reasoning exercise. Remediation cost is almost always trivial against the cost of a slope/wall failure and the liability of having known.
+
+The agent is paused and asking for the four specifics so it can run a tailored failure-chain and second-order analysis to bring *to* the engineer. If you'd like, give me those details (the actual weakness and what's downhill of it) and I'll send them back to continue the analysis.

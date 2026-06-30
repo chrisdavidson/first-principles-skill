@@ -1,0 +1,26 @@
+The first-principles agent completed its prospective-hindsight (pre-mortem) analysis. Here's the summary:
+
+## Key takeaway
+The agent couldn't find the actual commissioning plan document (searched `/tmp` and home dir — nothing there), so it ran a best-effort pre-mortem grounded in molten-salt TES fundamentals, assuming the common configuration (two-tank solar-salt, ~100–1000 MWh_th, first-fill on critical path). Several load-bearing facts remain **unverified** pending the real plan.
+
+## Four structural weaknesses (not isolated risks)
+1. **Single-point-of-failure on freeze prevention** — all freeze protection hinges on uninterrupted trace-heat power + complete coverage.
+2. **Mitigation that fails in the mode it mitigates** — the drain-back safety path can itself freeze, defeating recovery.
+3. **First-fill = max stress + no margin** — the highest transient stress sits on the critical path with no schedule float.
+4. **Verification gaps masquerading as "complete"** — trace-heat adequacy, dryness, and crew skill are assumed-done, not proven-done.
+
+## Highest-signal failure modes
+- Power-loss/trip → silent salt freeze before alarms catch it
+- Un-traced drain path freezing (the mitigation itself)
+- Residual hydrotest water contacting molten salt → steam explosion
+- No on-site spare pump → single pump failure ends the campaign
+
+## Required actions before the build phase
+1. Redundant trace-heat power (UPS/backup) + pre-fill **thermographic survey under full load** to find dead zones
+2. Verify the **drain path is independently heat-traced and alarmed**; dry-test a timed drain
+3. Add schedule float (or move melt/heat-trace acceptance off the critical path); controlled fill-rate + foundation preheat with hold points
+4. Documented dryness verification, trace-heat load test, a named molten-salt-experienced commissioning lead, and a staged on-site spare pump
+
+**Confidence: MEDIUM** — fundamentals are HIGH, but the highest-leverage items depend on unverified plan-specific facts.
+
+If you drop the actual commissioning plan into `/tmp` (or paste the sequence + TES architecture), the agent offered to re-run against the real content, verify those unknowns, and add a quantitative freeze-time estimate per critical line. I can relaunch it for you if you provide the document.

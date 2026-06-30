@@ -1,0 +1,142 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background now — I'll report back when the analysis completes.
+I'll run a focused pre-mortem analysis on your molten-salt TES (thermal energy storage) commissioning plan. The premise: commissioning has already failed. Let me work backward to find every structural weakness.
+
+Note on input: I'm working without your specific commissioning plan documents, so this is a domain-grounded pre-mortem covering the failure space generic to molten-salt TES commissioning. Where a failure mode depends on a plan detail I can't see, I flag it as an unverified assumption for your team to check against the actual plan.
+
+# First-Principles Pre-Mortem: Molten-Salt TES Commissioning Failure
+
+## 1. Problem Essence
+
+**Core question:** Imagine the molten-salt TES commissioning has failed. What structural weaknesses in the plan caused it?
+
+**Success criteria for this analysis:**
+- Surface failure modes grounded in the physics and chemistry of molten salt, not just generic project risks
+- Distinguish irreversible/safety-critical failures from recoverable schedule slips
+- Identify clustering patterns (structural weaknesses), not just an isolated risk list
+- Produce actionable plan changes or named accepted risks
+
+## 2. Assumptions Table
+
+The pre-mortem operates on assumptions about your plan. These are the ones most worth verifying against your actual commissioning documents.
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Salt used is solar salt (60% NaNO₃ / 40% KNO₃), freezing point ~220-240°C | convention | Challenge — could be Hitec/other ternary with different freeze point | Likely but unverified | Check salt spec sheet |
+| Heat tracing/freeze protection covers 100% of wetted path incl. valves, instrument legs, drain lines | untested belief | Verify — most common failure locus | UNVERIFIED (GT-3?) | Audit P&ID against trace circuits |
+| Initial salt melt/fill procedure is written and dry-run | untested belief | Verify | UNVERIFIED | Confirm procedure exists |
+| Nitrogen blanketing / inert gas system operational before fill | current constraint | Verify ready-state | UNVERIFIED | Check commissioning sequence |
+| Operators trained on hot salt response before first fill | untested belief | Verify | UNVERIFIED | Check training records |
+| Tanks, piping passed hydrostatic + dry-out (no residual moisture) | physical law (steam explosion) | Accept as ground-truth candidate; verify execution | Critical | Confirm dry-out completed |
+
+## 3. Ground Truths
+
+- **GT-1** (physical law): Solar salt freezes at ~220-240°C. Below this, it solidifies in pipes/valves, blocking flow and risking equipment rupture on re-melt due to thermal expansion of trapped solid. Source: NREL/Sandia molten-salt property data.
+- **GT-2** (physical law): Water/moisture contacting molten salt (>~250°C) flashes to steam instantaneously — a steam explosion hazard. Any trapped moisture in vessels, lines, or salt itself is a violent-failure precursor.
+- **GT-3** (chemistry): Nitrate salt decomposes above ~565-600°C, releasing NOₓ and forming nitrites/oxides that change melt point and corrosivity. Local hot spots from uneven heating exceed this.
+- **GT-4** (chemistry): Molten nitrate salt is corrosive to carbon steel and accelerates with temperature and impurities (chlorides). Corrosion is slow but commissioning thermal cycling/contamination accelerates it.
+- **GT-5** (thermo-mechanical): Large temperature swings during commissioning impose thermal-expansion stress on tanks, piping, and welds — the highest-stress events of asset life often occur during first heat-up.
+- **GT-6** (operational): Commissioning is when procedures are first executed by humans on live equipment — the gap between as-designed and as-operated is widest here.
+
+## 4. Focused Pre-Mortem Analysis
+
+Working backward from "it failed," the failure modes cluster into six structural weaknesses. I've ordered them by severity (irreversible/safety first).
+
+### Cluster A — Freeze-up (the dominant TES commissioning failure)
+*Root: GT-1. This is statistically the most common molten-salt commissioning failure.*
+
+1. **Cold spot freezes the salt** at an untraced valve, instrument tap, drain leg, or pipe support thermal bridge. Plug forms; flow stops; thawing is slow and risky. → *Adversarial check: "Would I have suppressed this?" — Teams routinely assume heat tracing is complete because the design specified it, without auditing as-built coverage. High-signal.*
+2. **Heat-trace circuit fails undetected** — single failed circuit with no temperature alarm or redundancy on a critical leg.
+3. **Re-melt of a frozen plug ruptures the line** — trapped solid expands, or differential heating cracks the pipe (GT-1 + GT-5).
+4. **Drain-down can't complete** before freeze during an unplanned trip/power loss — salt solidifies in the worst possible location.
+
+### Cluster B — Moisture / steam explosion (irreversible, safety-critical)
+*Root: GT-2.*
+
+5. **Inadequate vessel/line dry-out** leaves residual moisture; first salt contact flashes to steam. Catastrophic.
+6. **Wet salt batch** — hygroscopic nitrate salt absorbed moisture in storage; charged without drying.
+7. **Rain/condensation ingress** into open tanks during the fill window.
+
+### Cluster C — Overheating / salt degradation
+*Root: GT-3.*
+
+8. **Heater hot spots exceed decomposition temp** due to low flow/stagnant zones during initial circulation, or immersion-heater sheath film boiling.
+9. **Control immaturity** — temperature control loops untuned at commissioning overshoot setpoints.
+
+### Cluster D — Corrosion / contamination (latent, surfaces post-commissioning)
+*Root: GT-4. Dangerous because it's invisible during commissioning and shows up as a "passed" sign-off that fails months later.*
+
+10. **Chloride/impurity contamination** of the salt batch accelerates corrosion — off-spec salt accepted without assay.
+11. **Construction debris/FOD** not flushed before fill, damaging pumps/valves.
+
+### Cluster E — Mechanical / thermal-stress integrity
+*Root: GT-5.*
+
+12. **Weld/joint failure on first heat-up** — the highest thermal-stress event reveals a latent fabrication defect.
+13. **Pump (vertical cantilever molten-salt pump) failure** — bearing/seal issues at temperature; often long-lead spares.
+14. **Tank foundation/insulation failure** under first full thermal load.
+
+### Cluster F — Human / procedural (the cross-cutting amplifier)
+*Root: GT-6. This cluster turns recoverable events into failures.*
+
+15. **Procedures not dry-run** — first execution on live hot salt reveals gaps; operator error during melt/fill.
+16. **No rehearsed emergency response** to a freeze or leak — slow reaction lets a recoverable event become irreversible (e.g., trip → no fast drain → freeze).
+17. **Optimistic commissioning timeline** compresses dry-out, salt assay, and heat-trace verification — the exact steps that prevent Clusters A/B/D. *This is the structural amplifier: schedule pressure systematically attacks the safeguards.*
+18. **Single points of dependency** — one heat-trace vendor, one salt supplier, one pump spare. Long lead times mean any failure is a multi-month slip.
+
+## 5. Abandoned Reasoning
+
+I considered grid-interconnection and balance-of-plant electrical failures as TES commissioning risks, but discarded them as not specific to molten-salt TES — they belong to plant-level commissioning, not the TES stress-test the team asked for. Flagging only so the team knows the scope boundary.
+
+I also set aside detailed financial/contractual failure modes (LD exposure, warranty disputes) — real, but they are *consequences* of the engineering failures above, not independent root causes.
+
+## 6. Conclusion
+
+The molten-salt TES commissioning failure space is dominated by **freeze-up (Cluster A)** as the most probable failure and **moisture/steam explosion (Cluster B)** as the most severe. But the load-bearing structural weakness is **Cluster F, item 17**: an optimistic timeline that compresses the very safeguards (dry-out, salt assay, heat-trace audit) that prevent Clusters A, B, and D. Schedule pressure is the pattern that converts isolated, recoverable risks into a failed commissioning.
+
+**Recommended plan changes before sign-off:**
+1. **As-built heat-trace audit** — verify 100% wetted-path coverage against the P&ID, including valves, instrument legs, drains, and support thermal bridges. Add temperature alarming and redundancy on critical legs. (Attacks Cluster A.)
+2. **Gated dry-out + salt assay** — make documented vessel dry-out and an independent salt chloride/moisture assay hard gates that cannot be compressed by schedule. (Attacks Clusters B, D, and the F-17 amplifier.)
+3. **Dry-run all melt/fill/emergency procedures** with trained operators before first hot salt; specifically rehearse trip-to-drain freeze response. (Attacks Cluster F.)
+4. **Confirm long-lead spares** (pump, heat-trace components) are on site before commissioning starts. (Attacks F-18.)
+
+**Confidence:** MEDIUM. The failure clusters and physics (GT-1 through GT-6) are HIGH confidence. The prioritization rests on assumptions about your plan I couldn't verify (GT-3? heat-trace coverage, dry-out execution, procedure dry-run status). Verifying the six rows in the Assumptions Table against your actual commissioning documents would raise this to HIGH and tell you which clusters are already mitigated versus still open.
+
+If you share the commissioning plan, salt spec, and P&ID, I can convert this generic pre-mortem into a plan-specific one that checks each safeguard against what you've actually written.
+The first-principles agent completed its pre-mortem analysis. Here's what it found:
+
+## First-Principles Pre-Mortem: Molten-Salt TES Commissioning
+
+The agent ran a backward-from-failure analysis grounded in molten-salt physics/chemistry. **Caveat:** it worked without your actual commissioning documents, so this maps the generic failure space — several items are flagged as unverified assumptions to check against your real plan.
+
+### Six failure clusters (ordered by severity)
+
+**A — Freeze-up** *(statistically the most common TES commissioning failure)*
+Cold spots at untraced valves/instrument taps/drain legs; undetected heat-trace circuit failure; re-melt rupturing lines via trapped-solid expansion; drain-down failing to complete during a trip/power loss.
+
+**B — Moisture / steam explosion** *(irreversible, safety-critical)*
+Inadequate vessel dry-out, a wet (hygroscopic) salt batch, or rain/condensation ingress — any residual moisture flashes to steam on contact with molten salt.
+
+**C — Overheating / salt degradation**
+Heater hot spots exceeding nitrate decomposition temp (~565–600°C) in stagnant zones; untuned control loops overshooting setpoints.
+
+**D — Corrosion / contamination** *(latent — passes sign-off, fails months later)*
+Chloride/impurity contamination accelerating corrosion; construction debris/FOD not flushed before fill.
+
+**E — Mechanical / thermal-stress integrity**
+Weld/joint failure on first heat-up (highest-stress event of asset life); molten-salt pump bearing/seal failure; tank foundation/insulation failure under first full load.
+
+**F — Human / procedural** *(the cross-cutting amplifier)*
+Procedures not dry-run; no rehearsed emergency response; **optimistic timeline compressing the exact safeguards that prevent A/B/D**; single points of dependency (one heat-trace vendor, one salt supplier, one pump spare).
+
+### Key conclusion
+Freeze-up is the **most probable** failure; steam explosion is the **most severe**. But the load-bearing weakness is **schedule pressure (F-17)** — an optimistic timeline that systematically compresses dry-out, salt assay, and heat-trace verification, converting recoverable risks into a failed commissioning.
+
+### Recommended changes before sign-off
+1. **As-built heat-trace audit** — verify 100% wetted-path coverage vs. P&ID (valves, instrument legs, drains, support thermal bridges); add alarming + redundancy on critical legs.
+2. **Gated dry-out + independent salt assay** (chloride/moisture) — hard gates that schedule cannot compress.
+3. **Dry-run all melt/fill/emergency procedures** with trained operators; specifically rehearse trip-to-drain freeze response.
+4. **Confirm long-lead spares on site** (pump, heat-trace components) before commissioning starts.
+
+**Confidence: MEDIUM** — the physics and failure clusters are high-confidence; the prioritization rests on unverified assumptions about your plan (heat-trace coverage, dry-out execution, procedure dry-run status, salt spec).
+
+The agent offered to convert this into a plan-specific pre-mortem if you share the commissioning plan, salt spec, and P&ID. Want me to send those over to it?

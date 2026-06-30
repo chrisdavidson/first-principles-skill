@@ -1,0 +1,36 @@
+The first-principles agent worked through the classic Fermi estimate. Here's the result:
+
+# Piano Tuners in Chicago — Fermi Estimate: **~120** (range ~60–225)
+
+The trick is to route through one bridging quantity — **annual tunings** — so demand and supply divide into a headcount:
+
+```
+tuners = (tunings demanded/year) ÷ (tunings supplied per tuner/year)
+```
+
+## Demand side
+| Step | Value |
+|---|---|
+| Chicago metro population | 9,000,000 |
+| ÷ persons per household (2.5) | 3,600,000 households |
+| × pianos per household (~1 in 30) | 120,000 pianos |
+| × tunings per piano/year (1) | **120,000 tunings/year** |
+
+## Supply side
+| Step | Value |
+|---|---|
+| Tunings per day (4) | |
+| × work days/year (250 = 50 wk × 5 d) | **1,000 tunings/tuner/year** |
+
+## Multiply out
+```
+120,000 tunings/yr ÷ 1,000 tunings/tuner/yr = 120 tuners
+```
+Units cancel cleanly: (tunings/yr) ÷ (tunings/tuner/yr) → tuners. ✓
+
+## Bracket (swing the two softest factors)
+Piano-ownership rate (2%–5%) and tuner productivity (800–1,200 tunings/yr) give **~60 on the low end, ~225 on the high end** — all within one order of magnitude, so the answer is confidently "low hundreds."
+
+**Dominant uncertainty:** the piano-ownership rate (spans ~2.5×) — the one factor worth a real data lookup if you wanted to tighten it. Tuner productivity is better pinned by the physical time per job.
+
+The reusable method: pick a target whose units you can rebuild, find a bridging quantity that lets demand and supply divide into your answer, plug in rough constants, then swing your two weakest factors for the bracket.

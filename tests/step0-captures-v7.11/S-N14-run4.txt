@@ -1,0 +1,138 @@
+The first-principles analysis agent is now running in the background, stress-testing your molten-salt TES commissioning plan with the exact prompt you provided. I'll report back the failure-mode analysis as soon as it completes.
+This is a clear request for failure-mode analysis of a specific plan. The phrasing — "stress-test the plan before we sign off," "ways our commissioning could fail" — fires the pre-mortem triggers (prospective-hindsight, before-we-lock-it-in, surface every way this could blow up). I'll run a focused pre-mortem analysis.
+
+Let me first note what I need, then proceed with a best-effort analysis since the input contract has gaps.
+
+# First-Principles Pre-Mortem: Molten-Salt TES Commissioning Failure Analysis
+
+**Missing inputs I'm proceeding past (flagged, not silently assumed):** I don't have your specific commissioning plan, salt chemistry (solar salt 60/40 NaNO₃-KNO₃ vs. other), tank size/configuration, heat-tracing design, or schedule. The analysis below is built from the physics and chemistry that govern *any* molten-salt TES commissioning. Where a failure mode depends on your specific design, I flag it as `requires-your-input`. Treat this as a checklist to interrogate against your actual plan, not a verdict on it.
+
+---
+
+## 1. Problem Essence
+
+**Essence Statement:** Identify the failure modes through which molten-salt thermal-energy-storage commissioning could fail to reach safe, sustained, on-spec operation — so the team can address structural weaknesses before sign-off.
+
+Success criteria for this analysis:
+- Surfaces failure modes spanning chemistry, thermal-mechanical, instrumentation, procedural, and organizational causes (breadth, not just the obvious freeze risk).
+- Each failure mode traces to a physical or operational ground truth, not analogy to other plants.
+- Distinguishes irreversible/catastrophic modes (where commissioning cannot recover) from recoverable ones.
+- Produces actionable mitigations the team can check the plan against.
+
+The core hazard is irreversibility: commissioning is the first time the system goes molten, and several failure modes (freeze plugs, tank floor failure, contamination) are difficult or impossible to recover from once they occur.
+
+## 2. Assumptions Table
+
+The pre-mortem premise: *"It is six months from now. Commissioning failed. What caused it?"* I enumerate causes independently, then classify the assumptions each rests on.
+
+| Assumption | Type | Treatment | Verdict |
+|---|---|---|---|
+| Salt is solid at ambient and must be melted in-tank or melted externally | physical law | Solar salt freezes ~220-240°C; this is fixed chemistry | Verified (GT-1) |
+| Heat tracing maintains all wetted surfaces above freeze point | current constraint | Depends on your trace design, redundancy, power supply | requires-your-input |
+| Nitrate salt is thermally stable across the operating window | current constraint | Stable to ~565-600°C; degrades/decomposes above | Verified with caveat (GT-3) |
+| Instrumentation reads true salt temperature, not sensor/wall temp | untested belief | Thermowell lag and stratification cause false reads | Flag GT-7? |
+| Commissioning crew has operated molten salt before | untested belief | First-of-kind crews make first-of-kind errors | requires-your-input |
+| Tank/foundation can tolerate the thermal gradient of first fill | convention | Challenge: first-fill gradients often exceed steady-state design | Challenge (GT-5) |
+| Salt as delivered meets purity/moisture spec | untested belief | Chloride and moisture contamination drive corrosion | Flag GT-8? |
+
+## 3. Ground Truths
+
+- **GT-1:** Solar salt (60/40 NaNO₃/KNO₃) has a freezing point of ~220-240°C. Below this it is solid. (Phase chemistry, measured.)
+- **GT-2:** A frozen plug in a pipe or valve is locally solid while surrounding salt may be liquid; localized re-melt is slow and a plugged line cannot be drained. (Conduction physics.)
+- **GT-3:** Nitrate salt decomposes/oxidizes progressively above ~565°C (accelerating toward 600°C+), releasing gases and forming corrosive species. (Thermal decomposition chemistry.)
+- **GT-4:** Molten nitrate salt density is ~1800-1900 kg/m³; a large tank exerts substantial hydrostatic load on floor and foundation. (Measured property.)
+- **GT-5:** Thermal expansion of steel tank and salt during first heat-up imposes mechanical stress; differential heating creates gradients steel structures resist poorly. (Thermal-mechanical, physical law.)
+- **GT-6:** Molten nitrate salt is a strong oxidizer; contact with organics, oils, or incompatible metals can produce violent exothermic reactions. (Redox chemistry.)
+- **GT-7?:** Thermowells/sensors lag and may read wall or stratified-layer temperature rather than bulk salt. (Unverified for your specific instrumentation.)
+- **GT-8?:** Chloride contamination (>~0.5-1%) and absorbed moisture dramatically accelerate corrosion of containment steels and can cause steam flashing on melt. (Unverified for your delivered salt.)
+
+## 4. Focused Pre-Mortem Analysis — Failure Modes
+
+Following the pre-mortem procedure: premise restated ("commissioning has failed — what caused it?"), independent enumeration, adversarial interrogation, clustering.
+
+**Cluster A — Freeze/solidification (the dominant irreversible cluster)**
+- **A1. Freeze plug in piping/valves/drain lines.** Cold spot from a heat-trace gap, failed trace circuit, or un-traced flange/instrument tap solidifies salt. `GT-2`: a plugged drain line means the tank *cannot be emergency-drained* — turning a recoverable event into a catastrophic one. Derivation: `GT-1 + GT-2 → any unheated wetted surface → local solidification → blocked drain → loss of emergency recovery path`.
+- **A2. Heat-trace single-point failure.** `requires-your-input`: is trace power redundant? Are circuits independently monitored? A single breaker trip overnight during fill can freeze a line before anyone notices.
+- **A3. Stratified/false-temperature melt.** `GT-7?`: instrument reads "above freeze" while bulk or a cold layer is still solid; operators advance the procedure into a partially-frozen system.
+
+**Cluster B — Thermal-mechanical (the catastrophic-but-quiet cluster)**
+- **B1. First-fill thermal shock to tank floor/foundation.** `GT-4 + GT-5`: cold tank receiving hot salt (or hot tank receiving cooler salt) creates gradients that warp the floor, crack the foundation insulating firebrick, or fatigue weld seams. This is the most expensive irreversible failure. Mitigation hinges on a *slow, monitored* heat-up ramp — challenge your plan's ramp rate against vendor limits.
+- **B2. Differential expansion buckling.** Roof, shell, and internal components expand at different rates; restraint points concentrate stress.
+
+**Cluster C — Chemistry/contamination**
+- **C1. Moisture/steam flashing on first melt.** `GT-8?`: water absorbed in salt or left in the tank flashes to steam as temperature crosses 100°C and again near melt — pressure events, splashing of oxidizer.
+- **C2. Overtemperature decomposition.** `GT-3`: a hot spot near an immersion heater or an over-aggressive ramp pushes local salt past ~565°C, decomposing it, generating gas, and degrading the entire inventory's chemistry.
+- **C3. Organic/incompatible-material contact.** `GT-6`: residual construction oils, grease, gaskets, or debris left in the tank react with the oxidizer.
+
+**Cluster D — Procedural / organizational (the cluster pre-mortems exist to surface)**
+- **D1. First-of-kind crew error.** `requires-your-input`: this is the item the team is most likely to suppress in a group setting. Commissioning procedures assume competencies the crew may not yet have for molten salt specifically.
+- **D2. No rehearsed emergency-drain procedure.** If A1 forecloses the drain path and there's no tested fallback, a recoverable freeze becomes a write-off.
+- **D3. Schedule pressure overriding the ramp.** The single most common root across failed commissionings: a slipping schedule pressures the team to accelerate the heat-up ramp (→ B1) or skip a hold point (→ A3). This cluster *amplifies every other cluster*.
+
+**Adversarial interrogation result:** The items most likely suppressed in a group review are D1 (crew readiness) and D3 (schedule-pressure-driven ramp acceleration). These are the highest-signal findings precisely because they're socially uncomfortable to raise before sign-off.
+
+**Clustering / structural weaknesses (not isolated risks):**
+1. **Loss of the emergency-drain path** is the recurring catastrophic amplifier — A1, D2 all converge here. If the drain can freeze and there's no rehearsed alternative, a single cold spot escalates to total loss.
+2. **The heat-up ramp** is the shared root of B1, A3, and C2 — and D3 attacks it directly.
+3. **Verification of "molten"** (GT-7?) gates the whole procedure; a false temperature read propagates into every downstream step.
+
+## 5. Abandoned Reasoning
+
+- I considered pump cavitation/NPSH and seal failures as a primary cluster but deprioritized them: those are *operation*-phase modes that mostly manifest after commissioning establishes molten conditions. They belong in your operational-readiness review, not the commissioning pre-mortem — though pump-start during commissioning into a partially-frozen line folds into A1.
+- I considered detailed corrosion-rate modeling but it doesn't drive a *commissioning* failure on the commissioning timescale (corrosion is a service-life mode); the commissioning-relevant slice is contamination-on-melt (C1/C3), retained.
+
+## 6. Conclusion
+
+The failure modes cluster into five families, but three structural weaknesses do the real damage and deserve explicit sign-off attention:
+
+1. **Protect the emergency-drain path above all else.** Treat any scenario that can freeze the drain line (A1) as catastrophic because it removes your recovery option. Verify trace redundancy and monitoring on drain/valve lines specifically, and rehearse a drain procedure (D2).
+
+2. **Make the heat-up ramp non-negotiable.** It is the shared root of foundation/floor damage (B1), false-melt advancement (A3), and overtemperature decomposition (C2). Bind the ramp to vendor thermal-gradient limits and pre-commit hold points that schedule pressure (D3) cannot override.
+
+3. **Independently verify "molten" before advancing.** GT-7? is load-bearing for the entire procedure — confirm bulk salt temperature with redundant, well-placed sensors, not a single thermowell that may read wall or a stratified layer.
+
+**Confidence:** MEDIUM overall, gated by the `requires-your-input` items (trace redundancy, ramp design, crew experience, salt purity spec) and the two unverified ground truths (GT-7?, GT-8?). Verifying those four inputs and two ground truths against your actual plan would raise this to HIGH and is exactly the stress-test the team should run at sign-off.
+
+**Highest-signal findings to put on the table** (the ones a group tends to suppress): **D1 — is the crew actually ready for molten salt specifically?** and **D3 — what stops a schedule slip from accelerating the ramp?** A pre-mortem that doesn't change the plan was box-ticking; if these two get a named owner and mitigation, the exercise paid off.
+
+If you share the actual commissioning plan (ramp profile, trace design, drain architecture, salt spec), I can convert this generic checklist into a verdict against your specific document.
+The first-principles pre-mortem is complete. Here's the failure-mode analysis for your molten-salt TES commissioning:
+
+## How commissioning could fail — five clusters, three that do the real damage
+
+**The core hazard is irreversibility.** Commissioning is the first time the system goes molten, and several failure modes can't be recovered from once they occur.
+
+### Failure mode clusters
+
+**A — Freeze/solidification (dominant irreversible cluster)**
+- **A1. Freeze plug in piping/valves/drain lines** — a cold spot from a heat-trace gap solidifies salt. Critically, a plugged *drain* line means the tank can't be emergency-drained, turning a recoverable event into total loss.
+- **A2. Heat-trace single-point failure** — one breaker trip overnight during fill can freeze a line before anyone notices.
+- **A3. Stratified/false-temperature melt** — instruments read "above freeze" while a cold layer is still solid.
+
+**B — Thermal-mechanical (catastrophic-but-quiet)**
+- **B1. First-fill thermal shock to tank floor/foundation** — the most expensive irreversible failure; gradients warp the floor, crack insulating firebrick, or fatigue weld seams.
+- **B2. Differential expansion buckling** at restraint points.
+
+**C — Chemistry/contamination**
+- **C1. Moisture/steam flashing** on first melt (pressure events, oxidizer splashing).
+- **C2. Overtemperature decomposition** above ~565°C from a hot spot or aggressive ramp.
+- **C3. Organic/incompatible-material contact** with residual construction oils/grease (violent exothermic reaction — salt is a strong oxidizer).
+
+**D — Procedural/organizational (what pre-mortems exist to surface)**
+- **D1. First-of-kind crew error**
+- **D2. No rehearsed emergency-drain procedure**
+- **D3. Schedule pressure overriding the ramp** — the single most common root across failed commissionings; it amplifies every other cluster.
+
+### Three structural weaknesses for sign-off attention
+
+1. **Protect the emergency-drain path above all else** — verify trace redundancy/monitoring on drain and valve lines specifically, and rehearse the drain procedure.
+2. **Make the heat-up ramp non-negotiable** — it's the shared root of foundation damage (B1), false-melt advancement (A3), and decomposition (C2). Bind it to vendor thermal-gradient limits with hold points that schedule pressure can't override.
+3. **Independently verify "molten" before advancing** — use redundant, well-placed sensors, not a single thermowell that may read the wall or a stratified layer.
+
+### Highest-signal findings (the ones groups tend to suppress)
+- **D1 — Is the crew actually ready for molten salt specifically?**
+- **D3 — What stops a schedule slip from accelerating the ramp?**
+
+If these two get a named owner and mitigation, the exercise paid off.
+
+**Confidence: MEDIUM**, gated on four inputs the agent couldn't see — trace redundancy, ramp design, crew experience, and salt purity spec. If you share the actual commissioning plan (ramp profile, trace design, drain architecture, salt spec), the agent can convert this generic checklist into a verdict against your specific document.

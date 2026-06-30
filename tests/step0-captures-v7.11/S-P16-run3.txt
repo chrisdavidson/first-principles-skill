@@ -1,0 +1,29 @@
+The first-principles agent completed its decomposition. Here is its analysis:
+
+## Verdict: NOT CREDIBLE AS STATED
+
+The claim decomposes into five branches (two verified, three contradicted/flagged), and **fails on physical-law grounds regardless of what the pilot data shows.**
+
+### The core defect: three distinct efficiency metrics conflated under one label
+
+| Metric | Real value | What the claim does |
+|---|---|---|
+| **Thermal** round-trip of molten salt (heat in → heat out) | ~85–95% (real) | Mislabels this as "electricity" |
+| **Heat-to-electricity** conversion | ~40–45% (Carnot-bounded) | Ignores this ceiling |
+| **Fuel-to-electricity** of a CCGT | ~60% (different input entirely) | Treats gas output as "round-trip" |
+
+### The two load-bearing contradictions
+
+- **Thermodynamic ceiling (HIGH confidence):** A genuine electricity → heat → electricity path through a 565°C molten-salt store is bounded by Carnot (~63% ceiling, ~40–45% realistic). A true electricity round-trip *cannot* reach 85% — it violates the Second Law. The most charitable interpretation (resistive-charged Carnot battery) yields ~40%, making 85% *more* impossible, not less.
+
+- **Category error in "round-trip":** A CCGT burns gas. Pairing a passive heat store with a fuel-burning engine means the output electricity is partly sourced from combustion — so numerator and denominator measure *different energy populations*. Calling that a "round-trip" efficiency is definitionally invalid.
+
+### Ground truths it bottoms out on
+- Second Law / Carnot limit (η ≤ 1 − T_cold/T_hot ≈ 63% for 838 K → 308 K)
+- Molten-salt operating range (~290–565°C)
+- CCGT input = combusted fuel, not stored energy
+
+### Most likely explanation
+A **terminology error** — a real *thermal* round-trip (~85%) mislabeled as an *electricity* round-trip — rather than fraud (MEDIUM confidence on which). Notably, the verdict does **not** depend on the Atacama pilot data, which is the weakest evidence tier (single unverified vendor source).
+
+**To resolve:** ask the vendor for (a) the exact measurement boundary, (b) whether gas combustion contributes to measured output, and (c) independent third-party replication.

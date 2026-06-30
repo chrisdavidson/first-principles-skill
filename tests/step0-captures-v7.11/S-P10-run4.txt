@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Molten-Salt Thermal Storage Cost per kWh of Usable Capacity
+
+**Central estimate: ~$26 per kWh of usable (electric) capacity**, with a bracket of **~$17–$43/kWh-e** (MEDIUM confidence).
+
+### How it was derived
+
+The agent rebuilt the figure from unit-factors rather than citing an analogue:
+
+```
+$/kWh-electric = (remaining capex per thermal kWh) × (1/η)
+              = $10.5/kWht × 2.5
+              ≈ $26/kWh-e
+```
+
+**Factor 1 — remaining capex per thermal kWh (~$10.5/kWht):** A complete two-tank molten-salt system runs ~$20–30/kWht. Since the salt tanks are pre-commissioned (excluded), and tanks+salt are normally ~50–65% of subsystem cost, only ~$7–15/kWht of heat exchangers, HTF skid, pumps, controls, and EPC remains. **This exclusion is the dominant driver** of why the number lands low.
+
+**Factor 2 — thermal→electric uplift (×2.5):** Storage holds *heat*; a steam-Rankine power block converts at η ≈ 0.40 (565°C salt), so each electric kWh requires ~2.5 thermal kWh.
+
+### Key caveats
+
+- **Interpretation matters most.** If you actually meant 200 MWh of usable *thermal* capacity (process heat, no turbine), the answer is just **~$10/kWht** (~$7–15), since the efficiency conversion drops out.
+- **Your 30-year / 1-cycle-per-day assumptions don't affect a capital $/kWh figure** — they'd only matter for a *levelized* cost per kWh *delivered* (LCOS), which works out to roughly ~$0.01–0.02/kWh-cycled from capital alone.
+- **Largest uncertainty:** exactly what "pre-commissioned" excludes (bare tanks + salt only, or also the heat-exchanger/HTF skid?) and whether "200 MWh" is thermal or electric.
+
+To tighten from MEDIUM to HIGH confidence, the two things to pin down are the electric-vs-thermal reading of "200 MWh" and the precise scope boundary of "pre-commissioned." These are screening-grade ballpark numbers, not a vendor quote.

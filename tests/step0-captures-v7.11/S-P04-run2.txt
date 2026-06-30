@@ -1,0 +1,29 @@
+The first-principles agent completed its Five Whys analysis. Here's the result:
+
+# Five Whys: Payment Service 500 Outage (2026-06-11 09:30 UTC)
+
+**Key framing up front:** the prompt gave the symptom (500s, 12 min, pod-restart recovery, 8k affected) but **no diagnostic data** (logs, metrics, deploy history). So the agent refused to invent a false-confident root cause and instead produced a *structured hypothesis tree with the exact evidence needed to confirm each branch*.
+
+## The load-bearing assumption it challenged
+**"A pod restart fixed it, therefore the fault was self-contained in the pod."** This is unverified — a restart *also* resets connection pools, clears memory pressure, drops stuck threads, and re-resolves DNS. So "restart fixed it" is consistent with at least four different root causes. Don't collapse to "memory leak" prematurely.
+
+## Two root causes at different layers
+
+**Branch A — the trigger (NOT yet identifiable without data).** One of four candidates, none excludable yet:
+- (a) bad deploy/config change ~09:30
+- (b) resource exhaustion (OOM, pool saturation)
+- (c) downstream dependency failure surfacing as 500
+- (d) poison input / traffic spike
+
+All four have controllable fixes. To confirm, pull for the **09:25–09:45 window**: deploy/config audit log, pod metrics + `OOMKilled` events, downstream dependency latency/errors, and request-rate + status-code breakdown with sample 500 bodies.
+
+**Branch B — the systemic root (identifiable NOW, higher leverage).** A single pod fault became a 12-minute, *manually-recovered*, customer-facing outage on a payment-critical path. Chain: manual restart was required → automated remediation + replica redundancy did not contain the fault → **resilience requirements for the payment tier were not enforced.** This holds regardless of which trigger is confirmed. Confidence: **MEDIUM** (rests on the unverified restart→recovery causation and probe/replica config).
+
+## Recommended actions
+- Confirm the trigger via the four-item evidence pull
+- Review payment-tier liveness/readiness probes for **grey-failure** blind spots (pod passes liveness while failing real requests)
+- Verify replica redundancy and whether *all* replicas shared the fault
+- Add/verify graceful degradation (circuit breakers, timeouts) on downstream calls
+- Reconcile the 8k "affected" into **failed-vs-settled** for accurate impact
+
+**Biggest caveat:** Branch A's root is a hypothesis set + confirmation plan, not a confirmed cause. If you share logs/metrics for the 09:25–09:45 window or deploy history, the agent can collapse Branch A to a single confirmed root.

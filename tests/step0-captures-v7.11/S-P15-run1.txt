@@ -1,0 +1,21 @@
+The first-principles agent ran but couldn't complete the analysis — and the reason is worth surfacing plainly.
+
+**The agent reports it has no referent for "that plant."** This session has no prior conversation, file, or context establishing which plant the prompt points to. Since a theoretical-limit analysis is only meaningful once the target is pinned down — the governing physical law itself changes with the plant type — the agent stopped and asked for context rather than guess.
+
+To run the analysis, it needs three things:
+
+1. **What kind of plant** — because "the governing physics" resolves to a different law each time:
+   - Thermal (coal/gas/nuclear) → **Carnot limit** (2nd Law of Thermodynamics)
+   - Solar PV → **Shockley–Queisser limit** (~33.7% single-junction) or Landsberg limit
+   - Wind → **Betz limit** (~59.3%)
+   - Chemical/process → reaction thermodynamics, Gibbs free energy, mass balance
+   - Biological/agricultural → photosynthetic efficiency ceiling (~11% C3/C4)
+   - Desalination → minimum work of separation (~1.06 kWh/m³ at 50% recovery)
+
+2. **What quantity to bound** — efficiency, throughput, cost per unit, emissions floor, water/energy consumption. "Upper bound" needs a named quantity.
+
+3. **The fixed operating conditions** (the ground-truth inputs the limit is derived from) — e.g. hot/cold reservoir temperatures for a thermal plant; spectrum and concentration for solar; feed salinity and recovery ratio for desalination.
+
+If "that plant" was established in an earlier session I don't have access to, paste the relevant details (plant type, current performance figure, operating conditions) and I'll continue the same agent with that context. Once it has those, it will name the governing law, compute the law-permitted ceiling from first principles, and bracket the gap between that ceiling and the plant's conventional figure.
+
+What plant did you have in mind?

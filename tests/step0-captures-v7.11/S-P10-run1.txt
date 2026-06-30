@@ -1,0 +1,29 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Answer: roughly **$20–30 per kWh of usable capacity** (central estimate ~$25/kWh)
+
+For a pre-commissioned 200 MWh two-tank molten-salt (nitrate) system, that's **~$5 million** for the storage island (salt + tanks + pumps + heat exchanger + BOP, excluding the power block).
+
+### How it was built (bottom-up, two independent methods that converge)
+
+**1. Salt energy density** — from `E = cₚ · ΔT`:
+- Solar salt cₚ ≈ 1.5 kJ/(kg·K), usable ΔT ≈ 275 K (290°C → 565°C)
+- → ~0.115 kWh-thermal per kg of salt
+
+**2. Salt inventory** — delivering 200 MWh usable needs ~222 MWh gross (90% usable fraction):
+- ≈ 1,930 t of salt at ~$0.85/kg → **~$1.6 M, or ~$8/kWh from salt alone**
+
+**3. Full system** — salt is only ~20–30% of installed CAPEX; tanks, foundations, salt pumps, heat exchangers, and BOP make up the rest:
+- → bottom-up total **~$27–33/kWh**, cross-checked against the NREL/IRENA top-down benchmark of **$20–30/kWh**
+
+### Bracket
+| Bound | $/kWh-usable |
+|---|---|
+| Lower (cheap salt, scale economy, pre-commissioned credit) | ~$18 |
+| Central | ~$25 |
+| Upper (smaller 200 MWh scale, richer heat exchange) | ~$35 |
+
+### Important caveat
+The agent flagged that **the 30-year life and once-daily cycle inputs don't actually affect $/kWh of *capacity*** — they drive *levelized* cost (LCOS). As a capacity-cost (CAPEX-intensity) metric the answer is ~$25/kWh. If you actually meant levelized cost per kWh *delivered* over the plant's ~10,950 cycles, that's a fundamentally different and much smaller number (~$0.002–0.003/kWh-cycle before O&M and capital charges) — let me know and it can re-run that chain.
+
+**Confidence: medium-high**, with the salt price and the installed-cost benchmark (both ±20–30%, pre-2024-class figures) as the load-bearing inputs.

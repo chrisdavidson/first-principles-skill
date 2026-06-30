@@ -1,0 +1,19 @@
+The first-principles agent has run, and it needs more information from you before it can give a calibrated pre-mortem rather than a generic checklist. Here's what it's asking for:
+
+## Essential (the agent considers these blocking)
+
+1. **What went right or wrong with installation #1** — your single most valuable input. The failure modes that actually bit you (or that you narrowly dodged) outweigh any generic list.
+2. **What's different about installation #2** — different site, climate, salt chemistry, tank size, supplier, EPC contractor, jurisdiction, or grid interconnection? Every delta is a candidate failure mode.
+3. **Salt chemistry and operating temperature window** — e.g., solar-salt (60/40 NaNO₃/KNO₃, ~565°C ceiling, freezes ~220–240°C) vs. other nitrate/chloride blends. Freeze-point margin and hot-side decomposition ceiling drive the most dangerous failures.
+4. **The contract structure you're about to sign** — EPC lump-sum, cost-plus, or multi-prime? Who carries freeze-protection commissioning risk, tank-foundation risk, and the performance-guarantee/LD risk? The contract *is* the risk allocation.
+
+## Helpful but not blocking
+
+5. Tank design/foundation (two-tank vs. thermocline; soil conditions; any prior thermal-ratcheting/heave issues)
+6. Freeze-protection design (trace heating, heater backup power, drain-back, redundancy)
+7. Commissioning season (winter cold-fill freeze risk vs. summer)
+8. Budget/contingency and any liquidated damages tied to a COD
+
+The agent's reasoning for not just producing a checklist now: a pre-mortem that isn't anchored to *your* deltas from installation #1 and *your* contract's risk allocation tends to produce generic reassurance that lets the real failure mode slip through — and items 1, 2, and 4 are precisely where contract-signing-stage risk lives.
+
+**How would you like to proceed?** You can answer items 1–4 (even partially), and I'll relay them to the same agent to continue with full context. Or tell me to proceed best-effort, and it'll generate the pre-mortem while explicitly flagging every assumption you'd need to close before signing.

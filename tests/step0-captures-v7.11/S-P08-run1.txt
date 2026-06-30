@@ -1,0 +1,13 @@
+The first-principles agent ran and came back with a clarifying question rather than an analysis. It needs concrete incident details to produce a real causal walkthrough.
+
+Here's what it's asking for:
+
+**To analyze your specific outage, it needs:**
+1. **What went down** — which service/component (API, database, payment gateway, whole site)
+2. **Observable symptoms** — 5xx errors, timeouts, elevated latency, total unreachability, partial degradation
+3. **Timeline** — when it started, how long, ongoing or resolved
+4. **Signals already in hand** — recent deploy, traffic spike, first alert that fired, infra change, dependency status, log/error excerpts
+
+**Or**, it offered to run a **structural pre-mortem** instead — enumerating the common root-cause categories (deploy/config change, capacity exhaustion, dependency failure, data-layer failure, network/DNS, expiry events like certs/credentials, cascading retries) and the failure chain each follows. That gives you a triage checklist but won't pinpoint *your* root cause.
+
+How would you like to proceed? Paste the incident details (status page, log slice, dashboard, incident-channel notes), or tell me to run the structural version — and I'll relay it back to the same agent so it keeps its context.

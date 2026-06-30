@@ -1,0 +1,23 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Site Drainage Structural Weakness
+
+The agent ran a five-phase first-principles pre-mortem, grounding everything in physical laws (gravity, conservation of mass, soil mechanics, hydraulics, hydrostatic pressure) and tracing how the weakness fails from there.
+
+**Four distinct failure chains if you proceed without remediation:**
+
+- **A. Capacity failure** — system can't move the water → backup, ponding, overtopping → flooding of whatever sits lowest (basement, slab, parking, downhill neighbor).
+- **B. Erosion / scour** — concentrated flow undermines pipe bedding or foundations → subsurface void → **sinkhole or sudden collapse**.
+- **C. Geotechnical** — water saturates soil instead of draining → pore pressure rises, shear strength drops → slope instability, retaining-wall overturning, foundation settlement/cracking.
+- **D. Cascading liability** — uncontrolled water leaves your parcel → third-party/property damage, regulatory violation, and liability that attaches to the *decision to proceed knowing the defect*.
+
+**Two dominant findings:**
+
+1. **The dangerous failures are the silent ones.** Chains B and C progress invisibly underground and fail suddenly — the "we'll see it coming" assumption is the one most likely to be false.
+2. **Knowingly proceeding changes the *nature* of the risk, not just its size.** A documented, known defect can void insurance/warranty and convert an insurable accident into an excluded negligent act.
+
+**Recommended next step:** Have an engineer quantify (a) the storm event size at which the weakness governs, and (b) what's downhill/downstream in the failure path — those two facts tell you whether this is "monitor and schedule" or "stop now."
+
+**Confidence: MEDIUM** — the chains are physically robust regardless of specifics, but their *ranking* depends on details the agent didn't have. It flagged that it would sharpen the analysis given: **what the weakness actually is** (undersized pipe? insufficient slope? failing retaining/detention structure? poor soil?), **site context** (slope, soil, what's downhill), and the **design storm basis**.
+
+The agent also noted this is a reasoning aid, not a substitute for a licensed civil/geotechnical engineer's stamped assessment. If you share the specifics above, I can have it re-run with ranked failure chains and a remediate-vs-proceed trade-off.

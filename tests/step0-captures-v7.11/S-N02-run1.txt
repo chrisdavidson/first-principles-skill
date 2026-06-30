@@ -1,0 +1,23 @@
+The first-principles agent ran a full pre-mortem on the migration. Here's what it surfaced:
+
+## The core finding
+Your confidence is itself the top untested assumption. It's resting on three beliefs that haven't been verified as facts: that rollback works, that "validation = matching row counts," and that sample-scale behavior predicts production-scale behavior.
+
+## Five structural weaknesses (these matter more than any single risk)
+
+1. **Verification theatre** — "it passed" usually means row counts matched, not that the *contents* are correct. Counts can match while money sums, encodings, and precision are silently wrong.
+2. **Untested rollback** — the safety net often exists only on paper. A rollback that has never been executed end-to-end is not a rollback. *(Highest stakes.)*
+3. **Sample-scale confidence** — everything proven small, nothing proven at full volume or on edge cases. Throughput doesn't scale linearly (indexes, locks, memory).
+4. **Source not frozen / not understood** — data changing underneath the migration, or field semantics guessed rather than documented (especially risky if the one person who knows the legacy schema is unavailable at cutover).
+5. **No atomic cutover** — no defined consistent state to land in if it fails partway.
+
+## The two highest-leverage actions
+Convert these two from belief to verified fact and most of the risk list collapses:
+- **Execute the rollback in a dry run** (not just write it)
+- **Run a full-volume dry run** on a production-sized copy, timed against your migration window, with real edge-case records fed through
+
+Specific failure modes worth checking: encoding corruption (UTF-8/Latin-1), column truncation, timezone/DST shifts, decimal precision loss on money, NULL-vs-empty collisions, broken foreign keys, and downstream consumers (reports, caches, integrations) breaking on the new schema.
+
+---
+
+The agent flagged that it ran a **general** migration pre-mortem since no specifics were given. If you share the **source system, target system, data volume, and downtime tolerance**, it can turn this into a migration-specific analysis and quantify the migration-window risk. Want me to send those details back to it?

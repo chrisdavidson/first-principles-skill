@@ -1,0 +1,269 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background now and will work through a full first-principles analysis — decomposing the project's assumptions, challenging each one, and reasoning up to a validated conclusion. I'll let you know as soon as it completes.
+I'll run a first-principles sanity check on the molten-salt thermal storage upgrade. Before I dive into the full 5-phase analysis, I need a few essentials to avoid analyzing the wrong project.
+
+The methodology requires a clear problem statement and the load-bearing constraints. Right now I'm missing the specifics that determine whether this analysis is even calibrated to *your* project.
+`AskUserQuestion` isn't available in this environment, so per the input-contract rule I'll state the missing information I need up front, then proceed with a best-effort framing where I can.
+
+## What I need from you to calibrate this analysis
+
+The sanity check will only catch *your* project's failure modes if it's anchored to your actual numbers and constraints. Four things would sharpen it from generic to load-bearing:
+
+1. **Problem statement** — What exactly does "upgrade" mean here? Retrofitting an existing storage tank, swapping salt chemistry (e.g., solar salt → ternary/chloride), increasing operating temperature, scaling capacity, or replacing a different storage medium with molten salt?
+2. **Key constraints** — Budget ceiling, timeline, peak/cold operating temperatures, existing tank/material compatibility, regulatory or grid-interconnect requirements.
+3. **Known ground truths** — Any numbers you've already verified: salt freezing point, target storage capacity (MWh-th), charge/discharge power, round-trip efficiency target, cost target ($/kWh-th).
+4. **What's triggering the nagging feeling** — Even a vague "the heat-trace power budget looked off" or "the schedule feels tight" is high-signal; it tells me which branch to drill hardest.
+
+## What I'll do now (best-effort)
+
+Rather than stall, I'll delegate a structured first-principles analysis against the **canonical failure modes of molten-salt thermal storage upgrades** — the assumptions that most often unravel these projects regardless of the specifics. When you fill in the four items above, I'll re-run it tightened to your actual numbers.
+
+The dominant known failure modes I'll have the analysis stress-test:
+- **Salt freezing / freeze-protection** — heat-trace power budget, freeze margin above liquidus, drain-down provisions
+- **Material corrosion** — salt chemistry vs. tank/piping alloy at the target temperature (the classic killer for higher-temp upgrades)
+- **Thermal cycling fatigue** — tank wall and foundation under daily charge/discharge
+- **Capacity/efficiency math** — usable ΔT, parasitic heat loss, round-trip efficiency claims
+- **Cost-per-kWh** — whether the $/kWh-th target survives a first-principles rebuild
+
+Let me launch the first-principles agent on these.
+I'll run the full first-principles analysis. Let me first ground the key physical constants and engineering parameters via web search, since several ground truths depend on them.
+The first-principles analysis is running in the background against the canonical molten-salt storage failure modes. I'll get the full six-section analysis back shortly.
+
+In the meantime, the most useful thing you can do is fill in any of those four items above — even partial answers (the target operating temperature and the salt chemistry alone would resolve a large fraction of the unverified inputs). I'll fold whatever you give me into a tightened re-run.
+
+I'll report back as soon as the analysis completes.
+I'll ground the key physical constants first, running searches in parallel.
+The first-principles agent has come back with an initial pass, and it needs some inputs from you to tighten the analysis. Here's where it landed:
+
+It ran a first-principles analysis against the canonical molten-salt thermal storage failure modes and produced (or is finishing) a full six-section breakdown. To resolve the biggest sources of uncertainty, it's asking you to fill in a few project specifics — even partial answers would help. The two highest-leverage ones:
+
+1. **Target operating temperature** of the storage system
+2. **Salt chemistry** (e.g., solar salt 60/40 NaNO₃/KNO₃, ternary nitrate, chloride, carbonate, etc.)
+
+It mentioned two more items it wants nailed down (likely things like tank/containment materials and the charge/discharge duty cycle or thermal power rating).
+
+If you can share the operating temperature and salt chemistry — plus anything on containment materials and duty cycle — I'll feed them back into the agent for a tightened re-run that grounds the assumption check in your actual design rather than generic failure modes.
+
+Want me to pull the full six-section analysis it's already produced, or would you rather provide those inputs first so the re-run is sharper?
+Let me get the salt $/kg figure and nitrate decomposition specifics to complete the cost rebuild and corrosion ground truths.
+I have sufficient grounding to construct the full analysis. The key physical constants and engineering data are now anchored. I'll deliver the complete six-section document.
+
+---
+
+# First-Principles Analysis: Molten-Salt Thermal Storage Upgrade
+
+**Mode:** full-composer (all 5 phases, all 8 companion techniques)
+**Essence under analysis:** *"Will the molten-salt thermal storage upgrade work as intended, or are there load-bearing assumptions that, if false, would cause it to unravel?"*
+
+> **Critical input gap notice (per input contract):** The project's specific numbers — budget, target hot-tank temperature, salt chemistry, capacity (kWh-th or MWh-th), tank/piping alloy, and minimum ambient temperature — were **not supplied**. This analysis is therefore built on canonical, physics-grounded ground truths that hold regardless of the specific project, and every conclusion that hinges on a project number is flagged `GT-N?` with the exact figure the design review must supply.
+
+---
+
+## Section 1: Problem Essence
+
+**Essence Statement:** The core decision is not "is molten-salt storage a good technology" (it is mature and proven) — it is *"does THIS upgrade's specific parameter set sit inside the physical and materials envelope that makes molten-salt storage work, or does at least one parameter cross a hard boundary (freeze point, decomposition point, corrosion-rate cliff, fatigue limit, or cost-per-kWh threshold) that causes the project to unravel?"*
+
+The owner's "nagging feeling" is the symptom. The cause being sought is a **load-bearing assumption that is silently false** — a parameter assumed safe that actually sits on the wrong side of a physical boundary.
+
+**Success criteria (checkable against the conclusion):**
+1. Each canonical failure-mode branch is reduced to the specific physical boundary that governs it.
+2. For each branch, the project-team-must-supply number that determines which side of the boundary the project sits on is named explicitly.
+3. The exergy ceiling (if the storage feeds a heat engine) is quantified so the "usable energy" claim is not overstated.
+4. Confidence levels are explicit and tied to which inputs remain unverified.
+
+**Theoretical-limit reframe applied:** Branch 4 (usable capacity/efficiency) and the Carnot question reveal that "stored thermal energy" and "deliverable useful work" are *different quantities separated by a physical law*. The essence must distinguish thermal-energy capacity (what the salt holds) from exergy (what a heat engine can extract). Conflating them is itself a load-bearing assumption.
+
+---
+
+## Section 2: Assumptions Table
+
+I ran **fishbone** (breadth-first cause categories) and **inversion** ("what would guarantee this upgrade fails?") to populate this table. Fishbone categories used: Material/Chemistry, Method/Operation, Measurement/Design-basis, Environment, Machine/Mechanical, Money. Inversion produced the failure-guaranteeing conditions that became the high-stakes `untested belief` rows.
+
+| # | Assumption | Type | Treatment | Verdict | Verification / project-must-supply |
+|---|-----------|------|-----------|---------|-----------|
+| A1 | Salt stays liquid: min tank/pipe temp > liquidus at all times | physical law (phase boundary) + untested belief (margin) | Challenge: liquidus is fixed (~223 °C solar salt); margin is project-specific | **Unverified — load-bearing** | Supply: min ambient/operating temp, freeze margin, salt liquidus for chosen chemistry |
+| A2 | Heat-trace power budget can hold every wetted surface above liquidus during worst-case outage | untested belief | Verify against heat-loss calc | **Unverified — load-bearing** | Supply: heat-trace kW installed, tank+pipe surface area, worst-case ambient, backup power duration |
+| A3 | Drain-down provisions exist and drain faster than the salt freezes | convention (CSP best practice) | Challenge: is it actually designed in, or assumed? | **Unverified** | Supply: drain-tank volume, drain time vs. freeze time |
+| A4 | Hot-tank target temp < salt decomposition temp | physical law | Accept as boundary; check project temp against it | **Boundary fixed; project side unverified** | Solar salt decomposes meaningfully >565 °C. Supply: target hot temp + chosen salt |
+| A5 | Tank/piping alloy corrosion rate at target temp < wall-thinning allowance / lifetime | physical law (Arrhenius temp-dependence) + untested belief (alloy match) | Challenge hard — stakes high | **Unverified — load-bearing** | Supply: alloy grade, wall thickness + corrosion allowance, target temp, salt chemistry |
+| A6 | Chosen salt chemistry matches chosen alloy (nitrate↔SS; chloride↔Ni-alloy) | convention | Challenge: chloride salt in stainless is a classic unraveling mode | **Unverified — load-bearing** | Supply: salt chemistry AND alloy together |
+| A7 | Tank wall/weld/foundation survive N daily thermal cycles over lifetime | current constraint (fatigue limit) | Record expiry: cycles × ΔT determines fatigue life | **Unverified** | Supply: design ΔT, cycles/day, design life (years), weld detail/foundation design |
+| A8 | Usable ΔT, salt cp, and parasitic loss yield the claimed round-trip efficiency | untested belief | Verify by derivation | **Unverified** | Supply: hot temp, cold temp, claimed RTE, tank insulation/loss rate |
+| A9 | "Stored thermal energy" ≈ "deliverable useful work" | **convention — FALSE if feeding a heat engine** | Challenge: Carnot/exergy law forbids this | **FALSE as stated** | Physical law (Second Law). See DC-6 |
+| A10 | $/kWh-th of the upgrade is within budget | untested belief | Rebuild via estimate | **Unverified** | Supply: capacity (kWh-th), salt $/kg, budget |
+| A11 | "Upgrade" (vs. greenfield) means existing tank/foundation/alloy can take the new (higher?) temperature | untested belief — **highest-stakes inversion finding** | Challenge hardest | **Unverified — load-bearing** | Supply: what is being upgraded — temp? capacity? Are existing tanks rated for new conditions? |
+
+**Inversion's sharpest finding (A11):** The word "upgrade" is itself the most dangerous assumption. An upgrade typically raises temperature or capacity on *existing* hardware. If the existing tank alloy and wall thickness were sized for the *old* temperature, raising temperature pushes corrosion rate up the Arrhenius curve and pushes the metal toward decomposition/creep limits *on metal that was never sized for it*. This is the canonical way a "simple upgrade" unravels.
+
+---
+
+## Section 3: Ground Truths
+
+Verified via **5-Whys reduce-to-primitives** (each bottomed out at a physical law, definition, or cited measurement). Unverified-but-needed inputs carry the `?` suffix.
+
+**Physics / materials ground truths (verified):**
+
+- **GT-1:** Solar salt (60 wt% NaNO₃ / 40 wt% KNO₃) has a **liquidus/melting point ≈ 223 °C** and a practical operating window of ~290–565 °C. *(Source: SQM-DLR property report; ScienceDirect Solar Salt overview.)*
+- **GT-2:** Solar salt **decomposes meaningfully above ~565 °C** (nitrate→nitrite→oxide, O₂/NOₓ release); 565 °C is the practical hot-tank ceiling. *(Source: OSTI molten nitrate development; DLR report.)*
+- **GT-3:** Solar salt **specific heat ≈ 1.5 J/g·K** (1.49–1.57 over 250–425 °C). *(Source: Nature Sci. Reports; DLR.)*
+- **GT-4:** Corrosion rate is **Arrhenius in temperature** — it rises sharply (often exponentially) with temperature. *(Physical law: rate = A·e^(−Ea/RT).)*
+- **GT-5:** In **nitrate** salt at ~565 °C, austenitic stainless steels (304/316) corrode at modest, tolerable rates (tens of µm/yr regime) and are the conventional compatible alloy; carbon steel is only acceptable at the cold-tank (~290–316 °C) condition. *(Source: OSTI 1020472; Springer J. Mater. Eng. Perf.)*
+- **GT-6:** In **chloride** salt (MgCl₂-KCl-NaCl) at ~700 °C, **304 SS corrodes at ~8 mm/yr** — catastrophic — while even Ni-based alloys (Inconel 625 ~2.8 mm/yr, Haynes ~3.1 mm/yr) corrode fast and need impurity/Mg control. *(Source: ScienceDirect SS310/SS304 chloride studies.)*
+- **GT-7:** **Thermal cycling increases corrosion vs. isothermal exposure** — Type 316 saw 25–50% more corrosion under cycling. *(Source: corrosion review literature above.)*
+- **GT-8 (Second Law / Carnot):** Stored thermal energy at temperature T_hot delivered to a heat engine rejecting at T_cold can yield at most the **Carnot fraction** of work: η_max = 1 − T_cold/T_hot (absolute temperatures). Deliverable **exergy ≪ stored thermal energy.** *(Physical law.)*
+- **GT-9:** Typical large molten-salt TES capital cost ≈ **$27–41/kWh-th** (NaNO₃→solar salt→KNO₃), with the broader range €15–80/kWh-th; DOE target is <$10/kWh-th. *(Source: Wiley Bauer 2021; NREL; OSTI.)*
+
+**Project-specific inputs (unverified — must be supplied):**
+
+- **GT-10?:** Target hot-tank temperature `T_hot`. *(Determines A4, A5, A8, exergy.)*
+- **GT-11?:** Chosen salt chemistry (nitrate vs. chloride/carbonate). *(Determines liquidus, decomposition, corrosion regime.)*
+- **GT-12?:** Tank/piping alloy + wall thickness + corrosion allowance. *(Determines A5/A6 lifetime.)*
+- **GT-13?:** Minimum ambient/operating temperature and installed heat-trace kW. *(Determines freeze margin A1/A2.)*
+- **GT-14?:** Capacity in kWh-th, salt $/kg, and budget. *(Determines A10.)*
+- **GT-15?:** Daily cycle count and design life. *(Determines fatigue A7.)*
+- **GT-16?:** Cold-tank temperature `T_cold` and whether storage feeds a heat engine. *(Determines exergy DC-6.)*
+
+---
+
+## Section 4: Derivation Chains
+
+Each conclusion traces to named ground truths with ≥1 intermediate step. **Second-order thinking** applied as a forward pass after the chains (no extension contradicted a ground truth, so none routed back to Phase 2). **Estimate** applied in DC-5; **theoretical-limit** in DC-6.
+
+**DC-1 — Freeze risk is the highest-probability unraveling mode.**
+GT-1 (liquidus ≈223 °C) + GT-13? (min ambient often well below 223 °C, even sub-zero) → the salt is *always* trying to freeze; staying liquid is an active, energy-consuming defense, not a passive state → if heat-trace (A2) or drain-down (A3) fails during an outage, salt freezes in pipes/valves → frozen plugs are extremely hard to re-melt and can rupture lines on re-expansion → **freeze is the most likely single point of failure.**
+*Confidence: HIGH that freeze is the dominant risk class; the specific margin is MEDIUM pending GT-13?.*
+*Second-order:* a freeze event during commissioning (cold start, crews inexperienced) is more likely than in steady state — schedule risk compounds physical risk.
+
+**DC-2 — If target temp approaches/exceeds 565 °C with nitrate salt, the project unravels chemically.**
+GT-2 (decomp >565 °C) + GT-10? (T_hot) → if T_hot ≥ ~565 °C the nitrate degrades, generating gas, consuming salt, shifting melting point, and fouling the system → **the salt chemistry must match the temperature ambition.**
+*Confidence: HIGH conditional on GT-10?. If the "upgrade" raises temperature past 565 °C, nitrate salt is the wrong fluid — this is a go/no-go gate.*
+
+**DC-3 — The corrosion-rate cliff is the load-bearing materials assumption.**
+GT-4 (Arrhenius) + GT-5/GT-6 (nitrate-on-SS tolerable; chloride-on-SS catastrophic at ~8 mm/yr) + GT-7 (cycling adds 25–50%) + GT-12? (alloy + allowance) → corrosion rate × design life must be < corrosion allowance → **wrong salt/alloy pairing fails the wall in months, not years.** A 304 SS tank in chloride salt at 700 °C (8 mm/yr) eats a 10 mm allowance in ~15 months even before cycling penalty.
+*Confidence: HIGH that pairing is decisive; specific lifetime LOW pending GT-11?/GT-12?.*
+*Second-order:* corrosion products contaminate the salt, which raises the salt's own corrosivity and lowers its cp — a self-accelerating loop.
+
+**DC-4 — Thermal-cycling fatigue is a slower, schedule-spanning unraveling mode.**
+GT-7 + GT-15? (cycles/day × life) + A7 → daily charge/discharge imposes cyclic thermal strain on welds, tank floor, and foundation; fatigue life ∝ (strain range)^−m → larger ΔT and more cycles shorten life → **welds/foundation, not bulk wall, are the fatigue-limited elements.**
+*Confidence: MEDIUM; needs GT-15? and weld/foundation detail. This rarely kills year-1 but can cause leaks mid-life — exactly the "unravel later" the owner fears.*
+
+**DC-5 — Cost-per-kWh-th rebuilt from first principles (Estimate technique).**
+Target units: $/kWh-th. Unit-factor decomposition:
+
+- Salt mass per kWh-th = 1 / (cp × ΔT). With GT-3 (cp ≈ 1.5 kJ/kg·K = 0.000417 kWh/kg·K) and ΔT (e.g., 290→565 °C ⇒ 275 K): energy/kg = 0.000417 × 275 ≈ **0.115 kWh-th/kg** → **~8.7 kg salt per kWh-th**.
+- Salt material cost: nitrate solar salt bulk ≈ **$0.7–1.0/kg** (industry range; **GT-14?** to confirm). → salt material ≈ 8.7 × $0.85 ≈ **$7.4/kWh-th**.
+- Add BOS (tanks, foundations, heat-trace, pumps, insulation, instrumentation), which dominates: GT-9 anchors total at **$27–41/kWh-th**, so BOS ≈ $20–33/kWh-th (≈ 70–80% of total).
+
+**Bracket [lower, central, upper]: ~$25 / $34 / $45 per kWh-th** for nitrate solar salt at this ΔT.
+*Decision-resolution:* the bracket sits **well above the DOE $10/kWh-th target** and is dominated by BOS, not salt. If the project budget assumed near salt-material cost (~$7/kWh-th), it is **off by ~4–5×.**
+*Confidence: MEDIUM; salt $/kg and capacity (GT-14?) and a smaller ΔT would shift it upward (smaller ΔT ⇒ more salt mass ⇒ higher $/kWh-th).*
+*Second-order:* a smaller usable ΔT than assumed simultaneously raises cost (DC-5) and lowers stored energy (DC-7) — the same error hits two budgets.
+
+**DC-6 — Exergy ceiling (Theoretical-limit technique).**
+Governing law: **Second Law / Carnot.** Convention stripped: "we stored X kWh-th, so we can deliver X kWh of useful work." Law-permitted ceiling: η_max = 1 − T_cold/T_hot.
+Worked at T_hot = 565 °C = 838 K, ambient sink T_cold = 30 °C = 303 K: η_max = 1 − 303/838 = **0.64**. With a more realistic engine cold side (e.g., condenser at 50 °C = 323 K): η_max = 1 − 323/838 = **0.61** — and real engines reach perhaps 60–70% *of Carnot*, so **deliverable work ≈ 0.35–0.45 × stored thermal energy.**
+**Gap:** of the stored thermal energy, **roughly 55–65% can never become work** — it is irreducibly bound by the Second Law (not engineering slack). As the tank discharges and T_hot droops toward T_cold, the *marginal* exergy of the last kWh-th approaches zero.
+*Confidence: HIGH (physical law).* **Project-must-supply:** GT-16? (T_cold and whether output is work or heat). If the load is *heat* (e.g., process/district heating), this ceiling does **not** apply and stored ≈ usable — so this gate is conditional on the use case.
+
+**DC-7 — Usable capacity ≠ nameplate.**
+GT-3 (cp) + A8 + GT-10?/GT-16? → usable energy = m × cp × (T_hot − T_cold,usable), where T_cold,usable is bounded below by the load's minimum acceptable temperature, *not* by the salt liquidus → **usable ΔT is narrower than the full liquid range**, so nameplate capacity computed on the full range overstates deliverable capacity.
+*Confidence: MEDIUM pending GT-10?/GT-16?.*
+
+**Trade-off (technique) — nitrate vs. higher-temp chloride/carbonate salt:**
+
+| Criterion (higher=better) | Weight | Nitrate (solar salt) | Chloride/carbonate ternary |
+|---|---|---|---|
+| Corrosion compatibility w/ common alloys | 5 | 5 | 1 |
+| Max usable temperature / exergy ceiling | 4 | 3 | 5 |
+| Freeze margin (lower liquidus better) | 3 | 4 | 2 |
+| Cost/availability | 3 | 4 | 3 |
+| Maturity/proven operation | 4 | 5 | 2 |
+| **Weighted total** | | **5·5+4·3+3·4+3·4+4·5=81** | **5·1+4·5+3·2+3·3+4·2=48** |
+
+Weights locked before scoring. **Nitrate dominates (81 vs 48)** for a conventional upgrade. Chloride only wins if the upgrade's *required* T_hot exceeds the nitrate decomposition ceiling — in which case the corrosion/maturity penalties become the new dominant risk. The trade-off result is a fork keyed entirely to GT-10? (target temperature).
+
+**Pre-mortem (technique) — "It's 2030 and the upgrade failed. What happened?" (top clustered causes):**
+1. Salt froze in a dead-leg during a winter outage; heat-trace backup undersized (DC-1). *Cluster: freeze defense single point.*
+2. The upgrade raised hot temp on the *existing* tank; corrosion allowance was sized for the old temp; a weld leaked in year 3 (DC-3/DC-4, A11). *Cluster: reused hardware never re-rated.*
+3. Budget assumed salt-material cost, not BOS-dominated $34/kWh-th; project ran 4× over (DC-5). *Cluster: cost basis error.*
+4. Engineers promised "X kWh delivered" but the heat engine could only extract ~40% as work (DC-6). *Cluster: thermal-energy/exergy conflation.*
+
+The recurring structural weakness across the cluster: **changing one parameter (temperature or capacity) on inherited hardware without re-deriving every downstream boundary.**
+
+---
+
+## Section 5: Abandoned Reasoning
+
+- **Salt thermal *conductivity* as a failure mode** — considered (affects charge/discharge rate and tank stratification) but abandoned as not load-bearing for the "will it unravel" question; it degrades performance, not viability. Recorded for completeness.
+- **Treating "stored = usable" as merely a rounding issue** — abandoned: DC-6 shows it is a Second-Law-bounded gap of 55–65% if feeding a heat engine, far too large to round away. Promoted to a primary conclusion.
+- **Assuming chloride salt because it sounds like an "upgrade" to higher temperature** — abandoned as a default: the trade-off shows nitrate dominates unless GT-10? forces T_hot past 565 °C. The temperature target, not the word "upgrade," should drive chemistry choice.
+- **Pricing salt at the speculative $0.7–1.0/kg without project confirmation as a firm cost** — flagged, not abandoned: used only as a bracketed input (GT-14?) feeding DC-5's range, never as a point estimate.
+
+---
+
+## Section 6: Conclusion
+
+**Answer to the essence:** The upgrade *can* work — molten-salt storage is mature — **but the owner's nagging feeling is well-founded**: the design's viability rests on **five load-bearing assumptions, each a hard physical boundary that the supplied project numbers have not yet been checked against.** The single most dangerous pattern (from inversion + pre-mortem) is **changing temperature or capacity on inherited hardware without re-deriving each downstream boundary.**
+
+**Go/no-go checklist for the design review — exact numbers the project team must supply, with the boundary each one decides:**
+
+| # | Number to supply | Boundary it decides | Conclusion / confidence |
+|---|---|---|---|
+| GT-10? | Target hot-tank temperature `T_hot` | Decomposition (565 °C for nitrate), corrosion rate, exergy | **Go/no-go gate.** HIGH confidence boundary is real |
+| GT-11? | Salt chemistry | Liquidus, decomposition, corrosion regime | Must match T_hot (DC-2). HIGH |
+| GT-12? | Alloy + wall thickness + corrosion allowance | Wall lifetime vs. corrosion rate | Must give life > design life w/ cycling penalty (DC-3). HIGH boundary, LOW until supplied |
+| GT-13? | Min ambient temp + installed heat-trace kW + backup duration | Freeze margin | Most likely failure mode (DC-1). HIGH risk class |
+| GT-14? | Capacity (kWh-th) + salt $/kg + budget | $/kWh-th vs. budget | Likely BOS-dominated ~$25–45/kWh-th, 4–5× salt-only (DC-5). MEDIUM |
+| GT-15? | Cycles/day + design life + weld/foundation detail | Fatigue life | Mid-life leak risk (DC-4). MEDIUM |
+| GT-16? | `T_cold` + is output work or heat? | Exergy ceiling | If heat engine: deliverable work ≈ 35–45% of stored (DC-6). HIGH |
+| A11 | Is this new hardware or re-rated existing tanks/foundation? | Whether DC-3/DC-4 use old or new ratings | **Highest-stakes question.** Re-rate everything if temp/capacity rises |
+
+**Three highest-confidence statements the review can act on immediately:**
+1. **(HIGH)** Freeze protection is the dominant operational failure mode; the heat-trace power budget and drain-down provisions must be sized against the *worst-case outage*, not steady state (DC-1).
+2. **(HIGH, conditional)** If `T_hot` approaches/exceeds 565 °C, nitrate "solar salt" is disqualified and a chloride/carbonate salt forces a Ni-alloy tank — flipping the cost and corrosion picture entirely (DC-2, DC-3, trade-off).
+3. **(HIGH)** If the storage feeds a heat engine, "stored kWh-th" is **not** "deliverable kWh of work" — the Second Law caps useful work at ~35–45% of stored energy; any business case quoting stored thermal energy as deliverable work is overstated by roughly 2× (DC-6).
+
+**Weakest links flagged (per validation pass):** Every `GT-N?` is load-bearing for a high-stakes conclusion. The analysis is HIGH-confidence on *which boundaries govern* and *which numbers decide them*, and LOW/MEDIUM-confidence on *which side of each boundary this specific project sits* — precisely because those eight numbers were not supplied. Supplying them converts this checklist into a definitive go/no-go.
+
+---
+
+**Sources:**
+- [SQM-DLR Solar Salt Thermal Property Analysis](https://elib.dlr.de/143749/1/PropertyAnalysis_SQM-DLR_final%20Report_v2.1.pdf)
+- [Thermostatic properties of nitrate molten salts (Nature Sci. Reports)](https://www.nature.com/articles/s41598-018-28641-1)
+- [Molten Nitrate Salt Development for Thermal Energy Storage (OSTI)](https://www.osti.gov/servlets/purl/1142924)
+- [Corrosion of SS310/SS304 in NaCl-KCl-MgCl₂ molten salts (ScienceDirect)](https://www.sciencedirect.com/science/article/abs/pii/S0010938X24007224)
+- [Review of Molten Salt Corrosion in Stainless Steels and Superalloys (MDPI)](https://www.mdpi.com/2073-4352/15/3/237)
+- [Corrosion Resistance of Stainless Steels During Thermal Cycling (OSTI)](https://www.osti.gov/servlets/purl/1020472)
+- [Molten Salt Storage for Power Generation, Bauer 2021 (Wiley)](https://onlinelibrary.wiley.com/doi/10.1002/cite.202000137)
+- [Molten Salt Power Towers Operating at 600–650 °C (OSTI/NREL)](https://www.osti.gov/servlets/purl/1429606)
+The first-principles analysis is back. Your nagging feeling is well-founded — the agent confirmed the technology is mature, but the project's viability rests on **five load-bearing assumptions that haven't been checked against your actual numbers.** Here's the distilled verdict.
+
+## The core finding
+
+The single most dangerous pattern it surfaced: **changing temperature or capacity on inherited hardware without re-deriving every downstream boundary.** The word "upgrade" itself is the riskiest assumption — if you're raising hot-tank temperature or capacity on *existing* tanks/welds/foundation that were sized for the old conditions, you push corrosion rate up the Arrhenius curve and metal toward its creep/decomposition limits on hardware never rated for it. That's the canonical way a "simple upgrade" unravels.
+
+## Three things the design review can act on immediately (all HIGH confidence)
+
+1. **Freeze protection is the dominant failure mode.** Solar salt freezes at ~223 °C, so staying liquid is an active, energy-consuming defense — not a passive state. Heat-trace budget and drain-down provisions must be sized against the **worst-case outage**, not steady state. A freeze plug is very hard to re-melt and can rupture lines on re-expansion.
+
+2. **Temperature drives a go/no-go chemistry gate.** If your target hot temp approaches/exceeds **565 °C**, nitrate "solar salt" is disqualified — you'd need a chloride/carbonate salt, which forces a nickel-alloy tank (304 SS in chloride corrodes at ~8 mm/yr — catastrophic). That flips the entire cost and corrosion picture.
+
+3. **"Stored kWh-th" ≠ "deliverable work."** If the storage feeds a heat engine, the Second Law caps useful work at **~35–45% of stored thermal energy** (Carnot). Any business case quoting stored thermal energy as deliverable work is overstated by roughly **2×**. *(This gate doesn't apply if your load is process/district heat rather than a heat engine.)*
+
+Also worth flagging: the cost rebuild came out at **~$25–45/kWh-th, BOS-dominated** — so if the budget was anchored near salt-material cost (~$7/kWh-th), it could be off by **4–5×.**
+
+## The go/no-go checklist — 8 numbers the review must supply
+
+| Supply | Decides | Stakes |
+|---|---|---|
+| Target hot-tank temp `T_hot` | Decomposition, corrosion, exergy | **Go/no-go gate** |
+| Salt chemistry | Liquidus, decomposition, corrosion regime | Must match T_hot |
+| Alloy + wall thickness + corrosion allowance | Wall lifetime | High |
+| Min ambient + heat-trace kW + backup duration | Freeze margin | Most likely failure |
+| Capacity + salt $/kg + budget | $/kWh-th vs budget | 4–5× cost risk |
+| Cycles/day + design life + weld/foundation detail | Fatigue life | Mid-life leak risk |
+| `T_cold` + is output work or heat? | Exergy ceiling | ~2× overstatement risk |
+| **New hardware, or re-rated existing tanks?** | Whether you use old or new ratings | **Highest-stakes question** |
+
+The analysis is high-confidence on *which boundaries govern* and *which numbers decide them* — but it couldn't determine which side of each boundary your specific project sits on, because none of those eight numbers were available. **Supplying them converts this checklist into a definitive go/no-go.**
+
+If you can pull even the first two (target temperature and salt chemistry), I can have the agent re-run a tightened, project-specific version before your design review. Want me to do that?

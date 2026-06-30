@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## The law-permitted ceiling: ~65% (today), ~72% (next-gen)
+
+The governing physics is **Carnot's theorem / the Second Law**: η = 1 − T_cold/T_hot.
+
+**With today's solar salt** (NaNO₃/KNO₃, decomposes ~565°C = 838 K) and an ambient sink (~298 K):
+- η_Carnot = 1 − 298/838 ≈ **64.5%** (up to ~66% with aggressive water cooling)
+
+**With next-gen chloride/carbonate salts** (~800°C = 1073 K):
+- η_Carnot = 1 − 298/1073 ≈ **72%**
+
+## The key reframe
+
+The familiar **~40%** figure is *convention*, not law — it reflects real-machine irreversibility (finite-time heat transfer, turbine/pump losses, parasitics). That leaves **~25 percentage points of engineering headroom** the laws permit but practice hasn't captured.
+
+What the laws *do* forbid: at these temperatures, **~35% of stored heat can never become electricity**. That floor is irreducible and moves only by **raising the hot-side temperature** — which is a salt-chemistry problem (decomposition temperature), not a thermodynamics problem. The cold sink can't go below ambient without spending net work.
+
+## One important refinement
+
+The agent flagged that the headline ~65% assumes a *fixed* hot reservoir. A sensible-heat store actually cools as it discharges, so the physically faithful bound uses the log-mean temperature:
+
+η = 1 − [T_cold · ln(T_hot/T_cold)] / (T_hot − T_cold) ≈ **56%** for 838 K → 298 K.
+
+It kept ~65% as the headline because real two-tank designs hold the hot tank near-isothermal during discharge, making fixed-T Carnot the right first-order ceiling — but ~56% is the tighter, more honest number for the storage stage itself.
+
+**Confidence:** HIGH on the Carnot ceiling (pure arithmetic on measured temperatures); MEDIUM on the exact next-gen figure (inherits uncertainty in salt decomposition temperature).

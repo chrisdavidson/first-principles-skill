@@ -1,0 +1,30 @@
+The first-principles agent completed the pre-mortem. Here's the result:
+
+# Pre-Mortem: Payments-Rewrite Launch
+
+**The core finding:** This launch stacks **three independent risk multipliers into a single event** — 100% blast radius (no canary) × unverified rollback (hard cutover) × worst-case timing (Friday + untuned monitoring). Any one is survivable; together they mean the *first* sign of *any* defect arrives at full EU scale, on a weekend, with possibly no way back.
+
+## Four structural weaknesses (the 14 failure modes collapse into these)
+
+| | Weakness | Root cause |
+|---|----------|-----------|
+| **SW-1** | **No blast-radius control** — first defect signal arrives at full scale | "No staged rollout" |
+| **SW-2** | **No escape hatch** — rollback feasibility unverified | Hard cutover design |
+| **SW-3** | **Cutover-boundary integrity** — in-flight state, idempotency, webhooks, stored credentials straddle two systems | Dual-system handoff |
+| **SW-4** | **Detection + response gap** — Friday/weekend × untuned monitoring | Timing + observability |
+
+## Highest-signal failure modes (the ones most likely to be downplayed)
+- **No rollback path** — most suppressed, because admitting it questions the whole plan
+- **Silent auth-rate regression** — not a crash, a slow revenue bleed nobody owns
+- **Load ceiling at full volume** — literally the thing a staged rollout exists to catch
+- **EU SCA/3-D Secure + per-country VAT long tail** — won't show in pre-prod tests
+
+## Recommended changes, in priority order
+1. **Verify and preserve a rollback path** — keep legacy hot, rehearse the flip-back, don't decommission day one *(addresses the load-bearing weakness, SW-2)*
+2. **Introduce any blast-radius control** — even a 1%/per-country canary or shadow-comparison converts "discover defects at 100%" into "discover defects at 1%" *(SW-1)*
+3. **Move off Friday** — ship Tue/Wed with full staffing through the following days *(SW-4)*
+4. **Tune alerting** on auth-success-rate/latency/error-rate with a pre-defined rollback threshold *(SW-3/SW-4)*
+
+**The single question to answer before Friday:** *"If the new service is bleeding auth success on Saturday morning, what exactly do we do — and have we tested that we can actually do it?"* If there's no confident, rehearsed answer, the plan isn't ready to ship at full scale.
+
+If the hard Friday all-EU cutover is non-negotiable for business reasons, that should be an **explicit, signed-off accepted risk** with these four weaknesses named — the difference between a calculated risk and an invisible one.

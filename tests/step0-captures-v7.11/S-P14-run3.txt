@@ -1,0 +1,24 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Theoretical Conversion-Efficiency Limit for Molten-Salt Thermal Storage
+
+**The governing law:** The Second Law of Thermodynamics, expressed through **Carnot's theorem**. The ceiling on any heat-to-work conversion is fixed entirely by the reservoir temperature ratio — nothing else:
+
+$$\eta_{Carnot} = 1 - \frac{T_{cold}}{T_{hot}}$$
+
+**What the laws permit:**
+
+| Case | T_hot | T_cold | Carnot ceiling | Conventional figure | Gap |
+|---|---|---|---|---|---|
+| Today's solar salt | ~838 K (565 °C) | ~300 K | **~62-64%** | ~40-43% | ~21-24 pts |
+| Next-gen chloride/carbonate salt | ~1073 K (800 °C) | ~300 K | **~70-72%** | (~50% targeted) | ~22-29 pts |
+
+**Key distinction the analysis draws:**
+
+- The familiar **~40-43% figure is a convention**, not a physical limit. It embeds steam-Rankine turbine practice, current salt chemistry, and finite heat-exchanger losses — none of which are laws.
+- Of the ~64% solar-salt ceiling, the **36% that's lost is irreducible** — the Second Law forbids recovering it as work given a 300 K sink and 838 K source.
+- The **~21-24 point gap** between the ceiling and real plants is recoverable engineering headroom, bounded in practice by materials creep and the finite-time/power tradeoff, not by physics.
+
+**An illuminating side note:** The endo-reversible (Curzon-Ahlborn) efficiency — the *maximum-power* operating point rather than the absolute ceiling — works out to 1 − √(300/838) ≈ **40%**, which strikingly matches where real plants actually sit. That's why incumbent plants land near 40%: they optimize for power output, not for approaching the Carnot bound. But Curzon-Ahlborn is itself a design convention, not a Second-Law bound.
+
+**Bottom line:** The laws permit **roughly 62-72%** depending on salt chemistry. To approach it: raise T_hot or lower T_cold. The bound itself is 1 − T_cold/T_hot, and nothing beats it. Confidence: HIGH.

@@ -1,0 +1,27 @@
+The first-principles agent completed the prospective-hindsight (pre-mortem) analysis. Here's what it surfaced:
+
+## Pre-Mortem: Molten-Salt TES Commissioning
+
+**Framing note:** The agent ran the analysis against the physics and standard practice of molten-salt TES commissioning rather than your actual plan document (which it didn't have). It flagged that sharing the real plan — sequence, I&C/freeze-protection design, crew experience, schedule — would let it convert inferred assumptions into verified ground truths.
+
+### The core finding: 20 risks collapse into 4 structural weaknesses
+
+| Cluster | Root cause |
+|---|---|
+| **C1 — Freeze protection is single-point, under-instrumented** | Trace power/control/thermocouple placement have no redundancy and no automatic safe-state (drain) on failure |
+| **C2 — First-heat thermal-mechanical readiness unverified** | Expansion provisions & ramp rates validated on paper, not walked-down |
+| **C3 — "Commissioned ≠ integrated/interlocked/salt-trained"** | Schedule pressure drives crews to skip integration tests, bypass interlocks, lean on steam-system habits |
+| **C4 — No schedule/spares float for an unforgiving medium** | Salt can't sit cold cheaply; single-path plan has no contingency or critical spares |
+
+### The load-bearing failure chain (highest confidence)
+Salt freezes ~220–240 °C → if trace/power fails with no automatic drain-to-cold-tank, an unattended line freezes → re-melt is slow and can rupture pipe from differential expansion → **freeze-on-fill is the single most likely project-ending failure.**
+
+### Concrete asks before on-site build begins
+1. **C1 (top priority):** Redundant trace power; automatic drain-to-cold-tank interlock on power/trace loss; thermocouple + impulse-line walkdown targeting the *coldest* geometry (valve bonnets, dead legs, drain legs, instrument taps — not just pipe runs); 24/7 trace-status alarm with named on-call response.
+2. **C3:** No-bypass policy on safety interlocks during commissioning (bypass requires written MOC); mandatory integrated hot-run gate before readiness sign-off; salt-specific crew training + emergency procedures (critically: **never water on molten salt** — explosive steam).
+3. **C2:** Physical walkdown confirming expansion guides/anchors/hangers are unlocked and set; staged instrumented heat-up ramp with hold points and live expansion/strain monitoring.
+4. **C4:** Schedule float specifically around the melt/fill milestone; pre-positioned critical long-lead spares (trace controller, high-temp instruments, special valves); confirm heater/trace utility power is sized and redundant.
+
+**Most-suppressed, highest-signal items** the agent flagged (the ones a group would politely skip): thermocouple/impulse-line placement on the I&C package, bypassing interlocks "to save time," and whether the crew is steam-trained rather than salt-trained (an unverified but load-bearing assumption — GT-7).
+
+The agent left itself resumable if you want to feed it the actual plan for a sharper, plan-specific re-run.

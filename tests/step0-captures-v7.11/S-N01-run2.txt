@@ -1,0 +1,9 @@
+I invoked the **first-principles** agent with your prompt verbatim. It's ready to run a full pre-mortem — imagining the plan has already failed and working backward through every failure chain — but it needs to anchor on *your* actual plan rather than produce generic risks. It's asking for:
+
+1. **The plan itself** — what you're building/launching/doing (a sentence or two).
+2. **Key constraints** — deadline, budget, team size, hard dependencies or non-negotiables.
+3. **What specifically makes you nervous** — even a vague gut feeling. (The agent notes this is usually the highest-signal input: the thing you're hesitant to say out loud in the team meeting.)
+
+You can give it just #1 and it'll run a best-effort pass and flag where it's guessing — but the more of the above you share, the sharper the failure-mode analysis will be.
+
+What's the plan?

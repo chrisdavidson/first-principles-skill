@@ -1,0 +1,31 @@
+The first-principles agent has completed its analysis. Here's what it returned:
+
+## Summary
+
+The agent reframed your question as a **Fermi/estimate problem** — an upper-bound figure built from constituent factors — and, lacking your actual numbers, delivered the **estimation structure** rather than a fabricated figure.
+
+**The core formula for your realistic upper bound:**
+
+```
+Upper bound = [ Committed_floor + (High-growth usage − Committed ceiling) × On-demand price ] × Non-compute multiplier
+```
+
+**Two key insights surfaced by challenging assumptions:**
+
+1. **The commitment protects your floor, not your ceiling.** Committed-use discounts only cover the *committed quantity* — every unit of usage that grows past that ceiling is billed at the *un-discounted on-demand rate*. This is the single largest driver of the upper bound.
+
+2. **Non-compute line items** (egress, cross-AZ transfer, premium SKUs, support tier) are the classic source of forecast overruns and must be captured via a "total bill ÷ compute bill" multiplier.
+
+It also flagged that "realistically" means using the **high end of the growth range** (the dominant uncertainty) with central values elsewhere — *not* worst-casing every line item at once.
+
+**To get your actual number**, the agent needs six inputs:
+1. Current monthly spend (committed vs. on-demand split)
+2. Committed-use ceiling
+3. On-demand overage unit price (or discount %)
+4. Trailing 6–12 month usage growth (min/typical/max)
+5. Known Q3 one-offs (launches, migrations)
+6. Ratio of total bill to compute bill
+
+**Confidence:** structure HIGH; the number itself UNVERIFIED until those six values are supplied.
+
+If you'd like, provide those figures (or a billing export) and I can have the agent compute the bracketed forecast directly.

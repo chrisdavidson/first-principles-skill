@@ -1,0 +1,26 @@
+The first-principles agent ran a pre-mortem analysis on the rollout plan. Here's what it surfaced:
+
+## Pre-Mortem: Auth System Rollout (Next Quarter, All Teams)
+
+The agent reframed your request as a pre-mortem — assuming the rollout *has already failed* and working backward to the structural causes. It identified **five failure clusters**, ranked by signal:
+
+**1. The fixed all-teams quarter date is the load-bearing risk.** A calendar quarter yields only ~11–12 usable weeks after holidays/PTO, and coordination cost grows with the number of independent teams. A fixed-date, all-teams, no-buffer plan is structurally over-committed. The agent flags this as the hardest thing to say in a group — inventory and rollback gaps are fixable tasks, but an over-committed date is a plan structure people resist challenging once it's been socialized.
+→ *Mitigation:* phase it (pilot → wave 2 → wave 3); make the date a target, not a commitment; add buffer.
+
+**2. Un-inventoried consumers break silently.** A service account, batch job, old mobile client, or partner API authenticating the old way fails silently in prod after cutover — with maximal blast radius since auth is on everything's critical path.
+→ *Mitigation:* complete a token issuer/consumer inventory as a **gate**, not a task.
+
+**3. Rollback and coexistence are unverified.** A documented-but-never-rehearsed rollback fails under pressure; big-bang cutover leaves nothing to fall back to.
+→ *Mitigation:* rehearse an actual rollback; confirm old + new can validate tokens in parallel.
+
+**4. Identity/permission mapping errors → lockouts** (too little access) or security regressions (too much). Edge-case accounts — contractors, service accounts, deactivated-but-referenced — break.
+→ *Mitigation:* dry-run migration against prod-like data; test edge cases.
+
+**5. Deadline-driven security regression.** To hit the date, a security step gets skipped — pen test deferred, token expiry loosened, insecure fallback left on "temporarily." The rollout "succeeds" on schedule but ships a vulnerability.
+→ *Mitigation:* make security review a non-negotiable gate; pre-commit that *scope* slips before *security*.
+
+**Confidence: MEDIUM** — the structural logic rests on verified ground truths, but specifics depend on details the agent had to assume.
+
+**Most useful next step before locking the timeline:** confirm two facts — (a) whether old and new auth can run in parallel, and (b) a complete consumer inventory. Those determine whether a phased, reversible rollout is even available to you — and a phased, reversible rollout is what converts every failure cluster above from "outage" to "recoverable retry."
+
+The agent offered to tighten this to a concrete go/no-go on the date if you share the team count, the cutover design (big-bang vs. phased), and the rollback status. Want me to follow up with those specifics?

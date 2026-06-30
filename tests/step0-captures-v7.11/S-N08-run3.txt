@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Bottom line
+
+The agent's verdict: **85% round-trip electricity efficiency is thermodynamically impossible** for a molten-salt system — but 85% is entirely plausible if the number is actually a *thermal* round-trip figure that's been mislabeled.
+
+## How it got there
+
+**The key move — catch the equivocation.** "Round-trip efficiency" can mean two very different things:
+- **(A) Power-to-power:** electricity → heat → store → heat → electricity
+- **(B) Thermal:** heat-in to heat-out of the storage medium, ignoring reconversion to electricity
+
+**The governing law — Carnot.** The asymmetry is decisive: electricity→heat is nearly free (~99%), but heat→electricity pays a Carnot tax. At standard molten-salt temperatures (~565°C hot, ~40°C cold):
+- Carnot ceiling: 1 − 313/838 ≈ **62.6%**
+- Real engine (~70% of Carnot): ~44% for the heat→electricity leg
+- Full power-to-power chain: 0.99 × 0.98 × 0.44 ≈ **~43%**
+
+So **85% exceeds even the perfect-Carnot ceiling (~61%)** — not just hard, but physically forbidden as a power-to-power figure.
+
+**The resolution.** Run it as a *thermal* round-trip instead: 0.99 (charge) × 0.98 (storage) × ~0.95 (discharge HX) ≈ **92%**. An 85% thermal round-trip is reasonable — so the claim is almost certainly a thermal-storage efficiency mislabeled as "round-trip electricity."
+
+## The approach, distilled
+
+1. **Suspect the definition before doing any math** — pin down power-to-power vs. thermal-to-thermal.
+2. **Apply Carnot as the brick wall** — the conversion tax dwarfs storage losses by an order of magnitude (so tank heat-retention is a red herring here).
+3. **Verdict:** impossible as power-to-power; plausible as thermal.
+
+The agent offered to rerun the numbers for a next-gen high-temp system (chloride salts ~720°C feeding an sCO₂ cycle), where the ceiling shifts up meaningfully — though still nowhere near 85%. Want me to have it do that?

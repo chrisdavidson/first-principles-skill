@@ -1,0 +1,24 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Failure modes to prepare for before salt tank commissioning
+
+The agent framed this as a **bidirectionally coupled system** — the molten-salt loop and the turbine train each propagate failures into the other — and produced a prioritized list (severity × likelihood × detectability-before-commissioning):
+
+| Priority | Failure mode | Direction |
+|----------|-------------|-----------|
+| **P1** | Salt freeze in sensing/tap lines → false readings → operator-induced thermal transient → coupling fatigue | salt → coupling |
+| **P2** | Wrong/missing cold-alignment thermal-growth offset → gross hot misalignment (est. **5–14 mm** train growth vs. typical coupling tolerance) | mechanical core |
+| **P3** | Freeze-recovery over-pressure — re-melting salt in a valved-in volume with no relief path | salt loop |
+| **P4** | Latent coupling flex-element defect surfacing under first sustained load — *flagged as the most likely home of the team's symptom* | mechanical core |
+| **P5** | Turbine trip → salt stagnation/freeze (the reverse propagation path) | coupling → salt |
+| **P6** | Differential settlement between tank and turbine pedestal shifting alignment | foundation |
+
+**Headline:** The cross-couple runs both ways — salt freeze can fatigue the coupling (P1) and a coupling/turbine trip can freeze the salt loop (P5) — so commissioning must treat the two as one coupled system.
+
+**Confidence:** Capped at MEDIUM (P2's physics MEDIUM-HIGH), limited by three unverified inputs.
+
+---
+
+**Important caveat from the agent:** No design specifics were provided, so the analysis runs on conservative labeled assumptions. The agent flagged that **the single highest-value missing input is what the engineering team actually observed** — the symptom that triggered the flag. Supplying that would likely promote **P4** and let the whole list be re-ranked at higher confidence.
+
+The agent also noted it produced a full six-section analysis (Problem Essence, Assumptions Table, Ground Truths, Derivation Chains, Abandoned Reasoning, Conclusion) and can surface any section in full. Let me know if you'd like that, or share the observed symptom to sharpen the analysis.

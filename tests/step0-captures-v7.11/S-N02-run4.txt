@@ -1,0 +1,53 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent ran a full pre-mortem on the migration. Here's what it surfaced.
+
+## The core finding
+
+The migration is most likely to fail not from a dramatic crash but from **silently incorrect data being declared successful** — because verification and rollback were *trusted* rather than *tested*. Your confidence is itself the risk: a team certain a migration will be fine has usually planned the forward path thoroughly and skipped the checking path.
+
+## Failure causes, by cluster
+
+**A — Data quality (the silent killer)**
+- Orphaned foreign keys → rows silently dropped
+- Encoding mismatch (UTF-8 vs latin-1) corrupting text, invisible until a user complains
+- NULLs hitting NOT NULL columns; values exceeding target field lengths → truncation
+- Duplicate keys the source tolerated but the target's unique constraint rejects
+- Date/timezone/float-precision drift
+
+**B — Verification gap**
+- No row-count + checksum reconciliation, so "no errors" gets mistaken for "complete and correct"
+- Eyeballing a few records and missing a systematic transform bug in one segment
+- No aggregate (sum/total) reconciliation to catch silent loss
+
+**C — Process & cutover**
+- Dry run done on a small/stale/sanitized subset that behaves differently at full volume
+- Cutover overruns the window, forcing decisions under pressure
+- Source still taking writes during migration → drift and lost updates
+
+**D — Rollback & recovery**
+- Rollback never rehearsed; fails when actually needed
+- No verified pre-cutover snapshot / restore point
+- "Forward-only" thinking means no defined abort trigger or owner
+
+**E — People & downstream**
+- A downstream report/integration/API breaks silently on the new shape
+- The one person who knew the legacy data quirks wasn't in the room
+- Confidence suppressed dissent — nobody wanted to slow down a "sure thing"
+
+## The three structural weaknesses underneath all of it
+
+1. **Verification was assumed, not designed** — the team planned the forward path, barely planned the checking path.
+2. **The dry run wasn't representative** — anything less than full-volume, real, production-shaped data hides scale-only failures.
+3. **Rollback was a belief, not a rehearsed procedure** — "we can always roll back" is the single most common untested assumption.
+
+## Highest-leverage actions, in order
+
+1. **Design reconciliation before migrating** — row counts, per-column checksums, aggregate sums. Define success as *these reconcile*, not "the script finished."
+2. **Profile the source against the target schema now** — nulls, dupes, orphaned FKs, encoding, lengths, types, on real data.
+3. **One full-volume dry run on a production-shaped copy** — and time it. If it overruns in rehearsal, it overruns in production.
+4. **Rehearse rollback**, including a verified pre-cutover snapshot, a named abort trigger, and an owner for the call.
+5. **Inventory downstream consumers and freeze source writes during cutover.**
+
+---
+
+The agent flagged that a generic answer is weakest on the specifics. If you tell me **the source and target systems, data volume, downtime tolerance, and whether there's transformation logic (vs. a straight copy)**, it can turn these clusters into a migration-specific risk register with concrete reconciliation and rollback checklists. Want me to take it there?

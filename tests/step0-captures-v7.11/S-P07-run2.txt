@@ -1,0 +1,18 @@
+The first-principles agent ran and, before it can analyze, it needs the substance of your plan. Here's what it's asking for:
+
+**To run a pre-mortem on your launch, it needs:**
+
+1. **What's launching** — product, feature, campaign, service? One sentence.
+2. **The plan itself** — key steps and their sequence leading up to and including launch day.
+3. **The date / timeline** — when is launch, how much runway is left?
+4. **What "success" looks like** — the one or two outcomes that, if missing, mean the launch failed.
+5. **What specifically you're nervous about** — even a vague gut feeling is signal. (The thing you keep avoiding is usually the highest-value finding.)
+6. **Hard constraints** — anything fixed: budget, headcount, an immovable date, a dependency you don't control.
+
+Rough answers are fine — you can paste a plan doc or just brain-dump it.
+
+**Where it's headed once you reply:** It'll run a pre-mortem — *assume the launch already failed*, work backward to enumerate every plausible cause, then cluster those causes to find the **structural** weaknesses (not just isolated risks). Each weakness becomes either a plan change or a named, accepted risk with a mitigation — so you walk away with actions, not more worry.
+
+One tip it flagged: **don't pre-filter** when you say what you're nervous about. The cause you'd be embarrassed to raise in a meeting is exactly what this is designed to surface.
+
+I can relay your answers straight back to the same agent (its context is intact). What's the plan?

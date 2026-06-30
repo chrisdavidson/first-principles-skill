@@ -1,0 +1,27 @@
+The first-principles agent completed the analysis. Here's the result:
+
+## Theoretical Limit: Molten-Salt Thermal-Storage Plant
+
+**The governing law is the Second Law of Thermodynamics, via the Carnot bound** — η = 1 − T_cold/T_hot.
+
+### The headline number: ~67%
+
+Pushing the hot side to the nitrate "solar salt" decomposition limit (~600 °C / 873 K) and rejecting heat at ambient (~15 °C / 288 K):
+
+$$\eta = 1 - \frac{288}{873} = 0.67$$
+
+### The honest bracket
+
+| Bound | T_hot | T_cold | η |
+|---|---|---|---|
+| Conventional practice (steam Rankine) | ~838 K | ~310 K | **38–42%** |
+| Carnot ceiling, salt-limited | 873 K | 288 K | **~67%** |
+| Carnot ceiling, relaxed medium | unbounded | 288 K | → 100% (degenerate) |
+
+### Two qualifications that make the number meaningful
+
+1. **The ~67% ceiling is salt-specific, not law-specific.** The Second Law only forces a cold-reservoir floor; the 873 K cap comes from nitrate salt decomposition, not physics. The *binding* constraint for this plant type is the **working medium's decomposition temperature** — change the medium and the Carnot ceiling rises further.
+
+2. **The gap from ~40% to ~67% is engineering headroom, not a wall.** Of all stored energy, **~33% must be rejected as waste heat — that's the irreducible Second-Law floor.** But the ~27-point gap between today's ~40% and the ~67% ceiling is recoverable in principle (supercritical CO₂ cycles, combined cycles, lower condenser temperatures) and forbidden by no law.
+
+**Bottom line:** The laws permit ~67% for a nitrate-salt plant rejecting at ambient. ~33% waste-heat rejection is non-negotiable; everything between today's ~40% and that ~67% is convention, not physics. (Confidence: HIGH — derived directly from the Carnot definition and two standard temperatures, with the noted caveat that the salt-decomposition and ambient figures are textbook ranges, ±30 K of which only shifts the ceiling a couple of points.)

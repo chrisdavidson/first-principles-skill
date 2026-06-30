@@ -1,0 +1,61 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background, and I'll share its analysis as soon as it completes.
+This is a request to think through downsides and failure modes before a high-stakes board presentation. The phrasing ("Something feels off," "potential downsides," "before the board presentation") is worry-framing about a plan you want to stress-test before locking it in — which routes to a pre-mortem stress-test rather than a single narrow technique.
+
+Before I can run a useful analysis, I need a bit more about the actual plan. Right now I have a feeling ("something feels off") but not the structure to interrogate. Let me ask precisely what's missing.
+`AskUserQuestion` isn't available in this environment, so per the input contract I'll state plainly what I need rather than best-effort past a missing frame.
+
+To run a real pre-mortem on the storage integration timeline, I'm missing the load-bearing details. Here's what I need from you, and why each one changes the analysis:
+
+**1. What is the storage integration, concretely?**
+"Storage" could mean several very different things, and the failure modes diverge completely:
+- **Grid/energy storage** (battery or thermal storage tied into a power system or a renewables project)?
+- **A data-storage / infrastructure migration** (moving to a new storage backend, cloud object store, database tier)?
+- **A storage product feature** being integrated into your platform?
+- A **partner/acquisition integration** where "storage" is the acquired company's product?
+
+**2. What does the timeline actually claim?**
+The specific milestones and dates are the raw material for a pre-mortem. I need at least:
+- The end date you're presenting to the board.
+- The 3-6 major milestones between now and then.
+- Which milestones have hard external dependencies (vendor delivery, regulatory sign-off, another team's work).
+
+**3. What's the one thing that made you say "something feels off"?**
+Your instinct is signal. Even if vague — "the integration testing window looks thin," "we're depending on a vendor who's slipped before," "the team is also shipping something else that quarter" — name it. Pre-mortems work best when the analyst's suppressed worry is surfaced first.
+
+**4. What are the non-negotiable constraints?**
+- Is the board date itself fixed (announced commitment, regulatory deadline, contractual)?
+- Budget or headcount ceiling?
+- Any milestone that *cannot* slip without a cascading consequence?
+
+**5. What's already verified vs. assumed?**
+Which timeline assumptions rest on confirmed facts (signed contracts, completed spikes, benchmarked throughput) versus optimistic belief (vendor's quoted lead time, "integration should be straightforward," "we'll hire by Q3")?
+
+---
+
+If it's faster, paste the timeline/plan as-is and answer #1 and #3 — I can infer a lot of the rest and flag where I'm assuming. Once I have this, I'll run a structured pre-mortem: assume the integration has already failed at the board-presentation horizon, work backward to the failure chains, cluster them into structural weaknesses, and hand you back the load-bearing risks with mitigations you can fold into the deck.
+
+What's the storage integration, and what's the timeline?
+The first-principles agent completed its analysis. Rather than running the pre-mortem blind, it determined it needs key details from you first, because the failure modes diverge sharply depending on specifics. Here's what it's asking:
+
+**1. What is the storage integration, concretely?** The analysis changes completely depending on whether this is:
+- Grid/energy storage (battery or thermal tied into a power system or renewables project)
+- A data-storage/infrastructure migration (new storage backend, cloud object store, database tier)
+- A storage product feature being integrated into your platform
+- A partner/acquisition integration where "storage" is the acquired company's product
+
+**2. What does the timeline actually claim?**
+- The end date you're presenting to the board
+- The 3–6 major milestones between now and then
+- Which milestones have hard external dependencies (vendor delivery, regulatory sign-off, another team's work)
+
+**3. What made you say "something feels off"?** Your instinct is signal — even if vague ("the integration testing window looks thin," "the vendor has slipped before," "the team is also shipping something else that quarter"). Naming the suppressed worry first makes the pre-mortem sharper.
+
+**4. Non-negotiable constraints?** Is the board date itself fixed? Budget/headcount ceiling? Any milestone that can't slip without cascading consequences?
+
+**5. Verified vs. assumed?** Which timeline assumptions rest on confirmed facts (signed contracts, completed spikes, benchmarked throughput) versus optimistic belief (vendor's quoted lead time, "integration should be straightforward," "we'll hire by Q3")?
+
+**Shortcut:** If faster, paste the timeline/plan as-is and just answer #1 and #3 — it can infer much of the rest and flag where it's assuming.
+
+Once you provide this, it will run a structured pre-mortem: assume the integration has already failed at the board horizon, work backward through the failure chains, cluster them into structural weaknesses, and hand back the load-bearing risks with mitigations you can fold into the deck.
+
+How would you like to proceed?

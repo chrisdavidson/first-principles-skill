@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## 50 MW Solar-plus-Storage Microgrid CAPEX — Rural Sub-Saharan Africa
+
+**Central estimate ≈ $170M (~$3.4/W). Range: $112M–$235M.**
+
+| Block | Low | Central | High |
+|---|---|---|---|
+| PV modules (50 MW DC) | $14.0M | $15.5M | $17.5M |
+| Battery (200 MWh / 4h) | $50.0M | $65.0M | $80.0M |
+| BOS / EPC | $20.0M | $27.5M | $35.0M |
+| × SSA premium (1.3–1.7×) | applied to above | — | — |
+| Grid interconnection | $3M | $6.5M | $10M |
+| **TOTAL** | **~$112M** | **~$169M** | **~$235M** |
+
+### How it was derived
+- **Battery sizing (the one hard fact):** 50 MW × 4 h = **200 MWh = 200,000 kWh**, costed at $250–400/kWh installed LFP.
+- **Panels:** $0.28–0.35/W DC × 50M W.
+- **BOS/EPC:** $0.40–0.70/W — added explicitly because the prompt's "panel procurement" framing hides it (~30–40% of equipment cost).
+- **SSA premium (1.3–1.7×):** applied to equipment + install for duties, inland logistics, thin contractor market.
+- **Interconnection:** $3–10M, dominated by unknown distance-to-grid.
+
+### Key insights
+- **Panels are only ~9% of the central total.** **Battery storage (~38%)** and the **BOS/install premium** dominate. Optimizing panel procurement is nearly irrelevant to project cost.
+- **Confidence: MEDIUM** — the ~2× spread is driven by two unverified inputs: the SSA logistics premium and the grid-interconnection cost.
+- This is *overnight* CAPEX; a financed all-in figure (IDC, contingency, O&M reserves) could run 15–25% higher.
+
+**To tighten the estimate:** confirm (1) distance to existing grid, (2) a real in-country logistics/duty quote, and (3) AC vs DC rating + whether storage power equals the full 50 MW.

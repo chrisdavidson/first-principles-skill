@@ -1,0 +1,29 @@
+The first-principles agent ran a full pre-mortem on your second molten-salt install. Here's what it surfaced.
+
+## The headline
+The agent reframed your question as: *"It's 18 months out, the plant has failed — what caused it?"* and reasoned backward. Its strongest finding is that **your biggest risk isn't a new technical unknown — it's the success of installation #1 lulling you into treating #2 as a copy.**
+
+## Three failure clusters most likely to sink #2
+
+1. **The "same as #1" fallacy** *(dominant structural weakness)* — Porting #1's foundation, seismic, ambient-temperature, and trace-heating designs to a site that's actually different. Foundation differential settlement is the single most expensive thing to remediate.
+
+2. **Contract risk allocation that closes forever at signature** — This is *the* reason the deadline matters. Risk allocation, performance guarantees, and change-order pricing are vastly cheaper to fix before you sign.
+
+3. **Uncaptured lessons + overconfidence** — The team *believes* it learned from #1, but root-causes usually live in people's heads, not documents — and the #1 commissioning crew may have dispersed.
+
+## Underlying physics it pinned as ground truth
+- Nitrate salts **freeze below ~220–240°C** → any dead leg, cold spot, or trace-heating/power loss risks a freeze plug (highest-consequence technical failure).
+- Same salts **degrade and turn corrosive above ~565–600°C** → narrow hot-side thermal margin.
+
+## What to nail down *before* you sign
+- **Site-specific** geotech + seismic re-validation in writing; EPC owns design-adequacy for *this* site (not "warranty by reference to #1").
+- Performance guarantee with an acceptance test (rated capacity, round-trip efficiency, heat-loss); **liquidated damages on the commissioning milestone**.
+- Freeze-protection responsibility and salt price/supply risk allocated to whoever actually controls them; change-order pricing for known deltas vs #1 fixed *now*.
+- A one-page written root-cause register from #1, and named/retained #1 commissioning personnel in the #2 contract.
+
+## Two things it needs from you to sharpen this
+The analysis is gated on two unverified, load-bearing assumptions:
+1. **What went wrong (or right) on installation #1?** — your richest source of real failure modes.
+2. **What's materially different about #2?** (site, scale, salt chemistry, EPC, supplier, grid) — the deltas are where second-build failures actually live.
+
+The agent is still live — if you give me those two, it'll re-rank the risks, drop the assumption flags, and add quantitative freeze-recovery-cost and efficiency-margin sizing it deliberately deferred. It also offered to turn the pre-signature actions into a **contract-review checklist** for your counsel and EPC lead. Want either of those?

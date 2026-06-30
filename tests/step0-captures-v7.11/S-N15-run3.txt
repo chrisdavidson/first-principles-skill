@@ -1,0 +1,50 @@
+I've launched the first-principles analysis with your prompt exactly as written. The agent is running in the background and I'll report back when it completes.
+This looks like a first-principles analysis task — you want to surface the downsides and failure modes of the storage integration timeline before a board presentation. The phrasing ("something feels off," "potential downsides," "before the board presentation") signals a holistic stress-test rather than one specific technique, so I'll run the full analysis.
+
+But I'm missing the essential inputs. I can't produce a rigorous analysis without knowing what "the storage integration timeline" actually is. Let me ask precisely what I need.
+`AskUserQuestion` isn't available in this environment, so per my operating contract I'll state plainly what I need before proceeding.
+
+I want to give you a rigorous, board-ready stress-test of the storage integration timeline — surfacing the failure chains and downsides, not hand-waving. But "the storage integration timeline" is a reference I don't have visibility into, and the analysis is only as good as the facts it rests on. Reasoning from invented details would be worse than useless before a board presentation.
+
+To run the full first-principles analysis (essence → assumptions → ground truths → failure derivation → validation), I need the following essentials. The first two are blocking; the rest sharpen the result.
+
+**Blocking — I can't responsibly proceed without these:**
+
+1. **What is the integration?** What two things are being integrated, and what does "storage" mean here — a hardware/energy-storage system (e.g., batteries into a grid/product), a software storage layer (a new database/storage backend into an existing system), or a corporate integration (acquiring/merging a storage business)? The domain completely changes the failure modes.
+
+2. **What is the timeline?** The actual dates/milestones as currently planned — start, key gates, go-live, and what the board is being asked to approve or note.
+
+**Sharpening — helpful, but I can proceed with best-effort flags if absent:**
+
+3. **Hard constraints** — budget cap, regulatory/compliance deadlines, contractual commitments, dependencies on third parties, headcount/skills available.
+
+4. **Known ground truths** — facts you've already verified and want treated as fixed (e.g., "vendor X has confirmed delivery by Q3," "the data migration tool is proven at our scale").
+
+5. **What specifically feels off?** Your instinct is a signal. Is it the *duration* (too compressed), a *dependency* (something upstream isn't ready), *resourcing*, *scope*, or something about *who set the timeline and why*? Even a vague "the Q3 date assumes the vendor hits every milestone with zero slip" gives me a thread to pull.
+
+---
+
+If it's faster, you can also point me at the source material — a planning doc, ROADMAP, spec, or ticket (give me an absolute file path and I'll read it directly), or paste the timeline inline.
+
+Once I have items 1 and 2, I'll run the full analysis: classify every assumption baked into the timeline, establish what's actually verified versus merely hoped-for, derive the concrete failure chains (pre-mortem: "it's the board meeting after go-live and the integration failed — what caused it?"), and hand you the load-bearing weak links with confidence levels you can defend in the room.
+
+What's the integration, and what's the timeline?
+The first-principles agent has run, but it needs more concrete details before it can produce a defensible analysis. Rather than reasoning from invented details (which it flagged as worse than useless before a board presentation), it's asking for specifics.
+
+**It's blocked on two essentials:**
+
+1. **What is the integration?** Is "storage" a hardware/energy-storage system (e.g., batteries into a grid or product), a software storage layer (a new database/storage backend), or a corporate integration (acquiring/merging a storage business)? The domain completely changes the failure modes it should hunt for.
+
+2. **What is the timeline?** The actual planned dates/milestones — start, key gates, go-live — and what the board is being asked to approve.
+
+**Optional, to sharpen the result:**
+
+3. Hard constraints (budget cap, regulatory deadlines, third-party dependencies, available headcount/skills)
+4. Known ground truths you've already verified and want treated as fixed
+5. What specifically feels off — the *duration* (too compressed), a *dependency* (upstream not ready), *resourcing*, *scope*, or *who set the timeline and why*. Even a vague instinct gives it a thread to pull.
+
+You can also just point me at a planning doc, ROADMAP, spec, or ticket (an absolute file path I can read), or paste the timeline inline.
+
+Once I have at least the first two, it'll run the full analysis: classify every assumption baked into the timeline, separate verified facts from hopes, derive concrete failure chains via a pre-mortem, and hand you the load-bearing weak links with confidence levels you can defend in the room.
+
+What's the integration, and what's the timeline?

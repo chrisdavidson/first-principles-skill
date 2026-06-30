@@ -1,0 +1,72 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background and will do a full first-principles analysis of the molten-salt thermal storage upgrade assumptions. I'll report back as soon as it completes.
+I'll run a first-principles sanity check on the molten-salt thermal storage upgrade. The user's "nagging feeling it might unravel" is a failure-mode worry before a design review — this is a pre-mortem-shaped request, but to do it properly I need the actual project assumptions to challenge.
+
+Right now I have a problem statement and domain, but no key constraints or known ground truths — and critically, no access to the project's stated assumptions. Let me check whether there's project material in the working directory before I either analyze or ask.
+There's no project documentation in the working directory — the molten-salt thermal storage project lives somewhere I can't see. I checked `/tmp`, `.planning/`, `graphify-out/`, and searched for any molten/salt/thermal files. Nothing.
+
+That matters because a genuine first-principles sanity check challenges *your project's specific assumptions* — the storage medium, the temperature window, the cost figures, the throughput targets in *your* design. Without those, I'd be inventing a strawman project and "challenging" assumptions you may not even hold. That's theater, not a sanity check.
+
+So I need a bit of input before I run the analysis. I'll ask for the essentials.
+AskUserQuestion isn't available in this environment, so per my operating contract I'll state exactly what I need up front, then give you a best-effort skeleton you can react to.
+
+## What I need to run a real sanity check
+
+To challenge *your* assumptions rather than generic ones, please point me at or paste:
+
+1. **The design document / assumptions list** — or just tell me where the project lives (a repo path, a `.planning/` dir, a graphify graph). If it's accessible from this machine, give me the path and I'll read it directly.
+2. **The core claim the upgrade rests on** — what does "molten-salt thermal storage upgrade" actually buy you vs. the incumbent? (e.g. "shift X MWh of load," "cut storage $/kWh by Y," "extend dispatch duration to Z hours").
+3. **Key constraints** — budget, timeline, footprint, the existing plant it bolts onto, regulatory/safety envelope.
+4. **The specific numbers you're nervous about** — salt chemistry (solar salt 60/40 NaNO₃/KNO₃? ternary?), hot/cold tank temps, charge/discharge power, round-trip efficiency, cycle life, levelised cost.
+
+## Where I'd aim the analysis (so you know what you're authorizing)
+
+Your "nagging feeling it might unravel" is a **pre-mortem signal** — so the analysis would run the full first-principles procedure with two companion techniques doing the heavy lifting:
+
+- **Pre-mortem** (Phase 5): assume the upgrade has failed at the design review or in commissioning, and work backward to the failure chain.
+- **Theoretical-limit** (Phase 4): check whether your headline efficiency / cost / duration numbers are *conventions* (what vendors currently quote) or *physical bounds* (what thermodynamics actually permits) — because nagging feelings often live exactly in that gap.
+
+The assumptions I'd most expect to be load-bearing and under-verified, just from the domain:
+
+| Candidate assumption | Why it's a classic unraveling point |
+|---|---|
+| Salt freezing margin (solar salt freezes ~220–240 °C) | Cold-tank/heat-trace failure is *the* dominant molten-salt failure mode; freeze events have killed real plants |
+| Round-trip efficiency quoted as electrical when it's really thermal | A convention/units swap that inflates the value proposition |
+| Tank/material corrosion life at hot-tank temp (~565 °C ceiling for solar salt before nitrate decomposition) | An untested-belief masquerading as a spec |
+| Cost $/kWh derived from a comparable project | An *analogy*, which my method forbids as standalone evidence — must trace to a ground truth |
+| Charge/discharge symmetry assumption | Heat-exchanger pinch often makes discharge slower than charge |
+
+If any of those rows make you wince, that's probably where the feeling is coming from.
+
+## Two ways to proceed
+
+- **Best (recommended):** give me the path to the project docs and I'll read them, then dispatch the `first-principles:first-principles` agent with *your real assumptions* loaded — producing a proper Essence → Assumptions Table → Ground Truths → Derivation Chains → Pre-mortem document before your design review.
+- **Now:** if you just want to pressure-test the generic skeleton above before you go dig up the docs, say so and I'll run the full analysis against the five candidate assumptions as stated, clearly flagging every one as unverified.
+
+Which do you want — and can you point me at the project material?
+The first-principles agent ran and came back. Rather than fabricate assumptions, it's asking for your actual project material so it can challenge *your* numbers instead of generic ones. Here's the summary:
+
+## It needs input to do a real check
+It wants any of:
+1. **The design doc / assumptions list** — a repo path, `.planning/` dir, or pasted text (it can read files on this machine directly).
+2. **The core claim** — what the upgrade buys vs. the incumbent (load shifted, $/kWh cut, dispatch duration).
+3. **Key constraints** — budget, timeline, footprint, the plant it bolts onto, safety/regulatory envelope.
+4. **The specific numbers worrying you** — salt chemistry, hot/cold tank temps, charge/discharge power, round-trip efficiency, cycle life, LCOE.
+
+## Where it would aim the analysis
+It read your "nagging feeling" as a **pre-mortem signal** and would lean on two techniques: a **pre-mortem** (assume it failed at review/commissioning, trace the failure chain backward) and a **theoretical-limit** check (are your headline numbers physical bounds or just vendor conventions — nagging feelings often live in that gap).
+
+The assumptions it flagged as classically load-bearing and under-verified:
+
+| Candidate assumption | Why it's a classic unraveling point |
+|---|---|
+| Salt freezing margin (solar salt freezes ~220–240 °C) | Cold-tank/heat-trace freeze events have killed real plants |
+| Round-trip efficiency quoted as electrical when it's actually thermal | A units/convention swap that inflates the value prop |
+| Corrosion life at hot-tank temp (~565 °C nitrate-decomposition ceiling) | An untested belief masquerading as a spec |
+| Cost $/kWh derived from a "comparable" project | An analogy standing in for a ground truth |
+| Charge/discharge symmetry | Heat-exchanger pinch often makes discharge slower than charge |
+
+## Two ways to proceed
+- **Recommended:** point me at the project docs (a path) and I'll have it read them and run a full analysis against your *real* assumptions before the design review.
+- **Now:** if you'd rather pressure-test the generic skeleton above first, say so and it'll run the full analysis against those five candidate rows, flagging each as unverified.
+
+Which way do you want to go — and is there a path or doc I can hand it?

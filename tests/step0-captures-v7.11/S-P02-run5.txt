@@ -1,0 +1,23 @@
+The first-principles agent completed the inversion. Here's what it found:
+
+## The claim, inverted
+
+"Faster ships → better retention" isn't a law — it's a **conditional**. Cadence is a *multiplier on value-per-ship*, not a substitute for it. If value-per-ship is positive, faster helps; if it's near zero or negative, **faster just hurts faster**. The defensible version is: "faster delivery of *correctly-prioritized, adopted, stable* value → retention."
+
+## When the assumption breaks down for your two-week team
+
+The agent surfaced five hidden preconditions the claim silently depends on. The day any one flips, the assumption is broken — these are your watchlist:
+
+| Break condition | What flips | Signal to watch |
+|---|---|---|
+| **Quality slips** | Speed/quality tradeoff starts shipping defects | Post-release defect rate, rollback/hotfix count, support tickets per release |
+| **Diminishing returns** | Backlog shifts from unmet needs → polish | Falling feature-adoption rate; share of roadmap that's incremental |
+| **Change tax** | Frequent change itself annoys existing users | Negative feedback correlated with UI/workflow changes; *power-user* churn specifically |
+| **Bad attribution** | Gains were seasonal/marketing/cohort confounds | Do retention gains survive a cohort or holdout test? |
+| **Adoption decouples** | "Shipped" outpaces "used" because comms didn't scale | Gap between shipped and % of users who used it within N days |
+
+## The single sharpest diagnostic
+
+Track **retention-relevant adoption per ship**, not ships per quarter. The moment that curve flattens or inverts while cadence holds steady, the assumption has broken — no matter how fast you're shipping.
+
+Confidence that these are the *right* things to watch is high; *which one bites you first* is empirical — instrument the five signals to find out.

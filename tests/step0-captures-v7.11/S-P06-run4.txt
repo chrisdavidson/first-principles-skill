@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Core insight
+
+The risk isn't the Friday deadline — it's that you're putting **a new, externally-dependent synchronous call onto your shared revenue path (checkout) to satisfy one customer on one day.** The demo win is first-order and real; the costs are second/third-order, diffuse, and deferred — exactly the kind that get under-weighted under deadline pressure.
+
+## Second-order effects (direct)
+1. **Checkout latency rises for *all* customers** — real-time sync adds a synchronous external call to the critical path; a slow inventory provider now slows every checkout, not just the demo customer's.
+2. **New failure mode in the revenue path** — if the sync call times out, checkout either fails-closed (blocks the sale) or fails-open (oversells). *Which one is your current behavior is the single most important thing to verify before Friday.*
+3. **Expectation lock-in** — once the customer sees it live, "real-time inventory" becomes a contractual expectation, not a nice-to-have.
+
+## Third-order effects (downstream)
+- Elevated latency → **cart abandonment across the whole base** → a diffuse revenue dip that's hard to attribute and may go undiagnosed for weeks ("won the demo, quietly lost margin everywhere").
+- Oversell events → manual cancellations → support load + trust damage with customers you *weren't* trying to impress.
+- Expectation lock-in → you now owe a **real-time SLA on the external provider** — unscoped on-call burden and provider costs the Friday win silently created.
+
+## Recommendation: decouple the deadline from the blast radius
+The date can hold while the blast radius shrinks. The real decision is *scope of deployment*, not *date*.
+
+1. **Ship behind a feature flag scoped to the demo customer's tenant** — highest-leverage move; satisfies Friday while removing the global blast radius.
+2. **Verify before Friday:** Is there an instant kill switch? Does a sync timeout fail-open (oversell) or fail-closed (lost sale)? Pick deliberately.
+3. **Make the sync call async / non-blocking** if possible, so inventory accuracy never gates checkout latency.
+4. **Confirm the demo even requires production** — if staging or a sandbox tenant suffices, most of the risk evaporates.
+
+**Bottom line:** Hold the date; shrink the radius. If you have a clean kill switch and a deliberate timeout failure-mode, full rollout is low-risk. If either is unknown, flag-to-one-tenant is strongly indicated.

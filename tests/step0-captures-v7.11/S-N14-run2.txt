@@ -1,0 +1,109 @@
+The first-principles analysis agent is now running in the background, working through the molten-salt TES commissioning failure modes. I'll let you know as soon as it completes its analysis.
+I'll run a focused pre-mortem analysis on your molten-salt TES commissioning plan. This is exactly the kind of stress-test the technique is built for: assume the commissioning has already failed, then work backward to find what caused it.
+
+One framing note before I proceed: I don't have your actual commissioning plan documents, so I'll reason from first principles about molten-salt TES (thermal energy storage) commissioning as a domain. Where a finding depends on a detail I can't verify, I'll flag it as unverified so your team can confirm against your specific design. If you can share the commissioning sequence, salt chemistry, and heat-trace design, I can sharpen these considerably.
+
+# Pre-Mortem: Molten-Salt TES Commissioning Failure Analysis
+
+## 1. Problem Essence
+
+**Essence Statement:** Identify the failure modes that would cause molten-salt thermal-energy-storage commissioning to fail, so the engineering team can address structural weaknesses before sign-off.
+
+Success criteria for this analysis:
+- Surfaces failure modes across the full commissioning sequence, not just the obvious freeze risk
+- Distinguishes physics-driven (irreducible) failures from procedure-driven (preventable) ones
+- Each failure mode carries a concrete corrective action or an explicit accepted-risk flag
+- Clusters findings into structural weaknesses, not an undifferentiated risk list
+
+## 2. Assumptions Table
+
+These are the assumptions I'm making about your system. **Every "unverified" row is a question your team should answer** — a wrong assumption here changes the failure analysis.
+
+| Assumption | Type | Treatment | Verdict |
+|---|---|---|---|
+| Salt is a nitrate "solar salt" (60% NaNO₃ / 40% KNO₃), freeze point ~220-240°C | untested belief | Verify against your spec | **Unverified** — chloride/carbonate salts shift every thermal/corrosion conclusion |
+| Two-tank (hot/cold) configuration | untested belief | Verify | **Unverified** — thermocline single-tank changes freeze geometry |
+| Electric heat-trace + impedance heating on piping | untested belief | Verify | **Unverified** |
+| Commissioning includes a first-fill / melt-in of solid salt | convention | Challenge | Likely true; melt-in is the highest-risk window |
+| Nitrate thermal decomposition onset ~600°C | physical law (chemistry) | Accept as GT candidate | Verified in literature |
+| Salt is electrically conductive when molten, insulating when frozen | physical law | Accept as GT | Verified |
+
+## 3. Ground Truths
+
+- **GT-1:** Solar salt freezes at ~220-240°C; below this it is solid and will plug piping. (Physical property, salt-dependent — verify exact value: GT-1?)
+- **GT-2:** Nitrate salts thermally decompose above ~600°C, releasing nitrite/nitrate gases and degrading capacity. (Chemistry)
+- **GT-3:** Frozen salt is a thermal and electrical insulator; a frozen plug blocks both flow and impedance-heating current paths. (Physics)
+- **GT-4:** Heat-trace failure anywhere along a wetted line creates a localized cold spot that propagates a freeze plug. (Heat transfer)
+- **GT-5:** Thermal expansion of salt on melting (~5-10% volume) and of steel piping over a 200°C+ commissioning ramp imposes large mechanical loads. (Physics, magnitude GT-5?)
+- **GT-6:** Instrumentation (level, thermocouples, flow) must be calibrated *in molten salt*; ambient calibration does not transfer. (Measurement)
+
+## 4. Focused Pre-Mortem Analysis
+
+**Premise: It is 18 months from now. The molten-salt TES commissioning failed. What caused it?** Here is the raw failure list, interrogated and clustered.
+
+### Cluster A — Freeze plugs (the dominant structural weakness)
+- **A1. Heat-trace dead zones at valves, flanges, instrument tees, and pumps.** These high-thermal-mass / hard-to-trace components freeze first. A single frozen valve body can strand the whole fill. → *Corrective:* thermal-mapping audit of every component; redundant trace zones with independent controllers at all valves/flanges; verify trace coverage on as-built, not P&IDs.
+- **A2. Freeze during the melt-in itself.** Cold salt charged onto under-heated tank walls/piping freezes locally before bulk melt. → *Corrective:* staged melt-in procedure with hold points; minimum wall-temperature interlocks before salt admission.
+- **A3. Heat-trace control/power single points of failure.** Loss of a single controller, breaker, or power feed during a multi-day melt-in causes irreversible plug (GT-3: frozen plug can't be impedance-cleared). → *Corrective:* N+1 power, UPS/generator backup sized for full trace load, alarmed temperature trending. **This is the failure I'd flag as most likely to have been suppressed in a group review** — "the heat trace is rated, it'll be fine" is exactly the assumption that fails at 3 a.m. on day two.
+
+### Cluster B — Thermal/mechanical
+- **B1. Differential thermal expansion cracks welds or buckles piping** during the first hot ramp (GT-5). → *Corrective:* validate expansion-loop / cold-spring design against actual commissioning ramp rate; instrument pipe stress at known hot spots.
+- **B2. Tank foundation / liner thermal shock** on first hot-salt admission. → *Corrective:* controlled ramp rate, foundation thermocouples, hold points.
+
+### Cluster C — Chemistry / contamination
+- **C1. Moisture/contaminant ingress in as-delivered salt or wetted system** causes foaming, off-gassing, or accelerated corrosion on first melt. → *Corrective:* salt assay on receipt; dry-out/bake-out of the system before fill.
+- **C2. Local overheating past decomposition (GT-2)** from heat-trace hot spots or fired-heater excursions degrades salt and generates gas. → *Corrective:* high-temperature interlocks below 600°C with margin; verify trace can't exceed it on bare/dry-fire.
+
+### Cluster D — Instrumentation / control (the silent failure)
+- **D1. Level and flow instruments read wrong in molten salt** (GT-6), so operators make fill/transfer decisions on bad data — overfill, dry-pump, or false "all clear." → *Corrective:* hot-calibration plan; cross-checks with independent measurement; treat first-fill instrument readings as suspect until validated.
+- **D2. Thermocouple placement misses the actual cold spots,** so a forming freeze plug is invisible until flow stops. → *Corrective:* TC placement review driven by the A1 thermal map, not by convenience.
+
+### Cluster E — Procedure / human / organizational
+- **E1. No defined abort/recovery procedure for a partial freeze** mid-commissioning. The team improvises under pressure and makes it worse. → *Corrective:* pre-written freeze-recovery and safe-hold procedures with decision authority named.
+- **E2. Commissioning schedule pressure compresses hold points,** and the melt-in is rushed across a weekend with a thin crew (recurring root: schedule over-optimism). → *Corrective:* protect hold points contractually; staff the melt-in window fully.
+
+### Recurring patterns (structural weaknesses, not isolated risks)
+1. **Single points of failure in the heat-trace system** (A1, A3, D2) — the spine of the whole commissioning. This is the #1 structural weakness.
+2. **Trusting ambient/design data where molten-salt-validated data is required** (D1, D2, A1) — instruments, trace coverage, and TC placement all assumed-good rather than verified-on-as-built.
+3. **Schedule pressure eroding hold points** (E2, A2) — the organizational root that converts a recoverable situation into an irreversible plug.
+
+## 5. Abandoned Reasoning
+
+I deprioritized long-term operational failure modes (corrosion fatigue over years, salt capacity degradation, pump seal wear) — these are real but are *operational*, not *commissioning* sign-off concerns, and including them would dilute the stress-test. Flagging here so the omission is deliberate, not an oversight.
+
+## 6. Conclusion
+
+The commissioning is most likely to fail at the **melt-in / first-fill window**, and the dominant cause is a **freeze plug originating from a heat-trace single point of failure** (Cluster A) — made irreversible because frozen salt insulates against the very impedance heating meant to clear it (GT-3), and made invisible because instrumentation isn't yet molten-salt-validated (Cluster D).
+
+**Three plan changes to make before sign-off:**
+1. **Harden the heat-trace system to N+1** with backup power and independent control at every valve/flange/instrument tee — and audit coverage against the as-built, not the P&ID.
+2. **Pre-write the freeze-recovery and safe-hold procedures** with named decision authority before the first gram of salt is charged.
+3. **Protect the melt-in hold points from schedule pressure** and fully staff that window.
+
+**Confidence: MEDIUM** — the failure *structure* (freeze-dominant, heat-trace-centric) is robust and salt-physics-driven (HIGH confidence). The *specifics* depend on assumptions flagged unverified in Section 2 — chiefly your salt chemistry, tank configuration, and heat-trace design. If you share the commissioning sequence and those three details, I'll re-run this against your actual plan and tighten the confidence.
+
+What would sharpen this most: your salt spec, the tank configuration, and the heat-trace/power architecture. Want me to go deeper on any single cluster?
+The first-principles analysis is complete. Here's the stress-test of your molten-salt TES commissioning plan.
+
+## Bottom line
+Commissioning is most likely to fail at the **melt-in / first-fill window**, with the dominant cause being a **freeze plug originating from a heat-trace single point of failure** — made *irreversible* because frozen salt insulates against the impedance heating meant to clear it, and *invisible* because instrumentation isn't yet molten-salt-validated.
+
+## The three structural weaknesses (not isolated risks)
+1. **Single points of failure in the heat-trace system** — the spine of the entire commissioning. The #1 weakness. Dead zones at valves/flanges/instrument tees freeze first; loss of a single controller, breaker, or feed during a multi-day melt-in causes an irreversible plug.
+2. **Trusting ambient/design data where molten-salt-validated data is required** — level/flow instruments, trace coverage, and thermocouple placement all assumed-good rather than verified on the as-built.
+3. **Schedule pressure eroding hold points** — the organizational root that converts a recoverable situation into an irreversible plug (e.g., melt-in rushed across a weekend with a thin crew).
+
+## Three plan changes to make before sign-off
+1. **Harden heat-trace to N+1** — backup power (UPS/generator sized for full trace load) and independent control at every valve/flange/instrument tee. Audit coverage against the **as-built, not the P&ID**.
+2. **Pre-write freeze-recovery and safe-hold procedures** with named decision authority — before the first gram of salt is charged.
+3. **Protect the melt-in hold points from schedule pressure** and fully staff that window.
+
+## Important caveat
+The agent didn't have your actual commissioning documents, so it reasoned from molten-salt TES physics. The **failure structure** (freeze-dominant, heat-trace-centric) is HIGH confidence — it's salt-physics driven. The **specifics** depend on assumptions it flagged as unverified, chiefly:
+- **Salt chemistry** (it assumed nitrate "solar salt," ~220–240°C freeze point — chloride/carbonate salts change every thermal/corrosion conclusion)
+- **Tank configuration** (assumed two-tank hot/cold)
+- **Heat-trace / power architecture**
+
+It also noted one human-factor flag worth raising in your review: *"the heat trace is rated, it'll be fine"* is exactly the assumption that fails at 3 a.m. on day two — the kind of risk that tends to get suppressed in group sign-off.
+
+If you share the salt spec, tank configuration, and heat-trace/power design, the agent offered to re-run against your actual plan and tighten confidence — or go deeper on any single cluster (freeze plugs, thermal/mechanical, chemistry, instrumentation, or procedure/human). Want me to pursue either?

@@ -1,0 +1,29 @@
+The first-principles agent completed its analysis. Here's what it found.
+
+## Pre-Mortem: Authentication Rollout
+
+The agent framed this as a pre-mortem — *imagine the rollout has already failed, then work backward to the structural weaknesses* — and reached one load-bearing conclusion: **the timeline is the top risk, not the technology.**
+
+### Three structural weaknesses (root clusters)
+
+**1. The deadline is a max-of-set estimated as an average.**
+A rollout across N teams finishes only when the *slowest* team finishes — but plans estimate it as if every team were average and idle. Combined with the fact that teams have fixed, already-committed capacity, the "all teams next quarter" date has no slack for the binding constraint. This is judged the single most likely failure mode, with the compounding wrinkle that *every* team is asked to absorb integration work in the same quarter, so several slip at once rather than just one.
+
+**2. Rollback is assumed, not engineered.**
+Auth sits on the critical path of every user action, and data migrations are irreversible once writes land in the new system — unless a rollback path was built *and tested* in advance. The killer detail: rollback is assumed in most plans and tested in almost none. A bad cutover then becomes a hard outage instead of a contained delay. Same cluster covers silent migration corruption (e.g., role/permission mismatches → users authenticated but wrongly authorized).
+
+**3. Blast radius is concentrated, not staged.**
+A synchronized big-bang cutover meets full aggregate production load for the first time all at once, and concentrates the failure window. A scaling limit that would've been a minor one-team incident becomes system-wide. Plus a support/lockout surge (MFA enrollment, password resets, stale sessions) even on a *technically successful* cutover.
+
+### The single highest-value action
+**Stage the rollout behind a tested rollback, and set the date off the slowest team.** That one decision defuses all three clusters — at the cost of a longer but far more predictable window.
+
+### Before you lock the timeline — checkable items
+- Schedule the slowest/most-constrained team **first**; set the commitment off *their* estimate; get each team lead to confirm capacity in writing.
+- Require a **rehearsed** rollback per phase and a migration tested on a data copy — no team cuts over without a proven path back.
+- Run old and new systems in **parallel**, stage cutover team-by-team, and load-test the identity service at full aggregate volume *before* the first cutover.
+
+### Working assumptions the agent flagged
+It assumed (a) multiple internal teams sharing one new system, (b) a phased rather than big-bang cutover, and (c) this *replaces* an existing auth system. It explicitly set aside external-attacker/breach and vendor-IdP-outage scenarios as not structural to the plan — though it noted that if you're newly adopting an IdP vendor this quarter, that re-enters as a cluster-3 risk.
+
+If you share the actual plan (cutover style, team count, what's being replaced, rollback design), the agent offered to turn this into a concrete per-phase checklist and pressure-test the specific dates.

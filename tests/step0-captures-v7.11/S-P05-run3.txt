@@ -1,0 +1,37 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# Database Trade-Off Analysis: PostgreSQL vs. MongoDB vs. DynamoDB
+
+**Recommendation: PostgreSQL** (weighted score 89 vs. DynamoDB 77, MongoDB 74)
+
+## The core insight
+At **500 writes/sec, scale is a non-factor** — all three engines clear that bar without strain (a single mid-tier Postgres node handles thousands of simple writes/sec). That collapses the usual "NoSQL for scale" argument and shifts the decision to **transactional integrity** and **data-model fit**, where PostgreSQL wins cleanly.
+
+## Weighted trade-off matrix
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional integrity fit | 5 | 5 | 3 | 3 |
+| Cost fit within $3k/mo | 5 | 4 | 3 | 5 |
+| Data-model fit (relational) | 4 | 5 | 4 | 2 |
+| Throughput headroom @ 500 w/s | 2 | 4 | 5 | 5 |
+| Operational simplicity | 3 | 4 | 4 | 4 |
+| Scale-out runway | 3 | 3 | 4 | 5 |
+| **Weighted total** | | **89** | **74** | **77** |
+
+## Cost sanity-check (all fit $3k/mo)
+- **DynamoDB**: 500 w/s × 2 WCU (transactional doubling) ≈ 1000 WCU ≈ **~$475/mo** for write capacity — cheapest, but excludes reads/storage/GSIs/backups
+- **PostgreSQL**: mid-tier instance + read replica ≈ **~$700–1,500/mo**
+- **MongoDB Atlas**: dedicated tier + replica set ≈ **~$1,000–1,800/mo**
+
+## Why each loses or wins
+- **PostgreSQL ✅** — native multi-entity ACID with zero data-model compromise; orders/line-items/inventory map directly to tables with foreign keys
+- **DynamoDB** — cheapest with the most scale runway, but transaction limits (100 items, 2× cost) and key-value modeling force denormalization and up-front access-pattern lock-in, which fights relational commerce
+- **MongoDB** — does transactions since 4.0, but handles cross-entity (multi-document) transactions *least* efficiently — exactly the e-commerce pattern — so it has no decisive edge anywhere
+
+## Confidence & when it flips
+**HIGH confidence** — and notably, the result does *not* depend on exact pricing: even granting DynamoDB its full cost advantage, Postgres wins on the higher-weighted integrity and data-model criteria. The 13% lead over DynamoDB is outside the near-tie band, so it's robust.
+
+It would flip if **sustained** throughput were expected to grow to tens of thousands of writes/sec (re-weight "scale runway" to 5 → DynamoDB becomes competitive), or if the data model were genuinely fixed and key-value-shaped (rare for full commerce).
+
+**Next step:** Provision managed PostgreSQL (4–8 vCPU tier, one read replica, automated backups) and validate the $3k budget against your cloud provider's calculator with real storage/replica figures — that affects margins, not the ranking.

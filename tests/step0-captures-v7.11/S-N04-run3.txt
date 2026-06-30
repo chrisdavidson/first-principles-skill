@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Pre-Mortem: Authentication Rollout Failure Modes
+
+The agent reframed your request as a pre-mortem ("it's end of quarter and the rollout failed — what caused it?") and identified one dominant structural weakness with failure clusters branching off it.
+
+### The core risk
+**"All teams" + "one fixed quarter"** is the load-bearing assumption nearly every failure routes through. Combined with the fact that **auth is a hard dependency** (if auth fails, dependent apps are *down*, not degraded), a fixed all-at-once window removes the recovery slack you need when something slips.
+
+The worst outcome isn't *missing the deadline* — it's getting **stuck at partial migration**, which is more expensive than the status quo because you run and secure two auth systems indefinitely.
+
+### Failure clusters
+- **A — Big-bang sequencing:** cutover stall cascade (one team's slip compresses everyone behind it); untested rollback that fails at 2am; everyone cutting over in the final weeks when slack is lowest.
+- **B — Identity data & parity:** silent permission drift (over-privilege = security incident, under-privilege = lockout flood); edge cases missed in parity audit — service accounts, M2M tokens, legacy protocol clients, break-glass admin paths — that fail *after* cutover.
+- **C — Capacity & adoption:** rollout starving on borrowed team capacity; support channel overwhelmed because auth touches every user.
+- **D — Security & trust:** new attack surface incident from a compressed security review; trust collapse after one high-profile leadership/revenue-team lockout stalls the rollout socially.
+
+### What to prepare before locking the timeline
+1. **Convert big-bang to phased waves with a pilot** — and if the timeline can't survive being phased, that's itself the finding.
+2. **Test the rollback, don't assume it** — rehearse a failed cutover + clean restore before any real team migrates.
+3. **Run a parity + identity-data audit now** — explicitly covering service accounts, M2M tokens, legacy clients, break-glass paths.
+4. **Pre-fund protected support/rollout capacity** — not borrowed from team roadmaps.
+5. **Gate cutover on a completed security review** — don't let timeline pressure compress it.
+6. **Add explicit slack and a "halt and hold" criterion** so partial migration can pause cleanly instead of cascading.
+
+**Confidence: MEDIUM** — the structural analysis holds regardless of specifics, but magnitudes (team count, how dirty the identity data is, available team capacity, whether rollback has ever been tested) are unverified since it worked from your description rather than the plan document.
+
+The agent offered two follow-ups: turn the six prep items into a checklist gated against your actual timeline, or run a focused trade-off of **phased-waves vs. big-bang**. Want me to send either back to it?

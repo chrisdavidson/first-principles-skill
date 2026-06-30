@@ -1,0 +1,21 @@
+The first-principles agent has run and is asking for a few key details before it produces a real analysis (rather than generic launch-anxiety advice). Here's what it needs from you:
+
+1. **What is launching?** — e.g. a software release, a product going to market, a marketing campaign, or a feature for existing users. Each has very different failure modes.
+2. **What would make you call the launch a failure?** — e.g. "the site falls over," "nobody signs up," "we ship a critical bug," "we miss the date," "support gets overwhelmed."
+
+Optionally, two more things sharpen it:
+- **Hard constraints** — fixed date? team size? can't roll back?
+- **What you've already verified** — load tested? rollback plan exists? comms drafted?
+
+You can answer quickly in this shape:
+
+- **It's a:** ________ launch
+- **Failure looks like:** ________
+- **Can't change:** ________ (date / scope / team)
+- **Already locked down:** ________
+
+Then it will run a structured **pre-mortem** — assume the launch already failed, trace the failure chains backward, cluster them into structural weaknesses, and hand back a prioritized list of weak links with concrete mitigations grounded in fact rather than vibes. The core idea: your nervousness is usually a signal pointing at one or two specific unvalidated assumptions, and the goal is to name them.
+
+If you'd rather it just run, reply **"use your best guess"** and it'll analyze the case of *a software/product release where failure = a broken or unstable launch on a fixed date*, flagging that framing as an assumption throughout.
+
+How would you like to proceed?

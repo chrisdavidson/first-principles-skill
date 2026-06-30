@@ -1,0 +1,21 @@
+The first-principles agent ran a **pre-mortem** on the migration — treating the stated confidence as the thing to puncture, assuming the migration has already failed, and working backward. Its findings:
+
+## The core insight
+The recurring root cause isn't any single bug — it's **validation too weak to detect silent failure, paired with recovery that's assumed but never rehearsed.** Confidence here is read as a *symptom of insufficient adversarial review*, not evidence of readiness.
+
+## Failure modes, clustered
+
+- **A — Data integrity (silent, worst class):** encoding/charset mangling, timezone/datetime drift, numeric precision loss, NULL-vs-empty collapse, broken foreign keys, bad dedup.
+- **B — Completeness:** edge-case rows silently dropped, last-minute writes lost during cutover, binary/attachment data left behind.
+- **C — Cutover & recoverability:** downtime overruns forcing an unvalidated go-live, rollback that was never rehearsed, no clean snapshot to roll back to.
+- **D — Validation theater:** "row counts matched" as the only check, sample-only validation that misses the bad long tail, no field-value reconciliation.
+- **E — Operational/human:** non-idempotent scripts double-applying, performance collapse at full volume, downstream consumers reading stale data, single-person knowledge.
+
+## Three structural weaknesses → concrete actions
+1. **Can't tell "migrated" from "migrated correctly"** → field-level reconciliation (per-table checksums, full population not sample) as the go/no-go gate.
+2. **Recovery is assumed, not proven** → rehearse a full rollback on a production-scale copy; if you can't demonstrate it, you don't have one.
+3. **Silent corruption surfaces late** → post-go-live reconciliation jobs and anomaly alerts so it's caught in hours, not months; freeze or explicitly capture source writes during the window.
+
+**Highest-leverage single action:** dry-run the *entire* migration — including validation and rollback — on a full-scale production copy. Most failure modes show up in a realistic dry run and stay invisible in a confident plan.
+
+The agent flagged that it assumed generic specifics and offered to produce a **ranked, tailored pre-mortem** if given: source→target systems, data volume, cutover style (big-bang vs. phased), downtime tolerance, and your current success-validation plan. Want me to send those details back to it for the sharper pass?

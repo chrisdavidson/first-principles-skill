@@ -1,0 +1,21 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## The counts (mid-2026)
+- **~14,500 active satellites** in LEO — **~10,600 are Starlink** (roughly two-thirds of everything actively flying)
+- **~22,000 tracked objects** ≥10 cm (the gap from active satellites is dead sats, spent rocket bodies, and fragments)
+- **~1.2 million untracked fragments** in the 1–10 cm range; ~140 million below 1 cm
+
+Key reframe: fragments outnumber active satellites by **~100:1 (≥10 cm)** and **~10,000:1 (≥1 cm)** — so "satellites" is the wrong noun to worry about.
+
+## Does Starlink-scale move the needle?
+
+The agent split the answer in two:
+
+1. **Actual collisions today — not dramatically.** Space is geometrically empty (mean spacing ~160 km averaged across LEO; tens of km even in Starlink's 550 km band). Starlink sats also actively maneuver (tens of thousands of avoidance burns per six months). Adding 10,000 maneuverable objects raises *conjunction alerts* by ~1 order of magnitude but keeps *collisions* near zero — **as long as avoidance stays reliable.**
+
+2. **Tail risk (Kessler cascade) — yes, and it's super-linear.** Collision rate scales with the **square of object density**, so concentrating ~70% of active LEO objects into a narrow band can multiply the *fragment-generating* collision rate several-fold if avoidance ever fails.
+
+## Bottom line
+By ~1 order of magnitude in **alerts and band density — yes**. In **actual collisions today — no**, because the satellites dodge. The real hazard is that risk is **quadratic in density**, making any avoidance failure far more consequential and pushing specific altitude bands toward a Kessler threshold.
+
+**Load-bearing caveat the agent flagged:** the "no meaningful increase" claim rests on avoidance systems staying reliable at 10,000+ objects — an operational assumption, not a physical law. If that degrades, part 1 flips toward part 2. Sources (KeepTrack, ESA, Orbital Radar) are linked in the full analysis.

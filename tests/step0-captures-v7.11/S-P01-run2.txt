@@ -1,0 +1,36 @@
+The first-principles agent completed the pre-mortem. Here are its findings:
+
+# Pre-Mortem: Payments-Rewrite Big-Bang EU Launch
+
+**The core issue is structural, not code quality.** Four properties stack into one of the highest-risk launch shapes possible: money-moving + regulated region + 100% blast radius + no escape hatch + worst calendar slot.
+
+## Ground truths
+- A big-bang cutover exposes **100% of EU traffic** to any defect simultaneously — blast radius = entire customer base.
+- Removing legacy removes the fast escape hatch **unless an explicit, tested rollback is built**.
+- Payments are stateful and money-moving — failures lose funds, double-charge, or strand transactions; not idempotently undoable.
+- EU payments are regulated (PSD2/SCA, GDPR) — non-compliance hard-fails transactions at the issuer.
+- Friday before a weekend minimizes both staffing during the incident window and recovery runway before peak weekend volume.
+
+## Dominant failure chains
+1. **No rollback (most likely fatal)** — a defect hits all EU customers with no escape hatch; only path is fix-forward under live fire. "No staged rollout" + "replacing legacy" almost guarantees this.
+2. **Load collapse** — new service meets EU peak for the first time in production → cascading auth failures.
+3. **Data/state corruption (most expensive)** — migrated mandates/subscriptions/saved-cards or webhook idempotency mismatches → double-charges, unreconcilable ledgers.
+4. **SCA/regulatory rejection** — wrong 3DS flow for some EU issuers → a silent subset simply cannot pay.
+5. **Blind incident** — partial failure undetected for hours without segmentable observability.
+6. **Timing amplifier** — any of the above lands with skeleton weekend staffing.
+
+**Sharpest finding:** the plan likely assumes a rollback that nobody has actually tested. "No staged rollout, replacing legacy" is exactly the shape where everyone assumes someone verified the way back, and no one did.
+
+## Required plan changes (priority order)
+1. **Disprove the rollback assumption first** — confirm a tested, rehearsed rollback exists and keep legacy live and reconciling in parallel. If you can't roll back, don't ship big-bang.
+2. **Replace big-bang with a staged rollout** — canary by country / small % / internal accounts first.
+3. **Move off Friday** — Tue/Wed early in the day.
+4. **Verify before cutover** — peak-load test, per-issuer SCA matrix, migration/reconciliation dry-run, webhook idempotency replay.
+5. **Stand up segmentable real-time observability** (country/card type/issuer) + staffed incident runbook.
+6. **Run the security/PCI review** before commit.
+
+**Confidence: HIGH** that rollout *shape* is the dominant risk; **MEDIUM** on which chain fires first (depends on unverified assumptions).
+
+> If you do only one thing: **guarantee a rollback (or keep legacy as a live fallback) and stage the rollout** — that removes the two properties (irreversibility, full blast radius) that make this plan dangerous.
+
+The agent offered to turn these into a go/no-go checklist with owners, or draft the staged-rollout + rollback plan in detail. Want me to follow up on either?

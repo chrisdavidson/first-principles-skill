@@ -1,0 +1,29 @@
+I invoked the **first-principles** agent verbatim with your prompt. Here's what it returned.
+
+## Bottom line
+It can't produce a real upper bound yet — there's no billing data in the working directory and no connected billing API, so any number would be fabricated. Instead it told you exactly what it needs and laid out the method so the calculation is turn-the-crank the moment you supply figures.
+
+## What it needs from you
+1. **Current monthly run-rate** — last month's total cloud spend (ideally last 3 months, to derive the trend rather than guess it).
+2. **Growth trend** — month-over-month growth rate, or enough recent months to compute it.
+3. **Committed-use discount structure** — fraction of spend under commitment, the discount rate, and the **commitment ceiling** (committed spend is fixed; only on-demand overflow grows — this dominates the upper bound).
+4. **Known Q3 step-changes** — launches, migrations, batch/training jobs, seasonal traffic. Upper bounds are usually driven by these, not smooth extrapolation.
+5. **Definition of "realistically"** — a P90 (likely-bad) ceiling or a true P99 worst case? They differ substantially.
+
+## The method it will apply
+Treat it as an order-of-magnitude estimate and bracket it:
+
+```
+Q3 upper bound ($)
+  = committed-base ($/mo, fixed, discounted) × 3 months
+  + on-demand overflow ($/mo) compounded by growth × 3 months
+  + Q3 step-changes (one-off or new run-rate)
+```
+
+To get the *upper* bound, plug in the aggressive end of each factor: high-end MoM growth compounded, overflow assumed to hit on-demand/list price (no softening commitment), and step-changes landing early and sized high.
+
+**Worked illustration** (placeholder numbers): $200K/mo run-rate ($120K committed, $80K on-demand growing 8%/mo) + a high-sized $90K Q3 training run → **≈ $730.5K upper case** vs. ~$640K flat-trend central case.
+
+The deliverable is a **bracket** (central + aggressive case) with the load-bearing assumption flagged — almost always **growth rate × whether overflow hits list price**.
+
+If you give me items 1–5 (even rough figures), I can continue the same agent — it's still live (`a831dba4fe7d6e093`) — to return a fully derived bound.

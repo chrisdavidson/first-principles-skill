@@ -1,0 +1,26 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## The governing law
+
+The ceiling is set by the **Second Law of Thermodynamics** — specifically the Carnot efficiency η = 1 − T_C/T_H. The molten salt is just a storage/transport medium; what matters is the temperature at which heat enters and leaves the power cycle.
+
+## The numbers
+
+| Scenario | Hot / cold side | Law-permitted ceiling |
+|---|---|---|
+| **Conventional nitrate salt** | 565 °C (838 K) / 30 °C (303 K) | **≈ 64%** (≈ 66% with a 15 °C sink) |
+| Advanced higher-temp media | ~1000 K / 303 K | **≈ 70%** (lower confidence — rests on unverified salt-stability assumption) |
+| What today's plants achieve | steam Rankine | ~40–43% |
+
+## The key insight — splitting the gap
+
+The ~21–24 point gap between today's ~42% and the ~64% ceiling decomposes into two very different things:
+
+- **Irreducible (Second Law forbids closing it):** the ~36% that Carnot *must* discard while T_C/T_H is fixed. No engineering touches this.
+- **Engineering headroom (laws permit closing it):** the ~21–24 points lost to finite-temperature heat exchange, turbine irreversibility, and Rankine limitations. Supercritical-CO₂ cycles and better heat exchange can recapture much of this, pushing real plants past 50%.
+
+## The honest caveat worth flagging
+
+The flat 64% is the canonical "peak-temperature Carnot" answer, but it's slightly optimistic for this architecture. Because molten salt is a **finite sensible-heat source that cools as it discharges** (565 → ~290 °C), the tighter and more physically faithful bound is the **exergy limit of the cooling salt stream, ~55–58%**.
+
+**Bottom line:** The laws permit **~64% as the peak-temperature upper bound**, with **~55–58% as the realistic exergy-weighted ceiling** once you account for the salt cooling through discharge — roughly 50% more than current plants deliver, and that surplus is engineering headroom, not a physical wall.

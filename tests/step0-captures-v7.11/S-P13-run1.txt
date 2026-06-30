@@ -1,0 +1,35 @@
+The first-principles agent completed its analysis. Here's the result:
+
+# 50 MW Solar-Plus-Storage Microgrid (Rural Sub-Saharan Africa) — Cost Estimate
+
+**Bottom line: ~$100M–$190M total installed CAPEX, central estimate ~$140M** (≈ $2.0–3.8/W_AC, central ~$2.8/W_AC).
+
+A first-principles Fermi estimate — each component rebuilt from unit-factors anchored to 2026 price benchmarks, then bracketed. A defensible scoping range, not an EPC quote.
+
+## Component breakdown (central values)
+
+| Component | Unit arithmetic | Bracket [low, central, high] |
+|---|---|---|
+| **PV + EPC** | 62.5 MW_DC × $1.00/W_DC (50 MW_AC × 1.25 DC:AC) | $48.0M / **$62.5M** / $78.0M |
+| **Battery (200 MWh, 4h)** | 200,000 kWh × $250/kWh installed | $40.0M / **$50.0M** / $60.0M |
+| **Interconnection + civil works** | ~7% of generation+storage subtotal | $4.4M / **$7.9M** / $13.8M |
+| Hard-cost subtotal | — | $92.4M / $120.4M / $151.8M |
+| **Soft costs / contingency / financing** | ~17% adder | $9.2M / **$20.5M** / $38.0M |
+| **TOTAL** | — | **~$102M / ~$141M / ~$190M** |
+
+## Price anchors (verified, June 2026)
+- **PV EPC:** $0.80–1.20/W_DC for Africa (rural SSA logistics/import premium)
+- **4-hr BESS:** $200–300/kWh installed for SSA
+- **DC:AC ratio:** 1.25 → 50 MW_AC ≈ 62.5 MW_DC
+
+## Two things to pin down before refining
+1. **PV EPC price is the largest dollar uncertainty** — the $0.80–1.20/W_DC spread moves the total by ~$25M (~18%). Get site-specific Africa-2026 EPC quotes.
+2. **"Interconnection" scope is a structural unknown** — the estimate assumed a grid tie-in. An **islanded microgrid** drops that line to ~$2–4M; a long-haul (>50 km) transmission tie-in could exceed $14M. Confirm grid-tie vs. islanded and transmission distance.
+
+**Sanity check:** Central ~$2.8/W_AC sits ~15–40% above developed-market benchmarks, consistent with rural-SSA premiums.
+
+**Confidence: MEDIUM.** PV/BESS well-anchored; interconnection rests on unverified scope assumptions. Good for go/no-go and financing-scale decisions; not for a final EPC contract value.
+
+Sources: IEA, SAPVIA (2025), IRENA, NREL (fy25osti/93281), Ember, Wood Mackenzie.
+
+The agent remains available (ID `a9c71ba23ce29aea3`) if you'd like to refine any assumption — e.g., re-run it as islanded vs. grid-tied, or plug in a specific EPC quote.

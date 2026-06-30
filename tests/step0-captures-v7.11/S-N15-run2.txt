@@ -1,0 +1,75 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background, and I'll let you know as soon as it completes.
+This is a first-principles analysis request, and the framing matters. You want to surface the downsides of a storage integration timeline before a board presentation. That phrasing — wanting to think through potential downsides before locking something in — points squarely at a prospective-hindsight (pre-mortem) analysis: imagine the timeline has already failed, then work backward to the structural causes.
+
+Before I run that, I need a few essentials, because right now I don't have the actual subject. I know there's "a storage integration timeline" and "a board presentation," but the analysis quality depends entirely on specifics I don't have. Let me ask the load-bearing questions.
+AskUserQuestion isn't available, so I'll state what I need plainly and then proceed with a best-effort structured pre-mortem so you get value even before you fill in the specifics.
+
+## What I'm missing (the load-bearing inputs)
+
+To run a sharp analysis rather than a generic one, I need:
+
+1. **The actual timeline.** What's the proposed schedule? Key milestones and dates (e.g., "integration code-complete by Sept, GA by Q1"). Without this I can't tell you which dates are the fragile ones.
+2. **What "storage integration" means here.** Integrating a third-party storage vendor? Migrating to a new storage backend? Connecting two systems' storage layers? The failure modes differ completely.
+3. **What specifically "feels off"** to you. Your intuition is data. Is it that the timeline feels too short, that a dependency feels under-acknowledged, that a team is overcommitted, that testing is squeezed?
+4. **The board's actual decision.** Are you asking the board to approve the timeline, fund it, or just be informed? This determines what a "downside" even is.
+5. **Hard constraints.** Contractual deadlines, vendor commitments, dependent launches, regulatory dates.
+
+If you give me those, I'll run a full first-principles pre-mortem with named ground truths and traceable derivation chains.
+
+## Best-effort pre-mortem now (generic storage-integration timeline)
+
+Since you want to think before the presentation, here's the prospective-hindsight frame applied to the failure modes that recur in storage-integration timelines specifically. The premise: **it is six months past the board presentation, the timeline failed, and we're explaining why.** These are the usual structural causes — treat each as a hypothesis to confirm or kill against your reality.
+
+**1. Data migration was estimated as a copy, but behaved as a transformation.**
+The single most common storage-timeline killer. Migrating data almost never means moving bytes — it means reconciling schema differences, encoding mismatches, and orphaned/dirty records. Migration effort scales with data *quality* problems you can't see until you start, not with data *volume* you can measure upfront. If your timeline has a fixed-duration "migrate data" block, that's the fragile date.
+
+**2. The cutover was treated as an event, not a window.**
+Timelines often show a clean switch from old storage to new. In reality you need a dual-write / dual-read period, a backfill, validation, and a rollback path. If there's no explicit rollback step in the plan, the timeline is implicitly betting the cutover works first try.
+
+**3. A dependency outside your control gates the critical path.**
+Vendor provisioning, a security review, a compliance sign-off, a networking/infra change, or another team's API. These rarely sit on the team's own board and so get under-weighted. Ask: what on this timeline depends on someone who isn't in the room?
+
+**4. Performance/consistency surprises surface only at production scale.**
+A new storage backend behaves differently under real load — latency tails, consistency semantics, throttling. These are discovered late, after integration "looks done," and force rework. If load/chaos testing is at the *end* of the timeline rather than threaded through, that risk is concentrated at the worst moment.
+
+**5. The estimate had no slack and no explicit confidence level.**
+A single-point date with no buffer is a forecast presented as a commitment. Boards remember the date, not the caveats. If the timeline shows one date rather than a range (or P50/P90), the downside is reputational the moment it slips.
+
+**6. Rollback and data-integrity verification were the line items that got cut.**
+When timelines compress, validation and reversibility are the first casualties because they don't produce visible features. That's exactly backwards for storage, where a silent data-corruption bug is the catastrophic outcome.
+
+### How to use this in the board context
+The board-facing reframe isn't "here's what could go wrong" — it's: present the timeline as a **range with named risks and their mitigations**, so a slip looks like a managed contingency rather than a missed promise. The three questions to walk in with answers to: *What's on the critical path that we don't control? Where's the rollback path? Is this date a P50 or a P90?*
+
+---
+
+Give me the five inputs above and I'll convert this into a rigorous analysis — verified ground truths, derivation chains tracing each downside to its cause, and a validated set of the two or three risks that actually deserve board airtime, rather than the full generic list.
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Summary
+
+The agent ran a best-effort **pre-mortem** but flagged that it needs five key inputs from you to make the analysis sharp rather than generic.
+
+### What it needs from you to go deeper
+1. **The actual timeline** — milestones and dates, so it can identify the fragile ones
+2. **What "storage integration" means** — third-party vendor? backend migration? connecting two systems? (failure modes differ)
+3. **What specifically "feels off"** — your intuition is data (too short? under-acknowledged dependency? squeezed testing?)
+4. **The board's actual decision** — approve, fund, or just be informed?
+5. **Hard constraints** — contractual deadlines, vendor commitments, regulatory dates
+
+### Best-effort pre-mortem (the recurring storage-timeline failure modes)
+Framed as "it's six months later and the timeline failed — why?":
+
+1. **Migration estimated as a copy, but behaved as a transformation** — effort scales with hidden data-quality problems, not measurable volume. A fixed-duration "migrate data" block is the fragile date.
+2. **Cutover treated as an event, not a window** — no dual-write/backfill/rollback means you're betting cutover works first try.
+3. **An out-of-your-control dependency gates the critical path** — vendor provisioning, security/compliance sign-off, another team's API.
+4. **Performance/consistency surprises surface only at production scale** — if load/chaos testing sits at the end, risk is concentrated at the worst moment.
+5. **The estimate had no slack and no confidence level** — a single-point date is a forecast presented as a commitment.
+6. **Rollback and data-integrity verification got cut** — exactly backwards for storage, where silent corruption is catastrophic.
+
+### Board-facing reframe
+Present the timeline as a **range with named risks and mitigations**, so a slip reads as managed contingency rather than a broken promise. Walk in with answers to three questions: *What's on the critical path that we don't control? Where's the rollback path? Is this date a P50 or a P90?*
+
+---
+
+If you'd like the rigorous version — verified ground truths, derivation chains, and the two or three risks that actually deserve board airtime — share those five inputs and I can resume the agent with them.

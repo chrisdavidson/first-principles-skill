@@ -1,0 +1,23 @@
+The first-principles agent completed the trade-off analysis. Here's what it found:
+
+## Recommendation: Managed PostgreSQL (HIGH confidence, one caveat)
+
+The analysis reframed the decision: at **500 writes/sec (~0.5 MB/s)**, throughput and cost are *not* the deciding factors — all three databases clear both bars within the $3k/month budget. The real question is **data-model fit** for transactional e-commerce.
+
+### Weighted scoring (PostgreSQL 98 · MongoDB Atlas 71 · DynamoDB 65)
+
+The two heaviest criteria (both weight-5) drove the result:
+- **Transactional integrity** — Postgres has full native multi-row ACID with no caveats. DynamoDB's `TransactWriteItems` costs **2x WCU per write**, is capped at 100 items, single-region, and can't use indexes. MongoDB's multi-doc transactions carry a perf cost and 60s default limit.
+- **Query flexibility** — E-commerce is relational (orders, catalog, customers, reporting). Postgres gives full SQL/joins; DynamoDB has no joins, requires pre-modeled denormalized access, and is weak for reporting.
+
+Postgres also wins on **cost** (~$160–600/mo HA vs Atlas ~$1–1.5k) and **lowest lock-in** (portable community engine).
+
+### The one decision-flipping caveat
+
+The recommendation rests on an **unverified assumption (GT-7?)**: that your access patterns are relational/reporting-heavy. The agent flagged this explicitly:
+
+> **If your access is genuinely simple, fixed, and key-based** (e.g., a high-scale cart/session store with no joins or ad-hoc querying), **DynamoDB becomes competitive** — cheaper (~$475/mo) and operationally hands-off.
+
+**To lock in the recommendation, answer one question:** do you need joins, ad-hoc queries, or relational reporting? Yes → PostgreSQL. No → reconsider DynamoDB.
+
+*Note: the cost/throughput figures are directional and should be confirmed on live cloud calculators, but they affect magnitudes, not the ranking — which is driven by data-model fit.*

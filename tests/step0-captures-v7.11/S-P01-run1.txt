@@ -1,0 +1,32 @@
+The first-principles pre-mortem is complete. Here's the result:
+
+## Pre-Mortem: Payments-Rewrite EU Cutover
+
+**Premise:** It's the Saturday after launch and the cutover has failed. Working backward to find why.
+
+### The load-bearing finding
+The plan's core flaw isn't code quality — it's that **it removes all three safety boundaries at once**:
+- **No canary** → no detection boundary
+- **No rehearsed rollback** → no recovery boundary
+- **Friday + weekend** → no response boundary
+
+Applied to a money-movement system under EU regulatory mandate, any single latent defect gets maximum reach, maximum recovery time, and minimum response capacity simultaneously.
+
+### Failure clusters (written as if already true)
+- **A — Blast radius (dominant):** A prod-only or payment-method-specific bug hit 100% of EU customers at once. No canary cohort meant the first signal was a flood of failed checkouts.
+- **B — Rollback wasn't real:** "Just flip back to legacy" was designed, never rehearsed. New-service state (tokens, mandates, partial charges) couldn't be read back; MTTR ballooned from minutes to all weekend.
+- **C — Data boundary:** In-flight transactions at the cutover instant were double-charged, dropped, or unreconcilable. Tokens/mandates didn't map cleanly.
+- **D — EU regulatory/SCA:** A subtle 3DS2/SCA deviation caused *issuing banks* to decline auths population-wide — hard to diagnose from your own telemetry.
+- **E — Timing:** Defect surfaced Saturday with skeleton crew and weekend-reduced Stripe/bank support.
+
+### Recommended plan changes (priority order)
+1. **Add a staged rollout / canary** — highest leverage; negates Cluster A and restores the detection boundary. *Don't ship without this.* If "no staged rollout" is a hard constraint, challenge it explicitly with leadership — it's the dominant risk driver.
+2. **Rehearse rollback in prod-like conditions** — an untested rollback is not a rollback.
+3. **Don't ship Friday** — ship Tue/Wed with full staffing through the 72h peak-risk window; pre-arrange Stripe/bank escalation. Nearly free.
+4. **Verify the EU boundary explicitly** — SCA/3DS2 conformance against issuer sandboxes, token/mandate migration dry-run, in-flight transaction drain plan.
+
+**If you adopt only one:** add the staged rollout — it collapses the most failure clusters at once.
+
+**Caveat:** Several findings rest on assumptions the agent couldn't verify (parity, rollback, token migration). If any are already rehearsed and proven, downgrade those clusters — but the Cluster A blast-radius finding stands regardless, since it follows from the rollout structure alone.
+
+The agent is still available (`af26d062cd737b07b`) if you'd like to drill into any cluster or pressure-test a specific mitigation.

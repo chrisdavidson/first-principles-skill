@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Summary
+
+The agent concluded that **the answer is entirely determined by inputs only you have**, so rather than invent numbers, it built an estimation skeleton and flagged the five load-bearing inputs it needs.
+
+### Inputs required (each is load-bearing)
+1. **Current baseline run-rate** — most recent month's actual cloud spend
+2. **Observed growth trend** — MoM or YoY growth over the last 2–4 quarters
+3. **Committed-use discount (CUD) structure** — committed %, discount rate, expiry/renewal timing
+4. **Known step-changes** — Q3 launches, migrations, capacity expansions (these break smooth extrapolation)
+5. **On-demand exposure** — the uncommitted fraction, where upper-bound variance lives
+
+### The model it proposed
+```
+Q3_upper = Σ months {Jul,Aug,Sep} of:
+   [ Baseline × (1+g)^m ] × [ C×(1−d) + (1−C)×s ]
+```
+With **illustrative placeholders** (baseline $100k, g=7% high-growth, C=60%, d=35%, on-demand surge s=1.3×), it derived an illustrative **Q3 upper bound ≈ $313k**, roughly **35–40% above** a central-case forecast (~$230k). It explicitly flagged this number as illustrative only — not to be quoted.
+
+### Key insight on where upper-bound risk concentrates
+- **On-demand/uncommitted spend is the dominant uncertainty driver** — CUD-covered spend has near-zero upside variance (contractually fixed), so the realistic upper bound is almost entirely a story about how high *uncommitted* usage can spike.
+- **Compounding growth back-loads risk** — September has three months to compound, so weight risk attention there.
+- **Step-changes must be added as a separate additive block**, not folded into the growth rate.
+
+The agent's bottom line: provide the five inputs (or at minimum baseline + growth + committed share) and it will return a real, bracketed P90 figure with full derivation. The single highest-leverage input is your **committed-vs-on-demand split**.
+
+The agent is still available if you'd like to supply those numbers — just let me know and I can continue the session to compute your actual Q3 upper bound.

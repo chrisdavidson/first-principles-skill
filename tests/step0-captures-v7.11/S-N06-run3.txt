@@ -1,0 +1,28 @@
+The first-principles agent has completed its analysis. Here's what it returned:
+
+## Migration Impact Estimate: Monolith → Microservices
+
+The analysis reframes the question around the critical insight that **transition-period effects and steady-state effects have opposite signs** — conflating them is the classic estimation error.
+
+### The headline estimate
+
+| Metric | Sprints 1–6 (transition) | Steady state (if maturity holds) | Steady state (if it doesn't) |
+|--------|--------------------------|----------------------------------|------------------------------|
+| **Developer velocity** | −20% to −40% | +30% to +100% (lead-time/deploy-freq) | flat to −10–20% |
+| **Incident count** | +30% to +80%, peaks mid-migration | baseline ±20% | stays +30%+ |
+| **Incident severity/MTTR** | rising | materially down (the real win) | up |
+
+Expect a **velocity J-curve** and an **incident-rate hump**, both centered on the migration window, with benefits that are real but **conditional and back-loaded beyond sprint 6**.
+
+### Three load-bearing caveats (confidence order)
+
+1. **Operational maturity is the master switch.** Every positive number is conditioned on CI/CD, observability, and on-call being in place *before* sprint 1. Without it, you land in the right-hand (bad) column. Verify this first — highest leverage.
+
+2. **Six sprints decomposes; it does not stabilize.** Plan for a **2–4 sprint stabilization tail** before net-positive velocity. Honest framing for stakeholders is "better in Q+1," not "better by sprint 6."
+
+3. **Conway's Law is doing the heavy lifting.** If you decompose the *code* without decomposing *team ownership boundaries*, the coordination-cost win never arrives and velocity stays stuck in the dip. The org change is the lever, not the code change.
+
+### What would sharpen it
+The estimate is at MEDIUM confidence because it's built on multipliers, not your numbers. To narrow every bracket to HIGH confidence, the agent needs: baseline DORA metrics, an honest read on operational maturity, and confirmation that your *actual* current bottleneck is coupling/deploy-contention (not something microservices won't fix).
+
+The agent offered two follow-ups: re-running the quantitative chains against your real baseline metrics, or a pre-mortem stress-test on the sprint sequencing. Let me know if you'd like either.

@@ -1,0 +1,25 @@
+The first-principles agent completed the inversion analysis. Here's what it found:
+
+# Inversion: "Faster ships means better retention"
+
+The claim isn't wrong — it's **conditional**. Retention responds to *value delivered over time*, and ship cadence is only a *proxy* for that. The assumption holds exactly as long as `cadence ↑` implies `value-perceived-per-unit-time ↑`. It breaks the moment those two decouple.
+
+## The five regimes where it breaks down
+
+1. **Value-decoupling** (most common) — your two-week ships are bug-fixes, refactors, or infra work that's invisible to users. Release count rises; perceived value stays flat. → *Track value-per-release, not release count.*
+
+2. **Speed-for-quality** (sharpest tooth) — velocity is bought with stability. Each faster release injects regressions, so retention falls *because* you shipped faster. → *Watch defect-escape and rollback rate; if they climb with cadence, you're past the breakpoint.*
+
+3. **Wrong bottleneck** — the real churn driver is onboarding, price, or market fit, not feature supply. Shipping features faster can't move a metric that product features don't gate. → *Diagnose the actual churn cause before assuming more features help.*
+
+4. **Change fatigue** — past some rate, users can't absorb changes as fast as you ship; re-learning costs turn the marginal release negative. The curve is an **inverted-U, not a line** — the optimum cadence may be *slower* than two weeks for some segments.
+
+5. **Spurious link** — the cadence→retention causation may never have been established. An observed correlation could be driven by seasonality or marketing. The agent flagged that you may not have even *measured* this.
+
+## The fastest check you can run
+
+Look at whether your past retention gains time-correlate with **which** releases shipped real value versus **how many** releases shipped. If retention tracks value-bearing releases and ignores cadence, you're already living in regime #1.
+
+**Second-order warning:** if you're in regime 2 or 4, pushing cadence *harder* actively accelerates churn — so don't increase cadence without first ruling out regimes 2, 3, and 4.
+
+**Confidence: MEDIUM** — every breakdown regime rests on beliefs the agent couldn't verify from the prompt. To firm it up: instrument value-per-release and defect-escape rate, and run a causal test (a deliberate cadence change measured against a control).

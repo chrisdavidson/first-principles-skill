@@ -1,0 +1,30 @@
+The first-principles agent completed the pre-mortem. Here's what it found:
+
+## Pre-Mortem: Payments-Rewrite EU Big-Bang Cutover
+
+**Core finding:** The launch is **structurally fragile regardless of the new code's quality.** The danger isn't "the rewrite might have a bug" — it's that the *shape* of the launch (big-bang + no proven rollback + payments + EU + Friday) guarantees that any single defect becomes a maximal, slow-to-detect, hard-to-reverse money-and-compliance incident.
+
+### The root pattern
+Five failure clusters all trace to **one** structural decision: the launch removes every detection-and-retreat mechanism *before* the system has been proven on production traffic.
+
+| Structural weakness | Why it bites |
+|---|---|
+| **1. Maximal blast radius by design** | No canary — the first signal of a latent bug *is* the 100%-of-EU incident |
+| **2. No proven rollback** ⚠️ | If legacy Stripe is decommissioned/cold, you must fix forward during a live money-loss incident — the single most dangerous finding |
+| **3. Silent, compounding money errors** | Double-charges/missed captures accrue for hours before reconciliation notices; Friday maximizes time-to-detect |
+| **4. EU regulatory cliff** | SCA/PSD2/3DS2 gaps hard-decline checkouts or create non-compliant charges — no graceful degradation |
+| **5. In-flight state corruption** | Pending auths, mandates, subscriptions, disputes straddle the cutover boundary |
+
+### Highest-priority plan changes (in order)
+1. **Guarantee a tested rollback** — keep legacy Stripe hot and routable ≥2 weeks; rehearse the cutback. If impossible, don't ship big-bang.
+2. **Replace big-bang with a ramp** — 1% → 10% → 50% → 100% by customer cohort, even without dedicated staged-rollout infra.
+3. **Move off Friday** — ship Tue/Wed morning with full staffing and bank/acquirer support reachable. Friday is convention, not a requirement.
+4. **Prove SCA/3DS2 compliance** as a go/no-go gate, not a post-launch fix.
+5. **Stand up real-time ledger reconciliation + alerting** — time-to-detect is the multiplier on financial damage.
+6. **Write the in-flight-state migration plan.**
+
+**Bottom line:** If you change only one thing, make it a tested rollback (#1). If two, add the ramp (#2). Together they convert this from an irreversible bet into a recoverable rollout.
+
+⚠️ **Caveat:** The agent flagged that seven load-bearing assumptions (A1–A7) are unverified inferences from the launch description — most critically whether a tested rollback exists (A1) and whether SCA is certified (A5). Confirming those two would downgrade several weaknesses from critical to manageable. Worth verifying before Friday regardless of the go/no-go call.
+
+The agent is still available (ID `a2cec4fdabd542160`) if you'd like to push on any specific assumption or pressure-test a mitigation.

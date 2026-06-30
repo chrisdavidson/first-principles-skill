@@ -1,0 +1,36 @@
+The first-principles agent completed the trade-off analysis. Here is the result:
+
+# Database Selection — First-Principles Trade-Off Analysis
+
+**Recommendation: PostgreSQL (managed — RDS or Aurora)** — wins decisively at **99 points vs. MongoDB 82 vs. DynamoDB 77**.
+
+## Why it wins
+
+The agent reframed "database choice" as **"which engine makes correct concurrent checkout cheapest to build and run at this scale"** — because the load-bearing case is money-and-inventory operations that must never oversell or double-charge.
+
+**Key ground truths:**
+- **500 w/s ≈ 1.3 billion writes/month** — modest load that *all three* engines clear easily. Throughput does not discriminate.
+- **All three fit under $3k/month** at this load. Cost ranks but does not decide.
+- The discriminator is **transactional correctness** (the highest-weighted criterion at 5/5), where Postgres's native multi-row ACID with joins directly expresses atomic order+inventory checkout — while MongoDB and DynamoDB both have ACID but with model constraints (Dynamo's 100-item/4MB transaction cap; Mongo's discouraged multi-doc hot path) that force awkward workarounds.
+
+## Weighted scorecard
+
+| Criterion | W | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional correctness | 5 | **25** | 15 | 15 |
+| Cost predictability | 4 | 16 | 16 | 12 |
+| Operational simplicity | 4 | 16 | 12 | **20** |
+| Write throughput headroom | 3 | 12 | 15 | 15 |
+| Query/reporting flexibility | 3 | **15** | 12 | 6 |
+| Ecosystem & team fit | 3 | 15 | 12 | 9 |
+| **Total** | | **99** | **82** | **77** |
+
+**Sensitivity check:** The ~17–22% gaps exceed the near-tie threshold, so the result is robust. The only thing that could flip it is down-weighting correctness — indefensible for e-commerce. (Note: at *extreme* scale with single-entity key-value access, DynamoDB's ops/throughput strengths would dominate — but 500 w/s isn't that.)
+
+## Confidence & next action
+
+**HIGH on the ranking**, with one flagged caveat: team SQL familiarity was *unverified* (not stated in your prompt). If the team is deeply NoSQL-native it narrows the Postgres-vs-Mongo gap but does not overturn the correctness-driven lead.
+
+**Most decision-relevant next step:** confirm team database experience, then provision managed Postgres and load-test the concurrent-checkout path at **2–3× peak (1,000–1,500 w/s)** to validate headroom margin.
+
+One practical note from the analysis worth highlighting: if you were eyeing MongoDB specifically for flexible product-catalog schemas, you can get that from a **JSONB column in Postgres** without adding a second engine.

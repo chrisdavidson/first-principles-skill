@@ -1,0 +1,17 @@
+The first-principles agent ran, but it can't analyze the outage because no outage details were provided. A failure analysis needs an actual effect to explain — and right now there are none in this session (no system, symptoms, timeline, logs, or recent changes).
+
+To get a real analysis, share whatever you have:
+
+- **What went down** — which service, and what "outage" meant (fully down, degraded, elevated errors, timeouts)
+- **Symptoms** — error rates, latency, 5xx, alarms that fired
+- **Timeline** — start time, duration, automatic vs. manual recovery
+- **What changed recently** — deploys, config/flag changes, infra changes, traffic spikes, dependency incidents
+- **Scope** — all users or a subset? one region/AZ? one endpoint or everything?
+- **Artifacts** — logs, dashboards, traces, or a post-mortem draft (give me file paths and I'll have the agent read them)
+
+Or, if you'd rather proceed now without specifics, the agent offered two best-effort modes:
+
+1. **Generic outage fishbone** — a breadth-first map of typical cause categories (People, Process, Technology, Environment, Information, Resources) that you prune against what actually happened.
+2. **Guided five-whys** — give the single top-line symptom and it drills the causal chain interactively, asking for evidence at each link.
+
+Which would you like — and what can you share? I'll pass it straight back to the same agent to continue.

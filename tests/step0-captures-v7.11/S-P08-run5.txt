@@ -1,0 +1,28 @@
+The first-principles agent ran and returned its analysis. Here's the result:
+
+---
+
+The agent flagged a key gap up front: **no outage was actually described**, so there's nothing concrete to trace. Rather than inventing a generic root-cause story, it set up the analytical frame and asked for the incident details.
+
+**What it needs to run a real causal walk-through:**
+
+1. **Symptom** — what broke as users/monitoring saw it (503s, latency spike, dropped writes, etc.)
+2. **Blast radius and timing** — when it started/ended, what fraction of traffic/users/services were hit
+3. **What changed recently** — deploys, config/flag changes, infra changes, traffic spikes, vendor incidents, cert/credential expiries in the window
+4. **Signals you have** — error messages, logs, dashboards, alerts that fired (and ones that should have but didn't)
+5. **What's already ruled in/out** — so it treats those as fixed facts rather than re-litigating them
+
+(A postmortem doc, log dump, or incident transcript file path works too — it'll read it directly.)
+
+**How it will analyze once it has the facts:**
+- **Essence** — separate the *trigger* from the *root cause* from the *conditions* that let a trigger become an outage
+- **Fishbone (breadth)** — scan cause categories (People, Process, Technology, Infra, Observability, Capacity) to avoid anchoring on the first guess
+- **Five Whys (depth)** — drill each live branch to a concrete, in-your-control corrective action
+- **Ground truths** — tie every causal link to actual evidence (a log line, metric, timestamp); flag unevidenced links as assumed
+- **Failure chain** — present it as `trigger → contributing condition → … → outage`, with the weakest link called out
+
+It explicitly noted it won't reason by analogy ("outages like this are usually DNS") as evidence — a familiar pattern only suggests where to look.
+
+---
+
+**To continue:** share the outage details (or a file path to a postmortem/logs) and I'll pass them back to the same agent, which still has its context loaded.

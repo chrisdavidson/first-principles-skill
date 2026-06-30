@@ -1,0 +1,27 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## First-Principles Analysis: Monolith → Microservices Migration Impact
+
+The agent flagged that **four load-bearing inputs are missing** and would materially sharpen the estimate: (1) team size & current velocity baseline, (2) current incident rate & MTTR baseline, (3) number of target services, and (4) operational maturity (CI/CD, observability, containerization). It proceeded best-effort with explicit placeholders.
+
+### Core predictions (split by time horizon — the key analytical move)
+
+| Metric | Transition (the 6 sprints) | Steady state (next ~2 quarters) |
+|---|---|---|
+| **Developer velocity** | **DOWN 25–50%** (HIGH confidence) | **Conditional** — net up only if service boundaries align with teams *and* delivery practice is mature; otherwise flat-to-down (MEDIUM) |
+| **Incident rate** | **UP** (HIGH confidence) | Count likely **UP**; user-facing severity down only if observability exists first (MEDIUM) |
+
+### The load-bearing finding
+Drawing on DORA/Accelerate research: **microservices are not a velocity lever — delivery practices are.** A monolith with good CI/CD and loose coupling outperforms microservices with poor practice. If your real bottleneck is missing automation or tight internal coupling, those can often be fixed *inside* the monolith at a fraction of the cost and risk.
+
+### Key risks surfaced (via inversion + pre-mortem)
+The two most common ways this migration destroys both metrics:
+- **Distributed monolith** — splitting code without splitting the database → all the costs, none of the benefits.
+- **Decomposing before you can observe** — no distributed tracing → incidents become harder to diagnose → MTTR rises.
+
+### Recommended sequencing
+Resolve the four unknowns first — especially **observability** and **boundary-team alignment (Conway's Law)**. Sequence observability and data-ownership work *ahead* of the first extraction.
+
+---
+
+The agent offered to convert its bracketed ranges into concrete numeric estimates if you provide: team size, current cycle-time/incident baselines, target service count, and operational maturity. If you'd like, I can send those back to it to firm up the numbers.

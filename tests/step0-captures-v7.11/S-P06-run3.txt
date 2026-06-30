@@ -1,0 +1,33 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its analysis. Here's what it found:
+
+## Second-Order Effects: Shipping Real-Time Inventory Sync This Week
+
+**The core finding:** Shipping is defensible (build risk is retired since it's code-complete and staging-tested), but the analysis exposes a dangerous asymmetry — *the upside is relationship goodwill; the downside is a live-checkout incident that destroys that same goodwill in front of the customer who matters most.* The deadline's own purpose is the thing most at risk.
+
+### The chain of effects
+
+**First-order:** Feature goes live in production checkout; works in the Friday demo.
+
+**Second-order:**
+- ⚠️ A sync defect staging didn't expose now hits the live checkout path, blocking real purchases — possibly *during* the demo
+- ⚠️ Deadline pressure compresses rollout/observability work (monitoring, alerts, rollback rehearsal)
+- ✅ Customer sees it live → relationship strengthens, deal accelerates
+- ✅ Team unblocks dependent roadmap work
+
+**Third-order (the load-bearing one):**
+- A checkout incident around demo time damages *the exact relationship the deadline was meant to serve* — this **contradicts the very goal driving the deadline.**
+
+### The key lever it identified
+
+The highest-leverage unverified assumption: **does Friday require the feature in production, or just a convincing demo?** If the demo can run against staging or a feature flag scoped to the demo account, you get nearly all the upside with almost none of the risk.
+
+### Recommended ordering before Friday
+1. **Verify demo-vs-production first** — this likely dominates every other option
+2. **If production is truly required:** ship behind a feature flag, enable only for the demo customer + a small canary, keep the legacy path as instant fallback
+3. **Rehearse rollback + stand up monitoring** on the sync path and checkout success rate before enabling
+4. **Don't do a fleet-wide GA ship under the deadline** — the deadline justifies *demo readiness*, not *full rollout*; conflating the two is where the risk enters
+
+**Confidence:** HIGH that the demo-vs-production distinction is the key lever; MEDIUM on incident severity (depends on the staging-vs-production load gap — instrument the sync path to know more).
+
+The one question to answer out loud: **what does Friday actually require — the feature in production, or a convincing demo?**

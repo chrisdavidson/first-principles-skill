@@ -1,0 +1,18 @@
+The first-principles agent ran but hit a genuine blocker: **the prompt refers to "that plant," but no plant has been established in this conversation.** I passed the prompt verbatim as instructed, and the agent correctly declined to guess — because the governing physics (and therefore the theoretical ceiling) is entirely different depending on what "that plant" is.
+
+The agent needs you to specify, before it can complete the analysis:
+
+1. **What plant is this?** The governing law branches hard here:
+   - **Thermal** (coal/gas/nuclear) → Carnot efficiency bound (2nd Law)
+   - **Solar PV** → Shockley–Queisser limit / Landsberg limit
+   - **Wind** → Betz limit (~59.3%)
+   - **Chemical/process** → thermodynamic minimum work (Gibbs free energy)
+   - **Biological/agricultural** → photosynthetic efficiency ceiling (~11% C3)
+
+2. **What conventional figure** are we measuring the gap against? (current efficiency, output, or cost)
+
+3. **Any verified ground truths** to treat as fixed (reservoir temperatures, fuel, capacity factor, working fluid, etc.)
+
+Once you tell me which plant, I can send that context back to the **same agent** (its context is still live) and it will name the governing law, derive the physical limit, and bracket the gap between that ceiling and convention.
+
+Which plant did you have in mind?

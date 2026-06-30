@@ -1,0 +1,92 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background and I'll report back when it completes.
+This matches the pre-mortem / failure-surfacing pattern, and the user is explicitly nervous about a plan/artifact and wants me to "surface what could be wrong." But first — there's an actual script here. Let me find it before analyzing it.
+There are two scripts. The one most likely to "crash on startup" and have error-handling concerns is the large patched one. Let me read both candidates and figure out which is yours.
+The two small scripts parse and look like generator helpers. The crash-on-startup is most likely the large one. Let me actually run it to reproduce the crash, then read the startup path and its error handling.
+Reproduced. The crash is a `FileNotFoundError` during a dynamic module load at startup. Let me read that startup block to see the error handling around it.
+I have what I need. The crash is reproduced and the root cause is clear at lines 76-85. Your request is a pre-mortem / failure-surfacing one ("I'm nervous… surface what could be wrong with my error handling"), so I'll frame this around the error-handling weaknesses in that startup block — not just the single immediate crash.
+
+Note: there are three Python scripts in `/tmp`. The two small ones (`gen_fishbone.py`, `fishbone/gen_spec.py`) import and parse fine. The one that crashes on startup is `/tmp/check-step0-live-patched.py`, so that's what I analyzed. If you meant a different script, point me at it.
+
+## The immediate crash
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/_battery_core.py'
+```
+
+At startup (lines 76-85) the script loads a sibling module `_battery_core.py` from its own directory via `importlib`. That file does not exist next to the script in `/tmp`. The script was clearly designed to be run from inside the repo's `scripts/` directory (see the docstring at lines 17-23, and `REPO_ROOT = parents[1]` at line 66), where `_battery_core.py` lives as a sibling. Copying just this one file to `/tmp` orphaned it from its dependency.
+
+Two fixes, depending on intent:
+- Run it from the repo (`python3 "$REPO/scripts/check-step0-live.py" ...`) so the sibling resolves, or
+- Copy `_battery_core.py` next to it in `/tmp`.
+
+## What's actually wrong with your error handling (the thing you're nervous about)
+
+The crash is a symptom. The real weakness is that **the entire dependency-loading block at module top level (lines 76-85) has no error handling at all**, even though the script is explicitly documented to be copied around and run from `/tmp`. Surfacing the failure modes:
+
+1. **No guard on the most fragile operation, run at the most fragile time.** The `importlib` load runs at import time, before `main()`, before `argparse`, before any try/except. So a missing sibling can never produce a friendly message — it can only produce a raw traceback. The docstring even advertises a clean exit-code contract (line 42: "exit code 2 = usage/environment error … stale agent body"). A missing core module *is* an environment error, but it bypasses that contract entirely and exits with an unmanaged code. Your stated error-handling intent and your actual behavior diverge here.
+
+2. **`spec_from_file_location` can silently return `None`.** If `_CORE` doesn't exist or isn't loadable, `_spec` can be `None`, and `_spec.loader` then raises `AttributeError` instead of a clear "file not found." Here you happened to get a clean `FileNotFoundError` from `get_data`, but on a slightly different failure (unreadable path, bad permissions) you'd get a misleading `AttributeError` masking the real cause. The `# type: ignore` comments on lines 78 and 80 are suppressing exactly the type-checker warnings that flag this.
+
+3. **No existence precheck despite knowing the exact dependency.** The code knows `_CORE`'s absolute path on line 76. A single `if not _CORE.exists():` check could print "expected `_battery_core.py` beside this script — run from `$REPO/scripts/` or copy it alongside" and `sys.exit(2)`, honoring the documented contract. Right now a user gets a 5-frame `importlib._bootstrap_external` traceback that points at frozen stdlib internals, not at the real problem (a misplaced file).
+
+4. **Four attribute pulls (lines 82-85) assume the module loaded fully and exports those names.** If `_battery_core.py` exists but is stale/partial (a real risk — the docstring at line 42 itself worries about "stale agent body"), these raise `AttributeError` at import time, again outside any handler.
+
+## Suggested shape for the load block
+
+Wrap the load and fail with the documented exit-code-2 contract:
+
+```python
+_CORE: Path = Path(__file__).resolve().parent / "_battery_core.py"
+if not _CORE.is_file():
+    sys.exit(
+        f"error: required module not found: {_CORE}\n"
+        "Run this script from the repo's scripts/ dir, "
+        "or copy _battery_core.py alongside it. (exit 2)"
+    )
+try:
+    _spec = importlib.util.spec_from_file_location("_battery_core", _CORE)
+    if _spec is None or _spec.loader is None:
+        raise ImportError(f"cannot load spec for {_CORE}")
+    _mod = importlib.util.module_from_spec(_spec)
+    sys.modules["_battery_core"] = _mod
+    _spec.loader.exec_module(_mod)
+    detect_output_structure_from_file = _mod.detect_output_structure_from_file
+    _run_prompt_n_times_to_paths = _mod._run_prompt_n_times_to_paths
+    _validate_kn = _mod._validate_kn
+    DEFAULT_PLUGIN_DIR = _mod.DEFAULT_PLUGIN_DIR
+except (ImportError, AttributeError) as exc:
+    sys.exit(f"error: failed to load _battery_core from {_CORE}: {exc} (exit 2)")
+```
+
+`sys.exit(str)` prints to stderr and exits 2 — matching your own documented contract instead of dumping a stdlib traceback.
+
+## Bottom line
+- **Why it crashes now:** the sibling dependency `_battery_core.py` isn't in `/tmp`; the script expects to run from `$REPO/scripts/`.
+- **The error-handling gap you were right to be nervous about:** the startup dependency load is the most failure-prone part of the script and is the *only* part with zero error handling — and it runs at import time, so it can't honor the exit-code-2 environment-error contract the script promises. Missing-file, null-spec, and stale-module cases all surface as raw tracebacks instead of actionable messages.
+
+Relevant file: `/tmp/check-step0-live-patched.py` (load block at lines 76-85; exit-code contract documented at lines 39-43).
+The first-principles agent completed its analysis. Here's what it found:
+
+## The immediate crash
+Your script (`/tmp/check-step0-live-patched.py`) crashes at startup with:
+```
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/_battery_core.py'
+```
+
+At lines 76–85 the script loads a sibling module `_battery_core.py` via `importlib`, but that file isn't next to it in `/tmp`. The script is designed to run from the repo's `scripts/` directory (per its docstring and `REPO_ROOT = parents[1]`). Copying just this one file to `/tmp` orphaned it from its dependency.
+
+**Two fixes:** run it from the repo so the sibling resolves, or copy `_battery_core.py` alongside it in `/tmp`.
+
+## The error-handling weakness you were nervous about
+The crash is a symptom. The real gap: **the dependency-loading block (lines 76–85) has zero error handling** — and it's both the most fragile operation and runs at the most fragile time (import time, before `main()`, argparse, or any try/except). Failure modes surfaced:
+
+1. **The fragile load bypasses your own contract.** Your docstring promises "exit code 2 = environment error," but a missing core module never reaches that path — it just dumps a raw traceback.
+2. **`spec_from_file_location` can silently return `None`**, so a slightly different failure (bad permissions) would raise a misleading `AttributeError` instead of a clear "file not found." The `# type: ignore` comments are suppressing exactly those warnings.
+3. **No existence precheck**, despite the code knowing the dependency's exact path — a one-line `if not _CORE.exists():` could honor the exit-code-2 contract with an actionable message.
+4. **Four attribute pulls assume the module loaded fully** — a stale/partial `_battery_core.py` (a risk your own docstring flags) raises `AttributeError` at import time, outside any handler.
+
+The agent also provided a suggested rewrite of the load block that prechecks the file, guards the null-spec case, and exits 2 with a clear stderr message matching your documented contract.
+
+One note: there are three Python scripts in `/tmp` — the other two (`gen_fishbone.py`, `fishbone/gen_spec.py`) import and parse fine. If you meant a different script, let me know.
+
+Want me to apply the suggested fix to the load block?

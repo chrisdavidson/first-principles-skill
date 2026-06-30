@@ -1,0 +1,26 @@
+The first-principles agent completed its five-whys analysis. Here's what it found:
+
+## Five Whys: Payment Service 500s — 2026-06-11 09:30 UTC
+
+**Key insight up front:** The agent flagged that "recovered after a pod restart" is the single most useful clue you gave — a restart clearing the fault means the fault state was **in-pod and accumulating** (memory, connection pool, thread pool, or cache). A restart is a *mitigation, not a root cause*, so treating it as the answer would leave the fault primed to recur.
+
+### Most probable root cause
+**An in-pod resource or connection state that accumulated to saturation, with no automated detection or eviction** — the restart worked because it reset that state. Confidence: **MEDIUM** on the branch family, **LOW** on which specific branch (needs your evidence).
+
+### The four hypothesis branches
+- **A — Resource exhaustion** (most consistent with restart-fix): unbounded growth of heap/threads/FDs/DB connections → leak from missing cleanup on an exception path → no alert on saturation, no restart-on-pressure
+- **B — Stuck dependency connections:** downstream slowdown filled the pool with dead connections, never evicted (no socket/statement timeouts, no validation-on-borrow)
+- **C — Poison input** (down-weighted): a sustained 12-min failure fits accumulating state better than transient bad input
+- **D — Bad deploy/config** at ~09:30 (cheapest to check first)
+
+### Investigate in this order (cheapest-disconfirming first)
+1. **Deploy log** around 09:20–09:30 — kills or confirms Branch D in one query
+2. **Per-pod error attribution** — one pod or the whole fleet? (confirms restart-causality)
+3. **Pod resource graphs** (memory, FD, thread count, DB-pool active) into 09:30 — a climb-to-cliff confirms Branch A
+4. **Downstream latency + DB slow-query logs** at 09:30 — confirms Branch B
+5. **Were 500s on all or a subset of requests?** — separates A/B (all) from C (subset)
+
+### Actionable finding regardless of branch
+The fault ran to full failure for 12 minutes and needed a restart to recover — meaning there was **no alert on the leading saturation indicator and no liveness probe tuned to trip early**. That detection gap is itself a real, fixable root cause.
+
+The agent noted it had no access to your logs/dashboards, so every causal link is an unverified hypothesis. It offered to collapse these branches into a single verified chain if you share the deploy log, per-pod error breakdown, and resource graphs from 09:30.

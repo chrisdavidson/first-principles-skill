@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## How the auth rollout could go badly
+
+The agent ran a **pre-mortem** ("it's end of quarter, the rollout failed — what caused it?") and clustered the failure modes into **three structural weaknesses** rather than a flat risk list:
+
+### 1. All-teams-at-once simultaneity (the dominant structural weakness)
+Rolling out to everyone at once removes your ability to learn cheaply. There's no clean cohort to halt at if a defect appears, the most-custom team's integration becomes the critical path for everyone, and a shared cutover date means failures are correlated — when it slips, it slips for all.
+
+### 2. The lockout / no-rollback trap (highest severity)
+Auth is uniquely unforgiving — it's in the critical path of every action and doesn't degrade gracefully. The killer detail: **the rollback itself may require authentication**, so if auth is what's broken, your recovery tooling is unreachable. Break-glass paths are typically the least-tested part of the plan.
+
+### 3. Discovery-cost masquerading as fixed-cost
+Migration and per-team integration are sized as if known, but you don't learn the real size until you start. Identity-data messiness (duplicate accounts, forgotten service accounts/CI/cron identities, email-as-key assumptions) is almost always discovered in production.
+
+### The unsaid risks it flagged (adversarial pass)
+- "We can't actually roll back, and nobody wants to say so."
+- The single most-custom team's timeline *is* the real timeline.
+- The quarter deadline will, under pressure, cause someone to skip security validation — the failure mode where "on time" and "got breached" are the same project.
+
+### Recommended plan changes before locking the timeline
+1. **Phase into cohorts** — pilot → wave of 2-3 representative teams → rest. Keep the quarter as a target, not a same-day cutover.
+2. **Prove the rollback/break-glass path on real infrastructure** before any team migrates; run old + new in parallel post-cutover.
+3. **Run a real-data migration dry-run** whose findings *become* your estimate.
+
+> If you do only one, do the rollback proof.
+
+**Note:** The agent worked without your actual written plan, so several findings carry a MEDIUM confidence caveat — it reasoned from the structural shape of "auth rollout across all teams in one quarter." It offered to sharpen the analysis against your specific teams, identity model, and cutover mechanics if you share the plan, or to go deeper on any single cluster (e.g., designing the rollback drill or cohort-selection logic). Let me know if you'd like either.

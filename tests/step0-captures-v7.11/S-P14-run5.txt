@@ -1,0 +1,25 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Theoretical conversion-efficiency limit of a molten-salt thermal-storage plant
+
+**The governing law is the Carnot bound** (Second Law of Thermodynamics): η_max = 1 − T_C/T_H. Everything follows from the source and sink temperatures.
+
+### What the laws actually permit
+
+| Salt type | Hot side (T_H) | Cold sink (T_C) | **Carnot ceiling** |
+|---|---|---|---|
+| Conventional nitrate salt | 565 °C / 838 K | ~25 °C / 298 K | **≈ 64%** |
+| Next-gen chloride/carbonate | 700–800 °C / ~973–1073 K | ~298 K | **≈ 69–72%** |
+
+### The key split: irreducible vs. convention
+
+- **Irreducible (law-imposed):** ~36% of the heat *must* be dumped to the cold sink at conventional temperatures (298/838). No engineering can recover this — it's the Second Law, fixed by the sink/source temperature ratio.
+- **Convention (recoverable headroom):** Real plants hit only ~40–43%, leaving a ~21–24-point gap below the 64% Carnot ceiling. This gap comes from finite-rate heat transfer, turbine/pump irreversibilities, and non-isothermal boiling — *not* from any law.
+
+### Why real plants sit near 40%, not 64%
+
+The **endoreversible (Curzon–Ahlborn) bound**, η ≈ 1 − √(T_C/T_H) = 1 − √(298/838) ≈ **40.4%**, accounts for operating at *useful power* rather than infinitely slowly. It strikingly matches real practice and marks the realistic practical ceiling. Raising T_H to next-gen salts lifts this practical target to ~46%.
+
+**Bottom line:** The laws permit **~64%** at today's salt temperatures (up to **~70%+** with hotter salts), but the achievable-at-useful-power figure stays near **40–46%** because any finite-rate engine must operate well below Carnot.
+
+A scope note from the agent: this is the *heat-to-work* (turbine cycle) step. Solar-to-heat capture efficiency was deliberately set aside as outside "thermodynamic conversion."

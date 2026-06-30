@@ -1,0 +1,28 @@
+The first-principles agent ran a structured pre-mortem on the rollout plan. Here's what it surfaced:
+
+## The core risk: ordering
+
+The most dangerous pattern isn't any single technical failure — it's **whether "next quarter" was decided before per-team discovery**. If the date was fixed first and estimates back-filled to fit it, then your sequencing, cutover design, and per-team estimates all rest on an unverified assumption.
+
+## Five structural weaknesses (clustered failure modes)
+
+| Weakness | Why it bites |
+|---|---|
+| **A. Timeline set before discovery** | A single average estimate fits almost no team; competing org priorities never factored in. |
+| **B. Cutover & rollback are theoretical** | Hard cutover + untested rollback + no dual-run = a single catastrophic, unrecoverable failure point. |
+| **C. The long tail was never inventoried** | Auth risk lives in edge cases — SSO, service accounts, API tokens, mobile refresh, secret rotation — not the happy path. Worse if legacy knowledge has walked out the door. |
+| **D. No cross-team coordination authority** | Serial dependencies + no empowered owner → one team's stall propagates org-wide. |
+| **E. Operational readiness under-scoped** | Compliance sign-off, support-ticket spikes, and per-team observability treated as afterthoughts. |
+
+## Highest-leverage actions before locking the timeline
+
+1. **Run a 2–3 week per-team discovery pass first**, and treat "next quarter" as a *hypothesis it tests* rather than a commitment.
+2. **Prove rollback for real** in staging (incl. token/session compatibility) — make "rollback drill passed" a hard gate.
+3. **Require a dual-run period** per team — no hard org-wide cutover. This converts the worst failure mode into a recoverable one.
+4. **Write a full auth-flow inventory**, each with its own migration + test plan.
+5. **Name one rollout owner with cross-team authority**, pilot one low-risk team first, and make team migrations parallelizable.
+6. **Gate on compliance sign-off**, pre-stage support/comms for user disruption, and stand up per-team auth success/failure dashboards before migrating.
+
+The two non-negotiable technical gates: a **proven rollback drill** and a **dual-run period**.
+
+One caveat the agent flagged: it didn't have your actual plan document, so this is a checklist to interrogate your plan against, not a verdict on it. If you share the specifics (team count, cutover vs. dual-run, rollback design, dependency graph), it can re-run the pre-mortem against your real plan and tell you which of these genuinely apply versus what you've already handled.

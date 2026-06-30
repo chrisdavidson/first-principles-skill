@@ -1,0 +1,32 @@
+The first-principles agent completed its trade-off analysis. Here's the result:
+
+# Database Selection: First-Principles Trade-Off Analysis
+
+**Recommendation: PostgreSQL** (managed — Aurora PostgreSQL or RDS)
+
+## Weighted Scoring
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional integrity (ACID) | 5 | 5 | 4 | 3 |
+| Write throughput headroom @ 500 w/s | 3 | 4 | 4 | 5 |
+| Cost fit ($3k/mo) | 5 | 5 | 4 | 2 |
+| Operational simplicity (managed) | 3 | 4 | 4 | 5 |
+| Data-model fit (relational) | 4 | 5 | 3 | 2 |
+| Scaling ceiling / future-proofing | 2 | 3 | 4 | 5 |
+| **Weighted total** | | **100** | **84** | **73** |
+
+The 16% gap between Postgres and MongoDB is outside the ~10% near-tie band, so the result is robust.
+
+## Key findings
+
+- **Throughput is a non-issue.** 500 w/s ≈ 39M writes/month — well within a single mid-tier managed Postgres primary. All three engines clear the bar; the differentiator is integrity, cost, and data-model fit.
+- **E-commerce is inherently relational** (orders ↔ line-items ↔ inventory ↔ customers), and checkout demands multi-entity ACID transactions to prevent overselling and partial-order corruption. Postgres is native here; DynamoDB forces single-table denormalization (ACID capped at 100 items, no joins).
+- **DynamoDB's budget fit is fragile** and hinges on payload size: at ~1 KB transactional writes it lands ~$530/mo, but at ~4 KB it derives to ~$4,200/mo — **breaching the $3k ceiling**. Even in its best case it still loses on integrity and data-model fit, so the ranking doesn't flip.
+- **Postgres has flat, predictable pricing** comfortably under budget — the most budget-robust option regardless of whether $3k is all-in.
+
+## Caveats (unverified inputs)
+- Per-write payload size was assumed ~1–5 KB (not provided) — this is the load-bearing variable for DynamoDB's cost.
+- Whether $3k is fully-loaded managed spend (compute + storage + IO + replication) was assumed but not stated.
+
+**Bottom line:** Choose PostgreSQL. Reconsider DynamoDB only if the access pattern becomes provably key-value with sub-2 KB payloads and no relational reporting needs. Postgres's main long-term risk is the vertical-scaling ceiling — but that only bites well beyond 500 w/s.

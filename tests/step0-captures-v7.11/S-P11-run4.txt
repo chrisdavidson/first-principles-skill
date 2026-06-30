@@ -1,0 +1,29 @@
+The first-principles agent worked the problem end-to-end. Here's the Fermi estimate it produced:
+
+## Piano Tuners in Chicago — Fermi Estimate
+
+**The structure** (units chosen so everything cancels to "tuners"):
+
+```
+tuners = pianos × (tunings/piano/yr) ÷ (tunings/tuner/yr)
+```
+
+**The key quantities and how they multiply out:**
+
+| Step | Quantity | Value |
+|---|---|---|
+| 1 | Chicago population | ~2.7M people |
+| 2 | ÷ 2.5 people/household | ~1.08M households |
+| 3 | × 1/20 piano ownership (+institutional) | ~60,000 pianos |
+| 4 | × 1 tuning/piano/year | 60,000 tunings/yr demanded |
+| 5 | Tuner capacity: 4 tunings/day × 250 workdays | 1,000 tunings/tuner/yr |
+| 6 | 60,000 ÷ 1,000 | **≈ 60 tuners** |
+
+**Bracket: [~15 central ~60, high ~180]**, obtained by flexing the two load-bearing factors — piano-ownership rate (1/30 → 1/12) and per-tuner throughput.
+
+**What to trust and where the uncertainty lives:**
+- The two factors driving nearly all the spread are **piano-ownership rate** and **per-tuner daily throughput** — both flagged as untested beliefs. The tuning-frequency assumption matters less because real-world under-tuning and manufacturer-recommended over-tuning roughly cancel.
+- A sanity check holds: 60 tuners × 1,000 tunings × ~$150 ≈ $150k gross/tuner — plausible for a skilled trade.
+- The canonical textbook answer to this exact problem is ~50–125, so the **~60 central estimate is well-calibrated.**
+
+**The takeaway move:** multiply a large population down through plausible per-unit ratios until units cancel to your target, and always report the bracket — the bracket is what tells you the answer is decision-grade.

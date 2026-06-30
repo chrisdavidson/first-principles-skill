@@ -1,0 +1,88 @@
+This matches the pre-mortem / failure-mode surfacing trigger ("nervous about my plan," "surface what could be wrong"). But I can't surface what's wrong with your error handling without seeing the script. Let me find it first.
+I've launched the first-principles agent with your prompt verbatim. It's running in the background now and will analyze your error-handling concern from the ground up — decomposing the problem, challenging assumptions, and reasoning toward what could be wrong. I'll report back as soon as it completes.
+I found two Python scripts in your working directory. I need to identify which one is crashing on startup before I can surface the error-handling weaknesses. The most likely candidate is `check-step0-live-patched.py` (67KB, the substantial script), but let me confirm which one actually crashes.
+Confirmed: `check-step0-live-patched.py` crashes on startup with a `FileNotFoundError` at line 80. `gen_fishbone.py` runs fine. Let me read the startup region of the crashing script to surface the error-handling weaknesses.
+I have the root cause and enough of the script to surface the error-handling weaknesses. The crash itself is the headline finding, so let me address that first, then surface the broader error-handling fragility you asked about.
+
+## What's actually crashing
+
+Your script dies at **line 80** before `main()` ever runs:
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/_battery_core.py'
+```
+
+The script is a *thin wrapper* — at module load time (lines 76–85) it locates a sibling file `_battery_core.py` and imports it via `importlib`, pulling in `detect_output_structure_from_file`, `_run_prompt_n_times_to_paths`, `_validate_kn`, and `DEFAULT_PLUGIN_DIR`. That file is computed as `Path(__file__).resolve().parent / "_battery_core.py"` — i.e. *next to the script*. You copied/ran `check-step0-live-patched.py` into `/tmp`, but its companion `_battery_core.py` was left behind in the repo's `scripts/` directory. No `_battery_core.py` next to it → import fails → instant crash.
+
+This is not really an error-*handling* bug, it's a missing-file bug. But your instinct is right: **the error handling is what turned a recoverable, explainable problem into a raw stack trace.** That is the real weakness, and it's structural.
+
+## Surfaced weaknesses in your error handling
+
+I'm framing this as a pre-mortem — "the script failed on startup; what in the error-handling design let that happen so badly?" Five findings, roughly highest-signal first:
+
+**1. The load-bearing import has zero error handling (lines 76–80).** This is the single most important finding. The entire script depends on `_battery_core.py` existing, yet the four-line load sequence has no guard. Three distinct failure modes all surface as cryptic tracebacks instead of an actionable message:
+- `spec_from_file_location` returns `None` if the path is malformed → line 78 `module_from_spec(None)` throws.
+- `_spec.loader` can be `None` → line 80 `AttributeError`.
+- The file can be missing → `FileNotFoundError` (your actual crash).
+
+The fix is a single guard before line 77:
+```python
+if not _CORE.is_file():
+    sys.exit(f"error: required sibling module not found: {_CORE}\n"
+             f"hint: copy _battery_core.py alongside this script, "
+             f"or run it from the repo's scripts/ directory.")
+```
+That converts your crash into a one-line, fixable message and exits with your documented code `2` (environment error) instead of an uncaught traceback.
+
+**2. The crash happens at import time, so nothing can catch it.** Because the load runs at module top-level (not inside `main()`), it executes during *import*, before `argparse`, before `--help`, before `--dry-run`, before `--self-test`. Consequence: even `python3 check-step0-live-patched.py --help` crashes. A user can't even read the usage text to diagnose the problem. Your docstring advertises `--self-test` as "no claude invoked" and `--dry-run` as offline-safe — but neither is reachable if the sibling import fails. Move the `_battery_core` load into a function called from `main()`, or at minimum guard it (finding 1) so the documented escape hatches actually work.
+
+**3. Your exit-code contract is documented but unenforced at startup.** Lines 39–42 promise exit `2` for "missing claude, stale agent body" environment errors. A missing `_battery_core.py` is exactly that class of error — but it currently exits with Python's default `1` via uncaught traceback, violating your own contract. Any CI or wrapper script keying on exit `2` to mean "environment problem, retry/skip" vs `1` "battery genuinely failed" will misclassify this. The guard in finding 1 fixes the code; you should also audit that every startup precondition (catalog exists, `claude` on PATH, plugin-dir exists) exits `2`, not `1`.
+
+**4. `__file__`-relative path resolution is brittle and undocumented as a precondition.** Both `REPO_ROOT` (line 66, `parents[1]`) and `_CORE` (line 76) assume a fixed directory layout relative to the script. When the script is relocated to `/tmp` (which your *own docstring* tells users to do — "Designed to be run from `/tmp`"), `parents[1]` becomes `/` and the sibling lookup breaks. Your usage instructions and your path-resolution logic actively contradict each other. Either (a) make `_battery_core` locatable via an explicit `--core-dir`/env var with a sensible fallback, or (b) inline the core so there's no sibling dependency, or (c) document loudly that the two files must travel together.
+
+**5. No verification that the imported symbols exist (lines 82–85).** Even if `_battery_core.py` loads, you immediately do `_mod.detect_output_structure_from_file`, `_mod._run_prompt_n_times_to_paths`, etc. If you load a *stale or wrong* `_battery_core.py` (very plausible given the "patched"/"spike"/"rename-in-place" history in your docstring), these become `AttributeError` at line 82+ with no hint that the version is mismatched. Given your comment at line 72 ("MUST pre-register... Pitfall 3") you're clearly already fighting version-skew issues here. A small check — verify the four required attributes are present and, ideally, a version sentinel matches `_BASELINE_VERSION` — would turn "mysterious AttributeError" into "you loaded the wrong _battery_core.py."
+
+## Immediate fix (to make it run right now)
+
+The crash is environmental, not a code bug per se. Copy the sibling file next to the script:
+
+```bash
+# find the real _battery_core.py in your repo, then:
+cp /path/to/first-principles-skills/scripts/_battery_core.py /tmp/_battery_core.py
+```
+
+Then `check-step0-live-patched.py` will get past line 80. (Findings 1–5 are about making the *next* such failure explain itself instead of crashing.)
+
+Relevant file: `/tmp/check-step0-live-patched.py` (crash at line 80; load block lines 76–85; path assumptions lines 66 and 76).
+
+Want me to apply the guard from finding 1 (and the symbol-check from finding 5) directly to the script?
+The first-principles agent finished. Here's what it found:
+
+## The actual crash
+Your script dies at **line 80** before `main()` ever runs:
+
+```
+FileNotFoundError: [Errno 2] No such file or directory: '/tmp/_battery_core.py'
+```
+
+`check-step0-live-patched.py` is a thin wrapper. At import time (lines 76–85) it loads a sibling file `_battery_core.py` from *next to itself* via `importlib`. You ran the script from `/tmp` but left `_battery_core.py` behind in the repo's `scripts/` directory — so the import fails instantly.
+
+**Immediate fix** — copy the companion file next to the script:
+```bash
+cp /path/to/.../scripts/_battery_core.py /tmp/_battery_core.py
+```
+
+## The real error-handling weaknesses (your actual question)
+The agent's point: this is a missing-file bug, but your error handling is what turned a recoverable, explainable problem into a raw traceback. Five findings:
+
+1. **The load-bearing import has zero guards (lines 76–80).** Three failure modes (`None` spec, `None` loader, missing file) all surface as cryptic tracebacks. A single `if not _CORE.is_file(): sys.exit(...)` turns the crash into a one-line, fixable message.
+
+2. **The crash happens at import time, so nothing can catch it.** It runs before argparse — so even `--help`, `--dry-run`, and `--self-test` crash. Your documented escape hatches are unreachable. Move the load into `main()` (or at least guard it).
+
+3. **Your exit-code contract is unenforced.** Lines 39–42 promise exit `2` for environment errors; a missing sibling is exactly that, but it exits `1` via uncaught traceback. CI/wrappers keying on `2` will misclassify it.
+
+4. **`__file__`-relative paths are brittle and self-contradictory.** Your docstring tells users to run from `/tmp`, but `REPO_ROOT` (line 66) and `_CORE` (line 76) assume a fixed repo layout — which breaks exactly when relocated. Add a `--core-dir`/env override, inline the core, or document that the two files must travel together.
+
+5. **No check that imported symbols exist (lines 82–85).** A stale/wrong `_battery_core.py` yields a mysterious `AttributeError` instead of "you loaded the wrong version" — relevant given your "patched/spike/rename" history and Pitfall-3 comment.
+
+The agent offered to apply the finding-1 guard and finding-5 symbol check directly to `/tmp/check-step0-live-patched.py`. Want me to have it do that?

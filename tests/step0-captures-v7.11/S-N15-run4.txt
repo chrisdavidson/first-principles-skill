@@ -1,0 +1,42 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background and I'll let you know when the analysis is ready.
+I'll help you think through the downsides of the storage integration timeline before your board presentation. This is a structural-weakness / failure-mode question — a good fit for a pre-mortem analysis (imagine the timeline has already failed, then work backward to causes).
+
+Before I run the analysis, I need a bit of grounding so the pre-mortem targets the real plan rather than a generic one. A few quick questions.
+`AskUserQuestion` isn't available in this environment, so per my operating contract I'll state the inputs I need up front and then proceed with a best-effort analysis once you fill them in.
+
+To make the pre-mortem target *your* plan rather than a generic one, I need four things:
+
+1. **The storage integration itself** — what is being integrated, and into what? (e.g., a vendor storage product into your platform, battery/energy storage into a grid asset, a storage layer into a software stack, a data-storage migration). The word "storage" is load-bearing and I don't want to guess wrong.
+
+2. **The timeline that feels off** — what are the key dates/milestones, and what's the hard deadline (if any)? What specifically triggered the "something feels off" instinct — a date that slipped, a dependency you can't see clearly, a resource you're not sure you have?
+
+3. **Key constraints** — non-negotiables the plan must satisfy (budget cap, go-live date tied to the board commitment, regulatory/compliance gates, team size, vendor contract terms, compatibility with existing systems).
+
+4. **Known ground truths** — facts you've already verified and want treated as fixed (e.g., "the vendor has confirmed delivery by X," "we have N engineers allocated," "the contract is signed").
+
+---
+
+If you'd rather not assemble all of that first, here's how I'll proceed: I'll run a **pre-mortem** — premise it as *"the storage integration timeline has already failed by the board's target date; what caused it?"* — generate the failure causes without filtering, interrogate them adversarially for the ones a group would suppress, cluster them into structural weaknesses, and hand you back a prioritized list of weaknesses each with a named mitigation or an explicit accept-the-risk decision. That's the deliverable you can take into the board presentation.
+
+The more of items 1–4 you give me, the sharper and less generic that output will be. Even a few sentences on item 1 and the trigger in item 2 would let me run a genuinely useful analysis rather than a templated one.
+
+Which would you prefer — fill in the inputs, or have me run the pre-mortem now on reasonable stated assumptions (which I'll flag explicitly as unverified)?
+The first-principles agent has run and come back. Rather than produce a generic analysis, it's asking for context to make the pre-mortem target *your* actual plan. Here's what it needs:
+
+## It needs four inputs
+
+1. **The storage integration itself** — what's being integrated into what? "Storage" is ambiguous (vendor storage product, battery/energy storage, a software storage layer, a data migration). It doesn't want to guess wrong.
+
+2. **The timeline that feels off** — key milestones, the hard deadline, and *what specifically* triggered your "something feels off" instinct (a slipped date? an unclear dependency? a resource you're unsure about?).
+
+3. **Key constraints** — non-negotiables (budget cap, board-committed go-live date, regulatory gates, team size, vendor contract terms, compatibility needs).
+
+4. **Known ground truths** — facts already verified that should be treated as fixed (vendor delivery confirmed, N engineers allocated, contract signed, etc.).
+
+## How it will proceed either way
+
+If you'd rather not assemble all that, it will run a **pre-mortem**: premise that the integration has *already failed* by the board's target date, generate failure causes unfiltered, adversarially interrogate the ones a group would suppress, cluster them into structural weaknesses, and hand back a prioritized list — each weakness paired with a named mitigation or an explicit accept-the-risk decision. That's a board-ready deliverable.
+
+**So, your call:** fill in items 1–4 (even a couple sentences on #1 and the trigger in #2 sharpens it a lot), or have it run the pre-mortem now on reasonable but explicitly-flagged-as-unverified assumptions?
+
+Which do you prefer?

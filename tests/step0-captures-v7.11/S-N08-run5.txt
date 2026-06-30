@@ -1,0 +1,32 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## First-Principles Decomposition: 85% Round-Trip Efficiency in Molten-Salt Storage
+
+**The core move:** Don't accept the headline number until you pin down the conversion path. The phrase "round-trip *electricity* efficiency" hides the entire question — is there a heat engine in the loop or not?
+
+### The decisive fork
+
+| Path | Governing law | Is 85% possible? |
+|------|--------------|------------------|
+| **electricity → electricity** (Carnot battery) | Second Law / Carnot limit | **No — impossible** |
+| **electricity/heat → delivered heat** (thermal) | Insulation losses only | **Yes — even modest** |
+
+### The derivation
+
+1. **Carnot ceiling (HIGH confidence):** For a typical two-tank salt system — hot side ~565°C (838 K), condenser ~40°C (313 K):
+
+   η_C = 1 − 313/838 = **0.626**
+
+   Even a *perfect* heat engine discharging this storage converts at most ~63% of stored heat to electricity. So electrical round-trip is **≤63% before any other losses**.
+
+2. **Realistic electrical round-trip (MEDIUM confidence):** Real Rankine turbines capture ~60–75% of their Carnot limit, giving ~38–47% at discharge, then × charging (~99%) × thermal retention (~95%) → **~35–45% electricity-to-electricity**.
+
+3. **What 85% must actually mean (HIGH confidence):** *Thermal* round-trip (heat in → heat out, no engine) genuinely reaches 85–99% because only insulation/parasitic losses apply. So an honest "85%" almost certainly refers to thermal round-trip or electricity→delivered-heat.
+
+### The abandoned branch (itself informative)
+To hit 85% Carnot efficiency at 40°C cold side, you'd need T_hot ≈ 1814°C — far above molten-salt decomposition (~600°C). Salt chemistry forecloses it.
+
+### The reusable lesson
+**Whenever an energy-storage efficiency sounds high, ask whether a heat engine sits anywhere in the loop.** If it does, the Second Law — not the spec sheet — sets the ceiling, and you sanity-check against Carnot (computed from the actual hot/cold temperatures) before believing any number.
+
+The agent flagged its one uncertain input (the 60–75% fraction-of-Carnot figure for real turbines) and noted that verifying the specific turbine's cycle efficiency would tighten the 35–45% band but can't lift it past the ~63% Carnot wall.

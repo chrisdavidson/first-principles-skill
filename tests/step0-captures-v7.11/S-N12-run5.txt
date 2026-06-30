@@ -1,0 +1,30 @@
+The first-principles agent has completed its analysis. Here's what it returned:
+
+## Pre-Mortem: Site Drainage Structural Weakness
+
+The agent ran a structured first-principles pre-mortem and flagged that it needs three specifics to move from a general framework to your actual site, but delivered a best-effort analysis regardless.
+
+**Ground truths it anchored on:**
+- Water moves to the lowest point and accumulates where it can't drain (gravity)
+- Soil loses shear strength as pore-water pressure rises (effective-stress principle)
+- Undersized conveyance backs up and overtops once inflow exceeds capacity (mass balance)
+- Trapped water imposes hydrostatic — and where it freezes, expansion — load
+- Erosion rises sharply with flow velocity at unprotected outfalls
+
+**The failure chains it derived:**
+- **A — Foundation undermining** (severe if a structure is downhill): pooling → saturation → lost bearing capacity → differential settlement/cracking. *High confidence in mechanism.*
+- **B — Capacity exceedance / overtopping** (likely, recurring): first storm past the weak design capacity floods low areas/roads/below-grade space, and recurs more often than the nominal return period. *High confidence.*
+- **C — Slope/retaining-wall instability** (severe, slope-dependent): pore pressure → wall movement or slope slump.
+- **D — Outfall erosion** → scour, sediment migration onto neighbors or watercourses, plus permit/environmental liability.
+- **E — Freeze-thaw deterioration** (slow, compounding): cracks worsen the original weakness each cycle.
+
+**The highest-signal finding** (its words): a drainage weakness rarely fails as "water in the wrong place" — it fails by routing water into load-bearing soil, structures, or slopes, where consequences jump from nuisance to safety and liability. And the most-suppressed point: **proceeding with a *documented* structural weakness is the single costliest decision in the chain — it converts a later failure from an insurable accident into alleged negligence.** Its default recommendation is remediation-before-build, with the as-built decision documented by the responsible engineer.
+
+---
+
+To sharpen this into your specific ranked failure tree, the agent needs three things:
+1. **What the structural weakness specifically is** (undersized culvert, inadequate slope, missing detention, soil-infiltration assumptions, retaining-wall drainage, outfall location, foundation subdrainage)
+2. **What sits downstream/downhill** (foundations, public road, neighbor, protected watercourse)
+3. **Site context** — soil type, slope, rainfall regime, and the design storm it was sized for (10-yr vs 100-yr)
+
+If you can provide those, I can send them back to the same agent to collapse the medium-confidence chains into concrete, ranked scenarios for your site.

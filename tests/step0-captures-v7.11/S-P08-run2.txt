@@ -1,0 +1,19 @@
+The first-principles agent ran, but it can't analyze the outage because no details were provided — there's no incident description, logs, system context, or repository in the working directory (`/tmp`) for it to inspect. The phrase "this outage" has no referent in our conversation.
+
+To do a genuine first-principles failure analysis (deriving causes from evidence rather than inventing a plausible story), it needs at minimum:
+
+**Essential:**
+1. **What broke, observably** — what users/monitoring saw (e.g., "API returned 503 for 40 min," "all writes rejected").
+2. **The affected system** — service/app name, plus a path to logs, code, or a repo it can inspect.
+
+**Strongly helpful:**
+3. **Timeline** — when it started/ended; what changed just before (deploy, config push, traffic spike, dependency update).
+4. **Scope** — full vs. degraded; one region or all; one feature or everything.
+5. **Recovery** — what brought it back (rollback, restart, self-healed, manual fix).
+6. **Already-verified facts** — anything to treat as fixed ground truth.
+
+You can paste the details inline, point me at artifacts (a log file, incident doc, repo path, dashboard export), or give me a GitHub incident/issue URL.
+
+Once you share the symptoms, I'll send them straight to the same agent (its context is still live), and it will isolate the essence, build a fishbone of candidate causes, drill the likely branches with 5-Whys, and deliver evidence-to-root-cause chains with weak/unverified links flagged.
+
+What was the outage?

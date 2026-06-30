@@ -1,0 +1,14 @@
+The first-principles agent ran your prompt, but it can't surface failure modes without knowing what the plan actually is — a pre-mortem needs something concrete to interrogate. Here's what it's asking for:
+
+**To get a useful blow-up analysis, share:**
+
+1. **The plan itself** — one or two paragraphs: what you're building/launching/changing and the core approach.
+2. **What success looks like, and by when** — the deadline, metric, or bar that must be cleared. Failure is defined relative to this.
+3. **What's locked vs. still flexible** — fixed constraints (budget, headcount, hard date, tech choice) vs. things you could still change. This separates *actionable* risks from ones you'd just have to accept.
+4. **Optional but high-signal: why *you* specifically are nervous** — name the nagging thing even if you can't justify it yet. The gut usually points at the structural weakness before the analysis catches up.
+
+**What you'll get back once you provide that:** a full prospective-hindsight pre-mortem — premise ("it's [deadline], the plan failed, why?"), a raw unfiltered failure list, an adversarial pass for the risks people suppress when a team is excited, clustering of risks by shared root cause, and a mitigate-or-consciously-accept action for each cluster.
+
+One thing it flagged worth repeating: **your nervousness while the team is excited is itself a signal.** Enthusiasm reliably suppresses dissent and makes optimistic assumptions feel like facts — you may currently be the only one able to see the failure modes.
+
+Drop the plan details here and I'll feed them straight back to the agent to continue the analysis.

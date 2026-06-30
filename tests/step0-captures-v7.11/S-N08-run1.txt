@@ -1,0 +1,23 @@
+The first-principles agent completed its analysis. Here's what it found:
+
+## Bottom line: the 85% claim only survives if you read it correctly — and most likely it's misstated.
+
+The agent's decisive move was to interrogate the phrase **"round-trip electricity efficiency"** before accepting the number, because the answer flips entirely depending on the system architecture.
+
+### The governing law
+**Second Law / Carnot bound:** η = 1 − T_cold/T_hot. With standard solar nitrate salt at 565°C (838 K) and ambient sink (303 K), the **ideal ceiling is 63.8%**.
+
+### Three interpretations
+
+| Interpretation | Verdict |
+|---|---|
+| **Electricity→electricity, resistive charge + turbine discharge** | **Impossible.** 85% exceeds even the 63.8% Carnot ceiling. Real engines hit ~40–50% round-trip. (HIGH confidence) |
+| **Electricity→electricity, heat-pump charge ("Carnot battery")** | **Theoretically conceivable** — a heat pump's COP > 1 sidesteps the round-trip Carnot cap — but real pumped-thermal systems demonstrate only ~50–70% today. 85% is aspirational. (MEDIUM confidence) |
+| **Thermal retention (heat in → heat out, no engine)** | **Easily achievable** (>90%). Most likely the word "electricity" is the error. |
+
+### How to approach it
+Don't believe the number — test it against the law first. The one question that resolves everything: **"Is your charging side a resistor or a heat pump, and is your 85% electrical or thermal?"**
+
+Raising salt temperature can't rescue the resistive case either — even chloride salts at ~800°C only push Carnot to ~72%, still short of 85%.
+
+The agent remains available (ID `aa2896ab61d1bc12d`) if you'd like to push on any branch — e.g., work the heat-pump/Carnot-battery numbers in more detail.

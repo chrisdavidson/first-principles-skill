@@ -1,0 +1,25 @@
+The first-principles agent completed the inversion. Here's its analysis:
+
+## When "faster ships → better retention" breaks down
+
+The agent's core finding: the claim is a **proxy relationship, not a mechanism**. Retention comes from users receiving recurring value that exceeds their cost/alternatives — shipping frequency only correlates with that when several silent preconditions hold. It identified three regimes where the assumption fails:
+
+### 1. Cadence becomes *irrelevant* (decoupling)
+- **Ships aren't aimed at validated needs** — velocity multiplies motion without value. *Signal: feature-adoption-per-release trending down.*
+- **Retention is gated by something cadence can't touch** — price, missing core capability, or no product-market fit. *Signal: exit surveys cite price / "missing X" / "not for me," not staleness.* (Flagged as the **most common** real-world breakpoint.)
+- **Users don't perceive the changes** — invisible/uncommunicated ships. *Signal: low changelog reach, low feature awareness.*
+- **Churn is faster than your cadence** — if users leave in onboarding (day 0–3), a 2-week cycle is structurally too slow to intervene. *Signal: churn concentrated pre-day-14.*
+
+### 2. Cadence becomes *harmful* (inversion)
+- **Regression tax** — each ship adds instability faster than value. *Signal: rollback rate, P1 bugs, post-release support tickets rising with frequency.*
+- **Change-cost on sticky users** — power/enterprise users churn from constant UI churn ("they keep moving my cheese"). *Signal: post-release engagement dips that don't recover; enterprise-cohort churn rising.*
+
+### 3. The compounding trap
+A team that believes the claim unconditionally responds to stalled retention by **shipping more** — which accelerates the damage under the harmful regimes and burns capacity that should go to discovery or fixing the real constraint.
+
+### The one check that gates everything
+> **You don't currently know your churn drivers.** Before trusting cadence as a retention lever, pull churn-reason data and answer *"is retention even elastic to product iteration right now?"* If exit reasons are price, missing-capability, or "not for me," then no shipping speed fixes retention — the assumption has already broken down.
+
+**Confidence:** HIGH on the boundary structure; the per-team verdict needs your actual churn data to resolve.
+
+The agent remains available (id `a50e3bdaec5328293`) if you'd like to push on any specific regime — e.g., feed it your actual churn-reason breakdown to resolve which precondition is binding for your team.

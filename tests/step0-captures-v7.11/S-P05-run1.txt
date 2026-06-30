@@ -1,0 +1,40 @@
+The first-principles agent completed the trade-off analysis. Here's the result:
+
+# Database Trade-Off Analysis — Recommendation: **PostgreSQL**
+
+## The reframing that drives everything
+The instinct is to treat "e-commerce backend" as a scaling problem — but **500 writes/sec is trivial for all three engines** (1.8M writes/hour sits well inside the single-node/provisioned range of each). Throughput is therefore a *weak* discriminator. The real decision turns on **transactional integrity, relational data-model fit, and cost at this load**.
+
+## Weighted scoring
+
+| Criterion | Weight | PostgreSQL | MongoDB | DynamoDB |
+|---|---|---|---|---|
+| Transactional integrity | 5 | 5 | 3 | 3 |
+| Cost fit ≤ $3k | 5 | 5 | 3 | 3 |
+| Relational model fit | 4 | 5 | 3 | 2 |
+| Throughput headroom | 2 | 4 | 4 | 5 |
+| Ops / team fit | 3 | 4 | 3 | 3 |
+| Scale beyond peak | 2 | 3 | 4 | 5 |
+| **Weighted total** | | **105** | **72** | **70** |
+
+## Why PostgreSQL wins
+- **Native, penalty-free ACID** — multi-statement transactions with serializable isolation are the engine's happy path; exactly what order/inventory/payment consistency demands.
+- **DynamoDB's hidden tax** — `TransactWriteItems` consumes **2× write capacity units** on every transactional write, landing the cost penalty *precisely on the operation e-commerce uses most*. Its upper cost bound brushes the $3k ceiling.
+- **MongoDB** — supports multi-document transactions since v4.0, but they sit off the model's happy path with a documented performance penalty, and relational order data fits the document model awkwardly.
+
+## Cost brackets (multi-AZ, ~modest reads)
+| Engine | Central | Upper |
+|---|---|---|
+| PostgreSQL (RDS/Aurora) | $1.0k–$1.4k | $2.0k |
+| MongoDB Atlas (M40–M50) | $1.6k–$2.2k | $2.8k |
+| DynamoDB (provisioned, txn = 2× WCU) | $1.3k–$2.0k | $3.0k+ |
+
+## Confidence: HIGH on ranking, MEDIUM on absolute cost
+The 33-point gap is robust — it doesn't flip under any single defensible weight change (even maxing out "scale beyond peak" keeps PostgreSQL ahead 111 vs 82).
+
+**Three unverified inputs to confirm** (none reverses the recommendation under defensible values):
+1. **Read/write ratio** — if reads are massive and key-value-shaped, DynamoDB's economics improve. Confirming this lifts cost confidence to HIGH.
+2. **Team skills** — assumed conventional SQL, no NoSQL specialists.
+3. **Order record size** — affects cost magnitude, not ranking.
+
+**Bottom line:** Choose managed PostgreSQL (RDS or Aurora, multi-AZ). The workload's binding constraint is transactional integrity over relational data on a tight budget — not throughput — and PostgreSQL wins every high-weight criterion with budget headroom to spare.

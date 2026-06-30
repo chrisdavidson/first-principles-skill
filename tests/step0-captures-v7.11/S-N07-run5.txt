@@ -1,0 +1,28 @@
+The first-principles agent completed its analysis. Here's what it returned:
+
+## Summary
+
+The agent could not produce a numeric upper bound because **no actual figures were provided** — and it explicitly refused to fabricate one, noting "an upper bound rebuilt from nothing would be fiction." Instead it delivered a reusable estimation framework.
+
+### What it needs from you (the load-bearing inputs)
+1. **Current monthly run-rate** ($/month, latest actual) — *dominant*
+2. **Observed month-over-month growth rate** + whether linear or compounding — *dominant*
+3. **Committed-use discount terms** — % committed, discount rate, on-demand headroom
+4. **Q3-specific step-changes** — launches, migrations, seasonal/batch jobs landing Jul–Sep
+5. **Definition of "realistically"** — P90/P95 vs. worst-plausible vs. absolute max
+
+### The estimation skeleton
+```
+Q3 spend = Σ months {Jul,Aug,Sep} of:
+   [committed base, fixed post-discount]
+ + [on-demand run-rate × (1+g)^month × (1 − discount)]
+ + [Q3-specific step events]
+```
+
+It frames the deliverable as a **bracket** (lower / central / upper) rather than a single number.
+
+### Key insight
+The agent's most useful first-principles observation: in committed-use models, the realistic worst case is usually **blowing past your commitment** — once usage exceeds committed capacity, marginal spend reverts to on-demand list price and the discount *evaporates exactly when spend peaks*. That non-linearity, not the growth rate, is typically the dominant term in the upper bound.
+
+### Next step
+To get an actual number, provide the 5 inputs above (or point to billing exports / usage dashboards). The agent is still live — I can relay your figures back to it and it will return the bracketed Q3 upper bound with the full derivation. Want to provide those numbers?

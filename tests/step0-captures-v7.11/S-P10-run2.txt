@@ -1,0 +1,22 @@
+The first-principles agent completed its analysis. Here's the result:
+
+## Molten-Salt Thermal Storage: ~$15/kWh of usable capacity
+
+The agent ran a Fermi estimate built from unit-factors rather than comparable-plant costs.
+
+**Headline:** **~$15/kWh of usable capacity** for the storage subsystem (salt media + tanks + BOP), with a defensible range of **$11–22/kWh**. Confidence: MEDIUM.
+
+### How it was derived
+| Step | Logic | Result |
+|---|---|---|
+| Mass per usable kWh | cp (1.5 kJ/kg·K) × working ΔT (275 K, 565→290°C) = 412.5 kJ/kg | **8.7 kg salt/kWh** |
+| Bare salt cost | 8.7 kg × $0.70–1.00/kg | $6–9/kWh |
+| Installed subsystem | × 1.8–2.5 (tank, foundation, insulation, salt handling) | **$11–22/kWh** |
+
+The dominant term — 8.7 kg/kWh — is **high-confidence pure physics**. The uncertainty lives in two inputs: current nitrate salt commodity price, and the installed-cost multiplier.
+
+### Two caveats the agent flagged
+1. **Your 30-year-life and daily-cycle assumptions don't affect capital $/kWh** — they only matter for a *levelized* reading, which works out to ~0.14¢/kWh delivered (capital amortized over ~10,950 cycles). The agent reported this in case it's what you actually wanted.
+2. **Scope sensitivity:** It read "pre-commissioned tanks" as excluding the power block/EPC. If turnkey scope is intended, the figure rises to **~$20–35/kWh**.
+
+For context, the whole bracket sits roughly an order of magnitude below lithium-battery storage (~$150–250/kWh usable).

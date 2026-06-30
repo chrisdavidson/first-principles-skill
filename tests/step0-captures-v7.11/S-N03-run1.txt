@@ -1,0 +1,113 @@
+I've launched the first-principles agent with your prompt verbatim. It's analyzing in the background, and I'll report back when it completes.
+I'll run a focused pre-mortem analysis on your Python script's startup crash, treating the failure as already-happened and working backward through what could be wrong with your error handling.
+
+A key constraint up front: I haven't seen your code. I'll surface the structural failure modes that most commonly cause startup crashes traceable to error-handling design. To make this concrete and verifiable, I should look at the actual script.
+I found multiple `main.py` files but none clearly identified as "your script." Before I read the wrong one, I need to know which script is crashing.
+
+That said, you asked specifically to "surface what could be wrong with my error handling" — the pre-mortem itself doesn't require the exact file to enumerate the structural failure modes. Let me do both: identify your likely script and run the focused pre-mortem.
+I can't tell which script is yours, and reading the wrong one would produce a pre-mortem grounded in the wrong code. Rather than guess across 14+ candidates, I'll deliver the focused pre-mortem on the structural failure modes — which is exactly what you asked for ("surface what could be wrong with my error handling") — and tell you what to share so I can ground it in your actual code.
+
+---
+
+# Pre-Mortem: Startup Crash Rooted in Error Handling
+
+**MODE:** focused-pre-mortem (your phrasing — "I'm nervous about my plan/script," "surface what could be wrong" — routes here)
+
+**Premise (restated to anchor prospective hindsight):** *The script has already crashed on startup. The error handling is implicated. What caused it?*
+
+## 1. Problem Essence
+
+**Core question:** What error-handling design flaws would cause a Python script to crash during startup (import + module-level execution + entry-point setup), before reaching its main work?
+
+**Success criteria for this analysis:**
+- Enumerate failure causes specific to the *startup window*, not runtime-general.
+- Distinguish error handling that *causes* the crash from error handling that *hides the real cause*.
+- Each cause must be checkable against your actual code.
+
+## 2. Failure Causes (raw pre-mortem list, then clustered)
+
+I wrote these without filtering, then grouped them. The adversarial question applied to each: *"Would I have glossed over this if reviewing my own code quickly?"*
+
+### Cluster A — Error handling that *masks* the real startup error (highest signal)
+
+This is the most common reason a startup crash is "impossible to figure out": your error handling is eating the diagnostic.
+
+- **A1. Bare `except:` or `except Exception:` at module load / entrypoint** that catches the real `ImportError`/`NameError`/`FileNotFoundError`, then re-raises something generic or calls `sys.exit(1)` with a vague message. The true traceback is gone.
+- **A2. Swallowed exception with `pass` or a logged-but-suppressed error** during config/connection setup — the script limps forward in a half-initialized state and crashes *later* on a `None`/`AttributeError` that points nowhere near the true cause.
+- **A3. Logging the error before logging is configured.** If your `except` block calls `logging.error(...)` but logging setup itself failed (or runs after the failure), the message is silently dropped — you see a crash with no log line.
+- **A4. `except` that references an undefined name** (e.g., logs a variable that was never assigned because the `try` failed early) — turning the original error into a confusing secondary `NameError` from inside the handler.
+
+### Cluster B — Error handling that *is* the crash (runs at import time)
+
+- **B1. Module-level (top-of-file) code wrapped in try/except that re-raises.** Anything at module scope — `client = SomeSDK(api_key=os.environ["KEY"])`, file reads, DB connects — runs on import. A `try/except` here that `raise`s on failure crashes before `main()` is ever called.
+- **B2. `os.environ["VAR"]` (subscript, not `.get`)** at module level raises `KeyError` on startup if the env var is missing. A common "works on my machine" crash.
+- **B3. Exception raised inside a decorator, default-argument expression, or class-body** — these evaluate at import time, and error handling placed in `main()` never gets a chance to run.
+- **B4. Circular import surfacing as a confusing `ImportError`/`AttributeError`** that your top-level `try/except ImportError` catches and reports misleadingly.
+
+### Cluster C — Entry-point / structural
+
+- **C1. No `if __name__ == "__main__":` guard, or work done above it** — import-time side effects run during tooling/test collection and crash.
+- **C2. `try` around the whole body with the `except` doing `sys.exit()`** — exit code looks like a clean crash; you never see *what* failed.
+- **C3. Exception in `atexit`/`finally`/cleanup** that overrides the original exception (the original is chained but easy to miss if you only read the last line).
+
+## 3. Recurring Pattern (the structural weakness)
+
+Two of the three clusters point at the same root: **error handling positioned at module scope and/or written to suppress-and-replace rather than surface.** That is the structural weakness a quick self-review misses. The crash isn't "hard to find" — your handlers are deleting the evidence (A1–A4) or running before `main()`'s handlers can help (B1–B3).
+
+## 4. Fastest Diagnostic Path (act on the findings)
+
+Run the script with handlers disabled so the true traceback survives:
+
+```bash
+python -X faulthandler -W error -u your_script.py
+```
+
+Then, before anything else, **temporarily comment out the outermost `try/except`** so Python prints the native traceback. The last line of that traceback usually names the real cause in seconds. Also check: `python -c "import your_module"` — if *that* crashes, your problem is Cluster B/C (import-time), not your logic.
+
+## 5. Abandoned Reasoning
+
+I considered listing general runtime exception-handling antipatterns (retry storms, broad `except` in hot loops). Discarded — they don't fire during the *startup* window you described, so they fail the essence criterion.
+
+## 6. Conclusion
+
+The likeliest culprit is **not the bug that crashes you — it's the error handling that hides which bug crashes you** (Cluster A), with import-time handlers (Cluster B) a close second. Confidence: MEDIUM, because this is derived from common Python startup patterns rather than your actual code — see the flag below.
+
+---
+
+**To raise this to HIGH confidence and name the exact line**, share any one of:
+1. The path to the crashing script (I saw candidates like `/home/chrisdavidson/programming/first-principles-skills/main.py`, `.../openfda-vector-process/main.py`, `.../drugenforcement/main.py` — tell me which, or paste the path), **or**
+2. The traceback/output you get on startup (even a vague one), **or**
+3. Paste the top ~30 lines + your outermost `try/except`.
+
+Tell me the path and I'll read it and pin the exact failing construct.
+The first-principles agent finished. Here's what it surfaced about your error handling:
+
+## The core insight
+> The likeliest culprit is **not the bug that crashes you — it's the error handling that hides which bug crashes you.**
+
+The agent ran a focused pre-mortem on what could be wrong, grouped into three clusters:
+
+### Cluster A — Error handling that *masks* the real error (highest signal)
+- **Bare `except:`/`except Exception:`** that catches the real `ImportError`/`FileNotFoundError` then re-raises something generic or `sys.exit(1)` — the true traceback is gone.
+- **Swallowed exception (`pass`)** during config/connection setup → script limps forward half-initialized and crashes *later* somewhere misleading.
+- **Logging the error before logging is configured** → message silently dropped, crash with no log line.
+- **`except` block referencing an undefined name** → original error becomes a confusing secondary `NameError`.
+
+### Cluster B — Error handling that *is* the crash (runs at import time)
+- **Module-level code in try/except that re-raises** (e.g. `client = SDK(api_key=os.environ["KEY"])` at top of file) — runs on import, before `main()`.
+- **`os.environ["VAR"]`** (subscript not `.get`) → `KeyError` on startup if env var missing.
+- **Exceptions in decorators, default args, or class bodies** — evaluate at import time; handlers in `main()` never run.
+- **Circular imports** surfacing as misleading `ImportError`.
+
+### Cluster C — Entry-point / structural
+- Missing `if __name__ == "__main__":` guard, whole-body `try/except` doing `sys.exit()`, or cleanup (`finally`/`atexit`) overriding the original exception.
+
+### Fastest diagnostic path
+```bash
+python -X faulthandler -W error -u your_script.py
+```
+Then **temporarily comment out the outermost `try/except`** so Python prints the native traceback — the last line usually names the real cause. Also try `python -c "import your_module"`; if *that* crashes, it's an import-time problem (Cluster B/C), not your logic.
+
+---
+
+The agent rated this **MEDIUM confidence** since it's based on common Python patterns, not your actual code. To pin the exact failing line, it needs one of: **the path to the crashing script**, **the startup traceback**, or **the top ~30 lines plus your outermost `try/except`**. Share any of those and I'll have it read the real code and name the exact construct.

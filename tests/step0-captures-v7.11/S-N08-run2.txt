@@ -1,0 +1,50 @@
+The first-principles agent completed its analysis. Here's the result:
+
+---
+
+# First-Principles Analysis: Molten-Salt Thermal Storage at 85% Round-Trip Electricity Efficiency
+
+## The core insight
+
+The whole analysis hinges on **what "electricity efficiency" actually means**, because the sentence hides two completely different round-trip definitions:
+
+- **Thermal→thermal** (heat in, heat out): 85%+ is routine — no heat engine involved.
+- **Electricity→electricity** (electricity in, electricity out via a heat engine): **Carnot-bounded**, and 85% is essentially impossible.
+
+## The governing law
+
+Any cyclic conversion of heat into work is capped by **Carnot efficiency**: η ≤ 1 − T_cold/T_hot (Second Law of Thermodynamics).
+
+## The derivation from ground truths
+
+| Ground truth | Value |
+|---|---|
+| Solar salt decomposes above ~565–600°C | T_hot ≈ 838 K |
+| Heat rejection to ambient | T_cold ≈ 300 K |
+| Resistive electricity→heat | ~100% efficient |
+| Tank standby loss | ~1%/day (negligible per cycle) |
+
+**Carnot ceiling (perfect engine):**
+η = 1 − 300/838 = **0.642** → the discharge step can *never* exceed ~64%.
+
+**Realistic engine** (real cycles reach ~65% of Carnot): round-trip lands near **~40%** — consistent with the actual CSP fleet.
+
+## The bracket
+
+| Figure | Value |
+|---|---|
+| Claimed | 85% |
+| Physical ceiling (perfect engine) | ~64% |
+| Realistic | ~40% |
+| **Gap** | **21 points above what physics permits** |
+
+The 85% claim sits **above the Carnot ceiling itself** — forbidden by the Second Law, not merely unachieved. To make Carnot reach 85% you'd need T_hot ≈ 2000 K, far past where the salt can chemically exist.
+
+## Conclusion (HIGH confidence)
+
+- **If it means electricity→electricity: physically impossible.** The entire round trip can't exceed ~64%, and real systems hit ~40%.
+- **Most likely resolution:** the 85% is a **thermal** round-trip number (heat-in/heat-out, where 85–95% is ordinary) that's been mislabeled as "electricity."
+
+**The one diagnostic question to ask:** *"Is that 85% measured electricity-to-electricity, or heat-to-heat?"* — and more generally, whenever a stored-energy claim involves a heat→work step, compute 1 − T_cold/T_hot before believing any headline number.
+
+*(The ~40% realistic figure is MEDIUM confidence as it rests on the engine-vs-Carnot factor; the impossibility verdict is HIGH confidence since it depends only on the Carnot bound and the temperature limits.)*

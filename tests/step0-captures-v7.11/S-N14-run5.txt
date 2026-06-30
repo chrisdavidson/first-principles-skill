@@ -1,0 +1,132 @@
+I've launched the first-principles agent with your prompt exactly as written. It's running in the background and will analyze the molten-salt TES commissioning failure modes — decomposing to ground truths, challenging assumptions, and applying pre-mortem/inversion/fishbone techniques. I'll report back when it completes.
+This is a focused pre-mortem request. The trigger phrases "stress-test the plan before we sign off" and "ways our... commissioning could fail" set MODE = focused-pre-mortem. Let me run the analysis.
+
+I have enough to proceed: the problem statement is clear (commissioning of a molten-salt thermal energy storage system), the domain is engineering/operations, and the implicit constraint is the sign-off gate. I do not have your specific plan document, so I will run the pre-mortem on the canonical commissioning sequence for a two-tank molten-salt TES and flag where your specifics would sharpen it.
+
+# First-Principles Pre-Mortem: Molten-Salt TES Commissioning
+
+## 1. Problem Essence
+
+**Essence Statement:** Identify the failure modes that would cause molten-salt TES commissioning to fail, so the engineering team can harden the plan before sign-off.
+
+Success criteria:
+- Surfaces failure modes across the full commissioning sequence (not just the dramatic ones).
+- Each failure traced to a precondition the plan silently depends on.
+- Structural weaknesses (clustered root causes) distinguished from isolated risks.
+- Output is actionable: each finding maps to a plan change or an explicitly accepted risk.
+
+## 2. Assumptions Table
+
+The pre-mortem premise: **"Commissioning has already failed. What caused it?"** The dominant assumptions worth challenging up front:
+
+| Assumption | Type | Treatment | Verdict |
+|---|---|---|---|
+| Salt stays molten everywhere it flows | physical law (freezing point ~220-240°C for solar salt) | Accept as GT — but its *satisfaction* is an untested belief | Physics fixed; compliance unverified |
+| Heat tracing + preheat covers all wetted surfaces | untested belief | Verify against P&ID trace map | Unverified — flag |
+| Instruments are calibrated at salt operating temp | convention | Challenge — many calibrated cold | Unverified — flag |
+| Initial salt fill is dry / moisture-free | untested belief | Verify procedure | Unverified — flag |
+| Foundations/liners tolerate first thermal cycle | current constraint | Verify cure + ramp limits | Unverified — flag |
+
+## 3. Ground Truths
+
+- **GT-1:** Solar salt (60/40 NaNO₃/KNO₃) freezes at ~220-240°C; nitrate salt decomposes above ~565-600°C. (Physical/chemical property.)
+- **GT-2:** A frozen plug in a pipe blocks flow and cannot be cleared without external heat; localized freeze can rupture components on re-melt expansion. (Physical.)
+- **GT-3:** Water/moisture contacting hot nitrate salt flashes to steam — violent expansion, ejection risk. (Physical.)
+- **GT-4:** Nitrate salt is a strong oxidizer; contact with organics/incompatible metals drives exothermic reaction. (Chemical.)
+- **GT-5:** Commissioning is sequential — each step gates the next; a missed gate propagates downstream. (Process structure.)
+- **GT-1? through context:** Your specific salt chemistry, tank design (two-tank vs thermocline), and trace-heating topology are unverified inputs — substitute your values.
+
+## 4. Focused Pre-Mortem Analysis
+
+Working backward from "commissioning failed," organized by the recurring root clusters that emerged.
+
+### Cluster A — Freezing (the dominant structural weakness)
+The single largest source of molten-salt commissioning failure. Derivation: `GT-1 + GT-2 → salt below freezing point anywhere it sits → plug or rupture → commissioning halts`.
+
+- **Heat-trace dead zones:** valves, flanges, instrument tappings, drain legs, pump casings, and dead-legs that the trace map missed. These freeze first.
+- **Trace-heating control failure:** undersized circuits, failed thermocouples reading air not metal, single-zone control masking a cold spot, no redundancy on critical runs.
+- **Preheat ramp too fast / uneven:** differential expansion cracks refractory, liners, or welds before salt ever enters.
+- **First-fill freeze:** salt introduced through a line/tank not fully at temperature → immediate plug.
+- **Power loss during fill or hold:** no backup for trace heating = clock starts ticking toward a system-wide freeze.
+
+### Cluster B — Moisture and contamination
+`GT-3 + GT-4 → moisture or organics in a hot-salt path → steam ejection / exothermic event → safety stop`.
+
+- Residual hydrotest water, condensation, or wet insulation in lines before first fill.
+- Salt batch off-spec (chlorides, moisture content) — supplier QC not independently verified.
+- Construction debris, oil, organic residue left in tanks/piping (incomplete flush/clean gate).
+
+### Cluster C — Instrumentation and control validity
+`Instruments calibrated cold + read at 290-565°C → false readings → operators trust bad data → wrong action`.
+
+- Level/temperature/flow instruments not validated at operating temperature.
+- Thermocouples measuring sheath/air rather than metal/salt.
+- DCS interlocks untested under hot conditions; trips not proven before they're needed.
+
+### Cluster D — Mechanical / thermal-cycle integrity
+- Salt pumps (vertical cantilever) seizing or vibrating at temperature; first hot start untested.
+- Thermal-expansion accommodation: spring hangers pinned, guides binding, bellows mis-set → pipe stress on first heat-up.
+- Tank foundation / firebrick / liner not surviving first full thermal cycle.
+
+### Cluster E — Procedure, people, and sequencing (`GT-5`)
+- Commissioning procedure assumes a step is complete when it is only signed-off-on-paper.
+- No clear hold-point criteria — team proceeds past a gate that wasn't actually met.
+- Shift handover loses state during a multi-day preheat/fill.
+- Emergency response (freeze recovery, salt spill) not rehearsed before live salt.
+
+### Second-order extension
+`Freeze plug → forced shutdown → uncontrolled cooldown of the rest of the system → secondary freezes during recovery → schedule slip → pressure to skip remaining hold-points → latent defect signed off`. This is the contradiction worth flagging: schedule pressure created by a *first* failure tends to erode the very gates (Cluster E) designed to catch the *next* one. The clusters are coupled, not independent.
+
+## 5. Abandoned Reasoning
+
+- **Long-term salt degradation / nitrate-to-nitrite drift:** real, but an operations-phase concern, not commissioning. Excluded from scope.
+- **Grid-interconnection / permitting failures:** outside the engineering commissioning boundary the team asked about.
+
+## 6. Conclusion
+
+The **dominant structural weakness is freeze management (Cluster A)** — it has the most independent failure paths and the worst consequences, and it is the cluster most amplified by the second-order schedule-pressure loop. Recommended hardening before sign-off:
+
+1. **Freeze-vulnerability audit:** overlay the heat-trace map on the P&ID and physically confirm every wetted surface, valve, flange, dead-leg, and instrument tapping has redundant, independently-controlled, metal-sensing trace heating. Treat trace-heating backup power as safety-critical.
+2. **First-fill readiness gate:** independent verification of dryness (no hydrotest water/condensation), salt-batch QC (chloride/moisture), and full-temperature confirmation of every line before salt enters.
+3. **Hot-condition instrument validation:** prove calibration and interlocks at operating temperature, not cold.
+4. **Hard hold-points with objective exit criteria** on the commissioning procedure, explicitly protected from schedule-pressure waiver — directly counters the second-order loop.
+5. **Rehearse freeze-recovery and spill response** with live-salt assumptions before first fill.
+
+Three findings carry MEDIUM confidence pending your inputs (LOW→HIGH on verification): your actual salt chemistry (GT-1), tank architecture (two-tank vs thermocline changes Cluster D), and trace-heating topology. Share the commissioning procedure and P&ID/trace map and I can convert this generic pre-mortem into a line-by-line one against your specific plan.
+
+One question to sharpen the next pass: **is this a two-tank or a single-tank thermocline design, and what is your trace-heating backup-power arrangement?** Those two answers move the most failure modes.
+
+If you want, I can also stress-test this adversarially as a paired inversion (what would *guarantee* a failed sign-off) or run a full eight-technique analysis — say the word.
+The first-principles agent completed its pre-mortem. Here's the stress-test of your molten-salt TES commissioning plan:
+
+## Dominant structural weakness: Freeze management
+
+The analysis identified **freezing as the single largest failure cluster** — it has the most independent failure paths, the worst consequences, and it's amplified by a second-order schedule-pressure loop.
+
+### The five failure clusters
+
+**A — Freezing (the big one).** Heat-trace dead zones (valves, flanges, instrument tappings, drain legs, dead-legs the trace map missed), trace-heating control failures (thermocouples reading air not metal, no redundancy), preheat ramps too fast/uneven, first-fill freeze, and power loss to trace heating during fill/hold.
+
+**B — Moisture & contamination.** Residual hydrotest water or condensation contacting hot nitrate salt (steam ejection), off-spec salt batch (chlorides/moisture), and construction debris/oils left in tanks.
+
+**C — Instrumentation validity.** Instruments calibrated cold but read at 290–565°C → false data → operators trust bad readings. Untested hot interlocks.
+
+**D — Mechanical/thermal-cycle integrity.** Salt pumps seizing on first hot start, pinned expansion hangers stressing pipes on heat-up, foundations/liners not surviving first thermal cycle.
+
+**E — Procedure/people/sequencing.** Paper sign-offs masking incomplete steps, missing objective hold-point criteria, lost state on shift handover, unrehearsed emergency response.
+
+**The coupling that matters most:** a first freeze forces shutdown → uncontrolled cooldown → secondary freezes during recovery → schedule slip → pressure to skip the remaining hold-points (Cluster E) that were meant to catch the *next* failure. The clusters aren't independent.
+
+### Five hardening actions before sign-off
+1. **Freeze-vulnerability audit** — overlay heat-trace map on P&ID, physically confirm every wetted surface has redundant, independently-controlled, metal-sensing trace heating; treat trace backup power as safety-critical.
+2. **First-fill readiness gate** — independent verification of dryness, salt-batch QC, full-temperature confirmation of every line before salt enters.
+3. **Hot-condition instrument validation** — prove calibration and interlocks at operating temp, not cold.
+4. **Hard hold-points with objective exit criteria**, explicitly protected from schedule-pressure waiver.
+5. **Rehearse freeze-recovery and spill response** with live-salt assumptions before first fill.
+
+### To sharpen the analysis
+The agent flagged three MEDIUM-confidence findings pending your inputs and asked one question that moves the most failure modes:
+
+> **Is this a two-tank or single-tank thermocline design, and what is your trace-heating backup-power arrangement?**
+
+If you share your commissioning procedure and P&ID/trace map, it can convert this generic pre-mortem into a line-by-line one against your actual plan. It also offered to run an adversarial inversion (what would *guarantee* a failed sign-off) or a full eight-technique analysis. Want me to pursue any of these?

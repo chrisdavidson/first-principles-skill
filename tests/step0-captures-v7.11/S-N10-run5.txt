@@ -1,0 +1,15 @@
+The first-principles agent paused before running and asked for a few specifics, since a *second*-installation pre-mortem is sharpest when it reasons from your actual plant rather than generic molten-salt failure modes. Here's what it needs from you:
+
+1. **What "second installation" means** — a copy of an already-operating first plant, a scale-up, or a different site/design? And if the first plant is running, what has actually gone wrong with it so far?
+
+2. **Site and design deltas from the first** — same site or new? Same salt chemistry (e.g., solar salt 60/40 NaNO₃-KNO₃ vs. a different blend)? Same tank size/architecture (two-tank vs. thermocline)? Same charge source (CSP, electric/resistive, waste heat)?
+
+3. **Non-negotiable constraints** — target capacity (MWh-th), hot/cold tank operating temps, commercial-operation date, budget ceiling, and any offtake/grid commitments with penalty clauses.
+
+4. **What "go wrong" means to you** — most worried about (a) the construction contract itself (cost/schedule overrun, contractor risk), (b) technical/commissioning failure (salt freezing, tank liner/foundation, corrosion, heat-tracing), or (c) the commercial case (plant works but economics don't)?
+
+5. **Ground truths already verified** — geotech/soils report done? Salt freezing point and heat-tracing margin confirmed? Contractor's molten-salt track record checked? Anything already locked down so the analysis doesn't re-litigate settled facts.
+
+**Or**, if you'd rather not gather all that now, the agent offered to **run it best-effort immediately** against the common molten-salt failure modes (salt freezing ~220–240 °C, two-tank corrosion and thermal-cycling fatigue, foundation heave under a hot tank, heat-tracing single points of failure, salt-pump/ullage-gas issues, and first-fill/commissioning risk).
+
+Which would you like — answer the five points, or have it run best-effort now?

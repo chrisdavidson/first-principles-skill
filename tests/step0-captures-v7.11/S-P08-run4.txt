@@ -1,0 +1,22 @@
+I invoked the first-principles agent with your prompt exactly as written. Here's what came back:
+
+The agent couldn't trace a cause because **"this outage" has no referent it can see** — no system, symptoms, timeline, or data are present in the session. It declined to guess (which would produce "plausible-sounding fiction") and instead asked for the actual incident details.
+
+To get a real root-cause analysis, it needs at minimum:
+
+**Essential**
+- **What broke** — which system/service, and what users saw (errors, latency, total outage)
+- **When** — start, detection, and recovery times
+
+**Strongly helpful**
+- Timeline of events before the outage (deploys, config changes, traffic spikes, alerts)
+- Symptoms/signals (error messages, dashboards, elevated CPU/memory/queue depth/DB connections/5xx)
+- What recovered it (rollback, restart, scaling, failover, or self-heal — a strong clue to cause)
+- Recent changes (last deploy, infra change, dependency update, cert expiry)
+- Scope/blast radius (one region or global, one service or cascading)
+
+It also offered to dig in directly if the data lives somewhere reachable — a postmortem doc, incident channel export, log file path, or a repo/monitoring config in this environment.
+
+Once it has real signals, it'll run a fishbone across cause categories (deploy, config, dependency, capacity, data, external), a five-whys drill on the most likely branch, and validate each causal link against evidence.
+
+**What's the incident?** Share whatever you have and I'll pass it back to the agent (its context is still live).
