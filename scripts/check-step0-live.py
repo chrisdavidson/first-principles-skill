@@ -899,10 +899,10 @@ DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
 #   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
 #     RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02: detector extended 9→13
 #     markers; offline proof shows detector CAN read the new headers. Live
-#     pass-rate re-measure is the deliverable of this v7.11 run. May be CLOSED
-#     (≥3/5) or CARRIED FORWARD under a fresh Phase-129 RR ID (post-run mint).
+#     pass-rate re-measure is the deliverable of this v7.13 run. May be CLOSED
+#     (≥3/5) or CARRIED FORWARD under a fresh Phase-137 RR ID (post-run mint).
 #   - RR-108-04 (S-P10 estimate): v7.6 spend-limit-indeterminate (all 5 runs
-#     truncated → `none`). This v7.11 run is uncapped — a clean measurement is
+#     truncated → `none`). This v7.13 run is uncapped — a clean measurement is
 #     expected. May be CLOSED (≥3/5) or CARRIED FORWARD (fresh ID, post-run).
 #   - RR-108-05 (S-P14 theoretical-limit): v7.6 spend-limit-indeterminate (all
 #     5 runs truncated → `none`). Same — uncapped; clean measurement expected.
@@ -1207,7 +1207,7 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 135-137 v7.13 **re-measure of RR-130-01 fix + Step 0 deferred residuals** of Step 0",
+        "This baseline records the Phase 135-137 v7.13 **re-measure of RR-130-01 fix + Step 0 deferred residuals** in",
         "technique selection. This is a **measurement-only** re-measure: there is NO detector change",
         "and NO agent-body change this milestone. The agent body is measured **as-shipped (v7.12)**",
         "and the detector `scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
@@ -1227,7 +1227,7 @@ def _write_baseline(
         "live pass-rate re-measure this run), RR-108-04 (S-P10 estimate, v7.6",
         "spend-limit-indeterminate), RR-108-05 (S-P14 theoretical-limit, v7.6",
         "spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
-        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-129",
+        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-137",
         "RR ID otherwise (that mint is conditional and post-run — it is NOT pre-baked in",
         "the offline firewall commit).",
         "",

@@ -65,7 +65,7 @@ gate "DUAL-04" \
     "python3 scripts/sync-content.py --check"
 
 # STEP0-06 — Step 0 live-harness self-test (decompose-absence, routing-count,
-#             v7.11-emitter-target, routing-emitter-absence guards included)
+#             v7.13-emitter-target, routing-emitter-absence guards included)
 gate "STEP0-06" \
     "check-step0-live.py --self-test" \
     "python3 scripts/check-step0-live.py --self-test"
