@@ -174,6 +174,8 @@ git diff --quiet -- \
     'tests/step0-captures-v*' \
     'tests/routing-baseline-v3.*.md' \
     'tests/routing-battery-baseline-v4.3.md' \
+    'tests/routing-baseline-v7.11.md' \
+    'tests/routing-battery-baseline-v7.11.md' \
     'tests/focused-output-baseline-v*.md' \
     'tests/sub-skill-routing-baseline-v*.md' \
     2>/dev/null
