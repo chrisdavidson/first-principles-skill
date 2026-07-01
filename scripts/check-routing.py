@@ -444,6 +444,33 @@ def _print(msg: str, quiet: bool) -> None:
         print(msg, flush=True)
 
 
+# Known values for --priority. Ordering-only (D-03a): every value here MUST
+# preserve the P-first `positives + negatives` order — no value may change
+# detection, thresholds, scoring, or K-of-N math.
+PRIORITY_CHOICES = {"positives"}
+
+
+def _order_prompts(
+    positives: list[Prompt],
+    negatives: list[Prompt],
+    priority: str | None = None,
+) -> list[Prompt]:
+    """Return the run order for a battery pass (ordering-only; D-03a).
+
+    The order is P-first (`positives + negatives`) for BOTH priority states:
+    - priority is None  -> legacy byte-parity order (positives + negatives)
+    - priority == "positives" -> the same P-first order, made explicit so a
+      mid-run spend-cap truncation sacrifices only the stable N-cases and never
+      the RR-130-01 P recovery signal.
+
+    This helper never changes which prompts run, how they are scored, or the
+    K-of-N math — it only fixes their sequence. The `priority` argument is a
+    documented no-op for the emitted order today; it exists so the front-loading
+    intent is explicit and self-testable (D-01/D-02).
+    """
+    return list(positives) + list(negatives)
+
+
 def run_battery(
     positives: list[Prompt],
     negatives: list[Prompt],
@@ -454,6 +481,7 @@ def run_battery(
     quiet: bool,
     repeat: int = 1,
     min_pass: int = 1,
+    priority: str | None = None,
 ) -> int:
     """Run the full battery, write outputs, return 0 (PASS) or 1 (FAIL).
 
@@ -474,7 +502,7 @@ def run_battery(
 
     # K-of-N per-prompt data: (prompt, verdicts, match_count, prompt_passed)
     prompt_results: list[tuple[Prompt, list[Verdict], int, bool]] = []
-    ordered = list(positives) + list(negatives)
+    ordered = _order_prompts(positives, negatives, priority)
     for idx, prompt in enumerate(ordered, start=1):
         _print(f"[{idx}/{total}] {prompt.id}: expected={prompt.expected} ...", quiet)
         verdicts, resumed = _run_prompt_n_times(prompt, plugin_dir, out_dir, repeat)
@@ -820,6 +848,16 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="K",
         help="K-of-N runs must match expected for a prompt to count as PASS (default: 2).",
     )
+    p.add_argument(
+        "--priority",
+        type=str,
+        default=None,
+        metavar="SET",
+        help="Front-load a prompt set in the run order (ordering-only; does not "
+        "change detection, thresholds, or scoring). Only valid value: 'positives' "
+        "(front-loads all P-cases ahead of N-cases so a spend-cap truncation "
+        "sacrifices only the stable N-cases).",
+    )
     return p
 
 
@@ -851,6 +889,16 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
+    # --priority pre-flight guard — untrusted CLI value validated BEFORE any
+    # catalog I/O (T-136-01). Mirrors the K>N exit-2 idiom above.
+    if args.priority is not None and args.priority not in PRIORITY_CHOICES:
+        print(
+            f"error: --priority '{args.priority}' is not a known set "
+            f"(valid: {', '.join(sorted(PRIORITY_CHOICES))})",
+            file=sys.stderr,
+        )
+        return 2
+
     catalog_path: Path = args.catalog
     try:
         positives, negatives = parse_catalog(catalog_path)
@@ -877,6 +925,7 @@ def main(argv: list[str] | None = None) -> int:
             quiet=args.quiet,
             repeat=args.repeat,
             min_pass=args.min_pass,
+            priority=args.priority,
         )
     except OSError as exc:
         print(f"error: IO failure during battery run: {exc}", file=sys.stderr)
