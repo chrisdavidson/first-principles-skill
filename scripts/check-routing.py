@@ -766,8 +766,50 @@ def self_test() -> int:
             print("self-test FAIL: 'resume_legacy_single' expected complete=True", file=sys.stderr)
             all_passed = False
 
+    # --priority ordering fixtures (i)(j)(k) — Phase 136 D-03. No claude invocation.
+    _pos = [Prompt(id=f"P{i}", text="p", expected="DELEGATE") for i in range(1, 14)]
+    _neg = [Prompt(id=f"N{i}", text="n", expected="NO-DELEGATE") for i in range(1, 21)]
+
+    # (i) priority_front_loads_p: first 13 are all P, 14th is N (no N precedes any P)
+    _ordered_pri = _order_prompts(_pos, _neg, "positives")
+    if not (
+        len(_ordered_pri) == 33
+        and all(p.id.startswith("P") for p in _ordered_pri[0:13])
+        and _ordered_pri[13].id.startswith("N")
+    ):
+        print(
+            "self-test FAIL: 'priority_front_loads_p' expected 13 P then N at index 13",
+            file=sys.stderr,
+        )
+        all_passed = False
+
+    # (j) priority_unknown_value_rejection: unknown --priority must exit 2
+    #     BEFORE any catalog I/O (reuse the kofn K>N try/except idiom).
+    try:
+        rc = main(["--catalog", "/nonexistent/path/that/does/not/exist", "--priority", "UNKNOWN_ID"])
+    except SystemExit as exc:
+        rc = exc.code if isinstance(exc.code, int) else 2
+    if rc != 2:
+        print(
+            f"self-test FAIL: 'priority_unknown_value_rejection' expected exit 2 "
+            f"(priority guard), got {rc}",
+            file=sys.stderr,
+        )
+        all_passed = False
+
+    # (k) priority_absent_legacy_parity: absent priority == "positives" order,
+    #     and the order is still P-first (legacy byte-parity unchanged).
+    _ordered_none = _order_prompts(_pos, _neg, None)
+    if not (_ordered_none == _ordered_pri and _ordered_none[0].id.startswith("P")):
+        print(
+            "self-test FAIL: 'priority_absent_legacy_parity' expected absent==positives "
+            "order and P-first",
+            file=sys.stderr,
+        )
+        all_passed = False
+
     if all_passed:
-        print("self-test PASS (12 fixtures)")  # Update this count if fixtures are added.
+        print("self-test PASS (15 fixtures)")  # Update this count if fixtures are added.
         return 0
     return 1
 
