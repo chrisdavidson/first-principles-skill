@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v7.11.md"
+        --baseline "$REPO/tests/step0-baseline-v7.13.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v7.11 baseline .md to this path
+    --baseline PATH     If supplied, write the v7.13 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v7.11"
+_BASELINE_VERSION: str = "v7.13"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -715,41 +715,41 @@ def self_test() -> int:
         )
         all_passed = False
 
-    # --- v7.11 emitter-target drift guard (READY-02 / D-05) ---
-    # Pins _BASELINE_VERSION == "v7.11" and asserts the three emitter-derived
-    # strings contain "v7.11" and not "v7.6" / "v7.8".  The not-v7.6/not-v7.8
+    # --- v7.13 emitter-target drift guard (D-06 / Phase 135) ---
+    # Pins _BASELINE_VERSION == "v7.13" and asserts the three emitter-derived
+    # strings contain "v7.13" and not "v7.6" / "v7.8" / "v7.11".  The not-stale
     # check is scoped to these three strings ONLY — the lineage prose legitimately
-    # cites the prior v7.8 baseline as a comparison anchor, so a whole-file grep
-    # for "v7.8" would produce false failures.
-    _v711_label = "v7.11-emitter-target"
-    if _BASELINE_VERSION != "v7.11":
+    # cites the prior v7.11 baseline as a comparison anchor, so a whole-file grep
+    # for "v7.11" would produce false failures.
+    _v713_label = "v7.13-emitter-target"
+    if _BASELINE_VERSION != "v7.13":
         print(
-            f"self-test FAIL: {_v711_label} — _BASELINE_VERSION is {_BASELINE_VERSION!r},"
-            f" expected 'v7.11'",
+            f"self-test FAIL: {_v713_label} — _BASELINE_VERSION is {_BASELINE_VERSION!r},"
+            f" expected 'v7.13'",
             file=sys.stderr,
         )
         all_passed = False
     # Construct the three emitter-derived strings the same way _write_baseline does.
-    _v711_header = f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}"
-    _v711_out_dir = f"/tmp/step0-live-{_BASELINE_VERSION}-placeholder"
-    _v711_baseline = f"step0-baseline-{_BASELINE_VERSION}.md"
-    for _v711_label_str, _v711_s in [
-        ("header", _v711_header),
-        ("OUT_DIR", _v711_out_dir),
-        ("--baseline", _v711_baseline),
+    _v713_header = f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}"
+    _v713_out_dir = f"/tmp/step0-live-{_BASELINE_VERSION}-placeholder"
+    _v713_baseline = f"step0-baseline-{_BASELINE_VERSION}.md"
+    for _v713_label_str, _v713_s in [
+        ("header", _v713_header),
+        ("OUT_DIR", _v713_out_dir),
+        ("--baseline", _v713_baseline),
     ]:
-        if "v7.11" not in _v711_s:
+        if "v7.13" not in _v713_s:
             print(
-                f"self-test FAIL: {_v711_label} — {_v711_label_str!r} string"
-                f" does not contain 'v7.11': {_v711_s!r}",
+                f"self-test FAIL: {_v713_label} — {_v713_label_str!r} string"
+                f" does not contain 'v7.13': {_v713_s!r}",
                 file=sys.stderr,
             )
             all_passed = False
-        for _stale in ("v7.6", "v7.8"):
-            if _stale in _v711_s:
+        for _stale in ("v7.6", "v7.8", "v7.11"):
+            if _stale in _v713_s:
                 print(
-                    f"self-test FAIL: {_v711_label} — {_v711_label_str!r} string"
-                    f" contains stale {_stale!r}: {_v711_s!r}",
+                    f"self-test FAIL: {_v713_label} — {_v713_label_str!r} string"
+                    f" contains stale {_stale!r}: {_v713_s!r}",
                     file=sys.stderr,
                 )
                 all_passed = False
@@ -831,7 +831,7 @@ def self_test() -> int:
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
-            f" + {_v711_label} + {_rea_label} + {_rr_cov_label})"
+            f" + {_v713_label} + {_rea_label} + {_rr_cov_label})"
         )
         return 0
     return 1
@@ -871,7 +871,7 @@ MERGE_VALIDATION_IDS = ("S-P16",)
 NON_BLOCKING_NEGATIVE_IDS = ("S-N04",)
 
 # The 8 canonical positive rows — one per technique (D-01) — over which the
-# v7.11 8-technique pass-rate is computed. The instrument emits this per-technique
+# v7.13 8-technique pass-rate is computed. The instrument emits this per-technique
 # tally (D-01b, REBASE-02), it is not hand-assembled. All 8 techniques have a
 # v7.8 prior K/N; there is no "newly-measured" subset in this re-measure.
 CANONICAL_TALLY_IDS = (
@@ -892,8 +892,8 @@ CANONICAL_TALLY_IDS = (
 # re-homed to focused-five-whys (merge-validation signal, outside /8).
 DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
 
-# D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.11
-# whole-system live re-measure (Phase 128-129, uncapped — no spend-limit
+# D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.13
+# re-measure of RR-130-01 fix + Step 0 deferred residuals (Phase 135-137, uncapped — no spend-limit
 # constraint; all 29 S-P/S-N fixture rows measured, S-A excluded from live run).
 # Residual state entering this run:
 #   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
@@ -945,7 +945,7 @@ _RR_ID_MAP: dict[str, str] = {
     "S-N14": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
     "S-N15": "RR-108-08",  # over-routing negative-control (guard-suppressed / oblique)
     # Canonical techniques with v7.6 spend-limit-indeterminate residuals. These CAN
-    # reach the residual-risk branch if below min-pass in this v7.11 run.
+    # reach the residual-risk branch if below min-pass in this v7.13 run.
     "S-P10": "RR-108-04",  # estimate          (v7.6 spend-limit-indeterminate)
     "S-P14": "RR-108-05",  # theoretical-limit (v7.6 spend-limit-indeterminate)
     # Falsifier rows (handled by the CONTEXT_FREE branch in the verdict loop;
@@ -1017,7 +1017,7 @@ def _write_baseline(
     path: Path,
     recorded_ts: str = "",
 ) -> None:
-    """Write tests/step0-baseline-v7.11.md mirroring routing-battery-baseline-v4.3.md.
+    """Write tests/step0-baseline-v7.13.md mirroring routing-battery-baseline-v4.3.md.
 
     Header block: recorded timestamp, versions, run flags, run cwd, verdict, summary.
     Per-prompt table: ID | Expected MODE | K/N | Verdict (falsifiable <n>/N PASS|FAIL).
@@ -1057,7 +1057,7 @@ def _write_baseline(
     # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /8
     # even if the falsifier-exclusion set ever drifts from the canonical set.
     # All 8 techniques have a v7.8 prior K/N; no "newly-measured" subset exists
-    # in this v7.11 re-measure.
+    # in this v7.13 re-measure.
     canonical_rows = [r for r in results if r.prompt.id in CANONICAL_TALLY_IDS]
     canonical_pass = sum(1 for r in canonical_rows if r.row_pass)
     canonical_n = len(CANONICAL_TALLY_IDS)
@@ -1207,9 +1207,9 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 128-129 v7.11 **whole-system live re-measure** of Step 0",
+        "This baseline records the Phase 135-137 v7.13 **re-measure of RR-130-01 fix + Step 0 deferred residuals** of Step 0",
         "technique selection. This is a **measurement-only** re-measure: there is NO detector change",
-        "and NO agent-body change this milestone. The agent body is measured **as-shipped (v7.10)**",
+        "and NO agent-body change this milestone. The agent body is measured **as-shipped (v7.12)**",
         "and the detector `scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
         "inversion 13 markers, trade-off 10 markers (post-Phase-121 OCH-02) — `MIN_HEADER_HITS=2`,",
         "`_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run uses the 8 canonical rows:",
@@ -1231,11 +1231,11 @@ def _write_baseline(
         "RR ID otherwise (that mint is conditional and post-run — it is NOT pre-baked in",
         "the offline firewall commit).",
         "",
-        "Prior baseline: tests/step0-baseline-v7.8.md (Phase 118-119 CONF-03) — BATTERY: PASS,",
-        "targeted 6-row confirmation (S-P01/S-P03 + S-N01/S-N02/S-N03/S-N04); residuals",
+        "Prior baseline: tests/step0-baseline-v7.11.md (Phase 128-129 whole-system re-measure) — BATTERY: PASS,",
+        "29 S-P/S-N rows measured (S-A excluded); residuals",
         "RR-114-01 (S-P02 inversion, CARRIED — structural offline resolution Phase 121),",
         "RR-108-04 (S-P10 estimate, CARRIED-indeterminate), RR-108-05 (S-P14 theoretical-limit,",
-        "CARRIED-indeterminate) carried forward into this v7.11 run.",
+        "CARRIED-indeterminate) carried forward into this v7.13 run.",
     ]
 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -1290,7 +1290,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v7.11 baseline .md to this path after the run",
+        help="If supplied, write the v7.13 baseline .md to this path after the run",
     )
     p.add_argument(
         "--priority",
