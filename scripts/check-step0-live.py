@@ -1226,7 +1226,7 @@ def _write_baseline(
         "spend-limit-indeterminate), RR-108-05 (S-P14 theoretical-limit, v7.6",
         "spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
         "min-pass (≥3/5), or CARRIED FORWARD; ID kept in either case (D-03/D-09",
-        "CLOSE-keeps-ID — no RR-137-NN successor minted).",
+        "CLOSE-keeps-ID — no phase-137 successor RR ID minted).",
         "",
         "Prior baseline: tests/step0-baseline-v7.11.md (Phase 128-129 whole-system re-measure) — BATTERY: PASS,",
         "29 S-P/S-N rows measured (S-A excluded); residuals",
