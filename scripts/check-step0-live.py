@@ -893,20 +893,20 @@ CANONICAL_TALLY_IDS = (
 DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
 
 # D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.13
-# re-measure of RR-130-01 fix + Step 0 deferred residuals (Phase 135-137, uncapped — no spend-limit
-# constraint; all 29 S-P/S-N fixture rows measured, S-A excluded from live run).
+# re-measure of Step 0 deferred residuals (Phase 137, cap-defensive — 3-row
+# residual-only run via filtered temp catalog; S-A excluded from live run).
 # Residual state entering this run:
 #   - RR-114-01 (S-P02 inversion): v7.6 live 1/5 < min-pass → CARRIED FORWARD.
 #     RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02: detector extended 9→13
 #     markers; offline proof shows detector CAN read the new headers. Live
 #     pass-rate re-measure is the deliverable of this v7.13 run. May be CLOSED
-#     (≥3/5) or CARRIED FORWARD under a fresh Phase-137 RR ID (post-run mint).
+#     (≥3/5) or CARRIED FORWARD; ID kept (D-03/D-09 CLOSE-keeps-ID; no successor minted).
 #   - RR-108-04 (S-P10 estimate): v7.6 spend-limit-indeterminate (all 5 runs
-#     truncated → `none`). This v7.13 run is uncapped — a clean measurement is
-#     expected. May be CLOSED (≥3/5) or CARRIED FORWARD (fresh ID, post-run).
+#     truncated → `none`). This v7.13 run re-measures via the filtered temp catalog.
+#     May be CLOSED (≥3/5) or CARRIED FORWARD; ID kept (D-03/D-09; no successor minted).
 #   - RR-108-05 (S-P14 theoretical-limit): v7.6 spend-limit-indeterminate (all
-#     5 runs truncated → `none`). Same — uncapped; clean measurement expected.
-#     May be CLOSED or CARRIED FORWARD (fresh ID, post-run).
+#     5 runs truncated → `none`). Same — re-measured via filtered temp catalog.
+#     May be CLOSED or CARRIED FORWARD; ID kept (D-03/D-09; no successor minted).
 # RR-108-02 (S-P05 trade-off) is CLOSED (Phase 114, live 4/5 ≥ min-pass).
 # No provisional placeholder survives. The falsifier rows still need a tracked
 # ID for the invariant safety net (they are handled by the CONTEXT_FREE branch
@@ -1207,29 +1207,26 @@ def _write_baseline(
         "",
         "## Lineage",
         "",
-        "This baseline records the Phase 135-137 v7.13 **re-measure of RR-130-01 fix + Step 0 deferred residuals** in",
-        "technique selection. This is a **measurement-only** re-measure: there is NO detector change",
-        "and NO agent-body change this milestone. The agent body is measured **as-shipped (v7.12)**",
-        "and the detector `scripts/_battery_core.py` is **frozen** (`_TECHNIQUE_CATEGORIES` unchanged —",
-        "inversion 13 markers, trade-off 10 markers (post-Phase-121 OCH-02) — `MIN_HEADER_HITS=2`,",
-        "`_COMPOSER_FOCUS_CEILING=4` byte-unchanged). This run uses the 8 canonical rows:",
-        "S-P01 pre-mortem, S-P02 inversion, S-P03 fishbone, S-P04 five-whys, S-P05",
-        "trade-off, S-P06 second-order, S-P10 estimate, S-P14 theoretical-limit. All 8",
-        "techniques have a v7.8 prior K/N. S-P16 (the absorbed reduce-to-primitives prompt",
-        "routing to focused-five-whys) is measured as a dedicated merge-validation signal",
-        "outside the /8 canonical bar (D-01a). Honesty-not-score (D-01) governs the committed",
-        "verdict; the falsifiable criterion is applied at a blocking human checkpoint, not forced.",
-        "This run is uncapped (no spend-limit constraint); all 29 S-P/S-N fixture rows are measured",
-        "(S-A semantic-ambiguity rows excluded from live run).",
+        "This baseline records the Phase 137 v7.13 **residual-delta re-measure** of three deferred Step 0 residuals",
+        "(S-P02 inversion, S-P10 estimate, S-P14 theoretical-limit) via a filtered temp catalog.",
+        "This is a **measurement-only**, **cap-defensive** re-measure (3 rows × 5 repeats = 15 invocations):",
+        "there is NO detector change and NO agent-body change this milestone. The agent body is",
+        "measured **as-shipped (v7.12)** and the detector `scripts/_battery_core.py` is **frozen**",
+        "(`_TECHNIQUE_CATEGORIES` unchanged — inversion 13 markers, trade-off 10 markers",
+        "(post-Phase-121 OCH-02) — `MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4` byte-unchanged).",
+        "Honesty-not-score (D-01) governs the committed verdict; the falsifiable criterion is applied",
+        "at a blocking human checkpoint, not forced. `tests/step0-baseline-v7.8.md` remains the",
+        "canonical full Step 0 baseline; this file is a residual-delta only (D-05).",
+        "The BATTERY verdict is N/A as a full 8-technique signal — it reflects only the 3 measured",
+        "residuals (D-01b). S-A excluded from live run.",
         "",
-        "Three carried residuals from v7.8 may be resolved-or-carried in this run: RR-114-01",
+        "Three carried residuals re-measured in this run: RR-114-01",
         "(S-P02 inversion, v7.6 live 1/5; RESOLVED-STRUCTURALLY-OFFLINE Phase 121 OCH-02;",
         "live pass-rate re-measure this run), RR-108-04 (S-P10 estimate, v7.6",
         "spend-limit-indeterminate), RR-108-05 (S-P14 theoretical-limit, v7.6",
         "spend-limit-indeterminate). Each is CLOSED at its observed K/N if it reaches",
-        "min-pass (≥3/5), or CARRIED FORWARD under a freshly-minted superseding Phase-137",
-        "RR ID otherwise (that mint is conditional and post-run — it is NOT pre-baked in",
-        "the offline firewall commit).",
+        "min-pass (≥3/5), or CARRIED FORWARD; ID kept in either case (D-03/D-09",
+        "CLOSE-keeps-ID — no RR-137-NN successor minted).",
         "",
         "Prior baseline: tests/step0-baseline-v7.11.md (Phase 128-129 whole-system re-measure) — BATTERY: PASS,",
         "29 S-P/S-N rows measured (S-A excluded); residuals",
