@@ -1,0 +1,100 @@
+I've dispatched the first-principles agent with the prompt verbatim. It's running in the background — I'll report back once it completes.
+# Theoretical Limit on Molten-Salt Thermal Storage Conversion Efficiency
+
+**Mode:** focused-theoretical-limit (triggered by "theoretical limit" / "what do the laws actually permit")
+
+## 1. Problem Essence
+
+**Essence statement:** What is the maximum fraction of stored thermal energy in a molten-salt system that the laws of thermodynamics permit to be converted into electrical work, independent of today's turbine/cycle engineering?
+
+**Success criteria:**
+- Names the governing law explicitly (not "what plants currently hit").
+- Derives a numeric ceiling from actual temperature values, not from incumbent performance.
+- Separates the *reversible* (Carnot) bound from the *realistic finite-rate* bound, since a heat engine that ran at true Carnot efficiency would deliver zero power.
+- Brackets the gap between the law-permitted ceiling and today's ~40% plants.
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| "Efficiency" = thermal→electric conversion via a heat engine (not storage round-trip retention) | convention | Challenged: it's the only reading that makes "thermodynamic conversion efficiency" meaningful — storage retention (charge/discharge losses) is a separate, much smaller loss channel | Accepted as the target quantity | Sensible-heat storage in solar salt has near-negligible exergy loss on charge/discharge (small ΔT between tanks); it is not the binding constraint, so excluding it doesn't distort the ceiling |
+| Cold reservoir ≈ ambient temperature (~290–313 K) | current constraint | Record expiry: lifts only if a colder heat sink (e.g., cryogenic, deep water) is engineered in — not free, itself bounded by environment | Retained as bound, flagged as climate/site-dependent | Standard for any terrestrial heat engine rejecting to atmosphere/water |
+| Hot reservoir capped by salt chemistry's thermal stability, not by turbine metallurgy | physical/chemical constraint | Distinguish from *engineering* practice: this is a material-science ceiling, not a convention we should strip away — a salt that thermally decomposes cannot deliver heat above its decomposition point regardless of turbine design | Accepted as ground-truth candidate, tiered by salt chemistry | Solar salt (NaNO₃/KNO₃) decomposes above ~600 °C; chloride salts stable to ~800 °C; this is measured, not assumed |
+| Real engines cannot run at zero power output | physical law (irreversible thermodynamics) | Accept — this is why Carnot alone overstates what's achievable even "in the limit"; the finite-time (Curzon–Ahlborn) bound is the more honest ceiling for a plant that must actually deliver power | Accepted as second, tighter ground truth | Well-established endoreversible-engine result (Curzon & Ahlborn, 1975) |
+| Bottoming/topping cycle combinations (e.g., Brayton + Rankine) don't change the Carnot bound | physical law | Accept — Carnot's theorem is cycle-agnostic; it depends only on Th and Tc, not on how many stages convert the heat | Accepted | Direct consequence of the Second Law — any reversible engine between the same two reservoirs has the same max efficiency |
+
+## 3. Ground Truths
+
+- **GT-1** (physical law): Second Law of Thermodynamics / Carnot's theorem — no heat engine operating between reservoirs at Th and Tc (Kelvin) can exceed η_Carnot = 1 − Tc/Th, regardless of working fluid, cycle type, or number of stages.
+- **GT-2** (measurement): Solar salt (60% NaNO₃ / 40% KNO₃), the incumbent CSP storage medium, thermally decomposes above ~600 °C, capping practical hot-tank temperature at ~565–585 °C (≈838–858 K).
+- **GT-3** (measurement): Next-generation chloride eutectic salts (e.g., MgCl₂–KCl–NaCl) are chemically stable to ~800 °C (≈1073 K) and are the DOE/CSP roadmap's target chemistry specifically because they push the hot-reservoir ceiling higher.
+- **GT-4** (current constraint, site-dependent): Ambient heat rejection via wet or dry cooling sets the cold reservoir at roughly 290–313 K depending on climate and cooling technology.
+- **GT-5** (physical law, irreversible thermodynamics): Curzon–Ahlborn finite-time-thermodynamics bound — an engine that must deliver nonzero power (as any real plant must) has a maximum-power efficiency of η_CA = 1 − √(Tc/Th), which is strictly below Carnot and is the more physically honest ceiling for a real generating plant.
+- **GT-6** (measurement): Deployed molten-salt CSP plants (e.g., Noor III, Crescent Dunes) achieve gross Rankine-cycle efficiencies of ~40–42% at ~565 °C hot-side.
+
+## 4. Derivation Chains (Focused Theoretical-Limit Analysis)
+
+**Governing law named:** Second Law of Thermodynamics, expressed via Carnot's theorem (GT-1), tightened by the finite-time/finite-power correction (GT-5). Convention stripped: turbine metallurgy, generator losses, and current Rankine-cycle design choices — none of these appear in either formula. What remains is temperature alone.
+
+**Derivation chain 1 — reversible (idealized) ceiling, today's chemistry:**
+```
+GT-1 + GT-2 + GT-4 → [Th = 838 K (565°C solar salt), Tc = 313 K (typical wet-cooled sink)]
+                    → η_Carnot = 1 − 313/838 ≈ 0.627 (62.7%)
+```
+This is the absolute reversible ceiling for solar-salt-temperature heat — no cycle, however exotic, can beat it.
+
+**Derivation chain 2 — reversible ceiling, next-gen chloride salt:**
+```
+GT-1 + GT-3 + GT-4 → [Th = 1073 K (800°C chloride salt), Tc = 313 K]
+                    → η_Carnot = 1 − 313/1073 ≈ 0.708 (70.8%)
+```
+Pushing the salt chemistry raises the ceiling by ~8 points — this is a *chemistry* lever, not a turbine lever.
+
+**Derivation chain 3 — realistic finite-power ceiling (the more honest "law-permitted" number):**
+```
+GT-5 + GT-2 + GT-4 → [Th = 838 K, Tc = 313 K]
+                    → η_CA = 1 − √(313/838) = 1 − √0.3735 ≈ 1 − 0.611 ≈ 0.389 (38.9%)
+
+GT-5 + GT-3 + GT-4 → [Th = 1073 K, Tc = 313 K]
+                    → η_CA = 1 − √(313/1073) = 1 − √0.2917 ≈ 1 − 0.540 ≈ 0.460 (46.0%)
+```
+This is the key result: a plant that must actually deliver power (not run infinitely slowly) is bounded well below the reversible Carnot number — and this bound, not Carnot, is the fair comparison to real plants.
+
+**Bracket: law-permitted ceiling vs. conventional figure**
+
+| Salt chemistry | Reversible (Carnot) ceiling | Finite-power (Curzon–Ahlborn) ceiling | Conventional figure (GT-6) | Gap (vs. CA ceiling) |
+|---|---|---|---|---|
+| Solar salt, 565°C | 62.7% | 38.9% | ~40–42% | ≈ 0 to slightly negative — today's best plants are already near the finite-power bound for this chemistry |
+| Chloride salt, 800°C | 70.8% | 46.0% | not yet commercial | ~4–5 points of headroom once this chemistry is commercialized |
+
+**Interpretation of the gap:** Most of the gap between the reversible Carnot number (63–71%) and reality is *not* recoverable engineering slack — it is the irreducible cost of running an engine at finite rate (GT-5), which is itself a second-law consequence, not a convention. The genuinely convention-bound (recoverable) headroom is the ~4 points available by moving from solar salt to chloride salt (raising Th from 838 K to 1073 K) — that gap is closeable by chemistry/materials engineering, not thermodynamics. Beyond chloride salts, further gains require either raising Th further (limited by decomposition temperature of any candidate salt — a chemical, not thermodynamic, ceiling) or lowering Tc (limited by ambient environment).
+
+**Second-order check:** Raising Th to chase efficiency increases corrosion rates and reduces salt/component lifetime (a real second-order cost) — this doesn't contradict any Ground Truth, it just means the "law-permitted" ceiling and the "economically sane" ceiling diverge further as Th rises. No contradiction with GT-1–GT-6, so no return to Phase 2 is required.
+
+## 5. Abandoned Reasoning
+
+Nothing material here — the reasoning line "the reversible Carnot number (63–71%) is the theoretical limit" was considered as the headline answer but rejected in favor of reporting the Curzon–Ahlborn number as the primary law-permitted figure, since a plant that produces zero net power is not a "plant" in any meaningful sense the question is asking about. Both numbers are retained in the output rather than discarded, because the reversible Carnot bound is still the correct answer to "what does the Second Law alone forbid," which is part of what was asked.
+
+## 6. Conclusion
+
+Setting aside current engineering practice, the laws permit at most:
+
+- **Reversible (Carnot) ceiling:** ~63% at today's salt chemistry (565°C solar salt vs. ~40°C ambient sink), rising to ~71% with next-generation chloride salts (~800°C).
+- **Realistic finite-power ceiling (Curzon–Ahlborn):** ~39% at 565°C, rising to ~46% at 800°C — this is the more physically meaningful "theoretical limit" for a plant that must actually generate power rather than run infinitely slowly.
+
+**Confidence:** HIGH for the Carnot figures (GT-1, GT-2, GT-3, GT-4 are all well-established physical law or direct measurement). MEDIUM-HIGH for the Curzon–Ahlborn figures — GT-5 is an established, peer-reviewed result but is a *model* of finite-time engines, not a hard universal bound the way Carnot is; real cycles can beat or fall short of the max-power point depending on whether they're optimized for efficiency vs. power output.
+
+**Bottom line:** Today's ~40–42% commercial molten-salt plants are already close to the finite-power (Curzon–Ahlborn) ceiling for their salt chemistry — they are not leaving much on the table at fixed temperature. The real lever the laws leave open is raising the hot-reservoir temperature via salt chemistry (chloride/carbonate salts), which could plausibly push the realistic ceiling from ~39% toward ~46%, with the reversible Carnot bound sitting even higher (~71%) as the absolute, unreachable-in-finite-time outer limit.
+The first-principles agent finished. Here's the summary:
+
+**Theoretical limit on molten-salt thermal-storage conversion efficiency:**
+
+- **Reversible (Carnot) ceiling** — using actual salt temperatures vs. ambient sink:
+  - Solar salt (565°C hot / ~40°C ambient): **~62.7%**
+  - Next-gen chloride salt (800°C): **~70.8%**
+
+- **Realistic finite-power (Curzon–Ahlborn) ceiling** — the more honest bound, since a plant running at true Carnot efficiency delivers zero net power:
+  - Solar salt (565°C): **~38.9%**
+  - Chloride salt (800°C): **~46.0%**
+
+**Key finding:** Today's commercial plants (Noor III, Crescent Dunes) already hit ~40–42% at 565°C — essentially at the finite-power ceiling for that salt chemistry. The gap between Carnot (63–71%) and reality is mostly the *irreducible* cost of extracting power at finite rate, not recoverable engineering slack. The real lever the laws leave open is raising the hot-reservoir temperature via salt chemistry (chloride/carbonate salts pushing to ~800°C), which could move the realistic ceiling from ~39% toward ~46%. Beyond that, further gains require either a hotter salt (bounded by decomposition chemistry) or a colder sink (bounded by ambient environment).

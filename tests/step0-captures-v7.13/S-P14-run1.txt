@@ -1,0 +1,91 @@
+Launched the first-principles agent with the exact prompt. I'll let you know when it returns results.
+# Theoretical Limit on Molten-Salt Thermal-Storage Conversion Efficiency
+
+**Mode:** focused-theoretical-limit (triggered by "theoretical limit ... what do the laws actually permit")
+
+## 1. Problem Essence
+
+**Essence statement:** What is the maximum fraction of stored thermal energy in a molten-salt reservoir that the laws of thermodynamics permit to be converted to work/electricity, independent of current turbine, heat-exchanger, or cycle engineering?
+
+**Success criteria:**
+- Names the governing physical law explicitly, not an engineering benchmark.
+- Derives a numeric ceiling from first-principles temperatures, not from "best plants today."
+- States the gap between that ceiling and current practice, and classifies how much of the gap is irreducible (law-imposed) vs. convention (recoverable with better engineering).
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Conversion happens via a heat engine (reservoir → power block) | physical law (definition of the problem) | Accept | Ground truth | Molten-salt storage is not itself electricity; it dispatches heat to a turbine cycle — this is definitional, not negotiable |
+| Hot-side temperature is capped by salt chemistry (~565–600°C solar salt; decomposition above that) | current constraint | Record expiry conditions | Verified for solar salt (NaNO₃/KNO₃); chloride/carbonate salts push higher | Gen3 CSP chloride-salt R&D targets ~700–720°C — this is a chemistry constraint, not a law, and it is actively being relaxed |
+| Cold-side (heat rejection) temperature is set by ambient/cooling-water availability | current constraint | Record expiry conditions | ~15–40°C depending on site and cooling method (wet vs. dry cooling) | Site-dependent; cannot be pushed below ambient without net energy cost |
+| Rankine steam cycle is "the" conversion technology | convention | Challenge | Not law-determined — sCO₂ Brayton, Stirling, and Kalina cycles are all viable alternatives at these temperature ranges | The cycle topology is an engineering choice, not a thermodynamic requirement |
+| Real turbines/generators/heat exchangers approach Carnot efficiency in finite time | untested belief | Verify | False — finite-time (endoreversible) heat engines have a lower, more realistic ceiling than reversible Carnot | Curzon–Ahlborn (1975) result; flagged as GT-4 below |
+
+## 3. Ground Truths
+
+- **GT-1** (physical law): Second Law of Thermodynamics — no heat engine operating between two reservoirs at temperatures T_h and T_c can exceed Carnot efficiency: η_Carnot = 1 − T_c/T_h (temperatures in Kelvin). *Source: irreducible — this is a primitive of thermodynamics, not derivable from anything simpler.*
+- **GT-2** (current constraint, verified): Solar-salt (60% NaNO₃/40% KNO₃) is thermally stable up to ~600°C and is used in essentially all commercial molten-salt CSP plants (e.g., Crescent Dunes, Noor III) at ~565°C hot-tank temperature (838 K). *Source: published CSP plant specifications.*
+- **GT-3** (current constraint, verified): Heat rejection in a thermal power plant is bounded below by ambient temperature at the cooling system; typical design point ~300 K (27°C) for a representative site with wet cooling. *Source: standard power-plant thermodynamic design practice.*
+- **GT-4** (physical law, more restrictive and more physically relevant than Carnot for continuous power output): Curzon–Ahlborn endoreversible efficiency — for a heat engine delivering finite power (not the zero-power reversible limit Carnot describes), the efficiency at maximum power output is η_CA = 1 − √(T_c/T_h). *Source: Curzon & Ahlborn, Am. J. Phys. 43, 22 (1975) — derived from finite-time thermodynamics, itself grounded in the Second Law plus a heat-transfer-rate constraint.*
+- **GT-5** (current constraint, verified): Commercial molten-salt CSP plants achieve gross thermal-to-electric conversion efficiencies of roughly 38–42% in practice. *Source: published CSP plant performance data.*
+- **GT-6?** (untested belief, flagged): Next-generation chloride/carbonate salts can reach ~700–720°C hot-side temperatures for supercritical CO₂ cycles. *Source: DOE Gen3 CSP program targets — R&D-stage, not yet commercially deployed, so treated as unverified for present-day systems.*
+
+## 4. Focused Theoretical-Limit Analysis
+
+**Step 1 — Name the conventional figure and its embedded conventions.** The figure typically cited for molten-salt CSP is ~38–42% gross conversion efficiency (GT-5). Embedded conventions: single-reheat Rankine steam cycle, ~565°C max salt temperature (solar salt chemistry), turbine/generator mechanical and electrical losses, condenser approach temperatures, and heat-exchanger pinch-point losses. None of these are physical laws — they are engineering and materials choices.
+
+**Step 2 — Strip to the governing law.** The governing law is the Second Law of Thermodynamics (GT-1), which sets the Carnot bound. But Carnot describes a reversible engine operating at zero net power — physically real, but not the relevant ceiling for a plant that must actually deliver power. The more physically honest ceiling for continuous electricity generation is the endoreversible (Curzon–Ahlborn) bound (GT-4), which still derives directly from the Second Law plus the unavoidable fact that heat transfer at finite rate requires a finite temperature gradient (irreversibility is not optional if power output is nonzero).
+
+**Step 3 — Derive the limit.**
+
+Using GT-2 (T_h = 838 K, solar salt) and GT-3 (T_c = 300 K):
+
+- Carnot ceiling: η_Carnot = 1 − 300/838 = 1 − 0.358 = **64.2%**
+- Curzon–Ahlborn (finite-power) ceiling: η_CA = 1 − √(300/838) = 1 − √0.358 = 1 − 0.598 = **40.2%**
+
+GT-1 + GT-2 + GT-3 → [Carnot bound sets the absolute reversible ceiling at 64.2% for current salt chemistry] → **conclusion 1: no molten-salt plant using solar salt at 565°C can exceed ~64% conversion efficiency under any engineering, ever.**
+
+GT-1 + GT-4 + GT-2 + GT-3 → [finite-power operation forces the achievable ceiling down from the reversible bound to the endoreversible bound] → **conclusion 2: for a plant that must deliver continuous, nonzero power, the physically meaningful ceiling is ~40.2%, not 64.2%.**
+
+**Step 4 — Bracket the gap between the law-permitted ceiling and the conventional figure.**
+
+| Reference point | Value |
+|---|---|
+| Carnot (reversible) ceiling, solar salt @565°C | 64.2% |
+| Curzon–Ahlborn (finite-power) ceiling, solar salt @565°C | 40.2% |
+| Actual commercial plant performance | 38–42% |
+| Gap: Carnot to Curzon–Ahlborn | ~24 percentage points |
+| Gap: Curzon–Ahlborn to actual practice | ~0–2 percentage points |
+
+This is the central, somewhat counterintuitive finding: **current molten-salt CSP plants are already operating essentially at the physically meaningful thermodynamic ceiling**, not far below it as the naive Carnot comparison (64.2% vs. 40% actual) would suggest. The ~24-point gap to Carnot is *irreducible in the sense that matters* — closing it would require accepting zero net power output, which is not a usable power plant. The remaining 0–2 point gap to Curzon–Ahlborn is the only portion attributable to convention/engineering headroom (turbine polytropic efficiency, reheat staging, condenser design).
+
+**Step 5 — Where the real headroom is: raising T_h, not squeezing the cycle.** Since both ceilings are monotonic in T_h, the lever that actually moves the ceiling is hotter salt chemistry, not better turbines. Using GT-6? (unverified, R&D-stage): chloride-salt systems at 720°C (993 K) paired with supercritical CO₂ cycles:
+
+- Carnot ceiling: 1 − 300/993 = **69.8%**
+- Curzon–Ahlborn ceiling: 1 − √(300/993) = 1 − 0.550 = **45.0%**
+
+GT-1 + GT-4 + GT-6? → [raising hot-side temperature from 838K→993K raises the finite-power ceiling from 40.2%→45.0%] → **conclusion 3 (MEDIUM confidence — depends on unverified GT-6?): the next ~5 percentage points of achievable efficiency gain will come from salt/cycle chemistry (chloride salts + sCO₂ Brayton), not from incremental turbine or heat-exchanger optimization within the existing Rankine/solar-salt paradigm.**
+
+## 5. Abandoned Reasoning
+
+- Considered treating the condenser cold-side temperature as a free variable to push the ceiling higher (e.g., cryogenic heat rejection). Abandoned: rejecting heat below ambient requires a refrigeration cycle that itself consumes work, which is a net energy loss under the Second Law — not a genuine efficiency gain. This path contradicts GT-1 and was discarded rather than pursued.
+- Considered analogizing to combined-cycle gas plants (~60%+ efficiency) as evidence molten-salt plants could reach similar figures. Abandoned as reasoning-by-analogy: combined-cycle plants achieve high efficiency by cascading two heat engines across a much larger T_h (gas turbine inlet ~1400°C+) — a different T_h regime entirely, not evidence about what's achievable at molten-salt's ~565–720°C ceiling.
+
+## 6. Conclusion
+
+The Second Law sets an absolute (Carnot) ceiling of **~64% for today's solar-salt chemistry (565°C)**, rising to **~70% for next-generation chloride salts (720°C)** — both measured against a ~300K ambient sink. But the *physically meaningful* ceiling for a plant that must deliver continuous power is the endoreversible (Curzon–Ahlborn) bound, which sits at **~40% for solar salt and ~45% for chloride salts**. Current commercial molten-salt CSP plants (38–42%) are already operating close to this finite-power ceiling — the large-looking "inefficiency" relative to Carnot (64%) is not recoverable engineering slack, it's the irreducible cost of extracting power at a nonzero rate. The genuine remaining headroom (a few points from cycle optimization, several points more from hotter salt chemistry) is real but modest compared to what a naive Carnot comparison suggests.
+
+**Confidence:** HIGH on conclusions 1 and 2 (rest on GT-1 through GT-5, all verified). MEDIUM on conclusion 3, which depends on GT-6? (unverified R&D-stage chloride-salt/sCO₂ deployment) — verification would require confirming commercial-scale operating data at ≥700°C, not just program targets.
+The agent completed its analysis. Summary:
+
+**The theoretical ceiling depends on which limit you mean:**
+
+- **Carnot (reversible, zero-power) ceiling**, using solar salt at 565°C (838K) hot-side and ~300K ambient sink: **~64.2%**
+- **Curzon–Ahlborn (finite-power) ceiling** — the physically relevant bound for a plant that must actually deliver continuous power, not just approach reversibility at zero output: **~40.2%**
+
+Current commercial molten-salt CSP plants run at 38–42% — essentially *already at* the finite-power ceiling. The apparent 24-point gap to Carnot isn't recoverable engineering slack; it's the irreducible thermodynamic cost of extracting power at nonzero rate.
+
+The real remaining headroom comes from raising hot-side temperature via next-gen chloride/carbonate salts (~700–720°C, still R&D-stage), which would push the finite-power ceiling to ~45% — a few more points, not a step-change.
+
+Full derivation and confidence levels are in the agent's output above if you want the details.

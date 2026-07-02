@@ -1,0 +1,55 @@
+I've dispatched the first-principles agent with your prompt verbatim. It's running in the background — I'll let you know when it returns the analysis.
+This question calls for an order-of-magnitude cost estimate (Fermi-style), which is exactly what the first-principles agent's estimate technique is designed for. I'll delegate to it.
+## Estimate: ~$10/kWh (non-tank), bracket $6–$18/kWh
+
+For a 200 MWh utility-scale molten-salt storage system with pre-commissioned tanks (i.e., excluding tank capital), the remaining cost of usable thermal storage capacity — salt inventory, heat exchangers, pumps, piping, insulation, instrumentation/controls — works out to:
+
+- **Central: ~$10/kWh_th** → ~**$2.0M** for 200 MWh
+- **Range: $6–$18/kWh_th** → **$1.2M–$3.6M** for 200 MWh
+
+### How it was built (bottom-up, from physics)
+
+```
+1 kWh (3.6×10⁶ J) + cp of solar salt (≈1,500 J/kg·K) + ΔT (565°C hot / 290°C cold = 275K)
+  → mass of salt needed per usable kWh = 3.6×10⁶ / (1,500 × 275) ≈ 8.73 kg/kWh
+  (this is physically pinned, ±5% — not the uncertain part)
+
+× blended solar-salt bulk price (≈$0.70/kg, range $0.50–$1.00)
+  → salt inventory cost ≈ $6.1/kWh
+
+× (1 + heat exchangers/pumps/piping/insulation/I&C cost-share, ≈0.6× salt cost per CSP literature)
+  → non-tank total ≈ $10/kWh
+```
+
+Cross-checked against published total two-tank molten-salt TES costs of $20–30/kWh_th (tanks included, per NREL/DOE cost studies) — subtracting the ~35% share typically attributed to tanks lands in the same range, which corroborates the bottom-up build.
+
+**Dominant source of uncertainty:** not the salt mass (fixed by thermodynamics) but (1) the balance-of-plant cost-share multiplier for HX/pumps/piping relative to salt cost, which varies with plant configuration, and (2) current bulk nitrate salt pricing, which has roughly a 2x spread.
+
+**On the 30-year/daily-cycling assumption:** it turns out not to matter for this cost metric. Unlike batteries, molten-salt sensible-heat storage has no cycle-count-driven degradation — the ~10,950 lifetime cycles don't gate or discount the capital $/kWh figure. Wear (tank/piping thermal fatigue, salt corrosion/decomposition) is calendar-time-driven and shows up as opex (periodic salt top-up), not as a capacity fade baked into the capital cost.
+
+**Key sources:**
+- Specific heat of solar salt: [DLR Solar Salt Thermal Property Analysis](https://elib.dlr.de/143749/1/PropertyAnalysis_SQM-DLR_final%20Report_v2.1.pdf)
+- Cost breakdowns: [NREL Cost Model (fy12osti/53066)](https://docs.nrel.gov/docs/fy12osti/53066.pdf), [Black & Veatch Molten Salt Cost Estimate (OSTI)](https://www.osti.gov/servlets/purl/1335150), [NREL 2024 ATB — CSP](https://atb.nrel.gov/electricity/2024/concentrating_solar_power)
+- Salt pricing: [ChemAnalyst — Solar Salt](https://www.chemanalyst.com/Pricing-data/solar-salt-2417)
+
+This was a research/analysis task — no files were created or modified.
+
+Separately, note that this environment has some MCP connectors (Gmail, Google Calendar, Google Drive) awaiting authorization, but none of that was needed for this task.
+The first-principles agent finished. Here's the analysis:
+
+## Estimate: ~$10/kWh (non-tank), bracket $6–$18/kWh
+
+For a 200 MWh installation with pre-commissioned tanks, that's roughly **$2.0M** central estimate, range **$1.2M–$3.6M**.
+
+**Build-up:**
+- Salt mass per usable kWh is thermodynamically fixed: ~8.73 kg/kWh (using solar salt's cp ≈1,500 J/kg·K, ΔT = 275K between 565°C/290°C)
+- × bulk solar salt price (~$0.70/kg) → salt inventory ≈ $6.1/kWh
+- × balance-of-plant multiplier (HX, pumps, piping, insulation, I&C, ~0.6× salt cost) → **~$10/kWh total**
+
+Cross-checked against published two-tank molten-salt TES costs of $20–30/kWh (tanks included) — backing out the ~35% tank share lands in the same range.
+
+**On your 30-year/daily-cycling assumption:** turns out not to matter for capital $/kWh — molten-salt sensible-heat storage doesn't have cycle-driven capacity fade like batteries. Degradation is calendar-time-driven (corrosion, thermal fatigue) and shows up as opex (salt top-up), not baked into capital cost.
+
+**Main uncertainty driver:** not the salt mass (physics-pinned) but the BOP cost-share multiplier and current bulk salt pricing (~2x spread).
+
+Key sources: DLR solar salt property analysis, NREL cost model (fy12osti/53066), Black & Veatch molten-salt cost estimate (OSTI), NREL 2024 ATB CSP data.

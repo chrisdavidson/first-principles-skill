@@ -1,0 +1,115 @@
+Launched the first-principles agent with your prompt verbatim. I'll let you know when it completes.
+## Problem Essence
+
+**Essence Statement:** What is the levelized capital cost, in $/kWh of usable thermal capacity, of the non-tank scope of a 200 MWh molten-salt sensible-heat storage system — i.e., salt inventory plus balance-of-plant (heat exchangers, pumps, trace heating, insulation, controls, engineering) — given that the tank vessels themselves are pre-commissioned and excluded from the cost basis?
+
+**Success criteria:**
+- Answer expressed in $/kWh with an explicit lower/upper bound bracket, not a single point figure.
+- Unit arithmetic shown (mass → energy → cost) so the derivation is auditable.
+- Explicit statement of what "pre-commissioned tanks" excludes from the cost basis.
+- 30-year life / once-daily cycling used only where they actually change the estimate (they mainly justify *not* adding a salt-replacement cost line).
+
+This is a **focused Fermi/order-of-magnitude estimate** (triggered by "roughly how much" / "ballpark"), so only the estimate technique is walked in depth; the other seven companion techniques are not enumerated.
+
+## Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Storage medium is "solar salt" (60% NaNO₃ / 40% KNO₃) | convention | Challenged — this is the industry-standard CSP salt; other salts (e.g., chloride, carbonate eutectics) exist for higher-temp next-gen systems but are not yet commercial at utility scale | Holds for a utility-scale 200 MWh install today | Standard in operating CSP plants (Gemasolar, Crescent Dunes, Noor III) |
+| Operating ΔT ≈ 270°C (hot tank ~565°C, cold tank ~290°C) | current constraint | Recorded expiry: raising hot-side temp is limited by nitrate salt thermal decomposition (~600°C); lowering cold-side limited by salt freeze point (~220°C) | Holds | Physical property of NaNO₃/KNO₃ eutectic |
+| cp ≈ 1.53 kJ/kg·K | physical law (material property, effectively constant) | Accept as ground-truth candidate | Verified | Widely published CSP thermophysical property (NREL/SAM datasets) |
+| Salt commodity price ≈ $0.50–1.00/kg | current constraint | Recorded expiry: fluctuates with nitrate fertilizer-feedstock commodity markets; not a fixed law | Uncertain — used as a range, not a point | Historical CSP procurement literature (SunShot-era and later cost studies) |
+| "Pre-commissioned tanks" excludes vessel, foundation, and tank-specific structural costs from this cost basis | untested belief | Flagged — I am inferring this is the intended scope from your phrasing; if you meant something narrower (e.g., only foundations excluded, shell still counted), the answer shifts significantly | Unverified — flagged, GT-5? | Inference from problem statement, not independently confirmed |
+| 30-yr life / daily cycling requires no salt replacement or extra cycle-related capex | untested belief | Verify: nitrate salt is chemically stable indefinitely below ~600°C and doesn't fatigue like metal; tanks (excluded anyway) are the cycle-limited component | Verified as reasonable — salt itself isn't a wear item | CSP plant O&M literature; salt inventory topped up only for minor losses, not routinely replaced |
+| 200 MWh is "usable" capacity, i.e., after excluding unusable heel/dead volume | convention | Challenged — real systems reserve ~5–10% as unusable heel; treated as already netted out per problem statement ("usable capacity") | Holds by definition given | Standard CSP tank design practice |
+
+## Ground Truths
+
+- **GT-1:** Specific heat capacity of solar salt (60/40 NaNO₃/KNO₃) ≈ 1.53 kJ/kg·K. *(material property, standard CSP reference value)*
+- **GT-2:** Usable operating ΔT for a two-tank molten-salt system ≈ 270°C (hot ~565°C / cold ~290°C), bounded by salt decomposition (~600°C) and freeze point (~220°C). *(physical constraint on the salt)*
+- **GT-3:** 1 kWh = 3,600 kJ. *(unit definition)*
+- **GT-4:** Bulk solar-salt commodity price ≈ $0.50–1.00/kg, central ≈ $0.75/kg. *(commodity market data, CSP procurement studies — current constraint, not fixed)*
+- **GT-5?:** In utility-scale two-tank molten-salt CSP storage systems, tank vessels + foundations typically represent ~40–50% of total installed $/kWh_th cost; salt inventory ~25–35%; remaining BOP (heat exchangers, pumps, trace heating, insulation, I&C, engineering/contingency) ~20–30%. *(unverified — flagged; drawn from general CSP cost-breakdown literature, not a specific audited source)*
+- **GT-6:** Total installed two-tank molten-salt thermal storage systems (tanks included) have historically run ≈ $20–40/kWh_th. *(unverified — flagged, order-of-magnitude industry figure, e.g., in the range DOE's long-duration storage cost targets reference)*
+
+## Derivation Chains
+
+**Step 1 — energy density of the salt (dimensional analysis):**
+
+```
+GT-1 + GT-2 → e = cp × ΔT = 1.53 kJ/kg·K × 270 K = 413 kJ/kg
+            → GT-3 → e = 413 / 3600 = 0.1147 kWh/kg
+            → [intermediate] mass needed per kWh: m = 1 / 0.1147 ≈ 8.7 kg salt per kWh_th
+```
+Units check: (kJ/kg·K)×(K) = kJ/kg; kJ/kg ÷ (kJ/kWh) = kg/kWh. Cancels correctly.
+
+**Step 2 — salt-only cost per kWh:**
+
+```
+[intermediate: 8.7 kg/kWh] + GT-4 ($0.50–1.00/kg, central $0.75/kg)
+  → salt cost/kWh = 8.7 × {0.50, 0.75, 1.00} = $4.4 / $6.5 / $8.7 per kWh_th
+  → [conclusion-1] salt-inventory cost alone ≈ $6.5/kWh_th (range $4.4–8.7/kWh_th)
+```
+
+**Step 3 — adding balance-of-plant, excluding tank vessels (the "pre-commissioned" scope):**
+
+```
+GT-5? + GT-6 → salt is ~25–35% of a ~$20–40/kWh_th total system
+             → BOP (non-tank, non-salt) is ~20–30% of that same total
+             → [intermediate] BOP/kWh ≈ 0.20–0.30 × $20–40 = $4–12/kWh_th
+  + [conclusion-1, salt $4.4–8.7/kWh_th]
+  → [conclusion-2] non-tank system cost = salt + BOP ≈ $4.4–8.7 + $4–12 = $8.4–20.7/kWh_th, central ≈ $14–15/kWh_th
+```
+This step depends on GT-5? and GT-6 (both flagged unverified industry aggregates), so conclusion-2 carries **MEDIUM confidence** — the bottom-up salt figure (Step 2, high confidence) anchors the low end; the top-down BOP-share figure is the softer, unverified component.
+
+**Step 4 — scale adjustment for 200 MWh:**
+
+```
+[conclusion-2] + [200 MWh is mid/small-scale vs. flagship CSP plants (600–2,500 MWh_th)]
+  → [intermediate] limited commodity-procurement economies of scale at this size push toward the upper half of the bracket
+  → [conclusion-3] central estimate ≈ $15/kWh_th, full bracket $8–25/kWh_th
+```
+
+**Step 5 — sizing the total for the 200 MWh installation:**
+
+```
+[conclusion-3] × 200,000 kWh
+  → lower: $8/kWh × 200,000 = $1.6M
+  → central: $15/kWh × 200,000 = $3.0M
+  → upper: $25/kWh × 200,000 = $5.0M
+  (this excludes the two salt tanks, which are pre-commissioned/sunk per the problem statement)
+```
+
+**Decision-resolution check:** the bracket ($8–25/kWh) spans roughly 3x, not an order of magnitude, and both ends support the same qualitative conclusion — non-tank molten-salt storage scope is a low-tens-of-dollars-per-kWh cost, dominated roughly equally by salt commodity cost and BOP/engineering. The dominant uncertainty is GT-5?/GT-6 (the BOP cost-share literature), not the salt physics (GT-1–GT-3, high confidence). Tightening this further would require an actual EPC quote or a itemized BOP bill of materials, not more Fermi refinement.
+
+## Abandoned Reasoning
+
+- **Including tank vessel cost in the estimate:** rejected per the problem's explicit "pre-commissioned" framing — tanks are the single largest cost line (~40–50% of a full system) and including them would roughly double the figure to $20–40/kWh_th. Flagged here rather than silently assumed, since GT-5? notes this is the least-certain input.
+- **Deriving cost from tank volume/density:** since tanks are excluded from scope, salt density and tank sizing were not needed for this cost estimate — only the mass-energy relationship (cp × ΔT) mattered. Dropped as unnecessary once tank exclusion was confirmed.
+- **Converting to $/kWh electrical:** the question says "usable capacity" of a thermal storage system, which in CSP industry convention is reported in $/kWh_th, not $/kWh_e. If you actually want $/kWh of *electricity* ultimately dispatched (accounting for a ~38–42% steam-cycle round-trip efficiency), divide the thermal figures by ~0.4, giving roughly $20–60/kWh_e (central ~$37/kWh_e). This was set aside as a secondary framing rather than the primary answer, since it wasn't specified.
+- **Salt replacement/degradation cost over 30 years:** considered and dropped as a cost line — nitrate salt is chemically stable indefinitely within the 220–600°C design envelope, and normal top-up losses are a minor O&M item, not a capex line, so daily cycling over 30 years doesn't add meaningfully to the $/kWh figure.
+
+## Conclusion
+
+**Roughly $8–25/kWh of usable thermal capacity, central estimate ≈ $15/kWh**, for the non-tank scope (salt inventory + heat exchangers, pumps, trace heating, insulation, instrumentation, engineering) of a 200 MWh molten-salt system — i.e., **≈ $1.6M–$5.0M total, central ≈ $3.0M**, given the tanks themselves are pre-commissioned and excluded.
+
+Breakdown of the central estimate:
+- Salt inventory alone: ≈ $6.5/kWh_th (high confidence — derived directly from cp × ΔT physics and a commodity price range)
+- Remaining BOP (excluding tanks): ≈ $4–12/kWh_th, central ≈ $8/kWh_th (medium confidence — derived from industry cost-share literature, GT-5?/GT-6, which are flagged unverified)
+
+**Confidence caveat:** the salt-physics half of this estimate (Steps 1–2) is HIGH confidence — it rests on well-established material properties (GT-1–GT-3). The BOP-share half (Step 3) is MEDIUM confidence because it leans on GT-5? and GT-6, which are general industry figures I could not independently verify against a specific audited source. If you can share or point me to an actual CSP storage system cost breakdown (e.g., a NREL/SolarPACES cost study or an EPC quote), I could tighten the BOP-share bracket substantially — that is the single highest-leverage next step to narrow this estimate.
+
+If "pre-commissioned" was meant to exclude *less* than I assumed (e.g., only foundations, not the tank shell/insulation), the answer would shift toward the higher end of typical full-system figures ($20–40/kWh_th) — worth confirming if precision matters for a real decision.
+The agent finished. Summary:
+
+**Central estimate: ≈$15/kWh** of usable thermal capacity (bracket $8–25/kWh), for the non-tank scope — salt inventory + balance-of-plant (heat exchangers, pumps, trace heating, insulation, I&C, engineering) — since tanks are pre-commissioned/excluded per your assumption.
+
+For the 200 MWh installation: **≈$3.0M total** (range $1.6M–$5.0M).
+
+Breakdown:
+- **Salt inventory alone: ≈$6.5/kWh** — high confidence, derived from physics (cp≈1.53 kJ/kg·K × ΔT≈270°C → ~8.7 kg salt/kWh_th) × commodity price ($0.50–1.00/kg)
+- **Remaining BOP: ≈$8/kWh** (range $4–12) — medium confidence, based on industry cost-share literature (tanks ~40–50%, salt ~25–35%, BOP ~20–30% of a typical $20–40/kWh_th full system)
+
+30-year life / daily cycling didn't move the number — nitrate salt is chemically stable indefinitely in this temperature range, so no replacement capex line was warranted.
+
+Caveat flagged by the agent: this assumes "$/kWh" means thermal capacity ($/kWh_th), the CSP-industry convention. If you actually want cost per kWh of *electricity* eventually dispatched, divide by a ~40% steam-cycle efficiency → roughly $20–60/kWh_e (central ~$37/kWh_e). Also, the BOP-share figures (GT-5, GT-6) are unverified industry aggregates, not from an audited source — the biggest lever to tighten the estimate further would be a real EPC quote or itemized BOP cost breakdown.

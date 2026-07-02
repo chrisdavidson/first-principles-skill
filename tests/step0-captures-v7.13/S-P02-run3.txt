@@ -1,0 +1,62 @@
+I've dispatched the first-principles agent with the exact prompt you specified. It's running in the background — I'll report back when it completes.
+## Inversion Analysis: "Faster ships → better retention"
+
+**1. Claim (sharpened):** Decreasing the interval between ship dates causes an increase in user retention.
+
+**2. Inverted form:** Decreasing the interval between ship dates does *not* increase retention — and past some point, it *decreases* it.
+
+**3. Failure-guaranteeing conditions** (any one of these, if true, guarantees the inverted form holds):
+
+1. Shipping faster increases defect/regression rate faster than it increases feature value, and bugs drive churn harder than features drive stickiness.
+2. Users are not actually blocked or frustrated by the current release cadence — the bottleneck to retention lies elsewhere (onboarding, pricing, core value prop, support quality).
+3. Faster shipping degrades change quality (less QA time, less user research per release), so each release trains users to trust the product less, not more.
+4. Retention is driven by habit/workflow stability, and frequent changes disrupt learned muscle memory, increasing perceived friction.
+5. The team's "faster ships" come from shrinking scope per release, so cumulative value delivered per month is flat or lower — velocity of *shipping* rose but velocity of *value* didn't.
+6. Users don't notice or attribute retention decisions to release cadence at all — the causal channel between "we shipped" and "user stayed" doesn't exist for this product category (e.g., low-engagement B2B tools where users log in monthly regardless).
+7. Faster cadence increases notification/changelog fatigue, causing users to tune out or unsubscribe from product communications, weakening the very channel that would make new value visible.
+8. The correlation the team observed (if any) is confounded — e.g., faster shipping happened during a period of also improving support, pricing, or marketing, and those are the actual retention drivers.
+
+**4. Necessary preconditions the original claim silently depends on**
+
+| # | Failure condition | Precondition required for claim to hold |
+|---|---|---|
+| 1 | Speed outpaces quality | Ship quality/defect rate stays flat or improves as cadence increases |
+| 2 | Bottleneck elsewhere | Release cadence is actually a binding constraint on user-perceived value, not a non-factor |
+| 3 | Quality degrades under speed | Two-week cycles leave enough QA/validation time to not erode trust |
+| 4 | Disruption to habit | Users' retention is driven by *new value delivered*, not by *stability of experience* |
+| 5 | Scope shrinks to hit cadence | Cumulative value shipped per unit time is actually increasing, not just release count |
+| 6 | No causal channel exists | Users are engaged/attentive enough to notice and value frequent releases (fits high-engagement products, not all) |
+| 7 | Notification fatigue | Users don't tune out communication about releases as frequency rises |
+| 8 | Confounded correlation | No other retention lever moved at the same time the cadence changed |
+
+**5. Status check — verified, conventional, or untested?**
+
+All eight preconditions are currently **untested beliefs** for this team, as far as stated. None were given evidence (e.g., churn correlated with release dates, defect rate trends, user survey data, or a controlled comparison against a slower-cadence period).
+
+**6. Routed to Classified Assumptions Table** (Phase 2 rows, type = `untested belief`, treatment = verify or flag)
+
+| Assumption | Type | Treatment | Verdict |
+|---|---|---|---|
+| Ship quality doesn't degrade with 2-week cadence | untested belief | Check defect/regression rate trend vs. release frequency | unverified |
+| Release cadence is retention's binding constraint | untested belief | Check whether churn survey/exit interviews cite release cadence at all | unverified |
+| Cumulative value/month is rising, not just release count | untested belief | Compare feature scope size per release over time | unverified |
+| Product category is high-engagement enough for users to notice cadence | untested belief | Check usage frequency / session cadence relative to release cadence | unverified |
+| No confound (support, pricing, marketing) moved concurrently | untested belief | Timeline-check other retention levers against the cadence change | unverified |
+| Users aren't tuning out release notifications | untested belief | Check changelog/email open rates over time | unverified |
+
+**Where this breaks down in practice for your team:** the claim is most fragile at precondition #1 (quality-speed tradeoff) and #8 (confounding) — those are the two most common ways "we shipped faster" studies get the causal arrow backwards. If you want to actually test the claim rather than assume it, the highest-leverage next step is pulling retention/churn data segmented by release week and checking it against defect-rate and support-ticket trends over the same window — that would directly falsify or support conditions #1, #3, and #8 with data you likely already have.
+
+If you want, I can take this further into a full first-principles analysis (Ground Truths → Derivation Chains) once you have that data, or run a second-order-effects pass on what happens downstream if you *do* keep shipping every two weeks regardless.
+The inversion analysis is done. Here's the summary:
+
+**Inverted claim:** Faster shipping does *not* improve retention — past some point it can hurt it.
+
+**Where your assumption is most likely to break down** (top two failure conditions):
+1. **Speed outpaces quality** — if two-week cycles compress QA/validation time, rising defect rates could erode trust faster than new features build stickiness.
+2. **Confounded correlation** — if any retention gains you've observed coincided with other changes (support, pricing, marketing), those may be the real drivers, not cadence.
+
+Six other failure conditions were identified (cadence isn't the actual bottleneck, users disrupted by change rather than helped, scope shrinking to hit deadlines so value/month is flat, no causal channel in low-engagement categories, notification fatigue, etc.) — full table with preconditions in the agent's output above.
+
+**Bottom line:** none of these are verified for your team yet — they're all untested beliefs. The highest-leverage next step: segment retention/churn data by release week and cross-check against defect-rate and support-ticket trends over the same window. That directly tests the two most fragile preconditions (#1 and #8) with data you likely already have.
+
+Want me to have the agent go further — full ground-truth derivation once you pull that data, or a second-order-effects pass on what happens if you keep the two-week cadence regardless?

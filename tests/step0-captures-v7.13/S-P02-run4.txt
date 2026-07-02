@@ -1,0 +1,67 @@
+I've dispatched the first-principles agent with the exact prompt verbatim. It's running in the background — I'll let you know when it completes with the inversion analysis.
+# Inversion Analysis: "Faster ships → better retention"
+
+## 1. Problem Essence
+
+**Claim under test:** Shipping every two weeks (faster release cadence) causes better user retention.
+
+**Inverted form:** Shipping every two weeks does *not* improve retention — and may leave it flat or make it worse.
+
+**Success criteria for this analysis:** name the specific conditions under which the inverted form becomes true, trace each to a checkable precondition the team can monitor, and flag which preconditions are currently unverified for your team specifically.
+
+## 2. Assumptions Table (built via inversion)
+
+Failure-guaranteeing conditions → the necessary preconditions the original claim silently depends on:
+
+| # | Failure-guaranteeing condition | Necessary precondition (what the claim depends on) | Type | Verdict |
+|---|---|---|---|---|
+| 1 | Shipped increments aren't what users need | P1: Increments are validated against real user needs, not shipped for velocity's sake | untested belief | unverified |
+| 2 | Compressed QA time raises defect/regression rate | P2: Faster cadence doesn't push quality below users' tolerance threshold | untested belief | unverified |
+| 3 | Users experience change fatigue / workflow disruption | P3: Users perceive frequent change as *value*, not churn (contested — many users prefer stability, esp. enterprise/power users) | convention (challenge before use) | unverified, likely context-dependent |
+| 4 | Retention is actually driven by price, support, habit, or switching cost | P4: Ship cadence is a meaningful retention lever relative to other drivers | untested belief | unverified |
+| 5 | Internal 2-week cadence never reaches users (batched releases, flags off) | P5: Internal cadence translates into *user-visible* cadence | untested belief | unverified |
+| 6 | Team capacity diverted from onboarding/reliability/support to sustain shipping pace | P6: Faster shipping doesn't starve other retention-critical work | untested belief | unverified |
+| 7 | Causality actually runs backward — retained/engaged users generate the feedback loop that *enables* faster shipping | P7: Causal direction (cadence → retention) has been isolated, not inferred from correlation | untested belief | **unverified — load-bearing** |
+| 8 | Aggregate retention masks opposite effects across segments (early adopters up, mainstream down) | P8: User base is homogeneous enough, or segmentation has been checked | untested belief | unverified |
+
+Stakes-escalation note: because this claim is likely driving a resourcing/roadmap decision, P7 and P4 in particular should be pushed toward verified ground truth (via a natural experiment or cohort comparison) rather than left as convention.
+
+## 3. Ground Truths
+
+- **GT-1** (verified, current constraint): The team currently ships on a two-week cadence. Source: team's own release process — directly observable.
+- **GT-2?** (unverified): Any historical association between cadence and retention numbers — flagged because it has not been checked in this analysis; if it exists, it is *correlational only* per P7.
+
+No other ground truths are available yet — everything else in the original claim is an untested belief (P1–P8 above).
+
+## 4. Focused-Inversion Analysis (Derivation Chain)
+
+```
+GT-1 + GT-2? → [correlation between biweekly cadence and any retention movement has not been separated from confounds (P1–P8)] → the claim "faster ships causes better retention" is unproven as stated; it is a plausible hypothesis riding on eight unverified preconditions, two of which (P7 causal direction, P4 relative lever strength) are load-bearing.
+```
+
+Practical breakdown points to watch for (this is the actionable output): the assumption is most likely to fail when (a) releases are shipped but not user-validated, (b) cadence increases are absorbed by internal batching so users never see faster delivery, (c) the user base skews toward stability-preferring segments (enterprise, habitual users), or (d) quality dips as a side effect of pace — any one of these flips the sign of the relationship.
+
+## 5. Abandoned Reasoning
+
+Considered treating "faster ships = better retention" as a settled industry convention (common SaaS narrative) and skipping verification. Discarded: this is exactly the kind of analogy-as-evidence the methodology prohibits — "other companies ship fast and retain well" doesn't establish causation for this team's product, user base, or quality bar.
+
+## 6. Conclusion
+
+The assumption breaks down specifically when: shipped work isn't validated against user need (P1), speed trades off against stability (P2), your users are change-averse rather than change-seeking (P3), retention is actually governed by a different lever like price/support/switching-cost (P4), the two-week internal cadence doesn't reach users as visible change (P5), shipping speed cannibalizes onboarding/reliability investment (P6), or the causal arrow is actually reversed — engaged users driving faster shipping, not the other way around (P7).
+
+**Confidence: LOW-MEDIUM**, driven primarily by P7 and P4 being unverified and load-bearing. What would raise confidence to HIGH: a controlled comparison (e.g., retention trend across a period where cadence changed, holding quality and feature validation constant) or a cohort/segment breakdown isolating cadence's effect from other retention drivers. Until then, treat "faster ships → better retention" as a hypothesis to monitor via P1–P8, not a settled causal fact to plan against.
+The inversion analysis is complete. Here's the summary:
+
+**Claim:** faster ships → better retention. **Inverted:** faster ships does *not* improve retention (or hurts it).
+
+**Where it breaks down** — the assumption fails when any of these hold:
+1. **Shipped work isn't user-validated** — velocity without validation just produces noise.
+2. **Quality degrades** — compressed QA time raises defects past users' tolerance.
+3. **Users are change-averse** — frequent change reads as churn/disruption, not value (especially enterprise/power users).
+4. **Retention is driven by something else** — price, support, habit, switching cost — and cadence isn't actually a meaningful lever.
+5. **Internal cadence ≠ visible cadence** — releases get batched/flagged off, so users never see the faster pace.
+6. **Shipping speed cannibalizes other retention work** — onboarding, reliability, support.
+7. **Causality is reversed** (flagged as load-bearing) — retained/engaged users may be what *enables* fast shipping, not the other way around.
+8. **Aggregate numbers hide segment splits** — early adopters up, mainstream down, netting to "flat."
+
+Overall confidence in the original claim: **low-medium**, mainly because #4 and #7 are unverified and load-bearing. To raise confidence, the agent recommends a controlled comparison (retention trend across a cadence change, holding quality/validation constant) or a cohort breakdown isolating cadence from other drivers — otherwise treat it as a hypothesis to monitor, not a fact to plan around.

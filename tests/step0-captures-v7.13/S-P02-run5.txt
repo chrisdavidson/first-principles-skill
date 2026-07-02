@@ -1,0 +1,154 @@
+Agent launched with the exact prompt as specified. I'll let you know when it completes.
+This is a focused inversion request — I'll run it directly per the technique-selection rule rather than the full first-principles composer.
+I've launched the focused inversion analysis in the background — it'll come back with a full first-principles-formatted breakdown of when "faster shipping → better retention" breaks down for a biweekly-cadence team. I'll report the results when it completes.
+
+(Unrelated note: your Gmail, Google Calendar, and Google Drive connectors aren't authorized in this session — not needed for this task, but if you want those available later you'll need to authorize them via claude.ai connector settings.)
+The subagent's returned output looks off — instead of producing the inversion analysis, it just described itself as "launching a background analysis" and appended an unrelated note about unauthorized Gmail/Calendar/Drive connectors (which have nothing to do with this task). That's not a valid first-principles output; it reads like the agent got confused or truncated before doing the actual work.
+
+I'd flag this rather than pass it off as the real analysis. Want me to re-run the `first-principles:first-principles` agent with the same exact prompt to get an actual inversion result?
+# Focused Inversion Analysis: "Faster Shipping Cadence Leads to Better Retention"
+
+**MODE = focused-inversion** — only the inversion technique is enumerated in Phase 4, per the Step 0 technique-selection rule.
+
+---
+
+## 1. Problem Essence
+
+**Essence Statement:** Determine the specific conditions under which the causal claim "faster shipping cadence → better user retention" breaks down for a team currently shipping on a fixed two-week (biweekly) cycle, so the team can identify whether their current cadence is helping, hurting, or neutral to retention, and what would need to change.
+
+**Success criteria** (a correct answer must):
+- Name concrete, biweekly-cadence-specific scenarios where the causal claim fails, not generic "it depends" hedging.
+- Distinguish shipping *speed* from the mediating factors (quality, stability, user habit formation, communication) that actually determine whether speed helps or hurts retention.
+- Produce at least one derivation chain that is actionable — i.e., translatable into a cadence, QA, or communication decision this specific team could make.
+- Flag which failure conditions are already plausible for a biweekly team versus which only bite at faster (e.g., daily/continuous) cadences, so the team doesn't over-generalize from failure modes that don't apply to them.
+
+---
+
+## 2. Assumptions Table (via Inversion Procedure)
+
+**Step 1 — State the claim precisely:** "Faster shipping cadence causes better user retention."
+
+**Step 2 — Invert it:** "Faster shipping cadence does not cause better retention" — i.e., increasing shipping speed either has no effect on retention or actively reduces it.
+
+**Step 3 — Enumerate failure-guaranteeing conditions** (conditions that would *guarantee* the inverted form — at least five):
+
+1. **Quality collapses under speed.** Faster releases outpace the team's testing/QA capacity, so each release ships with more regressions, and users churn from instability rather than staying for velocity.
+2. **Retention is driven by habit stability, not novelty.** If the product's retention mechanism is routine/habitual usage (e.g., a tool used the same way daily), frequent UI/behavior changes disrupt the learned habit and increase cognitive load, pushing users away.
+3. **Update fatigue overwhelms perceived value.** If each release requires user-visible action (app store updates, forced re-onboarding, changelog interruptions, permission re-prompts), high frequency generates friction/annoyance that outweighs the value of the improvements shipped.
+4. **Cadence exceeds the user's value-realization cycle.** If users only exercise the product's core value on a slower cycle (e.g., weekly or monthly use pattern), shipping faster than that cycle produces no perceptible improvement in their experience — speed and retention become decoupled, not causally linked.
+5. **Speed cannibalizes the mediating variable that actually drives retention.** If engineering time is fixed, shipping faster (smaller batches, more releases) may reduce time spent on the retention-critical work itself (support responsiveness, performance hardening, edge-case polish) in favor of release logistics overhead — retention drivers get starved even as ship count rises.
+6. **Retention is driven by trust/predictability, not feature freshness.** For some user segments (e.g., enterprise, regulated, or risk-averse users), frequent changes signal instability or lack of control, reducing trust and increasing churn risk regardless of feature quality.
+7. **The causal arrow is reversed or confounded.** High-retention products may enable faster shipping (larger, more engaged team, better test coverage, more resources) rather than fast shipping causing retention — a classic reverse-causation/confound scenario invalidating the claim as stated.
+
+**Step 4 — Derive necessary preconditions** (what must be true for the original claim to hold, given each failure condition above):
+
+| # | Failure condition | Necessary precondition for the original claim to survive it |
+|---|---|---|
+| 1 | Quality collapse under speed | QA/testing capacity must scale at least as fast as release frequency |
+| 2 | Habit disruption | The product's retention driver must be *novelty-seeking*, not *habit-stability*-seeking, for this user base |
+| 3 | Update fatigue | Update delivery must be low-friction/invisible to the user (silent/background updates, no forced re-onboarding) |
+| 4 | Cadence exceeds value-realization cycle | Release cadence must be at or below the user's natural engagement cycle |
+| 5 | Retention-driver cannibalization | Release-logistics overhead must not consume time otherwise spent on support/performance/polish |
+| 6 | Trust/predictability driver | The user segment's retention must be driven by feature freshness rather than stability/predictability |
+| 7 | Reverse causation / confound | Team capacity and quality practices must be held constant when comparing cadence to retention, to isolate cadence as the causal variable |
+
+**Step 5 — Check verification status of each precondition, for a biweekly-shipping team:**
+
+| Assumption (precondition) | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| A1: QA capacity scales with release frequency | untested belief | Verify — check whether test automation coverage and QA headcount have grown alongside cadence, or whether biweekly ships already show elevated post-release bug/rollback rate | **Unverified** — flagged `GT-6?` | No regression/rollback-rate data cited in problem statement; must be pulled from the team's incident tracker |
+| A2: Retention driver is novelty-seeking, not habit-stability | untested belief | Verify against product category and existing retention/churn segmentation data | **Unverified** — flagged `GT-7?` | Depends on product type (not specified); flag for product-analytics lookup |
+| A3: Update delivery is low-friction (no forced re-onboarding, no visible disruption) | current constraint | Record expiry conditions — true only if updates are server-side/background; false if client requires visible update action | **Context-dependent, not yet verified** — flagged `GT-8?` | Depends on delivery mechanism (web vs. native app); not stated in problem |
+| A4: Biweekly cadence is at or below users' natural value-realization cycle | untested belief | Verify via usage-frequency analytics (DAU/WAU ratio, session interval) | **Unverified** — flagged `GT-9?` | Requires usage cadence data not given |
+| A5: Release logistics overhead doesn't crowd out retention-critical work | untested belief | Verify via engineering time allocation (% time on release process vs. support/perf/polish) | **Unverified** — flagged `GT-10?` | Requires eng time-tracking data |
+| A6: User segment's retention is freshness-driven rather than stability-driven | convention | Challenge explicitly — "ship fast = users love it" is a common industry convention, not verified for this specific user base | **Convention, challenged, not yet resolved** — flagged `GT-11?` | Requires user segment definition and churn-driver survey/analysis |
+| A7: Cadence-retention correlation isn't confounded by team capacity/quality practices that co-vary with cadence | physical/statistical principle (confound risk is a structural fact of observational causal claims) | Accept as ground-truth candidate: correlational data on cadence and retention cannot establish causation without controlling for confounds | **Verified** — this is a structural methodological fact, not context-dependent | Standard causal-inference principle; promoted directly to Ground Truths |
+| A8: Two-week cadence is fixed (given) | current constraint | Given, per problem statement — treat as fixed boundary condition, not itself under challenge | **Accepted as given** | Stated directly in problem constraints |
+
+Six of the seven inverted preconditions (A1–A6) are `untested belief`s specific to this team and require data the problem statement does not supply — this is itself a significant finding (see Phase 5). A7 is a structural/methodological fact promotable to ground truth. A8 is the fixed constraint given.
+
+---
+
+## 3. Ground Truths
+
+| ID | Ground truth | Type | Irreducibility check |
+|---|---|---|---|
+| GT-1 | The team currently ships on a fixed two-week (biweekly) release cycle. | Given fact | Directly stated; irreducible (definitional boundary condition) |
+| GT-2 | The claim under test is causal, not merely correlational. | Given fact | Directly stated; irreducible |
+| GT-3 | A causal claim inferred from observational correlation (cadence vs. retention) cannot be validated without controlling for confounding variables (team capacity, quality practices, market conditions). | Physical/methodological law (causal inference) | Irreducible — standard, well-established methodological principle; not further decomposable |
+| GT-4 | Retention is a multi-causal outcome (quality/stability, habit formation, update friction, trust, value-realization timing, and possibly others) — shipping cadence is at most one input among several. | Structural fact about the domain, derived from Phase 2 enumeration | Irreducible given the inversion enumeration in Phase 2 — each failure condition names a distinct causal channel that must independently hold for cadence to translate into retention |
+| GT-5 | For the causal claim to hold, shipping speed must translate into retention-positive outcomes *through* one or more mediating channels (quality, novelty-fit, low-friction delivery, cadence-user-cycle alignment, non-cannibalized eng time, freshness-preference fit) — it cannot act directly. | Derived structural fact (synthesis of Phase 2 preconditions A1–A6) | Irreducible — this is the logical structure the inversion analysis exposed; each mediating channel was independently derived in Step 4 |
+| GT-6? | Unverified: QA/testing capacity has scaled with the team's biweekly release frequency (no elevated post-release regression/rollback rate observed). | Untested belief, flagged | Not yet verified — requires incident-tracker data |
+| GT-7? | Unverified: this product's retention is driven by novelty/freshness rather than habit stability. | Untested belief, flagged | Not yet verified — requires product-category/churn-driver data |
+| GT-8? | Unverified: updates are delivered with low user-visible friction (no forced re-onboarding/disruption per release). | Untested belief, flagged | Not yet verified — requires delivery-mechanism confirmation |
+| GT-9? | Unverified: biweekly cadence is at or below users' natural value-realization/usage cycle. | Untested belief, flagged | Not yet verified — requires usage-interval analytics |
+| GT-10? | Unverified: release-logistics overhead at biweekly cadence isn't crowding out retention-critical engineering work (support, performance, polish). | Untested belief, flagged | Not yet verified — requires eng time-allocation data |
+| GT-11? | Unverified: this team's user segment values freshness over stability/predictability. | Convention, challenged, unresolved | Not yet verified — requires segment-level churn-driver analysis |
+
+---
+
+## 4. Focused-Inversion Analysis (Derivation Chains)
+
+**Chain 1 — Quality-capacity mismatch is the highest-probability breakdown point for a biweekly team**
+
+```
+GT-3 + GT-4 → [Because retention is multi-causal and the cadence-retention link is only correlational until confounds are controlled, cadence itself cannot be assumed causal; the inversion in Phase 2 (failure condition #1) identifies QA capacity as the first channel to check] → Biweekly cadence improves retention ONLY IF GT-6 (QA capacity scaling) holds; if unverified or false, the causal claim inverts and faster/frequent shipping actively harms retention via regression-driven churn.
+```
+Confidence: **MEDIUM** — GT-6? is unverified (flagged). This is the single most actionable and most commonly observed failure mode in practice (biweekly cadences are fast enough to strain QA in small-to-mid teams without proportional test-automation investment). Verifying GT-6 (pull regression/rollback rate trend against release history) would raise this to HIGH.
+
+**Chain 2 — Update-friction and habit-disruption jointly gate whether biweekly is "fast enough to hurt"**
+
+```
+GT-4 + GT-8? → [Failure conditions #2 and #3 from Phase 2 both hinge on delivery mechanism: if updates require visible user action (app-store prompts, forced re-onboarding, UI churn) at biweekly frequency, that is roughly 26 disruption events/year — enough to plausibly exceed users' tolerance for habit disruption, especially for habit-driven (vs. novelty-driven) products] → IF delivery is high-friction (GT-8 false) AND retention is habit-driven (GT-7 false), biweekly cadence is very likely already in the "breaks down" zone regardless of feature quality; IF delivery is low-friction AND retention is novelty-driven, biweekly cadence is unlikely to be the breakdown point on this axis.
+```
+Confidence: **LOW** — this chain has two compounded unverified inputs (GT-7?, GT-8?), and the answer flips entirely depending on which side of each precondition the team is actually on. This is a bimodal risk, not a graded one — it needs direct verification before any confidence can be assigned.
+
+**Chain 3 — Cadence-value misalignment is the most likely-to-be-overlooked breakdown mode**
+
+```
+GT-1 + GT-9? → [Failure condition #4: if users' natural engagement/value-realization cycle is longer than two weeks — e.g., a monthly-habit tool, a B2B workflow tool touched weekly, or a seasonal-use product — then shipping every two weeks produces changes users may not even perceive between sessions, decoupling shipping speed from any retention effect entirely (not negative, just null)] → Biweekly cadence is causally inert for retention (neither helps nor hurts) if GT-9 is false; this is a distinct failure mode from Chains 1–2 because it doesn't require quality or friction problems — it only requires a cadence/usage-cycle mismatch.
+```
+Confidence: **MEDIUM-LOW** — GT-9? unverified, but this failure mode is easy to check (compare release interval to median session interval in product analytics) and is commonly the reason teams see "we shipped faster but retention didn't move."
+
+**Chain 4 — Reverse causation / confound risk undermines the claim's evidentiary basis, independent of biweekly specifics**
+
+```
+GT-2 + GT-3 → [The claim is asserted as causal (GT-2); GT-3 establishes that correlational cadence-retention data cannot support a causal claim without controlling for confounds like team maturity, resourcing, and quality practices that typically co-vary with the ability to ship fast] → Any evidence the team currently holds that "faster shipping correlates with better retention" (e.g., from industry benchmarks or their own historical data) is insufficient on its own to justify the causal claim, and may in fact run backward: higher-retention products/teams may have earned the resources and stability that let them ship fast, rather than fast shipping producing the retention.
+```
+Confidence: **HIGH** — this is a structural methodological point (GT-3 is a verified, non-context-dependent ground truth), not contingent on unverified team-specific data. This chain doesn't tell the team whether biweekly is right, but it does establish that the *claim itself*, as commonly stated, is evidentially unsupported until confounds are addressed.
+
+---
+
+## 5. Abandoned Reasoning
+
+- **Considered but not pursued as a separate chain: "trust/predictability" failure condition (Phase 2, item #6).** For most consumer software teams shipping biweekly, this failure mode is more relevant to enterprise/regulated user segments than general consumer products, and the problem statement doesn't specify the user segment. Rather than speculate on segment type, this was folded into GT-11? (flagged, unresolved) and not built into its own derivation chain, since doing so without knowing the user segment would be reasoning by assumption rather than from a ground truth.
+- **Considered but abandoned: quantifying the exact retention-impact magnitude of each failure mode (e.g., "X% churn increase per regression").** This would require the estimate (Fermi) technique, which is out of scope for a focused-inversion run per the Step 0 mode restriction — inversion identifies *which* conditions break the claim, not how large the effect is. Noted here so it isn't silently lost: a follow-up focused-estimate pass on Chain 1 (QA-capacity mismatch) would be the highest-value next quantitative step.
+- **Considered but abandoned: reasoning from "how other companies handle this" (e.g., "Company X ships daily and retention improved").** Explicitly excluded per methodology rule against using analogy as direct evidence — no verified ground truth was established about those companies' quality practices, user base, or confound controls, so any such comparison would not meet the irreducibility bar for Phase 3.
+
+---
+
+## 6. Conclusion
+
+The claim "faster shipping cadence leads to better retention" does not hold unconditionally, and for a team currently shipping biweekly, the inversion analysis surfaces four distinct, independently-sufficient ways it can break down:
+
+1. **Quality-capacity mismatch (Chain 1, MEDIUM confidence):** if QA/test capacity hasn't scaled with the biweekly cadence, faster shipping is already producing more regressions than value, and cadence is actively suppressing retention. This is the single most actionable and most probable failure mode for a mid-cadence team — **the team's first move should be pulling post-release regression/rollback-rate trends against release history to verify GT-6.**
+2. **Update-friction × habit-disruption (Chain 2, LOW confidence, bimodal):** if updates are user-visible/disruptive AND the product is habit-driven rather than novelty-driven, biweekly is likely already too fast; if neither holds, it's not a risk at all. This needs direct verification of delivery mechanism and retention-driver type before any conclusion can be drawn — it is not a "maybe," it's an unresolved binary.
+3. **Cadence-value misalignment (Chain 3, MEDIUM-LOW confidence):** if users' natural engagement cycle is longer than two weeks, biweekly shipping is causally inert for retention — not harmful, just irrelevant — which would explain a "we shipped faster but retention didn't move" outcome without needing a quality or friction story.
+4. **Evidentiary/confound problem (Chain 4, HIGH confidence):** independent of biweekly specifics, any existing belief that "shipping faster helped our retention" based on correlational data is not causally sound until team capacity, quality practices, and market conditions are controlled for — the causal arrow may run in reverse (retention-healthy teams can afford to ship faster, not vice versa).
+
+**Overall assessment:** the causal claim survives only under six unverified preconditions (GT-6? through GT-11?), five of which are specific to this team's data (QA capacity, delivery friction, usage-cycle alignment, engineering time allocation, user segment freshness-preference) and none of which the problem statement supplies. This is itself the key finding: **the team cannot currently know whether their biweekly cadence helps or hurts retention** — the claim is unfalsified only because it hasn't yet been tested against the team's own data, not because it has been validated. The highest-leverage next step is verifying GT-6 (Chain 1) via regression/rollback data, since quality-capacity mismatch is both the most common real-world failure mode at this cadence and the cheapest to check with data the team almost certainly already has (incident tracker, release history).
+
+**Weakest link across all chains:** Chains 2 and 3 both depend on user-segment and usage-pattern data not present in the problem statement — any downstream product decision based on those chains alone should be treated as provisional until that data is pulled. Chain 1 and Chain 4 rest on more directly obtainable data (release/incident history) and a structural methodological fact respectively, making them the more immediately trustworthy findings.
+The re-run produced a proper analysis this time. Here's the summary:
+
+**Where "faster ships → better retention" breaks down**, ranked by confidence:
+
+1. **Quality-capacity mismatch (MEDIUM confidence, most actionable)** — if QA/test capacity hasn't scaled with your biweekly cadence, you're shipping more regressions than value, and cadence is *suppressing* retention. → Check: pull post-release regression/rollback rates against your release history.
+
+2. **Update friction × habit disruption (LOW confidence, bimodal)** — if updates are user-visible/disruptive *and* your product is habit-driven rather than novelty-driven, biweekly is already too fast (~26 disruption events/year). If neither is true, it's a non-issue. This is a binary, not a spectrum — needs direct verification.
+
+3. **Cadence-value misalignment (MEDIUM-LOW confidence)** — if users' natural engagement cycle is longer than two weeks, biweekly shipping is causally *inert* for retention — not harmful, just irrelevant. This would explain "we shipped faster but retention didn't move" without any quality story.
+
+4. **Evidentiary/confound problem (HIGH confidence, applies regardless of cadence)** — any existing belief that "shipping faster helped retention" based on correlational data is unsound until you control for team capacity/quality practices. The causal arrow may run backward: healthy-retention teams can *afford* to ship fast, rather than fast shipping causing retention.
+
+**Bottom line:** the claim survives only under six unverified, team-specific preconditions your data can check — none of which are established yet. Highest-leverage next step: verify #1 by checking regression/rollback rate trend against your release history (cheapest data to pull, most common real-world failure mode at this cadence).

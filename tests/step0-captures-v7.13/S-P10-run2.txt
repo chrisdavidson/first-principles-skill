@@ -1,0 +1,75 @@
+Launched the first-principles agent with your exact prompt verbatim. I'll let you know when it completes with the cost analysis.
+## Problem Essence
+
+**Question:** What is the capital cost per kWh of *usable* thermal capacity for a 200 MWh molten-salt TES system — excluding tank capex (pre-commissioned) — over a 30-year life with one cycle/day?
+
+**Success criteria:** A central $/kWh figure with an explicit low/high bracket, derived from salt thermal properties and market cost (not analogy alone), with the tank-exclusion and usable-vs-nameplate adjustments made explicit.
+
+## Assumptions Table
+
+| Assumption | Type | Treatment | Verdict |
+|---|---|---|---|
+| Solar salt (60% NaNO₃/40% KNO₃), 2-tank config | convention | Standard for utility-scale CSP TES since the 1990s; still the default | Accepted for this estimate |
+| Operating band ≈290–565°C (ΔT≈275°C) | current constraint (chemistry-bound: freezes ~220°C, decomposes ~600°C) | Record expiry: newer chloride/carbonate salts would shift this, but aren't the utility-scale default yet | Accepted |
+| c_p ≈ 1.5 kJ/kg·K | physical law (material property) | Accept as ground truth | Verified |
+| Salt bulk price $0.6–1.2/kg | current constraint (commodity market) | Range used, not point value | Accepted with bracket |
+| Non-tank BOP ≈ 60–70% of total system cost, tanks ≈30–35% | untested belief | Flagged GT-5?, drives bracket width — this is the weakest link | Unverified, flagged |
+| Total installed 2-tank molten-salt TES benchmark ≈ $15–30/kWh_th (tanks included) | untested belief (recalled, not live-sourced) | Flagged GT-6? | Unverified, flagged |
+| 200 MWh is modest utility scale → limited economies of scale vs. multi-GWh plants | current constraint | Pushes estimate toward upper-middle of bracket | Accepted |
+| Usable capacity ≈ 90–95% of nameplate (heel/dead volume) | engineering convention | Applied as a small cost uplift per usable kWh | Accepted |
+
+## Ground Truths
+
+- **GT-1:** c_p of solar salt ≈ 1.5 kJ/(kg·K) — material property, widely published (NREL/SolarPACES data sheets).
+- **GT-2:** Usable ΔT ≈ 275°C (290→565°C), bounded by freeze point (~238°C) and thermal decomposition (~600°C).
+- **GT-3 (derived):** Energy density = c_p×ΔT = 1.5×275 = 412.5 kJ/kg = **0.1146 kWh_th/kg** → **8.73 kg salt/kWh_th**.
+- **GT-4:** Bulk solar-salt commodity price ≈ $0.60–1.20/kg (central $0.85/kg).
+- **GT-5?:** Non-tank BOP (HX, pumps, piping, insulation, controls, EPC) ≈ salt cost in magnitude, tanks ≈30–35% of total — unverified, from memory of NREL/SAM-style CSP cost breakdowns.
+- **GT-6?:** Full-system (tanks included) benchmark ≈ $15–30/kWh_th in recent cost studies — unverified, not live-sourced.
+
+## Derivation Chain (Focused Estimate)
+
+```
+GT-3 + GT-4 → salt-only cost = 8.73 kg/kWh × $0.85/kg → ≈ $7.4/kWh (range $5.2–10.5/kWh)
+
+GT-5? + GT-6? → tank share ≈33% of $15–30/kWh total → non-tank remainder ≈ $10–20/kWh,
+   consistent with salt(~$7.4) + comparable-magnitude BOP(~$7.3) → central non-tank cost ≈ $14–15/kWh
+
+[usable-fraction adjustment] → divide by 0.90–0.95 usable/nameplate ratio → ≈ +5–10% uplift
+
+[scale adjustment] → 200 MWh is modest vs. multi-GWh utility plants → nudge toward upper-middle of range
+
+→ CONCLUSION: central ≈ $16–18/kWh_th of usable capacity (non-tank), bracket ≈ $11–24/kWh_th
+```
+
+**Total system implication:** 200,000 kWh × $16–18/kWh ≈ **$3.2–3.6M** central non-tank capex (bracket ≈$2.2M–$4.8M).
+
+## Second-Order Effects (30-yr life, daily cycling ≈10,950 cycles)
+
+- Nitrate-salt chemistry is stable across this many thermal cycles at these temperatures — **no salt replacement capex** expected (doesn't move the number).
+- Metal heat-exchanger/piping wetted components may need one mid-life refurbishment from thermal fatigue — could add ~$1–3/kWh amortized to the high end of the bracket; doesn't contradict any ground truth, so no return to Phase 2.
+- Excluding pre-commissioned tanks removes the single largest line item (~30–35% of total), which is why this figure sits meaningfully below commonly cited full-system figures of $15–30/kWh.
+
+## Abandoned Reasoning
+
+Considered anchoring directly to "comparable CSP project cost $X/kWh" as the answer — rejected per methodology: an analogous project's blended figure isn't a first-principles value and doesn't let you separate tank cost (which the question explicitly excludes) from salt+BOP cost.
+
+## Conclusion
+
+**≈ $16–18/kWh of usable thermal capacity (central), bracket ≈ $11–24/kWh**, for the non-tank scope (salt inventory + heat exchangers + pumps/piping + insulation + controls + installation) of a 200 MWh molten-salt TES system under the stated assumptions.
+
+**Confidence: MEDIUM.** The salt-mass/energy-density derivation (GT-1–GT-4) is HIGH confidence — it's physics plus a commodity price range. The weak link is the BOP/tank cost-split (GT-5?, GT-6?), which is recalled rather than freshly sourced and sets the bracket width. Verifying against a current NREL SAM CSP cost model or a recent DOE storage cost report would tighten this to HIGH confidence — happy to run that lookup if you want the number sharpened.
+The first-principles analysis is complete. Here's the result:
+
+## Bottom line
+**≈ $16–18/kWh of usable thermal capacity (central estimate), bracket ≈ $11–24/kWh** — for the non-tank scope only (salt inventory, heat exchangers, pumps/piping, insulation, controls, installation), given a 200 MWh installation with pre-commissioned tanks.
+
+For the full 200 MWh system, that's **≈ $3.2–3.6M central** (bracket $2.2M–$4.8M).
+
+## How it got there
+- **Salt energy density** (physics, high confidence): solar salt (60% NaNO₃/40% KNO₃), c_p ≈ 1.5 kJ/kg·K, ΔT ≈ 275°C (290–565°C operating band) → 0.115 kWh_th/kg → **8.73 kg salt per kWh**.
+- **Salt-only cost**: at $0.60–1.20/kg bulk commodity price (central $0.85/kg) → **≈$7.4/kWh** for salt alone.
+- **Non-tank BOP**: assumed comparable in magnitude to salt cost, based on tanks typically being ~30–35% of total system cost in published CSP TES benchmarks (~$15–30/kWh full-system) → pushes non-tank total to **≈$14–15/kWh**, then +5–10% for usable-vs-nameplate derating (heel/dead volume) and a scale nudge (200 MWh is modest vs. multi-GWh CSP plants) → **$16–18/kWh** central.
+- **30-year/daily-cycling check**: nitrate salt chemistry handles ~11,000 daily cycles fine with no replacement capex; only a possible mid-life HX/piping refurb could add $1–3/kWh at the high end.
+
+**Confidence: medium.** The salt-mass derivation is high-confidence physics. The weak link is the tank/BOP cost split, which the agent flagged as recalled-not-verified rather than freshly sourced — that's what sets the bracket width. It offered to sharpen this against a live NREL SAM CSP cost model if you want a tighter number.

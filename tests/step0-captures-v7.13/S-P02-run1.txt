@@ -1,0 +1,72 @@
+I've dispatched the first-principles agent with your exact prompt, verbatim. It's running in the background — I'll let you know when it returns the inversion analysis.
+# Inversion Analysis: "Faster shipping means better retention"
+
+## 1. Problem Essence
+
+**Essence Statement:** Determine the conditions under which the causal claim "shipping cadence (2-week cycles) → improved retention" breaks down, so the team knows when to stop trusting cadence as a retention lever.
+
+**Success criteria:**
+- Produces a list of necessary preconditions the claim silently depends on
+- Each precondition is classified as verified / conventional / untested
+- Ends with a concrete signal set the team can monitor to know when the assumption has broken down
+
+## 2. Inverted Claim
+
+**Original:** "Faster shipping (biweekly releases) causes better retention."
+**Inverted:** "Faster shipping does *not* improve retention — and may actively harm it."
+
+## 3. Failure-Guaranteeing Conditions
+
+Conditions that would *guarantee* the inversion holds (at least five):
+
+1. **Ships add features/changes users didn't ask for or don't need**, increasing cognitive load without addressing the actual churn driver.
+2. **Ships introduce regressions/instability faster than QA can absorb** — biweekly cadence outruns the team's testing capacity, so users experience more bugs, not fewer.
+3. **Retention is driven by a factor uncorrelated with release velocity** (e.g., pricing, onboarding, support quality, market fit) — shipping fast optimizes a variable that isn't load-bearing for churn.
+4. **Users don't have time to learn/adopt one change before the next lands**, causing change fatigue and perceived instability ("this app keeps changing under me").
+5. **Shipping cadence is sustained by cutting corners** (skipped tests, rushed design, no user research) — so "fast" ships are systematically lower quality than slower ones would be.
+6. **The team measures activity (ships shipped) instead of outcome (problems solved)** — Goodhart's Law: cadence becomes the target and retention-relevant work gets deprioritized in favor of shippable-but-shallow work.
+7. **Retention is already saturated/at ceiling** for the current user base — no amount of additional shipping moves a metric that has hit its natural ceiling for reasons outside product control (e.g., market saturation, pricing changes elsewhere).
+
+## 4. Necessary Preconditions (what the original claim silently depends on)
+
+| # | Precondition | Status | Classification |
+|---|---|---|---|
+| P1 | Ships correlate with fixing/improving things users actually care about (not just "new stuff") | Unverified — never measured against actual churn drivers | untested belief |
+| P2 | QA/testing capacity scales with cadence, so quality doesn't degrade as speed increases | Unverified — no stated regression-rate tracking | untested belief |
+| P3 | Retention is currently bottlenecked by product improvement velocity, not by something else (pricing, support, onboarding, market fit) | Unverified — no causal attribution done | untested belief |
+| P4 | Users have the capacity/desire to absorb change at a 2-week cadence for this specific product's usage pattern | Convention — assumes "faster = better" as an industry norm, not verified for this user base | convention |
+| P5 | The team is shipping outcomes, not shipping activity (i.e., "ships every two weeks" isn't itself the goal) | Unverified — the phrasing "ships every two weeks" suggests cadence may already be treated as the KPI | untested belief |
+| P6 | There's a measurement link between individual ships and retention movement (attribution exists) | Unverified — likely absent given the framing of the question | untested belief |
+
+## 5. Where the Assumption Breaks Down (routed as findings)
+
+The inversion surfaces a converging pattern (cluster, per pre-mortem-style read): **every failure-guaranteeing condition and every unverified precondition points to the same root gap — the team has never established the causal mechanism connecting a ship to a retention outcome.** "We ship every two weeks" is a cadence fact; "faster ships → better retention" is an unproven causal claim riding on that fact.
+
+The assumption breaks down specifically when:
+
+1. **No retention-per-ship attribution exists.** If you cannot point to which of your last N ships moved retention and by how much, the claim is currently unfalsifiable in practice, not just theoretically shaky (P1, P6).
+2. **Cadence and quality trade off.** The moment shipping frequency forces cut QA time, incident rate, or reduces user research per feature, faster shipping actively works against retention (condition 2, 5; precondition P2).
+3. **The retention bottleneck lives outside product velocity** — e.g., in pricing, support response time, onboarding drop-off, or a market/competitive shift. Shipping faster in that world is optimizing the wrong lever entirely (condition 3, 7; precondition P3).
+4. **Change fatigue exceeds adaptation capacity** for your specific user segment — this is highly product-dependent (a power-user B2B tool tolerates cadence very differently than a low-touch consumer app) (condition 4; precondition P4).
+5. **Cadence has become a proxy metric the team optimizes for its own sake** ("ship every two weeks" as a ritual) rather than a means to an end — this is the Goodhart's Law trap and is worth checking for directly, since the way the question was phrased ("our team ships every two weeks") frames cadence as the fixed input, not the retention outcome as the fixed target (condition 6; precondition P5).
+
+## 6. Recommended Next Step (Ground Truth Verification)
+
+Before trusting the cadence→retention claim further, verify P1/P3/P6 together via a single test: pull the last 6-10 releases, tag each by type (bug fix / new feature / performance / UX polish), and check retention-cohort movement in the 2-4 weeks following each. This either produces a real ground truth (a specific ship-type does move retention) or falsifies the blanket claim (cadence itself is not the lever — content/type of ship, or something entirely outside shipping, is).
+
+**Note on scope:** Per the inversion procedure, each unverified precondition (P1, P2, P3, P5, P6) should be carried into a Phase 2 Classified Assumptions Table for full verification if you want to proceed to a complete first-principles analysis (Ground Truths → Derivation Chains) rather than stopping at this focused inversion pass. Let me know if you want that full follow-through.
+The inversion analysis is done. Here's the core result:
+
+**Inverted claim:** "Faster shipping does *not* improve retention — and may actively harm it."
+
+**Where the assumption breaks down** (the agent found these converge on one root gap: you've never established a causal mechanism linking ships to retention):
+
+1. **No retention-per-ship attribution exists** — you can't currently point to which ships moved retention or by how much, so the claim is unfalsifiable in practice.
+2. **Cadence/quality tradeoff** — if the 2-week pace forces cut QA or rushed testing, faster shipping actively hurts retention instead of helping.
+3. **The real bottleneck is elsewhere** — pricing, support, onboarding, or market fit may be the actual churn driver, making shipping speed the wrong lever entirely.
+4. **Change fatigue** — users may not have time to adapt to each change before the next lands, especially depending on your product's usage pattern (power-user tool vs. low-touch consumer app).
+5. **Cadence became the goal itself** — the framing "we ship every two weeks" suggests cadence may be tracked as the KPI rather than retention, a Goodhart's Law trap.
+
+**Recommended test:** pull your last 6-10 releases, tag each by type (bug fix / feature / perf / UX polish), and check retention-cohort movement in the 2-4 weeks after each. This either reveals which ship-type actually moves retention, or falsifies the blanket cadence claim.
+
+The agent also offered a deeper follow-through (full first-principles pass with a classified assumptions table) if you want to go further than this inversion.

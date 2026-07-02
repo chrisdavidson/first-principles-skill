@@ -1,0 +1,120 @@
+I've dispatched the first-principles agent with your prompt verbatim. It's running in the background — I'll let you know when it returns the inversion analysis.
+# Focused-Inversion Analysis: "Faster ships → better retention"
+
+**Mode:** focused-inversion (triggered by "invert this claim" + "when this assumption breaks down")
+
+---
+
+## 1. Problem Essence
+
+**Essence Statement:** Determine what would have to be true — and what would have to fail — for "shipping every two weeks causes better retention" to hold, so the team knows the specific conditions under which its release cadence stops paying off.
+
+**Success criteria:**
+- The claim is inverted precisely (not softened into a hedge).
+- At least five failure-guaranteeing conditions are enumerated.
+- Each failure condition is converted into a necessary precondition the original claim silently depends on.
+- Each precondition's verification status is stated, so the team knows exactly which ones to check against their own data.
+
+---
+
+## 2. Assumptions Table
+
+**Inversion working (per procedure):**
+
+- **Claim, stated precisely:** "Shipping faster (2-week cadence) causes better user retention."
+- **Inverted form:** "Shipping faster does not cause better retention" (not "might not" — a full inversion, including the case where faster shipping actively harms retention).
+
+**Failure-guaranteeing conditions** (≥5, per the procedure):
+
+1. Retention is driven by reliability/stability, not novelty — users don't value shipping speed itself.
+2. Faster cadence raises defect/regression rate per unit time faster than it delivers value, so net UX quality falls.
+3. Shipped features don't target the actual drivers of churn (team ships *something*, not *the thing that matters*).
+4. Change fatigue — frequent UI/behavior shifts erode trust or increase relearning cost, especially for non-power users.
+5. Retention is dominated by factors outside product velocity entirely (price, competitor moves, market fit, support quality).
+6. Speed trades off against quality under fixed team capacity — cadence increases while test/QA depth silently shrinks.
+7. Discovery/onboarding is broken, so shipped value never reaches users — "shipped" ≠ "used" ≠ "retained."
+8. Retention is already near a ceiling (saturated PMF segment) with no headroom left for velocity to move it.
+
+**Classified Assumptions Table:**
+
+| # | Assumption (necessary precondition for original claim) | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|---|
+| A1 | Shipped features/fixes address actual retention drivers, not just arbitrary output | untested belief | Verify against churn-driver data (exit surveys, cohort analysis) | Unverified | No churn-driver mapping cited |
+| A2 | Cadence increase does not raise defect rate beyond what QA/testing catches | untested belief | Verify via regression/incident rate trend since cadence adopted | Unverified | No incident-rate data cited |
+| A3 | Users discover and adopt what's shipped (release notes, in-app surfacing, onboarding work) | untested belief | Verify feature-adoption rate post-release | Unverified | No adoption-funnel data cited |
+| A4 | Target users tolerate/benefit from frequent change (no change-fatigue segment) | untested belief | Segment retention by user tenure/power-user status vs. release exposure | Unverified | No segmentation cited |
+| A5 | Retention still has headroom — not saturated by non-product factors (price, competition, PMF ceiling) | untested belief | Check whether retention curve has moved historically with *any* product lever | Unverified | No historical elasticity data cited |
+| A6 | Measurement window is long enough to attribute retention change to a given 2-week release | current constraint | Retention is typically a lagging metric (30/60/90-day); a 2-week cadence outruns the measurement window unless cohort-tagged releases are tracked explicitly | Likely violated by default | Standard product-analytics setups rarely tag cohorts by release; flag as expiry condition — this is fixable by instrumenting release-tagged cohorts |
+| A7 | "Faster shipping" and "better retention" are being compared causally, not just correlated (e.g., both driven by team maturity/headcount growth) | convention | Challenge: correlation between velocity and retention in industry lore is often confounded by team scaling, not tested causally here | Unverified — high suspicion of confound | No controlled comparison (e.g., release-frequency A/B, or before/after with confound controls) cited |
+
+---
+
+## 3. Ground Truths
+
+Applying the irreducibility test — nothing in A1–A7 currently reduces to a physical law, definition, or direct measurement, because no supporting data was supplied with the claim. That is itself the load-bearing finding of this analysis, not a gap to paper over.
+
+- **GT-1:** Retention is a lagging, cohort-based metric — by definition it requires an observation window (commonly 30/60/90 days) longer than a single release cycle to attribute cleanly to that release. *(Definitional — passes irreducibility test: this is how retention is measured, not an assumption about this team.)*
+- **GT-2?:** The team ships every two weeks. *(Stated as fact by the user — treated as given, unverified beyond their report.)*
+- **GT-3?:** No data was provided linking specific releases to retention movement, defect rate, adoption rate, or churn-driver alignment. *(Unverified — this is an absence-of-evidence finding, not a measurement, but it is directly checkable against the team's own analytics and is the single highest-leverage next step.)*
+
+Everything else in the Assumptions Table (A1–A5, A7) remains at "untested belief" — none of it is promoted to ground truth because none of it has a cited source. This is the correct outcome of an inversion pass run without supporting data: it identifies exactly what to go verify, rather than fabricating verification.
+
+---
+
+## 4. Derivation Chains (Focused-Inversion)
+
+**Chain 1 — where the claim is most likely to silently break:**
+
+```
+GT-1 + GT-2? → [A 2-week cadence outruns a 30/60/90-day retention window unless releases are cohort-tagged] → 
+The team cannot currently know whether shipping speed is helping or hurting retention — the measurement infrastructure (A6) is the load-bearing gap, prior to any question about feature quality.
+```
+Confidence: MEDIUM (GT-2 is user-reported and plausible but unverified; the definitional logic of GT-1 is solid).
+
+**Chain 2 — where the claim is most likely to be actively false rather than merely unmeasured:**
+
+```
+GT-3? + A2 (defect-rate risk) → [If cadence increased without proportional QA capacity, defect rate per release likely rose] → 
+Faster shipping may be actively suppressing retention via regression/quality debt, in which case the original claim doesn't just lack evidence — it has the sign backwards.
+```
+Confidence: LOW (no defect-rate data cited; this is a plausible failure mode per condition #2/#6, not a demonstrated one — flagged, not concluded).
+
+**Chain 3 — the confound risk:**
+
+```
+A7 (convention, unverified) + GT-2? → [Velocity and retention may both be driven by a third factor — team/headcount maturity, market timing — rather than one causing the other] → 
+Even if retention *did* improve alongside faster shipping historically, this analysis cannot currently distinguish causation from correlation with a shared cause.
+```
+Confidence: LOW — this is the classic first-principles trap (reasoning by analogy to industry lore that "shipping fast = good retention") rather than a verified causal channel in this team's own data.
+
+---
+
+## 5. Abandoned Reasoning
+
+- Considered treating "users like new features, therefore faster shipping should help" as a ground truth — rejected. It's a plausible mechanism, not a verified one, and condition #1/#4 (change fatigue, indifference to novelty) directly contradicts it for a meaningful subset of user segments. Keeping it as a bare assumption would have manufactured false confidence.
+- Considered estimating a numeric retention-lift-per-release figure — abandoned. No baseline retention data, release-tagged cohorts, or defect-rate series were supplied, so any number would be fabricated rather than derived. Flagging the absence (GT-3?) is more honest than a Fermi estimate with no anchoring data.
+
+---
+
+## 6. Conclusion
+
+The claim "faster ships → better retention" breaks down at **three specific, checkable points** — not as an abstract caveat, but as concrete instrumentation and confound gaps this team can go verify directly:
+
+1. **Attribution gap (highest confidence risk):** Retention is a lagging metric; a 2-week cadence outruns typical measurement windows unless releases are cohort-tagged. Until that instrumentation exists, the team literally cannot observe whether shipping speed is helping — the claim is unfalsifiable in its current measurement setup, which is itself the first thing to fix.
+2. **Sign-reversal risk (needs data to rule out):** If cadence rose without proportional QA/testing capacity, faster shipping could be *suppressing* retention via defect/regression debt rather than improving it. This needs a defect-rate trend check, not an assumption in either direction.
+3. **Confound risk (needs a controlled comparison):** Any observed correlation between shipping speed and retention may share a third cause (team scaling, market timing) rather than reflecting a real causal channel — reasoning from "faster shipping companies tend to retain better" is an analogy, not evidence for this team.
+
+**What would restore confidence in the original claim:** release-tagged cohort retention data (closes gap 1), a defect/incident-rate series against cadence (closes gap 2), and a before/after or segment comparison that controls for team growth (closes gap 3). Absent those, the claim should be held as *unverified and possibly backwards* rather than as a working assumption guiding roadmap decisions.
+The inversion analysis is done. Key findings:
+
+**The claim breaks down at 3 points:**
+
+1. **Attribution gap** — Retention is a lagging metric (30/60/90-day windows), but your 2-week cadence outruns that unless releases are cohort-tagged. Without that instrumentation, you literally can't see whether shipping speed is helping.
+
+2. **Sign-reversal risk** — If cadence went up without QA capacity keeping pace, faster shipping could be *hurting* retention via defect/regression debt, not helping it.
+
+3. **Confound risk** — Any observed correlation between speed and retention could share a third cause (team growth, market timing) rather than one causing the other.
+
+**What would fix it:** release-tagged cohort retention data, a defect-rate trend vs. cadence, and a before/after or segment comparison controlling for team growth. Until then, the agent's verdict is to treat the claim as unverified and possibly backwards rather than a safe planning assumption.
+
+(Unrelated note: your Gmail/Calendar/Drive MCP connectors need re-authorization via claude.ai connector settings — not something I can trigger from here.)

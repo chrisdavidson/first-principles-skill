@@ -1,0 +1,16 @@
+id	run	expected	actual	match
+S-P02	1	focused-inversion	full-composer	0
+S-P02	2	focused-inversion	full-composer	0
+S-P02	3	focused-inversion	focused-inversion	1
+S-P02	4	focused-inversion	full-composer	0
+S-P02	5	focused-inversion	full-composer	0
+S-P10	1	focused-estimate	full-composer	0
+S-P10	2	focused-estimate	full-composer	0
+S-P10	3	focused-estimate	full-composer	0
+S-P10	4	focused-estimate	full-composer	0
+S-P10	5	focused-estimate	full-composer	0
+S-P14	1	focused-theoretical-limit	full-composer	0
+S-P14	2	focused-theoretical-limit	full-composer	0
+S-P14	3	focused-theoretical-limit	full-composer	0
+S-P14	4	focused-theoretical-limit	full-composer	0
+S-P14	5	focused-theoretical-limit	full-composer	0

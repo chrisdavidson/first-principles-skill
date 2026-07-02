@@ -1,0 +1,98 @@
+I've dispatched the first-principles agent with your exact prompt verbatim. It's running in the background — I'll let you know when it completes with the analysis.
+# Theoretical Limit on Thermodynamic Conversion Efficiency — Molten-Salt Thermal Storage
+
+**Mode:** focused-theoretical-limit (triggered by "theoretical limit... what do the laws actually permit")
+
+## 1. Problem Essence
+
+**Essence statement:** What is the maximum fraction of stored thermal energy in a molten-salt thermal storage system that the laws of thermodynamics permit to be converted into work (electricity), independent of today's turbine/cycle engineering?
+
+**Success criteria:**
+- Names the governing physical law explicitly (not "best current plants achieve X%")
+- Derives a numeric ceiling from actual temperature values, not analogy to existing CSP plants
+- States the gap between that ceiling and current practice, and identifies how much of the gap is irreducible vs. closeable
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| The "conversion" in question is heat→work (power block), not charge/discharge storage retention | untested belief | Flagged; if the question meant round-trip storage efficiency, the answer is a different (much higher, ~98%+) figure governed by heat-loss/insulation physics, not Carnot | Assumed heat-to-work interpretation, since that's what "thermodynamic conversion efficiency" conventionally means for a power plant | Flagged — GT-1? |
+| Hot-side temperature is bounded by molten salt's practical/chemical stability, ~565°C for solar salt (NaNO3/KNO3), up to ~720°C for chloride salts | current constraint | Record expiry: new salt chemistries (chloride, carbonate eutectics) raise Th; expires as materials science advances | Accepted as current constraint, not a law | Verified against published CSP/salt literature to model knowledge cutoff |
+| Cold-side (sink) temperature is set by ambient environment, ~15–40°C depending on site and cooling method | current constraint | This is genuinely a constraint of Earth's environment, not arbitrary convention — but site-dependent | Accepted, ~300 K nominal used | Standard engineering reference value |
+| The Second Law of Thermodynamics governs the ceiling via the Carnot bound | physical law | Accept as ground-truth candidate | Verified | Foundational, non-negotiable |
+| Real heat engines cannot reach Carnot efficiency because Carnot assumes reversible (infinitely slow, zero-entropy-production) heat transfer, i.e., zero power output | physical law (corollary) | Accept — this motivates using Curzon-Ahlborn endoreversible efficiency as the *finite-power-output* attainable bound, distinct from the absolute ceiling | Verified | Standard finite-time thermodynamics result (Curzon & Ahlborn, 1975) |
+| Current CSP molten-salt plants achieve ~38–42% net thermal-to-electric efficiency via subcritical/supercritical Rankine steam cycles | current constraint (conventional figure) | This is the figure being stripped back | Accepted as the conventional baseline | Consistent with published performance of solar-salt CSP plants (e.g., Rankine cycle designs at ~565°C turbine inlet) |
+
+## 3. Ground Truths
+
+- **GT-1:** Second Law of Thermodynamics → for any heat engine operating between a hot reservoir at Th and cold reservoir at Tc (both in Kelvin), maximum possible efficiency is the Carnot limit: η_Carnot = 1 − Tc/Th. (Physical law, irreducible.)
+- **GT-2:** Solar salt (60% NaNO3 / 40% KNO3), the standard molten-salt storage medium, has a practical upper operating temperature of ~565°C (838 K) before accelerated corrosion/decomposition. Next-generation chloride salts push this to ~700–720°C (~973–993 K). (Current constraint, materials-science-bounded, cited to CSP/salt storage literature.)
+- **GT-3:** Ambient heat rejection (condenser/cooling tower or dry cooling) sets the cold reservoir at roughly 288–313 K (15–40°C) depending on climate and cooling method; 300 K is a reasonable nominal midpoint. (Current constraint, environment-bounded.)
+- **GT-4:** Curzon-Ahlborn endoreversible efficiency η_CA = 1 − √(Tc/Th) gives the efficiency at which a heat engine delivers *maximum power output* (not zero power, as Carnot requires) — this is the more physically realistic "attainable ceiling" for an actual working plant. (Physical law corollary, well-established in finite-time thermodynamics.)
+- **GT-5?:** Current best molten-salt CSP plants achieve ~38–42% net thermal-to-electric conversion. (Unverified precise figure — flagged; order of magnitude is well-supported but exact plant-specific numbers vary by design/site.)
+
+## 4. Derivation Chains (Theoretical-Limit Technique)
+
+**Step 1 — Name the conventional figure and its embedded conventions.**
+Conventional figure: ~38–42% net efficiency (GT-5?). Embedded conventions: (a) solar salt capped near 565°C for corrosion reasons, (b) subcritical/supercritical steam Rankine cycle as the power-block technology, (c) wet or dry cooling to ambient.
+
+**Step 2 — Strip to the governing law.**
+```
+GT-1 → [Carnot bound applies to any heat engine regardless of working fluid or cycle design] → the ceiling is set by Th/Tc alone, not by turbine technology
+```
+
+**Step 3 — Derive the law-permitted ceiling using first-principles temperature values.**
+```
+GT-1 + GT-2 + GT-3 → [η_Carnot = 1 − Tc/Th, with Th = 838 K (solar salt, 565°C), Tc = 300 K (ambient)] → η_Carnot = 1 − 300/838 = 0.642 ≈ 64%
+```
+With next-generation chloride salts (Th ≈ 973 K, 700°C):
+```
+GT-1 + GT-2 + GT-3 → [η_Carnot = 1 − 300/973] → η_Carnot ≈ 0.692 ≈ 69%
+```
+
+**Step 4 — Bracket with the finite-power-output (attainable) bound, since Carnot itself is unreachable by any working plant.**
+```
+GT-1 + GT-4 → [η_CA = 1 − √(Tc/Th), Th = 838 K, Tc = 300 K] → η_CA = 1 − √0.358 = 1 − 0.598 ≈ 0.402 ≈ 40%
+```
+
+**Step 5 — Bracket the gap.**
+
+| Quantity | Value (solar salt, 565°C / 300 K sink) | Value (chloride salt, 700°C / 300 K sink) |
+|---|---|---|
+| Absolute physical ceiling (Carnot) | ~64% | ~69% |
+| Finite-power attainable bound (Curzon-Ahlborn) | ~40% | ~44% |
+| Current conventional practice (GT-5?) | ~38–42% | n/a (not yet deployed at scale) |
+| Gap: Carnot minus current practice | ~22–26 pts | — |
+| Gap: Carnot minus Curzon-Ahlborn | ~24 pts | ~25 pts |
+
+**Interpretation:** Current CSP molten-salt plants are already operating close to the *finite-power-output* thermodynamic bound (Curzon-Ahlborn), not far below it. The large-looking gap to the ~64% Carnot figure is mostly **irreducible** — it is the price of extracting nonzero power in finite time, a Second Law consequence, not an engineering shortfall. The genuinely closeable headroom is smaller: pushing Th higher via better salt chemistry (chloride/carbonate salts, particle-based or ceramic storage reaching 700–1000°C+) raises both the Carnot ceiling and the Curzon-Ahlborn attainable bound roughly in lockstep. At 1000°C (1273 K) storage against a 300 K sink, Carnot ≈ 76%, Curzon-Ahlborn ≈ 51% — a materially higher ceiling than today's solar-salt systems permit.
+
+## 5. Abandoned Reasoning
+
+- Considered treating "conversion efficiency" as round-trip storage efficiency (charge/discharge heat retention). Abandoned this reading because the question specifically asks about "thermodynamic conversion efficiency," which in CSP/power-plant contexts standardly means heat-to-work conversion, not storage retention (retention is a heat-loss/insulation problem, not a Carnot-bounded one, and would yield a trivially different ~98%+ answer not requiring Second Law analysis).
+- Considered using exergy/second-law efficiency (actual/Carnot) as the primary figure rather than raw Carnot %. Set aside because the question asks for the "theoretical limit," which is most directly answered by the absolute Carnot ceiling with the Curzon-Ahlborn bound as the necessary bracket — exergy efficiency is a useful downstream metric but not itself the ceiling.
+
+## 6. Conclusion
+
+The governing law is the **Second Law of Thermodynamics**, and the absolute physical ceiling on thermal-to-electric conversion is the **Carnot efficiency**, η = 1 − Tc/Th. For today's solar-salt molten storage (max ~565°C / 838 K) rejecting heat to ambient (~300 K), that ceiling is **≈64%**. For emerging higher-temperature chloride-salt systems (~700°C / 973 K), the ceiling rises to **≈69%**, and for advanced high-temperature particle/ceramic storage approaching 1000°C, it approaches **≈76%**.
+
+However, Carnot efficiency requires infinitely slow (reversible) heat transfer — i.e., zero power output — so no working plant can approach it. The more physically meaningful "what can actually be built" bound is the **Curzon-Ahlborn finite-power-output efficiency**, η = 1 − √(Tc/Th), which comes out to **≈40%** for current solar-salt temperatures — strikingly close to what today's best CSP molten-salt plants (~38–42%) already achieve.
+
+**Bottom line:** current engineering practice is not far below the realistic thermodynamic bound at today's salt temperatures — most of the apparent 24-point gap to the ~64% Carnot figure is an irreducible consequence of extracting nonzero power, not an engineering deficiency. The real, closeable lever for raising the ceiling is **hot-side temperature** (better salt/storage-medium chemistry), which shifts both the Carnot ceiling and the attainable Curzon-Ahlborn bound upward together.
+
+**Confidence:** HIGH on the Carnot/Curzon-Ahlborn derivations (GT-1, GT-4, physical law). MEDIUM on the precise current-practice comparison figure (GT-5?, flagged as unverified plant-specific data) — this affects only the "how close is practice to the bound" framing, not the ceiling values themselves.
+The first-principles agent finished. Here's the analysis:
+
+**Governing law:** Second Law of Thermodynamics → Carnot efficiency η = 1 − Tc/Th sets the absolute ceiling.
+
+**Numbers:**
+- Solar salt (max ~565°C / 838 K) rejecting to ambient (~300 K): **Carnot ceiling ≈ 64%**
+- Next-gen chloride salts (~700°C / 973 K): **≈69%**
+- Advanced high-temp particle/ceramic storage (~1000°C): **≈76%**
+
+**But** Carnot efficiency requires reversible, infinitely slow heat transfer — zero power output. No real plant can approach it. The physically meaningful "what's actually attainable" bound is the **Curzon-Ahlborn finite-power-output efficiency**, η = 1 − √(Tc/Th):
+- At solar-salt temperatures: **≈40%**
+
+**Key finding:** Today's best CSP molten-salt plants already achieve ~38–42% — essentially at the Curzon-Ahlborn bound. Most of the apparent gap to the 64% Carnot figure is *irreducible* (the physical cost of extracting nonzero power), not an engineering shortfall. The real lever for raising the ceiling is hot-side temperature — better salt/storage chemistry pushes both the Carnot ceiling and the attainable Curzon-Ahlborn bound up together.
+
+Confidence: high on the Carnot/Curzon-Ahlborn math; medium on the exact current-practice comparison figure (flagged as an unverified plant-specific number, doesn't affect the ceiling values themselves).
