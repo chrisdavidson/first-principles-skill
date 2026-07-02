@@ -904,6 +904,18 @@ def self_test_boundary() -> int:
     def _load_excerpt_v711(prompt_id: str, run: int) -> str:
         return (_V711_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
+    # _load_excerpt_v713 helper — reads Phase 137 v7.13 live re-baseline
+    # assistant-text excerpts. Same shape as _load_excerpt_v711: Path.read_text()
+    # so a missing file raises FileNotFoundError loudly (Pitfall 5 — no vacuous
+    # empty-string zero-count). Captures are the 15-call live run
+    # (3 catalog rows x 5 repeats: S-P02/S-P10/S-P14; committed at 2af16fe).
+    # Added in Phase 138 RECON-02 (D-03 — re-point the BATT-06 honest-state
+    # sentinels RR-114-01/RR-108-04/RR-108-05 to v7.13 vectors).
+    _V713_DIR = REPO_ROOT / "tests" / "step0-captures-v7.13"
+
+    def _load_excerpt_v713(prompt_id: str, run: int) -> str:
+        return (_V713_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
     # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
     #          re-pointed to v6.3 evidence Phase 93, Plan 01;
@@ -1202,10 +1214,12 @@ def self_test_boundary() -> int:
     # same "When the assumption breaks down" span).  The lookahead (?!\s+down)
     # restores Phase 91 CR-01 non-overlap discipline.
     #
-    # This gate asserts the DOCUMENTED per-run v7.11 inversion count vector
-    # [3, 1, 0, 1, 2] over tests/step0-captures-v7.11/S-P02-run{1..5}.txt
-    # (Phase 131 RECON-02, re-pointed v7.6 -> v7.11; S-P02 2/5 FAIL CARRIED).
-    # The v6.3/v6.4/v7.4 excerpts remain byte-frozen (D-04).
+    # This gate asserts the DOCUMENTED per-run v7.13 inversion count vector
+    # [5, 4, 5, 5, 4] over tests/step0-captures-v7.13/S-P02-run{1..5}.txt
+    # (Phase 138 RECON-02, re-pointed v7.11 -> v7.13; S-P02 1/5 FAIL CARRIED).
+    # All 5 runs have inversion >= MIN_HEADER_HITS (detector fires on all runs);
+    # live 1/5 because runs 1,2,4,5 exceeded the composer ceiling (CR-02) and
+    # classified full-composer. The v6.3/v6.4/v7.4/v7.11 excerpts remain byte-frozen (D-04).
     #
     # Phase 121 OCH-01/02 structural resolution — RESOLVED-STRUCTURALLY-OFFLINE:
     # 4 output-contract heading-anchored markers (## Inverted Claim /
@@ -1234,7 +1248,7 @@ def self_test_boundary() -> int:
     # ---------------------------------------------------------------------------
     _rr11401_inv_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v711("S-P02", _run)
+        _text = _load_excerpt_v713("S-P02", _run)
         _hits = _technique_hits(_text)
         _rr11401_inv_counts.append(_hits.get("inversion", 0))
 
@@ -1251,15 +1265,15 @@ def self_test_boundary() -> int:
         print(
             f"  RR-114-01 FAIL: inversion pattern count drifted "
             f"(expected 13, got {_rr11401_inv_pattern_count}) — update sentinel "
-            f"after verifying new per-run inversion counts over S-P02-run1..5 (v7.11)."
+            f"after verifying new per-run inversion counts over S-P02-run1..5 (v7.13)."
         )
         all_passed = False
 
     # Positive counter-check (WR-01): prove the inversion detector IS live
-    # and CAN fire on v7.6 text — the real-excerpt vector is a genuine partial-hit
+    # and CAN fire on v7.13 text — the real-excerpt vector is a genuine multi-hit
     # picture, not a dead detector.  A synthetic 2-marker text using two canonical
     # inversion phrases must yield inversion >= MIN_HEADER_HITS.
-    # (Also: run1=2 >= MIN_HEADER_HITS in the real v7.6 captures, proving non-vacuous.)
+    # (Also: run1=5 >= MIN_HEADER_HITS in the real v7.13 captures, proving non-vacuous.)
     _rr11401_synth_text = _fixture_assistant_text(
         "Invert, always invert — the canonical inversion move.\n\n"
         "Start by identifying the necessary precondition for success."
@@ -1270,8 +1284,8 @@ def self_test_boundary() -> int:
     _rr11401_synth_inv = _rr11401_synth_hits.get("inversion", 0)
 
     _rr11401_ok = (
-        _rr11401_inv_counts == [3, 1, 0, 1, 2]
-        and _rr11401_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check)
+        _rr11401_inv_counts == [5, 4, 5, 5, 4]
+        and _rr11401_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check: count=5 >= 2)
         and _rr11401_inv_pattern_count == 13             # drift guard (D-08 bump: 6→7→8→9, Phase 94; D-03 bump: 9→13, Phase 121 OCH-02)
         and _rr11401_synth_inv >= MIN_HEADER_HITS         # detector is reachable (synthetic check)
     )
@@ -1279,22 +1293,24 @@ def self_test_boundary() -> int:
         print(
             f"  RR-114-01 PASS (asserts honest CARRIED state — NOT forced green): "
             f"S-P02 inversion count vector {_rr11401_inv_counts} "
-            f"== [3, 1, 0, 1, 2] (live v7.11 re-baseline captures; run1={_rr11401_inv_counts[0]} "
+            f"== [5, 4, 5, 5, 4] (live v7.13 re-baseline captures; run1={_rr11401_inv_counts[0]} "
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
             f"inversion detector reachable (synthetic 2-marker text → inv_hits={_rr11401_synth_inv} "
             f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
-            f"runs 1,5 clear barrier (inversion fires), runs 2,3,4 below → S-P02 2/5 FAIL CARRIED "
-            f"at the Phase 129 v7.11 live re-baseline (2/5 < 3/5 min-pass; RR ID kept per D-09, "
+            f"all runs clear detector bar (det 5/5); live 1/5 because runs 1,2,4,5 exceeded "
+            f"the composer ceiling (CR-02 CEILING={_COMPOSER_FOCUS_CEILING}) → full-composer; "
+            f"only run3 classified focused-inversion → S-P02 1/5 FAIL CARRIED "
+            f"at the Phase 137 v7.13 live re-baseline (1/5 < 3/5 min-pass; RR ID kept per D-09, "
             f"no successor minted); the carried disposition is the honest recorded state "
             f"(honesty-not-score, D-01); live S-P02 fix forward-committed (inversion live re-measure milestone); "
             f"inv_patterns={_rr11401_inv_pattern_count}. "
-            f"Supersedes RR-108-01; re-pointed v7.6 → v7.11 (Phase 131 RECON-02, D-03). "
+            f"Supersedes RR-108-01; re-pointed v7.11 → v7.13 (Phase 138 RECON-02, D-03). "
             f"Chain: RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01 → RR-114-01."
         )
     else:
         print(
             f"  RR-114-01 FAIL: S-P02 inversion count vector {_rr11401_inv_counts} "
-            f"(expected [3, 1, 0, 1, 2] from v7.11 S-P02 captures); "
+            f"(expected [5, 4, 5, 5, 4] from v7.13 S-P02 captures); "
             f"inv_patterns={_rr11401_inv_pattern_count} (expected 13); "
             f"run1={_rr11401_inv_counts[0] if len(_rr11401_inv_counts) > 0 else '?'} "
             f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
@@ -1843,44 +1859,52 @@ def self_test_boundary() -> int:
     # S-P09 catalog row does NOT affect BATT-06.
     # Per-entry loader dispatch (Phase 131 RECON-02, D-03): RR-108-03 (S-P09 decompose,
     # retired — no v7.11 capture exists) keeps reading the frozen v7.4 excerpts; RR-108-04
-    # (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) re-point to the live v7.11
-    # excerpts. Both remain honest 0/5 CARRIED at the v7.11 re-baseline (RR IDs kept, D-09).
+    # (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) re-point to the live v7.13
+    # excerpts (Phase 138 RECON-02, D-03). Both remain honest 0/5 CARRIED at the v7.13
+    # re-baseline (RR IDs kept, D-09). Note: the v7.13 captures for S-P10/S-P14 contain
+    # incidental second-order-keyword matches from estimate/theoretical-limit prose
+    # (e.g. "## Second-Order Effects" section in a Focused Estimate output) — the exact
+    # per-run technique-hit sums are asserted (not forced all-zero) to be honest
+    # about the measured evidence (honesty-not-score, D-03b).
     _NEW_TECH_SENTINELS = (
-        ("RR-108-03", "S-P09", "decompose", [1, 0, 1, 1, 1], _load_excerpt_v74, "v7.4 (frozen; decompose retired)"),
-        ("RR-108-04", "S-P10", "estimate", [0, 0, 0, 0, 1], _load_excerpt_v711, "v7.11"),
-        ("RR-108-05", "S-P14", "theoretical-limit", [0, 0, 0, 0, 0], _load_excerpt_v711, "v7.11"),
+        # fmt: off
+        # tuple: (rr_id, row_id, tech_name, expected_comp, expected_tech_sums, loader, ver_label)
+        ("RR-108-03", "S-P09", "decompose",         [1, 0, 1, 1, 1], [0, 0, 0, 0, 0], _load_excerpt_v74,  "v7.4 (frozen; decompose retired)"),
+        ("RR-108-04", "S-P10", "estimate",           [0, 5, 4, 0, 3], [0, 2, 1, 0, 0], _load_excerpt_v713, "v7.13"),
+        ("RR-108-05", "S-P14", "theoretical-limit",  [3, 8, 3, 5, 2], [0, 1, 0, 1, 0], _load_excerpt_v713, "v7.13"),
+        # fmt: on
     )
-    for _rr_id, _row_id, _tech_name, _expected_comp, _loader, _ver_label in _NEW_TECH_SENTINELS:
+    for _rr_id, _row_id, _tech_name, _expected_comp, _expected_tech_sums, _loader, _ver_label in _NEW_TECH_SENTINELS:
         _comp_counts: list[int] = []
         _focused_tech_sums: list[int] = []
         for _run in range(1, 6):
             _text = _loader(_row_id, _run)
             _comp_counts.append(_composer_structure_hits(_text))
             _focused_tech_sums.append(sum(_technique_hits(_text).values()))
-        # Honest carry assertion: the documented composer vector matches AND no
-        # ORIGINAL-technique focused mode fired on any run (the row is a genuine
-        # 0/5 carry, not a masked focused pass). The detector has no category for
-        # this technique, so its focused mode can only come from the agent body —
-        # which did not route here on any run.
+        # Honest carry assertion: the documented composer vector matches AND the
+        # per-run technique-hit sums match the expected values (honesty-not-score,
+        # D-03b: assert what the excerpts actually produce, not forced all-zero).
+        # The detector has no category for decompose/estimate/theoretical-limit, so
+        # any non-zero sums come from incidental hits of OTHER technique patterns
+        # in the output prose (e.g. "## Second-Order Effects" in an estimate output).
         _new_ok = (
             _comp_counts == _expected_comp
-            and all(s == 0 for s in _focused_tech_sums)
+            and _focused_tech_sums == _expected_tech_sums
         )
         if _new_ok:
             print(
                 f"  {_rr_id} PASS: S-{_row_id[2:]} {_tech_name} CARRIED 0/5 "
                 f"(honest recorded state, honesty-not-score D-01); {_ver_label} "
                 f"composer-structure vector {_comp_counts} == {_expected_comp}; "
-                f"no original-technique focused mode fired on any run "
-                f"(per-run technique-hit sums {_focused_tech_sums} all 0 — honest "
-                f"non-focused carry, not masked); RR ID kept (D-09; RR-108-04/05 "
-                f"re-pointed v7.4 → v7.11, Phase 131 RECON-02)."
+                f"per-run technique-hit sums {_focused_tech_sums} == {_expected_tech_sums} "
+                f"(honest non-focused carry — sums verified vs. expected, D-03b); "
+                f"RR ID kept (D-09; RR-108-04/05 re-pointed v7.11 → v7.13, Phase 138 RECON-02)."
             )
         else:
             print(
                 f"  {_rr_id} FAIL: S-{_row_id[2:]} {_tech_name} {_ver_label} composer vector "
                 f"{_comp_counts} (expected {_expected_comp}); per-run technique-hit "
-                f"sums {_focused_tech_sums} (expected all 0)."
+                f"sums {_focused_tech_sums} (expected {_expected_tech_sums})."
             )
             all_passed = False
 
@@ -1956,7 +1980,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 2/5 FAIL CARRIED; v7.11] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v7.11] + RR-108-05 [S-P14 0/5 CARRIED; v7.11] + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED 4/5 v7.11] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 1/5 FAIL CARRIED; v7.13] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v7.13] + RR-108-05 [S-P14 0/5 CARRIED; v7.13] + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED 4/5 v7.11] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
         return 0
     return 1
 
