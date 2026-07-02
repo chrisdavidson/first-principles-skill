@@ -741,8 +741,8 @@ def _rows_active_tail() -> list[MatrixRow]:
     tail_rationale_gen01 = (
         "Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). "
         "GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly "
-        "measured by the committed v7.11 live re-baseline (Phase 129). Earned by the "
-        "committed baseline, not a passing score (reproducible = measured, not passing). "
+        "measured by committed live re-baselines (latest: v7.13 residual-delta, Phase 137). "
+        "Earned by the committed baseline, not a passing score (reproducible = measured, not passing). "
         "Phase 129 v7.11 8-technique BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, "
         "S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) — honest measured "
         "state (honesty-not-score, D-01). Prior baselines frozen: v7.6 (Phase 114, FAIL), "
@@ -754,7 +754,12 @@ def _rows_active_tail() -> list[MatrixRow]:
         "RR-108-04 estimate CARRIED 0/5; RR-108-05 theoretical-limit CARRIED 0/5 "
         "(both first genuine live measurement, v7.4 was spend-limit-indeterminate); "
         "RR-108-03 decompose RESOLVED-BY-MERGE (v7.5; sentinel stays on frozen v7.4 evidence). "
-        "Confirming artifact: tests/step0-baseline-v7.11.md."
+        "v7.13 residual-delta re-measure (Phase 137, 3-row filtered catalog; "
+        "tests/step0-baseline-v7.8.md remains the canonical full 8-technique baseline): "
+        "S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept, no successor); "
+        "S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept); "
+        "S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept). "
+        "Confirming artifact: tests/step0-baseline-v7.13.md."
     )
     tail_rationale_gen02 = (
         "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + "
@@ -764,7 +769,7 @@ def _rows_active_tail() -> list[MatrixRow]:
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
-                  "active-tail", "reproducible", "tests/step0-baseline-v7.11.md",
+                  "active-tail", "reproducible", "tests/step0-baseline-v7.13.md",
                   tail_rationale_gen01),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
@@ -1502,13 +1507,15 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # (Phase 93 flip, D-08) because the Step 0 classifier capability is reproducibly
     # measured by a committed live re-baseline. The flip was earned in Phase 93 on
     # tests/step0-baseline-v6.3.md (Phase 92); the artifact_link now tracks the current
-    # authoritative re-baseline tests/step0-baseline-v7.11.md (Phase 129).
-    # Artifact bump history: v7.6 (Phase 114) → v7.8 (Phase 119) → v7.11 (Phase 131 RECON-03, D-05).
+    # authoritative re-baseline tests/step0-baseline-v7.13.md (Phase 137, residual-delta).
+    # Artifact bump history: v7.6 (Phase 114) → v7.8 (Phase 119) → v7.11 (Phase 131 RECON-03, D-05)
+    # → v7.13 (Phase 138 Plan 03, D-05). tests/step0-baseline-v7.8.md remains the canonical
+    # full 8-technique baseline; v7.13 is a 3-row residual-delta re-measure.
     # The flip is earned by the committed baseline, not a passing score
     # (Phase 129 v7.11: BATTERY: FAIL P 4/8 — reproducible = measured, not passing, D-01).
     # Asserts:
     #   (a) GEN-01's tier is "reproducible" (not "scheduled", not "gap")
-    #   (b) GEN-01's artifact_link is the committed v7.11 baseline (deep-resolved)
+    #   (b) GEN-01's artifact_link is the committed v7.13 baseline (deep-resolved)
     #   (c) Exactly-one GEN-01 row drift guard
     #   (d) Not-scheduled counter-check (transition non-vacuous)
     # Mirrors the Phase 84/85 RR-80-01 idiom: hardcoded named assertion +
@@ -1516,7 +1523,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
     # No gitignored-file dependency (.planning/ROADMAP.md removed — ABSENT in CI).
     # Honesty-not-score (D-01): asserts the documented reproducible state, not a
     # live pass-rate. Any future revert of the tier, deletion of the GEN-01 row,
-    # or removal of the v7.11 baseline file fails CI.
+    # or removal of the v7.13 baseline file fails CI.
     # ---------------------------------------------------------------------------
 
     # (1) Live-sourced tier read — call _rows_active_tail() directly (Pitfall 4:
@@ -1555,31 +1562,32 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         wrong_results.append("GEN-01-REPRODUCIBLE: tier not 'reproducible'")
 
     # (b) Artifact deep-resolve (D-09): GEN-01's artifact_link must be the committed
-    # v7.11 baseline (Phase 129 — the latest authoritative re-baseline).
+    # v7.13 baseline (Phase 137 residual-delta — the latest authoritative re-baseline).
     # Deep-resolve via _resolve_artifact (git-tracked, present in CI).
-    # Bump history: v7.6 (Phase 114) → v7.8 (Phase 119) → v7.11 (Phase 131 RECON-03, Plan 03, D-05).
-    _gen01_expected_artifact = "tests/step0-baseline-v7.11.md"
+    # Bump history: v7.6 (Phase 114) → v7.8 (Phase 119) → v7.11 (Phase 131 RECON-03, Plan 03, D-05)
+    # → v7.13 (Phase 138 Plan 03, D-05). tests/step0-baseline-v7.8.md remains canonical full baseline.
+    _gen01_expected_artifact = "tests/step0-baseline-v7.13.md"
     if _gen01_artifact != _gen01_expected_artifact:
         print(
             f"  GEN-01-REPRODUCIBLE FAIL: artifact_link={_gen01_artifact!r} "
             f"(expected {_gen01_expected_artifact!r})."
         )
-        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v7.11 baseline")
+        wrong_results.append("GEN-01-REPRODUCIBLE: artifact_link not v7.13 baseline")
     else:
         _gen01_resolve_issues = _resolve_artifact(_gen01_artifact)
         # Belt-and-suspenders: explicit path existence check
-        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v7.11.md"
+        _gen01_baseline_path = REPO_ROOT / "tests" / "step0-baseline-v7.13.md"
         if _gen01_resolve_issues or not _gen01_baseline_path.exists():
             print(
                 f"  GEN-01-REPRODUCIBLE FAIL: artifact deep-resolve failed for "
                 f"{_gen01_artifact!r}: {_gen01_resolve_issues}; "
                 f"file exists={_gen01_baseline_path.exists()}"
             )
-            wrong_results.append("GEN-01-REPRODUCIBLE: v7.11 baseline not resolvable")
+            wrong_results.append("GEN-01-REPRODUCIBLE: v7.13 baseline not resolvable")
         else:
             print(
                 f"  GEN-01-REPRODUCIBLE PASS: artifact_link={_gen01_artifact!r} "
-                f"deep-resolves OK (tests/step0-baseline-v7.11.md exists, git-tracked)."
+                f"deep-resolves OK (tests/step0-baseline-v7.13.md exists, git-tracked)."
             )
 
     # ---------------------------------------------------------------------------
