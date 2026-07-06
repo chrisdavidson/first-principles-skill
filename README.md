@@ -65,6 +65,9 @@ Fourteen domain-spread examples show the methodology applied end-to-end, each wi
 - **[Personal and general 2](first-principles/agents/references/examples/personal-general-2.md)** — Mortgage paydown vs. index investment: a quantitative expected-value analysis.
 - **[Science and engineering 2](first-principles/agents/references/examples/science-engineering-2.md)** — In-service mechanical component failure analysis (diagnostic reasoning shape).
 - **[Self-application](first-principles/agents/references/examples/self-application.md)** — Meta: applying the methodology to a contested design decision about the agent itself (agent body length vs. scope).
+- **[Decompose / irreducibility](first-principles/agents/references/examples/decompose-irreducibility.md)** — Reduce-to-primitives irreducibility drill (five-whys decompose mode) applied to thermal energy storage.
+- **[Estimate (Fermi)](first-principles/agents/references/examples/estimate-fermi.md)** — Order-of-magnitude rebuild of a quantity from verifiable unit factors (Fermi / dimensional analysis).
+- **[Theoretical limit (Carnot)](first-principles/agents/references/examples/theoretical-limit-carnot.md)** — Law-permitted-ceiling analysis grounded in the Carnot bound (constraint relaxation).
 
 ## Relationship to the original
 
