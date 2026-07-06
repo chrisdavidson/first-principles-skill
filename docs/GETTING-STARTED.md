@@ -85,6 +85,8 @@ Thirteen focused-mode skills extend the methodology. Each can be invoked directl
 | Pre-mortem | `/first-principles:pre-mortem` | Prospective-hindsight failure analysis (use during Phase 5) |
 | Trade-off | `/first-principles:trade-off` | Weighted-criteria decision between options (use during Phase 4) |
 | Second-order | `/first-principles:second-order` | Downstream-consequence extension (use during Phase 4) |
+| Estimate | `/first-principles:estimate` | Order-of-magnitude rebuild from unit factors (use during Phase 4) |
+| Theoretical Limit | `/first-principles:theoretical-limit` | Law-permitted-ceiling check on a conventional figure (use during Phase 4) |
 
 ## What the agent produces
 
