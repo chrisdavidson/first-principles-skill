@@ -157,6 +157,10 @@ See also: [Step 0 measurement harness](#step-0-measurement-harness) for the two-
 
 The canonical requirements and traceability surface lives in the git-tracked tree:
 
+- **`docs/v8.0-final-closure.md`** — terminal state entry point: final baselines, accepted
+  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5), final coverage headline
+  (133 reproducible / 96 audit-only / 0 gap / 229 total), and deferred-ledger disposition
+  summary. Start here for the v8.0 end-state. (Phase 142 terminal record.)
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
   residuals, coverage headline (133 reproducible / 96 audit-only / 0 gap / 229 total),
   compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 138 Plan 03.)

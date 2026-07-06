@@ -1,5 +1,9 @@
 # docs/ — Documentation Index
 
+> **Final state — start here:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — terminal
+> release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
+> disposition summary.
+
 This folder documents the first-principles plugin system. New here? Start with [GETTING-STARTED.md](GETTING-STARTED.md), then [ONBOARDING.md](ONBOARDING.md), then [DATA-FLOW.md](DATA-FLOW.md).
 
 ---
@@ -28,6 +32,7 @@ This folder documents the first-principles plugin system. New here? Start with [
 
 | Document | What it covers |
 |----------|----------------|
+| [v8.0-final-closure.md](v8.0-final-closure.md) | **Terminal record** — final baselines, accepted limitations, coverage headline, deferred-ledger disposition summary |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
 | [requirements-matrix.md](requirements-matrix.md) | Generated 229-row capability → requirement → test matrix |
 
