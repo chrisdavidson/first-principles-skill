@@ -36,7 +36,7 @@ generated from `shared/skills/<slug>/SKILL.md`. The eleven registered slugs are:
 | `name` | Yes | `pre-mortem` | Must match the parent directory name exactly; `anthropic` and `claude` are reserved words and forbidden |
 | `description` | Yes | `Runs a focused pre-mortem only…` | Third-person, ≤ 1,024 chars, no XML tags |
 | `disable-model-invocation` | Yes | `true` | Must be `true`; prevents orchestrator auto-routing — only explicit `/first-principles:<slug>` slash invocation loads the skill |
-| `metadata.version` | Yes | `"3.8.0"` | Double-quoted YAML string; required for sync-drift detection |
+| `metadata.version` | Yes | `"8.0.0"` | Double-quoted YAML string; required for sync-drift detection |
 | `license` | No | `MIT` | License field; passed through verbatim if present |
 
 **To change a skill stub's frontmatter or body:** Edit the source at
