@@ -82,7 +82,7 @@ completeness, unconnected to the import graph.
 flowchart LR
     SKILLBODY["shared/spine/SKILL-body.md\n(phrase detection rules table)"]
 
-    CORE["scripts/_battery_core.py\n(MIN_HEADER_HITS=2, _COMPOSER_FOCUS_CEILING=4;\nself_test_boundary() — BATT-06 sentinels:\nRR-95-01, RR-95-02, RR-77-08, RR-80-01 emulator layer)"]
+    CORE["scripts/_battery_core.py\n(MIN_HEADER_HITS=2, _COMPOSER_FOCUS_CEILING=4;\nself_test_boundary() — BATT-06 honest-state and\nanti-masking sentinels; see MEASUREMENT-MAP.md\nresidual-ownership section for the current roster)"]
 
     BATT["scripts/check-routing-battery.py\n(BATT-06: merged dual-signal battery;\n--self-test is CI gate)"]
     ROUTING["scripts/check-routing.py\n(DELEGATE/NO-DELEGATE battery;\ndeveloper tool — not in CI)"]
