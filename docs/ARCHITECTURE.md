@@ -26,7 +26,7 @@ tests/            ← routing catalog fixtures and step 0 capture files
 | Output template | `shared/spine/references/output-template.md` | Inlined into agent body |
 | Validation rubric | `shared/spine/references/validation-rubric.md` | Inlined into agent body |
 | Phase procedures | `shared/agent/` | Phase fragments stitched into the agent body |
-| Companion references | `shared/references/` | Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate |
+| Companion references | `shared/references/` | Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate |
 | Worked examples | `shared/examples/` | Fourteen domain-spread example files |
 | Focused-mode skills | `shared/skills/<slug>/SKILL.md` | Source for each slash-only companion skill |
 
