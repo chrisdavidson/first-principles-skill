@@ -1226,15 +1226,16 @@ def _write_baseline(
     p_context, p_context_pass, n_pass, battery_pass = _battery_gate(p_rows, n_rows)
     battery_verdict = "PASS" if battery_pass else "FAIL"
 
-    # D-01b — the 8-canonical-row per-technique tally surfaced at the human
-    # checkpoint for the falsifiable criterion (REBASE-02/03).
-    # Driven explicitly from CANONICAL_TALLY_IDS so the Summary always reads /8
-    # even if the falsifier-exclusion set ever drifts from the canonical set.
-    # All 8 techniques have a v7.8 prior K/N; no "newly-measured" subset exists
-    # in this v7.13 re-measure.
+    # D-01b — the per-technique tally surfaced at the human checkpoint for the
+    # falsifiable criterion (REBASE-02/03). Membership is driven explicitly
+    # from CANONICAL_TALLY_IDS, but the denominator is len(canonical_rows) —
+    # the count of canonical rows actually measured in this run (D-02, Phase
+    # 141): a 3-row residual run reads /3 while a full 8-technique run still
+    # reads /8. Frozen baseline artifacts (tests/step0-baseline-v*.md) are NOT
+    # regenerated — this fix governs future emissions only.
     canonical_rows = [r for r in results if r.prompt.id in CANONICAL_TALLY_IDS]
     canonical_pass = sum(1 for r in canonical_rows if r.row_pass)
-    canonical_n = len(CANONICAL_TALLY_IDS)
+    canonical_n = len(canonical_rows)
     # S-P16 merge-validation: tracked outside the /8 canonical bar (D-01a).
     _s_p16_result = next((r for r in results if r.prompt.id == "S-P16"), None)
 
@@ -1252,7 +1253,7 @@ def _write_baseline(
         f"**Run flags:** `--repeat {repeat} --min-pass {min_pass}`",
         "**Run cwd:** `/tmp` (out-of-repo — see Methodology notes)",
         f"**Baseline verdict:** BATTERY: {battery_verdict}",
-        f"**Summary:** P {canonical_pass}/{canonical_n} (8-technique canonical bar: "
+        f"**Summary:** P {canonical_pass}/{canonical_n} ({canonical_n}-technique canonical bar: "
         f"S-P01–06 + S-P10 estimate, S-P14 theoretical-limit) | "
         f"S-N {n_pass}/{len(n_rows)} | "
         f"S-P07/08/11/12/13/15 expected-FAIL (context-free / alternation falsifiers, excluded from the bar) | "
