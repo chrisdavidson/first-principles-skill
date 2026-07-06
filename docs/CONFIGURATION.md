@@ -27,9 +27,10 @@ Never hand-edit the generated file.
 ## Focused-mode skill stub frontmatter fields
 
 Each focused-mode skill stub lives at `first-principles/skills/<slug>/SKILL.md` and is
-generated from `shared/skills/<slug>/SKILL.md`. The eleven registered slugs are:
+generated from `shared/skills/<slug>/SKILL.md`. The thirteen registered slugs are:
 `pre-mortem`, `inversion`, `fishbone`, `five-whys`, `trade-off`, `second-order`,
-`identify-essence`, `challenge-assumptions`, `ground-truths`, `reason-upward`, `validate`.
+`identify-essence`, `challenge-assumptions`, `ground-truths`, `reason-upward`, `validate`,
+`estimate`, `theoretical-limit`.
 
 | Field | Required | Example | Description |
 |-------|----------|---------|-------------|
