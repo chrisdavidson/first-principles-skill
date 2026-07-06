@@ -233,8 +233,11 @@ def _agent_was_dispatched(jsonl_path: Path) -> bool:
             if c.get("type") != "tool_use":
                 continue
             inp = c.get("input", {})
-            subagent_type = inp.get("subagent_type", "") if isinstance(inp, dict) else ""
-            if subagent_type.lower() == "first-principles:first-principles":
+            # D-01 (Phase 141): null-coalesce before lowering — dict.get(key, default)
+            # returns None (not the default) when the key is present with a JSON-null
+            # value, and None.lower() would raise, breaking the no-raise contract.
+            subagent_type = (inp.get("subagent_type") or "").lower() if isinstance(inp, dict) else ""
+            if subagent_type == "first-principles:first-principles":
                 return True
     return False
 
