@@ -906,13 +906,106 @@ def self_test() -> int:
         except OSError:
             pass
 
+    # --- D-07b: WRAP-D02 reduced-run denominator regression guard (Phase 141, D-02/D-07) ---
+    # A reduced run measuring only 3 canonical rows must emit a Summary whose
+    # canonical tally denominator is the MEASURED count (/3), not a fixed /8.
+    # Guards ONLY the denominator behavior — the full _write_baseline round-trip
+    # is the D-03 won't-do item and is deliberately NOT tested here.
+    _d07b_args = argparse.Namespace(repeat=5, min_pass=3)
+    _d07b_reduced = [
+        PromptResult(
+            prompt=Step0Prompt(id=cid, text="t", expected="focused-pre-mortem"),
+            modes=["focused-pre-mortem"] * 5,
+            match_count=5,
+            row_pass=True,
+        )
+        for cid in CANONICAL_TALLY_IDS[:3]
+    ]
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as _d07b_tf:
+        _d07b_path = Path(_d07b_tf.name)
+    try:
+        try:
+            _write_baseline(_d07b_reduced, _d07b_args, _d07b_path,
+                            recorded_ts="2026-01-01T00:00:00Z")
+            _d07b_summary = next(
+                (ln for ln in _d07b_path.read_text(encoding="utf-8").splitlines()
+                 if ln.startswith("**Summary:**")),
+                "",
+            )
+            if "P 3/3" not in _d07b_summary:
+                print(
+                    f"self-test FAIL: reduced-run-denominator — a 3-row reduced run"
+                    f" must read a /3 canonical denominator (rows actually measured),"
+                    f" got Summary: {_d07b_summary!r}",
+                    file=sys.stderr,
+                )
+                all_passed = False
+        except Exception as _e:
+            print(
+                f"self-test FAIL: reduced-run-denominator — _write_baseline raised"
+                f" {type(_e).__name__} on a 3-row reduced results list: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _d07b_path.unlink()
+        except OSError:
+            pass
+    # Positive counter-check (non-vacuous): a full 8-row canonical results list
+    # still reads /8 — the denominator tracks the measured count in both shapes.
+    _d07b_full = [
+        PromptResult(
+            prompt=Step0Prompt(id=cid, text="t", expected="focused-pre-mortem"),
+            modes=["focused-pre-mortem"] * 5,
+            match_count=5,
+            row_pass=True,
+        )
+        for cid in CANONICAL_TALLY_IDS
+    ]
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as _d07b_full_tf:
+        _d07b_full_path = Path(_d07b_full_tf.name)
+    try:
+        try:
+            _write_baseline(_d07b_full, _d07b_args, _d07b_full_path,
+                            recorded_ts="2026-01-01T00:00:00Z")
+            _d07b_full_summary = next(
+                (ln for ln in _d07b_full_path.read_text(encoding="utf-8").splitlines()
+                 if ln.startswith("**Summary:**")),
+                "",
+            )
+            if "P 8/8" not in _d07b_full_summary:
+                print(
+                    f"self-test FAIL: reduced-run-denominator — positive counter-check:"
+                    f" a full 8-row canonical run must still read /8,"
+                    f" got Summary: {_d07b_full_summary!r}",
+                    file=sys.stderr,
+                )
+                all_passed = False
+        except Exception as _e:
+            print(
+                f"self-test FAIL: reduced-run-denominator — _write_baseline raised"
+                f" {type(_e).__name__} on the full 8-row counter-check: {_e}",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _d07b_full_path.unlink()
+        except OSError:
+            pass
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
             f" + {_v713_label} + {_rea_label} + {_rr_cov_label}"
-            " + null-subagent-no-raise)"
+            " + null-subagent-no-raise + reduced-run-denominator)"
         )
         return 0
     return 1
