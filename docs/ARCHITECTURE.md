@@ -76,7 +76,7 @@ claude --plugin-dir ./first-principles
 
 The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` — slash-only; the orchestrator never auto-routes to them.
 
-**Companion skill slugs:** `challenge-assumptions`, `fishbone`, `five-whys`, `ground-truths`, `identify-essence`, `inversion`, `pre-mortem`, `reason-upward`, `second-order`, `trade-off`, `validate`
+**Companion skill slugs:** `challenge-assumptions`, `estimate`, `fishbone`, `five-whys`, `ground-truths`, `identify-essence`, `inversion`, `pre-mortem`, `reason-upward`, `second-order`, `theoretical-limit`, `trade-off`, `validate`
 
 ## Five-phase methodology
 
