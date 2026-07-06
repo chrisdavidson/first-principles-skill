@@ -5,7 +5,7 @@ This document describes the source-of-truth layout, the generation pipeline, plu
 
 ## Overview
 
-The plugin ships a single orchestrating agent (`first-principles:first-principles`) plus eleven slash-only companion skills. The entire deliverable is pure Markdown — no executable code ships inside the plugin tree. A Python generation script (`scripts/sync-content.py`) assembles the generated tree from canonical source files in `shared/`.
+The plugin ships a single orchestrating agent (`first-principles:first-principles`) plus thirteen slash-only companion skills. The entire deliverable is pure Markdown — no executable code ships inside the plugin tree. A Python generation script (`scripts/sync-content.py`) assembles the generated tree from canonical source files in `shared/`.
 
 ```
 shared/           ← canonical source (edit here)
@@ -27,7 +27,7 @@ tests/            ← routing catalog fixtures and step 0 capture files
 | Validation rubric | `shared/spine/references/validation-rubric.md` | Inlined into agent body |
 | Phase procedures | `shared/agent/` | Phase fragments stitched into the agent body |
 | Companion references | `shared/references/` | Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate |
-| Worked examples | `shared/examples/` | Eleven domain-spread example files |
+| Worked examples | `shared/examples/` | Fourteen domain-spread example files |
 | Focused-mode skills | `shared/skills/<slug>/SKILL.md` | Source for each slash-only companion skill |
 
 Generated output tree:
@@ -74,7 +74,7 @@ The plugin root is `first-principles/`. Install for development:
 claude --plugin-dir ./first-principles
 ```
 
-The agent is registered at `first-principles/agents/first-principles.md`. The eleven companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` — slash-only; the orchestrator never auto-routes to them.
+The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` — slash-only; the orchestrator never auto-routes to them.
 
 **Companion skill slugs:** `challenge-assumptions`, `fishbone`, `five-whys`, `ground-truths`, `identify-essence`, `inversion`, `pre-mortem`, `reason-upward`, `second-order`, `trade-off`, `validate`
 
@@ -90,7 +90,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact t
 | 4 | Reason Upward | Derivation Chains (`GT-N + GT-M → conclusion`) |
 | 5 | Validate | Signed-off analysis with validation rubric pass |
 
-Six of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking) are inlined into the agent body via `{{TOOL:slug}}` tokens and are also available as on-demand reference siblings. All eleven companion skills — these six techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
+Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) are inlined into the agent body via `{{TOOL:slug}}` tokens and are also available as on-demand reference siblings. All thirteen companion skills — these eight techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
 
 ## CI and pre-commit gate inventory
 
