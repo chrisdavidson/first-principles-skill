@@ -70,7 +70,7 @@ or:
 
 ## Companion skills
 
-Eleven focused-mode skills extend the methodology. Each can be invoked directly:
+Thirteen focused-mode skills extend the methodology. Each can be invoked directly:
 
 | Skill | Invocation | When to use |
 |-------|-----------|-------------|

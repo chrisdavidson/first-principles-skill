@@ -125,7 +125,7 @@ For what each gate checks in detail, see [TESTING.md](TESTING.md).
 
 ## Editing focused-mode skills
 
-Each of the eleven companion skills has a source file at `shared/skills/<slug>/SKILL.md`. These use `{{PROCEDURE:slug}}` tokens, which are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when sync-content.py runs.
+Each of the thirteen companion skills has a source file at `shared/skills/<slug>/SKILL.md`. These use `{{PROCEDURE:slug}}` tokens, which are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when sync-content.py runs.
 
 After editing a skill stub:
 
