@@ -826,12 +826,90 @@ def self_test() -> int:
         )
         all_passed = False
 
+    # --- D-07a: WRAP-D01 null-safe regression guard (Phase 141, D-01/D-07) ---
+    # A JSON-null subagent_type ("subagent_type": null in a tool_use input) must
+    # make _agent_was_dispatched return False WITHOUT raising. Root cause of the
+    # original bug: dict.get(key, default) returns None (not the default) when
+    # the key is present with a JSON-null value, so .lower() on None raised
+    # AttributeError — contradicting the function's documented no-raise contract.
+    _null_dispatch_line = json.dumps({
+        "type": "assistant",
+        "message": {
+            "content": [{
+                "type": "tool_use",
+                "name": "Agent",
+                "input": {"subagent_type": None, "prompt": "test"},
+            }]
+        },
+    })
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
+    ) as tf:
+        tf.write(_null_dispatch_line + "\n")
+        _null_disp_path = Path(tf.name)
+    try:
+        try:
+            _null_disp_result = _agent_was_dispatched(_null_disp_path)
+            if _null_disp_result is not False:
+                print(
+                    f"self-test FAIL: null-subagent-no-raise — expected False on"
+                    f" JSON-null subagent_type, got {_null_disp_result!r}",
+                    file=sys.stderr,
+                )
+                all_passed = False
+        except Exception as _e:
+            print(
+                f"self-test FAIL: null-subagent-no-raise — _agent_was_dispatched"
+                f" raised {type(_e).__name__}: {_e} (must return False, not raise)",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _null_disp_path.unlink()
+        except OSError:
+            pass
+    # Positive counter-check (non-vacuous): a real dispatch line still returns True.
+    _real_dispatch_line = json.dumps({
+        "type": "assistant",
+        "message": {
+            "content": [{
+                "type": "tool_use",
+                "name": "Agent",
+                "input": {
+                    "subagent_type": "first-principles:first-principles",
+                    "prompt": "test",
+                },
+            }]
+        },
+    })
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
+    ) as tf:
+        tf.write(_real_dispatch_line + "\n")
+        _real_disp_path = Path(tf.name)
+    try:
+        if _agent_was_dispatched(_real_disp_path) is not True:
+            print(
+                "self-test FAIL: null-subagent-no-raise — positive counter-check:"
+                " a real first-principles:first-principles dispatch line did not"
+                " return True",
+                file=sys.stderr,
+            )
+            all_passed = False
+    finally:
+        try:
+            _real_disp_path.unlink()
+        except OSError:
+            pass
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
-            f" + {_v713_label} + {_rea_label} + {_rr_cov_label})"
+            f" + {_v713_label} + {_rea_label} + {_rr_cov_label}"
+            " + null-subagent-no-raise)"
         )
         return 0
     return 1
