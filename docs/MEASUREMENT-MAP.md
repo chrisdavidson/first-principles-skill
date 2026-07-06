@@ -27,7 +27,9 @@ This table is the core lookup. Source: `CLAUDE.md`, `scripts/_battery_core.py` (
 
 | Residual | Description | Owning gate(s) | Artifact |
 |----------|-------------|----------------|---------|
-| **RR-114-01** (supersedes RR-108-01, supersedes RR-95-01; chain: RR-79-02->RR-92-01->RR-95-01->RR-108-01->RR-114-01) | S-P02 inversion carry-forward (1/5 at v7.6 re-baseline Phase 114, no change vs v7.4 1/5). **[v8.0 ACCEPTED-FINAL]** True K/N: 1/5 (v7.13 live). Terminal disposition — project wrapped. | **BATT-06** | `_battery_core.self_test_boundary()` → RR-114-01 sentinel |
+| **RR-114-01** (supersedes RR-108-01, supersedes RR-95-01; chain: RR-79-02->RR-92-01->RR-95-01->RR-108-01->RR-114-01) | S-P02 inversion carry-forward (1/5 at v7.6 re-baseline Phase 114, no change vs v7.4 1/5). **[v8.0 ACCEPTED-FINAL]** True K/N: 1/5 (v7.13 live). Terminal disposition — project wrapped. | **BATT-06** | `_battery_core.self_test_boundary()` → RR-114-01 sentinel (`_load_excerpt_v713`) |
+| **RR-108-04** | S-P10 estimate carry-forward. **[v8.0 ACCEPTED-FINAL]** True K/N: 0/5 (v7.13 live). Terminal disposition — project wrapped. | **BATT-06** | `_battery_core.self_test_boundary()` → RR-108-04 sentinel (`_load_excerpt_v713`) |
+| **RR-108-05** | S-P14 theoretical-limit carry-forward. **[v8.0 ACCEPTED-FINAL]** True K/N: 0/5 (v7.13 live). Terminal disposition — project wrapped. | **BATT-06** | `_battery_core.self_test_boundary()` → RR-108-05 sentinel (`_load_excerpt_v713`) |
 | **RR-108-02** (supersedes RR-95-02; chain: RR-79-03->RR-92-02->RR-95-02->RR-108-02 CLOSED) | S-P05 trade-off **CLOSED at 4/5** ≥ min-pass at Phase 114 v7.6 re-baseline (lone canonical improver; ID retained, sentinel re-pointed to v7.6 vector [2,2,2,2,1] as regression guard) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-108-02 sentinel (CLOSED, regression guard) |
 | **RR-79-01** | S-P01 pre-mortem honest carry-forward (4/5 at v6.4 re-baseline) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-79-01 sentinel |
 | **RR-77-08** | `_COMPOSER_FOCUS_CEILING=4` lock (anti-masking) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-77-08 sentinel |
