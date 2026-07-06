@@ -58,6 +58,7 @@ On push or PR to master, the full CI suite runs in `.github/workflows/validation
 | VAL-02 | Markdown style |
 | VAL-03 | Relative link resolution (plugin + shared trees) |
 | VAL-04 / GATE-02 | No 4-gram collision across skill descriptions |
+| COLLIDE-01 | No skill/agent name collisions between plugin and monolith install surfaces |
 | VAL-05 | Skill listings under 2000-char cap |
 | DUAL-04 | `shared/` and generated tree in sync |
 | GATE-01 | Agent structural integrity |

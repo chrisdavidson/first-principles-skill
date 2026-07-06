@@ -102,6 +102,7 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 | VAL-02 | `markdownlint` (CI) | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
 | VAL-03 | `check-links` (CI) | `scripts/check-links.py` | Relative MD links resolve in plugin, shared, and docs trees; `docs/` anchors validated with github-slugger rule |
 | VAL-04 / GATE-02 | `check-trigger-collisions` (CI) | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
+| COLLIDE-01 | `check-install-collisions` (CI) | `scripts/check-install-collisions.py` | Dual-install name-collision self-test + live-tree scan (no skill/agent name collisions between plugin and monolith install surfaces) |
 | VAL-05 | `check-description-budget` (CI) | `scripts/check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-check` (CI) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-01 | `check-agent` (CI) | `scripts/check-agent.py` | Agent structural checks |

@@ -125,6 +125,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-01 | `check-agent.py` | Agent structural checks |
+| BATT-06 | `check-routing-battery.py --self-test` | Offline merged dual-signal routing-battery self-test (boundary + focused-output; deterministic, no live session) — owns the honest-state and anti-masking sentinels detailed in the [Routing battery](#routing-battery) section |
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
 | TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; matrix.json is gitignored so only --self-test runs in CI) |
