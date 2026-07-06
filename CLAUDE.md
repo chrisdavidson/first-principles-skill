@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus eleven standalone slash-invocable companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate). The entire deliverable is pure Markdown — no executable code ships inside the plugin.
+A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus thirteen standalone slash-invocable companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate). The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
 ## Commands
 
@@ -108,7 +108,7 @@ first-principles/               ← generated plugin (committed, never hand-edit
 
 ### Plugin layout and skill registration
 
-The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. The eleven companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
+The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
 
 Install for development: `claude --plugin-dir ./first-principles`
 
