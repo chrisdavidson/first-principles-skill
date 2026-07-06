@@ -55,8 +55,8 @@ The sync pipeline performs two token substitutions:
 | `{{PROCEDURE:<slug>}}` | `shared/skills/<slug>/SKILL.md` body | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
 
 `shared/spine/tool-map.yml` maps each companion-tool slug to its inline text for each
-surface. The six registered slugs in the tool map are: `five-whys`, `fishbone`,
-`inversion`, `pre-mortem`, `trade-off`, `second-order`.
+surface. The eight registered slugs in the tool map are: `five-whys`, `fishbone`,
+`inversion`, `pre-mortem`, `trade-off`, `second-order`, `estimate`, `theoretical-limit`.
 
 ## Version string invariant
 
