@@ -21,7 +21,7 @@ flowchart LR
         BODY["shared/spine/SKILL-body.md\n(contains {{TOOL:slug}} tokens)"]
         META["shared/spine/SKILL.meta.yml\n(agent frontmatter)"]
         TOOLMAP["shared/spine/tool-map.yml\n(slug → inline name map)"]
-        REFS["shared/references/&lt;slug&gt;.md\n(eleven companion references)"]
+        REFS["shared/references/&lt;slug&gt;.md\n(thirteen companion references)"]
         SKILLS["shared/skills/&lt;slug&gt;/SKILL.md\n(contains {{PROCEDURE:slug}} tokens)"]
     end
 

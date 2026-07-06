@@ -31,7 +31,7 @@ After `--write` completes, the generated plugin tree is ready for installation a
 
 - **Orchestrating agent:** `first-principles/agents/first-principles.md` — the fully assembled agent body, including all inlined technique procedures and the output template.
 - **Reference siblings:** `first-principles/agents/references/` — verbatim copies of `shared/references/` and the spine reference files.
-- **Focused-mode skills:** `first-principles/skills/<slug>/SKILL.md` — generated stubs for all eleven companion skills, each with its `{{PROCEDURE:slug}}` token already expanded.
+- **Focused-mode skills:** `first-principles/skills/<slug>/SKILL.md` — generated stubs for all thirteen companion skills, each with its `{{PROCEDURE:slug}}` token already expanded.
 
 Install the plugin for development with:
 
