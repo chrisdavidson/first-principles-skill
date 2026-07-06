@@ -29,7 +29,7 @@ This folder documents the first-principles plugin system. New here? Start with [
 | Document | What it covers |
 |----------|----------------|
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
-| [requirements-matrix.md](requirements-matrix.md) | Generated 206-row capability → requirement → test matrix |
+| [requirements-matrix.md](requirements-matrix.md) | Generated 229-row capability → requirement → test matrix |
 
 ## Reference & history
 
