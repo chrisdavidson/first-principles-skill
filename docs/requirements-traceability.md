@@ -100,8 +100,13 @@ Future-milestone candidates: add a confirming Test-Network or Methodology gate f
 
 ## Historical Ledger
 
-One row per milestone. Each links into [`history/`](history/) for the frozen snapshots.
-Milestones with no audit file did not produce one at the time of shipping.
+One row per milestone through v5.3 (per-milestone snapshot promotion to `history/` stopped after
+v5.3). Later milestones (v6.1 through v8.0) have no snapshot rows; their records live in the
+per-milestone docs — see [`v8.0-final-closure.md`](v8.0-final-closure.md),
+[`v7.13-live-remeasure-verdict.md`](v7.13-live-remeasure-verdict.md),
+[`whole-system-remeasure-verdict.md`](whole-system-remeasure-verdict.md) — and the annotated git
+tag history (`git tag -n`). Each row below links into [`history/`](history/) for the frozen
+snapshots. Milestones with no audit file did not produce one at the time of shipping.
 
 | Milestone | Status | Requirements | Roadmap | Audit |
 |-----------|--------|-------------|---------|-------|
