@@ -111,6 +111,10 @@ The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed i
 
 The plugin can also be installed into a single project (committed to that repo's VCS) by placing it under `.claude/plugins/` inside the project. Use this when a team wants the agent version-controlled with a specific codebase.
 
+### Compatibility
+
+This plugin targets Claude Code's plugin-manifest schema (`.claude-plugin/plugin.json`) and is validated exclusively with the Claude Code CLI (`claude plugin validate`). Other agent runtimes (Cursor, other CLI agents) are untested and not officially supported.
+
 ## Builder
 
 An interactive CLI that generates a candidate `SKILL.md` or agent `.md` from templates. By default, generated files land in `generated/<slug>.md` — they are candidates ready for review. Passing `--install` copies the candidate into `shared/` and regenerates the plugin surface automatically (see [Install flag](#install-flag) below).
