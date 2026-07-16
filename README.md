@@ -192,9 +192,9 @@ The hook opt-in is per-clone (Git does not propagate `core.hooksPath` automatica
 ./scripts/install-hooks.sh
 ```
 
-The installer symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` (preserving any existing hook as `.bak` on first run, idempotent on re-run). The hook blocks commits that would push the generated agent body (`first-principles/agents/first-principles.md`) over the ~500-line target. Bypass for intentional in-progress work: `git commit --no-verify`.
+The installer symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit` (preserving any existing hook as `.bak` on first run, idempotent on re-run). The hook blocks commits that would push the generated agent body (`first-principles/agents/first-principles.md`) over the 644-line budget (`MAX_LINES = 644` in `scripts/check-body-budget.py`). Bypass for intentional in-progress work: `git commit --no-verify`.
 
-Why a 500-line budget: keeps the generated agent body under ~500 lines so it loads quickly into model context and stays under Claude Code's recommended budget for skill body length.
+Why a body-line budget: keeps the generated agent body bounded (currently 644 lines) so it loads quickly into model context and stays under Claude Code's recommended budget for skill body length.
 
 > **Note:** the body-budget installer composes BOTH gates (body budget + sync drift) into a single `.git/hooks/pre-commit`, so contributors who use the installer do not also need the `core.hooksPath = .githooks` opt-in above. Conversely, `.githooks/pre-commit` now also runs the body-budget check, so either opt-in path gives full coverage. The two mechanisms are mutually exclusive at the Git level (Git honors one hooks path or the other); pick whichever you prefer. The installer prints a WARNING if it detects `core.hooksPath` is set.
 
