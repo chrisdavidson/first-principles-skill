@@ -80,7 +80,7 @@ The v3.8 enhanced successor adds four things the original does not have:
 3. **Eleven domain-spread worked examples** — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order, each demonstrating a real dead-end and a complete validation pass. The example set has since grown to fourteen — decompose-irreducibility in v7.1, estimate-fermi in v7.2, theoretical-limit-carnot in v7.3.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
-[![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml)
+[![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml) [![Version](https://img.shields.io/badge/version-8.0.0-blue)](./CHANGELOG.md) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet)](docs/GETTING-STARTED.md)
 
 ## Install
 
