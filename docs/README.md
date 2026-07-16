@@ -35,7 +35,7 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [v8.0-final-closure.md](v8.0-final-closure.md) | **Terminal record** — final baselines, accepted limitations, coverage headline, deferred-ledger disposition summary |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
 | [requirements-matrix.md](requirements-matrix.md) | Generated 229-row capability → requirement → test matrix |
-| [v8.1-grok-review-assessment.md](v8.1-grok-review-assessment.md) | Rated inventory of external-review (Grok) recommendations: 26 itemized GROK-NN rows with invasiveness score, already-done verification, verdict, effort estimate; SELECT-01 disposition column for Phase 144 |
+| [v8.1-grok-review-assessment.md](v8.1-grok-review-assessment.md) | Rated inventory of external-review (Grok) recommendations: 26 itemized GROK-NN rows with invasiveness score, already-done verification, verdict, effort estimate; SELECT-01 dispositions recorded (7 approved / 19 not approved, Phase 144) |
 
 ## Reference & history
 
