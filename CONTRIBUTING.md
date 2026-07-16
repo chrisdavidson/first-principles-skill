@@ -43,7 +43,7 @@ Install the hooks so drift and body-budget issues are caught before you push:
 ./scripts/install-hooks.sh
 ```
 
-This covers both the body-budget gate (blocks if the agent body exceeds 500 lines) and the sync-drift gate (blocks if `shared/` and the generated tree have drifted). See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the alternative `core.hooksPath` opt-in.
+This covers both the body-budget gate (blocks if the agent body exceeds 644 lines) and the sync-drift gate (blocks if `shared/` and the generated tree have drifted). See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the alternative `core.hooksPath` opt-in.
 
 ## What you can contribute
 
@@ -56,6 +56,7 @@ This covers both the body-budget gate (blocks if the agent body exceeds 500 line
 | Worked examples | `shared/examples/` |
 | Validation scripts | `scripts/` |
 | Routing catalogs | `tests/routing-catalog.md`, `tests/sub-skill-routing-catalog.md` |
+| Documentation | `docs/` — register new pages in the `docs/README.md` nav; intra-docs links use bare filenames (no `docs/` prefix) |
 
 ## Key invariants
 
@@ -66,11 +67,11 @@ All PRs must preserve these:
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes, one level deep — no nested `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 500 lines.
+- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
 
 ## CI gates
 
-All PRs must pass seven CI gates:
+All PRs must pass twelve CI gates:
 
 | Gate | Script | What it checks |
 |------|--------|----------------|
@@ -81,6 +82,11 @@ All PRs must pass seven CI gates:
 | VAL-05 | `check-description-budget.py` | Skill listings ≤ 2000 chars |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree in sync |
 | GATE-01 | `check-agent.py` | Agent structural checks |
+| BATT-06 | `check-routing-battery.py --self-test` | Offline routing-battery self-test |
+| STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test |
+| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
+| TRACE-03 | `check-traceability.py --self-test` | Traceability gate self-test |
+| COLLIDE-01 | `check-install-collisions.py --self-test` | Dual-install name-collision self-test |
 
 See [docs/TESTING.md](docs/TESTING.md) for how to run each gate locally.
 
