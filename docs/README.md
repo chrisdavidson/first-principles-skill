@@ -4,7 +4,7 @@
 > release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
 > disposition summary.
 >
-> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items) and v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items) left this terminal baseline unchanged.
+> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), and v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched) left this terminal baseline unchanged.
 
 This folder documents the first-principles plugin system. New here? Start with [GETTING-STARTED.md](GETTING-STARTED.md), then [ONBOARDING.md](ONBOARDING.md), then [DATA-FLOW.md](DATA-FLOW.md).
 
@@ -41,6 +41,12 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [requirements-matrix.md](requirements-matrix.md) | Generated 229-row capability → requirement → test matrix |
 | [v8.1-grok-review-assessment.md](v8.1-grok-review-assessment.md) | Rated inventory of external-review (Grok) recommendations: 26 itemized GROK-NN rows with invasiveness score, already-done verification, verdict, effort estimate; SELECT-01 dispositions recorded (7 approved / 19 not approved, Phase 144) |
 | [v8.2-grok-reassessment.md](v8.2-grok-reassessment.md) | Fresh re-investigation of the 19 not-approved items; 18 keep-won't-do / 1 promote-candidate (GROK-04 hero banner) — non-binding input to a future milestone decision |
+
+## Optimization studies
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.3-technique-context-optimization-eval.md](v8.3-technique-context-optimization-eval.md) | Per-technique overlap map (8 techniques), agent-body line accounting, composer-vs-pull-when-needed trade-off, and a prioritized optimization plan — findings-only, no `shared/` change. |
 
 ## Reference & history
 
