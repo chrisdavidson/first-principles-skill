@@ -550,8 +550,6 @@ decision. If the bracket spans an order of magnitude and straddles the decision
 threshold, identify which factor dominates the uncertainty and either tighten it
 with a better measurement or escalate the uncertainty explicitly.
 
----
-
 ## Procedure
 
 **Name the conventional figure and the conventions embedded in it.** Write one
@@ -594,5 +592,3 @@ currently achieve), and (3) the gap between the law-permitted ceiling and the
 conventional figure is stated explicitly. A theoretical-limit analysis that names
 a ceiling without bracketing the gap to the conventional figure is incomplete —
 the bracket, not the ceiling alone, is the deliverable.
-
----
