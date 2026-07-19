@@ -144,3 +144,17 @@ snapshots. Milestones with no audit file did not produce one at the time of ship
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored. The canonical historical detail is the promoted `docs/history/` copies linked above.)*
 - **v7.10 agent-goal alignment audit** (ALIGN-01/02/03 — authoritative prioritized inventory of method-fidelity gaps and technical debt behind the DEBT-*/METHFID-* split): [`agent-goal-alignment-audit.md`](agent-goal-alignment-audit.md)
+
+---
+
+**Addendum — 2026-07-19 (Phase 152 FREEZE-02):** RR-108-04 (S-P10 estimate) and RR-108-05
+(S-P14 theoretical-limit) — both recorded ACCEPTED-FINAL above, with "no further live
+re-measure" — are re-opened by v8.5's narrow byte-freeze relaxation. See
+[`v8.5-byte-freeze-relaxation.md`](v8.5-byte-freeze-relaxation.md) for the exact scope of the
+relaxation and what remains frozen. This addendum does not alter the ACCEPTED-FINAL statement
+above, which stands as accurate for the v8.0 terminal record; it records a later, additive event.
+The BATT-06 sentinels guarding these two residuals remain in place as regression guards and are
+unaffected by this re-open. Because this file is the authoritative active-residual surface, note
+explicitly: the two residuals' dispositions above are subject to update by the v8.5 re-measure
+(Phase 156) — a reader consulting the Active Surface section is not misled by the terminal-state
+table appearing earlier in this document.
