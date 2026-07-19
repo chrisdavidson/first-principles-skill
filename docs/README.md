@@ -1,5 +1,7 @@
 # docs/ — Documentation Index
 
+![First Principles hero banner](assets/hero.svg)
+
 > **Final state — start here:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — terminal
 > release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
 > disposition summary.
