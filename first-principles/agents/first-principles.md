@@ -390,8 +390,6 @@ branch flags the whole parent with `?`.
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
----
-
 ## Procedure
 
 1. **State the claim precisely.** Write the claim in one sentence in the form
