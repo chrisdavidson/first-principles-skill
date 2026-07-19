@@ -922,7 +922,17 @@ def cmd_self_test() -> int:
     return 0
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    """Run the sync-content CLI and return a process exit code.
+
+    `argv` defaults to None, which makes argparse fall back to `sys.argv[1:]`
+    exactly as before this parameter existed — the CLI's live behaviour is
+    byte-identical. The parameter exists so a self-test can drive `main()`
+    itself end-to-end against a fixture argv, proving the `if args.check` /
+    `if args.self_test` / else dispatch is actually wired — not just the
+    `cmd_check()` / `cmd_self_test()` / `cmd_write()` functions it calls
+    (mirrors `check-links.py`'s `main(argv=...)` precedent, Phase 152 WR-01).
+    """
     _require_python_version()
     _require_pyyaml()
     p = argparse.ArgumentParser(
@@ -937,7 +947,7 @@ def main() -> int:
         action="store_true",
         help="Prove DEBT-01 orphan-guard and DEBT-02 count-drift guard are non-vacuous.",
     )
-    args = p.parse_args()
+    args = p.parse_args(argv)
     if args.check:
         return cmd_check()
     if args.self_test:
