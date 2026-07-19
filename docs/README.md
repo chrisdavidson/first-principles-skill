@@ -4,7 +4,7 @@
 > release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
 > disposition summary.
 >
-> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), and v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched) left this terminal baseline unchanged.
+> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but deliberately not built, awaiting a future milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 
 This folder documents the first-principles plugin system. New here? Start with [GETTING-STARTED.md](GETTING-STARTED.md), then [ONBOARDING.md](ONBOARDING.md), then [DATA-FLOW.md](DATA-FLOW.md).
 
@@ -47,6 +47,7 @@ This folder documents the first-principles plugin system. New here? Start with [
 | Document | What it covers |
 |----------|----------------|
 | [v8.3-technique-context-optimization-eval.md](v8.3-technique-context-optimization-eval.md) | Per-technique overlap map (8 techniques), agent-body line accounting, composer-vs-pull-when-needed trade-off, and a prioritized optimization plan — findings-only, no `shared/` change. |
+| [v8.4-implementation-readiness-eval.md](v8.4-implementation-readiness-eval.md) | Go/no-go verdicts + costed implementation-readiness plans for the GROK-04 hero banner (GO) and on-demand reference-file extraction (NO-GO) — neither built. |
 
 ## Reference & history
 
