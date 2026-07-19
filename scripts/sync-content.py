@@ -191,6 +191,15 @@ SPINE_REFERENCES = (
     "validation-rubric",
 )
 
+# The four reference files v8.5 §2 authorises splitting into a core file plus
+# a `-detail.md` appendix (docs/v8.4-implementation-readiness-eval.md §4's
+# per-section boundary table). This is the SINGLE source every slug-scoped
+# branch in this module reads from — never re-derive the set inline. It must
+# never be widened without a governing byte-freeze record like
+# docs/v8.5-byte-freeze-relaxation.md: `pre-mortem` and `trade-off` also carry
+# an appendix-style `## Example` heading and are deliberately excluded.
+SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fishbone"})
+
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
 # Breakdown: 1 agent + 11 reference siblings + 14 worked-example siblings + 13 skill stubs.
 # Three committed-but-hand-maintained files (first-principles/README.md,
@@ -366,6 +375,31 @@ def _extract_procedure(slug: str) -> str:
     return _normalise_trailing_newline(slice_text)
 
 
+def _rewrite_detail_link(slice_text: str, slug: str) -> str:
+    """Rewrite a bare '<slug>-detail.md' pointer target to 'references/<slug>-detail.md'.
+
+    Exists because the assembled agent body (first-principles/agents/first-
+    principles.md) and the skill stub (first-principles/skills/<slug>/SKILL.md)
+    each sit one directory level ABOVE where the detail sibling lands
+    (agents/references/<slug>-detail.md and skills/<slug>/references/<slug>-
+    detail.md respectively), so the bare filename that resolves correctly in
+    shared/references/ and in the agent's OWN references/<slug>.md sibling
+    (which sits alongside <slug>-detail.md and must NOT be rewritten, DEC-A)
+    does not resolve from these two assembly surfaces. `_extract_procedure()`
+    and `_extract_skill_content()` deliberately stay source-faithful — their
+    raw output keeps the bare-filename form, which is exactly what GATE-02
+    asserts against (DEC-B); this helper's rewritten form is a separate
+    property asserted against the assembled output instead.
+
+    No-op for any slug outside SLUGS_WITH_DETAIL. Matches only the exact
+    inline-link target string, not a loose regex, so it cannot match
+    anything but the pointer.
+    """
+    if slug not in SLUGS_WITH_DETAIL:
+        return slice_text
+    return slice_text.replace(f"]({slug}-detail.md)", f"](references/{slug}-detail.md)")
+
+
 _SKILL_CONTENT_RE = re.compile(
     r"(^## When to reach for this\n.*)\Z",
     re.MULTILINE | re.DOTALL,
@@ -429,7 +463,7 @@ def _expand_skill_token(body: str, slug: str) -> str:
                 f"{{{{PROCEDURE:{captured}}}}} — token slug must match the "
                 f"stub's own slug ({slug!r})"
             )
-        return _extract_skill_content(slug).rstrip("\n")
+        return _rewrite_detail_link(_extract_skill_content(slug), slug).rstrip("\n")
 
     out = SKILL_TOKEN_RE.sub(sub, body)
     if seen == 0:
@@ -588,7 +622,9 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
 
     # --- Companion Techniques: 7 ## Procedure sections in TOOLS order ---
     companion_header = "\n## Companion Techniques\n\n"
-    companion_blocks = "".join(_extract_procedure(slug) + "\n" for slug in TOOLS)
+    companion_blocks = "".join(
+        _rewrite_detail_link(_extract_procedure(slug), slug) + "\n" for slug in TOOLS
+    )
 
     # --- Assemble body and stitch frontmatter ---
     # NOTE: output-template.md and validation-rubric.md are intentionally NOT
