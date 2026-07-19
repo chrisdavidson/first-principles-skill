@@ -17,17 +17,37 @@ Broken-ref stderr format (one line per broken ref, ctrl-click navigable):
     BROKEN: <source-file>:<line>: <link-or-token> -> <reason>
 
 Scan surfaces (relative link checking + namespace ref checking):
-    - first-principles/skills/thinking/SKILL.md           (plugin spine)
-    - first-principles/skills/thinking/references/*.md     (plugin spine appendices)
-    - first-principles-thinking/SKILL.md                   (monolith spine)
-    - first-principles-thinking/references/*.md            (monolith companion refs)
+    - first-principles/agents/first-principles.md          (agent spine)
+    - first-principles/agents/references/*.md              (agent companion refs)
+    - first-principles/skills/*/references/*.md            (v8.5 GATE-01 — skill-stub
+      companion refs; D-01. This glob matches ZERO files on the tree today —
+      Phase 154 is what creates skills/*/references/. A vacuously-clean live
+      scan of this surface is NOT an error; the gate's teeth come from the
+      inline `--self-test` fixture below until real files land.)
 
 Scan surfaces (namespace ref checking only — not relative-link-checked):
-    - first-principles/skills/*/SKILL.md  (plugin companion skills — cross-skill
-      relative links use the shared/ source filename convention, not the plugin
-      directory layout; relative links here are validated via the monolith surface)
+    - first-principles/skills/*/SKILL.md  (plugin companion skills — restored
+      per D-05. Namespace-only, NOT full-check, because 14 pre-existing
+      cross-skill relative links in these stubs use the shared/ source
+      filename convention rather than the plugin directory layout — e.g.
+      `[5-Whys](five-whys.md)` in fishbone/SKILL.md does not resolve under
+      first-principles/skills/fishbone/. D-02 defers fixing those links; this
+      restoration only re-enables the namespace-ref axis, which today finds
+      zero backticked namespace refs in any stub — also vacuous, per D-06.
+      The inline `--self-test` fixture is what proves this axis load-bearing
+      in the meantime.)
     - shared/**/*.md  (source templates — per D-19-6, scanned to catch namespace
       ref typos; relative links in shared/ use the monolith filename convention)
+
+Honesty note (D-06): both newly-added scan surfaces above —
+first-principles/skills/*/references/*.md and first-principles/skills/*/SKILL.md
+— currently match zero live findings (the former glob matches zero files at
+all; the latter matches files but finds zero backticked namespace refs in
+them). A vacuously-clean live scan of either surface is NOT an error and does
+NOT mean the extension is a no-op: the `--self-test` mode proves both globs
+are wired to the production `_collect_files` / `_check_file` functions and
+will fire correctly the moment real content lands (Phase 154 for the first,
+any future skill-stub cross-ref for the second).
 
 Scan surfaces (docs/ cross-doc link checking — D-04, DOCTOOL-01):
     - docs/*.md  (user-facing documentation; relative cross-doc links + anchor
@@ -73,18 +93,41 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 # (second-order-thinking.md, trade-off-analysis.md) unable to resolve those
 # same links. Both trees are deleted in Plan 05; pruning now is dead-config
 # cleanup, not coverage loss.
+#
+# v8.5 GATE-01 (D-01): added first-principles/skills/*/references/*.md — the
+# companion-ref surface the Phase 154 split creates. Full-check (relative
+# links AND namespace refs) is correct here because references/*.md files are
+# authored fresh for the split, unlike SKILL.md stub bodies (see D-01 note
+# on NAMESPACE_ONLY_GLOBS below for why that surface stays namespace-only).
+# The target directory does not exist yet, so this entry matches zero files
+# until Phase 154 lands — the inline `--self-test` fixture is what makes it
+# load-bearing in the meantime (D-03).
 FULL_CHECK_GLOBS = [
     "first-principles/agents/first-principles.md",
     "first-principles/agents/references/*.md",
+    "first-principles/skills/*/references/*.md",
 ]
 
 # Scan globs: surfaces that receive namespace-ref validation ONLY.
 # Relative links in these files use conventions valid in their source context
 # (shared/ uses monolith filenames), not the installed plugin directory layout.
-# Phase 26.1: removed `first-principles/skills/*/SKILL.md` — Plan 05 deletes
-# that tree, after which the glob would match zero files (dead config).
+#
+# v8.5 GATE-01 (D-05): restored first-principles/skills/*/SKILL.md, which
+# Phase 26.1 removed on the (incorrect, never-realized) assumption that Plan 05
+# would delete the whole skills/ tree — it did not. Namespace-only (NOT
+# full-check) is deliberate and load-bearing per D-01: scouting found 14
+# pre-existing cross-skill relative links in the generated stubs (e.g.
+# `[5-Whys](five-whys.md)` in fishbone/SKILL.md) that resolve under the
+# shared/ source filename convention, not the plugin directory layout —
+# full-checking this glob would immediately fail those 14 links. D-02 defers
+# fixing them to a future phase. This restoration's value today is
+# pre-positioned coverage plus docstring truth (D-06): it currently matches
+# files but finds zero backticked namespace refs in any of them, so it is
+# NOT closing a live gap — the inline `--self-test` fixture is what proves
+# this axis load-bearing in the meantime.
 NAMESPACE_ONLY_GLOBS = [
     "shared/**/*.md",
+    "first-principles/skills/*/SKILL.md",
 ]
 
 # Scan globs: docs/ surface — relative cross-doc links + anchor validation (D-04).
@@ -144,12 +187,18 @@ def _strip_frontmatter(text: str) -> str:
 
 def _collect_files(
     globs: list[str],
+    root: Path = REPO_ROOT,
 ) -> list[Path]:
-    """Expand globs against REPO_ROOT and return sorted unique paths."""
+    """Expand globs against `root` and return sorted unique paths.
+
+    `root` defaults to the module-level REPO_ROOT constant. The parameter
+    lets `--self-test` point the collector at a temp directory fixture
+    without touching the real tree or monkeypatching REPO_ROOT.
+    """
     seen: set[Path] = set()
     result: list[Path] = []
     for pattern in globs:
-        for path in sorted(REPO_ROOT.glob(pattern)):
+        for path in sorted(root.glob(pattern)):
             if path not in seen:
                 seen.add(path)
                 result.append(path)
