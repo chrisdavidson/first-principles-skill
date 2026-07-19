@@ -120,7 +120,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 |------|--------|----------------|
 | VAL-01 | `claude plugin validate` | Plugin schema validity |
 | VAL-02 | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
-| VAL-03 | `check-links.py` | Relative MD links resolve |
+| VAL-03 | `check-links.py --self-test` + `check-links.py` | Relative MD links resolve, now including `first-principles/skills/*/references/*.md` (full-check, D-01) and `first-principles/skills/*/SKILL.md` (namespace-ref-only, D-05); both new axes currently match zero live findings (v8.5 GATE-01, D-06) — the `--self-test` fixture is what makes them load-bearing until real content lands (Phase 154) |
 | VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |

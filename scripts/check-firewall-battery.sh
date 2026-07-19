@@ -85,9 +85,11 @@ gate "VAL-02" \
     "markdownlint-cli2 first-principles/**/*.md" \
     "markdownlint-cli2 --config .markdownlint.jsonc 'first-principles/**/*.md'"
 
-# VAL-03 — relative MD link validity + anchor tests
+# VAL-03 — check-links.py --self-test (v8.5 GATE-01) + relative MD link
+#           validity + anchor tests
 gate "VAL-03" \
-    "check-links.py + pytest check-links_anchors_test.py" \
+    "check-links.py --self-test + live + pytest check-links_anchors_test.py" \
+    "python3 scripts/check-links.py --self-test" \
     "python3 scripts/check-links.py" \
     "python3 -m pytest scripts/check-links_anchors_test.py -q"
 
