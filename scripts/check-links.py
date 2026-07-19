@@ -78,6 +78,8 @@ Anchor validation (docs/ surface only, D-04):
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import os
 import re
 import sys
@@ -489,7 +491,7 @@ def _check_file(
             )
 
 
-def _run_self_test() -> None:
+def _run_self_test() -> int:
     """Self-test (v8.5 GATE-01, D-03/D-04): prove the two newly-extended VAL-03
     scan surfaces are load-bearing on a synthetic fixture, independent of the
     live tree (which matches zero findings on both axes today — D-06):
@@ -504,9 +506,15 @@ def _run_self_test() -> None:
     (not a hand-picked pattern string), removing either new glob entry makes
     the corresponding non-vacuity assertion fail (mutation-proof).
 
+    Section 7 additionally drives `main()` itself over the same fixture, so
+    main()'s own loop dispatch and dedup wiring are covered — not just the
+    building blocks it calls. Without that section, flipping either loop's
+    `check_links` flag silently reduced coverage while both the live scan and
+    this self-test still passed (Phase 152 code-review WR-01).
+
     Accumulates every failure into `wrong` and reports them all at once
     (rather than exiting on the first) so a regression is fully diagnosable
-    from a single CI run.
+    from a single CI run. Returns an exit code; the caller propagates it.
     """
     wrong: list[str] = []
     slug = "self-test-skill"
@@ -664,24 +672,84 @@ def _run_self_test() -> None:
                 f"{self_flagged!r}"
             )
 
+        # --- 7. End-to-end main() wiring (Phase 152 WR-01) ---
+        # Sections 1-6 exercise _collect_files/_check_file directly, which
+        # leaves main()'s OWN wiring unguarded: flipping the `check_links`
+        # argument on either of main()'s two loops silently checks fewer
+        # links while the live scan and sections 1-6 both still pass. Drive
+        # main() over the same fixture and assert both axes still surface
+        # their break. argv=[] keeps argparse off sys.argv (which carries
+        # --self-test here) and prevents re-entering this function.
+        main_out, main_err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(main_out), contextlib.redirect_stderr(main_err):
+            main_rc = main(argv=[], root=tmp_root)
+        main_stderr = main_err.getvalue()
+
+        if main_rc != 1:
+            wrong.append(
+                f"main() wiring: main(argv=[], root=<fixture>) returned {main_rc}, "
+                "expected 1 — the fixture contains two broken references, so a "
+                "0 means main() scanned nothing or reported nothing"
+            )
+
+        # Guards main()'s full_check loop: flipping its check_links flag to
+        # False stops relative-link checking and drops this entry.
+        if "bad.md" not in main_stderr or "file not found" not in main_stderr:
+            wrong.append(
+                "main() wiring (references axis): main() did not report "
+                "bad.md's broken relative link — main()'s full-check loop "
+                "dispatch or its check_links flag has regressed. stderr: "
+                f"{main_stderr!r}"
+            )
+
+        # Guards main()'s namespace_only loop the same way.
+        if "unknown-fixture-skill" not in main_stderr:
+            wrong.append(
+                "main() wiring (namespace axis): main() did not report the "
+                "unknown namespace ref — main()'s namespace-only loop "
+                f"dispatch has regressed. stderr: {main_stderr!r}"
+            )
+
+        # Negative control through main(): the resolving link must stay unflagged.
+        if "good.md" in main_stderr:
+            wrong.append(
+                "main() wiring (negative control): main() flagged good.md's "
+                f"resolving link. stderr: {main_stderr!r}"
+            )
+
     if wrong:
         sys.stderr.write("check-links --self-test: FAIL\n")
         for w in wrong:
             sys.stderr.write(f"  - {w}\n")
-        sys.exit(1)
+        return 1
 
     print(
         "check-links --self-test: PASS — both newly-extended VAL-03 scan "
         "surfaces (first-principles/skills/*/references/*.md, D-01; "
         "first-principles/skills/*/SKILL.md, D-05) proven load-bearing on a "
         "synthetic fixture (non-vacuity, disjointness, positive detection + "
-        "negative controls on both axes, run-to-run determinism); both "
-        "currently match zero live findings on the real tree today (D-06)."
+        "negative controls on both axes, run-to-run determinism, and "
+        "end-to-end main() dispatch wiring); both currently match zero live "
+        "findings on the real tree today (D-06)."
     )
-    sys.exit(0)
+    return 0
 
 
-def main() -> int:
+def main(argv: list[str] | None = None, root: Path = REPO_ROOT) -> int:
+    """Run the VAL-03 scan and return a process exit code.
+
+    `argv` defaults to sys.argv[1:] (argparse's own default) and `root` to the
+    module-level REPO_ROOT. Both parameters exist so `--self-test` can drive
+    THIS function — not just the _collect_files/_check_file building blocks it
+    calls — against a temp fixture. Without that, main()'s own loop dispatch
+    and dedup wiring had no regression guard: flipping the `check_links` flag
+    on either loop below silently checked fewer links while both the live scan
+    and the self-test still passed (v8.5 Phase 152 code-review WR-01).
+
+    Returns rather than calling sys.exit() so the self-test can assert on the
+    exit code; the __main__ guard converts the return value into the process
+    status.
+    """
     parser = argparse.ArgumentParser(
         description=(
             "VAL-03: validate relative markdown links + backticked namespace "
@@ -697,54 +765,52 @@ def main() -> int:
             "load-bearing on a synthetic fixture tree"
         ),
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     _require_python_version()
 
     if args.self_test:
-        _run_self_test()
-        return 0
+        return _run_self_test()
 
     _require_pyyaml()
-
-    # Import _skill_io for PLUGIN_SKILLS_DIR and the valid slug set.
-    sys.path.insert(0, str(Path(__file__).parent))
-    try:
-        import _skill_io
-    except Exception as exc:
-        sys.stderr.write(f"check-links: failed to import _skill_io: {exc}\n")
-        sys.exit(2)
 
     # Build valid namespace-ref slug set at runtime (not hard-coded — Phase 20+ safe).
     # Phase 26.1: tolerate missing first-principles/skills/ (Plan 05 deletes it)
     # AND include the agent's namespace token `first-principles` whenever the
     # agent file exists (so `/first-principles:first-principles` references in
     # the agent body resolve cleanly).
+    #
+    # Derived from `root` rather than imported from _skill_io so the self-test's
+    # fixture root resolves its own skills. Byte-identical to the previous
+    # _skill_io.PLUGIN_SKILLS_DIR for the live case: that constant is defined as
+    # REPO_ROOT / "first-principles" / "skills" against the same REPO_ROOT.
+    plugin_skills_dir = root / "first-principles" / "skills"
+
     valid_slugs: set[str] = set()
-    if _skill_io.PLUGIN_SKILLS_DIR.exists():
+    if plugin_skills_dir.exists():
         try:
             valid_slugs |= {
                 name
-                for name in os.listdir(_skill_io.PLUGIN_SKILLS_DIR)
-                if (_skill_io.PLUGIN_SKILLS_DIR / name / "SKILL.md").exists()
+                for name in os.listdir(plugin_skills_dir)
+                if (plugin_skills_dir / name / "SKILL.md").exists()
             }
         except Exception as exc:
             sys.stderr.write(f"check-links: cannot enumerate plugin skills: {exc}\n")
-            sys.exit(2)
+            return 2
 
-    if (REPO_ROOT / "first-principles" / "agents" / "first-principles.md").exists():
+    if (root / "first-principles" / "agents" / "first-principles.md").exists():
         valid_slugs.add("first-principles")
 
-    full_check_files = _collect_files(FULL_CHECK_GLOBS)
-    namespace_only_files = _collect_files(NAMESPACE_ONLY_GLOBS)
-    docs_files = _collect_files(DOCS_CHECK_GLOBS)
+    full_check_files = _collect_files(FULL_CHECK_GLOBS, root=root)
+    namespace_only_files = _collect_files(NAMESPACE_ONLY_GLOBS, root=root)
+    docs_files = _collect_files(DOCS_CHECK_GLOBS, root=root)
 
     # Deduplicate: files in full_check_files should not also appear in namespace_only_files.
     full_check_set = set(full_check_files)
     namespace_only_files = [f for f in namespace_only_files if f not in full_check_set]
 
     # docs/ scan uses a separate docs_dir root for CF-04 prefix detection.
-    docs_dir = REPO_ROOT / "docs"
+    docs_dir = root / "docs"
 
     broken: list[tuple[Path, int, str, str]] = []
     total_links: list[int] = [0]
@@ -767,7 +833,7 @@ def main() -> int:
         broken.sort(key=lambda t: (str(t[0]), t[1]))
         for rel, line, ref, reason in broken:
             sys.stderr.write(f"BROKEN: {rel}:{line}: {ref} -> {reason}\n")
-        sys.exit(1)
+        return 1
 
     print(
         f"check-links: PASS ({total_links[0]} markdown links + {total_refs[0]} namespace refs"
