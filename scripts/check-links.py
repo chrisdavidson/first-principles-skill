@@ -6,12 +6,19 @@
 """VAL-03 gate: validate relative markdown links + backticked namespace refs.
 
 Usage:
-    python3 scripts/check-links.py
+    python3 scripts/check-links.py [--self-test]
 
 Exit codes:
-    0  all links resolve and all namespace refs are valid
+    0  all links resolve and all namespace refs are valid (or --self-test PASS)
     1  one or more broken relative links or unknown namespace refs found
+       (or --self-test FAIL)
     2  environment error (Python <3.12, PyYAML missing, malformed frontmatter)
+
+--self-test (v8.5 GATE-01, D-03/D-04): builds an on-disk temp fixture and
+drives the production _collect_files / _check_file functions against it to
+prove the two newly-extended scan surfaces above are load-bearing —
+non-vacuity, disjointness, positive detection + negative controls on both
+axes, and run-to-run determinism. Does not require PyYAML or _skill_io.
 
 Broken-ref stderr format (one line per broken ref, ctrl-click navigable):
     BROKEN: <source-file>:<line>: <link-or-token> -> <reason>
@@ -70,9 +77,11 @@ Anchor validation (docs/ surface only, D-04):
 
 from __future__ import annotations
 
+import argparse
 import os
 import re
 import sys
+import tempfile
 import unicodedata
 from pathlib import Path
 
@@ -480,8 +489,222 @@ def _check_file(
             )
 
 
+def _run_self_test() -> None:
+    """Self-test (v8.5 GATE-01, D-03/D-04): prove the two newly-extended VAL-03
+    scan surfaces are load-bearing on a synthetic fixture, independent of the
+    live tree (which matches zero findings on both axes today — D-06):
+
+      - first-principles/skills/*/references/*.md (D-01, FULL_CHECK_GLOBS)
+      - first-principles/skills/*/SKILL.md         (D-05, NAMESPACE_ONLY_GLOBS)
+
+    Builds an on-disk temp fixture mirroring the real plugin layout, then
+    drives the PRODUCTION FULL_CHECK_GLOBS / NAMESPACE_ONLY_GLOBS constants
+    through the production _collect_files / _check_file functions — never a
+    reimplementation. Because the module-level glob lists are used verbatim
+    (not a hand-picked pattern string), removing either new glob entry makes
+    the corresponding non-vacuity assertion fail (mutation-proof).
+
+    Accumulates every failure into `wrong` and reports them all at once
+    (rather than exiting on the first) so a regression is fully diagnosable
+    from a single CI run.
+    """
+    wrong: list[str] = []
+    slug = "self-test-skill"
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_root = Path(tmp)
+        skill_dir = tmp_root / "first-principles" / "skills" / slug
+        references_dir = skill_dir / "references"
+        references_dir.mkdir(parents=True, exist_ok=True)
+
+        # SKILL.md — well-formed frontmatter + one resolving namespace ref
+        # (self) and one unknown namespace ref.
+        (skill_dir / "SKILL.md").write_text(
+            "---\n"
+            f"name: {slug}\n"
+            "description: synthetic fixture skill for check-links.py --self-test\n"
+            "---\n\n"
+            "# Fixture skill\n\n"
+            f"See `/first-principles:{slug}` (resolves) and "
+            "`/first-principles:unknown-fixture-skill` (does not resolve).\n",
+            encoding="utf-8",
+        )
+
+        # references/good.md — a relative link that resolves. Points at the
+        # sibling SKILL.md (NOT itself matched by the references/*.md glob),
+        # keeping the file-count assertion below exact.
+        (references_dir / "good.md").write_text(
+            "# Good reference\n\nSee [the skill](../SKILL.md) for context.\n",
+            encoding="utf-8",
+        )
+
+        # references/bad.md — a relative link to a target that does not exist.
+        (references_dir / "bad.md").write_text(
+            "# Bad reference\n\nSee [missing](./missing.md) for details.\n",
+            encoding="utf-8",
+        )
+
+        # --- 1. Non-vacuity (D-03, the crux) ---
+        # Uses the PRODUCTION FULL_CHECK_GLOBS / NAMESPACE_ONLY_GLOBS lists
+        # (not a hand-picked single pattern) so removing either new glob
+        # entry from the module constants is detectable here.
+        references_files = _collect_files(FULL_CHECK_GLOBS, root=tmp_root)
+        if len(references_files) != 2:
+            wrong.append(
+                "non-vacuity: FULL_CHECK_GLOBS matched "
+                f"{len(references_files)} file(s) under the fixture root, "
+                "expected 2 (references/good.md, references/bad.md) — a "
+                "zero-match glob is the exact failure mode this mode exists "
+                "to prevent"
+            )
+
+        skill_files = _collect_files(NAMESPACE_ONLY_GLOBS, root=tmp_root)
+        if len(skill_files) != 1:
+            wrong.append(
+                "non-vacuity: NAMESPACE_ONLY_GLOBS matched "
+                f"{len(skill_files)} file(s) under the fixture root, "
+                "expected 1 (SKILL.md)"
+            )
+
+        # --- 2. Disjointness (edge:adjacency) ---
+        references_set = set(references_files)
+        skill_set = set(skill_files)
+        overlap = references_set & skill_set
+        if overlap:
+            wrong.append(
+                "disjointness: references glob and SKILL.md glob share "
+                f"member(s): {sorted(str(p) for p in overlap)} — main()'s "
+                "dedup step could silently drop one of them"
+            )
+        union_size = len(references_set | skill_set)
+        sum_size = len(references_set) + len(skill_set)
+        if union_size != sum_size:
+            wrong.append(
+                f"disjointness: union size {union_size} != sum of individual "
+                f"sizes {sum_size} — main()'s dedup step could silently "
+                "drop one of them"
+            )
+
+        # --- 3/4/5/6. Positive detection, negative controls, determinism ---
+        # Run the collection+checking sequence twice over the same fixture
+        # and assert the resulting broken lists are element-for-element equal
+        # (edge:ordering).
+        broken_runs: list[list[tuple[Path, int, str, str]]] = []
+        valid_slugs = {slug}
+        for _ in range(2):
+            broken: list[tuple[Path, int, str, str]] = []
+            total_links: list[int] = [0]
+            total_refs: list[int] = [0]
+
+            for source_file in references_files:
+                _check_file(source_file, True, valid_slugs, broken, total_links, total_refs)
+            for source_file in skill_files:
+                _check_file(source_file, False, valid_slugs, broken, total_links, total_refs)
+
+            broken_runs.append(list(broken))
+
+        broken = broken_runs[0]
+
+        if broken_runs[0] != broken_runs[1]:
+            wrong.append(
+                "determinism: two runs of _collect_files + _check_file over "
+                f"the same fixture disagreed — run1={broken_runs[0]!r} "
+                f"run2={broken_runs[1]!r}"
+            )
+
+        # Positive detection — references axis (D-01): bad.md's broken link
+        # must be flagged with the exact production reason string. Fixture
+        # paths live outside REPO_ROOT so `broken` entries carry absolute
+        # temp paths (relative_to(REPO_ROOT) falls back to absolute) —
+        # match on filename substring, never a full expected path.
+        bad_flagged = [
+            entry for entry in broken
+            if "bad.md" in str(entry[0]) and entry[3] == "file not found"
+        ]
+        if not bad_flagged:
+            wrong.append(
+                "positive detection (references axis): bad.md's broken "
+                "link to ./missing.md was not flagged with reason "
+                f"'file not found' — broken list: {broken!r}"
+            )
+
+        # Negative control — references axis: good.md's resolving link must
+        # NOT be flagged (rules out a constant-true detector).
+        good_flagged = [entry for entry in broken if "good.md" in str(entry[0])]
+        if good_flagged:
+            wrong.append(
+                "negative control (references axis): good.md's resolving "
+                f"link was incorrectly flagged: {good_flagged!r}"
+            )
+
+        # Positive detection — namespace axis (D-05): the unknown ref must
+        # be flagged with the exact production reason string.
+        unknown_flagged = [
+            entry for entry in broken
+            if "unknown-fixture-skill" in entry[2]
+            and entry[3] == "unknown namespace ref (not a sibling skill)"
+        ]
+        if not unknown_flagged:
+            wrong.append(
+                "positive detection (namespace axis): unknown ref "
+                "`/first-principles:unknown-fixture-skill` was not flagged "
+                f"with the expected reason — broken list: {broken!r}"
+            )
+
+        # Negative control — namespace axis: the self-referential ref must
+        # NOT be flagged (rules out a constant-true detector).
+        self_flagged = [
+            entry for entry in broken
+            if f"/first-principles:{slug}`" in entry[2]
+        ]
+        if self_flagged:
+            wrong.append(
+                "negative control (namespace axis): self-referential ref "
+                f"`/first-principles:{slug}` was incorrectly flagged: "
+                f"{self_flagged!r}"
+            )
+
+    if wrong:
+        sys.stderr.write("check-links --self-test: FAIL\n")
+        for w in wrong:
+            sys.stderr.write(f"  - {w}\n")
+        sys.exit(1)
+
+    print(
+        "check-links --self-test: PASS — both newly-extended VAL-03 scan "
+        "surfaces (first-principles/skills/*/references/*.md, D-01; "
+        "first-principles/skills/*/SKILL.md, D-05) proven load-bearing on a "
+        "synthetic fixture (non-vacuity, disjointness, positive detection + "
+        "negative controls on both axes, run-to-run determinism); both "
+        "currently match zero live findings on the real tree today (D-06)."
+    )
+    sys.exit(0)
+
+
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "VAL-03: validate relative markdown links + backticked namespace "
+            "refs across the plugin/agent/shared surfaces."
+        )
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help=(
+            "prove both newly-extended scan surfaces (D-01 "
+            "skills/*/references/*.md, D-05 skills/*/SKILL.md) are "
+            "load-bearing on a synthetic fixture tree"
+        ),
+    )
+    args = parser.parse_args()
+
     _require_python_version()
+
+    if args.self_test:
+        _run_self_test()
+        return 0
+
     _require_pyyaml()
 
     # Import _skill_io for PLUGIN_SKILLS_DIR and the valid slug set.
