@@ -2054,7 +2054,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 1/5 FAIL CARRIED; v7.13] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v7.13] + RR-108-05 [S-P14 0/5 CARRIED; v7.13] + RR-77-08 + RR-117-01 [S-P03 fishbone; SUSTAINED 4/5 v7.11] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 3/5 PASS CLOSE v8.5] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
         return 0
     return 1
 
