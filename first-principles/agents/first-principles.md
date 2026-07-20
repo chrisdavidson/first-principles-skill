@@ -358,6 +358,11 @@ If yes, recurse. If no, apply the stop test (see §Stop test).
 **Validate the parent claim.** Verified only if every branch is verified. One assumed
 branch flags the whole parent with `?`.
 
+**Read [five-whys-detail.md](references/five-whys-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
+
 ---
 
 ## Procedure
@@ -389,6 +394,11 @@ branch flags the whole parent with `?`.
    likely to be contributing based on available evidence. Mark unverified candidate
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
+
+**Read [fishbone-detail.md](references/fishbone-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
 
 ## Procedure
 
@@ -548,6 +558,11 @@ decision. If the bracket spans an order of magnitude and straddles the decision
 threshold, identify which factor dominates the uncertainty and either tighten it
 with a better measurement or escalate the uncertainty explicitly.
 
+**Read [estimate-detail.md](references/estimate-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
+
 ## Procedure
 
 **Name the conventional figure and the conventions embedded in it.** Write one
@@ -590,3 +605,8 @@ currently achieve), and (3) the gap between the law-permitted ceiling and the
 conventional figure is stated explicitly. A theoretical-limit analysis that names
 a ceiling without bracketing the gap to the conventional figure is incomplete —
 the bracket, not the ceiling alone, is the deliverable.
+
+**Read [theoretical-limit-detail.md](references/theoretical-limit-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique

@@ -117,6 +117,11 @@ labels and blank branches.
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
+**Read [fishbone-detail.md](references/fishbone-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
+
 ---
 
 If a fuller analysis is needed afterward, invoke the main `first-principles`

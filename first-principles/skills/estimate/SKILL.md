@@ -94,6 +94,11 @@ decision. If the bracket spans an order of magnitude and straddles the decision
 threshold, identify which factor dominates the uncertainty and either tighten it
 with a better measurement or escalate the uncertainty explicitly.
 
+**Read [estimate-detail.md](references/estimate-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
+
 ---
 
 If a fuller analysis is needed afterward, invoke the main `first-principles`

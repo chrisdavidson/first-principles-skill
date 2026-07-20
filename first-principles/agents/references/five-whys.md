@@ -87,6 +87,11 @@ If yes, recurse. If no, apply the stop test (see §Stop test).
 **Validate the parent claim.** Verified only if every branch is verified. One assumed
 branch flags the whole parent with `?`.
 
+**Read [five-whys-detail.md](five-whys-detail.md) when you need:**
+- a worked example of this technique
+- the failure modes and how to avoid them
+- handoff guidance to another technique
+
 ---
 
 ## Stop test
