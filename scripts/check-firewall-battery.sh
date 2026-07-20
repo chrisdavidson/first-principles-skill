@@ -13,10 +13,16 @@
 # Exits:  0 = FIREWALL GREEN (all gates pass)
 #         1 = FIREWALL RED   (one or more gates failed)
 #
-# Gates (14):
+# Gates (16):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    GATE-01
 #   BATT-06   TRACE-03      COLLIDE-01  body-budget
+#   INVARIANT-CHECK  FROZEN-EVIDENCE
+#
+# The first 14 are registered through the `gate` helper below; the final two
+# (INVARIANT-CHECK, FROZEN-EVIDENCE) are inline checks that each increment the
+# same PASS/FAIL/TOTAL tally rather than going through `gate`, for a reported
+# total of 16.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).

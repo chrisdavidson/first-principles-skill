@@ -105,7 +105,7 @@ jobs:
       - run: python3 scripts/sync-content.py --check
 
   pointer-drift-guard:
-    name: pointer-drift-guard (v8.5 GATE-02)
+    name: GATE-02-v8.5
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
