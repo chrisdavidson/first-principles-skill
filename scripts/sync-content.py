@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 39 target files
+    python3 scripts/sync-content.py --write    # regenerate all 47 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -16,11 +16,13 @@ Exit codes:
 
 Source of truth: shared/  (canonical)
 Target surface:
-    - first-principles/agents/first-principles.md           (orchestrating agent)
-    - first-principles/agents/references/<tool>.md          (8 companion-tool refs)
-    - first-principles/agents/references/<spine-ref>.md     (3 spine refs)
-    - first-principles/agents/references/examples/<name>.md (worked-example siblings)
-    - first-principles/skills/<slug>/SKILL.md               (13 focused-mode stubs)
+    - first-principles/agents/first-principles.md              (orchestrating agent)
+    - first-principles/agents/references/<tool>.md             (8 companion-tool refs)
+    - first-principles/agents/references/<spine-ref>.md        (3 spine refs)
+    - first-principles/agents/references/<slug>-detail.md      (4 on-demand agent detail siblings)
+    - first-principles/agents/references/examples/<name>.md    (worked-example siblings)
+    - first-principles/skills/<slug>/SKILL.md                  (13 focused-mode stubs)
+    - first-principles/skills/<slug>/references/<slug>-detail.md (4 on-demand skill detail siblings)
 """
 
 from __future__ import annotations
@@ -144,6 +146,19 @@ GENERATED_MARKER = (
     "Regenerate via: scripts/sync-content.py --write. -->\n"
 )
 
+# v8.5 Phase 154 (Rule 3 auto-fix, MECH-02): a detail sibling's canonical
+# source (shared/references/<slug>-detail.md) deliberately opens on
+# '## Example' with no H1 — Plan 02 locked "no H1, no back-pointer, no new
+# prose" as a must-have truth for the split, and that source file is already
+# committed and byte-frozen. Once this plan wires the sibling into the
+# generated tree, VAL-02 (markdownlint MD041, first-line-must-be-H1) flags
+# every emission of it. Rather than add an H1 to the frozen source (an
+# architectural reversal of Plan 02's decision) or disable MD041 tree-wide
+# (weakening the gate for the other 43 generated files), this generator-only
+# inline directive exempts exactly the eight new detail-sibling emissions —
+# MD041 keeps full teeth everywhere else.
+DETAIL_SIBLING_LINT_EXEMPT = "<!-- markdownlint-disable MD041 -->\n"
+
 # Generated stub target tree (sibling to AGENT_DIR; never hand-edited).
 SKILLS_DIR = REPO_ROOT / "first-principles" / "skills"
 
@@ -201,7 +216,11 @@ SPINE_REFERENCES = (
 SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fishbone"})
 
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
-# Breakdown: 1 agent + 11 reference siblings + 14 worked-example siblings + 13 skill stubs.
+# Breakdown: 1 agent + 11 reference siblings + 4 agent detail siblings +
+# 14 worked-example siblings + 13 skill stubs + 4 skill detail siblings.
+# v8.5 Phase 154 (MECH-02) adds the two four-entry detail-sibling families for
+# SLUGS_WITH_DETAIL, raising the previous total (documented pre-Phase-154 in
+# git history) to the count below.
 # Three committed-but-hand-maintained files (first-principles/README.md,
 # first-principles/LICENSE, first-principles/.claude-plugin/plugin.json) are NOT
 # counted here because the path-safety assertion in generate_all() (the allowed_roots
@@ -209,7 +228,7 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 39
+GENERATED_TARGET_COUNT = 47
 
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
@@ -405,6 +424,24 @@ _SKILL_CONTENT_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 
+# v8.5 Phase 154 (D-05): a core-only variant of _SKILL_CONTENT_RE, applied
+# ONLY to slugs in SLUGS_WITH_DETAIL. Terminates on either the '## Example'
+# heading OR end-of-input — the alternation is mandatory: a lookahead with no
+# end-of-input branch would raise on every post-split core file, none of
+# which contain an '## Example' heading any more (Plan 02 moved it to the
+# detail sibling). Today the two patterns are behaviour-identical on the four
+# split files (both match to EOF, byte-for-byte), so this is a guardrail
+# against future re-inflation, not a functional change: if a future edit
+# re-added an '## Example'-style section to one of the four core files, the
+# stub would otherwise silently re-inflate with no gate catching it. Widening
+# this pattern's application beyond SLUGS_WITH_DETAIL would silently truncate
+# `pre-mortem` and `trade-off`, which also carry an '## Example' heading but
+# sit outside v8.5 §2's authorisation — do not broaden the branch below.
+_SKILL_CONTENT_CORE_ONLY_RE = re.compile(
+    r"(^## When to reach for this\n.*?)(?=^## Example\b|\Z)",
+    re.MULTILINE | re.DOTALL,
+)
+
 
 def _extract_skill_content(slug: str) -> str:
     """Extract the inline-copy region for a focused-mode stub body.
@@ -423,6 +460,19 @@ def _extract_skill_content(slug: str) -> str:
     here would produce stubs in the 45-55 LOC range and falsify the
     "procedure inlined" truth.
 
+    v8.5 Phase 154 (D-05): for slugs in SLUGS_WITH_DETAIL, uses
+    `_SKILL_CONTENT_CORE_ONLY_RE` instead of `_SKILL_CONTENT_RE` — a clamp
+    that terminates the slice at the '## Example' heading (or EOF, whichever
+    comes first) rather than always running to EOF. This is a guardrail, not
+    a behaviour change today: the four split core files contain no '## Example'
+    heading, so the clamp produces byte-identical output to the unclamped
+    pattern on the current tree. It exists so a future re-inflation of one of
+    the four core files with an appendix-style section is caught rather than
+    silently inlined into the stub. The other nine SKILLS slugs keep
+    `_SKILL_CONTENT_RE` exactly as it was — widening the clamp beyond
+    SLUGS_WITH_DETAIL would silently truncate `pre-mortem` and `trade-off`,
+    which carry the same heading and sit outside v8.5 §2's authorisation.
+
     Raises ValueError if the anchor heading is absent.
     """
     body = _read_required(
@@ -432,7 +482,10 @@ def _extract_skill_content(slug: str) -> str:
             f"stub at first-principles/skills/{slug}/SKILL.md"
         ),
     )
-    m = _SKILL_CONTENT_RE.search(body)
+    pattern = (
+        _SKILL_CONTENT_CORE_ONLY_RE if slug in SLUGS_WITH_DETAIL else _SKILL_CONTENT_RE
+    )
+    m = pattern.search(body)
     if not m:
         raise ValueError(
             f"shared/references/{slug}.md has no '## When to reach for this' "
@@ -683,6 +736,84 @@ def generate_agent_references() -> dict[Path, str]:
     return targets
 
 
+def generate_agent_detail_references() -> dict[Path, str]:
+    """Return {AGENT_DIR/references/{slug}-detail.md: body} for SLUGS_WITH_DETAIL.
+
+    Source = shared/references/{slug}-detail.md (Plan 02's four new canonical
+    detail siblings). Mirrors generate_agent_references() line for line,
+    changing only the iterated set (SLUGS_WITH_DETAIL instead of TOOLS), the
+    source suffix (-detail.md), and the target filename. Per D-01/D-02, ships
+    verbatim — NO frontmatter, NO `{{TOOL:<slug>}}` marker expansion, NO edits
+    to the source body. Trailing newline normalised to exactly one.
+
+    This sibling lands in the SAME directory as its companion reference file
+    (AGENT_DIR/references/), so the bare-filename pointer target that
+    `_extract_procedure()` emits already resolves here unrewritten (DEC-A) —
+    only the assembled agent body and the skill stub, each one directory
+    level ABOVE their own detail sibling, need `_rewrite_detail_link()`.
+
+    A `GENERATED_MARKER` HTML-comment line is prepended (same shape as
+    generate_agent_references()), followed by `DETAIL_SIBLING_LINT_EXEMPT` —
+    see that constant's docstring for why (VAL-02/MD041, Plan 02's frozen
+    no-H1 source shape).
+    """
+    targets: dict[Path, str] = {}
+    for slug in SLUGS_WITH_DETAIL:
+        body = _read_required(
+            SHARED / "references" / f"{slug}-detail.md",
+            hint=(
+                f"shared/references/{slug}-detail.md is required for the "
+                f"agent's on-demand detail sibling at "
+                f"first-principles/agents/references/{slug}-detail.md"
+            ),
+        )
+        marker = GENERATED_MARKER.format(source_rel=f"references/{slug}-detail.md")
+        targets[AGENT_DIR / "references" / f"{slug}-detail.md"] = (
+            _normalise_trailing_newline(
+                marker + "\n" + DETAIL_SIBLING_LINT_EXEMPT + "\n" + body
+            )
+        )
+    return targets
+
+
+def generate_skill_detail_references() -> dict[Path, str]:
+    """Return {SKILLS_DIR/{slug}/references/{slug}-detail.md: body} for SLUGS_WITH_DETAIL.
+
+    Source = shared/references/{slug}-detail.md — the same source tree
+    `generate_agent_detail_references()` reads. Mirrors that function's shape
+    exactly, changing only the target root: under the per-slug skill
+    directory's own `references/` subdirectory rather than
+    `AGENT_DIR/references/`. That subdirectory does not exist on disk before
+    this plan runs; `cmd_write()` already creates missing parent directories
+    (`path.parent.mkdir(parents=True, exist_ok=True)`) before writing, so no
+    extra directory-creation code is needed here. The target resolves inside
+    `SKILLS_DIR`, so it passes `generate_all()`'s existing path-safety
+    assertion unmodified.
+
+    A `GENERATED_MARKER` HTML-comment line is prepended, followed by
+    `DETAIL_SIBLING_LINT_EXEMPT` (see that constant's docstring — VAL-02/
+    MD041, Plan 02's frozen no-H1 source shape). Trailing newline normalised
+    to exactly one.
+    """
+    targets: dict[Path, str] = {}
+    for slug in SLUGS_WITH_DETAIL:
+        body = _read_required(
+            SHARED / "references" / f"{slug}-detail.md",
+            hint=(
+                f"shared/references/{slug}-detail.md is required for the "
+                f"skill stub's on-demand detail sibling at "
+                f"first-principles/skills/{slug}/references/{slug}-detail.md"
+            ),
+        )
+        marker = GENERATED_MARKER.format(source_rel=f"references/{slug}-detail.md")
+        targets[SKILLS_DIR / slug / "references" / f"{slug}-detail.md"] = (
+            _normalise_trailing_newline(
+                marker + "\n" + DETAIL_SIBLING_LINT_EXEMPT + "\n" + body
+            )
+        )
+    return targets
+
+
 def generate_agent_spine_references() -> dict[Path, str]:
     """Return {AGENT_DIR/references/{slug}.md: body} for canonical spine references.
 
@@ -756,19 +887,29 @@ def generate_all() -> dict[Path, str]:
     v7.5 (Phase 110) folds decompose into five-whys and removes the standalone
     decompose surface, bringing TOOLS to 8, SKILLS to 13, and EXAMPLES to 14
     (the worked example file is kept at its current path per D-04, rebranded).
-    Current target count: 39 total.
+    v8.5 Phase 154 (MECH-01/MECH-02) adds the on-demand load mechanism: four
+    core reference files (SLUGS_WITH_DETAIL) each carry a named-trigger
+    pointer to a new `-detail.md` sibling, emitted on two surfaces (8 new
+    generated files), raising the count below from its prior value.
+    Current target count: 47 total.
 
       - 1 agent SKILL.md (first-principles/agents/first-principles.md)
       - 11 agent reference siblings (first-principles/agents/references/*.md:
         8 companion-tool refs + assumption-taxonomy + output-template + validation-rubric)
+      - 4 agent detail siblings (first-principles/agents/references/<slug>-detail.md,
+        SLUGS_WITH_DETAIL: five-whys, theoretical-limit, estimate, fishbone)
       - 14 agent worked-example siblings (first-principles/agents/references/examples/<name>.md)
       - 13 slash-invocable focused-mode stubs (first-principles/skills/<slug>/SKILL.md)
-    Total: 1 + 11 + 14 + 13 = 39.
+      - 4 skill detail siblings (first-principles/skills/<slug>/references/<slug>-detail.md,
+        same SLUGS_WITH_DETAIL set)
+    Total: 1 + 11 + 4 + 14 + 13 + 4 = 47.
 
-    Note: the total count (39) reflects the 8 TOOLS + 3 spine-refs (for the
-    reference siblings), 14 EXAMPLES, and 13 SKILLS. generate_all() now gates on
-    this count via the GENERATED_TARGET_COUNT invariant (raises on drift), and the
-    sync-content.py --check pass additionally validates byte-identity per-file.
+    Note: the total count (47) reflects the 8 TOOLS + 3 spine-refs (for the
+    reference siblings), 4 SLUGS_WITH_DETAIL (doubled — once per agent surface,
+    once per skill surface), 14 EXAMPLES, and 13 SKILLS. generate_all() now
+    gates on this count via the GENERATED_TARGET_COUNT invariant (raises on
+    drift), and the sync-content.py --check pass additionally validates
+    byte-identity per-file.
     """
     import yaml
 
@@ -795,6 +936,7 @@ def generate_all() -> dict[Path, str]:
     # --- Agent surface ---
     targets.update(generate_agent(spine_meta, tool_map))
     targets.update(generate_agent_references())
+    targets.update(generate_agent_detail_references())
     targets.update(generate_agent_spine_references())
     targets.update(generate_agent_examples())
 
@@ -802,6 +944,7 @@ def generate_all() -> dict[Path, str]:
     # disable-model-invocation: true on every stub → no orchestrator
     # auto-routing; only `/first-principles:<slug>` slash invocation loads them.
     targets.update(generate_skill_stubs())
+    targets.update(generate_skill_detail_references())
 
     # --- Path-safety assertion (V12 ASVS): every write path must live inside
     #     an allowed write root.
