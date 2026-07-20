@@ -86,25 +86,30 @@ shared/                         ← canonical source (edit here)
       validation-rubric.md      ← inlined into agent body by sync-content.py
   agent/                        ← phase-procedure fragments stitched into the agent body
   references/                   ← companion tool reference files (five-whys.md, etc.)
+  references/<slug>-detail.md   ← v8.5 on-demand appendix siblings (SLUGS_WITH_DETAIL only)
   examples/                     ← worked-example source files
   skills/<slug>/SKILL.md        ← source for each focused-mode slash skill
 
 first-principles/               ← generated plugin (committed, never hand-edited)
   agents/first-principles.md    ← assembled agent (sync-content.py output)
   agents/references/            ← verbatim copies of shared/references/ + spine refs
+  agents/references/<slug>-detail.md      ← generated on-demand detail sibling (agent surface)
   agents/references/examples/   ← verbatim copies of shared/examples/
   skills/<slug>/SKILL.md        ← generated stubs from shared/skills/<slug>/SKILL.md
+  skills/<slug>/references/<slug>-detail.md  ← generated on-demand detail sibling (skill-stub surface)
   README.md
   LICENSE
 ```
 
-`scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree and all `first-principles/skills/*/SKILL.md` files. It stamps every generated file with a `<!-- GENERATED — DO NOT EDIT -->` marker.
+`scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree (including the `agents/references/<slug>-detail.md` on-demand siblings) and all `first-principles/skills/*/SKILL.md` files (including each split skill's own `skills/<slug>/references/<slug>-detail.md` sibling). It stamps every generated file with a `<!-- GENERATED — DO NOT EDIT -->` marker.
 
 ### Token substitution in SKILL-body.md
 
 `{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the `## Procedure` section extracted from `shared/references/<slug>.md`. This inlines the companion technique procedures directly into the agent body at generation time.
 
 `{{PROCEDURE:slug}}` tokens in `shared/skills/<slug>/SKILL.md` are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when generating the focused-mode skill stubs.
+
+**On-demand `-detail.md` load convention (v8.5 Phase 154):** `SLUGS_WITH_DETAIL` in `scripts/sync-content.py` is the single set of slugs authorised to carry a split `shared/references/<slug>-detail.md` appendix — every core-file `## Procedure` section ends with a named-trigger pointer block that directs the reader to the detail sibling on demand, rather than inlining that content into every emission. The pointer must appear exactly once per core file; the `GATE-02-v8.5` pointer drift-guard gate (see CI gates below) asserts this. Because the assembled agent body and the skill stub each sit one directory level above their own detail sibling, `_rewrite_detail_link()` adapts the pointer's link target to `references/<slug>-detail.md` on those two assembly surfaces, while the agent reference sibling (which lands alongside its own `<slug>-detail.md`) keeps the bare, unrewritten form.
 
 ### Plugin layout and skill registration
 
