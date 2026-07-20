@@ -230,6 +230,18 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # number cannot silently drift again (D-01, DEBT-02).
 GENERATED_TARGET_COUNT = 47
 
+# v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
+# cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
+# to prove the CLI dispatch layer itself reaches the GATE-02 block (not just
+# that cmd_self_test() is correct when called directly, Phase 152 WR-01) — but
+# main(["--self-test"]) calls cmd_self_test() again, which would re-enter the
+# same dispatch control and recurse without bound. Set True only for the
+# duration of that one nested call (restored in a finally clause so an
+# exception cannot leave it set); the nested cmd_self_test() checks this flag
+# and skips its own dispatch control while still running every other control.
+_GATE02_DISPATCH_REENTRANT = False
+
+
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
     try:
@@ -417,6 +429,71 @@ def _rewrite_detail_link(slice_text: str, slug: str) -> str:
     if slug not in SLUGS_WITH_DETAIL:
         return slice_text
     return slice_text.replace(f"]({slug}-detail.md)", f"](references/{slug}-detail.md)")
+
+
+# v8.5 Phase 154 GATE-02 (D-01 template): the three trigger bullets every
+# named-trigger pointer block carries, verbatim, immediately after its
+# "**Read [<slug>-detail.md](<slug>-detail.md) when you need:**" line. Kept as
+# a module-level tuple (not inlined into _check_detail_pointer) so a future
+# change to the template's wording only needs updating here.
+_POINTER_TRIGGER_BULLETS = (
+    "a worked example of this technique",
+    "the failure modes and how to avoid them",
+    "handoff guidance to another technique",
+)
+
+
+def _check_detail_pointer(text: str, slug: str) -> list[str]:
+    """Check `text` for exactly one well-formed bare detail-sibling pointer.
+
+    Returns a list of problem strings — empty means well-formed. This is the
+    ONE shared checker GATE-02's positive control and both negative controls
+    (missing, duplicate) all run through: if the positive path and the
+    negatives used different code, the negatives would prove nothing about
+    what the positive control actually runs (D-11). Checks, in order:
+
+      1. The bare link target '](<slug>-detail.md)' appears in `text` exactly
+         once — not zero (missing pointer), not two-or-more (duplicated
+         pointer, or the D-11 "at least one" weakness this exists to rule
+         out).
+      2. When the target count is exactly one, the link's label text is the
+         bare filename '<slug>-detail.md' immediately preceding that target —
+         catches a pointer that decayed into a bare see-also with different
+         label text, which a target-only count would miss.
+      3. All three `_POINTER_TRIGGER_BULLETS` are present in `text`.
+
+    Deliberately operates on plain text, not a second markdown parser (D-10)
+    — callers pass either `_extract_procedure()`'s real output or an
+    in-memory fixture string derived from it; this function itself performs
+    no file I/O and mutates nothing.
+    """
+    problems: list[str] = []
+    target = f"]({slug}-detail.md)"
+    count = text.count(target)
+    if count == 0:
+        problems.append(
+            f"{slug}: pointer target {target!r} not found in text, expected exactly 1"
+        )
+    elif count > 1:
+        problems.append(
+            f"{slug}: pointer target {target!r} found {count} times, "
+            f"expected exactly 1"
+        )
+    else:
+        # `target` already begins with the closing ']' of the label bracket
+        # pair, so the full label+target span is '[<slug>-detail.md' + target
+        # (NOT '[<slug>-detail.md]' + target, which would double the ']').
+        label_and_target = f"[{slug}-detail.md{target}"
+        if label_and_target not in text:
+            problems.append(
+                f"{slug}: pointer target found once but its label does not "
+                f"match the bare filename {slug}-detail.md — may have decayed "
+                f"into a bare see-also"
+            )
+    for bullet in _POINTER_TRIGGER_BULLETS:
+        if bullet not in text:
+            problems.append(f"{slug}: missing trigger bullet {bullet!r}")
+    return problems
 
 
 _SKILL_CONTENT_RE = re.compile(
@@ -1033,6 +1110,39 @@ def cmd_self_test() -> int:
         the raise-on-drift guard actually fires.
     (c) Orphan-guard teeth: create a temp dir with one SKILL.md-less subdir and one with
         a SKILL.md; assert _warn_orphan_skill_dirs distinguishes them correctly.
+
+    v8.5 Phase 154 GATE-02 (D-11 full control set) — proves the named-trigger
+    detail-sibling pointer authored by Plan 03 exists and is well-formed after
+    every regeneration. Explicitly NOT proof that the pointer is followed
+    (Phase 156's live question).
+
+    (d) GATE-02 positive control: `_check_detail_pointer()` (the ONE shared
+        checker also used by (e) and (f)) reports zero problems against
+        `_extract_procedure()`'s real output, for every SLUGS_WITH_DETAIL slug.
+    (e) GATE-02 negative control 1 (missing): strip the pointer from an
+        in-memory copy of the real output; the shared checker must report a
+        problem for every slug. Operates on a fixture string, never a real
+        file, so a crashed run cannot leave the repo mutated.
+    (f) GATE-02 negative control 2 (duplicate): append a second copy of the
+        real output to itself; the shared checker must report a problem
+        whose text cites the count (not merely "failed") for every slug — a
+        checker that silently accepts two-or-more would pass a weaker
+        "at least one present" assertion, the exact D-11 weakness this rules
+        out.
+    (g) GATE-02 rewrite assertion: a distinct property from (d)-(f)'s
+        bare-form check (DEC-B, 154-01-SUMMARY.md) — the rewritten
+        `references/`-prefixed form appears exactly once per slug in the
+        assembled agent body and the skill stub, while the agent reference
+        sibling still carries the bare (unrewritten) form. Driven off
+        `generate_all()`'s in-memory return value, never files on disk.
+    (h) GATE-02 dispatch control (Phase 152 WR-01 lesson): drives
+        `main(["--self-test"])` and asserts its return code and captured
+        stdout, proving the CLI dispatch branch itself reaches (d)'s PASS
+        text — not just that this function is correct when called directly.
+        Guarded by the module-level `_GATE02_DISPATCH_REENTRANT` sentinel
+        (set only for the duration of the nested call, restored in a
+        `finally` clause) so the nested invocation cannot recurse into its
+        own dispatch control.
     """
     import contextlib
     import io
@@ -1091,6 +1201,167 @@ def cmd_self_test() -> int:
                 print("(c) orphan-guard teeth: PASS — flags SKILL.md-less, skips SKILL.md-present")
     except Exception as exc:
         failures.append(f"FAIL (c): unexpected exception: {exc!r}")
+
+    # (d) GATE-02 positive control: the real extractor output must be clean.
+    try:
+        problems: list[str] = []
+        for slug in sorted(SLUGS_WITH_DETAIL):
+            problems.extend(_check_detail_pointer(_extract_procedure(slug), slug))
+        if problems:
+            failures.append(
+                f"FAIL (d): GATE-02 positive control found problems in the "
+                f"real extractor output: {problems!r}"
+            )
+        else:
+            print(
+                f"(d) GATE-02 pointer positive control: PASS — all "
+                f"{len(SLUGS_WITH_DETAIL)} slugs carry exactly one "
+                f"well-formed detail-sibling pointer"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (d): unexpected exception: {exc!r}")
+
+    # (e) GATE-02 negative control 1 (missing) — stripping the pointer from an
+    # in-memory fixture must make the shared checker report a problem.
+    try:
+        missed: list[str] = []
+        for slug in sorted(SLUGS_WITH_DETAIL):
+            real_slice = _extract_procedure(slug)
+            stripped = real_slice.replace(f"({slug}-detail.md)", "(REMOVED)")
+            if not _check_detail_pointer(stripped, slug):
+                missed.append(slug)
+        if missed:
+            failures.append(
+                f"FAIL (e): GATE-02 negative control (missing) did NOT fail "
+                f"for slugs {missed!r} — the checker silently accepts a "
+                f"stripped pointer"
+            )
+        else:
+            print(
+                f"(e) GATE-02 pointer negative control (missing): PASS — "
+                f"stripping the pointer fails the checker for all "
+                f"{len(SLUGS_WITH_DETAIL)} slugs"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (e): unexpected exception: {exc!r}")
+
+    # (f) GATE-02 negative control 2 (duplicate) — the failure must cite the
+    # count as the cause, not merely report "failed" (D-11).
+    try:
+        missed = []
+        wrong_reason: list[tuple[str, list[str]]] = []
+        for slug in sorted(SLUGS_WITH_DETAIL):
+            real_slice = _extract_procedure(slug)
+            dup = real_slice + real_slice
+            dup_problems = _check_detail_pointer(dup, slug)
+            if not dup_problems:
+                missed.append(slug)
+            elif not any("expected exactly 1" in p for p in dup_problems):
+                wrong_reason.append((slug, dup_problems))
+        if missed:
+            failures.append(
+                f"FAIL (f): GATE-02 negative control (duplicate) did NOT "
+                f"fail for slugs {missed!r}"
+            )
+        elif wrong_reason:
+            failures.append(
+                f"FAIL (f): GATE-02 negative control (duplicate) failed for "
+                f"the wrong reason (must cite the count): {wrong_reason!r}"
+            )
+        else:
+            print(
+                f"(f) GATE-02 pointer negative control (duplicate): PASS — "
+                f"duplicating the pointer fails the checker, citing the "
+                f"count, for all {len(SLUGS_WITH_DETAIL)} slugs"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (f): unexpected exception: {exc!r}")
+
+    # (g) GATE-02 rewrite assertion — a distinct property from (d)-(f)'s
+    # bare-form check (DEC-B, 154-01-SUMMARY.md): the rewritten
+    # `references/`-prefixed form must appear exactly once per slug in the
+    # assembled agent body and the skill stub; the agent reference sibling
+    # must still carry the bare form. Driven off generate_all()'s in-memory
+    # return value, never files on disk.
+    try:
+        wrong: list[str] = []
+        all_targets = generate_all()
+        agent_body = all_targets[AGENT_PATH]
+        for slug in sorted(SLUGS_WITH_DETAIL):
+            rewritten = f"](references/{slug}-detail.md)"
+            bare = f"]({slug}-detail.md)"
+
+            body_count = agent_body.count(rewritten)
+            if body_count != 1:
+                wrong.append(
+                    f"{slug}: agent body carries the rewritten pointer "
+                    f"{body_count} times, expected exactly 1"
+                )
+
+            stub_content = all_targets.get(SKILLS_DIR / slug / "SKILL.md", "")
+            stub_count = stub_content.count(rewritten)
+            if stub_count != 1:
+                wrong.append(
+                    f"{slug}: skill stub carries the rewritten pointer "
+                    f"{stub_count} times, expected exactly 1"
+                )
+
+            ref_content = all_targets.get(
+                AGENT_DIR / "references" / f"{slug}.md", ""
+            )
+            ref_bare_count = ref_content.count(bare)
+            if ref_bare_count != 1:
+                wrong.append(
+                    f"{slug}: agent reference sibling carries the bare "
+                    f"pointer {ref_bare_count} times, expected exactly 1 "
+                    f"(must stay unrewritten — DEC-A, 154-01-SUMMARY.md)"
+                )
+        if wrong:
+            failures.append(f"FAIL (g): GATE-02 rewrite assertion: {wrong!r}")
+        else:
+            print(
+                f"(g) GATE-02 rewrite assertion: PASS — the rewritten "
+                f"pointer appears exactly once in the agent body and skill "
+                f"stub, and the agent reference sibling keeps the bare "
+                f"form, for all {len(SLUGS_WITH_DETAIL)} slugs"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (g): unexpected exception: {exc!r}")
+
+    # (h) GATE-02 dispatch control (Phase 152 WR-01 lesson): prove main()
+    # itself reaches this block when --self-test is passed, not just that
+    # this function is correct when called directly. The re-entrancy
+    # sentinel prevents the nested main(["--self-test"]) call from recursing
+    # into its own dispatch control; it is restored in a finally clause so an
+    # exception cannot leave it set.
+    _this_module = sys.modules[__name__]
+    if not _this_module._GATE02_DISPATCH_REENTRANT:
+        _this_module._GATE02_DISPATCH_REENTRANT = True
+        try:
+            dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
+                dispatch_err
+            ):
+                dispatch_rc = main(["--self-test"])
+            dispatch_text = dispatch_out.getvalue()
+            if dispatch_rc != 0:
+                failures.append(
+                    f"FAIL (h): main(['--self-test']) returned {dispatch_rc}, "
+                    f"expected 0"
+                )
+            elif "GATE-02 pointer positive control: PASS" not in dispatch_text:
+                failures.append(
+                    f"FAIL (h): main(['--self-test'])'s captured stdout did "
+                    f"not contain the GATE-02 positive-control PASS text: "
+                    f"{dispatch_text!r}"
+                )
+            else:
+                print(
+                    "(h) GATE-02 dispatch control: PASS — "
+                    "main(['--self-test']) reaches this block end-to-end"
+                )
+        finally:
+            _this_module._GATE02_DISPATCH_REENTRANT = False
 
     if failures:
         for msg in failures:
