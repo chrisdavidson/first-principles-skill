@@ -149,14 +149,20 @@ GENERATED_MARKER = (
 # v8.5 Phase 154 (Rule 3 auto-fix, MECH-02): a detail sibling's canonical
 # source (shared/references/<slug>-detail.md) deliberately opens on
 # '## Example' with no H1 — Plan 02 locked "no H1, no back-pointer, no new
-# prose" as a must-have truth for the split, and that source file is already
-# committed and byte-frozen. Once this plan wires the sibling into the
-# generated tree, VAL-02 (markdownlint MD041, first-line-must-be-H1) flags
-# every emission of it. Rather than add an H1 to the frozen source (an
-# architectural reversal of Plan 02's decision) or disable MD041 tree-wide
-# (weakening the gate for the other 43 generated files), this generator-only
-# inline directive exempts exactly the eight new detail-sibling emissions —
-# MD041 keeps full teeth everywhere else.
+# prose" as a must-have truth for the split, and that is true as written for
+# three of the four split files (five-whys, theoretical-limit, estimate).
+# fishbone is the named exception: its split converted 2 pre-existing
+# cross-technique Markdown links inside the moved Failure-modes/Handoff
+# content into namespace refs — a genuine content edit within the moved
+# text, not a pure relocation — see check-links.py's D-17 note for the
+# rationale of record. That source file is already committed and
+# byte-frozen. Once this plan wires the sibling into the generated tree,
+# VAL-02 (markdownlint MD041, first-line-must-be-H1) flags every emission of
+# it. Rather than add an H1 to the frozen source (an architectural reversal
+# of Plan 02's decision) or disable MD041 tree-wide (weakening the gate for
+# the other 43 generated files), this generator-only inline directive
+# exempts exactly the eight new detail-sibling emissions — MD041 keeps full
+# teeth everywhere else.
 DETAIL_SIBLING_LINT_EXEMPT = "<!-- markdownlint-disable MD041 -->\n"
 
 # Generated stub target tree (sibling to AGENT_DIR; never hand-edited).
@@ -1338,28 +1344,31 @@ def cmd_self_test() -> int:
     if not _this_module._GATE02_DISPATCH_REENTRANT:
         _this_module._GATE02_DISPATCH_REENTRANT = True
         try:
-            dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
-            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
-                dispatch_err
-            ):
-                dispatch_rc = main(["--self-test"])
-            dispatch_text = dispatch_out.getvalue()
-            if dispatch_rc != 0:
-                failures.append(
-                    f"FAIL (h): main(['--self-test']) returned {dispatch_rc}, "
-                    f"expected 0"
-                )
-            elif "GATE-02 pointer positive control: PASS" not in dispatch_text:
-                failures.append(
-                    f"FAIL (h): main(['--self-test'])'s captured stdout did "
-                    f"not contain the GATE-02 positive-control PASS text: "
-                    f"{dispatch_text!r}"
-                )
-            else:
-                print(
-                    "(h) GATE-02 dispatch control: PASS — "
-                    "main(['--self-test']) reaches this block end-to-end"
-                )
+            try:
+                dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
+                with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
+                    dispatch_err
+                ):
+                    dispatch_rc = main(["--self-test"])
+                dispatch_text = dispatch_out.getvalue()
+                if dispatch_rc != 0:
+                    failures.append(
+                        f"FAIL (h): main(['--self-test']) returned {dispatch_rc}, "
+                        f"expected 0"
+                    )
+                elif "GATE-02 pointer positive control: PASS" not in dispatch_text:
+                    failures.append(
+                        f"FAIL (h): main(['--self-test'])'s captured stdout did "
+                        f"not contain the GATE-02 positive-control PASS text: "
+                        f"{dispatch_text!r}"
+                    )
+                else:
+                    print(
+                        "(h) GATE-02 dispatch control: PASS — "
+                        "main(['--self-test']) reaches this block end-to-end"
+                    )
+            except Exception as exc:
+                failures.append(f"FAIL (h): unexpected exception: {exc!r}")
         finally:
             _this_module._GATE02_DISPATCH_REENTRANT = False
 
