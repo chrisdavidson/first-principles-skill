@@ -916,10 +916,10 @@ def self_test_boundary() -> int:
     def _load_excerpt_v713(prompt_id: str, run: int) -> str:
         return (_V713_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
-    # _load_excerpt_v85 helper — reads Phase 156 v8.5 live re-measure
-    # assistant-text excerpts. Same shape as _load_excerpt_v713: Path.read_text()
-    # so a missing file raises FileNotFoundError loudly (Pitfall 5 — no vacuous
-    # empty-string zero-count). Captures are the 25-call live run
+    # v8.5 live-re-measure loader helper — reads Phase 156 v8.5 live re-measure
+    # assistant-text excerpts. Same plain Path.read_text() shape as the prior
+    # generation helpers, so a missing file raises FileNotFoundError loudly
+    # (Pitfall 5 — no vacuous empty-string zero-count). Captures are the 25-call live run
     # (5 catalog rows x 5 repeats: S-P02, S-P03, S-P04, S-P10, S-P14 — the
     # milestone's first and only live claude spend). S-P02 is the UNSPLIT CONTROL
     # (inversion, untouched by Phase 154's reference-file split); S-P03/S-P04/S-P10/
@@ -1230,12 +1230,23 @@ def self_test_boundary() -> int:
     # same "When the assumption breaks down" span).  The lookahead (?!\s+down)
     # restores Phase 91 CR-01 non-overlap discipline.
     #
-    # This gate asserts the DOCUMENTED per-run v7.13 inversion count vector
-    # [5, 4, 5, 5, 4] over tests/step0-captures-v7.13/S-P02-run{1..5}.txt
-    # (Phase 138 RECON-02, re-pointed v7.11 -> v7.13; S-P02 1/5 FAIL CARRIED).
-    # All 5 runs have inversion >= MIN_HEADER_HITS (detector fires on all runs);
-    # live 1/5 because runs 1,2,4,5 exceeded the composer ceiling (CR-02) and
-    # classified full-composer. The v6.3/v6.4/v7.4/v7.11 excerpts remain byte-frozen (D-04).
+    # This gate asserts the DOCUMENTED per-run v8.5 inversion count vector
+    # [0, 0, 0, 0, 0] over tests/step0-captures-v8.5/S-P02-run{1..5}.txt
+    # (Phase 156 MEASURE-03 / SC-4, re-pointed v7.13 -> v8.5; S-P02 0/5 FAIL CARRIED —
+    # down from the v7.13 1/5 floor, delta -1; verdict §1).
+    # S-P02 is the UNSPLIT CONTROL row (inversion untouched by Phase 154's split), so
+    # the drop is not a split artifact. The v8.5 S-P02 excerpts are orchestrator-summary
+    # prose ("The first-principles agent returned its analysis. Summary:") that DISCUSSES
+    # the inversion in prose but does not echo the structural output-contract markers
+    # (## Inverted Claim / ## Failure-Guaranteeing Conditions / ## Necessary Preconditions /
+    # ## Stress-Test Verdict), so _technique_hits counts 0 inversion markers on every run.
+    # This is the honest measured state (honesty-not-score, D-01), not a dead detector —
+    # the synthetic reachability check below proves the inversion detector still fires.
+    # FINDING (Phase 156): the prior real-excerpt positive counter-check
+    # (`run1 >= MIN_HEADER_HITS`) can no longer fire — ALL five v8.5 runs observed 0
+    # markers. Per the plan's directive this is RECORDED here rather than deleted; the
+    # synthetic 2-marker reachability check is retained as the non-vacuous proof.
+    # The v6.3/v6.4/v7.4/v7.11/v7.13 excerpts remain byte-frozen (D-04).
     #
     # Phase 121 OCH-01/02 structural resolution — RESOLVED-STRUCTURALLY-OFFLINE:
     # 4 output-contract heading-anchored markers (## Inverted Claim /
@@ -1261,10 +1272,15 @@ def self_test_boundary() -> int:
     #   vector [1, 2, 1, 1, 1]; Phase 108 v7.4 carry-forward, S-P02 inversion 1/5)
     #   RR-108-01 → RR-114-01 (renamed Phase 114 Plan 02; re-pointed to v7.6
     #   vector [2, 0, 1, 1, 1]; Phase 114 v7.6 carry-forward, S-P02 inversion 1/5)
+    #   RR-114-01 re-pointed v7.11 → v7.13 (Phase 138 RECON-02, D-03; v7.13
+    #   vector [5, 4, 5, 5, 4]; S-P02 inversion 1/5 FAIL CARRIED)
+    #   RR-114-01 re-pointed v7.13 → v8.5 (Phase 156 MEASURE-03 SC-4, D-03; v8.5
+    #   vector [0, 0, 0, 0, 0]; S-P02 inversion 0/5 FAIL CARRIED — the forward-committed
+    #   live re-measure of the unsplit inversion control; ID kept, no successor minted)
     # ---------------------------------------------------------------------------
     _rr11401_inv_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v713("S-P02", _run)
+        _text = _load_excerpt_v85("S-P02", _run)
         _hits = _technique_hits(_text)
         _rr11401_inv_counts.append(_hits.get("inversion", 0))
 
@@ -1281,15 +1297,17 @@ def self_test_boundary() -> int:
         print(
             f"  RR-114-01 FAIL: inversion pattern count drifted "
             f"(expected 13, got {_rr11401_inv_pattern_count}) — update sentinel "
-            f"after verifying new per-run inversion counts over S-P02-run1..5 (v7.13)."
+            f"after verifying new per-run inversion counts over S-P02-run1..5 (v8.5)."
         )
         all_passed = False
 
     # Positive counter-check (WR-01): prove the inversion detector IS live
-    # and CAN fire on v7.13 text — the real-excerpt vector is a genuine multi-hit
-    # picture, not a dead detector.  A synthetic 2-marker text using two canonical
-    # inversion phrases must yield inversion >= MIN_HEADER_HITS.
-    # (Also: run1=5 >= MIN_HEADER_HITS in the real v7.13 captures, proving non-vacuous.)
+    # and CAN fire — a synthetic 2-marker text using two canonical inversion phrases
+    # must yield inversion >= MIN_HEADER_HITS. This is now the SOLE non-vacuous proof:
+    # unlike v7.13 (where run1=5 cleared the bar in the real captures), the v8.5 S-P02
+    # excerpts observe 0 markers on every run, so no real-excerpt run-index check can
+    # fire (Phase 156 finding, recorded above). The synthetic check confirms the
+    # all-zero real vector is a genuine measurement, not a dead detector.
     _rr11401_synth_text = _fixture_assistant_text(
         "Invert, always invert — the canonical inversion move.\n\n"
         "Start by identifying the necessary precondition for success."
@@ -1299,39 +1317,43 @@ def self_test_boundary() -> int:
     _rr11401_synth_hits = _technique_hits(_rr11401_synth_extracted)
     _rr11401_synth_inv = _rr11401_synth_hits.get("inversion", 0)
 
+    # NOTE (Phase 156): the prior per-run real-excerpt counter-check
+    # (`_rr11401_inv_counts[0] >= MIN_HEADER_HITS`) is intentionally NOT in this
+    # boolean — all five v8.5 runs observed 0 markers, so no run index can clear the
+    # bar. This is a recorded finding (see comment block above), not a silent drop;
+    # the synthetic reachability check remains as the non-vacuous proof.
     _rr11401_ok = (
-        _rr11401_inv_counts == [5, 4, 5, 5, 4]
-        and _rr11401_inv_counts[0] >= MIN_HEADER_HITS    # run1 fires (positive counter-check: count=5 >= 2)
+        _rr11401_inv_counts == [0, 0, 0, 0, 0]
         and _rr11401_inv_pattern_count == 13             # drift guard (D-08 bump: 6→7→8→9, Phase 94; D-03 bump: 9→13, Phase 121 OCH-02)
-        and _rr11401_synth_inv >= MIN_HEADER_HITS         # detector is reachable (synthetic check)
+        and _rr11401_synth_inv >= MIN_HEADER_HITS         # detector is reachable (synthetic check — sole non-vacuous proof at v8.5)
     )
     if _rr11401_ok:
         print(
             f"  RR-114-01 PASS (asserts honest CARRIED state — NOT forced green): "
             f"S-P02 inversion count vector {_rr11401_inv_counts} "
-            f"== [5, 4, 5, 5, 4] (live v7.13 re-baseline captures; run1={_rr11401_inv_counts[0]} "
-            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"== [0, 0, 0, 0, 0] (live v8.5 re-measure captures; UNSPLIT CONTROL — inversion "
+            f"untouched by the Phase 154 split; all 5 runs observed 0 inversion markers because "
+            f"the v8.5 S-P02 excerpts are orchestrator-summary prose that discusses the inversion "
+            f"without echoing the structural output-contract headers; "
             f"inversion detector reachable (synthetic 2-marker text → inv_hits={_rr11401_synth_inv} "
-            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
-            f"all runs clear detector bar (det 5/5); live 1/5 because runs 1,2,4,5 exceeded "
-            f"the composer ceiling (CR-02 CEILING={_COMPOSER_FOCUS_CEILING}) → full-composer; "
-            f"only run3 classified focused-inversion → S-P02 1/5 FAIL CARRIED "
-            f"at the Phase 137 v7.13 live re-baseline (1/5 < 3/5 min-pass; RR ID kept per D-09, "
+            f">= MIN_HEADER_HITS={MIN_HEADER_HITS}) — the SOLE non-vacuous proof at v8.5, since no "
+            f"real-excerpt run clears the bar (Phase 156 finding, recorded); "
+            f"S-P02 0/5 FAIL CARRIED at the Phase 156 v8.5 live re-measure "
+            f"(0/5 < 3/5 min-pass; down from the v7.13 1/5 floor, delta -1; RR ID kept per D-09, "
             f"no successor minted); the carried disposition is the honest recorded state "
-            f"(honesty-not-score, D-01); live S-P02 fix forward-committed (inversion live re-measure milestone); "
+            f"(honesty-not-score, D-01); "
             f"inv_patterns={_rr11401_inv_pattern_count}. "
-            f"Supersedes RR-108-01; re-pointed v7.11 → v7.13 (Phase 138 RECON-02, D-03). "
+            f"Supersedes RR-108-01; re-pointed v7.13 → v8.5 (Phase 156 MEASURE-03 SC-4, D-03). "
             f"Chain: RR-79-02 → RR-92-01 → RR-95-01 → RR-108-01 → RR-114-01."
         )
     else:
         print(
             f"  RR-114-01 FAIL: S-P02 inversion count vector {_rr11401_inv_counts} "
-            f"(expected [5, 4, 5, 5, 4] from v7.13 S-P02 captures); "
+            f"(expected [0, 0, 0, 0, 0] from v8.5 S-P02 captures); "
             f"inv_patterns={_rr11401_inv_pattern_count} (expected 13); "
-            f"run1={_rr11401_inv_counts[0] if len(_rr11401_inv_counts) > 0 else '?'} "
-            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS}); "
+            f"all v8.5 runs observed 0 markers (recorded finding); "
             f"synthetic 2-marker inv_hits={_rr11401_synth_inv} "
-            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
+            f"(must be >= MIN_HEADER_HITS={MIN_HEADER_HITS} — non-vacuous proof)."
         )
         all_passed = False
 
@@ -1426,7 +1448,9 @@ def self_test_boundary() -> int:
     # ---------------------------------------------------------------------------
     # RR-117-01 named honest-state sentinel — S-P03 fishbone vector (Phase 117,
     #           Plan 07 — CONF-02, D-04 step two; CLOSED at v7.7 CONF-01;
-    #           re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two)
+    #           re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two;
+    #           re-pointed to live v7.11 captures Phase 131 RECON-02, D-03;
+    #           re-pointed to live v8.5 captures Phase 156 MEASURE-03 SC-4, D-03)
     #
     # **CLOSED: S-P03 fishbone sustained 5/5 at Phase 117 v7.7 CONF-01.**
     # This is the FIRST fishbone capture-based vector sentinel (Phase 117 Plan 02
@@ -1434,56 +1458,86 @@ def self_test_boundary() -> int:
     # RR-117-01 mints this ID (RR-75-03 lineage — original fishbone under-routing
     # residual first tracked Phase 75; no formal vector sentinel existed until now).
     #
-    # **CLOSE SUSTAINED at Phase 119 v7.8 CONF-03 (tests/step0-baseline-v7.8.md):
-    # S-P03 4/5 ≥ v7.4 floor (3/5) — CLOSE confirmed out-of-sample with Phase-118
-    # prose fix. One run (run1) stays below barrier; four runs clear. Per D-1b softening,
-    # ≥3/5 is the no-regression floor, and 4/5 comfortably satisfies it.**
-    # Sentinel re-pointed to v7.8 captures (Phase 119 CONF-04, D-04 step two).
+    # CORR-03 note (Phase 156): earlier revisions of this comment block claimed a
+    # v7.8 re-point and documented a v7.8 vector while the CODE read the v7.11 loader
+    # and asserted the v7.11 vector — the prose was stale relative to the code. This
+    # block is now brought fully into agreement with the code as it stands: the loader
+    # reads v8.5, the asserted vector is the v8.5 vector, and every label below names v8.5.
     #
-    # v7.7 CONF-01 fishbone count vector: [3, 3, 2, 2, 2] (all 5 runs clear → 5/5 PASS).
-    # v7.8 CONF-03 fishbone count vector: [1, 4, 2, 2, 3]
-    # (tests/step0-captures-v7.8/S-P03-run{1..5}.txt; 7-marker post-fix detector)
-    #   run1: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
-    #   run2: 4 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run3: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run4: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run5: 3 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    # Runs 2,3,4,5 clear the barrier → K/N = 4/5 PASS ≥ v7.4 floor.
+    # **CLOSE SUSTAINED at Phase 156 v8.5 live re-measure (docs/v8.5-live-remeasure-verdict.md §1):
+    # S-P03 3/5 PASS ≥ 3/5 min-pass — CLOSE held on the split fishbone technique.
+    # Floor was the v7.11 4/5 (verdict §1); observed 3/5 is delta -1 but still a CLOSE by
+    # DEC-02's binary rule (K/N >= 3/5 CLOSE). Sentinel retained as a regression guard.**
+    #
+    # Lineage vectors (byte-frozen captures retained for prior generations):
+    #   v7.7 CONF-01 fishbone count vector: [3, 3, 2, 2, 2] (5/5 PASS).
+    #   v7.8 CONF-03 fishbone count vector: [1, 4, 2, 2, 3] (4/5 PASS).
+    #   v7.11 fishbone count vector:        [4, 3, 1, 4, 3] (4/5 PASS).
+    # v8.5 fishbone count vector: [2, 2, 1, 1, 2]
+    # (tests/step0-captures-v8.5/S-P03-run{1..5}.txt; 7-marker detector)
+    #   run1: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    #   run2: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    #   run3: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
+    #   run4: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
+    #   run5: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    # Runs 1,2,5 clear the barrier → K/N = 3/5 PASS.
+    #
+    # D-05 fired-marker-set finding (verdict §2 — the split-vs-regression confound):
+    # S-P03 is the only re-measured row with room to fall, and Phase 154's split moved
+    # fishbone's Example/Failure-modes/Handoff prose into shared/references/fishbone-detail.md,
+    # so a count drop could be a MEASUREMENT ARTIFACT (prompting content moved) rather than a
+    # routing regression. The per-run fired sets were derived and checked against the split
+    # boundary. Union of markers that dropped v7.11 → v8.5: candidate_causes, cause_category,
+    # preset_6M_8P_4S, sub_causes; none gained. Reading: NOT primarily a split artifact —
+    # cause_category and sub_causes source text is still ONLY in the always-inlined core
+    # fishbone.md (not moved to the detail file), and preset_6M_8P_4S traces to neither file's
+    # text; only candidate_causes is duplicated into the detail file and it merely declined
+    # (4/5 → 1/5), not vanished. The structural anchor fishbone_or_ishikawa fired 5/5 on every
+    # run in BOTH generations, and people_process_tech held 2/5 → 2/5, so the technique is still
+    # correctly identified as fishbone every run; what narrowed is the depth of procedural
+    # vocabulary echoed back. Runs 3 and 4 each lost one distinct marker and crossed below
+    # MIN_HEADER_HITS=2, flipping to full-composer — a narrow single-marker margin, not a
+    # structural collapse. Net: a genuine, modest drop in procedural-vocabulary echo depth,
+    # not a split-load artifact.
     #
     # Drift guard: fishbone marker count must not silently change.
     # Retained as regression guard (CLOSE keeps the sentinel per RR-108-02 precedent).
     # ---------------------------------------------------------------------------
     _rr11701_fb_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v711("S-P03", _run)
+        _text = _load_excerpt_v85("S-P03", _run)
         _hits = _technique_hits(_text)
         _rr11701_fb_counts.append(_hits.get("fishbone", 0))
 
     # Drift guard: fishbone marker set size must not silently grow.
     _rr11701_fb_pattern_count = len(_TECHNIQUE_CATEGORIES["fishbone"])
 
-    # Positive counter-check: run2=4 >= MIN_HEADER_HITS proves the fishbone
-    # detector CAN fire on v7.8 S-P03 text (non-vacuous; runs 2,3,4,5 clear the barrier).
+    # Positive counter-check: run2=2 and run5=2 each >= MIN_HEADER_HITS prove the
+    # fishbone detector CAN fire on v8.5 S-P03 text (non-vacuous; runs 1,2,5 clear
+    # the barrier). These two indices still clear the bar at v8.5, so the same
+    # run2/run5 counter-check indices are retained (no index adjustment needed).
     _rr11701_ok = (
-        _rr11701_fb_counts == [4, 3, 1, 4, 3]
+        _rr11701_fb_counts == [2, 2, 1, 1, 2]
         and _rr11701_fb_counts[1] >= MIN_HEADER_HITS    # run2 fires (counter-check)
         and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
         and _rr11701_fb_pattern_count == 7              # drift guard (FIX-01 bump: 6→7)
     )
     if _rr11701_ok:
         print(
-            f"  RR-117-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v7.8/v7.11): "
+            f"  RR-117-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v8.5): "
             f"S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"== [4, 3, 1, 4, 3] (live v7.11 re-baseline captures; 7-marker detector; "
+            f"== [2, 2, 1, 1, 2] (live v8.5 re-measure captures; 7-marker detector; "
             f"run2={_rr11701_fb_counts[1]} and run5={_rr11701_fb_counts[4]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
-            f"runs 1,2,4,5 clear barrier → 4/5 PASS at Phase 129 v7.11 re-baseline — CLOSE SUSTAINED (≥ v7.4 floor); "
-            f"first fishbone vector sentinel; RR-75-03 lineage; Phase 131 RECON-02, D-03; "
+            f"runs 1,2,5 clear barrier → 3/5 PASS at Phase 156 v8.5 re-measure — CLOSE SUSTAINED (≥ 3/5 min-pass); "
+            f"D-05: not a split artifact — dropped markers' source text stays in the always-inlined "
+            f"core fishbone.md; structural anchor fishbone_or_ishikawa fired 5/5 both generations "
+            f"(verdict §2); first fishbone vector sentinel; RR-75-03 lineage; Phase 156 MEASURE-03 SC-4, D-03; "
             f"retained as regression guard); fb_patterns={_rr11701_fb_pattern_count} (expected 7)."
         )
     else:
         print(
             f"  RR-117-01 FAIL: S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"(expected [4, 3, 1, 4, 3]; live v7.11 re-baseline captures); "
+            f"(expected [2, 2, 1, 1, 2]; live v8.5 re-measure captures); "
             f"fb_patterns={_rr11701_fb_pattern_count} (expected 7); "
             f"run2={_rr11701_fb_counts[1] if len(_rr11701_fb_counts) > 1 else '?'} "
             f"run5={_rr11701_fb_counts[4] if len(_rr11701_fb_counts) > 4 else '?'} "
@@ -1874,20 +1928,23 @@ def self_test_boundary() -> int:
     # _load_excerpt_v74 — it does NOT look up the live catalog, so removing the
     # S-P09 catalog row does NOT affect BATT-06.
     # Per-entry loader dispatch (Phase 131 RECON-02, D-03): RR-108-03 (S-P09 decompose,
-    # retired — no v7.11 capture exists) keeps reading the frozen v7.4 excerpts; RR-108-04
-    # (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) re-point to the live v7.13
-    # excerpts (Phase 138 RECON-02, D-03). Both remain honest 0/5 CARRIED at the v7.13
-    # re-baseline (RR IDs kept, D-09). Note: the v7.13 captures for S-P10/S-P14 contain
-    # incidental second-order-keyword matches from estimate/theoretical-limit prose
-    # (e.g. "## Second-Order Effects" section in a Focused Estimate output) — the exact
-    # per-run technique-hit sums are asserted (not forced all-zero) to be honest
-    # about the measured evidence (honesty-not-score, D-03b).
+    # retired — no v7.11/v7.13/v8.5 capture exists) keeps reading the frozen v7.4 excerpts;
+    # RR-108-04 (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) re-pointed to the
+    # live v7.13 excerpts at Phase 138, and now re-point to the live v8.5 excerpts at
+    # Phase 156 MEASURE-03 SC-4 (D-03). Both remain honest 0/5 CARRIED at the v8.5
+    # re-measure — SUSTAINED at their own 0/5 v7.13 floor per DEC-02's adjacency rule
+    # (verdict §1; RR IDs kept, D-09; byte-freeze relaxation authorized this pair's
+    # re-measure per docs/v8.5-byte-freeze-relaxation.md). Note: the v8.5 captures for
+    # S-P10/S-P14 contain a single incidental technique-keyword match on run4 each
+    # (tech-hit sum [0, 0, 0, 1, 0] for both) from estimate/theoretical-limit prose —
+    # the exact per-run technique-hit sums are asserted (not forced all-zero) to be
+    # honest about the measured evidence (honesty-not-score, D-03b).
     _NEW_TECH_SENTINELS = (
         # fmt: off
         # tuple: (rr_id, row_id, tech_name, expected_comp, expected_tech_sums, loader, ver_label)
         ("RR-108-03", "S-P09", "decompose",         [1, 0, 1, 1, 1], [0, 0, 0, 0, 0], _load_excerpt_v74,  "v7.4 (frozen; decompose retired)"),
-        ("RR-108-04", "S-P10", "estimate",           [0, 5, 4, 0, 3], [0, 2, 1, 0, 0], _load_excerpt_v713, "v7.13"),
-        ("RR-108-05", "S-P14", "theoretical-limit",  [3, 8, 3, 5, 2], [0, 1, 0, 1, 0], _load_excerpt_v713, "v7.13"),
+        ("RR-108-04", "S-P10", "estimate",           [0, 0, 0, 0, 0], [0, 0, 0, 1, 0], _load_excerpt_v85, "v8.5"),
+        ("RR-108-05", "S-P14", "theoretical-limit",  [0, 0, 0, 0, 0], [0, 0, 0, 1, 0], _load_excerpt_v85, "v8.5"),
         # fmt: on
     )
     for _rr_id, _row_id, _tech_name, _expected_comp, _expected_tech_sums, _loader, _ver_label in _NEW_TECH_SENTINELS:
@@ -1914,7 +1971,8 @@ def self_test_boundary() -> int:
                 f"composer-structure vector {_comp_counts} == {_expected_comp}; "
                 f"per-run technique-hit sums {_focused_tech_sums} == {_expected_tech_sums} "
                 f"(honest non-focused carry — sums verified vs. expected, D-03b); "
-                f"RR ID kept (D-09; RR-108-04/05 re-pointed v7.11 → v7.13, Phase 138 RECON-02)."
+                f"RR ID kept (D-09; RR-108-04/05 re-pointed v7.13 → v8.5, Phase 156 MEASURE-03 SC-4 — "
+                f"SUSTAINED at 0/5 floor; RR-108-03 stays frozen v7.4)."
             )
         else:
             print(
