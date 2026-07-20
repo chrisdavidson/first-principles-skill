@@ -916,6 +916,22 @@ def self_test_boundary() -> int:
     def _load_excerpt_v713(prompt_id: str, run: int) -> str:
         return (_V713_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
+    # _load_excerpt_v85 helper — reads Phase 156 v8.5 live re-measure
+    # assistant-text excerpts. Same shape as _load_excerpt_v713: Path.read_text()
+    # so a missing file raises FileNotFoundError loudly (Pitfall 5 — no vacuous
+    # empty-string zero-count). Captures are the 25-call live run
+    # (5 catalog rows x 5 repeats: S-P02, S-P03, S-P04, S-P10, S-P14 — the
+    # milestone's first and only live claude spend). S-P02 is the UNSPLIT CONTROL
+    # (inversion, untouched by Phase 154's reference-file split); S-P03/S-P04/S-P10/
+    # S-P14 are the four split techniques. Added in Phase 156 MEASURE-03 / SC-4 (D-03 —
+    # re-point the four re-pointable BATT-06 honest-state sentinels RR-114-01 (S-P02),
+    # RR-117-01 (S-P03), RR-108-04 (S-P10), RR-108-05 (S-P14) to v8.5 vectors). S-P04
+    # (five-whys) ran but has NO sentinel — none is authored here (verdict §4, DEC-03).
+    _V85_DIR = REPO_ROOT / "tests" / "step0-captures-v8.5"
+
+    def _load_excerpt_v85(prompt_id: str, run: int) -> str:
+        return (_V85_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
     # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
     #          re-pointed to v6.3 evidence Phase 93, Plan 01;
