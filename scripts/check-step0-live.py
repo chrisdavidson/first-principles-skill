@@ -20,7 +20,7 @@ the routing battery methodology and eliminating project-context enrichment:
         --plugin-dir "$REPO/first-principles" \\
         --repeat 5 --min-pass 3 \\
         --out /tmp/step0-live-$(date -u +%Y%m%dT%H%M%SZ) \\
-        --baseline "$REPO/tests/step0-baseline-v7.13.md"
+        --baseline "$REPO/tests/step0-baseline-v8.5.md"
 
 Usage:
     python3 scripts/check-step0-live.py [OPTIONS]
@@ -31,7 +31,7 @@ Options:
     --out-dir PATH      Output directory for .jsonl captures (default: /tmp/check-step0-live-<ts>)
     --repeat INT        Number of runs per fixture (default: 5)
     --min-pass INT      Minimum passing runs to score a row PASS (default: 3)
-    --baseline PATH     If supplied, write the v7.13 baseline .md to this path
+    --baseline PATH     If supplied, write the v8.5 baseline .md to this path
     --quiet             Suppress per-row progress output
     --dry-run           Parse catalog and print planned run without invoking claude
     --self-test         Run offline deterministic self-test and exit (no claude invoked)
@@ -65,7 +65,7 @@ from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
-_BASELINE_VERSION: str = "v7.13"
+_BASELINE_VERSION: str = "v8.5"
 
 # ---------------------------------------------------------------------------
 # Load _battery_core.py via importlib
@@ -718,41 +718,41 @@ def self_test() -> int:
         )
         all_passed = False
 
-    # --- v7.13 emitter-target drift guard (D-06 / Phase 135) ---
-    # Pins _BASELINE_VERSION == "v7.13" and asserts the three emitter-derived
-    # strings contain "v7.13" and not "v7.6" / "v7.8" / "v7.11".  The not-stale
+    # --- v8.5 emitter-target drift guard (Phase 156 / MEASURE-01) ---
+    # Pins _BASELINE_VERSION == "v8.5" and asserts the three emitter-derived
+    # strings contain "v8.5" and not "v7.6" / "v7.8" / "v7.11" / "v7.13".  The not-stale
     # check is scoped to these three strings ONLY — the lineage prose legitimately
     # cites the prior v7.11 baseline as a comparison anchor, so a whole-file grep
     # for "v7.11" would produce false failures.
-    _v713_label = "v7.13-emitter-target"
-    if _BASELINE_VERSION != "v7.13":
+    _v85_label = "v8.5-emitter-target"
+    if _BASELINE_VERSION != "v8.5":
         print(
-            f"self-test FAIL: {_v713_label} — _BASELINE_VERSION is {_BASELINE_VERSION!r},"
-            f" expected 'v7.13'",
+            f"self-test FAIL: {_v85_label} — _BASELINE_VERSION is {_BASELINE_VERSION!r},"
+            f" expected 'v8.5'",
             file=sys.stderr,
         )
         all_passed = False
     # Construct the three emitter-derived strings the same way _write_baseline does.
-    _v713_header = f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}"
-    _v713_out_dir = f"/tmp/step0-live-{_BASELINE_VERSION}-placeholder"
-    _v713_baseline = f"step0-baseline-{_BASELINE_VERSION}.md"
-    for _v713_label_str, _v713_s in [
-        ("header", _v713_header),
-        ("OUT_DIR", _v713_out_dir),
-        ("--baseline", _v713_baseline),
+    _v85_header = f"# Step 0 Live Harness Baseline — {_BASELINE_VERSION}"
+    _v85_out_dir = f"/tmp/step0-live-{_BASELINE_VERSION}-placeholder"
+    _v85_baseline = f"step0-baseline-{_BASELINE_VERSION}.md"
+    for _v85_label_str, _v85_s in [
+        ("header", _v85_header),
+        ("OUT_DIR", _v85_out_dir),
+        ("--baseline", _v85_baseline),
     ]:
-        if "v7.13" not in _v713_s:
+        if "v8.5" not in _v85_s:
             print(
-                f"self-test FAIL: {_v713_label} — {_v713_label_str!r} string"
-                f" does not contain 'v7.13': {_v713_s!r}",
+                f"self-test FAIL: {_v85_label} — {_v85_label_str!r} string"
+                f" does not contain 'v8.5': {_v85_s!r}",
                 file=sys.stderr,
             )
             all_passed = False
-        for _stale in ("v7.6", "v7.8", "v7.11"):
-            if _stale in _v713_s:
+        for _stale in ("v7.6", "v7.8", "v7.11", "v7.13"):
+            if _stale in _v85_s:
                 print(
-                    f"self-test FAIL: {_v713_label} — {_v713_label_str!r} string"
-                    f" contains stale {_stale!r}: {_v713_s!r}",
+                    f"self-test FAIL: {_v85_label} — {_v85_label_str!r} string"
+                    f" contains stale {_stale!r}: {_v85_s!r}",
                     file=sys.stderr,
                 )
                 all_passed = False
@@ -1004,7 +1004,7 @@ def self_test() -> int:
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
-            f" + {_v713_label} + {_rea_label} + {_rr_cov_label}"
+            f" + {_v85_label} + {_rea_label} + {_rr_cov_label}"
             " + null-subagent-no-raise + reduced-run-denominator)"
         )
         return 0
@@ -1462,7 +1462,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--baseline",
         type=Path,
         default=None,
-        help="If supplied, write the v7.13 baseline .md to this path after the run",
+        help="If supplied, write the v8.5 baseline .md to this path after the run",
     )
     p.add_argument(
         "--priority",
