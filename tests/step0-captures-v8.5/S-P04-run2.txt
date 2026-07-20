@@ -1,0 +1,18 @@
+The first-principles agent ran the drill. Its result, condensed:
+
+**Framing:** it declined to name a root cause without telemetry, and instead returned a candidate causal tree with every link marked as assumed until evidence attaches.
+
+**The chain:**
+1. 500s → unhandled errors on the request path
+2. Why erroring → five candidates all consistent with "restart cures it": connection pool exhaustion (best fit), heap exhaustion, thread starvation, stuck circuit breaker, expired in-memory credential
+3. Why state accumulated → likely a slow downstream with missing/unbounded outbound timeouts
+4. Why no self-heal → splits on whether the restart was manual (detection gap) or probe-triggered (thresholds too slow for a payment path)
+5. Why 8k transactions → fail-closed with the unhealthy pod still in LB rotation the whole 12 minutes
+
+**Its main caution:** "restart fixed it, therefore cause was in-process" is unverified and could be coincidence — a downstream that self-recovered around 09:42 produces an identical timeline. Also flagged that a bad deploy is argued against by GT-2 but worth 30 seconds of checking.
+
+**Four data pulls it says collapse the tree:** restart timestamp vs. recovery timestamp at second granularity; 500s grouped by stack trace; manual vs. probe-triggered restart; downstream dependency metrics 09:00–09:45.
+
+**Two findings it holds regardless:** readiness didn't pull the pod from rotation (first PR: check whether readiness and liveness share an endpoint that doesn't touch a real dependency), and the 12 minutes is the real number — decompose into detect/decide/act.
+
+The agent is still live as `a32c198b83a89260b` if you want to feed it the error signatures and metrics for a validated re-run.

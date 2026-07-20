@@ -1,0 +1,21 @@
+**~$40/kWh usable thermal capacity** (bracket $25–70), or roughly **$8M installed** for 200 MWh. With tank capex out of scope — the agent's reading of "pre-commissioned" — **~$28/kWh, ~$5.6M**.
+
+Bottom-up breakdown, all from material properties rather than comparable-project anchoring:
+
+| Component | $/kWh_th (central) |
+|---|---|
+| Salt inventory (~2,000 t solar salt) | 8 |
+| Two tanks (~2,400 m³ total) | 8 |
+| BOP: pumps, HX, heat trace, N₂ | 11 |
+| EPC + contingency | 9 |
+| **Total** | **36 → call it ~40** |
+
+Key physics: solar salt stores 0.1146 kWh/kg over the usable ΔT of 275 K (565 °C nitrate decomposition ceiling down to 290 °C freeze margin), so ~10 kg of salt per usable kWh after a ~13% heel.
+
+Three things worth flagging:
+
+- **Thermal vs. electric.** All figures are thermal. If you want $/kWh_e, multiply by ~2.5 (~$100/kWh_e) — and the power block isn't included in any of it.
+- **Scale penalty.** The widely cited $20–30/kWh for two-tank storage comes from 1–3 GWh CSP installations. At 200 MWh you're 5–15× smaller and land on the fixed-cost part of the curve; the agent deliberately declined to use those as inputs.
+- **Your 30-yr/daily-cycle assumptions don't move capex** — they amortize it, to ~$0.0037/kWh-cycle over 10,950 cycles. They do drive opex: freeze protection on small tanks (poor surface-to-volume) plausibly costs 1–3% of stored energy per day, plus nitrate→nitrite drift and salt makeup.
+
+Confidence is medium, resting on two unverified inputs: the small-scale cost multiplier (why the top of the bracket is $70, not $50) and salt feedstock pricing (±25% on the salt line). A vendor quote for the tank pair plus a current delivered price for 2,000 t of salt would collapse most of the spread.

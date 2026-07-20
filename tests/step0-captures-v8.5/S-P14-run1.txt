@@ -1,0 +1,15 @@
+The agent's analysis:
+
+**≈57% for a conventional 565 °C nitrate-salt CSP plant** (54.7% dry-cooled, 58.3% at ideal ambient). Confidence: high.
+
+The reasoning that matters more than the number:
+
+**The commonly quoted 64% is wrong here.** That applies peak-temperature Carnot (1 − 300/838) to what is physically a *finite* reservoir. Discharging the tank cools the salt from 838 K toward 563 K, so most heat is delivered below peak. The correct bound uses the logarithmic mean temperature, 691 K — a ~7-point correction that is real law, not derating.
+
+**The ~16-point gap to current practice (~41%) is convention, not law.** It lives entirely in heat-exchanger ΔT, turbine isentropic losses, and condenser pinch. sCO₂ cycles targeting ~50% are chasing that headroom; ~57% is the wall.
+
+**The binding constraint is salt chemistry, not thermodynamics.** Nitrate decomposition above 600 °C caps T₁. Chloride salts at 800 °C move the ceiling to ~66%, making the highest-leverage question metallurgical (corrosion-resistant containment at 700 °C+).
+
+Two flags the agent raised: the ~41% current-practice figure was from memory (±2 points, affects only the gap width, not the ceiling), and — the bigger one — **if you meant a Carnot battery rather than CSP, the answer inverts to 100%**. An ideal charging heat pump's COP (T_H/(T_H − T₀) = 1.558) is the exact reciprocal of the discharge Carnot efficiency, so a reversible electricity-in/electricity-out system has no round-trip loss in principle. Real systems target 50–60%. Worth confirming which architecture you meant.
+
+It also explicitly declined to use Curzon–Ahlborn (~40%), on grounds that finite-rate heat transfer is an engineering constraint rather than a law — and that it reproduces current practice too closely to answer the question you asked.

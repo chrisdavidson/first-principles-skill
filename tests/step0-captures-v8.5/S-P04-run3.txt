@@ -1,0 +1,19 @@
+The agent ran the analysis and stopped short of naming a root cause, deliberately — it had no access to your logs, metrics, or pod events. Here's what it returned:
+
+**Two questions, not one.** It split the incident into (A) what degraded the pod, and (B) why 12 minutes passed with no automatic recovery. B is answerable without knowing A and is often the bigger fix.
+
+**The load-bearing unverified assumption:** that the restart *caused* the recovery. You observed sequence, not causation — an upstream dependency recovering at the same moment produces identical evidence.
+
+**Highest-value lead:** 09:30 is a round clock time. If onset is truly at :30:00 rather than :30:47, that's near-certainly a scheduled trigger — cron, token rotation, batch job, cache expiry, autoscaler action. Checkable in minutes.
+
+**Chain A (cause class):** If the restart really did fix it, the fault lived in process-local state a fresh process didn't inherit — so in-pod resource/state exhaustion, not a code path defect (a bad code path returns after restart too). Candidate branches, each with a discriminating query: memory exhaustion/GC spiral, connection pool exhaustion, thread pool starvation behind a slow downstream, FD leak, expired cached credential, deadlock, poison message.
+
+**Chain B (the recovery gap)** — holds regardless of which branch wins: either no liveness probe, or a probe passing while real traffic failed. A `/health` check returning 200 as long as the HTTP server is up will certify a pod whose DB pool is fully exhausted. Deeper: no saturation alert on the exhausted resource, no circuit breaker to degrade gracefully.
+
+**Second-order warning:** fixing only Chain B converts one visible 12-minute outage into recurring short restarts that never page anyone. Symptom gone, problem hidden.
+
+**Three things to pull, in order:** what ran at exactly 09:30 UTC; container memory and connection-pool gauges for 09:20–09:45; the liveness probe definition.
+
+It also flagged one thing worth a decision from you: whether the 8k transactions were lost or queued determines whether this is a reliability incident or a financial reconciliation one.
+
+The agent is still live (`ac512f106ec0dd044`) — if you pull the pod events, memory/pool graphs, and probe config, I can send them back and it'll finish the drill to an actual root cause.

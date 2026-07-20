@@ -1,0 +1,20 @@
+The first-principles agent returned its analysis. Key results:
+
+## The claim isn't false — but you're likely already outside its valid range
+
+**Confidence HIGH — you're shipping open-loop.** A 14-day ship interval against a 30–90 day retention signal means you ship 2–6 times before the first signal from ship #1 arrives. You cannot causally attribute retention changes to individual ships. Beyond this threshold, "faster ships" means "more unvalidated bets." This follows from measurement properties alone — no data about your product required.
+
+**Confidence MEDIUM — a change-cost crossover exists.** Every ship carries user cost (cognitive load, regression risk, relearning). Fixed cadence forces variable scope, so per-ship *value* shrinks to fit the window while per-ship *cost* stays roughly fixed. A crossover point is arithmetic, not risk; only its location is unknown. It arrives earliest for low-engagement users — exactly your churn-risk cohort.
+
+**Confidence LOW but highest stakes — the claim may never have been true for you.** It depends entirely on churn being capability-driven. If users leave over price, onboarding, support, or fit, ship rate is orthogonal to retention and the claim is void at any cadence.
+
+**A trap the agent flagged:** fragmented bets → weak retention signal per ship → team reads weak signal as "ship more" → cadence pressure increases. That loop reads its own measurement failure as evidence for the original claim.
+
+**Three checks, in order:**
+1. Categorize your last 30 churned accounts by reason — tests whether churn is capability-driven at all
+2. Measure feature adoption among churn-risk users specifically — tests whether ships reach the people leaving
+3. Track support-ticket volume in the 72 hours after each release — locates the change-cost crossover
+
+Check #1 moves the most: it takes the dominant unknown from LOW to HIGH confidence.
+
+The agent explicitly declined to recommend an alternative cadence — it said the ground truths support a diagnostic, not a prescription. It's still available at `a904cae1e14180b95` if you want to push on any thread.

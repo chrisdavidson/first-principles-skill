@@ -1,0 +1,22 @@
+The first-principles agent returned a full fishbone analysis. Key output:
+
+## Fishbone: Checkout API 503s (14:10 UTC, 40 min, all users)
+
+**Effect:** HTTP 503 to 100% of users, sharp onset, self- or manually-terminated at ~40 min.
+
+**Six branches, 22 candidate causes:**
+- **Process** — deploy landed ~14:10; feature flag flipped to 100%; no canary (fleet-wide roll)
+- **Technology** — no healthy upstreams in LB; circuit breaker open; thread/conn pool exhausted (non-DB); health check misconfigured; TLS cert expired
+- **Environment** — cloud AZ/provider incident; third-party (payment/auth) 503ing; DNS/service discovery; network partition; traffic spike
+- **Resources** — autoscaler scaled to zero or failed to scale; CPU/mem saturation; API quota hit; non-DB connection pool
+- **People** — manual config change; on-call action that caused or ended it
+- **Information** — alerting fired late; 503 attributed to app but emitted by LB; "DB ruled out" scoped too narrowly
+
+**Its core reasoning:** 503 per RFC 9110 is a *refusal to try*, not a failed attempt. Sharp onset ⇒ discrete state change (deploy, flag, cert expiry), not gradual exhaustion. 100% impact ⇒ something in the path shared by every request. That concentrates probability in Process, Technology, and Environment.
+
+**Three questions it says to answer before gathering any other evidence** — each collapses a large fraction of the map:
+1. **Who emitted the 503 — load balancer or app?** Partitions the cause space roughly in half.
+2. **What exactly was checked to rule out the database?** If only DB uptime was verified, pool exhaustion re-enters as a strong candidate.
+3. **What ended the incident at 14:50?** Rollback ⇒ deploy branch. Nothing ⇒ circuit breaker / third-party / autoscaler.
+
+Confidence: **MEDIUM**. It flagged that it also assumed the onset was genuinely sharp rather than a ramp crossing an alert threshold — if that assumption is wrong, its central inference is void and the Resources branch leads instead. It recommends a Five Whys drill on whichever branch survives the three questions above.

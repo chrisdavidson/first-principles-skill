@@ -1,0 +1,30 @@
+The first-principles agent completed the analysis. Its findings:
+
+## Root cause (MEDIUM confidence)
+
+**Two distinct root causes**, not one:
+
+1. **Unbounded in-process resource accumulation** — most likely connection-pool or thread-pool exhaustion from a missing or mis-sized downstream timeout. The restart-recovers signature is the key evidence: a restart resets heap, pools, and circuit-breaker state, so a fault that clears only on restart points to accumulated state.
+2. **Detection/remediation latency** — a liveness probe that understood the failure would have restarted the pod without a human in the loop.
+
+## The five whys chain
+
+500s → requests couldn't acquire a resource → pool exhausted by leaked/blocked connections → downstream call had no timeout (or one longer than pool checkout timeout) → resource-exhaustion bugs are structurally invisible without load testing with fault injection.
+
+A **parallel chain** explains the 12 minutes: alerting likely thresholded on sustained error rate rather than slope, and remediation was manual.
+
+## Caveats it flagged
+
+- "Pod restart caused recovery" is **unverified** — a dependency could have self-healed concurrently.
+- Whether a deploy/config change occurred at 09:30 is unverified; if one did, most of the analysis is void.
+- "8k transactions affected" is ambiguous — retried-and-succeeded ≠ lost. That number drives customer-comms obligations.
+
+## Three checks to raise confidence
+
+1. Alert-fire vs. incident-start vs. restart timestamps — splits the 12 min into detect-vs-remediate.
+2. Pool utilisation for the 60 min before 09:30 — a ramp confirms the primary chain; a flat line falsifies it.
+3. Downstream dependency error/latency rates across the window.
+
+It also noted a second-order risk worth carrying into any fix: shortening timeouts increases retry volume against an already-degraded downstream, so pair timeout changes with backoff-plus-jitter and a circuit breaker. And deeper liveness probes risk correlated restart storms — probes should fail readiness before liveness.
+
+One standalone recommendation regardless of cause: **add pre-restart heap/thread dump capture to the runbook**. The restart that fixed the symptom destroyed the evidence needed to close this analysis.

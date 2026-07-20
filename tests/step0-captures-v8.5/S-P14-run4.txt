@@ -1,0 +1,34 @@
+The agent's analysis:
+
+## The headline correction
+
+The intuitive answer — Carnot at the hot-tank temperature, ~64% — is **wrong**, and not by a little. Carnot assumes an infinite reservoir at fixed T. Sensible-heat molten salt is a *finite* reservoir that cools as it discharges, so you must integrate Carnot over the discharge window.
+
+## The actual bound
+
+Using the log-mean temperature of the cooling reservoir:
+
+- Solar salt window: 838 K → 563 K, giving T_lm = **691 K**
+- η_max = 1 − 300/691 = **56.6%** (wet-cooled)
+- η_max = 1 − 313/691 = **54.7%** (dry-cooled)
+
+Naive Carnot overstates by 7.6 percentage points.
+
+## The gap
+
+| | |
+|---|---|
+| Law-permitted ceiling | 54.7–56.6% |
+| Current practice (supercritical steam Rankine) | ~41–43% gross |
+| **Engineering headroom** | **~13–15 points** |
+| **Irreducible Second-Law loss** | **~43 points** |
+
+That headroom is exactly the territory sCO₂ Brayton cycles (~50% targets) are chasing — which makes those targets physically legitimate rather than promotional.
+
+## What actually moves the ceiling
+
+Not turbomachinery — higher-temperature media. The 838 K/563 K bounds are materials constraints (nitrate decomposition above ~600 °C; freezing near 238 °C), not laws. Chloride salts at 993 K/773 K lift the ceiling to **65.8%**.
+
+A counterintuitive second-order result: lowering the cold tank *reduces* efficiency (T_c = 400 K → η_max 49.3%). You extract more energy per kg but at lower mean exergy — so efficiency and work-per-kg-of-salt pull in opposite directions, and a plant optimizing storage cost will rationally sit below the ceiling.
+
+**Scope note:** this bounds storage-to-work conversion. Latent/phase-change storage discharges isothermally and *would* justify straight Carnot. Collector-side bounds (Petela, ~93%) and round-trip losses were excluded as outside the question. Confidence: high; weakest link is the sink temperature, which is site-dependent and bracketed rather than resolved.

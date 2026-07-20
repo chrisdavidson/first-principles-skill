@@ -1,0 +1,23 @@
+The first-principles agent returned its analysis. Summary:
+
+## Where "faster ships → better retention" breaks
+
+The claim only holds while shipping speed is the **binding constraint** on retention. Five conditions break it:
+
+| # | Break | Why it kills the causal link |
+|---|---|---|
+| A | **Churn happens inside the ship interval** | A user who leaves on day 5 is untouchable by a day-14 release. If your time-to-churn mass sits under 14 days, cadence is causally inert — onboarding is the lever. |
+| B | **Retention isn't product-limited** | If price, positioning, or segment fit is the real cap, velocity optimizes a non-binding constraint. Retention stays flat, team reads that as "ship faster," and it self-reinforces. |
+| C | **Changes aren't encountered** | Ships into low-traffic surfaces have ~zero effect. Retention response saturates long before shipping capacity does. |
+| D | **Quality trades against cadence** | The failure teams expect — and probably *not* yours. 26 releases/year with CI + rollback is conservative. |
+| E | **Attribution is impossible** | 26 ship events vs. monthly/quarterly retention measurement. The belief is currently unfalsifiable, which is why it's gone unchallenged. |
+
+**Two queries that would resolve most of this:**
+1. Time-to-churn histogram — does the mass sit under 14 days? (tests A)
+2. Retention segmented by price tier / channel / use-case — do curves diverge by segment rather than tenure? (tests B)
+
+**Also flagged:** "two weeks" is inherited Scrum convention, not a derived optimum — nothing is known to align it with your users' decision cycle.
+
+**The agent's sharpest line:** the assumption doesn't fail loudly. It fails by staying plausible while you optimize something that stopped mattering.
+
+One thing it deliberately set aside: if what your team *actually* means is "faster ships → faster learning loops → better retention," that's a different claim worth inverting separately — it declined to substitute it, since doing so would have quietly rescued the original instead of testing it.

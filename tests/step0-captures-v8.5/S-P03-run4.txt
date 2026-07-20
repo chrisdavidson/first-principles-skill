@@ -1,0 +1,24 @@
+The first-principles agent returned a full fishbone analysis. Key output:
+
+## Fishbone — Checkout API 503 (14:10 UTC, 40 min, all users)
+
+**Six categories mapped:** People, Process, Environment, Information, Technology & Tools, Resources.
+
+**Prioritized branches:**
+
+| Rank | Branch | Discriminating check |
+|---|---|---|
+| 1 | Change at 14:10 (Process) | Deploy/flag/config audit log ±10 min |
+| 2 | Pool exhaustion / circuit breaker (Tech) | Pool saturation metrics; breaker transitions |
+| 3 | Third-party dependency (Env) | Downstream error rates, provider status page |
+| 4 | Quota/admission limit (Resources) | LB rejected-connection & rate-limit counters |
+| 5 | OOM/crashloop (Tech) | Pod restart counts and kill reasons |
+
+Ranks 1–2 lead because both produce a *sharp onset* and *bounded self-recovery* without needing an extra coincidence.
+
+**Two challenges to your framing worth noting:**
+
+1. **"Database ruled out" may be too broad a prune.** Connection-pool exhaustion is app-owned but presents as a DB symptom — teams routinely clear "the database" while the pool is the culprit. The agent explicitly refused to prune this branch.
+2. **503 is a symptom, not a cause.** It likely came from the LB/proxy having no healthy backend, not from app code. Checking whether the 503s carry app trace IDs eliminates roughly half the map in one step.
+
+**Confidence: MEDIUM**, gated on verifying the deploy timeline and confirming what "database ruled out" actually covered.

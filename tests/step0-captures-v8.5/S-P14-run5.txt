@@ -1,0 +1,23 @@
+The first-principles agent returned its analysis. Key findings:
+
+**The law-permitted ceiling is ~56.6%, not the 64.2% a naive Carnot calculation gives.**
+
+The central correction: molten salt is a *sensible*-heat store, so it cools as it discharges (838 K → 563 K). You can't plug the peak hot-tank temperature into Carnot — you need the thermodynamic mean of the discharge glide:
+
+```
+T_m = ΔT / ln(T_h/T_c) = 275 / 0.3979 = 691 K
+η   = 1 − 300/691 = 56.6%
+```
+
+Bracket across realistic heat-sink temperatures: **54.0%** (dry cooling, desert summer) to **58.3%** (wet cooling, temperate).
+
+**Decomposing the gap to today's ~42%:**
+- **43.4 points irreducible** — Second Law imposes them, nothing touches them
+- **~14.6 points are convention** — real headroom via sCO₂ cycles, glide-matched/cascaded architecture, tighter HX approach temperatures. Roughly half reachable with sCO₂ alone.
+- **~9 points sit above the ceiling itself** — the 838 K cap is nitrate decomposition chemistry, a *current* constraint with a known expiry. Chloride/carbonate salts at 993 K raise the ceiling to **~65.8%**.
+
+**Load-bearing insight:** the binding constraint isn't turbine technology. It's the store's temperature glide and the salt's decomposition chemistry. Power-block work chases a 14.6-point gap; salt chemistry work raises the ceiling by 9 points on top of that.
+
+Confidence: HIGH on both ceilings (every input is a law, definition, or direct temperature measurement; two independent derivation routes agree). MEDIUM on the gap size only — the ~42% comparator was flagged as unverified against primary plant data, though that caveat doesn't touch the ceiling itself.
+
+The agent is still live (`a160d7dec5b48f9fe`) if you want to push on anything — round-trip Carnot-battery efficiency was explicitly scoped out, for instance.

@@ -1,0 +1,14 @@
+The first-principles agent returned a full fishbone analysis. Key output:
+
+**Fishbone across six categories** (People, Process, Technology & Tools, Environment, Information, Resources) — with the database spine deliberately omitted per your exclusion.
+
+**Tier 1 branches to check first:**
+1. **Deploy/config change at ~14:10** — a step-function 100% failure at a round timestamp is the classic discrete-change signature. Diff deploy, feature-flag, and config audit logs for 13:55–14:15, *including upstream teams' deploys*.
+2. **Connection pool exhaustion** — the agent flagged this as surviving your DB exclusion. It's an app-tier failure that presents with a perfectly healthy database. If "ruled out the database layer" rested on DB-side metrics only, this branch is still fully live.
+3. **Upstream dependency timeout with no circuit breaker** — one slow payment/auth/fraud/inventory call saturates checkout's worker pool, LB sees zero healthy upstreams → 503.
+
+**Tier 2:** health-check flapping / CrashLoopBackOff, retry storm, autoscaler failure. **Tier 3:** cloud AZ degradation, cert/secret expiry, cache stampede.
+
+**The one question it says to answer before instrumenting anything:** what ended the incident at ~14:50? A human rollback confirms branch 1 and moots the rest; unattended recovery drops branches 1 and 8 and elevates 3, 5, 6.
+
+The agent was explicit that every branch is unverified — this is a ranked search space, not a diagnosis, and nothing here should enter a postmortem as a cause without the named falsification evidence. It offered to collapse the map and run a 5-Whys drill if you supply the recovery cause and the error-rate curve shape (agent ID `a459c5b17220ab030` is still live if you want to continue it).

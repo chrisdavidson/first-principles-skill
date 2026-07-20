@@ -1,0 +1,20 @@
+**~$22/kWh_th** central, range **$15–35/kWh_th** — about **$3.0–7.0M total** for 200 MWh_th with tanks excluded.
+
+How it's built:
+
+| Component | Range |
+|---|---|
+| Salt inventory (~10 kg/kWh × $0.75–1.20/kg) | $7.5–12 |
+| BOS: heat exchanger, high-temp pumps, trace heating, piping, EPC | $7–18 |
+| Contingency | $0–5 |
+
+The mass figure is the solid part: cp ≈ 1.5 kJ/kg·K × ΔT 275 K (290→565 °C, capped by nitrate decomposition) → 8.7 kg/kWh, ×1.15 for tank heels → **~10 kg/kWh_th**, or ~2,000 tonnes. That cross-checks against Crescent Dunes' ~28,500 t for ~2,750 MWh_th, which lands on the same 10 kg/kWh independently.
+
+Two caveats the agent flagged:
+
+- **Thermal vs. electric is the biggest swing.** If your 200 MWh means electricity delivered through a power block, divide by ~40%: **~$55/kWh_e ($37–88)**, and salt inventory goes to ~5,000 t. Worth resolving before budgeting.
+- **Excluding tanks is doing heavy lifting** — they'd add roughly $8–14/kWh_th, taking the total to ~$30–36.
+
+On the 30-year/daily-cycle framing: amortized capex is ~$0.002 per kWh-cycle over ~10,950 cycles, so it's nearly irrelevant per cycle — economics are driven by charge energy cost and round-trip losses instead. But pumps and the HX won't last 30 years; budget 1–2 replacements at **+$3–6/kWh** lifetime. The salt itself doesn't meaningfully degrade if you respect the 565 °C ceiling.
+
+Confidence is medium — the kg/kWh is firm, the dollar figures rest on an unverified salt commodity price and an assumed 20–40% small-scale EPC premium (200 MWh_th is small enough to lose CSP-scale economies).

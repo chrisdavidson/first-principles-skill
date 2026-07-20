@@ -1,0 +1,29 @@
+The first-principles agent returned its analysis:
+
+## The reframe
+Cadence is a **carrier** for retention improvement, not a cause. It multiplies your hit rate; it doesn't create one.
+
+## Eight conditions where the claim breaks
+
+1. **Exposure gap** — at-risk users never see what you ship
+2. **Wrong-lever churn** — churn is driven by price/onboarding/fit, not capability
+3. **Change cost > change value** — relearning and disruption are fixed per release; small batches make the ratio worse. Hits power users hardest.
+4. **Quality erosion** — defect escape rate rises past your test capacity; retention punishes breakage faster than it rewards improvement
+5. **Decoupled learning** — you ship every 2 weeks but learn every quarter, so cadence accelerates *unvalidated guesses*
+6. **Ceiling** — retention already at structural max; remaining churn is exogenous
+7. **Attribution collapse** — releases overlap inside every retention window
+8. **Cohort confound** — retention moved because acquisition mix changed
+
+## The three that bind at two-week cadence
+
+**F7 (attribution collapse) — almost certainly already true for you.** HIGH confidence, because it follows from a measurement identity, not from any assumption about your product: at 2-week cadence with a D30/M3 window, releases overlap inside every measurement window. Without holdouts or staggered rollouts you can't tell which release moved the number — so you can't learn, so hit rate can't improve.
+
+**F5 (decoupled learning) — highest-value thing to check.** The concrete test, runnable today: **take your last 10 releases and count how many had a stated retention hypothesis and a read-out.** Below 5 means cadence isn't your binding constraint and further investment in it won't move retention.
+
+**F3 (change cost) — the case where faster is actively worse.** Test: segment retention by usage tenure and check whether heavy-user retention correlates *negatively* with release frequency.
+
+## Caveats the agent flagged
+- It noted that citing DORA for a cadence→retention link is scope-stretching — DORA measures delivery/org performance, not end-user retention.
+- Everything except F7 rests on unverified beliefs about your product; the agent recommends running the checks before acting on F3 or F5.
+- It left one ambiguity unresolved: "ships" could mean deploy frequency or user-visible-change frequency. F3 applies much more weakly to the former. Worth clarifying.
+- It did not run the second-order pass (focused-inversion mode scopes it out) — so the downstream costs of *slowing* cadence, like momentum loss and batch-size risk, are unexamined. Worth a separate pass before acting.

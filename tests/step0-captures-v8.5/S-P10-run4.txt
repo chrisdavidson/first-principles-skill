@@ -1,0 +1,13 @@
+**~$17/kWh usable (~$3.4M for 200 MWh)** with tanks excluded; bracket $11–26/kWh.
+
+The derivation:
+- Solar salt cp ≈ 1.5 kJ/kg·K × ΔT 275 K (290→565 °C, bounded by nitrate decomposition and freeze margin) = 0.115 kWh/kg → **8.7 kg/kWh nominal**
+- Heel + thermal gradient makes 10–15% non-extractable → **~10 kg/kWh usable**
+- At ~$0.9/kg delivered → $9/kWh salt inventory (~2,000 tonnes, ~$1.8M)
+- Plus non-tank BOS (salt-to-steam HX, trace heaters, pumps, piping, EPC) ≈ $8/kWh → **~$17/kWh**
+
+If "pre-commissioned" actually means the tanks are still in your capex, add ~$10/kWh → **~$27/kWh (~$5.4M)**. That ambiguity is a ~60% swing, worth resolving.
+
+One correction to the framing: **the 30-year life and daily cycling don't affect this number.** They're LCOS inputs, not capacity-capex inputs. The agent did carry two second-order effects forward — freeze-protection heating is a persistent opex load, and ~10,950 thermal cycles pushes HX/tank-wall fatigue specs toward the upper half of the BOS range.
+
+Confidence is medium, and specifically so: the mass derivation (~10 kg/kWh) is physics and solid; the dollar conversion rests on an unverified salt price. Nitrate feedstock moved sharply in 2022–2024, and that alone swings the answer ±35%. One quote for solar-grade NaNO₃/KNO₃ at 2,000-tonne scale landed at your site would take this to high confidence. Fine as a budget line as-is; get the quote before any fixed-price commitment.

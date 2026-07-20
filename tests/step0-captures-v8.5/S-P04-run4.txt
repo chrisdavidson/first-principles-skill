@@ -1,0 +1,18 @@
+The first-principles agent ran the drill. Its report:
+
+**Framing caveat it led with:** with no access to your logs, metrics, or deploy history, everything past Why 1 is hypothesis, not finding.
+
+**The key inference:** "recovered after a pod restart" is the highest-signal fact. A restart clears process-local state (heap, connection pools, thread pools) but cannot fix an external dependency outage. That kills upstream-processor-down and database-down outright, and demotes bad-deploy.
+
+**Three surviving branches:**
+- **A — Connection pool exhaustion** (leading). Pool drained by leaked connections or hung queries. Forks at Why 5: a missing release path on an error branch vs. a downstream slowdown outliving checkout timeouts — near-identical metrics, opposite fixes.
+- **B — Memory exhaustion / GC death spiral.** Flat heap through the window kills this immediately.
+- **C — Thread pool saturation.** A latency ramp in the 5 min *before* 09:30 strongly favors it.
+
+**Load-bearing assumptions it flagged as unverified:** that the restart caused recovery rather than coinciding with it (a 12-min self-limiting window plus a restart at minute 11 looks identical); that all 8k failures share one cause; and critically, whether one pod failed or all of them — that single fact splits the analysis into two disjoint trees.
+
+**Finding that holds regardless of branch:** 12 minutes of a human noticing and restarting is a health-check failure. Readiness probes should have pulled a pod failing 100% of requests out of rotation; liveness should have restarted it automatically.
+
+**Three artifacts collapse this to one branch:** the 500 error signature grouped by endpoint/exception type, pod resource metrics for 09:25–09:45, and the blast radius (one pod or all).
+
+The agent is still live as `a65413829a75ae31c` — if you pull those three artifacts, I can send them back and it'll drill the winning branch to an actionable Why 5.

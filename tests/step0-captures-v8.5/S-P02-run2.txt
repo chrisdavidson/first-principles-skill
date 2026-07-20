@@ -1,0 +1,30 @@
+# Inversion: "faster ships → better retention"
+
+The agent's core reframe: the claim isn't false, it's **unfalsifiable as you hold it** — it names no conditions under which it would fail. Here's what it derived.
+
+## Where it breaks — three distinct modes
+
+**Irrelevantly** — churn is exogenous (price, champion left, budget) or structural (accounts died). Cadence can't touch either. Fix: stop using cadence as a retention lever.
+
+**Silently** — ships land on surfaces retained users don't touch, or land imperceptibly (behind flags, no changelog). Fix is placement and perception, not more speed.
+
+**Harmfully** — change cost exceeds change value. Each ship forces relearning, breaks a saved workflow or an integration. In workflow-embedded tools this is the dominant inversion: cadence itself becomes the churn driver. Fix: slow down or batch.
+
+## The one that's broken by arithmetic, not hypothesis
+
+Retention is measured over 30/60/90-day windows. At two weeks you ship 3–6 times before the first ship's effect is legible. So cadence is increasing your rate of *unvalidated* change, not validated improvement — **faster shipping without a faster feedback loop is faster guessing.** Unless you have a leading proxy you didn't mention, you're shipping open-loop by construction.
+
+## Two conventions it challenged
+
+- *"Two weeks is fast"* — descends from Scrum sprint convention, chosen for team-coordination reasons, never derived from user absorption rate.
+- *"Change is net-positive to a user"* — holds for consumer/exploratory products, frequently inverts for daily-workflow tools.
+
+## Second-order effect worth sitting with
+
+Optimizing for cadence selects for smaller, safer, more shippable work. Retention-moving work is usually the opposite — larger, riskier, doesn't fit in two weeks. Third order: you improve continuously on measures nobody churns over, while delivery metrics look excellent throughout.
+
+## Cheapest first move
+
+Establish one retention proxy readable inside a single two-week cycle. Without it every cadence decision stays unmeasurable.
+
+Two things would sharpen this a lot: **what kind of product** (consumer vs. workflow-embedded — they invert oppositely on change cost) and **what your retention curve looks like** (early-drop vs. long-tail). The agent flagged both as unknowns and is still live if you want to feed them back — say the word.

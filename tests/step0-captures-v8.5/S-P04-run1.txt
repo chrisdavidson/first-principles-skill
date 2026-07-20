@@ -1,0 +1,13 @@
+The first-principles agent returned its analysis. Summary:
+
+**Key insight:** The restart fixing it is the most informative fact — it narrows the cause space to in-process state that degrades over time and is destroyed by restart. A logic bug would have survived; a dependency outage would be unaffected.
+
+**Three independent root causes, not one:**
+
+1. **Technical** — most likely an unbounded downstream call with no timeout/circuit breaker, converting a transient dependency slowdown into permanent connection-pool or thread starvation. Candidates considered: pool exhaustion, GC death spiral, thread starvation, expired cached credentials, stale connection/DNS cache.
+2. **Detection** — the 12 minutes came from alerting on symptoms (5xx rate) rather than saturation (pool %, heap), plus probes that don't exercise the dependency path. Fixing this alone would cut the window to ~30s via self-healing.
+3. **Blast radius** — no idempotency keys or durable retry buffer, so 8k transactions failed terminally instead of being delayed successes.
+
+**Ordering trap flagged:** adding retries before fixing timeouts amplifies load on an already-saturated pool. Timeouts and circuit breaker first.
+
+**Confidence: LOW on the specific technical root, HIGH on the cause class** — every causal link is currently assumed, since the agent had no access to your metrics or logs. It recommends pulling three things to resolve it: per-pod error rates for 09:25–09:45 (eliminates half the tree), connection-pool and heap gauges for the two hours before 09:30 (monotonic climb = leak; sharp cliff at 09:29 = look outward), and any dependency failover at ~09:29.

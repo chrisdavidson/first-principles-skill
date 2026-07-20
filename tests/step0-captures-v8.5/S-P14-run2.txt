@@ -1,0 +1,19 @@
+The agent's analysis:
+
+## Answer: ~56.6%, not the 64% usually quoted
+
+**The key correction:** the commonly cited figure applies isothermal Carnot at peak temperature (1 − 300/838 = 64.2%). That's wrong for sensible-heat storage — the salt *glides* down in temperature as it discharges, and the last kilogram leaves at 563 K where Carnot only permits 46.7%.
+
+The correct bound is the exergy of a finite constant-c_p source:
+
+η_max = 1 − T₀·ln(T₁/T₂)/(T₁ − T₂) = 1 − (300 × 0.3978)/275 ≈ **56.6%**
+
+## Three findings worth separating
+
+1. **43.4% of stored heat must be rejected.** No cycle, fluid, or turbine recovers it. Second Law, largest term in the analysis.
+
+2. **~15 points separate practice (~42%) from the ceiling.** That gap is convention — steam Rankine, heat-exchanger approach temperatures, turbine irreversibilities — not physics.
+
+3. **The 838 K cap is chemistry wearing a thermodynamics costume.** Nitrate solar salt decomposes above ~600 °C; that's the binding constraint, not any law. Chloride/carbonate salts at 1073/773 K give η_max ≈ **67.2%** — ten points of ceiling bought purely by leaving nitrate behind. This is why sCO₂-plus-chloride work targets ~50% real efficiency: it's chasing a genuinely higher bound, not just better turbines.
+
+**Sensitivities:** sink temperature moves the ceiling ~1.5 points per 10 K (dry cooling at 315 K → 54.4%) — worth more than most turbine refinements. And narrowing the glide raises η_max (838→738 K gives 61.6%) but costs ~2.75× the salt inventory per kWh, since storage density scales with ΔT. The exergy-optimal plant isn't the cost-optimal one.

@@ -1,0 +1,18 @@
+The first-principles agent returned a fishbone cause-map. Key output:
+
+**Fishbone (6 categories: People, Process, Technology, Resources, Information, Environment)** with 5 priority branches ranked:
+
+1. **Bad deploy/config push at ~14:10** — best explanation of the sharp onset. Check CI/CD + feature-flag audit logs for 14:05–14:12.
+2. **Upstream dependency failure → circuit breaker open** — matches 503 semantics and all-user radius (every checkout crosses the same payment/auth hop).
+3. **Zero healthy upstreams at LB/ingress** — the most literal source of a 503. Check LB healthy-host-count.
+4. **App-side connection-pool exhaustion** — flagged as the branch your "DB ruled out" most likely masks: the DB looks healthy *because* the app can't acquire connections. Check pool wait-time metrics, not DB-server metrics.
+5. **Autoscaling failure under traffic/retry surge** — fits self-recovery at ~14:50.
+
+Deprioritized: TLS/cert expiry, DNS, stale runbooks (MTTR contributor, not onset).
+
+**The agent's main pushback** — it declined to name a root cause, calling the map a cause space rather than a diagnosis, and named three facts that would collapse most of it:
+- What ended the incident at ~14:50? (rollback → #1, self-recovery → #2/#5, restart → #3/#4)
+- Where was the 503 emitted — LB logs or app logs?
+- *How* was the database ruled out? If via DB server metrics only, branch #4 isn't actually eliminated and should move to the top.
+
+It offered two follow-ups: render this as an SVG fishbone diagram, or run a five-whys drill on whichever branch the evidence supports. The agent is still live (`af74ba706bbbbcf06`) if you want either.

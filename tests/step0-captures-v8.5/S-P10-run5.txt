@@ -1,0 +1,18 @@
+**~$20/kWh of usable thermal capacity** (range $15–33/kWh-th), tanks excluded — about 1,940 tonnes of salt, ~$4M total for the 200 MWh system.
+
+**How it's derived:**
+- Solar salt: cp ≈ 1.5 kJ/kg·K, usable ΔT = 275 K (bounded by freezing ~238 °C and nitrate decomposition ~565 °C) → 0.115 kWh/kg
+- ~90% usable inventory (heel + ullage) → **9.7 kg per usable kWh**
+- Salt at ~$0.85/kg → ~$8/kWh; non-tank BOP (heat exchangers, pumps, piping, trace heating, EPC) at 1.2–2x → ~$13/kWh
+
+**Two caveats that matter more than the arithmetic:**
+
+1. **Thermal vs. electrical basis is a 2.5x swing.** If "usable kWh" means electricity delivered, divide by ~0.40 power-block efficiency → **~$53/kWh-e ($38–83)**. Worth confirming which you meant.
+
+2. **Salt price is the dominant uncertainty.** Nitrate tracks the fertilizer market and has moved 2x within single years — it drives most of the bracket width. The agent flagged this as unverified (no live quote pulled), along with the BOP multiplier.
+
+**On your 30-year / daily-cycle assumptions:** they don't enter the capex figure — but they give an LCOS of **~0.6 ¢/kWh-th cycled** (7% discount, 365 cycles/yr, ~2%/yr O&M). One wrinkle: over 10,950 cycles nitrate slowly decomposes to nitrite/oxide, implying makeup salt or a partial inventory replacement — opex, not capex.
+
+Also worth noting: at 200 MWh you're subscale for this technology. Typical CSP blocks are 1,000–3,600 MWh-th, so fixed engineering and EPC spread over 5–15x less capacity — a real penalty embedded in the BOP range above.
+
+Physics half of the estimate is solid; the cost half is MEDIUM confidence. I can chase current delivered nitrate pricing to tighten the bracket if useful.

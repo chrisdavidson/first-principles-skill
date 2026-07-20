@@ -1,0 +1,20 @@
+The first-principles agent returned its analysis. Here's what it found:
+
+## The claim breaks down in three structurally different ways
+
+**1. Speed becomes irrelevant** — when retention is capped by something cadence doesn't touch: acquisition fit, pricing, or an onboarding cliff. Also fires if churners leave *before* your next release lands. This is the expensive failure mode because the team feels productive while the metric flatlines.
+
+**2. Speed becomes unmeasurable** — and this one is likely *already true for you*. Measuring a 30-day retention effect requires a ≥30-day observation window. At biweekly cadence, your releases overlap their own measurement windows. You can't attribute retention movement to any specific ship; you're shipping blind and calling it velocity. (High confidence, conditional on your retention interval being ≥14 days.)
+
+**3. Speed becomes harmful** — when per-ship regression rate or change fatigue outruns per-ship value. More ships is linearly more regression exposure; if value is sublinear, there's a crossover past which speed is net-negative.
+
+## The load-bearing assumption
+
+Every argument for shipping faster assumes **product quality is the binding constraint on retention**. The agent flagged this as the weakest link in the whole chain — if it's false, the claim isn't wrong so much as *irrelevant*.
+
+## Two cheap checks that would flip the decision
+
+- **Median time-to-churn vs. 14 days.** If churners leave inside your release interval, cadence is the wrong lever entirely.
+- **Churn reasons segmented by cause.** If they cluster on fit or price rather than missing capability or bugs, stop optimizing cadence.
+
+The agent explicitly declined to model where the speed-turns-negative crossover sits — that needs your defect escape rate and per-release value distribution, and it noted that inventing those numbers would produce a precise-looking answer with nothing under it. The crossover *condition* holds; its location doesn't.

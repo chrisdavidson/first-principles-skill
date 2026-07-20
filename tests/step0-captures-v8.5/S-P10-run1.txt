@@ -1,0 +1,22 @@
+**~$45/kWh_th usable, bracketed $30–75/kWh** → roughly **$9M total** ($6M–15M) for the 200 MWh system.
+
+**How it builds up** (per kWh_th, direct costs):
+| Component | $/kWh_th |
+|---|---|
+| Salt inventory (~2,100 t @ ~$0.9/kg) | 9.4 |
+| Tanks (2 × 1,200 m³, less commissioning) | 14 |
+| Pumps, HX, heat-traced piping | 10 |
+| I&C, electrical | 4 |
+| +25% EPC/contingency | → **~$47** |
+
+Energy density comes from solar salt: 1.5 kJ/kg·K × 275 K ΔT = 0.115 kWh/kg, with ~20% of inventory unusable as heel/freeze margin.
+
+**Levelized** over ~10,400 cycles (30 yr × daily × 95% availability): **~0.4 ¢/kWh** throughput undiscounted, **~1.1 ¢/kWh** at 8% WACC — before O&M and parasitic heat-trace power.
+
+**Three caveats worth your attention:**
+
+1. **Thermal vs. electrical.** The analysis assumed 200 MWh_**th**. If you meant electrical delivered, divide by ~0.40 power-block efficiency → **$110–190/kWh_e**, ~$22–38M. Biggest single swing factor.
+2. **"Pre-commissioned" was read as** factory-qualified tanks arriving as a package — commissioning *labor* avoided (~10% off the tank line), hardware still in capex. If you meant the tanks are already sunk cost, drop that line: **~$28/kWh_th** (~$5.6M).
+3. **Tank $/m³ is the load-bearing uncertainty.** At 200 MWh this system is small versus typical CSP TES (1,000–3,600 MWh), so it carries a scale penalty. One firm tank vendor quote would collapse most of the $30–75 range.
+
+Confidence is medium — salt price and tank $/m³ are both unverified commodity/vendor figures. Also flagged but not costed: ~10,400 thermal cycles likely means at least one tank-floor fatigue intervention over 30 years (O&M, not capex).

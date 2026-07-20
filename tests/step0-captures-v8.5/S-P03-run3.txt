@@ -1,0 +1,16 @@
+The first-principles agent returned a complete fishbone analysis. Key points:
+
+**The 503 code itself is the strongest clue.** It means an absent healthy upstream, deliberate load shedding, or a draining/restarting platform layer — not a generic app crash (that would give 500s or resets). Combined with 100% user impact and a sharp onset, this points to a shared singleton in the request path and a discrete state change, not organic degradation.
+
+**Top three hypotheses:**
+1. A deploy or config push at ~14:10 that failed fleet-wide
+2. Health-check-driven eviction of all backends from the load balancer
+3. Certificate or credential expiry at a clock boundary
+
+**Branch priority:** Technology & Tools and Process rank HIGH; Environment and Resources MEDIUM; Information is LOW as a cause but HIGH as an amplifier (missing tracing likely extended the 40 minutes and is currently blocking the analysis); People LOW.
+
+**Important caveat it raised on your database exclusion:** "ruled out the database layer" usually means the *engine* was healthy — clean CPU, connections, replication, slow queries. That doesn't rule out the *path to* it: connection pool exhaustion, PgBouncer/RDS Proxy, credential rotation, DB endpoint DNS, or a security-group change. A healthy database behind an exhausted connection path produces exactly this signature. The agent honored your exclusion at the category level but kept connection-path causes on the map.
+
+**Next evidence, in order:** (1) change log for 13:30–14:15 UTC across deploys, IaC, feature flags, mesh/LB config; (2) which layer emitted the 503 — LB access log vs. app access log; (3) healthy-backend count over the window; (4) whether recovery was self-healing or manual (a manual fix names the cause); (5) cert/secret expiry timestamps near 14:10.
+
+Confidence: MEDIUM — capped because three load-bearing facts are unverified. Resolving them would likely collapse the map to a single branch.
