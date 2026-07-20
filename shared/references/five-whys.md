@@ -7,6 +7,12 @@
 
 ---
 
+- [When to reach for this](#when-to-reach-for-this)
+- [Procedure](#procedure)
+- [Stop test](#stop-test)
+
+---
+
 ## When to reach for this
 
 **Mode-selection rule (choose before starting):**
