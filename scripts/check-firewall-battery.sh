@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 13 offline gate commands, captures each exit code, and prints a
+# Runs all 14 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED verdict. A GREEN result is the hard authorization gate
 # for the Phase-129/130 live runs (D-01). VAL-01 (claude plugin validate) is a
 # CLI schema check that spends ZERO model tokens and is explicitly permitted
@@ -13,10 +13,10 @@
 # Exits:  0 = FIREWALL GREEN (all gates pass)
 #         1 = FIREWALL RED   (one or more gates failed)
 #
-# Gates (13):
-#   DUAL-04   STEP0-06  STEP0-08  VAL-01    VAL-02
-#   VAL-03    VAL-04    VAL-05    GATE-01   BATT-06
-#   TRACE-03  COLLIDE-01  body-budget
+# Gates (14):
+#   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
+#   VAL-02    VAL-03        VAL-04    VAL-05    GATE-01
+#   BATT-06   TRACE-03      COLLIDE-01  body-budget
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -63,6 +63,17 @@ echo ""
 gate "DUAL-04" \
     "sync-content.py --check" \
     "python3 scripts/sync-content.py --check"
+
+# GATE-02-v8.5 — pointer drift-guard: each of the four split core files'
+#                extracted Procedure slice carries exactly one well-formed
+#                link to its own detail sibling (positive + missing/duplicate
+#                negative controls + main() dispatch control, D-11). Proves
+#                the pointer exists and is well-formed, NOT that it is
+#                followed. Milestone-qualified label disambiguates it from
+#                the pre-existing v3.0 GATE-02 (trigger-collision scanner).
+gate "GATE-02-v8.5" \
+    "sync-content.py --self-test (pointer drift-guard)" \
+    "python3 scripts/sync-content.py --self-test"
 
 # STEP0-06 — Step 0 live-harness self-test (decompose-absence, routing-count,
 #             v7.13-emitter-target, routing-emitter-absence guards included)
