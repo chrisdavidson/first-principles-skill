@@ -34,7 +34,7 @@ Scan surfaces (relative link checking + namespace ref checking):
 
 Scan surfaces (namespace ref checking only — not relative-link-checked):
     - first-principles/skills/*/SKILL.md  (plugin companion skills — restored
-      per D-05. Namespace-only, NOT full-check, because 14 pre-existing
+      per D-05. Namespace-only, NOT full-check, because 12 pre-existing
       cross-skill relative links in these stubs use the shared/ source
       filename convention rather than the plugin directory layout — e.g.
       `[5-Whys](five-whys.md)` in fishbone/SKILL.md does not resolve under
@@ -42,7 +42,17 @@ Scan surfaces (namespace ref checking only — not relative-link-checked):
       restoration only re-enables the namespace-ref axis, which today finds
       zero backticked namespace refs in any stub — also vacuous, per D-06.
       The inline `--self-test` fixture is what proves this axis load-bearing
-      in the meantime.)
+      in the meantime. Count history (v8.5 Phase 154, D-17): was 14
+      pre-existing cross-skill links; Plan 154-02's split moved 2 of
+      fishbone's (its Failure modes and Handoff sections) into
+      fishbone-detail.md, converting them to namespace refs and dropping the
+      live count in these SKILL.md files to 12. A raw relative-link scan of
+      this glob now also matches 4 new, correctly-resolving
+      `references/<slug>-detail.md` on-demand-load pointers Plan 154-03
+      introduced (16 relative-link matches total) — those 4 are NOT part of
+      the non-resolving count this namespace-only decision is about; the
+      FULL_CHECK_GLOBS entry above already full-checks them via
+      first-principles/skills/*/references/*.md.)
     - shared/**/*.md  (source templates — per D-19-6, scanned to catch namespace
       ref typos; relative links in shared/ use the monolith filename convention)
 
@@ -130,12 +140,23 @@ FULL_CHECK_GLOBS = [
 # pre-existing cross-skill relative links in the generated stubs (e.g.
 # `[5-Whys](five-whys.md)` in fishbone/SKILL.md) that resolve under the
 # shared/ source filename convention, not the plugin directory layout —
-# full-checking this glob would immediately fail those 14 links. D-02 defers
+# full-checking this glob would immediately fail those links. D-02 defers
 # fixing them to a future phase. This restoration's value today is
 # pre-positioned coverage plus docstring truth (D-06): it currently matches
 # files but finds zero backticked namespace refs in any of them, so it is
 # NOT closing a live gap — the inline `--self-test` fixture is what proves
 # this axis load-bearing in the meantime.
+#
+# Count history (v8.5 Phase 154, D-17): Plan 154-02's split moved 2 of
+# fishbone's cross-skill links (its Failure modes and Handoff sections) into
+# fishbone-detail.md, converting them to namespace refs and dropping the live
+# non-resolving cross-skill count in these SKILL.md files from 14 to 12. A raw
+# relative-link scan of this glob now also matches 4 new, correctly-resolving
+# `references/<slug>-detail.md` on-demand-load pointers Plan 154-03
+# introduced (16 relative-link matches total across the glob) — those 4 are
+# NOT part of the non-resolving count this namespace-only decision is about;
+# they are already full-checked via the FULL_CHECK_GLOBS entry
+# first-principles/skills/*/references/*.md above.
 NAMESPACE_ONLY_GLOBS = [
     "shared/**/*.md",
     "first-principles/skills/*/SKILL.md",
