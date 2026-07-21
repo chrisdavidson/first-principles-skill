@@ -89,31 +89,28 @@ labels and blank branches.
 
 ## Procedure
 
-1. **Define the effect.** Write one sentence naming the observable problem — the effect
-   to be explained. State what is happening, not why. Do not name a suspected cause.
+1. **Define the effect.** One sentence naming the observable problem to be explained —
+   what is happening, not why. Do not name a suspected cause.
 
-2. **Choose categories.** Pick the category set by domain signal: use **6M** (Machine,
-   Method, Material, Measurement, Man, Mother Nature) for a physical production line,
-   factory floor, or ops process with equipment; use **8P** (Product, Price, Place,
-   Promotion, People, Process, Physical Evidence, Productivity) for a service business
-   with a customer offer, channel, pricing, and marketing mix; use **4S** (Surroundings,
-   Suppliers, Systems, Skills) for a narrow-scope service-delivery operation with no
-   marketing mix; use the **default six-category set** (People, Process, Technology and
-   Tools, Environment, Information, Resources) for software, knowledge work,
-   cross-functional teams, research domains, or when no preset fits cleanly. The default
-   six-category set is always a valid fallback. Lock the set now. Do not add, rename, or
-   remove categories once brainstorming begins.
+2. **Choose categories.** Pick the set by domain signal: **6M** (Machine, Method,
+   Material, Measurement, Man, Mother Nature) for a physical production line; **8P**
+   (Product, Price, Place, Promotion, People, Process, Physical Evidence, Productivity)
+   for a service business with a marketing mix; **4S** (Surroundings, Suppliers, Systems,
+   Skills) for a narrow-scope service-delivery operation; the **default six-category set**
+   (People, Process, Technology and Tools, Environment, Information, Resources) for
+   software, knowledge work, or when no preset fits cleanly — always a valid fallback.
+   Lock the set now. Do not add, rename, or remove categories once brainstorming begins.
 
 3. **Brainstorm causes.** For each category, generate candidate causes that could
-   plausibly contribute to the effect. Work one category at a time. Do not evaluate
+   plausibly contribute to the effect, one category at a time. Do not evaluate
    or discard causes during this step — record everything.
 
 4. **Identify sub-causes.** For any cause that is itself explained by a deeper cause,
    add a sub-cause beneath it. Two levels of nesting are typically enough; go deeper
    only where the extra depth changes what action is possible.
 
-5. **Prioritise and verify.** Review the completed map. Identify the branches most
-   likely to be contributing based on available evidence. Mark unverified candidate
+5. **Prioritise and verify.** Review the completed map, identify the branches most
+   likely contributing based on available evidence, and mark unverified candidate
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
