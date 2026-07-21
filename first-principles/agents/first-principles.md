@@ -518,44 +518,35 @@ near-tie is a real finding and either option is defensible.
 
 ## Procedure
 
-**State the target quantity and its units.** Write one sentence naming the quantity
-you intend to estimate and the units the answer must be in (e.g., "Estimate the
-levelised cost of molten-salt thermal storage, in $/kWh of delivered energy.").
-Do not begin building the estimate yet — just fix the target and units.
+**Name the target quantity and its units** (e.g., "$/kWh of delivered storage")
+before decomposing.
 
-**Decompose the target into constituent unit-factors.** Ask: "What sub-quantities,
-when multiplied together, reconstruct the target's units?" List each factor and
-confirm that the units cancel correctly (dimensional analysis — the factor product's
-units must equal the target's units). This is the visible unit arithmetic; do not
-skip it.
+**Decompose into unit-factors and show the cancellation.** List the sub-quantities
+that multiply to the target's units, confirming they cancel correctly — dimensional
+analysis. Show the unit arithmetic explicitly (e.g., "kg/kWh × $/kg × 1/cycles →
+$/kWh").
 
-**Assign a first-principles value to each factor.** For every factor, supply a
-value sourced from one of:
+**Assign a first-principles value to each factor**, sourced from one of:
 
-- A **physical constant or definition** (e.g., specific heat capacity, a standard
-  unit conversion) — traceable and invariant.
-- A **direct measurement** (e.g., a published material cost from an engineering
-  survey, a datasheet spec) — empirically anchored.
+- A **physical constant or definition** (e.g., specific heat capacity) —
+  traceable and invariant.
+- A **direct measurement** (e.g., a datasheet spec) — empirically anchored.
 
 Do **not** cite a similar past project as the value — "a comparable project cost X"
-is an analogy, not a first-principles value. If no first-principles value is
-available for a factor, flag it as assumed and assign a defensible range.
+is an analogy, not a first-principles value. If no first-principles value exists,
+flag it as assumed with a defensible range.
 
-**Compute the central magnitude.** Multiply the central values of all factors.
-Show the unit arithmetic so the cancellation is explicit (e.g., "kg/kWh × $/kg
-× 1/cycles → $/kWh"). The product is the central estimate.
+**Compute the central magnitude** by multiplying the factors' central values, with
+the unit arithmetic explicit.
 
-**Bracket the result: lower bound and upper bound.** For each factor that carries
-uncertainty, substitute its conservative value (produces a lower end-result) and
-its aggressive value (produces an upper end-result). Compute the bracketed range:
-[lower bound, central estimate, upper bound]. A Fermi estimate without an explicit
-bound range is incomplete — the bracket, not the single central value, is the
-deliverable.
+**Bracket the result.** For each uncertain factor, substitute its conservative and
+aggressive values to compute the lower and upper ends: [lower bound, central
+estimate, upper bound]. A Fermi estimate without an explicit bound range is
+incomplete — the bracket, not the single central value, is the deliverable.
 
 **Apply the decision-resolution stop criterion.** The estimate is "good enough"
-when the bracket is narrow enough that both its lower and upper ends drive the same
-decision. If the bracket spans an order of magnitude and straddles the decision
-threshold, identify which factor dominates the uncertainty and either tighten it
+when both the bracket's lower and upper ends drive the same decision. If the
+bracket straddles the decision threshold, tighten the dominant uncertain factor
 with a better measurement or escalate the uncertainty explicitly.
 
 **Read [estimate-detail.md](references/estimate-detail.md) when you need:**
