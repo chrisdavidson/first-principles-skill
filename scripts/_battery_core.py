@@ -932,6 +932,21 @@ def self_test_boundary() -> int:
     def _load_excerpt_v85(prompt_id: str, run: int) -> str:
         return (_V85_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
 
+    # v8.6 live-re-measure loader helper — reads Phase 160 v8.6 detector-covered
+    # 2-row live re-measure assistant-text excerpts. Same plain Path.read_text()
+    # shape as the prior generation helpers, so a missing file raises
+    # FileNotFoundError loudly (Pitfall 5 — no vacuous empty-string zero-count).
+    # Captures are the 10-call live run (2 catalog rows x 5 repeats: S-P03
+    # fishbone, S-P04 five-whys — the only two Phase-159-touched rows carrying
+    # an emission detector; estimate/theoretical-limit have none). Added in
+    # Phase 160 Plan 02 (D-04 — re-point the one re-pointable BATT-06
+    # honest-state sentinel, RR-117-01, to the v8.6 vector). S-P04 (five-whys)
+    # ran but has NO sentinel — none is authored here (verdict §3/§4, D-04).
+    _V86_DIR = REPO_ROOT / "tests" / "step0-captures-v8.6"
+
+    def _load_excerpt_v86(prompt_id: str, run: int) -> str:
+        return (_V86_DIR / f"{prompt_id}-run{run}.txt").read_text(encoding="utf-8")
+
     # ---------------------------------------------------------------------------
     # RR-80-01 named marker-counting assertion (D-03 / D-04 — Phase 84, Plan 02;
     #          re-pointed to v6.3 evidence Phase 93, Plan 01;
@@ -1450,7 +1465,8 @@ def self_test_boundary() -> int:
     #           Plan 07 — CONF-02, D-04 step two; CLOSED at v7.7 CONF-01;
     #           re-pointed to live v7.8 CONF-03 captures Phase 119, Plan 03 — D-04 step two;
     #           re-pointed to live v7.11 captures Phase 131 RECON-02, D-03;
-    #           re-pointed to live v8.5 captures Phase 156 MEASURE-03 SC-4, D-03)
+    #           re-pointed to live v8.5 captures Phase 156 MEASURE-03 SC-4, D-03;
+    #           re-pointed to live v8.6 captures Phase 160 Plan 02, D-04)
     #
     # **CLOSED: S-P03 fishbone sustained 5/5 at Phase 117 v7.7 CONF-01.**
     # This is the FIRST fishbone capture-based vector sentinel (Phase 117 Plan 02
@@ -1462,84 +1478,91 @@ def self_test_boundary() -> int:
     # v7.8 re-point and documented a v7.8 vector while the CODE read the v7.11 loader
     # and asserted the v7.11 vector — the prose was stale relative to the code. This
     # block is now brought fully into agreement with the code as it stands: the loader
-    # reads v8.5, the asserted vector is the v8.5 vector, and every label below names v8.5.
+    # reads v8.6, the asserted vector is the v8.6 vector, and every label below names v8.6.
     #
-    # **CLOSE SUSTAINED at Phase 156 v8.5 live re-measure (docs/v8.5-live-remeasure-verdict.md §1):
-    # S-P03 3/5 PASS ≥ 3/5 min-pass — CLOSE held on the split fishbone technique.
-    # Floor was the v7.11 4/5 (verdict §1); observed 3/5 is delta -1 but still a CLOSE by
-    # DEC-02's binary rule (K/N >= 3/5 CLOSE). Sentinel retained as a regression guard.**
+    # **CLOSE SUSTAINED at Phase 160 v8.6 live re-measure (docs/v8.6-live-remeasure-verdict.md §1):
+    # S-P03 4/5 PASS >= 3/5 min-pass — CLOSE held on the marker-pinned-compressed fishbone
+    # technique (Phase 159). Floor was the v8.5 3/5 (verdict §1); observed 4/5 is delta +1, a
+    # CLOSE by DEC-02's binary rule (K/N >= 3/5 CLOSE). The verdict doc (D-01/D-02 vocabulary,
+    # 160-CONTEXT.md) records this same 4/5 observation as SUSTAINED — both labels describe
+    # the identical underlying result via each document's own naming convention. Sentinel
+    # retained as a regression guard.**
     #
     # Lineage vectors (byte-frozen captures retained for prior generations):
     #   v7.7 CONF-01 fishbone count vector: [3, 3, 2, 2, 2] (5/5 PASS).
     #   v7.8 CONF-03 fishbone count vector: [1, 4, 2, 2, 3] (4/5 PASS).
     #   v7.11 fishbone count vector:        [4, 3, 1, 4, 3] (4/5 PASS).
-    # v8.5 fishbone count vector: [2, 2, 1, 1, 2]
-    # (tests/step0-captures-v8.5/S-P03-run{1..5}.txt; 7-marker detector)
+    #   v8.5 fishbone count vector:         [2, 2, 1, 1, 2] (3/5 PASS).
+    # v8.6 fishbone count vector: [2, 2, 2, 3, 4]
+    # (tests/step0-captures-v8.6/S-P03-run{1..5}.txt; 7-marker detector)
     #   run1: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
     #   run2: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    #   run3: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
-    #   run4: 1 marker  — stays below MIN_HEADER_HITS → full-composer on that run
-    #   run5: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
-    # Runs 1,2,5 clear the barrier → K/N = 3/5 PASS.
+    #   run3: 2 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    #   run4: 3 markers — clears MIN_HEADER_HITS → focused-fishbone ✓
+    #   run5: 4 markers — clears MIN_HEADER_HITS, but composer_hits=4 reaches
+    #         _COMPOSER_FOCUS_CEILING=4, suppressing the n==1 early-return →
+    #         classify() returns full-composer on this run (structural override)
+    # Runs 1-4 clear the barrier AND match expected MODE → K/N = 4/5 PASS. Every
+    # run this generation clears MIN_HEADER_HITS (unlike v8.5's runs 3-4, which fell
+    # below the marker barrier) — run5's miss is a CEILING-suppression structural
+    # artifact, not an absence of markers.
     #
-    # D-05 fired-marker-set finding (verdict §2 — the split-vs-regression confound):
-    # S-P03 is the only re-measured row with room to fall, and Phase 154's split moved
-    # fishbone's Example/Failure-modes/Handoff prose into shared/references/fishbone-detail.md,
-    # so a count drop could be a MEASUREMENT ARTIFACT (prompting content moved) rather than a
-    # routing regression. The per-run fired sets were derived and checked against the split
-    # boundary. Union of markers that dropped v7.11 → v8.5: candidate_causes, cause_category,
-    # preset_6M_8P_4S, sub_causes; none gained. Reading: NOT primarily a split artifact —
-    # cause_category and sub_causes source text is still ONLY in the always-inlined core
-    # fishbone.md (not moved to the detail file), and preset_6M_8P_4S traces to neither file's
-    # text; only candidate_causes is duplicated into the detail file and it merely declined
-    # (4/5 → 1/5), not vanished. The structural anchor fishbone_or_ishikawa fired 5/5 on every
-    # run in BOTH generations, and people_process_tech held 2/5 → 2/5, so the technique is still
-    # correctly identified as fishbone every run; what narrowed is the depth of procedural
-    # vocabulary echoed back. Runs 3 and 4 each lost one distinct marker and crossed below
-    # MIN_HEADER_HITS=2, flipping to full-composer — a narrow single-marker margin, not a
-    # structural collapse. Net: a genuine, modest drop in procedural-vocabulary echo depth,
-    # not a split-load artifact.
+    # D-05 fired-marker-set finding (verdict §2 — genuine-regression-vs-artifact check):
+    # S-P03 is the only row this phase with a non-matching run, so its fired-set is checked
+    # against the fishbone 7-marker detector to distinguish a genuine emission regression
+    # from a detector-undercount/CEILING-suppression artifact (160-CONTEXT.md D-01/D-02).
+    # Run5 fires MORE fishbone markers (4) than any other run in this vector, so its
+    # non-match cannot be a marker-absence regression; it is entirely explained by
+    # composer_hits reaching the CEILING (4), which suppresses classify()'s n==1
+    # early-return in favor of the composer-structure override. The structural anchor
+    # fishbone_or_ishikawa and people_process_tech both fire on every run where fishbone
+    # fires at all, so the technique is robustly identified; the K/N=4/5 (vs a
+    # hypothetical 5/5) is a detector-artifact ceiling effect, not a Phase-159
+    # compression-caused emission regression.
     #
     # Drift guard: fishbone marker count must not silently change.
     # Retained as regression guard (CLOSE keeps the sentinel per RR-108-02 precedent).
     # ---------------------------------------------------------------------------
     _rr11701_fb_counts: list[int] = []
     for _run in range(1, 6):
-        _text = _load_excerpt_v85("S-P03", _run)
+        _text = _load_excerpt_v86("S-P03", _run)
         _hits = _technique_hits(_text)
         _rr11701_fb_counts.append(_hits.get("fishbone", 0))
 
     # Drift guard: fishbone marker set size must not silently grow.
     _rr11701_fb_pattern_count = len(_TECHNIQUE_CATEGORIES["fishbone"])
 
-    # Positive counter-check: run2=2 and run5=2 each >= MIN_HEADER_HITS prove the
-    # fishbone detector CAN fire on v8.5 S-P03 text (non-vacuous; runs 1,2,5 clear
-    # the barrier). These two indices still clear the bar at v8.5, so the same
-    # run2/run5 counter-check indices are retained (no index adjustment needed).
+    # Positive counter-check: run1=2 and run5=4 each >= MIN_HEADER_HITS prove the
+    # fishbone detector CAN fire on v8.6 S-P03 text (non-vacuous). All 5 runs clear
+    # MIN_HEADER_HITS this generation (unlike v8.5, where runs 3-4 fell below the
+    # barrier); run5 is deliberately chosen as one counter-check index because it is
+    # the row's sole non-matching run, and its own marker count (4) is its highest of
+    # the five — proving the markers fired even where the classify() MODE mismatched.
     _rr11701_ok = (
-        _rr11701_fb_counts == [2, 2, 1, 1, 2]
-        and _rr11701_fb_counts[1] >= MIN_HEADER_HITS    # run2 fires (counter-check)
-        and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check)
+        _rr11701_fb_counts == [2, 2, 2, 3, 4]
+        and _rr11701_fb_counts[0] >= MIN_HEADER_HITS    # run1 fires (counter-check)
+        and _rr11701_fb_counts[4] >= MIN_HEADER_HITS    # run5 fires (counter-check; CEILING-suppressed, not marker-absent)
         and _rr11701_fb_pattern_count == 7              # drift guard (FIX-01 bump: 6→7)
     )
     if _rr11701_ok:
         print(
-            f"  RR-117-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v8.5): "
+            f"  RR-117-01 PASS (CLOSED at v7.7; CLOSE SUSTAINED at v8.6): "
             f"S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"== [2, 2, 1, 1, 2] (live v8.5 re-measure captures; 7-marker detector; "
-            f"run2={_rr11701_fb_counts[1]} and run5={_rr11701_fb_counts[4]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
-            f"runs 1,2,5 clear barrier → 3/5 PASS at Phase 156 v8.5 re-measure — CLOSE SUSTAINED (≥ 3/5 min-pass); "
-            f"D-05: not a split artifact — dropped markers' source text stays in the always-inlined "
-            f"core fishbone.md; structural anchor fishbone_or_ishikawa fired 5/5 both generations "
-            f"(verdict §2); first fishbone vector sentinel; RR-75-03 lineage; Phase 156 MEASURE-03 SC-4, D-03; "
+            f"== [2, 2, 2, 3, 4] (live v8.6 re-measure captures; 7-marker detector; "
+            f"run1={_rr11701_fb_counts[0]} and run5={_rr11701_fb_counts[4]} each >= MIN_HEADER_HITS={MIN_HEADER_HITS}; "
+            f"runs 1-4 match expected MODE → 4/5 PASS at Phase 160 v8.6 re-measure — CLOSE SUSTAINED (≥ 3/5 min-pass); "
+            f"D-05: run5's non-match is a _COMPOSER_FOCUS_CEILING structural artifact, not a marker-absence "
+            f"regression — run5 fires its OWN highest marker count (4) of the five runs, but composer_hits=4 "
+            f"reaches the CEILING and suppresses the n==1 early-return (verdict §2); "
+            f"first fishbone vector sentinel; RR-75-03 lineage; Phase 160 Plan 02, D-04; "
             f"retained as regression guard); fb_patterns={_rr11701_fb_pattern_count} (expected 7)."
         )
     else:
         print(
             f"  RR-117-01 FAIL: S-P03 fishbone count vector {_rr11701_fb_counts} "
-            f"(expected [2, 2, 1, 1, 2]; live v8.5 re-measure captures); "
+            f"(expected [2, 2, 2, 3, 4]; live v8.6 re-measure captures); "
             f"fb_patterns={_rr11701_fb_pattern_count} (expected 7); "
-            f"run2={_rr11701_fb_counts[1] if len(_rr11701_fb_counts) > 1 else '?'} "
+            f"run1={_rr11701_fb_counts[0] if len(_rr11701_fb_counts) > 0 else '?'} "
             f"run5={_rr11701_fb_counts[4] if len(_rr11701_fb_counts) > 4 else '?'} "
             f"(each must be >= MIN_HEADER_HITS={MIN_HEADER_HITS})."
         )
@@ -2054,7 +2077,7 @@ def self_test_boundary() -> int:
         all_passed = False
 
     if all_passed:
-        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 3/5 PASS CLOSE v8.5] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
+        print(f"self-test PASS (8 fixtures + RR-80-01 [S-N04 2/5 FAIL CARRIED; v7.11] + RR-79-01 [S-P01 CLOSED; SUSTAINED 5/5 v7.11] + RR-114-01 [S-P02 0/5 FAIL CARRIED; v8.5] + RR-114-01 teeth [OCH-02 inversion 9→13] + RR-108-02 [S-P05 CLOSED; SUSTAINED 5/5 v7.11] + RR-108-02 teeth [OCH-02 trade-off 6→10] + RR-108-03 [S-P09 v7.4 frozen] + RR-108-04 [S-P10 0/5 CARRIED; v8.5] + RR-108-05 [S-P14 0/5 CARRIED; v8.5] + RR-77-08 + RR-117-01 [S-P03 fishbone; 4/5 PASS CLOSE v8.6] + RR-117-02 [S-N03 precision; v7.11] + RR-119-01 [S-N01 REGRESSED 1/5 v7.11] + RR-119-02 [S-N02 SUSTAINED 3/5 v7.11] named assertions)")
         return 0
     return 1
 
