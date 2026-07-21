@@ -53,26 +53,25 @@ to structure the initial hypothesis space.
 
 ### Causal mode (root-cause drill)
 
-**State the symptom.** Write one sentence: the observable problem that keeps occurring.
-Do not state a suspected cause — state the observable effect.
+**State the symptom.** One sentence: the observable problem that keeps occurring — not a
+suspected cause, the observable effect.
 
-**Ask: Why did this happen?** Write every cause you can identify. Do not filter yet.
+**Ask: Why did this happen?** List every cause you can identify without filtering.
 Multiple causes at the first level are expected.
 
-**For each cause, ask why again.** At each level, ask "What else caused this?" before
-going deeper into any one branch. Complete the lateral scan at a level before descending.
-Multiple valid causes each become their own branch.
+**For each cause, ask "What else caused this?" before descending into any one branch.**
+Complete the lateral scan at a level before descending. Multiple valid causes each become
+their own branch.
 
 **Stop drilling a branch when BOTH hold:**
 - You can state a specific corrective action that would prevent recurrence.
 - That action is within your practical control.
 
-If a branch reaches a cause with no actionable corrective — a systemic constraint outside
-your control — record it as a real finding and move to the next branch. A cause you cannot
-fix is still worth knowing.
+A branch with no actionable corrective — a systemic constraint outside your control — is
+still a real finding: record it and move to the next branch.
 
-**Validate each causal link** with observable evidence, not inference. If you cannot point
-to evidence for a link, flag it as assumed before continuing.
+**Validate each causal link** with observable evidence, not inference; flag unevidenced
+links as assumed.
 
 ### Reduce-to-primitives mode (irreducibility drill)
 
@@ -81,14 +80,14 @@ to evidence for a link, flag it as assumed before continuing.
 **Identify its immediate constituents.** List every component fact, assumption, or parameter
 the claim depends on. Complete the lateral scan at one level before descending.
 
-**Apply the irreducibility test to each constituent.** Is this constituent itself reducible?
-If yes, recurse. If no, apply the stop test (see §Stop test).
+**Apply the irreducibility test to each constituent.** Is it itself reducible? If yes,
+recurse. If no, apply the stop test (see §Stop test).
 
 **Record the verdict for each branch:**
 - Passes stop test: `Verified — [physical law / definition / measurement]: <source>`.
 - Fails stop test: `Assumed — unverified` → becomes GT-N? in Phase 3.
 
-**Validate the parent claim.** Verified only if every branch is verified. One assumed
+**Validate the parent claim.** Verified only if every branch is verified — one assumed
 branch flags the whole parent with `?`.
 
 **Read [five-whys-detail.md](five-whys-detail.md) when you need:**
