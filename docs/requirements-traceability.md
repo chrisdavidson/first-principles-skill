@@ -38,6 +38,28 @@ BATT-06 sentinels retained as regression guards; no successor minted; no further
 All remaining forward-committed live re-measures across the active surface (including the RR-108-02 trade-off emission re-measure) are terminally accepted as not-to-be-run: the v7.13 live baselines are the final measured state (OFFLINE-ONLY, honesty-not-score, D-01).
 See [`v8.0-final-closure.md`](v8.0-final-closure.md) for the durable terminal record.
 
+### v8.5 Live Re-Measure Annotation (2026-07-20)
+
+v8.5 (Context Optimization — Execute the Reference-File Split) executed the 4-file reference
+split and narrowly relaxed the v8.0 "no further live re-measure" disposition for exactly
+RR-108-04 and RR-108-05 (governing record: v8.5-byte-freeze-relaxation.md). It then ran a
+72-call live re-measure and re-pointed four BATT-06 sentinels to the v8.5 captures via the new
+`_load_excerpt_v85` helper reading tests/step0-captures-v8.5/ (honest verdict:
+v8.5-live-remeasure-verdict.md §1). No matrix row was added or removed, so the coverage headline
+stays byte-identical at 133/96/0/229 — this annotation records the measured outcome only, per
+honesty-not-score (D-01):
+
+| Residual | Split status | v8.5 K/N | Disposition |
+|----------|--------------|----------|-------------|
+| RR-108-04 (S-P10 estimate) | SPLIT (Phase 154) | 0/5 | CARRY — SUSTAINED at floor (re-opened + re-measured, landed exactly on prior 0/5 floor) |
+| RR-108-05 (S-P14 theoretical-limit) | SPLIT (Phase 154) | 0/5 | CARRY — SUSTAINED at floor (re-opened + re-measured, landed exactly on prior 0/5 floor) |
+| RR-114-01 (S-P02 inversion) | UNSPLIT CONTROL | 0/5 | CARRY (was 1/5 v7.13; −1) |
+| RR-117-01 (S-P03 fishbone) | SPLIT (Phase 154) | 3/5 | CLOSE SUSTAINED (≥ 3/5; sentinel retained as regression guard) |
+
+No row improved. The IDs are kept in every case — no successor minted. Detector constants
+(pre-mortem 9, fishbone 7, inversion 13, trade-off 10), MIN_HEADER_HITS, and
+_COMPOSER_FOCUS_CEILING stayed byte-unchanged and gating through the split.
+
 ## Active Surface
 
 Exactly 12 live items (v7.13: RR-130-01 RESOLVED/CLOSE at Phase 136 live re-measure — P 11/13 = v3.13 anchor recovery, ID kept as regression sentinel, row-less per v7.9 D-02 precedent). Nothing shipped or superseded belongs here. **[v8.0 terminal note]** Phase 142 is the terminal phase — all 12 items are dispositioned; RR-114-01/RR-108-04/RR-108-05 are ACCEPTED-FINAL per the v8.0 Terminal State block above.
