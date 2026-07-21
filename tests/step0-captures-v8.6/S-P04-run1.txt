@@ -1,0 +1,32 @@
+I'll launch the first-principles agent with your prompt verbatim.
+The five-whys analysis is done. Here's the agent's report in full, since it's the deliverable:
+
+## Key conclusion
+
+The agent split the incident into two separate causal chains — the **failure** and the **slow recovery** — and found the recovery chain is fully actionable right now, while the failure chain needs one telemetry lookup to pin down.
+
+**Recovery chain (HIGH confidence):** The pod served 500s for 12 minutes because your platform couldn't self-heal — liveness/readiness probes evidently check "process up," not "requests succeeding," so Kubernetes never restarted the pod itself and a human had to. Fix: readiness probe on a real dependency-exercising endpoint plus auto-alerting on 5xx rate >1% for 60s. This pays off regardless of what caused the failure.
+
+**Failure chain (MEDIUM confidence, pending evidence):** Since a restart fixed it, the fault lived in pod-local state (heap, connection pools, threads — restart semantics guarantee this). Three candidate branches remain:
+- **2a — resource leak** (statistically most common when "restart fixes it"): metric ramping slowly for hours before 09:30
+- **2b — triggered wedge** at ~09:30 (traffic spike, poison request, config push, no-timeout blocking): step function in the graphs
+- **2c — stale connections after a dependency failover**: check the dependency's incident timeline
+
+One graph query distinguishes them: *was the exhausted resource ramping or did it step at 09:30?*
+
+## Five-whys chain (leak branch, most likely)
+
+1. **Why 500s?** Pod-local resources exhausted or process wedged (a dead database is ruled out — restart wouldn't fix that)
+2. **Why exhausted?** Leak, triggered wedge, or stale connections (evidence check above selects)
+3. **Why did the leak exist?** A code path acquires a resource and doesn't release it on error/timeout paths
+4. **Why did it ship?** No test gate exercises resource release under error conditions; no soak tests
+5. **Why 12 minutes to recover?** Health checks don't match actual service health → platform couldn't self-heal ✓ (stop test passed — actionable)
+
+## Recommended next actions
+
+1. Pull memory/connection-pool/thread metrics for the affected pod, 06:00–09:42 UTC (ramp vs. step selects the branch)
+2. Fix the readiness probe and add 5xx-rate auto-alerting (closes the 12-minute detection gap)
+3. Check deploy/config audit logs and dependency status for ~09:25–09:30
+4. If the leak branch confirms: add resource-release tests on error paths and a pre-prod soak test
+
+The agent also flagged assumptions worth verifying: that the restart was causal (not coincidental with a dependency recovering), that the 500s originated in the service rather than the load balancer, and that the 8k transactions roughly match 12 min × normal TPS (~11 TPS — a big excess would imply retry storms). If you share the metric graphs or error logs, the agent (ID `a81b8223f2a49bd2d`) can continue the drill down the confirmed branch.

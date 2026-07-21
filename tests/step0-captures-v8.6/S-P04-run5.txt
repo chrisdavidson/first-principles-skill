@@ -1,0 +1,19 @@
+I'll launch the first-principles agent with your prompt exactly as written.
+The first-principles agent completed its five-whys analysis. Here's what it found:
+
+## Key insight: this is really two incidents in one
+
+The analysis split the outage into two causal chains — **why it broke** and **why it stayed broken for 12 minutes**:
+
+**Chain A — the breakage (low-medium confidence, evidence-limited).** Since a pod restart cleared the fault, the problem almost certainly lived in restart-clearable, process-local state. The most probable pattern: a transient dependency blip (DB failover, payment-provider timeout burst) wedged a connection pool or left a circuit breaker stuck open, with no eviction/half-open recovery to self-heal. Alternatives still on the table: memory/thread exhaustion, deadlock, or a bad node (if the restart rescheduled the pod elsewhere).
+
+**Chain B — the duration (medium confidence, actionable today).** The pod served 500s for 12 minutes without being killed, which strongly suggests liveness/readiness probes check "process is up" rather than "can actually serve payment requests," and recovery depended on a human noticing. This finding holds regardless of what Chain A turns out to be.
+
+## Recommended actions
+
+1. **Do now, no more evidence needed:** audit the health probes so a pod serving 500s on the payment path gets pulled from rotation and restarted automatically, and verify the 5xx-rate alert pages within ~1 minute. This converts a future 12-minute outage into a ~1-minute one.
+2. **Evidence to finish the root-cause drill** (in priority order): stack traces from the 500s (to tell app errors from gateway 500s), memory/thread/connection-pool metrics for the hour before 09:30, dependency dashboards for blips between 09:00–09:30, whether the restarted pod landed on a different node, and the deploy log for that window.
+
+The agent explicitly discarded two branches: a bad deploy (a restart of the same version wouldn't have fixed it — a rollback would) and pure traffic overload (the same load would have re-broken the fresh pod).
+
+If you can share the stack traces or pre-incident metrics, I can send them back to the same agent to drill Chain A the remaining levels to a specific corrective action.

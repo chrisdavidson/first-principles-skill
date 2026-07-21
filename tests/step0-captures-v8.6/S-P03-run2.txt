@@ -1,0 +1,17 @@
+I'll launch the first-principles agent with your prompt exactly as given.
+Done — the fishbone diagram is built and rendered. Files:
+
+- `/tmp/fishbone/fishbone.svg` — the diagram
+- `/tmp/fishbone/fishbone.png` — rendered preview
+- `/tmp/fishbone/spec.json` — source spec if you want to tweak wording or add branches
+
+**How it's structured:** The effect (head) is stated as the observable problem — checkout API returning 503 for 40 minutes from 14:10 UTC, all users affected — with no suspected cause baked in. Causes are organized under the six-category software set (People, Process, Technology & Tools, Environment, Information, Resources). Database-related branches were deliberately omitted per your ground truth, with "non-DB" qualifiers on connection-pool and credential causes. Every cause on the diagram is an unverified candidate, and a footnote records that.
+
+**The agent's prioritization for verification:** the sharp onset at exactly 14:10 with a clean, bounded 40-minute recovery is your strongest signal — it favors a discrete change event (deploy, config push, feature flag, cert expiry) or a total dependency failure over gradual-degradation causes like memory pressure or traffic growth. Highest-value checks in order:
+
+1. **Change log / deploy history for 14:00–14:10 UTC** — confirms or kills four branches at once
+2. **What action at ~14:50 ended the incident** — a rollback ending it is near-conclusive for the change-event branches
+3. **Load balancer target-health history** during the window — distinguishes "instances down" from "instances up but erroring"
+4. **Upstream dependency status pages/postmortems** (payments, auth, cloud provider) for the same window
+
+If check 1 or 2 confirms a change event, the natural follow-up is a 5-Whys drill on that branch to get from "bad deploy" to an actionable root cause — the Process/People bones (no canary, slow rollback) then become recurrence-prevention findings rather than the trigger.

@@ -1,0 +1,25 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the fishbone analysis and produced a rendered diagram:
+
+- **/tmp/fishbone/fishbone-checkout-503.svg** — the diagram (plus a 2x PNG at `/tmp/fishbone/fishbone-checkout-503.png`, and the editable spec at `/tmp/fishbone/spec.json`)
+
+**Summary of the analysis:**
+
+The effect was framed as the pure observable — checkout API returning 503 to all users, 14:10–14:50 UTC on 2026-07-20 — with the database layer excluded per your ground truth, so no DB bones appear. Candidate causes were brainstormed across six standard categories:
+
+- **People** — bad deploy/config pushed ~14:10; manual load-balancer/gateway change; slow rollback (a duration driver, not the trigger)
+- **Process** — no canary/staged rollout; no auto-rollback on 5xx spike; config change skipped review; alert escalation delay
+- **Technology & Tools** — LB health checks marking all backends unhealthy; app crash-loop/OOM; gateway or rate-limit misconfig returning 503; circuit breaker stuck open on a non-DB dependency
+- **Environment** — cloud zone degradation; Kubernetes node failures; third-party payment provider outage; DNS failure for a downstream service
+- **Information** — wrong feature-flag/config value; stale service-discovery data; missing gateway-level 503 dashboards
+- **Resources** — traffic spike over capacity; autoscaling quota exhaustion; connection/thread pool exhaustion
+
+**Prioritization:** The incident signature — sharp onset, 100% of users, clean recovery at 14:50 — points to a discrete change event or total backend-health failure rather than gradual exhaustion. The agent recommends investigating in this order:
+
+1. **Change correlation** — anything deployed/changed between 13:55–14:15, and what was reverted at ~14:50
+2. **LB/gateway health-check state** — a health endpoint depending on something broken can drain all backends at once (the classic "all users, pure 503" mechanism)
+3. **Gateway/rate-limiter misconfig** — 503s emitted at the edge before reaching the app tier
+
+Environment and Resources branches were kept on the map but deprioritized, since spikes and zone failures rarely produce a perfectly uniform failure with clean 40-minute boundaries.
+
+Everything on the diagram is a candidate, not a finding — each branch should be treated as untested until log/timeline evidence confirms or discards it. If you learn what changed at 14:10, the agent offered to drill that branch with a 5-Whys.

@@ -1,0 +1,30 @@
+I'll launch the first-principles agent with your prompt exactly as given.
+The first-principles agent completed its five-whys analysis. Here's the full report:
+
+## Five Whys — Payment Service Outage (2026-06-11, 09:30 UTC)
+
+**Caveat up front:** with only three facts available (12 min of 500s, recovery via pod restart, 8k transactions affected), the verified causal chain only goes two levels deep — everything below is a marked hypothesis to confirm against your telemetry.
+
+**The chain:**
+
+1. **Why 500s?** The pod was serving requests but failing them. Three live branches: unhandled in-process exceptions, upstream dependency failures surfaced as 500s, or resource starvation.
+2. **Why did a restart fix it?** (highest-signal fact) Restart resets heap, thread pools, connection pools, caches — so the fault lived in accumulated or wedged in-process state. A hard-down dependency would have kept failing after restart, but a **wedged connection pool to a dependency that had already recovered** fits perfectly.
+3. **Why was state wedged?** Leading hypothesis (assumed): a transient downstream blip caused requests to hang, the connection pool drained, and nothing reclaimed the connections — so requests kept failing even after the blip ended. Alternatives: memory leak/GC spiral, or thread-pool exhaustion from a slow synchronous call.
+4. **Why didn't the pool recover on its own?** Missing or misconfigured timeouts (connect/read/pool-checkout) and no circuit breaker — the classic "restart fixes it" root.
+5. **Why was that protection missing?** No resilience defaults (timeouts, breakers, meaningful health checks) in the service template, and no load/chaos testing to catch it. This is the systemic, actionable root.
+
+**Parallel finding — the 12 minutes is a separate root cause:** the liveness probe evidently kept passing while the app served 500s (it checks process-up, not ability to serve), so Kubernetes never self-healed and a human had to intervene.
+
+**Verification steps, cheapest first:**
+1. Check the deploy/config log for 09:25–09:35 — a bad deploy would supersede the whole chain above.
+2. Pod metrics (memory, threads, connection-pool gauges, GC) for 09:00–09:45 — distinguishes the three Why-3 branches.
+3. The exception class in the error logs — pool-checkout timeout vs OOM vs NPE identifies the branch immediately.
+4. Downstream dependency dashboards for a blip at ~09:30.
+
+**Correctives regardless of branch:**
+- Explicit connect/read/pool-checkout timeouts plus a circuit breaker on all downstream calls.
+- Make readiness/liveness probes reflect ability to serve (e.g., fail on sustained 5xx or pool exhaustion) — this alone would have cut 12 minutes to ~1.
+- Page-level alerting on 5xx rate well under 12 minutes.
+- Bake these resilience defaults into the service template so the fix is fleet-wide.
+
+Overall confidence is MEDIUM until verified. The agent offered to tighten this to HIGH if you can share pod logs or metrics from that window — I can pass them along to it if you have them.

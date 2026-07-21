@@ -1,0 +1,87 @@
+I'll launch the first-principles agent with your prompt exactly as written.
+The first-principles agent is now running in the background with your prompt passed verbatim — no modifications. It will build the fishbone diagram for the checkout API 503 incident (40 minutes starting 14:10 UTC, all users affected, database layer ruled out). I'll relay its analysis as soon as it completes.
+I'll build the fishbone analysis and generate the diagram. First, the spec-generation script.
+The diagram rendered cleanly and passed validation. Files:
+
+- SVG: `/tmp/fishbone/checkout-503-fishbone.svg`
+- PNG preview: `/tmp/fishbone/checkout-503-fishbone.png`
+- Editable spec: `/tmp/fishbone/spec.json` (regenerate via `/tmp/fishbone/gen_spec.py`)
+
+Below is the focused fishbone analysis behind the diagram.
+
+## 1. Problem Essence
+
+**Effect (observable, not a cause):** The checkout API returned 503 errors to all users for 40 minutes starting 14:10 UTC on 2026-07-20. Success criteria: a prioritized, category-complete map of candidate causes (excluding the database layer) that tells the team exactly what evidence to pull next.
+
+## 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict / Verification |
+|---|---|---|---|
+| Database layer is not the cause | Untested belief (user-verified) | Accept as given ground truth | GT-3 — per your statement it was ruled out |
+| "All users" means total outage, not partial degradation | Untested belief | Flagged | Unverified — check error-rate graphs; partial vs. total changes which branches matter |
+| 503s originated from the checkout service itself | Convention | Challenged | 503 is often emitted by the LB/gateway *in front of* a dead backend — do not assume the app produced them |
+| Every branch on the diagram | Untested belief | Verify against telemetry/change log | All marked candidate-only until evidenced |
+
+## 3. Ground Truths
+
+- **GT-1:** 503s on checkout API, onset 14:10 UTC, duration 40 min (monitoring record).
+- **GT-2:** All users affected — global, not user-segment-specific (incident report).
+- **GT-3?:** Database layer ruled out (accepted from you; unverified by me).
+- **GT-4:** A sharp, synchronized onset at a specific minute is characteristic of a discrete event (change, expiry, upstream failure) rather than gradual drift — definitionally, gradual exhaustion produces ramping error rates, not a step function.
+
+## 4. Focused-Fishbone Analysis
+
+Category set: default six (People, Process, Technology & Tools, Environment, Information, Resources) — locked before brainstorming. Every branch enters the record as an untested belief.
+
+```
+People ──────────────┐  Process ─────────────────┐  Technology & Tools ──────┐
+ Manual config ~14:10│   No canary/staged rollout*│   Bad deploy → crash loop*│
+ Engineer deploy     │   Slow rollback (40m MTTR)*│   LB health checks fail*  │
+ Feature flag toggled│   Cert/secret rotation gap │   API gateway misconfig   │
+                     │   Change in peak window    │   Thread/conn pool exhaust│
+═════════════════════╪════════════════════════════╪═══════════════════════════╪══► 503s, 40 min,
+ Cloud zone incident │   Bad config value pushed* │   Autoscaler failed       │    14:10 UTC,
+ DNS failure         │   Expired credential/secret│   Traffic spike/bots      │    all users
+ 3rd-party payments  │   Malformed flag payload   │   Memory exhaustion (OOM) │
+Environment ─────────┘  Information ──────────────┘  Resources ───────────────┘
+```
+
+**Prioritization (from GT-4):** the step-function onset at 14:10 points at a discrete change event. Highest-priority branches (starred in the diagram):
+
+1. **Bad deploy / bad config push at ~14:05–14:10** — pull the change log, deploy pipeline, and feature-flag audit trail for 13:55–14:15 first. This is the single highest-yield check.
+2. **LB/gateway health-check failures** — determines *who emitted* the 503 (gateway vs. app), which halves the search space.
+3. **Slow rollback path** — separate finding: even if the trigger was a bad change, the 40-minute duration is a process weakness worth its own action item.
+4. If no change is found in the window: check **credential/cert expiry** (expiries also produce step-function onsets) and **third-party payment provider status** at 14:10.
+
+De-prioritized: Resources branches (traffic spike, OOM, autoscaler) — these typically produce ramping degradation, contradicting GT-4, unless a scheduled event (flash sale at 14:10?) exists. Verify with one glance at the traffic graph.
+
+## 5. Abandoned Reasoning
+
+- All database-layer causes (connection pool to DB, replica lag, lock contention) — excluded per GT-3.
+- Considered an 8P category set; rejected because this is a software-operations problem, not a marketing-mix one. Default six-category set fits.
+
+## 6. Conclusion
+
+The cause space is mapped across six categories with 22 candidate causes, all currently unverified. Confidence: MEDIUM that the root cause sits in the starred change-event cluster (deploy/config/flag/expiry) — this rests on GT-4 plus the unverified GT-3? and the unverified "sharp onset" reading of your monitoring. **Next evidence pull:** (1) change/deploy/flag audit log for 13:55–14:15 UTC, (2) whether the 503s came from the gateway or the app, (3) traffic graph shape at onset. Any one of those will collapse most of the diagram. If you want, I can follow up with a 5-Whys drill once you know which branch the evidence lands on.
+
+One unrelated note: the claude.ai Gmail, Google Calendar, and Google Drive connectors need authorization via your claude.ai connector settings before they can be used in this session.
+The fishbone analysis is complete. The agent produced the diagram and a prioritized cause map — here's the summary:
+
+**Deliverables:**
+- SVG diagram: `/tmp/fishbone/checkout-503-fishbone.svg`
+- PNG preview: `/tmp/fishbone/checkout-503-fishbone.png`
+- Editable spec: `/tmp/fishbone/spec.json` (regenerate with `/tmp/fishbone/gen_spec.py`)
+
+**The analysis:** It mapped 22 candidate causes across the six standard fishbone categories (People, Process, Technology & Tools, Environment, Information, Resources), with all database-layer causes excluded per your ground truth. The key insight driving prioritization: a sharp, synchronized onset at exactly 14:10 UTC is characteristic of a discrete event (a change, an expiry, an upstream failure), not gradual resource drift.
+
+**Highest-priority branches (starred in the diagram):**
+1. **Bad deploy / config push / feature-flag change at ~14:05–14:10** — pull the change log, deploy pipeline, and flag audit trail for 13:55–14:15 UTC first; single highest-yield check.
+2. **LB/gateway health-check failures** — 503s are often emitted by the load balancer in front of a dead backend, not the app itself. Determining *who emitted* the 503 halves the search space.
+3. **Slow rollback path** — the 40-minute duration is a separate process weakness worth its own action item regardless of root cause.
+4. If no change lands in that window: check **credential/cert expiry** (also produces step-function onsets) and **third-party payment provider status** at 14:10.
+
+**De-prioritized:** resource-exhaustion branches (traffic spike, OOM, autoscaler failure) — those typically produce ramping degradation, which contradicts the sharp onset. One glance at the traffic graph confirms or reopens them.
+
+The agent flagged one assumption worth checking: whether "all users" truly means a total outage vs. heavy partial degradation — the error-rate graph settles it, and it changes which branches matter. Its overall confidence is MEDIUM that the root cause sits in the change-event cluster. Once you know which branch the evidence points to, a 5-Whys drill on that branch would be the natural follow-up.
+
+Unrelated housekeeping: the claude.ai Gmail, Google Calendar, and Google Drive connectors need authorization in your claude.ai connector settings before they can be used — until then those capabilities are unavailable in this session.

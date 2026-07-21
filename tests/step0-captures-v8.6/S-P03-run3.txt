@@ -1,0 +1,21 @@
+I'll launch the first-principles agent with your prompt exactly as given.
+The analysis is done. The agent produced a fishbone diagram at **/tmp/fishbone/fishbone.svg** (plus a 2x PNG and the editable spec at `/tmp/fishbone/spec.json`), and it rendered and validated cleanly.
+
+Key takeaways from the analysis:
+
+**Structure:** The effect at the head of the fish is "Checkout API returned 503 to all users for 40 minutes from 14:10 UTC," with the database layer excluded per your ground truth. Causes are organized under the standard six software categories: People, Process, Technology & Tools, Environment, Information, and Resources.
+
+**Prioritized causes (highlighted branches):** The failure signature — instantaneous onset, 100% of users, clean 503s rather than degraded latency — points to a shared-fate cause rather than gradual resource decay. The top candidates are:
+- A deploy or config change landing at ~14:10
+- Load balancer/ingress health checks marking all backends down
+- A gateway TLS or service-mesh fault
+- An API-gateway rate limit/quota trip
+- An expired certificate or credential (expiries fire at exact timestamps, matching the sharp start)
+
+**Suggested verification order:**
+1. Pull the change/deploy log for 13:50–14:15 UTC — fastest check, highest prior.
+2. Check LB/ingress logs to see whether the 503s originated at the edge ("no healthy upstream") or were passed through from the app — this one fact splits the cause tree in half.
+3. Check cert/secret expiry timestamps and gateway quota metrics against exactly 14:10.
+4. Only if those are clean, descend into app-level branches (OOM, connection-pool exhaustion, payment-service cascade).
+
+The agent also noted that the runbook, alerting, and rollback branches can't explain the *trigger*, but they're the likely explanations for why recovery took 40 minutes — worth a separate corrective-action pass in the retro.

@@ -1,0 +1,25 @@
+I'll invoke the first-principles agent with your prompt exactly as written.
+The first-principles agent completed the fishbone analysis. It produced a rendered diagram at `/tmp/checkout-503-fishbone.svg` (with a PNG preview at `/tmp/checkout-503-fishbone.png`), validated with no errors.
+
+## Summary of the analysis
+
+**Effect:** Checkout API returned 503 for all users for 40 minutes starting 14:10 UTC on 2026-07-20. Database causes were excluded per your ground truth.
+
+It used the standard six-category set (People, Process, Technology & Tools, Environment, Information, Resources) and brainstormed candidate causes across all of them:
+
+| Category | Candidate causes |
+|---|---|
+| Technology & Tools | Bad deploy ~14:05 (untested code path, bad image); payment gateway timeouts with retry storm; connection/thread pool exhaustion |
+| Process | No canary rollout; config change bypassed review; slow rollback path (explains the 40-min duration, not the trigger) |
+| Information | Misconfigured health check evicting all instances at once; lax alert thresholds; stale runbook |
+| People | Unfamiliar on-call; concurrent changes by two teams; alert fatigue |
+| Environment | Cloud zone incident; DNS failure; 14:10 traffic spike |
+| Resources | Autoscaler at max; third-party rate limit; CPU/memory throttling |
+
+**Prioritized branches** (highlighted red on the diagram) — the "all users, sharp onset" pattern suggests a single systemic trigger:
+
+1. **Deploy or config change near 14:10** — check the deploy log for anything landing 13:55–14:10.
+2. **Health check misconfiguration** — check load-balancer target-group or Kubernetes readiness events for all backends going unhealthy simultaneously.
+3. **Payment gateway timeout cascade plus pool exhaustion** — check p99 latency and thread-pool saturation just before 14:10.
+
+The agent's recommended next step: pull those three evidence sources, then run a 5-Whys pass on whichever branch survives. It also flagged that the slow-rollback process issue is worth fixing regardless of trigger, since it owns the 40-minute duration.
