@@ -1514,7 +1514,15 @@ def self_test_boundary() -> int:
     # Run5 fires MORE fishbone markers (4) than any other run in this vector, so its
     # non-match cannot be a marker-absence regression; it is entirely explained by
     # composer_hits reaching the CEILING (4), which suppresses classify()'s n==1
-    # early-return in favor of the composer-structure override. The structural anchor
+    # early-return in favor of the composer-structure override. Provenance of run5's
+    # composer_hits=4 (traced via _composer_structure_hits' findall): 3x Ground\s+Truths?
+    # (the mandatory "Ground Truths" section heading + 2 prose uses) + 1x bare Verdict
+    # (the Assumptions-Table column header) — both are REQUIRED parts of the standard
+    # focused-mode output template (shared/spine/SKILL-body.md), and run5 is the ONLY
+    # S-P03 run that emitted the full template; runs 1-4 (composer_hits=1 each) skipped
+    # it. So the ceiling suppressed the most template-compliant run via the known
+    # composer-hits-findall-incidental-match fragility (RR-77-08 CEILING=3->4 lineage) —
+    # which strengthens, not weakens, the artifact reading. The structural anchor
     # fishbone_or_ishikawa and people_process_tech both fire on every run where fishbone
     # fires at all, so the technique is robustly identified; the K/N=4/5 (vs a
     # hypothetical 5/5) is a detector-artifact ceiling effect, not a Phase-159
