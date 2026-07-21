@@ -73,8 +73,9 @@ incomplete — the bracket, not the single central value, is the deliverable.
 
 **Apply the decision-resolution stop criterion.** The estimate is "good enough"
 when both the bracket's lower and upper ends drive the same decision. If the
-bracket straddles the decision threshold, tighten the dominant uncertain factor
-with a better measurement or escalate the uncertainty explicitly.
+bracket spans an order of magnitude and straddles the decision threshold, tighten
+the dominant uncertain factor with a better measurement or escalate the
+uncertainty explicitly.
 
 **Read [estimate-detail.md](estimate-detail.md) when you need:**
 - a worked example of this technique
