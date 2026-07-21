@@ -8,6 +8,8 @@
 >
 > Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but deliberately not built, awaiting a future milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 
+Milestone v8.5 (Context Optimization — Execute the Reference-File Split) is the first implementation + live milestone since v8.1: it executed the 4-file reference split (five-whys, theoretical-limit, estimate, fishbone into core + on-demand `-detail.md` siblings, dropping 398 lines off the skill surface) and ran the milestone's only live spend — a 72-call re-measure — narrowly relaxing the byte-freeze to re-open and re-measure exactly RR-108-04/RR-108-05, unlike the v8.2–v8.4 analysis-only milestones. The detector constants stayed byte-unchanged and the coverage headline stayed 133/96/0/229.
+
 This folder documents the first-principles plugin system. New here? Start with [GETTING-STARTED.md](GETTING-STARTED.md), then [ONBOARDING.md](ONBOARDING.md), then [DATA-FLOW.md](DATA-FLOW.md).
 
 ---
@@ -50,6 +52,14 @@ This folder documents the first-principles plugin system. New here? Start with [
 |----------|----------------|
 | [v8.3-technique-context-optimization-eval.md](v8.3-technique-context-optimization-eval.md) | Per-technique overlap map (8 techniques), agent-body line accounting, composer-vs-pull-when-needed trade-off, and a prioritized optimization plan — findings-only, no `shared/` change. |
 | [v8.4-implementation-readiness-eval.md](v8.4-implementation-readiness-eval.md) | Go/no-go verdicts + costed implementation-readiness plans for the GROK-04 hero banner (GO) and on-demand reference-file extraction (NO-GO) — neither built. |
+
+## v8.5 — Context optimization (reference-file split)
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | Governing record narrowly re-opening RR-108-04/RR-108-05's re-measure disposition + the 4 split files' content; all other frozen constants keep gating. |
+| [v8.5-split-measurement.md](v8.5-split-measurement.md) | Split verification + budget proof (SPLIT-02/03): skill surface −398 lines, agent body +14 (cost-of-mechanism), full offline battery green, body 612/644. |
+| [v8.5-live-remeasure-verdict.md](v8.5-live-remeasure-verdict.md) | Live 72-call re-measure honest verdict (MEASURE-03): five per-row floor judgments, fishbone 3/5 CLOSE, S-P02/S-P10/S-P14 CARRY, D-05 fired-set diff, run economics. |
 
 ## Reference & history
 
