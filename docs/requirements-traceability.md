@@ -60,6 +60,25 @@ No row improved. The IDs are kept in every case — no successor minted. Detecto
 (pre-mortem 9, fishbone 7, inversion 13, trade-off 10), MIN_HEADER_HITS, and
 _COMPOSER_FOCUS_CEILING stayed byte-unchanged and gating through the split.
 
+### v8.6 Live Re-Measure Annotation (2026-07-21)
+
+v8.6 (Agent-Body Procedure Compression) compressed the agent body's inlined `## Procedure`
+prose for four techniques and ran a small 2-row live Step-0 re-measure, re-pointing RR-117-01
+to the new `_load_excerpt_v86` helper reading tests/step0-captures-v8.6/ (honest verdict:
+v8.6-live-remeasure-verdict.md section 1). No matrix row was added or removed, so the coverage
+headline stays byte-identical at 133/96/0/229 — this annotation records the measured outcome
+only (honesty-not-score, D-01).
+
+| Residual | Split status | v8.6 K/N | Disposition |
+|----------|--------------|----------|-------------|
+| RR-117-01 (S-P03 fishbone) | marker-pinned (Phase 159) | 4/5 | SUSTAINED (+1 vs v8.5 3/5 floor; sentinel re-pointed to `_load_excerpt_v86`, vector [2,2,2,3,4]; DEC-02 CLOSE, retained as regression guard) |
+| S-P04 (five-whys) | marker-pinned (Phase 159) | 2/5 | SUSTAINED (+2 vs v8.5 0/5 floor; observed but NOT banked — no BATT-06 sentinel exists or is minted; single 5-run sample, documented run-to-run variance 2/5 v7.11 to 0/5 v8.5 to 2/5 v8.6) |
+
+Both rows measured this cycle landed at or above their own frozen floor; no row regressed (the
+inverse of v8.5's "no row improved"); the IDs are kept; no successor minted; detector constants
+(pre-mortem 9, fishbone 7, inversion 13, trade-off 10), MIN_HEADER_HITS, and
+_COMPOSER_FOCUS_CEILING stayed byte-unchanged and gating.
+
 ## Active Surface
 
 Exactly 12 live items (v7.13: RR-130-01 RESOLVED/CLOSE at Phase 136 live re-measure — P 11/13 = v3.13 anchor recovery, ID kept as regression sentinel, row-less per v7.9 D-02 precedent). Nothing shipped or superseded belongs here. **[v8.0 terminal note]** Phase 142 is the terminal phase — all 12 items are dispositioned; RR-114-01/RR-108-04/RR-108-05 are ACCEPTED-FINAL per the v8.0 Terminal State block above.
