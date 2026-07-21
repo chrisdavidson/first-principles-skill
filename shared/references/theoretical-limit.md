@@ -51,46 +51,36 @@ for the ceiling to be unreachable.
 
 ## Procedure
 
-**Name the conventional figure and the conventions embedded in it.** Write one
-sentence naming the target figure — a performance metric, an efficiency, a cost
-ceiling, a throughput rate — and describe the conventions it rests on: industry
-practice, current engineering norms, historical precedent, or accepted defaults.
-Do not strip yet — first make the convention visible.
+**Name the conventional figure and its embedded conventions** (a performance
+metric, efficiency, or cost ceiling) before stripping anything.
 
 **Strip each convention back to a governing physical law, definition, or direct
-measurement.** For each convention identified, ask: "What physical law, formal
-definition, or direct measurement determines what is actually possible here?"
-Name the law explicitly (e.g., "the Second Law of Thermodynamics," "Carnot
-efficiency bound," "Planck's radiation law," "Betz limit for wind turbines").
-Do not reason by analogy to what others currently achieve — the ceiling is set
-by the laws, not by the best incumbent.
+measurement.** Name the law explicitly (e.g., "the Second Law of Thermodynamics,"
+"Carnot efficiency bound"). Do not reason by analogy to what others currently
+achieve — the ceiling is set by the laws, not by the best incumbent.
 
-**Derive the limit the fundamentals permit.** Using the governing law and the
-first-principles values already in play (physical constants, definitions,
-direct measurements), compute the theoretical upper bound the law allows. This
-is the law-permitted ceiling: the highest the figure can go if every convention
-is removed and only physics remains as a constraint.
+**Derive the limit the fundamentals permit**, using the governing law and
+first-principles values (constants, definitions, direct measurements). This is
+the law-permitted ceiling: the highest the figure can go if every convention is
+removed and only physics remains as a constraint.
 
 **Bracket the gap between the law-permitted ceiling and the conventional
 figure.** State explicitly:
 
 - **Law-permitted ceiling:** the value the governing law allows.
 - **Conventional figure:** the figure in current practice.
-- **Gap:** the difference — how much headroom the fundamentals leave between
-  current practice and what the laws actually permit.
+- **Gap:** the headroom between current practice and what the laws permit.
 
-Identify how much of the gap is irreducible (the laws impose it: a process that
-converts X → Y can never be 100% efficient if the Second Law applies) versus
-how much is convention (engineering headroom not yet captured — the laws allow
-more, but practice has not reached it).
+Identify how much of the gap is irreducible (the laws impose it — a process
+converting X → Y can never be 100% efficient under the Second Law) versus how
+much is convention (headroom the laws allow but practice has not reached).
 
 **Apply the stop criterion.** The analysis is complete when: (1) the governing
-law is named explicitly, (2) the limit it imposes is derived from first-principles
-values (constants, definitions, or direct measurements — not from what competitors
-currently achieve), and (3) the gap between the law-permitted ceiling and the
-conventional figure is stated explicitly. A theoretical-limit analysis that names
-a ceiling without bracketing the gap to the conventional figure is incomplete —
-the bracket, not the ceiling alone, is the deliverable.
+law is named explicitly, (2) the limit is derived from first-principles values
+— not from what competitors achieve — and (3) the gap to the conventional
+figure is stated explicitly. A theoretical-limit analysis that names a ceiling
+without bracketing that gap is incomplete — the bracket, not the ceiling alone,
+is the deliverable.
 
 **Read [theoretical-limit-detail.md](theoretical-limit-detail.md) when you need:**
 - a worked example of this technique
