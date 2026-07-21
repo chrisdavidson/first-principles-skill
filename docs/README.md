@@ -10,6 +10,8 @@
 
 Milestone v8.5 (Context Optimization — Execute the Reference-File Split) is the first implementation + live milestone since v8.1: it executed the 4-file reference split (five-whys, theoretical-limit, estimate, fishbone into core + on-demand `-detail.md` siblings, dropping 398 lines off the skill surface) and ran the milestone's only live spend — a 72-call re-measure — narrowly relaxing the byte-freeze to re-open and re-measure exactly RR-108-04/RR-108-05, unlike the v8.2–v8.4 analysis-only milestones. The detector constants stayed byte-unchanged and the coverage headline stayed 133/96/0/229.
 
+Milestone v8.6 (Agent-Body Procedure Compression) is the second consecutive live-measure milestone: it compressed the always-loaded, auto-routed agent body's inlined `## Procedure` prose for four techniques — estimate and theoretical-limit (no emission detector, zero measured-floor risk) and five-whys and fishbone (marker-pinned) — cutting the agent body 612 to 590 lines, the surface v8.5's reference-file split structurally could not shrink, since the agent body inlines only `## Procedure`. It then ran a small 2-row live Step-0 re-measure confirming neither compressed detector-covered row regressed (fishbone 3/5 to 4/5, five-whys 0/5 to 2/5 unbanked). The detector constants and the coverage headline stayed unchanged (133/96/0/229).
+
 This folder documents the first-principles plugin system. New here? Start with [GETTING-STARTED.md](GETTING-STARTED.md), then [ONBOARDING.md](ONBOARDING.md), then [DATA-FLOW.md](DATA-FLOW.md).
 
 ---
@@ -60,6 +62,13 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | Governing record narrowly re-opening RR-108-04/RR-108-05's re-measure disposition + the 4 split files' content; all other frozen constants keep gating. |
 | [v8.5-split-measurement.md](v8.5-split-measurement.md) | Split verification + budget proof (SPLIT-02/03): skill surface −398 lines, agent body +14 (cost-of-mechanism), full offline battery green, body 612/644. |
 | [v8.5-live-remeasure-verdict.md](v8.5-live-remeasure-verdict.md) | Live 72-call re-measure honest verdict (MEASURE-03): five per-row floor judgments, fishbone 3/5 CLOSE, S-P02/S-P10/S-P14 CARRY, D-05 fired-set diff, run economics. |
+
+## v8.6 — Agent-body procedure compression
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.6-measured-reduction.md](v8.6-measured-reduction.md) | Re-derived per-technique + headline agent-body line reduction (COMPRESS-01/02/03) — assembled agent body 612 to 590 lines (-22), estimate / theoretical-limit / five-whys / fishbone Procedure-slice word-count deltas, offline battery re-proof. |
+| [v8.6-live-remeasure-verdict.md](v8.6-live-remeasure-verdict.md) | Live 2-row Step-0 re-measure honest verdict (MEASURE-01/02) — S-P03 fishbone 4/5 SUSTAINED (+1), S-P04 five-whys 2/5 SUSTAINED (+2, unbanked), D-05 fired-set / composer-ceiling provenance trace, RR-117-01 re-point to `_load_excerpt_v86`. |
 
 ## Reference & history
 
