@@ -992,8 +992,9 @@ def self_test_boundary() -> int:
     #     Positive counter-check: run2=2 >= MIN proves the detector CAN fire on
     #     S-N04 text (the documented genuine pre-mortem routing, non-blocking per D-16).
     #
-    # Drift guard: _COMPOSER_FOCUS_CEILING == 4 locked here; any future threshold
-    # edit now fails this sentinel.  Pre-mortem pattern count drift guard: 9.
+    # Threshold lock released under TEARDOWN-01/02 per
+    # docs/v8.7-constraint-teardown.md; the pre-mortem pattern-count drift
+    # guard of 9 is what remains asserted here.
     #
     # Exact S-N04 prompt (verbatim from tests/step0-fixture-catalog.md line 47,
     # catalog-independent inline literal per D-04 — grep locates this assertion):
@@ -1091,7 +1092,6 @@ def self_test_boundary() -> int:
         and _rr8001_sn04_counts[0] >= MIN_HEADER_HITS    # run1 over-routes (counter-check, non-vacuous)
         and _rr8001_sn04_counts[3] < MIN_HEADER_HITS     # run4 stays below barrier (mixed over-routing)
         and _rr8001_pm_pattern_count == 9                # drift guard (Phase 117 FIX-02 bump: 7→9)
-        and _COMPOSER_FOCUS_CEILING == 4                 # lock: threshold byte-unchanged
     )
 
     _rr8001_assertions_ok = _rr8001_mechanism_ok and _rr8001_v711_ok
@@ -1123,7 +1123,7 @@ def self_test_boundary() -> int:
                 f"  RR-80-01 FAIL: v7.11 S-N04 count vector {_rr8001_sn04_counts} "
                 f"(expected [3, 3, 2, 1, 1]; live v7.11 re-baseline captures); "
                 f"pm_patterns={_rr8001_pm_pattern_count} (expected 9); "
-                f"CEILING={_COMPOSER_FOCUS_CEILING} (expected 4); "
+                f"CEILING={_COMPOSER_FOCUS_CEILING}; "
                 f"check: run1 >= MIN_HEADER_HITS={MIN_HEADER_HITS} (over-route), run4 < MIN."
             )
         all_passed = False
@@ -2060,10 +2060,9 @@ def self_test_boundary() -> int:
     # full-composer — a regression.  Asserting composer == CEILING - 1 makes the
     # "correct at CEILING=4" clause non-vacuous.
     _rr7708_assertions_ok = (
-        _COMPOSER_FOCUS_CEILING == 4                              # literal drift guard
-        and _rr7708_composer == 3                                 # exact composer hits
+        _rr7708_composer == 3                                     # exact composer hits
         and _rr7708_fired == {"pre-mortem"}                       # exactly n==1
-        and _rr7708_result == "focused-pre-mortem"                # correct at CEILING=4
+        and _rr7708_result == "focused-pre-mortem"                # correct at the current ceiling value
         and _rr7708_composer == _COMPOSER_FOCUS_CEILING - 1       # load-bearing check
     )
     if _rr7708_assertions_ok:
@@ -2071,13 +2070,13 @@ def self_test_boundary() -> int:
             f"  RR-77-08 PASS: _COMPOSER_FOCUS_CEILING={_COMPOSER_FOCUS_CEILING} "
             f"is load-bearing; adversarial fixture composer_hits={_rr7708_composer} "
             f"== CEILING-1; fired={_rr7708_fired}; "
-            f"classify() returned '{_rr7708_result}' (correct at CEILING=4; "
+            f"classify() returned '{_rr7708_result}' (correct at CEILING={_COMPOSER_FOCUS_CEILING}; "
             f"would flip to 'full-composer' at hypothetical CEILING=3)."
         )
     else:
         print(
-            f"  RR-77-08 FAIL: _COMPOSER_FOCUS_CEILING={_COMPOSER_FOCUS_CEILING} "
-            f"(expected 4); composer_hits={_rr7708_composer} (expected 3); "
+            f"  RR-77-08 FAIL: _COMPOSER_FOCUS_CEILING={_COMPOSER_FOCUS_CEILING}; "
+            f"composer_hits={_rr7708_composer} (expected 3); "
             f"fired={_rr7708_fired} (expected {{'pre-mortem'}}); "
             f"result='{_rr7708_result}' (expected 'focused-pre-mortem'); "
             f"composer == CEILING-1: {_rr7708_composer} == {_COMPOSER_FOCUS_CEILING - 1}."
