@@ -1,4 +1,9 @@
-.planning/
+.planning/*
+!.planning/phases/
+.planning/phases/*
+!.planning/phases/82-traceability-matrix-and-gap-findings/
+.planning/phases/82-traceability-matrix-and-gap-findings/*
+!.planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
 .claude/
 scripts/__pycache__/
 scripts/*.pyc

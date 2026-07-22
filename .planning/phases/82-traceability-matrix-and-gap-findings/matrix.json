@@ -1,0 +1,2292 @@
+[
+  {
+    "key": "v3.0/AGENT-01",
+    "bare_id": "AGENT-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/AGENT-02",
+    "bare_id": "AGENT-02",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/AGENT-03",
+    "bare_id": "AGENT-03",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/AGENT-04",
+    "bare_id": "AGENT-04",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/AGENT-05",
+    "bare_id": "AGENT-05",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/AGENT-06",
+    "bare_id": "AGENT-06",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/SYNC-01",
+    "bare_id": "SYNC-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/SYNC-02",
+    "bare_id": "SYNC-02",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/SYNC-03",
+    "bare_id": "SYNC-03",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/SYNC-04",
+    "bare_id": "SYNC-04",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/PKG-01",
+    "bare_id": "PKG-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/PKG-02",
+    "bare_id": "PKG-02",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/EVAL-01",
+    "bare_id": "EVAL-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-01",
+    "bare_id": "MIGRATE-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-02",
+    "bare_id": "MIGRATE-02",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-03",
+    "bare_id": "MIGRATE-03",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-04",
+    "bare_id": "MIGRATE-04",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-05",
+    "bare_id": "MIGRATE-05",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/MIGRATE-06",
+    "bare_id": "MIGRATE-06",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/DEPR-01",
+    "bare_id": "DEPR-01",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/DEPR-02",
+    "bare_id": "DEPR-02",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.0/DEPR-03",
+    "bare_id": "DEPR-03",
+    "milestone": "v3.0",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-01",
+    "bare_id": "META-01",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-02",
+    "bare_id": "META-02",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/assumption-taxonomy.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-03-SW",
+    "bare_id": "META-03-SW",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-03-PB",
+    "bare_id": "META-03-PB",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-03-PG",
+    "bare_id": "META-03-PG",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-03-SE",
+    "bare_id": "META-03-SE",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-Q1",
+    "bare_id": "META-Q1",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-Q2",
+    "bare_id": "META-Q2",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-Q3",
+    "bare_id": "META-Q3",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.2/META-Q4",
+    "bare_id": "META-Q4",
+    "milestone": "v3.2",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/check-body-budget.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/git-hooks/pre-commit",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-01",
+    "bare_id": "RIGOR-01",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 1: Identify Essence",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-02",
+    "bare_id": "RIGOR-02",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 2: Challenge Assumptions",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-03",
+    "bare_id": "RIGOR-03",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 3: Establish Ground Truths",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-04",
+    "bare_id": "RIGOR-04",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 4: Reason Upward",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-05",
+    "bare_id": "RIGOR-05",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 5: Validate",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-06",
+    "bare_id": "RIGOR-06",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 6: Conclusion-to-Ground-Truth Traceability",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-07",
+    "bare_id": "RIGOR-07",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#How to Apply This Rubric",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.7/RIGOR-08",
+    "bare_id": "RIGOR-08",
+    "milestone": "v3.7",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "shared/spine/references/validation-rubric.md#Scoring Model",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.8/DISP-01",
+    "bare_id": "DISP-01",
+    "milestone": "v3.8",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.8/STUB-01",
+    "bare_id": "STUB-01",
+    "milestone": "v3.8",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.8/EVAL-01",
+    "bare_id": "EVAL-01",
+    "milestone": "v3.8",
+    "capability": "Methodology",
+    "deliverable_path": "scripts/check-focused-output.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-01",
+    "bare_id": "PHASE-01",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-02",
+    "bare_id": "PHASE-02",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-03",
+    "bare_id": "PHASE-03",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-04",
+    "bare_id": "PHASE-04",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-05",
+    "bare_id": "PHASE-05",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-06",
+    "bare_id": "PHASE-06",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-07",
+    "bare_id": "PHASE-07",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-08",
+    "bare_id": "PHASE-08",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-09",
+    "bare_id": "PHASE-09",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.12/PHASE-10",
+    "bare_id": "PHASE-10",
+    "milestone": "v3.12",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/TAX-01",
+    "bare_id": "TAX-01",
+    "milestone": "v3.13",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/assumption-taxonomy.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/TAX-02",
+    "bare_id": "TAX-02",
+    "milestone": "v3.13",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/assumption-taxonomy.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/WKEX-01",
+    "bare_id": "WKEX-01",
+    "milestone": "v3.13",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/WKEX-02",
+    "bare_id": "WKEX-02",
+    "milestone": "v3.13",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/references/examples",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-01",
+    "bare_id": "CLI-01",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-02",
+    "bare_id": "CLI-02",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-03",
+    "bare_id": "CLI-03",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-04",
+    "bare_id": "CLI-04",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-05",
+    "bare_id": "CLI-05",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-06",
+    "bare_id": "CLI-06",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-07",
+    "bare_id": "CLI-07",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.0/CLI-08",
+    "bare_id": "CLI-08",
+    "milestone": "v4.0",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v4.1/INST-01",
+    "bare_id": "INST-01",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.1/INST-02",
+    "bare_id": "INST-02",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.1/INST-03",
+    "bare_id": "INST-03",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.1/INST-04",
+    "bare_id": "INST-04",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.1/INST-05",
+    "bare_id": "INST-05",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.1/INST-06",
+    "bare_id": "INST-06",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v4.1-MILESTONE-AUDIT; README documented; no re-runnable gate"
+  },
+  {
+    "key": "v4.1/INST-07",
+    "bare_id": "INST-07",
+    "milestone": "v4.1",
+    "capability": "Methodology",
+    "deliverable_path": "main.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_64_01_install.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/VAL-01",
+    "bare_id": "VAL-01",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "claude plugin validate ./first-principles",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/VAL-02",
+    "bare_id": "VAL-02",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "markdownlint-cli2",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/VAL-03",
+    "bare_id": "VAL-03",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-links.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-links.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/VAL-04",
+    "bare_id": "VAL-04",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-trigger-collisions.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-trigger-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/VAL-05",
+    "bare_id": "VAL-05",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-description-budget.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-description-budget.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.0/GATE-01",
+    "bare_id": "GATE-01",
+    "milestone": "v3.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-agent.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-agent.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.0/GATE-02",
+    "bare_id": "GATE-02",
+    "milestone": "v3.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-trigger-collisions.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-trigger-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.0/GATE-03",
+    "bare_id": "GATE-03",
+    "milestone": "v3.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v2.0/DUAL-04",
+    "bare_id": "DUAL-04",
+    "milestone": "v2.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "v2.0-MILESTONE-AUDIT passed; v2.0 DUAL-04 predates current --check flag"
+  },
+  {
+    "key": "v3.3/HOOK-01",
+    "bare_id": "HOOK-01",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.3/HOOK-02",
+    "bare_id": "HOOK-02",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.3/HOOK-03",
+    "bare_id": "HOOK-03",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.3/HOOK-04",
+    "bare_id": "HOOK-04",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "reproducible",
+    "artifact_link": ".githooks/pre-commit",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.3/HOOK-05",
+    "bare_id": "HOOK-05",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "reproducible",
+    "artifact_link": ".githooks/pre-commit",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.3/HOOK-06",
+    "bare_id": "HOOK-06",
+    "milestone": "v3.3",
+    "capability": "Test-Network",
+    "deliverable_path": ".githooks/pre-commit",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/INFRA-01",
+    "bare_id": "INFRA-01",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-trigger-collisions.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-trigger-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/INFRA-02",
+    "bare_id": "INFRA-02",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-description-budget.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-description-budget.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/INFRA-03",
+    "bare_id": "INFRA-03",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-agent.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-agent.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/INFRA-04",
+    "bare_id": "INFRA-04",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-links.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-links.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/INFRA-05",
+    "bare_id": "INFRA-05",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/INFRA-06",
+    "bare_id": "INFRA-06",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-trigger-collisions.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-trigger-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.1/ROUTE-01",
+    "bare_id": "ROUTE-01",
+    "milestone": "v3.1",
+    "capability": "Test-Network",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.1/ROUTE-02",
+    "bare_id": "ROUTE-02",
+    "milestone": "v3.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.1/ROUTE-03",
+    "bare_id": "ROUTE-03",
+    "milestone": "v3.1",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/testing-agents-headlessly.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.1/DOC-01",
+    "bare_id": "DOC-01",
+    "milestone": "v3.1",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/testing-agents-headlessly.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.4/NOISE-01",
+    "bare_id": "NOISE-01",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.4/NOISE-02",
+    "bare_id": "NOISE-02",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.4/NOISE-03",
+    "bare_id": "NOISE-03",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.4/NOISE-04",
+    "bare_id": "NOISE-04",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.4/NOISE-05",
+    "bare_id": "NOISE-05",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.4/NOISE-06",
+    "bare_id": "NOISE-06",
+    "milestone": "v3.4",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-01",
+    "bare_id": "FRAG-01",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-02",
+    "bare_id": "FRAG-02",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-03",
+    "bare_id": "FRAG-03",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-04",
+    "bare_id": "FRAG-04",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-05",
+    "bare_id": "FRAG-05",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-06",
+    "bare_id": "FRAG-06",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-07",
+    "bare_id": "FRAG-07",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-08",
+    "bare_id": "FRAG-08",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.5/FRAG-09",
+    "bare_id": "FRAG-09",
+    "milestone": "v3.5",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-01",
+    "bare_id": "CAT-01",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-02",
+    "bare_id": "CAT-02",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-03",
+    "bare_id": "CAT-03",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-04",
+    "bare_id": "CAT-04",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-05",
+    "bare_id": "CAT-05",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-06",
+    "bare_id": "CAT-06",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-07",
+    "bare_id": "CAT-07",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-08",
+    "bare_id": "CAT-08",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-09",
+    "bare_id": "CAT-09",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.6/CAT-10",
+    "bare_id": "CAT-10",
+    "milestone": "v3.6",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.8/FIXTURE-01",
+    "bare_id": "FIXTURE-01",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-fixture-catalog.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.8/FIXTURE-02",
+    "bare_id": "FIXTURE-02",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-fixture-catalog.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.8/VERIFY-01",
+    "bare_id": "VERIFY-01",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.8/VERIFY-02",
+    "bare_id": "VERIFY-02",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.8/VERIFY-03",
+    "bare_id": "VERIFY-03",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.8/DOC-01",
+    "bare_id": "DOC-01",
+    "milestone": "v3.8",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/testing-agents-headlessly.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.9/P8-01",
+    "bare_id": "P8-01",
+    "milestone": "v3.9",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.9/P8-02",
+    "bare_id": "P8-02",
+    "milestone": "v3.9",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.9/P8-03",
+    "bare_id": "P8-03",
+    "milestone": "v3.9",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.9/P8-04",
+    "bare_id": "P8-04",
+    "milestone": "v3.9",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.10/CONV-01",
+    "bare_id": "CONV-01",
+    "milestone": "v3.10",
+    "capability": "Test-Network",
+    "deliverable_path": ".planning/phases",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.10-MILESTONE-AUDIT; VERIFICATION.md convention files"
+  },
+  {
+    "key": "v3.10/CONV-02",
+    "bare_id": "CONV-02",
+    "milestone": "v3.10",
+    "capability": "Test-Network",
+    "deliverable_path": ".planning/phases",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.10-MILESTONE-AUDIT; VALIDATION.md convention files"
+  },
+  {
+    "key": "v3.11/MON-01",
+    "bare_id": "MON-01",
+    "milestone": "v3.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.11/MON-02",
+    "bare_id": "MON-02",
+    "milestone": "v3.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.11/MON-03",
+    "bare_id": "MON-03",
+    "milestone": "v3.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.11/MON-04",
+    "bare_id": "MON-04",
+    "milestone": "v3.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.11/MON-05",
+    "bare_id": "MON-05",
+    "milestone": "v3.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v3.11-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v3.13/META-01",
+    "bare_id": "META-01",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v3.13/META-02",
+    "bare_id": "META-02",
+    "milestone": "v3.13",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/routing-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/CAT-01",
+    "bare_id": "CAT-01",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/CAT-02",
+    "bare_id": "CAT-02",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/CAT-03",
+    "bare_id": "CAT-03",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/CAT-04",
+    "bare_id": "CAT-04",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/FOCUS-01",
+    "bare_id": "FOCUS-01",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/FOCUS-02",
+    "bare_id": "FOCUS-02",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/FOCUS-03",
+    "bare_id": "FOCUS-03",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/STRICT-01",
+    "bare_id": "STRICT-01",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/STRICT-02",
+    "bare_id": "STRICT-02",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/BASE-01",
+    "bare_id": "BASE-01",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.2/BASE-02",
+    "bare_id": "BASE-02",
+    "milestone": "v4.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-01",
+    "bare_id": "BATT-01",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-02",
+    "bare_id": "BATT-02",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-03",
+    "bare_id": "BATT-03",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-04",
+    "bare_id": "BATT-04",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-05",
+    "bare_id": "BATT-05",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-06",
+    "bare_id": "BATT-06",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing-battery.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-07",
+    "bare_id": "BATT-07",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v4.3/BATT-08",
+    "bare_id": "BATT-08",
+    "milestone": "v4.3",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-01",
+    "bare_id": "STEP0-01",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-02",
+    "bare_id": "STEP0-02",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-live.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-live.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-03",
+    "bare_id": "STEP0-03",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-fixture-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/step0-fixture-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-04",
+    "bare_id": "STEP0-04",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-05",
+    "bare_id": "STEP0-05",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-live.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-live.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-06",
+    "bare_id": "STEP0-06",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-live.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-live.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-07",
+    "bare_id": "STEP0-07",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-live.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-live.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-08",
+    "bare_id": "STEP0-08",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.0/STEP0-09",
+    "bare_id": "STEP0-09",
+    "milestone": "v5.0",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-fixture-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/step0-fixture-catalog.md",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/FIX-01",
+    "bare_id": "FIX-01",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/FIX-02",
+    "bare_id": "FIX-02",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/FIX-03",
+    "bare_id": "FIX-03",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/DET-01",
+    "bare_id": "DET-01",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/DET-02",
+    "bare_id": "DET-02",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/DET-03",
+    "bare_id": "DET-03",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/SAFE-01",
+    "bare_id": "SAFE-01",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/SAFE-02",
+    "bare_id": "SAFE-02",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/SAFE-03",
+    "bare_id": "SAFE-03",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.1/BASE-01",
+    "bare_id": "BASE-01",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.1.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.1/BASE-02",
+    "bare_id": "BASE-02",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.1.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.1/BASE-03",
+    "bare_id": "BASE-03",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.1.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.1/BASE-04",
+    "bare_id": "BASE-04",
+    "milestone": "v5.1",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.1.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/DIAG-01",
+    "bare_id": "DIAG-01",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/DIAG-02",
+    "bare_id": "DIAG-02",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/DIAG-03",
+    "bare_id": "DIAG-03",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/DET-10",
+    "bare_id": "DET-10",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.2/DET-11",
+    "bare_id": "DET-11",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.2/DET-12",
+    "bare_id": "DET-12",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.2/ROUTE-10",
+    "bare_id": "ROUTE-10",
+    "milestone": "v5.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/agents/first-principles.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/REBASE-01",
+    "bare_id": "REBASE-01",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.2.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/REBASE-02",
+    "bare_id": "REBASE-02",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.2.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.2/REBASE-03",
+    "bare_id": "REBASE-03",
+    "milestone": "v5.2",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.2.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.3/DET-13",
+    "bare_id": "DET-13",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.3/DET-14",
+    "bare_id": "DET-14",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.3/DET-15",
+    "bare_id": "DET-15",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.3/SAFE-04",
+    "bare_id": "SAFE-04",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.3/REBASE-04",
+    "bare_id": "REBASE-04",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.3.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.3/REBASE-05",
+    "bare_id": "REBASE-05",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v5.3.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "v5.3/TOOL-01",
+    "bare_id": "TOOL-01",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-routing.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate"
+  },
+  {
+    "key": "residual/RR-80-01",
+    "bare_id": "RR-80-01",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v5.3/GEN-01",
+    "bare_id": "GEN-01",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "tests/step0-baseline-v7.13.md",
+    "gap_rationale": "Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by committed live re-baselines (latest: v7.13 residual-delta, Phase 137). Earned by the committed baseline, not a passing score (reproducible = measured, not passing). Phase 129 v7.11 8-technique BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) \u2014 honest measured state (honesty-not-score, D-01). Prior baselines frozen: v7.6 (Phase 114, FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR), v7.8 (Phase 119 CONF-03, targeted 6-row PASS). v7.11 dispositions (Phase 129; see docs/whole-system-remeasure-verdict.md): RR-79-01 S-P01 CLOSE SUSTAINED 5/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5; RR-108-02 S-P05 trade-off CLOSE SUSTAINED 5/5; RR-114-01 S-P02 inversion CARRIED 2/5 (supersedes RR-108-01); RR-108-04 estimate CARRIED 0/5; RR-108-05 theoretical-limit CARRIED 0/5 (both first genuine live measurement, v7.4 was spend-limit-indeterminate); RR-108-03 decompose RESOLVED-BY-MERGE (v7.5; sentinel stays on frozen v7.4 evidence). v7.13 residual-delta re-measure (Phase 137, 3-row filtered catalog; tests/step0-baseline-v7.8.md remains the canonical full 8-technique baseline): S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept, no successor); S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept); S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept). Confirming artifact: tests/step0-baseline-v7.13.md."
+  },
+  {
+    "key": "v5.3/GEN-02",
+    "bare_id": "GEN-02",
+    "milestone": "v5.3",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "docs/live-monitoring-runbook.md",
+    "gap_rationale": "Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + detector-surface changes. See docs/live-monitoring-runbook.md."
+  },
+  {
+    "key": "residual/RR-79-01",
+    "bare_id": "RR-79-01",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-114-01",
+    "bare_id": "RR-114-01",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-108-02",
+    "bare_id": "RR-108-02",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-77-08",
+    "bare_id": "RR-77-08",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-117-01",
+    "bare_id": "RR-117-01",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-117-02",
+    "bare_id": "RR-117-02",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-119-01",
+    "bare_id": "RR-119-01",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "residual/RR-119-02",
+    "bare_id": "RR-119-02",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/NEGCAT-01",
+    "bare_id": "NEGCAT-01",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-fixture-catalog.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/NEGCAT-02",
+    "bare_id": "NEGCAT-02",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-emulator.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-step0-emulator.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/OCH-01",
+    "bare_id": "OCH-01",
+    "milestone": "v7.9",
+    "capability": "Methodology",
+    "deliverable_path": "shared/references/inversion.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/OCH-02",
+    "bare_id": "OCH-02",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/_battery_core.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-routing-battery.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/OCH-03",
+    "bare_id": "OCH-03",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/_battery_core.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/COLLIDE-01",
+    "bare_id": "COLLIDE-01",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-install-collisions.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-install-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/COLLIDE-02",
+    "bare_id": "COLLIDE-02",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": ".github/workflows/validation.yml",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-install-collisions.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.9/RECON-01",
+    "bare_id": "RECON-01",
+    "milestone": "v7.9",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/requirements-traceability.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v7.11/READY-01",
+    "bare_id": "READY-01",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/READY-02",
+    "bare_id": "READY-02",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-step0-live.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/READY-03",
+    "bare_id": "READY-03",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/STEP0L-01",
+    "bare_id": "STEP0L-01",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v7.11.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/STEP0L-02",
+    "bare_id": "STEP0L-02",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v7.11.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/STEP0L-03",
+    "bare_id": "STEP0L-03",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-baseline-v7.11.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/ROUTEL-01",
+    "bare_id": "ROUTEL-01",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-baseline-v7.11.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/ROUTEL-02",
+    "bare_id": "ROUTEL-02",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/routing-battery-baseline-v7.11.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/RECON-01",
+    "bare_id": "RECON-01",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/whole-system-remeasure-verdict.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/RECON-02",
+    "bare_id": "RECON-02",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/step0-captures-v7.11",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v7.11/RECON-03",
+    "bare_id": "RECON-03",
+    "milestone": "v7.11",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/requirements-matrix.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  }
+]
