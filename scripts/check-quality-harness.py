@@ -32,14 +32,16 @@ Usage:
         --catalog tests/quality-catalog-v8.7.md --out /tmp/qh-probe
     python3 scripts/check-quality-harness.py --single \\
         tests/quality-probe-v8.7/probe-P1.jsonl
+    python3 scripts/check-quality-harness.py --detect-defects \\
+        tests/quality-baseline-v8.7/analyses --out /tmp/qh-detect.tsv
 
 Options:
     --self-test         Run the offline deterministic self-test and exit (no
                          `claude` invoked).
     --catalog PATH      Path to tests/quality-catalog-v8.7.md (required for
                          --probe).
-    --out PATH          Output directory for `.jsonl` captures (required for
-                         --probe).
+    --out PATH          Output directory for `.jsonl` captures (--probe) or
+                         output TSV path (--detect-defects).
     --repeat INT        Per-prompt repeat count (default: DEFAULT_REPEAT).
     --plugin-dir PATH   Path to the first-principles plugin dir (default:
                          repo-relative `first-principles/`).
@@ -50,6 +52,10 @@ Options:
                          path for one already-captured generation .jsonl and
                          print one tabulated row. Dispatches exactly one live
                          judge invocation.
+    --detect-defects DIR
+                         Run the D-18 mechanical defect detector (offline, no
+                         `claude` invoked) over a directory of analysis .md
+                         files and write the ten-column TSV to --out.
 
 Exit codes:
     0  Self-test passed, or a run/probe/single-path completed successfully.
@@ -1644,6 +1650,365 @@ def _selftest_baseline() -> bool:
     return ok
 
 
+# ---------------------------------------------------------------------------
+# Mechanical defect detector (D-18/D-19/D-20/D-21)
+#
+# Parses each analysis structurally against the six numbered output-template
+# sections and reports three defect families: untraced Conclusion claims
+# (D-20, per-claim with a document-level rollup), non-conforming Verdict
+# cells, and malformed Derivation Chains blocks. Every check below reads a
+# located section slice; none scans the whole document — a whole-document
+# keyword scan is the incidental-match failure mode this repo has already
+# shipped once (RR-77-08, `_composer_structure_hits`).
+# ---------------------------------------------------------------------------
+
+
+class SectionResolutionError(ValueError):
+    """Raised when fewer than six sections resolve, in order, in an analysis.
+
+    A parser that silently fails to resolve a section and returns an empty
+    slice would report zero defects for that family — a false-clean result
+    (T-164-14). A document the parser cannot read must fail loudly instead.
+    """
+
+
+_SECTION_NAMES: dict[int, str] = {
+    1: "problem essence",
+    2: "assumptions table",
+    3: "ground truths",
+    4: "derivation chains",
+    5: "abandoned reasoning",
+    6: "conclusion",
+}
+
+# One to three hash characters, the section number with an optional trailing
+# dot, then the section name from output-template.md, matched
+# case-insensitively (the .lower() comparison below, not an inline flag,
+# since the hashes/number half of the pattern is case-invariant already).
+_SECTION_HEADING_RE = re.compile(
+    r"^(?P<hashes>#{1,3})[ \t]+(?P<num>\d+)\.?[ \t]+(?P<name>.+?)[ \t]*$",
+    re.MULTILINE,
+)
+
+
+def _slice_sections(text: str) -> dict[int, str]:
+    """Locate the six numbered output-template sections; return num -> body text.
+
+    Content before section 1 (preamble) is discarded. A section's body runs
+    from its heading to the next resolved section heading, or — for section
+    6 — to the next heading at the same or shallower hash depth (an
+    appendix), or end of file. Raises `SectionResolutionError` if the six
+    section numbers do not resolve, in ascending order, with no gaps —
+    exactly the six shapes required, never a partial or out-of-order read.
+    """
+    candidates: list[tuple[int, int, re.Match]] = []
+    for m in _SECTION_HEADING_RE.finditer(text):
+        num = int(m.group("num"))
+        expected = _SECTION_NAMES.get(num)
+        if expected is not None and m.group("name").strip().lower() == expected:
+            candidates.append((m.start(), num, m))
+
+    anchors: list[tuple[int, int, int, re.Match]] = []  # (start, num, depth, match)
+    seen: set[int] = set()
+    for start, num, m in sorted(candidates, key=lambda c: c[0]):
+        if num in seen:
+            continue
+        seen.add(num)
+        anchors.append((start, num, len(m.group("hashes")), m))
+
+    resolved_nums = [a[1] for a in anchors]
+    if resolved_nums != [1, 2, 3, 4, 5, 6]:
+        raise SectionResolutionError(
+            f"expected sections 1-6 to resolve in order, resolved {resolved_nums!r}"
+        )
+
+    sections: dict[int, str] = {}
+    for idx, (start, num, depth, m) in enumerate(anchors):
+        body_start = m.end()
+        if idx + 1 < len(anchors):
+            body_end = anchors[idx + 1][0]
+        else:
+            # Section 6: stop at the next heading of depth <= this one
+            # (an appendix), else end of file.
+            body_end = len(text)
+            for hm in re.finditer(r"^(#{1,3})[ \t]+", text[body_start:], re.MULTILINE):
+                if len(hm.group(1)) <= depth:
+                    body_end = body_start + hm.start()
+                    break
+        sections[num] = text[body_start:body_end]
+    return sections
+
+
+def _verdict_cells(section2: str) -> list[str]:
+    """Locate the assumption table's Verdict column by header name and return its cells.
+
+    Uses the hardened row splitter (`_split_row`/`_is_separator_row`) rather
+    than a bare pipe-split. The column index comes from the header alone,
+    never a constant — the frozen corpus contains both five-column and
+    six-column assumption tables with the Verdict column in different
+    positions.
+    """
+    lines = section2.splitlines()
+    header_idx: int | None = None
+    verdict_col: int | None = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = _split_row(stripped)
+        if _is_separator_row(cells):
+            continue
+        for j, c in enumerate(cells):
+            if c.strip().lower() == "verdict":
+                header_idx = i
+                verdict_col = j
+                break
+        if header_idx is not None:
+            break
+
+    if header_idx is None or verdict_col is None:
+        return []
+
+    out: list[str] = []
+    i = header_idx + 1
+    if i < len(lines):
+        sep_cells = _split_row(lines[i].strip())
+        if _is_separator_row(sep_cells):
+            i += 1
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if not stripped.startswith("|"):
+            break
+        cells = _split_row(stripped)
+        if verdict_col < len(cells):
+            out.append(cells[verdict_col])
+        i += 1
+    return out
+
+
+_VERDICT_VOCAB = {"accept", "challenge", "discard"}
+
+
+def _verdict_conforms(cell: str) -> bool:
+    """A Verdict cell conforms after stripping emphasis, whitespace, and trailing punctuation."""
+    s = cell.strip()
+    s = re.sub(r"^[*_]+", "", s)
+    s = re.sub(r"[*_]+$", "", s)
+    s = s.strip().rstrip(".,;:!").strip()
+    return s.lower() in _VERDICT_VOCAB
+
+
+# Chain-label families the frozen corpus actually uses: a two-letter prefix
+# followed by a hyphen and a number (DC-1), and the word "Chain" followed by
+# a letter or a number (Chain A, Chain 1).
+_CHAIN_LABEL_PATTERN = r"(?:[A-Z]{2}-\d+|Chain\s+[A-Za-z0-9]+)"
+
+# Headed form: a heading line whose text begins with the label followed by a
+# separator (colon, em dash, en dash, or hyphen).
+_CHAIN_HEADING_RE = re.compile(
+    r"^#{1,6}[ \t]*(?P<label>" + _CHAIN_LABEL_PATTERN + r")[ \t]*[:—–-]",
+    re.MULTILINE,
+)
+# Bolded lead-in form: a line beginning with bold markers whose text begins
+# with the label (no heading hashes).
+_CHAIN_BOLD_RE = re.compile(
+    r"^\*\*(?P<label>" + _CHAIN_LABEL_PATTERN + r")\b[^\n]*?\*\*",
+    re.MULTILINE,
+)
+
+
+def _iter_chain_id_matches(section4: str) -> list[re.Match]:
+    matches = list(_CHAIN_HEADING_RE.finditer(section4)) + list(
+        _CHAIN_BOLD_RE.finditer(section4)
+    )
+    matches.sort(key=lambda m: m.start())
+    return matches
+
+
+def _chain_ids(section4: str) -> list[str]:
+    """Return the chain identifiers present in section 4, in document order, deduplicated."""
+    ids: list[str] = []
+    for m in _iter_chain_id_matches(section4):
+        label = m.group("label")
+        if label not in ids:
+            ids.append(label)
+    return ids
+
+
+def _chain_blocks(section4: str) -> list[str]:
+    """Return the text belonging to each chain identifier.
+
+    When no identifier is found, returns the whole section as a single
+    block rather than an empty list, so a chains-without-labels document
+    reports one block, not zero.
+    """
+    matches = _iter_chain_id_matches(section4)
+    if not matches:
+        return [section4]
+    blocks: list[str] = []
+    for i, m in enumerate(matches):
+        start = m.start()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(section4)
+        blocks.append(section4[start:end])
+    return blocks
+
+
+# Prescribed chain form (output-template.md § 4): one or more GT identifiers
+# (optionally `?`-suffixed for an unverified ground truth, optionally
+# followed by a parenthetical label), joined by `+`, then an arrow,
+# non-empty intermediate text, a second arrow, and non-empty conclusion
+# text. Both the unicode rightwards arrow and the two-character ASCII arrow
+# are accepted. Matched per physical line — the prescribed form names one
+# line, not a claim spread across several.
+_ARROW = r"(?:→|->)"
+_CHAIN_FORM_LINE_RE = re.compile(
+    r"GT-\d+\??(?:[ \t]*\([^)\n]*\))?"
+    r"(?:[ \t]*\+[ \t]*GT-\d+\??(?:[ \t]*\([^)\n]*\))?)*"
+    r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*?"
+    r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*"
+)
+
+
+def _chain_block_well_formed(block: str) -> bool:
+    return any(_CHAIN_FORM_LINE_RE.search(line) for line in block.splitlines())
+
+
+# Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
+# must sit immediately before the closing bold markers, distinguishing a
+# labelled claim from a bold phrase (e.g. "**Confidence: HIGH**") whose
+# colon sits mid-span.
+_BOLD_LEADIN_COLON_RE = re.compile(r"^\s*\*\*([^*\n]+:)\*\*")
+_LIST_ITEM_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+)$")
+
+_GT_MENTION_RE = re.compile(r"GT-\d+\??")
+
+
+def _is_assertive_claim(text: str) -> bool:
+    """Keep only items with sentence-ending punctuation or over forty characters.
+
+    Excludes bare labels (e.g. a short intro line ending in a colon with no
+    trailing sentence) from being counted as Conclusion claims.
+    """
+    stripped = text.strip()
+    if not stripped:
+        return False
+    if re.search(r"[.!?][\'\")”’]*$", stripped):
+        return True
+    return len(stripped) > 40
+
+
+def _conclusion_claims(section6: str) -> list[str]:
+    """Return the assertive claims in section 6: bold colon-lead-ins and list items.
+
+    Returns the claim text (not just a count) so the detector output can be
+    audited.
+    """
+    claims: list[str] = []
+    for line in section6.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        m_bold = _BOLD_LEADIN_COLON_RE.match(stripped)
+        if m_bold:
+            if _is_assertive_claim(stripped):
+                claims.append(stripped)
+            continue
+        m_list = _LIST_ITEM_RE.match(stripped)
+        if m_list:
+            candidate = m_list.group(1).strip()
+            if _is_assertive_claim(candidate):
+                claims.append(candidate)
+    return claims
+
+
+def _claim_is_traced(claim_text: str, chain_ids: list[str], chain_blocks: list[str]) -> bool:
+    """A claim is traced if it names a chain identifier, or names >=2 GT ids
+    that also appear together inside a single chain block (D-20)."""
+    if any(cid in claim_text for cid in chain_ids):
+        return True
+    gt_mentions = {m.group(0).rstrip("?") for m in _GT_MENTION_RE.finditer(claim_text)}
+    if len(gt_mentions) >= 2:
+        for block in chain_blocks:
+            block_gts = {m.group(0).rstrip("?") for m in _GT_MENTION_RE.finditer(block)}
+            if gt_mentions <= block_gts:
+                return True
+    return False
+
+
+_DEFECT_RECORD_FIELDS = (
+    "analysis_id",
+    "conclusion_claims",
+    "untraced_claims",
+    "untraced_flag",
+    "verdict_cells",
+    "nonconforming_verdict_cells",
+    "verdict_flag",
+    "chain_blocks",
+    "malformed_chain_blocks",
+    "chain_flag",
+)
+
+
+def detect_defects(analysis_text: str, analysis_id: str) -> dict:
+    """D-18: parse `analysis_text` structurally and report the three defect families.
+
+    Raises `SectionResolutionError` (propagated from `_slice_sections`) if
+    the six output-template sections do not resolve — a document the parser
+    cannot read must fail loudly, never report zero defects.
+
+    Returns a record with the ten fields in `_DEFECT_RECORD_FIELDS` order,
+    plus underscore-prefixed audit-only fields (claim/cell text) that are
+    never emitted to the TSV.
+    """
+    sections = _slice_sections(analysis_text)
+    section2 = sections[2]
+    section4 = sections[4]
+    section6 = sections[6]
+
+    verdicts = _verdict_cells(section2)
+    nonconforming_verdicts = [c for c in verdicts if not _verdict_conforms(c)]
+
+    chain_ids = _chain_ids(section4)
+    blocks = _chain_blocks(section4)
+    malformed_blocks = [b for b in blocks if not _chain_block_well_formed(b)]
+
+    claims = _conclusion_claims(section6)
+    untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks)]
+
+    return {
+        "analysis_id": analysis_id,
+        "conclusion_claims": len(claims),
+        "untraced_claims": len(untraced),
+        "untraced_flag": 1 if untraced else 0,
+        "verdict_cells": len(verdicts),
+        "nonconforming_verdict_cells": len(nonconforming_verdicts),
+        "verdict_flag": 1 if nonconforming_verdicts else 0,
+        "chain_blocks": len(blocks),
+        "malformed_chain_blocks": len(malformed_blocks),
+        "chain_flag": 1 if malformed_blocks else 0,
+        "_claims_text": claims,
+        "_untraced_claims_text": untraced,
+        "_nonconforming_verdict_text": nonconforming_verdicts,
+        "_malformed_chain_blocks_text": malformed_blocks,
+    }
+
+
+def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
+    """`--detect-defects` CLI body: run `detect_defects` over a directory, write a TSV.
+
+    Records are written in filename order with a header row, ten columns
+    per `_DEFECT_RECORD_FIELDS`.
+    """
+    files = sorted(Path(analyses_dir).glob("*.md"))
+    lines = ["\t".join(_DEFECT_RECORD_FIELDS)]
+    for f in files:
+        record = detect_defects(f.read_text(encoding="utf-8"), f.stem)
+        lines.append("\t".join(str(record[field]) for field in _DEFECT_RECORD_FIELDS))
+    Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+
+
 def _self_test_tracer_path() -> bool:
     """Tracer edge (D-15 item 6 lineage): the whole offline chain, no live call.
 
@@ -1871,6 +2236,18 @@ def build_parser() -> argparse.ArgumentParser:
             "row. Dispatches exactly one live judge invocation."
         ),
     )
+    p.add_argument(
+        "--detect-defects",
+        dest="detect_defects",
+        type=Path,
+        default=None,
+        metavar="ANALYSES_DIR",
+        help=(
+            "Run the D-18 mechanical defect detector over a directory of "
+            "analysis .md files and write the ten-column TSV to --out. "
+            "Fully offline — no `claude` invoked."
+        ),
+    )
     return p
 
 
@@ -1924,7 +2301,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Judge packet dir: {packet_dir}", file=sys.stderr)
         return 0
 
-    parser.error("no action specified — pass --self-test, --probe, or --single")
+    if args.detect_defects is not None:
+        if not args.out:
+            parser.error("--out is required with --detect-defects")
+        run_detect_defects(args.detect_defects, args.out)
+        print(f"Defect-detection TSV written: {args.out}")
+        return 0
+
+    parser.error(
+        "no action specified — pass --self-test, --probe, --single, or --detect-defects"
+    )
     return 2  # unreachable — parser.error exits
 
 
