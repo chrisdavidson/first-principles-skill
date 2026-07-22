@@ -2629,8 +2629,26 @@ def _write_blinding_key(rows: list[tuple[str, str]], path: Path) -> None:
     """Write `packet_id \\t source_id` rows to the run's blinding key.
 
     Lives in the output directory root (D-05) — never inside or beside a
-    packet directory, which is what makes the mapping unreachable from a
-    judge's cwd.
+    packet directory, so the mapping is not visible from a judge's cwd.
+
+    SCOPE OF THIS GUARANTEE (narrowed at the Phase 164 code review, WR-02).
+    This prevents PASSIVE discovery: a judge placed in a sealed packet dir
+    never encounters the key by listing its own directory or walking up from
+    it, and `check_blinding`'s ancestor-walk asserts exactly that. It does
+    NOT prevent ACTIVE search. The judge is dispatched through
+    `_run_prompt_to` with `--permission-mode bypassPermissions` and no
+    `--allowedTools` restriction, so the subprocess retains full filesystem
+    tool access and could in principle locate the committed
+    `blinding-key.tsv`, `scorelines.tsv`, or the v8.6 answer table by
+    searching for them. Do not describe this mechanism as blinding "enforced
+    by unreachability" — it is enforced by non-exposure, and an actively
+    searching judge is outside its threat model.
+
+    The transport argv is deliberately NOT tightened here: it is Plan-36-
+    locked and byte-shared with the frozen baseline, so adding
+    `--allowedTools` would make future runs non-comparable with the evidence
+    this phase froze. Tightening it is a future-phase change that must
+    re-baseline, not a drive-by edit.
     """
     lines = [f"{packet_id}\t{source_id}" for packet_id, source_id in rows]
     path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
