@@ -13,16 +13,24 @@
 # Exits:  0 = FIREWALL GREEN (all gates pass)
 #         1 = FIREWALL RED   (one or more gates failed)
 #
-# Gates (16):
+# Gates (15):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    GATE-01
-#   BATT-06   TRACE-03      COLLIDE-01  body-budget
+#   BATT-06   TRACE-03      COLLIDE-01
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# The first 14 are registered through the `gate` helper below; the final two
+# The first 13 are registered through the `gate` helper below; the final two
 # (INVARIANT-CHECK, FROZEN-EVIDENCE) are inline checks that each increment the
 # same PASS/FAIL/TOTAL tally rather than going through `gate`, for a reported
-# total of 16.
+# total of 15.
+#
+# Composition change (TEARDOWN-01, docs/v8.7-constraint-teardown.md): the
+# body-budget gate was retired -- scripts/check-body-budget.py is now
+# report-only and always exits 0, so tallying it would inflate the count with
+# a gate that can never fail. It is still reported below as an un-tallied
+# [INFO] line so the body's line count stays visible on every run; the drop
+# is named here rather than silently absorbed. Battery composition moved
+# 16 -> 15 as a result.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -143,10 +151,11 @@ gate "COLLIDE-01" \
     "python3 scripts/check-install-collisions.py --self-test" \
     "python3 scripts/check-install-collisions.py"
 
-# body-budget — agent body line count ≤644
-gate "body-budget" \
-    "check-body-budget.py" \
-    "python3 scripts/check-body-budget.py"
+# body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
+# Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
+# reports rather than passes/fails. Its exit status does not influence PASS/FAIL/TOTAL.
+_body_size_report=$(python3 scripts/check-body-budget.py 2>&1)
+printf "[INFO] %-14s  %s\n" "body-size" "$_body_size_report"
 
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
