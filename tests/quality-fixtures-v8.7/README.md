@@ -142,9 +142,80 @@ judge's text block and no transport is involved.").
 input, and asserts `parse_scoreline` was invoked exactly once and every field of the returned row
 is `UNPARSEABLE` — never a partial score.
 
-## `baseline-truncated/` — D-15 item 6 fixture
+## Tabulation arithmetic (D-15 item 5)
 
-Added by this plan's Task 3; see that task's own section below once it lands.
+`_selftest_tabulation` (via a new `compute_tabulation_summary` function, kept separate from the
+tab-separated-text `tabulate_rows`) asserts, over the six real rows of
+`tests/quality-baseline-v8.7/scorelines.tsv` read through `read_scorelines`:
+
+| Quantity | Value | Hand-check |
+|---|---|---|
+| Per-row band totals (file order X7/K2/M9/Q4/R6/T3) | 10, 12, 12, 13, 11, 12 | Rigorous=3, Sound=2, Hand-wavy=1, Absent=0 per band, summed per row |
+| Aggregate band total | 70 | 10+12+12+13+11+12 |
+| Per-criterion column sums (C1..C6) | 18, 9, 12, 8, 11, 12 | e.g. C1 is Rigorous on all six rows: 3×6=18 |
+| Pass split | 4 PASS / 2 FAIL | K2/M9/Q4/T3 PASS; X7/R6 FAIL |
+| Mean | 11.67 | 70 / 6 = 11.6666... |
+
+All five hand-checked values above were independently re-verified against the real
+`scorelines.tsv` file (by hand, band-by-band) during this task's implementation, and matched the
+plan's own stated figures exactly — no discrepancy found here, unlike the smaller counting slip
+found in Task 1's donor census (see the discipline note at the top of this file).
+
+The self-test also asserts `sum(per_criterion_sums) == aggregate_band_total` (18+9+12+8+11+12 =
+70), so a future edit cannot move one figure without moving the other, and proves the
+denominator/UNPARSEABLE-exclusion rule (T-164-12) with a synthetic seventh row carrying one
+`UNPARSEABLE` cell: the reported `denominator` is 7 (not 6 — the row is never silently dropped
+from the row count), while `aggregate_band_total` stays 70 (the row's non-`UNPARSEABLE` cells are
+still excluded from the numeric sum, since the row as a whole cannot be scored).
+
+## `baseline-truncated/` — D-15 item 6 fixture (baseline-fixture integrity negative)
+
+A deliberately short, single-defect-isolated copy of the frozen corpus's structure:
+
+- **`analyses/`** — only 4 of the 6 original analyses are present (`condA-P1.md`, `condA-P2.md`,
+  `condA-P3.md`, `condB-P1.md`), each replaced with a short placeholder body (not the frozen
+  corpus's real text — a Lorem-ipsum-padded stand-in, 2,350 bytes, comfortably above the
+  `check_baseline_integrity` size floor of 2,000 bytes).
+- **`scorelines.tsv`** — the frozen corpus's original **six** rows, copied verbatim, left
+  unchanged. This is the deliberate defect: 6 scoreline rows vs. 4 analysis files.
+- **`blinding-key.tsv`** — only the **4** rows whose named analysis is actually present (`K2 ->
+  condA-P1`, `R6 -> condA-P2`, `T3 -> condA-P3`, `M9 -> condB-P1`) — chosen so this file's own row
+  count already matches the 4 analysis files, isolating the fixture's only defect to the
+  `scorelines.tsv` mismatch above (a real design decision made during Task 3 implementation, not
+  specified by the plan text, needed to make fault injection G's "make the counts match" step
+  actually silence the check rather than trip a second, independent finding from
+  `blinding-key.tsv`).
+
+`check_baseline_integrity('tests/quality-baseline-v8.7')` (the real frozen baseline) returns zero
+findings. `check_baseline_integrity('tests/quality-fixtures-v8.7/baseline-truncated')` returns
+exactly one finding, naming the 6-vs-4 row/file count mismatch.
+
+## Fault-injection proofs recorded (Task 3)
+
+Both proofs below were run under **both** `python3` and `python3 -O`, then reverted;
+`tests/quality-baseline-v8.7/` and `tests/step0-captures-v8.6/` verified untouched throughout.
+
+| Injection | Mutation | Expected / observed |
+|---|---|---|
+| F | Changed the tabulation self-test's expected aggregate band total from 70 to 69 | Both interpreters exit 1, printing `self-test FAIL: tabulation aggregate band total expected 69, got 70` |
+| G | Added a 5th analysis file (`condB-P2.md`) plus its matching `blinding-key.tsv` row to `baseline-truncated/`, then trimmed `scorelines.tsv` from 6 rows to 5 (dropping the `Q4` row, whose analysis is still absent) so the row/file counts now match | Both interpreters exit 1, printing `self-test FAIL: baseline integrity on the deliberately truncated fixture found no findings — expected the row-count-versus-file-count mismatch to be reported` — proving the negative genuinely depends on the mismatch, not on some other incidental defect |
+
+## Twelve fault-injection exit codes (D-16, all six D-15 items, both interpreters)
+
+Recorded across Tasks 1-3 of this plan (representative proof per item; blinding also has a second
+proof, D, not counted twice below):
+
+| Item | Injection | `python3` exit | `python3 -O` exit |
+|---|---|---|---|
+| guardrail_a | A | 1 | 1 |
+| guardrail_b | B | 1 | 1 |
+| scoreline | C | 1 | 1 |
+| blinding | D | 1 | 1 |
+| tabulation | F | 1 | 1 |
+| baseline | G | 1 | 1 |
+
+Every row above reverted to a clean `exit 0` / six-`PASSED`-lines self-test run before the plan
+moved to its next step.
 
 ## A code fix this fixture-building work surfaced (Rule 1)
 

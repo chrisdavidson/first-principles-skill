@@ -797,6 +797,76 @@ def read_scorelines(path: Path | str) -> list[dict]:
     return rows
 
 
+_BAND_WEIGHTS = {"Rigorous": 3, "Sound": 2, "Hand-wavy": 1, "Absent": 0}
+
+
+def compute_tabulation_summary(rows: list[dict]) -> dict:
+    """D-15 item 5: aggregate tabulation arithmetic over `read_scorelines`-shaped rows.
+
+    Each row must carry "bands" (list[str], one of `_BAND_VOCAB` or
+    `UNPARSEABLE`) and "judge_verdict" ("PASS"/"FAIL"/`UNPARSEABLE`).
+
+    Returns a dict:
+      - per_row_totals: list[int | None], one per row — the sum of that
+        row's 6 band weights, or None if any cell in the row is
+        `UNPARSEABLE` (a row with an unparseable cell contributes no numeric
+        total, but see `denominator` below — it is never dropped silently).
+      - per_criterion_sums: list[int], one per C1-C6, summed only over rows
+        with no unparseable cell.
+      - unparseable_cell_count: int, total UNPARSEABLE band cells across all
+        rows.
+      - aggregate_band_total: int, sum of the non-None per_row_totals —
+        equal to sum(per_criterion_sums) by construction.
+      - pass_count / fail_count / unparseable_verdict_count: int tallies of
+        each row's judge_verdict.
+      - denominator: int, always `len(rows)` — T-164-12: an UNPARSEABLE cell
+        must never be silently excluded from the row-count denominator, even
+        though it is excluded from the numeric sums above.
+      - mean: float, aggregate_band_total divided by the count of rows that
+        contributed a numeric total (0.0 if none did).
+    """
+    per_row_totals: list[int | None] = []
+    per_criterion_sums = [0] * len(_CRITERIA)
+    unparseable_cell_count = 0
+    pass_count = 0
+    fail_count = 0
+    unparseable_verdict_count = 0
+
+    for row in rows:
+        bands = row["bands"]
+        if any(b == UNPARSEABLE for b in bands):
+            per_row_totals.append(None)
+            unparseable_cell_count += sum(1 for b in bands if b == UNPARSEABLE)
+        else:
+            per_row_totals.append(sum(_BAND_WEIGHTS[b] for b in bands))
+            for idx, b in enumerate(bands):
+                per_criterion_sums[idx] += _BAND_WEIGHTS[b]
+
+        verdict = row["judge_verdict"]
+        if verdict == "PASS":
+            pass_count += 1
+        elif verdict == "FAIL":
+            fail_count += 1
+        else:
+            unparseable_verdict_count += 1
+
+    numeric_totals = [t for t in per_row_totals if t is not None]
+    aggregate_band_total = sum(numeric_totals)
+    mean = aggregate_band_total / len(numeric_totals) if numeric_totals else 0.0
+
+    return {
+        "per_row_totals": per_row_totals,
+        "per_criterion_sums": per_criterion_sums,
+        "unparseable_cell_count": unparseable_cell_count,
+        "aggregate_band_total": aggregate_band_total,
+        "pass_count": pass_count,
+        "fail_count": fail_count,
+        "unparseable_verdict_count": unparseable_verdict_count,
+        "denominator": len(rows),
+        "mean": mean,
+    }
+
+
 def tabulate_rows(rows: list[dict]) -> str:
     """Emit tab-separated rows: packet_id, C1..C6, judge_verdict, derived_verdict, agreement.
 
@@ -1189,17 +1259,75 @@ def _selftest_scoreline() -> bool:
     return ok
 
 
-def _selftest_blinding() -> bool:
-    """D-15 item 4: D-05 blinding integrity, plus the D-14 real-data cross-check.
+def check_blinding(analysis_text: str) -> list[str]:
+    """D-15 item 4 body: build a judge packet and return a list of findings.
 
-    Packet contents: a freshly-built packet holds exactly the two expected
-    files, has no repository-root ancestor, and — walking up the packet
-    dir's own ancestor chain, the only relative-traversal surface reachable
-    from a cwd of the packet dir without external knowledge of the repo's
-    absolute path — never surfaces the committed blinding key or scoreline
-    file by name or resolved path. The copied rubric is byte-identical to
-    its source, and JUDGE_PROMPT carries none of the forbidden comparison-
-    revealing substrings.
+    An empty list means the packet is well-formed: it holds exactly the two
+    expected files, has no repository-root ancestor, and — walking up the
+    packet dir's own ancestor chain, the only relative-traversal surface
+    reachable from a cwd of the packet dir without external knowledge of the
+    repo's absolute path — never surfaces the committed blinding key or
+    scoreline file by name or resolved path. The copied rubric must be
+    byte-identical to its source, and `JUDGE_PROMPT` must carry none of the
+    forbidden comparison-revealing substrings.
+
+    Mirrors `check_baseline_integrity`'s findings-list shape rather than
+    raising, so a caller (self-test or a future CLI surface) can report every
+    defect found in one pass instead of stopping at the first one.
+    """
+    findings: list[str] = []
+
+    try:
+        packet_dir = build_judge_packet(analysis_text)
+    except Exception as exc:  # noqa: BLE001 — never propagate; findings only
+        findings.append(f"build_judge_packet raised: {exc!r}")
+        return findings
+
+    entries = sorted(p.name for p in packet_dir.iterdir())
+    if entries != ["analysis.md", "validation-rubric.md"]:
+        findings.append(f"packet dir {packet_dir} does not hold exactly the two expected files: {entries!r}")
+
+    resolved = packet_dir.resolve()
+    repo_root_resolved = REPO_ROOT.resolve()
+    if resolved == repo_root_resolved or repo_root_resolved in resolved.parents:
+        findings.append(f"packet dir {resolved} has the repository root as an ancestor")
+
+    blinding_key = BASELINE_DIR / "blinding-key.tsv"
+    scorelines_path = BASELINE_DIR / "scorelines.tsv"
+    forbidden_names = {"blinding-key.tsv", "scorelines.tsv"}
+    forbidden_resolved = {blinding_key.resolve(), scorelines_path.resolve()}
+
+    probe = resolved
+    for _ in range(12):
+        try:
+            entries_here = list(probe.iterdir())
+        except (PermissionError, NotADirectoryError, FileNotFoundError):
+            entries_here = []
+        names_here = {p.name for p in entries_here}
+        resolved_here = {p.resolve() for p in entries_here}
+        if names_here & forbidden_names or resolved_here & forbidden_resolved:
+            findings.append(
+                f"the committed blinding key or scoreline file is reachable by "
+                f"walking up from packet dir {resolved} to {probe}"
+            )
+            break
+        if probe.parent == probe:
+            break
+        probe = probe.parent
+
+    rubric_src = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+    if (packet_dir / "validation-rubric.md").read_bytes() != rubric_src.read_bytes():
+        findings.append("copied rubric is not byte-identical to its source")
+
+    if not _check_judge_prompt_unblinded():
+        findings.append("JUDGE_PROMPT contains a forbidden comparison-leaking substring")
+
+    return findings
+
+
+def _selftest_blinding() -> bool:
+    """D-15 item 4: D-05 blinding integrity (`check_blinding`), plus the D-14
+    real-data cross-check.
 
     D-14 cross-check: `derive_pass_fail` over the six real frozen
     `tests/quality-baseline-v8.7/scorelines.tsv` rows agrees with all six
@@ -1212,82 +1340,16 @@ def _selftest_blinding() -> bool:
     fixture_analysis = (
         "# Fixture analysis\n\nOffline fixture text for the blinding self-test.\n"
     )
-    try:
-        packet_dir = build_judge_packet(fixture_analysis)
-    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+    findings = check_blinding(fixture_analysis)
+    if findings:
         print(
-            f"self-test FAIL: blinding build_judge_packet raised unexpectedly: {exc!r}",
-            file=sys.stderr,
-        )
-        return False
-
-    entries = sorted(p.name for p in packet_dir.iterdir())
-    if entries != ["analysis.md", "validation-rubric.md"]:
-        print(
-            f"self-test FAIL: blinding packet dir has wrong entries: {entries!r}",
-            file=sys.stderr,
-        )
-        ok = False
-
-    resolved = packet_dir.resolve()
-    repo_root_resolved = REPO_ROOT.resolve()
-    if resolved == repo_root_resolved or repo_root_resolved in resolved.parents:
-        print(
-            f"self-test FAIL: blinding packet dir {resolved} has the repository "
-            "root as an ancestor",
-            file=sys.stderr,
-        )
-        ok = False
-
-    blinding_key = BASELINE_DIR / "blinding-key.tsv"
-    scorelines_path = BASELINE_DIR / "scorelines.tsv"
-    forbidden_names = {"blinding-key.tsv", "scorelines.tsv"}
-    forbidden_resolved = {blinding_key.resolve(), scorelines_path.resolve()}
-
-    probe = resolved
-    seen_forbidden = False
-    for _ in range(12):
-        try:
-            entries_here = list(probe.iterdir())
-        except (PermissionError, NotADirectoryError, FileNotFoundError):
-            entries_here = []
-        names_here = {p.name for p in entries_here}
-        if names_here & forbidden_names:
-            seen_forbidden = True
-            break
-        resolved_here = {p.resolve() for p in entries_here}
-        if resolved_here & forbidden_resolved:
-            seen_forbidden = True
-            break
-        if probe.parent == probe:
-            break
-        probe = probe.parent
-
-    if seen_forbidden:
-        print(
-            "self-test FAIL: blinding — the committed blinding key or scoreline "
-            "file is reachable by walking up the packet dir's own ancestor chain",
-            file=sys.stderr,
-        )
-        ok = False
-
-    rubric_src = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
-    if (packet_dir / "validation-rubric.md").read_bytes() != rubric_src.read_bytes():
-        print(
-            "self-test FAIL: blinding — copied rubric is not byte-identical to its source",
-            file=sys.stderr,
-        )
-        ok = False
-
-    if not _check_judge_prompt_unblinded():
-        print(
-            "self-test FAIL: blinding — JUDGE_PROMPT contains a forbidden "
-            "comparison-leaking substring",
+            f"self-test FAIL: blinding — check_blinding reported: {findings!r}",
             file=sys.stderr,
         )
         ok = False
 
     # D-14 cross-check over the six real frozen scorelines.
+    scorelines_path = BASELINE_DIR / "scorelines.tsv"
     try:
         rows = read_scorelines(scorelines_path)
     except Exception as exc:  # noqa: BLE001
@@ -1325,6 +1387,256 @@ def _selftest_blinding() -> bool:
             "self-test FAIL: blinding D-14 synthetic disagreement row did not "
             f"disagree (derived={disagree_derived!r}, judge stated="
             f"{disagree_judge_verdict!r})",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_tabulation() -> bool:
+    """D-15 item 5: tabulation arithmetic, pinned to hand-checked values.
+
+    Values below were hand-checked at plan time (164-02-PLAN.md) from
+    `tests/quality-baseline-v8.7/scorelines.tsv` using the rubric's band
+    weights (Rigorous=3, Sound=2, Hand-wavy=1, Absent=0), and independently
+    re-verified against the real file during this task's implementation.
+    The per-criterion sums must add back to the aggregate total, so a future
+    edit cannot move one figure without moving the other (T-164-12).
+
+    A synthetic seventh row carrying one UNPARSEABLE cell proves the
+    denominator counts it (7, not 6) rather than silently excluding it —
+    T-164-12's Repudiation mitigation.
+    """
+    ok = True
+    try:
+        rows = read_scorelines(BASELINE_DIR / "scorelines.tsv")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: tabulation read_scorelines raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+
+    summary = compute_tabulation_summary(rows)
+
+    expected_per_row = [10, 12, 12, 13, 11, 12]
+    if summary["per_row_totals"] != expected_per_row:
+        print(
+            f"self-test FAIL: tabulation per-row totals expected {expected_per_row!r}, "
+            f"got {summary['per_row_totals']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if summary["aggregate_band_total"] != 70:
+        print(
+            f"self-test FAIL: tabulation aggregate band total expected 70, "
+            f"got {summary['aggregate_band_total']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    expected_per_criterion = [18, 9, 12, 8, 11, 12]
+    if summary["per_criterion_sums"] != expected_per_criterion:
+        print(
+            f"self-test FAIL: tabulation per-criterion sums expected "
+            f"{expected_per_criterion!r}, got {summary['per_criterion_sums']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if sum(summary["per_criterion_sums"]) != summary["aggregate_band_total"]:
+        print(
+            "self-test FAIL: tabulation per-criterion sums do not add back to "
+            "the aggregate band total",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if (summary["pass_count"], summary["fail_count"]) != (4, 2):
+        print(
+            f"self-test FAIL: tabulation pass split expected (4, 2), got "
+            f"{(summary['pass_count'], summary['fail_count'])!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    mean_rounded = round(summary["mean"], 2)
+    if mean_rounded != 11.67:
+        print(
+            f"self-test FAIL: tabulation mean expected 11.67, got {mean_rounded!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Synthetic seventh row carrying an UNPARSEABLE cell (T-164-12): the
+    # denominator must be seven, not six, and the aggregate band total must
+    # stay 70 (the unparseable row contributes no numeric total but is never
+    # dropped from the row-count denominator).
+    synthetic_row = {
+        "id": "synthetic-unparseable",
+        "bands": ["Rigorous", "Sound", UNPARSEABLE, "Sound", "Sound", "Rigorous"],
+        "judge_verdict": UNPARSEABLE,
+    }
+    summary_plus = compute_tabulation_summary(rows + [synthetic_row])
+    if summary_plus["denominator"] != 7:
+        print(
+            f"self-test FAIL: tabulation denominator with the synthetic "
+            f"UNPARSEABLE row expected 7, got {summary_plus['denominator']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if summary_plus["unparseable_cell_count"] != 1:
+        print(
+            f"self-test FAIL: tabulation unparseable_cell_count expected 1, "
+            f"got {summary_plus['unparseable_cell_count']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    if summary_plus["aggregate_band_total"] != 70:
+        print(
+            "self-test FAIL: tabulation aggregate band total changed when an "
+            "UNPARSEABLE row was added — it must be excluded from the numeric "
+            "sum while still counted in the denominator",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def check_baseline_integrity(baseline_dir: Path | str) -> list[str]:
+    """D-15 item 6 body: structural integrity check for a frozen quality baseline.
+
+    Returns a list of human-readable findings; an empty list means the
+    baseline is present and well-formed. A non-empty list is a loud failure
+    (T-164-12 discipline: never a silently-shorter comparison). Checks:
+      1. `baseline_dir` exists and is a directory holding an `analyses/`
+         subdirectory.
+      2. Every `analyses/*.md` file is non-empty and larger than 2,000 bytes.
+      3. `scorelines.tsv` exists and its data-row count equals the analysis
+         file count; every row's band cells are drawn from the four-name
+         vocabulary or the `UNPARSEABLE` sentinel.
+      4. `blinding-key.tsv` exists and its row count equals the analysis file
+         count; every row names an analysis file (by stem) that exists in
+         `analyses/`.
+    """
+    baseline_dir = Path(baseline_dir)
+    findings: list[str] = []
+
+    if not baseline_dir.is_dir():
+        findings.append(f"{baseline_dir}: baseline directory does not exist")
+        return findings
+
+    analyses_dir = baseline_dir / "analyses"
+    if not analyses_dir.is_dir():
+        findings.append(f"{baseline_dir}: analyses/ subdirectory does not exist")
+        return findings
+
+    analysis_files = sorted(analyses_dir.glob("*.md"))
+    analysis_stems = {p.stem for p in analysis_files}
+    analysis_count = len(analysis_files)
+
+    for p in analysis_files:
+        size = p.stat().st_size
+        if size == 0:
+            findings.append(f"{p}: analysis file is empty")
+        elif size <= 2000:
+            findings.append(f"{p}: analysis file is only {size} bytes, expected > 2000")
+
+    scorelines_path = baseline_dir / "scorelines.tsv"
+    if not scorelines_path.is_file():
+        findings.append(f"{scorelines_path}: does not exist")
+    else:
+        try:
+            score_rows = read_scorelines(scorelines_path)
+        except ValueError as exc:
+            findings.append(f"{scorelines_path}: failed to parse — {exc}")
+            score_rows = []
+        if len(score_rows) != analysis_count:
+            findings.append(
+                f"{scorelines_path}: {len(score_rows)} data rows but "
+                f"{analysis_count} analysis files in {analyses_dir} — counts must match"
+            )
+        for row in score_rows:
+            for idx, band in enumerate(row["bands"]):
+                if band not in _BAND_VOCAB and band != UNPARSEABLE:
+                    findings.append(
+                        f"{scorelines_path}: row {row['id']!r} column "
+                        f"C{idx + 1} has band {band!r}, not in the four-name "
+                        f"vocabulary or {UNPARSEABLE!r}"
+                    )
+
+    blinding_key_path = baseline_dir / "blinding-key.tsv"
+    if not blinding_key_path.is_file():
+        findings.append(f"{blinding_key_path}: does not exist")
+    else:
+        key_rows: list[tuple[str, str]] = []
+        text = blinding_key_path.read_text(encoding="utf-8")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if not line.strip():
+                continue
+            cells = line.split("\t")
+            if len(cells) < 2:
+                findings.append(
+                    f"{blinding_key_path}:{lineno}: expected 2 tab-separated "
+                    f"columns, got {len(cells)}"
+                )
+                continue
+            key_rows.append((cells[0], cells[1]))
+        if len(key_rows) != analysis_count:
+            findings.append(
+                f"{blinding_key_path}: {len(key_rows)} rows but "
+                f"{analysis_count} analysis files in {analyses_dir} — counts must match"
+            )
+        for judge_id, stem in key_rows:
+            if stem not in analysis_stems:
+                findings.append(
+                    f"{blinding_key_path}: row {judge_id!r} names analysis "
+                    f"{stem!r}, which does not exist in {analyses_dir}"
+                )
+
+    return findings
+
+
+def _selftest_baseline() -> bool:
+    """D-15 item 6: baseline-fixture integrity on the real baseline and a negative.
+
+    The real frozen `tests/quality-baseline-v8.7/` must report zero findings
+    — it is present, complete, and well-formed. The deliberately truncated
+    `tests/quality-fixtures-v8.7/baseline-truncated/` (4 analyses, but the
+    frozen corpus's original 6-row `scorelines.tsv` left in place) must
+    report at least one finding naming the row-count-versus-file-count
+    mismatch — a truncated or partially-committed baseline must fail loudly
+    rather than produce a short comparison.
+    """
+    ok = True
+
+    real_findings = check_baseline_integrity(BASELINE_DIR)
+    if real_findings:
+        print(
+            f"self-test FAIL: baseline integrity on the real frozen baseline "
+            f"found unexpected findings: {real_findings!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    truncated_dir = FIXTURES_DIR / "baseline-truncated"
+    truncated_findings = check_baseline_integrity(truncated_dir)
+    if not truncated_findings:
+        print(
+            "self-test FAIL: baseline integrity on the deliberately truncated "
+            "fixture found no findings — expected the row-count-versus-file-"
+            "count mismatch to be reported",
+            file=sys.stderr,
+        )
+        ok = False
+    elif not any("data rows but" in f and "analysis files" in f for f in truncated_findings):
+        print(
+            f"self-test FAIL: baseline integrity on the truncated fixture "
+            f"reported findings, but none names the count mismatch: "
+            f"{truncated_findings!r}",
             file=sys.stderr,
         )
         ok = False
@@ -1427,19 +1739,26 @@ def self_test() -> int:
     """Run the offline deterministic self-test. Returns 0 on pass, 1 on failure.
 
     No `claude` process is spawned and no network is used. Task 1 (Plan 01)
-    seeded two background sub-checks (catalog parse positive/negative);
-    Plan 01 Task 3 added the tracer_path end-to-end offline chain. Plan 02
-    Task 1 wired D-15 items 1-2 (guardrail_a, guardrail_b); Task 2 wires
-    D-15 items 3-4 (scoreline, blinding — which now also owns the judge-
-    prompt-unblinded check a prior revision ran as its own background
-    sub-check); Task 3 adds D-15 items 5-6 (tabulation, baseline). The six
-    D-15 items each print their own labelled PASS/FAILED result line.
+    seeded two background sub-checks (catalog parse positive/negative) and
+    Plan 01 Task 3 added a background tracer_path end-to-end offline chain
+    check; both still run and gate `all_passed`, but — matching the
+    catalog-check style — print only on failure, so they do not inflate the
+    six-line D-15 result-line count below. Plan 02 Task 1 wired D-15 items
+    1-2 (guardrail_a, guardrail_b); Task 2 wired D-15 items 3-4 (scoreline,
+    blinding — which now also owns the judge-prompt-unblinded check a prior
+    revision ran as its own background sub-check); Task 3 adds D-15 items
+    5-6 (tabulation, baseline). Each of the six D-15 items prints its own
+    labelled PASS/FAILED result line — exactly six such lines, always, per
+    run (D-16: the fault-injection proof for each item is recorded in
+    164-02-SUMMARY.md).
     """
     all_passed = True
 
     if not _self_test_catalog_parse_positive():
         all_passed = False
     if not _self_test_catalog_parse_negative():
+        all_passed = False
+    if not _self_test_tracer_path():
         all_passed = False
 
     # D-15 item 1: Extraction guardrail A (never the top-level result field).
@@ -1470,11 +1789,19 @@ def self_test() -> int:
     else:
         print("self-test: blinding sub-check PASSED")
 
-    if not _self_test_tracer_path():
+    # D-15 item 5: tabulation arithmetic pinned to hand-checked real values.
+    if not _selftest_tabulation():
         all_passed = False
-        print("self-test: tracer_path sub-check FAILED", file=sys.stderr)
+        print("self-test: tabulation sub-check FAILED", file=sys.stderr)
     else:
-        print("self-test: tracer_path sub-check PASSED")
+        print("self-test: tabulation sub-check PASSED")
+
+    # D-15 item 6: baseline-fixture integrity (real baseline + truncated negative).
+    if not _selftest_baseline():
+        all_passed = False
+        print("self-test: baseline sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: baseline sub-check PASSED")
 
     return 0 if all_passed else 1
 
