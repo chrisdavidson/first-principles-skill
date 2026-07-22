@@ -14,17 +14,23 @@ concatenation) as firing assertions with negative fixtures.
 
 **Task 1 scope: catalog parsing, the environment guard, the verbatim-dispatch
 bypass wrapper, the live-generation transport, and a non-vacuous
-`--self-test`.** **Task 3 scope (this commit): the extraction pipeline
+`--self-test`.** **Task 3 scope: the extraction pipeline
 (`extract_agent_analysis`, `extract_judge_verdict`), the sealed judge packet
 builder, the judge prompt and scoreline parser, PASS/FAIL derivation, one-row
 tabulation, and the `--single` tracer path.** The extraction channel is fixed
-by the D-22 live probe committed in the prior commit — see
-`tests/quality-probe-v8.7/README.md` for the probe's observed shape (and its
-one contradiction of the archived async-task evidence) and `164-CONTEXT.md`
-D-22 for the full record. Guardrail fixtures for Plan 02's remaining
-`--self-test` items (blinding integrity, tabulation arithmetic,
-baseline-fixture integrity, the guardrail negative fixtures themselves) are
-out of this commit's scope.
+by the D-22 live probe — see `tests/quality-probe-v8.7/README.md` for the
+probe's observed shape (and its one contradiction of the archived async-task
+evidence) and `164-CONTEXT.md` D-22 for the full record.
+
+**Plan 04 Task 1 scope: `--run`, `--rejudge`, `--dry-run`, `--resume`, and
+`write_run_manifest`** — composes the pieces above into the full
+generate->extract->blind->judge->score->tabulate->detect chain (`--run`), a
+byte-faithful re-judge of an existing analyses directory (`--rejudge`), a
+zero-side-effect invocation enumerator (`--dry-run`), and resumable
+re-dispatch that never repeats a completed invocation (`--resume`), per
+`classify_invocation_outcome`'s PARSING of each capture's terminal `result`
+event (never a bare `grep 'api_error_status'` — see that function's
+docstring for why the naive idiom is wrong and dangerous).
 
 Usage:
     python3 scripts/check-quality-harness.py --self-test
@@ -34,14 +40,24 @@ Usage:
         tests/quality-probe-v8.7/probe-P1.jsonl
     python3 scripts/check-quality-harness.py --detect-defects \\
         tests/quality-baseline-v8.7/analyses --out /tmp/qh-detect.tsv
+    python3 scripts/check-quality-harness.py --dry-run --run \\
+        --rejudge tests/quality-baseline-v8.7/analyses \\
+        --catalog tests/quality-catalog-v8.7.md --out /tmp/qh-dry
+    python3 scripts/check-quality-harness.py --run \\
+        --rejudge tests/quality-baseline-v8.7/analyses \\
+        --catalog tests/quality-catalog-v8.7.md --repeat 2 --out /tmp/qh-run
+    python3 scripts/check-quality-harness.py --resume --run \\
+        --rejudge tests/quality-baseline-v8.7/analyses \\
+        --catalog tests/quality-catalog-v8.7.md --repeat 2 --out /tmp/qh-run
 
 Options:
     --self-test         Run the offline deterministic self-test and exit (no
                          `claude` invoked).
     --catalog PATH      Path to tests/quality-catalog-v8.7.md (required for
-                         --probe).
-    --out PATH          Output directory for `.jsonl` captures (--probe) or
-                         output TSV path (--detect-defects).
+                         --probe and --run).
+    --out PATH          Output directory for `.jsonl` captures (--probe,
+                         --run, --rejudge, --dry-run) or output TSV path
+                         (--detect-defects).
     --repeat INT        Per-prompt repeat count (default: DEFAULT_REPEAT).
     --plugin-dir PATH   Path to the first-principles plugin dir (default:
                          repo-relative `first-principles/`).
@@ -56,9 +72,29 @@ Options:
                          Run the D-18 mechanical defect detector (offline, no
                          `claude` invoked) over a directory of analysis .md
                          files and write the ten-column TSV to --out.
+    --run               Run the full generate->extract->blind->judge->
+                         score->tabulate->detect chain over --catalog,
+                         writing scorelines.tsv, defect-incidence.tsv, a
+                         blinding key, and a manifest under --out.
+    --rejudge DIR       Re-judge an existing directory of analysis .md files
+                         through the same judge channel, with a byte-
+                         unchanged packet passthrough (T-164-19), writing
+                         rejudge-scorelines.tsv under --out. Composes with
+                         --run.
+    --dry-run           Enumerate every invocation --run/--rejudge would
+                         dispatch (kind, source id, run index, destination
+                         path) and a total count; spends nothing, makes no
+                         subprocess call, and creates no capture file.
+    --resume            Continue into an existing --out directory, skipping
+                         every invocation whose destination already holds a
+                         completed record and re-dispatching only those that
+                         are absent or hold a transport-error or rate-limit
+                         stub (never a completed record, regardless of how
+                         its content looks — T-164-18).
 
 Exit codes:
-    0  Self-test passed, or a run/probe/single-path completed successfully.
+    0  Self-test passed, or a run/probe/single/run-layer path completed
+       successfully.
     1  Self-test failed, or a run failed.
     2  Usage/environment error (missing `claude` on PATH, bad arguments).
 """
@@ -66,12 +102,16 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
+import random
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -576,16 +616,25 @@ def extract_judge_verdict(jsonl_path: Path) -> str:
     raise ValueError(f"no judge verdict text found in {jsonl_path}")
 
 
-def build_judge_packet(analysis_text: str, packet_root: Path | None = None) -> Path:
+def build_judge_packet(
+    analysis: str | bytes, packet_root: Path | None = None
+) -> Path:
     """Create a sealed judge packet dir outside the repository (D-05).
 
     Writes exactly two files: `analysis.md` (the passed-in, already-anonymised
-    analysis text) and `validation-rubric.md` (copied verbatim from
+    analysis) and `validation-rubric.md` (copied verbatim from
     shared/spine/references/validation-rubric.md). Verifies exactly two
     entries exist and the resolved path has no repository-root ancestor
     before returning; raises ValueError on either failure. Never writes a
     blinding key here — the key belongs to the run output directory (D-05),
     never inside or beside a packet directory.
+
+    `analysis` accepts either `str` (the `--run` fresh-generation path,
+    where the text was already decoded by `extract_agent_analysis`) or
+    `bytes` (the `--rejudge` path — see `_build_rejudge_packet` below, which
+    always passes bytes so the frozen corpus's trailing transport-metadata
+    tail reaches the packet byte-for-byte, never re-encoded through a
+    decode/encode round-trip that a str parameter would risk).
 
     `packet_root`, when given, overrides the parent directory the fresh
     packet dir is created under (still verified outside the repo); when
@@ -597,7 +646,11 @@ def build_judge_packet(analysis_text: str, packet_root: Path | None = None) -> P
     if resolved == repo_root_resolved or repo_root_resolved in resolved.parents:
         raise ValueError(f"judge packet dir {resolved} is inside the repository root")
 
-    (packet_dir / "analysis.md").write_text(analysis_text, encoding="utf-8")
+    analysis_path = packet_dir / "analysis.md"
+    if isinstance(analysis, bytes):
+        analysis_path.write_bytes(analysis)
+    else:
+        analysis_path.write_text(analysis, encoding="utf-8")
     rubric_src = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
     shutil.copy(rubric_src, packet_dir / "validation-rubric.md")
 
@@ -2240,6 +2293,675 @@ def _selftest_defects() -> bool:
     return ok
 
 
+# ---------------------------------------------------------------------------
+# Run layer: --run / --rejudge / --dry-run / --resume (Plan 04 Task 1)
+#
+# Composes the catalog reader, the live-generation transport, the extraction
+# pipeline, the sealed judge packet builder, the scoreline parser and the
+# defect detector into three run modes plus a per-invocation manifest.
+# `--run` spends 6 generations + 6 judgings; `--rejudge` spends 6 judgings of
+# an existing analyses directory with a byte-unchanged packet passthrough
+# (T-164-19); `--dry-run` composes with either and spends nothing, making no
+# subprocess call at all; `--resume` continues into an existing --out
+# directory, re-dispatching only invocations that are absent or hold a
+# transport-error/rate-limit stub (T-164-18).
+# ---------------------------------------------------------------------------
+
+
+def classify_invocation_outcome(jsonl_path: Path) -> str:
+    """Classify a captured `.jsonl` by PARSING its terminal `result` event —
+    never by a bare `grep 'api_error_status'`.
+
+    164-04-PLAN.md's Task 2 checkpoint step 4 originally suggested finding
+    rate-limit stubs with `grep -l 'api_error_status' .../*.jsonl`. That idiom
+    is wrong and dangerous: `api_error_status` is present — usually `null` —
+    on EVERY terminal `result` event, including a fully successful run (the
+    committed `tests/quality-probe-v8.7/probe-P1.jsonl` genuine completed
+    capture literally contains the substring `"api_error_status":null`). A
+    grep for the key's mere presence would match every healthy capture and
+    drive `--resume` to re-dispatch all eighteen successful invocations —
+    precisely the T-164-18 tampering threat this harness exists to prevent
+    ("re-rolling a completed invocation would manufacture a baseline"). This
+    function instead parses the terminal event's `is_error` and
+    `api_error_status` *values*.
+
+    Returns one of:
+      "completed"            — terminal result present, `is_error` is
+                                `False` AND `api_error_status` is `None`.
+      "rate_limit_stub"      — terminal result present, `api_error_status`
+                                is `429`.
+      "transport_error_stub" — terminal result present with `is_error` true
+                                or any other non-null `api_error_status`.
+      "no_terminal_result"   — no terminal `result` event found in the
+                                capture at all (treated the same as a stub
+                                for `--resume` purposes: not "completed", so
+                                eligible for re-dispatch).
+    """
+    terminal: dict | None = None
+    for obj in _iter_jsonl_objects(jsonl_path):
+        if obj.get("type") == "result":
+            terminal = obj
+    if terminal is None:
+        return "no_terminal_result"
+    is_error = terminal.get("is_error")
+    api_error_status = terminal.get("api_error_status")
+    if is_error is False and api_error_status is None:
+        return "completed"
+    if api_error_status == 429:
+        return "rate_limit_stub"
+    return "transport_error_stub"
+
+
+def _build_rejudge_packet(source_path: Path, packet_root: Path | None = None) -> Path:
+    """`--rejudge` packet builder (T-164-19): pass the source file's bytes
+    through unchanged into the packet's analysis file.
+
+    The frozen corpus files carry a trailing transport-metadata tail that the
+    ORIGINAL judges scored as part of the document (164-CONTEXT.md's
+    `flagged_assumptions`). Stripping or normalising it here — even a
+    seemingly harmless whitespace trim — would make the re-judge score a
+    different document than the one under measurement, turning a
+    reproducibility measurement into a comparison of two different texts.
+    Reading via `read_bytes()` and writing via `build_judge_packet`'s bytes
+    branch means no decode/encode round-trip and no newline normalisation
+    happen anywhere on this path: raw bytes in, raw bytes out.
+    """
+    return build_judge_packet(source_path.read_bytes(), packet_root=packet_root)
+
+
+def plan_invocations(
+    prompts: list[QualityPrompt],
+    repeat: int,
+    out_dir: Path,
+    rejudge_dir: Path | None,
+) -> list[dict]:
+    """Enumerate every invocation `--run`/`--rejudge` would dispatch, with no
+    subprocess call anywhere in this function.
+
+    Order: one generation + one judge invocation per catalog row per run
+    index (1-indexed, matching `scripts/_battery_core.py`'s
+    `_run_prompt_n_times_to_paths` naming convention), then one rejudge
+    invocation per `.md` file in `rejudge_dir` (when given). Over the real
+    three-row catalog at the default repeat of 2, with a 6-file rejudge
+    directory, this enumerates 3*2 generations + 3*2 judgings + 6 rejudgings
+    = 18 total.
+
+    Each planned invocation dict carries: "index" (1-indexed across the
+    whole plan), "kind" ("generation" | "judge" | "rejudge"), "source_id",
+    "run_index", and "dest" (the `.jsonl` capture path that invocation would
+    write).
+    """
+    plans: list[dict] = []
+    idx = 0
+    for prompt in prompts:
+        for run_idx in range(1, repeat + 1):
+            idx += 1
+            plans.append(
+                {
+                    "index": idx,
+                    "kind": "generation",
+                    "source_id": prompt.id,
+                    "run_index": run_idx,
+                    "dest": out_dir / "captures" / f"{prompt.id}-run{run_idx}.jsonl",
+                }
+            )
+            idx += 1
+            plans.append(
+                {
+                    "index": idx,
+                    "kind": "judge",
+                    "source_id": prompt.id,
+                    "run_index": run_idx,
+                    "dest": out_dir / "judgments" / f"{prompt.id}-run{run_idx}-judge.jsonl",
+                }
+            )
+    if rejudge_dir is not None:
+        for f in sorted(Path(rejudge_dir).glob("*.md")):
+            idx += 1
+            plans.append(
+                {
+                    "index": idx,
+                    "kind": "rejudge",
+                    "source_id": f.stem,
+                    "run_index": 1,
+                    "dest": out_dir / "rejudge-judgments" / f"{f.stem}-judge.jsonl",
+                }
+            )
+    return plans
+
+
+def run_dry_run(args: argparse.Namespace) -> int:
+    """`--dry-run` CLI body.
+
+    Structural guard, not a conditional inside the transport function: this
+    function calls only `_read_quality_catalog` and `plan_invocations`,
+    neither of which ever calls `_run_prompt_to` — the dry-run path simply
+    does not contain a code path that reaches the transport function, so no
+    subprocess is spawned and no capture file is created. Prints one line per
+    planned invocation (kind, source id, run index, destination path),
+    followed by a total count.
+    """
+    prompts = _read_quality_catalog(args.catalog or DEFAULT_CATALOG) if args.run else []
+    plans = plan_invocations(
+        prompts, args.repeat, args.out, args.rejudge if args.rejudge else None
+    )
+    for p in plans:
+        print(f"{p['kind']}\t{p['source_id']}\t{p['run_index']}\t{p['dest']}")
+    print(f"Total planned invocations: {len(plans)}")
+    return 0
+
+
+def run_generation_arm(
+    prompts: list[QualityPrompt],
+    repeat: int,
+    out_dir: Path,
+    plugin_dir: Path,
+    manifest_rows: list[dict],
+    resume: bool = False,
+) -> dict[str, str]:
+    """D-01/D-08: dispatch `repeat` live generations per catalog row, extract
+    each through `extract_agent_analysis` (Guardrails A and B apply to every
+    one of the six), write the extracted analyses to `out_dir/analyses/`, and
+    append one manifest row per invocation to `manifest_rows`.
+
+    `source_id` naming is `<catalog_id>-run<n>` (1-indexed), matching
+    `scripts/_battery_core.py::_run_prompt_n_times_to_paths`'s convention.
+
+    `resume` (T-164-18): an existing capture whose terminal result classifies
+    "completed" (`classify_invocation_outcome`) is never re-dispatched —
+    its analysis is instead re-extracted from the existing capture file.
+    Anything else (absent, transport-error stub, rate-limit stub) is
+    (re-)dispatched exactly once.
+
+    Returns `{source_id: analysis_text}` for `run_judging_arm`.
+    """
+    captures_dir = out_dir / "captures"
+    analyses_dir = out_dir / "analyses"
+    captures_dir.mkdir(parents=True, exist_ok=True)
+    analyses_dir.mkdir(parents=True, exist_ok=True)
+
+    analyses: dict[str, str] = {}
+    idx = len(manifest_rows)
+    for prompt in prompts:
+        for run_idx in range(1, repeat + 1):
+            idx += 1
+            source_id = f"{prompt.id}-run{run_idx}"
+            cap_path = captures_dir / f"{source_id}.jsonl"
+            duration = 0.0
+            redispatch_reason = ""
+            already_completed = (
+                resume
+                and cap_path.is_file()
+                and classify_invocation_outcome(cap_path) == "completed"
+            )
+            if not already_completed:
+                if resume and cap_path.is_file():
+                    redispatch_reason = "prior capture was a transport-error or rate-limit stub"
+                start = time.monotonic()
+                wrapped = _wrap_for_bypass(prompt.text)
+                _run_prompt_to(wrapped, cap_path, plugin_dir=plugin_dir)
+                duration = time.monotonic() - start
+            outcome = classify_invocation_outcome(cap_path)
+            manifest_rows.append(
+                {
+                    "index": idx,
+                    "kind": "generation",
+                    "source_id": prompt.id,
+                    "run_index": run_idx,
+                    "dest_path": str(cap_path),
+                    "duration_s": f"{duration:.1f}",
+                    "outcome": outcome,
+                    "redispatch_reason": redispatch_reason,
+                }
+            )
+            if outcome != "completed":
+                continue
+            analysis_text = extract_agent_analysis(
+                cap_path, subagent_type="first-principles:first-principles"
+            )
+            (analyses_dir / f"{source_id}.md").write_text(analysis_text, encoding="utf-8")
+            analyses[source_id] = analysis_text
+    return analyses
+
+
+def _write_blinding_key(rows: list[tuple[str, str]], path: Path) -> None:
+    """Write `packet_id \\t source_id` rows to the run's blinding key.
+
+    Lives in the output directory root (D-05) — never inside or beside a
+    packet directory, which is what makes the mapping unreachable from a
+    judge's cwd.
+    """
+    lines = [f"{packet_id}\t{source_id}" for packet_id, source_id in rows]
+    path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+
+
+def run_judging_arm(
+    items: list[tuple[str, "str | Path"]],
+    out_dir: Path,
+    dest_subdir: str,
+    kind: str,
+    manifest_rows: list[dict],
+    blinding_key_path: Path,
+    plugin_dir: Path | None = None,
+    resume: bool = False,
+) -> list[dict]:
+    """Build one sealed packet and dispatch one judge invocation per item.
+
+    `items` is a list of `(source_id, analysis)` pairs. When `analysis` is a
+    `str` (the `--run` fresh-generation path), the packet is built through
+    `build_judge_packet`'s text branch. When it is a `Path` (the `--rejudge`
+    path), the packet is built through `_build_rejudge_packet`'s
+    byte-unchanged passthrough (T-164-19) — the two paths are never
+    conflated.
+
+    Packet identifiers are shuffled (`random.shuffle`) so the mapping from
+    identifier to source analysis is not recoverable from ordering (D-05);
+    that mapping is written to `blinding_key_path` in the output directory
+    root, never inside or beside a packet. `plugin_dir=None` (D-05
+    Assumption A3): the judge invocation must have no agent-dispatch
+    surface, so `--plugin-dir` is omitted from its transport call entirely.
+
+    `resume` mirrors `run_generation_arm`'s discipline: a judge capture that
+    already classifies "completed" is never re-dispatched.
+
+    Returns one `tabulate_rows()`-shaped row dict per item, each carrying an
+    additional `"source_id"` field, in the shuffled packet order.
+    """
+    judgments_dir = out_dir / dest_subdir
+    judgments_dir.mkdir(parents=True, exist_ok=True)
+
+    packet_ids = [f"P{i + 1:02d}" for i in range(len(items))]
+    random.shuffle(packet_ids)
+
+    rows: list[dict] = []
+    blinding_rows: list[tuple[str, str]] = []
+    idx = len(manifest_rows)
+    for (source_id, analysis), packet_id in zip(items, packet_ids):
+        idx += 1
+        blinding_rows.append((packet_id, source_id))
+        judge_capture = judgments_dir / f"{packet_id}-judge.jsonl"
+        duration = 0.0
+        redispatch_reason = ""
+        already_completed = (
+            resume
+            and judge_capture.is_file()
+            and classify_invocation_outcome(judge_capture) == "completed"
+        )
+        if not already_completed:
+            if resume and judge_capture.is_file():
+                redispatch_reason = "prior judge capture was a transport-error or rate-limit stub"
+            packet_dir = (
+                _build_rejudge_packet(analysis)
+                if isinstance(analysis, Path)
+                else build_judge_packet(analysis)
+            )
+            start = time.monotonic()
+            _run_prompt_to(JUDGE_PROMPT, judge_capture, plugin_dir=plugin_dir, cwd=packet_dir)
+            duration = time.monotonic() - start
+        outcome = classify_invocation_outcome(judge_capture)
+        manifest_rows.append(
+            {
+                "index": idx,
+                "kind": kind,
+                "source_id": source_id,
+                "run_index": 1,
+                "dest_path": str(judge_capture),
+                "duration_s": f"{duration:.1f}",
+                "outcome": outcome,
+                "redispatch_reason": redispatch_reason,
+            }
+        )
+        if outcome != "completed":
+            rows.append(
+                {
+                    "source_id": source_id,
+                    "packet_id": packet_id,
+                    "bands": [UNPARSEABLE] * len(_CRITERIA),
+                    "judge_verdict": UNPARSEABLE,
+                    "derived_verdict": UNPARSEABLE,
+                    "agreement": UNPARSEABLE,
+                }
+            )
+            continue
+        judge_text = extract_judge_verdict(judge_capture)
+        # The rationale is evidence, never a score (D-12) — captured verbatim
+        # to a sidecar file alongside the parsed row.
+        (judgments_dir / f"{packet_id}-rationale.md").write_text(judge_text, encoding="utf-8")
+        row = _build_scoreline_row(packet_id=packet_id, judge_text=judge_text)
+        row["source_id"] = source_id
+        rows.append(row)
+
+    _write_blinding_key(blinding_rows, blinding_key_path)
+    return rows
+
+
+# Column order matches the legacy 8-column shape (`packet_id`, C1..C6,
+# `judge_verdict`) for its first 8 columns, so `read_scorelines` — which
+# reads column 0 as "id", columns 1-6 as bands, and column 7 as the judge's
+# stated verdict, ignoring anything beyond — can read this eleven-column
+# file without modification. `derived_verdict`, `agreement`, and `source_id`
+# are the three additional columns D-08's regenerated baseline needs.
+_RUN_SCORELINE_FIELDS = (
+    "packet_id",
+    *_CRITERIA,
+    "judge_verdict",
+    "derived_verdict",
+    "agreement",
+    "source_id",
+)
+
+
+def write_run_scorelines(rows: list[dict], out_path: Path) -> None:
+    """Write the eleven-column `--run`/`--rejudge` scoreline TSV.
+
+    Each row must carry "packet_id", "bands" (list[str], length 6),
+    "judge_verdict", "derived_verdict", "agreement", and "source_id" — the
+    shape `run_judging_arm` returns.
+    """
+    lines = ["\t".join(_RUN_SCORELINE_FIELDS)]
+    for row in rows:
+        lines.append(
+            "\t".join(
+                [
+                    row["packet_id"],
+                    *row["bands"],
+                    row["judge_verdict"],
+                    row["derived_verdict"],
+                    row["agreement"],
+                    row["source_id"],
+                ]
+            )
+        )
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+_MANIFEST_FIELDS = (
+    "index",
+    "kind",
+    "source_id",
+    "run_index",
+    "dest_path",
+    "duration_s",
+    "outcome",
+    "redispatch_reason",
+)
+
+
+def write_run_manifest(rows: list[dict], out_path: Path) -> None:
+    """T-164-18/T-164-22: write one manifest row per invocation.
+
+    This is what makes the eighteen live invocations auditable — the record
+    Task 3's acceptance criteria count. `outcome` is one of "completed",
+    "transport_error_stub", "rate_limit_stub", or "no_terminal_result"
+    (`classify_invocation_outcome`); `redispatch_reason` is non-empty only
+    when `--resume` actually re-dispatched a prior stub.
+    """
+    lines = ["\t".join(_MANIFEST_FIELDS)]
+    for row in rows:
+        lines.append("\t".join(str(row.get(field, "")) for field in _MANIFEST_FIELDS))
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _selftest_resume_classification() -> bool:
+    """Part of D-15/D-08 item 8: `classify_invocation_outcome` classifies by
+    PARSING the terminal `result` event, never by grepping the
+    `api_error_status` key.
+
+    Four synthetic fixtures pin the four return values. A fifth check reads
+    the real committed `tests/quality-probe-v8.7/probe-P1.jsonl` — a genuine
+    completed run — and confirms two things at once: the literal substring
+    `"api_error_status"` IS present in its text (so a bare grep for the key
+    would wrongly flag this healthy capture as a stub), and
+    `classify_invocation_outcome` nonetheless correctly classifies it
+    "completed" by reading the value, not the key's presence.
+    """
+    ok = True
+
+    def _fixture_path(events: list[dict]) -> Path:
+        tmp = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".jsonl", delete=False, encoding="utf-8"
+        )
+        for e in events:
+            tmp.write(json.dumps(e) + "\n")
+        tmp.close()
+        return Path(tmp.name)
+
+    cases = [
+        (
+            "completed",
+            [{"type": "result", "subtype": "success", "is_error": False, "api_error_status": None}],
+            "completed",
+        ),
+        (
+            "transport_error",
+            [{"type": "result", "subtype": "error", "is_error": True, "api_error_status": None}],
+            "transport_error_stub",
+        ),
+        (
+            "rate_limited",
+            [{"type": "result", "subtype": "error", "is_error": True, "api_error_status": 429}],
+            "rate_limit_stub",
+        ),
+        (
+            "no_terminal",
+            [{"type": "assistant", "message": {"content": []}}],
+            "no_terminal_result",
+        ),
+    ]
+    for name, events, expected in cases:
+        path = _fixture_path(events)
+        try:
+            got = classify_invocation_outcome(path)
+        finally:
+            try:
+                path.unlink()
+            except OSError:
+                pass
+        if got != expected:
+            print(
+                f"self-test FAIL: run_layer resume classification fixture "
+                f"{name!r} expected {expected!r}, got {got!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Real-evidence proof that the rejected `grep 'api_error_status'` idiom
+    # (164-04-PLAN.md's Task 2 checkpoint step 4) is wrong: the committed
+    # probe capture is a genuine completed run, yet the literal key
+    # `"api_error_status"` IS present in its text (value null) — a grep for
+    # the key alone would misclassify it as a stub and drive --resume to
+    # re-dispatch an already-successful invocation (T-164-18).
+    probe_path = REPO_ROOT / "tests" / "quality-probe-v8.7" / "probe-P1.jsonl"
+    probe_text = probe_path.read_text(encoding="utf-8")
+    if '"api_error_status"' not in probe_text:
+        print(
+            "self-test FAIL: run_layer resume classification — expected the "
+            "committed probe capture to contain the literal "
+            '\'"api_error_status"\' key (demonstrating why a bare grep for '
+            "that key is wrong), but it was absent",
+            file=sys.stderr,
+        )
+        ok = False
+    if classify_invocation_outcome(probe_path) != "completed":
+        print(
+            "self-test FAIL: run_layer resume classification — the committed "
+            "probe capture is a genuine completed run and must classify "
+            "'completed', proving the parser (not a grep) is what the "
+            "harness relies on",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_run_layer() -> bool:
+    """D-15/D-08 item 8: the run layer — offline, no `claude` invoked.
+
+    1. A dry-run over the real catalog at the default repeat, with the
+       frozen corpus as the rejudge source, must print a total of eighteen
+       planned invocations (six generations + six judgings + six
+       rejudgings) and must make ZERO calls to `_run_prompt_to` — proven by
+       a counting monkeypatch of `_run_prompt_to` around a real invocation
+       of `run_dry_run`, not merely by trusting the printed total — and must
+       create zero capture files under a fresh temp `--out` directory
+       (fault injection L).
+    2. `_build_rejudge_packet`'s packet analysis file must be byte-identical
+       to its source file, checked against a real frozen-corpus fixture
+       (fault injection M).
+    3. `write_run_manifest` emits one row per planned invocation with the
+       required eight columns.
+    4. `classify_invocation_outcome` classifies by PARSING, never by
+       grepping `api_error_status` (`_selftest_resume_classification`).
+    """
+    ok = True
+
+    # --- 1. dry-run count + zero-side-effect ---
+    tmp_root = Path(tempfile.mkdtemp(prefix="qh-selftest-dryrun-"))
+    try:
+        plans = plan_invocations(
+            _read_quality_catalog(DEFAULT_CATALOG),
+            DEFAULT_REPEAT,
+            tmp_root,
+            BASELINE_DIR / "analyses",
+        )
+        if len(plans) != 18:
+            print(
+                f"self-test FAIL: run_layer plan_invocations expected 18 "
+                f"planned invocations, got {len(plans)}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Never delegates to the real `_run_prompt_to` — this must remain
+        # true even under a deliberately fault-injected `run_dry_run` (Fault
+        # injection L), so the self-test can prove the zero-call count
+        # without ever spawning a real `claude` subprocess.
+        call_count = {"n": 0}
+        real_run_prompt_to = globals()["_run_prompt_to"]
+
+        def _counting_run_prompt_to(*a, **kw):
+            call_count["n"] += 1
+            out_path = a[1] if len(a) > 1 else kw.get("out_path")
+            return out_path
+
+        dry_args = argparse.Namespace(
+            out=tmp_root,
+            run=True,
+            rejudge=BASELINE_DIR / "analyses",
+            catalog=DEFAULT_CATALOG,
+            repeat=DEFAULT_REPEAT,
+        )
+        globals()["_run_prompt_to"] = _counting_run_prompt_to
+        buf = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(buf):
+                run_dry_run(dry_args)
+        finally:
+            globals()["_run_prompt_to"] = real_run_prompt_to
+
+        printed = buf.getvalue()
+        if "Total planned invocations: 18" not in printed:
+            print(
+                "self-test FAIL: run_layer dry-run did not print a total of "
+                f"18 planned invocations: {printed!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if call_count["n"] != 0:
+            print(
+                f"self-test FAIL: run_layer dry-run called _run_prompt_to "
+                f"{call_count['n']} times — expected 0 (zero-side-effect)",
+                file=sys.stderr,
+            )
+            ok = False
+        jsonl_after = list(tmp_root.rglob("*.jsonl"))
+        if jsonl_after:
+            print(
+                f"self-test FAIL: run_layer dry-run created capture files: "
+                f"{jsonl_after!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    finally:
+        shutil.rmtree(tmp_root, ignore_errors=True)
+
+    # --- 2. rejudge byte-identity passthrough ---
+    fixture_source = BASELINE_DIR / "analyses" / "condA-P1.md"
+    fixture_bytes = fixture_source.read_bytes()
+    try:
+        packet_dir = _build_rejudge_packet(fixture_source)
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: run_layer rejudge packet build raised "
+            f"unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+    packet_bytes = (packet_dir / "analysis.md").read_bytes()
+    if packet_bytes != fixture_bytes:
+        print(
+            "self-test FAIL: run_layer rejudge byte-identity — packet "
+            f"analysis.md differs from its source (source len="
+            f"{len(fixture_bytes)}, packet len={len(packet_bytes)})",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # --- 3. manifest writer ---
+    manifest_fixture_rows = [
+        {
+            "index": 1,
+            "kind": "generation",
+            "source_id": "Q-P1",
+            "run_index": 1,
+            "dest_path": "/tmp/x/captures/Q-P1-run1.jsonl",
+            "duration_s": "12.3",
+            "outcome": "completed",
+            "redispatch_reason": "",
+        },
+        {
+            "index": 2,
+            "kind": "judge",
+            "source_id": "Q-P1",
+            "run_index": 1,
+            "dest_path": "/tmp/x/judgments/P01-judge.jsonl",
+            "duration_s": "8.1",
+            "outcome": "transport_error_stub",
+            "redispatch_reason": "",
+        },
+    ]
+    manifest_tmp_dir = Path(tempfile.mkdtemp(prefix="qh-selftest-manifest-"))
+    try:
+        manifest_path = manifest_tmp_dir / "manifest.tsv"
+        write_run_manifest(manifest_fixture_rows, manifest_path)
+        lines = manifest_path.read_text(encoding="utf-8").splitlines()
+        if not lines or lines[0].split("\t") != list(_MANIFEST_FIELDS):
+            print(
+                f"self-test FAIL: run_layer manifest header expected "
+                f"{_MANIFEST_FIELDS!r}, got "
+                f"{lines[0].split(chr(9)) if lines else None!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if len(lines) != 1 + len(manifest_fixture_rows):
+            print(
+                f"self-test FAIL: run_layer manifest expected "
+                f"{1 + len(manifest_fixture_rows)} lines (header + one per "
+                f"planned invocation), got {len(lines)}",
+                file=sys.stderr,
+            )
+            ok = False
+    finally:
+        shutil.rmtree(manifest_tmp_dir, ignore_errors=True)
+
+    # --- 4. resume classification by PARSING, never by grepping the key ---
+    if not _selftest_resume_classification():
+        ok = False
+
+    return ok
+
+
 def _self_test_tracer_path() -> bool:
     """Tracer edge (D-15 item 6 lineage): the whole offline chain, no live call.
 
@@ -2339,14 +3061,17 @@ def self_test() -> int:
     Plan 01 Task 3 added a background tracer_path end-to-end offline chain
     check; both still run and gate `all_passed`, but — matching the
     catalog-check style — print only on failure, so they do not inflate the
-    six-line D-15 result-line count below. Plan 02 Task 1 wired D-15 items
-    1-2 (guardrail_a, guardrail_b); Task 2 wired D-15 items 3-4 (scoreline,
+    labelled result-line count below. Plan 02 Task 1 wired D-15 items 1-2
+    (guardrail_a, guardrail_b); Task 2 wired D-15 items 3-4 (scoreline,
     blinding — which now also owns the judge-prompt-unblinded check a prior
-    revision ran as its own background sub-check); Task 3 adds D-15 items
-    5-6 (tabulation, baseline). Each of the six D-15 items prints its own
-    labelled PASS/FAILED result line — exactly six such lines, always, per
-    run (D-16: the fault-injection proof for each item is recorded in
-    164-02-SUMMARY.md).
+    revision ran as its own background sub-check); Task 3 added D-15 items
+    5-6 (tabulation, baseline). Plan 03 added item 7 (defects — the D-18
+    mechanical defect detector, D-19 calibration). Plan 04 Task 1 adds item
+    8 (run_layer — the `--run`/`--rejudge`/`--dry-run`/`--resume` composition
+    and `write_run_manifest`). Each of the eight items prints its own
+    labelled PASS/FAILED result line — exactly eight such lines, always, per
+    run (D-16: the fault-injection proof for each item is recorded in the
+    corresponding plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -2406,6 +3131,16 @@ def self_test() -> int:
         print("self-test: defects sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: defects sub-check PASSED")
+
+    # Item 8 (Plan 04 Task 1): the run layer — dry-run enumeration and
+    # zero-side-effect proof, the rejudge byte-identity passthrough, the
+    # manifest writer, and resume classification by PARSING (never grepping
+    # api_error_status).
+    if not _selftest_run_layer():
+        all_passed = False
+        print("self-test: run_layer sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: run_layer sub-check PASSED")
 
     return 0 if all_passed else 1
 
@@ -2487,6 +3222,47 @@ def build_parser() -> argparse.ArgumentParser:
             "Fully offline — no `claude` invoked."
         ),
     )
+    p.add_argument(
+        "--run",
+        action="store_true",
+        help=(
+            "Run the full generate->extract->blind->judge->score->tabulate->"
+            "detect chain over --catalog, writing scorelines.tsv, "
+            "defect-incidence.tsv, a blinding key, and a manifest under --out."
+        ),
+    )
+    p.add_argument(
+        "--rejudge",
+        type=Path,
+        default=None,
+        metavar="ANALYSES_DIR",
+        help=(
+            "Re-judge an existing directory of analysis .md files through "
+            "the same judge channel, with a byte-unchanged packet "
+            "passthrough (T-164-19), writing rejudge-scorelines.tsv under "
+            "--out. Composes with --run."
+        ),
+    )
+    p.add_argument(
+        "--dry-run",
+        dest="dry_run",
+        action="store_true",
+        help=(
+            "Enumerate every invocation --run/--rejudge would dispatch and a "
+            "total count; spends nothing, makes no subprocess call, and "
+            "creates no capture file."
+        ),
+    )
+    p.add_argument(
+        "--resume",
+        action="store_true",
+        help=(
+            "Continue into an existing --out directory, skipping every "
+            "invocation whose destination already holds a completed record "
+            "and re-dispatching only those that are absent or hold a "
+            "transport-error or rate-limit stub."
+        ),
+    )
     return p
 
 
@@ -2503,6 +3279,76 @@ def main(argv: list[str] | None = None) -> int:
     # --self-test MUST return before any environment guard or live path (D-16).
     if args.self_test:
         sys.exit(self_test())
+
+    # --dry-run MUST be checked before any live-path branch, and its own body
+    # (run_dry_run) must never call a function that reaches _run_prompt_to —
+    # a structural guard, not a conditional inside the transport function
+    # (see Fault injection L in _selftest_run_layer).
+    if args.dry_run:
+        if not args.out:
+            parser.error("--out is required with --dry-run")
+        if not (args.run or args.rejudge):
+            parser.error("--dry-run requires --run and/or --rejudge")
+        return run_dry_run(args)
+
+    if args.run or args.rejudge:
+        _ensure_claude_available()
+        if not args.out:
+            parser.error("--out is required with --run/--rejudge")
+        out_dir = args.out
+        out_dir.mkdir(parents=True, exist_ok=True)
+        manifest_rows: list[dict] = []
+
+        if args.run:
+            catalog_path = args.catalog or DEFAULT_CATALOG
+            prompts = _read_quality_catalog(catalog_path)
+            analyses = run_generation_arm(
+                prompts,
+                args.repeat,
+                out_dir,
+                args.plugin_dir,
+                manifest_rows,
+                resume=args.resume,
+            )
+            fresh_items = sorted(analyses.items())
+            # D-05 Assumption A3: plugin_dir=None omits --plugin-dir entirely
+            # from the judge invocation, which must have no agent-dispatch
+            # surface.
+            fresh_rows = run_judging_arm(
+                fresh_items,
+                out_dir,
+                "judgments",
+                "judge",
+                manifest_rows,
+                out_dir / "blinding-key.tsv",
+                plugin_dir=None,
+                resume=args.resume,
+            )
+            write_run_scorelines(fresh_rows, out_dir / "scorelines.tsv")
+            run_detect_defects(out_dir / "analyses", out_dir / "defect-incidence.tsv")
+
+        if args.rejudge:
+            rejudge_items = [
+                (f.stem, f) for f in sorted(Path(args.rejudge).glob("*.md"))
+            ]
+            rejudge_rows = run_judging_arm(
+                rejudge_items,
+                out_dir,
+                "rejudge-judgments",
+                "rejudge",
+                manifest_rows,
+                out_dir / "rejudge-blinding-key.tsv",
+                plugin_dir=None,
+                resume=args.resume,
+            )
+            write_run_scorelines(rejudge_rows, out_dir / "rejudge-scorelines.tsv")
+
+        write_run_manifest(manifest_rows, out_dir / "manifest.tsv")
+        print(
+            f"Run complete: {len(manifest_rows)} invocations recorded in "
+            f"{out_dir / 'manifest.tsv'}"
+        )
+        return 0
 
     if args.probe is not None:
         _ensure_claude_available()
@@ -2548,7 +3394,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     parser.error(
-        "no action specified — pass --self-test, --probe, --single, or --detect-defects"
+        "no action specified — pass --self-test, --probe, --single, "
+        "--detect-defects, --run, --rejudge, or --dry-run"
     )
     return 2  # unreachable — parser.error exits
 
