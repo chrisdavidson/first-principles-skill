@@ -108,7 +108,7 @@ python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --r
 
 The offline `--self-test` asserts the scoring and parsing logic without invoking Claude. The full live run against `tests/step0-fixture-catalog.md` is the canonical manual baseline (see `tests/step0-baseline-v6.4.md`).
 
-**K-of-5 is a recorded observation, not a gate (TEARDOWN-02).** A K/N result from the full live run is recorded as an observation — it may not gate a phase. The S-P04 (five-whys) vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5, and v8.6 with no source change to the five-whys technique between those measurements; at N=5, noise equals effect. The tool's documented invocation and pass-threshold flag are unchanged — what changed is the authority a phase gives the resulting verdict. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
+**K-of-5 is a recorded observation, not a gate (governing record §2 item 3, `docs/v8.7-constraint-teardown.md`).** A K/N result from the full live run is recorded as an observation — it may not gate a phase. The S-P04 (five-whys) vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5, and v8.6 with no source change to the five-whys technique between those measurements; at N=5, noise equals effect. The tool's documented invocation and pass-threshold flag are unchanged — what changed is the authority a phase gives the resulting verdict. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
 
 ### TRACE-03 — check-traceability
 

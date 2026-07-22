@@ -992,7 +992,7 @@ def self_test_boundary() -> int:
     #     Positive counter-check: run2=2 >= MIN proves the detector CAN fire on
     #     S-N04 text (the documented genuine pre-mortem routing, non-blocking per D-16).
     #
-    # Threshold lock released under TEARDOWN-01/02 per
+    # Threshold lock released under TEARDOWN-02 per
     # docs/v8.7-constraint-teardown.md; the pre-mortem pattern-count drift
     # guard of 9 is what remains asserted here.
     #
@@ -1083,7 +1083,7 @@ def self_test_boundary() -> int:
     # narrowed over-routing on this semantically-pre-mortem prompt; all 5 runs
     # stay below MIN_HEADER_HITS=2 → full-composer on every run, 5/5).
     # RR-80-01 re-pointed to v7.8 (Phase 119 CONF-04): S-N04 5/5 non-blocking.
-    # Threshold lock released under TEARDOWN-01/02 per docs/v8.7-constraint-teardown.md;
+    # Threshold lock released under TEARDOWN-02 per docs/v8.7-constraint-teardown.md;
     # this conjunct now asserts the S-N04 vector, the two MIN_HEADER_HITS counter-checks
     # (run1 over-routes, run4 stays below), and the pre-mortem pattern-count drift guard
     # of 9 — not a ceiling threshold edit.
