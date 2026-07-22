@@ -1,0 +1,12 @@
+Rationale omitted for brevity -- only the terminal block below is exercised by this fixture.
+
+=== QUALITY-HARNESS-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+Note: the analyst reviewed this twice.
+C4: Sound
+C5: Sound
+C6: Rigorous
+Verdict: PASS
+=== QUALITY-HARNESS-SCORELINE-END ===

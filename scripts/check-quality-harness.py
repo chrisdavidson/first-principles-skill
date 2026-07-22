@@ -80,6 +80,8 @@ DEFAULT_CATALOG: Path = REPO_ROOT / "tests" / "quality-catalog-v8.7.md"
 # donor lines under tests/step0-captures-v8.6/ — see
 # tests/quality-fixtures-v8.7/README.md for per-fixture provenance.
 FIXTURES_DIR: Path = REPO_ROOT / "tests" / "quality-fixtures-v8.7"
+SCORELINE_BLOCKS_DIR: Path = FIXTURES_DIR / "scoreline-blocks"
+BASELINE_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -756,6 +758,45 @@ def derive_pass_fail(bands: list[str]) -> str:
     return "PASS"
 
 
+def read_scorelines(path: Path | str) -> list[dict]:
+    """Tolerant scoreline TSV reader (D-14 cross-check input).
+
+    Accepts both the legacy 8-column shape used by
+    tests/quality-baseline-v8.7/scorelines.tsv (`judge_id  C1  C2  C3  C4  C5
+    C6  Verdict`) and the wider shape `tabulate_rows` emits (`packet_id  C1
+    .. C6  judge_verdict  derived_verdict  agreement`, 10 columns as
+    currently implemented). Column 8 (index 7) is the judge-stated verdict
+    in both shapes — any columns beyond it (derived_verdict, agreement) are
+    ignored, so this reader tolerates either width without needing to know
+    which one it was given.
+
+    Returns one dict per data row: {"id", "bands" (list[str], length 6),
+    "judge_verdict"}. Raises ValueError naming the offending line for a row
+    with fewer than 8 tab-separated columns — a truncated or malformed
+    scoreline file is a loud failure, not a silently-shorter comparison.
+    """
+    path = Path(path)
+    rows: list[dict] = []
+    text = path.read_text(encoding="utf-8")
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        cells = line.split("\t")
+        if len(cells) < 1 + len(_CRITERIA) + 1:
+            raise ValueError(
+                f"{path}:{lineno}: expected at least {1 + len(_CRITERIA) + 1} "
+                f"tab-separated columns, got {len(cells)}: {cells!r}"
+            )
+        rows.append(
+            {
+                "id": cells[0],
+                "bands": cells[1 : 1 + len(_CRITERIA)],
+                "judge_verdict": cells[1 + len(_CRITERIA)],
+            }
+        )
+    return rows
+
+
 def tabulate_rows(rows: list[dict]) -> str:
     """Emit tab-separated rows: packet_id, C1..C6, judge_verdict, derived_verdict, agreement.
 
@@ -896,18 +937,6 @@ def _self_test_catalog_parse_negative() -> bool:
             tmp_path.unlink()
         except OSError:
             pass
-
-
-def _self_test_judge_prompt_unblinded() -> bool:
-    """D-05/T-164-03: JUDGE_PROMPT itself must carry no comparison-leaking language."""
-    if not _check_judge_prompt_unblinded():
-        print(
-            "self-test FAIL: judge_prompt_unblinded — JUDGE_PROMPT contains a "
-            "forbidden comparison-leaking substring",
-            file=sys.stderr,
-        )
-        return False
-    return True
 
 
 def _selftest_guardrail_a() -> bool:
@@ -1059,6 +1088,250 @@ def _selftest_guardrail_b() -> bool:
     return ok
 
 
+def _selftest_scoreline() -> bool:
+    """D-15 item 3: strict D-12/D-13 terminal-block parsing.
+
+    Two well-formed fixtures (one plain, one whose rationale prose above the
+    block contains all four band-vocabulary names) must parse to the exact
+    same (bands, verdict) pair — proving the parser reads only inside the
+    delimited block and never scans the rationale (the `_composer_structure_
+    hits` incidental-match failure mode this repo has already been bitten by,
+    RR-77-08). Every other fixture in tests/quality-fixtures-v8.7/scoreline-
+    blocks/ is a documented malformation and must record UNPARSEABLE, never a
+    plausible-looking score. A D-13 no-retry proof closes the item: a
+    malformed input must cause exactly one `parse_scoreline` invocation, and
+    the caller must never re-invoke anything after UNPARSEABLE.
+    """
+    ok = True
+    expected_bands = ["Rigorous", "Sound", "Rigorous", "Sound", "Sound", "Rigorous"]
+    expected_verdict = "PASS"
+
+    for well_formed_name in ("well-formed.txt", "well-formed-prose-mentions-bands.txt"):
+        path = SCORELINE_BLOCKS_DIR / well_formed_name
+        parsed = parse_scoreline(path.read_text(encoding="utf-8"))
+        if parsed == UNPARSEABLE:
+            print(
+                f"self-test FAIL: scoreline well-formed fixture {well_formed_name!r} "
+                "failed to parse",
+                file=sys.stderr,
+            )
+            ok = False
+            continue
+        bands, verdict = parsed
+        if bands != expected_bands or verdict != expected_verdict:
+            print(
+                f"self-test FAIL: scoreline well-formed fixture {well_formed_name!r} "
+                f"parsed to unexpected bands/verdict: {bands!r}/{verdict!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    malformed_names = (
+        "five-criteria.txt",
+        "seven-criteria.txt",
+        "invalid-band-vocab.txt",
+        "missing-verdict.txt",
+        "extra-line-in-block.txt",
+        "no-terminal-block.txt",
+    )
+    for malformed_name in malformed_names:
+        path = SCORELINE_BLOCKS_DIR / malformed_name
+        try:
+            result = parse_scoreline(path.read_text(encoding="utf-8"))
+        except Exception as exc:  # noqa: BLE001 — a relaxed/broken parser must
+            # still be reported by name, never crash the self-test uncontrolled
+            print(
+                f"self-test FAIL: scoreline malformed fixture {malformed_name!r} "
+                f"raised instead of recording UNPARSEABLE: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+            continue
+        if result != UNPARSEABLE:
+            print(
+                f"self-test FAIL: scoreline malformed fixture {malformed_name!r} "
+                f"did not record UNPARSEABLE — got {result!r} instead",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # D-13 no-retry proof: exactly one parse_scoreline invocation for one
+    # malformed input, and the caller (_build_scoreline_row) records
+    # UNPARSEABLE across every field rather than a partial score.
+    counter = {"n": 0}
+    real_parse_scoreline = globals()["parse_scoreline"]
+
+    def _counting_parse_scoreline(text: str):
+        counter["n"] += 1
+        return real_parse_scoreline(text)
+
+    globals()["parse_scoreline"] = _counting_parse_scoreline
+    try:
+        row = _build_scoreline_row("d13-check", "no terminal block anywhere in this text")
+    finally:
+        globals()["parse_scoreline"] = real_parse_scoreline
+
+    if counter["n"] != 1:
+        print(
+            f"self-test FAIL: scoreline D-13 no-retry check — parse_scoreline "
+            f"was invoked {counter['n']} times for one malformed input, expected exactly 1",
+            file=sys.stderr,
+        )
+        ok = False
+    if row["bands"] != [UNPARSEABLE] * len(_CRITERIA) or row["judge_verdict"] != UNPARSEABLE:
+        print(
+            f"self-test FAIL: scoreline D-13 no-retry check — malformed row "
+            f"did not fully record UNPARSEABLE: {row!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_blinding() -> bool:
+    """D-15 item 4: D-05 blinding integrity, plus the D-14 real-data cross-check.
+
+    Packet contents: a freshly-built packet holds exactly the two expected
+    files, has no repository-root ancestor, and — walking up the packet
+    dir's own ancestor chain, the only relative-traversal surface reachable
+    from a cwd of the packet dir without external knowledge of the repo's
+    absolute path — never surfaces the committed blinding key or scoreline
+    file by name or resolved path. The copied rubric is byte-identical to
+    its source, and JUDGE_PROMPT carries none of the forbidden comparison-
+    revealing substrings.
+
+    D-14 cross-check: `derive_pass_fail` over the six real frozen
+    `tests/quality-baseline-v8.7/scorelines.tsv` rows agrees with all six
+    judge-stated verdicts (hand-checked at plan time, 164-02-PLAN.md).
+    A synthetic disagreement row proves the DISAGREE branch is reachable —
+    without it, that branch would never fire and the item would be vacuous.
+    """
+    ok = True
+
+    fixture_analysis = (
+        "# Fixture analysis\n\nOffline fixture text for the blinding self-test.\n"
+    )
+    try:
+        packet_dir = build_judge_packet(fixture_analysis)
+    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+        print(
+            f"self-test FAIL: blinding build_judge_packet raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+
+    entries = sorted(p.name for p in packet_dir.iterdir())
+    if entries != ["analysis.md", "validation-rubric.md"]:
+        print(
+            f"self-test FAIL: blinding packet dir has wrong entries: {entries!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    resolved = packet_dir.resolve()
+    repo_root_resolved = REPO_ROOT.resolve()
+    if resolved == repo_root_resolved or repo_root_resolved in resolved.parents:
+        print(
+            f"self-test FAIL: blinding packet dir {resolved} has the repository "
+            "root as an ancestor",
+            file=sys.stderr,
+        )
+        ok = False
+
+    blinding_key = BASELINE_DIR / "blinding-key.tsv"
+    scorelines_path = BASELINE_DIR / "scorelines.tsv"
+    forbidden_names = {"blinding-key.tsv", "scorelines.tsv"}
+    forbidden_resolved = {blinding_key.resolve(), scorelines_path.resolve()}
+
+    probe = resolved
+    seen_forbidden = False
+    for _ in range(12):
+        try:
+            entries_here = list(probe.iterdir())
+        except (PermissionError, NotADirectoryError, FileNotFoundError):
+            entries_here = []
+        names_here = {p.name for p in entries_here}
+        if names_here & forbidden_names:
+            seen_forbidden = True
+            break
+        resolved_here = {p.resolve() for p in entries_here}
+        if resolved_here & forbidden_resolved:
+            seen_forbidden = True
+            break
+        if probe.parent == probe:
+            break
+        probe = probe.parent
+
+    if seen_forbidden:
+        print(
+            "self-test FAIL: blinding — the committed blinding key or scoreline "
+            "file is reachable by walking up the packet dir's own ancestor chain",
+            file=sys.stderr,
+        )
+        ok = False
+
+    rubric_src = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+    if (packet_dir / "validation-rubric.md").read_bytes() != rubric_src.read_bytes():
+        print(
+            "self-test FAIL: blinding — copied rubric is not byte-identical to its source",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if not _check_judge_prompt_unblinded():
+        print(
+            "self-test FAIL: blinding — JUDGE_PROMPT contains a forbidden "
+            "comparison-leaking substring",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # D-14 cross-check over the six real frozen scorelines.
+    try:
+        rows = read_scorelines(scorelines_path)
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: blinding read_scorelines raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+    if len(rows) != 6:
+        print(
+            f"self-test FAIL: blinding expected 6 rows from {scorelines_path}, "
+            f"got {len(rows)}",
+            file=sys.stderr,
+        )
+        ok = False
+    for row in rows:
+        derived = derive_pass_fail(row["bands"])
+        if derived != row["judge_verdict"]:
+            print(
+                f"self-test FAIL: blinding D-14 cross-check — row {row['id']!r} "
+                f"derived {derived!r} but judge stated {row['judge_verdict']!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Synthetic disagreement row: without this, the DISAGREE branch is
+    # unreachable over the six real rows (which all agree) and this item
+    # would be vacuous.
+    disagree_bands = ["Rigorous"] * len(_CRITERIA)
+    disagree_judge_verdict = "FAIL"
+    disagree_derived = derive_pass_fail(disagree_bands)
+    disagree_agreement = "AGREE" if disagree_derived == disagree_judge_verdict else "DISAGREE"
+    if disagree_agreement != "DISAGREE":
+        print(
+            "self-test FAIL: blinding D-14 synthetic disagreement row did not "
+            f"disagree (derived={disagree_derived!r}, judge stated="
+            f"{disagree_judge_verdict!r})",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
 def _self_test_tracer_path() -> bool:
     """Tracer edge (D-15 item 6 lineage): the whole offline chain, no live call.
 
@@ -1153,20 +1426,20 @@ def _self_test_tracer_path() -> bool:
 def self_test() -> int:
     """Run the offline deterministic self-test. Returns 0 on pass, 1 on failure.
 
-    No `claude` process is spawned and no network is used. Task 1 seeded two
-    sub-checks (catalog parse positive/negative); Task 3 adds the judge-prompt
-    blinding check and the tracer_path end-to-end offline chain. Plan 02 adds
-    the remaining D-15 sub-checks (guardrail negative fixtures, scoreline
-    parser positive/negative, tabulation arithmetic, baseline-fixture
-    integrity) to this function.
+    No `claude` process is spawned and no network is used. Task 1 (Plan 01)
+    seeded two background sub-checks (catalog parse positive/negative);
+    Plan 01 Task 3 added the tracer_path end-to-end offline chain. Plan 02
+    Task 1 wired D-15 items 1-2 (guardrail_a, guardrail_b); Task 2 wires
+    D-15 items 3-4 (scoreline, blinding — which now also owns the judge-
+    prompt-unblinded check a prior revision ran as its own background
+    sub-check); Task 3 adds D-15 items 5-6 (tabulation, baseline). The six
+    D-15 items each print their own labelled PASS/FAILED result line.
     """
     all_passed = True
 
     if not _self_test_catalog_parse_positive():
         all_passed = False
     if not _self_test_catalog_parse_negative():
-        all_passed = False
-    if not _self_test_judge_prompt_unblinded():
         all_passed = False
 
     # D-15 item 1: Extraction guardrail A (never the top-level result field).
@@ -1182,6 +1455,20 @@ def self_test() -> int:
         print("self-test: guardrail_b sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: guardrail_b sub-check PASSED")
+
+    # D-15 item 3: Strict D-12/D-13 scoreline terminal-block parsing.
+    if not _selftest_scoreline():
+        all_passed = False
+        print("self-test: scoreline sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: scoreline sub-check PASSED")
+
+    # D-15 item 4: D-05 blinding integrity + D-14 real-data cross-check.
+    if not _selftest_blinding():
+        all_passed = False
+        print("self-test: blinding sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: blinding sub-check PASSED")
 
     if not _self_test_tracer_path():
         all_passed = False

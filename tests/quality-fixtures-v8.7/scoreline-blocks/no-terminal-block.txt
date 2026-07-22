@@ -1,0 +1,8 @@
+**Criterion 1: Identify Essence**
+Quoted span: "The core question is whether to migrate the billing service to gRPC."
+Band: **Rigorous**
+Justification: The Essence Statement names the core decision.
+
+The response was truncated before the judge produced its closing scoreline block -- this
+fixture has no delimited terminal block anywhere in the text, proving parse_scoreline returns
+UNPARSEABLE rather than raising or guessing a score from the rationale prose.

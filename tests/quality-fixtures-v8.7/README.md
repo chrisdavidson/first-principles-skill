@@ -108,6 +108,44 @@ confirmed after every step).
 | A | `gen-stub-only.jsonl` — temporarily restored the removed `task_notification` line | Both interpreters exit 1, printing `self-test FAIL: guardrail_a negative (gen-stub-only.jsonl) did not raise ...` |
 | B | `gen-multi-dispatch.jsonl` — temporarily deleted the second dispatch's `Agent` `tool_use` line | Both interpreters exit 1, printing `self-test FAIL: guardrail_b negative (gen-multi-dispatch.jsonl) did not raise on two distinct Agent dispatches` |
 
+## Fault-injection proofs recorded (Task 2)
+
+All three proofs below were run under **both** `python3` and `python3 -O`, then reverted;
+`tests/quality-baseline-v8.7/` verified untouched throughout (`git diff --quiet`).
+
+| Injection | Mutation | Expected / observed |
+|---|---|---|
+| C | Relaxed `parse_scoreline`'s length check to accept `len(_CRITERIA)` lines (5-criteria-shaped inputs) in addition to the correct `len(_CRITERIA) + 1` | Both interpreters exit 1. **Finding, not a plan mismatch:** the failure surfaces on `missing-verdict.txt` (6 lines: six correct criteria, no verdict), not on `five-criteria.txt` — `five-criteria.txt`'s own C6-prefix check inside the criteria loop already independently catches the relaxation (its 6th line is `Verdict: PASS`, which does not match the `C6: ` prefix, so it still correctly returns `UNPARSEABLE`); `missing-verdict.txt` has no such independent check and instead crashes with `IndexError` reading past the end of `lines` for the now-unreachable verdict line — self-test catches the crash and reports it by name rather than propagating an unhandled traceback. |
+| D | `build_judge_packet` writes a third file into the packet dir | Both interpreters exit 1, printing `self-test FAIL: blinding build_judge_packet raised unexpectedly: ValueError('...does not hold exactly the two expected files...')` (the pre-existing internal check in `build_judge_packet` fires; the `tracer_path` sub-check fails for the same reason since it also calls `build_judge_packet`) |
+| E | The synthetic D-14 disagreement row's `disagree_judge_verdict` flipped from `"FAIL"` to `"PASS"` (agreeing with the derived `PASS`) | Both interpreters exit 1, printing `self-test FAIL: blinding D-14 synthetic disagreement row did not disagree (derived='PASS', judge stated='PASS')` |
+
+## `scoreline-blocks/` — D-12/D-13 strict terminal-block parser fixtures
+
+Plain judge-response text fixtures (not `.jsonl` — these test the scoreline text parser, not the
+transport, so synthetic text is appropriate here per `164-CONTEXT.md`'s Claude's Discretion note:
+"Synthetic fixtures remain fine for the *scoreline parser* negatives, where the input is a
+judge's text block and no transport is involved.").
+
+| File | Shape | Expected `parse_scoreline` result |
+|---|---|---|
+| `well-formed.txt` | Six criteria + verdict, standard rationale | `(["Rigorous","Sound","Rigorous","Sound","Sound","Rigorous"], "PASS")` |
+| `well-formed-prose-mentions-bands.txt` | Same block; rationale prose above it deliberately uses all four band names in a sentence | Same tuple as above — proves the parser reads only inside the delimited block, never the rationale (the `_composer_structure_hits` incidental-match failure mode, RR-77-08) |
+| `five-criteria.txt` | Only C1-C5 + verdict (5 criterion lines) | `UNPARSEABLE` |
+| `seven-criteria.txt` | C1-C7 + verdict (7 criterion lines) | `UNPARSEABLE` |
+| `invalid-band-vocab.txt` | Six criteria, C4 band is `Excellent` (outside the four-name vocabulary) | `UNPARSEABLE` |
+| `missing-verdict.txt` | Six correct criteria, no `Verdict:` line | `UNPARSEABLE` |
+| `extra-line-in-block.txt` | Six criteria with an unrelated `Note:` line inserted between C3 and C4, plus a verdict | `UNPARSEABLE` |
+| `no-terminal-block.txt` | Rationale text only, no delimited block anywhere | `UNPARSEABLE` |
+
+`_selftest_scoreline` additionally proves D-13 (no retry after `UNPARSEABLE`): it monkeypatches
+`parse_scoreline` with a call-counting wrapper, invokes `_build_scoreline_row` with a malformed
+input, and asserts `parse_scoreline` was invoked exactly once and every field of the returned row
+is `UNPARSEABLE` — never a partial score.
+
+## `baseline-truncated/` — D-15 item 6 fixture
+
+Added by this plan's Task 3; see that task's own section below once it lands.
+
 ## A code fix this fixture-building work surfaced (Rule 1)
 
 Building `gen-single-dispatch.jsonl` from real donor data (retaining the donor's own

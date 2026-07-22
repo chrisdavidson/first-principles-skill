@@ -1,0 +1,41 @@
+**Criterion 1: Identify Essence**
+Quoted span: "The core question is whether to migrate the billing service to gRPC."
+Band: **Rigorous**
+Justification: The Essence Statement names the core decision and each success criterion is a
+pass/fail structural test against the Conclusion section.
+
+**Criterion 2: Challenge Assumptions**
+Quoted span: "Assumption: the team already knows Protobuf. Type: untested belief."
+Band: **Sound**
+Justification: The table is populated but one Verification cell is generic.
+
+**Criterion 3: Establish Ground Truths**
+Quoted span: "GT-1: gRPC requires HTTP/2 (source: grpc.io docs)."
+Band: **Rigorous**
+Justification: Every GT-ID is stable and cited with a specific source.
+
+**Criterion 4: Reason Upward**
+Quoted span: "GT-1 + GT-3 -> HTTP/2 multiplexing removes the head-of-line blocking issue."
+Band: **Sound**
+Justification: Chains exist for every conclusion but one intermediate step restates a GT.
+
+**Criterion 5: Validate**
+Quoted span: "Confidence: MEDIUM -- GT-4? (team bandwidth) is the weakest input."
+Band: **Sound**
+Justification: Confidence ratings exist on chains but one GT-N? input is not individually named.
+
+**Criterion 6: Conclusion-to-Ground-Truth Traceability**
+Quoted span: "Recommended approach: migrate incrementally, service by service (Chain 2)."
+Band: **Rigorous**
+Justification: Every Conclusion claim traces to a specific named chain and introduces no new
+reasoning.
+
+=== QUALITY-HARNESS-SCORELINE-START ===
+C1: Rigorous
+C2: Sound
+C3: Rigorous
+C4: Sound
+C5: Sound
+C6: Rigorous
+Verdict: PASS
+=== QUALITY-HARNESS-SCORELINE-END ===
