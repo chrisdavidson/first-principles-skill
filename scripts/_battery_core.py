@@ -2057,11 +2057,13 @@ def self_test_boundary() -> int:
     _rr7708_composer = _composer_structure_hits(_rr7708_extracted)
     _rr7708_result = classify(_rr7708_fired, _rr7708_composer)
 
-    # Positive counter-check (WR-01 / C-04): prove CEILING=4 is load-bearing.
-    # composer_hits == 3 == CEILING - 1, meaning at a hypothetical CEILING=3 the
-    # n==1 early-return would be suppressed (3 >= 3) and classify() would return
-    # full-composer — a regression.  Asserting composer == CEILING - 1 makes the
-    # "correct at CEILING=4" clause non-vacuous.
+    # Positive counter-check (WR-01 / C-04): prove the ceiling is load-bearing.
+    # composer_hits == 3 == CEILING - 1, meaning at a hypothetical CEILING one
+    # lower the n==1 early-return would be suppressed (3 >= 3) and classify()
+    # would return full-composer — a regression.  Asserting composer ==
+    # CEILING - 1 makes the "correct at the current ceiling value" clause
+    # non-vacuous.  Stated relatively, not against a literal: TEARDOWN-02
+    # released the freeze on the value (docs/v8.7-constraint-teardown.md).
     _rr7708_assertions_ok = (
         _rr7708_composer == 3                                     # exact composer hits
         and _rr7708_fired == {"pre-mortem"}                       # exactly n==1
