@@ -68,7 +68,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
-| `check-body-budget.py` | pre-commit | `python3 scripts/check-body-budget.py` | Agent body ≤ 644 lines |
+| `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
 | `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files. **Not wired into CI** — manual audit tool. |
 
 ### Measurement and routing gates
@@ -90,12 +90,12 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 **Internal helpers** (underscore-prefixed, not directly invoked):
 
-- `_battery_core.py` — battery core logic; home of `MIN_HEADER_HITS=2` and `_COMPOSER_FOCUS_CEILING=4` constants and the `self_test_boundary()` sentinels
+- `_battery_core.py` — battery core logic; home of `MIN_HEADER_HITS=2` and `_COMPOSER_FOCUS_CEILING=4` constants and the `self_test_boundary()` sentinels. The ceiling's freeze on retuning was released under TEARDOWN-02 (`docs/v8.7-constraint-teardown.md`); its value stays 4.
 - `_skill_io.py` — shared I/O utilities for skill validation scripts
 
 ## Pre-commit hooks
 
-Two gates fire on `git commit`: the **body-budget gate** (blocks if the agent body exceeds 644 lines) and the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged).
+One gate fires on `git commit`: the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged). The agent body's line count is still reported by `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate was retired under TEARDOWN-01. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the evidence and the standing record.
 
 Install one of the following mechanisms. **Do not enable both — they are mutually exclusive at the Git level.**
 
@@ -105,7 +105,7 @@ Install one of the following mechanisms. **Do not enable both — they are mutua
 ./scripts/install-hooks.sh
 ```
 
-This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, running both gates on every commit.
+This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, running the sync-drift gate on every commit.
 
 **Option B — `core.hooksPath`:**
 
@@ -113,7 +113,7 @@ This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, runni
 git config core.hooksPath .githooks
 ```
 
-This points Git at the `.githooks/pre-commit` entry point, which also runs both gates.
+This points Git at the `.githooks/pre-commit` entry point, which also runs the sync-drift gate.
 
 **Bypass** for intentional in-progress work:
 
@@ -144,7 +144,7 @@ Keep these invariants intact when authoring or editing:
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes, one level deep — no `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
+- The agent body (`first-principles/agents/first-principles.md`)'s line count is reported (not enforced) by `scripts/check-body-budget.py` — the 644-line gate was retired under TEARDOWN-01; see [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
 
 ## CI gates
 

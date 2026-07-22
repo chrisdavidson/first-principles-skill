@@ -1,7 +1,7 @@
 <!-- generated-by: gsd-doc-writer -->
 # Testing
 
-This document covers how to run every CI gate and the two pre-commit gates locally (including offline `--self-test` modes), the anti-masking measurement invariants, and what each pre-commit gate checks.
+This document covers how to run every CI gate and the pre-commit gate locally (including offline `--self-test` modes), the anti-masking measurement invariants, and what the pre-commit gate checks. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the retirement of the body-budget gate that used to fire alongside it.
 
 For the full at-a-glance gate inventory — every gate mapped to its owning script and job name — see [docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
@@ -108,6 +108,8 @@ python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --r
 
 The offline `--self-test` asserts the scoring and parsing logic without invoking Claude. The full live run against `tests/step0-fixture-catalog.md` is the canonical manual baseline (see `tests/step0-baseline-v6.4.md`).
 
+**K-of-5 is a recorded observation, not a gate (TEARDOWN-02).** A K/N result from the full live run is recorded as an observation — it may not gate a phase. The S-P04 (five-whys) vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5, and v8.6 with no source change to the five-whys technique between those measurements; at N=5, noise equals effect. The tool's documented invocation and pass-threshold flag are unchanged — what changed is the authority a phase gives the resulting verdict. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
+
 ### TRACE-03 — check-traceability
 
 Traceability matrix gate. The `--self-test` mode runs in-process fixtures and named sentinels with no disk I/O beyond the script itself.
@@ -146,20 +148,20 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-Two gates fire on every `git commit` when a hook mechanism is installed. For how to install the hooks, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
+One gate fires on every `git commit` when a hook mechanism is installed — the sync-drift gate. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
-### Body-budget gate
+### Body-size report (not a gate — TEARDOWN-01)
 
 **Owning script:** `scripts/check-body-budget.py`
 
-Blocks the commit if `first-principles/agents/first-principles.md` exceeds 644 lines. The limit is a hard-coded constant (`MAX_LINES: int = 644` in the script) — changing it requires a code edit plus commit.
+Reports the current line count of `first-principles/agents/first-principles.md` on every run and always exits 0 — it no longer blocks a commit. The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`), retained for its fitted-limit provenance rather than as an enforced bound.
 
 ```sh
-python3 scripts/check-body-budget.py           # check the live agent body
-python3 scripts/check-body-budget.py --self-test  # run offline pass/fail fixtures
+python3 scripts/check-body-budget.py           # report the live agent body's line count
+python3 scripts/check-body-budget.py --self-test  # run offline reporting-correctness fixtures
 ```
 
-If the gate trips, reduce `shared/spine/SKILL-body.md` or the `shared/agent/` phase fragments before committing.
+This is no longer a gate to fix — the historical remediation advice (reduce `shared/spine/SKILL-body.md` or the `shared/agent/` phase fragments) no longer applies to a commit path. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the evidence and the standing record.
 
 ### Sync-drift gate
 
@@ -183,22 +185,22 @@ git commit --no-verify
 The routing battery's focused-output scoring depends on two constants in `scripts/_battery_core.py`:
 
 ```
-MIN_HEADER_HITS: int = 2       # scripts/_battery_core.py, line 1393
-_COMPOSER_FOCUS_CEILING: int = 4   # scripts/_battery_core.py, line 1415
+MIN_HEADER_HITS: int = 2       # scripts/_battery_core.py, line 2156
+_COMPOSER_FOCUS_CEILING: int = 4   # scripts/_battery_core.py, line 2178
 ```
 
 **`MIN_HEADER_HITS=2`** — the minimum number of distinct technique-category header hits required for the battery to classify an output as a focused single-technique response. An output must match at least two distinct headers from the technique's category set; a single incidental match does not trigger focused-mode classification. This prevents false-positive focused classifications from incidental prose matches.
 
 **`_COMPOSER_FOCUS_CEILING=4`** — the threshold above which the battery classifies an output as full-composer rather than focused single-technique. An output scoring four or more composer-structure hits is classified `full-composer`; an output scoring fewer hits may still be classified as focused if the single-technique signal is strong enough. This ceiling distinguishes a focused output that touches a few structural elements from a full multi-technique composition.
 
-Both constants are locked by the `self_test_boundary()` sentinels inside `scripts/_battery_core.py`, which run as part of the BATT-06 `--self-test` CI gate. Any edit to either constant will trip those sentinels. Do not change these values without understanding the full downstream impact on the battery classification logic.
+The two constants are no longer locked the same way. `MIN_HEADER_HITS` is still asserted by a literal drift guard inside the `self_test_boundary()` sentinels in `scripts/_battery_core.py` (BATT-06 `--self-test`) — any edit to it trips those sentinels directly. `_COMPOSER_FOCUS_CEILING`'s literal drift guards were retired under TEARDOWN-02 (`docs/v8.7-constraint-teardown.md`); the freeze on retuning its value is released, though the value itself stays 4. What survives is RR-77-08's **relative** load-bearing check (`_rr7708_composer == _COMPOSER_FOCUS_CEILING - 1`), which proves the ceiling still constrains classification without pinning its literal value. Honest caveat: because that check's fixture has its own `composer_hits` count fixed at 3, the relative check still binds the value to 4 in practice until the fixture is recalibrated — a future retune is a two-part edit, not a one-line change.
 
 ## Quick reference
 
 Run all offline gates locally in sequence:
 
 ```sh
-python3 scripts/check-body-budget.py
+python3 scripts/check-body-budget.py    # reports body size; not a gate (TEARDOWN-01)
 python3 scripts/check-agent.py --self-test
 python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
 python3 scripts/check-links.py
