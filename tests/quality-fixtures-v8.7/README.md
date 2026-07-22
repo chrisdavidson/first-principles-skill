@@ -244,3 +244,63 @@ existence.
 Plan 04 extends the baseline-fixture-integrity self-test item (D-15 item 6) to the regenerated
 `tests/quality-baseline-v8.7/`-successor baseline once it exists; see `baseline-truncated/`'s own
 section (added by this plan's Task 3) for that item's fixture.
+
+## `analyses-conformant.md` / `analyses-defective.md` — D-18 defect-detector fixtures (Plan 03)
+
+**Synthetic, hand-authored — no transport involved**, per the plan's own discretion note: the
+resolution requiring real captures applies to transport fixtures only (where synthetic data
+would be blind to the actual production shape); these two are text-only Markdown analyses
+authored directly against `shared/spine/references/output-template.md`'s six-section contract,
+so there is no transport shape to be blind to.
+
+Both fixtures share the same skeleton — two labelled Derivation Chains (`Chain A`, `Chain B`),
+a three-row Assumptions Table, and a three-claim Conclusion section — so that the only
+difference between them is the three deliberate defects `analyses-defective.md` introduces.
+
+**`analyses-conformant.md` — expected record (all nine numeric fields pinned):**
+
+| Field | Value |
+|---|---|
+| `conclusion_claims` | 3 |
+| `untraced_claims` | 0 |
+| `untraced_flag` | 0 |
+| `verdict_cells` | 3 |
+| `nonconforming_verdict_cells` | 0 |
+| `verdict_flag` | 0 |
+| `chain_blocks` | 2 |
+| `malformed_chain_blocks` | 0 |
+| `chain_flag` | 0 |
+
+**`analyses-defective.md` — expected record (all nine numeric fields pinned):**
+
+| Field | Value | Defect |
+|---|---|---|
+| `conclusion_claims` | 3 | — |
+| `untraced_claims` | 1 | the "Key insight" claim names no chain identifier and no ground-truth pair |
+| `untraced_flag` | 1 | — |
+| `verdict_cells` | 3 | — |
+| `nonconforming_verdict_cells` | 1 | assumption A2's Verdict cell reads `**Unverified — flagged**`, not Accept/Challenge/Discard |
+| `verdict_flag` | 1 | — |
+| `chain_blocks` | 2 | — |
+| `malformed_chain_blocks` | 1 | `Chain B` is presented as a two-row table with no `GT-N → [intermediate] → [conclusion]` line |
+| `chain_flag` | 1 | — |
+
+Both expected records are asserted field-by-field (not just the three flags) in
+`_selftest_defects` — a flags-only assertion would pass while the per-claim counts D-20 depends
+on drifted silently. Three structural sub-assertions (also in `_selftest_defects`) build
+in-memory variants of `analyses-conformant.md`/`analyses-defective.md` rather than adding more
+files on disk: a one-hash-heading-depth variant and an appendix-after-section-6 variant of the
+conformant fixture must reproduce its exact record, and a variant of the defective fixture with
+section 4 deleted entirely must raise `SectionResolutionError` rather than reporting zero
+malformed chains.
+
+**Fault-injection proof (Task 2), both interpreters:**
+
+| Injection | What changed | `python3` exit | `python3 -O` exit |
+|---|---|---|---|
+| H | one Verdict cell in `analyses-conformant.md` changed to an outcome sentence | 1 | 1 |
+| I | the second arrow removed from one chain line in `analyses-conformant.md` | 1 | 1 |
+| J | section 4 deleted from `analyses-defective.md` | 1 | 1 |
+
+Every row reverted to a clean `exit 0` / seven-`PASSED`-lines self-test run before the plan
+moved to its next step.

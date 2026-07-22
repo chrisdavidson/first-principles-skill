@@ -2009,6 +2009,160 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
 
 
 
+_DEFECT_FIXTURE_CONFORMANT = FIXTURES_DIR / "analyses-conformant.md"
+_DEFECT_FIXTURE_DEFECTIVE = FIXTURES_DIR / "analyses-defective.md"
+
+# Expected records (all nine numeric fields, not just the three flags — a
+# flags-only assertion would pass while the per-claim counts D-20 depends on
+# drifted silently).
+_EXPECTED_CONFORMANT_RECORD = {
+    "conclusion_claims": 3,
+    "untraced_claims": 0,
+    "untraced_flag": 0,
+    "verdict_cells": 3,
+    "nonconforming_verdict_cells": 0,
+    "verdict_flag": 0,
+    "chain_blocks": 2,
+    "malformed_chain_blocks": 0,
+    "chain_flag": 0,
+}
+_EXPECTED_DEFECTIVE_RECORD = {
+    "conclusion_claims": 3,
+    "untraced_claims": 1,
+    "untraced_flag": 1,
+    "verdict_cells": 3,
+    "nonconforming_verdict_cells": 1,
+    "verdict_flag": 1,
+    "chain_blocks": 2,
+    "malformed_chain_blocks": 1,
+    "chain_flag": 1,
+}
+
+
+def _defect_numeric_fields(record: dict) -> dict:
+    return {k: record[k] for k in _EXPECTED_CONFORMANT_RECORD}
+
+
+def _selftest_defects() -> bool:
+    """D-18 item 7: fixtures and structural edges (the pinned corpus vector
+    is added by Plan 03 Task 3's calibration step).
+
+    A conformant fixture must report zero on all three families; a
+    deliberately defective fixture must report non-zero on all three, with
+    every one of the nine numeric fields pinned. Three structural
+    sub-assertions pin the corpus shapes most likely to break under a
+    future edit: one-hash heading depth, an appendix after section 6, and a
+    document missing section 4 raising rather than scoring clean.
+    """
+    ok = True
+
+    conformant_text = _DEFECT_FIXTURE_CONFORMANT.read_text(encoding="utf-8")
+    defective_text = _DEFECT_FIXTURE_DEFECTIVE.read_text(encoding="utf-8")
+
+    try:
+        conformant_record = detect_defects(conformant_text, "analyses-conformant")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: defects conformant fixture raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+    got = _defect_numeric_fields(conformant_record)
+    if got != _EXPECTED_CONFORMANT_RECORD:
+        print(
+            f"self-test FAIL: defects conformant record expected "
+            f"{_EXPECTED_CONFORMANT_RECORD!r}, got {got!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    try:
+        defective_record = detect_defects(defective_text, "analyses-defective")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: defects defective fixture raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+    got_d = _defect_numeric_fields(defective_record)
+    if got_d != _EXPECTED_DEFECTIVE_RECORD:
+        print(
+            f"self-test FAIL: defects defective record expected "
+            f"{_EXPECTED_DEFECTIVE_RECORD!r}, got {got_d!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Structural sub-assertion: one-hash heading depth resolves identically.
+    one_hash_text = re.sub(r"^## (\d+\.)", r"# \1", conformant_text, flags=re.MULTILINE)
+    try:
+        one_hash_record = detect_defects(one_hash_text, "analyses-conformant-one-hash")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: defects one-hash-depth variant raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        if _defect_numeric_fields(one_hash_record) != _EXPECTED_CONFORMANT_RECORD:
+            print(
+                "self-test FAIL: defects one-hash-depth variant record differs from "
+                "the two-hash original",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Structural sub-assertion: an appendix after section 6 does not change the record.
+    appendix_text = (
+        conformant_text
+        + "\n\n## Appendix: Fixture Appendix\n\n"
+        + "Fixture appendix content that must not affect the record.\n"
+    )
+    try:
+        appendix_record = detect_defects(appendix_text, "analyses-conformant-appendix")
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: defects appendix variant raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        if _defect_numeric_fields(appendix_record) != _EXPECTED_CONFORMANT_RECORD:
+            print(
+                "self-test FAIL: defects appendix variant record differs from the "
+                "no-appendix original",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Structural sub-assertion: a document missing section 4 entirely raises
+    # the named section-resolution exception rather than reporting zero
+    # malformed chains.
+    section4_start = defective_text.index("## 4. Derivation Chains")
+    section5_start = defective_text.index("## 5. Abandoned Reasoning")
+    missing_section4_text = defective_text[:section4_start] + defective_text[section5_start:]
+    try:
+        detect_defects(missing_section4_text, "analyses-defective-missing-section4")
+    except SectionResolutionError:
+        pass
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: defects missing-section-4 variant raised the wrong "
+            f"exception type: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        print(
+            "self-test FAIL: defects missing-section-4 variant did not raise — a "
+            "document the parser cannot read must fail loudly, never score clean",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
 def _self_test_tracer_path() -> bool:
     """Tracer edge (D-15 item 6 lineage): the whole offline chain, no live call.
 
@@ -2167,6 +2321,14 @@ def self_test() -> int:
         print("self-test: baseline sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: baseline sub-check PASSED")
+
+    # D-18 item 7: mechanical defect detector (fixtures, structural edges,
+    # and the pinned D-19 calibration vector).
+    if not _selftest_defects():
+        all_passed = False
+        print("self-test: defects sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: defects sub-check PASSED")
 
     return 0 if all_passed else 1
 
