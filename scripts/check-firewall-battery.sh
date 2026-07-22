@@ -13,16 +13,23 @@
 # Exits:  0 = FIREWALL GREEN (all gates pass)
 #         1 = FIREWALL RED   (one or more gates failed)
 #
-# Gates (15):
+# Gates (16):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    GATE-01
-#   BATT-06   TRACE-03      COLLIDE-01
+#   BATT-06   TRACE-03      COLLIDE-01    QUAL-01
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# The first 13 are registered through the `gate` helper below; the final two
+# The first 14 are registered through the `gate` helper below; the final two
 # (INVARIANT-CHECK, FROZEN-EVIDENCE) are inline checks that each increment the
 # same PASS/FAIL/TOTAL tally rather than going through `gate`, for a reported
-# total of 15.
+# total of 16.
+#
+# Composition change (HARNESS-01, Phase 164 -- docs/v8.7-quality-baseline-freeze.md):
+# the battery gained one gate, QUAL-01, the promoted quality-measurement
+# harness's offline self-test (scripts/check-quality-harness.py --self-test),
+# which is what keeps the harness's eight labelled self-test items running
+# after Phase 164 ends. Battery composition moved 15 -> 16. A gate that
+# appears silently is indistinguishable from a gate that was always there.
 #
 # Composition change (TEARDOWN-01, docs/v8.7-constraint-teardown.md): the
 # body-budget gate was retired -- scripts/check-body-budget.py is now
@@ -151,6 +158,14 @@ gate "COLLIDE-01" \
     "python3 scripts/check-install-collisions.py --self-test" \
     "python3 scripts/check-install-collisions.py"
 
+# QUAL-01 — quality-measurement harness offline self-test: extraction
+#           guardrails A/B, scoreline parser, blinding integrity, tabulation
+#           arithmetic, baseline-fixture integrity, defect detector, run-layer
+#           composition (HARNESS-01, Phase 164)
+gate "QUAL-01" \
+    "check-quality-harness.py --self-test" \
+    "python3 scripts/check-quality-harness.py --self-test"
+
 # body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
 # Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
 # reports rather than passes/fails. Its exit status does not influence PASS/FAIL/TOTAL.
@@ -197,6 +212,13 @@ fi
 # git diff --quiet over all frozen baseline + capture paths must produce zero
 # diff.  Any non-zero result means a frozen file has uncommitted modifications,
 # which is a D-04 violation.
+#
+# Coverage change (HARNESS-01, Phase 164): four paths added to this existing
+# check, not a second frozen-evidence gate registration. The first three are
+# the phase's own new frozen evidence (prompt catalog, probe evidence,
+# regenerated baseline). The fourth, tests/quality-baseline-v8.7, goes one
+# path beyond those three because D-11 requires that older corpus stay
+# byte-frozen and nothing else in this battery enforces it.
 # ---------------------------------------------------------------------------
 git diff --quiet -- \
     'tests/step0-baseline-v*.md' \
@@ -207,6 +229,10 @@ git diff --quiet -- \
     'tests/routing-battery-baseline-v7.11.md' \
     'tests/focused-output-baseline-v*.md' \
     'tests/sub-skill-routing-baseline-v*.md' \
+    'tests/quality-catalog-v8.7.md' \
+    'tests/quality-probe-v8.7' \
+    'tests/quality-baseline-v8.7-regenerated' \
+    'tests/quality-baseline-v8.7' \
     2>/dev/null
 _frozen_exit=$?
 
