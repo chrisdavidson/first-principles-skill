@@ -1083,7 +1083,10 @@ def self_test_boundary() -> int:
     # narrowed over-routing on this semantically-pre-mortem prompt; all 5 runs
     # stay below MIN_HEADER_HITS=2 → full-composer on every run, 5/5).
     # RR-80-01 re-pointed to v7.8 (Phase 119 CONF-04): S-N04 5/5 non-blocking.
-    # _COMPOSER_FOCUS_CEILING lock: any edit to this threshold will now trip this gate.
+    # Threshold lock released under TEARDOWN-01/02 per docs/v8.7-constraint-teardown.md;
+    # this conjunct now asserts the S-N04 vector, the two MIN_HEADER_HITS counter-checks
+    # (run1 over-routes, run4 stays below), and the pre-mortem pattern-count drift guard
+    # of 9 — not a ceiling threshold edit.
     # v7.11 (Phase 131 RECON-02): S-N04 over-routes on runs 1-3 (counts 3,3,2 >= MIN)
     # and stays full-composer on runs 4-5 (counts 1,1 < MIN) → 2/5 full-composer FAIL,
     # NON_BLOCKING per D-16. Honest carried vector — not forced to a clean all-below.
