@@ -17,6 +17,7 @@ Usage:
 Exit codes:
     0  successful report (or self-test passed) — this script has no fail path
        tied to the body's line count
+    1  self-test fixture failure (counting/reporting logic bug)
     2  environment error (Python <3.12, agent body file not found)
 
 --self-test: runs in-process fixtures pinning the reporting's counting
@@ -30,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import tempfile
 from pathlib import Path
 
 
@@ -97,27 +99,51 @@ def _validate_body_file() -> None:
     print(f"check-body-budget: REPORT — {_report_body_text(text)}")
 
 
-def _run_self_test() -> None:
+def _run_self_test() -> int:
     """Run in-process fixtures pinning reporting correctness, not gating.
 
-    Independent of the real generated body — uses pure strings, never reads
-    AGENT_FILE. Asserts:
+    Mostly independent of the real generated body — uses pure strings, and
+    only substitutes a temp-file fixture for ``AGENT_FILE`` in the final
+    ``_validate_body_file`` check below (restored before returning). Checks:
       - count arithmetic at the empty and single-line edges,
       - the splitlines() trailing-newline contract (644 either way),
-      - no fail path at 643, 644, 645, and 1288 lines — the last two are
-        load-bearing: under the retired gate they would have been failures.
+      - no fail path at 643, 644, 645, and 1288 lines via ``_report_body_text``
+        — the last two are load-bearing: under the retired gate they would
+        have been failures,
+      - no fail path in ``_validate_body_file`` itself (the function an
+        actual caller reaches, not just the pure-string helper it calls) at
+        1288 lines — a re-introduced ``sys.exit(1)`` there would otherwise go
+        uncaught.
 
-    Uses plain ``assert`` for internal consistency checks rather than an
-    accumulate-then-exit-nonzero pattern — this module has no fail path tied
-    to the body's size, and these assertions can only trip on a genuine bug
-    in the counting/reporting logic itself, never on the fixtures' sizes.
+    Uses an accumulate-then-return-nonzero pattern rather than bare
+    ``assert``. Under ``python3 -O`` the Python compiler strips every
+    ``assert`` statement from the bytecode, so a bare-assert self-test would
+    print every "— correct" line and ``PASS`` and exit 0 even if
+    ``_count_lines`` (or the no-fail-path contract) were genuinely broken —
+    the checks would be inert exactly when they are needed most. Accumulating
+    failures into a list and returning a nonzero exit code does not depend on
+    the ``assert`` statement to signal failure, so it fires identically under
+    both ``python3`` and ``python3 -O``.
     """
-    # Count arithmetic at the empty and single-line edges.
-    assert _count_lines("") == 0, f'empty string: expected 0, got {_count_lines("")}'
-    print("check-body-budget --self-test: empty string counts 0 — correct")
+    failures: list[str] = []
 
-    assert _count_lines("x") == 1, f'single line "x": expected 1, got {_count_lines("x")}'
-    print('check-body-budget --self-test: single line "x" counts 1 — correct')
+    def _expect(cond: bool, ok_msg: str, fail_msg: str) -> None:
+        if cond:
+            print(f"check-body-budget --self-test: {ok_msg} — correct")
+        else:
+            failures.append(fail_msg)
+
+    # Count arithmetic at the empty and single-line edges.
+    _expect(
+        _count_lines("") == 0,
+        "empty string counts 0",
+        f'empty string: expected 0, got {_count_lines("")}',
+    )
+    _expect(
+        _count_lines("x") == 1,
+        'single line "x" counts 1',
+        f'single line "x": expected 1, got {_count_lines("x")}',
+    )
 
     # splitlines() trailing-newline contract: 644 lines, with and without a
     # trailing newline, both count 644. A newline-counting implementation
@@ -125,18 +151,15 @@ def _run_self_test() -> None:
     terminated_644 = "x\n" * 644
     unterminated_644 = "\n".join(["x"] * 644)  # exactly 644 lines, no trailing newline
 
-    assert _count_lines(terminated_644) == 644, (
-        f"644-line fixture (trailing newline): expected 644, got {_count_lines(terminated_644)}"
+    _expect(
+        _count_lines(terminated_644) == 644,
+        "644-line fixture (trailing newline) counts 644",
+        f"644-line fixture (trailing newline): expected 644, got {_count_lines(terminated_644)}",
     )
-    print(
-        "check-body-budget --self-test: 644-line fixture (trailing newline) counts 644 — correct"
-    )
-
-    assert _count_lines(unterminated_644) == 644, (
-        f"644-line fixture (no trailing newline): expected 644, got {_count_lines(unterminated_644)}"
-    )
-    print(
-        "check-body-budget --self-test: 644-line fixture (no trailing newline) counts 644 — correct"
+    _expect(
+        _count_lines(unterminated_644) == 644,
+        "644-line fixture (no trailing newline) counts 644",
+        f"644-line fixture (no trailing newline): expected 644, got {_count_lines(unterminated_644)}",
     )
 
     # No fail path: fixtures at 643, 644, 645 and 1288 lines are each reported
@@ -146,10 +169,44 @@ def _run_self_test() -> None:
         fixture = "x\n" * n
         report = _report_body_text(fixture)  # must return normally — no fail path exists
         actual_count = _count_lines(fixture)
-        assert actual_count == n, f"{n}-line fixture: count mismatch, expected {n}, got {actual_count}"
-        print(f"check-body-budget --self-test: {n}-line fixture reported with zero failures: {report}")
+        _expect(
+            actual_count == n,
+            f"{n}-line fixture reported with zero failures: {report}",
+            f"{n}-line fixture: count mismatch, expected {n}, got {actual_count}",
+        )
+
+    # Exercise _validate_body_file itself — the function an actual caller
+    # reaches — not just _report_body_text. A re-introduced sys.exit(1) tied
+    # to the body's size in _validate_body_file would not be caught by the
+    # checks above, since none of them call it.
+    global AGENT_FILE
+    _original_agent_file = AGENT_FILE
+    with tempfile.TemporaryDirectory() as tmpdir:
+        over_budget_file = Path(tmpdir) / "over-budget-fixture.md"
+        over_budget_file.write_text("x\n" * 1288, encoding="utf-8")
+        AGENT_FILE = over_budget_file
+        try:
+            _validate_body_file()
+        except SystemExit as exc:
+            failures.append(
+                "_validate_body_file() on a 1288-line fixture unexpectedly called "
+                f"sys.exit({exc.code}) — the retired gate must never fail on size"
+            )
+        else:
+            print(
+                "check-body-budget --self-test: _validate_body_file() on a "
+                "1288-line fixture returned with zero failures — correct"
+            )
+        finally:
+            AGENT_FILE = _original_agent_file
+
+    if failures:
+        for msg in failures:
+            sys.stderr.write(f"check-body-budget --self-test FAIL: {msg}\n")
+        return 1
 
     print("check-body-budget --self-test: PASS")
+    return 0
 
 
 def main() -> None:
@@ -170,8 +227,7 @@ def main() -> None:
     _require_python_version()
 
     if args.self_test:
-        _run_self_test()
-        return
+        sys.exit(_run_self_test())
 
     _validate_body_file()
 
