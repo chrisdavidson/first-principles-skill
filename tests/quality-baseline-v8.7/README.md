@@ -6,6 +6,20 @@ spot-check (`docs/v8.7-correctness-spot-check.md`); it is also the evidence base
 `docs/v8.6-quality-ab-experiment.md`'s blind A/B verdict, from which these six analyses,
 their scores, and the blinding key originate unchanged.
 
+## Scope note (Phase 164, D-11)
+
+This directory remains the evidence base for `docs/v8.7-correctness-spot-check.md` and for the
+v8.6 blind A/B verdict, both of which cite these exact paths. It is **no longer the comparison
+basis** for the milestone's post-fix measurement (MEASURE-01) — that comparison uses
+`tests/quality-baseline-v8.7-regenerated/` instead, because that baseline was generated from
+freshly authored prompts that Phase 166's post-fix re-measure re-generates from, and this
+directory's own original prompts are unrecoverable (see that directory's README). These same
+six analyses were additionally re-judged through the scripted `claude -p` judge channel Phase
+164 built, and that re-judged scoreline lives in the regenerated baseline's own directory
+(`rejudge-scorelines.tsv`) — so the scoreline in this directory now also serves as
+reproducibility evidence, alongside its original role as provenance for the two documents named
+above. The files in this directory are unchanged by Phase 164 and stay unchanged.
+
 ## Provenance
 
 | | |
