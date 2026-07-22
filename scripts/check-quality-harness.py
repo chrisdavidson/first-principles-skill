@@ -76,6 +76,10 @@ from pathlib import Path
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
 DEFAULT_CATALOG: Path = REPO_ROOT / "tests" / "quality-catalog-v8.7.md"
+# Plan 02 real-capture guardrail fixtures (D-15 items 1-2). Built from whole
+# donor lines under tests/step0-captures-v8.6/ — see
+# tests/quality-fixtures-v8.7/README.md for per-fixture provenance.
+FIXTURES_DIR: Path = REPO_ROOT / "tests" / "quality-fixtures-v8.7"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -403,6 +407,22 @@ def _tool_result_text(content) -> str:
     return ""
 
 
+def _read_top_level_result(jsonl_path: Path) -> str:
+    """Return a capture's top-level `result`/`result` field text (Guardrail A fixture helper).
+
+    Used only by the guardrail_a self-test item to prove the extracted
+    analysis is decisively longer than — and never equal to — the
+    orchestrator-paraphrase channel Guardrail A must never read from. If a
+    capture holds more than one terminal `result` event (an artifact seen in
+    some archived donor captures), the last one is used.
+    """
+    value = ""
+    for obj in _iter_jsonl_objects(jsonl_path):
+        if obj.get("type") == "result":
+            value = obj.get("result") or value
+    return value
+
+
 def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
     """Extract the verbatim subagent analysis from a claude -p stream-json capture.
 
@@ -469,8 +489,17 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
             break
 
     # A4 cross-check: when both channels are non-empty and disagree, raise
-    # rather than silently trusting one.
-    if secondary and secondary != primary:
+    # rather than silently trusting one. A launch-acknowledgement stub is NOT
+    # an independent copy of the analysis to cross-check against — it is the
+    # exact short-circuit Guardrail A must ignore (D-15 item 1: "a fixture
+    # where the launch stub is present, proving the harness does not extract
+    # it"). Real donor evidence under tests/step0-captures-v8.6/ shows this
+    # stub shape is the tool_result's actual content for this dispatch id in
+    # a different call site's transport (check-step0-live.py), distinct from
+    # the D-22 probe's own full-text-plus-tail shape; treating the stub as a
+    # disagreement source would raise on the ordinary case Guardrail A exists
+    # to survive, not the anomalous one A4 exists to catch.
+    if secondary and _LAUNCH_ACK_PHRASE not in secondary and secondary != primary:
         raise AgentAnalysisExtractionError(
             "primary (task_notification.summary) and cross-check "
             "(tail-stripped tool_result) channels disagree for "
@@ -881,6 +910,155 @@ def _self_test_judge_prompt_unblinded() -> bool:
     return True
 
 
+def _selftest_guardrail_a() -> bool:
+    """D-15 item 1 (Guardrail A): real-capture positive + negative fixtures.
+
+    Positive (`gen-single-dispatch.jsonl`, donor
+    tests/step0-captures-v8.6/S-P04-run4.jsonl, retaining that donor's
+    launch-acknowledgement `tool_result` line verbatim): extraction succeeds,
+    the returned text is long, does not itself contain the launch-
+    acknowledgement stub phrase, and is decisively longer than (never equal
+    to) the stream's top-level `result` field — the orchestrator-paraphrase
+    channel Guardrail A must never read from.
+
+    Negative (`gen-stub-only.jsonl`, the same donor lines minus the completed
+    `task_notification` line): with no completed notification for the
+    dispatch, the only payload reachable is the launch-acknowledgement stub
+    itself — extraction must raise, never silently fall back to returning
+    the stub text as if it were the analysis.
+    """
+    ok = True
+    single_path = FIXTURES_DIR / "gen-single-dispatch.jsonl"
+    stub_path = FIXTURES_DIR / "gen-stub-only.jsonl"
+
+    try:
+        analysis = extract_agent_analysis(
+            single_path, subagent_type="first-principles:first-principles"
+        )
+    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+        print(
+            f"self-test FAIL: guardrail_a positive extraction raised "
+            f"unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+
+    if len(analysis) <= 2000:
+        print(
+            f"self-test FAIL: guardrail_a positive analysis is too short "
+            f"({len(analysis)} chars, expected > 2000)",
+            file=sys.stderr,
+        )
+        ok = False
+    if _LAUNCH_ACK_PHRASE in analysis:
+        print(
+            "self-test FAIL: guardrail_a positive analysis contains the "
+            f"launch-acknowledgement phrase {_LAUNCH_ACK_PHRASE!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    result_field = _read_top_level_result(single_path)
+    if analysis == result_field or len(analysis) <= 2 * len(result_field):
+        print(
+            "self-test FAIL: guardrail_a positive analysis is not "
+            "decisively longer than the stream's top-level result field "
+            f"(analysis len={len(analysis)}, result field len={len(result_field)})",
+            file=sys.stderr,
+        )
+        ok = False
+
+    try:
+        extract_agent_analysis(stub_path, subagent_type="first-principles:first-principles")
+        print(
+            "self-test FAIL: guardrail_a negative (gen-stub-only.jsonl) did "
+            "not raise — a capture with no completed task_notification "
+            "must never return the launch-acknowledgement stub as the "
+            "analysis",
+            file=sys.stderr,
+        )
+        ok = False
+    except AgentAnalysisExtractionError:
+        pass
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: guardrail_a negative raised the wrong "
+            f"exception type: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_guardrail_b() -> bool:
+    """D-15 item 2 (Guardrail B): dispatch-count rejection, tool_result-count boundary.
+
+    Negative (`gen-multi-dispatch.jsonl` — the donor lines of
+    tests/step0-captures-v8.6/S-P04-run4.jsonl followed by the donor lines
+    of tests/step0-captures-v8.6/S-P04-run5.jsonl, two distinct Agent
+    tool_use ids): extraction must raise naming the dispatch count found,
+    never concatenate or guess which dispatch is the real one.
+
+    Boundary (`gen-internal-tools.jsonl`, donor
+    tests/step0-captures-v8.6/S-P03-run1.jsonl): one dispatch plus several
+    unrelated `tool_result` events produced by the subagent's own internal
+    tool calls (a Skill dispatch, a file Read, two Bash calls) — these must
+    NOT cause rejection. Rejecting on `tool_result` count rather than
+    Agent-dispatch count is exactly the false-rejection failure this item
+    exists to catch.
+    """
+    ok = True
+    multi_path = FIXTURES_DIR / "gen-multi-dispatch.jsonl"
+    internal_path = FIXTURES_DIR / "gen-internal-tools.jsonl"
+
+    try:
+        extract_agent_analysis(multi_path, subagent_type="first-principles:first-principles")
+        print(
+            "self-test FAIL: guardrail_b negative (gen-multi-dispatch.jsonl) "
+            "did not raise on two distinct Agent dispatches",
+            file=sys.stderr,
+        )
+        ok = False
+    except MultipleAgentDispatchError as exc:
+        if "2" not in str(exc):
+            print(
+                f"self-test FAIL: guardrail_b negative raised but did not "
+                f"name the dispatch count found: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: guardrail_b negative raised the wrong "
+            f"exception type: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    try:
+        boundary_analysis = extract_agent_analysis(
+            internal_path, subagent_type="first-principles:first-principles"
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(
+            "self-test FAIL: guardrail_b boundary (gen-internal-tools.jsonl) "
+            "raised unexpectedly — unrelated tool_result events from the "
+            f"subagent's own internal tool calls must not cause rejection: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+    if len(boundary_analysis) <= 2000:
+        print(
+            f"self-test FAIL: guardrail_b boundary analysis is too short "
+            f"({len(boundary_analysis)} chars, expected > 2000)",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
 def _self_test_tracer_path() -> bool:
     """Tracer edge (D-15 item 6 lineage): the whole offline chain, no live call.
 
@@ -990,6 +1168,21 @@ def self_test() -> int:
         all_passed = False
     if not _self_test_judge_prompt_unblinded():
         all_passed = False
+
+    # D-15 item 1: Extraction guardrail A (never the top-level result field).
+    if not _selftest_guardrail_a():
+        all_passed = False
+        print("self-test: guardrail_a sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: guardrail_a sub-check PASSED")
+
+    # D-15 item 2: Extraction guardrail B (dispatch count, not tool_result count).
+    if not _selftest_guardrail_b():
+        all_passed = False
+        print("self-test: guardrail_b sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: guardrail_b sub-check PASSED")
+
     if not _self_test_tracer_path():
         all_passed = False
         print("self-test: tracer_path sub-check FAILED", file=sys.stderr)
