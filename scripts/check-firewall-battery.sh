@@ -160,29 +160,30 @@ printf "[INFO] %-14s  %s\n" "body-size" "$_body_size_report"
 # ---------------------------------------------------------------------------
 # Invariant re-confirm (D-07) — byte-frozen constants in _battery_core.py.
 #
-# BATT-06 and STEP0-08 self-tests already internally assert these six constants;
+# BATT-06 and STEP0-08 self-tests already internally assert these five constants;
 # this block provides explicit value-greps as a direct double-check:
-#   pre-mortem=9  fishbone=7  inversion=13  trade-off=10
-#   MIN_HEADER_HITS=2  _COMPOSER_FOCUS_CEILING=4
+#   pre-mortem=9  fishbone=7  inversion=13  trade-off=10  MIN_HEADER_HITS=2
+# The composer-focus ceiling constant was removed from this block when its
+# freeze was released under TEARDOWN-02 per docs/v8.7-constraint-teardown.md —
+# its value is unchanged (still 4) but no longer asserted here.
 # No constant is changed here (re-confirm only, D-07).
 # ---------------------------------------------------------------------------
 python3 - <<'PYEOF' >/dev/null 2>&1
 import sys
 sys.path.insert(0, 'scripts')
-from _battery_core import _TECHNIQUE_CATEGORIES as T, MIN_HEADER_HITS as MH, _COMPOSER_FOCUS_CEILING as CC
+from _battery_core import _TECHNIQUE_CATEGORIES as T, MIN_HEADER_HITS as MH
 assert len(T['pre-mortem'])==9,  f"pre-mortem expected 9, got {len(T['pre-mortem'])}"
 assert len(T['fishbone'])==7,    f"fishbone expected 7, got {len(T['fishbone'])}"
 assert len(T['inversion'])==13,  f"inversion expected 13, got {len(T['inversion'])}"
 assert len(T['trade-off'])==10,  f"trade-off expected 10, got {len(T['trade-off'])}"
 assert MH==2,  f"MIN_HEADER_HITS expected 2, got {MH}"
-assert CC==4,  f"_COMPOSER_FOCUS_CEILING expected 4, got {CC}"
 PYEOF
 _inv_exit=$?
 
 TOTAL=$((TOTAL + 1))
 if [ "$_inv_exit" -eq 0 ]; then
     printf "[PASS] %-14s  %s\n" "INVARIANT-CHECK" \
-        "pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2 _COMPOSER_FOCUS_CEILING=4"
+        "pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2"
     PASS=$((PASS + 1))
 else
     printf "[FAIL] %-14s  %s\n" "INVARIANT-CHECK" \
