@@ -1078,11 +1078,11 @@ def self_test_boundary() -> int:
     # (Phase 117, Plan 01, 2026-06-24) — the DIAG-01-prescribed marker recalibration.
     _rr8001_pm_pattern_count = len(_TECHNIQUE_CATEGORIES["pre-mortem"])
 
-    # Positive counter-check: run1=1 >= 1 proves the detector is alive — any of
-    # the 9 markers can fire; the v7.8 result is ≤ 1 on all runs (Phase-118 prose fix
-    # narrowed over-routing on this semantically-pre-mortem prompt; all 5 runs
-    # stay below MIN_HEADER_HITS=2 → full-composer on every run, 5/5).
-    # RR-80-01 re-pointed to v7.8 (Phase 119 CONF-04): S-N04 5/5 non-blocking.
+    # Positive counter-check: run1=3 >= MIN_HEADER_HITS=2 proves the detector is
+    # alive on S-N04 text (over-routes on runs 1-3), while run4=1 < MIN keeps the
+    # counter-check two-sided. RR-80-01 re-pointed v7.8 -> v7.11 (Phase 131
+    # RECON-02): S-N04 2/5 full-composer FAIL, NON_BLOCKING per D-16 (see the
+    # asserted vector and disposition six lines below).
     # Threshold lock released under TEARDOWN-02 per docs/v8.7-constraint-teardown.md;
     # this conjunct now asserts the S-N04 vector, the two MIN_HEADER_HITS counter-checks
     # (run1 over-routes, run4 stays below), and the pre-mortem pattern-count drift guard
