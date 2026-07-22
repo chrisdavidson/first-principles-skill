@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 16 offline gate commands, captures each exit code, and prints a
+# Runs all 15 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED verdict. A GREEN result is the hard authorization gate
 # for the Phase-129/130 live runs (D-01). VAL-01 (claude plugin validate) is a
 # CLI schema check that spends ZERO model tokens and is explicitly permitted
