@@ -134,7 +134,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | BATT-06 | `check-routing-battery.py --self-test` | Offline merged dual-signal routing-battery self-test (boundary + focused-output; deterministic, no live session) — owns the honest-state and anti-masking sentinels detailed in the [Routing battery](#routing-battery) section |
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
-| TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; matrix.json is gitignored so only --self-test runs in CI) |
+| TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; only --self-test runs in CI — the `emit` subcommand is a manual regeneration step. `matrix.json` is tracked as of TEARDOWN-03, docs/v8.7-constraint-teardown.md.) |
 | COLLIDE-01 | `check-install-collisions.py --self-test` | Offline dual-install name-collision self-test — detects skill/agent name collisions between plugin (`first-principles/`) and monolith (`first-principles-thinking/`) install surfaces (D-02: relaxes VAL-04's monolith exclusion for the NAME axis only; VAL-04 owns the trigger 4-gram axis, this gate owns the name-collision axis — orthogonal concerns; absent monolith dir is vacuously clean; deterministic, no live session) |
 
 ### Pre-commit gates
@@ -183,6 +183,10 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   ```
 - **`docs/history/`** — frozen per-milestone REQUIREMENTS.md / ROADMAP.md /
   MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3).
+
+`.planning/phases/82-traceability-matrix-and-gap-findings/matrix.json` is git-tracked as of
+TEARDOWN-03 (`docs/v8.7-constraint-teardown.md`) rather than gitignored, so regenerating the
+matrix via the `emit` subcommand above now dirties a tracked file, not an ignored one.
 
 ## Step 0 measurement harness
 
