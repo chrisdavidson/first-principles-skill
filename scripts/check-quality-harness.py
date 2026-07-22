@@ -2007,8 +2007,6 @@ def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
     Path(out_path).write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-
-
 _DEFECT_FIXTURE_CONFORMANT = FIXTURES_DIR / "analyses-conformant.md"
 _DEFECT_FIXTURE_DEFECTIVE = FIXTURES_DIR / "analyses-defective.md"
 
@@ -2038,21 +2036,44 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "chain_flag": 1,
 }
 
+# D-19 pinned observed calibration vector: the detector's OBSERVED per-
+# document output over the six frozen analyses in
+# tests/quality-baseline-v8.7/analyses/, in filename order, produced
+# 2026-07-22 by `--detect-defects tests/quality-baseline-v8.7/analyses`
+# and committed unedited to
+# tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv (see
+# calibration-v8.6-corpus.md for the full finding). These are the values
+# the detector actually produced, NOT the judge-reported figures (6/6, 6/6,
+# 4/6) — pinning the observed vector makes a future change to the
+# detector's definitions move it loudly rather than silently.
+_CALIBRATION_ANALYSIS_ORDER = (
+    "condA-P1",
+    "condA-P2",
+    "condA-P3",
+    "condB-P1",
+    "condB-P2",
+    "condB-P3",
+)
+_CALIBRATION_UNTRACED_FLAGS = [1, 1, 1, 1, 1, 1]
+_CALIBRATION_VERDICT_FLAGS = [1, 1, 1, 1, 1, 1]
+_CALIBRATION_CHAIN_FLAGS = [1, 1, 1, 1, 1, 1]
+
 
 def _defect_numeric_fields(record: dict) -> dict:
     return {k: record[k] for k in _EXPECTED_CONFORMANT_RECORD}
 
 
 def _selftest_defects() -> bool:
-    """D-18 item 7: fixtures and structural edges (the pinned corpus vector
-    is added by Plan 03 Task 3's calibration step).
+    """D-18 item 7: fixtures, structural edges, and the pinned D-19 corpus vector.
 
     A conformant fixture must report zero on all three families; a
     deliberately defective fixture must report non-zero on all three, with
     every one of the nine numeric fields pinned. Three structural
     sub-assertions pin the corpus shapes most likely to break under a
     future edit: one-hash heading depth, an appendix after section 6, and a
-    document missing section 4 raising rather than scoring clean.
+    document missing section 4 raising rather than scoring clean. Finally,
+    the detector's observed per-document rollups over the six frozen
+    analyses are pinned against the committed calibration TSV (D-19).
     """
     ok = True
 
@@ -2159,6 +2180,62 @@ def _selftest_defects() -> bool:
             file=sys.stderr,
         )
         ok = False
+
+    # D-19: the pinned observed calibration vector over the six frozen
+    # analyses, reproducing the three document-level rollups committed in
+    # tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv.
+    corpus_dir = BASELINE_DIR / "analyses"
+    corpus_files = sorted(corpus_dir.glob("*.md"))
+    corpus_ids = [f.stem for f in corpus_files]
+    if corpus_ids != list(_CALIBRATION_ANALYSIS_ORDER):
+        print(
+            f"self-test FAIL: defects calibration corpus file set changed — "
+            f"expected {_CALIBRATION_ANALYSIS_ORDER!r}, got {corpus_ids!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        untraced_flags: list[int] = []
+        verdict_flags: list[int] = []
+        chain_flags: list[int] = []
+        calibration_crashed = False
+        for f in corpus_files:
+            try:
+                rec = detect_defects(f.read_text(encoding="utf-8"), f.stem)
+            except Exception as exc:  # noqa: BLE001
+                print(
+                    f"self-test FAIL: defects calibration corpus raised "
+                    f"unexpectedly on {f}: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+                calibration_crashed = True
+                break
+            untraced_flags.append(rec["untraced_flag"])
+            verdict_flags.append(rec["verdict_flag"])
+            chain_flags.append(rec["chain_flag"])
+        if not calibration_crashed:
+            if untraced_flags != _CALIBRATION_UNTRACED_FLAGS:
+                print(
+                    f"self-test FAIL: defects calibration untraced_flag vector "
+                    f"expected {_CALIBRATION_UNTRACED_FLAGS!r}, got {untraced_flags!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if verdict_flags != _CALIBRATION_VERDICT_FLAGS:
+                print(
+                    f"self-test FAIL: defects calibration verdict_flag vector "
+                    f"expected {_CALIBRATION_VERDICT_FLAGS!r}, got {verdict_flags!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if chain_flags != _CALIBRATION_CHAIN_FLAGS:
+                print(
+                    f"self-test FAIL: defects calibration chain_flag vector "
+                    f"expected {_CALIBRATION_CHAIN_FLAGS!r}, got {chain_flags!r}",
+                    file=sys.stderr,
+                )
+                ok = False
 
     return ok
 
