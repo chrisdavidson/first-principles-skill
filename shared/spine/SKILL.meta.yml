@@ -3,7 +3,7 @@ agent:
   description: "Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) internally. ALWAYS delegate to the first-principles agent when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Do not perform inline analysis for these. Not for routine code review, debugging, performance optimization, or general Q&A."
   license: MIT
   metadata:
-    version: "8.0.0"
+    version: "8.6.0"
   disallowedTools: [Write, Edit]
   maxTurns: 30
   AskUserQuestion: permitted
