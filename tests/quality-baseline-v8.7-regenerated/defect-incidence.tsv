@@ -1,0 +1,7 @@
+analysis_id	conclusion_claims	untraced_claims	untraced_flag	verdict_cells	nonconforming_verdict_cells	verdict_flag	chain_blocks	malformed_chain_blocks	chain_flag
+Q-P1-run1	10	5	1	10	10	1	5	5	1
+Q-P1-run2	10	10	1	11	11	1	1	1	1
+Q-P2-run1	5	4	1	14	0	0	1	1	1
+Q-P2-run2	8	2	1	10	10	1	6	4	1
+Q-P3-run1	6	5	1	9	9	1	4	2	1
+Q-P3-run2	7	2	1	14	5	1	10	8	1

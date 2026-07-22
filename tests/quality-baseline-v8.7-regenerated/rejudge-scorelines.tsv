@@ -1,0 +1,7 @@
+packet_id	C1	C2	C3	C4	C5	C6	judge_verdict	derived_verdict	agreement	source_id
+P02	Rigorous	Sound	Rigorous	Sound	Sound	Sound	PASS	PASS	AGREE	condA-P1
+P05	Rigorous	Hand-wavy	Sound	Sound	Sound	Sound	PASS	PASS	AGREE	condA-P2
+P03	Rigorous	Sound	Sound	Hand-wavy	Sound	Sound	PASS	PASS	AGREE	condA-P3
+P01	Rigorous	Sound	Sound	Sound	Sound	Rigorous	PASS	PASS	AGREE	condB-P1
+P06	Rigorous	Hand-wavy	Sound	Sound	Hand-wavy	Sound	FAIL	FAIL	AGREE	condB-P2
+P04	Rigorous	Sound	Sound	Sound	Sound	Rigorous	PASS	PASS	AGREE	condB-P3

@@ -1,0 +1,7 @@
+packet_id	C1	C2	C3	C4	C5	C6	judge_verdict	derived_verdict	agreement	source_id
+P03	Rigorous	Sound	Rigorous	Sound	Sound	Sound	PASS	PASS	AGREE	Q-P1-run1
+P04	Rigorous	Sound	Rigorous	Sound	Sound	Rigorous	PASS	PASS	AGREE	Q-P1-run2
+P02	Rigorous	Sound	Rigorous	Sound	Sound	Rigorous	PASS	PASS	AGREE	Q-P2-run1
+P05	Rigorous	Sound	Rigorous	Sound	Sound	Sound	PASS	PASS	AGREE	Q-P2-run2
+P06	Rigorous	Hand-wavy	Sound	Sound	Sound	Sound	PASS	PASS	AGREE	Q-P3-run1
+P01	Rigorous	Sound	Rigorous	Sound	Sound	Rigorous	PASS	PASS	AGREE	Q-P3-run2

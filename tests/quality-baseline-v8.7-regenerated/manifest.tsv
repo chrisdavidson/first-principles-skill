@@ -1,0 +1,19 @@
+index	kind	source_id	run_index	dest_path	duration_s	outcome	redispatch_reason
+1	generation	Q-P1	1	/tmp/qh-run/captures/Q-P1-run1.jsonl	147.9	completed	
+2	generation	Q-P1	2	/tmp/qh-run/captures/Q-P1-run2.jsonl	173.9	completed	
+3	generation	Q-P2	1	/tmp/qh-run/captures/Q-P2-run1.jsonl	252.2	completed	
+4	generation	Q-P2	2	/tmp/qh-run/captures/Q-P2-run2.jsonl	159.9	completed	
+5	generation	Q-P3	1	/tmp/qh-run/captures/Q-P3-run1.jsonl	149.2	completed	
+6	generation	Q-P3	2	/tmp/qh-run/captures/Q-P3-run2.jsonl	207.9	completed	
+7	judge	Q-P1-run1	1	/tmp/qh-run/judgments/P03-judge.jsonl	119.2	completed	
+8	judge	Q-P1-run2	1	/tmp/qh-run/judgments/P04-judge.jsonl	117.6	completed	
+9	judge	Q-P2-run1	1	/tmp/qh-run/judgments/P02-judge.jsonl	104.5	completed	
+10	judge	Q-P2-run2	1	/tmp/qh-run/judgments/P05-judge.jsonl	81.9	completed	
+11	judge	Q-P3-run1	1	/tmp/qh-run/judgments/P06-judge.jsonl	144.4	completed	
+12	judge	Q-P3-run2	1	/tmp/qh-run/judgments/P01-judge.jsonl	104.8	completed	
+13	rejudge	condA-P1	1	/tmp/qh-run/rejudge-judgments/P02-judge.jsonl	108.1	completed	
+14	rejudge	condA-P2	1	/tmp/qh-run/rejudge-judgments/P05-judge.jsonl	131.8	completed	
+15	rejudge	condA-P3	1	/tmp/qh-run/rejudge-judgments/P03-judge.jsonl	98.6	completed	
+16	rejudge	condB-P1	1	/tmp/qh-run/rejudge-judgments/P01-judge.jsonl	114.9	completed	
+17	rejudge	condB-P2	1	/tmp/qh-run/rejudge-judgments/P06-judge.jsonl	111.8	completed	
+18	rejudge	condB-P3	1	/tmp/qh-run/rejudge-judgments/P04-judge.jsonl	125.0	completed	

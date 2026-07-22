@@ -128,6 +128,11 @@ DEFAULT_CATALOG: Path = REPO_ROOT / "tests" / "quality-catalog-v8.7.md"
 FIXTURES_DIR: Path = REPO_ROOT / "tests" / "quality-fixtures-v8.7"
 SCORELINE_BLOCKS_DIR: Path = FIXTURES_DIR / "scoreline-blocks"
 BASELINE_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7"
+# Plan 04 Task 3: the regenerated pre-fix baseline this harness's own --run/
+# --rejudge produced (D-02/D-07/D-08). check_baseline_integrity covers this
+# directory too, with its D-02 re-judge arm checked against BASELINE_DIR's
+# analyses/ (the frozen corpus it re-judged), not its own.
+REGEN_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-regenerated"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -833,6 +838,14 @@ def read_scorelines(path: Path | str) -> list[dict]:
     "judge_verdict"}. Raises ValueError naming the offending line for a row
     with fewer than 8 tab-separated columns — a truncated or malformed
     scoreline file is a loud failure, not a silently-shorter comparison.
+
+    Skips `tabulate_rows`'s own header line (`packet_id\tC1\t...`) when it is
+    the first line — a real packet ID is a shuffled identifier (`P01`, `X7`,
+    ...) and is never literally the string `"packet_id"`, so this detection
+    cannot mistake a genuine data row for a header (Plan 04 Task 3: the
+    regenerated baseline's `scorelines.tsv`/`rejudge-scorelines.tsv` are the
+    first committed files this reader parses that actually carry the header
+    `tabulate_rows` writes; the legacy frozen baseline's file has none).
     """
     path = Path(path)
     rows: list[dict] = []
@@ -841,6 +854,8 @@ def read_scorelines(path: Path | str) -> list[dict]:
         if not line.strip():
             continue
         cells = line.split("\t")
+        if lineno == 1 and cells[0] == "packet_id" and len(cells) > 1 and cells[1] == "C1":
+            continue
         if len(cells) < 1 + len(_CRITERIA) + 1:
             raise ValueError(
                 f"{path}:{lineno}: expected at least {1 + len(_CRITERIA) + 1} "
@@ -1565,7 +1580,11 @@ def _selftest_tabulation() -> bool:
     return ok
 
 
-def check_baseline_integrity(baseline_dir: Path | str) -> list[str]:
+def check_baseline_integrity(
+    baseline_dir: Path | str,
+    *,
+    rejudge_source_dir: Path | str | None = None,
+) -> list[str]:
     """D-15 item 6 body: structural integrity check for a frozen quality baseline.
 
     Returns a list of human-readable findings; an empty list means the
@@ -1580,6 +1599,17 @@ def check_baseline_integrity(baseline_dir: Path | str) -> list[str]:
       4. `blinding-key.tsv` exists and its row count equals the analysis file
          count; every row names an analysis file (by stem) that exists in
          `analyses/`.
+
+    When `rejudge_source_dir` is given (Plan 04's regenerated baseline, whose
+    D-02 re-judge arm scores the *frozen corpus*, not this directory's own
+    `analyses/`), two more checks run:
+      5. `rejudge-scorelines.tsv` exists and its data-row count equals this
+         directory's own analysis file count (D-08 fixes both arms at the
+         same cardinality — one re-judged scoreline per fresh-arm cell) and
+         every row's bands are drawn from the same vocabulary.
+      6. `rejudge-blinding-key.tsv` exists, its row count equals the analysis
+         file count, and every row names a file (by stem) that exists in
+         `rejudge_source_dir` — the frozen corpus this arm re-judged.
     """
     baseline_dir = Path(baseline_dir)
     findings: list[str] = []
@@ -1656,14 +1686,74 @@ def check_baseline_integrity(baseline_dir: Path | str) -> list[str]:
                     f"{stem!r}, which does not exist in {analyses_dir}"
                 )
 
+    if rejudge_source_dir is not None:
+        rejudge_source_dir = Path(rejudge_source_dir)
+
+        rejudge_scorelines_path = baseline_dir / "rejudge-scorelines.tsv"
+        if not rejudge_scorelines_path.is_file():
+            findings.append(f"{rejudge_scorelines_path}: does not exist")
+        else:
+            try:
+                rejudge_rows = read_scorelines(rejudge_scorelines_path)
+            except ValueError as exc:
+                findings.append(f"{rejudge_scorelines_path}: failed to parse — {exc}")
+                rejudge_rows = []
+            if len(rejudge_rows) != analysis_count:
+                findings.append(
+                    f"{rejudge_scorelines_path}: {len(rejudge_rows)} data rows but "
+                    f"{analysis_count} analysis files in {analyses_dir} — counts must match"
+                )
+            for row in rejudge_rows:
+                for idx, band in enumerate(row["bands"]):
+                    if band not in _BAND_VOCAB and band != UNPARSEABLE:
+                        findings.append(
+                            f"{rejudge_scorelines_path}: row {row['id']!r} column "
+                            f"C{idx + 1} has band {band!r}, not in the four-name "
+                            f"vocabulary or {UNPARSEABLE!r}"
+                        )
+
+        rejudge_key_path = baseline_dir / "rejudge-blinding-key.tsv"
+        if not rejudge_key_path.is_file():
+            findings.append(f"{rejudge_key_path}: does not exist")
+        else:
+            rejudge_source_stems = {p.stem for p in rejudge_source_dir.glob("*.md")}
+            rejudge_key_rows: list[tuple[str, str]] = []
+            rejudge_text = rejudge_key_path.read_text(encoding="utf-8")
+            for lineno, line in enumerate(rejudge_text.splitlines(), start=1):
+                if not line.strip():
+                    continue
+                cells = line.split("\t")
+                if len(cells) < 2:
+                    findings.append(
+                        f"{rejudge_key_path}:{lineno}: expected 2 tab-separated "
+                        f"columns, got {len(cells)}"
+                    )
+                    continue
+                rejudge_key_rows.append((cells[0], cells[1]))
+            if len(rejudge_key_rows) != analysis_count:
+                findings.append(
+                    f"{rejudge_key_path}: {len(rejudge_key_rows)} rows but "
+                    f"{analysis_count} analysis files in {analyses_dir} — counts must match"
+                )
+            for judge_id, stem in rejudge_key_rows:
+                if stem not in rejudge_source_stems:
+                    findings.append(
+                        f"{rejudge_key_path}: row {judge_id!r} names source "
+                        f"{stem!r}, which does not exist in {rejudge_source_dir}"
+                    )
+
     return findings
 
 
 def _selftest_baseline() -> bool:
-    """D-15 item 6: baseline-fixture integrity on the real baseline and a negative.
+    """D-15 item 6: baseline-fixture integrity on both real baselines and a negative.
 
     The real frozen `tests/quality-baseline-v8.7/` must report zero findings
-    — it is present, complete, and well-formed. The deliberately truncated
+    — it is present, complete, and well-formed. Plan 04's regenerated
+    `tests/quality-baseline-v8.7-regenerated/` must also report zero
+    findings, including its D-02 re-judge arm (`rejudge-scorelines.tsv` /
+    `rejudge-blinding-key.tsv`) checked against `BASELINE_DIR`'s `analyses/`
+    — the frozen corpus that arm re-judged. The deliberately truncated
     `tests/quality-fixtures-v8.7/baseline-truncated/` (4 analyses, but the
     frozen corpus's original 6-row `scorelines.tsv` left in place) must
     report at least one finding naming the row-count-versus-file-count
@@ -1676,7 +1766,18 @@ def _selftest_baseline() -> bool:
     if real_findings:
         print(
             f"self-test FAIL: baseline integrity on the real frozen baseline "
-            f"found unexpected findings: {real_findings!r}",
+            f"({BASELINE_DIR}) found unexpected findings: {real_findings!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    regen_findings = check_baseline_integrity(
+        REGEN_DIR, rejudge_source_dir=BASELINE_DIR / "analyses"
+    )
+    if regen_findings:
+        print(
+            f"self-test FAIL: baseline integrity on the regenerated baseline "
+            f"({REGEN_DIR}) found unexpected findings: {regen_findings!r}",
             file=sys.stderr,
         )
         ok = False
@@ -3117,12 +3218,18 @@ def self_test() -> int:
     else:
         print("self-test: tabulation sub-check PASSED")
 
-    # D-15 item 6: baseline-fixture integrity (real baseline + truncated negative).
+    # D-15 item 6: baseline-fixture integrity (frozen corpus + regenerated
+    # baseline + truncated negative). Plan 04 Task 3 extended this item to
+    # also cover REGEN_DIR (D-15's own text: "now covers the regenerated
+    # baseline directory as well as the frozen corpus").
     if not _selftest_baseline():
         all_passed = False
         print("self-test: baseline sub-check FAILED", file=sys.stderr)
     else:
-        print("self-test: baseline sub-check PASSED")
+        print(
+            f"self-test: baseline sub-check PASSED "
+            f"({BASELINE_DIR.name}, {REGEN_DIR.name})"
+        )
 
     # D-18 item 7: mechanical defect detector (fixtures, structural edges,
     # and the pinned D-19 calibration vector).
