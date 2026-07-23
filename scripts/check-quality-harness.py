@@ -3254,9 +3254,15 @@ def read_defect_incidence(path: Path | str) -> dict:
                 f"tab-separated columns, got {len(cells)}: {cells!r}"
             )
         record = dict(zip(_DEFECT_RECORD_FIELDS, cells))
-        untraced += int(record["untraced_flag"])
-        verdict += int(record["verdict_flag"])
-        chain += int(record["chain_flag"])
+        try:
+            untraced += int(record["untraced_flag"])
+            verdict += int(record["verdict_flag"])
+            chain += int(record["chain_flag"])
+        except ValueError as exc:
+            raise ValueError(
+                f"{path}:{lineno}: non-integer flag value in "
+                f"defect-incidence row: {exc}"
+            ) from exc
         n += 1
 
     return {"untraced": untraced, "verdict": verdict, "chain": chain, "n": n}
