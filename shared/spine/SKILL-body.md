@@ -161,14 +161,32 @@ For the full annotated template with section-by-section guidance, type definitio
 
 ## Before presenting conclusions
 
-Score the completed analysis against the rubric in the
+**Step 0 — §6→§4 closure check (run first, ahead of the rubric loop below):** Enumerate every claim
+in the Conclusion section (section 6). For each claim, confirm it names a specific Derivation Chain
+from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
+claim from section 6 — no unbacked §6 claim survives to presentation.
+
+Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output before
+the presented analysis — the same precedent the rubric's Assumption Audit table already follows
+(included in the response before the verdict blocks). The ledger is process output, **not** a seventh
+output section; the fixed six-section template shape defined above under Output format is unchanged.
+
+Ledger form:
+
+```text
+- "[claim text]" → chain C[N] ✓
+- "[claim text]" → CUT (no chain; claim removed)
+```
+
+Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the rubric
+feedback loop begin. Score the completed analysis against the rubric in the
 [Validation Rubric](references/validation-rubric.md) as a feedback loop:
 
 1. **Validate** — apply each rubric criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
 3. **Repeat** — re-score after fixing until every criterion clears the gate.
 
-Do not present conclusions until the rubric gate is cleared.
+Do not present conclusions until the closure ledger is clean AND the rubric gate is cleared.
 
 ---
 
