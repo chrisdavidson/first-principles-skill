@@ -115,8 +115,8 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 The body-budget gate that used to appear in this table (blocking a commit that pushed the
 agent body past 644 lines) was retired under TEARDOWN-01
 (`docs/v8.7-constraint-teardown.md`, the standing record) — `scripts/check-body-budget.py`
-is kept on disk and reports the body's current line count on every run, but it always exits
-0 and no longer fires as a pre-commit gate at all; 644 survives only as a historical
+is kept on disk and reports the body's current line count on every run, but it no longer
+exits nonzero because of the body's size and no longer fires as a pre-commit gate at all; 644 survives only as a historical
 reference figure inside the script.
 
 Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).

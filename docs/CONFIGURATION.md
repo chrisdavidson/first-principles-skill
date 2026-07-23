@@ -72,7 +72,8 @@ frontmatter is passed through verbatim — the source author must use quoted str
 (`first-principles/agents/first-principles.md`) on every run. `MAX_LINES = 644` survives in
 the script as a historical reference figure only — the number was recalibrated whenever it
 bound (500 → 580 → 644) rather than derived from any measured quality requirement, and the
-script now always exits 0 regardless of the body's size. **The gate that used to block a
+script no longer exits nonzero because of the body's size (it can still fail on a
+missing body file or a self-test bug — just never on the line count itself). **The gate that used to block a
 commit over this count was retired under TEARDOWN-01** (`docs/v8.7-constraint-teardown.md`,
 the standing record) — it no longer runs as part of the pre-commit hooks (see Pre-commit
 hooks below) and cannot fail a commit.
@@ -151,8 +152,8 @@ Both hook paths run one gate:
 
 A body-budget gate used to run alongside this one, blocking a commit that grew the
 generated agent body past 644 lines. It was retired under TEARDOWN-01
-(`docs/v8.7-constraint-teardown.md`) — `scripts/check-body-budget.py` now always exits 0, so
-gating a commit on it would be dead weight, and neither `scripts/git-hooks/pre-commit` nor
+(`docs/v8.7-constraint-teardown.md`) — `scripts/check-body-budget.py` no longer exits nonzero
+because of the body's size, so gating a commit on it would be dead weight, and neither `scripts/git-hooks/pre-commit` nor
 `.githooks/pre-commit` invokes it any longer. The reporter is still runnable on demand (see
 Body line budget above) for visibility into the current count.
 

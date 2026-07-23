@@ -155,7 +155,7 @@ Bypass for intentional in-progress work: `git commit --no-verify`
 
 ### Routing battery
 
-Two verifiers cover different layers of routing correctness. All issue prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and score verdicts from the `stream-json` event stream. Routing is non-deterministic — each run's K-of-N count is a recorded observation of routing behavior across a batch of runs, not a phase gate and not a single per-run pass/fail verdict.
+Two verifiers cover different layers of routing correctness. All issue prompts from a catalog file against a live `claude -p` session (one fresh session per prompt, sequential) and score verdicts from the `stream-json` event stream. Routing is non-deterministic — a live catalog run is read by its aggregate K-of-N count across repeats, not any single run's pass/fail verdict, and these live runs are developer tools rather than CI gates (only the deterministic offline `--self-test` invocations gate CI — see `check-routing-battery.py`'s BATT-06 below).
 
 **`check-routing.py`** — main agent routing battery. Scores DELEGATE / NO-DELEGATE. Pass thresholds: P-cases ≥ 11/13 DELEGATE **and** N-cases ≥ 18/20 NO-DELEGATE.
 

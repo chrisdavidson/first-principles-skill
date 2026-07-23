@@ -164,7 +164,7 @@ One gate fires on every `git commit` when a hook mechanism is installed — the 
 
 **Owning script:** `scripts/check-body-budget.py`
 
-Reports the current line count of `first-principles/agents/first-principles.md` on every run and always exits 0 — it no longer blocks a commit. The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`), retained for its fitted-limit provenance rather than as an enforced bound.
+Reports the current line count of `first-principles/agents/first-principles.md` on every run; it no longer exits nonzero because of the body's size and no longer blocks a commit. The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`), retained for its fitted-limit provenance rather than as an enforced bound.
 
 ```sh
 python3 scripts/check-body-budget.py           # report the live agent body's line count

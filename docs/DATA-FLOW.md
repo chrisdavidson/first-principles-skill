@@ -51,7 +51,7 @@ A body-budget gate used to run alongside it, blocking a commit that grew the age
 (`first-principles/agents/first-principles.md`) past 644 lines. It was retired under
 TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`, the standing record) —
 `scripts/check-body-budget.py` still reports the body's current line count on request, but
-it always exits 0 and no longer fires as part of the pre-commit hook; 644 survives only as a
+it no longer exits nonzero because of the body's size and no longer fires as part of the pre-commit hook; 644 survives only as a
 historical reference figure inside the script.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.
