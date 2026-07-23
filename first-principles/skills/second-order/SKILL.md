@@ -111,9 +111,10 @@ discipline as favourable ones.
 ## Handoff
 
 Non-contradicting 2nd- and 3rd-order effects extend the relevant Phase 4
-Derivation Chain as additional numbered steps, carrying the same evidentiary
-discipline as the steps that produced the first-order conclusion. Mark each
-extension with its order so confidence remains legible.
+Derivation Chain in place as additional order-marked steps (`→[2nd]`, `→[3rd]`),
+carrying the same evidentiary discipline as the steps that produced the
+first-order conclusion — the canonical extension form is defined in
+output-template.md §4 ("Converting structured-technique outputs into chains").
 
 Any effect that contradicts a Ground Truth (Phase 3) or undermines a premise
 the first-order conclusion depended on routes the conclusion back to Phase 2
