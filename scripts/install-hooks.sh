@@ -54,7 +54,7 @@ if HOOKS_PATH="$(git config --get core.hooksPath 2>/dev/null)"; then
         echo "install-hooks: WARNING -- 'core.hooksPath' is set to '${HOOKS_PATH}'."
         echo "  Git will use that path and IGNORE $HOOK_DST."
         echo "  To activate this installer's hook, run: git config --unset core.hooksPath"
-        echo "  (Or skip this installer and manually add the body-budget check into your custom hooks path.)"
+        echo "  (Or skip this installer and manually add the sync-drift check into your custom hooks path.)"
     } >&2
 fi
 
