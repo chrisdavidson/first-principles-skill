@@ -20,6 +20,21 @@ The full 229-row capability-to-requirement-to-test mapping is in the generated m
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
 
+> **Honesty note (v8.8, Phase 170 D-01):** `docs/requirements-matrix.md` (line 49) tiers
+> requirement **META-Q4** as `reproducible` on the strength of `scripts/git-hooks/pre-commit`
+> invoking `scripts/check-body-budget.py`. Since TEARDOWN-01 (v8.7 Phase 163) retired the
+> body-budget stanza from that hook, the hook no longer invokes the script — so the
+> `reproducible` tier is **known-stale / vacuously-green**: TRACE-03 reports coverage that no
+> longer exists, "green because nothing checks it," the exact failure mode the honesty-not-score
+> doctrine exists to prevent. The generated matrix itself is NOT hand-edited here (it carries a
+> `GENERATED — DO NOT EDIT` marker; edits are both prohibited and futile — a future `emit` regen
+> reverts them, per D-02). The actual re-tier is **deferred to the future "finish TEARDOWN-01 cleanup" unit**
+> (alongside narrowing/retiring `scripts/smoke-test-hook.sh` and fixing
+> `scripts/install-hooks.sh:57`, both same-class stale surfaces — see
+> `.planning/todos/pending/phase-167-stale-surfaces-from-163-review.md`). A reader of this
+> authoritative tracked doc now reaches a qualified-and-flagged green for META-Q4 instead of an
+> unqualified false one.
+
 ## v8.0 Terminal State (2026-07-06)
 
 **Project wrapped.** Phase 142 (Final Dispositions & Terminal Closure) is the terminal phase.
