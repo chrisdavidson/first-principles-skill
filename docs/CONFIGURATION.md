@@ -66,20 +66,22 @@ this via a custom `_QuotedStr` representer on `shared/spine/SKILL.meta.yml`. Ski
 frontmatter is passed through verbatim — the source author must use quoted strings in
 `shared/skills/<slug>/SKILL.md`.
 
-## Body line budget
+## Body line budget (report-only, gate retired)
 
-The generated agent body at `first-principles/agents/first-principles.md` must not
-exceed **644 lines** (`MAX_LINES = 644` in `scripts/check-body-budget.py`). This limit
-is a hard-coded constant — changing it requires a code edit and a reviewed commit.
+`scripts/check-body-budget.py` reports the generated agent body's line count
+(`first-principles/agents/first-principles.md`) on every run. `MAX_LINES = 644` survives in
+the script as a historical reference figure only — the number was recalibrated whenever it
+bound (500 → 580 → 644) rather than derived from any measured quality requirement, and the
+script now always exits 0 regardless of the body's size. **The gate that used to block a
+commit over this count was retired under TEARDOWN-01** (`docs/v8.7-constraint-teardown.md`,
+the standing record) — it no longer runs as part of the pre-commit hooks (see Pre-commit
+hooks below) and cannot fail a commit.
 
-Check the current count without committing:
+Check the current reported count:
 
 ```bash
 python3 scripts/check-body-budget.py
 ```
-
-The gate runs automatically on commit (see Pre-commit hooks below) and can be bypassed
-with `git commit --no-verify` for intentional in-progress work.
 
 ## Markdownlint configuration
 
@@ -142,25 +144,25 @@ both mechanisms simultaneously.
 
 ### What the pre-commit hook gates
 
-Both hook paths run identical gates:
+Both hook paths run one gate:
 
-1. **Body-budget gate** — fires only when one of the seven body-affecting paths is staged
-   (`first-principles/agents/first-principles.md`, `shared/spine/SKILL-body.md`,
-   `shared/spine/input-contract.md`, `shared/spine/SKILL.meta.yml`,
-   `shared/spine/references/output-template.md`,
-   `shared/spine/references/validation-rubric.md`, `scripts/sync-content.py`).
-   Invokes `scripts/check-body-budget.py`; blocks the commit if the body exceeds 644 lines.
-
-2. **Sync-drift gate** — always runs; invokes `scripts/sync-content.py --check`.
+1. **Sync-drift gate** — always runs; invokes `scripts/sync-content.py --check`.
    Blocks the commit if `shared/` and the generated tree have diverged.
 
-Both gates prefer `uv` when available and fall back to `python3`. Bypass both gates
-with `git commit --no-verify` for intentional in-progress work.
+A body-budget gate used to run alongside this one, blocking a commit that grew the
+generated agent body past 644 lines. It was retired under TEARDOWN-01
+(`docs/v8.7-constraint-teardown.md`) — `scripts/check-body-budget.py` now always exits 0, so
+gating a commit on it would be dead weight, and neither `scripts/git-hooks/pre-commit` nor
+`.githooks/pre-commit` invokes it any longer. The reporter is still runnable on demand (see
+Body line budget above) for visibility into the current count.
+
+The gate prefers `uv` when available and falls back to `python3`. Bypass it with
+`git commit --no-verify` for intentional in-progress work.
 
 ## CI gates
 
 All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
-The full gate inventory — all 12 CI gates plus the two pre-commit gates, with their
+The full gate inventory — all 12 CI gates plus the sync-drift pre-commit gate, with their
 owning scripts — is maintained
 canonically in [docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
 authoritative gate table.
@@ -173,7 +175,9 @@ authoritative gate table.
 - `disable-model-invocation: true` must be present on every focused-mode skill stub.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - All reference file links use forward slashes and are one level deep from the referencing file.
-- The generated agent body must not exceed 644 lines.
+- The generated agent body's line count is reported by `scripts/check-body-budget.py`, not
+  enforced — the 644-line figure is a retired, report-only regression-guard figure (gate
+  retired under TEARDOWN-01).
 - Edit `shared/` only. Never edit the generated tree (`first-principles/`) directly.
 
 ## Anti-masking measurement invariants
