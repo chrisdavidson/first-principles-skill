@@ -126,6 +126,16 @@ python3 scripts/check-traceability.py emit \
     --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
 ```
 
+### QUAL-01 — check-quality-harness
+
+Offline blind A/B quality-measurement harness self-test. Exercises extraction guardrails A/B, the scoreline parser, blinding integrity, tabulation arithmetic, baseline-fixture integrity, and the mechanical defect detector — no live Claude session required. The promoted instrument behind the pre/post-fix quality baseline (HARNESS-01, [`v8.7-quality-baseline-freeze.md`](v8.7-quality-baseline-freeze.md)).
+
+```sh
+python3 scripts/check-quality-harness.py --self-test
+```
+
+Added at v8.7 Phase 164; moved `scripts/check-firewall-battery.sh`'s offline gate count from 15 to 16.
+
 ## Routing battery (developer tools — not in CI)
 
 Two developer tools let you run live routing batteries against a Claude session. Neither is wired into CI.
