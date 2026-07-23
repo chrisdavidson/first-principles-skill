@@ -40,6 +40,8 @@ Usage:
         tests/quality-probe-v8.7/probe-P1.jsonl
     python3 scripts/check-quality-harness.py --detect-defects \\
         tests/quality-baseline-v8.7/analyses --out /tmp/qh-detect.tsv
+    python3 scripts/check-quality-harness.py --compare /tmp/qh-postfix \\
+        --baseline tests/quality-baseline-v8.7-regenerated
     python3 scripts/check-quality-harness.py --dry-run --run \\
         --rejudge tests/quality-baseline-v8.7/analyses \\
         --catalog tests/quality-catalog-v8.7.md --out /tmp/qh-dry
@@ -72,6 +74,11 @@ Options:
                          Run the D-18 mechanical defect detector (offline, no
                          `claude` invoked) over a directory of analysis .md
                          files and write the ten-column TSV to --out.
+    --compare POST_DIR   Diff POST_DIR against --baseline BASE_DIR (offline,
+                         no `claude` invoked) and print the band/pass-split/
+                         defect-incidence delta report plus a computed
+                         GOODHART_FLAG line (D-04). Requires --baseline.
+    --baseline BASE_DIR  Baseline run directory for --compare.
     --run               Run the full generate->extract->blind->judge->
                          score->tabulate->detect chain over --catalog,
                          writing scorelines.tsv, defect-incidence.tsv, a
@@ -3172,6 +3179,240 @@ def _self_test_tracer_path() -> bool:
     return ok
 
 
+# ---------------------------------------------------------------------------
+# Compare (D-04) — offline post-fix-vs-baseline delta tabulation.
+#
+# `--compare POST_DIR --baseline BASE_DIR` diffs two run directories
+# (each shaped like tests/quality-baseline-v8.7-regenerated/: a
+# scorelines.tsv plus a defect-incidence.tsv) and reports band, pass-split,
+# and defect-incidence deltas plus a computed Goodhart flag. Fully offline —
+# same class as --detect-defects, reaching no `_run_prompt_to`.
+# ---------------------------------------------------------------------------
+
+# C2 (verdict vocab), C4 (chain rigor), and C6 (conclusion traceability) are
+# the Goodhart-guard bands named in 166-CONTEXT.md D-03.3 — zero-indexed
+# positions 1, 3, 5 in `_CRITERIA`.
+_GOODHART_GUARD_INDICES = (1, 3, 5)
+
+
+def read_defect_incidence(path: Path | str) -> dict:
+    """Parse a `run_detect_defects`-shaped defect-incidence.tsv into per-family sums.
+
+    Reads the ten-column `_DEFECT_RECORD_FIELDS` shape (header row plus one
+    data row per analysis). Skips the header row when it is the first line
+    (`cells[0] == "analysis_id"`) — a real analysis id is never literally
+    that string.
+
+    Returns {"untraced": int, "verdict": int, "chain": int, "n": int} — the
+    summed `untraced_flag`/`verdict_flag`/`chain_flag` columns across every
+    data row, and `n` the row (analysis) count.
+
+    Raises ValueError naming the path on a missing file or a data row whose
+    column count differs from `len(_DEFECT_RECORD_FIELDS)` — a truncated or
+    malformed defect-incidence file is a loud failure, never a
+    silently-shorter comparison (T-164-12 discipline).
+    """
+    path = Path(path)
+    if not path.is_file():
+        raise ValueError(f"{path}: defect-incidence file not found")
+
+    untraced = 0
+    verdict = 0
+    chain = 0
+    n = 0
+    text = path.read_text(encoding="utf-8")
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if not line.strip():
+            continue
+        cells = line.split("\t")
+        if lineno == 1 and cells[0] == "analysis_id":
+            continue
+        if len(cells) != len(_DEFECT_RECORD_FIELDS):
+            raise ValueError(
+                f"{path}:{lineno}: expected {len(_DEFECT_RECORD_FIELDS)} "
+                f"tab-separated columns, got {len(cells)}: {cells!r}"
+            )
+        record = dict(zip(_DEFECT_RECORD_FIELDS, cells))
+        untraced += int(record["untraced_flag"])
+        verdict += int(record["verdict_flag"])
+        chain += int(record["chain_flag"])
+        n += 1
+
+    return {"untraced": untraced, "verdict": verdict, "chain": chain, "n": n}
+
+
+def compute_compare(baseline_dir: Path | str, post_dir: Path | str) -> dict:
+    """D-04: diff a post-fix run directory against a named baseline directory.
+
+    Comparison is over AGGREGATES only (sums and N/analyses tallies) —
+    packet IDs are shuffled and unmatched by design (each run's own
+    blinding key maps its own packet IDs to its own source files
+    independently), so no per-packet pairing is attempted here.
+
+    Reads `scorelines.tsv` from each directory via `read_scorelines` +
+    `compute_tabulation_summary`, and `defect-incidence.tsv` from each via
+    `read_defect_incidence`.
+
+    Returns a dict:
+      - per_criterion: {crit: {"baseline", "post", "delta"}} for C1..C6.
+      - aggregate: {"baseline_total", "post_total", "delta",
+        "baseline_mean", "post_mean"}.
+      - pass_split: {"baseline_pass", "baseline_fail", "post_pass",
+        "post_fail", "delta_pass", "delta_fail"}.
+      - defects: {"untraced"|"verdict"|"chain": {"baseline", "post",
+        "delta", "baseline_n", "post_n"}}.
+      - goodhart_fired: bool — True iff at least one defect family fell
+        (post incidence < baseline incidence for untraced, verdict, OR
+        chain) AND the C2, C4, AND C6 baseline-vs-post band-sums are ALL
+        unchanged (166-CONTEXT.md D-03.3) — the reported
+        "form-without-substance" signature, never an auto pass/fail gate.
+
+    Raises ValueError (propagated from `read_scorelines` /
+    `read_defect_incidence`, or from a missing scorelines.tsv) on a missing
+    or malformed input file — never a silently-shorter comparison.
+    """
+    baseline_dir = Path(baseline_dir)
+    post_dir = Path(post_dir)
+
+    baseline_scorelines_path = baseline_dir / "scorelines.tsv"
+    post_scorelines_path = post_dir / "scorelines.tsv"
+    if not baseline_scorelines_path.is_file():
+        raise ValueError(f"{baseline_scorelines_path}: scorelines file not found")
+    if not post_scorelines_path.is_file():
+        raise ValueError(f"{post_scorelines_path}: scorelines file not found")
+
+    baseline_summary = compute_tabulation_summary(
+        read_scorelines(baseline_scorelines_path)
+    )
+    post_summary = compute_tabulation_summary(read_scorelines(post_scorelines_path))
+
+    per_criterion: dict[str, dict] = {}
+    for idx, crit in enumerate(_CRITERIA):
+        b = baseline_summary["per_criterion_sums"][idx]
+        p = post_summary["per_criterion_sums"][idx]
+        per_criterion[crit] = {"baseline": b, "post": p, "delta": p - b}
+
+    aggregate = {
+        "baseline_total": baseline_summary["aggregate_band_total"],
+        "post_total": post_summary["aggregate_band_total"],
+        "delta": post_summary["aggregate_band_total"]
+        - baseline_summary["aggregate_band_total"],
+        "baseline_mean": baseline_summary["mean"],
+        "post_mean": post_summary["mean"],
+    }
+
+    pass_split = {
+        "baseline_pass": baseline_summary["pass_count"],
+        "baseline_fail": baseline_summary["fail_count"],
+        "post_pass": post_summary["pass_count"],
+        "post_fail": post_summary["fail_count"],
+        "delta_pass": post_summary["pass_count"] - baseline_summary["pass_count"],
+        "delta_fail": post_summary["fail_count"] - baseline_summary["fail_count"],
+    }
+
+    baseline_defects = read_defect_incidence(baseline_dir / "defect-incidence.tsv")
+    post_defects = read_defect_incidence(post_dir / "defect-incidence.tsv")
+
+    defects: dict[str, dict] = {}
+    any_family_fell = False
+    for family in ("untraced", "verdict", "chain"):
+        b = baseline_defects[family]
+        p = post_defects[family]
+        if p < b:
+            any_family_fell = True
+        defects[family] = {
+            "baseline": b,
+            "post": p,
+            "delta": p - b,
+            "baseline_n": baseline_defects["n"],
+            "post_n": post_defects["n"],
+        }
+
+    guard_unchanged = all(
+        per_criterion[_CRITERIA[idx]]["delta"] == 0 for idx in _GOODHART_GUARD_INDICES
+    )
+    goodhart_fired = any_family_fell and guard_unchanged
+
+    return {
+        "per_criterion": per_criterion,
+        "aggregate": aggregate,
+        "pass_split": pass_split,
+        "defects": defects,
+        "goodhart_fired": goodhart_fired,
+    }
+
+
+def format_compare_report(result: dict) -> str:
+    """D-04: render `compute_compare`'s result dict to a labelled text report.
+
+    Sections: `[BANDS]` (per-criterion baseline -> post (delta) rows, an
+    aggregate band-total row, and a mean/analysis row), `[PASS SPLIT]`
+    (PASS and FAIL baseline -> post rows), `[DEFECT INCIDENCE]`
+    (untraced/verdict/chain baseline N/n -> post N/n (delta) rows), and a
+    final `GOODHART_FLAG:` line reading `FIRED` or `clear`.
+
+    This is a REPORTER — it renders whatever `result` says and never
+    adjusts phrasing for a favourable or unfavourable reading
+    (honesty-not-score, D-01 global).
+    """
+    lines: list[str] = []
+
+    lines.append("[BANDS]")
+    for crit in _CRITERIA:
+        row = result["per_criterion"][crit]
+        lines.append(f"  {crit}: {row['baseline']} -> {row['post']} ({row['delta']:+d})")
+    agg = result["aggregate"]
+    lines.append(
+        f"  aggregate: {agg['baseline_total']}/108 -> {agg['post_total']}/108 "
+        f"({agg['delta']:+d})"
+    )
+    lines.append(f"  mean/analysis: {agg['baseline_mean']:.2f} -> {agg['post_mean']:.2f}")
+    lines.append("")
+
+    lines.append("[PASS SPLIT]")
+    ps = result["pass_split"]
+    lines.append(f"  PASS: {ps['baseline_pass']} -> {ps['post_pass']} ({ps['delta_pass']:+d})")
+    lines.append(f"  FAIL: {ps['baseline_fail']} -> {ps['post_fail']} ({ps['delta_fail']:+d})")
+    lines.append("")
+
+    lines.append("[DEFECT INCIDENCE]")
+    for family in ("untraced", "verdict", "chain"):
+        d = result["defects"][family]
+        lines.append(
+            f"  {family}: {d['baseline']}/{d['baseline_n']} -> "
+            f"{d['post']}/{d['post_n']} ({d['delta']:+d})"
+        )
+    lines.append("")
+
+    lines.append(f"GOODHART_FLAG: {'FIRED' if result['goodhart_fired'] else 'clear'}")
+
+    return "\n".join(lines)
+
+
+def run_compare(baseline_dir: Path | str, post_dir: Path | str) -> int:
+    """`--compare`/`--baseline` CLI body (D-04).
+
+    Fully offline — no `claude` process is spawned and no function reaching
+    `_run_prompt_to` is called; this branch sits in `main()` before the
+    live `--run`/`--rejudge` dispatch and before `_ensure_claude_available()`
+    is ever invoked.
+
+    Prints the four-section delta report and the computed Goodhart flag.
+    This is a REPORTER: it returns 0 on a well-formed comparison and 2 on a
+    missing/malformed input directory — it never returns non-zero merely
+    because the comparison itself reads unfavourably (honesty-not-score,
+    D-01 global).
+    """
+    try:
+        result = compute_compare(baseline_dir, post_dir)
+    except (ValueError, OSError) as exc:
+        print(f"--compare: {exc}", file=sys.stderr)
+        return 2
+
+    print(format_compare_report(result))
+    return 0
+
+
 def self_test() -> int:
     """Run the offline deterministic self-test. Returns 0 on pass, 1 on failure.
 
@@ -3348,6 +3589,25 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     p.add_argument(
+        "--compare",
+        type=Path,
+        default=None,
+        metavar="POST_DIR",
+        help=(
+            "Diff a post-fix run directory against --baseline and print the "
+            "band/pass-split/defect-incidence deltas plus a computed "
+            "GOODHART_FLAG line (D-04). Fully offline — no `claude` "
+            "invoked. Requires --baseline."
+        ),
+    )
+    p.add_argument(
+        "--baseline",
+        type=Path,
+        default=None,
+        metavar="BASE_DIR",
+        help="Baseline run directory for --compare (offline, required with --compare).",
+    )
+    p.add_argument(
         "--run",
         action="store_true",
         help=(
@@ -3415,6 +3675,15 @@ def main(argv: list[str] | None = None) -> int:
         if not (args.run or args.rejudge):
             parser.error("--dry-run requires --run and/or --rejudge")
         return run_dry_run(args)
+
+    # --compare MUST be checked before any live-path branch and calls no
+    # function reaching `_run_prompt_to` — same offline class as
+    # --detect-defects, mirrored here so it sits ahead of
+    # `_ensure_claude_available()` entirely (D-04).
+    if args.compare is not None:
+        if not args.baseline:
+            parser.error("--baseline is required with --compare")
+        return run_compare(args.baseline, args.compare)
 
     if args.run or args.rejudge:
         _ensure_claude_available()
@@ -3520,7 +3789,7 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.error(
         "no action specified — pass --self-test, --probe, --single, "
-        "--detect-defects, --run, --rejudge, or --dry-run"
+        "--detect-defects, --compare, --run, --rejudge, or --dry-run"
     )
     return 2  # unreachable — parser.error exits
 
