@@ -117,6 +117,7 @@ Required headers:
 ## Handoff
 
 The output is the recommended option with its weighted justification and the
-reasoning behind the weights. Return to Phase 4 (Reason Upward) and use it as
-the Derivation Chain that selects between viable options — citing the weighted
-scores as the step between ground truths and conclusion.
+reasoning behind the weights. Return to Phase 4 (Reason Upward) and convert it
+into the Derivation Chain using the trade-off collapse form defined in
+output-template.md §4 ("Converting structured-technique outputs into chains") —
+citing the weighted scores as the step between ground truths and conclusion.
