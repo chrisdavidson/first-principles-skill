@@ -1,0 +1,19 @@
+index	kind	source_id	run_index	dest_path	duration_s	outcome	redispatch_reason
+1	generation	Q-P1	1	/tmp/qh-166-postfix/captures/Q-P1-run1.jsonl	154.3	completed	
+2	generation	Q-P1	2	/tmp/qh-166-postfix/captures/Q-P1-run2.jsonl	125.9	completed	
+3	generation	Q-P2	1	/tmp/qh-166-postfix/captures/Q-P2-run1.jsonl	143.8	completed	
+4	generation	Q-P2	2	/tmp/qh-166-postfix/captures/Q-P2-run2.jsonl	150.9	completed	
+5	generation	Q-P3	1	/tmp/qh-166-postfix/captures/Q-P3-run1.jsonl	145.3	completed	
+6	generation	Q-P3	2	/tmp/qh-166-postfix/captures/Q-P3-run2.jsonl	145.5	completed	
+7	judge	Q-P1-run1	1	/tmp/qh-166-postfix/judgments/P02-judge.jsonl	98.0	completed	
+8	judge	Q-P1-run2	1	/tmp/qh-166-postfix/judgments/P06-judge.jsonl	139.9	completed	
+9	judge	Q-P2-run1	1	/tmp/qh-166-postfix/judgments/P01-judge.jsonl	75.7	completed	
+10	judge	Q-P2-run2	1	/tmp/qh-166-postfix/judgments/P03-judge.jsonl	119.8	completed	
+11	judge	Q-P3-run1	1	/tmp/qh-166-postfix/judgments/P04-judge.jsonl	126.3	completed	
+12	judge	Q-P3-run2	1	/tmp/qh-166-postfix/judgments/P05-judge.jsonl	103.1	completed	
+13	rejudge	Q-P1-run1	1	/tmp/qh-166-postfix/rejudge-judgments/P03-judge.jsonl	187.8	completed	
+14	rejudge	Q-P1-run2	1	/tmp/qh-166-postfix/rejudge-judgments/P06-judge.jsonl	133.4	completed	
+15	rejudge	Q-P2-run1	1	/tmp/qh-166-postfix/rejudge-judgments/P01-judge.jsonl	118.8	completed	
+16	rejudge	Q-P2-run2	1	/tmp/qh-166-postfix/rejudge-judgments/P05-judge.jsonl	126.1	completed	
+17	rejudge	Q-P3-run1	1	/tmp/qh-166-postfix/rejudge-judgments/P02-judge.jsonl	185.8	completed	
+18	rejudge	Q-P3-run2	1	/tmp/qh-166-postfix/rejudge-judgments/P04-judge.jsonl	122.5	completed	
