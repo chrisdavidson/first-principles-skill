@@ -26,6 +26,7 @@ python3 scripts/check-description-budget.py  # VAL-05: skill listing under 2000-
 python3 scripts/check-body-budget.py      # report-only line-count reporter; gate retired under TEARDOWN-01, see docs/v8.7-constraint-teardown.md
 python3 scripts/check-install-collisions.py --self-test  # COLLIDE-01: dual-install name-collision self-test
 python3 scripts/check-install-collisions.py              # COLLIDE-01: live-tree scan (vacuous if monolith absent)
+python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blind A/B quality-harness self-test
 ```
 
 ### Routing battery (requires a running Claude Code session)

@@ -222,6 +222,7 @@ python3 scripts/check-routing-battery.py --self-test
 python3 scripts/check-step0-emulator.py --self-test
 python3 scripts/check-step0-live.py --self-test
 python3 scripts/check-traceability.py --self-test
+python3 scripts/check-quality-harness.py --self-test  # QUAL-01 (v8.7 Phase 164)
 ```
 
 Or with `uv` (auto-resolves Python deps):
