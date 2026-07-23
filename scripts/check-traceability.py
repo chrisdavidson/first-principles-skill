@@ -191,8 +191,14 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
                   "audit-only", "", audit_v32),
         MatrixRow("v3.2/META-Q4", "META-Q4", "v3.2", "Methodology",
                   "scripts/check-body-budget.py",
-                  "reproducible",
-                  "scripts/git-hooks/pre-commit", ""),
+                  "audit-only", "",
+                  "TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the "
+                  "body-budget pre-commit gate. scripts/check-body-budget.py is now report-only "
+                  "(always exits 0) and scripts/git-hooks/pre-commit no longer invokes it — the "
+                  "body line count is reported every firewall-battery run ([INFO] body-size) but "
+                  "is not gated. META-Q4 is therefore audit-only (reported/inspectable), not "
+                  "reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 "
+                  "post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier."),
     ]
 
 

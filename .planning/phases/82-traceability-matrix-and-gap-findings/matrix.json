@@ -315,9 +315,9 @@
     "milestone": "v3.2",
     "capability": "Methodology",
     "deliverable_path": "scripts/check-body-budget.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/git-hooks/pre-commit",
-    "gap_rationale": ""
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the body-budget pre-commit gate. scripts/check-body-budget.py is now report-only (always exits 0) and scripts/git-hooks/pre-commit no longer invokes it \u2014 the body line count is reported every firewall-battery run ([INFO] body-size) but is not gated. META-Q4 is therefore audit-only (reported/inspectable), not reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier."
   },
   {
     "key": "v3.7/RIGOR-01",

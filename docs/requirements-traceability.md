@@ -4,13 +4,13 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 133 reproducible / 96 audit-only / 0 gap / 229 total
+**Coverage headline:** 132 reproducible / 97 audit-only / 0 gap / 229 total
 
 The full 229-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
-> 96 requirements are validated by milestone audit without a re-runnable gate (audit-only);
+> 97 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.13 residual-delta live re-baseline Phase 137; latest artifact `tests/step0-baseline-v7.13.md`; reproducible = measured, not passing — v7.13 S-P02 1/5, S-P10 0/5, S-P14 0/5 all CARRIED; v7.8 remains the canonical full 8-technique baseline) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > Headline change vs prior 121/85/0/206: +4 reproducible rows added to the active tail in Phase 119 CONF-04 — RR-117-01 (S-P03 fishbone, minted Phase 117 CONF-02), RR-117-02 (S-N03 precision, minted Phase 117 CONF-02), RR-119-01 (S-N01 resolved, minted Phase 119 CONF-04), RR-119-02 (S-N02 resolved, minted Phase 119 CONF-04). These rows existed as sentinels in _battery_core.py but were not previously registered in the matrix.
 > Headline change vs prior 125/85/0/210: +8 reproducible rows added in Phase 123 RECON-01 — the v7.9 milestone requirements NEGCAT-01, NEGCAT-02, OCH-01, OCH-02, OCH-03, COLLIDE-01, COLLIDE-02, RECON-01, each backed by a deterministic offline gate (STEP0-08 for NEGCAT-01/02; DUAL-04 + BATT-06 for OCH-01/02/03; COLLIDE-01 gate for COLLIDE-01/02; TRACE-03 for RECON-01).
@@ -20,20 +20,22 @@ The full 229-row capability-to-requirement-to-test mapping is in the generated m
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
 
-> **Honesty note (v8.8, Phase 170 D-01):** `docs/requirements-matrix.md` (line 49) tiers
-> requirement **META-Q4** as `reproducible` on the strength of `scripts/git-hooks/pre-commit`
-> invoking `scripts/check-body-budget.py`. Since TEARDOWN-01 (v8.7 Phase 163) retired the
-> body-budget stanza from that hook, the hook no longer invokes the script — so the
-> `reproducible` tier is **known-stale / vacuously-green**: TRACE-03 reports coverage that no
-> longer exists, "green because nothing checks it," the exact failure mode the honesty-not-score
-> doctrine exists to prevent. The generated matrix itself is NOT hand-edited here (it carries a
-> `GENERATED — DO NOT EDIT` marker; edits are both prohibited and futile — a future `emit` regen
-> reverts them, per D-02). The actual re-tier is **deferred to the future "finish TEARDOWN-01 cleanup" unit**
-> (alongside narrowing/retiring `scripts/smoke-test-hook.sh` and fixing
-> `scripts/install-hooks.sh:57`, both same-class stale surfaces — see
-> `.planning/todos/pending/phase-167-stale-surfaces-from-163-review.md`). A reader of this
-> authoritative tracked doc now reaches a qualified-and-flagged green for META-Q4 instead of an
-> unqualified false one.
+> **Headline change vs prior 133/96/0/229 (v8.8 post-close TEARDOWN-01 cleanup):** −1 reproducible
+> / +1 audit-only → **132/97/0/229**. Requirement **META-Q4** (agent-body budget) was re-tiered
+> `reproducible` → `audit-only` in `scripts/check-traceability.py` and the matrix regenerated. It
+> had been tiered `reproducible` on the strength of `scripts/git-hooks/pre-commit` invoking
+> `scripts/check-body-budget.py`; TEARDOWN-01 (v8.7 Phase 163) retired the body-budget stanza from
+> that hook, so the hook no longer invokes the script. The body line count is now report-only
+> (`check-body-budget.py` always exits 0; reported every firewall-battery run as `[INFO] body-size`
+> but not gated) — inspectable, not reproducibly enforced, i.e. genuinely audit-only.
+>
+> **Honesty note (v8.8 D-01 — RESOLVED):** the prior "known-stale / vacuously-green" flag on
+> META-Q4 (TRACE-03 reporting coverage that no longer existed — "green because nothing checks it")
+> is now **fixed at the source**, not just annotated: the re-tier above makes the matrix state
+> honest rather than qualified-and-flagged. The two same-class stale hook surfaces bundled with it
+> (`scripts/smoke-test-hook.sh` retired, `scripts/install-hooks.sh:57` reworded) were cleared in
+> the same cleanup. This closes the "finish TEARDOWN-01 cleanup" unit
+> (`.planning/todos/pending/phase-167-stale-surfaces-from-163-review.md`).
 
 ## v8.0 Terminal State (2026-07-06)
 

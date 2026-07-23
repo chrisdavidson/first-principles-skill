@@ -176,8 +176,8 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   (133 reproducible / 96 audit-only / 0 gap / 229 total), and deferred-ledger disposition
   summary. Start here for the v8.0 end-state. (Phase 142 terminal record.)
 - **`docs/requirements-traceability.md`** — authoritative source of truth: active
-  residuals, coverage headline (133 reproducible / 96 audit-only / 0 gap / 229 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 138 Plan 03.)
+  residuals, coverage headline (132 reproducible / 97 audit-only / 0 gap / 229 total),
+  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97.)
 - **`docs/requirements-matrix.md`** — generated 229-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
