@@ -62,7 +62,7 @@ This folder documents the first-principles plugin system. New here? Start with [
 | Document | What it covers |
 |----------|----------------|
 | [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | Governing record narrowly re-opening RR-108-04/RR-108-05's re-measure disposition + the 4 split files' content; all other frozen constants keep gating. |
-| [v8.5-split-measurement.md](v8.5-split-measurement.md) | Split verification + budget proof (SPLIT-02/03): skill surface −398 lines, agent body +14 (cost-of-mechanism), full offline battery green, body 612/644. |
+| [v8.5-split-measurement.md](v8.5-split-measurement.md) | Split verification measurement (SPLIT-02/03): skill surface −398 lines, agent body +14 (cost-of-mechanism), full offline battery green; body was 612 lines at the time of this frozen measurement (the 644 figure it was checked against was later retired as a live gate — TEARDOWN-01, v8.7-constraint-teardown.md). |
 | [v8.5-live-remeasure-verdict.md](v8.5-live-remeasure-verdict.md) | Live 72-call re-measure honest verdict (MEASURE-03): five per-row floor judgments, fishbone 3/5 CLOSE, S-P02/S-P10/S-P14 CARRY, D-05 fired-set diff, run economics. |
 
 ## v8.6 — Agent-body procedure compression
