@@ -3413,6 +3413,160 @@ def run_compare(baseline_dir: Path | str, post_dir: Path | str) -> int:
     return 0
 
 
+_COMPARE_FIXTURES_DIR = FIXTURES_DIR / "compare"
+_COMPARE_FIXTURE_POSITIVE = _COMPARE_FIXTURES_DIR / "positive"
+_COMPARE_FIXTURE_GOODHART = _COMPARE_FIXTURES_DIR / "goodhart"
+
+# Hand-checked expected `compute_compare` output for the positive/ pair
+# (post moves C2/C4/C6 bands up AND lowers the `untraced` defect family
+# while `verdict`/`chain` stay unchanged — Goodhart flag must read clear,
+# substance is present). See tests/quality-fixtures-v8.7/compare/ fixture
+# files themselves for the raw TSVs these figures are hand-derived from.
+_EXPECTED_POSITIVE_PER_CRITERION = {
+    "C1": {"baseline": 4, "post": 4, "delta": 0},
+    "C2": {"baseline": 2, "post": 4, "delta": 2},
+    "C3": {"baseline": 4, "post": 4, "delta": 0},
+    "C4": {"baseline": 2, "post": 4, "delta": 2},
+    "C5": {"baseline": 4, "post": 4, "delta": 0},
+    "C6": {"baseline": 2, "post": 4, "delta": 2},
+}
+_EXPECTED_POSITIVE_AGGREGATE = {
+    "baseline_total": 18,
+    "post_total": 24,
+    "delta": 6,
+    "baseline_mean": 9.0,
+    "post_mean": 12.0,
+}
+_EXPECTED_POSITIVE_PASS_SPLIT = {
+    "baseline_pass": 0,
+    "baseline_fail": 2,
+    "post_pass": 2,
+    "post_fail": 0,
+    "delta_pass": 2,
+    "delta_fail": -2,
+}
+_EXPECTED_POSITIVE_DEFECTS = {
+    "untraced": {"baseline": 2, "post": 0, "delta": -2, "baseline_n": 2, "post_n": 2},
+    "verdict": {"baseline": 2, "post": 2, "delta": 0, "baseline_n": 2, "post_n": 2},
+    "chain": {"baseline": 2, "post": 2, "delta": 0, "baseline_n": 2, "post_n": 2},
+}
+
+
+def _selftest_compare() -> bool:
+    """9th self-test item (D-04/D-16): non-vacuous `--compare` coverage.
+
+    Accumulates failures into a local flag rather than a bare `assert`
+    (D-16 — a bare `assert` prints PASS under `python3 -O`) and NEVER
+    short-circuits on the first failure, so a fault-injection proof against
+    any single check surfaces on its own labelled failure line.
+
+    Runs `compute_compare` over the `positive/` fixture pair and checks
+    every per-criterion delta, the aggregate delta, the pass-split deltas,
+    and the per-defect deltas against the hand-checked literals above, and
+    that its `goodhart_fired` is False (substance present, flag clear).
+    Then runs `compute_compare` over the `goodhart/` fixture pair and
+    checks its `goodhart_fired` is True (a defect family fell while C2/C4/
+    C6 stayed flat — the form-without-substance signature must fire).
+    """
+    ok = True
+
+    try:
+        positive = compute_compare(
+            _COMPARE_FIXTURE_POSITIVE / "baseline", _COMPARE_FIXTURE_POSITIVE / "post"
+        )
+    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+        print(
+            f"self-test FAIL: compare positive fixture raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+
+    if positive["per_criterion"] != _EXPECTED_POSITIVE_PER_CRITERION:
+        print(
+            f"self-test FAIL: compare positive per_criterion expected "
+            f"{_EXPECTED_POSITIVE_PER_CRITERION!r}, got {positive['per_criterion']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if positive["aggregate"] != _EXPECTED_POSITIVE_AGGREGATE:
+        print(
+            f"self-test FAIL: compare positive aggregate expected "
+            f"{_EXPECTED_POSITIVE_AGGREGATE!r}, got {positive['aggregate']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if positive["pass_split"] != _EXPECTED_POSITIVE_PASS_SPLIT:
+        print(
+            f"self-test FAIL: compare positive pass_split expected "
+            f"{_EXPECTED_POSITIVE_PASS_SPLIT!r}, got {positive['pass_split']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if positive["defects"] != _EXPECTED_POSITIVE_DEFECTS:
+        print(
+            f"self-test FAIL: compare positive defects expected "
+            f"{_EXPECTED_POSITIVE_DEFECTS!r}, got {positive['defects']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    if positive["goodhart_fired"] is not False:
+        print(
+            f"self-test FAIL: compare positive goodhart_fired expected False, "
+            f"got {positive['goodhart_fired']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    try:
+        goodhart = compute_compare(
+            _COMPARE_FIXTURE_GOODHART / "baseline", _COMPARE_FIXTURE_GOODHART / "post"
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: compare goodhart fixture raised unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        return False
+
+    if goodhart["goodhart_fired"] is not True:
+        print(
+            f"self-test FAIL: compare goodhart goodhart_fired expected True, "
+            f"got {goodhart['goodhart_fired']!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Extra structural counter-check (T-164-12 discipline): the goodhart
+    # fixture's own defect families must have actually fallen and its C2/
+    # C4/C6 bands must have actually stayed flat, so the True verdict above
+    # is non-vacuous rather than an accident of a mis-built fixture.
+    if not any(goodhart["defects"][f]["delta"] < 0 for f in ("untraced", "verdict", "chain")):
+        print(
+            "self-test FAIL: compare goodhart fixture defect deltas did not "
+            "fall on any family — fixture does not exercise the condition "
+            "it claims to",
+            file=sys.stderr,
+        )
+        ok = False
+    if any(
+        goodhart["per_criterion"][_CRITERIA[idx]]["delta"] != 0
+        for idx in _GOODHART_GUARD_INDICES
+    ):
+        print(
+            "self-test FAIL: compare goodhart fixture C2/C4/C6 band deltas "
+            "are not all zero — fixture does not exercise the condition it "
+            "claims to",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
 def self_test() -> int:
     """Run the offline deterministic self-test. Returns 0 on pass, 1 on failure.
 
@@ -3428,10 +3582,12 @@ def self_test() -> int:
     5-6 (tabulation, baseline). Plan 03 added item 7 (defects — the D-18
     mechanical defect detector, D-19 calibration). Plan 04 Task 1 adds item
     8 (run_layer — the `--run`/`--rejudge`/`--dry-run`/`--resume` composition
-    and `write_run_manifest`). Each of the eight items prints its own
-    labelled PASS/FAILED result line — exactly eight such lines, always, per
-    run (D-16: the fault-injection proof for each item is recorded in the
-    corresponding plan's SUMMARY.md).
+    and `write_run_manifest`). Phase 166 Plan 01 Task 2 adds item 9 (compare
+    — the offline `--compare`/`--baseline` band/pass-split/defect-incidence
+    delta tabulation and the computed Goodhart flag, D-04). Each of the nine
+    items prints its own labelled PASS/FAILED result line — exactly nine
+    such lines, always, per run (D-16: the fault-injection proof for each
+    item is recorded in the corresponding plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -3507,6 +3663,17 @@ def self_test() -> int:
         print("self-test: run_layer sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: run_layer sub-check PASSED")
+
+    # Item 9 (Phase 166 Plan 01 Task 2, D-04): the offline `--compare`
+    # band/pass-split/defect-incidence delta tabulation and the computed
+    # Goodhart flag — the positive/ fixture pair proves the arithmetic
+    # against hand-checked literals and a clear flag; the goodhart/ pair
+    # proves the flag fires when it should.
+    if not _selftest_compare():
+        all_passed = False
+        print("self-test: compare sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: compare sub-check PASSED")
 
     return 0 if all_passed else 1
 
