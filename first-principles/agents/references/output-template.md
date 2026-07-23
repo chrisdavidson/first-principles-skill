@@ -104,6 +104,26 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
+### Converting structured-technique outputs into chains
+
+Structured-technique outputs (trade-off matrices, second-order effect lists) do not appear in this section as-is — each converts into the chain format above using the rule for its technique below. This subsection is the single source of truth for the conversion; the per-technique Handoff sections point back here rather than restating it, so future structured techniques extend this one place.
+
+**Trade-off matrix → one chain.** A trade-off matrix collapses into ONE chain whose intermediate cites the winning weighted total and whose endpoint names a single recommended option:
+
+```text
+GT-refs (criteria's factual basis) → weighted totals (the winning total vs. the runner-up, naming the high-weight criteria that drive it) → recommended option
+```
+
+Example: `GT-2 + GT-5 (criteria facts) → weighted totals: B=82 > A=64, driven by reliability×warranty → recommend B`. The full matrix stays in the technique's own output — this subsection carries only the single collapsed chain, never the matrix re-expressed row-by-row (that would violate the one-chain-per-conclusion rule above). An exact tie between weighted totals still resolves to a single named recommended option; a tie must not produce a multi-option chain endpoint.
+
+**Second-order effect list → order-marked extension.** A second-order effect list extends the parent chain IN PLACE as additional order-marked steps, each carrying the same evidentiary discipline as the first-order steps that produced the conclusion:
+
+```text
+GT-N → first-order conclusion →[2nd] [2nd-order effect] →[3rd] [3rd-order effect] (contradicts GT-M → back to Phase 2)
+```
+
+Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows →[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order marks (`[2nd]`, `[3rd]`) make the extension's sequence legible. A contradicting effect routes the conclusion back to Phase 2 — never directly to Phase 3 or past Phase 2. A pass that surfaces no non-contradicting downstream effect leaves the parent chain unextended — a clean no-op, not an error.
+
 ### Conclusion: [Conclusion text]
 
 GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])
