@@ -196,16 +196,17 @@ four-type classification quality and unverified-flag discipline (D-07).
 - **Rigorous** — every row in the Assumptions Table has a Type value drawn from exactly the
   four-type scheme (physical law / current constraint / convention / untested belief); the
   Treatment cell uses the vocabulary of the prescribed treatment for that type; the Verdict
-  cell records Accept, Challenge, or Discard; the Verification cell cites a specific source
-  or names what verification confirms the assumption — not "unclear" or "possibly true";
+  cell records Accept, Challenge, or Discard as a leading token followed by an em-dash and a
+  specific justification — not the bare token alone; the Verification cell cites a specific
+  source or names what verification confirms the assumption — not "unclear" or "possibly true";
   at least one assumption has been challenged (not merely labelled Accept); if any assumption
   is used in a derivation chain despite being unverified, the Verification cell reads
-  "unverified — flagged"; the agent has visited every named derivation chain step in section 4
-  and surfaced any assumption that step requires to hold — not already in the Assumptions Table
-  — adding it to the table before scoring; the Assumption Audit artifact produced before
-  scoring (per "How to Apply This Rubric") records this scan and confirms it was exhaustive
-  over named derivation chain steps, not an open-ended survey of the universe of conceivable
-  assumptions.
+  "unverified — flagged"; the Assumption Audit performed at the end of Phase 4 (`SKILL.md`,
+  "End-of-phase Assumption Audit") visited every named derivation chain step in section 4 and
+  surfaced any assumption not already in the Assumptions Table, recording it there; the
+  Assumption Audit artifact produced before scoring (per "How to Apply This Rubric") confirms
+  this scan was exhaustive over named derivation chain steps, not an open-ended survey of the
+  universe of conceivable assumptions.
 
 - **Sound** — the table exists with populated rows, but one or more rows have generic entries:
   the Verification cell reads "unclear" or "unsure" without specifics, OR the Treatment

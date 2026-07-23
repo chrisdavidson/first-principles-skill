@@ -97,6 +97,11 @@ IDs are stable once assigned. GT-3 remains GT-3 throughout the document even if 
 
 Show how the ground truths combine into conclusions. Every conclusion offered in this analysis must have exactly one chain here — no more (no redundant restatement), no fewer (no orphaned conclusions).
 
+**Chain numbering convention.** Number each `### Conclusion:` block in this section `C1`,
+`C2`, ... in document order (e.g., `### Conclusion C1: [Conclusion text]`). The §6→§4
+closure ledger (`SKILL.md`, "Before presenting conclusions") cites these IDs when mapping a
+Conclusion-section (section 6) claim back to the chain in this section that established it.
+
 **Chain format:**
 
 ```text
@@ -125,7 +130,7 @@ GT-N → first-order conclusion →[2nd] [2nd-order effect] →[3rd] [3rd-order 
 
 Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows →[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order marks (`[2nd]`, `[3rd]`) make the extension's sequence legible. A contradicting effect routes the conclusion back to Phase 2 — never directly to Phase 3 or past Phase 2. A pass that surfaces no non-contradicting downstream effect leaves the parent chain unextended — a clean no-op, not an error.
 
-### Conclusion: [Conclusion text]
+### Conclusion C1: [Conclusion text]
 
 GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])
 → [intermediate claim — a new inference statable from combining GT-N and GT-M but from neither alone]

@@ -173,10 +173,11 @@ the presented analysis — the same precedent the rubric's Assumption Audit tabl
 (included in the response before the verdict blocks). The ledger is process output, **not** a seventh
 output section; the fixed six-section template shape defined above under Output format is unchanged.
 
-Ledger form:
+Ledger form (cite the chain's assigned ID from output-template.md §4's numbering
+convention — `C1`, `C2`, ... in document order):
 
 ```text
-- "[claim text]" → chain C[N] ✓
+- "[claim text]" → chain C1 ✓
 - "[claim text]" → CUT (no chain; claim removed)
 ```
 
@@ -187,6 +188,10 @@ feedback loop begin. Score the completed analysis against the rubric in the
 1. **Validate** — apply each rubric criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
 3. **Repeat** — re-score after fixing until every criterion clears the gate.
+
+If any Fix step adds, removes, or renames a §4 chain that the ledger references, re-verify
+the ledger's affected rows against the current state of §4 before re-scoring — a chain rename
+or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
 Do not present conclusions until the closure ledger is clean AND the rubric gate is cleared.
 
