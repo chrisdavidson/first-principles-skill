@@ -43,7 +43,7 @@ List every assumption — explicit and implicit — that the analysis rests on. 
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| [Assumption text] | [physical law / current constraint / convention / untested belief] | [prescribed action per type — see below] | [Accept / Challenge / Discard] | [source, or "unverified — flagged" if used in a chain per D-07] |
+| [Assumption text] | [physical law / current constraint / convention / untested belief] | [prescribed action per type — see below] | [Accept / Challenge / Discard] — [justification/reason] | [source, or "unverified — flagged" if used in a chain per D-07] |
 
 ### Type Definitions and Prescribed Treatments
 
@@ -65,9 +65,12 @@ The higher the stakes of the conclusion resting on an assumption, the more that 
 
 ### Verdict Vocabulary
 
-- **Accept** — the assumption survives challenge and may be used in the analysis
-- **Challenge** — the assumption is questionable; probe further before use
-- **Discard** — the assumption is false or irrelevant; remove from the reasoning chain
+The Verdict cell is a token prefix followed by an em-dash and the justification — the bare
+token leads so it stays matchable, and the em-dash prose carries the reasoning:
+
+- **Accept** — the assumption survives challenge and may be used in the analysis (e.g., "Accept — survives P2 challenge; physical-law backed by GT-1")
+- **Challenge** — the assumption is questionable; probe further before use (e.g., "Challenge — vendor benchmark unverified, flagged GT-5?")
+- **Discard** — the assumption is false or irrelevant; remove from the reasoning chain (e.g., "Discard — contradicted by GT-2, no longer load-bearing")
 
 ---
 
