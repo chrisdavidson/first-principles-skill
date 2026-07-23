@@ -22,18 +22,16 @@ one condition alone does not constitute a pass:
 
 If either condition is not met, revise the analysis and re-score from the beginning.
 
-**Assumption Audit (complete before scoring)**
+**Assumption Audit (verify before scoring)**
 
-Before scoring any criterion, complete the following scan and include the filled-in table
-in your response before the verdict blocks. Do not proceed to verdict blocks until every
-chain's steps have been scanned.
+The scan itself is not performed here — the agent already performed it at the end of Phase 4
+(`SKILL.md`, "End-of-phase Assumption Audit") before this rubric is ever applied. This
+rubric's job is narrower: verify the audit ran and its table is exhaustive, not repeat the
+scan.
 
-1. Enumerate every derivation chain in section 4.
-2. For each chain, visit each step in order.
-3. For each step, name any assumption that step requires to hold that is not already in
-   the Assumptions Table.
-4. Add any surfaced assumption to the Assumptions Table before scoring Criterion 2.
-5. Record all findings in the scan table below.
+Before scoring any criterion, confirm the audit table below is present in the analysis and
+covers every named derivation chain step from section 4 — one row per chain per step, in
+order, with no step skipped. Do not proceed to verdict blocks until this is confirmed.
 
 | Chain | Step | Step Text (brief) | Assumption surfaced? | Added to Table? |
 |-------|------|-------------------|----------------------|-----------------|
@@ -41,7 +39,10 @@ chain's steps have been scanned.
 | [chain producing conclusion X] | 2 | [step text] | [assumption or "none"] | [yes / n/a] |
 | [chain producing conclusion Y] | 1 | [step text] | [assumption or "none"] | [yes / n/a] |
 
-Include the completed table in your response before the verdict blocks. Do not proceed to verdict blocks until every chain's steps have been scanned and the table reflects the updated Assumptions Table.
+If the table is missing, or any named derivation chain step in section 4 has no corresponding
+row, the audit did not run exhaustively — this is a Criterion 2 defect (see Criterion 2's
+descriptors below), not a separate gate. Do not re-perform the scan to fill a missing table;
+a missing or incomplete table is itself the evidence to score against.
 
 **Precedence rule (no double-counting):** A single observable defect can match the
 descriptor of more than one criterion — for example, an unverified ground truth used in a
