@@ -526,9 +526,9 @@ near-tie is a real finding and either option is defensible.
    are the load-bearing output of the tool.
 
 6. **Route the result.** Non-contradicting effects extend the Phase 4
-   Derivation Chain as additional numbered steps. Any contradicting effect
-   routes the conclusion back to Phase 2 (Challenge Assumptions) — never
-   directly to Phase 3 or past Phase 2.
+   Derivation Chain as additional order-marked steps (`→[2nd]`, `→[3rd]`).
+   Any contradicting effect routes the conclusion back to Phase 2
+   (Challenge Assumptions) — never directly to Phase 3 or past Phase 2.
 
 ---
 
