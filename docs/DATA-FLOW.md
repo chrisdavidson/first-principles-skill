@@ -43,10 +43,16 @@ For the plugin registration details and the full companion skill slug list, see 
 
 ## Stage 4 — Gates (CI + pre-commit)
 
-Every `git commit` fires two pre-commit gates locally before the commit lands:
+Every `git commit` fires one pre-commit gate locally before the commit lands:
 
-- **Body-budget gate** — blocks if the agent body (`first-principles/agents/first-principles.md`) exceeds 644 lines.
 - **Sync-drift gate** — runs `scripts/sync-content.py --check` and blocks if `shared/` and the generated tree have diverged.
+
+A body-budget gate used to run alongside it, blocking a commit that grew the agent body
+(`first-principles/agents/first-principles.md`) past 644 lines. It was retired under
+TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`, the standing record) —
+`scripts/check-body-budget.py` still reports the body's current line count on request, but
+it always exits 0 and no longer fires as part of the pre-commit hook; 644 survives only as a
+historical reference figure inside the script.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.
 

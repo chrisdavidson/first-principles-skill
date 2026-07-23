@@ -94,7 +94,7 @@ Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem,
 
 ## CI and pre-commit gate inventory
 
-All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The two pre-commit gates fire on `git commit` via the project hook mechanism.
+All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The sync-drift pre-commit gate fires on `git commit` via the project hook mechanism.
 
 | Gate | Job / Mechanism | Script | What it checks |
 |------|----------------|--------|----------------|
@@ -110,8 +110,14 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 | STEP0-08 | `check-step0-emulator` (CI) | `scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
 | STEP0-06 | `check-step0-live` (CI) | `scripts/check-step0-live.py --self-test` | Step 0 live-harness scoring/parsing logic self-test |
 | TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution) |
-| — | body-budget gate (pre-commit) | `scripts/check-body-budget.py` | Agent body (`first-principles/agents/first-principles.md`) stays under 644 lines |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
+
+The body-budget gate that used to appear in this table (blocking a commit that pushed the
+agent body past 644 lines) was retired under TEARDOWN-01
+(`docs/v8.7-constraint-teardown.md`, the standing record) — `scripts/check-body-budget.py`
+is kept on disk and reports the body's current line count on every run, but it always exits
+0 and no longer fires as a pre-commit gate at all; 644 survives only as a historical
+reference figure inside the script.
 
 Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).
 
@@ -139,4 +145,6 @@ Two deprecated thin shims (`scripts/check-sub-skill-routing.py`, `scripts/check-
 - Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
+- The agent body's (`first-principles/agents/first-principles.md`) line count is reported by
+  `scripts/check-body-budget.py`, not enforced — 644 is a retired, report-only
+  regression-guard figure (gate retired under TEARDOWN-01).
