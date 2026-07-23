@@ -219,6 +219,12 @@ fi
 # regenerated baseline). The fourth, tests/quality-baseline-v8.7, goes one
 # path beyond those three because D-11 requires that older corpus stay
 # byte-frozen and nothing else in this battery enforces it.
+#
+# Coverage change (MEASURE-01, Phase 166 Plan 02): a fifth path,
+# tests/quality-baseline-v8.7-postfix, added to this same existing check —
+# this phase's own new frozen post-fix evidence (D-05's 18-invocation live
+# run against the post-165 agent body). Same reasoning as the fourth path
+# above: nothing else in this battery enforces its byte-freeze.
 # ---------------------------------------------------------------------------
 git diff --quiet -- \
     'tests/step0-baseline-v*.md' \
@@ -233,6 +239,7 @@ git diff --quiet -- \
     'tests/quality-probe-v8.7' \
     'tests/quality-baseline-v8.7-regenerated' \
     'tests/quality-baseline-v8.7' \
+    'tests/quality-baseline-v8.7-postfix' \
     2>/dev/null
 _frozen_exit=$?
 

@@ -140,6 +140,12 @@ BASELINE_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7"
 # directory too, with its D-02 re-judge arm checked against BASELINE_DIR's
 # analyses/ (the frozen corpus it re-judged), not its own.
 REGEN_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-regenerated"
+# Phase 166 Plan 02 Task 3: the post-fix baseline this harness's own --run/
+# --rejudge produced against the post-165 agent body (D-05). check_baseline_
+# integrity covers this directory too, with its D-02 re-judge arm checked
+# against REGEN_DIR's analyses/ (the frozen pre-fix analyses it re-judged
+# same-day), not its own.
+POSTFIX_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-postfix"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -1753,19 +1759,23 @@ def check_baseline_integrity(
 
 
 def _selftest_baseline() -> bool:
-    """D-15 item 6: baseline-fixture integrity on both real baselines and a negative.
+    """D-15 item 6: baseline-fixture integrity on all three real baselines and a negative.
 
     The real frozen `tests/quality-baseline-v8.7/` must report zero findings
     — it is present, complete, and well-formed. Plan 04's regenerated
     `tests/quality-baseline-v8.7-regenerated/` must also report zero
     findings, including its D-02 re-judge arm (`rejudge-scorelines.tsv` /
     `rejudge-blinding-key.tsv`) checked against `BASELINE_DIR`'s `analyses/`
-    — the frozen corpus that arm re-judged. The deliberately truncated
-    `tests/quality-fixtures-v8.7/baseline-truncated/` (4 analyses, but the
-    frozen corpus's original 6-row `scorelines.tsv` left in place) must
-    report at least one finding naming the row-count-versus-file-count
-    mismatch — a truncated or partially-committed baseline must fail loudly
-    rather than produce a short comparison.
+    — the frozen corpus that arm re-judged. Phase 166 Plan 02 Task 3 extends
+    this item a third time: the post-fix `tests/quality-baseline-v8.7-postfix/`
+    must also report zero findings, including its own D-02 re-judge arm
+    checked against `REGEN_DIR`'s `analyses/` — the frozen pre-fix analyses
+    that arm re-judged same-day (not `POSTFIX_DIR`'s own analyses). The
+    deliberately truncated `tests/quality-fixtures-v8.7/baseline-truncated/`
+    (4 analyses, but the frozen corpus's original 6-row `scorelines.tsv` left
+    in place) must report at least one finding naming the row-count-versus-
+    file-count mismatch — a truncated or partially-committed baseline must
+    fail loudly rather than produce a short comparison.
     """
     ok = True
 
@@ -1785,6 +1795,17 @@ def _selftest_baseline() -> bool:
         print(
             f"self-test FAIL: baseline integrity on the regenerated baseline "
             f"({REGEN_DIR}) found unexpected findings: {regen_findings!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    postfix_findings = check_baseline_integrity(
+        POSTFIX_DIR, rejudge_source_dir=REGEN_DIR / "analyses"
+    )
+    if postfix_findings:
+        print(
+            f"self-test FAIL: baseline integrity on the post-fix baseline "
+            f"({POSTFIX_DIR}) found unexpected findings: {postfix_findings!r}",
             file=sys.stderr,
         )
         ok = False
@@ -3634,16 +3655,19 @@ def self_test() -> int:
         print("self-test: tabulation sub-check PASSED")
 
     # D-15 item 6: baseline-fixture integrity (frozen corpus + regenerated
-    # baseline + truncated negative). Plan 04 Task 3 extended this item to
-    # also cover REGEN_DIR (D-15's own text: "now covers the regenerated
-    # baseline directory as well as the frozen corpus").
+    # baseline + post-fix baseline + truncated negative). Plan 04 Task 3
+    # extended this item to also cover REGEN_DIR (D-15's own text: "now
+    # covers the regenerated baseline directory as well as the frozen
+    # corpus"); Phase 166 Plan 02 Task 3 extends it a third time to also
+    # cover POSTFIX_DIR, the post-fix baseline (D-05) — coverage change
+    # named here, not silent (Phase 163 D-02).
     if not _selftest_baseline():
         all_passed = False
         print("self-test: baseline sub-check FAILED", file=sys.stderr)
     else:
         print(
             f"self-test: baseline sub-check PASSED "
-            f"({BASELINE_DIR.name}, {REGEN_DIR.name})"
+            f"({BASELINE_DIR.name}, {REGEN_DIR.name}, {POSTFIX_DIR.name})"
         )
 
     # D-18 item 7: mechanical defect detector (fixtures, structural edges,
