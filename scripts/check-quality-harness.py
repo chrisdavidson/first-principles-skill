@@ -2089,6 +2089,56 @@ _LIST_ITEM_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+)$")
 
 _GT_MENTION_RE = re.compile(r"GT-\d+\??")
 
+# FIX-CONTRACT-01 limitation 2: a stored chain id (e.g. "Chain C1") is
+# reduced to a bare, comparable form ("c1") by stripping a leading
+# "Chain "/"chain " token and case-folding, so an abbreviated citation
+# ("(C1)"), a lowercase-bolded one ("chain **C1**"), or a pluralized
+# multi-id one ("(Chains C2, C3)") all substring-match the same underlying
+# chain — without needing to change how the id is stored or how citations
+# are written.
+_CHAIN_PREFIX_RE = re.compile(r"^chain\s+", re.IGNORECASE)
+
+
+def _normalize_chain_id(chain_id: str) -> str:
+    """Case-fold and strip a leading 'Chain '/'chain ' token."""
+    return _CHAIN_PREFIX_RE.sub("", chain_id.strip()).casefold()
+
+
+def _normalized_id_safe_for_loose_match(normalized: str) -> bool:
+    """Whether a normalized chain id is specific enough to substring-match
+    loosely against arbitrary prose.
+
+    Requires BOTH a digit AND a total length of at least two characters.
+    The digit requirement rules out a bare letter with no digit (e.g. "a"
+    from "Chain A" — the letter "a" appears in nearly every English
+    sentence). The length requirement additionally rules out a bare DIGIT
+    with no letter (e.g. "1" from "Chain 1") — a single digit is just as
+    generic a substring, since it matches inside any other number in the
+    prose (e.g. "1" inside "GT-13", "100mm", "$310k"). Only multi-character,
+    digit-suffixed forms like "c1" or "dc-1" are safe.
+    """
+    return len(normalized) >= 2 and bool(re.search(r"\d", normalized))
+
+
+def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
+    """Whether `text` references ANY chain id (exact stored form or the
+    normalized abbreviated/pluralized form, limitation 2) or any Ground
+    Truth id at all.
+
+    This is a laxer PRESENCE check than `_claim_is_traced`'s full D-20
+    tracing rule (no >=2-co-occurrence requirement) — used only to decide
+    whether a section-intro label or restatement/corollary candidate
+    carries "substantive claim content" of its own (limitation 3).
+    """
+    if any(cid in text for cid in chain_ids):
+        return True
+    folded = text.casefold()
+    for cid in chain_ids:
+        normalized = _normalize_chain_id(cid)
+        if _normalized_id_safe_for_loose_match(normalized) and normalized in folded:
+            return True
+    return bool(_GT_MENTION_RE.search(text))
+
 
 def _is_assertive_claim(text: str) -> bool:
     """Keep only items with sentence-ending punctuation or over forty characters.
@@ -2104,12 +2154,63 @@ def _is_assertive_claim(text: str) -> bool:
     return len(stripped) > 40
 
 
-def _conclusion_claims(section6: str) -> list[str]:
+# FIX-CONTRACT-01 limitation 3(b)/(c): a narrow, closed set of restatement/
+# summary lead-in cues, and a dual-negation corollary shape ("**X — no**,
+# and **Y — no**:"). Both are bounded by `_is_excluded_restatement` below,
+# which requires the candidate to carry no citation of its own AND an
+# earlier claim in the same section to already be cited — "a near-paraphrase
+# ... of an already-extracted, already-cited claim EARLIER in the same
+# section" (the plan's own framing), not a blanket "drop short bullets."
+_RESTATEMENT_LEADIN_RE = re.compile(
+    r"^\*\*(?:bottom line|in short|in summary|to summarize|overall)\b[^*\n]*:\*\*",
+    re.IGNORECASE,
+)
+_DUAL_NEGATION_COROLLARY_RE = re.compile(r"^\*\*[^*\n]+\*\*,?\s+and\s+\*\*[^*\n]+\*\*:")
+
+
+def _is_excluded_restatement(candidate: str, chain_ids: list[str], prior_claims: list[str]) -> bool:
+    """FIX-CONTRACT-01 limitation 3(c): near-paraphrase restatement / direct
+    logical entailment of an already-extracted, already-cited claim earlier
+    in the same section.
+
+    Self-limiting: fires ONLY when (1) the candidate itself carries no
+    citation, (2) it matches one of the two narrow restatement/corollary
+    shapes above, AND (3) an earlier claim in the same claims list can
+    actually be located that already carries a citation — i.e. the
+    "already-cited antecedent" this exclusion depends on must be found, not
+    assumed.
+    """
+    if _label_has_any_citation(candidate, chain_ids):
+        return False
+    if not (
+        _RESTATEMENT_LEADIN_RE.match(candidate) or _DUAL_NEGATION_COROLLARY_RE.match(candidate)
+    ):
+        return False
+    return any(_label_has_any_citation(c, chain_ids) for c in prior_claims)
+
+
+def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> list[str]:
     """Return the assertive claims in section 6: bold colon-lead-ins and list items.
 
     Returns the claim text (not just a count) so the detector output can be
     audited.
+
+    FIX-CONTRACT-01 limitation 3 excludes two further non-claim shapes when
+    `chain_ids` is supplied:
+      (b) a colon-terminated bold lead-in that IS the entire physical line
+          (nothing follows the closing `**` on the same line) and carries
+          no citation of its own — a pure section-intro label, not a claim
+          (e.g. "Before revisiting the decision, close the four unverified
+          preconditions cheaply:").
+      (c) a near-paraphrase restatement or direct logical entailment of an
+          already-cited claim earlier in the same section
+          (`_is_excluded_restatement`).
+    Genuinely-uncited imperative recommendations that are neither of these
+    two shapes (e.g. "Confirm there is an SLO...", "Measure your own
+    p99...") are NOT excluded — they remain counted and, if truly uncited,
+    remain flagged as the honest residual (honesty-not-score, D-01).
     """
+    chain_ids = chain_ids or []
     claims: list[str] = []
     for line in section6.splitlines():
         stripped = line.strip()
@@ -2117,22 +2218,39 @@ def _conclusion_claims(section6: str) -> list[str]:
             continue
         m_bold = _BOLD_LEADIN_COLON_RE.match(stripped)
         if m_bold:
-            if _is_assertive_claim(stripped):
+            if m_bold.end() == len(stripped) and not _label_has_any_citation(stripped, chain_ids):
+                # limitation 3(b): pure section-intro label, no substantive
+                # claim content of its own.
+                continue
+            if _is_assertive_claim(stripped) and not _is_excluded_restatement(
+                stripped, chain_ids, claims
+            ):
                 claims.append(stripped)
             continue
         m_list = _LIST_ITEM_RE.match(stripped)
         if m_list:
             candidate = m_list.group(1).strip()
-            if _is_assertive_claim(candidate):
+            if _is_assertive_claim(candidate) and not _is_excluded_restatement(
+                candidate, chain_ids, claims
+            ):
                 claims.append(candidate)
     return claims
 
 
 def _claim_is_traced(claim_text: str, chain_ids: list[str], chain_blocks: list[str]) -> bool:
-    """A claim is traced if it names a chain identifier, or names >=2 GT ids
-    that also appear together inside a single chain block (D-20)."""
+    """A claim is traced if it names a chain identifier — either the exact
+    stored form (e.g. "Chain C1") or a normalized abbreviated/pluralized
+    citation of it (e.g. "(C1)", "chain **C1**", "(Chains C2, C3)" —
+    FIX-CONTRACT-01 limitation 2) — or names >=2 GT ids that also appear
+    together inside a single chain block (D-20).
+    """
     if any(cid in claim_text for cid in chain_ids):
         return True
+    folded = claim_text.casefold()
+    for cid in chain_ids:
+        normalized = _normalize_chain_id(cid)
+        if _normalized_id_safe_for_loose_match(normalized) and normalized in folded:
+            return True
     gt_mentions = {m.group(0).rstrip("?") for m in _GT_MENTION_RE.finditer(claim_text)}
     if len(gt_mentions) >= 2:
         for block in chain_blocks:
@@ -2179,7 +2297,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     blocks = _chain_blocks(section4)
     malformed_blocks = [b for b in blocks if not _chain_block_well_formed(b)]
 
-    claims = _conclusion_claims(section6)
+    claims = _conclusion_claims(section6, chain_ids)
     untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks)]
 
     return {
@@ -2482,6 +2600,173 @@ def _selftest_limitation1_chainlabels() -> bool:
             f"self-test FAIL: limitation1 lone incidental bold lead-in "
             f"spuriously produced a bare-letter chain id: {lone_ids!r} — "
             f"the family-size guard did not fire",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_limitation2_citationnorm() -> bool:
+    """FIX-CONTRACT-01 limitation 2: `_claim_is_traced()` normalizes stored
+    chain ids AND claim text so abbreviated ("(C1)"), lowercase-bolded
+    ("chain **C1**"), and pluralized ("(Chains C2, C3)") citations trace —
+    plus two regression guards against the loose-match safety bounds
+    (quick task 260724-bq3 Task 2).
+    """
+    ok = True
+
+    positive_cases = [
+        (
+            "abbreviated (C1)",
+            "**Some claim.** gRPC cannot move the median (C1), full stop.",
+            ["Chain C1"],
+        ),
+        (
+            "lowercase-bolded chain **C1**",
+            '"Some claim text" → chain **C1** ✓',
+            ["Chain C1"],
+        ),
+        (
+            "pluralized (Chains C2, C3)",
+            "**Insulation — yes** (Chains C2, C3): the strictly better option.",
+            ["Chain C2", "Chain C3"],
+        ),
+    ]
+    for label, claim_text, chain_ids in positive_cases:
+        if not _claim_is_traced(claim_text, chain_ids, []):
+            print(
+                f"self-test FAIL: limitation2 {label} case did not trace "
+                f"against chain_ids={chain_ids!r}: {claim_text!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Regression guard: a bare single LETTER with no digit (e.g. "a" from
+    # "Chain A") must not loosely substring-match ordinary prose that
+    # merely contains the letter "a" — this is the crux residual the whole
+    # detector must keep honest (Q-P1-run2's genuinely-uncited claim).
+    letter_only_claim = (
+        "Establish whether latency is a binding constraint at all — tie it "
+        "to an SLO, a user-facing metric, or revenue."
+    )
+    if _claim_is_traced(letter_only_claim, ["Chain A"], []):
+        print(
+            "self-test FAIL: limitation2 bare-letter-with-no-digit "
+            "regression guard fired — 'Chain A' loosely matched ordinary "
+            "prose containing the letter 'a'",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Regression guard: a bare DIGIT with no letter (e.g. "1" from
+    # "Chain 1") must not loosely substring-match ordinary prose that
+    # merely contains the digit "1" (e.g. inside "GT-13" or "$310k").
+    digit_only_claim = (
+        "Insulate over the loft hatch and seal its perimeter — this is "
+        "simultaneously the biggest single leakage path (GT-13) and the "
+        "largest thermal bypass in the ceiling plane."
+    )
+    if _claim_is_traced(digit_only_claim, ["Chain 1"], []):
+        print(
+            "self-test FAIL: limitation2 bare-digit-with-no-letter "
+            "regression guard fired — 'Chain 1' loosely matched the digit "
+            "'1' inside 'GT-13'",
+            file=sys.stderr,
+        )
+        ok = False
+
+    return ok
+
+
+def _selftest_limitation3_extractionscope() -> bool:
+    """FIX-CONTRACT-01 limitation 3: `_conclusion_claims()` excludes a
+    colon-terminated section-intro label with no citation of its own (b),
+    and a restatement/corollary of an already-cited claim earlier in the
+    same section (c) — while leaving a genuinely-uncited imperative
+    recommendation counted and untraced (the honesty-not-score anti-
+    overreach guard) (quick task 260724-bq3 Task 2).
+    """
+    ok = True
+
+    cited_lead = "**The benefit is unquantified:** gRPC cannot move the median (C1)."
+    chain_ids = ["C1"]
+
+    # (b) pure section-intro label, no citation of its own -> excluded.
+    label_section6 = (
+        f"{cited_lead}\n\n"
+        "**Before revisiting the decision, close the four unverified "
+        "preconditions cheaply:**\n"
+        "1. **Measure your own p99** on the six candidate services.\n"
+    )
+    label_claims = _conclusion_claims(label_section6, chain_ids)
+    if any("close the four unverified preconditions" in c for c in label_claims):
+        print(
+            "self-test FAIL: limitation3(b) section-intro label was not "
+            "excluded from conclusion_claims",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (c) restatement lead-in of an already-cited claim -> excluded.
+    restatement_section6 = (
+        f"{cited_lead}\n\n"
+        "**Bottom line:** the benefit is unquantified, full stop, no "
+        "further evidence offered here.\n"
+    )
+    restatement_claims = _conclusion_claims(restatement_section6, chain_ids)
+    if any(c.startswith("**Bottom line:**") for c in restatement_claims):
+        print(
+            "self-test FAIL: limitation3(c) restatement lead-in was not "
+            "excluded from conclusion_claims",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # (c) dual-negation corollary of two already-cited claims -> excluded.
+    corollary_section6 = (
+        f"{cited_lead}\n\n"
+        "**The cost and risk are concrete and front-loaded.** (C1)\n\n"
+        "- **Both — no**, and **neither — no**: the two options are not a "
+        "bundle; one clears the bar and one doesn't.\n"
+    )
+    corollary_claims = _conclusion_claims(corollary_section6, chain_ids)
+    if any(c.startswith("**Both — no**") for c in corollary_claims):
+        print(
+            "self-test FAIL: limitation3(c) dual-negation corollary was "
+            "not excluded from conclusion_claims",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Honesty-not-score anti-overreach guard: a genuinely-uncited imperative
+    # recommendation with real trailing content is NEITHER a pure label NOR
+    # a restatement/corollary shape — it must remain counted as a claim and
+    # remain untraced, never silently excluded to force a cleaner tally.
+    imperative_section6 = (
+        f"{cited_lead}\n\n"
+        "1. **Confirm there is an SLO the tail actually threatens** (A2). "
+        "If nothing user-facing is at risk at p99, the entire premise "
+        "weakens considerably.\n"
+    )
+    imperative_claims = _conclusion_claims(imperative_section6, chain_ids)
+    imperative_claim = next(
+        (c for c in imperative_claims if "Confirm there is an SLO" in c), None
+    )
+    if imperative_claim is None:
+        print(
+            "self-test FAIL: honesty-not-score anti-overreach guard — a "
+            "genuinely-uncited imperative recommendation was incorrectly "
+            "excluded from conclusion_claims (must remain counted)",
+            file=sys.stderr,
+        )
+        ok = False
+    elif _claim_is_traced(imperative_claim, chain_ids, []):
+        print(
+            "self-test FAIL: honesty-not-score anti-overreach guard — the "
+            "genuinely-uncited imperative recommendation traced when it "
+            "should not have (the fixture cites only an out-of-vocabulary "
+            "Assumption id, 'A2', not a chain or >=2 GT ids)",
             file=sys.stderr,
         )
         ok = False
@@ -3682,9 +3967,16 @@ def self_test() -> int:
     260724-bq3 (FIX-CONTRACT-01, the offline §4/§6 traceability-detector
     correction) Task 1 adds item 10 (limitation1_chainlabels — a document's
     own bare single-letter §4 chain-label convention, family-size-guarded).
-    Each of the ten items prints its own labelled PASS/FAILED result line —
-    exactly ten such lines, always, per run (D-16: the fault-injection proof
-    for each item is recorded in the corresponding plan's SUMMARY.md).
+    Task 2 adds item 11 (limitation2_citationnorm — abbreviated/lowercase/
+    pluralized chain-citation normalization, plus the bare-letter and
+    bare-digit loose-match regression guards) and item 12
+    (limitation3_extractionscope — the section-intro-label and restatement/
+    corollary exclusions, plus the honesty-not-score anti-overreach guard
+    proving a genuinely-uncited imperative recommendation is never silently
+    excluded). Each of the twelve items prints its own labelled PASS/FAILED
+    result line — exactly twelve such lines, always, per run (D-16: the
+    fault-injection proof for each item is recorded in the corresponding
+    plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -3784,6 +4076,24 @@ def self_test() -> int:
         print("self-test: limitation1_chainlabels sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: limitation1_chainlabels sub-check PASSED")
+
+    # Item 11 (quick task 260724-bq3 Task 2, FIX-CONTRACT-01 limitation 2):
+    # abbreviated/lowercase-bolded/pluralized chain-citation normalization,
+    # plus the bare-letter and bare-digit loose-match regression guards.
+    if not _selftest_limitation2_citationnorm():
+        all_passed = False
+        print("self-test: limitation2_citationnorm sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: limitation2_citationnorm sub-check PASSED")
+
+    # Item 12 (quick task 260724-bq3 Task 2, FIX-CONTRACT-01 limitation 3):
+    # the section-intro-label (b) and restatement/corollary (c) exclusions,
+    # plus the honesty-not-score anti-overreach guard.
+    if not _selftest_limitation3_extractionscope():
+        all_passed = False
+        print("self-test: limitation3_extractionscope sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: limitation3_extractionscope sub-check PASSED")
 
     return 0 if all_passed else 1
 
