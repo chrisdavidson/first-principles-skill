@@ -1981,20 +1981,37 @@ def _verdict_conforms(cell: str) -> bool:
 
 
 # Chain-label families the frozen corpus actually uses: a two-letter prefix
-# followed by a hyphen and a number (DC-1), and the word "Chain" followed by
-# a letter or a number (Chain A, Chain 1).
+# followed by a hyphen and a number (DC-1), the word "Chain" followed by a
+# letter or a number (Chain A, Chain 1), and — FIX-CONTRACT-01 limitation 1
+# — a document's own bare single-letter convention (C1, A, E5: one
+# uppercase letter optionally followed by digits) when used consistently as
+# a §4 lead-in family (see _MIN_BARE_LABEL_FAMILY_SIZE below). The bare form
+# is listed last in the alternation so the two more specific forms above it
+# always win when they also match (e.g. "Chain A" matches the "Chain "
+# alternative and never falls through to the bare one).
 _CHAIN_LABEL_PATTERN = r"(?:[A-Z]{2}-\d+|Chain\s+[A-Za-z0-9]+)"
+_CHAIN_LABEL_PATTERN_BARE = r"[A-Z]\d*"
+_CHAIN_LABEL_PATTERN_ANY = r"(?:" + _CHAIN_LABEL_PATTERN + r"|" + _CHAIN_LABEL_PATTERN_BARE + r")"
+
+# A bare single-letter label is only accepted as a chain-label family when
+# it is used consistently (repeated/sequenced) as a §4 lead-in — a lone
+# incidental bold lead-in that happens to match the bare shape (e.g. a
+# single "**A/B test:**") must not be mistaken for a one-chain family. Two
+# is the minimum "used consistently" reading: a single hit is definitionally
+# not a repeated convention.
+_MIN_BARE_LABEL_FAMILY_SIZE = 2
+_BARE_LABEL_ONLY_RE = re.compile(r"^" + _CHAIN_LABEL_PATTERN_BARE + r"$")
 
 # Headed form: a heading line whose text begins with the label followed by a
 # separator (colon, em dash, en dash, or hyphen).
 _CHAIN_HEADING_RE = re.compile(
-    r"^#{1,6}[ \t]*(?P<label>" + _CHAIN_LABEL_PATTERN + r")[ \t]*[:—–-]",
+    r"^#{1,6}[ \t]*(?P<label>" + _CHAIN_LABEL_PATTERN_ANY + r")[ \t]*[:—–-]",
     re.MULTILINE,
 )
 # Bolded lead-in form: a line beginning with bold markers whose text begins
 # with the label (no heading hashes).
 _CHAIN_BOLD_RE = re.compile(
-    r"^\*\*(?P<label>" + _CHAIN_LABEL_PATTERN + r")\b[^\n]*?\*\*",
+    r"^\*\*(?P<label>" + _CHAIN_LABEL_PATTERN_ANY + r")\b[^\n]*?\*\*",
     re.MULTILINE,
 )
 
@@ -2004,6 +2021,14 @@ def _iter_chain_id_matches(section4: str) -> list[re.Match]:
         _CHAIN_BOLD_RE.finditer(section4)
     )
     matches.sort(key=lambda m: m.start())
+    # FIX-CONTRACT-01 limitation 1's family guard: a bare single-letter
+    # label only counts when the document uses it >= _MIN_BARE_LABEL_
+    # FAMILY_SIZE times. The two-letter-hyphen and "Chain "-prefixed forms
+    # are already specific enough that they need no such guard.
+    bare_matches = [m for m in matches if _BARE_LABEL_ONLY_RE.match(m.group("label"))]
+    if 0 < len(bare_matches) < _MIN_BARE_LABEL_FAMILY_SIZE:
+        excluded_ids = {id(m) for m in bare_matches}
+        matches = [m for m in matches if id(m) not in excluded_ids]
     return matches
 
 
@@ -2418,6 +2443,48 @@ def _selftest_defects() -> bool:
                     file=sys.stderr,
                 )
                 ok = False
+
+    return ok
+
+
+def _selftest_limitation1_chainlabels() -> bool:
+    """FIX-CONTRACT-01 limitation 1: `_chain_ids()` recognizes a document's
+    own bare single-letter §4 lead-in convention (e.g. "C1", "C2") when used
+    consistently (>= _MIN_BARE_LABEL_FAMILY_SIZE times), but a single
+    incidental bold lead-in that happens to match the bare shape is not
+    mistaken for a one-chain family (quick task 260724-bq3 Task 1).
+    """
+    ok = True
+
+    family_section4 = (
+        "**C1 — first chain:**\n"
+        "GT-1 -> intermediate claim -> conclusion one.\n\n"
+        "**C2 — second chain:**\n"
+        "GT-2 -> intermediate claim -> conclusion two.\n"
+    )
+    family_ids = _chain_ids(family_section4)
+    if family_ids != ["C1", "C2"]:
+        print(
+            f"self-test FAIL: limitation1 bare-letter chain-label family "
+            f"expected ['C1', 'C2'], got {family_ids!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    lone_section4 = (
+        "**A/B test:** a single incidental bold lead-in that happens to "
+        "match the bare single-letter shape but is not a chain family.\n\n"
+        "GT-1 -> intermediate claim -> conclusion.\n"
+    )
+    lone_ids = _chain_ids(lone_section4)
+    if lone_ids:
+        print(
+            f"self-test FAIL: limitation1 lone incidental bold lead-in "
+            f"spuriously produced a bare-letter chain id: {lone_ids!r} — "
+            f"the family-size guard did not fire",
+            file=sys.stderr,
+        )
+        ok = False
 
     return ok
 
@@ -3611,10 +3678,13 @@ def self_test() -> int:
     8 (run_layer — the `--run`/`--rejudge`/`--dry-run`/`--resume` composition
     and `write_run_manifest`). Phase 166 Plan 01 Task 2 adds item 9 (compare
     — the offline `--compare`/`--baseline` band/pass-split/defect-incidence
-    delta tabulation and the computed Goodhart flag, D-04). Each of the nine
-    items prints its own labelled PASS/FAILED result line — exactly nine
-    such lines, always, per run (D-16: the fault-injection proof for each
-    item is recorded in the corresponding plan's SUMMARY.md).
+    delta tabulation and the computed Goodhart flag, D-04). Quick task
+    260724-bq3 (FIX-CONTRACT-01, the offline §4/§6 traceability-detector
+    correction) Task 1 adds item 10 (limitation1_chainlabels — a document's
+    own bare single-letter §4 chain-label convention, family-size-guarded).
+    Each of the ten items prints its own labelled PASS/FAILED result line —
+    exactly ten such lines, always, per run (D-16: the fault-injection proof
+    for each item is recorded in the corresponding plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -3704,6 +3774,16 @@ def self_test() -> int:
         print("self-test: compare sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: compare sub-check PASSED")
+
+    # Item 10 (quick task 260724-bq3 Task 1, FIX-CONTRACT-01 limitation 1):
+    # a document's own bare single-letter §4 chain-label convention (C1,
+    # C2, ...) is recognized when used consistently, family-size-guarded
+    # against a single incidental bold lead-in.
+    if not _selftest_limitation1_chainlabels():
+        all_passed = False
+        print("self-test: limitation1_chainlabels sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: limitation1_chainlabels sub-check PASSED")
 
     return 0 if all_passed else 1
 
