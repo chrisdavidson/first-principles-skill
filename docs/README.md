@@ -82,6 +82,12 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [v8.7-quality-baseline-freeze.md](v8.7-quality-baseline-freeze.md) | Phase 164 write-up (HARNESS-01): promotes the blind A/B rig to the permanent, self-testing `scripts/check-quality-harness.py` instrument (`QUAL-01`, battery 15→16) and freezes the pre-fix quality baseline as committed evidence. |
 | [v8.7-post-fix-remeasure.md](v8.7-post-fix-remeasure.md) | Phase 166 honest MIXED verdict (MEASURE-01): the output-contract fix left untraced-defect incidence flat (6/6), improved chain-defect incidence (6/6→4/6), and moved the aggregate band total +9 (to roughly +3 once drift noise is controlled for) — plus the three-way comparison-basis conflict flagged for Phase 167. |
 
+## v8.9 — DIAGNOSE-01
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.9-diagnose-contract-fix.md](v8.9-diagnose-contract-fix.md) | DIAG-01→DIAG-04 diagnosis of v8.7's flat 6/6 untraced-§6 defect: pre-registered protocol, blind hand-read of all six frozen post-fix analyses, reconciliation against the machine detector, and the adopted verdict = **MEASUREMENT** — all six documents traced their conclusion claims; the flag is driven by three isolated `scripts/check-quality-harness.py` extraction limitations, costed for the downstream **FIX-CONTRACT-01** offline detector fix (no prompt re-attempt). Fragility disclosed: the verdict rides on one post-hoc declarative-only reading and flips to **MECHANISM 5/6** under the alternate every-extracted-sentence reading. |
+
 ## Reference & history
 
 | Document | What it covers |
