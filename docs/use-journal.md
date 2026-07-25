@@ -93,8 +93,22 @@ Two worked examples of the right altitude — detailed about the work, silent ab
 
 ## Read-back
 
-At roughly five entries, read them in one sitting and answer one question: **does the
-disappointment cluster?**
+At roughly five entries, read them in one sitting and answer one question: **does the disappointment cluster?**
+
+The cluster question cannot be answered until the denominator is established. The denominator is
+obtained by counting the first-principles dispatches over the read-back window from the transcript
+store's own per-run metadata — the sidecar files that sit beside each subagent transcript under
+`~/.claude/projects/` record the dispatching agent type, so the runs in the window can be counted
+by filtering on that field and grouping by date — and setting that count against the number of
+entries actually written in this file. The read-back therefore reads as **"N runs, M recorded,"**
+and a thin journal is reported as exactly that: "nothing was written down" is not "nothing went
+wrong," and this ordering exists to stop the second being inferred from the first — including the
+case where the journal holds zero entries, which reads as "N runs, 0 recorded" and not as a clean
+result. This source and not another: the private key's snapshot table goes stale and would have to
+be maintained as an instrument, and the author's own count is recall, which the capture rules above
+have just ruled out. Nothing about the count persists between read-backs — no saved script, no
+counter file, no stored figure, no matrix row, per the third rule at the top of this file. It is a
+one-off measurement a human performs, regenerated fresh each time.
 
 The expectation on record, written before the entries exist so it can be falsified by them: real
 use is concentrated in the **5-phase composer**, which was dispatched **19 times in 30 days** —
