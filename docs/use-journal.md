@@ -28,6 +28,22 @@ failed experiment. Record that outcome as readily as the other one.
   v8.7 through v8.11 went that way. A plain file read by a human is the correct fidelity.
 - **Do not tune the format.** If an entry does not fit the shape below, write prose and move on.
 
+## Capture — writing a line while away from this repo
+
+- **Where the line goes.** The fixed local inbox is `use-journal-inbox.md`, at the top of `$HOME`.
+  Append to it right after the run, wherever the author happens to be working; it is always
+  available and needs no tooling. Transcription into the `## Entries` section of this journal
+  happens later, in batch.
+- **Every inbox line carries the date it was written.** Not the date of the run — the date the line
+  was typed. Both dates end up in the transcribed entry.
+- **A line captured materially later than the run is discarded, not transcribed.** Reconstructing
+  an entry from memory days afterwards produces something that looks like evidence and is not.
+  Missing runs stay missing, and that absence is itself data — it is what the read-back denominator
+  measures.
+- **The inbox is local-only and never committed.** Raw detail can go in it, including material that
+  could not be written in this public file; the abstraction happens at transcription, under the
+  Privacy rules in the next section.
+
 ## Privacy — how to be detailed in public
 
 This file is in a public repo, and most real runs are on client work. The scheme separates
