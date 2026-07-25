@@ -1,12 +1,12 @@
 # docs/ — Documentation Index
 
-![First Principles hero banner](assets/hero.svg)
-
 > **Final state — start here:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — terminal
 > release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
 > disposition summary.
 >
-> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but deliberately not built, awaiting a future milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
+> Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but not built in that milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
+
+> **GROK-04 disposition (final, 2026-07-24):** the hero banner was subsequently built and embedded at v8.5 (Phase 153), then **removed entirely** by explicit user decision — asset, embed, and the standing landing-page-placement question all dropped. The v8.2/v8.4 documents below are retained as the frozen record of the decisions made at the time; they are not rewritten.
 
 Milestone v8.5 (Context Optimization — Execute the Reference-File Split) is the first implementation + live milestone since v8.1: it executed the 4-file reference split (five-whys, theoretical-limit, estimate, fishbone into core + on-demand `-detail.md` siblings, dropping 398 lines off the skill surface) and ran the milestone's only live spend — a 72-call re-measure — narrowly relaxing the byte-freeze to re-open and re-measure exactly RR-108-04/RR-108-05, unlike the v8.2–v8.4 analysis-only milestones. The detector constants stayed byte-unchanged and the coverage headline stayed 133/96/0/229.
 
