@@ -157,9 +157,12 @@ Bypass for intentional in-progress work: `git commit --no-verify`
 
 Two verifiers cover different layers of routing correctness (`check-routing.py` for the
 main-agent DELEGATE / NO-DELEGATE boundary; `check-routing-battery.py` for the merged
-boundary + focused-output signal, whose offline `--self-test` is the BATT-06 CI gate).
-Live catalog runs are developer tools, not CI gates, and are read by aggregate K-of-N
-across repeats — never a single run's verdict.
+boundary + focused-output signal (FU-21 gate, FOCUS-01), whose offline `--self-test` is the
+BATT-06 CI gate). Live catalog runs are developer tools, not CI gates, and are read by
+aggregate K-of-N across repeats — never a single run's verdict.
+
+Namespaced threshold defaults for the merged battery: boundary `--p-threshold 2`;
+focused-output `--p-threshold 4 --n-threshold 1`.
 
 `check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims**;
 new callers should invoke `check-routing-battery.py` directly.
