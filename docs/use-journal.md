@@ -28,15 +28,52 @@ failed experiment. Record that outcome as readily as the other one.
   v8.7 through v8.11 went that way. A plain file read by a human is the correct fidelity.
 - **Do not tune the format.** If an entry does not fit the shape below, write prose and move on.
 
+## Privacy — how to be detailed in public
+
+This file is in a public repo, and most real runs are on client work. The scheme separates
+**who** from **what**, so the "what" can be as detailed as you like.
+
+**Identity lives in a private key, never here.** `.planning/use-journal-key.md` (gitignored, local
+only) maps each stable label to the real project. This file uses labels only:
+
+| Label | Meaning |
+|-------|---------|
+| `project-a`, `project-b`, … | External work projects — assigned in first-use order, never reused, never explained here |
+| `repo` | This repository |
+| `personal` | Own non-client problems |
+
+Labels are permanent: once `project-b` means something, it always means that, so patterns across
+months stay traceable without the key ever being published.
+
+**Content rule — the operative test:** *would this entry identify the client to someone who knows
+the sector?* If yes, abstract it further. In practice:
+
+- **No proper nouns** — no client, person, product, place, or system names.
+- **No verbatim quotes** from the source material, and no distinctive figures. Round them
+  (`~£2m`, `low hundreds of staff`) or drop them.
+- **Describe the analysis, not the case.** "Stress-tested a pricing assumption I'd already
+  committed to" is detailed and safe. "Reviewed the Q3 repricing for <client>" is neither.
+- **The `fell short` half needs no redaction at all** — it is about the tool's behaviour, not the
+  client's business. That is the half this journal exists for, so be blunt there.
+
+Anything too specific to abstract goes in the private key against the same label, not here.
+
 ## Format
 
 ```text
-- YYYY-MM-DD · <technique or `agent`> · asked: <the actual problem, ~10 words> · fell short: <where it disappointed, or "nothing">
+- YYYY-MM-DD · <label> · <technique or `agent`> · asked: <abstracted problem shape> · fell short: <where it disappointed, or "nothing">
+```
+
+Two worked examples of the right altitude — detailed about the work, silent about the client:
+
+```text
+- 2026-07-01 · project-b · agent · asked: whether a staffing model I'd already priced survived a demand drop · fell short: gave me the 5 phases but Ground Truths were restatements of my own inputs, not verified facts — I had to supply every number it "grounded" on
+- 2026-07-16 · project-c · agent · asked: second-order effects of moving a contract from fixed-fee to time-and-materials · fell short: nothing — the inversion section found a failure mode I'd missed
 ```
 
 ## Entries
 
-<!-- append below; newest at the bottom -->
+<!-- live entries below; newest at the bottom. Written at the time, unlike the baseline above. -->
 
 ## Read-back
 
@@ -51,6 +88,13 @@ counters (`pre-mortem` 125, `inversion` 38) last incremented on 2026-07-20, the 
 v8.5/v8.6 live re-measure runs, so they are best read as harness activity rather than use.
 A cluster is therefore likely to point at the composer. **If it points at a focused technique
 instead, that surprise is itself the finding.**
+
+One structural fact from those 19, worth carrying into the read-back: **every real run invoked the
+full 5-phase composer** — not one focused technique. And one working session ran the composer eight
+times with the prompt growing monotonically (2.6k → 8.0k chars). That growth is either re-prompting
+to repair unsatisfying answers — a disappointment signal that fired eight times unrecorded — or
+ordinary iteration across successive problems. Transcript metadata cannot tell them apart. It is
+the first thing a live entry should settle.
 
 *Correction, 2026-07-24: an earlier version of this section asserted the opposite — that the
 composer was near-unused and the focused techniques carried the load. That came from comparing a
