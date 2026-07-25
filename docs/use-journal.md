@@ -44,11 +44,19 @@ At roughly five entries, read them in one sitting and answer one question: **doe
 disappointment cluster?**
 
 The expectation on record, written before the entries exist so it can be falsified by them: real
-use is concentrated in `pre-mortem` (125 lifetime invocations) and `inversion` (38), while the
-5-phase composer is near-unused (1 dispatch across 30 days of session transcripts) — yet v8.7
-through v8.11 all instrumented the composer. A cluster is therefore likely to point at the
-focused techniques rather than at the composer-correctness apparatus five milestones were spent
-on. **If it points somewhere else, that surprise is itself the finding.**
+use is concentrated in the **5-phase composer**, which was dispatched **19 times in 30 days** —
+12 of those in external work projects, on actual problems, outside this repo. Over the same 30
+days the focused technique skills were slash-invoked **zero** times; their large lifetime
+counters (`pre-mortem` 125, `inversion` 38) last incremented on 2026-07-20, the date of the
+v8.5/v8.6 live re-measure runs, so they are best read as harness activity rather than use.
+A cluster is therefore likely to point at the composer. **If it points at a focused technique
+instead, that surprise is itself the finding.**
+
+*Correction, 2026-07-24: an earlier version of this section asserted the opposite — that the
+composer was near-unused and the focused techniques carried the load. That came from comparing a
+lifetime skill counter against a 30-day transcript count, and from counting only Skill-tool
+dispatches while the composer is invoked through the Agent tool. Both windows are now measured
+the same way. The error is left visible here rather than quietly overwritten.*
 
 Record the read-back as a new dated entry in the altitude log (`.planning/ALTITUDE.md`), not
 here. This file stays raw observations; conclusions live in the append-only log.
