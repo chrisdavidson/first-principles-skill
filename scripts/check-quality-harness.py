@@ -3128,6 +3128,243 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         verbatim_from=None,
     ),
     ContractFixture(
+        id="C-RENDER-EXAMPLE-PREFIX",
+        kind="chain",
+        text=(
+            'Example: `GT-2 + GT-5 (criteria facts) → weighted totals: B=82 > A=64, '
+            'driven by reliability×warranty → recommend B`. The full matrix stays in '
+            "the technique's own output — this subsection carries only the single "
+            'collapsed chain, never the matrix re-expressed row-by-row (that would '
+            'violate the one-chain-per-conclusion rule above). An exact tie between '
+            'weighted totals still resolves to a single named recommended option; a '
+            'tie must not produce a multi-option chain endpoint. **Exact-tie tiebreak '
+            '(deterministic):** on an exact tie, prefer the option with fewer `GT-N?` '
+            '(unverified) inputs among its winning criteria; if still tied, name both '
+            'totals in the chain intermediate but select the first-listed option as '
+            'the chain endpoint, and flag the tie explicitly in the Conclusion '
+            "section's confidence line."
+        ),
+        expected=True,
+        owner="DETECT-03",
+        source=(
+            "output-template.md line 123, the WHOLE stripped physical line — "
+            "Example: lead-in and both backticks intact, not the "
+            "de-contextualised substring C-TEMPLATE-TRADEOFF lifts. Certifies "
+            "ROADMAP criterion 2 and DETECT-03 acceptance clause A against the "
+            "template as it actually reads (184-VERIFICATION.md gap 2, "
+            "184-REVIEW.md WR-03); this row and Guard A's substring check now "
+            "cover the same characters, superseding C-TEMPLATE-TRADEOFF for "
+            "behavioural purposes without editing it. False at 37fea87 (the `^` "
+            "anchor rejected it), True at 1f71211 and after this plan; pinned by "
+            "INJ-1."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-RENDER-SECONDORDER-PREFIX",
+        kind="chain",
+        text=(
+            'Example: `GT-1 → first-order conclusion →[2nd] flag-config surface grows '
+            '→[3rd] flag debt accumulates (contradicts GT-4 → back to P2)`. The order '
+            "marks (`[2nd]`, `[3rd]`) make the extension's sequence legible. A "
+            'contradicting effect routes the conclusion back to Phase 2 — never '
+            'directly to Phase 3 or past Phase 2. A pass that surfaces no '
+            'non-contradicting downstream effect leaves the parent chain unextended — '
+            'a clean no-op, not an error.'
+        ),
+        expected=True,
+        owner="DETECT-03",
+        source=(
+            "output-template.md's second-order-extension Example: line, the "
+            "WHOLE stripped physical line — same ownership and treatment as "
+            "C-RENDER-EXAMPLE-PREFIX above (ROADMAP criterion 2, DETECT-03 "
+            "acceptance clause A). False at 37fea87, True at 1f71211 and after "
+            "this plan; pinned by INJ-1."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-RENDER-BACKTICK",
+        kind="chain",
+        text=(
+            '`GT-1 (Amdahl) + GT-4 (RTT is encoding-invariant) → the law-permitted '
+            'ceiling on latency improvement from any transport change is exactly the '
+            'fraction of the latency budget currently spent on encoding and connection '
+            'management → everything else (RTT, queuing, DB, downstream fan-out, cold '
+            'starts, GC pauses) is untouched by gRPC.`'
+        ),
+        expected=True,
+        owner=None,
+        source=(
+            "tests/quality-baseline-v8.7/analyses/condA-P1.md line 93, the "
+            "backtick-wrapped condA-P1 DC-2 rendering the frozen corpus actually "
+            "uses (184-VERIFICATION.md gap 4, 184-REVIEW.md CR-01). False at "
+            "37fea87, True at 1f71211 and after this plan; pinned by INJ-1."
+        ),
+        verbatim_from="tests/quality-baseline-v8.7/analyses/condA-P1.md",
+    ),
+    ContractFixture(
+        id="C-RENDER-BLOCKQUOTE-BOLD",
+        kind="chain",
+        text=(
+            '> **GT-1 + GT-2 + GT-4 → attic saves ≈ 107 W/K → GT-5 (attic ≈ '
+            '£500–1,000) → ≈ 3–6 W/K per £100 spent**'
+        ),
+        expected=True,
+        owner=None,
+        source=(
+            "tests/quality-baseline-v8.7/analyses/condA-P3.md line 71, the "
+            "blockquote+bold condA-P3 rendering the frozen corpus actually uses "
+            "(184-VERIFICATION.md gap 4, 184-REVIEW.md CR-01). False at 37fea87, "
+            "True at 1f71211 and after this plan; pinned by INJ-1."
+        ),
+        verbatim_from="tests/quality-baseline-v8.7/analyses/condA-P3.md",
+    ),
+    ContractFixture(
+        id="C-RENDER-LIST-ITEM",
+        kind="chain",
+        text="- GT-1 (bench) -> intermediate -> conclusion",
+        expected=True,
+        owner=None,
+        source=(
+            "constructed list-item rendering, one of the CR-01 table's "
+            "renderings the pre-existing 11 chain fixtures structurally cannot "
+            "see (every one begins at column 0 with a bare GT- token). False at "
+            "37fea87, True at 1f71211 and after this plan; pinned by INJ-1."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-WRAP-HEAD-ARROW",
+        kind="chain",
+        text="GT-1 (fact) → intermediate claim\n→ therefore the conclusion holds",
+        expected=True,
+        owner=None,
+        source=(
+            "184-REVIEW.md WR-04: a legitimate line-wrapped chain whose head "
+            "carries the first arrow and whose continuation carries the second "
+            "— a normal rendering of the template's own `### Conclusion C1:` "
+            "form. Unpinned in either direction before this plan. False / True "
+            "/ False across 1f71211 / b50e8e4 / 37fea87 (184-01 fixed it, "
+            "184-03's head-arrow guard re-broke it); True after this plan, "
+            "pinned by INJ-6 (restoring the retired guard flips this fixture "
+            "and only this one)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-WRAP-BULLETED",
+        kind="chain",
+        text="- GT-1 + GT-2\n  -> intermediate\n  -> conclusion",
+        expected=True,
+        owner=None,
+        source=(
+            "the bulleted, indented canonical multi-line form — a literal "
+            "instance of ROADMAP criterion 1's own wording (GT inputs joined "
+            "by +, two arrow-led segments, line breaks between them). False / "
+            "True / False across 1f71211 / b50e8e4 / 37fea87; True after this "
+            "plan, pinned by INJ-1."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-BULLET-WRAPPED",
+        kind="chain",
+        text=(
+            "GT-1 (single fact)\n"
+            "-> this is the only hop, no second arrow to close the claim.\n"
+            "-> Next steps: verify assumption before deploying."
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "C-JOIN-ARROW-BULLET (CE1) reformatted — the first arrow moved from "
+            "the head onto its own line, identical content and malformation. "
+            "184-REVIEW.md CR-03/184-VERIFICATION.md gap 1: the 184-03 "
+            "head-arrow guard was defeated by this reformatting alone (True at "
+            "37fea87). False at 1f71211 and after this plan; pinned by INJ-2 "
+            "(the sentence-closed refusal, tracked at the continuation level)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-NEWGT-WRAPPED",
+        kind="chain",
+        text=(
+            "GT-1 (bench numbers)\n"
+            "-> partial claim about GT-1 only, no second hop here\n"
+            "-> GT-9 (unrelated fact) is what actually explains the real "
+            "conclusion"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "C-JOIN-ARROW-NEWGT (CE3) reformatted — the first arrow moved off "
+            "the head. True at 37fea87 (blanket pass survives the "
+            "reformatting); False at 1f71211 and after this plan; pinned by "
+            "INJ-3 (the arrow-led-GT refusal)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-TABLEROW",
+        kind="chain",
+        text=(
+            "GT-1 -> intermediate only, single hop\n"
+            "-> | some other column | another column |"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "the fourth original CR-01 counter-example as written "
+            "(184-REVIEW-preclosure.md): a markdown table row absorbed through "
+            "the arrow-led rule. True at b50e8e4 (never pinned, WR-02); False "
+            "at 1f71211, at 37fea87 (the head-arrow guard incidentally closed "
+            "it) and after this plan; pinned by INJ-4 (the table-row refusal)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-TABLEROW-WRAPPED",
+        kind="chain",
+        text=(
+            "GT-1\n"
+            "-> intermediate only, single hop\n"
+            "-> | some other column | another column |"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "the fourth counter-example reformatted — the first arrow moved "
+            "off the head. True at b50e8e4 and at 37fea87 (the head-arrow "
+            "guard does not reach a headless-of-arrow candidate, so this "
+            "reformatting defeats it too); False at 1f71211 and after this "
+            "plan; pinned by INJ-4."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ORDERMARK-NEWGT",
+        kind="chain",
+        text=(
+            "GT-1 → first-order conclusion\n"
+            "→[2nd] GT-9 (another fact) drives the rest"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "an order-marked continuation that leads with its own GT "
+            "identifier — the single row that pins the optional bracket group "
+            "inside _ARROW_LED_GT_RE (as opposed to the legitimate "
+            "`→[2nd] flag-config surface grows` template shape, which the same "
+            "refusal must NOT reject). True at b50e8e4; False at 1f71211, at "
+            "37fea87 and after this plan; pinned by INJ-3 (the whole refusal) "
+            "and INJ-5 (the bracket group specifically — removing only the "
+            "bracket group flips this fixture and only this one)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
         id="V-OBS-ENDASH",
         kind="verdict",
         text="Accept – survives challenge",
