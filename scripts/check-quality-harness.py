@@ -2223,6 +2223,72 @@ _ARROW_LED_TABLE_ROW_RE = re.compile(r"^" + _ARROW + r"[ \t]*\|")
 # `C-JOIN-ARROW-BULLET-WRAPPED` (INJ-2).
 _SEGMENT_SENTENCE_END_RE = re.compile(r"[.!?][\"'’”]*$")
 
+# Markdown emphasis/code closers that may legitimately trail a sentence's
+# terminal punctuation in this project's own corpus (`**bold.**`,
+# `` `code.` ``, `*em.*`, `__strong.__`, `~~strike.~~`). Stripped before
+# the sentence-end test — see `_segment_sentence_closed`.
+_MD_TRAILING_CLOSER_RE = re.compile(r"(?:\*\*|__|[*_`~])+$")
+
+# A GT identifier carries its OWN optional `?` (the unverified marker,
+# `GT-5?`). That `?` is not sentence-terminal punctuation, but is
+# indistinguishable from it at end-of-string. Masked before the
+# sentence-end test — see `_segment_sentence_closed`. Same pattern as
+# `_GT_HEAD_RE`, kept as its own named symbol because the two have
+# distinct purposes (candidacy vs. normalisation).
+_GT_TOKEN_MASK_RE = re.compile(_GT_TOKEN_WIDE)
+
+
+def _segment_sentence_closed(seg: str) -> bool:
+    """Has this segment finished its claim? Normalise, THEN test (D-20).
+
+    Phase 184-06. `_SEGMENT_SENTENCE_END_RE` alone tests RAW rendered
+    markdown, which made the refusal evadable in two opposite directions —
+    both found by this phase's own code review AFTER every gate was green,
+    because no fixture exercised either shape:
+
+    - OVER-acceptance (`184-REVIEW.md` CR-01, pinned by
+      `C-JOIN-ARROW-BOLDCLOSE`): a finished one-hop claim wearing a
+      markdown closer (`**GT-1 → conclusion is finished here.**`) did not
+      read as sentence-closed, so an unrelated following arrow-led line
+      fused into a fake two-hop chain and scored well-formed. This is the
+      blanket-pass class ROADMAP criterion 3 names by name.
+    - UNDER-acceptance (`184-REVIEW.md` CR-02, pinned by
+      `C-WRAP-GT-QMARK`): a legitimate wrapped chain whose head ends in a
+      GT token's own unverified marker (`GT-2 + GT-5?`) read as
+      sentence-closed on that `?`, so its real continuations were refused.
+
+    Both are one root: the test ran on raw text without normalising
+    decoration or tokenising GT markers first. Fixing the LAYERING —
+    mask GT tokens, strip trailing markdown closers, then apply the
+    unchanged `_SEGMENT_SENTENCE_END_RE` — closes both and, measured
+    against the full grid, moves nothing else: all 32 contract fixtures
+    still agree, the six-analysis corpus vector stays
+    `[2, 2, 2, 2, 3, 3]`, and the template's own `Example:` lines stay
+    True.
+
+    ACCEPTED LIMITATION (D-21, honesty-not-score D-01). This does NOT
+    close ROADMAP criterion 3 as a class, and Phase 184 stops here by
+    decision rather than by exhaustion. Criterion 3 is an unbounded
+    negative ("the matcher does not become a blanket pass") verified by a
+    finite fixture table; finite examples cannot discharge a universal
+    claim. Three rounds each closed the shape then known and each was
+    defeated by a shape outside the table — line-break position (184-03),
+    reformatted first arrow (184-04), markdown-decorated sentence close
+    (184-06) — with every CI gate green throughout, because the gates
+    assert only the table. Closing the class would require a GENERATOR
+    (property-based testing over a grammar of renderings: bold x backtick
+    x blockquote x list x table x order mark x arrow position x sentence
+    closer), not more fixtures. That is deliberately not built. Treat a
+    green chain axis as "no KNOWN shape regresses", never as "no shape
+    passes".
+    """
+    text = _GT_TOKEN_MASK_RE.sub("\x01", seg).rstrip()
+    previous = None
+    while previous != text:
+        previous = text
+        text = _MD_TRAILING_CLOSER_RE.sub("", text).rstrip()
+    return bool(_SEGMENT_SENTENCE_END_RE.search(text))
+
 
 def _chain_block_well_formed(block: str) -> bool:
     """Match the prescribed chain form across a block (D-05, D-06).
@@ -2296,6 +2362,25 @@ def _chain_block_well_formed(block: str) -> bool:
     every candidate rule measured in `184-04-PLAN.md` M-2/M-3 — neither is
     introduced or worsened here.
 
+    Phase 184-06 correction and STOP decision. The residual list above was
+    incomplete when written: this phase's own code review, run AFTER
+    184-04 and 184-05 committed and after every gate was green, found two
+    further live shapes — `184-REVIEW.md` CR-01 (over-acceptance, a
+    REGRESSION against the pre-phase base) and CR-02 (under-acceptance,
+    not a base regression but undisclosed). Both had one root — the
+    sentence-close test ran on raw rendered markdown — and both are closed
+    by `_segment_sentence_closed` above and pinned by
+    `C-JOIN-ARROW-BOLDCLOSE` and `C-WRAP-GT-QMARK`.
+
+    ROADMAP criterion 3 is NOT closed as a class and is recorded as an
+    ACCEPTED LIMITATION rather than pursued further (D-21; see
+    `_segment_sentence_closed` for the full statement, and
+    `docs/requirements-traceability.md` for the tracked disposition).
+    Three rounds each closed the then-known shape and were each defeated
+    by a shape outside the fixture table; a finite table cannot discharge
+    an unbounded negative. Known shapes are pinned; the class stays open
+    by decision.
+
     Deferred, out of this phase's scope (WR-03): this function's `any()`
     semantic over candidates, combined with `_chain_blocks`'s
     whole-section fallback for an un-headered block, means one matching
@@ -2310,7 +2395,7 @@ def _chain_block_well_formed(block: str) -> bool:
         if not _GT_HEAD_RE.search(head):
             continue
         seg = [head]
-        segment_closed = bool(_SEGMENT_SENTENCE_END_RE.search(head))
+        segment_closed = _segment_sentence_closed(head)
         for nxt in lines[i + 1 :]:
             s = nxt.strip()
             if not _LEADING_ARROW_RE.match(s):
@@ -2322,7 +2407,7 @@ def _chain_block_well_formed(block: str) -> bool:
             if _ARROW_LED_TABLE_ROW_RE.match(s):
                 break
             seg.append(s)
-            segment_closed = bool(_SEGMENT_SENTENCE_END_RE.search(s))
+            segment_closed = _segment_sentence_closed(s)
         if _CHAIN_FORM_LINE_RE.search(" ".join(seg)):
             return True
     return False
@@ -3458,6 +3543,50 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
             "37fea87 and after this plan; pinned by INJ-3 (the whole refusal) "
             "and INJ-5 (the bracket group specifically — removing only the "
             "bracket group flips this fixture and only this one)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-BOLDCLOSE",
+        kind="chain",
+        text=(
+            "**GT-1 → conclusion one is finished right here.**\n"
+            "→ this note is actually a totally separate topic and should "
+            "never fuse in"
+        ),
+        expected=False,
+        owner="DETECT-03",
+        source=(
+            "184-REVIEW.md CR-01 — a one-hop claim whose sentence-terminal "
+            "period sits BEHIND a markdown bold closer. True at b50e8e4 and "
+            "after 184-04 (the raw sentence-end test cannot see the close "
+            "through the `**`, so the unrelated next line fuses into a fake "
+            "two-hop chain); False at 1f71211, at 37fea87 and after "
+            "184-06. The unwrapped control returns False at every revision, "
+            "isolating the closers as the entire cause. Pinned by INJ-7 "
+            "(removing the trailing-closer strip)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-WRAP-GT-QMARK",
+        kind="chain",
+        text=(
+            "GT-2 + GT-5?\n"
+            "→ intermediate claim here\n"
+            "→ final conclusion here"
+        ),
+        expected=True,
+        owner="DETECT-03",
+        source=(
+            "184-REVIEW.md CR-02 — a legitimate wrapped chain whose head "
+            "ends in a GT token's OWN `?` unverified marker, which the raw "
+            "sentence-end test read as sentence-terminal and so refused the "
+            "real continuations. False at 1f71211 and after 184-04, True at "
+            "b50e8e4, at 37fea87 and after 184-06. NOT a regression against "
+            "the pre-phase base (False there too) but previously undisclosed "
+            "— it was not among the RISK-A/B/C residuals. Pinned by INJ-8 "
+            "(removing the GT-token mask)."
         ),
         verbatim_from=None,
     ),
