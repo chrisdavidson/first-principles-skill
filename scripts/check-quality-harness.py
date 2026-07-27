@@ -2415,6 +2415,19 @@ _EXPECTED_DEFECTIVE_RECORD = {
 # the detector actually produced, NOT the judge-reported figures (6/6, 6/6,
 # 4/6) — pinning the observed vector makes a future change to the
 # detector's definitions move it loudly rather than silently.
+#
+# Staleness caveat (Phase 183, DETECT-02): the committed
+# tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv file's
+# `nonconforming_verdict_cells` column was produced under the pre-DETECT-02
+# (inverted) Verdict check and no longer reproduces against the corrected
+# detector — the `condB-P3` row is the clearest instance, moving from `4`
+# to `15` nonconforming verdict cells (out of 15 total) once re-scored. The
+# binary flags below are unaffected (verified stable, see the vectors
+# immediately below this comment), so this staleness does not move any
+# pinned value in this file; it is noted here purely for documentation
+# honesty. The TSV is read by no runtime code path in this script and
+# asserted by no self-test item. DETECT-05 (Phase 186) owns any correction
+# to the TSV itself; this comment records the fact without editing it.
 _CALIBRATION_ANALYSIS_ORDER = (
     "condA-P1",
     "condA-P2",
