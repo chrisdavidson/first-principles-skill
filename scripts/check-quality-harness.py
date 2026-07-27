@@ -2619,6 +2619,64 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         verbatim_from="shared/spine/references/output-template.md",
     ),
     ContractFixture(
+        id="V-ACCEPT-EMDASH-BOLD",
+        kind="verdict",
+        text="**Accept — survives P2 challenge; physical-law backed by GT-1**",
+        expected=True,
+        owner="DETECT-02",
+        source=(
+            "output-template.md line 69's parenthesised example wrapped in "
+            "double asterisks — criterion 1 requires the bold form."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-CHALLENGE-EMDASH",
+        kind="verdict",
+        text="Challenge — vendor benchmark unverified, flagged GT-5?",
+        expected=True,
+        owner="DETECT-02",
+        source=(
+            "output-template.md line 70, verbatim — the parenthesised "
+            "Challenge example. Succeeded by DETECT-06 (Phase 187) runtime "
+            "extraction, which replaces this literal copy."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="V-DISCARD-EMDASH-BOLD",
+        kind="verdict",
+        text="**Discard — contradicted by GT-2, no longer load-bearing**",
+        expected=True,
+        owner="DETECT-02",
+        source="output-template.md line 71's parenthesised example wrapped in double asterisks",
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-BARE-TOKEN",
+        kind="verdict",
+        text="Accept",
+        expected=False,
+        owner="DETECT-02",
+        source=(
+            "validation-rubric.md Criterion 2 Rigorous names the bare token "
+            "alone as the defect; this is the Q-P2-run1 cell shape."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-BARE-TOKEN-BOLD",
+        kind="verdict",
+        text="**Challenge**",
+        expected=False,
+        owner="DETECT-02",
+        source=(
+            "validation-rubric.md Criterion 2 Rigorous's named defect, the "
+            "bolded Q-P2-run1 cell shape."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
         id="C-SINGLE-LINE",
         kind="chain",
         text=(
@@ -2628,6 +2686,97 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         expected=True,
         owner=None,
         source="constructed; Phase 184 criterion 4 (single-line form must survive)",
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-TEMPLATE-C1",
+        kind="chain",
+        text=(
+            "### Conclusion C1: [Conclusion text]\n"
+            "\n"
+            "GT-N ([brief fact label, source]) + GT-M ([brief fact label, source])\n"
+            "→ [intermediate claim — a new inference statable from combining "
+            "GT-N and GT-M but from neither alone]\n"
+            "→ [conclusion — the claim this chain establishes]"
+        ),
+        expected=True,
+        owner="DETECT-03",
+        source=(
+            "output-template.md lines 133-137, verbatim — the template's own "
+            "canonical worked example (criterion 3). Succeeded by DETECT-06 "
+            "(Phase 187) runtime extraction, which replaces this literal copy."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-TEMPLATE-FORMAT",
+        kind="chain",
+        text="GT-N + GT-M → [intermediate claim] → [conclusion]",
+        expected=True,
+        owner="DETECT-03",
+        source=(
+            "output-template.md line 108, verbatim — the fenced chain-format "
+            "block. Its single-line form is deliberate: it isolates the "
+            "placeholder-identifier axis from the multi-line axis. Succeeded "
+            "by DETECT-06 (Phase 187) runtime extraction, which replaces this "
+            "literal copy."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-MULTILINE-DIGITS",
+        kind="chain",
+        text=(
+            "GT-1 (measured throughput, bench log) + GT-2 (queue depth, spec)\n"
+            "→ admission control, not worker count, is the binding limit\n"
+            "→ adding workers will not raise throughput"
+        ),
+        expected=True,
+        owner="DETECT-03",
+        source="constructed three-line chain in the template's shape",
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-TEMPLATE-TRADEOFF",
+        kind="chain",
+        text=(
+            "GT-2 + GT-5 (criteria facts) → weighted totals: B=82 > A=64, "
+            "driven by reliability×warranty → recommend B"
+        ),
+        expected=True,
+        owner=None,
+        source=(
+            "output-template.md line 123, verbatim — the backtick-quoted "
+            "trade-off example. Succeeded by DETECT-06 (Phase 187) runtime "
+            "extraction, which replaces this literal copy."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-NO-INTERMEDIATE",
+        kind="chain",
+        text="GT-1 + GT-2 → adding workers will not raise throughput",
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative; Phase 184 criterion 3 — this fix must not "
+            "become a blanket pass."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-NO-INTERMEDIATE-MULTILINE",
+        kind="chain",
+        text=(
+            "GT-1 (measured throughput, bench log) + GT-2 (queue depth, spec)\n"
+            "→ adding workers will not raise throughput"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative; the sentinel a block-level matcher is "
+            "most likely to break."
+        ),
         verbatim_from=None,
     ),
 )
@@ -2662,6 +2811,40 @@ _DETECT01_PINNED_RED: dict[str, str] = {
         "DETECT-02 owns `_verdict_conforms`; this entry is removed once it "
         "accepts the token-prefix + em-dash + justification form the "
         "template and rubric prescribe."
+    ),
+    "V-ACCEPT-EMDASH-BOLD": (
+        "DETECT-02 owns `_verdict_conforms`; removed once the bolded "
+        "token-prefix + em-dash + justification form is accepted."
+    ),
+    "V-CHALLENGE-EMDASH": (
+        "DETECT-02 owns `_verdict_conforms`; removed once the Challenge "
+        "token-prefix + em-dash + justification form is accepted."
+    ),
+    "V-DISCARD-EMDASH-BOLD": (
+        "DETECT-02 owns `_verdict_conforms`; removed once the bolded "
+        "Discard token-prefix + em-dash + justification form is accepted."
+    ),
+    "V-BARE-TOKEN": (
+        "DETECT-02 owns `_verdict_conforms`; removed once the bare token "
+        "alone is correctly rejected."
+    ),
+    "V-BARE-TOKEN-BOLD": (
+        "DETECT-02 owns `_verdict_conforms`; removed once the bolded bare "
+        "token alone is correctly rejected."
+    ),
+    "C-TEMPLATE-C1": (
+        "DETECT-03 owns `_chain_block_well_formed`; removed once the "
+        "template's own canonical multi-line worked example is accepted "
+        "(also requires a decision on placeholder GT identifiers — see this "
+        "plan's two-axis finding)."
+    ),
+    "C-TEMPLATE-FORMAT": (
+        "DETECT-03 owns `_chain_block_well_formed`; removed once the "
+        "placeholder GT identifier form (`GT-N`/`GT-M`) is accepted."
+    ),
+    "C-MULTILINE-DIGITS": (
+        "DETECT-03 owns `_chain_block_well_formed`; removed once a "
+        "multi-line chain block is matched at the block level."
     ),
 }
 
@@ -2754,6 +2937,88 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
                     f"{fx.owner} has corrected the check; delete this entry "
                     f"from _DETECT01_PINNED_RED and let the fixture assert "
                     f"normally",
+                    file=sys.stderr,
+                )
+                ok = False
+
+    # Guard D — fixture-table sanity (both modes): duplicate/empty id, empty
+    # text, or a kind outside verdict/chain.
+    seen_ids: set[str] = set()
+    for fx in _CONTRACT_FIXTURES:
+        if not fx.id:
+            print("self-test FAIL: contract_pin Guard D empty fixture id", file=sys.stderr)
+            ok = False
+        elif fx.id in seen_ids:
+            print(
+                f"self-test FAIL: contract_pin Guard D duplicate fixture id {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            seen_ids.add(fx.id)
+        if not fx.text:
+            print(
+                f"self-test FAIL: contract_pin Guard D empty text for {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+        if fx.kind not in ("verdict", "chain"):
+            print(
+                f"self-test FAIL: contract_pin Guard D unknown kind {fx.kind!r} "
+                f"for {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Guard A — verbatim drift (both modes): every fixture with a non-None
+    # `verbatim_from` must be a literal substring of that file's content, so
+    # "lifted verbatim" is mechanically provable instead of eyeballed. This is
+    # the weak form DETECT-06 (Phase 187) later strengthens with runtime
+    # extraction.
+    for fx in _CONTRACT_FIXTURES:
+        if fx.verbatim_from is None:
+            continue
+        source_path = REPO_ROOT / fx.verbatim_from
+        try:
+            source_text = source_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(
+                f"self-test FAIL: contract_pin Guard A could not read "
+                f"{fx.verbatim_from} for {fx.id}: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+            continue
+        if fx.text not in source_text:
+            print(
+                f"self-test FAIL: contract_pin Guard A {fx.id} text is not a "
+                f"literal substring of {fx.verbatim_from} — verbatim lift drifted",
+                file=sys.stderr,
+            )
+            ok = False
+
+    if not strict:
+        # Guard B — registry drift (default mode): every _DETECT01_PINNED_RED
+        # id must name a real fixture in _CONTRACT_FIXTURES.
+        for pinned_id in _DETECT01_PINNED_RED:
+            if pinned_id not in fixtures_by_id:
+                print(
+                    f"self-test FAIL: contract_pin Guard B unregistered "
+                    f"fixture id in _DETECT01_PINNED_RED: {pinned_id}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Guard C — owner whitelist (default mode): every registry reason
+        # string must mention DETECT-02 or DETECT-03, bounding the registry to
+        # the two requirements that close it, so an unrelated future
+        # regression cannot be silenced without a visibly false ownership
+        # claim in a reviewed diff.
+        for pinned_id, reason in _DETECT01_PINNED_RED.items():
+            if "DETECT-02" not in reason and "DETECT-03" not in reason:
+                print(
+                    f"self-test FAIL: contract_pin Guard C reason for "
+                    f"{pinned_id} names neither DETECT-02 nor DETECT-03",
                     file=sys.stderr,
                 )
                 ok = False
