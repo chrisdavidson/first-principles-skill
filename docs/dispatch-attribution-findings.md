@@ -81,6 +81,26 @@ Each of these was checked because its failure would have invalidated the control
   affirmative by this verdict: a model-invocable entry point would inherit the same failure.
 - **Phase 5 (documentation of the version-pinned install surface) is unaffected** and still stands.
 
+## Follow-up: explicit dispatch works, and Phase 4 is built
+
+Tested after this verdict was recorded, and it narrows the finding usefully: **explicit dispatch
+succeeds.** A prompt instructing the session to invoke the agent through the Task tool returned
+`subagent_type=first-principles:first-principles` and a full analysis. What is suppressed is
+*implicit auto-routing* only — the agent itself is fully functional and reachable when asked for
+by name.
+
+Phase 4 (`DISPATCH-05`) is therefore implemented as a thin launcher,
+`/first-principles-analysis`, which dispatches the agent explicitly rather than duplicating the
+methodology. Verified end-to-end: the slash command dispatched the agent and returned all six
+canonical output sections in order, and the D-18 detector parses the result instead of raising
+`SectionResolutionError` — the first output from this path it has been able to score.
+
+**Open item, recorded not chased:** on that same output the detector flags 16/16 verdict cells
+nonconforming and 4/4 chain blocks malformed, while inspection of chain `C1` shows the prescribed
+shape (GT inputs, an inline `[Assumes:]`, two intermediates, a conclusion, and a correct
+confidence line). Whether the detector is over-strict or the agent's formatting varies
+systematically is undetermined, and was out of scope for Phase 4.
+
 ## Limitations
 
 - **n = 3 on the control**, one session window, one machine, one runtime version. The rule
