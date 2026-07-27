@@ -117,7 +117,22 @@ SKILLS = (
     "pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order",
     "identify-essence", "challenge-assumptions", "ground-truths", "reason-upward", "validate",
     "estimate", "theoretical-limit",
+    "first-principles-analysis",
 )
+
+# Launcher stubs (DISPATCH-05): slugs whose stub body carries no inlined technique
+# procedure and therefore no `{{PROCEDURE:<slug>}}` token. A launcher's whole job is
+# to dispatch the composer agent explicitly, so there is no `shared/references/<slug>.md`
+# to inline and the 80-LOC inline-copy floor does not apply to it.
+#
+# Why this exemption exists rather than a synthetic reference file: the alternative —
+# a self-contained composer skill — would have to mirror the agent's entire reference
+# tree (22 files: 12 worked examples, assumption-taxonomy, 4 detail siblings,
+# output-template, validation-rubric) under the skill directory, because skill
+# references must sit one level deep beside their own skill. That doubles the generated
+# surface and gives the methodology a second copy that can drift from the agent's.
+# The launcher keeps the agent as the single source of truth.
+LAUNCHER_SKILLS = frozenset({"first-principles-analysis"})
 
 # Token in shared/skills/<slug>/SKILL.md replaced by sync with the inlined
 # technique content (from `## When to reach for this` to EOF of
@@ -223,7 +238,10 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
 # Breakdown: 1 agent + 11 reference siblings + 4 agent detail siblings +
-# 14 worked-example siblings + 13 skill stubs + 4 skill detail siblings.
+# 14 worked-example siblings + 14 skill stubs + 4 skill detail siblings.
+# DISPATCH-05 adds the 14th skill stub: the `first-principles-analysis` launcher
+# (LAUNCHER_SKILLS). It emits one stub and no detail sibling — a launcher inlines
+# no technique procedure, so it adds exactly 1 to this count.
 # v8.5 Phase 154 (MECH-02) adds the two four-entry detail-sibling families for
 # SLUGS_WITH_DETAIL, raising the previous total (documented pre-Phase-154 in
 # git history) to the count below.
@@ -234,7 +252,7 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # out-of-generator-scope.
 # generate_all() raises ValueError if len(targets) != GENERATED_TARGET_COUNT so this
 # number cannot silently drift again (D-01, DEBT-02).
-GENERATED_TARGET_COUNT = 47
+GENERATED_TARGET_COUNT = 48
 
 # v8.5 Phase 154 GATE-02 (D-11): module-level re-entrancy sentinel guarding
 # cmd_self_test()'s dispatch control. That control drives main(["--self-test"])
@@ -602,12 +620,20 @@ def _expand_skill_token(body: str, slug: str) -> str:
         return _rewrite_detail_link(_extract_skill_content(slug), slug).rstrip("\n")
 
     out = SKILL_TOKEN_RE.sub(sub, body)
-    if seen == 0:
+    if seen == 0 and slug not in LAUNCHER_SKILLS:
         raise ValueError(
             f"shared/skills/{slug}/SKILL.md is missing the required "
             f"{{{{PROCEDURE:{slug}}}}} token — without it the stub body "
             f"falls below the 80-LOC floor and the inline-copy contract "
             f"(46-02-PLAN must_haves) is violated"
+        )
+    if seen and slug in LAUNCHER_SKILLS:
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md is a launcher stub "
+            f"(LAUNCHER_SKILLS) but contains a {{{{PROCEDURE:{slug}}}}} token. "
+            f"A launcher dispatches the composer agent and must not inline a "
+            f"technique procedure — remove the token or drop the slug from "
+            f"LAUNCHER_SKILLS."
         )
     return out
 

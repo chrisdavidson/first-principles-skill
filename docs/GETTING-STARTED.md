@@ -56,24 +56,36 @@ The agent routes automatically when your prompt matches known trigger phrases �
 - "Question the design of…"
 - "Evaluate whether a claim or design really works…"
 
-To invoke explicitly:
+### Automatic delegation is not reliable — use the slash command
+
+The trigger phrases above route to the agent only intermittently. Measured on 2026-07-27, the
+agent was reached on roughly **one prompt in seventeen** built from its own documented triggers,
+while explicit dispatch worked. See [dispatch-attribution-findings.md](dispatch-attribution-findings.md).
+
+**The reliable way to run a full analysis is the slash command:**
+
+```
+/first-principles-analysis <your problem statement>
+```
+
+It hands the problem to the same agent through an explicit dispatch, so nothing about the
+methodology changes — only how the agent is reached. Prefer it over phrasing your request and
+hoping the routing fires.
+
+To invoke explicitly by name instead:
 
 ```
 @agent-first-principles:first-principles
 ```
 
-or:
-
-```
-/first-principles:first-principles
-```
-
 ## Companion skills
 
-Thirteen focused-mode skills extend the methodology. Each can be invoked directly:
+Fourteen slash-invocable skills extend the methodology — the full-analysis launcher above plus
+thirteen focused modes. Each can be invoked directly:
 
 | Skill | Invocation | When to use |
 |-------|-----------|-------------|
+| **Full Analysis** | `/first-principles-analysis` | **Run the complete five-phase methodology — the reliable entry point** |
 | Identify Essence | `/first-principles:identify-essence` | Strip away implementation details to name the core question |
 | Challenge Assumptions | `/first-principles:challenge-assumptions` | Classify and challenge every assumption in play |
 | Ground Truths | `/first-principles:ground-truths` | Compile verified facts with stable GT-IDs |
