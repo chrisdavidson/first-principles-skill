@@ -2633,28 +2633,88 @@ _EXPECTED_DEFECTIVE_RECORD = {
 # asserted by no self-test item. DETECT-05 (Phase 186) owns any correction
 # to the TSV itself; this comment records the fact without editing it.
 #
-# Chain-axis staleness (Phase 184-03, DETECT-03, measured 2026-07-27
-# against the corrected, boundary-tightened `_chain_block_well_formed`,
-# re-run over the six analyses in tests/quality-baseline-v8.7/analyses/ in
+# Chain-axis staleness (Phase 184-05, DETECT-03, re-measured 2026-07-27
+# against the tree as it stands after Phase 184-04, re-run over the six
+# analyses in tests/quality-baseline-v8.7/analyses/ in
 # _CALIBRATION_ANALYSIS_ORDER and compared column-by-column against the
-# committed tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv):
+# committed tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv). This
+# paragraph SUPERSEDES the Phase 184-03 version of itself, which shipped a
+# false attribution in tracked source (184-VERIFICATION.md gap 5) — see
+# the correction below.
 #   - `chain_blocks`            TSV [5, 5, 3, 4, 4, 5]  -> unchanged
-#   - `malformed_chain_blocks`  TSV [2, 2, 2, 2, 3, 3]  -> now
-#     [5, 2, 3, 3, 3, 5] — MOVES on 4 of 6 rows (condA-P1 2->5, condA-P3
-#     2->3, condB-P1 2->3, condB-P3 3->5). The 184-01 boundary fix widened
-#     what counts as a malformed chain block; the 184-03 tightening
-#     (head-arrow guard) did not move this column back — these are the
-#     genuinely tightened-boundary counts, re-verified honestly rather than
-#     assumed unchanged (an earlier draft of this comment claimed all six
-#     rows reproduced identically; that claim was false and is corrected
-#     here, honesty-not-score D-01).
+#   - `malformed_chain_blocks`  TSV [2, 2, 2, 2, 3, 3]  -> reproduces the
+#     TSV column exactly, [2, 2, 2, 2, 3, 3], on all six rows. The chain
+#     axis is consequently NO LONGER STALE as of Phase 184-04.
 #   - `chain_flag`              TSV [1, 1, 1, 1, 1, 1]  -> unchanged
+#
+# Measured attribution (re-executed against three revisions plus two fault
+# injections this session, not asserted): `1f71211` (pre-phase base)
+# produces [2, 2, 2, 2, 3, 3]; `b50e8e4` (Phase 184-01, the block-level
+# correction) ALSO produces [2, 2, 2, 2, 3, 3] — 184-01 moved this column
+# by ZERO on all six rows. The [5, 2, 3, 3, 3, 5] excursion existed only at
+# `37fea87` (Phase 184-03) and was caused entirely by the `^` line-start
+# anchor then placed on `_GT_HEAD_RE`, not by the head-arrow guard added in
+# the same commit: removing ONLY the head-arrow guard from `37fea87`
+# (INJ-A) leaves [5, 2, 3, 3, 3, 5] unchanged; reverting ONLY the `^`
+# anchor from `37fea87` (INJ-B) restores [2, 2, 2, 2, 3, 3] exactly. The
+# anchor is the entire cause; the guard is not.
+#
+# The seven blocks that flipped at `37fea87`, named and classified — every
+# one is a false positive, not tightened detection, because each carries a
+# complete two-arrow chain sitting behind a backtick, a bold marker or a
+# blockquote prefix, which the `^` anchor rejected for its punctuation, not
+# its logic:
+#   - condA-P1 "### DC-1: Estimate — how much latency can serialization
+#     actually return? (Fermi)" — false positive (backtick-wrapped
+#     `GT-2 + GT-5 + GT-1 → ... → ...` chain line inside the block).
+#   - condA-P1 "### DC-2: Theoretical limit — the ceiling on this entire
+#     program" — false positive (backtick-wrapped
+#     `GT-1 (Amdahl) + GT-4 ... → ... → ...` chain line).
+#   - condA-P1 "### DC-3: The benefit is misattributed" — false positive
+#     (backtick-wrapped `GT-3 + GT-11 → ... → ...` chain line).
+#   - condA-P3 "### Chain A — Energy saved per unit spent" — false
+#     positive (blockquote + bold `GT-1 + GT-2 + GT-4 → ... → ...` chain
+#     line).
+#   - condB-P1 "**Chain B — the tail-latency exception:**" — false
+#     positive (blockquote + backtick `GT-7 + GT-8? → ... → ...` chain
+#     line).
+#   - condB-P3 "### Chain 1 — Conductive saving per option (Fermi
+#     estimate, unit-bracketed)" — false positive (backtick-wrapped
+#     `GT-1 + GT-3 + GT-7? → ... → ...` chain line with a bracketed
+#     assumption clause).
+#   - condB-P3 "### Chain 3 — The draught symptom is not addressed by
+#     either option" — false positive (backtick-wrapped
+#     `GT-13 + GT-9 + GT-2 → ... → ...` chain line with a bracketed
+#     assumption clause).
+#
+# Mechanical corroboration, not editorial judgement: the post-fix
+# malformed-block SETS — not merely their counts — are identical to
+# `1f71211` on all six analyses (re-verified by set diff this session). A
+# judgment call could produce matching counts over a different set of
+# blocks; set identity could not survive that.
+#
+# This paragraph corrects a false claim the Phase 184-03 version of this
+# same comment shipped in tracked source: it attributed the +7 movement to
+# Phase 184-01 (which moved the column by zero, measured above) and to the
+# head-arrow guard (which INJ-A proves is not the cause), and it
+# characterised the seven added detections as "genuinely tightened-
+# boundary counts" when all seven are false positives on well-formed
+# chains, including the project's own template. That attribution was false
+# and is corrected here on measurement — the same discipline that prior
+# paragraph invoked while getting it wrong the first time (honesty-not-
+# score, D-01) — so the correction history stays legible rather than being
+# tidied away, the same way the paragraph above already records its own
+# Phase-183-era correction.
+#
 # The flags do not move, so `_CALIBRATION_CHAIN_FLAGS` below is still left
 # exactly as it is under D-09's leave-alone branch. This comment records
 # the measured truth; it is never an edit to the TSV itself — DETECT-05
 # (Phase 186) owns any correction to the TSV. Phase 185 (DETECT-04) still
-# owns full re-derivation of all four `_CALIBRATION_*` constants, treating
-# this comment as an input to verify, not a result to trust.
+# owns full re-derivation of all `_CALIBRATION_*` constants — the four
+# `_CALIBRATION_ANALYSIS_ORDER`-indexed vectors above plus
+# `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` below (added by Phase 184-04, a
+# fifth constant Phase 185's re-derivation scope must now also cover) —
+# treating this comment as an input to verify, not a result to trust.
 _CALIBRATION_ANALYSIS_ORDER = (
     "condA-P1",
     "condA-P2",
