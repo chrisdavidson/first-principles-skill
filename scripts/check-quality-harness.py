@@ -2133,21 +2133,39 @@ _CHAIN_FORM_LINE_RE = re.compile(
     r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*"
 )
 
-# GT-head anchor for the bounded block-level join (D-06): matches a
-# candidate chain's start line using the same widened token as
+# GT-head candidate test for the bounded block-level join (D-06): matches
+# any line carrying a GT token, using the same widened token as
 # _CHAIN_FORM_LINE_RE above. A separate symbol from _CHAIN_FORM_LINE_RE and
 # _GT_MENTION_RE — this one is used with `.search` against a single
 # stripped line to test candidacy, not to match a whole chain form.
-# Anchored to the start of the stripped line (WR-02, Phase 184-03): an
-# unanchored search matched a GT- token appearing anywhere in a prose
-# sentence (e.g. "As discussed, GT-1 was already covered above."),
-# silently widening the join's candidate-start surface beyond what the
-# docstring below claims. This is a THIRD pattern, distinct from both
-# _CHAIN_FORM_LINE_RE and _GT_MENTION_RE below — anchoring it does not
-# touch D-02's confinement: D-02 confines the widened token to
-# _CHAIN_FORM_LINE_RE only, and _GT_MENTION_RE stays `GT-\d+\??` regardless
-# of this change.
-_GT_HEAD_RE = re.compile(r"^" + _GT_TOKEN_WIDE)
+#
+# Deliberately UNANCHORED (Phase 184-04, reverting the Phase 184-03 `^`
+# anchor). The anchor added a precondition — "the stripped line must
+# BEGIN with a bare GT- token" — that never existed before Phase 184-03,
+# and it is the SOLE cause of that revision's regression, measured against
+# the pre-phase base `1f71211` in `184-04-PLAN.md` M-1/M-2: it rejected
+# `shared/spine/references/output-template.md`'s own canonical `Example:`
+# lines, every backtick/bold/blockquote/list-item/prose-embedded rendering
+# the frozen corpus actually uses, and moved `malformed_chain_blocks` from
+# `[2, 2, 2, 2, 3, 3]` to `[5, 2, 3, 3, 3, 5]` — seven false positives —
+# while being pinned by ZERO of the 20 contract fixtures on file at the
+# time (`184-VERIFICATION.md`, `184-REVIEW.md` CR-01/WR-02). The anchor's
+# own stated rationale — an unanchored search matching a GT- token inside
+# a prose sentence, e.g. "As discussed, GT-1 was already covered above." —
+# does not reproduce: that prose-head probe measures False at the
+# pre-phase base, at every intermediate revision, and under every
+# candidate rule considered in `184-04-PLAN.md` M-2, because
+# `_CHAIN_FORM_LINE_RE` already requires the arrow to follow the GT token
+# (and its optional parenthetical) directly, so a bare mid-sentence
+# mention can never complete a two-arrow match on its own. Candidacy stays
+# unanchored because a well-formed chain legitimately sits inside
+# backticks, bold spans, blockquotes, list items, numbered items and
+# prose. INJ-1 (`184-04-PLAN.md` M-4) is the injection that now pins this
+# reversion: re-anchoring flips six named fixtures (`C-RENDER-BACKTICK`,
+# `C-RENDER-BLOCKQUOTE-BOLD`, `C-RENDER-EXAMPLE-PREFIX`,
+# `C-RENDER-LIST-ITEM`, `C-RENDER-SECONDORDER-PREFIX`, `C-WRAP-BULLETED`)
+# plus the `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` self-test assertion.
+_GT_HEAD_RE = re.compile(_GT_TOKEN_WIDE)
 
 # Bounded-join continuation test (D-06): a stripped line continues the
 # current candidate segment only while it itself begins with an arrow. A
@@ -2156,51 +2174,127 @@ _GT_HEAD_RE = re.compile(r"^" + _GT_TOKEN_WIDE)
 # already-stripped line.
 _LEADING_ARROW_RE = re.compile(r"^" + _ARROW)
 
-# Head-arrow guard (Phase 184-03, CR-01/M-2): tests whether a line contains
-# an arrow ANYWHERE, unlike _LEADING_ARROW_RE which tests only the start of
-# a stripped line. Backs the guard in _chain_block_well_formed that skips
-# arrow-led absorption once the candidate head line already carries an
-# arrow — a head line that already contains an arrow has started its chain
-# inline, so an immediately-following arrow-led line is a new statement,
-# not a wrap of the same claim (see that function's docstring).
-_ANY_ARROW_RE = re.compile(_ARROW)
+# Three named continuation-refusal regexes (Phase 184-04), replacing the
+# Phase 184-03 head-arrow guard that `184-REVIEW.md` CR-03 and
+# `184-VERIFICATION.md` gap 1 showed keyed on WHERE the line break fell
+# rather than on whether the absorbed line is relevant to the SAME claim:
+# moving a malformed chain's first arrow onto its own line defeated the
+# old guard while leaving the malformation unchanged. Each regex below is
+# evaluated against a continuation line already known to be arrow-led
+# (`_LEADING_ARROW_RE` has matched); any one of the three refusing the
+# line is the join's boundary, exactly like an unmatched
+# `_LEADING_ARROW_RE`.
+
+# A continuation line that itself LEADS WITH a GT identifier — optionally
+# behind a bracketed order mark (`[2nd]`, `[3rd]`) with no intervening
+# space, the template's own second-order extension form — is the head of
+# a NEW claim, not a wrap of the current one. Deliberately "leads with",
+# not "contains": a contains-test was measured and rejected
+# (`184-04-PLAN.md` M-2 candidate C) because the template's own
+# `C-TEMPLATE-C1` intermediate placeholder — "→ [intermediate claim — a
+# new inference statable from combining GT-N and GT-M but from neither
+# alone]" — CONTAINS `GT-N`/`GT-M` mid-line without being a new claim; a
+# leads-with test accepts it while a contains test rejects the template's
+# own canonical example. Pins `C-JOIN-ARROW-NEWGT` and
+# `C-JOIN-ARROW-NEWGT-WRAPPED` (INJ-3); the optional order-mark bracket
+# group is separately pinned by `C-JOIN-ORDERMARK-NEWGT` (INJ-5), which
+# fires when the bracket group alone is removed.
+_ARROW_LED_GT_RE = re.compile(
+    r"^" + _ARROW + r"(?:\[[^\]\n]*\])?[ \t]*" + _GT_TOKEN_WIDE
+)
+
+# A continuation line that is a markdown table row is not a chain segment,
+# regardless of its leading arrow. Pins `C-JOIN-ARROW-TABLEROW` and
+# `C-JOIN-ARROW-TABLEROW-WRAPPED` (INJ-4).
+_ARROW_LED_TABLE_ROW_RE = re.compile(r"^" + _ARROW + r"[ \t]*\|")
+
+# A segment (the head line, or the last absorbed continuation) that has
+# already closed its sentence has finished its claim, so a FOLLOWING
+# arrow-led line starts a new statement rather than continuing this one.
+# Tested at end-of-string against the already-stripped segment text and
+# tracked across iterations, seeded from the head line: the head-level
+# check is what closes CE1 (`C-JOIN-ARROW-BULLET`) and the
+# continuation-level check is what closes R1
+# (`C-JOIN-ARROW-BULLET-WRAPPED`) — both are required (measured,
+# `184-04-PLAN.md` M-2). Defined as its own DETECT-03-owned symbol rather
+# than reusing the equivalent inline pattern inside `_is_assertive_claim`
+# — that pattern is FIX-CONTRACT-01-owned, and this phase keeps the two
+# requirements' owned symbols separate. Pins `C-JOIN-ARROW-BULLET` and
+# `C-JOIN-ARROW-BULLET-WRAPPED` (INJ-2).
+_SEGMENT_SENTENCE_END_RE = re.compile(r"[.!?][\"'’”]*$")
 
 
 def _chain_block_well_formed(block: str) -> bool:
     """Match the prescribed chain form across a block (D-05, D-06).
 
     Tries every line carrying a GT head as a candidate chain start. The
-    stripped head line is tested against the candidate itself first; only
-    when that head line carries NO arrow anywhere is arrow-led absorption
-    of the following lines attempted, stopping at the first line that does
-    not begin with an arrow (the head-arrow guard, Phase 184-03 — see
-    below). The bounded, space-joined candidate is matched against the
-    same `_CHAIN_FORM_LINE_RE` used before this phase — the regex stays
-    load-bearing, only the caller changed, so a one-line block still joins
-    to itself and matches (criterion 4 preserved by construction).
+    stripped head line seeds the candidate segment, and the head's own
+    sentence-closed state (see `_SEGMENT_SENTENCE_END_RE` below) is
+    tracked from that first line onward. A following stripped line is
+    absorbed into the candidate only while ALL of these hold: the line
+    begins with an arrow (`_LEADING_ARROW_RE`, D-06's necessary
+    condition — a line that is not arrow-led is always the boundary); the
+    previously accepted segment (the head, or the last absorbed
+    continuation) had not already closed its sentence; the line does not
+    itself lead with a GT identifier (`_ARROW_LED_GT_RE`); the line is
+    not a markdown table row (`_ARROW_LED_TABLE_ROW_RE`). The first line
+    that fails any of these is the boundary. The bounded, space-joined
+    candidate is matched against the same `_CHAIN_FORM_LINE_RE` used
+    before this phase — the regex stays load-bearing, only the caller
+    changed, so a one-line block still joins to itself and matches
+    (criterion 4 preserved by construction).
 
-    Phase 184-03 correction (CR-01/WR-01/WR-02, closing the `b50e8e4`
-    blanket-pass defect `184-VERIFICATION.md` recorded): the prior join
-    absorbed ANY immediately-following arrow-led line regardless of
-    relevance, so a genuinely malformed one-hop chain sitting next to any
-    unrelated arrow-led sentence, bullet or table row completed the
-    two-arrow shape and scored well-formed. Two corrections close that
-    gap. First (WR-02), candidacy is tested against the STRIPPED head
-    line using the now line-start-anchored `_GT_HEAD_RE` — with `^`
-    anchoring, testing the raw (unstripped) line would silently drop
-    every indented chain head. Second (the head-arrow guard,
-    `_ANY_ARROW_RE`), arrow-led absorption is attempted only when the
-    stripped head line itself carries no arrow: a head line that already
-    contains an arrow has started its chain inline, so a following
-    arrow-led line is a new statement, not a wrap of the same claim, and
-    the candidate is judged as its single line only. This guard is what
-    `C-JOIN-ARROW-BULLET` and `C-JOIN-ARROW-NEWGT` pin (both cover the
-    same single guard, not two independent ones — see their `source`
-    fields); removing the guard is INJ-A in `184-03-PLAN.md`, and it flips
-    exactly those two fixtures. A stricter variant that also refused
-    absorption of a continuation line introducing its own GT- head token
-    was measured behaviourally identical on every fixture and rejected as
-    an unproven extra restriction (M-2, 184-03-PLAN.md).
+    No arrow-count cap is applied to the head line or to the joined
+    candidate. A cap was measured in both directions (`184-04-PLAN.md`
+    M-2, candidate F-full and the two cap-removal injections in its
+    fault-injection matrix) and found behaviourally inert — both
+    injections flip zero fixtures — so it is not implemented: shipping a
+    rule no fixture can observe is the defect this phase exists to close.
+
+    Phase 184-04 correction (closing `184-VERIFICATION.md` gap-closure
+    items (a)-(d), reversing the `37fea87` regression that shipped BELOW
+    the pre-phase base `1f71211`): two independent defects in the prior
+    revision are both fixed here.
+
+    First, `_GT_HEAD_RE`'s line-start `^` anchor is reverted — see that
+    symbol's own comment for the measured cause-and-effect. Candidacy is
+    unanchored again, so a chain sitting inside backticks, bold spans,
+    blockquotes, list items, numbered items or prose is recognised, as it
+    was before Phase 184-03.
+
+    Second, the prior revision's head-arrow guard — which refused
+    absorption only when the HEAD line already carried an arrow anywhere
+    — keyed on WHERE the line break fell, not on whether the absorbed
+    line continues the SAME claim: moving a malformed one-hop chain's
+    first arrow onto its own line defeated the guard while the
+    malformation stayed identical (`184-REVIEW.md` CR-03,
+    `184-VERIFICATION.md` gap 1). It is replaced here with the three
+    named, relevance-based continuation refusals defined above
+    (`_ARROW_LED_GT_RE`, `_ARROW_LED_TABLE_ROW_RE`,
+    `_SEGMENT_SENTENCE_END_RE`), evaluated at every continuation step
+    rather than once against the head. Each refusal is proven
+    load-bearing by its own fault injection under both `python3` and
+    `python3 -O` (`184-04-PLAN.md` M-4): INJ-1 (the anchor reversion
+    above), INJ-2 (sentence-closed), INJ-3 (arrow-led-GT), INJ-4
+    (table-row), INJ-5 (the arrow-led-GT rule's optional order-mark
+    bracket), INJ-6 (restoring the retired head-arrow guard).
+
+    Measured limitations, stated honestly rather than tuned away (M-3):
+    this rule set fails exactly three probes, and NONE is a regression
+    against the pre-phase base `1f71211` — all three are already False
+    there. RISK-A (a wrapped chain whose intermediate closes its own
+    sentence before the second arrow) is structurally INDISTINGUISHABLE
+    from the pinned negative `C-JOIN-ARROW-BULLET`: both are a GT head,
+    one arrow, a sentence-terminating period, then an arrow-led line —
+    they differ only in what the words MEAN, which no shape-based rule
+    can read, so this phase rejects both and records the false negative
+    rather than relaxing the sentence-closed refusal `C-JOIN-ARROW-BULLET`
+    requires. RISK-B (the head closes its sentence BEFORE its first
+    arrow) and RISK-C (a blockquote whose continuation lines keep their
+    `>` prefix after stripping, so `_LEADING_ARROW_RE` never matches them)
+    are both pre-existing limitations, constant across every revision and
+    every candidate rule measured in `184-04-PLAN.md` M-2/M-3 — neither is
+    introduced or worsened here.
 
     Deferred, out of this phase's scope (WR-03): this function's `any()`
     semantic over candidates, combined with `_chain_blocks`'s
@@ -2216,12 +2310,19 @@ def _chain_block_well_formed(block: str) -> bool:
         if not _GT_HEAD_RE.search(head):
             continue
         seg = [head]
-        if not _ANY_ARROW_RE.search(head):
-            for nxt in lines[i + 1 :]:
-                s = nxt.strip()
-                if not _LEADING_ARROW_RE.match(s):
-                    break
-                seg.append(s)
+        segment_closed = bool(_SEGMENT_SENTENCE_END_RE.search(head))
+        for nxt in lines[i + 1 :]:
+            s = nxt.strip()
+            if not _LEADING_ARROW_RE.match(s):
+                break
+            if segment_closed:
+                break
+            if _ARROW_LED_GT_RE.match(s):
+                break
+            if _ARROW_LED_TABLE_ROW_RE.match(s):
+                break
+            seg.append(s)
+            segment_closed = bool(_SEGMENT_SENTENCE_END_RE.search(s))
         if _CHAIN_FORM_LINE_RE.search(" ".join(seg)):
             return True
     return False
