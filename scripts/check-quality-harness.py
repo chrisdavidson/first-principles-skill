@@ -2109,19 +2109,70 @@ def _chain_blocks(section4: str) -> list[str]:
 # followed by a parenthetical label), joined by `+`, then an arrow,
 # non-empty intermediate text, a second arrow, and non-empty conclusion
 # text. Both the unicode rightwards arrow and the two-character ASCII arrow
-# are accepted. Matched per physical line — the prescribed form names one
-# line, not a claim spread across several.
+# are accepted. Phase 184 (DETECT-03) corrected the match from per-physical-
+# line to block-level: the form is now matched across a whole chain block,
+# joining a GT-head line with the arrow-led lines that follow it, because
+# the template's own canonical worked example (the `### Conclusion C1:`
+# block, lines 133-137) spans three physical lines and the earlier
+# per-line reading rejected it outright. D-02 asymmetry, stated explicitly:
+# `_GT_MENTION_RE` below is the deliberately un-widened sibling of the GT
+# token here — it stays digit-only (`GT-\d+\??`) because it is
+# DETECT-04/untraced-claims-owned, not DETECT-03-owned, and this widening
+# must not reach it. D-04 accepted cost: because the GT token below now
+# accepts any alphanumeric identifier rather than digits only, a real
+# analysis that leaks unfilled template placeholders (`GT-N`, `GT-M`) now
+# scores clean on this chain axis, and no other check in this file covers
+# that gap — accepted because this predicate checks chain SHAPE, not
+# identifier vocabulary.
 _ARROW = r"(?:→|->)"
+_GT_TOKEN_WIDE = r"GT-[A-Za-z0-9]+\??"
 _CHAIN_FORM_LINE_RE = re.compile(
-    r"GT-\d+\??(?:[ \t]*\([^)\n]*\))?"
-    r"(?:[ \t]*\+[ \t]*GT-\d+\??(?:[ \t]*\([^)\n]*\))?)*"
+    _GT_TOKEN_WIDE + r"(?:[ \t]*\([^)\n]*\))?"
+    r"(?:[ \t]*\+[ \t]*" + _GT_TOKEN_WIDE + r"(?:[ \t]*\([^)\n]*\))?)*"
     r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*?"
     r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*"
 )
 
+# GT-head anchor for the bounded block-level join (D-06): matches a
+# candidate chain's start line using the same widened token as
+# _CHAIN_FORM_LINE_RE above. A separate symbol from _CHAIN_FORM_LINE_RE and
+# _GT_MENTION_RE — this one is used with `.search` against a single
+# stripped line to test candidacy, not to match a whole chain form.
+_GT_HEAD_RE = re.compile(_GT_TOKEN_WIDE)
+
+# Bounded-join continuation test (D-06): a stripped line continues the
+# current candidate segment only while it itself begins with an arrow. A
+# separate symbol from _ARROW (which it wraps) and from
+# _CHAIN_FORM_LINE_RE — this one is anchored to the start of an
+# already-stripped line.
+_LEADING_ARROW_RE = re.compile(r"^" + _ARROW)
+
 
 def _chain_block_well_formed(block: str) -> bool:
-    return any(_CHAIN_FORM_LINE_RE.search(line) for line in block.splitlines())
+    """Match the prescribed chain form across a block (D-05, D-06).
+
+    Tries every line carrying a GT head as a candidate chain start, then
+    absorbs each following line into that candidate only while it begins
+    with an arrow — stopping at the first line that does not (a blank
+    line, a `**Confidence:**` line, or an unrelated GT-head line all stop
+    the join). The bounded, space-joined candidate is matched against the
+    same `_CHAIN_FORM_LINE_RE` used before this phase — the regex stays
+    load-bearing, only the caller changed, so a one-line block still joins
+    to itself and matches (criterion 4 preserved by construction).
+    """
+    lines = block.splitlines()
+    for i, ln in enumerate(lines):
+        if not _GT_HEAD_RE.search(ln):
+            continue
+        seg = [ln.strip()]
+        for nxt in lines[i + 1 :]:
+            s = nxt.strip()
+            if not _LEADING_ARROW_RE.match(s):
+                break
+            seg.append(s)
+        if _CHAIN_FORM_LINE_RE.search(" ".join(seg)):
+            return True
+    return False
 
 
 # Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
@@ -2428,6 +2479,14 @@ _EXPECTED_DEFECTIVE_RECORD = {
 # honesty. The TSV is read by no runtime code path in this script and
 # asserted by no self-test item. DETECT-05 (Phase 186) owns any correction
 # to the TSV itself; this comment records the fact without editing it.
+#
+# Unlike the Verdict-axis finding above, the chain columns do NOT go stale
+# under the DETECT-03 fix: Phase 184 measured `chain_blocks`,
+# `malformed_chain_blocks` and `chain_flag` in the same committed TSV
+# against the corrected `_chain_block_well_formed` on 2026-07-27 and found
+# all six rows unchanged old vs. corrected predicate, so
+# `_CALIBRATION_CHAIN_FLAGS` below is left exactly as it is; Phase 185
+# (DETECT-04) still owns full re-derivation of all four constants.
 _CALIBRATION_ANALYSIS_ORDER = (
     "condA-P1",
     "condA-P2",
@@ -2837,6 +2896,32 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         verbatim_from=None,
     ),
     ContractFixture(
+        id="C-JOIN-FALSE-FUSE",
+        kind="chain",
+        text="GT-1 → conclusion A\nGT-2 → conclusion B",
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative; Phase 184 criterion 3 — two unrelated "
+            "single-arrow chains fused into one block by an unbounded join "
+            "must not wrongly score as one two-arrow chain (D-12)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-PROSE-ARROW",
+        kind="chain",
+        text="GT-1 → conclusion A\n**Confidence:** rises → HIGH once verified",
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative; Phase 184 criterion 3 — a defective "
+            "one-arrow chain followed by a prose line that itself contains "
+            "an arrow must not be absorbed into the join (D-12)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
         id="V-OBS-ENDASH",
         kind="verdict",
         text="Accept – survives challenge",
@@ -2908,22 +2993,7 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
 #      must run it, not rely on a green gate.
 # (v) A green QUAL-01 while this dict is non-empty means "the carried red is
 #     still carried", never "the contract holds".
-_DETECT01_PINNED_RED: dict[str, str] = {
-    "C-TEMPLATE-C1": (
-        "DETECT-03 owns `_chain_block_well_formed`; removed once the "
-        "template's own canonical multi-line worked example is accepted "
-        "(also requires a decision on placeholder GT identifiers — see this "
-        "plan's two-axis finding)."
-    ),
-    "C-TEMPLATE-FORMAT": (
-        "DETECT-03 owns `_chain_block_well_formed`; removed once the "
-        "placeholder GT identifier form (`GT-N`/`GT-M`) is accepted."
-    ),
-    "C-MULTILINE-DIGITS": (
-        "DETECT-03 owns `_chain_block_well_formed`; removed once a "
-        "multi-line chain block is matched at the block level."
-    ),
-}
+_DETECT01_PINNED_RED: dict[str, str] = {}
 
 
 _GT_LETTER_RE = re.compile(r"GT-([A-Z])\b")
@@ -2932,23 +3002,20 @@ _GT_LETTER_RE = re.compile(r"GT-([A-Z])\b")
 def _chain_failure_axes(text: str) -> list[str]:
     """Axis tags explaining why a chain block fails `_chain_block_well_formed`.
 
-    Two independent axes can each make a chain block fail the block-level
-    form: MULTILINE (the prescribed form is matched per physical line, so a
-    chain spread across several lines fails even though the joined text would
-    match) and NON-NUMERIC-GT (`_CHAIN_FORM_LINE_RE` requires `GT-\\d+`, so a
-    document using placeholder identifiers like `GT-N`/`GT-M` fails on a
-    second, independent axis even when joined onto one line).
+    MULTILINE tags a chain spread across several physical lines that would
+    match `_CHAIN_FORM_LINE_RE` if joined onto one line — the reason
+    `_chain_block_well_formed` moved to a block-level, bounded arrow-led
+    join (D-05, D-06).
 
-    Measured 2026-07-27 against this plan's pre-registered fixtures:
-    `C-TEMPLATE-C1` is MULTILINE + NON-NUMERIC-GT, `C-TEMPLATE-FORMAT` is
-    NON-NUMERIC-GT only, `C-MULTILINE-DIGITS` is MULTILINE only.
-    Consequence, recorded here so Phase 184 inherits it rather than
-    discovering it: the block-level match DETECT-03 prescribes is necessary
-    but not sufficient to make the verbatim template example pass — Phase
-    184's criterion 2 ("Phase 182's chain tests pass, including the
-    template's own canonical example") therefore also requires a decision on
-    placeholder GT identifiers. Phase 182 characterises this; it does not
-    decide it.
+    This function used to carry a second, independent axis,
+    NON-NUMERIC-GT, tagging a chain that only fails because it uses a
+    placeholder GT identifier (`GT-N`/`GT-M`) rather than a digit-suffixed
+    one. Phase 184 (DETECT-03) decided that question on shape-not-vocabulary
+    grounds (D-01): the GT token inside `_CHAIN_FORM_LINE_RE` itself widened
+    to accept any alphanumeric identifier, so a placeholder id no longer
+    makes a chain fail on its own and the axis is retired — its detection
+    branch is removed here, decided away rather than left pending or
+    silently deleted, not merely made unreachable.
     """
 
     def per_line(t: str) -> bool:
@@ -2972,14 +3039,10 @@ def _chain_failure_axes(text: str) -> list[str]:
     ds_text = digit_substituted(text)
     ds_per_line = per_line(ds_text)
     ds_joined = joined(ds_text)
-    raw_joined = joined(text)
-    has_non_numeric_gt = bool(_GT_LETTER_RE.search(text))
 
     axes: list[str] = []
     if not ds_per_line and ds_joined:
         axes.append("MULTILINE")
-    if has_non_numeric_gt and not raw_joined and ds_joined:
-        axes.append("NON-NUMERIC-GT")
     return axes
 
 
