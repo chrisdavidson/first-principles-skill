@@ -96,6 +96,42 @@ inverse of v8.5's "no row improved"); the IDs are kept; no successor minted; det
 (pre-mortem 9, fishbone 7, inversion 13, trade-off 10), MIN_HEADER_HITS, and
 _COMPOSER_FOCUS_CEILING stayed byte-unchanged and gating.
 
+### v8.13 DETECT-03 Accepted Limitation (2026-07-27)
+
+v8.13 (DETECTFIX-01) Phase 184 corrected `_chain_block_well_formed` in
+`scripts/check-quality-harness.py`. **ROADMAP criterion 3 — "the looser block matcher does not
+become a blanket pass, proven by an explicit negative fixture" — is recorded ACCEPTED LIMITATION
+(user decision, 2026-07-27; honesty-not-score, D-01 global; in-source statement at
+`_segment_sentence_closed`, D-21).**
+
+The criterion is an **unbounded negative verified by a finite fixture table**. Finite examples
+cannot discharge a universal claim. Four rounds each closed the shape then known and each was
+defeated by a shape outside the table, with every CI gate green throughout — the gates assert only
+the table:
+
+| Round | Refusal rule added | How it was evaded | Verdict |
+|-------|-------------------|-------------------|---------|
+| 184-01/02 | (none — unbounded join) | any GT + two arrows fused | gaps_found 5/6 |
+| 184-03 | line-break **position** | move the first arrow to the next line | gaps_found 2/6 (also regressed 4 other criteria below base `1f71211`) |
+| 184-04/05 | sentence-ending **punctuation** | put a markdown closer after the punctuation (CR-01) | gaps_found 5/6 |
+| 184-06 | normalise (mask GT tokens, strip markdown closers) **then** test | — not probed further, by decision | ACCEPTED |
+
+**What IS closed and pinned:** the three shapes found across the four rounds, plus the two
+directions of the 184-06 root cause. `C-JOIN-ARROW-BOLDCLOSE` (over-acceptance) and
+`C-WRAP-GT-QMARK` (under-acceptance) are each proven load-bearing by their own fault injection
+(INJ-7, INJ-8) under both `python3` and `python3 -O`. `_CALIBRATION_MALFORMED_CHAIN_BLOCKS`
+`[2, 2, 2, 2, 3, 3]` is asserted by `_selftest_defects`, so a movement in that column is a gate
+failure rather than a comment edit.
+
+**What is NOT closed:** the class. Closing it would require a **generator** — property-based
+testing over a grammar of renderings (bold × backtick × blockquote × list × table × order mark ×
+arrow position × sentence closer) — not more fixtures. That is deliberately not built; no successor
+phase is minted for it. Both defects fixed in 184-06 were found by *code review probing past the
+fixture table*, never by a gate.
+
+**Standing caveat for any future reader:** treat a green chain axis as "no KNOWN shape regresses",
+never as "no shape passes". DETECT-03 is marked complete on this basis and on no stronger one.
+
 ## Active Surface
 
 Exactly 12 live items (v7.13: RR-130-01 RESOLVED/CLOSE at Phase 136 live re-measure — P 11/13 = v3.13 anchor recovery, ID kept as regression sentinel, row-less per v7.9 D-02 precedent). Nothing shipped or superseded belongs here. **[v8.0 terminal note]** Phase 142 is the terminal phase — all 12 items are dispositioned; RR-114-01/RR-108-04/RR-108-05 are ACCEPTED-FINAL per the v8.0 Terminal State block above.
