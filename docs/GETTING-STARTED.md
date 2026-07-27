@@ -21,6 +21,12 @@ Inside a Claude Code session:
 /plugin install first-principles@first-principles-skill
 ```
 
+A marketplace install pins a **version-pinned snapshot** in the plugin cache. Later releases reach
+you only when the version number changes — `plugin update` compares versions, not content, and
+reports "already at the latest version" when it has not resynced. If you are editing the plugin
+rather than only using it, prefer Option 2 and read the install-surface section of
+[DEVELOPMENT.md](DEVELOPMENT.md).
+
 ### Option 2: Local development install
 
 Clone the repo and point Claude Code at the plugin directory:
@@ -28,6 +34,13 @@ Clone the repo and point Claude Code at the plugin directory:
 ```bash
 git clone https://github.com/chrisdavidson/first-principles-skill.git
 claude --plugin-dir ./first-principles-skill/first-principles
+```
+
+For a persistent development install that always reads your working tree — no cache copy, no
+version pin — symlink it into the skills directory instead:
+
+```bash
+ln -s "$PWD/first-principles-skill/first-principles" ~/.claude/skills/first-principles
 ```
 
 ### Option 3: Project-scoped install

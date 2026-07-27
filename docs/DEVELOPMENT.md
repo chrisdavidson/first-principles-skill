@@ -36,6 +36,66 @@ Or with `uv`:
 uv run scripts/sync-content.py --write
 ```
 
+## How your edit reaches a session — and how it silently fails to
+
+Regenerating `first-principles/` does **not** mean a Claude Code session will load what you just
+wrote. Getting this wrong is invisible: sessions keep running months-old code and report success.
+
+### The trap: the plugin cache is version-pinned, not content-tracked
+
+`claude plugin install` copies the plugin into
+`~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` as a **snapshot** — including when the
+marketplace source is a local filesystem path. Both refresh commands are **version-gated, not
+content-gated**:
+
+| Command | What it reports | Does it resync the cache? |
+|---|---|---|
+| `claude plugin marketplace update <mkt>` | "Successfully updated" | **No** |
+| `claude plugin update <plugin>@<mkt>` | "already at the latest version" | **No** |
+
+Verified 2026-07-27 by appending a marker to a file in the working tree and running both: each
+reported success and neither changed the cached copy.
+
+**So an edit to `shared/`, synced and committed, never reaches a session unless you also bump
+`version` in both `first-principles/.claude-plugin/plugin.json` and
+`.claude-plugin/marketplace.json`.** This is not theoretical — it is how an install sat on **3.8.0
+from 2026-06-08 while the working tree was at 8.6.0**: eleven skills instead of thirteen, missing
+`/estimate` and `/theoretical-limit`, and an agent description two generations stale. Both refresh
+commands had been reporting success throughout.
+
+### The supported development install
+
+Symlink the plugin root into the skills directory. It loads as `first-principles@skills-dir` with
+no cache copy, no version pin, and nothing to refresh — every session reads the working tree:
+
+```sh
+ln -s "$PWD/first-principles" ~/.claude/skills/first-principles
+claude plugin list        # expect: first-principles@skills-dir ... Status: loaded
+```
+
+Restart the session to pick it up. Two cautions:
+
+- **Do not symlink inside the plugin cache.** The cache has a garbage collector (it marks
+  directories with `.in_use` and `.orphaned_at`) that reaps a symlink placed there, leaving the
+  install record pointing at a path that no longer exists.
+- **A later `claude plugin update` that does find a newer version replaces the symlink with a real
+  directory.** Re-create it if that happens.
+
+For a one-off session without installing anything:
+
+```sh
+claude --plugin-dir ./first-principles
+```
+
+### Record the loaded version in live-measurement artifacts
+
+Any record of a live run — routing battery, Step 0 harness, quality harness — should state the
+plugin version and install surface the session actually loaded. A stale surface is otherwise
+indistinguishable from a real result, and supplies a plausible wrong explanation that costs time
+to rule out. This happened during the investigation in
+[dispatch-attribution-findings.md](dispatch-attribution-findings.md): the stale install had to be
+eliminated as a confound before the real finding could be trusted.
+
 ## What lives where in `shared/`
 
 | Path | What to edit |

@@ -13,10 +13,32 @@
 >
 > Consequently: **Phases 2a, 2b and 3 are void**, and **Phase 1b should not be run** — it would
 > test old versions against a runtime that does not dispatch a new control agent either, spending
-> ~200 live invocations to confirm a foregone conclusion. **Phase 4 becomes the entire remedy**,
-> and its open design question is settled affirmative. **Phase 5 is unaffected.** Phase 1c retains
-> value in changed form. The phases below are preserved as written, for the record of what was
-> planned and why it was set aside.
+> ~200 live invocations to confirm a foregone conclusion. The phases below are preserved as
+> written, for the record of what was planned and why it was set aside.
+
+> **Status as of 2026-07-27 — the plan is discharged.**
+>
+> | Phase | State |
+> |---|---|
+> | 1 · Attribution (`DISPATCH-01`) | **Done** — task 1a executed, verdict `RUNTIME-WIDE` |
+> | 1b · Historical bisect | **Will-not-run** — uninformative under the verdict |
+> | 1c · P12 discriminator ladder | **Open** — the one remaining probe into what still routes |
+> | 2a · In-repo regression (`DISPATCH-02`) | **Void** — assumes a repository-side cause |
+> | 2b · Description re-engineering (`DISPATCH-03`) | **Void** — same |
+> | 3 · Verification (`DISPATCH-04`) | **Void as written**; its real-use criterion was met by Phase 4's end-to-end check |
+> | 4 · Deliberate invocation path (`DISPATCH-05`) | **Done** — `/first-principles-analysis`, commit `c2a7365` |
+> | 5 · Silent-staleness hole (`DISPATCH-06`) | **Done** — documentation only |
+>
+> Phase 4 landed smaller than specified: explicit dispatch through the Task tool was found to
+> still work, so the launcher delegates to the existing agent instead of duplicating the
+> methodology and its 22-file reference tree. Its open design question — whether the entry point
+> should be `disable-model-invocation: true` — resolved affirmative.
+>
+> **One item is open that this plan did not anticipate.** On the launcher's verified output the
+> D-18 detector flags 16/16 verdict cells nonconforming and 4/4 chain blocks malformed, while the
+> chains inspect as conformant to the template's prescribed shape. Detector over-strictness and
+> systematic formatting variance are both live explanations and neither is established. See
+> [dispatch-attribution-findings.md](dispatch-attribution-findings.md).
 
 ## Scope correction, before anything else
 
