@@ -125,6 +125,15 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [v8.12-coding-protocol.md](v8.12-coding-protocol.md) | Phase 180 pre-registered coding rule, verdict vocabulary and the no-reconciliation bar. |
 | [v8.12-coding-findings.md](v8.12-coding-findings.md) | Phase 180 answer **PRESENT** (10 / 10 codeable · 10 / 11 over `n11`, against control 9 / 12, attribution **PRE-EXISTING**), the control arm, the instrument-dependence delta (4 / 6 against 6 / 6, unreconciled by design), and the five disclosed limitations. |
 
+## Post-v8.12 — real-use observations (findings-only, no milestone scoped)
+
+| Document | What it covers |
+|----------|----------------|
+| [real-use-dispatch-findings.md](real-use-dispatch-findings.md) | 2026-07-27. **The agent is loaded and is not reached.** A real work run and a fresh headless re-run on current 8.6.0 — both prompted with the agent description's own **verbatim** trigger phrases — produced **zero `Task` dispatches** between them (RR-130-01's signature), and a full live routing battery returns **`BATTERY: FAIL`, P 1/13, N 20/20**: a perfect negative arm beside a near-total positive-arm failure, locating the defect in delegation firing rather than routing generally. The one prompt that routed is the self-application case, unexplained. Neither document satisfies the six-section output contract (1/6 and **0/6**; the D-18 detector raises `SectionResolutionError` on both), yet the *less* conformant re-run is the stronger analysis — a fresh real-use instance of v8.7's finding that conformance does not predict correctness. **No control arm, so attribution — when and why the boundary broke — is unknown; `--repeat 1`; no milestone scoped from it.** |
+
+| [dispatch-attribution-findings.md](dispatch-attribution-findings.md) | 2026-07-27. Phase 1a runtime control — verdict **`RUNTIME-WIDE`**. A freshly-authored control agent in an unrelated domain, confirmed loaded in every session roster, failed to dispatch on 3 of 3 unambiguous prompts, alongside a paired first-principles reference at 0 of 1. Across all 17 dispatch opportunities observed that day exactly **one** fired, so the record states the suppression as near-total rather than absolute. Tool use is unaffected (27 tool calls, 0 `Task` calls in the same window) — the failure is agent dispatch specifically. **Not agent-specific; no repository change can fix it.** |
+| [dispatch-remediation-plan.md](dispatch-remediation-plan.md) | Proposed remediation scope for the dispatch failure above — **superseded in part by the attribution verdict above**: Phases 2a/2b/3 and 1b are void, Phase 4 is the whole remedy — five phases (`DISPATCH-01`…`DISPATCH-06`) with pre-registered acceptance criteria and a branch-on-attribution decision tree. Phase 1 is the missing control arm: a minimal-agent runtime control plus a per-tag historical bisect that decides whether the cause is in-repo, description-shaped, or external. Input document for milestone scoping; nothing in it is built. |
+
 ## Reference & history
 
 | Document | What it covers |
