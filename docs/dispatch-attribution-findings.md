@@ -95,11 +95,14 @@ methodology. Verified end-to-end: the slash command dispatched the agent and ret
 canonical output sections in order, and the D-18 detector parses the result instead of raising
 `SectionResolutionError` — the first output from this path it has been able to score.
 
-**Open item, recorded not chased:** on that same output the detector flags 16/16 verdict cells
-nonconforming and 4/4 chain blocks malformed, while inspection of chain `C1` shows the prescribed
-shape (GT inputs, an inline `[Assumes:]`, two intermediates, a conclusion, and a correct
-confidence line). Whether the detector is over-strict or the agent's formatting varies
-systematically is undetermined, and was out of scope for Phase 4.
+**That open item is now resolved — the detector was wrong.** On the launcher's output the detector
+flagged 16/16 verdict cells nonconforming and 4/4 chain blocks malformed. Investigated
+2026-07-27: `_verdict_conforms` is **inverted** relative to the output template and the validation
+rubric, passing the bare token both name as a defect and failing the prescribed
+`Accept — justification` form; and `_chain_block_well_formed` matches per physical line, so the
+template's own canonical worked example fails the detector built to check conformance to it. The
+agent's output was conformant throughout. Scope and consequences — including the affected
+published v8.7 figures — are in [detector-contract-fix-plan.md](detector-contract-fix-plan.md).
 
 ## Limitations
 
