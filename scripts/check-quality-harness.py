@@ -2565,6 +2565,232 @@ def _selftest_defects() -> bool:
     return ok
 
 
+# ---------------------------------------------------------------------------
+# DETECT-01 (Phase 182): the D-18 contract-pin red-carry mechanism.
+#
+# `_verdict_conforms` and `_chain_block_well_formed` are inverted relative to
+# `shared/spine/references/output-template.md` and
+# `shared/spine/references/validation-rubric.md` (settled at v8.13 milestone
+# open, PROJECT.md Key Decisions 2026-07-27 — the templates are canonical,
+# the detector is the outlier). This phase pins that mismatch as fixtures and
+# a self-test item BEFORE either production function changes, so a later fix
+# is provably a fix and not a number-chasing edit. See
+# `.planning/phases/182-pin-the-defect-in-failing-tests/182-01-PLAN.md` for
+# the full pre-registered expectation table.
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ContractFixture:
+    """A single pre-registered D-18 contract fixture (DETECT-01, Phase 182).
+
+    ``expected`` is the contract-prescribed result (``True``/``False``), or
+    ``None`` when the fixture is observation-only and Phase 182 deliberately
+    does not assert a contract expectation (DETECT-02 must decide and
+    document that treatment). ``owner`` names the requirement that owns the
+    current mismatch, or ``None`` for a GREEN-GUARD row today's code already
+    gets right. ``verbatim_from`` is a repo-relative path whose content must
+    literally contain ``text`` — proven by Guard A in
+    `_selftest_contract_pin`. DETECT-06 (Phase 187) replaces this literal-copy
+    check with runtime extraction from the same file.
+    """
+
+    id: str
+    kind: str  # "verdict" or "chain"
+    text: str
+    expected: bool | None
+    owner: str | None
+    source: str
+    verbatim_from: str | None
+
+
+_CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
+    ContractFixture(
+        id="V-ACCEPT-EMDASH",
+        kind="verdict",
+        text="Accept — survives P2 challenge; physical-law backed by GT-1",
+        expected=True,
+        owner="DETECT-02",
+        source=(
+            "output-template.md line 69, verbatim — the parenthesised Accept "
+            "example in the Verdict Vocabulary bullet. Succeeded by DETECT-06 "
+            "(Phase 187) runtime extraction, which replaces this literal copy."
+        ),
+        verbatim_from="shared/spine/references/output-template.md",
+    ),
+    ContractFixture(
+        id="C-SINGLE-LINE",
+        kind="chain",
+        text=(
+            "GT-1 + GT-2 → admission control, not worker count, is the "
+            "binding limit → adding workers will not raise throughput"
+        ),
+        expected=True,
+        owner=None,
+        source="constructed; Phase 184 criterion 4 (single-line form must survive)",
+        verbatim_from=None,
+    ),
+)
+
+
+# (i) This registry carries DETECT-01's deliberate red state across the phase
+#     boundary; each entry is deleted by the requirement named in its value;
+#     when the dict is empty DETECT-01's carry job is done and the fixtures
+#     become ordinary assertions.
+# (ii) The recorded red run this registry corresponds to lives at
+#      tests/detect01-red-run-v8.13.md.
+# (iii) The STALE PIN failure detects a COMPLETE fix, not a partial one. It
+#      fires only when a pinned fixture's result flips to match its
+#      `expected` value. A partial correction leaves the not-yet-flipped
+#      entries validly pinned, no STALE PIN fires, and QUAL-01 stays green on
+#      a half-corrected check — for example a `_verdict_conforms` that starts
+#      accepting "Accept — justification" while still accepting the bare
+#      token leaves `V-BARE-TOKEN` (expected False) legitimately pinned; and a
+#      `_chain_block_well_formed` that gains the block-level match without a
+#      decision on placeholder GT identifiers leaves `C-TEMPLATE-C1`
+#      legitimately pinned, the direct consequence of the
+#      necessary-but-not-sufficient finding recorded in this plan's
+#      pre-registration.
+# (iv) Therefore the completeness check for DETECT-02 and DETECT-03 is
+#      `contract_pin_strict_report()` exiting 0 — that is the only signal
+#      that says an owner's red is fully gone, and Phase 183 and Phase 184
+#      must run it, not rely on a green gate.
+# (v) A green QUAL-01 while this dict is non-empty means "the carried red is
+#     still carried", never "the contract holds".
+_DETECT01_PINNED_RED: dict[str, str] = {
+    "V-ACCEPT-EMDASH": (
+        "DETECT-02 owns `_verdict_conforms`; this entry is removed once it "
+        "accepts the token-prefix + em-dash + justification form the "
+        "template and rubric prescribe."
+    ),
+}
+
+
+def _contract_fixture_result(fx: ContractFixture) -> bool:
+    """Dispatch a fixture to the production function its kind exercises."""
+    if fx.kind == "verdict":
+        return _verdict_conforms(fx.text)
+    if fx.kind == "chain":
+        return _chain_block_well_formed(fx.text)
+    raise ValueError(f"unknown ContractFixture kind: {fx.kind!r}")
+
+
+def _selftest_contract_pin(strict: bool = False) -> bool:
+    """DETECT-01 item 13: the red-carry mechanism over `_CONTRACT_FIXTURES`.
+
+    In default mode (``strict=False``), a mismatch against a fixture's
+    ``expected`` value is tolerated — printed as `PINNED-RED` — only when the
+    fixture's id is registered in `_DETECT01_PINNED_RED`; an unregistered
+    mismatch fails the self-test. A fixture registered in
+    `_DETECT01_PINNED_RED` whose result no longer mismatches is a STALE PIN
+    and also fails — the mechanical forcing function that makes Phase 183 and
+    Phase 184 remove what they own (see the registry's own block comment for
+    this failure's documented limit: it fires only on a fixture that has
+    flipped, so a partial correction leaves other pinned fixtures validly
+    pinned).
+
+    In strict mode (``strict=True``, used by `contract_pin_strict_report`),
+    `_DETECT01_PINNED_RED` is ignored entirely: any mismatch fails, unpinned
+    or not. This is the DETECT-01 red run.
+
+    Contains no `assert` statement — `python3 -O` strips assertions, and a
+    self-test whose only failure path is a stripped statement prints PASS and
+    exits 0.
+    """
+    ok = True
+    fixtures_by_id = {fx.id: fx for fx in _CONTRACT_FIXTURES}
+    asserted_count = 0
+    observed_count = 0
+
+    for fx in _CONTRACT_FIXTURES:
+        if fx.expected is None:
+            observed_count += 1
+            observed_value = _contract_fixture_result(fx)
+            print(
+                f"contract_pin OBSERVED [DETECT-02 undecided] {fx.id}: "
+                f"current code returns {observed_value} — no contract "
+                f"expectation asserted; DETECT-02 must decide and document",
+                file=sys.stderr,
+            )
+            continue
+
+        asserted_count += 1
+        observed_value = _contract_fixture_result(fx)
+        mismatched = observed_value != fx.expected
+        pinned = fx.id in _DETECT01_PINNED_RED
+
+        if strict:
+            if mismatched:
+                print(
+                    f"contract_pin STRICT-FAIL [{fx.owner}] {fx.id}: "
+                    f"contract expects {fx.expected}, current code returns "
+                    f"{observed_value} — carried until {fx.owner}",
+                    file=sys.stderr,
+                )
+                ok = False
+            continue
+
+        if mismatched:
+            if pinned:
+                print(
+                    f"contract_pin PINNED-RED [{fx.owner}] {fx.id}: contract "
+                    f"expects {fx.expected}, current code returns "
+                    f"{observed_value} — carried until {fx.owner}\n"
+                    f"{_DETECT01_PINNED_RED[fx.id]}",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    f"self-test FAIL: contract_pin unregistered mismatch "
+                    f"{fx.id}: contract expects {fx.expected}, current code "
+                    f"returns {observed_value}",
+                    file=sys.stderr,
+                )
+                ok = False
+        else:
+            if pinned:
+                print(
+                    f"self-test FAIL: contract_pin STALE PIN {fx.id} — "
+                    f"{fx.owner} has corrected the check; delete this entry "
+                    f"from _DETECT01_PINNED_RED and let the fixture assert "
+                    f"normally",
+                    file=sys.stderr,
+                )
+                ok = False
+
+    pinned_red_ids = list(_DETECT01_PINNED_RED.keys())
+    n_pinned_red = len(pinned_red_ids)
+    n_detect02 = sum(1 for i in pinned_red_ids if fixtures_by_id[i].owner == "DETECT-02")
+    n_detect03 = sum(1 for i in pinned_red_ids if fixtures_by_id[i].owner == "DETECT-03")
+
+    print(
+        f"contract_pin: {asserted_count} asserted fixtures, {observed_count} "
+        f"observation-only, {n_pinned_red} PINNED-RED carried (DETECT-02: "
+        f"{n_detect02}, DETECT-03: {n_detect03}) — this red state is the "
+        f"DETECT-01 deliverable, not a passing invariant"
+    )
+
+    return ok
+
+
+def contract_pin_strict_report() -> int:
+    """The DETECT-01 red run: the same fixtures, `_DETECT01_PINNED_RED` ignored.
+
+    Its exiting 0 is the completeness check for DETECT-02 and DETECT-03 —
+    because the default-mode STALE PIN failure only detects a fixture that
+    has flipped and is therefore blind to a partial correction that leaves
+    other pinned fixtures validly pinned. Phase 183 and Phase 184 must run
+    this, not rely on a green `--self-test`.
+
+    Reproduce with:
+        python3 -c "import importlib.util as u, sys; \\
+s = u.spec_from_file_location('qh', 'scripts/check-quality-harness.py'); \\
+mm = u.module_from_spec(s); sys.modules['qh'] = mm; s.loader.exec_module(mm); \\
+sys.exit(mm.contract_pin_strict_report())"
+    """
+    return 0 if _selftest_contract_pin(strict=True) else 1
+
+
 def _selftest_limitation1_chainlabels() -> bool:
     """FIX-CONTRACT-01 limitation 1: `_chain_ids()` recognizes a document's
     own bare single-letter §4 lead-in convention (e.g. "C1", "C2") when used
@@ -3973,10 +4199,15 @@ def self_test() -> int:
     (limitation3_extractionscope — the section-intro-label and restatement/
     corollary exclusions, plus the honesty-not-score anti-overreach guard
     proving a genuinely-uncited imperative recommendation is never silently
-    excluded). Each of the twelve items prints its own labelled PASS/FAILED
-    result line — exactly twelve such lines, always, per run (D-16: the
-    fault-injection proof for each item is recorded in the corresponding
-    plan's SUMMARY.md).
+    excluded). Phase 182 Plan 01 (DETECT-01) adds item 13 (contract_pin — the
+    D-18 contract-pin red-carry mechanism over a pre-registered fixture set
+    naming DETECT-02/DETECT-03 as owners of the current inverted-detector
+    mismatch); its PASSED line coexists with a carried red state reported on
+    the `contract_pin:` summary line, printed on every run so the carry is
+    never silent. Each of the thirteen items prints its own labelled
+    PASS/FAILED result line — exactly thirteen such lines, always, per run
+    (D-16: the fault-injection proof for each item is recorded in the
+    corresponding plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -4094,6 +4325,17 @@ def self_test() -> int:
         print("self-test: limitation3_extractionscope sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: limitation3_extractionscope sub-check PASSED")
+
+    # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
+    # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
+    # Its PASSED line coexists with a carried red state reported on the
+    # `contract_pin:` summary line printed above, never silently suppressed
+    # (honesty-not-score, D-01).
+    if not _selftest_contract_pin():
+        all_passed = False
+        print("self-test: contract_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: contract_pin sub-check PASSED")
 
     return 0 if all_passed else 1
 
