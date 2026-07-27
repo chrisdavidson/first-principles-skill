@@ -2984,7 +2984,47 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
     asserted_count = 0
     observed_count = 0
 
+    # Guard D — fixture-table sanity (both modes): duplicate/empty id, empty
+    # text, or a kind outside verdict/chain. This runs BEFORE the evaluation
+    # loop below on purpose: `_contract_fixture_result` raises ValueError on an
+    # unknown kind, so a kind check placed after the loop could never fire, and
+    # a malformed table would surface as an uncaught traceback rather than a
+    # named FAIL line. Fixtures Guard D rejects are skipped below rather than
+    # dispatched. On a clean table every branch here is silent, so this
+    # ordering leaves the recorded self-test output byte-unchanged.
+    seen_ids: set[str] = set()
+    bad_kind_ids: set[str] = set()
     for fx in _CONTRACT_FIXTURES:
+        if not fx.id:
+            print("self-test FAIL: contract_pin Guard D empty fixture id", file=sys.stderr)
+            ok = False
+        elif fx.id in seen_ids:
+            print(
+                f"self-test FAIL: contract_pin Guard D duplicate fixture id {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            seen_ids.add(fx.id)
+        if not fx.text:
+            print(
+                f"self-test FAIL: contract_pin Guard D empty text for {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+        if fx.kind not in ("verdict", "chain"):
+            print(
+                f"self-test FAIL: contract_pin Guard D unknown kind {fx.kind!r} "
+                f"for {fx.id}",
+                file=sys.stderr,
+            )
+            ok = False
+            bad_kind_ids.add(fx.id)
+
+    for fx in _CONTRACT_FIXTURES:
+        if fx.id in bad_kind_ids:
+            # Already reported by Guard D; dispatching would raise ValueError.
+            continue
         if fx.expected is None:
             observed_count += 1
             observed_value = _contract_fixture_result(fx)
@@ -3044,35 +3084,6 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
                 )
                 ok = False
 
-    # Guard D — fixture-table sanity (both modes): duplicate/empty id, empty
-    # text, or a kind outside verdict/chain.
-    seen_ids: set[str] = set()
-    for fx in _CONTRACT_FIXTURES:
-        if not fx.id:
-            print("self-test FAIL: contract_pin Guard D empty fixture id", file=sys.stderr)
-            ok = False
-        elif fx.id in seen_ids:
-            print(
-                f"self-test FAIL: contract_pin Guard D duplicate fixture id {fx.id}",
-                file=sys.stderr,
-            )
-            ok = False
-        else:
-            seen_ids.add(fx.id)
-        if not fx.text:
-            print(
-                f"self-test FAIL: contract_pin Guard D empty text for {fx.id}",
-                file=sys.stderr,
-            )
-            ok = False
-        if fx.kind not in ("verdict", "chain"):
-            print(
-                f"self-test FAIL: contract_pin Guard D unknown kind {fx.kind!r} "
-                f"for {fx.id}",
-                file=sys.stderr,
-            )
-            ok = False
-
     # Guard A — verbatim drift (both modes): every fixture with a non-None
     # `verbatim_from` must be a literal substring of that file's content, so
     # "lifted verbatim" is mechanically provable instead of eyeballed. This is
@@ -3128,8 +3139,20 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
 
     pinned_red_ids = list(_DETECT01_PINNED_RED.keys())
     n_pinned_red = len(pinned_red_ids)
-    n_detect02 = sum(1 for i in pinned_red_ids if fixtures_by_id[i].owner == "DETECT-02")
-    n_detect03 = sum(1 for i in pinned_red_ids if fixtures_by_id[i].owner == "DETECT-03")
+    # Look up by `.get`, not `[]`: a registry id naming no fixture is exactly
+    # the drift Guard B reports, and subscripting here would turn that named
+    # FAIL into an uncaught KeyError traceback that buries it. Such an id is
+    # counted in `n_pinned_red` (it IS a registry entry) but belongs to no
+    # owner tally, so the two per-owner counts can legitimately sum to less
+    # than `n_pinned_red` while Guard B is failing.
+    n_detect02 = sum(
+        1 for i in pinned_red_ids
+        if (fx := fixtures_by_id.get(i)) is not None and fx.owner == "DETECT-02"
+    )
+    n_detect03 = sum(
+        1 for i in pinned_red_ids
+        if (fx := fixtures_by_id.get(i)) is not None and fx.owner == "DETECT-03"
+    )
 
     print(
         f"contract_pin: {asserted_count} asserted fixtures, {observed_count} "

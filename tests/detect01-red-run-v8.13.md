@@ -230,9 +230,23 @@ Ten lines, all `exit=1 matched=yes` — five failure paths, each exercised under
 `python3 -O`, because a self-test whose only failure path is a bare `assert` is stripped under
 `-O` and prints PASS while proving nothing. The new contract-pin code (`ContractFixture`,
 `_contract_fixture_result`, `_chain_failure_axes`, `_selftest_contract_pin`,
-`contract_pin_strict_report`) contains **zero `assert` statements**, checked at the AST level by
-the existing `guardrail_a`/`guardrail_b` self-test items' pattern and confirmed here by direct
-`python3 -O` execution producing byte-identical strict output to plain `python3` (section 5).
+`contract_pin_strict_report`) contains **zero `assert` statements**.
+
+How that zero-`assert` claim is actually evidenced — stated precisely, because an earlier draft of
+this section misattributed it. `scripts/check-quality-harness.py` performs no AST analysis of
+itself; it imports no `ast` module, and the `guardrail_a`/`guardrail_b` self-test items check
+JSONL-extraction behaviour, not assert statements. They do not and never did substantiate this
+claim. The two things that do:
+
+1. An external AST pass over the file — `ast.parse` on the source, walking for `ast.Assert` nodes
+   — returns **0** nodes file-wide. This is a review-time check run against the tree, not a check
+   the harness performs on itself, and nothing in CI re-runs it.
+2. Direct `python3 -O` execution producing byte-identical strict output to plain `python3`
+   (section 5), plus all ten fault injections below firing under `-O` as well as under `python3`.
+
+Item 2 is the load-bearing, reproducible evidence; item 1 is a one-time external observation. If a
+future change reintroduces an `assert` into this code, item 1 will not catch it — only an
+injection that exercises the affected path under `-O` will.
 
 ```
 FI-1 py exit=1 matched=yes
@@ -266,6 +280,16 @@ Per-path detail:
    `"X-NONEXISTENT-FIXTURE"`, an id that names no fixture in `_CONTRACT_FIXTURES`. Matched
    stderr: `self-test FAIL: contract_pin Guard B unregistered fixture id in
    _DETECT01_PINNED_RED: X-NONEXISTENT-FIXTURE`.
+
+   **Disclosure — FI-4 was not clean when first recorded.** As originally run, FI-4's `exit=1
+   matched=yes` line was true but incomplete: the Guard B FAIL printed, and then the run died
+   with an uncaught `KeyError` in the per-owner tally, which subscripted `fixtures_by_id[i]` for
+   every registry id. The exit code was still 1, so the gate failed closed and the recorded line
+   was not wrong — but the traceback buried Guard B's own message and suppressed the
+   `contract_pin:` summary line, which is the opposite of what a named guard is for. Code review
+   of this phase caught it. The tally now looks up via `.get()` and skips ids naming no fixture,
+   and FI-4 was re-run: clean `exit=1`, Guard B FAIL printed, summary line printed, zero
+   tracebacks. The log line above reflects the re-run.
 5. **FI-5 (owner whitelist, Guard C):** changed the `V-BARE-TOKEN` registry reason string to
    "fault injection re-proof — mentions neither owner requirement", naming neither DETECT-02 nor
    DETECT-03. Matched stderr: `self-test FAIL: contract_pin Guard C reason for V-BARE-TOKEN names
@@ -284,7 +308,8 @@ written.
 
 - **Pin-hash, pre-phase base (commit `6eca780`):**
   `5 8ecbaee0882c8f02f0760de8377db53720b1fb108951d0cb737e797f8b902add`
-- **Pin-hash, post-phase tree (commit `e154676` and unchanged through this plan):**
+- **Pin-hash, post-phase tree (commit `e154676`, and unchanged through this plan and through the
+  code-review fixes applied at the end of this phase):**
   `5 8ecbaee0882c8f02f0760de8377db53720b1fb108951d0cb737e797f8b902add`
 
 Identical. Command (repeated from section 2):
@@ -296,8 +321,8 @@ python3 -c 'import ast,hashlib,sys;src=open(sys.argv[1],encoding="utf-8").read()
 `git diff --stat 6eca780 -- scripts/check-quality-harness.py`:
 
 ```
-scripts/check-quality-harness.py | 618 ++++++++++++++++++++++++++++++++++++++-
-1 file changed, 614 insertions(+), 4 deletions(-)
+scripts/check-quality-harness.py | 641 ++++++++++++++++++++++++++++++++++++++-
+1 file changed, 637 insertions(+), 4 deletions(-)
 ```
 
 The additions are confined to the new `ContractFixture` dataclass, `_CONTRACT_FIXTURES`,
@@ -306,6 +331,15 @@ The additions are confined to the new `ContractFixture` dataclass, `_CONTRACT_FI
 its docstring correction inside `self_test()` — no line of `_verdict_conforms`,
 `_chain_block_well_formed`, `_VERDICT_VOCAB`, `_ARROW`, or `_CHAIN_FORM_LINE_RE` changed, which
 is exactly what the unchanged pin-hash proves mechanically.
+
+The stat above includes the end-of-phase code-review fixes, which touched only
+`_selftest_contract_pin`: the Guard D fixture-table sanity loop was moved ahead of the evaluation
+loop (so its unknown-kind branch is reachable rather than dead behind
+`_contract_fixture_result`'s `ValueError`, and a malformed table reports as a named FAIL instead
+of a traceback), and the per-owner tally switched from `fixtures_by_id[i]` to `.get()` (the FI-4
+`KeyError` disclosed in section 7). Both were verified to leave this document's recorded
+`--self-test` and strict-mode outputs byte-identical, because every guard is silent on the
+current clean table.
 
 ## 9. Removal protocol, and what the forcing function does not catch
 
@@ -351,7 +385,7 @@ read) and cannot itself stop.
 
 ## 10. Succession
 
-DETECT-06 (Phase 187) replaces the four verbatim fixture copies (`V-ACCEPT-EMDASH`,
+DETECT-06 (Phase 187) replaces the five verbatim fixture copies (`V-ACCEPT-EMDASH`,
 `V-CHALLENGE-EMDASH`, `C-TEMPLATE-C1`, `C-TEMPLATE-FORMAT`, and `C-TEMPLATE-TRADEOFF`) with
 runtime extraction from `shared/spine/references/output-template.md` and adds the rubric's
 Criterion 2 Verdict form sourced the same way from
