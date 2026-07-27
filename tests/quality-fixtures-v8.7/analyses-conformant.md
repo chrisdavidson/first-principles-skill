@@ -21,9 +21,9 @@ ambiguity and reports zero defects in all three families.
 
 | # | Assumption | Type | Treatment | Verdict | Verification |
 |---|---|---|---|---|---|
-| A1 | Fixture assumption one | physical law | Accept as ground-truth candidate | Accept | Fixture source |
-| A2 | Fixture assumption two | convention | Challenge before use | Challenge | Fixture source |
-| A3 | Fixture assumption three | untested belief | Verify or flag | Discard | Fixture source |
+| A1 | Fixture assumption one | physical law | Accept as ground-truth candidate | Accept — physical law, confirmed by GT-1 | Fixture source |
+| A2 | Fixture assumption two | convention | Challenge before use | Challenge — convention unconfirmed, needs probing | Fixture source |
+| A3 | Fixture assumption three | untested belief | Verify or flag | Discard — contradicted by GT-2, no longer load-bearing | Fixture source |
 
 ---
 

@@ -24,9 +24,9 @@ families exactly once.
 
 | # | Assumption | Type | Treatment | Verdict | Verification |
 |---|---|---|---|---|---|
-| A1 | Fixture assumption one | physical law | Accept as ground-truth candidate | Accept | Fixture source |
+| A1 | Fixture assumption one | physical law | Accept as ground-truth candidate | Accept — physical law, confirmed by GT-1 | Fixture source |
 | A2 | Fixture assumption two | untested belief | Verify or flag | **Unverified — flagged** | Fixture source |
-| A3 | Fixture assumption three | convention | Challenge before use | Challenge | Fixture source |
+| A3 | Fixture assumption three | convention | Challenge before use | Challenge — convention unconfirmed, needs probing | Fixture source |
 
 ---
 

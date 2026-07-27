@@ -1968,16 +1968,60 @@ def _verdict_cells(section2: str) -> list[str]:
     return out
 
 
-_VERDICT_VOCAB = {"accept", "challenge", "discard"}
+# Deterministic order (a tuple, not a set — regex alternation order must
+# stay stable regardless of PYTHONHASHSEED / hash randomization) of the
+# three vocabulary tokens a Verdict cell's leading word may be.
+_VERDICT_VOCAB = ("accept", "challenge", "discard")
+
+# DETECT-02 (P183-D1/P183-D2, Phase 183): the Verdict cell contract is a
+# leading vocabulary token, optionally wrapped in `*`/`_` emphasis, followed
+# by U+2014 EM DASH and at least one non-whitespace justification character.
+#
+# Separator policy (P183-D1): U+2014 EM DASH is the ONLY accepted separator.
+# U+2013 EN DASH and U+002D HYPHEN-MINUS are rejected. Both
+# `output-template.md`'s Verdict Vocabulary bullet and
+# `validation-rubric.md` Criterion 2's Rigorous descriptor name only
+# "em-dash"; a codepoint dump of `output-template.md` lines 69-71 confirms
+# all six separator occurrences there are U+2014; and a 267-cell census
+# across all four frozen analysis corpora found zero en-dash and zero
+# ASCII-hyphen separators in use, so this strict reading moves no recorded
+# figure either way — it is a forward-looking documentation choice, not a
+# retroactive correction.
+#
+# Empty-justification policy (P183-D2): a cell carrying the token and the
+# separator but no non-whitespace character after it does not conform.
+# Criterion 1 requires a "non-empty justification" and the rubric requires
+# "a specific justification" — an empty remainder carries no reasoning,
+# which is the whole purpose of the em-dash clause.
+#
+# The literal separator is written as the \u2014 escape below, never the
+# raw glyph, so the character is unambiguous in a diff.
+_VERDICT_FORM_RE = re.compile(
+    r"^[*_]*\s*(" + "|".join(_VERDICT_VOCAB) + r")\s*[*_]*\s*\u2014\s*(.*)$",
+    re.IGNORECASE,
+)
 
 
 def _verdict_conforms(cell: str) -> bool:
-    """A Verdict cell conforms after stripping emphasis, whitespace, and trailing punctuation."""
-    s = cell.strip()
-    s = re.sub(r"^[*_]+", "", s)
-    s = re.sub(r"[*_]+$", "", s)
-    s = s.strip().rstrip(".,;:!").strip()
-    return s.lower() in _VERDICT_VOCAB
+    """Whether a Verdict cell is the token-prefix + em-dash + justification
+    form `output-template.md` and `validation-rubric.md` Criterion 2
+    prescribe, rather than the bare vocabulary token alone.
+
+    This function was previously inverted: an earlier implementation
+    accepted the bare token alone and rejected the prescribed em-dash form —
+    the exact opposite of what both canonical sources require. The
+    correction (DETECT-02, Phase 183) is deliberately strict: only U+2014 EM
+    DASH separates the token from the justification (see the comment above
+    `_VERDICT_FORM_RE` for the separator and empty-justification policy and
+    its rationale), and punctuation between the token and the separator (the
+    old implementation's `rstrip(".,;:!")` behaviour) is not carried
+    forward — a cell reading `Accept.` with no em-dash still does not
+    conform.
+    """
+    m = _VERDICT_FORM_RE.match(cell.strip())
+    if not m:
+        return False
+    return bool(m.group(2).strip())
 
 
 # Chain-label families the frozen corpus actually uses: a two-letter prefix
@@ -2783,13 +2827,14 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="V-OBS-ENDASH",
         kind="verdict",
         text="Accept – survives challenge",
-        expected=None,
+        expected=False,
         owner="DETECT-02",
         source=(
-            "en-dash separator — DETECT-02 criterion 2 requires this "
-            "treatment to be decided and documented; Phase 182 records the "
-            "observed behaviour without asserting a contract expectation, "
-            "since pre-deciding it here would pre-empt DETECT-02."
+            "en-dash separator — decided by P183-D1 (Phase 183): only "
+            "U+2014 EM DASH separates the token from the justification, "
+            "because both canonical sources name only the em-dash and a "
+            "267-cell census of the frozen corpora found zero en-dash "
+            "separators in use, so this treatment costs no recorded figure."
         ),
         verbatim_from=None,
     ),
@@ -2797,13 +2842,14 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="V-OBS-HYPHEN",
         kind="verdict",
         text="Accept - survives challenge",
-        expected=None,
+        expected=False,
         owner="DETECT-02",
         source=(
-            "ASCII hyphen separator — DETECT-02 criterion 2 requires this "
-            "treatment to be decided and documented; Phase 182 records the "
-            "observed behaviour without asserting a contract expectation, "
-            "since pre-deciding it here would pre-empt DETECT-02."
+            "ASCII hyphen separator — decided by P183-D1 (Phase 183): only "
+            "U+2014 EM DASH separates the token from the justification, "
+            "because both canonical sources name only the em-dash and a "
+            "267-cell census of the frozen corpora found zero hyphen "
+            "separators in use, so this treatment costs no recorded figure."
         ),
         verbatim_from=None,
     ),
@@ -2811,13 +2857,14 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         id="V-OBS-EMPTY-AFTER-DASH",
         kind="verdict",
         text="Accept — ",
-        expected=None,
+        expected=False,
         owner="DETECT-02",
         source=(
-            "justification empty after the em-dash — DETECT-02 criterion 2 "
-            "requires this treatment to be decided and documented; Phase 182 "
-            "records the observed behaviour without asserting a contract "
-            "expectation, since pre-deciding it here would pre-empt DETECT-02."
+            "justification empty after the em-dash — decided by P183-D2 "
+            "(Phase 183): a cell carrying the token and the separator but "
+            "no non-whitespace character after it does not conform, "
+            "because an empty remainder carries no reasoning, which is the "
+            "whole purpose of the em-dash clause."
         ),
         verbatim_from=None,
     ),
@@ -2849,31 +2896,6 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
 # (v) A green QUAL-01 while this dict is non-empty means "the carried red is
 #     still carried", never "the contract holds".
 _DETECT01_PINNED_RED: dict[str, str] = {
-    "V-ACCEPT-EMDASH": (
-        "DETECT-02 owns `_verdict_conforms`; this entry is removed once it "
-        "accepts the token-prefix + em-dash + justification form the "
-        "template and rubric prescribe."
-    ),
-    "V-ACCEPT-EMDASH-BOLD": (
-        "DETECT-02 owns `_verdict_conforms`; removed once the bolded "
-        "token-prefix + em-dash + justification form is accepted."
-    ),
-    "V-CHALLENGE-EMDASH": (
-        "DETECT-02 owns `_verdict_conforms`; removed once the Challenge "
-        "token-prefix + em-dash + justification form is accepted."
-    ),
-    "V-DISCARD-EMDASH-BOLD": (
-        "DETECT-02 owns `_verdict_conforms`; removed once the bolded "
-        "Discard token-prefix + em-dash + justification form is accepted."
-    ),
-    "V-BARE-TOKEN": (
-        "DETECT-02 owns `_verdict_conforms`; removed once the bare token "
-        "alone is correctly rejected."
-    ),
-    "V-BARE-TOKEN-BOLD": (
-        "DETECT-02 owns `_verdict_conforms`; removed once the bolded bare "
-        "token alone is correctly rejected."
-    ),
     "C-TEMPLATE-C1": (
         "DETECT-03 owns `_chain_block_well_formed`; removed once the "
         "template's own canonical multi-line worked example is accepted "
