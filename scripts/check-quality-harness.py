@@ -2779,6 +2779,48 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         ),
         verbatim_from=None,
     ),
+    ContractFixture(
+        id="V-OBS-ENDASH",
+        kind="verdict",
+        text="Accept – survives challenge",
+        expected=None,
+        owner="DETECT-02",
+        source=(
+            "en-dash separator — DETECT-02 criterion 2 requires this "
+            "treatment to be decided and documented; Phase 182 records the "
+            "observed behaviour without asserting a contract expectation, "
+            "since pre-deciding it here would pre-empt DETECT-02."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-OBS-HYPHEN",
+        kind="verdict",
+        text="Accept - survives challenge",
+        expected=None,
+        owner="DETECT-02",
+        source=(
+            "ASCII hyphen separator — DETECT-02 criterion 2 requires this "
+            "treatment to be decided and documented; Phase 182 records the "
+            "observed behaviour without asserting a contract expectation, "
+            "since pre-deciding it here would pre-empt DETECT-02."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-OBS-EMPTY-AFTER-DASH",
+        kind="verdict",
+        text="Accept — ",
+        expected=None,
+        owner="DETECT-02",
+        source=(
+            "justification empty after the em-dash — DETECT-02 criterion 2 "
+            "requires this treatment to be decided and documented; Phase 182 "
+            "records the observed behaviour without asserting a contract "
+            "expectation, since pre-deciding it here would pre-empt DETECT-02."
+        ),
+        verbatim_from=None,
+    ),
 )
 
 
@@ -2849,6 +2891,63 @@ _DETECT01_PINNED_RED: dict[str, str] = {
 }
 
 
+_GT_LETTER_RE = re.compile(r"GT-([A-Z])\b")
+
+
+def _chain_failure_axes(text: str) -> list[str]:
+    """Axis tags explaining why a chain block fails `_chain_block_well_formed`.
+
+    Two independent axes can each make a chain block fail the block-level
+    form: MULTILINE (the prescribed form is matched per physical line, so a
+    chain spread across several lines fails even though the joined text would
+    match) and NON-NUMERIC-GT (`_CHAIN_FORM_LINE_RE` requires `GT-\\d+`, so a
+    document using placeholder identifiers like `GT-N`/`GT-M` fails on a
+    second, independent axis even when joined onto one line).
+
+    Measured 2026-07-27 against this plan's pre-registered fixtures:
+    `C-TEMPLATE-C1` is MULTILINE + NON-NUMERIC-GT, `C-TEMPLATE-FORMAT` is
+    NON-NUMERIC-GT only, `C-MULTILINE-DIGITS` is MULTILINE only.
+    Consequence, recorded here so Phase 184 inherits it rather than
+    discovering it: the block-level match DETECT-03 prescribes is necessary
+    but not sufficient to make the verbatim template example pass — Phase
+    184's criterion 2 ("Phase 182's chain tests pass, including the
+    template's own canonical example") therefore also requires a decision on
+    placeholder GT identifiers. Phase 182 characterises this; it does not
+    decide it.
+    """
+
+    def per_line(t: str) -> bool:
+        return any(_CHAIN_FORM_LINE_RE.search(line) for line in t.splitlines())
+
+    def joined(t: str) -> bool:
+        j = " ".join(line.strip() for line in t.splitlines() if line.strip())
+        return bool(_CHAIN_FORM_LINE_RE.search(j))
+
+    def digit_substituted(t: str) -> str:
+        seen: list[str] = []
+
+        def repl(m: re.Match) -> str:
+            letter = m.group(1)
+            if letter not in seen:
+                seen.append(letter)
+            return f"GT-{seen.index(letter) + 1}"
+
+        return _GT_LETTER_RE.sub(repl, t)
+
+    ds_text = digit_substituted(text)
+    ds_per_line = per_line(ds_text)
+    ds_joined = joined(ds_text)
+    raw_joined = joined(text)
+    has_non_numeric_gt = bool(_GT_LETTER_RE.search(text))
+
+    axes: list[str] = []
+    if not ds_per_line and ds_joined:
+        axes.append("MULTILINE")
+    if has_non_numeric_gt and not raw_joined and ds_joined:
+        axes.append("NON-NUMERIC-GT")
+    return axes
+
+
 def _contract_fixture_result(fx: ContractFixture) -> bool:
     """Dispatch a fixture to the production function its kind exercises."""
     if fx.kind == "verdict":
@@ -2901,6 +3000,10 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
         observed_value = _contract_fixture_result(fx)
         mismatched = observed_value != fx.expected
         pinned = fx.id in _DETECT01_PINNED_RED
+
+        if fx.kind == "chain" and mismatched:
+            axes = _chain_failure_axes(fx.text)
+            print(f"contract_pin AXES {fx.id}: {', '.join(axes)}", file=sys.stderr)
 
         if strict:
             if mismatched:
