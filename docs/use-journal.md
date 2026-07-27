@@ -91,6 +91,8 @@ Two worked examples of the right altitude — detailed about the work, silent ab
 
 <!-- live entries below; newest at the bottom. Written at the time, unlike the baseline above. -->
 
+- 2026-07-27 · project-a · agent · asked: whether a load-bearing assumption in a paper I'd drafted survived a check against primary source texts, and to turn the same instrument on the paper itself · fell short: **the agent was never dispatched.** The session answered inline — 10 Read, 3 Bash, 1 Write, zero Agent-tool calls — even though the prompt carried two of the agent's own documented trigger phrases. What came back was strong, well-sourced prose but not a first-principles analysis: 1 of the 6 output sections, no assumptions table, no derivation chains, no confidence ratings anywhere. A same-day re-run on current code reproduced the non-dispatch and conformed *less* (0 of 6) while being the better analysis. Both runs are written up in [real-use-dispatch-findings.md](real-use-dispatch-findings.md). *(Run and capture same day; the dispatch counts are read off the session transcript, not recalled.)*
+
 ## Read-back
 
 At roughly five entries, read them in one sitting and answer one question: **does the disappointment cluster?**
