@@ -2138,7 +2138,16 @@ _CHAIN_FORM_LINE_RE = re.compile(
 # _CHAIN_FORM_LINE_RE above. A separate symbol from _CHAIN_FORM_LINE_RE and
 # _GT_MENTION_RE — this one is used with `.search` against a single
 # stripped line to test candidacy, not to match a whole chain form.
-_GT_HEAD_RE = re.compile(_GT_TOKEN_WIDE)
+# Anchored to the start of the stripped line (WR-02, Phase 184-03): an
+# unanchored search matched a GT- token appearing anywhere in a prose
+# sentence (e.g. "As discussed, GT-1 was already covered above."),
+# silently widening the join's candidate-start surface beyond what the
+# docstring below claims. This is a THIRD pattern, distinct from both
+# _CHAIN_FORM_LINE_RE and _GT_MENTION_RE below — anchoring it does not
+# touch D-02's confinement: D-02 confines the widened token to
+# _CHAIN_FORM_LINE_RE only, and _GT_MENTION_RE stays `GT-\d+\??` regardless
+# of this change.
+_GT_HEAD_RE = re.compile(r"^" + _GT_TOKEN_WIDE)
 
 # Bounded-join continuation test (D-06): a stripped line continues the
 # current candidate segment only while it itself begins with an arrow. A
@@ -2147,29 +2156,72 @@ _GT_HEAD_RE = re.compile(_GT_TOKEN_WIDE)
 # already-stripped line.
 _LEADING_ARROW_RE = re.compile(r"^" + _ARROW)
 
+# Head-arrow guard (Phase 184-03, CR-01/M-2): tests whether a line contains
+# an arrow ANYWHERE, unlike _LEADING_ARROW_RE which tests only the start of
+# a stripped line. Backs the guard in _chain_block_well_formed that skips
+# arrow-led absorption once the candidate head line already carries an
+# arrow — a head line that already contains an arrow has started its chain
+# inline, so an immediately-following arrow-led line is a new statement,
+# not a wrap of the same claim (see that function's docstring).
+_ANY_ARROW_RE = re.compile(_ARROW)
+
 
 def _chain_block_well_formed(block: str) -> bool:
     """Match the prescribed chain form across a block (D-05, D-06).
 
-    Tries every line carrying a GT head as a candidate chain start, then
-    absorbs each following line into that candidate only while it begins
-    with an arrow — stopping at the first line that does not (a blank
-    line, a `**Confidence:**` line, or an unrelated GT-head line all stop
-    the join). The bounded, space-joined candidate is matched against the
+    Tries every line carrying a GT head as a candidate chain start. The
+    stripped head line is tested against the candidate itself first; only
+    when that head line carries NO arrow anywhere is arrow-led absorption
+    of the following lines attempted, stopping at the first line that does
+    not begin with an arrow (the head-arrow guard, Phase 184-03 — see
+    below). The bounded, space-joined candidate is matched against the
     same `_CHAIN_FORM_LINE_RE` used before this phase — the regex stays
     load-bearing, only the caller changed, so a one-line block still joins
     to itself and matches (criterion 4 preserved by construction).
+
+    Phase 184-03 correction (CR-01/WR-01/WR-02, closing the `b50e8e4`
+    blanket-pass defect `184-VERIFICATION.md` recorded): the prior join
+    absorbed ANY immediately-following arrow-led line regardless of
+    relevance, so a genuinely malformed one-hop chain sitting next to any
+    unrelated arrow-led sentence, bullet or table row completed the
+    two-arrow shape and scored well-formed. Two corrections close that
+    gap. First (WR-02), candidacy is tested against the STRIPPED head
+    line using the now line-start-anchored `_GT_HEAD_RE` — with `^`
+    anchoring, testing the raw (unstripped) line would silently drop
+    every indented chain head. Second (the head-arrow guard,
+    `_ANY_ARROW_RE`), arrow-led absorption is attempted only when the
+    stripped head line itself carries no arrow: a head line that already
+    contains an arrow has started its chain inline, so a following
+    arrow-led line is a new statement, not a wrap of the same claim, and
+    the candidate is judged as its single line only. This guard is what
+    `C-JOIN-ARROW-BULLET` and `C-JOIN-ARROW-NEWGT` pin (both cover the
+    same single guard, not two independent ones — see their `source`
+    fields); removing the guard is INJ-A in `184-03-PLAN.md`, and it flips
+    exactly those two fixtures. A stricter variant that also refused
+    absorption of a continuation line introducing its own GT- head token
+    was measured behaviourally identical on every fixture and rejected as
+    an unproven extra restriction (M-2, 184-03-PLAN.md).
+
+    Deferred, out of this phase's scope (WR-03): this function's `any()`
+    semantic over candidates, combined with `_chain_blocks`'s
+    whole-section fallback for an un-headered block, means one matching
+    candidate anywhere in the block suppresses detection of every other
+    malformed fragment in that same block. Pre-dates this phase; both the
+    code reviewer and the verifier scoped it out of Phase 184. Not
+    changed here.
     """
     lines = block.splitlines()
     for i, ln in enumerate(lines):
-        if not _GT_HEAD_RE.search(ln):
+        head = ln.strip()
+        if not _GT_HEAD_RE.search(head):
             continue
-        seg = [ln.strip()]
-        for nxt in lines[i + 1 :]:
-            s = nxt.strip()
-            if not _LEADING_ARROW_RE.match(s):
-                break
-            seg.append(s)
+        seg = [head]
+        if not _ANY_ARROW_RE.search(head):
+            for nxt in lines[i + 1 :]:
+                s = nxt.strip()
+                if not _LEADING_ARROW_RE.match(s):
+                    break
+                seg.append(s)
         if _CHAIN_FORM_LINE_RE.search(" ".join(seg)):
             return True
     return False
@@ -2480,13 +2532,28 @@ _EXPECTED_DEFECTIVE_RECORD = {
 # asserted by no self-test item. DETECT-05 (Phase 186) owns any correction
 # to the TSV itself; this comment records the fact without editing it.
 #
-# Unlike the Verdict-axis finding above, the chain columns do NOT go stale
-# under the DETECT-03 fix: Phase 184 measured `chain_blocks`,
-# `malformed_chain_blocks` and `chain_flag` in the same committed TSV
-# against the corrected `_chain_block_well_formed` on 2026-07-27 and found
-# all six rows unchanged old vs. corrected predicate, so
-# `_CALIBRATION_CHAIN_FLAGS` below is left exactly as it is; Phase 185
-# (DETECT-04) still owns full re-derivation of all four constants.
+# Chain-axis staleness (Phase 184-03, DETECT-03, measured 2026-07-27
+# against the corrected, boundary-tightened `_chain_block_well_formed`,
+# re-run over the six analyses in tests/quality-baseline-v8.7/analyses/ in
+# _CALIBRATION_ANALYSIS_ORDER and compared column-by-column against the
+# committed tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv):
+#   - `chain_blocks`            TSV [5, 5, 3, 4, 4, 5]  -> unchanged
+#   - `malformed_chain_blocks`  TSV [2, 2, 2, 2, 3, 3]  -> now
+#     [5, 2, 3, 3, 3, 5] — MOVES on 4 of 6 rows (condA-P1 2->5, condA-P3
+#     2->3, condB-P1 2->3, condB-P3 3->5). The 184-01 boundary fix widened
+#     what counts as a malformed chain block; the 184-03 tightening
+#     (head-arrow guard) did not move this column back — these are the
+#     genuinely tightened-boundary counts, re-verified honestly rather than
+#     assumed unchanged (an earlier draft of this comment claimed all six
+#     rows reproduced identically; that claim was false and is corrected
+#     here, honesty-not-score D-01).
+#   - `chain_flag`              TSV [1, 1, 1, 1, 1, 1]  -> unchanged
+# The flags do not move, so `_CALIBRATION_CHAIN_FLAGS` below is still left
+# exactly as it is under D-09's leave-alone branch. This comment records
+# the measured truth; it is never an edit to the TSV itself — DETECT-05
+# (Phase 186) owns any correction to the TSV. Phase 185 (DETECT-04) still
+# owns full re-derivation of all four `_CALIBRATION_*` constants, treating
+# this comment as an input to verify, not a result to trust.
 _CALIBRATION_ANALYSIS_ORDER = (
     "condA-P1",
     "condA-P2",
@@ -2918,6 +2985,44 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
             "constructed negative; Phase 184 criterion 3 — a defective "
             "one-arrow chain followed by a prose line that itself contains "
             "an arrow must not be absorbed into the join (D-12)."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-BULLET",
+        kind="chain",
+        text=(
+            "GT-1 (single fact) -> this is the only hop, no second arrow to "
+            "close the claim.\n-> Next steps: verify assumption before "
+            "deploying."
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative from 184-REVIEW.md CR-01 counter-example "
+            "1; its second line DOES begin with an arrow, the absorption "
+            "branch neither C-JOIN-FALSE-FUSE nor C-JOIN-PROSE-ARROW "
+            "reaches (WR-01); pinned by the head-arrow guard — removing "
+            "that guard flips it."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="C-JOIN-ARROW-NEWGT",
+        kind="chain",
+        text=(
+            "GT-1 (bench numbers) -> partial claim about GT-1 only, no "
+            "second hop here\n-> GT-9 (unrelated fact) is what actually "
+            "explains the real conclusion"
+        ),
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative from 184-REVIEW.md CR-01 counter-example "
+            "3; its second line DOES begin with an arrow, the absorption "
+            "branch neither C-JOIN-FALSE-FUSE nor C-JOIN-PROSE-ARROW "
+            "reaches (WR-01); pinned by the head-arrow guard — removing "
+            "that guard flips it."
         ),
         verbatim_from=None,
     ),
