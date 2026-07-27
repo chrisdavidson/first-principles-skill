@@ -261,6 +261,12 @@ FI-5 py exit=1 matched=yes
 FI-5 py-O exit=1 matched=yes
 ```
 
+**Quote provenance.** After phase verification found one fabricated quote in this section (FI-2,
+below), all five quoted stderr lines were re-derived mechanically by re-running each injection
+against the live tree rather than being trusted as transcribed. FI-1, FI-3, FI-4 and FI-5
+reproduce byte-for-byte as quoted; FI-2 did not and is corrected below with the discrepancy
+stated. Treat the four unflagged quotes as reproduced, not merely asserted.
+
 Per-path detail:
 
 1. **FI-1 (unregistered mismatch):** deleted the `V-BARE-TOKEN` entry from
@@ -269,8 +275,16 @@ Per-path detail:
 2. **FI-2 (stale pin — the load-bearing path Phase 183 and Phase 184 will trip):** added a
    registry entry `"C-SINGLE-LINE": "fault injection re-proof — DETECT-03"` for a fixture that
    already matches its contract. Matched stderr: `self-test FAIL: contract_pin STALE PIN
-   C-SINGLE-LINE — DETECT-03 has corrected the check; delete this entry from
-   _DETECT01_PINNED_RED and let the fixture assert normally`.
+   C-SINGLE-LINE — None has corrected the check; delete this entry from _DETECT01_PINNED_RED and
+   let the fixture assert normally`.
+
+   The `None` in that line is literal, not a transcription slip. The STALE PIN message
+   interpolates `fx.owner`, and `C-SINGLE-LINE` carries `owner=None` — it was chosen for this
+   injection only because it already conforms, not because it belongs to DETECT-02 or DETECT-03.
+   An earlier draft of this section quoted the clause as "DETECT-03 has corrected the check",
+   which does not reproduce; phase verification caught it and it is corrected here. Every fixture
+   actually carried in `_DETECT01_PINNED_RED` has a real owner, so the stale-pin message Phase 183
+   and Phase 184 will see names their requirement rather than `None`.
 3. **FI-3 (verbatim drift, Guard A):** changed `C-TEMPLATE-C1`'s leading `Conclusion C1` to
    `Conclusion C9`, breaking its literal-substring match against
    `shared/spine/references/output-template.md`. Matched stderr: `self-test FAIL: contract_pin
