@@ -2667,6 +2667,33 @@ _CALIBRATION_UNTRACED_FLAGS = [1, 1, 1, 1, 1, 1]
 _CALIBRATION_VERDICT_FLAGS = [1, 1, 1, 1, 1, 1]
 _CALIBRATION_CHAIN_FLAGS = [1, 1, 1, 1, 1, 1]
 
+# _CALIBRATION_MALFORMED_CHAIN_BLOCKS (Phase 184-04, DETECT-03): a fifth
+# _CALIBRATION_* constant — Phase 185 (DETECT-04) is scoped to re-derive
+# the four above; this one is added here because 184-VERIFICATION.md gap
+# 4 and 184-REVIEW.md WR-01 found `_CALIBRATION_CHAIN_FLAGS` above
+# STRUCTURALLY BLIND to a +7 false-positive movement: every one of the
+# six analyses already had at least one malformed block both before and
+# after the 37fea87 regression, so the binary flag stayed saturated at 1
+# throughout and `--self-test` stayed green over a regression that
+# rejected the project's own template. The value below is NOT re-derived
+# here — it is the committed tests/quality-fixtures-v8.7/
+# calibration-v8.6-corpus.tsv `malformed_chain_blocks` column, which is
+# also exactly what the pre-phase base 1f71211 produces (measured,
+# 184-04-PLAN.md M-1), so this pins an EXISTING measured value rather
+# than deriving a new one. Asserted below alongside the three flag
+# vectors, with the same named-quantity failure-message shape (not a
+# bare `assert`, which `python3 -O` strips) — INJ-1 in
+# 184-04-PLAN.md M-4 is the injection that proves it load-bearing:
+# re-anchoring `_GT_HEAD_RE` fires this assertion in addition to the six
+# fixture mismatches it also causes. `_CALIBRATION_CHAIN_FLAGS` above is
+# left exactly as it is under D-09's leave-alone branch: the corrected
+# predicate reproduces `[1, 1, 1, 1, 1, 1]` exactly, the flag vector did
+# not move, only the numeric vector needed a more sensitive assertion.
+# Phase 185 (DETECT-04) must treat this constant as an input to verify
+# against its own full re-derivation, not a result to trust — the same
+# standing instruction the other four constants carry.
+_CALIBRATION_MALFORMED_CHAIN_BLOCKS = [2, 2, 2, 2, 3, 3]
+
 
 def _defect_numeric_fields(record: dict) -> dict:
     return {k: record[k] for k in _EXPECTED_CONFORMANT_RECORD}
@@ -2807,6 +2834,7 @@ def _selftest_defects() -> bool:
         untraced_flags: list[int] = []
         verdict_flags: list[int] = []
         chain_flags: list[int] = []
+        malformed_chain_blocks: list[int] = []
         calibration_crashed = False
         for f in corpus_files:
             try:
@@ -2823,6 +2851,7 @@ def _selftest_defects() -> bool:
             untraced_flags.append(rec["untraced_flag"])
             verdict_flags.append(rec["verdict_flag"])
             chain_flags.append(rec["chain_flag"])
+            malformed_chain_blocks.append(rec["malformed_chain_blocks"])
         if not calibration_crashed:
             if untraced_flags != _CALIBRATION_UNTRACED_FLAGS:
                 print(
@@ -2842,6 +2871,14 @@ def _selftest_defects() -> bool:
                 print(
                     f"self-test FAIL: defects calibration chain_flag vector "
                     f"expected {_CALIBRATION_CHAIN_FLAGS!r}, got {chain_flags!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if malformed_chain_blocks != _CALIBRATION_MALFORMED_CHAIN_BLOCKS:
+                print(
+                    f"self-test FAIL: defects calibration malformed_chain_blocks "
+                    f"vector expected {_CALIBRATION_MALFORMED_CHAIN_BLOCKS!r}, "
+                    f"got {malformed_chain_blocks!r}",
                     file=sys.stderr,
                 )
                 ok = False
