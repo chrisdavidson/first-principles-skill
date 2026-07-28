@@ -54,6 +54,16 @@ include), and no removal in this document relies on the smaller M-3 figure — e
 uses this run's own, larger, more inclusive LIVE SET, which is the conservative direction (it
 marks *more* files live, not fewer, so it does not risk under-counting liveness).
 
+**A limitation the Task 3 gate caught that the open-trace could not.** The open-trace hooks
+`open`/`io.open`/`open_code` — it proves a file is *read*. It does not see `os.path.exists()`,
+directory-presence checks, or file counts, which never call `open()`. Task 3 found this the hard
+way: deleting four files that were genuinely never *read* by anything removed their containing
+directory (git does not track empty directories), and a fixture-integrity self-test that asserts
+the directory's *existence* — not its contents — regressed the battery. See the
+`baseline-truncated/analyses` evidence entry and Gate Verification below for the full account. This
+is why Task 3 re-runs the actual battery and pytest rather than trusting this Method's LIVE SET
+alone to authorize a deletion.
+
 ## Verdict Table
 
 | Candidate | Inbound refs | LIVE SET member | Verdict | Rationale |
@@ -66,7 +76,7 @@ marks *more* files live, not fewer, so it does not risk under-counting liveness)
 | `scripts/check-inventory.py` | 2 (M-6) | Yes | KEEP | LIVE — imported by `tests/test_81_inventory.py`, which genuinely runs (unlike the three broken-collection files below) and is part of the 137-pass pytest count. Real dependency, not a stale reference. |
 | `scripts/run-live-monitoring.sh` | 2 (M-6) | No | RECOMMEND-REMOVE | Absent from the LIVE SET and referenced only by `docs/live-monitoring-runbook.md` and `scripts/check-traceability.py` (a `deliverable_path` string, not an import) — 2 referencing files trips criterion 3. |
 | `tests/step0-baseline-v*.md`, `tests/step0-captures-v*/**` (all versions), `tests/routing-baseline-v3.*.md`, `tests/routing-baseline-v7.11.md`, `tests/routing-battery-baseline-v7.11.md`, `tests/focused-output-baseline-v*.md`, `tests/sub-skill-routing-baseline-v*.md`, `tests/quality-catalog-v8.7.md`, `tests/quality-probe-v8.7/**`, `tests/quality-baseline-v8.7/**`, `tests/quality-baseline-v8.7-regenerated/**`, `tests/quality-baseline-v8.7-postfix/**` | n/a | Mixed (many absent) | KEEP (protected) | Every one of these is a literal path or glob in `check-firewall-battery.sh`'s `FROZEN-EVIDENCE` `git diff --quiet` list. Deleting any single file inside them fails the battery immediately — a mechanically provable dependency, not a judgement call. LIVE SET absence here is expected and does not indicate dead weight: the gate protects the git *object*, not run-time reads. Criterion 4 bars removal regardless of criteria 1–3. |
-| `tests/quality-fixtures-v8.7/baseline-truncated/analyses/{condA-P1,condA-P2,condA-P3,condB-P1}.md` | 0 | No | REMOVE-EXECUTED | Zero inbound references anywhere in the tracked tree, absent from the LIVE SET, zero collateral edits required, and NOT covered by the `FROZEN-EVIDENCE` glob list (`tests/quality-fixtures-v8.7` is not one of its entries — only the sibling `blinding-key.tsv`/`scorelines.tsv` in the same directory are read by QUAL-01). All four decision-rule criteria pass. See Gate Verification. |
+| `tests/quality-fixtures-v8.7/baseline-truncated/analyses/{condA-P1,condA-P2,condA-P3,condB-P1}.md` | 0 | No (but see Task 3) | RECOMMEND-REMOVE | Looked REMOVE-EXECUTED at Task 2 measurement time (0 refs, absent from the open-trace LIVE SET, no glob protection) but **regressed the battery when actually deleted**: `check-quality-harness.py --self-test`'s "baseline integrity" sub-check asserts the `analyses/` **subdirectory exists** — an existence check the open-trace technique cannot see, because `os.path.exists`/directory-presence checks never call `open()`. Deleting all four files (git does not track empty directories) removed the directory itself. Reverted in Task 3; battery confirmed GREEN again after revert. Downgraded to RECOMMEND-REMOVE — a real removal is possible here, but only paired with whatever edit makes the self-test's existence assumption match (or an explicit placeholder file), which is exactly the kind of collateral change criterion 3 exists to catch and which this audit's open-trace alone did not surface. |
 | `tests/quality-fixtures-v8.7/calibration-v8.6-corpus.{md,tsv}` | 5 (excl. self) | No | RECOMMEND-REMOVE | Absent from the LIVE SET but cited by 5 tracked files (`docs/v8.7-quality-baseline-freeze.md`, `scripts/check-quality-harness.py` comment, both v8.13 `detect0*` proof docs, and a sibling README) — criterion 3 fails. |
 | `tests/quality-fixtures-v8.7/README.md` | 2 (excl. self) | No | KEEP | Directory README for a fixture set whose other 24/31 members are genuinely LIVE (opened directly by `QUAL-01`'s self-test). READMEs are expected to be absent from an open-trace by nature — documentation is read by humans, not gates. Not debt. |
 | `tests/quality-baseline-v8.10-oos/**` (10 files), `tests/defrobust-v8.11/**` (5 files) | many (10 and 3 docs respectively) | No | KEEP | Both are genuinely frozen milestone evidence (v8.10 CORRECTGATE-01 out-of-sample corpus; v8.11 DEFROBUST-01 mutually-blind captures), cited across 10 and 3 tracked docs respectively — criterion 3 alone would force RECOMMEND-REMOVE, but the underlying content is load-bearing history, not stale scaffolding. **Finding, not a removal candidate:** neither directory is covered by the `FROZEN-EVIDENCE` glob list, unlike their same-kind siblings (`tests/quality-baseline-v8.7*`, `tests/quality-probe-v8.7`) — a real gate-coverage gap the user may want to close by extending the glob, not something this audit fixes. |
@@ -147,6 +157,34 @@ marks *more* files live, not fewer, so it does not risk under-counting liveness)
 - **What is lost:** four historical analysis documents from the truncated-baseline fixture case.
   Given the sibling `.tsv` files are what the self-test actually asserts against, these look like
   leftover source material for the fixture's construction rather than a live input.
+
+### `tests/quality-fixtures-v8.7/baseline-truncated/analyses/{condA-P1,condA-P2,condA-P3,condB-P1}.md` (attempted, reverted)
+
+- **Inbound references:** 0, re-confirmed immediately before deletion in Task 3.
+- **LIVE SET membership:** absent, re-confirmed with a freshly re-run open-trace immediately before
+  deletion in Task 3 (not relying on the Task 2 reading, per the plan's explicit instruction).
+- **What actually happened:** deleted via `git rm` in Task 3. `bash scripts/check-firewall-battery.sh`
+  regressed: `FIREWALL: RED (1 gate(s) failed; 15/16 passed)`, with `[FAIL] QUAL-01
+  check-quality-harness.py --self-test`. Running the self-test directly isolated the cause exactly:
+  `self-test FAIL: baseline integrity on the truncated fixture reported findings, but none names the
+  count mismatch: ['.../tests/quality-fixtures-v8.7/baseline-truncated: analyses/ subdirectory does
+  not exist']`. The four files were the only members of `analyses/`; deleting all of them removed the
+  directory (git does not track empty directories), and a self-test sub-check that asserts the
+  directory's *existence* — not its contents being read — failed.
+- **Root cause of the audit miss:** the open-trace technique hooks `open`/`open_code`, which fires
+  for file reads and module imports. It does not fire for `os.path.exists()`, `Path.is_dir()`, or any
+  other presence/count check that never calls `open()`. This is precisely the failure mode the plan's
+  honesty requirement #2 warned about ("a file can be absent from an open-trace and still be
+  load-bearing... an existence check is a real dependency") — this audit checked for that pattern
+  deliberately for directories named in `check-traceability.py`'s deliverable-path list, but did not
+  extend the same suspicion to `check-quality-harness.py`'s own internal fixture-integrity assertions
+  before executing the deletion. Caught here because Task 3 re-runs the actual battery rather than
+  trusting the open-trace alone — which is exactly why that gate exists.
+- **Recovery:** reverted with `git checkout HEAD -- <path>` for each of the four files; re-ran the
+  battery with only `dev/check-links.sh` removed and confirmed `FIREWALL: GREEN (16/16)` and
+  `137 passed` — the baseline is restored. See Gate Verification for both full transcripts.
+- **Verdict, corrected:** RECOMMEND-REMOVE, not REMOVE-EXECUTED. See the verdict table for the
+  reasoning on what a real removal here would additionally require.
 
 ### `tests/quality-fixtures-v8.7/calibration-v8.6-corpus.{md,tsv}`
 
@@ -266,8 +304,98 @@ marks *more* files live, not fewer, so it does not risk under-counting liveness)
 
 ## Gate Verification
 
-*(Filled by Task 3.)*
+**Pre-state (Task 1, before any edit in this plan; HEAD `4e1d3c9`):**
+
+```
+$ bash scripts/check-firewall-battery.sh
+...
+FIREWALL: GREEN (16/16)
+
+$ python3 -m pytest tests/ -q
+...
+137 passed in 1.87s
+```
+
+**Attempted removal (Task 3, mid-execution — regression, reverted):** deleting all four
+`tests/quality-fixtures-v8.7/baseline-truncated/analyses/*.md` files alongside
+`dev/check-links.sh`:
+
+```
+$ bash scripts/check-firewall-battery.sh
+...
+[FAIL] QUAL-01         check-quality-harness.py --self-test
+...
+FIREWALL: RED (1 gate(s) failed; 15/16 passed)
+
+$ python3 scripts/check-quality-harness.py --self-test
+self-test FAIL: baseline integrity on the truncated fixture reported findings, but none names the
+count mismatch: ['.../tests/quality-fixtures-v8.7/baseline-truncated: analyses/ subdirectory does
+not exist']
+self-test: baseline sub-check FAILED
+```
+
+The four `analyses/*.md` files were reverted with `git checkout HEAD -- <path>` (one command per
+file). They are **not** part of the final commit.
+
+**Post-state (Task 3, final — only `dev/check-links.sh` removed):**
+
+```
+$ bash scripts/check-firewall-battery.sh
+...
+FIREWALL: GREEN (16/16)
+
+$ python3 -m pytest tests/ -q
+...
+137 passed in 1.43s
+```
+
+Both boundaries match the Task 1 pre-state exactly (`GREEN (16/16)`, `137 passed`) with the one
+executed removal in place. The regression above is recorded rather than worked around — no
+criterion was softened to make it pass; the candidate that caused it was reverted and its verdict
+row corrected to RECOMMEND-REMOVE.
+
+**REMOVE-EXECUTED set == deletions in this commit:** `dev/check-links.sh`. One row, one file, one
+deletion — verified with `git diff --cached --name-status` before committing (excludes the
+telemetry CSV and `scratchpad/`, confirmed below).
 
 ## Decisions For the User
 
-*(Filled by Task 3.)*
+Ordered by measured impact — largest first.
+
+1. **`main.py` + `templates/*.tmpl` (the v4.0-era builder) — 13 referencing files, genuinely
+   untested.** The three test files that exist specifically to exercise it
+   (`tests/test_59_02_task1.py`, `tests/test_60_01_check_agent_candidate.py`,
+   `tests/test_64_01_install.py`) collect zero pytest items each (`check_*` functions, not `test_*`)
+   — verified live. Decide: repair the test collection and keep the scaffolding tool, or retire the
+   whole trio (`main.py`, both `.tmpl` files, and the three now-pointless test files) together.
+2. **`scripts/check-sub-skill-routing.py` / `scripts/check-focused-output.py` (deprecated shims,
+   15/18 referencing files).** Both are still exercised by `tests/test_65_doc_invariants.py`'s CLI
+   probes, not just documentation. Decide: retire the shims and rewrite/delete the corresponding
+   `test_65` assertions together, or keep the backward-compatible entry points.
+3. **`tests/quality-fixtures-v8.7/baseline-truncated/analyses/*.md` (4 files) — real removal is
+   possible, but not as attempted here.** Removing them cleanly requires also satisfying (or
+   removing) `check-quality-harness.py`'s existence assertion on the `analyses/` subdirectory — a
+   collateral code change this audit did not make. Decide whether that fixture-integrity check
+   should be relaxed, or the directory kept with a placeholder.
+4. **`tests/routing-baseline-v7.13.md` / `tests/routing-battery-baseline-v8.5.md` vs. the
+   `FROZEN-EVIDENCE` gate's own coverage gap.** Same kind of artifact as their protected siblings
+   but excluded from the glob. Decide: extend `FROZEN-EVIDENCE`'s glob to cover them (treat as
+   equally protected), or accept the current asymmetry and remove them along with editing their 3
+   and 1 citing documents respectively.
+5. **`tests/quality-baseline-v8.10-oos/` and `tests/defrobust-v8.11/` — same coverage-gap shape,
+   opposite direction.** These are unambiguously load-bearing frozen evidence (cited by 10 and 3
+   docs respectively) that happen not to be in the `FROZEN-EVIDENCE` glob either. No removal is
+   recommended; the decision here is only whether to add them to the glob so a future accidental
+   edit is caught mechanically instead of by hand-checking.
+6. **`docs/README.md:147`'s `history/` link (M-7) — a disclosure asymmetry, not just a 404.**
+   `docs/requirements-traceability.md` already states `docs/history/` is local-only and git-ignored;
+   `docs/README.md`'s index entry does not carry that caveat. Decide: re-track the 67 snapshots
+   publicly, edit the link/prose to stop pointing at a private local-only directory, or bring the two
+   documents' disclosures in line with each other.
+7. **`scripts/run-live-monitoring.sh`, `tests/quality-fixtures-v8.7/calibration-v8.6-corpus.{md,tsv}`,
+   `52-02-SUMMARY.md`, `scripts/snapshot-traffic.sh`.** Each RECOMMEND-REMOVE with a small (0–5)
+   citing-file count; lowest-impact of the set. `52-02-SUMMARY.md` is the only surviving copy of its
+   phase's history — confirm no other copy is wanted before deleting.
+
+**Executed in this plan:** `dev/check-links.sh` only — zero references, targets a directory that no
+longer exists in this repository, and both boundary checks stayed green after removal.
