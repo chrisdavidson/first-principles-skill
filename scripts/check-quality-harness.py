@@ -3193,8 +3193,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         owner="DETECT-02",
         source=(
             "output-template.md line 69, verbatim — the parenthesised Accept "
-            "example in the Verdict Vocabulary bullet. Succeeded by DETECT-06 "
-            "(Phase 187) runtime extraction, which replaces this literal copy."
+            "example in the Verdict Vocabulary bullet. Guarded by DETECT-06 "
+            "(Phase 187) runtime extraction (habitat mode quoted-eg), which "
+            "checks this literal against the live template at self-test time "
+            "rather than trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3218,8 +3220,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         owner="DETECT-02",
         source=(
             "output-template.md line 70, verbatim — the parenthesised "
-            "Challenge example. Succeeded by DETECT-06 (Phase 187) runtime "
-            "extraction, which replaces this literal copy."
+            "Challenge example. Guarded by DETECT-06 (Phase 187) runtime "
+            "extraction (habitat mode quoted-eg), which checks this literal "
+            "against the live template at self-test time rather than "
+            "trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3283,8 +3287,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         owner="DETECT-03",
         source=(
             "output-template.md lines 133-137, verbatim — the template's own "
-            "canonical worked example (criterion 3). Succeeded by DETECT-06 "
-            "(Phase 187) runtime extraction, which replaces this literal copy."
+            "canonical worked example (criterion 3). Guarded by DETECT-06 "
+            "(Phase 187) runtime extraction (habitat mode heading-block), "
+            "which checks this literal against the live template at "
+            "self-test time rather than trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3297,9 +3303,11 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         source=(
             "output-template.md line 108, verbatim — the fenced chain-format "
             "block. Its single-line form is deliberate: it isolates the "
-            "placeholder-identifier axis from the multi-line axis. Succeeded "
-            "by DETECT-06 (Phase 187) runtime extraction, which replaces this "
-            "literal copy."
+            "placeholder-identifier axis from the multi-line axis. Guarded "
+            "by DETECT-06 (Phase 187) runtime extraction (habitat mode "
+            "fenced-block), which checks this literal against the live "
+            "template at self-test time rather than trusting it as a static "
+            "copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3327,8 +3335,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         owner=None,
         source=(
             "output-template.md line 123, verbatim — the backtick-quoted "
-            "trade-off example. Succeeded by DETECT-06 (Phase 187) runtime "
-            "extraction, which replaces this literal copy."
+            "trade-off example. Guarded by DETECT-06 (Phase 187) runtime "
+            "extraction (habitat mode backtick-span), which checks this "
+            "literal against the live template at self-test time rather "
+            "than trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3452,7 +3462,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
             "cover the same characters, superseding C-TEMPLATE-TRADEOFF for "
             "behavioural purposes without editing it. False at 37fea87 (the `^` "
             "anchor rejected it), True at 1f71211 and after this plan; pinned by "
-            "INJ-1."
+            "INJ-1. Guarded by DETECT-06 (Phase 187) runtime extraction "
+            "(habitat mode whole-physical-line), which checks this literal "
+            "against the live template at self-test time rather than "
+            "trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3475,7 +3488,10 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
             "WHOLE stripped physical line — same ownership and treatment as "
             "C-RENDER-EXAMPLE-PREFIX above (ROADMAP criterion 2, DETECT-03 "
             "acceptance clause A). False at 37fea87, True at 1f71211 and after "
-            "this plan; pinned by INJ-1."
+            "this plan; pinned by INJ-1. Guarded by DETECT-06 (Phase 187) "
+            "runtime extraction (habitat mode whole-physical-line), which "
+            "checks this literal against the live template at self-test "
+            "time rather than trusting it as a static copy."
         ),
         verbatim_from="shared/spine/references/output-template.md",
     ),
@@ -3859,10 +3875,46 @@ class _ContractAnchorError(Exception):
 # caught it by re-enumerating live rather than trusting §10's count.
 _CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
     (
+        "V-ACCEPT-EMDASH",
+        "shared/spine/references/output-template.md",
+        "quoted-eg",
+        "- **Accept**",
+    ),
+    (
+        "V-CHALLENGE-EMDASH",
+        "shared/spine/references/output-template.md",
+        "quoted-eg",
+        "- **Challenge**",
+    ),
+    (
+        "C-TEMPLATE-C1",
+        "shared/spine/references/output-template.md",
+        "heading-block",
+        "### Conclusion C1:",
+    ),
+    (
+        "C-TEMPLATE-FORMAT",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Chain format:**",
+    ),
+    (
+        "C-TEMPLATE-TRADEOFF",
+        "shared/spine/references/output-template.md",
+        "backtick-span",
+        "Example: `GT-2",
+    ),
+    (
         "C-RENDER-EXAMPLE-PREFIX",
         "shared/spine/references/output-template.md",
         "whole-physical-line",
         "Example: `GT-2",
+    ),
+    (
+        "C-RENDER-SECONDORDER-PREFIX",
+        "shared/spine/references/output-template.md",
+        "whole-physical-line",
+        "Example: `GT-1",
     ),
 )
 
@@ -3881,6 +3933,123 @@ def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str
     return matches[0].strip()
 
 
+_QUOTED_EG_RE = re.compile(r'\(e\.g\.,\s*"(.*?)"\)')
+
+
+def _extract_quoted_eg(source_text: str, anchor: str, source_file: str) -> str:
+    """Habitat mode `quoted-eg`: locate the bullet line by its unique
+    bullet-lead `anchor` (e.g. ``- **Accept**``, count 1), then return the
+    contents of the ``(e.g., "...")`` parenthetical on that line via a
+    group capture.
+    """
+    matches = [line for line in source_text.splitlines() if anchor in line]
+    if len(matches) != 1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"matched {len(matches)} physical lines (need exactly 1)",
+        )
+    m = _QUOTED_EG_RE.search(matches[0])
+    if m is None:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            'bullet line resolved but no (e.g., "...") parenthetical found on it',
+        )
+    return m.group(1)
+
+
+def _extract_heading_block(source_text: str, anchor: str, source_file: str) -> str:
+    """Habitat mode `heading-block`: locate the LINE-START heading matching
+    `anchor` — never a mid-sentence substring mention. The plain substring
+    ``### Conclusion C1:`` occurs twice in the template (an earlier
+    mid-sentence, backtick-quoted mention in the chain-numbering prose, and
+    the line-start heading itself); a naive first-occurrence match hits the
+    wrong one, so this walker line-start-anchors the regex instead. Walks
+    forward to, but not including, the ``**Confidence:**`` terminator line,
+    trims the blank line before it, and joins with newlines.
+    """
+    heading_re = re.compile(r"(?m)^" + re.escape(anchor) + r".*$")
+    matches = list(heading_re.finditer(source_text))
+    if len(matches) != 1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"line-start heading matched {len(matches)} times (need exactly 1)",
+        )
+    start = matches[0].start()
+    terminator = "**Confidence:**"
+    term_idx = source_text.find(terminator, start)
+    if term_idx == -1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"heading resolved but no {terminator!r} terminator found after it",
+        )
+    block = source_text[start:term_idx]
+    block_lines = block.split("\n")
+    while block_lines and block_lines[-1].strip() == "":
+        block_lines.pop()
+    return "\n".join(block_lines)
+
+
+_FENCED_TEXT_BLOCK_RE = re.compile(r"```text\n(.*?)\n```", re.S)
+
+
+def _extract_fenced_block(source_text: str, anchor: str, source_file: str) -> str:
+    """Habitat mode `fenced-block`: locate the unique preceding label
+    `anchor` (e.g. ``**Chain format:**``, count 1), then return the
+    contents of the next fenced ` ```text ` block after it. Deliberately
+    NOT disambiguated by fence ordinal — the ` ```text ` opener occurs
+    three times in the template, and an ordinal rule would silently
+    retarget if a fence were ever added earlier in the document.
+    """
+    label_count = source_text.count(anchor)
+    if label_count != 1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"label matched {label_count} times (need exactly 1)",
+        )
+    label_idx = source_text.index(anchor)
+    after = source_text[label_idx:]
+    m = _FENCED_TEXT_BLOCK_RE.search(after)
+    if m is None:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            'label resolved but no fenced ```text block found after it',
+        )
+    return m.group(1)
+
+
+def _extract_backtick_span(source_text: str, anchor: str, source_file: str) -> str:
+    """Habitat mode `backtick-span`: locate the anchor's own physical line,
+    then return the FIRST backtick-delimited span on it whose content
+    starts with the same GT-token prefix the anchor itself names (e.g.
+    anchor ``Example: `GT-2`` names prefix ``GT-2``) — an explicit,
+    deliberate requirement, not incidental first-span selection. The line
+    this shares with `C-RENDER-EXAMPLE-PREFIX` carries two backtick spans;
+    if a future template edit inserted a new span earlier on the line, the
+    prefix requirement surfaces it as a mode-2 mismatch rather than
+    silently extracting the wrong span.
+    """
+    matches = [line for line in source_text.splitlines() if anchor in line]
+    if len(matches) != 1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"matched {len(matches)} physical lines (need exactly 1)",
+        )
+    line = matches[0]
+    spans = re.findall(r"`([^`]*)`", line)
+    if not spans:
+        raise _ContractAnchorError(
+            anchor, source_file, "anchor line resolved but carries no backtick span"
+        )
+    prefix = anchor.split("`", 1)[1] if "`" in anchor else anchor
+    for span in spans:
+        if span.startswith(prefix):
+            return span
+    raise _ContractAnchorError(
+        anchor, source_file,
+        f"no backtick span on the anchor line starts with {prefix!r}",
+    )
+
+
 def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
     """Resolve one `_CONTRACT_EXTRACTION_TABLE` row against the live source
     file and return the extracted example text (D-02, D-03, D-05) — this
@@ -3889,9 +4058,11 @@ def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
 
     Dispatches on habitat mode; raises `_ContractAnchorError` when the
     row's anchor does not resolve to exactly one location. There is no
-    fallback and no silent empty-string return (D-10). Task 2 (DETECT-06)
-    adds the `heading-block`, `fenced-block`, `backtick-span`, and
-    `quoted-eg` branches; this task implements `whole-physical-line` only.
+    fallback and no silent empty-string return (D-10). Locate and extract
+    are two independent steps in every mode, so the two rows sharing
+    template line 123 (`C-TEMPLATE-TRADEOFF`, `backtick-span`, and
+    `C-RENDER-EXAMPLE-PREFIX`, `whole-physical-line`) cannot interfere with
+    each other in either evaluation order.
     """
     fixture_id, source_file, habitat_mode, anchor = row
     source_path = REPO_ROOT / source_file
@@ -3904,6 +4075,14 @@ def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
 
     if habitat_mode == "whole-physical-line":
         return _extract_whole_physical_line(source_text, anchor, source_file)
+    if habitat_mode == "quoted-eg":
+        return _extract_quoted_eg(source_text, anchor, source_file)
+    if habitat_mode == "heading-block":
+        return _extract_heading_block(source_text, anchor, source_file)
+    if habitat_mode == "fenced-block":
+        return _extract_fenced_block(source_text, anchor, source_file)
+    if habitat_mode == "backtick-span":
+        return _extract_backtick_span(source_text, anchor, source_file)
     raise _ContractAnchorError(anchor, source_file, f"unknown habitat mode {habitat_mode!r}")
 
 
