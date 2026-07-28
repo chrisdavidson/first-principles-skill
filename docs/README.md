@@ -145,4 +145,4 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | ADR: the GEN-01 rearchitecture milestone record |
 | [live-monitoring-runbook.md](live-monitoring-runbook.md) | Runbook for live routing-battery and Step 0 monitoring runs |
 | [use-journal.md](use-journal.md) | Running log of real (non-harness) invocations and where they fell short — the only admissible scope source for a post-v8.11 milestone |
-| [history/](history/) | Frozen per-milestone snapshots (REQUIREMENTS, ROADMAP, MILESTONE-AUDIT) — immutable archives |
+| `history/` (local-only) | Frozen per-milestone snapshots (REQUIREMENTS, ROADMAP, MILESTONE-AUDIT) — immutable archives. **Not published:** `docs/history/` is git-ignored and untracked, so it is absent from a fresh clone and this entry is deliberately not a link. Same disclosure as [requirements-traceability.md](requirements-traceability.md). |
