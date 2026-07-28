@@ -225,6 +225,19 @@ fi
 # this phase's own new frozen post-fix evidence (D-05's 18-invocation live
 # run against the post-165 agent body). Same reasoning as the fourth path
 # above: nothing else in this battery enforces its byte-freeze.
+#
+# Coverage change (quick task 260728-pa2, technical-debt audit): four paths
+# added to close a coverage asymmetry the audit surfaced — frozen evidence of
+# exactly the same kind as the paths already listed, which had simply never
+# been added to this list:
+#   tests/routing-baseline-v7.13.md     (sibling of routing-baseline-v7.11.md)
+#   tests/routing-battery-baseline-v8.5.md (sibling of ...-v4.3/v7.11.md)
+#   tests/quality-baseline-v8.10-oos    (v8.10 CORRECTGATE-01 out-of-sample corpus)
+#   tests/defrobust-v8.11               (v8.11 DEFROBUST-01 mutually-blind captures)
+# The first two were RECOMMEND-REMOVE candidates in that audit purely because
+# they lacked this protection while their siblings had it; protecting them
+# resolves the asymmetry in the keep direction. See
+# docs/technical-debt-audit-2026-07-28.md.
 # ---------------------------------------------------------------------------
 git diff --quiet -- \
     'tests/step0-baseline-v*.md' \
@@ -233,6 +246,8 @@ git diff --quiet -- \
     'tests/routing-battery-baseline-v4.3.md' \
     'tests/routing-baseline-v7.11.md' \
     'tests/routing-battery-baseline-v7.11.md' \
+    'tests/routing-baseline-v7.13.md' \
+    'tests/routing-battery-baseline-v8.5.md' \
     'tests/focused-output-baseline-v*.md' \
     'tests/sub-skill-routing-baseline-v*.md' \
     'tests/quality-catalog-v8.7.md' \
@@ -240,6 +255,8 @@ git diff --quiet -- \
     'tests/quality-baseline-v8.7-regenerated' \
     'tests/quality-baseline-v8.7' \
     'tests/quality-baseline-v8.7-postfix' \
+    'tests/quality-baseline-v8.10-oos' \
+    'tests/defrobust-v8.11' \
     2>/dev/null
 _frozen_exit=$?
 
