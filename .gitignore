@@ -5,3 +5,9 @@ scripts/*.pyc
 __pycache__/
 generated/
 docs/history/
+
+# Raw stream-json capture dumps — kept locally, not published (19MB, read by no gate).
+# The .txt excerpts the RR-* sentinels diff against ARE tracked; only the raw
+# .jsonl transports are ignored. quality-fixtures/probe .jsonl stay tracked (QUAL-01).
+tests/step0-captures-*/**/*.jsonl
+tests/quality-baseline-*/**/*.jsonl
