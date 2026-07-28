@@ -13,9 +13,9 @@ Usage:
     python3 scripts/check-traceability.py --self-test
     python3 scripts/check-traceability.py emit \\
         --md-output docs/requirements-matrix.md \\
-        --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
+        --json-output docs/data/matrix.json
     python3 scripts/check-traceability.py check \\
-        --input .planning/phases/82-.../matrix.json
+        --input docs/data/matrix.json
 
 Exit codes:
     0  all fixtures pass (--self-test) or subcommand completes cleanly
@@ -1245,7 +1245,7 @@ def render_matrix_markdown(rows: list[MatrixRow]) -> str:
     lines.append(
         "<!-- Regenerate: python3 scripts/check-traceability.py emit"
         " --md-output docs/requirements-matrix.md"
-        " --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json -->"
+        " --json-output docs/data/matrix.json -->"
     )
     lines.append("")
     lines.append("# Requirements Traceability Matrix")

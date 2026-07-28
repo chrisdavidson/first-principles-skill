@@ -1,6 +1,6 @@
 <!-- GENERATED — DO NOT EDIT -->
 <!-- Source: scripts/check-traceability.py build_matrix_rows() -->
-<!-- Regenerate: python3 scripts/check-traceability.py emit --md-output docs/requirements-matrix.md --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json -->
+<!-- Regenerate: python3 scripts/check-traceability.py emit --md-output docs/requirements-matrix.md --json-output docs/data/matrix.json -->
 
 # Requirements Traceability Matrix
 

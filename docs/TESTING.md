@@ -123,7 +123,7 @@ To regenerate the capability → requirement → test matrix:
 ```sh
 python3 scripts/check-traceability.py emit \
     --md-output docs/requirements-matrix.md \
-    --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
+    --json-output docs/data/matrix.json
 ```
 
 ### QUAL-01 — check-quality-harness

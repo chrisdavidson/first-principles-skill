@@ -135,7 +135,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | BATT-06 | `check-routing-battery.py --self-test` | Offline merged dual-signal routing-battery self-test (boundary + focused-output; deterministic, no live session) — owns the honest-state and anti-masking sentinels detailed in the [Routing battery](#routing-battery) section |
 | STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs) |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
-| TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; only --self-test runs in CI — the `emit` subcommand is a manual regeneration step. `matrix.json` is tracked as of TEARDOWN-03, docs/v8.7-constraint-teardown.md.) |
+| TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; only --self-test runs in CI — the `emit` subcommand is a manual regeneration step. `docs/data/matrix.json` is tracked as of TEARDOWN-03, docs/v8.7-constraint-teardown.md.) |
 | COLLIDE-01 | `check-install-collisions.py --self-test` | Offline dual-install name-collision self-test — detects skill/agent name collisions between plugin (`first-principles/`) and monolith (`first-principles-thinking/`) install surfaces (D-02: relaxes VAL-04's monolith exclusion for the NAME axis only; VAL-04 owns the trigger 4-gram axis, this gate owns the name-collision axis — orthogonal concerns; absent monolith dir is vacuously clean; deterministic, no live session) |
 | QUAL-01 | `check-quality-harness.py --self-test` | Offline blind A/B quality-measurement harness self-test (deterministic, no live session) — extraction guardrails A/B, scoreline parser, blinding integrity, tabulation arithmetic, baseline-fixture integrity, and the mechanical defect detector; the promoted instrument behind the pre/post-fix quality baseline (HARNESS-01, `docs/v8.7-quality-baseline-freeze.md`) |
 
@@ -186,14 +186,18 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   ```sh
   python3 scripts/check-traceability.py emit \
       --md-output docs/requirements-matrix.md \
-      --json-output .planning/phases/82-traceability-matrix-and-gap-findings/matrix.json
+      --json-output docs/data/matrix.json
   ```
+- **`docs/data/matrix.json`** — the structured JSON sidecar behind
+  `docs/requirements-matrix.md`, written by the same `emit` run.
 - **`docs/history/`** — frozen per-milestone REQUIREMENTS.md / ROADMAP.md /
   MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3).
 
-`.planning/phases/82-traceability-matrix-and-gap-findings/matrix.json` is git-tracked as of
-TEARDOWN-03 (`docs/v8.7-constraint-teardown.md`) rather than gitignored, so regenerating the
-matrix via the `emit` subcommand above now dirties a tracked file, not an ignored one.
+`docs/data/matrix.json` is git-tracked (TEARDOWN-03, `docs/v8.7-constraint-teardown.md`), so
+regenerating the matrix via the `emit` subcommand above dirties a tracked file, not an ignored
+one. It lived at `.planning/phases/82-traceability-matrix-and-gap-findings/matrix.json` until it
+was relocated under `docs/` so that `.planning/` could return to a blanket gitignore — no
+planning artifacts are published to the public repo.
 
 ## Step 0 measurement harness
 
