@@ -434,3 +434,24 @@ recorded qualified here, not reworded to read as fully satisfied — see decisio
 The full fault-injection record — five injections run under both `python3` and `python3 -O`, plus
 two stayed-green control runs, each row recording both what fired and what stayed green — lives
 at `tests/detect06-injection-proof-v8.13.md`.
+
+**Correction — the em-dash-count claim in the paragraph above was measured wrong.** That paragraph
+stated `validation-rubric.md` "contains no instance of the character itself." That is false, and
+phase verification caught it: `validation-rubric.md` contains **79** em-dash (U+2014) characters
+(`output-template.md` contains 41), including one inside the very sentence quoted two paragraphs
+above — Criterion 2's Rigorous descriptor itself reads "...followed by an em-dash and a specific
+justification — not the bare token alone," and that trailing dash is a real em-dash. Corrected
+here rather than silently, following the same discipline this file's own section 7 already
+applies to a prior fabricated quote.
+
+The underlying conclusion is unaffected; only the supporting sentence was wrong. Measured
+precisely: `validation-rubric.md` describes the separator in prose but exhibits no liftable
+**Verdict-cell example** — no `Accept —`, `Challenge —`, or `Discard —` instance occurs anywhere
+in the file (checked directly; zero hits). `output-template.md`, by contrast, exhibits real
+Verdict-cell examples a fixture can be lifted from verbatim — e.g. line 69,
+`` - **Accept** — the assumption survives challenge and may be used in the analysis (e.g.,
+"Accept — survives P2 challenge; physical-law backed by GT-1") ``. The rubric's 79 em-dashes are
+its own prose punctuation — parenthetical asides distributed through the document, including the
+one inside its own separator-naming sentence — not instances of a conforming Verdict cell. The
+separator-and-justification shape still cannot be derived from a liftable rubric example and
+still stays stated in the harness, exactly as the paragraph above concludes.
