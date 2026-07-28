@@ -3829,12 +3829,98 @@ def _chain_failure_axes(text: str) -> list[str]:
     return axes
 
 
-def _contract_fixture_result(fx: ContractFixture) -> bool:
-    """Dispatch a fixture to the production function its kind exercises."""
+class _ContractAnchorError(Exception):
+    """Raised by `_extract_contract_example` when an anchor in
+    `_CONTRACT_EXTRACTION_TABLE` does not resolve to exactly one location in
+    its source file — absent, or ambiguous (more than one match) (D-10).
+    Carries the anchor, the source file, and a detail string so Guard A's
+    mode-1 FAIL can name both the anchor and the file without re-parsing a
+    message string.
+    """
+
+    def __init__(self, anchor: str, source_file: str, detail: str) -> None:
+        self.anchor = anchor
+        self.source_file = source_file
+        self.detail = detail
+        super().__init__(f"anchor {anchor!r} in {source_file}: {detail}")
+
+
+# D-04: this table's coverage is enumerated, not swept, and the limit is
+# real, not hypothetical. It covers exactly the fixtures listed below
+# because those are the ones found by importing the module and reading
+# `_CONTRACT_FIXTURES` live (D-01) — NOT because every
+# `verbatim_from="shared/..."` fixture is guaranteed a row here. An example
+# added to `output-template.md` later, with its own new fixture, is NOT
+# automatically covered by this table: a new row must be added by hand.
+# This has already happened once — `C-RENDER-EXAMPLE-PREFIX` and
+# `C-RENDER-SECONDORDER-PREFIX` were added to `_CONTRACT_FIXTURES` after
+# `tests/detect01-red-run-v8.13.md` §10 pre-registered a list of five
+# template-sourced fixtures, and nothing noticed until 187-CONTEXT.md's D-01
+# caught it by re-enumerating live rather than trusting §10's count.
+_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
+    (
+        "C-RENDER-EXAMPLE-PREFIX",
+        "shared/spine/references/output-template.md",
+        "whole-physical-line",
+        "Example: `GT-2",
+    ),
+)
+
+
+def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
+    """Habitat mode `whole-physical-line`: return the anchor's own physical
+    line, stripped — lead-in text and all, not a de-contextualised
+    substring.
+    """
+    matches = [line for line in source_text.splitlines() if anchor in line]
+    if len(matches) != 1:
+        raise _ContractAnchorError(
+            anchor, source_file,
+            f"matched {len(matches)} physical lines (need exactly 1)",
+        )
+    return matches[0].strip()
+
+
+def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
+    """Resolve one `_CONTRACT_EXTRACTION_TABLE` row against the live source
+    file and return the extracted example text (D-02, D-03, D-05) — this
+    file is read at self-test time, not at import time, so an unresolvable
+    anchor becomes a named FAIL rather than an import-time traceback.
+
+    Dispatches on habitat mode; raises `_ContractAnchorError` when the
+    row's anchor does not resolve to exactly one location. There is no
+    fallback and no silent empty-string return (D-10). Task 2 (DETECT-06)
+    adds the `heading-block`, `fenced-block`, `backtick-span`, and
+    `quoted-eg` branches; this task implements `whole-physical-line` only.
+    """
+    fixture_id, source_file, habitat_mode, anchor = row
+    source_path = REPO_ROOT / source_file
+    try:
+        source_text = source_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise _ContractAnchorError(
+            anchor, source_file, f"could not read source file: {exc!r}"
+        ) from exc
+
+    if habitat_mode == "whole-physical-line":
+        return _extract_whole_physical_line(source_text, anchor, source_file)
+    raise _ContractAnchorError(anchor, source_file, f"unknown habitat mode {habitat_mode!r}")
+
+
+def _contract_fixture_result(fx: ContractFixture, text: str | None = None) -> bool:
+    """Dispatch a fixture to the production function its kind exercises.
+
+    ``text`` overrides `fx.text` as the payload under test when given —
+    the seam DETECT-06's runtime-extracted string rides on (D-11). Every
+    pre-existing call site keeps its current single-argument call and its
+    current behaviour, because ``text=None`` defaults the payload to
+    `fx.text`.
+    """
+    payload = fx.text if text is None else text
     if fx.kind == "verdict":
-        return _verdict_conforms(fx.text)
+        return _verdict_conforms(payload)
     if fx.kind == "chain":
-        return _chain_block_well_formed(fx.text)
+        return _chain_block_well_formed(payload)
     raise ValueError(f"unknown ContractFixture kind: {fx.kind!r}")
 
 
@@ -3965,29 +4051,81 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
                 )
                 ok = False
 
-    # Guard A — verbatim drift (both modes): every fixture with a non-None
-    # `verbatim_from` must be a literal substring of that file's content, so
-    # "lifted verbatim" is mechanically provable instead of eyeballed. This is
-    # the weak form DETECT-06 (Phase 187) later strengthens with runtime
-    # extraction.
+    # Guard A — verbatim drift (both modes), strengthened by DETECT-06
+    # (Phase 187, D-13). Two paths, split by whether the fixture's id has a
+    # row in `_CONTRACT_EXTRACTION_TABLE`:
+    #   - A fixture WITH a row takes the strengthened path: resolve the
+    #     anchor against the live source file, assert byte equality against
+    #     the pinned literal, and run the detector on the EXTRACTED text
+    #     (D-11). Three named failure modes (D-12), no fallback to the
+    #     substring check on any of them (D-10) — a guard that quietly
+    #     degrades to the copy it replaces is the silent-drift mode this
+    #     phase exists to close.
+    #   - A fixture WITHOUT a row (the two frozen-corpus fixtures
+    #     `C-RENDER-BACKTICK` and `C-RENDER-BLOCKQUOTE-BOLD`, whose sources
+    #     are frozen analyses where anchor extraction does not apply) keeps
+    #     the original substring check, unchanged (D-13).
+    _extraction_by_id = {row[0]: row for row in _CONTRACT_EXTRACTION_TABLE}
     for fx in _CONTRACT_FIXTURES:
         if fx.verbatim_from is None:
             continue
-        source_path = REPO_ROOT / fx.verbatim_from
+
+        row = _extraction_by_id.get(fx.id)
+        if row is None:
+            source_path = REPO_ROOT / fx.verbatim_from
+            try:
+                source_text = source_path.read_text(encoding="utf-8")
+            except OSError as exc:
+                print(
+                    f"self-test FAIL: contract_pin Guard A could not read "
+                    f"{fx.verbatim_from} for {fx.id}: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+                continue
+            if fx.text not in source_text:
+                print(
+                    f"self-test FAIL: contract_pin Guard A {fx.id} text is not a "
+                    f"literal substring of {fx.verbatim_from} — verbatim lift drifted",
+                    file=sys.stderr,
+                )
+                ok = False
+            continue
+
+        # Strengthened path (D-11, D-12).
         try:
-            source_text = source_path.read_text(encoding="utf-8")
-        except OSError as exc:
+            extracted = _extract_contract_example(row)
+        except _ContractAnchorError as exc:
             print(
-                f"self-test FAIL: contract_pin Guard A could not read "
-                f"{fx.verbatim_from} for {fx.id}: {exc!r}",
+                f"self-test FAIL: contract_pin Guard A [mode 1: anchor "
+                f"unresolved] {fx.id}: anchor {exc.anchor!r} in "
+                f"{exc.source_file} did not resolve ({exc.detail}) — "
+                f"remedy: re-anchor the guard",
                 file=sys.stderr,
             )
             ok = False
             continue
-        if fx.text not in source_text:
+
+        if extracted != fx.text:
             print(
-                f"self-test FAIL: contract_pin Guard A {fx.id} text is not a "
-                f"literal substring of {fx.verbatim_from} — verbatim lift drifted",
+                f"self-test FAIL: contract_pin Guard A [mode 2: extraction "
+                f"mismatch] {fx.id}: the template's example changed and the "
+                f"fixture literal needs updating\n"
+                f"  extracted: {extracted!r}\n"
+                f"  literal:   {fx.text!r}",
+                file=sys.stderr,
+            )
+            ok = False
+            continue
+
+        observed = _contract_fixture_result(fx, extracted)
+        if observed != fx.expected:
+            print(
+                f"self-test FAIL: contract_pin Guard A [mode 3: DETECTOR "
+                f"REGRESSION against the canonical contract] {fx.id} — the "
+                f"extracted text equals the pinned literal, but the "
+                f"detector no longer agrees with the canonical contract: "
+                f"expected {fx.expected}, observed {observed}",
                 file=sys.stderr,
             )
             ok = False
