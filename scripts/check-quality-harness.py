@@ -3765,6 +3765,41 @@ _CONTRACT_FIXTURES: tuple[ContractFixture, ...] = (
         ),
         verbatim_from=None,
     ),
+    ContractFixture(
+        id="V-RUBRIC-CRIT2-EMDASH",
+        kind="verdict",
+        text="Accept \u2014 rubric-derived vocabulary, not transcribed",
+        expected=True,
+        owner=None,
+        source=(
+            "constructed from validation-rubric.md Criterion 2's derived "
+            "Verdict vocabulary (DETECT-06, Phase 187): the leading token, "
+            "capitalised, followed by the em-dash-plus-justification form "
+            "Criterion 2 prescribes. verbatim_from is None because this "
+            "cell is built from a runtime derivation, not lifted verbatim "
+            "— the same reason V-BARE-TOKEN and V-BARE-TOKEN-BOLD already "
+            "carry None."
+        ),
+        verbatim_from=None,
+    ),
+    ContractFixture(
+        id="V-RUBRIC-CRIT2-BARE",
+        kind="verdict",
+        text="Accept",
+        expected=False,
+        owner=None,
+        source=(
+            "constructed negative sibling of V-RUBRIC-CRIT2-EMDASH: the "
+            "same derived leading token alone, with no em-dash and no "
+            "justification. Mandatory, not optional — a positive-only "
+            "fixture is satisfiable by a blanket-pass _verdict_conforms, "
+            "the failure class this repo hit three separate times across "
+            "Phase 184's rounds, each time by a different mechanism. "
+            "verbatim_from is None for the same reason as its positive "
+            "sibling."
+        ),
+        verbatim_from=None,
+    ),
 )
 
 
@@ -4426,6 +4461,85 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
         # two derived-fixture checks on below; do not cascade a second,
         # confusing FAIL from comparing against an already-known-bad value.
         derived_vocab = None
+
+    if derived_vocab is not None:
+        # Both halves of the rubric's Criterion 2 clause become fixtures
+        # (D-08): construct the em-dash and bare cell strings from the
+        # DERIVED tokens — never hard-coded — so a rubric vocabulary
+        # change surfaces as a mismatch here rather than leaving a stale
+        # literal silently in place (D-11). `leading` is the first derived
+        # token, matching the order-sensitive comparison above.
+        leading = derived_vocab[0].capitalize()
+        constructed_emdash = f"{leading} \u2014 rubric-derived vocabulary, not transcribed"
+        constructed_bare = leading
+
+        emdash_fx = fixtures_by_id.get("V-RUBRIC-CRIT2-EMDASH")
+        bare_fx = fixtures_by_id.get("V-RUBRIC-CRIT2-BARE")
+
+        if emdash_fx is not None and bare_fx is not None:
+            if constructed_emdash != emdash_fx.text or constructed_bare != bare_fx.text:
+                # Mirrors mode 2 (extraction mismatch) above: the literal
+                # is retained as the diff-reviewable record; the live
+                # assertion runs on what the rubric says today (D-11).
+                print(
+                    f"self-test FAIL: contract_pin Guard A [rubric mode 2: "
+                    f"extraction mismatch] the rubric's derived vocabulary "
+                    f"moved and a fixture literal needs updating\n"
+                    f"  constructed emdash: {constructed_emdash!r}\n"
+                    f"  literal emdash:     {emdash_fx.text!r}\n"
+                    f"  constructed bare:   {constructed_bare!r}\n"
+                    f"  literal bare:       {bare_fx.text!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            else:
+                # Mode 3 (detector regression) — the phase's whole reason
+                # for existing, so it carries its own distinctly-worded
+                # message rather than sharing the extraction-plumbing text
+                # above.
+                emdash_observed = _contract_fixture_result(emdash_fx, constructed_emdash)
+                bare_observed = _contract_fixture_result(bare_fx, constructed_bare)
+                if emdash_observed != emdash_fx.expected or bare_observed != bare_fx.expected:
+                    print(
+                        f"self-test FAIL: contract_pin Guard A [rubric "
+                        f"mode 3: DETECTOR REGRESSION against the "
+                        f"canonical contract] the constructed cells equal "
+                        f"their pinned literals, but the detector no "
+                        f"longer agrees with the canonical contract: "
+                        f"emdash expected {emdash_fx.expected} observed "
+                        f"{emdash_observed}, bare expected "
+                        f"{bare_fx.expected} observed {bare_observed}",
+                        file=sys.stderr,
+                    )
+                    ok = False
+
+        # Anti-blanket-pass sweep (D-08): each of the three derived tokens,
+        # independently, in both directions — six checks total, so a
+        # blanket-pass predicate cannot satisfy the guard on one token's
+        # evidence alone. These checks add no fixture and no labelled
+        # result line — they are branches inside this thirteenth self-test
+        # item — so self_test()'s exactly-thirteen contract is preserved
+        # (D-13).
+        for token in derived_vocab:
+            token_cap = token.capitalize()
+            emdash_form = f"{token_cap} \u2014 justification"
+            bare_form = token_cap
+            if not _verdict_conforms(emdash_form):
+                print(
+                    f"self-test FAIL: contract_pin Guard A [rubric "
+                    f"anti-blanket-pass] token {token_cap!r} em-dash form "
+                    f"{emdash_form!r} does not conform but must",
+                    file=sys.stderr,
+                )
+                ok = False
+            if _verdict_conforms(bare_form):
+                print(
+                    f"self-test FAIL: contract_pin Guard A [rubric "
+                    f"anti-blanket-pass] token {token_cap!r} bare form "
+                    f"{bare_form!r} conforms but must not",
+                    file=sys.stderr,
+                )
+                ok = False
 
     if not strict:
         # Guard B — registry drift (default mode): every _DETECT01_PINNED_RED
