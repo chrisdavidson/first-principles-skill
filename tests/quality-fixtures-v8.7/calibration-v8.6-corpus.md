@@ -179,3 +179,50 @@ definitions moves this vector loudly rather than silently:
 These are the detector's **observed** output, not the judge-reported figures — the sentinel's
 job is to make a future edit to `detect_defects` visible, not to assert that this vector is
 correct or final.
+
+**Qualification (v8.13, DETECT-05, 2026-07-27).** Phase 185's handoff assigned this file's
+disposition to DETECT-05. The disposition is: qualify this `.md`, and do not edit
+`calibration-v8.6-corpus.tsv`. That `.tsv` is a recorded observation of what the detector emitted
+on a given day; invariant 2's whole shape is that corrected figures are emitted beside a recorded
+observation, never over it, and Phase 185 already emitted the corrected sibling for this corpus at
+`tests/quality-baseline-v8.7/defect-incidence-corrected.tsv`. Recorded here so the handoff reads
+as answered, not skipped. Unlike the other three corpora this milestone corrects, this one has
+**no** frozen `defect-incidence.tsv` under `tests/quality-baseline-v8.7/` — only the corrected
+sibling; the frozen record for this corpus is `calibration-v8.6-corpus.tsv`, in this directory.
+
+v8.13 corrected `_verdict_conforms` (DETECT-02) and `_chain_block_well_formed` (DETECT-03). The
+paragraph above states the pinned vectors exist so a future change to the detector's definitions
+moves the vector loudly rather than silently. This was that change, and **the vector did not
+move**: all three flag families remain `[1, 1, 1, 1, 1, 1]`, 6/6, in filename order `condA-P1`
+through `condB-P3`.
+
+**That is the finding, not a non-event.** Underneath the unmoved flags, cell counts moved
+substantially: `condB-P3`'s `nonconforming_verdict_cells` went 4 to **15**. A document-level
+threshold that was already saturated at 1 cannot register that, so a sentinel keyed on the flag
+vector would have stayed green through a real change in what the detector counts. Phase 185 added
+`_CALIBRATION_NONCONFORMING_VERDICT_CELLS` precisely because the flag vector alone was blind to
+it.
+
+This is a general property of the instrument, not a quirk of this corpus. The single general
+statement of the limitation is in the `## Honest limits` section of
+`docs/v8.7-quality-baseline-freeze.md`; that analysis is not restated here.
+
+§5's Goodhart-guard prose in this file near-duplicates the freeze document's. The guard's
+discharge has been re-examined under the corrected figures; the verdict is canonical at §3
+(`### 3. GOODHART guard`) of `docs/v8.7-post-fix-remeasure.md`, not restated here — Plan 04 owns
+it, and this file must not carry a second, potentially divergent version.
+
+`tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv` is deliberately left byte-unmodified as
+the recorded observation, with `tests/quality-baseline-v8.7/defect-incidence-corrected.tsv` as its
+corrected sibling.
+
+**Reproducibility**, run from the repo root:
+
+```
+awk -F'\t' 'NR>1{u+=$4;v+=$7;c+=$10;n++} END{print "untraced="u"/"n" verdict="v"/"n" chain="c"/"n}' tests/quality-baseline-v8.7/defect-incidence-corrected.tsv
+# -> untraced=6/6 verdict=6/6 chain=6/6
+awk -F'\t' '$1=="condB-P3"{print $6}' tests/quality-baseline-v8.7/defect-incidence-corrected.tsv
+# -> 15
+awk -F'\t' '$1=="condB-P3"{print $6}' tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv
+# -> 4
+```
