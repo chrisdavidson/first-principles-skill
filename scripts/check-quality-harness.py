@@ -2800,6 +2800,78 @@ _EXPECTED_DEFECTIVE_RECORD = {
 # `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` below (added by Phase 184-04, a
 # fifth constant Phase 185's re-derivation scope must now also cover) —
 # treating this comment as an input to verify, not a result to trust.
+#
+# Verdict-axis re-derivation (Phase 185, DETECT-04, measured 2026-07-27
+# against base commit 846ff2e, re-run over the six analyses in
+# tests/quality-baseline-v8.7/analyses/ in _CALIBRATION_ANALYSIS_ORDER via
+# `--detect-defects` and compared column-by-column against the committed
+# tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv):
+#   - `nonconforming_verdict_cells`  TSV [13, 8, 10, 8, 7, 4]  -> recomputed
+#     [13, 8, 10, 8, 7, 15]. MOVED on condB-P3 only (4 -> 15, out of 15
+#     total), once the corrected `_verdict_conforms` (DETECT-02, Phase 183)
+#     is applied. This is the OLD value the new sixth constant
+#     `_CALIBRATION_NONCONFORMING_VERDICT_CELLS` below replaces.
+#   - `_CALIBRATION_VERDICT_FLAGS`   TSV [1, 1, 1, 1, 1, 1]  -> recomputed
+#     [1, 1, 1, 1, 1, 1]. NO MOVE — but this no-move is uninformative, not
+#     reassuring: `verdict_flag` on condB-P3 was already saturated at 1
+#     before the correction (4-of-15 nonconforming was already nonzero),
+#     so the binary is structurally incapable of registering the 4-to-15
+#     movement above. The direction measured is that the binary and the
+#     numeric vector genuinely disagree in sensitivity, not that nothing
+#     changed; no per-cell mechanism beyond `_verdict_conforms`'s own
+#     corrected predicate is asserted here, because none beyond that was
+#     confirmed against the documents themselves this phase.
+#
+# Full re-derivation, remaining constants (Phase 185, DETECT-04, measured
+# 2026-07-27 against base commit 846ff2e, each recomputed independently by
+# re-running `--detect-defects tests/quality-baseline-v8.7/analyses` and
+# comparing to the committed
+# tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv column, verified
+# by the author before writing the value below — a no-move recorded as a
+# bare "unchanged" is indistinguishable from a value that was never
+# re-checked, which is why every one of the six constants gets an explicit
+# OLD/NEW/reason record here, moved or not):
+#   - `_CALIBRATION_ANALYSIS_ORDER`  OLD and NEW both ("condA-P1",
+#     "condA-P2", "condA-P3", "condB-P1", "condB-P2", "condB-P3"). NO MOVE.
+#     Reason: `sorted(glob("*.md"))` over
+#     tests/quality-baseline-v8.7/analyses/ still yields exactly these six
+#     stems in this order — the corpus file set did not change.
+#   - `_CALIBRATION_UNTRACED_FLAGS`  TSV [1, 1, 1, 1, 1, 1]  -> recomputed
+#     [1, 1, 1, 1, 1, 1]. NO MOVE. Reason: every document retains at least
+#     one untraced conclusion claim, so the binary saturates.
+#   - `_CALIBRATION_VERDICT_FLAGS` — see the Verdict-axis re-derivation
+#     paragraph immediately above: NO MOVE, and structurally incapable of
+#     registering the condB-P3 4-to-15 movement pinned by the new sixth
+#     constant.
+#   - `_CALIBRATION_CHAIN_FLAGS`  TSV [1, 1, 1, 1, 1, 1]  -> recomputed
+#     [1, 1, 1, 1, 1, 1]. NO MOVE. Reason: every document retains at least
+#     one malformed block after DETECT-03's block-level correction, so the
+#     binary saturates — the same blindness class the chain axis already
+#     documents in the Chain-axis staleness paragraph above, now stated
+#     explicitly for this flag too.
+#   - `_CALIBRATION_MALFORMED_CHAIN_BLOCKS`  TSV [2, 2, 2, 2, 3, 3]  ->
+#     recomputed [2, 2, 2, 2, 3, 3]. NO MOVE, RE-CONFIRMED this phase by
+#     independent recomputation at 846ff2e, consistent with the
+#     Chain-axis-staleness (Phase 184-05) measurement recorded above it in
+#     this same comment block.
+#
+# One honest finding, recorded unattributed (Phase 185, DETECT-04):
+# comparing the committed pre-DETECT-02 TSV against the HEAD recomputation
+# shows `conclusion_claims` moving 10 -> 9 on condA-P2 and 9 -> 8 on
+# condA-P3, and `untraced_claims` moving 6 -> 5 and 7 -> 6 on the same two
+# rows — while `untraced_flag` stayed saturated at [1, 1, 1, 1, 1, 1]
+# throughout. That is a THIRD instance of the saturation-blindness class
+# documented in this file, on an axis with no pinned numeric vector. Its
+# cause was NOT measured in this phase: DETECT-02 and DETECT-03 touched
+# `_verdict_conforms` and `_chain_block_well_formed`, neither of which is
+# called by `_conclusion_claims` or `_claim_is_traced`, so the movement is
+# not attributable to either of them on the evidence in hand, and the TSV
+# predates other changes as well. This is written down as
+# observed-and-unattributed, explicitly, because the paragraph above this
+# whole block already records the correction of a false attribution that a
+# prior version of this same comment shipped in tracked source over an
+# analogous finding — that correction history is the reason no cause is
+# assigned here.
 _CALIBRATION_ANALYSIS_ORDER = (
     "condA-P1",
     "condA-P2",
@@ -2838,6 +2910,38 @@ _CALIBRATION_CHAIN_FLAGS = [1, 1, 1, 1, 1, 1]
 # against its own full re-derivation, not a result to trust — the same
 # standing instruction the other four constants carry.
 _CALIBRATION_MALFORMED_CHAIN_BLOCKS = [2, 2, 2, 2, 3, 3]
+
+# Verdict-axis re-derivation (Phase 185, DETECT-04, measured 2026-07-27
+# against commit 846ff2e): `_CALIBRATION_NONCONFORMING_VERDICT_CELLS` is a
+# sixth `_CALIBRATION_*` constant, added by user decision D-01. It is the
+# corrected-check recomputation measured this phase — re-run
+# `--detect-defects tests/quality-baseline-v8.7/analyses` over the six
+# frozen analyses and read column 6 (`nonconforming_verdict_cells`) in
+# `_CALIBRATION_ANALYSIS_ORDER`; the result reproduces [13, 8, 10, 8, 7,
+# 15] exactly. The OLD value it replaces is the pre-DETECT-02 column
+# [13, 8, 10, 8, 7, 4] committed in
+# tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv — MOVED on
+# condB-P3 only, 4 to 15 nonconforming Verdict cells out of 15 total, once
+# the corrected `_verdict_conforms` (DETECT-02) is applied.
+#
+# `_CALIBRATION_VERDICT_FLAGS` below is STRUCTURALLY BLIND to this
+# movement: `verdict_flag` on condB-P3 stayed saturated at 1 both before
+# and after, because 4-of-15 nonconforming was already nonzero and cannot
+# register a change to a already-tripped binary. This is the same
+# blindness class that 184-VERIFICATION.md gap 4 and 184-REVIEW.md WR-01
+# found on the chain axis (see `_CALIBRATION_MALFORMED_CHAIN_BLOCKS`
+# above) and fixed the same way: pin a numeric sibling constant next to
+# the saturated binary flag, asserted below alongside the other four
+# vectors with the same named-quantity failure-message shape (not a bare
+# `assert`, which `python3 -O` strips — this file contains zero live
+# ones and must continue to). Load-bearing proof: splicing the
+# pre-DETECT-02 `_verdict_conforms` body (recovered from `git show
+# a30746d~1`) into HEAD fires this assertion (expected [13, 8, 10, 8, 7,
+# 15], got [13, 8, 10, 8, 7, 4]) under both `python3` and `python3 -O`,
+# while `_CALIBRATION_VERDICT_FLAGS` stays green throughout — that
+# asymmetry is the proof the binary alone could not have caught the
+# inversion (INJ-V-HIST, recorded in 185-01-SUMMARY.md).
+_CALIBRATION_NONCONFORMING_VERDICT_CELLS = [13, 8, 10, 8, 7, 15]
 
 
 def _defect_numeric_fields(record: dict) -> dict:
@@ -2980,6 +3084,7 @@ def _selftest_defects() -> bool:
         verdict_flags: list[int] = []
         chain_flags: list[int] = []
         malformed_chain_blocks: list[int] = []
+        nonconforming_verdict_cells: list[int] = []
         calibration_crashed = False
         for f in corpus_files:
             try:
@@ -2997,6 +3102,7 @@ def _selftest_defects() -> bool:
             verdict_flags.append(rec["verdict_flag"])
             chain_flags.append(rec["chain_flag"])
             malformed_chain_blocks.append(rec["malformed_chain_blocks"])
+            nonconforming_verdict_cells.append(rec["nonconforming_verdict_cells"])
         if not calibration_crashed:
             if untraced_flags != _CALIBRATION_UNTRACED_FLAGS:
                 print(
@@ -3024,6 +3130,14 @@ def _selftest_defects() -> bool:
                     f"self-test FAIL: defects calibration malformed_chain_blocks "
                     f"vector expected {_CALIBRATION_MALFORMED_CHAIN_BLOCKS!r}, "
                     f"got {malformed_chain_blocks!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if nonconforming_verdict_cells != _CALIBRATION_NONCONFORMING_VERDICT_CELLS:
+                print(
+                    f"self-test FAIL: defects calibration nonconforming_verdict_cells vector "
+                    f"expected {_CALIBRATION_NONCONFORMING_VERDICT_CELLS!r}, "
+                    f"got {nonconforming_verdict_cells!r}",
                     file=sys.stderr,
                 )
                 ok = False
