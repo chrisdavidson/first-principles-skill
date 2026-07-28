@@ -191,7 +191,10 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 - **`docs/data/matrix.json`** — the structured JSON sidecar behind
   `docs/requirements-matrix.md`, written by the same `emit` run.
 - **`docs/history/`** — frozen per-milestone REQUIREMENTS.md / ROADMAP.md /
-  MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3).
+  MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3). **Local-only:
+  git-ignored and untracked, so it is absent from a fresh clone.** Nothing in the
+  tracked tree may link into it (`docs/requirements-traceability.md` names the
+  files as plain text, not links) — a link would break the VAL-03 gate in CI.
 
 `docs/data/matrix.json` is git-tracked (TEARDOWN-03, `docs/v8.7-constraint-teardown.md`), so
 regenerating the matrix via the `emit` subcommand above dirties a tracked file, not an ignored
