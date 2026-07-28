@@ -320,3 +320,186 @@ to correct.
 
 This phase corrects what is provably wrong and states what is now uncertain. It does not
 re-litigate v8.7 through v8.10 conclusions beyond the figures and the one guard named here.
+
+## §8 — Discharge
+
+### The rule, discharged
+
+- **Conclusion test — SURVIVES.** Recomputing `--compare` over the corrected scratch directories
+  reproduces `GOODHART_FLAG: clear`; the conclusion test in §5 reads "SURVIVES if and only if...
+  the recomputed flag reads clear," and it does.
+- **Reasoning test — REFUTED.** All three of the published per-axis directional claims are false
+  under the corrected figures (`untraced`/`verdict` published flat, both fell; `chain` published as
+  the one family that fell, it rose). The reasoning does not stand.
+- **Strength test finding.** None of the three defect axes was capable of falsifying the
+  conclusion: the band-freeze gating term (`guard_unchanged`) was already `False` before any
+  correction, and `verdict_flag` is separately a saturating threshold with no room to move upward.
+  A conclusion supported by signals that could not have moved is a weaker conclusion — stated, not
+  glossed.
+
+**Commit ordering.** The rule (§5) was committed in `efc2c52`. The §3 verdict was committed in
+`9028d70` (with a self-referencing addendum in `92ba6b0`). Re-run at this task's execution:
+
+```
+git merge-base --is-ancestor efc2c52 9028d70
+# -> exit 0
+```
+
+`efc2c52` is confirmed an ancestor of `9028d70` — the rule was written and committed before the
+verdict prose that applies it, provable from `git log`, not asserted.
+
+### Both `--compare` runs, verbatim
+
+**Corrected run** (scratch directories built from the `-corrected.tsv` siblings, per the §3 recipe):
+
+```
+[DEFECT INCIDENCE]
+  untraced: 6/6 -> 4/6 (-2)
+  verdict: 6/6 -> 5/6 (-1)
+  chain: 5/6 -> 6/6 (+1)
+
+GOODHART_FLAG: clear
+```
+
+**Control run** (the two frozen directories, unmodified):
+
+```
+[DEFECT INCIDENCE]
+  untraced: 6/6 -> 6/6 (+0)
+  verdict: 5/6 -> 5/6 (+0)
+  chain: 6/6 -> 4/6 (-2)
+
+GOODHART_FLAG: clear
+```
+
+(`[BANDS]` and `[PASS SPLIT]` are byte-identical between the two runs in both cases — bands are
+never touched by DETECT-02/03 — omitted here for brevity; full verbatim output is in the §3
+correction block.)
+
+**One-line reading.** The `[DEFECT INCIDENCE]` sections differ (every family's baseline/post pair
+moves), and the `GOODHART_FLAG` lines do not — the flag reads `clear` in both runs, mechanically
+incapable of distinguishing them.
+
+### Site-by-site close
+
+Every row from §3a and §3b, landed-or-not status explicit. Row counts unchanged: fourteen in §3a,
+sixteen in §3b, thirty total.
+
+**§3a (14 rows):**
+
+| # | File | Status at close |
+|---|---|---|
+| 1 | `docs/v8.7-quality-baseline-freeze.md:128-129` | **LANDED** — corrected in commit `1edcec0` |
+| 2 | `docs/v8.7-quality-baseline-freeze.md:217` + Honest limits | **LANDED** — corrected in commit `adee001` |
+| 3 | `docs/v8.7-post-fix-remeasure.md:46-51,83-84` | **LANDED** — corrected in commit `d94cdbc` |
+| 4 | `docs/v8.7-post-fix-remeasure.md:151-162` §3 | **LANDED** — corrected in commit `9028d70` (self-referencing addendum `92ba6b0`) |
+| 5 | `docs/v8.10-fix-contract-oos-validation.md:134,152,169` | **LANDED** — corrected in commit `5e67486` |
+| 6 | `docs/v8.9-diagnose-contract-fix.md:212-213` | **LANDED** — corrected in commit `33e92b4` |
+| 7 | `tests/quality-baseline-v8.10-oos/README.md` | **LANDED** — qualified in commit `5c5eb22` |
+| 8 | `tests/quality-baseline-v8.7-regenerated/README.md:219-221` | **LANDED (by design, uncorrected)** — inside a FROZEN-EVIDENCE directory, deliberately left byte-frozen; discharge carried by row 1's commit `1edcec0` |
+| 9 | `tests/quality-baseline-v8.7-postfix/README.md:86-92` | **LANDED (by design, uncorrected)** — inside a FROZEN-EVIDENCE directory, deliberately left byte-frozen; discharge carried by row 3's commit `d94cdbc` |
+| 10 | `tests/quality-fixtures-v8.7/calibration-v8.6-corpus.md` | **LANDED** — qualified in commit `d489360` |
+| 11 | `tests/quality-fixtures-v8.7/README.md:260-286` | **LANDED (no edit required)** — all eighteen pinned fields verified reproducing exactly under the corrected detector; evidence recorded in commit `efc2c52` |
+| 12 | `docs/v8.12-coding-findings.md:162-171` | **LANDED** — qualified in commit `5138161` |
+| 13 | `docs/detector-contract-fix-plan.md:50-53` | **LANDED** — dispositioned in commit `232a3fc` |
+| 14 | `docs/v8.9-diagnose-contract-fix.md:118` | **NOT LANDED, by design** — `untraced_flag` and the tracing logic are named out of scope in `REQUIREMENTS.md`, and D-06 limits untraced corrections to lines already being amended, which this line is not; recorded as a known residual for a successor, never silently dropped |
+
+**§3b (16 rows):**
+
+| # | File | Status at close |
+|---|---|---|
+| 15 | `docs/README.md:99` | **NOT LANDED, by design** — DISPOSITIONED-OUT-OF-SCOPE (untraced axis, FIX-CONTRACT-01-caused, out of REQUIREMENTS.md scope) |
+| 16 | `docs/v8.10-correctness-instrument-design.md:11,316` | **NOT LANDED, by design** — same basis as row 15 |
+| 17 | `docs/v8.12-coding-protocol.md:322,325,330` | **NOT LANDED, by design** — same basis as row 15; also a pre-registration document (D-08) |
+| 18 | `docs/v8.12-section-census-protocol.md:34-35` | **NOT LANDED, by design** — same basis as row 15; also a pre-registration document (D-08) |
+| 19 | `docs/v8.10-fix-contract-oos-protocol.md:192,196` | **LANDED (NO-ACTION, re-verified)** — pre-registered hand-read thresholds, not detector figures |
+| 20 | `docs/v8.11-defrobust-protocol.md:34,165,169` | **LANDED (NO-ACTION, re-verified)** — names the oos analyses path structurally, no figure |
+| 21 | `docs/v8.12-section-census-findings.md:120,265` | **LANDED (NO-ACTION, re-verified)** — corpus split, not a flag aggregate |
+| 22 | `docs/v8.7-correctness-spot-check.md:283` | **LANDED (NO-ACTION, re-verified)** — Phase 162 arithmetic tally, not a detector figure |
+| 23 | `tests/defrobust-v8.11/read-input.md:1160` | **LANDED (NO-ACTION, re-verified)** — figure-shaped false positive (`GT-3/6/9`) |
+| 24 | `tests/defrobust-v8.11/README.md:8` | **LANDED (NO-ACTION, re-verified)** — path name only, no figure |
+| 25 | `tests/detect01-red-run-v8.13.md:63-64` | **LANDED (NO-ACTION, re-verified)** — fixture-shape descriptor, no figure |
+| 26 | `tests/detect02-reversal-proof-v8.13.md:206-230` | **LANDED (NO-ACTION, re-verified)** — already publishes corrected figures, nothing stale |
+| 27 | `tests/quality-baseline-v8.7/README.md:14` | **LANDED (NO-ACTION, re-verified)** — FROZEN-EVIDENCE, unedited by design |
+| 28 | `tests/quality-catalog-v8.10-oos.md:32,42-45` | **LANDED (NO-ACTION, re-verified)** — catalog prompt text only |
+| 29 | `tests/quality-catalog-v8.7.md:11` | **LANDED (NO-ACTION, re-verified)** — FROZEN-EVIDENCE, unedited by design |
+| 30 | `tests/quality-probe-v8.7/README.md:112` | **LANDED (NO-ACTION, re-verified)** — FROZEN-EVIDENCE, unedited by design; token-count ratio, not a defect figure |
+
+Twenty-three rows landed with an actual correction, qualification, or verified-unmoved discharge;
+five rows (14-18) landed as deliberately, explicitly uncorrected (out of scope); zero rows silently
+dropped.
+
+### Completeness re-proven at close
+
+Re-running §2's three commands at this task's execution (excluding this record file, as always):
+
+| Command | Files returned (Plan 01) | Files returned (this close) |
+|---|---|---|
+| A | 14 | **15** |
+| B | 25 | **26** |
+| C | 9 | **10** |
+
+Union: **27** (was 26 at Plan 01). The single new union member is
+`tests/quality-baseline-v8.10-oos/README.md` — Plan 03 wrote detector column names and corpus
+paths into it, so it now matches Commands A and B directly, exactly as §3c's "found-by-reading
+exception list" predicted would happen once Plan 03 landed. Command C's raw count also moved (9→10)
+but contributes **no new union member**: `docs/v8.12-coding-findings.md` now additionally matches
+Command C (Plan 02's own qualification block quotes the phrase `flat 6/6`), but that file was
+already in the manifest via Command A/B from Plan 01's original pass — recorded explicitly so the
+raw per-command numbers moving is not mistaken for a completeness gap.
+
+`comm` against the regenerated §3c manifest, both directions:
+
+```
+comm -23 /tmp/d05-sweep.txt /tmp/d05-record.txt   # in sweep, not in record
+# -> (empty)
+comm -13 /tmp/d05-sweep.txt /tmp/d05-record.txt   # in record, not in sweep
+# -> (empty)
+```
+
+Both directions are empty. The completeness direction holds (no sweep hit is unrecorded). The
+found-by-reading exception — the single entry §3c predicted would be permitted to differ — has
+**shrunk to empty**, exactly as anticipated: `tests/quality-baseline-v8.10-oos/README.md` is no
+longer a reading-only find, it is now a live sweep hit, and it was already present in the manifest
+as row 7. No file the sweep now returns is absent from the manifest; no new row was needed.
+
+### Gate surface at the phase boundary
+
+- `bash scripts/check-firewall-battery.sh` → `FIREWALL: GREEN (16/16)`. Composition: DUAL-04,
+  GATE-02-v8.5, STEP0-06, STEP0-08, VAL-01, VAL-02, VAL-03, VAL-04, VAL-05, GATE-01, BATT-06,
+  TRACE-03, COLLIDE-01, QUAL-01, INVARIANT-CHECK, FROZEN-EVIDENCE — unchanged from the pre-phase
+  baseline (`186-RESEARCH.md` R6), 16/16, no gate added or dropped.
+- `python3 scripts/check-links.py` → `check-links: PASS (360 markdown links + 6 namespace refs
+  across 142 files)`.
+- `git diff --quiet` over the five FROZEN-EVIDENCE paths (`tests/quality-baseline-v8.7`,
+  `-postfix`, `-regenerated`, `quality-probe-v8.7`, `quality-catalog-v8.7.md`) → clean.
+- `git diff --quiet tests/quality-baseline-v8.10-oos/defect-incidence.tsv` → clean (not covered by
+  the battery script itself, checked separately as Phase 185 established).
+- `git diff --quiet tests/quality-fixtures-v8.7/calibration-v8.6-corpus.tsv` → clean (same reason).
+- `git status --porcelain shared/ first-principles/ scripts/` → empty. Path-scoped deliberately: at
+  the repo root, `docs/adoption-telemetry.csv` was already modified and `scratchpad/` was already
+  untracked before this phase began, both for reasons unrelated to this phase — a bare porcelain
+  check would read false before any work in this phase happens, and is not used here.
+
+### The D-01 structural check the battery cannot see
+
+Reviewed the phase's cumulative diff across every edited file, from the pre-phase base `1c2b71a`
+(the last commit before this phase's first commit, `1edcec0`) to `HEAD`:
+
+```
+git diff 1c2b71a..HEAD -- docs/v8.7-quality-baseline-freeze.md docs/v8.7-post-fix-remeasure.md \
+  docs/v8.10-fix-contract-oos-validation.md docs/v8.9-diagnose-contract-fix.md \
+  docs/v8.12-coding-findings.md docs/detector-contract-fix-plan.md \
+  tests/quality-baseline-v8.10-oos/README.md tests/quality-fixtures-v8.7/calibration-v8.6-corpus.md \
+  | grep -c '^-[^-]'
+# -> 0
+```
+
+Zero removed lines across every corrected site's cumulative diff. Every correction in this phase is
+additive-only, matching D-01's convention (blocks beneath the original line, original text never
+rewritten or deleted).
+
+### Scope limit restated at close
+
+This phase corrected what was provably wrong and stated what is now uncertain; it did not
+re-litigate v8.7 through v8.10 beyond the figures and the one guard named in DETECT-05.
