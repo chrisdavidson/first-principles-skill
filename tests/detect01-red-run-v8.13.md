@@ -407,3 +407,30 @@ Criterion 2 Verdict form sourced the same way from
 (section 7, FI-3) is the **weak form** of that guard — it proves today's copy is faithful, but a
 copy can still drift from its source between phases. Phase 187 makes the fixture track the
 template at run time rather than a copy that must be kept in sync by hand.
+
+**Discharge (D-09, Phase 187) — the seven-not-five correction and the vocabulary-not-form
+qualification.** This section names five fixtures above. A live enumeration of
+`_CONTRACT_FIXTURES` performed at Phase 187 found the true replacement set is **seven**, not
+five: two more template-sourced fixtures — `C-RENDER-EXAMPLE-PREFIX` and
+`C-RENDER-SECONDORDER-PREFIX` — were added by Phase 184's later rounds, carry the same
+`verbatim_from` path as the original five, and were not noticed when this section pre-registered
+its succession list. The corrected count came from a live enumeration of the fixture table, not
+from this section's own written count — a pre-registered list that quietly went out of date, with
+nothing noticing, is exactly the drift class DETECT-06 exists to make loud, and it happened
+inside this milestone's own paperwork.
+
+This section also promised the rubric's Criterion 2 Verdict form "sourced the same way" from
+`shared/spine/references/validation-rubric.md`. That promise is only half available. Criterion 2
+carries prose and no example to lift: the three Verdict vocabulary tokens (`accept`, `challenge`,
+`discard`) are derived from that prose at runtime and asserted equal to the harness's own
+`_VERDICT_VOCAB` constant — closing a previously unguarded transcription gap as a by-product — but
+the separator-and-justification *shape* is not derivable the same way. Measured directly: the
+rubric names the separator only by its English name ("followed by an em-dash and a specific
+justification") and contains no instance of the character itself, while the template's own
+Verdict bullets carry the real em-dash character. The separator and empty-justification policies
+therefore stay stated in the harness, where their evidence already sits. The criterion is
+recorded qualified here, not reworded to read as fully satisfied — see decisions D-06 and D-07.
+
+The full fault-injection record — five injections run under both `python3` and `python3 -O`, plus
+two stayed-green control runs, each row recording both what fired and what stayed green — lives
+at `tests/detect06-injection-proof-v8.13.md`.
