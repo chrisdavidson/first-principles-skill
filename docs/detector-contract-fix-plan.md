@@ -52,6 +52,22 @@ mostly-conformant corpus. A green gate is not evidence the invariant holds.
 | `v8.7-post-fix-remeasure.md:84` | `verdict_flag` 5/6, `chain_flag` 4/6 | Both axes suspect |
 | `tests/quality-baseline-v8.10-oos/defect-incidence.tsv` | `verdict_flag` 1 on all six rows | Constant, uninformative |
 
+**Disposition (v8.13, DETECT-05, 2026-07-27).**
+
+- Row 1 (`v8.7-quality-baseline-freeze.md:128-129`) — corrected in place at that location.
+- Row 2 (`v8.7-quality-baseline-freeze.md:217`) — corrected in place, with the guard's discharge
+  canonical at §3 of `v8.7-post-fix-remeasure.md`.
+- Row 3 (`v8.7-post-fix-remeasure.md:84`) — corrected in place.
+- Row 4 (`tests/quality-baseline-v8.10-oos/defect-incidence.tsv`'s constant `verdict_flag`) — the
+  frozen TSV is unmodified by design; the column is qualified in its sibling README.
+
+This four-row list was a starting point, not a boundary: the completeness sweep found more.
+`tests/detect05-blast-radius-sweep-v8.13.md` is the full dispositioned hit list — thirty rows
+across its §3a and §3b tables, all thirty individually dispositioned there.
+
+The Claim and Status columns above are preserved exactly as written because they record the
+diagnosis of what was wrong, not the corrected current state.
+
 ## The constraint that shapes the whole plan
 
 **The evidence is frozen; the detector is not.** FROZEN-EVIDENCE (`check-firewall-battery.sh`)
