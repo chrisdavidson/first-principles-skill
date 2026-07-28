@@ -6,6 +6,13 @@ an evidence-backed recommendation per candidate. Removals are executed only wher
 *proven* and the removal is not a judgement call; everything else is written up for the user to
 decide.
 
+> **Disposition addendum — 2026-07-28, same day.** The user reviewed the recommendations below
+> and selected a subset to act on. What was executed, and the two selections that further
+> measurement *refuted*, are recorded in [Disposition](#disposition) at the end of this document.
+> Where the disposition contradicts a verdict in the table below, **the disposition is
+> authoritative** — the table rows are left as originally written rather than edited after the
+> fact, so the correction stays visible.
+
 ## Method
 
 **Open-trace liveness oracle.** A throwaway Python tool under the local scratchpad directory
@@ -399,3 +406,74 @@ Ordered by measured impact — largest first.
 
 **Executed in this plan:** `dev/check-links.sh` only — zero references, targets a directory that no
 longer exists in this repository, and both boundary checks stayed green after removal.
+
+---
+
+## Disposition
+
+Recorded 2026-07-28, after the user reviewed the recommendations above and selected which to act
+on. Commits `8c2c733`, `fff95fd`, `2bb2ca5`.
+
+### Executed
+
+| Action | Evidence |
+|---|---|
+| Removed `scripts/snapshot-traffic.sh` | 0 inbound references, absent from the live set. Fed the adoption-telemetry surface retired by the v8.8 personal/portfolio-tool decision. |
+| Removed `52-02-SUMMARY.md` (repo root) | 0 inbound references. User confirmed the loss of the only surviving copy of that phase record is acceptable. |
+| Extended the `FROZEN-EVIDENCE` glob by four paths | `tests/routing-baseline-v7.13.md`, `tests/routing-battery-baseline-v8.5.md`, `tests/quality-baseline-v8.10-oos/`, `tests/defrobust-v8.11/`. Resolves the coverage asymmetry in the **keep** direction: the first two were RECOMMEND-REMOVE candidates *only* because they lacked the protection their siblings had. Non-vacuity proven by fault injection — appending to a file in each of the four leaves the old path list clean (`git diff --quiet` exit 0) and trips the new one. |
+| De-linked `docs/README.md`'s `history/` entry | Was a live 404 on the public repository (resolves only on a machine holding the local copies, so VAL-03 never flagged it). Now carries the same "local-only, git-ignored" disclosure `docs/requirements-traceability.md` makes. No tracked file links into `history/` any more. |
+| Wired the three builder check-suites into pytest | New `tests/test_builder_check_adapters.py`. pytest count 137 → 157. |
+
+**On the pytest repair specifically.** The obvious fix — renaming `check_*` to `test_*` — would
+have been *worse than the gap*. Those 19 functions signal failure by **returning** `False`, and
+pytest only warns on a non-`None` return; it does not fail. A rename would therefore have
+collected all 19 and reported every one as PASSING regardless of its result: a silent false green
+over `main.py`, which is exactly the condition the repair set out to end. The adapter asserts on
+the returned bool instead, and leaves each file's standalone `main()` runner working. It carries
+its own non-vacuity guard (fails if zero checks are discovered or a suite drops out), and forcing
+`check_conflict_abort` to return `False` makes pytest report `1 failed, 19 passed` — reverted.
+
+### Refuted by measurement — NOT executed
+
+Both were selected by the user for removal. Re-measuring before acting showed the audit had
+under-described each one. Neither was removed.
+
+**1. `scripts/run-live-monitoring.sh` — not dead; a CI gate asserts it exists.**
+The verdict row above calls its `check-traceability.py` reference "a `deliverable_path` string,
+not an import". That is wrong. `scripts/check-traceability.py` carries a named sentinel,
+**`GEN-02-RUNBOOK`**, whose D-03 dual-artifact check asserts that *both*
+`docs/live-monitoring-runbook.md` **and** `scripts/run-live-monitoring.sh` exist — and
+`check-traceability.py --self-test` is the **TRACE-03 CI gate**. Removing the wrapper fails
+TRACE-03. Worse, the sentinel binds that existence to requirement **GEN-02's `reproducible`
+coverage tier**: the comment states in terms that "any future revert of the tier, deletion of the
+GEN-02 row, or removal of the runbook/wrapper fails CI". Removing the script would therefore not
+be a two-file cleanup — it would mean deleting a named gate assertion and demoting a requirement's
+coverage tier, degrading the traceability headline. The runbook it backs is also still marked
+`Status: ACTIVE` and documents the live monitoring cadence for GR-03/GR-04.
+**Correct verdict: KEEP.** This is the same class of error as item 2 — an existence check is a
+real dependency that an open-trace cannot see.
+
+**2. `tests/quality-fixtures-v8.7/baseline-truncated/analyses/*.md` — a deliberate negative
+fixture, not dead weight.**
+The selected action was to relax `check-quality-harness.py`'s `analyses/` existence assertion so
+the four files could be removed. Reading the fixture's purpose first shows why that inverts the
+intent: `baseline-truncated/` is the **D-15 item 6 negative fixture**, and QUAL-01's self-test
+asserts that `check_baseline_integrity()` *finds* a row-count-versus-file-count mismatch on it.
+The four `analyses/*.md` files are the **file-count side of the mismatch the gate is built to
+detect**. `tests/quality-fixtures-v8.7/README.md` even records a mutation experiment (row G)
+adding a fifth analysis to prove the negative depends on that mismatch and nothing incidental.
+They show 0 inbound references and no open-trace hit because they are **counted and stat'd, never
+opened** — the same blind spot that made the original removal attempt turn the battery red.
+Relaxing the assertion would delete gate coverage while appearing to pay down debt.
+**Correct verdict: KEEP (protected).**
+
+### Declined by the user
+
+- `tests/quality-fixtures-v8.7/calibration-v8.6-corpus.{md,tsv}` — left in place.
+- The two deprecated shims (`check-sub-skill-routing.py`, `check-focused-output.py`) — kept. They
+  are genuinely exercised by `tests/test_65_doc_invariants.py`'s CLI probes.
+
+### Post-disposition state
+
+    FIREWALL: GREEN (16/16)
+    157 passed
