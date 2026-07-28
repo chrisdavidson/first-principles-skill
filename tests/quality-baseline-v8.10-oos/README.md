@@ -42,6 +42,53 @@ these are simply what six live generation-only dispatches produced (honesty-not-
 - `defect-incidence.tsv` — **added in Plan 03**, not part of this generation freeze: the offline
   detector's ten-column output over these analyses, produced after the blind hand-read for blindness.
 
+## Corrected defect incidence and the verdict_flag saturation
+
+The frozen `defect-incidence.tsv` in this directory was produced by a detector whose
+`_verdict_conforms` and `_chain_block_well_formed` checks have since been corrected under v8.13
+(DETECT-02, DETECT-03). It stays byte-unmodified; the corrected figures live beside it in
+`defect-incidence-corrected.tsv` (invariant 2).
+
+What moved: `nonconforming_verdict_cells` `Q-N1` 19 to **2** and `Q-N5` 15 to **1**;
+`malformed_chain_blocks` and `chain_flag` on `Q-N1` both 1 to **0**. Nothing else moved.
+
+**The `verdict_flag` column is the point of this section.** It reads a constant 1 on all six
+documents in the frozen file and reads a constant 1 on all six in the corrected file. That is not
+a measurement that survived scrutiny; it is a column that cannot vary here. `verdict_flag` is a
+document-level threshold — a document flags 1 if it carries at least one nonconforming Verdict
+cell — so on a corpus where every document carries at least one, the column saturates and carries
+no discriminating information. Stated plainly: it was constant before correction and **remains
+constant after**. The fix did not rescue this column.
+
+The informative measure on this corpus is `nonconforming_verdict_cells`, which moved by an order
+of magnitude on two of six documents while the flag stayed pinned. Anyone reading the flag column
+as evidence about this corpus should read that column instead.
+
+This is a general property of the instrument, not a quirk of this corpus: corrected `verdict_flag`
+is 6/6 on the calibration, regenerated and oos corpora and 5/6 on postfix. The single general
+statement of the limitation is in the `## Honest limits` section of
+`docs/v8.7-quality-baseline-freeze.md`; that statement is not restated here.
+
+Because the column cannot vary on this corpus, no conclusion about this corpus's Verdict-form
+conformance can be drawn from it in either direction, before or after the correction. Not proposed
+here: replacing the threshold with a rate is a detector design change, out of this milestone's
+scope.
+
+**Reproducibility**, run from the repo root:
+
+```
+awk -F'\t' 'NR>1{v+=$7;n++} END{print v"/"n}' tests/quality-baseline-v8.10-oos/defect-incidence-corrected.tsv
+# -> 6/6
+awk -F'\t' 'NR>1{v+=$7;n++} END{print v"/"n}' tests/quality-baseline-v8.10-oos/defect-incidence.tsv
+# -> 6/6
+awk -F'\t' '$1=="Q-N1"||$1=="Q-N5"{print $1, $6}' tests/quality-baseline-v8.10-oos/defect-incidence-corrected.tsv
+# -> Q-N1 2
+# -> Q-N5 1
+awk -F'\t' '$1=="Q-N1"||$1=="Q-N5"{print $1, $6}' tests/quality-baseline-v8.10-oos/defect-incidence.tsv
+# -> Q-N1 19
+# -> Q-N5 15
+```
+
 ## Frozen-evidence discipline
 
 These captures and analyses are committed exactly as the live run produced them. They are never
