@@ -4086,6 +4086,73 @@ def _extract_contract_example(row: tuple[str, str, str, str]) -> str:
     raise _ContractAnchorError(anchor, source_file, f"unknown habitat mode {habitat_mode!r}")
 
 
+# D-09: the qualification behind ROADMAP criterion 2, recorded in-source
+# rather than glossed.
+# (i) ROADMAP criterion 2 asked for the rubric's Verdict form "sourced the
+#     same way" as the template examples extracted above -- read from
+#     validation-rubric.md at runtime, not transcribed.
+# (ii) validation-rubric.md Criterion 2's Rigorous descriptor carries prose,
+#      not an example: "the Verdict cell records Accept, Challenge, or
+#      Discard as a leading token followed by an em-dash and a specific
+#      justification -- not the bare token alone." There is nothing to lift
+#      verbatim, so only the vocabulary -- the three named tokens -- is
+#      derivable from this sentence; the promise is half available (D-06).
+# (iii) Measured at plan time: the rubric's own text spells the separator
+#       by its English name, "em-dash", using U+002D HYPHEN-MINUS, and
+#       contains no literal instance of U+2014 EM DASH anywhere in
+#       Criterion 2 -- while output-template.md's Verdict Vocabulary
+#       bullets DO carry the real character, both as the bullet separator
+#       and inside their quoted `(e.g., "...")` examples. There is a form
+#       to derive in the template; there is none to derive in the rubric.
+# (iv) Therefore the em-dash-plus-justification *form* stays stated in the
+#      harness (see the comment above `_VERDICT_FORM_RE`), where the
+#      P183-D1 separator policy and P183-D2 empty-justification policy
+#      already carry their own evidence -- and the *vocabulary* alone is
+#      derived here, at self-test time, and asserted equal to
+#      `_VERDICT_VOCAB` (D-07). This closes a real by-product gap:
+#      `_VERDICT_VOCAB` was itself an unguarded hand-maintained
+#      transcription of the rubric's wording before this guard existed.
+# (v) The criterion is recorded qualified, not softened: this guard proves
+#     the vocabulary tracks the rubric; it does not and cannot prove the
+#     separator form does, because the rubric supplies no separator
+#     example to check against.
+_RUBRIC_SOURCE_FILE = "shared/spine/references/validation-rubric.md"
+
+# The anchor here is a regex, not a literal string like every row in
+# `_CONTRACT_EXTRACTION_TABLE` above, because the three vocabulary tokens
+# are themselves the variable part being derived. The two FIXED phrases
+# bounding the capture -- "records " and " as a leading token" -- are the
+# real anchor; the pattern deliberately stops there rather than spanning
+# the rest of the sentence ("followed by an em-dash and a specific
+# justification"), so a harmless reword of the justification clause
+# elsewhere in the same sentence does not trip it (D-07). Asserting on
+# that wider prose was considered and rejected for exactly this reason.
+_RUBRIC_VOCAB_RE = re.compile(r"records (\w+), (\w+), or (\w+) as a leading token")
+_RUBRIC_VOCAB_ANCHOR_DESC = "records <token>, <token>, or <token> as a leading token"
+
+
+def _derive_verdict_vocab_from_rubric(rubric_text: str) -> tuple[str, str, str]:
+    """Derive the three Criterion 2 Verdict vocabulary tokens from the live
+    `validation-rubric.md` text (D-07), lower-cased, in the order the
+    rubric's own sentence lists them.
+
+    Raises `_ContractAnchorError` -- reusing plan 01's exception so the
+    guard has one catch shape, not two -- when the anchor does not resolve
+    to exactly one match: absent, or ambiguous (D-10). There is no
+    fallback and no silent default; an unresolvable anchor becomes a named
+    FAIL in Guard A, never an uncaught exception.
+    """
+    matches = _RUBRIC_VOCAB_RE.findall(rubric_text)
+    if len(matches) != 1:
+        raise _ContractAnchorError(
+            _RUBRIC_VOCAB_ANCHOR_DESC,
+            _RUBRIC_SOURCE_FILE,
+            f"matched {len(matches)} times (need exactly 1)",
+        )
+    a, b, c = matches[0]
+    return (a.lower(), b.lower(), c.lower())
+
+
 def _contract_fixture_result(fx: ContractFixture, text: str | None = None) -> bool:
     """Dispatch a fixture to the production function its kind exercises.
 
@@ -4308,6 +4375,57 @@ def _selftest_contract_pin(strict: bool = False) -> bool:
                 file=sys.stderr,
             )
             ok = False
+
+    # Guard A (rubric branch) — DETECT-06 (Phase 187, D-07/D-09/D-13). Runs
+    # once per call, in BOTH modes — placed outside `if not strict:` below,
+    # same as the template branch above, so no edit to
+    # `contract_pin_strict_report` is needed to inherit coverage. The three
+    # Criterion 2 Verdict vocabulary tokens are derived from the live
+    # rubric at self-test time and asserted EQUAL to `_VERDICT_VOCAB` —
+    # order matters (D-07): a reordering that changed which token leads
+    # would be a genuine rubric change worth surfacing, so this is `==`,
+    # not set membership.
+    try:
+        rubric_text: str | None = (REPO_ROOT / _RUBRIC_SOURCE_FILE).read_text(
+            encoding="utf-8"
+        )
+    except OSError as exc:
+        print(
+            f"self-test FAIL: contract_pin Guard A [rubric anchor "
+            f"unresolved] could not read {_RUBRIC_SOURCE_FILE}: {exc!r} — "
+            f"remedy: re-anchor the guard",
+            file=sys.stderr,
+        )
+        ok = False
+        rubric_text = None
+
+    derived_vocab: tuple[str, str, str] | None = None
+    if rubric_text is not None:
+        try:
+            derived_vocab = _derive_verdict_vocab_from_rubric(rubric_text)
+        except _ContractAnchorError as exc:
+            print(
+                f"self-test FAIL: contract_pin Guard A [rubric anchor "
+                f"unresolved] anchor {exc.anchor!r} in {exc.source_file} "
+                f"did not resolve ({exc.detail}) — remedy: re-anchor the "
+                f"guard",
+                file=sys.stderr,
+            )
+            ok = False
+
+    if derived_vocab is not None and derived_vocab != _VERDICT_VOCAB:
+        print(
+            f"self-test FAIL: contract_pin Guard A [rubric vocabulary "
+            f"mismatch] validation-rubric.md Criterion 2's derived "
+            f"vocabulary {derived_vocab!r} and _VERDICT_VOCAB "
+            f"{_VERDICT_VOCAB!r} have diverged",
+            file=sys.stderr,
+        )
+        ok = False
+        # A divergent vocabulary means there is nothing sound to build the
+        # two derived-fixture checks on below; do not cascade a second,
+        # confusing FAIL from comparing against an already-known-bad value.
+        derived_vocab = None
 
     if not strict:
         # Guard B — registry drift (default mode): every _DETECT01_PINNED_RED
