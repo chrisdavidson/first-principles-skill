@@ -11,3 +11,7 @@ docs/history/
 # .jsonl transports are ignored. quality-fixtures/probe .jsonl stay tracked (QUAL-01).
 tests/step0-captures-*/**/*.jsonl
 tests/quality-baseline-*/**/*.jsonl
+
+# Local-only adoption telemetry — kept on disk, not published. Adoption stopped
+# being a graded surface at v8.8 (personal/portfolio tool, not a distribution play).
+docs/adoption-telemetry.csv
