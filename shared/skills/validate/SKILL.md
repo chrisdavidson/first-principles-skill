@@ -3,7 +3,7 @@ name: validate
 description: Slash-only Phase 5 stub — stress-test each derivation chain for weak links.
 disable-model-invocation: true
 metadata:
-  version: "8.6.0"
+  version: "8.14.0"
 license: MIT
 ---
 # Focused Validate Mode
