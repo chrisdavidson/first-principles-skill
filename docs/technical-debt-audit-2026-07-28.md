@@ -423,6 +423,15 @@ on. Commits `8c2c733`, `fff95fd`, `2bb2ca5`.
 | Extended the `FROZEN-EVIDENCE` glob by four paths | `tests/routing-baseline-v7.13.md`, `tests/routing-battery-baseline-v8.5.md`, `tests/quality-baseline-v8.10-oos/`, `tests/defrobust-v8.11/`. Resolves the coverage asymmetry in the **keep** direction: the first two were RECOMMEND-REMOVE candidates *only* because they lacked the protection their siblings had. Non-vacuity proven by fault injection — appending to a file in each of the four leaves the old path list clean (`git diff --quiet` exit 0) and trips the new one. |
 | De-linked `docs/README.md`'s `history/` entry | Was a live 404 on the public repository (resolves only on a machine holding the local copies, so VAL-03 never flagged it). Now carries the same "local-only, git-ignored" disclosure `docs/requirements-traceability.md` makes. No tracked file links into `history/` any more. |
 | Wired the three builder check-suites into pytest | New `tests/test_builder_check_adapters.py`. pytest count 137 → 157. |
+| Retired the v4.0/v4.1 builder trio (quick task `260728-vxn`, 2026-07-28) | Took the **retire** branch of this document's own top-listed Decision-For-The-User (repair the builder's test coverage and keep it, or retire the whole trio) rather than the repair branch executed above. Removed: `main.py`, `templates/agent.md.tmpl`, `templates/skill.md.tmpl`, the gitignored `generated/` output directory, the four builder test files (`tests/test_59_02_task1.py`, `tests/test_60_01_check_agent_candidate.py`, `tests/test_64_01_install.py`, `tests/test_builder_check_adapters.py`), the 15 CLI-01..08/INST-01..07 requirement rows from `scripts/check-traceability.py` and both regenerated matrix artifacts, and the `## Builder` section of `README.md`. |
+
+**On the pytest count moving back to 137.** The row directly above this one wired the three
+builder check-suites into pytest, raising the count 137 → 157. The retirement row raises it back
+down: with `main.py` gone, the code those 19 checks protected no longer exists, so their adapter
+went with it and the count returns to 137. This is not a regression of the earlier repair — it is
+that repair being obsoleted by the product decision to retire the builder rather than keep
+maintaining it, and the two rows above are left side by side, unedited, so that sequence is
+visible rather than papered over.
 
 **On the pytest repair specifically.** The obvious fix — renaming `check_*` to `test_*` — would
 have been *worse than the gap*. Those 19 functions signal failure by **returning** `False`, and
