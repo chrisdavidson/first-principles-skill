@@ -292,51 +292,6 @@ def _rows_methodology_focused_stubs() -> list[MatrixRow]:
     ]
 
 
-def _rows_methodology_builder() -> list[MatrixRow]:
-    """v4.0 CLI + v4.1 INST builder rows — Methodology."""
-    audit_v40 = "Validated by v4.0-MILESTONE-AUDIT; no re-runnable gate"
-    audit_v41 = "Validated by v4.1-MILESTONE-AUDIT; no re-runnable gate"
-    return [
-        MatrixRow("v4.0/CLI-01", "CLI-01", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-02", "CLI-02", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-03", "CLI-03", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-04", "CLI-04", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-05", "CLI-05", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-06", "CLI-06", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-07", "CLI-07", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.0/CLI-08", "CLI-08", "v4.0", "Methodology",
-                  "main.py", "audit-only", "", audit_v40),
-        MatrixRow("v4.1/INST-01", "INST-01", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-        MatrixRow("v4.1/INST-02", "INST-02", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-        MatrixRow("v4.1/INST-03", "INST-03", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-        MatrixRow("v4.1/INST-04", "INST-04", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-        MatrixRow("v4.1/INST-05", "INST-05", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-        MatrixRow("v4.1/INST-06", "INST-06", "v4.1", "Methodology",
-                  "main.py", "audit-only", "",
-                  "Validated by v4.1-MILESTONE-AUDIT; README documented; no re-runnable gate"),
-        MatrixRow("v4.1/INST-07", "INST-07", "v4.1", "Methodology",
-                  "main.py",
-                  "reproducible", "tests/test_64_01_install.py", ""),
-    ]
-
-
 def _rows_testnet_ci_gates() -> list[MatrixRow]:
     """CI gate rows — Test-Network (VAL-01..05, DUAL-04, GATE-01..03, HOOK-*)."""
     hook = ".githooks/pre-commit"
@@ -937,7 +892,6 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_methodology_agent_cont())
     rows.extend(_rows_methodology_rigor())
     rows.extend(_rows_methodology_focused_stubs())
-    rows.extend(_rows_methodology_builder())
     # --- Test-Network capability ---
     rows.extend(_rows_testnet_ci_gates())
     rows.extend(_rows_testnet_routing_battery())

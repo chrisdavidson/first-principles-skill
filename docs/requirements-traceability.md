@@ -4,9 +4,9 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 132 reproducible / 97 audit-only / 0 gap / 229 total
+**Coverage headline:** 126 reproducible / 88 audit-only / 0 gap / 214 total
 
-The full 229-row capability-to-requirement-to-test mapping is in the generated matrix:
+The full 214-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
@@ -36,6 +36,28 @@ The full 229-row capability-to-requirement-to-test mapping is in the generated m
 > (`scripts/smoke-test-hook.sh` retired, `scripts/install-hooks.sh:57` reworded) were cleared in
 > the same cleanup. This closes the "finish TEARDOWN-01 cleanup" unit
 > (`.planning/todos/pending/phase-167-stale-surfaces-from-163-review.md`).
+
+> **Headline change vs prior 132/97/0/229 (quick task `260728-vxn`):** −6 reproducible / −9
+> audit-only → **126/88/0/214**. All 15 v4.0/v4.1 builder requirements (CLI-01, CLI-02, CLI-03,
+> CLI-04, CLI-05, CLI-06, CLI-07, CLI-08, INST-01, INST-02, INST-03, INST-04, INST-05, INST-06,
+> INST-07) were retired from `scripts/check-traceability.py` and are absent from both regenerated
+> artifacts. 9 audit-only rows were removed (CLI-01..08 + INST-06) and 6 reproducible rows were
+> removed (INST-01..05, INST-07), for a net −15 total rows (229 → 214). The source of this decision
+> is `docs/technical-debt-audit-2026-07-28.md`, whose top-listed Decision-For-The-User was a binary
+> choice — repair the builder's test coverage and keep it, or retire the whole trio — and the user
+> chose retire. `main.py`, both `templates/*.tmpl` files, the gitignored `generated/` output
+> directory, and the four builder test files (`tests/test_59_02_task1.py`,
+> `tests/test_60_01_check_agent_candidate.py`, `tests/test_64_01_install.py`,
+> `tests/test_builder_check_adapters.py`) were deleted in the same quick task. This is a product
+> decision, not a coverage downgrade — the 15 requirements are not unmet; the deliverable they
+> described no longer exists.
+>
+> **Pre-existing drift left unfixed (recorded, not corrected):** the `**96 audit-only rows**` bold
+> heading further down this file is a pre-existing off-by-one against the headline, dating to the
+> v8.8 META-Q4 re-tier which moved the headline to 97 without updating that section's own count.
+> This quick task does not correct it — doing so would require re-deriving that section's row
+> enumeration, which is a separate doc-hygiene pass. Left unchanged here so the drift stays visible
+> rather than silently absorbed into this edit.
 
 ## v8.0 Terminal State (2026-07-06)
 
@@ -235,7 +257,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (229 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (214 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** `docs/history/` — local-only, git-ignored; not present in a fresh clone
 - **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
   *(Note: `.planning/` is gitignored, as is `docs/history/`. The canonical historical detail is the promoted `docs/history/` copies named above, which are retained locally only.)*
