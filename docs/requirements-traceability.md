@@ -12,46 +12,32 @@ The full 214-row capability-to-requirement-to-test mapping is in the generated m
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
 > 88 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.13 residual-delta live re-baseline Phase 137; latest artifact `tests/step0-baseline-v7.13.md`; reproducible = measured, not passing — v7.13 S-P02 1/5, S-P10 0/5, S-P14 0/5 all CARRIED; v7.8 remains the canonical full 8-technique baseline) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
-> Headline change vs prior 121/85/0/206: +4 reproducible rows added to the active tail in Phase 119 CONF-04 — RR-117-01 (S-P03 fishbone, minted Phase 117 CONF-02), RR-117-02 (S-N03 precision, minted Phase 117 CONF-02), RR-119-01 (S-N01 resolved, minted Phase 119 CONF-04), RR-119-02 (S-N02 resolved, minted Phase 119 CONF-04). These rows existed as sentinels in _battery_core.py but were not previously registered in the matrix.
-> Headline change vs prior 125/85/0/210: +8 reproducible rows added in Phase 123 RECON-01 — the v7.9 milestone requirements NEGCAT-01, NEGCAT-02, OCH-01, OCH-02, OCH-03, COLLIDE-01, COLLIDE-02, RECON-01, each backed by a deterministic offline gate (STEP0-08 for NEGCAT-01/02; DUAL-04 + BATT-06 for OCH-01/02/03; COLLIDE-01 gate for COLLIDE-01/02; TRACE-03 for RECON-01).
-> Headline change vs prior 133/85/0/218: +11 audit-only rows added in Phase 131 RECON-03 — the v7.11 milestone requirements READY-01/02/03, STEP0L-01/02/03, ROUTEL-01/02, RECON-01/02/03 (audit-only; validated by one-shot manual live runs, not deterministic offline CI gates, D-04). GEN-01's artifact_link bumped v7.8 → v7.11 (paired data + gate-code edit, D-05). RR-130-01 (main-routing inline-answering regression) recorded as a documented residual with NO matrix row (v7.9 D-02 precedent).
-> Headline change vs prior 133/96/0/229: **zero** — RR-130-01 remains a documented residual with no matrix row (v7.9 D-02 precedent); Phase 133 fix is a prose edit in `shared/` with no new matrix row. Reconcile = prove zero drift, not re-count (D-03).
-> Headline change v7.13 (Phase 138 RECON): **zero** — v7.13 live measurements moved no counts: RR-130-01 RESOLVED/CLOSE at Phase 136 (P 11/13 = v3.13 anchor recovery), row-less per v7.9 D-02 precedent; S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept), S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept), S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept); GEN-01 artifact_link bumped v7.11 → v7.13 (paired data + gate-code edit, D-05); 3 residual BATT-06 sentinels re-pointed v7.11 → v7.13 (Phase 138-02). Headline confirmed byte-identical at 133/96/0/229.
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
 
-> **Headline change vs prior 133/96/0/229 (v8.8 post-close TEARDOWN-01 cleanup):** −1 reproducible
-> / +1 audit-only → **132/97/0/229**. Requirement **META-Q4** (agent-body budget) was re-tiered
-> `reproducible` → `audit-only` in `scripts/check-traceability.py` and the matrix regenerated. It
-> had been tiered `reproducible` on the strength of `scripts/git-hooks/pre-commit` invoking
-> `scripts/check-body-budget.py`; TEARDOWN-01 (v8.7 Phase 163) retired the body-budget stanza from
-> that hook, so the hook no longer invokes the script. The body line count is now report-only
-> (`check-body-budget.py` always exits 0; reported every firewall-battery run as `[INFO] body-size`
-> but not gated) — inspectable, not reproducibly enforced, i.e. genuinely audit-only.
->
+**Headline history (D-01).** The coverage headline has moved seven times since the matrix was
+first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log, one row
+per move, replacing what used to be seven separately stacked prose annotations. Every delta below
+is already discharged — no row is a currently-open action item.
+
+| # | Milestone / task | Headline before → after | Cause |
+|---|-------------------|--------------------------|-------|
+| 1 | Phase 119 CONF-04 | 121/85/0/206 → 125/85/0/210 | +4 reproducible rows added to the active tail: RR-117-01 (S-P03 fishbone, minted Phase 117 CONF-02), RR-117-02 (S-N03 precision, minted Phase 117 CONF-02), RR-119-01 (S-N01 resolved), RR-119-02 (S-N02 resolved) — these existed as sentinels in `_battery_core.py` but were not previously registered as matrix rows. |
+| 2 | Phase 123 RECON-01 | 125/85/0/210 → 133/85/0/218 | +8 reproducible rows: the v7.9 milestone requirements NEGCAT-01, NEGCAT-02, OCH-01, OCH-02, OCH-03, COLLIDE-01, COLLIDE-02, RECON-01, each backed by a deterministic offline gate (STEP0-08 for NEGCAT-01/02; DUAL-04 + BATT-06 for OCH-01/02/03; COLLIDE-01 gate for COLLIDE-01/02; TRACE-03 for RECON-01). |
+| 3 | Phase 131 RECON-03 | 133/85/0/218 → 133/96/0/229 | +11 audit-only rows: the v7.11 milestone requirements READY-01/02/03, STEP0L-01/02/03, ROUTEL-01/02, RECON-01/02/03 (audit-only; validated by one-shot manual live runs, not deterministic offline CI gates, D-04). GEN-01's artifact_link bumped v7.8 → v7.11 (paired data + gate-code edit, D-05). RR-130-01 (main-routing inline-answering regression) recorded as a documented residual with NO matrix row (v7.9 D-02 precedent). |
+| 4 | Phase 133 (RR-130-01 fix) | 133/96/0/229 → 133/96/0/229 | **Zero drift.** RR-130-01 remains a documented residual with no matrix row (v7.9 D-02 precedent); the fix is a prose edit in `shared/` with no new matrix row. Reconcile = prove zero drift, not re-count (D-03). |
+| 5 | Phase 138 RECON (v7.13) | 133/96/0/229 → 133/96/0/229 | **Zero drift.** v7.13 live measurements moved no counts: RR-130-01 RESOLVED/CLOSE at Phase 136 (P 11/13 = v3.13 anchor recovery), row-less per v7.9 D-02 precedent; S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept), S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept), S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept); GEN-01 artifact_link bumped v7.11 → v7.13 (paired data + gate-code edit, D-05); 3 residual BATT-06 sentinels re-pointed v7.11 → v7.13 (Phase 138-02). |
+| 6 | v8.8 post-close TEARDOWN-01 cleanup | 133/96/0/229 → 132/97/0/229 | −1 reproducible / +1 audit-only. Requirement **META-Q4** (agent-body budget) was re-tiered `reproducible` → `audit-only` in `scripts/check-traceability.py` and the matrix regenerated. It had been tiered `reproducible` on the strength of `scripts/git-hooks/pre-commit` invoking `scripts/check-body-budget.py`; TEARDOWN-01 (v8.7 Phase 163) retired the body-budget stanza from that hook, so the hook no longer invokes the script. The body line count is now report-only (`check-body-budget.py` always exits 0; reported every firewall-battery run as `[INFO] body-size` but not gated) — inspectable, not reproducibly enforced, i.e. genuinely audit-only. |
+| 7 | quick task `260728-vxn` | 132/97/0/229 → 126/88/0/214 | −6 reproducible / −9 audit-only. All 15 v4.0/v4.1 builder requirements (CLI-01, CLI-02, CLI-03, CLI-04, CLI-05, CLI-06, CLI-07, CLI-08, INST-01, INST-02, INST-03, INST-04, INST-05, INST-06, INST-07) were retired from `scripts/check-traceability.py` and are absent from both regenerated artifacts. 9 audit-only rows were removed (CLI-01..08 + INST-06) and 6 reproducible rows were removed (INST-01..05, INST-07), for a net −15 total rows (229 → 214). The source of this decision is `docs/technical-debt-audit-2026-07-28.md`, whose top-listed Decision-For-The-User was a binary choice — repair the builder's test coverage and keep it, or retire the whole trio — and the user chose retire. `main.py`, both `templates/*.tmpl` files, the gitignored `generated/` output directory, and the four builder test files (`tests/test_59_02_task1.py`, `tests/test_60_01_check_agent_candidate.py`, `tests/test_64_01_install.py`, `tests/test_builder_check_adapters.py`) were deleted in the same quick task. **This is a product decision, not a coverage downgrade** — the 15 requirements are not unmet; the deliverable they described no longer exists. |
+
 > **Honesty note (v8.8 D-01 — RESOLVED):** the prior "known-stale / vacuously-green" flag on
 > META-Q4 (TRACE-03 reporting coverage that no longer existed — "green because nothing checks it")
-> is now **fixed at the source**, not just annotated: the re-tier above makes the matrix state
-> honest rather than qualified-and-flagged. The two same-class stale hook surfaces bundled with it
-> (`scripts/smoke-test-hook.sh` retired, `scripts/install-hooks.sh:57` reworded) were cleared in
+> is now **fixed at the source**, not just annotated: row 6 of the change log above makes the matrix
+> state honest rather than qualified-and-flagged. The two same-class stale hook surfaces bundled with
+> it (`scripts/smoke-test-hook.sh` retired, `scripts/install-hooks.sh:57` reworded) were cleared in
 > the same cleanup. This closes the "finish TEARDOWN-01 cleanup" unit
 > (`.planning/todos/pending/phase-167-stale-surfaces-from-163-review.md`).
 
-> **Headline change vs prior 132/97/0/229 (quick task `260728-vxn`):** −6 reproducible / −9
-> audit-only → **126/88/0/214**. All 15 v4.0/v4.1 builder requirements (CLI-01, CLI-02, CLI-03,
-> CLI-04, CLI-05, CLI-06, CLI-07, CLI-08, INST-01, INST-02, INST-03, INST-04, INST-05, INST-06,
-> INST-07) were retired from `scripts/check-traceability.py` and are absent from both regenerated
-> artifacts. 9 audit-only rows were removed (CLI-01..08 + INST-06) and 6 reproducible rows were
-> removed (INST-01..05, INST-07), for a net −15 total rows (229 → 214). The source of this decision
-> is `docs/technical-debt-audit-2026-07-28.md`, whose top-listed Decision-For-The-User was a binary
-> choice — repair the builder's test coverage and keep it, or retire the whole trio — and the user
-> chose retire. `main.py`, both `templates/*.tmpl` files, the gitignored `generated/` output
-> directory, and the four builder test files (`tests/test_59_02_task1.py`,
-> `tests/test_60_01_check_agent_candidate.py`, `tests/test_64_01_install.py`,
-> `tests/test_builder_check_adapters.py`) were deleted in the same quick task. This is a product
-> decision, not a coverage downgrade — the 15 requirements are not unmet; the deliverable they
-> described no longer exists.
->
 > **Pre-existing drift corrected (quick task `260728-wdi`):** the bold audit-only-rows count heading
 > further down this file was a pre-existing off-by-one against the headline, dating to the v8.8
 > META-Q4 re-tier which moved the headline to 97 without updating that section's own count, and was
