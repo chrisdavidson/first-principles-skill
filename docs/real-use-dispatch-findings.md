@@ -68,6 +68,17 @@ right but does not explain the document's shape: the older generation's own outp
 mandates the **identical six sections in the identical order**. The fresh run above was issued
 against current code with the current agent loaded, and reproduced the behaviour independently.
 
+**Addendum — 2026-07-29 (Phase 188, DELIV-02):** This same probe was re-issued verbatim on a second
+date — same prompt, same on-disk source material, same Plan-36-locked transport, same
+`--plugin-dir` surface, `--repeat 1`, with the date as the only deliberate difference. The
+re-observation recorded zero `Task` dispatches and zero `task_notification` events, the same
+loaded-and-not-reached signature as this finding. It carries this record's same declared evidence
+class — author-auditable, not reader-auditable — and the prompt text and capture did not enter
+git. See [v8.14-delivery-verification.md](v8.14-delivery-verification.md) for the full record and
+the pre-committed reading it was bound to. This addendum records a later, additive observation
+appended to an existing record and does not alter the finding text above it, which stands as
+accurate for its own date.
+
 ### Finding 2 — neither document satisfies the output contract
 
 The D-18 mechanical defect detector (`check-quality-harness.py --detect-defects`, the QUAL-01
@@ -159,8 +170,12 @@ into a measured harness and then spending milestones measuring the harness:
   the dispatch failure is unknown** — it is not established as new, as a regression, or as
   caused by any particular change. The evidence establishes *that* the boundary is broken now,
   not *when* it broke or *why*.
-- **Everything here is same-day.** The two real dispatch attempts and the battery pass share a
-  date, a model generation, and a machine. They are three sources, not three independent samples.
+- **Everything here is same-day.** The two real dispatch attempts and the battery pass shared a
+  date, a model generation, and a machine. They were three sources, not three independent samples
+  — **DISCHARGED IN PART — 2026-07-29 (Phase 188, DELIV-02):** a second dated observation retires
+  the same-day property of the dispatch record taken as a whole; it does not retire the fact that
+  the three original sources remain same-day among themselves. See
+  [v8.14-delivery-verification.md](v8.14-delivery-verification.md).
 - **The battery pass is `--repeat 1`.** Standard practice for a live catalog run here is
   aggregate K-of-N across repeats; a `--repeat 5 --min-pass 3` confirmation has not been run.
 - **The P12 exception is unexplained.** One prompt routed and twelve did not, and the record
@@ -170,6 +185,16 @@ into a measured harness and then spending milestones measuring the harness:
   pre-registered success criterion. That said, this is the first finding in several milestones
   whose trigger is neither prior milestone paperwork, an altitude check, nor evidence about the
   measurement apparatus — the three channels the standing scope gate has exhausted.
+
+**Still open after the 2026-07-29 second observation.** The same-day limb above is the only one
+the second observation retires. No control arm exists — D-09 holds the surface constant
+deliberately and the second observation is not paired. The battery pass is `--repeat 1` — the
+second observation reuses the same single-run cadence and no `--repeat 5 --min-pass 3`
+confirmation has been run. The P12 exception is unexplained — nothing in the second observation
+explains it, and P12 is cited in this phase's record only as precedent that a split result is
+possible, never as a probe or an explanation. It does not establish that a fix is warranted — no
+fix or no-fix call was pre-committed or made. And n = 3, one machine still holds — the second
+observation adds one run on the same machine, not an independent sample frame.
 
 ## Provenance
 
