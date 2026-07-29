@@ -28,6 +28,17 @@ This folder documents the first-principles plugin system. New here? Start with [
 
 ---
 
+## Milestone-close rules
+
+**Version-stamp rule.** Any change under `first-principles/` requires the version stamp in
+`first-principles/.claude-plugin/plugin.json` to advance before the milestone is closed. Plugin
+installs are version-gated, not content-gated — `claude plugin marketplace update` and
+`claude plugin update` compare version strings, so an edit shipped without a bump never reaches an
+already-installed session. This is a **rule, not a gate**: nothing checks it automatically, no
+script enforces it, and the offline battery is deliberately not grown to check it — the
+milestone's build bar is measure plus rules only. See [DEVELOPMENT.md](DEVELOPMENT.md) for the
+mechanism's full detail and its 2026-07-27 empirical note.
+
 ## Core docs
 
 | Document | What it covers |
