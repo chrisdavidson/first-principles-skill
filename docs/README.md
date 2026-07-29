@@ -137,6 +137,12 @@ This folder documents the first-principles plugin system. New here? Start with [
 | [detector-contract-fix-plan.md](detector-contract-fix-plan.md) | 2026-07-27. Two of the three D-18 defect checks contradict the output contract they enforce. `_verdict_conforms` is **inverted** — it passes the bare token the rubric names as a defect and fails the prescribed `Accept — justification` form; the frozen corpus's one "clean" document is its most contract-violating. `_chain_block_well_formed` matches per line, so **the output template's own canonical example fails the detector built to check conformance to it**. QUAL-01 stays green because its self-test pins the broken behaviour. Six phases (`DETECT-01`…`DETECT-06`), built around the constraint that the evidence is frozen but the detector is not — corrected figures are emitted beside frozen ones, never over them. Nothing built. |
 | [technical-debt-audit-2026-07-28.md](technical-debt-audit-2026-07-28.md) | 2026-07-28. Open-trace + reference-count technical-debt audit (quick task `260728-pa2`) — measures, rather than infers, what should be removed. Verdict table with REMOVE-EXECUTED / RECOMMEND-REMOVE / KEEP per candidate, each backed by a LIVE SET membership result and an inbound-reference count. Also records that `docs/README.md:147`'s `history/` link now 404s on the public repository (resolves locally only, since the `docs/history/` untrack-and-gitignore already happened and is out of scope here). |
 
+## v8.14 — GREENMEAN-01
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | 2026-07-29. Phase 188 — the pre-registered continuation-decision rule and DELIV-02 outcome table (both committed before their evidence), the per-path DELIV-01 delivery verdict (fresh install and update path stated side by side, deliberately not collapsed), the second-date `RUNTIME-WIDE` re-observation result, and the dated continuation decision. |
+
 ## Reference & history
 
 | Document | What it covers |

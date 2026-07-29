@@ -14,6 +14,8 @@
 > `project-*` labels are assigned in first-use order in the private key, and this record
 > deliberately does not guess which one applies.
 
+> **A second dated observation of this finding is pre-registered.** Its outcome table is committed before the run, in [v8.14-delivery-verification.md](v8.14-delivery-verification.md) §3. This pointer records that the pre-registration exists; it records no result.
+
 ## What was asked
 
 The author ran a first-principles analysis on a real external work problem, saved the output,
