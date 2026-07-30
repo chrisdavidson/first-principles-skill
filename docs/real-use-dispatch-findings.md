@@ -14,7 +14,7 @@
 > `project-*` labels are assigned in first-use order in the private key, and this record
 > deliberately does not guess which one applies.
 
-> **A second dated observation of this finding is pre-registered.** Its outcome table is committed before the run, in [v8.14-delivery-verification.md](v8.14-delivery-verification.md) §3. This pointer records that the pre-registration exists; it records no result.
+> **A second dated observation of this finding is pre-registered.** Its outcome table is committed before the run, in [v8.14-delivery-verification.md](v8.14-delivery-verification.md) §3. This pointer records that the pre-registration exists; it records no result. **The run has since happened** — its dated result is in the 2026-07-29 addendum below, and the pre-committed outcome table it resolves to is unchanged from before the run.
 
 ## What was asked
 
@@ -170,12 +170,13 @@ into a measured harness and then spending milestones measuring the harness:
   the dispatch failure is unknown** — it is not established as new, as a regression, or as
   caused by any particular change. The evidence establishes *that* the boundary is broken now,
   not *when* it broke or *why*.
-- **Everything here is same-day.** The two real dispatch attempts and the battery pass shared a
-  date, a model generation, and a machine. They were three sources, not three independent samples
-  — **DISCHARGED IN PART — 2026-07-29 (Phase 188, DELIV-02):** a second dated observation retires
-  the same-day property of the dispatch record taken as a whole; it does not retire the fact that
-  the three original sources remain same-day among themselves. See
-  [v8.14-delivery-verification.md](v8.14-delivery-verification.md).
+- **Everything here is same-day.** The two real dispatch attempts and the battery pass share a
+  date, a model generation, and a machine. They are three sources, not three independent samples.
+  - **DISCHARGED IN PART — 2026-07-29 (Phase 188, DELIV-02).** A second dated observation retires
+    the same-day property of the dispatch record taken as a whole; it does not retire the fact that
+    the three original sources remain same-day among themselves, so the claim above stands verbatim
+    as written and is annotated beside rather than rewritten. See
+    [v8.14-delivery-verification.md](v8.14-delivery-verification.md).
 - **The battery pass is `--repeat 1`.** Standard practice for a live catalog run here is
   aggregate K-of-N across repeats; a `--repeat 5 --min-pass 3` confirmation has not been run.
 - **The P12 exception is unexplained.** One prompt routed and twelve did not, and the record
