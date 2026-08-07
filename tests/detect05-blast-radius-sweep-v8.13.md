@@ -503,3 +503,25 @@ rewritten or deleted).
 
 This phase corrected what was provably wrong and stated what is now uncertain; it did not
 re-litigate v8.7 through v8.10 beyond the figures and the one guard named in DETECT-05.
+
+## Addendum (2026-08-07) — a residual this sweep did not surface
+
+Recorded, not chased. The 2026-07-29 scope gate bars apparatus-about-apparatus work standing
+alone; this is a one-line residual on the record, not a scoped remediation.
+
+`docs/README.md` is in the §3c manifest, and §3b row 15 dispositioned its `untraced` "flat 6/6"
+mention (the v8.9 diagnosis index row) OUT-OF-SCOPE by design. But README also carries an
+**in-scope `chain`** claim on two *other* lines the sweep never surfaced — the v8.7 milestone
+paragraph and the `v8.7-post-fix-remeasure.md` index row — both stating `chain` improved
+6/6 → 4/6 and "the real signal is the chain-rigor improvement." Commands A/B/C do not return those
+lines: they quote no detector column name (A), no corpus-path stem (B), and neither the `flat 6/6`
+nor the `6/6 -> 6/6` phrase C keys on (the chain pair reads `6/6 -> 4/6`). So the sweep's
+**file-level** completeness held — README is in the manifest and `comm` is empty both directions —
+but row 15's **per-site** disposition covered only the untraced axis, silently leaving README's
+in-scope `chain` claim un-pointered. That claim is on the axis this sweep corrected in §3a rows 1-6
+and whose §8 Reasoning-test reads REFUTED (chain rose 5/6 → 6/6, it did not fall), so it was
+eligible for a correction pointer, not for the out-of-scope disposition its untraced neighbour got.
+Additive DETECT-05 pointers were added to both README lines on 2026-08-07. No manifest row changes;
+no frozen path touched. The general lesson: a manifest keyed on file paths proves every *file* was
+seen, not that every *claim-site within a file* was classified — a file can be dispositioned for one
+axis and carry an un-surfaced claim on another.
