@@ -13,6 +13,17 @@ installed session.
 
 ## [Unreleased]
 
+## [8.17.2] — 2026-08-16
+
+Closes all six streams of the 2026-08-16 duplication-and-staleness audit (PR #8).
+
+**Agent and skill content are byte-unchanged from 8.17.1.** `shared/` was not touched by this
+release, so the assembled agent body and all fourteen skill stubs are identical. The only shipped
+change inside the plugin is `first-principles/README.md`, which had still described v3.0.0. The
+version moves because installs are version-gated, not content-gated — a stamp that does not
+advance is a change that never reaches a session. Do not read a behaviour difference into this
+bump; there is none to read.
+
 ### Added
 
 - **SEMGATE now locks all six documented technique-overlap pairs, not three.** The audit's CAP-1

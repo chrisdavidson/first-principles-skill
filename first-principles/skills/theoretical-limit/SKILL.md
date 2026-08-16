@@ -3,7 +3,7 @@ name: theoretical-limit
 description: Strips conventions to the law-permitted ceiling. Invoke via /theoretical-limit only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.1"
+  version: "8.17.2"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/theoretical-limit/SKILL.md by sync-content.py -->

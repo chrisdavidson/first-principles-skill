@@ -3,7 +3,7 @@ name: second-order
 description: Runs a focused second-order only — 2nd/3rd-order effects. Invoke via /second-order only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.1"
+  version: "8.17.2"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/second-order/SKILL.md by sync-content.py -->

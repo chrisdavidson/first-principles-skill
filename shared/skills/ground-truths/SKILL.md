@@ -3,7 +3,7 @@ name: ground-truths
 description: Slash-only Phase 3 stub — compile GT-ID-anchored verified facts for derivation chains.
 disable-model-invocation: true
 metadata:
-  version: "8.17.1"
+  version: "8.17.2"
 license: MIT
 ---
 # Focused Ground Truths Mode
