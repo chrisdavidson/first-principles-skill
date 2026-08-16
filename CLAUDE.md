@@ -114,7 +114,7 @@ first-principles/               ← generated plugin (committed, never hand-edit
 
 ### Plugin layout and skill registration
 
-The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
+The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. Fourteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills plus the `first-principles-analysis` launcher — all registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
 
 Install for development: `claude --plugin-dir ./first-principles`
 

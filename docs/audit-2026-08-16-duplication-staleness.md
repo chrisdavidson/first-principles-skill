@@ -15,12 +15,34 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | Stream | Status |
 |---|---|
 | 0 — version-stamp equality assertion | **DONE.** `scripts/check-version-stamps.py` (VERSION-01), wired into CI and the offline battery (16 → 17 gates). Proven by fault injection on the live tree, not only on fixtures. |
-| 1 — fix stale claims (S-1…S-6) | Open, except where stream 5's consolidation fixed a claim as a side effect — each such case is marked inline below. |
+| 1 — fix stale claims (S-1…S-6) | **Partly done as a side effect of stream 5** — see the table below. S-1 and S-2 remain, and both are larger than a wording fix. |
 | 2 — retire 4 dead scripts | Open. |
 | 3 — adjudicate 9 milestone docs | Open. |
 | 4 — `tests/` archival decision | Open. |
-| 5 — doc consolidation, 9 clusters | **In progress.** Per-cluster status in §4. |
+| 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
 | 6 — extend SEMGATE (optional) | Open. |
+
+**Stale claims fixed while consolidating**, none of which were the point of the exercise — each
+was found because merging two copies forced a comparison:
+
+| Claim | Where | Was |
+|---|---|---|
+| S-3 skill count | `CLAUDE.md`, `ARCHITECTURE.md` | "the thirteen companion skills live under `first-principles/skills/`" — 14 directories do |
+| S-4 accretion | `README.md` ×3 | "Eleven companion skills … has since grown to thirteen"; same shape for examples |
+| S-6 index gap | `docs/README.md` | `whole-system-remeasure-verdict.md` unlisted |
+| S-8 (new) | 6 surfaces | `{{TOOL:slug}}` documented backwards — see below |
+| Body budget | `CONTRIBUTING.md` ×2 | "must stay under 644 lines" listed as an invariant PRs must preserve; gate retired under TEARDOWN-01 |
+| Gate counts | `CONTRIBUTING.md`, `CONFIGURATION.md` | "twelve CI gates" / "all 12 CI gates" — 14, and stale before VERSION-01 |
+| QUAL-01 in CI | `CLAUDE.md` | listed under "all gates run in `validation.yml`"; it is battery-only |
+| Battery count | `CLAUDE.md` | 16/16 → 17/17 |
+| Version badge | `README.md` | hardcoded `8.0.0` while shipping `8.17.1`; now a tag-reading badge that cannot go stale |
+| Plugin README | `first-principles/README.md` | described v3.0.0: "plugin contents removed", six tools, six examples, no skills directory |
+
+**Still open, and deliberately so.** S-1 (`CLAUDE.md` is ~9 milestones behind) and S-2 (two
+competing coverage headlines) are not wording fixes: S-1 needs a judgement about which of ten
+milestones' facts still matter to a session, and S-2 needs a decision about whether
+`v8.0-final-closure.md` may keep calling a superseded number "final". Both belong to stream 1
+proper.
 
 ---
 
@@ -70,17 +92,20 @@ skills — `inversion.md` says "use inversion during Phase 2 (Challenge Assumpti
 `second-order.md` says "after Phase 4, before Phase 5". So `challenge-assumptions` ↔ `inversion`
 is containment, not redundancy. No action.
 
-**Finding CAP-3 (zero-cost duplication).** Each technique procedure exists three times — inlined
-into the agent body via `{{TOOL:slug}}`, as a reference sibling, and in the skill stub via
-`{{PROCEDURE:slug}}`. This is generated from `shared/` and drift-gated by DUAL-04.
-**Remediation cost: zero.** Do not price it as work.
+**Finding CAP-3 (zero-cost duplication).** Each technique procedure exists twice in the generated
+tree — as an agent reference sibling (a verbatim copy) and inside the focused-mode skill stub (via
+`{{PROCEDURE:slug}}`). Both are generated from the single `shared/references/<slug>.md` source and
+drift-gated by DUAL-04. **Remediation cost: zero.** Do not price it as work.
+
+*Corrected during stream 5:* this finding originally said "three times", counting the agent body
+via `{{TOOL:slug}}`. That was the same error as S-8 below — `{{TOOL:slug}}` substitutes a name,
+not a procedure. The audit inherited the mistake from the documents it was auditing, which is
+itself evidence for how far that claim had propagated.
 
 ---
 
 ## 3. Capability duplication — tooling
 
-| Script | Size | In CI | In battery | Verdict |
-|---|---|---|---|---|
 Traceability pinning was checked for each candidate — `docs/data/matrix.json` artifact links are
 deep-resolved by TRACE-03, so a script named there cannot simply be deleted.
 
@@ -107,14 +132,14 @@ Removing all four also removes a combined 34-reference documentation footprint.
 | Topic | Restated on | Surfaces | Status |
 |---|---|---|---|
 | **Version stamp** (files, not docs) | 14 × `shared/skills/*/SKILL.md`, `shared/spine/SKILL.meta.yml`, `.claude-plugin/marketplace.json`, `first-principles/.claude-plugin/plugin.json` | **17** | **gated — VERSION-01** |
-| CI gate inventory | `CLAUDE.md`, `CONTRIBUTING.md`, `docs/CONFIGURATION.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/DATA-FLOW.md`, `docs/COMPONENT-DIAGRAM.md` | **7** | owner: `docs/TESTING.md` |
-| Sync pipeline / token substitution | `CLAUDE.md`, `ARCHITECTURE`, `CONFIGURATION`, `DATA-FLOW`, `DEVELOPMENT`, `COMPONENT-DIAGRAM` | **6** | owner: `docs/ARCHITECTURE.md` |
-| Methodology / 5 phases | `README.md`, `METHODOLOGY-CHEATSHEET`, `FIVE-PHASE-FLOW`, `ARCHITECTURE`, `first-principles/README.md` | **5** | owner: `docs/METHODOLOGY-CHEATSHEET.md` |
-| Measurement stack | `CLAUDE.md`, `TESTING`, `MEASUREMENT-MAP`, `testing-agents-headlessly`, `live-monitoring-runbook` | **5** | owner: `docs/MEASUREMENT-MAP.md` |
-| Key invariants | `CLAUDE.md`, `CONTRIBUTING`, `CONFIGURATION`, `ARCHITECTURE` | **4** | owner: `docs/CONFIGURATION.md` |
-| Install instructions | `README.md`, `GETTING-STARTED`, `DEVELOPMENT`, `first-principles/README.md` | **4** | owner: `docs/GETTING-STARTED.md` |
-| Pre-commit hook setup | `CLAUDE.md`, `CONTRIBUTING`, `CONFIGURATION`, `DEVELOPMENT` | **4** | owner: `docs/CONFIGURATION.md` |
-| Contribution / editing loop | `CONTRIBUTING`, `DEVELOPMENT`, `ONBOARDING` | **3** | owner: `docs/DEVELOPMENT.md` |
+| CI gate inventory | `CLAUDE.md`, `CONTRIBUTING.md`, `docs/CONFIGURATION.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md`, `docs/DATA-FLOW.md`, `docs/COMPONENT-DIAGRAM.md` | **7** | **done** — owner `docs/ARCHITECTURE.md` (inventory) + `docs/TESTING.md` (run-detail) |
+| Sync pipeline / token substitution | `CLAUDE.md`, `ARCHITECTURE`, `CONFIGURATION`, `DATA-FLOW`, `DEVELOPMENT`, `COMPONENT-DIAGRAM` | **6** | **done** — owner `docs/ARCHITECTURE.md`; surfaced S-8 |
+| Methodology / 5 phases | `README.md`, `METHODOLOGY-CHEATSHEET`, `FIVE-PHASE-FLOW`, `ARCHITECTURE`, `first-principles/README.md` | **5** | **done** — README trimmed to its front-door pitch; cheatsheet kept as a distinct genre |
+| Measurement stack | `CLAUDE.md`, `TESTING`, `MEASUREMENT-MAP`, `testing-agents-headlessly`, `live-monitoring-runbook` | **5** | **done** — owner `docs/MEASUREMENT-MAP.md` |
+| Key invariants | `CLAUDE.md`, `CONTRIBUTING`, `CONFIGURATION`, `ARCHITECTURE` | **4** | **done** — owner `docs/CONFIGURATION.md`, each invariant paired with its gate |
+| Install instructions | `README.md`, `GETTING-STARTED`, `DEVELOPMENT`, `first-principles/README.md` | **4** | **done** — owner `docs/GETTING-STARTED.md`; plugin README rewritten self-contained |
+| Pre-commit hook setup | `CLAUDE.md`, `CONTRIBUTING`, `CONFIGURATION`, `DEVELOPMENT` | **4** | **done** — owner `docs/CONFIGURATION.md` |
+| Contribution / editing loop | `CONTRIBUTING`, `DEVELOPMENT`, `ONBOARDING` | **3** | **done** — owner `docs/DEVELOPMENT.md`; both copies now call the battery |
 
 **Consolidation rules applied in stream 5.** One owner per topic holds the full statement; every
 other surface keeps a one-line orientation plus a link. Three exceptions, each for a reason that

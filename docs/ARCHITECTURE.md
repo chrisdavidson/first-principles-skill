@@ -93,7 +93,7 @@ The plugin root is `first-principles/`. Install for development:
 claude --plugin-dir ./first-principles
 ```
 
-The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` — slash-only; the orchestrator never auto-routes to them.
+The agent is registered at `first-principles/agents/first-principles.md`. Fourteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills plus the `first-principles-analysis` launcher — all registered with `disable-model-invocation: true`; slash-only, the orchestrator never auto-routes to them. The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13.
 
 **Companion skill slugs:** `challenge-assumptions`, `estimate`, `fishbone`, `five-whys`, `ground-truths`, `identify-essence`, `inversion`, `pre-mortem`, `reason-upward`, `second-order`, `theoretical-limit`, `trade-off`, `validate`
 
