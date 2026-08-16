@@ -18,7 +18,7 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | 1 — fix stale claims (S-1…S-8) | **DONE.** S-3/S-4/S-6/S-8 fixed during stream 5; S-1 and S-2 fixed here; **S-5 retracted** as a false finding (see below). Also fixed the v8.15 Self-Audit Gate rename, which had never reached the user-facing docs. |
 | 2 — retire dead scripts | **DONE — 3 of 4 retired.** `check-sub-skill-routing.py`, `check-focused-output.py`, `check-inventory.py` (plus `tests/test_81_inventory.py`). `check-body-budget.py` **kept by decision**: TEARDOWN-01 deliberately preserved the reporter when it retired the gate, and the battery's `[INFO]` line is its live consumer — only its documentation footprint was pruned. |
 | 3 — adjudicate 9 milestone docs | Open. |
-| 4 — `tests/` archival decision | Open. |
+| 4 — `tests/` archival decision | Open. **Note for whoever runs it:** stream 2 newly orphaned `tests/focused-output-catalog.md`, `tests/sub-skill-routing-catalog.md`, and the `focused-output-baseline-v*.md` / `sub-skill-routing-baseline-v*.md` sets — they were consumed only by the two retired shims. Several sit inside FROZEN-EVIDENCE's pathspec and must not be edited in place. They moved from live fixtures to archive of a retired tool; recorded here so they are not mistaken for still-live. |
 | 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
 | 6 — extend SEMGATE (optional) | Open. |
 
@@ -65,9 +65,9 @@ opposite directions, both recorded rather than quietly adjusted:
 | Axis | Verdict |
 |---|---|
 | **Capability duplication (product surface — 14 skills)** | **Clean.** No redundant technique found. Overlap is real but deliberate and partly gated. |
-| **Capability duplication (tooling — 23 scripts)** | **3 dead, retired** (~41 KB); a 4th kept by decision. `check-routing.py` looked like a fifth and is not. |
+| **Capability duplication (tooling — 23 scripts)** | **3 dead, retired** — ~40 KB of scripts plus `tests/test_81_inventory.py`; a 4th kept by decision. `check-routing.py` looked like a fifth and is not. |
 | **Information duplication** | **Substantial.** 8 topic clusters restated across 3–7 of the 21 hand-maintained doc surfaces, plus one value (the version stamp) duplicated across 17 *files*. |
-| **Stale information** | **Confirmed, concentrated.** Worst offender is `CLAUDE.md` (loaded every session, ~9 milestones behind). |
+| **Stale information** | **Confirmed, concentrated** — worst offender was `CLAUDE.md`, which every session loads. **Closed in stream 1** (S-5 retracted as a false finding); the table below records each claim as found. |
 | **Stale artifacts (`tests/`)** | **441 of 551 tracked files (80 %; 3.0 MB of 3.9 MB) are unpinned archive.** |
 
 Estimated remediation: **13–20 h** for the staleness-only pass (streams 0–4),

@@ -6,8 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Current shipped version: see `.claude-plugin/marketplace.json` (all 17 version stamps move in
 lockstep — VERSION-01 enforces it). For what changed in any milestone, read the tag table and
-entries in [`CHANGELOG.md`](CHANGELOG.md); this file describes the repo as it stands, not its
-history, and deliberately does not restate milestone narrative.
+entries in [`CHANGELOG.md`](CHANGELOG.md). This file describes the repo as it stands and does
+not track release history — where it names a milestone below, that is a current-state fact
+carrying its provenance, not a changelog entry.
 
 A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus fourteen slash-invocable skills: the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) and the `first-principles-analysis` launcher. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
@@ -21,7 +22,7 @@ python3 scripts/sync-content.py --check   # verify no drift (exit 1 on drift)
 uv run scripts/sync-content.py --write    # uv alternative (auto-resolves deps)
 ```
 
-### Validation scripts (most need Python ≥ 3.12 + PyYAML; check-install-collisions.py is stdlib-only)
+### Validation scripts (Python ≥ 3.12; those that parse frontmatter also need PyYAML — `check-body-budget.py`, `check-install-collisions.py` and `check-quality-harness.py` are stdlib-only)
 
 ```sh
 python3 scripts/check-agent.py            # GATE-01: agent structural checks

@@ -25,6 +25,32 @@ installed session.
   `scripts/check-firewall-battery.sh`; battery composition moves 16 → 17. The stamp count is
   reported, never asserted, so adding a skill does not require editing the gate.
 
+### Removed
+
+- **Three retired scripts**, none of which had a live consumer:
+  `scripts/check-sub-skill-routing.py` and `scripts/check-focused-output.py` (deprecated thin
+  shims — `check-routing-battery.py` had already replaced both, and its own header said so), and
+  `scripts/check-inventory.py` (a requirement-ID auditor whose input corpus,
+  `.planning/milestones/*-REQUIREMENTS.md`, is gitignored and superseded by
+  `docs/requirements-traceability.md` under CANON-01; no requirement in the traceability surface
+  referenced its AUDIT-01..04 IDs). `tests/test_81_inventory.py` went with the last of these,
+  having loaded it by hard path.
+- `scripts/check-body-budget.py` was **kept**, deliberately. TEARDOWN-01 retired the body-budget
+  gate but preserved the reporter, and the firewall battery's untallied `[INFO]` line still
+  consumes it. Only its documentation footprint was pruned.
+- **Guards migrated, not dropped.** `tests/test_65_doc_invariants.py` had pinned the two shims
+  across six tests — their self-tests, the boundary p-threshold default of 2, the catalog dry-run
+  parse, and a `CLAUDE.md` mention. Each invariant moved onto `check-routing-battery.py` under its
+  namespaced `--boundary-*` / `--focused-*` flags, plus a new guard asserting the three retired
+  scripts do not reappear. Two of the old tests would have kept passing vacuously: one was
+  satisfied by the sentence *recording* the retirement, and one pinned flag spelling rather than
+  the threshold values it existed to protect.
+- The `v3.8/EVAL-01` matrix row named `check-focused-output.py` as its `deliverable_path`. That
+  field is reported but never existence-resolved (only `artifact_link` is), so a dangling path
+  would have failed silently — it is repointed at the successor with the substitution recorded,
+  and `docs/requirements-matrix.md` / `docs/data/matrix.json` regenerated. Row count unchanged
+  at 214.
+
 ### Changed
 
 - **`first-principles/README.md` rewritten.** The shipped plugin README still described v3.0.0 —
@@ -39,6 +65,17 @@ installed session.
   substitutes a *name*, not a procedure, so the technique procedures are not inlined into the
   agent body). Full record in
   [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
+- **The Self-Audit Gate rename reached the user-facing docs.** 8.15.0 renamed the Validation
+  Rubric to the Self-Audit Gate because two instruments shared one name, but the change stopped at
+  the agent surface: `README.md` (×4), `docs/ARCHITECTURE.md` and `docs/METHODOLOGY-CHEATSHEET.md`
+  kept the old name — the exact collision the rename existed to remove. The file is still
+  `validation-rubric.md`. One occurrence remains in shipped content
+  (`shared/skills/first-principles-analysis/SKILL.md`) and is logged as follow-up, since changing
+  it requires a regen and a version bump.
+- The coverage headline now has one authoritative home. Three surfaces asserted the superseded
+  v8.0 figure (133/96/0/229) as current against the real 126/88/0/214;
+  `docs/requirements-traceability.md` is the single source, and `docs/v8.0-final-closure.md` keeps
+  its numbers unedited with a superseded-by note, since it is the record of what v8.0 measured.
 
 ## [8.17.1] - 2026-08-16
 
