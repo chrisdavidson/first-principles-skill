@@ -13,7 +13,32 @@ installed session.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **VERSION-01 gate — the stamp-lockstep rule above is now enforced.**
+  `scripts/check-version-stamps.py` discovers every hand-maintained version stamp by glob and
+  asserts they all carry the same value. Until now nothing checked this: `sync-content.py` copies
+  `metadata.version` through per-file rather than propagating one source of truth, and the
+  documented "version string invariant" checks a stamp's *format*, not its agreement with the
+  others — so a single missed stamp shipped an inert update with every gate green, which is what
+  happened at v8.14. Wired into `.github/workflows/validation.yml` and
+  `scripts/check-firewall-battery.sh`; battery composition moves 16 → 17. The stamp count is
+  reported, never asserted, so adding a skill does not require editing the gate.
+
+### Changed
+
+- **`first-principles/README.md` rewritten.** The shipped plugin README still described v3.0.0 —
+  a "plugin contents removed" banner, six companion tools, six worked examples, and no mention of
+  the `skills/` directory. It now describes what the plugin actually ships (8 technique references
+  with 4 detail siblings, 3 spine references, 14 worked examples, 14 slash-invocable skills), each
+  count verified against the tree. Its outbound links stay absolute, and the file now says why, so
+  the v8.17.1 defect is not reintroduced by a later tidy-up. **This is shipped content: it reaches
+  installed users only on the next version bump.**
+- Repo documentation consolidated onto one owner per topic, and a set of stale claims corrected
+  along the way — including a mechanism that six documents had backwards (`{{TOOL:slug}}`
+  substitutes a *name*, not a procedure, so the technique procedures are not inlined into the
+  agent body). Full record in
+  [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
 
 ## [8.17.1] - 2026-08-16
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus thirteen standalone slash-invocable companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate). The entire deliverable is pure Markdown — no executable code ships inside the plugin.
+A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus fourteen slash-invocable skills: the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) and the `first-principles-analysis` launcher. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
 ## Commands
 
@@ -23,11 +23,15 @@ python3 scripts/check-agent.py            # GATE-01: agent structural checks
 python3 scripts/check-links.py            # VAL-03: broken relative MD links
 python3 scripts/check-trigger-collisions.py  # VAL-04: 4-gram collision scan across skills
 python3 scripts/check-description-budget.py  # VAL-05: skill listing under 2000-char ceiling
+python3 scripts/check-version-stamps.py   # VERSION-01: all hand-maintained version stamps agree
 python3 scripts/check-body-budget.py      # report-only line-count reporter; gate retired under TEARDOWN-01, see docs/v8.7-constraint-teardown.md
 python3 scripts/check-install-collisions.py --self-test  # COLLIDE-01: dual-install name-collision self-test
 python3 scripts/check-install-collisions.py              # COLLIDE-01: live-tree scan (vacuous if monolith absent)
 python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blind A/B quality-harness self-test
 ```
+
+This list is a convenience, not the authority — a hand-maintained list of gates goes stale by
+construction. `bash scripts/check-firewall-battery.sh` runs the set that actually exists.
 
 ### Routing battery (requires a running Claude Code session)
 

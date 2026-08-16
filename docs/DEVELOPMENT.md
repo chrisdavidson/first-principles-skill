@@ -140,6 +140,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
+| `check-version-stamps.py` | VERSION-01 | `python3 scripts/check-version-stamps.py` | Every hand-maintained version stamp carries the same value; run `--self-test` for the fault-injection fixtures |
 | `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
 | `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files. **Not wired into CI** — manual audit tool. |
 

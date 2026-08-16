@@ -69,8 +69,9 @@ Why it exists: plugin installs are version-gated, not content-gated. An edit tha
 a version bump never reaches an installed session, so a single missed stamp produces an inert
 update while every other gate stays green. Nothing previously asserted *equality* —
 `sync-content.py` copies `metadata.version` through per-file rather than propagating one source
-of truth, and the version-string invariant below checks a stamp's **format**, not its agreement
-with the other sixteen.
+of truth, and the version-string invariant in
+[CONFIGURATION.md](CONFIGURATION.md#key-invariants) checks a stamp's **format**, not its
+agreement with the others.
 
 The stamp count is reported, never asserted. Hardcoding it would recreate the drift the gate
 exists to catch: a newly added skill is discovered by glob automatically, and one that forgets
