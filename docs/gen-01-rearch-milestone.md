@@ -11,8 +11,10 @@
 > load-bearing. `check-traceability.py --self-test` fixture (9) sets
 > `artifact_link="docs/gen-01-rearch-milestone.md"` and `check_consistency()` deep-resolves
 > artifact links, so removing this file fails TRACE-03. Verified by removal, not by grep:
-> renaming it away makes `--self-test` exit 1 with `artifact file not found`. **Do not delete or
-> rename** without re-pointing that fixture. See
+> renaming it away makes `--self-test` exit 1 with `artifact file not found`. This is the one pin
+> among the nine that the documented prune convention cannot clear: demoting the `docs/README.md`
+> link to backticks satisfies VAL-03, but TRACE-03 resolves the file itself and still fails.
+> **Do not delete or rename** without re-pointing that fixture. See
 > [audit-2026-08-16-duplication-staleness.md](audit-2026-08-16-duplication-staleness.md).
 
 ---

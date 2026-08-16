@@ -308,20 +308,36 @@ governing record, or historical narrative?
 >
 > **Three things the adjudication established that the audit had wrong or had not checked:**
 >
-> 1. **Only one of the nine is gate-pinned.** `gen-01-rearch-milestone.md` is set as
->    `artifact_link` on TRACE-03 self-test fixture (9) and is deep-resolved; removing it makes
->    `check-traceability.py --self-test` exit 1. Verified by removal, then restored — not by grep,
->    for the reason §3 records twice.
-> 2. **`whole-system-remeasure-verdict.md` is not pinned, though it looks it.** Thirteen matrix
->    rows name it, but as one `deliverable_path` (reported, never existence-checked) and twelve
->    `gap_rationale` prose mentions. Same field-level distinction that made §3's original
->    `check-focused-output.py` verdict wrong.
-> 3. **Every `scripts/` mention of the other seven is a provenance comment, not a dependency.**
->    Thirteen script references across `_battery_core.py`, `check-step0-live.py`,
+> 1. **"Is it gate-pinned?" is confounded, and the confound had to be removed before the question
+>    meant anything.** Removing *any* of the nine fails VAL-03, because `docs/README.md` links all
+>    nine — that measures the index, not the document. The documented prune convention (demote the
+>    index link to backticks) clears it. So the discriminating question is narrower: **does a gate
+>    resolve the file itself, independent of the index link?** For eight of the nine, no.
+> 2. **`gen-01-rearch-milestone.md` is the one exception.** It is set as `artifact_link` on
+>    TRACE-03 self-test fixture (9) and is deep-resolved; removing it makes
+>    `check-traceability.py --self-test` exit 1 with `artifact file not found`. Verified by
+>    removal, then restored — not by grep, for the reason §3 records twice.
+> 3. **`whole-system-remeasure-verdict.md` looks pinned and is not.** Thirteen matrix rows name
+>    it, but as one `deliverable_path` (the RECON-01 row, authored at `check-traceability.py:872`;
+>    reported, never existence-checked) and twelve `gap_rationale` prose mentions. Confirmed the
+>    same way as gen-01 and with the same grade of proof: with the file moved away, TRACE-03
+>    `--self-test` exits **0** and the battery's only failure is VAL-03. Same field-level
+>    distinction that made §3's original `check-focused-output.py` verdict wrong.
+> 4. **Every remaining `scripts/` mention is a provenance comment, not a dependency.** All script
+>    references to the other seven — across `_battery_core.py`, `check-step0-live.py`,
 >    `sync-content.py`, `check-quality-harness.py`, `check-body-budget.py`,
->    `check-firewall-battery.sh` and both pre-commit hooks were read line by line. None
->    existence-check a file; several *cite* one as the authority for a live behaviour, which is a
->    reason to keep the document but not a gate.
+>    `check-firewall-battery.sh`, `check-traceability.py` and both pre-commit hooks — were read
+>    line by line rather than counted. None existence-check a file; several *cite* one as the
+>    authority for a live behaviour, which is a reason to keep the document but not a gate.
+>
+> **A per-file sweep nearly shipped a false claim here, which is the DETECT-05 lesson recurring.**
+> The first pass read script mentions for five of the seven non-pinned documents in one loop and
+> left `whole-system-remeasure-verdict` out of it — the one document whose banner made the
+> strongest negative claim ("no gate fails if it disappears"). A loop proves every *file in the
+> loop* was seen, not every *claim-site*. The omission was caught in review, the three lines were
+> read, the removal test was run — and the claim turned out to be **wrong as originally written**:
+> VAL-03 does fail, for the index reason above. Recorded rather than quietly corrected, because
+> the near-miss is the finding.
 >
 > **`v8.14-delivery-verification.md` is the case against pruning by reference count.** It has the
 > fewest inbound references of the nine (two, both from the index) and is the least prunable on

@@ -91,8 +91,8 @@ earned its keep on a distinct ground.
 | [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | **Governing record** | The relaxation still scopes which reference files may split; `sync-content.py` and `check-step0-live.py` cite it as the authority |
 | [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | **Governing record** | The published form of the pre-registered STOP governing Phases 189–191 and GREENMEAN-01's WON'T-DO. One inbound reference; inbound count is the wrong test |
 | [v8.0-final-closure.md](v8.0-final-closure.md) | **Split** — governing / superseded | Its terminal ACCEPTED-FINAL dispositions still stand; **every count in it is superseded** (133/96/0/229 → 126/88/0/214; battery 15/15 → 17/17) |
-| [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | **Gate-pinned artifact** | The only one of the nine a gate actually resolves: TRACE-03 fixture (9) deep-resolves it. Proven by removal — `--self-test` exits 1 without it |
-| [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | **Frozen evidence** | Provenance anchor for 13 live matrix rows' dispositions. Not gate-pinned: `deliverable_path` is reported, never existence-checked |
+| [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | **Gate-pinned artifact** | The only one of the nine whose file a gate resolves: TRACE-03 fixture (9) deep-resolves it, proven by removal |
+| [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | **Frozen evidence** | Provenance anchor for 13 live matrix rows' dispositions |
 | [v8.7-quality-baseline-freeze.md](v8.7-quality-baseline-freeze.md) | **Frozen evidence** (live baseline) | Provenance for QUAL-01 and the committed `tests/quality-baseline-v8.7*` the harness still reads. Carries inline DETECT-05 corrections — read them before quoting a figure |
 | [v8.6-quality-ab-experiment.md](v8.6-quality-ab-experiment.md) | **Frozen evidence** | The source experiment the QUAL-01 instrument was promoted from; still the record of the four reproducible output-contract defects |
 | [v8.6-live-remeasure-verdict.md](v8.6-live-remeasure-verdict.md) | **Frozen evidence** | Records the S-P04 2/5 → 0/5 → 2/5 swing that is the evidence behind the K-of-5 demotion |
@@ -103,9 +103,12 @@ recorded date and of nothing later, kept because live artifacts cite it for prov
 *gate-pinned artifact* may be either, plus a file whose absence fails a gate.
 
 **What the adjudication turned on.** Not inbound-reference counts. This audit's §3 already got
-"pinned" wrong twice by reading greps instead of resolving fields, so each claim above was
-checked at the field level (`artifact_link` is deep-resolved; `deliverable_path` is not), and the
-one pin that mattered was verified by removing the file and watching the gate fail.
+"pinned" wrong twice by reading greps instead of resolving fields, so each claim was checked at
+the field level (`artifact_link` is deep-resolved; `deliverable_path` is not) and settled by
+removing the file and running the gates. Note the confound that had to be cleared first:
+**removing any of the nine fails VAL-03**, because this index links all nine — that measures the
+index, not the document, and the prune convention above (demote the link to backticks) clears it.
+The narrower question, *does a gate resolve the file itself?*, is yes for exactly one.
 
 ## Core docs
 
@@ -133,7 +136,7 @@ one pin that mattered was verified by removing the file and watching the gate fa
 
 | Document | What it covers |
 |----------|----------------|
-| [v8.0-final-closure.md](v8.0-final-closure.md) | **Terminal record** — final baselines, accepted limitations, coverage headline, deferred-ledger disposition summary |
+| [v8.0-final-closure.md](v8.0-final-closure.md) | The v8.0 terminal ACCEPTED-FINAL dispositions and deferred-ledger summary. **Its counts are superseded** — see its Standing banner and the table above |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
 | [requirements-matrix.md](requirements-matrix.md) | Generated 214-row capability → requirement → test matrix |
 

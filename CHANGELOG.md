@@ -61,7 +61,9 @@ installed session.
   Five are neither: *frozen evidence*, cited for provenance by live artifacts while asserting
   nothing current. A third class covers `gen-01-rearch-milestone.md`, the only one of the nine a
   gate resolves (TRACE-03 fixture (9) deep-resolves its `artifact_link`; verified by removing the
-  file and watching `--self-test` exit 1). The verdicts live in the documents rather than only in
+  file and watching `--self-test` exit 1). "Gate-pinned" first had to be disentangled from an
+  index artefact: removing *any* of the nine fails VAL-03 because `docs/README.md` links all
+  nine, which measures the index rather than the document. The verdicts live in the documents rather than only in
   an index because the failure being closed — `v8.0-final-closure.md` calling a moved figure
   "final" — persisted exactly because its warning sat in `CLAUDE.md` instead.
 - **`v8.14-delivery-verification.md` is the case against pruning by reference count.** Fewest
