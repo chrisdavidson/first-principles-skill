@@ -12,7 +12,45 @@ installed session.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Changed
+
+- **`maxTurns` reverted 60 → 30.** The v8.15.0 raise was justified by a run that spent turns on
+  "seven consecutive busy-wait loops polling for dispatched sub-agents." v8.16.0 also added the
+  anti-polling rule, which addressed that root cause directly — so the budget raise was
+  belt-and-braces. A controlled A/B on the same prompt, with the agent definition differing only
+  in `maxTurns`, measured:
+
+  | | cap 60 | cap 30 |
+  |---|---:|---:|
+  | Turns used | 39 (longest leg) | **17** |
+  | Output | 116,025 ch | 118,260 ch |
+  | Ground truths | 41 | 22 |
+  | `?`-marked | 76% | 68% |
+  | Self-Audit Gate | 6 blocks, PASS | **6 blocks, graded bands** |
+  | Research sub-agents | 2 streams | **0** |
+
+  No polling was observed under either cap. The capped run kept every structural feature — the
+  provenance ladder, `?`-as-default, the explicit count, the Gate held separate from the
+  subject-matter rubric, the closure ledger, the exhaustive assumption scan — and additionally
+  graded its Gate (4 Rigorous / 2 Sound) rather than passing it binary, naming its own shortfalls.
+  It absorbed the constraint by **declining to delegate** and labelling recall honestly rather
+  than by truncating: *"An analysis of this topic that presented forty crisp unsuffixed facts
+  would be fabricating rigor."*
+
+- **Known consequence, recorded rather than discovered later.** 30 turns buys a complete analysis;
+  60 buys the ability to *check* it. The capped run produced no verification stream and therefore
+  none of the uncapped run's corrections — it still cites Sweeney's 87%, which the uncapped run
+  retracted in favour of Golle's 63.3%. **A delegating full-composer run was measured at 39 turns
+  and will truncate at 30.** Raise the cap for workloads that dispatch research sub-agents.
+
+### Known defect (not yet fixed)
+
+- **The `?`-count exit criterion is satisfied in form and fails in substance, at both caps.** Every
+  observed draft states a count; none states a correct one — 24-of-41 where the true figure was
+  31-of-41, 17-of-45 where it was 21-of-57, and 17-of-22 where it was 15-of-22. Self-Audit Gate
+  criterion 3 quotes the stated number and passes it. **The gate verifies that a count was
+  stated, not that it is correct.** It is the one gate criterion that is mechanically checkable;
+  it should be derived, not asserted.
 
 ## [8.16.0] - 2026-08-16
 

@@ -7,7 +7,7 @@ metadata:
 disallowedTools:
 - Write
 - Edit
-maxTurns: 60
+maxTurns: 30
 AskUserQuestion: permitted
 ---
 <!-- GENERATED — DO NOT EDIT. Source: shared/spine/SKILL-body.md. Regenerate via: scripts/sync-content.py --write. -->

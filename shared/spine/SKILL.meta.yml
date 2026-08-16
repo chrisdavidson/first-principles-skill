@@ -5,5 +5,5 @@ agent:
   metadata:
     version: "8.16.0"
   disallowedTools: [Write, Edit]
-  maxTurns: 60
+  maxTurns: 30
   AskUserQuestion: permitted
