@@ -15,6 +15,29 @@ installed session.
 
 _Nothing yet._
 
+## [8.17.1] - 2026-08-16
+
+### Fixed
+
+- **Links in shipped plugin content escaped the plugin root.** Four relative links pointed
+  above `first-principles/` with `../` — one in the agent body
+  (`agents/first-principles.md` → `../../docs/testing-agents-headlessly.md`) and three in
+  `first-principles/README.md` (→ `../README.md`, `../CHANGELOG.md` ×2). Inside the repo they
+  resolved, so no gate caught them: `check-links.py` validates the repo tree, where the
+  targets exist. For anyone who installs the plugin standalone — the normal case, since
+  `docs/` and the repo root are never delivered — all four were dead. Each is now an absolute
+  URL into the GitHub repo, which resolves from either surface. The agent body carries no
+  other outbound link, and no `../` link remains anywhere in `shared/` or `first-principles/`.
+
+A patch release, not a minor: this fixes a defect and opens no milestone. It is the project's
+first patch version — every prior release was milestone-numbered `X.Y.0`. All 17 version
+stamps moved in lockstep per the note above, because without the bump the fix would never
+reach an installed session.
+
+Non-shipping change in the same window: `docs/` was pruned of 34 historical milestone
+documents (61 tracked entries → 27, −898 KB). Removed files remain in git history; see the
+**Retrieving removed documents** note at the top of `docs/README.md`.
+
 ## [8.17.0] - 2026-08-16
 
 Fixes the defect recorded below: the `?`-count is now **enumerated by ID** rather than asserted

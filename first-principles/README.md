@@ -1,6 +1,6 @@
 # First Principles Thinking — Claude Code Plugin
 
-> **v3.0.0 — Plugin contents removed.** The 7 namespaced skills (`first-principles:thinking`, `:five-whys`, `:pre-mortem`, `:trade-off`, `:fishbone`, `:inversion`, `:second-order`) and the root monolith have been removed. The recommended (and only shipped) interface is the **first-principles agent** — invoke `@agent-first-principles:first-principles` or `/first-principles:first-principles`. See [/CHANGELOG.md](../CHANGELOG.md) for the upgrade path.
+> **v3.0.0 — Plugin contents removed.** The 7 namespaced skills (`first-principles:thinking`, `:five-whys`, `:pre-mortem`, `:trade-off`, `:fishbone`, `:inversion`, `:second-order`) and the root monolith have been removed. The recommended (and only shipped) interface is the **first-principles agent** — invoke `@agent-first-principles:first-principles` or `/first-principles:first-principles`. See [/CHANGELOG.md](https://github.com/chrisdavidson/first-principles-skill/blob/master/CHANGELOG.md) for the upgrade path.
 
 A Claude Code plugin packaging the 5-phase first-principles methodology as a single agent, with six on-demand companion thinking tools loaded as agent reference siblings.
 
@@ -25,4 +25,4 @@ claude --plugin-dir ./first-principles
 
 Verify with `/doctor` inside Claude Code; the `first-principles` agent should appear in the listing.
 
-For marketplace install and the full upgrade path from v2.x, see the repo-root [README](../README.md) and [CHANGELOG.md](../CHANGELOG.md).
+For marketplace install and the full upgrade path from v2.x, see the repo-root [README](https://github.com/chrisdavidson/first-principles-skill/blob/master/README.md) and [CHANGELOG.md](https://github.com/chrisdavidson/first-principles-skill/blob/master/CHANGELOG.md).

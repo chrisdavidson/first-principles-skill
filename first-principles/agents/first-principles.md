@@ -3,7 +3,7 @@ name: first-principles
 description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) internally. ALWAYS delegate to the first-principles agent when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Do not perform inline analysis for these. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
-  version: "8.17.0"
+  version: "8.17.1"
 disallowedTools:
 - Write
 - Edit
@@ -359,7 +359,7 @@ names the ceiling; estimate sizes the quantities under it).
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
 - Self-audit gate (scores this analysis, not the subject) → [Self-Audit Gate](references/validation-rubric.md)
-- Testing this agent headlessly → [docs/testing-agents-headlessly.md](../../docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
+- Testing this agent headlessly → [docs/testing-agents-headlessly.md](https://github.com/chrisdavidson/first-principles-skill/blob/master/docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
 
 #### Worked Examples
 
