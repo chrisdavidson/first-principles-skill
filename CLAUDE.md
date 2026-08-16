@@ -226,6 +226,10 @@ is in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
 
 ### Measurement comparison
 
+The four Step-0/routing tools, for orientation. The canonical layer map — which adds the
+traceability, quality-harness and sentinel layers — is
+[`docs/MEASUREMENT-MAP.md`](docs/MEASUREMENT-MAP.md#measurement-layers).
+
 | Tool | Measured layer | Run command | CI gate |
 |------|---------------|-------------|---------|
 | `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | None — developer tool, not wired into `validation.yml` |

@@ -30,7 +30,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact; 
 
 **Phase 5 — Validate:** Adversarial pass over the completed chains. Finds the weakest link in each chain, checks whether unverified assumptions are load-bearing, and applies a validation rubric as a systematic gate. Produces the *Signed-off analysis* — the complete output document with all conclusions traced and all weak links either resolved or explicitly flagged.
 
-For the complete procedure with entry/exit criteria per phase and the exact output document structure, see [`first-principles/agents/first-principles.md`](first-principles/agents/first-principles.md). The agent body is the authoritative spec — the summary above orients; it defines.
+For the complete procedure with entry/exit criteria per phase and the exact output document structure, see [`first-principles/agents/first-principles.md`](first-principles/agents/first-principles.md). The agent body is the authoritative spec — the summary above orients; it defines. For a one-page working reference with each phase's exit gate, the assumption-type treatments, and the derivation-chain format, see [docs/METHODOLOGY-CHEATSHEET.md](docs/METHODOLOGY-CHEATSHEET.md).
 
 ## Companion tools
 
@@ -76,11 +76,11 @@ This project is a fork and enhancement of [`github.com/chrisdavidson/first-princ
 The v3.8 enhanced successor adds four things the original does not have:
 
 1. **Validation rubric** — a scoring/self-check the model applies after Phase 5 to verify the analysis met the rigor bar, with explicit criteria, levels, and a gate that blocks presenting conclusions until the rubric clears.
-2. **Eleven companion skills** — Five Whys, fishbone, inversion, pre-mortem, trade-off analysis, and second-order thinking as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine; plus five focused-mode phase stubs (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) for direct phase invocation. The skill surface has since grown to thirteen — `estimate` in v7.2, `theoretical-limit` in v7.3.
-3. **Eleven domain-spread worked examples** — software/systems, product/business, personal/general, science/engineering, ishikawa fishbone, and composed inversion + second-order, each demonstrating a real dead-end and a complete validation pass. The example set has since grown to fourteen — decompose-irreducibility in v7.1, estimate-fermi in v7.2, theoretical-limit-carnot in v7.3.
+2. **A companion-skill surface** — eight techniques as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine, plus five focused-mode phase stubs for direct phase invocation. All thirteen are listed under [Companion tools](#companion-tools) above.
+3. **Domain-spread worked examples** — each demonstrating a real dead-end and a complete validation pass, listed under [Worked examples](#worked-examples) above.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
 
-[![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml) [![Version](https://img.shields.io/badge/version-8.0.0-blue)](./CHANGELOG.md) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet)](docs/GETTING-STARTED.md)
+[![Validation](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml/badge.svg)](https://github.com/chrisdavidson/first-principles-skill/actions/workflows/validation.yml) [![Version](https://img.shields.io/github/v/tag/chrisdavidson/first-principles-skill?label=version&color=blue)](./CHANGELOG.md) [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE) [![Claude Code](https://img.shields.io/badge/Claude%20Code-compatible-blueviolet)](docs/GETTING-STARTED.md)
 
 ## Install
 

@@ -6,16 +6,28 @@ Terse maintainer reference for the layered measurement stack. Use this to read o
 
 ## Measurement layers
 
-| Layer | Script | CI gate | What it measures |
-|-------|--------|---------|------------------|
-| Main routing battery | `scripts/check-routing.py` | None — developer tool only | Main-agent DELEGATE / NO-DELEGATE boundary (see [Routing battery — developer tools](TESTING.md#routing-battery-developer-tools--not-in-ci)) |
-| Merged routing battery | `scripts/check-routing-battery.py` | **BATT-06** | Boundary + focused-output dual-signal (see [BATT-06](TESTING.md#batt-06--check-routing-battery)) |
-| Step 0 emulator | `scripts/check-step0-emulator.py` | **STEP0-08** | Offline phrase-detection MODE classifier (see [STEP0-08](TESTING.md#step0-08--check-step0-emulator)) |
-| Step 0 live harness | `scripts/check-step0-live.py` | **STEP0-06** | Live MODE classification via approach-② bypass channel (see [STEP0-06](TESTING.md#step0-06--check-step0-live)) |
-| Traceability matrix | `scripts/check-traceability.py` | **TRACE-03** | Capability → requirement → test mapping (see [TRACE-03](TESTING.md#trace-03--check-traceability)) |
-| BATT-06 sentinels | `scripts/_battery_core.py` → `self_test_boundary()` | BATT-06 (via merged battery `--self-test`) | Anti-masking constants + honest-state carry-forward vectors |
+This table is the canonical layer map — `CLAUDE.md` keeps a shorter session-facing copy, and
+everything else links here.
 
-`check-routing.py` is **not wired into CI** — developer tool only. All other layers above run in `.github/workflows/validation.yml`.
+| Layer | Script | Run command | CI gate | What it measures |
+|-------|--------|-------------|---------|------------------|
+| Main routing battery | `scripts/check-routing.py` | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | None — developer tool only | Main-agent DELEGATE / NO-DELEGATE boundary (see [Routing battery — developer tools](TESTING.md#routing-battery-developer-tools--not-in-ci)) |
+| Merged routing battery | `scripts/check-routing-battery.py` | `--repeat 5 --min-pass 3` / offline `--self-test` | **BATT-06** | Boundary + focused-output dual-signal (see [BATT-06](TESTING.md#batt-06--check-routing-battery)) |
+| Step 0 emulator | `scripts/check-step0-emulator.py` | `--self-test` (only supported batch mode) | **STEP0-08** | Offline phrase-detection MODE classifier (see [STEP0-08](TESTING.md#step0-08--check-step0-emulator)) |
+| Step 0 live harness | `scripts/check-step0-live.py` | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | **STEP0-06** | Live MODE classification via approach-② bypass channel (see [STEP0-06](TESTING.md#step0-06--check-step0-live)) |
+| Traceability matrix | `scripts/check-traceability.py` | `--self-test` / `emit` (manual regeneration) | **TRACE-03** | Capability → requirement → test mapping (see [TRACE-03](TESTING.md#trace-03--check-traceability)) |
+| Quality harness | `scripts/check-quality-harness.py` | `--self-test` | **QUAL-01** (battery only — no CI job) | Blind A/B quality measurement: extraction guardrails, scoreline parsing, blinding integrity, defect detection |
+| BATT-06 sentinels | `scripts/_battery_core.py` → `self_test_boundary()` | via merged battery `--self-test` | BATT-06 | Anti-masking constants + honest-state carry-forward vectors |
+
+Two layers are **not** in `.github/workflows/validation.yml`: `check-routing.py` is a developer
+tool, and QUAL-01 runs only in the offline battery. Every other layer above is a CI job.
+
+**A K-of-5 result from the live layers is a recorded observation, not a gate** (governing record
+§2 item 3, [`v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md)). The evidence: the S-P04
+five-whys vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5 and v8.6 with no source change to the
+technique between those measurements. At N=5, noise equals effect. The tools are untouched —
+every frozen baseline from v7.4 onward depends on their comparability — what changed is the
+authority a phase may give the verdict.
 
 For the stream-json capture method behind the live layers (approach-② bypass, two-signal DELEGATE rule), see [testing-agents-headlessly.md § 3](testing-agents-headlessly.md#3-the-two-signal-delegate-detection-rule) and [§ 8](testing-agents-headlessly.md#8-script-inventory).
 
