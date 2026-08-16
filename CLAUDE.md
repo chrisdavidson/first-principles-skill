@@ -255,4 +255,8 @@ authoritative record first:
 - Skill `name` in frontmatter must match the parent directory name exactly.
 - Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
+- Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches all 17 or none.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
+- The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01 and is report-only.
+
+Each invariant is paired with the gate that enforces it in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) — including the two that are conventions with no gate behind them.

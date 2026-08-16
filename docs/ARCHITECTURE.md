@@ -177,11 +177,12 @@ Two deprecated thin shims (`scripts/check-sub-skill-routing.py`, `scripts/check-
 
 ## Key invariants
 
-- All reference file links use forward slashes, one level deep (no nested `a.md → b.md → c.md`).
-- Skill `name` in frontmatter must match the parent directory name exactly.
-- Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
-- `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- The agent body's (`first-principles/agents/first-principles.md`) line count is reported by
-  `scripts/check-body-budget.py`, not enforced — 644 is a retired, report-only
-  regression-guard figure (gate retired under TEARDOWN-01).
+The canonical list — each invariant paired with the gate that would actually catch a violation —
+is in [CONFIGURATION.md#key-invariants](CONFIGURATION.md#key-invariants).
+
+Two are architectural rather than cosmetic, and are the ones this document's structure depends on:
+
+- **Edit `shared/` only.** The generated tree is an output, and DUAL-04 fails any commit where
+  the two disagree.
+- **Reference file links are one level deep**, never nested `a.md → b.md → c.md`. The agent
+  loads references on demand; a chain would make the depth of a load unbounded.

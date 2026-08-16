@@ -155,33 +155,20 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-One gate fires on `git commit`: the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged). The agent body's line count is still reported by `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate was retired under TEARDOWN-01. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the evidence and the standing record.
-
-Install one of the following mechanisms. **Do not enable both — they are mutually exclusive at the Git level.**
-
-**Option A — `install-hooks.sh` (recommended):**
+One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
+generated tree have diverged. Install it with either mechanism — **never both**, they are
+mutually exclusive at the Git level:
 
 ```sh
-./scripts/install-hooks.sh
+./scripts/install-hooks.sh          # Option A (recommended)
+git config core.hooksPath .githooks # Option B
+git commit --no-verify              # bypass, for intentional in-progress work
 ```
 
-This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, running the sync-drift gate on every commit.
-
-**Option B — `core.hooksPath`:**
-
-```sh
-git config core.hooksPath .githooks
-```
-
-This points Git at the `.githooks/pre-commit` entry point, which also runs the sync-drift gate.
-
-**Bypass** for intentional in-progress work:
-
-```sh
-git commit --no-verify
-```
-
-For what each gate checks in detail, see [TESTING.md](TESTING.md).
+What each mechanism does to an existing hook, and why the body-budget gate no longer runs
+alongside the sync-drift gate, is in
+[CONFIGURATION.md#pre-commit-hooks](CONFIGURATION.md#pre-commit-hooks). For what each CI gate
+checks, see [TESTING.md](TESTING.md).
 
 ## Editing focused-mode skills
 

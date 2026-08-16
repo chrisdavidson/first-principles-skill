@@ -171,16 +171,26 @@ second place is a number that goes stale.
 
 ## Key invariants
 
-- `name` in frontmatter must match the parent directory name exactly.
-- `metadata.version` must be a double-quoted YAML string — never a bare number.
-- `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
-- `disable-model-invocation: true` must be present on every focused-mode skill stub.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- All reference file links use forward slashes and are one level deep from the referencing file.
-- The generated agent body's line count is reported by `scripts/check-body-budget.py`, not
-  enforced — the 644-line figure is a retired, report-only regression-guard figure (gate
-  retired under TEARDOWN-01).
-- Edit `shared/` only. Never edit the generated tree (`first-principles/`) directly.
+This is the canonical list. `ARCHITECTURE.md` and `CONTRIBUTING.md` link here rather than
+restating it; `CLAUDE.md` keeps a session-facing copy by design. The right-hand column names
+what would actually catch a violation — an invariant nothing enforces is a convention, and the
+distinction is worth keeping visible.
+
+| Invariant | Enforced by |
+|---|---|
+| `name` in frontmatter must match the parent directory name exactly | GATE-01, COLLIDE-01 |
+| `description` fields must be third-person, ≤ 1,024 chars, no XML tags | GATE-01, VAL-05 |
+| Reserved words `anthropic` and `claude` are forbidden in skill `name` fields | VAL-01 |
+| `metadata.version` must be a double-quoted YAML string — never a bare number | VERSION-01 |
+| Every hand-maintained version stamp carries the **same** value | VERSION-01 |
+| `disable-model-invocation: true` must be present on every focused-mode skill stub | convention — no gate |
+| All reference file links use forward slashes and are one level deep from the referencing file (no nested `a.md → b.md → c.md`) | VAL-03 |
+| No link in `shared/` or `first-principles/` may escape the plugin root with `../` | convention — no gate (see the v8.17.1 entry in `CHANGELOG.md`) |
+| Edit `shared/` only; never edit the generated tree (`first-principles/`) directly | DUAL-04 |
+
+The agent body's line count (`first-principles/agents/first-principles.md`) is **not** an
+invariant. It is reported by `scripts/check-body-budget.py` and nothing more — the 644-line gate
+was retired under TEARDOWN-01, and 644 survives only as a historical reference figure.
 
 ## Anti-masking measurement invariants
 

@@ -37,13 +37,19 @@ git commit -m "feat: <description>"
 
 ## Setting up pre-commit hooks (recommended)
 
-Install the hooks so drift and body-budget issues are caught before you push:
+Install the hook so sync drift is caught before you push:
 
 ```sh
 ./scripts/install-hooks.sh
 ```
 
-This covers both the body-budget gate (blocks if the agent body exceeds 644 lines) and the sync-drift gate (blocks if `shared/` and the generated tree have drifted). See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the alternative `core.hooksPath` opt-in.
+One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
+generated tree have diverged. (A body-budget gate used to run alongside it; it was retired
+under TEARDOWN-01 and no longer fires.)
+
+There is a second, mutually exclusive mechanism (`git config core.hooksPath .githooks`) — pick
+one, never both. Full detail, including what `install-hooks.sh` does to an existing hook, is in
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md#pre-commit-hooks).
 
 ## What you can contribute
 
@@ -60,14 +66,13 @@ This covers both the body-budget gate (blocks if the agent body exceeds 644 line
 
 ## Key invariants
 
-All PRs must preserve these:
+All PRs must preserve the invariants listed in
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md#key-invariants), which names the gate enforcing
+each one. Most are caught automatically by the battery above; the two that are conventions
+rather than gates are flagged there as such.
 
-- Skill `name` in frontmatter must match the parent directory name exactly.
-- Skill `description` must be third-person, ≤ 1,024 chars, no XML tags.
-- `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- All reference file links use forward slashes, one level deep — no nested `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
+One rule that is easy to trip over, because it changed: the agent body's line count is **not**
+an invariant. The 644-line gate was retired under TEARDOWN-01 and is now report-only.
 
 ## CI gates
 
