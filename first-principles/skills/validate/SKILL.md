@@ -3,7 +3,7 @@ name: validate
 description: Slash-only Phase 5 stub — stress-test each derivation chain for weak links.
 disable-model-invocation: true
 metadata:
-  version: "8.14.0"
+  version: "8.15.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/validate/SKILL.md by sync-content.py -->

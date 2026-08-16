@@ -3,11 +3,11 @@ name: first-principles
 description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) internally. ALWAYS delegate to the first-principles agent when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Do not perform inline analysis for these. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
-  version: "8.14.0"
+  version: "8.15.0"
 disallowedTools:
 - Write
 - Edit
-maxTurns: 30
+maxTurns: 60
 AskUserQuestion: permitted
 ---
 <!-- GENERATED — DO NOT EDIT. Source: shared/spine/SKILL-body.md. Regenerate via: scripts/sync-content.py --write. -->
@@ -55,6 +55,23 @@ Each phase produces a named artifact. That artifact is the entry condition for t
 > **Essence Statement** → **Classified Assumptions Table** → **Ground Truths list** → **Derivation Chains** → **signed-off analysis**
 
 The accumulated artifacts together form the standardized output document, whose full section shape is defined in the [First Principles Analysis Output Template](references/output-template.md). Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
+
+### Turn discipline
+
+The turn budget's first claim is the five phases and the Self-Audit Gate's Fix/Repeat loop. Spend
+turns on what advances a named artifact; everything else competes with the gate for the same budget,
+and the gate is what runs last and is therefore what gets dropped when the budget runs out.
+
+**Never poll for dispatched work.** When this analysis dispatches a sub-agent or launches a
+background task, its completion **notifies you automatically**. The correct action is to stop and
+wait for that notification — not to issue sleep loops, wait scripts, repeated status checks, or
+filler turns. Polling consumes turns without producing an artifact, and the turns it consumes are
+taken from the validation pass at the end.
+
+**If you regenerate the analysis**, treat the rewrite as a *revision*, not a fresh draft: before
+presenting it, confirm every named artifact present in the prior version is carried forward, or is
+explicitly retired with a stated reason. An artifact silently lost between drafts is
+indistinguishable from one that was never produced.
 
 ---
 
@@ -163,7 +180,7 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
 
-**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the rubric in [Validation Rubric](references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring. Do not re-author the rubric criteria here; apply them.
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the criteria in the [Self-Audit Gate](references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring, and it scores this analysis's own structure, not the subject matter. Do not re-author the criteria here; apply them.
 
 **Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
 
@@ -222,19 +239,29 @@ convention — `C1`, `C2`, ... in document order):
 - "[claim text]" → CUT (no chain; claim removed)
 ```
 
-Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the rubric
-feedback loop begin. Score the completed analysis against the rubric in the
-[Validation Rubric](references/validation-rubric.md) as a feedback loop:
+Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the
+Self-Audit Gate begin. Score the completed analysis against the criteria in the
+[Self-Audit Gate](references/validation-rubric.md) as a feedback loop:
 
-1. **Validate** — apply each rubric criterion; quote the specific span of your analysis that satisfies or fails each criterion.
+1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
 3. **Repeat** — re-score after fixing until every criterion clears the gate.
+
+**The Self-Audit Gate scores THIS analysis's own structure — never the subject matter.** If the
+request also asks for a rubric, scorecard, or grading scheme applied to the thing being analyzed
+(an article's argument, a proposal, a design), that is a **separate deliverable**. Producing it
+does **not** satisfy this gate, and the gate does not substitute for it: **both must appear.**
+Emit the Self-Audit Gate's six verdict blocks as process output regardless of what other scoring
+instrument the analysis contains.
 
 If any Fix step adds, removes, or renames a §4 chain that the ledger references, re-verify
 the ledger's affected rows against the current state of §4 before re-scoring — a chain rename
 or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
-Do not present conclusions until the closure ledger is clean AND the rubric gate is cleared.
+Do not present conclusions until the closure ledger is clean AND the Self-Audit Gate is cleared.
+If either could not be completed — turns exhausted, reference file unavailable — **say so
+explicitly at the top of the response**, naming which one did not run. A stated omission is
+recoverable; a silent one is not.
 
 ---
 
@@ -319,7 +346,7 @@ names the ceiling; estimate sizes the quantities under it).
 ### Reference docs
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
-- Validation rubric → [Validation Rubric](references/validation-rubric.md)
+- Self-audit gate (scores this analysis, not the subject) → [Self-Audit Gate](references/validation-rubric.md)
 - Testing this agent headlessly → [docs/testing-agents-headlessly.md](../../docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
 
 #### Worked Examples

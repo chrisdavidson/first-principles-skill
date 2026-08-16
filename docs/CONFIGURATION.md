@@ -15,9 +15,9 @@ Its frontmatter is generated from `shared/spine/SKILL.meta.yml`. The canonical v
 | `name` | `first-principles` | Plugin-internal agent identifier; must match the directory name |
 | `description` | (see SKILL.meta.yml) | Third-person routing description; ≤ 1,024 chars, no XML tags |
 | `license` | `MIT` | License field emitted verbatim |
-| `metadata.version` | `"8.0.0"` | Version string; must be a double-quoted YAML string, not a bare number |
+| `metadata.version` | `"8.15.0"` | Version string; must be a double-quoted YAML string, not a bare number |
 | `disallowedTools` | `[Write, Edit]` | Tools the agent is forbidden from invoking |
-| `maxTurns` | `30` | Maximum conversation turns before the agent halts |
+| `maxTurns` | `60` | Maximum conversation turns before the agent halts. Raised from 30 at v8.15.0: a full-composer run that dispatches research sub-agents was observed to exhaust 30 turns before the Self-Audit Gate's Fix/Repeat loop could run |
 | `AskUserQuestion` | `permitted` | Allows the agent to pause and request clarification |
 
 **To change agent frontmatter:** Edit `shared/spine/SKILL.meta.yml`, then run

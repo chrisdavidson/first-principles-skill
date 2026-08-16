@@ -1,4 +1,4 @@
-# Validation Rubric
+# Self-Audit Gate
 
 > **Scope:** This is the Layer-3 scoring instrument read on demand by the validator-fix-repeat loop
 > already resident in `SKILL.md`. It scores a completed first-principles analysis against the
@@ -7,12 +7,20 @@
 > "Before presenting conclusions" and is **not** repeated here. Come here only to score
 > an analysis in progress; use `SKILL.md` for the loop procedure and `output-template.md`
 > for authoring guidance.
+>
+> **What this instrument scores:** the structure of *this analysis*. It is not a rubric for the
+> subject matter. When a request asks for a rubric, scorecard, or grading scheme applied to the
+> thing being analyzed — an article's argument, a proposal, a design — that is a **separate
+> deliverable** that belongs in the analysis body. Producing it does not satisfy this gate, and
+> this gate does not substitute for it. Both must appear. (Historically named the "Validation
+> Rubric"; renamed because that name collided with subject-matter rubrics and the collision was
+> observed to cause this gate to be skipped.)
 
-## How to Apply This Rubric
+## How to Apply This Gate
 
 Score the completed analysis against all 6 criteria below. For each criterion, produce exactly
 one verdict block in the format prescribed in the Verdict Block Format section. An analysis
-clears the rubric only when it satisfies **both** of the following conditions — clearing
+clears this gate only when it satisfies **both** of the following conditions — clearing
 one condition alone does not constitute a pass:
 
 1. **Gate cleared** — no criterion scores Absent.
@@ -23,8 +31,8 @@ If either condition is not met, revise the analysis and re-score from the beginn
 **Assumption Audit (verify before scoring)**
 
 The scan itself is not performed here — the agent already performed it at the end of Phase 4
-(`SKILL.md`, "End-of-phase Assumption Audit") before this rubric is ever applied. This
-rubric's job is narrower: verify the audit ran and its table is exhaustive, not repeat the
+(`SKILL.md`, "End-of-phase Assumption Audit") before this gate is ever applied. This
+gate's job is narrower: verify the audit ran and its table is exhaustive, not repeat the
 scan.
 
 Before scoring any criterion, confirm the audit table below is present in the analysis and

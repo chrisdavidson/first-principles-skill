@@ -17,7 +17,7 @@ flowchart LR
     GROUNDTRUTHS["Phase 3: Establish Ground Truths\n(Ground Truths list)"]
     REASON["Phase 4: Reason Upward\n(Derivation Chains)"]
     VALIDATE["Phase 5: Validate\n(Signed-off analysis)"]
-    RUBRIC["Validation Rubric gate\n(no conclusions until it clears)"]
+    RUBRIC["Self-Audit Gate\n(no conclusions until it clears)"]
 
     STEP0 --> ESSENCE
     ESSENCE --> ASSUMPTIONS
@@ -57,6 +57,6 @@ flowchart LR
 - **The dotted edge** (Phase 4 → Phase 2) is the route-back: if a second-order extension step
   contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging rather than
   proceeding to Phase 5 on a false premise.
-- **The terminal rubric node** is a gate, not a hand-off: the Validation Rubric
+- **The terminal rubric node** is a gate, not a hand-off: the Self-Audit Gate
   (`references/validation-rubric.md`) must clear before conclusions are presented — validate,
   fix, and repeat until every criterion passes.
