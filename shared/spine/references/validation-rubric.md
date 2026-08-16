@@ -231,24 +231,37 @@ four-type classification quality and unverified-flag discipline (D-07).
 
 ### Criterion 3: Establish Ground Truths
 
-Scores the **Ground Truths list** — a numbered list of verified facts with stable GT-IDs and
-source citations, with unverified entries marked with the `GT-N?` suffix — in the Ground
-Truths section (output section 3).
+Scores the **Ground Truths list** — a numbered list of verified facts with stable GT-IDs,
+source citations, and a provenance label, with unverified and delegate-reported entries marked
+with the `GT-N?` suffix — in the Ground Truths section (output section 3).
+
+**Provenance check (apply before banding).** A citation being present is not verification. For
+each unsuffixed ground truth, ask whether the analysis read the asserted figure in the cited
+source — `read-at-source` — or merely received it from a sub-agent, search result, or summary
+without opening the citation (`reported-by-delegate`, which requires the `?`). Score against
+what the analysis did, not against how well-formed the citation looks.
 
 - **Rigorous** — every GT-item carries a stable identifier (GT-1, GT-2, etc.) that matches
   the identifiers referenced in the Derivation Chains section; every verified GT has a source
-  citation that is more specific than "common knowledge" or "known fact"; every unverified GT
-  is marked with the `?` suffix; no assumption that was discarded in Phase 2 (Verdict: Discard)
-  appears in this list.
+  citation that is more specific than "common knowledge" or "known fact"; every GT carries a
+  provenance label; every unverified or delegate-reported GT is marked with the `?` suffix;
+  the count of `?`-marked GTs is stated and every unsuffixed GT feeding a HIGH-confidence chain
+  names its read-at-source location; no assumption that was discarded in Phase 2 (Verdict:
+  Discard) appears in this list.
 
 - **Sound** — GT-IDs are present and stable, but one or more verified GTs cite "common
-  knowledge," "known fact," or no source at all; OR one unverified GT is used in a derivation
-  chain without the `?` suffix marking it as unverified.
+  knowledge," "known fact," or no source at all; OR provenance labels are missing though the
+  `?` suffixes themselves are correctly applied; OR one unread GT (unverified or
+  delegate-reported) is used without the `?` suffix **and it feeds only MEDIUM or LOW
+  confidence chains**.
 
 - **Hand-wavy** — GT-IDs are present but they are not stable (the same ID is used for
   different facts at different points in the document, or IDs are renumbered between sections);
   OR the list includes an assumption that was assigned a Discard verdict in Phase 2; OR
-  multiple unverified GTs are used in chains without the `?` suffix.
+  multiple unread GTs are used in chains without the `?` suffix; OR **any unsuffixed GT feeds a
+  HIGH-confidence chain without naming a read-at-source location** — a HIGH-confidence
+  conclusion resting on a figure nobody read is the failure this criterion exists to catch, and
+  a single instance is enough to land here.
 
 - **Absent** — no GT-IDs are assigned to any fact in the Ground Truths section; OR the Ground
   Truths section lists claims without distinguishing verified from unverified (no `?` suffix

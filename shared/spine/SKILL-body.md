@@ -111,9 +111,21 @@ For a refined within-type subtype catalog with prescribed treatments and cited e
 
 **Operation:** Compile the verified ground truths from the Phase 2 analysis. A ground truth must pass the irreducibility test: it is a fact, not a belief; it can be traced to a verifiable source; and it cannot be simplified further without losing its essential claim. To apply the irreducibility test rigorously, use {{TOOL:five-whys}} (reduce-to-primitives mode) — it recursively reduces a candidate claim to its constituent facts until each branch bottoms out at a physical law, a definition, or a direct measurement, producing verified primitives that become ground truths. (Decision rule: five-whys reduce-to-primitives mode = definitional/physical reduction; five-whys causal mode = causal depth; fishbone = causal breadth.) Assign each ground truth a stable identifier (GT-1, GT-2, etc.) that does not change for the life of the analysis. Unverified facts that must be used may be included but get the `GT-N?` suffix and inherit the confidence caveat rules from D-07. Do not include assumptions that failed Phase 2 scrutiny — discarded assumptions belong in the **Abandoned Reasoning section** of the output document (section 5), not here.
 
-**Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs and source citations. Unverified entries are marked with the `?` suffix.
+**Source provenance — the `?` is the default, not the exception.** A citation being *present* is not verification. Apply one test to every candidate ground truth, and let the answer decide the suffix:
 
-**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts.
+> **Did this analysis read the asserted figure or wording in the cited source?**
+
+| Provenance | The test | Suffix |
+|---|---|---|
+| **read-at-source** | The specific figure, table, passage, or clause was located and read — by this analysis directly, or in a delegate report that quoted the source's own wording and that quote was checked. | no `?` |
+| **reported-by-delegate** | A sub-agent, search result, tool output, or secondary summary supplied the figure and the cited source was never opened. The citation may name a real document and still be wrong about what is in it. | **`?` required** |
+| **unverified** | No source was located at all. | **`?` required** |
+
+Provenance is a property of **what this analysis did**, never of who supplied the claim: a well-formed citation from a capable delegate is `reported-by-delegate` until someone reads the source. Record the provenance alongside each ground truth's citation. When in doubt, carry the `?` — an over-flagged ground truth costs a confidence caveat, an under-flagged one costs the conclusion.
+
+**Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs, source citations, and a provenance label. Unverified and delegate-reported entries are marked with the `?` suffix.
+
+**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **State the count of `?`-marked ground truths explicitly**, and for **every unsuffixed ground truth that feeds a HIGH-confidence derivation chain, name where the figure was read** — the page, table, section, or quoted passage. A bare count of zero does not satisfy this criterion; the named read-locations are what make it auditable. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts.
 
 ---
 

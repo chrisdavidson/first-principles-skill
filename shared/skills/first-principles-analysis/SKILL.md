@@ -3,7 +3,7 @@ name: first-principles-analysis
 description: Runs the full five-phase first-principles analysis. Slash-only.
 disable-model-invocation: true
 metadata:
-  version: "8.15.0"
+  version: "8.16.0"
 license: MIT
 ---
 # Full First-Principles Analysis — Launcher

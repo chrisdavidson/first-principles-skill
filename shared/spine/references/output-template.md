@@ -78,16 +78,26 @@ List the irreducible, verified facts the analysis builds on. Each ground truth c
 
 A ground truth must pass this test: it is a fact that is true regardless of what solution is chosen, verifiable independently of the analysis, and not derived from another item on this list.
 
-**Verified ground truth form:**
+Every ground truth carries a **provenance label** answering one question: *did this analysis read the asserted figure or wording in the cited source?* The answer decides the suffix. A citation being present is not verification — a citation can name a real document and be wrong about what is in it.
 
-- **GT-1** [fact text] — source: [verification source — data, measurement, published spec, direct observation]
-- **GT-2** [fact text] — source: [verification source]
+**Verified ground truth form** (provenance `read-at-source` — no suffix):
 
-**Unverified ground truth form (D-07):**
+- **GT-1** [fact text] — source: [verification source — data, measurement, published spec, direct observation]; read-at-source: [page, table, section, or quoted passage where the figure was read]
+- **GT-2** [fact text] — source: [verification source]; read-at-source: [where read]
 
-- **GT-3?** [fact text] — unverified: [specific reason the fact could not be verified in this analysis]
+**Delegate-reported ground truth form** (provenance `reported-by-delegate` — `?` required):
 
-The `?` suffix signals that this ground truth is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a confidence caveat in the Derivation Chains section. The analysis may proceed with unverified inputs — but the uncertainty must be visible.
+- **GT-3?** [fact text] — cited to: [source the delegate named]; reported-by-delegate: [which sub-agent, search, or summary supplied it] — cited source not opened by this analysis
+
+**Unverified ground truth form (D-07)** (provenance `unverified` — `?` required):
+
+- **GT-4?** [fact text] — unverified: [specific reason the fact could not be verified in this analysis]
+
+The `?` suffix signals that this ground truth has not been read at its source — whether because it is an untested belief or because a delegate reported it and nobody opened the citation. Any conclusion depending on a `GT-N?` input inherits a confidence caveat in the Derivation Chains section. The analysis may proceed with such inputs — but the uncertainty must be visible.
+
+**The `?` is the default.** Drop it only when the read-at-source location can be named. A delegate report counts as read-at-source only when it quotes the source's own wording and that quote was checked — not when it merely supplies a well-formed citation.
+
+**Provenance summary (required):** state the count of `?`-marked ground truths, and for every unsuffixed ground truth feeding a HIGH-confidence chain, name its read-at-source location. A bare count of zero does not satisfy this — the named locations are the auditable part.
 
 IDs are stable once assigned. GT-3 remains GT-3 throughout the document even if GT-3 is later verified or discarded.
 
