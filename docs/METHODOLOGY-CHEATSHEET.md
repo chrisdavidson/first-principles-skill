@@ -70,7 +70,7 @@ Slash-only stubs invoking a single phase directly: `identify-essence`, `challeng
 `/first-principles-analysis <problem>` — the launcher. It dispatches the composer agent
 explicitly, which is the reliable way to reach it: automatic delegation fired on roughly one
 prompt in seventeen when measured on 2026-07-27
-([dispatch-attribution-findings.md](dispatch-attribution-findings.md)). The methodology is
+(`dispatch-attribution-findings.md`). The methodology is
 unchanged; only the route to it differs.
 
 ## Output document
