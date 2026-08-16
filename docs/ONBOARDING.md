@@ -31,7 +31,9 @@ python3 scripts/sync-content.py --write
 
 This command reads all canonical source files under `shared/` and regenerates the entire `first-principles/agents/` tree and all `first-principles/skills/*/SKILL.md` stubs. For your `five-whys.md` edit specifically, the sync pipeline carries the change through two paths:
 
-- **Agent body (`first-principles/agents/first-principles.md`)** — the agent body template in `shared/spine/SKILL-body.md` contains a `{{TOOL:five-whys}}` token. The sync script resolves this by extracting the `## Procedure` section from `shared/references/five-whys.md` and inlining it directly into the generated agent body. Your edit to that section appears in the inlined procedure at the corresponding location.
+- **Agent reference sibling (`first-principles/agents/references/five-whys.md`)** — the sync script copies `shared/references/five-whys.md` here verbatim. This is where your edit lands on the agent surface, and it is what the agent loads on demand when the technique fires.
+
+  Note what does *not* happen: `shared/spine/SKILL-body.md` contains a `{{TOOL:five-whys}}` token, but that token substitutes only the technique's *name* (from `shared/spine/tool-map.yml`, e.g. "the inlined 5-Whys & Decompose … procedure"). No procedure text is inlined into the assembled agent body, so your edit will not appear there. The body's `## Companion tools` summaries are hand-written in `SKILL-body.md` — if a summary needs to change to match your edit, change it there.
 
 - **Focused-mode skill stub (`first-principles/skills/five-whys/SKILL.md`)** — the source stub at `shared/skills/five-whys/SKILL.md` contains a `{{PROCEDURE:five-whys}}` token. The sync script resolves this by copying the full body of `shared/references/five-whys.md` (from `## When to reach for this` onward) into the generated skill file.
 

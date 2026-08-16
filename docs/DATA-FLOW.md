@@ -14,14 +14,21 @@ Everything you edit lives under `shared/`. The generated `first-principles/` tre
 
 Running `python3 scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree (the agent body, its `references/` siblings, and the worked examples) and all `first-principles/skills/*/SKILL.md` stubs. Running `--check` instead performs a dry-run comparison and exits with code 1 on any drift.
 
-The non-obvious wiring this stage introduces is **token substitution** — two token types expand inline content from `shared/references/` at generation time:
+The non-obvious wiring this stage introduces is **token substitution**, and the two token types
+behave differently in a way that matters for tracing a change:
 
-| Token | Source file | Replaced by |
-|-------|-------------|-------------|
-| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | `## Procedure` section from `shared/references/<slug>.md` |
-| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
+| Token | Source file | Replaced by | Carries content? |
+|-------|-------------|-------------|------------------|
+| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | A phrase from `shared/spine/tool-map.yml` | **No** — a name only |
+| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward | Yes |
 
-These token-substitution edges mean that editing a companion reference file (e.g. `shared/references/inversion.md`) propagates its content into both the assembled agent body (via `{{TOOL:inversion}}` in `SKILL-body.md`) and the focused-mode skill stub (via `{{PROCEDURE:inversion}}` in the skill source file). A reader inspecting the generated files alone will not see the composition seams — they exist only in `shared/`.
+So editing a companion reference file (e.g. `shared/references/inversion.md`) reaches the
+generated tree by exactly two routes: the focused-mode skill stub, where `{{PROCEDURE:inversion}}`
+expands its body inline, and the agent's reference sibling
+`first-principles/agents/references/inversion.md`, which is a verbatim copy. It does **not** reach
+the assembled agent body — `{{TOOL:inversion}}` substitutes only the technique's name there. A
+reader inspecting the generated files alone will not see these composition seams; they exist only
+in `shared/`.
 
 For the canonical description of the assembly steps and token types, see [ARCHITECTURE.md#generation-pipeline](ARCHITECTURE.md#generation-pipeline) and [ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).
 

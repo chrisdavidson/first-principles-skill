@@ -52,16 +52,11 @@ the `## When to reach for this` section through EOF of `shared/references/<slug>
 
 ## Token substitution
 
-The sync pipeline performs two token substitutions:
-
-| Token | Location | Replaced with |
-|-------|----------|---------------|
-| `{{TOOL:<slug>}}` | `shared/spine/SKILL-body.md` | The value keyed by `<slug>` and the current surface (`agent`) in `shared/spine/tool-map.yml` |
-| `{{PROCEDURE:<slug>}}` | `shared/skills/<slug>/SKILL.md` body | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
-
-`shared/spine/tool-map.yml` maps each companion-tool slug to its inline text for each
-surface. The eight registered slugs in the tool map are: `five-whys`, `fishbone`,
-`inversion`, `pre-mortem`, `trade-off`, `second-order`, `estimate`, `theoretical-limit`.
+The sync pipeline performs two token substitutions, `{{TOOL:<slug>}}` and
+`{{PROCEDURE:<slug>}}`. They are not symmetrical — one substitutes a name, the other substitutes
+content — and the mechanism, the tool-map's registered slugs, and the consequences for what the
+agent body actually contains are documented in
+[ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).
 
 ## Version string invariant
 

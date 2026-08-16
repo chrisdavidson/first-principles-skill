@@ -196,6 +196,29 @@ tree as far as this audit found.
 file missing from the `docs/README.md` index — a v7.11 verdict that survived the 2026-08-16
 prune of 34 historical documents without being re-listed.
 
+**S-8 — the `{{TOOL:slug}}` mechanism was documented backwards on six of seven surfaces
+(found during stream 5, cluster 2; now fixed).** `CLAUDE.md`, `ARCHITECTURE.md` (twice, plus a
+downstream claim), `DATA-FLOW.md`, `COMPONENT-DIAGRAM.md` and `ONBOARDING.md` all stated that
+`{{TOOL:slug}}` is replaced by the `## Procedure` section of `shared/references/<slug>.md`,
+"inlining the companion technique procedures directly into the agent body". It does not.
+`_expand()` in `sync-content.py:316` substitutes the phrase held under that slug's `agent` key in
+`shared/spine/tool-map.yml` — `{{TOOL:fishbone}}` becomes the string "the inlined fishbone
+procedure". It is a **naming** token. The procedures are never inlined: searching the generated
+agent body for any technique's actual procedure steps returns nothing, and the body's
+`## Companion tools` summaries are hand-written in `SKILL-body.md`.
+
+Only `CONFIGURATION.md` had it right, and its correctness was invisible because five louder
+copies disagreed with it. This is the clearest demonstration of the cost in §4: the duplication
+did not merely risk drift, it actively buried the correct copy. A contributor following
+`ONBOARDING.md`'s walkthrough would have edited `shared/references/five-whys.md`, looked in the
+agent body for their change, and not found it.
+
+The substituted phrase itself — "the *inlined* fishbone procedure" — is what makes the wrong
+reading so natural, and it is shipped agent content rather than documentation. **Left alone
+deliberately:** changing it means editing `shared/`, regenerating, and bumping all 17 version
+stamps, which is product surface and outside a documentation consolidation. Logged here as
+follow-up work.
+
 **S-7 — nine milestone-verdict documents remain in `docs/`** (~1,600 lines):
 `gen-01-rearch-milestone`, `whole-system-remeasure-verdict`, `v8.0-final-closure`,
 `v8.5-byte-freeze-relaxation`, `v8.6-live-remeasure-verdict`, `v8.6-quality-ab-experiment`,

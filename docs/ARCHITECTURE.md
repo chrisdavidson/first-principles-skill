@@ -49,7 +49,7 @@ Generated output tree:
 
 1. Read `shared/spine/SKILL.meta.yml` — emit frontmatter to `first-principles/agents/first-principles.md`
 2. Read `shared/spine/SKILL-body.md` — resolve `{{TOOL:slug}}` tokens
-3. For each `{{TOOL:slug}}`: extract the `## Procedure` section from `shared/references/<slug>.md` and inline it
+3. For each `{{TOOL:slug}}`: substitute the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` (`_expand()`), e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure"
 4. Inline `shared/spine/references/output-template.md` and `shared/spine/references/validation-rubric.md` at their respective insertion points
 5. Stitch phase fragments from `shared/agent/` in order
 6. Copy `shared/references/*.md` and `shared/examples/*.md` verbatim to `first-principles/agents/references/`
@@ -59,12 +59,31 @@ Generated output tree:
 
 ## Token substitution
 
-Two token types are used in source files:
+Two token types are used in source files. They do **different** things, and the difference is
+easy to get backwards:
 
-| Token | Used in | Replaced by |
-|-------|---------|-------------|
-| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | `## Procedure` section from `shared/references/<slug>.md` |
-| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
+| Token | Used in | Replaced by | Kind |
+|-------|---------|-------------|------|
+| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | The phrase under that slug's `agent` key in `shared/spine/tool-map.yml` — e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure" | **naming**, not content |
+| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward | **content** |
+
+`{{TOOL:slug}}` substitutes a short human-readable *name*, nothing more. It appears twice over
+in the spine body: inline in phase prose ("use `{{TOOL:fishbone}}` to brainstorm causes by
+category") and as the bold label of that technique's entry in the agent's `## Companion tools`
+summary. Those summaries are hand-written in `shared/spine/SKILL-body.md`; they are not
+extracted from anything.
+
+**The companion-technique procedures are therefore not inlined into the agent body.** They ship
+as reference siblings under `first-principles/agents/references/<slug>.md` and are loaded on
+demand. This is worth stating plainly because the substituted phrase itself says "the inlined
+… procedure", which reads as though the procedure text is present in the body. It is not — a
+search of the generated agent body for any technique's actual procedure steps returns nothing.
+
+`shared/spine/tool-map.yml` holds one entry per companion-tool slug, keyed by surface (today the
+only surface is `agent`). The eight registered slugs are `five-whys`, `fishbone`, `inversion`,
+`pre-mortem`, `trade-off`, `second-order`, `estimate`, `theoretical-limit`. `_expand()`
+distinguishes an unknown slug from a known slug missing the current surface key, so a
+contributor sees which of the two mistakes they made.
 
 ## Plugin layout and registration
 
@@ -90,7 +109,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact t
 | 4 | Reason Upward | Derivation Chains (`GT-N + GT-M → conclusion`) |
 | 5 | Validate | Signed-off analysis with validation rubric pass |
 
-Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) are inlined into the agent body via `{{TOOL:slug}}` tokens and are also available as on-demand reference siblings. All thirteen companion skills — these eight techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
+Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) are *named* in the agent body via `{{TOOL:slug}}` tokens — each with a hand-written summary in the body's `## Companion tools` section — while their full procedures ship as on-demand reference siblings rather than in the body itself (see [Token substitution](#token-substitution)). All thirteen companion skills — these eight techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
 
 ## CI and pre-commit gate inventory
 

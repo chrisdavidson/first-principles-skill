@@ -11,9 +11,11 @@ narrative in [DATA-FLOW.md](DATA-FLOW.md) and the canonical architecture referen
 
 Source files in `shared/` flow through `scripts/sync-content.py` to produce the committed
 `first-principles/` plugin tree, which is then verified by CI and pre-commit gates.
-The non-obvious edges are the token-substitution reads: `{{TOOL:slug}}` pulls the
-`## Procedure` section from `shared/references/<slug>.md` into the agent body; `{{PROCEDURE:slug}}`
-pulls the full body of the same reference file into each focused-mode skill stub.
+The non-obvious edge is the token-substitution read: `{{PROCEDURE:slug}}` pulls the full body of
+`shared/references/<slug>.md` into each focused-mode skill stub. `{{TOOL:slug}}` is *not* such an
+edge — it substitutes a name from `shared/spine/tool-map.yml`, so no reference content flows into
+the agent body. See
+[ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).
 
 ```mermaid
 flowchart LR

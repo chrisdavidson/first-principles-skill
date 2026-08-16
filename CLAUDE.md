@@ -106,7 +106,7 @@ first-principles/               ← generated plugin (committed, never hand-edit
 
 ### Token substitution in SKILL-body.md
 
-`{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the `## Procedure` section extracted from `shared/references/<slug>.md`. This inlines the companion technique procedures directly into the agent body at generation time.
+`{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` — e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure". **This substitutes a name, not content.** The companion-technique procedures are *not* inlined into the agent body; they ship as on-demand reference siblings under `first-principles/agents/references/<slug>.md`, and the body's `## Companion tools` summaries are hand-written in `SKILL-body.md`. The substituted phrase says "inlined", which invites the opposite conclusion — read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#token-substitution) before reasoning about what the body contains.
 
 `{{PROCEDURE:slug}}` tokens in `shared/skills/<slug>/SKILL.md` are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when generating the focused-mode skill stubs.
 
