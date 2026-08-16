@@ -5,7 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this proje
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **Version stamps move in lockstep.** Plugin installs are version-gated, not content-gated,
-so every release bumps all 16 stamps together — the 13 `shared/skills/*/SKILL.md` sources,
+so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.md` sources
+(13 companion skills plus the `first-principles-analysis` launcher),
 `shared/spine/SKILL.meta.yml`, `.claude-plugin/marketplace.json`, and
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
