@@ -237,7 +237,8 @@ fi
 # The first two were RECOMMEND-REMOVE candidates in that audit purely because
 # they lacked this protection while their siblings had it; protecting them
 # resolves the asymmetry in the keep direction. See
-# docs/technical-debt-audit-2026-07-28.md.
+# docs/technical-debt-audit-2026-07-28.md — pruned from the tree 2026-08-16,
+# read it with `git show 09326e7~1:docs/technical-debt-audit-2026-07-28.md`.
 # ---------------------------------------------------------------------------
 git diff --quiet -- \
     'tests/step0-baseline-v*.md' \

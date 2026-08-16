@@ -93,7 +93,7 @@ Any record of a live run â€” routing battery, Step 0 harness, quality harness â€
 plugin version and install surface the session actually loaded. A stale surface is otherwise
 indistinguishable from a real result, and supplies a plausible wrong explanation that costs time
 to rule out. This happened during the investigation in
-[dispatch-attribution-findings.md](dispatch-attribution-findings.md): the stale install had to be
+`dispatch-attribution-findings.md`: the stale install had to be
 eliminated as a confound before the real finding could be trusted.
 
 ## What lives where in `shared/`
