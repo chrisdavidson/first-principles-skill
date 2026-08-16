@@ -167,11 +167,12 @@ The gate prefers `uv` when available and falls back to `python3`. Bypass it with
 
 ## CI gates
 
-All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
-The full gate inventory — all 12 CI gates plus the sync-drift pre-commit gate, with their
-owning scripts — is maintained
-canonically in [docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
-authoritative gate table.
+CI gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
+The full inventory — the CI gates, the battery-only gates, and the sync-drift pre-commit gate,
+each with its owning script — is maintained canonically in
+[docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
+authoritative gate table; the count is deliberately not repeated here, because a number in a
+second place is a number that goes stale.
 
 ## Key invariants
 

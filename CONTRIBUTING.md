@@ -71,24 +71,19 @@ All PRs must preserve these:
 
 ## CI gates
 
-All PRs must pass twelve CI gates:
+All PRs must pass the CI gates in `.github/workflows/validation.yml`. Before pushing, run the
+whole offline set in one shot and check for a GREEN verdict:
 
-| Gate | Script | What it checks |
-|------|--------|----------------|
-| VAL-01 | `claude plugin validate` | Plugin schema validity |
-| VAL-02 | `markdownlint-cli2` | MD style |
-| VAL-03 | `check-links.py` | Relative MD links resolve |
-| VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skills |
-| VAL-05 | `check-description-budget.py` | Skill listings ≤ 2000 chars |
-| DUAL-04 | `sync-content.py --check` | `shared/` and generated tree in sync |
-| GATE-01 | `check-agent.py` | Agent structural checks |
-| BATT-06 | `check-routing-battery.py --self-test` | Offline routing-battery self-test |
-| STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test |
-| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
-| TRACE-03 | `check-traceability.py --self-test` | Traceability gate self-test |
-| COLLIDE-01 | `check-install-collisions.py --self-test` | Dual-install name-collision self-test |
+```sh
+bash scripts/check-firewall-battery.sh
+```
 
-See [docs/TESTING.md](docs/TESTING.md) for how to run each gate locally.
+The gate list itself is not repeated here — it changes, and a stale copy in a contributor-facing
+file is worse than no copy. Two places carry it:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — the canonical
+  inventory: every gate, its CI job, its script, and what it checks.
+- [docs/TESTING.md](docs/TESTING.md) — how to run each one locally and interpret its output.
 
 ## Commit message format
 

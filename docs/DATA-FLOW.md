@@ -56,24 +56,19 @@ historical reference figure inside the script.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.
 
-On push or PR to master, the full CI suite runs in `.github/workflows/validation.yml`:
+On push or PR to master, the full CI suite runs in `.github/workflows/validation.yml`. What
+matters for the data flow is the *shape* of that stage rather than its membership: the gates
+divide into those that check the generated artifact is faithful to `shared/` (DUAL-04, GATE-01,
+GATE-02-v8.5), those that check the artifact is well-formed for distribution (VAL-01, VAL-02,
+VAL-03, VAL-04, VAL-05, VERSION-01, COLLIDE-01), and those that check the measurement subsystem
+still measures what it claims (BATT-06, STEP0-06, STEP0-08, TRACE-03, and QUAL-01 in the offline
+battery). A change that survives all three classes is shippable.
 
-| Gate | What it guards |
-|------|---------------|
-| VAL-01 | Plugin schema validity |
-| VAL-02 | Markdown style |
-| VAL-03 | Relative link resolution (plugin + shared trees) |
-| VAL-04 / GATE-02 | No 4-gram collision across skill descriptions |
-| COLLIDE-01 | No skill/agent name collisions between plugin and monolith install surfaces |
-| VAL-05 | Skill listings under 2000-char cap |
-| DUAL-04 | `shared/` and generated tree in sync |
-| GATE-01 | Agent structural integrity |
-| STEP0-06 | Step 0 live-harness scoring/parsing self-test |
-| STEP0-08 | Offline Step 0 phrase-detection classifier self-test |
-| BATT-06 | Merged dual-signal routing battery self-test (anti-masking sentinels) |
-| TRACE-03 | Traceability matrix gate self-test |
-
-For the full canonical gate inventory (script names, job IDs, what each checks), see [ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). For how to run each gate locally and interpret results, see [TESTING.md#ci-gates--operational-run-detail](TESTING.md#ci-gates--operational-run-detail) and [TESTING.md#pre-commit-gates](TESTING.md#pre-commit-gates).
+The gate list is deliberately not restated here — see
+[ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory)
+for the canonical inventory (script names, job IDs, what each checks), and
+[TESTING.md#ci-gates--operational-run-detail](TESTING.md#ci-gates--operational-run-detail) plus
+[TESTING.md#pre-commit-gates](TESTING.md#pre-commit-gates) for how to run each one locally.
 
 ## Stage 5 — Measurement harness
 

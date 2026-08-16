@@ -120,7 +120,11 @@ Install for development: `claude --plugin-dir ./first-principles`
 
 ### CI gates
 
-All gates run in `.github/workflows/validation.yml` on push/PR to master:
+Every gate below except QUAL-01 runs in `.github/workflows/validation.yml` on push/PR to master.
+QUAL-01 is battery-only — it has no CI job, and `bash scripts/check-firewall-battery.sh` is the
+only thing that runs it. This table is kept here on purpose so a working session can see the
+gate list without opening `docs/`; the canonical inventory, with CI job names and the
+battery-only inline checks, is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
 | Gate | Script | What it checks |
 |------|--------|----------------|
@@ -129,6 +133,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | VAL-03 | `check-links.py --self-test` + `check-links.py` | Relative MD links resolve, now including `first-principles/skills/*/references/*.md` (full-check, D-01) and `first-principles/skills/*/SKILL.md` (namespace-ref-only, D-05); both new axes currently match zero live findings (v8.5 GATE-01, D-06) — the `--self-test` fixture is what makes them load-bearing until real content lands (Phase 154) |
 | VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
+| VERSION-01 | `check-version-stamps.py --self-test` + `check-version-stamps.py` | Every hand-maintained version stamp carries the same value (14 `shared/skills/*/SKILL.md` + `shared/spine/SKILL.meta.yml` + both manifests). Installs are version-gated, not content-gated, so one missed stamp ships an inert update with every other gate green — the v8.14 failure mode. The stamp count is reported, never asserted: a new skill is discovered by glob, and one missing its stamp fails on presence rather than on a magic number. The generated tree is out of scope — DUAL-04 already ties it to `shared/`. |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-02-v8.5 | `sync-content.py --self-test` | Offline pointer drift-guard (v8.5 Phase 154): asserts each of the four split core reference files' extracted Procedure slice contains exactly one well-formed link to its own detail sibling, carries per-file strip (missing) and duplicate negative controls plus a `main()` dispatch control, and proves the pointer exists and is well-formed — explicitly NOT that it is followed (Phase 156's live question). The label is milestone-qualified to distinguish it from the pre-existing v3.0 `GATE-02` bound to the trigger-collision scanner (`check-trigger-collisions.py`, D-12). |
 | GATE-01 | `check-agent.py` | Agent structural checks |
@@ -139,7 +144,7 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | COLLIDE-01 | `check-install-collisions.py --self-test` | Offline dual-install name-collision self-test — detects skill/agent name collisions between plugin (`first-principles/`) and monolith (`first-principles-thinking/`) install surfaces (D-02: relaxes VAL-04's monolith exclusion for the NAME axis only; VAL-04 owns the trigger 4-gram axis, this gate owns the name-collision axis — orthogonal concerns; absent monolith dir is vacuously clean; deterministic, no live session) |
 | QUAL-01 | `check-quality-harness.py --self-test` | Offline blind A/B quality-measurement harness self-test (deterministic, no live session) — extraction guardrails A/B, scoreline parser, blinding integrity, tabulation arithmetic, baseline-fixture integrity, and the mechanical defect detector; the promoted instrument behind the pre/post-fix quality baseline (HARNESS-01, `docs/v8.7-quality-baseline-freeze.md`) |
 
-`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **16/16** — in one shot and prints a FIREWALL: GREEN/RED verdict; QUAL-01 (added at v8.7 Phase 164, HARNESS-01) is what moved the battery from 15 to 16. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
+`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **17/17** — in one shot and prints a FIREWALL: GREEN/RED verdict. QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17. The tally is 15 `gate` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
 
 ### Pre-commit gates
 

@@ -94,7 +94,16 @@ Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem,
 
 ## CI and pre-commit gate inventory
 
-All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The sync-drift pre-commit gate fires on `git commit` via the project hook mechanism.
+**This table is the canonical gate inventory.** Every other document links here rather than
+restating it — `CONTRIBUTING.md`, `CONFIGURATION.md`, `DATA-FLOW.md`, `TESTING.md`, and the
+measurement docs all point at this anchor. `CLAUDE.md` keeps its own operational copy by
+design, because a working session must be able to see the gate list without opening `docs/`.
+
+Gates run on three surfaces, and the distinction matters: **14 in CI**
+(`.github/workflows/validation.yml`, on push/PR to master), **17 tallied in the offline battery**
+(`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a superset
+of CI's offline gates plus QUAL-01 and two inline checks; CI additionally runs VAL-01, which needs
+the `claude` CLI.
 
 | Gate | Job / Mechanism | Script | What it checks |
 |------|----------------|--------|----------------|
@@ -102,24 +111,33 @@ All CI gates run in `.github/workflows/validation.yml` on push/PR to master. The
 | VAL-02 | `markdownlint` (CI) | `markdownlint-cli2` | MD style across `first-principles/**/*.md` |
 | VAL-03 | `check-links` (CI) | `scripts/check-links.py` | Relative MD links resolve in plugin, shared, and docs trees; `docs/` anchors validated with github-slugger rule |
 | VAL-04 / GATE-02 | `check-trigger-collisions` (CI) | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
-| COLLIDE-01 | `check-install-collisions` (CI) | `scripts/check-install-collisions.py` | Dual-install name-collision self-test + live-tree scan (no skill/agent name collisions between plugin and monolith install surfaces) |
 | VAL-05 | `check-description-budget` (CI) | `scripts/check-description-budget.py` | All skill listings under 2000-char cap |
+| VERSION-01 | `check-version-stamps` (CI) | `scripts/check-version-stamps.py` | All 17 hand-maintained version stamps carry the same value (self-test **and** live scan) |
+| COLLIDE-01 | `check-install-collisions` (CI) | `scripts/check-install-collisions.py` | Dual-install name-collision self-test + live-tree scan (no skill/agent name collisions between plugin and monolith install surfaces) |
 | DUAL-04 | `sync-check` (CI) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |
+| GATE-02-v8.5 | `pointer-drift-guard` (CI) | `scripts/sync-content.py --self-test` | Offline pointer drift-guard: each split core reference file's Procedure slice carries exactly one well-formed link to its own `-detail.md` sibling |
 | GATE-01 | `check-agent` (CI) | `scripts/check-agent.py` | Agent structural checks |
 | BATT-06 | `check-routing-battery` (CI) | `scripts/check-routing-battery.py --self-test` | Merged dual-signal battery self-test (boundary + focused-output); anti-masking sentinels |
 | STEP0-08 | `check-step0-emulator` (CI) | `scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
 | STEP0-06 | `check-step0-live` (CI) | `scripts/check-step0-live.py --self-test` | Step 0 live-harness scoring/parsing logic self-test |
 | TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution) |
+| QUAL-01 | battery only — **not a CI job** | `scripts/check-quality-harness.py --self-test` | Offline blind A/B quality-measurement harness self-test |
+| INVARIANT-CHECK | battery only (inline) | — | Anti-masking constants still hold: `pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2` |
+| FROZEN-EVIDENCE | battery only (inline) | `git diff --quiet` | Frozen baselines and captures are unmodified |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
+
+**Two gates are called GATE-02 and they are not the same gate.** `VAL-04 / GATE-02` is the v3.0
+trigger-collision scanner (`check-trigger-collisions.py`), carried by a single job whose live name
+is `check-trigger-collisions (VAL-04/GATE-02)`. `GATE-02-v8.5` is the v8.5 pointer drift-guard
+(`sync-content.py --self-test`), a separate job. The `-v8.5` suffix is what distinguishes them;
+dropping it conflates two unrelated checks.
 
 The body-budget gate that used to appear in this table (blocking a commit that pushed the
 agent body past 644 lines) was retired under TEARDOWN-01
 (`docs/v8.7-constraint-teardown.md`, the standing record) — `scripts/check-body-budget.py`
 is kept on disk and reports the body's current line count on every run, but it no longer
 exits nonzero because of the body's size and no longer fires as a pre-commit gate at all; 644 survives only as a historical
-reference figure inside the script.
-
-Note: VAL-04 and GATE-02 are both carried by the single `check-trigger-collisions` job (matching the live job's `name: check-trigger-collisions (VAL-04/GATE-02)`).
+reference figure inside the script. The battery still prints it as an untallied `[INFO]` line.
 
 For operational run-detail — how to invoke each gate locally, `--self-test` modes, and what the pre-commit hook checks — see [docs/TESTING.md](TESTING.md).
 
