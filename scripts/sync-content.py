@@ -229,7 +229,9 @@ SPINE_REFERENCES = (
 
 # The four reference files v8.5 §2 authorises splitting into a core file plus
 # a `-detail.md` appendix (docs/v8.4-implementation-readiness-eval.md §4's
-# per-section boundary table). This is the SINGLE source every slug-scoped
+# per-section boundary table — pruned from the tree 2026-08-16, read it with
+# `git show 09326e7~1:docs/v8.4-implementation-readiness-eval.md`).
+# This is the SINGLE source every slug-scoped
 # branch in this module reads from — never re-derive the set inline. It must
 # never be widened without a governing byte-freeze record like
 # docs/v8.5-byte-freeze-relaxation.md: `pre-mortem` and `trade-off` also carry
