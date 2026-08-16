@@ -80,6 +80,12 @@ appears to. Prior instances are enumerated in `docs/README.md`'s GREENMEAN-01 pa
 | `quality-probe-v8.7` | 1 | 0 | 1 |
 | `defrobust-v8.11` | 0 | 0 | 5 |
 
+**Every number on this page is a measurement of the gate set as it stood on 2026-08-16**, not a
+property of the files. Adding, removing or re-scoping any gate can move a file between tiers, so
+re-run the tracer after any change to the gate surface rather than quoting these figures forward.
+The tracer exits 1 if any gate command fails, because a partial trace understates what is
+load-bearing while looking complete.
+
 **Eight of the twelve capture generations are read by nothing** (v5.2, v6.3, v6.4, v7.6, v7.7,
 v7.7-diag, v7.8, v7.13 — 164 files). Their `_load_excerpt_v*` loaders in
 `scripts/_battery_core.py` are retained byte-frozen so a superseded sentinel generation stays

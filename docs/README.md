@@ -180,5 +180,6 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 | [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | ADR: the GEN-01 rearchitecture milestone record |
 | [live-monitoring-runbook.md](live-monitoring-runbook.md) | Runbook for live routing-battery and Step 0 monitoring runs |
 | [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | v7.11 whole-system live re-measure and honest verdict; referenced by 13 rows of the traceability matrix |
+| [`tests/README.md`](../tests/README.md) | Outside `docs/`, indexed here because nothing else would find it: the `tests/` classification — gate-pinned / live-unwired / archive, the keep-everything decision, and the traps that make grep-based pinning claims wrong. Re-derive with `python3 scripts/trace-tests-usage.py` |
 | [use-journal.md](use-journal.md) | Running log of real (non-harness) invocations and where they fell short — the only admissible scope source for a post-v8.11 milestone |
 | `history/` (local-only) | Frozen per-milestone snapshots (REQUIREMENTS, ROADMAP, MILESTONE-AUDIT) — immutable archives. **Not published:** `docs/history/` is git-ignored and untracked, so it is absent from a fresh clone and this entry is deliberately not a link. Same disclosure as [requirements-traceability.md](requirements-traceability.md). |

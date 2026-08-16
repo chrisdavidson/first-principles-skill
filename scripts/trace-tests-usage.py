@@ -26,7 +26,10 @@ Usage:
     python3 scripts/trace-tests-usage.py --list-archive
     python3 scripts/trace-tests-usage.py --tier gate-pinned
 
-Exit status is 0 unless the trace itself fails; this tool reports, it does not gate.
+Exit status is 0 only when every gate command ran cleanly. A gate that fails contributes zero
+paths and would silently push everything it reads into `archive`, so a partial trace exits 1 and
+says so — an understated classification that looks complete is worse than no classification.
+This tool reports; it does not gate.
 """
 
 from __future__ import annotations
@@ -120,19 +123,31 @@ def trace_one(command: tuple[str, ...]) -> set[str]:
     return seen
 
 
-def gate_opened_paths() -> set[str]:
-    """Fan the trace out over one subprocess per gate — audit hooks are process-global."""
+def gate_opened_paths() -> tuple[set[str], list[str]]:
+    """Fan the trace out over one subprocess per gate — audit hooks are process-global.
+
+    Returns (paths, failures). A gate that errors contributes zero paths, which silently
+    reclassifies everything it would have read as `archive` — the exact shape of the wrong
+    answer this tool exists to prevent. So every non-zero exit is surfaced and made fatal
+    rather than absorbed into a plausible-looking table.
+    """
     opened: set[str] = set()
+    failures: list[str] = []
     tracer = Path(__file__).resolve()
     for command in GATE_COMMANDS:
         result = subprocess.run(
             [sys.executable, str(tracer), "--trace-one", *command],
             cwd=REPO_ROOT, capture_output=True, text=True,
         )
-        for line in result.stdout.splitlines():
-            if line.startswith("tests/"):
-                opened.add(line)
-    return opened
+        paths = [line for line in result.stdout.splitlines() if line.startswith("tests/")]
+        opened.update(paths)
+        if result.returncode != 0:
+            detail = (result.stderr.strip().splitlines() or ["(no stderr)"])[-1]
+            failures.append(
+                f"{' '.join(command)} exited {result.returncode}, "
+                f"contributed {len(paths)} paths — {detail}"
+            )
+    return opened, failures
 
 
 def artifact_link_paths() -> set[str]:
@@ -157,9 +172,10 @@ def pytest_collected_paths() -> set[str]:
     }
 
 
-def classify() -> dict[str, str]:
+def classify() -> tuple[dict[str, str], list[str]]:
     tracked = tracked_test_files()
-    pinned = gate_opened_paths() | artifact_link_paths()
+    opened, failures = gate_opened_paths()
+    pinned = opened | artifact_link_paths()
     collected = pytest_collected_paths()
     tiers: dict[str, str] = {}
     for path in tracked:
@@ -169,7 +185,7 @@ def classify() -> dict[str, str]:
             tiers[path] = "live-unwired"
         else:
             tiers[path] = "archive"
-    return tiers
+    return tiers, failures
 
 
 def group_of(path: str) -> str:
@@ -192,12 +208,15 @@ def main() -> int:
             print(path)
         return 0
 
-    tiers = classify()
+    tiers, failures = classify()
+    for failure in failures:
+        print(f"[warn] {failure}", file=sys.stderr)
+
     if args.tier or args.list_archive:
         wanted = args.tier or "archive"
         for path in sorted(p for p, t in tiers.items() if t == wanted):
             print(path)
-        return 0
+        return 1 if failures else 0
 
     counts: dict[str, int] = {"gate-pinned": 0, "live-unwired": 0, "archive": 0}
     sizes: dict[str, int] = {"gate-pinned": 0, "live-unwired": 0, "archive": 0}
@@ -219,6 +238,15 @@ def main() -> int:
     for group in sorted(per_group):
         row = per_group[group]
         print(f"  {group:<28} {row['gate-pinned']:>4} / {row['live-unwired']:>4} / {row['archive']:>4}")
+
+    if failures:
+        print(
+            f"\nINCOMPLETE — {len(failures)} gate command(s) failed (listed above). Every file "
+            "they would have read is counted as archive, so these numbers understate what is "
+            "load-bearing. Do not quote them.",
+            file=sys.stderr,
+        )
+        return 1
     return 0
 
 
