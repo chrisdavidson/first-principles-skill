@@ -13,7 +13,41 @@ installed session.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Known defect — the `?`-count exit criterion is satisfied in form and fails in substance
+
+v8.16.0's Phase 3 exit criterion requires the count of `?`-marked ground truths to be stated
+explicitly. **Across every draft observed in post-release testing, a count was stated and none
+was correct.** Three runs against the same prompt — two turn budgets, both agent versions:
+
+| Draft | Stated | Actual |
+|---|---|---|
+| full-composer, `maxTurns: 60`, base | 24 of 41 | **31 of 41** |
+| same run, consolidated after revision | 17 of 45 *(while enumerating 20 IDs)* | **21 of 57** |
+| full-composer, `maxTurns: 30` | 17 of 22 *("the unsuffixed five")* | **15 of 22** *(seven unsuffixed)* |
+
+The consolidated draft is the sharpest case: it reports the same quantity **three different ways
+inside one document** — a header figure, an enumeration of a different length, and an actual
+suffix count that matches neither.
+
+**Self-Audit Gate Criterion 3 passes all three.** It quotes the stated count as its satisfying
+span rather than recomputing it, so the gate verifies *that a count was stated*, not *that it is
+correct*. In the `maxTurns: 30` draft the Gate quotes `"Count of ?-marked ground truths: 17 of
+22"` verbatim and bands the criterion **Sound**.
+
+**Why this one is worth fixing before the others.** Every other Gate criterion is a judgement
+call — whether an essence statement is specific enough, whether a chain has a genuine
+intermediate. This one is arithmetic over a document the agent has already written, and it is
+the criterion the provenance discipline leans on hardest: the count is the summary statistic a
+reader uses to calibrate the whole analysis. A wrong count understates unverified inputs by up
+to seven ground truths, in the direction that flatters the analysis.
+
+**Proposed fix, not yet implemented:** derive the count rather than assert it — require the
+`?`-marked IDs to be *enumerated*, and make the Gate check the enumeration against the Phase 3
+list rather than against the stated number. An enumeration is checkable by inspection; a bare
+integer is not.
+
+*Not a regression: the criterion is new in 8.16.0 and has never reported a correct figure.
+Recorded here so it is not rediscovered as a fresh finding.*
 
 ## [8.16.0] - 2026-08-16
 
