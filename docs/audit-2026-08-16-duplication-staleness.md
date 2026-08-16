@@ -133,6 +133,11 @@ emulator's own comment says so). A row-order change could silently flip any of t
 > the finding would have been reported rather than fixed by reordering: the phrase table is
 > shipped agent content, and changing it is a release, not an audit pass.
 >
+> *How much that claim is worth:* "already resolved as intended" is weaker evidence than it reads,
+> because the prompts were authored here — a fixture can be built to produce the answer its author
+> expected. What earns the claim is injection 3 below, where the assertion tracks a real change to
+> the phrase table rather than restating a chosen result.
+>
 > **The pre-mortem ↔ trade-off pair is the one worth reading twice.** Its co-fire prompt fires
 > **four** trade-off triggers against **one** pre-mortem trigger, and pre-mortem still wins —
 > precedence is by row, not by trigger count. It is tempting to call that a defect, since
@@ -151,6 +156,17 @@ emulator's own comment says so). A row-order change could silently flip any of t
 > rows in `shared/spine/SKILL-body.md` → S-A07 flips to `focused-five-whys` and both the catalog
 > row and the hardcoded assertion fail. Each was restored and re-verified. Injection 3 is the one
 > that matters: it proves the assertion locks the row order rather than merely restating it.
+>
+> **The boundary rows were separately proven non-vacuous.** A `full-composer` expectation passes
+> for two different reasons — "no trigger fires", which is the intent, and "this prompt could
+> never fire anything", which asserts nothing — and the three new boundary rows tripled an
+> exposure the original S-A02/A04/A06 rows already carried. Each was tested by appending a single
+> trigger phrase for **each** technique in its pair and confirming the classification flips:
+> six flips, six clean, every boundary row sitting one phrase away from both of its neighbours
+> rather than in unreachable space. This matters most for **S-A12**, which the pre-mortem ↔
+> trade-off reading above leans on as *the control*: adding `I'm nervous about this plan` flips it
+> to `focused-pre-mortem`, and adding `build me a trade-off analysis` flips it to
+> `focused-trade-off`. A control that could not be crossed would not be a control.
 >
 > **One thing it broke, and who did not catch it.** Six new rows tripped
 > `test_step0_live_task1.py`'s frozen 35-row count (now 41). That guard lives in the
