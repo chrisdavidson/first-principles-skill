@@ -173,7 +173,7 @@ The following scripts form the measurement subsystem. They sit alongside the val
 | Battery core | `scripts/_battery_core.py` | Shared battery logic; home of the anti-masking invariant constants and the `self_test_boundary()` sentinels |
 | Traceability matrix | `scripts/check-traceability.py` | Capability → requirement → test traceability matrix; `emit` generates the matrix, `--self-test` is TRACE-03 |
 
-Two deprecated thin shims (`scripts/check-sub-skill-routing.py`, `scripts/check-focused-output.py`) delegate to `check-routing-battery.py` for backward compatibility; new callers should invoke `check-routing-battery.py` directly.
+The two deprecated shims that used to wrap this battery (`check-sub-skill-routing.py`, `check-focused-output.py`) and the unwired requirement-ID auditor `check-inventory.py` were retired at the 2026-08-16 audit; `check-routing-battery.py` is the only entry point, and its threshold flags are namespaced per signal.
 
 ## Key invariants
 

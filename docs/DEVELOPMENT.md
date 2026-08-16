@@ -142,7 +142,6 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
 | `check-version-stamps.py` | VERSION-01 | `python3 scripts/check-version-stamps.py` | Every hand-maintained version stamp carries the same value; run `--self-test` for the fault-injection fixtures |
 | `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
-| `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files. **Not wired into CI** — manual audit tool. |
 
 ### Measurement and routing gates
 
@@ -154,12 +153,7 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-step0-live.py` | STEP0-06 | `python3 scripts/check-step0-live.py --self-test` (CI) / `python3 scripts/check-step0-live.py --repeat 5 --min-pass 3` (full manual, 60 invocations) | Live Step 0 harness via approach-② bypass channel. `--self-test` is STEP0-06 CI gate. Full manual run requires a live Claude session. |
 | `check-traceability.py` | TRACE-03 | `python3 scripts/check-traceability.py --self-test` | Traceability matrix gate. `emit` subcommand regenerates `docs/requirements-matrix.md`. |
 
-**Deprecated shims** (backward compatibility only — do not use for new invocations):
-
-| Script | Delegates to |
-|--------|-------------|
-| `check-sub-skill-routing.py` | `check-routing-battery.py` (boundary signal) |
-| `check-focused-output.py` | `check-routing-battery.py` (focused-output signal) |
+**Retired shims.** Retired at the 2026-08-16 audit ([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)): the two deprecated shims `check-sub-skill-routing.py` and `check-focused-output.py`, plus `check-inventory.py`. Call `check-routing-battery.py` directly, with its namespaced `--boundary-*` / `--focused-*` threshold flags.
 
 **Internal helpers** (underscore-prefixed, not directly invoked):
 

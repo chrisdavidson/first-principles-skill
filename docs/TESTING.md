@@ -180,10 +180,7 @@ python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md   
 
 Routing outcomes vary between sessions, plugin sets, and Claude routing-model versions. Never attribute a single FAIL to one commit without a same-window control run. Each prompt gets a fresh `claude -p` session.
 
-**Deprecated shims** (delegate to `check-routing-battery.py` — do not use for new invocations):
-
-- `scripts/check-sub-skill-routing.py`
-- `scripts/check-focused-output.py`
+**Retired shims.** Retired at the 2026-08-16 audit ([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)): the two deprecated shims `check-sub-skill-routing.py` and `check-focused-output.py`, plus `check-inventory.py`. Call `check-routing-battery.py` directly, with its namespaced `--boundary-*` / `--focused-*` threshold flags.
 
 ## Pre-commit gates
 

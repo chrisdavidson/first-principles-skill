@@ -57,7 +57,7 @@
 | v3.7/RIGOR-08 | RIGOR-08 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Scoring Model |  |
 | v3.8/DISP-01 | DISP-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
 | v3.8/STUB-01 | STUB-01 | Methodology | first-principles/skills | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.8/EVAL-01 | EVAL-01 | Methodology | scripts/check-focused-output.py | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.8/EVAL-01 | EVAL-01 | Methodology | scripts/check-routing-battery.py | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scripts/check-focused-output.py retired 2026-08-16 (superseded by the merged battery); deliverable repointed to its successor. |
 | v3.12/PHASE-01 | PHASE-01 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
 | v3.12/PHASE-02 | PHASE-02 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
 | v3.12/PHASE-03 | PHASE-03 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
@@ -310,7 +310,7 @@
 - **META-Q4** (v3.2/META-Q4) [audit-only] [Methodology]: TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the body-budget pre-commit gate. scripts/check-body-budget.py is now report-only (always exits 0) and scripts/git-hooks/pre-commit no longer invokes it — the body line count is reported every firewall-battery run ([INFO] body-size) but is not gated. META-Q4 is therefore audit-only (reported/inspectable), not reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier.
 - **DISP-01** (v3.8/DISP-01) [audit-only] [Methodology]: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
 - **STUB-01** (v3.8/STUB-01) [audit-only] [Methodology]: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
-- **EVAL-01** (v3.8/EVAL-01) [audit-only] [Methodology]: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
+- **EVAL-01** (v3.8/EVAL-01) [audit-only] [Methodology]: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scripts/check-focused-output.py retired 2026-08-16 (superseded by the merged battery); deliverable repointed to its successor.
 - **PHASE-01** (v3.12/PHASE-01) [audit-only] [Methodology]: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate
 - **PHASE-02** (v3.12/PHASE-02) [audit-only] [Methodology]: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate
 - **PHASE-03** (v3.12/PHASE-03) [audit-only] [Methodology]: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate
@@ -403,7 +403,7 @@ The following items are carried forward as candidate work for a future milestone
 - [MEDIUM] **META-Q4** (v3.2/META-Q4): Add a confirming Methodology gate/test. Rationale: TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the body-...
 - [MEDIUM] **DISP-01** (v3.8/DISP-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
 - [MEDIUM] **STUB-01** (v3.8/STUB-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
-- [MEDIUM] **EVAL-01** (v3.8/EVAL-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate
+- [MEDIUM] **EVAL-01** (v3.8/EVAL-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scr...
 - [MEDIUM] **PHASE-01** (v3.12/PHASE-01): Add a confirming Methodology gate/test. Rationale: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate
 - [MEDIUM] **PHASE-02** (v3.12/PHASE-02): Add a confirming Methodology gate/test. Rationale: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate
 - [MEDIUM] **PHASE-03** (v3.12/PHASE-03): Add a confirming Methodology gate/test. Rationale: Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate

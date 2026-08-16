@@ -38,9 +38,6 @@ construction. `bash scripts/check-firewall-battery.sh` runs the set that actuall
 ```sh
 python3 scripts/check-routing-battery.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
 python3 scripts/check-routing-battery.py --self-test   # offline deterministic gate
-# Deprecated shims (delegate to check-routing-battery.py):
-python3 scripts/check-sub-skill-routing.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
-python3 scripts/check-focused-output.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3 --p-threshold 4 --n-threshold 1
 python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
@@ -170,11 +167,16 @@ boundary + focused-output signal (FU-21 gate, FOCUS-01), whose offline `--self-t
 BATT-06 CI gate). Live catalog runs are developer tools, not CI gates, and are read by
 aggregate K-of-N across repeats — never a single run's verdict.
 
-Namespaced threshold defaults for the merged battery: boundary `--p-threshold 2`;
-focused-output `--p-threshold 4 --n-threshold 1`.
+Namespaced threshold defaults for the merged battery, one flag per signal:
+`--boundary-p-threshold 2`, `--boundary-n-threshold 2`, `--focused-p-threshold 4`,
+`--focused-n-threshold 1`. The un-namespaced `--p-threshold` / `--n-threshold` flags belonged
+to the two pre-merge batteries and no longer exist.
 
-`check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims**;
-new callers should invoke `check-routing-battery.py` directly.
+The two deprecated shims that used to wrap this battery (`check-sub-skill-routing.py`,
+`check-focused-output.py`) were **retired at the 2026-08-16 audit**, together with
+`check-inventory.py`; their thresholds and self-test guards moved onto
+`check-routing-battery.py`. See
+[`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
 
 Full detail — thresholds, catalog fixtures, and the per-sentinel ownership map — lives in
 `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`. Read those before touching the batteries.
