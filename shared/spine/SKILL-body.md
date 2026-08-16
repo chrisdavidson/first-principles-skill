@@ -318,7 +318,7 @@ names the ceiling; estimate sizes the quantities under it).
 
 - Output format template → [First Principles Analysis Output Template](references/output-template.md)
 - Self-audit gate (scores this analysis, not the subject) → [Self-Audit Gate](references/validation-rubric.md)
-- Testing this agent headlessly → [docs/testing-agents-headlessly.md](../../docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
+- Testing this agent headlessly → [docs/testing-agents-headlessly.md](https://github.com/chrisdavidson/first-principles-skill/blob/master/docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
 
 #### Worked Examples
 
