@@ -3,7 +3,7 @@ name: first-principles
 description: 'Runs a complete first-principles analysis end-to-end: decomposes the problem into verified ground truths, challenges every assumption, and reasons upward to a validated conclusion. Applies all eight companion techniques (5-Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) internally. ALWAYS delegate to the first-principles agent when the user asks to: analyze from first principles, challenge assumptions, reason from ground truth, decompose this problem into its foundations, question a design, stress-test reasoning, or evaluate whether a claim or design really works. Do not perform inline analysis for these. Not for routine code review, debugging, performance optimization, or general Q&A.'
 license: MIT
 metadata:
-  version: "8.16.0"
+  version: "8.17.0"
 disallowedTools:
 - Write
 - Edit
@@ -166,7 +166,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs, source citations, and a provenance label. Unverified and delegate-reported entries are marked with the `?` suffix.
 
-**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **State the count of `?`-marked ground truths explicitly**, and for **every unsuffixed ground truth that feeds a HIGH-confidence derivation chain, name where the figure was read** — the page, table, section, or quoted passage. A bare count of zero does not satisfy this criterion; the named read-locations are what make it auditable. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts.
+**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **Enumerate the `?`-marked ground truths by ID** — write the list, not a number: *"`?`-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)."* A stated integer does not satisfy this criterion, because an integer cannot be checked against the list it summarizes; the enumeration can, by inspection. If a count accompanies the enumeration it must equal its length, and **where the two disagree the enumeration governs.** For **every unsuffixed ground truth that feeds a HIGH-confidence derivation chain, name where the figure was read** — the page, table, section, or quoted passage. Neither an empty enumeration nor a count of zero satisfies this criterion on its own; the named read-locations are what make it auditable. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts.
 
 ---
 

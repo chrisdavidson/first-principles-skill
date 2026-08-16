@@ -97,7 +97,14 @@ The `?` suffix signals that this ground truth has not been read at its source �
 
 **The `?` is the default.** Drop it only when the read-at-source location can be named. A delegate report counts as read-at-source only when it quotes the source's own wording and that quote was checked — not when it merely supplies a well-formed citation.
 
-**Provenance summary (required):** state the count of `?`-marked ground truths, and for every unsuffixed ground truth feeding a HIGH-confidence chain, name its read-at-source location. A bare count of zero does not satisfy this — the named locations are the auditable part.
+**Provenance summary (required):** enumerate the `?`-marked ground truths **by ID**, and for every unsuffixed ground truth feeding a HIGH-confidence chain, name its read-at-source location. Write the list, not a number:
+
+```text
+?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)
+Read-at-source: GT-3 — 45 CFR 164.514(b)(2)(i), subsections (A)/(B)/(R) quoted verbatim
+```
+
+A stated integer does not satisfy this — an integer cannot be checked against the list it summarizes, and an enumeration can. Where a count and its enumeration disagree, **the enumeration governs.** Neither an empty enumeration nor a count of zero satisfies this on its own; the named locations are the auditable part.
 
 IDs are stable once assigned. GT-3 remains GT-3 throughout the document even if GT-3 is later verified or discarded.
 
