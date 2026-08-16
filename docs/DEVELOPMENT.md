@@ -22,18 +22,30 @@ The `first-principles/` tree is **generated output**. Every file in it carries a
 
 ## Standard editing loop
 
-```
-1. Edit files under shared/
-2. python3 scripts/sync-content.py --write   # regenerate first-principles/
-3. python3 scripts/check-agent.py            # GATE-01 structural checks
-4. python3 scripts/sync-content.py --check   # verify no drift
-5. git add -u && git commit
-```
-
-Or with `uv`:
+This is the canonical loop; `CONTRIBUTING.md` points here rather than keeping its own copy.
 
 ```sh
-uv run scripts/sync-content.py --write
+# 1. Edit files under shared/ — never first-principles/
+# 2. Regenerate the plugin tree
+python3 scripts/sync-content.py --write     # or: uv run scripts/sync-content.py --write
+
+# 3. Run every offline gate in one shot; expect FIREWALL: GREEN
+bash scripts/check-firewall-battery.sh
+
+# 4. Commit
+git add -u && git commit
+```
+
+Step 3 replaces the habit of running a hand-picked list of scripts. A hand-picked list goes
+stale — it silently omits gates added later, and keeps naming ones that were retired — whereas
+the battery is the set that actually runs. When you need a single gate rather than all of them,
+[TESTING.md](TESTING.md) has each one's invocation.
+
+For a faster inner loop while iterating, the two that catch most mistakes are:
+
+```sh
+python3 scripts/sync-content.py --check     # DUAL-04: no drift
+python3 scripts/check-agent.py              # GATE-01: agent structure
 ```
 
 ## How your edit reaches a session — and how it silently fails to

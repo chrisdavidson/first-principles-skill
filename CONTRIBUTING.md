@@ -18,22 +18,16 @@ The `first-principles/` tree is generated output. Every file in it carries a `<!
 ## Standard contribution loop
 
 ```sh
-# 1. Edit files under shared/
-# 2. Regenerate the plugin tree
-python3 scripts/sync-content.py --write
-
-# 3. Run local validation
-python3 scripts/check-body-budget.py
-python3 scripts/check-agent.py
-python3 scripts/check-links.py
-python3 scripts/check-trigger-collisions.py
-python3 scripts/check-description-budget.py
-python3 scripts/sync-content.py --check
-
-# 4. Commit
-git add -u
-git commit -m "feat: <description>"
+# 1. Edit files under shared/ — never first-principles/
+python3 scripts/sync-content.py --write   # 2. regenerate the plugin tree
+bash scripts/check-firewall-battery.sh    # 3. run every offline gate; expect FIREWALL: GREEN
+git add -u && git commit -m "feat: <description>"
 ```
+
+Step 3 is deliberately the whole battery rather than a list of individual scripts: a hand-picked
+list omits gates added later and keeps naming ones that were retired. The loop is documented in
+full, including the faster inner loop for iterating, in
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#standard-editing-loop).
 
 ## Setting up pre-commit hooks (recommended)
 
