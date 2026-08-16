@@ -5,6 +5,20 @@
 **Status:** Durable git-tracked verdict (RECON-01). Offline-only reconcile — no live `claude`
 invocation, no detector change, no agent-body change.
 
+> **Standing — adjudicated 2026-08-16 (audit stream 3): FROZEN EVIDENCE.**
+> A v7.11 measurement record. Every number in it is true of 2026-06-29 and of nothing later —
+> do not quote it as current state; `requirements-traceability.md` holds that. It is not
+> content-resolved by any gate: it appears in `docs/data/matrix.json` once as the RECON-01 row's
+> `deliverable_path` (reported, never existence-checked — the row is authored at
+> `check-traceability.py:872`) and twelve times inside `gap_rationale` prose. Removing the file
+> and re-running TRACE-03 exits 0, confirming that. **VAL-03 does fail on its removal**, but only
+> because `docs/README.md` links it — the same is true of all nine, and the documented prune
+> convention (demote the index link to backticks) clears it, so that is not a pin on this
+> document's content. What keeps it is that it is **the provenance anchor for 13 live matrix
+> rows' dispositions**: deleting it would leave those rationales citing a document a reader cannot
+> open. Keep; cite for provenance, never for current figures. See
+> [audit-2026-08-16-duplication-staleness.md](audit-2026-08-16-duplication-staleness.md).
+
 > **No `git tag` is cut in this phase.** The annotated `v7.11` tag is the milestone-close
 > deliverable, produced by `/gsd-complete-milestone` after Phase 131 verifies (D-01) — not a
 > keystroke inside this phase. This phase stops at "surface reconciled + offline battery green."

@@ -2,7 +2,7 @@
 
 These assertions will FAIL until check-step0-live.py is renamed and
 hardened with:
-  - _read_step0_catalog (returns 35 Step0Prompt objects, S-P01 first)
+  - _read_step0_catalog (returns 41 Step0Prompt objects, S-P01 first)
   - _agent_was_dispatched (dispatch detection)
   - _classify_mode (none->full-composer inference)
   - KNOWN_MODES allowlist validation
@@ -46,17 +46,25 @@ def test_harness_file_exists():
     )
 
 
-def test_read_step0_catalog_returns_35_rows(harness):
-    """_read_step0_catalog must return exactly 35 Step0Prompt objects.
+def test_read_step0_catalog_returns_41_rows(harness):
+    """_read_step0_catalog must return exactly 41 Step0Prompt objects.
 
     v7.9 NEGCAT fixtures (S-N09..S-N15, Phase 120) added 7 negative-category
-    boundary cases, bringing the catalog from 28 to 35 rows.  This exact count
-    is a deliberate regression guard: the catalog changes only on intentional
-    fixture edits, so a frozen literal is correct — deriving the expected value
-    from the same _read_step0_catalog parse would be tautological.
+    boundary cases, bringing the catalog from 28 to 35 rows.  The 2026-08-16
+    audit's stream 6 (finding CAP-1) added S-A07..S-A12 — three co-fire rows and
+    their three boundary controls for the fishbone↔five-whys,
+    theoretical-limit↔estimate and pre-mortem↔trade-off overlap pairs — taking it
+    to 41.  This exact count is a deliberate regression guard: the catalog changes
+    only on intentional fixture edits, so a frozen literal is correct — deriving
+    the expected value from the same _read_step0_catalog parse would be
+    tautological.
+
+    Note for whoever changes it next: this suite is run by no CI job (see
+    tests/README.md, the live-unwired tier), so this guard fires only for someone
+    running pytest locally.
     """
     rows = harness._read_step0_catalog(CATALOG)
-    assert len(rows) == 35, f"Expected 35 rows, got {len(rows)}"
+    assert len(rows) == 41, f"Expected 41 rows, got {len(rows)}"
 
 
 def test_read_step0_catalog_sp01_first(harness):

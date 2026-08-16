@@ -13,7 +13,112 @@ installed session.
 
 ## [Unreleased]
 
-_Nothing yet._
+### Added
+
+- **SEMGATE now locks all six documented technique-overlap pairs, not three.** The audit's CAP-1
+  finding was that `fishbone ↔ five-whys`, `theoretical-limit ↔ estimate` and
+  `pre-mortem ↔ trade-off` were disambiguated only in reference prose — no catalog row, no
+  precedence lock — so a Step 0 phrase-table reorder could silently flip any of them, and VAL-04
+  is structurally blind to that axis. Six rows added to `tests/step0-fixture-catalog.md`
+  (S-A07…S-A12: a co-fire row and a `full-composer` boundary control per pair) plus three
+  catalog-independent assertions in `check-step0-emulator.py`, so deleting a row cannot make the
+  assertion vacuous. Each pair was **measured before it was asserted** and all three already
+  resolved as intended, so no phrase table was reordered and no version bump is involved.
+  Proven by three injections against the live tree — a wrong expected value, a drifted catalog
+  prompt, and a fishbone/five-whys row swap that flips S-A07 — because every new fixture passing
+  on the first run is how a vacuous gate looks.
+- **VERSION-01 gate — the stamp-lockstep rule above is now enforced.**
+  `scripts/check-version-stamps.py` discovers every hand-maintained version stamp by glob and
+  asserts they all carry the same value. Until now nothing checked this: `sync-content.py` copies
+  `metadata.version` through per-file rather than propagating one source of truth, and the
+  documented "version string invariant" checks a stamp's *format*, not its agreement with the
+  others — so a single missed stamp shipped an inert update with every gate green, which is what
+  happened at v8.14. Wired into `.github/workflows/validation.yml` and
+  `scripts/check-firewall-battery.sh`; battery composition moves 16 → 17. The stamp count is
+  reported, never asserted, so adding a skill does not require editing the gate.
+
+### Removed
+
+- **Three retired scripts**, none of which had a live consumer:
+  `scripts/check-sub-skill-routing.py` and `scripts/check-focused-output.py` (deprecated thin
+  shims — `check-routing-battery.py` had already replaced both, and its own header said so), and
+  `scripts/check-inventory.py` (a requirement-ID auditor whose input corpus,
+  `.planning/milestones/*-REQUIREMENTS.md`, is gitignored and superseded by
+  `docs/requirements-traceability.md` under CANON-01; no requirement in the traceability surface
+  referenced its AUDIT-01..04 IDs). `tests/test_81_inventory.py` went with the last of these,
+  having loaded it by hard path.
+- `scripts/check-body-budget.py` was **kept**, deliberately. TEARDOWN-01 retired the body-budget
+  gate but preserved the reporter, and the firewall battery's untallied `[INFO]` line still
+  consumes it. Only its documentation footprint was pruned.
+- **Guards migrated, not dropped.** `tests/test_65_doc_invariants.py` had pinned the two shims
+  across six tests — their self-tests, the boundary p-threshold default of 2, the catalog dry-run
+  parse, and a `CLAUDE.md` mention. Each invariant moved onto `check-routing-battery.py` under its
+  namespaced `--boundary-*` / `--focused-*` flags, plus a new guard asserting the three retired
+  scripts do not reappear. Two of the old tests would have kept passing vacuously: one was
+  satisfied by the sentence *recording* the retirement, and one pinned flag spelling rather than
+  the threshold values it existed to protect.
+- The `v3.8/EVAL-01` matrix row named `check-focused-output.py` as its `deliverable_path`. That
+  field is reported but never existence-resolved (only `artifact_link` is), so a dangling path
+  would have failed silently — it is repointed at the successor with the substitution recorded,
+  and `docs/requirements-matrix.md` / `docs/data/matrix.json` regenerated. Row count unchanged
+  at 214.
+
+### Changed
+
+- **`tests/` is classified, and nothing is deleted.** 550 tracked files sorted into three tiers —
+  **102 gate-pinned** (opened at runtime by an offline gate, or `artifact_link`-resolved),
+  **7 live-unwired**, **441 archive** — recorded in a new `tests/README.md` with the decision and
+  its reasoning. The audit's two-way pinned/archival split was the wrong shape: it hid the middle
+  tier. Re-running its trace reproduced the 441 aggregate but disagreed on the composition, and
+  its pinned breakdown never summed to its own headline (56 + 24 + 16 + 6 + 4 = 106, under a
+  headline of 110). Zero `step0-baseline-v*.md` files are opened by any gate; the audit's six came
+  from counting `deliverable_path` entries, which are reported and never existence-checked.
+- **`scripts/trace-tests-usage.py`** — new manual reporting tool that re-derives that
+  classification by tracing `open` events under `sys.addaudithook` while each gate runs. The audit
+  called its own trace reproducible while it existed only as prose; this makes the claim literal.
+- **7 pytest suites carrying 123 assertions are run by no CI job** — CI runs pytest on exactly one
+  path, `scripts/check-links_anchors_test.py`. Among them are the retirement guards migrated into
+  `test_65_doc_invariants.py` one commit earlier. Named as a tier rather than silently reclassed;
+  wiring them into CI is logged as follow-up.
+- **The nine surviving milestone documents in `docs/` are adjudicated, and none deleted.** They
+  had survived the 2026-08-16 prune as an undifferentiated block, with nothing distinguishing a
+  rule still in force from a measurement true only of its date. Each now opens with a **Standing**
+  banner giving its class and its live dependents; `docs/README.md` carries the summary table. The
+  audit posed it as "governing record or historical narrative?" — that binary fits four of them.
+  Five are neither: *frozen evidence*, cited for provenance by live artifacts while asserting
+  nothing current. A third class covers `gen-01-rearch-milestone.md`, the only one of the nine a
+  gate resolves (TRACE-03 fixture (9) deep-resolves its `artifact_link`; verified by removing the
+  file and watching `--self-test` exit 1). "Gate-pinned" first had to be disentangled from an
+  index artefact: removing *any* of the nine fails VAL-03 because `docs/README.md` links all
+  nine, which measures the index rather than the document. The verdicts live in the documents rather than only in
+  an index because the failure being closed — `v8.0-final-closure.md` calling a moved figure
+  "final" — persisted exactly because its warning sat in `CLAUDE.md` instead.
+- **`v8.14-delivery-verification.md` is the case against pruning by reference count.** Fewest
+  inbound references of the nine, and least prunable on merit: it is the published form of a
+  pre-registered STOP still governing Phases 189–191 and GREENMEAN-01's WON'T-DO scope.
+- **`first-principles/README.md` rewritten.** The shipped plugin README still described v3.0.0 —
+  a "plugin contents removed" banner, six companion tools, six worked examples, and no mention of
+  the `skills/` directory. It now describes what the plugin actually ships (8 technique references
+  with 4 detail siblings, 3 spine references, 14 worked examples, 14 slash-invocable skills), each
+  count verified against the tree. Its outbound links stay absolute, and the file now says why, so
+  the v8.17.1 defect is not reintroduced by a later tidy-up. **This is shipped content: it reaches
+  installed users only on the next version bump.**
+- Repo documentation consolidated onto one owner per topic, and a set of stale claims corrected
+  along the way — including a mechanism that six documents had backwards (`{{TOOL:slug}}`
+  substitutes a *name*, not a procedure, so the technique procedures are not inlined into the
+  agent body). Full record in
+  [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
+- **The Self-Audit Gate rename reached the user-facing docs.** 8.15.0 renamed the Validation
+  Rubric to the Self-Audit Gate because two instruments shared one name, but the change stopped at
+  the agent surface: `README.md` (×4), `docs/ARCHITECTURE.md` and `docs/METHODOLOGY-CHEATSHEET.md`
+  kept the old name — the exact collision the rename existed to remove. The file is still
+  `validation-rubric.md`. One occurrence remains in shipped content
+  (`shared/skills/first-principles-analysis/SKILL.md`) and is logged as follow-up, since changing
+  it requires a regen and a version bump.
+- The coverage headline now has one authoritative home. Three surfaces asserted the superseded
+  v8.0 figure (133/96/0/229) as current against the real 126/88/0/214;
+  `docs/requirements-traceability.md` is the single source, and `docs/v8.0-final-closure.md` keeps
+  its numbers unedited with a superseded-by note, since it is the record of what v8.0 measured.
 
 ## [8.17.1] - 2026-08-16
 

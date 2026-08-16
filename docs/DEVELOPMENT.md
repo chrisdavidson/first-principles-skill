@@ -22,18 +22,30 @@ The `first-principles/` tree is **generated output**. Every file in it carries a
 
 ## Standard editing loop
 
-```
-1. Edit files under shared/
-2. python3 scripts/sync-content.py --write   # regenerate first-principles/
-3. python3 scripts/check-agent.py            # GATE-01 structural checks
-4. python3 scripts/sync-content.py --check   # verify no drift
-5. git add -u && git commit
-```
-
-Or with `uv`:
+This is the canonical loop; `CONTRIBUTING.md` points here rather than keeping its own copy.
 
 ```sh
-uv run scripts/sync-content.py --write
+# 1. Edit files under shared/ — never first-principles/
+# 2. Regenerate the plugin tree
+python3 scripts/sync-content.py --write     # or: uv run scripts/sync-content.py --write
+
+# 3. Run every offline gate in one shot; expect FIREWALL: GREEN
+bash scripts/check-firewall-battery.sh
+
+# 4. Commit
+git add -u && git commit
+```
+
+Step 3 replaces the habit of running a hand-picked list of scripts. A hand-picked list goes
+stale — it silently omits gates added later, and keeps naming ones that were retired — whereas
+the battery is the set that actually runs. When you need a single gate rather than all of them,
+[TESTING.md](TESTING.md) has each one's invocation.
+
+For a faster inner loop while iterating, the two that catch most mistakes are:
+
+```sh
+python3 scripts/sync-content.py --check     # DUAL-04: no drift
+python3 scripts/check-agent.py              # GATE-01: agent structure
 ```
 
 ## How your edit reaches a session — and how it silently fails to
@@ -128,8 +140,8 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
 | `check-trigger-collisions.py` | VAL-04 / GATE-02 | `python3 scripts/check-trigger-collisions.py` | No 4-gram collision across skills |
 | `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
+| `check-version-stamps.py` | VERSION-01 | `python3 scripts/check-version-stamps.py` | Every hand-maintained version stamp carries the same value; run `--self-test` for the fault-injection fixtures |
 | `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
-| `check-inventory.py` | AUDIT-01..AUDIT-04 | `python3 scripts/check-inventory.py` | Requirement-ID audit: enumerates and classifies IDs across milestone REQUIREMENTS files. **Not wired into CI** — manual audit tool. |
 
 ### Measurement and routing gates
 
@@ -141,12 +153,13 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-step0-live.py` | STEP0-06 | `python3 scripts/check-step0-live.py --self-test` (CI) / `python3 scripts/check-step0-live.py --repeat 5 --min-pass 3` (full manual, 60 invocations) | Live Step 0 harness via approach-② bypass channel. `--self-test` is STEP0-06 CI gate. Full manual run requires a live Claude session. |
 | `check-traceability.py` | TRACE-03 | `python3 scripts/check-traceability.py --self-test` | Traceability matrix gate. `emit` subcommand regenerates `docs/requirements-matrix.md`. |
 
-**Deprecated shims** (backward compatibility only — do not use for new invocations):
+**Reporting tools** (manual, never gates — same standing as `check-traceability.py emit`):
 
-| Script | Delegates to |
-|--------|-------------|
-| `check-sub-skill-routing.py` | `check-routing-battery.py` (boundary signal) |
-| `check-focused-output.py` | `check-routing-battery.py` (focused-output signal) |
+| Script | Command | What it reports |
+|--------|---------|-----------------|
+| `trace-tests-usage.py` | `python3 scripts/trace-tests-usage.py` | Classifies every tracked `tests/` file as gate-pinned / live-unwired / archive, by tracing what each offline gate actually opens at runtime. Re-derives the table in [`tests/README.md`](../tests/README.md); `--list-archive` prints the archive set. |
+
+**Retired shims.** Retired at the 2026-08-16 audit ([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)): the two deprecated shims `check-sub-skill-routing.py` and `check-focused-output.py`, plus `check-inventory.py`. Call `check-routing-battery.py` directly, with its namespaced `--boundary-*` / `--focused-*` threshold flags.
 
 **Internal helpers** (underscore-prefixed, not directly invoked):
 
@@ -155,33 +168,20 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-One gate fires on `git commit`: the **sync-drift gate** (blocks if `shared/` and the generated tree have diverged). The agent body's line count is still reported by `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate was retired under TEARDOWN-01. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md) for the evidence and the standing record.
-
-Install one of the following mechanisms. **Do not enable both — they are mutually exclusive at the Git level.**
-
-**Option A — `install-hooks.sh` (recommended):**
+One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
+generated tree have diverged. Install it with either mechanism — **never both**, they are
+mutually exclusive at the Git level:
 
 ```sh
-./scripts/install-hooks.sh
+./scripts/install-hooks.sh          # Option A (recommended)
+git config core.hooksPath .githooks # Option B
+git commit --no-verify              # bypass, for intentional in-progress work
 ```
 
-This symlinks `scripts/git-hooks/pre-commit` into `.git/hooks/pre-commit`, running the sync-drift gate on every commit.
-
-**Option B — `core.hooksPath`:**
-
-```sh
-git config core.hooksPath .githooks
-```
-
-This points Git at the `.githooks/pre-commit` entry point, which also runs the sync-drift gate.
-
-**Bypass** for intentional in-progress work:
-
-```sh
-git commit --no-verify
-```
-
-For what each gate checks in detail, see [TESTING.md](TESTING.md).
+What each mechanism does to an existing hook, and why the body-budget gate no longer runs
+alongside the sync-drift gate, is in
+[CONFIGURATION.md#pre-commit-hooks](CONFIGURATION.md#pre-commit-hooks). For what each CI gate
+checks, see [TESTING.md](TESTING.md).
 
 ## Editing focused-mode skills
 

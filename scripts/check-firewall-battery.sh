@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 16 offline gate commands, captures each exit code, and prints a
+# Runs all 17 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED verdict. A GREEN result is the hard authorization gate
 # for the Phase-129/130 live runs (D-01). VAL-01 (claude plugin validate) is a
 # CLI schema check that spends ZERO model tokens and is explicitly permitted
@@ -13,16 +13,16 @@
 # Exits:  0 = FIREWALL GREEN (all gates pass)
 #         1 = FIREWALL RED   (one or more gates failed)
 #
-# Gates (16):
+# Gates (17):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
-#   VAL-02    VAL-03        VAL-04    VAL-05    GATE-01
-#   BATT-06   TRACE-03      COLLIDE-01    QUAL-01
+#   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
+#   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# The first 14 are registered through the `gate` helper below; the final two
+# The first 15 are registered through the `gate` helper below; the final two
 # (INVARIANT-CHECK, FROZEN-EVIDENCE) are inline checks that each increment the
 # same PASS/FAIL/TOTAL tally rather than going through `gate`, for a reported
-# total of 16.
+# total of 17.
 #
 # Composition change (HARNESS-01, Phase 164 -- docs/v8.7-quality-baseline-freeze.md):
 # the battery gained one gate, QUAL-01, the promoted quality-measurement
@@ -38,6 +38,20 @@
 # [INFO] line so the body's line count stays visible on every run; the drop
 # is named here rather than silently absorbed. Battery composition moved
 # 16 -> 15 as a result.
+#
+# Composition change (audit 2026-08-16 stream 0 --
+# docs/audit-2026-08-16-duplication-staleness.md): the battery gained one gate,
+# VERSION-01 (scripts/check-version-stamps.py), which asserts that all 17
+# hand-maintained version stamps carry the same value. Plugin installs are
+# version-gated rather than content-gated, so a single missed stamp ships an
+# inert update while every other gate stays green -- the v8.14 failure mode.
+# Nothing previously asserted stamp EQUALITY: sync-content.py copies
+# metadata.version through per-file, and the documented "version string
+# invariant" checks the stamp's FORMAT, not its agreement with the other 16.
+# This gate also runs its live scan, not just its self-test, because the
+# invariant is a property of the working tree. Battery composition moved
+# 16 -> 17. A gate that appears silently is indistinguishable from a gate that
+# was always there.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -135,6 +149,14 @@ gate "VAL-04" \
 gate "VAL-05" \
     "check-description-budget.py" \
     "python3 scripts/check-description-budget.py"
+
+# VERSION-01 — every hand-maintained version stamp carries the same value.
+# Runs the live scan as well as the self-test: unlike most gates here, the
+# invariant is a property of the working tree, not of the script's fixtures.
+gate "VERSION-01" \
+    "check-version-stamps.py --self-test + live" \
+    "python3 scripts/check-version-stamps.py --self-test" \
+    "python3 scripts/check-version-stamps.py"
 
 # GATE-01 — agent structural checks (self-test + live agent file)
 gate "GATE-01" \

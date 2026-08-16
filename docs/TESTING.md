@@ -51,6 +51,35 @@ Verifies that every skill listing (name + description combined) stays under the 
 python3 scripts/check-description-budget.py
 ```
 
+### VERSION-01 — check-version-stamps
+
+Verifies that every hand-maintained version stamp carries the same value — the 14
+`shared/skills/*/SKILL.md` sources, `shared/spine/SKILL.meta.yml`,
+`.claude-plugin/marketplace.json`, and `first-principles/.claude-plugin/plugin.json`.
+
+```sh
+python3 scripts/check-version-stamps.py --self-test   # fixture-driven fault injection
+python3 scripts/check-version-stamps.py               # live scan of the working tree
+```
+
+Unlike most gates here, both modes matter: the invariant is a property of the working tree, so
+the self-test alone would prove only that the detector works, not that the tree is consistent.
+
+Why it exists: plugin installs are version-gated, not content-gated. An edit that ships without
+a version bump never reaches an installed session, so a single missed stamp produces an inert
+update while every other gate stays green. Nothing previously asserted *equality* —
+`sync-content.py` copies `metadata.version` through per-file rather than propagating one source
+of truth, and the version-string invariant in
+[CONFIGURATION.md](CONFIGURATION.md#key-invariants) checks a stamp's **format**, not its
+agreement with the others.
+
+The stamp count is reported, never asserted. Hardcoding it would recreate the drift the gate
+exists to catch: a newly added skill is discovered by glob automatically, and one that forgets
+its stamp fails on presence instead of on a magic number.
+
+The generated tree is deliberately out of scope — those stamps are produced by `sync-content.py`
+from the `shared/` sources, and DUAL-04 already fails on any divergence between them.
+
 ### DUAL-04 — sync-check
 
 Verifies that `shared/` and the generated `first-principles/` tree are in sync. Exit 1 on any drift. This is the pre-commit sync-drift gate run on every commit and also wired into CI.
@@ -151,10 +180,7 @@ python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md   
 
 Routing outcomes vary between sessions, plugin sets, and Claude routing-model versions. Never attribute a single FAIL to one commit without a same-window control run. Each prompt gets a fresh `claude -p` session.
 
-**Deprecated shims** (delegate to `check-routing-battery.py` — do not use for new invocations):
-
-- `scripts/check-sub-skill-routing.py`
-- `scripts/check-focused-output.py`
+**Retired shims.** Retired at the 2026-08-16 audit ([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)): the two deprecated shims `check-sub-skill-routing.py` and `check-focused-output.py`, plus `check-inventory.py`. Call `check-routing-battery.py` directly, with its namespaced `--boundary-*` / `--focused-*` threshold flags.
 
 ## Pre-commit gates
 

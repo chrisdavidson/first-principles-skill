@@ -15,9 +15,16 @@
 > The gate-load-bearing documents (`live-monitoring-runbook.md`, `gen-01-rearch-milestone.md`),
 > the standing governing records, and all current-state developer docs were kept.
 
-> **Final state — start here:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — terminal
-> release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
-> disposition summary.
+> **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
+> — the authoritative surface: active residuals, dispositions, and the **current** coverage
+> headline of **126 reproducible / 88 audit-only / 0 gap / 214 total**.
+>
+> **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
+> limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
+> document calls its figure "final" because v8.0 was intended to wrap the project; work continued,
+> and the headline has moved twice since (133/96 → 132/97 at the v8.8 post-close re-tier, then
+> → 126/88 when 15 builder requirements were retired, taking the row count 229 → 214). Read it as
+> a record of where v8.0 stood, not as the current state.
 >
 > Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but not built in that milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 
@@ -66,6 +73,43 @@ script enforces it, and the offline battery is deliberately not grown to check i
 milestone's build bar is measure plus rules only. See [DEVELOPMENT.md](DEVELOPMENT.md) for the
 mechanism's full detail and its 2026-07-27 empirical note.
 
+## Standing of the nine milestone documents
+
+Adjudicated 2026-08-16 (audit stream 3, S-7). These nine were the only per-milestone documents to
+survive the prune, and they were surviving as an undifferentiated block: nothing distinguished a
+rule still in force from a measurement true only of its date. Each now carries its verdict as a
+banner **in the document itself**, because the one failure this closes — `v8.0-final-closure.md`
+asserting a "final" coverage headline that had moved twice — survived precisely because the
+warning lived in `CLAUDE.md` and not in the document a reader opens.
+
+Three classes, and no deletions: adjudication was the deliverable, and every one of the nine
+earned its keep on a distinct ground.
+
+| Document | Standing | Why it is kept |
+|---|---|---|
+| [v8.7-constraint-teardown.md](v8.7-constraint-teardown.md) | **Governing record** | TEARDOWN-01/02/03 and the K-of-5 demotion are in force; 16 surfaces cite it, including both pre-commit hooks and a string `check-body-budget.py` prints at runtime |
+| [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | **Governing record** | The relaxation still scopes which reference files may split; `sync-content.py` and `check-step0-live.py` cite it as the authority |
+| [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | **Governing record** | The published form of the pre-registered STOP governing Phases 189–191 and GREENMEAN-01's WON'T-DO. One inbound reference; inbound count is the wrong test |
+| [v8.0-final-closure.md](v8.0-final-closure.md) | **Split** — governing / superseded | Its terminal ACCEPTED-FINAL dispositions still stand; **every count in it is superseded** (133/96/0/229 → 126/88/0/214; battery 15/15 → 17/17) |
+| [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | **Gate-pinned artifact** | The only one of the nine whose file a gate resolves: TRACE-03 fixture (9) deep-resolves it, proven by removal |
+| [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | **Frozen evidence** | Provenance anchor for 13 live matrix rows' dispositions |
+| [v8.7-quality-baseline-freeze.md](v8.7-quality-baseline-freeze.md) | **Frozen evidence** (live baseline) | Provenance for QUAL-01 and the committed `tests/quality-baseline-v8.7*` the harness still reads. Carries inline DETECT-05 corrections — read them before quoting a figure |
+| [v8.6-quality-ab-experiment.md](v8.6-quality-ab-experiment.md) | **Frozen evidence** | The source experiment the QUAL-01 instrument was promoted from; still the record of the four reproducible output-contract defects |
+| [v8.6-live-remeasure-verdict.md](v8.6-live-remeasure-verdict.md) | **Frozen evidence** | Records the S-P04 2/5 → 0/5 → 2/5 swing that is the evidence behind the K-of-5 demotion |
+
+**How to read the classes.** A *governing record* states a decision still in force — cite it,
+do not restate its rules on another surface. *Frozen evidence* is a measurement: true of its
+recorded date and of nothing later, kept because live artifacts cite it for provenance. A
+*gate-pinned artifact* may be either, plus a file whose absence fails a gate.
+
+**What the adjudication turned on.** Not inbound-reference counts. This audit's §3 already got
+"pinned" wrong twice by reading greps instead of resolving fields, so each claim was checked at
+the field level (`artifact_link` is deep-resolved; `deliverable_path` is not) and settled by
+removing the file and running the gates. Note the confound that had to be cleared first:
+**removing any of the nine fails VAL-03**, because this index links all nine — that measures the
+index, not the document, and the prune convention above (demote the link to backticks) clears it.
+The narrower question, *does a gate resolve the file itself?*, is yes for exactly one.
+
 ## Core docs
 
 | Document | What it covers |
@@ -74,8 +118,8 @@ mechanism's full detail and its 2026-07-27 empirical note.
 | [CONFIGURATION.md](CONFIGURATION.md) | Skill frontmatter rules, version-string format, reserved words, anti-masking invariants (`MIN_HEADER_HITS=2`, `_COMPOSER_FOCUS_CEILING=4`) |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Contributor workflow: `shared/` source-of-truth model, validation-script inventory, standard editing loop, pre-commit hook setup, key invariants |
 | [FIVE-PHASE-FLOW.md](FIVE-PHASE-FLOW.md) | Mermaid flow diagram of the 5-phase methodology: Step 0 mode selection, phase chain with named artifacts, companion-technique handoff edges, and the second-order route-back |
-| [GETTING-STARTED.md](GETTING-STARTED.md) | Install the plugin, invoke the agent and thirteen companion skills, slash invocation |
-| [METHODOLOGY-CHEATSHEET.md](METHODOLOGY-CHEATSHEET.md) | One-page quick reference: the 5-phase flow, named artifacts, assumption types, derivation-chain format, and all 13 companion/focused skills with slash commands |
+| [GETTING-STARTED.md](GETTING-STARTED.md) | Install the plugin, invoke the agent and the fourteen slash-invocable skills (thirteen companions plus the launcher) |
+| [METHODOLOGY-CHEATSHEET.md](METHODOLOGY-CHEATSHEET.md) | One-page quick reference: the 5-phase flow, named artifacts, assumption types, derivation-chain format, and all thirteen companion/focused skills with slash commands |
 | [TESTING.md](TESTING.md) | How to run every CI gate and the two pre-commit gates — VAL/DUAL/GATE/STEP0/BATT/TRACE matrix, each mapped to its script |
 | [testing-agents-headlessly.md](testing-agents-headlessly.md) | Headless testing: routing battery, two-layer Step 0 harness, `stream-json` capture |
 
@@ -92,7 +136,7 @@ mechanism's full detail and its 2026-07-27 empirical note.
 
 | Document | What it covers |
 |----------|----------------|
-| [v8.0-final-closure.md](v8.0-final-closure.md) | **Terminal record** — final baselines, accepted limitations, coverage headline, deferred-ledger disposition summary |
+| [v8.0-final-closure.md](v8.0-final-closure.md) | The v8.0 terminal ACCEPTED-FINAL dispositions and deferred-ledger summary. **Its counts are superseded** — see its Standing banner and the table above |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
 | [requirements-matrix.md](requirements-matrix.md) | Generated 214-row capability → requirement → test matrix |
 
@@ -132,7 +176,10 @@ mechanism's full detail and its 2026-07-27 empirical note.
 
 | Document | What it covers |
 |----------|----------------|
+| [audit-2026-08-16-duplication-staleness.md](audit-2026-08-16-duplication-staleness.md) | Repo-wide audit of capability duplication and stale information: what is duplicated where, what is out of date, which `tests/**` artifacts any gate actually reads, and a per-stream remediation estimate with running status |
 | [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | ADR: the GEN-01 rearchitecture milestone record |
 | [live-monitoring-runbook.md](live-monitoring-runbook.md) | Runbook for live routing-battery and Step 0 monitoring runs |
+| [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | v7.11 whole-system live re-measure and honest verdict; referenced by 13 rows of the traceability matrix |
+| [`tests/README.md`](../tests/README.md) | Outside `docs/`, indexed here because nothing else would find it: the `tests/` classification — gate-pinned / live-unwired / archive, the keep-everything decision, and the traps that make grep-based pinning claims wrong. Re-derive with `python3 scripts/trace-tests-usage.py` |
 | [use-journal.md](use-journal.md) | Running log of real (non-harness) invocations and where they fell short — the only admissible scope source for a post-v8.11 milestone |
 | `history/` (local-only) | Frozen per-milestone snapshots (REQUIREMENTS, ROADMAP, MILESTONE-AUDIT) — immutable archives. **Not published:** `docs/history/` is git-ignored and untracked, so it is absent from a fresh clone and this entry is deliberately not a link. Same disclosure as [requirements-traceability.md](requirements-traceability.md). |

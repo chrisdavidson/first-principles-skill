@@ -18,32 +18,32 @@ The `first-principles/` tree is generated output. Every file in it carries a `<!
 ## Standard contribution loop
 
 ```sh
-# 1. Edit files under shared/
-# 2. Regenerate the plugin tree
-python3 scripts/sync-content.py --write
-
-# 3. Run local validation
-python3 scripts/check-body-budget.py
-python3 scripts/check-agent.py
-python3 scripts/check-links.py
-python3 scripts/check-trigger-collisions.py
-python3 scripts/check-description-budget.py
-python3 scripts/sync-content.py --check
-
-# 4. Commit
-git add -u
-git commit -m "feat: <description>"
+# 1. Edit files under shared/ — never first-principles/
+python3 scripts/sync-content.py --write   # 2. regenerate the plugin tree
+bash scripts/check-firewall-battery.sh    # 3. run every offline gate; expect FIREWALL: GREEN
+git add -u && git commit -m "feat: <description>"
 ```
+
+Step 3 is deliberately the whole battery rather than a list of individual scripts: a hand-picked
+list omits gates added later and keeps naming ones that were retired. The loop is documented in
+full, including the faster inner loop for iterating, in
+[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#standard-editing-loop).
 
 ## Setting up pre-commit hooks (recommended)
 
-Install the hooks so drift and body-budget issues are caught before you push:
+Install the hook so sync drift is caught before you push:
 
 ```sh
 ./scripts/install-hooks.sh
 ```
 
-This covers both the body-budget gate (blocks if the agent body exceeds 644 lines) and the sync-drift gate (blocks if `shared/` and the generated tree have drifted). See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for the alternative `core.hooksPath` opt-in.
+One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
+generated tree have diverged. (A body-budget gate used to run alongside it; it was retired
+under TEARDOWN-01 and no longer fires.)
+
+There is a second, mutually exclusive mechanism (`git config core.hooksPath .githooks`) — pick
+one, never both. Full detail, including what `install-hooks.sh` does to an existing hook, is in
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md#pre-commit-hooks).
 
 ## What you can contribute
 
@@ -60,35 +60,29 @@ This covers both the body-budget gate (blocks if the agent body exceeds 644 line
 
 ## Key invariants
 
-All PRs must preserve these:
+All PRs must preserve the invariants listed in
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md#key-invariants), which names the gate enforcing
+each one. Most are caught automatically by the battery above; the two that are conventions
+rather than gates are flagged there as such.
 
-- Skill `name` in frontmatter must match the parent directory name exactly.
-- Skill `description` must be third-person, ≤ 1,024 chars, no XML tags.
-- `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- All reference file links use forward slashes, one level deep — no nested `a.md → b.md → c.md` chains.
-- The agent body (`first-principles/agents/first-principles.md`) must stay under 644 lines.
+One rule that is easy to trip over, because it changed: the agent body's line count is **not**
+an invariant. The 644-line gate was retired under TEARDOWN-01 and is now report-only.
 
 ## CI gates
 
-All PRs must pass twelve CI gates:
+All PRs must pass the CI gates in `.github/workflows/validation.yml`. Before pushing, run the
+whole offline set in one shot and check for a GREEN verdict:
 
-| Gate | Script | What it checks |
-|------|--------|----------------|
-| VAL-01 | `claude plugin validate` | Plugin schema validity |
-| VAL-02 | `markdownlint-cli2` | MD style |
-| VAL-03 | `check-links.py` | Relative MD links resolve |
-| VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skills |
-| VAL-05 | `check-description-budget.py` | Skill listings ≤ 2000 chars |
-| DUAL-04 | `sync-content.py --check` | `shared/` and generated tree in sync |
-| GATE-01 | `check-agent.py` | Agent structural checks |
-| BATT-06 | `check-routing-battery.py --self-test` | Offline routing-battery self-test |
-| STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test |
-| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
-| TRACE-03 | `check-traceability.py --self-test` | Traceability gate self-test |
-| COLLIDE-01 | `check-install-collisions.py --self-test` | Dual-install name-collision self-test |
+```sh
+bash scripts/check-firewall-battery.sh
+```
 
-See [docs/TESTING.md](docs/TESTING.md) for how to run each gate locally.
+The gate list itself is not repeated here — it changes, and a stale copy in a contributor-facing
+file is worse than no copy. Two places carry it:
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory) — the canonical
+  inventory: every gate, its CI job, its script, and what it checks.
+- [docs/TESTING.md](docs/TESTING.md) — how to run each one locally and interpret its output.
 
 ## Commit message format
 

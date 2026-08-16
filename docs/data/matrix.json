@@ -424,10 +424,10 @@
     "bare_id": "EVAL-01",
     "milestone": "v3.8",
     "capability": "Methodology",
-    "deliverable_path": "scripts/check-focused-output.py",
+    "deliverable_path": "scripts/check-routing-battery.py",
     "coverage_tier": "audit-only",
     "artifact_link": "",
-    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
+    "gap_rationale": "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scripts/check-focused-output.py retired 2026-08-16 (superseded by the merged battery); deliverable repointed to its successor."
   },
   {
     "key": "v3.12/PHASE-01",

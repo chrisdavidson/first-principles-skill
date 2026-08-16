@@ -4,7 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus thirteen standalone slash-invocable companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate). The entire deliverable is pure Markdown — no executable code ships inside the plugin.
+Current shipped version: see `.claude-plugin/marketplace.json` (all 17 version stamps move in
+lockstep — VERSION-01 enforces it). For what changed in any milestone, read the tag table and
+entries in [`CHANGELOG.md`](CHANGELOG.md). This file describes the repo as it stands and does
+not track release history — where it names a milestone below, that is a current-state fact
+carrying its provenance, not a changelog entry.
+
+A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus fourteen slash-invocable skills: the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) and the `first-principles-analysis` launcher. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
 ## Commands
 
@@ -16,27 +22,28 @@ python3 scripts/sync-content.py --check   # verify no drift (exit 1 on drift)
 uv run scripts/sync-content.py --write    # uv alternative (auto-resolves deps)
 ```
 
-### Validation scripts (most need Python ≥ 3.12 + PyYAML; check-install-collisions.py is stdlib-only)
+### Validation scripts (Python ≥ 3.12; those that parse frontmatter also need PyYAML — `check-body-budget.py`, `check-install-collisions.py` and `check-quality-harness.py` are stdlib-only)
 
 ```sh
 python3 scripts/check-agent.py            # GATE-01: agent structural checks
 python3 scripts/check-links.py            # VAL-03: broken relative MD links
 python3 scripts/check-trigger-collisions.py  # VAL-04: 4-gram collision scan across skills
 python3 scripts/check-description-budget.py  # VAL-05: skill listing under 2000-char ceiling
+python3 scripts/check-version-stamps.py   # VERSION-01: all hand-maintained version stamps agree
 python3 scripts/check-body-budget.py      # report-only line-count reporter; gate retired under TEARDOWN-01, see docs/v8.7-constraint-teardown.md
 python3 scripts/check-install-collisions.py --self-test  # COLLIDE-01: dual-install name-collision self-test
 python3 scripts/check-install-collisions.py              # COLLIDE-01: live-tree scan (vacuous if monolith absent)
 python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blind A/B quality-harness self-test
 ```
 
+This list is a convenience, not the authority — a hand-maintained list of gates goes stale by
+construction. `bash scripts/check-firewall-battery.sh` runs the set that actually exists.
+
 ### Routing battery (requires a running Claude Code session)
 
 ```sh
 python3 scripts/check-routing-battery.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
 python3 scripts/check-routing-battery.py --self-test   # offline deterministic gate
-# Deprecated shims (delegate to check-routing-battery.py):
-python3 scripts/check-sub-skill-routing.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
-python3 scripts/check-focused-output.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3 --p-threshold 4 --n-threshold 1
 python3 scripts/check-routing.py --catalog tests/routing-catalog.md
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md  # parse only
 ```
@@ -106,7 +113,7 @@ first-principles/               ← generated plugin (committed, never hand-edit
 
 ### Token substitution in SKILL-body.md
 
-`{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the `## Procedure` section extracted from `shared/references/<slug>.md`. This inlines the companion technique procedures directly into the agent body at generation time.
+`{{TOOL:slug}}` tokens in `shared/spine/SKILL-body.md` are replaced by the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` — e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure". **This substitutes a name, not content.** The companion-technique procedures are *not* inlined into the agent body; they ship as on-demand reference siblings under `first-principles/agents/references/<slug>.md`, and the body's `## Companion tools` summaries are hand-written in `SKILL-body.md`. The substituted phrase says "inlined", which invites the opposite conclusion — read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#token-substitution) before reasoning about what the body contains.
 
 `{{PROCEDURE:slug}}` tokens in `shared/skills/<slug>/SKILL.md` are replaced by the full body of `shared/references/<slug>.md` (from `## When to reach for this` onward) when generating the focused-mode skill stubs.
 
@@ -114,13 +121,17 @@ first-principles/               ← generated plugin (committed, never hand-edit
 
 ### Plugin layout and skill registration
 
-The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. The thirteen companion skills live under `first-principles/skills/<slug>/SKILL.md` and are registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
+The plugin root is `first-principles/`. The agent is registered at `first-principles/agents/first-principles.md`. Fourteen skill directories live under `first-principles/skills/<slug>/SKILL.md` — the thirteen companion skills plus the `first-principles-analysis` launcher — all registered with `disable-model-invocation: true` (slash-only; the orchestrator never auto-routes to them).
 
 Install for development: `claude --plugin-dir ./first-principles`
 
 ### CI gates
 
-All gates run in `.github/workflows/validation.yml` on push/PR to master:
+Every gate below except QUAL-01 runs in `.github/workflows/validation.yml` on push/PR to master.
+QUAL-01 is battery-only — it has no CI job, and `bash scripts/check-firewall-battery.sh` is the
+only thing that runs it. This table is kept here on purpose so a working session can see the
+gate list without opening `docs/`; the canonical inventory, with CI job names and the
+battery-only inline checks, is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
 | Gate | Script | What it checks |
 |------|--------|----------------|
@@ -129,17 +140,18 @@ All gates run in `.github/workflows/validation.yml` on push/PR to master:
 | VAL-03 | `check-links.py --self-test` + `check-links.py` | Relative MD links resolve, now including `first-principles/skills/*/references/*.md` (full-check, D-01) and `first-principles/skills/*/SKILL.md` (namespace-ref-only, D-05); both new axes currently match zero live findings (v8.5 GATE-01, D-06) — the `--self-test` fixture is what makes them load-bearing until real content lands (Phase 154) |
 | VAL-04 | `check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
 | VAL-05 | `check-description-budget.py` | All skill listings under 2000-char cap |
+| VERSION-01 | `check-version-stamps.py --self-test` + `check-version-stamps.py` | Every hand-maintained version stamp carries the same value (14 `shared/skills/*/SKILL.md` + `shared/spine/SKILL.meta.yml` + both manifests). Installs are version-gated, not content-gated, so one missed stamp ships an inert update with every other gate green — the v8.14 failure mode. The stamp count is reported, never asserted: a new skill is discovered by glob, and one missing its stamp fails on presence rather than on a magic number. The generated tree is out of scope — DUAL-04 already ties it to `shared/`. |
 | DUAL-04 | `sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-02-v8.5 | `sync-content.py --self-test` | Offline pointer drift-guard (v8.5 Phase 154): asserts each of the four split core reference files' extracted Procedure slice contains exactly one well-formed link to its own detail sibling, carries per-file strip (missing) and duplicate negative controls plus a `main()` dispatch control, and proves the pointer exists and is well-formed — explicitly NOT that it is followed (Phase 156's live question). The label is milestone-qualified to distinguish it from the pre-existing v3.0 `GATE-02` bound to the trigger-collision scanner (`check-trigger-collisions.py`, D-12). |
 | GATE-01 | `check-agent.py` | Agent structural checks |
 | BATT-06 | `check-routing-battery.py --self-test` | Offline merged dual-signal routing-battery self-test (boundary + focused-output; deterministic, no live session) — owns the honest-state and anti-masking sentinels detailed in the [Routing battery](#routing-battery) section |
-| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs) |
+| STEP0-08 | `check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test (deterministic, no live session); owns RR-80-01 emulator-layer assertion (S-N04 → full-composer, no trigger phrase fires); owns Category 7 SEMGATE named assertions (SEMGATE-02 — semantic-ambiguity co-fire / boundary disambiguation over the documented overlap pairs). **All six documented pairs are now locked** — the original three (S-A01/A03/A05) plus fishbone↔five-whys, theoretical-limit↔estimate and pre-mortem↔trade-off (S-A07/A09/A11, added by the 2026-08-16 audit's stream 6, finding CAP-1), each with a full-composer boundary control. Every pair is locked by a hardcoded literal *and* a catalog row, so the catalog can be deleted without the assertion going vacuous. VAL-04 is structurally blind to this axis — it scans skill descriptions, never the Step 0 phrase table — so this gate is the only thing standing between a phrase-table row reorder and a silent routing flip. |
 | STEP0-06 | `check-step0-live.py --self-test` | Offline Step 0 live-harness self-test — scoring/parsing logic asserted with no live `claude` session (deterministic, mirrors STEP0-08 pattern) |
 | TRACE-03 | `check-traceability.py --self-test` | Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures (deterministic, no live session; only --self-test runs in CI — the `emit` subcommand is a manual regeneration step. `docs/data/matrix.json` is tracked as of TEARDOWN-03, docs/v8.7-constraint-teardown.md.) |
 | COLLIDE-01 | `check-install-collisions.py --self-test` | Offline dual-install name-collision self-test — detects skill/agent name collisions between plugin (`first-principles/`) and monolith (`first-principles-thinking/`) install surfaces (D-02: relaxes VAL-04's monolith exclusion for the NAME axis only; VAL-04 owns the trigger 4-gram axis, this gate owns the name-collision axis — orthogonal concerns; absent monolith dir is vacuously clean; deterministic, no live session) |
 | QUAL-01 | `check-quality-harness.py --self-test` | Offline blind A/B quality-measurement harness self-test (deterministic, no live session) — extraction guardrails A/B, scoreline parser, blinding integrity, tabulation arithmetic, baseline-fixture integrity, and the mechanical defect detector; the promoted instrument behind the pre/post-fix quality baseline (HARNESS-01, `docs/v8.7-quality-baseline-freeze.md`) |
 
-`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **16/16** — in one shot and prints a FIREWALL: GREEN/RED verdict; QUAL-01 (added at v8.7 Phase 164, HARNESS-01) is what moved the battery from 15 to 16. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
+`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **17/17** — in one shot and prints a FIREWALL: GREEN/RED verdict. QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17. The tally is 15 `gate` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
 
 ### Pre-commit gates
 
@@ -161,11 +173,16 @@ boundary + focused-output signal (FU-21 gate, FOCUS-01), whose offline `--self-t
 BATT-06 CI gate). Live catalog runs are developer tools, not CI gates, and are read by
 aggregate K-of-N across repeats — never a single run's verdict.
 
-Namespaced threshold defaults for the merged battery: boundary `--p-threshold 2`;
-focused-output `--p-threshold 4 --n-threshold 1`.
+Namespaced threshold defaults for the merged battery, one flag per signal:
+`--boundary-p-threshold 2`, `--boundary-n-threshold 2`, `--focused-p-threshold 4`,
+`--focused-n-threshold 1`. The un-namespaced `--p-threshold` / `--n-threshold` flags belonged
+to the two pre-merge batteries and no longer exist.
 
-`check-sub-skill-routing.py` and `check-focused-output.py` are **deprecated thin shims**;
-new callers should invoke `check-routing-battery.py` directly.
+The two deprecated shims that used to wrap this battery (`check-sub-skill-routing.py`,
+`check-focused-output.py`) were **retired at the 2026-08-16 audit**, together with
+`check-inventory.py`; their thresholds and self-test guards moved onto
+`check-routing-battery.py`. See
+[`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md).
 
 Full detail — thresholds, catalog fixtures, and the per-sentinel ownership map — lives in
 `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`. Read those before touching the batteries.
@@ -174,13 +191,18 @@ Full detail — thresholds, catalog fixtures, and the per-sentinel ownership map
 
 The canonical requirements and traceability surface lives in the git-tracked tree:
 
-- **`docs/v8.0-final-closure.md`** — terminal state entry point: final baselines, accepted
-  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5), final coverage headline
-  (133 reproducible / 96 audit-only / 0 gap / 229 total), and deferred-ledger disposition
-  summary. Start here for the v8.0 end-state. (Phase 142 terminal record.)
-- **`docs/requirements-traceability.md`** — authoritative source of truth: active
-  residuals, coverage headline (126 reproducible / 88 audit-only / 0 gap / 214 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15 v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88, 229 → 214 rows.)
+- **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
+  Active residuals, the current coverage headline
+  (**126 reproducible / 88 audit-only / 0 gap / 214 total**), compact historical ledger, and gap
+  findings. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
+  reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
+  v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,
+  229 → 214 rows.)
+- **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
+  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
+  v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
+  wrap the project; work continued and that figure has been superseded twice — see the bullet
+  above. Do not quote its headline as current.
 - **`docs/requirements-matrix.md`** — generated 214-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
@@ -221,6 +243,10 @@ is in `docs/TESTING.md` and `docs/MEASUREMENT-MAP.md`.
 
 ### Measurement comparison
 
+The four Step-0/routing tools, for orientation. The canonical layer map — which adds the
+traceability, quality-harness and sentinel layers — is
+[`docs/MEASUREMENT-MAP.md`](docs/MEASUREMENT-MAP.md#measurement-layers).
+
 | Tool | Measured layer | Run command | CI gate |
 |------|---------------|-------------|---------|
 | `check-routing.py` | Main-agent DELEGATE / NO-DELEGATE routing boundary | `--catalog tests/routing-catalog.md --repeat 5 --min-pass 3` | None — developer tool, not wired into `validation.yml` |
@@ -250,4 +276,8 @@ authoritative record first:
 - Skill `name` in frontmatter must match the parent directory name exactly.
 - Skill `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
 - `metadata.version` must be a double-quoted YAML string (e.g. `version: "3.8"`), not a bare number.
+- Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches all 17 or none.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
+- The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01 and is report-only.
+
+Each invariant is paired with the gate that enforces it in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) — including the two that are conventions with no gate behind them.

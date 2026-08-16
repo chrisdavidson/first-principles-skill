@@ -250,13 +250,16 @@ independent layers:
   self-test only):
   [`TESTING.md#step0-06--check-step0-live`](TESTING.md#step0-06--check-step0-live).
 
-### Deprecated shims
+### Retired shims
 
-`scripts/check-sub-skill-routing.py` and `scripts/check-focused-output.py`
-are **deprecated thin shims** that translate old per-signal CLI flags onto the
-merged battery's namespaced flags and delegate to `check-routing-battery.py`.
-They exist for backwards compatibility only; new callers should invoke
-`scripts/check-routing-battery.py` directly.
+`scripts/check-sub-skill-routing.py` and `scripts/check-focused-output.py` were thin shims
+translating old per-signal CLI flags onto the merged battery's namespaced flags. Both were
+**retired at the 2026-08-16 audit**
+([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)).
+Invoke `scripts/check-routing-battery.py` directly and pass `--boundary-p-threshold`,
+`--boundary-n-threshold`, `--focused-p-threshold`, `--focused-n-threshold`. The invariants the
+shims carried — the boundary p-threshold default of 2 and the focused 4/1 pair — moved onto the
+battery and are pinned by `tests/test_65_doc_invariants.py`.
 
 ---
 

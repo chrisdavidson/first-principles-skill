@@ -14,14 +14,21 @@ Everything you edit lives under `shared/`. The generated `first-principles/` tre
 
 Running `python3 scripts/sync-content.py --write` reads `shared/` and regenerates the entire `first-principles/agents/` tree (the agent body, its `references/` siblings, and the worked examples) and all `first-principles/skills/*/SKILL.md` stubs. Running `--check` instead performs a dry-run comparison and exits with code 1 on any drift.
 
-The non-obvious wiring this stage introduces is **token substitution** — two token types expand inline content from `shared/references/` at generation time:
+The non-obvious wiring this stage introduces is **token substitution**, and the two token types
+behave differently in a way that matters for tracing a change:
 
-| Token | Source file | Replaced by |
-|-------|-------------|-------------|
-| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | `## Procedure` section from `shared/references/<slug>.md` |
-| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
+| Token | Source file | Replaced by | Carries content? |
+|-------|-------------|-------------|------------------|
+| `{{TOOL:slug}}` | `shared/spine/SKILL-body.md` | A phrase from `shared/spine/tool-map.yml` | **No** — a name only |
+| `{{PROCEDURE:slug}}` | `shared/skills/<slug>/SKILL.md` | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward | Yes |
 
-These token-substitution edges mean that editing a companion reference file (e.g. `shared/references/inversion.md`) propagates its content into both the assembled agent body (via `{{TOOL:inversion}}` in `SKILL-body.md`) and the focused-mode skill stub (via `{{PROCEDURE:inversion}}` in the skill source file). A reader inspecting the generated files alone will not see the composition seams — they exist only in `shared/`.
+So editing a companion reference file (e.g. `shared/references/inversion.md`) reaches the
+generated tree by exactly two routes: the focused-mode skill stub, where `{{PROCEDURE:inversion}}`
+expands its body inline, and the agent's reference sibling
+`first-principles/agents/references/inversion.md`, which is a verbatim copy. It does **not** reach
+the assembled agent body — `{{TOOL:inversion}}` substitutes only the technique's name there. A
+reader inspecting the generated files alone will not see these composition seams; they exist only
+in `shared/`.
 
 For the canonical description of the assembly steps and token types, see [ARCHITECTURE.md#generation-pipeline](ARCHITECTURE.md#generation-pipeline) and [ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).
 
@@ -56,24 +63,19 @@ historical reference figure inside the script.
 
 The sync-drift gate is also the CI gate **DUAL-04** (`sync-check`), which closes the loop on Stage 2: it is the mechanism that enforces the `--write`/`--check` contract at both commit time and on every push or PR. If a developer edits `shared/` and skips the `--write` step, DUAL-04 fails.
 
-On push or PR to master, the full CI suite runs in `.github/workflows/validation.yml`:
+On push or PR to master, the full CI suite runs in `.github/workflows/validation.yml`. What
+matters for the data flow is the *shape* of that stage rather than its membership: the gates
+divide into those that check the generated artifact is faithful to `shared/` (DUAL-04, GATE-01,
+GATE-02-v8.5), those that check the artifact is well-formed for distribution (VAL-01, VAL-02,
+VAL-03, VAL-04, VAL-05, VERSION-01, COLLIDE-01), and those that check the measurement subsystem
+still measures what it claims (BATT-06, STEP0-06, STEP0-08, TRACE-03, and QUAL-01 in the offline
+battery). A change that survives all three classes is shippable.
 
-| Gate | What it guards |
-|------|---------------|
-| VAL-01 | Plugin schema validity |
-| VAL-02 | Markdown style |
-| VAL-03 | Relative link resolution (plugin + shared trees) |
-| VAL-04 / GATE-02 | No 4-gram collision across skill descriptions |
-| COLLIDE-01 | No skill/agent name collisions between plugin and monolith install surfaces |
-| VAL-05 | Skill listings under 2000-char cap |
-| DUAL-04 | `shared/` and generated tree in sync |
-| GATE-01 | Agent structural integrity |
-| STEP0-06 | Step 0 live-harness scoring/parsing self-test |
-| STEP0-08 | Offline Step 0 phrase-detection classifier self-test |
-| BATT-06 | Merged dual-signal routing battery self-test (anti-masking sentinels) |
-| TRACE-03 | Traceability matrix gate self-test |
-
-For the full canonical gate inventory (script names, job IDs, what each checks), see [ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). For how to run each gate locally and interpret results, see [TESTING.md#ci-gates--operational-run-detail](TESTING.md#ci-gates--operational-run-detail) and [TESTING.md#pre-commit-gates](TESTING.md#pre-commit-gates).
+The gate list is deliberately not restated here — see
+[ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory)
+for the canonical inventory (script names, job IDs, what each checks), and
+[TESTING.md#ci-gates--operational-run-detail](TESTING.md#ci-gates--operational-run-detail) plus
+[TESTING.md#pre-commit-gates](TESTING.md#pre-commit-gates) for how to run each one locally.
 
 ## Stage 5 — Measurement harness
 

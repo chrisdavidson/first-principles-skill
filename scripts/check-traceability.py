@@ -250,9 +250,18 @@ def _rows_methodology_focused_stubs() -> list[MatrixRow]:
                   fp_agent, "audit-only", "", audit_v38),
         MatrixRow("v3.8/STUB-01", "STUB-01", "v3.8", "Methodology",
                   fp_skills, "audit-only", "", audit_v38),
+        # EVAL-01's original deliverable, scripts/check-focused-output.py, was
+        # retired at the 2026-08-16 audit (stream 2) after being superseded by
+        # the merged check-routing-battery.py. The deliverable_path is repointed
+        # at the successor rather than left dangling: deliverable_path is
+        # reported, never existence-resolved (only artifact_link is), so a stale
+        # path here would have failed silently and misled a matrix reader.
         MatrixRow("v3.8/EVAL-01", "EVAL-01", "v3.8", "Methodology",
-                  "scripts/check-focused-output.py",
-                  "audit-only", "", audit_v38),
+                  "scripts/check-routing-battery.py",
+                  "audit-only", "",
+                  audit_v38 + ". Original deliverable scripts/check-focused-output.py"
+                  " retired 2026-08-16 (superseded by the merged battery);"
+                  " deliverable repointed to its successor."),
         MatrixRow("v3.12/PHASE-01", "PHASE-01", "v3.12", "Methodology",
                   fp_skills, "audit-only", "", audit_v312),
         MatrixRow("v3.12/PHASE-02", "PHASE-02", "v3.12", "Methodology",

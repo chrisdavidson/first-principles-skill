@@ -246,7 +246,10 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 - **Generated matrix (214 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** `docs/history/` — local-only, git-ignored; not present in a fresh clone
-- **Project overview and active milestone context:** [`../.planning/PROJECT.md`](../.planning/PROJECT.md)
+- **Project overview and active milestone context:** `.planning/PROJECT.md` — local-only,
+  git-ignored; not present in a fresh clone, so deliberately not a link (same treatment as the
+  `docs/history/` line above, which it previously contradicted by being one; VAL-03 skips `../`
+  targets and so never caught it).
   *(Note: `.planning/` is gitignored, as is `docs/history/`. The canonical historical detail is the promoted `docs/history/` copies named above, which are retained locally only.)*
 - **v7.10 agent-goal alignment audit** (ALIGN-01/02/03 — authoritative prioritized inventory of method-fidelity gaps and technical debt behind the DEBT-*/METHFID-* split): `agent-goal-alignment-audit.md`
 

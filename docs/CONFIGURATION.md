@@ -52,16 +52,11 @@ the `## When to reach for this` section through EOF of `shared/references/<slug>
 
 ## Token substitution
 
-The sync pipeline performs two token substitutions:
-
-| Token | Location | Replaced with |
-|-------|----------|---------------|
-| `{{TOOL:<slug>}}` | `shared/spine/SKILL-body.md` | The value keyed by `<slug>` and the current surface (`agent`) in `shared/spine/tool-map.yml` |
-| `{{PROCEDURE:<slug>}}` | `shared/skills/<slug>/SKILL.md` body | Full body of `shared/references/<slug>.md` from `## When to reach for this` onward |
-
-`shared/spine/tool-map.yml` maps each companion-tool slug to its inline text for each
-surface. The eight registered slugs in the tool map are: `five-whys`, `fishbone`,
-`inversion`, `pre-mortem`, `trade-off`, `second-order`, `estimate`, `theoretical-limit`.
+The sync pipeline performs two token substitutions, `{{TOOL:<slug>}}` and
+`{{PROCEDURE:<slug>}}`. They are not symmetrical — one substitutes a name, the other substitutes
+content — and the mechanism, the tool-map's registered slugs, and the consequences for what the
+agent body actually contains are documented in
+[ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).
 
 ## Version string invariant
 
@@ -167,24 +162,35 @@ The gate prefers `uv` when available and falls back to `python3`. Bypass it with
 
 ## CI gates
 
-All gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
-The full gate inventory — all 12 CI gates plus the sync-drift pre-commit gate, with their
-owning scripts — is maintained
-canonically in [docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
-authoritative gate table.
+CI gates run in `.github/workflows/validation.yml` on push and pull request to `master`.
+The full inventory — the CI gates, the battery-only gates, and the sync-drift pre-commit gate,
+each with its owning script — is maintained canonically in
+[docs/ARCHITECTURE.md](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory). Refer there for the
+authoritative gate table; the count is deliberately not repeated here, because a number in a
+second place is a number that goes stale.
 
 ## Key invariants
 
-- `name` in frontmatter must match the parent directory name exactly.
-- `metadata.version` must be a double-quoted YAML string — never a bare number.
-- `description` fields must be third-person, ≤ 1,024 chars, no XML tags.
-- `disable-model-invocation: true` must be present on every focused-mode skill stub.
-- Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
-- All reference file links use forward slashes and are one level deep from the referencing file.
-- The generated agent body's line count is reported by `scripts/check-body-budget.py`, not
-  enforced — the 644-line figure is a retired, report-only regression-guard figure (gate
-  retired under TEARDOWN-01).
-- Edit `shared/` only. Never edit the generated tree (`first-principles/`) directly.
+This is the canonical list. `ARCHITECTURE.md` and `CONTRIBUTING.md` link here rather than
+restating it; `CLAUDE.md` keeps a session-facing copy by design. The right-hand column names
+what would actually catch a violation — an invariant nothing enforces is a convention, and the
+distinction is worth keeping visible.
+
+| Invariant | Enforced by |
+|---|---|
+| `name` in frontmatter must match the parent directory name exactly | GATE-01, COLLIDE-01 |
+| `description` fields must be third-person, ≤ 1,024 chars, no XML tags | GATE-01, VAL-05 |
+| Reserved words `anthropic` and `claude` are forbidden in skill `name` fields | VAL-01 |
+| `metadata.version` must be a double-quoted YAML string — never a bare number | VERSION-01 |
+| Every hand-maintained version stamp carries the **same** value | VERSION-01 |
+| `disable-model-invocation: true` must be present on every focused-mode skill stub | convention — no gate |
+| All reference file links use forward slashes and are one level deep from the referencing file (no nested `a.md → b.md → c.md`) | VAL-03 |
+| No link in `shared/` or `first-principles/` may escape the plugin root with `../` | convention — no gate (see the v8.17.1 entry in `CHANGELOG.md`) |
+| Edit `shared/` only; never edit the generated tree (`first-principles/`) directly | DUAL-04 |
+
+The agent body's line count (`first-principles/agents/first-principles.md`) is **not** an
+invariant. It is reported by `scripts/check-body-budget.py` and nothing more — the 644-line gate
+was retired under TEARDOWN-01, and 644 survives only as a historical reference figure.
 
 ## Anti-masking measurement invariants
 
