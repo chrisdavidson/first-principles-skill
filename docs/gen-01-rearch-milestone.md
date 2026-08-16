@@ -6,6 +6,15 @@
 **Requirement:** GR-02 [CRITICAL]
 **Status:** Committed / Scheduled
 
+> **Standing — adjudicated 2026-08-16 (audit stream 3): GATE-PINNED ARTIFACT.**
+> Its *prose* is a scheduled-milestone stub with no standing authority; its *existence* is
+> load-bearing. `check-traceability.py --self-test` fixture (9) sets
+> `artifact_link="docs/gen-01-rearch-milestone.md"` and `check_consistency()` deep-resolves
+> artifact links, so removing this file fails TRACE-03. Verified by removal, not by grep:
+> renaming it away makes `--self-test` exit 1 with `artifact file not found`. **Do not delete or
+> rename** without re-pointing that fixture. See
+> [audit-2026-08-16-duplication-staleness.md](audit-2026-08-16-duplication-staleness.md).
+
 ---
 
 ## Ordering Constraint

@@ -17,7 +17,7 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | 0 — version-stamp equality assertion | **DONE.** `scripts/check-version-stamps.py` (VERSION-01), wired into CI and the offline battery (16 → 17 gates). Proven by fault injection on the live tree, not only on fixtures. |
 | 1 — fix stale claims (S-1…S-8) | **DONE.** S-3/S-4/S-6/S-8 fixed during stream 5; S-1 and S-2 fixed here; **S-5 retracted** as a false finding (see below). Also fixed the v8.15 Self-Audit Gate rename, which had never reached the user-facing docs. |
 | 2 — retire dead scripts | **DONE — 3 of 4 retired.** `check-sub-skill-routing.py`, `check-focused-output.py`, `check-inventory.py` (plus `tests/test_81_inventory.py`). `check-body-budget.py` **kept by decision**: TEARDOWN-01 deliberately preserved the reporter when it retired the gate, and the battery's `[INFO]` line is its live consumer — only its documentation footprint was pruned. |
-| 3 — adjudicate 9 milestone docs | Open. |
+| 3 — adjudicate 9 milestone docs | **DONE — 9 of 9 adjudicated, 0 deleted.** Three classes (governing record / frozen evidence / gate-pinned artifact); each verdict written as a banner in the document itself, summarised in a `docs/README.md` table. The estimate assumed pruning would follow; it should not — see below. |
 | 4 — `tests/` archival decision | Open. **Note for whoever runs it:** stream 2 newly orphaned `tests/focused-output-catalog.md`, `tests/sub-skill-routing-catalog.md`, and the `focused-output-baseline-v*.md` / `sub-skill-routing-baseline-v*.md` sets — they were consumed only by the two retired shims. Several sit inside FROZEN-EVIDENCE's pathspec and must not be edited in place. They moved from live fixtures to archive of a retired tool; recorded here so they are not mistaken for still-live. |
 | 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
 | 6 — extend SEMGATE (optional) | Open. |
@@ -49,6 +49,12 @@ opposite directions, both recorded rather than quietly adjusted:
   `deliverable_path` on one matrix row named a script about to be deleted. Retiring a shim means
   moving its regression guards onto the successor, not deleting them — that migration, not the
   deletion, was the actual work.
+
+- **Stream 3's estimate was right on cost and wrong on shape.** The 3–4 h and the "VAL-03 breaks
+  on any bad link" risk both assumed adjudication would be followed by pruning. It was not:
+  nine documents were classed and nine kept. The cost was in *proving* each standing — resolving
+  matrix fields rather than counting greps, reading thirteen script comments to separate citation
+  from dependency, and one remove-and-restore test — not in excising anything.
 
 **Follow-up logged, not done.** Two shipped-content items each need a `shared/` edit, a regen and a
 17-stamp version bump, so they belong to a release rather than to a documentation pass:
@@ -281,6 +287,54 @@ follow-up work.
 **Not bulk-prunable** — `v8.7-constraint-teardown.md` is cited normatively by `CLAUDE.md` as the
 governing record for TEARDOWN-01/03 and the K-of-5 demotion rule. Needs per-document adjudication:
 governing record, or historical narrative?
+
+> **Closed (stream 3), and the binary in the question was wrong.** All nine were adjudicated and
+> **none deleted**. "Governing record or historical narrative?" admits no answer for five of them:
+> a document can be neither authority nor disposable narrative but *frozen evidence* — a
+> measurement, true of its date and of nothing later, that live artifacts cite for provenance.
+> Three classes were needed:
+>
+> | Class | Documents |
+> |---|---|
+> | **Governing record** — decision still in force | `v8.7-constraint-teardown`, `v8.5-byte-freeze-relaxation`, `v8.14-delivery-verification` |
+> | **Frozen evidence** — measurement, cited for provenance | `whole-system-remeasure-verdict`, `v8.7-quality-baseline-freeze`, `v8.6-quality-ab-experiment`, `v8.6-live-remeasure-verdict` |
+> | **Gate-pinned artifact** — a gate resolves the file itself | `gen-01-rearch-milestone` |
+> | **Split** — governing for its dispositions, superseded for its figures | `v8.0-final-closure` |
+>
+> Each verdict is written **into the document**, not only into an index, because the failure this
+> stream exists to prevent — a document asserting terminal authority over a figure that has since
+> moved — is exactly what happens when the warning lives somewhere the reader is not. A summary
+> table sits in `docs/README.md` for navigation; the banners are the load-bearing part.
+>
+> **Three things the adjudication established that the audit had wrong or had not checked:**
+>
+> 1. **Only one of the nine is gate-pinned.** `gen-01-rearch-milestone.md` is set as
+>    `artifact_link` on TRACE-03 self-test fixture (9) and is deep-resolved; removing it makes
+>    `check-traceability.py --self-test` exit 1. Verified by removal, then restored — not by grep,
+>    for the reason §3 records twice.
+> 2. **`whole-system-remeasure-verdict.md` is not pinned, though it looks it.** Thirteen matrix
+>    rows name it, but as one `deliverable_path` (reported, never existence-checked) and twelve
+>    `gap_rationale` prose mentions. Same field-level distinction that made §3's original
+>    `check-focused-output.py` verdict wrong.
+> 3. **Every `scripts/` mention of the other seven is a provenance comment, not a dependency.**
+>    Thirteen script references across `_battery_core.py`, `check-step0-live.py`,
+>    `sync-content.py`, `check-quality-harness.py`, `check-body-budget.py`,
+>    `check-firewall-battery.sh` and both pre-commit hooks were read line by line. None
+>    existence-check a file; several *cite* one as the authority for a live behaviour, which is a
+>    reason to keep the document but not a gate.
+>
+> **`v8.14-delivery-verification.md` is the case against pruning by reference count.** It has the
+> fewest inbound references of the nine (two, both from the index) and is the least prunable on
+> merit: it is the published form of a pre-registered STOP that still governs Phases 189–191 and
+> GREENMEAN-01's WON'T-DO scope, with both pre-registrations committed before their evidence.
+> Deleting it on a grep count would have destroyed the artifact the project's honesty posture
+> exists to protect.
+>
+> **One refuted-figure check, done by reading rather than grepping.** `v8.7-quality-baseline-freeze`
+> is the only one of the nine carrying figures the v8.13 DETECT-05 detector fix reversed, and it
+> already carries the corrections inline at the point of use (rows 1–2 of the sweep's §3a table).
+> Its banner points at them, since a correction 128 lines in is invisible to someone quoting the
+> summary. No uncorrected reversal was found in the other eight.
 
 ---
 

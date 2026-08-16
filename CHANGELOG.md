@@ -53,6 +53,20 @@ installed session.
 
 ### Changed
 
+- **The nine surviving milestone documents in `docs/` are adjudicated, and none deleted.** They
+  had survived the 2026-08-16 prune as an undifferentiated block, with nothing distinguishing a
+  rule still in force from a measurement true only of its date. Each now opens with a **Standing**
+  banner giving its class and its live dependents; `docs/README.md` carries the summary table. The
+  audit posed it as "governing record or historical narrative?" — that binary fits four of them.
+  Five are neither: *frozen evidence*, cited for provenance by live artifacts while asserting
+  nothing current. A third class covers `gen-01-rearch-milestone.md`, the only one of the nine a
+  gate resolves (TRACE-03 fixture (9) deep-resolves its `artifact_link`; verified by removing the
+  file and watching `--self-test` exit 1). The verdicts live in the documents rather than only in
+  an index because the failure being closed — `v8.0-final-closure.md` calling a moved figure
+  "final" — persisted exactly because its warning sat in `CLAUDE.md` instead.
+- **`v8.14-delivery-verification.md` is the case against pruning by reference count.** Fewest
+  inbound references of the nine, and least prunable on merit: it is the published form of a
+  pre-registered STOP still governing Phases 189–191 and GREENMEAN-01's WON'T-DO scope.
 - **`first-principles/README.md` rewritten.** The shipped plugin README still described v3.0.0 —
   a "plugin contents removed" banner, six companion tools, six worked examples, and no mention of
   the `skills/` directory. It now describes what the plugin actually ships (8 technique references
