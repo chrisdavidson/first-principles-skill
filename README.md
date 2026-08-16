@@ -84,36 +84,33 @@ The v3.8 enhanced successor adds four things the original does not have:
 
 ## Install
 
-Install the plugin and invoke the agent:
-
-```bash
-# Local development install:
-claude --plugin-dir ./first-principles
-
-# In a Claude Code session:
-@agent-first-principles:first-principles
-# or explicitly:
-/first-principles:first-principles
-```
-
-Or install via the Claude Code plugin marketplace — no clone required:
+From the Claude Code plugin marketplace — no clone required:
 
 ```sh
 /plugin marketplace add chrisdavidson/first-principles-skill
 /plugin install first-principles@first-principles-skill
 ```
 
-Verify with `/doctor` inside Claude Code; the `first-principles` agent should appear in the listing.
+Then invoke it in a session:
 
-The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0. In v3.8.0, eleven companion-tool slash-only skills were re-added under `first-principles/skills/` — these are standalone direct-invoke skills, not the full plugin-skill surfaces from v2.x; the skill surface has since grown to thirteen — `estimate` in v7.2, `theoretical-limit` in v7.3. See [CHANGELOG.md](./CHANGELOG.md) for the full upgrade path.
+```text
+@agent-first-principles:first-principles   # auto-routed
+/first-principles:first-principles         # explicit
+```
 
-### Project-scoped install
+Verify with `/doctor`; the `first-principles` agent should appear in the listing.
 
-The plugin can also be installed into a single project (committed to that repo's VCS) by placing it under `.claude/plugins/` inside the project. Use this when a team wants the agent version-controlled with a specific codebase.
+Two other install routes exist — a local development install (`claude --plugin-dir`, or a symlink
+into `~/.claude/skills/` that always reads your working tree) and a project-scoped install under
+`.claude/plugins/`. Those, the compatibility caveats, and the version-pinning behaviour that makes
+the marketplace route unsuitable for plugin development are in
+[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md).
 
-### Compatibility
-
-This plugin targets Claude Code's plugin-manifest schema (`.claude-plugin/plugin.json`) and is validated exclusively with the Claude Code CLI (`claude plugin validate`). Other agent runtimes (Cursor, other CLI agents) are untested and not officially supported.
+The v2.x dual install (root monolith + 7 namespaced plugin skills) was removed in v3.0.0.
+Slash-only companion skills were re-added under `first-principles/skills/` in v3.8.0 — standalone
+direct-invoke skills, not the full plugin-skill surfaces from v2.x. See
+[CHANGELOG.md](./CHANGELOG.md) for the full upgrade path and for how the skill surface reached its
+current size.
 
 ## Contributing
 

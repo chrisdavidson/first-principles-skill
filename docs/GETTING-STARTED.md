@@ -47,6 +47,12 @@ ln -s "$PWD/first-principles-skill/first-principles" ~/.claude/skills/first-prin
 
 Place the `first-principles/` directory under `.claude/plugins/` inside your project repo. This version-controls the plugin with the codebase so the whole team gets the same agent version.
 
+### Compatibility
+
+This plugin targets Claude Code's plugin-manifest schema (`.claude-plugin/plugin.json`) and is
+validated exclusively with the Claude Code CLI (`claude plugin validate`). Other agent runtimes
+(Cursor, other CLI agents) are untested and not officially supported.
+
 ## Verifying the install
 
 Inside a Claude Code session, run:
