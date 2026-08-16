@@ -12,6 +12,15 @@ installed session.
 
 ## [Unreleased]
 
+_Nothing yet._
+
+## [8.17.0] - 2026-08-16
+
+First tagged release since v8.14. **8.15.0 and 8.16.0 bumped their version stamps but were never
+tagged or released, so this release carries all three:** the turn-budget raise and Self-Audit Gate
+rename (8.15.0), source-provenance discipline for ground truths (8.16.0), and the turn-budget
+revert below (8.17.0).
+
 ### Changed
 
 - **`maxTurns` reverted 60 → 30.** The v8.15.0 raise was justified by a run that spent turns on
