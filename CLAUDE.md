@@ -4,6 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
+Current shipped version: see `.claude-plugin/marketplace.json` (all 17 version stamps move in
+lockstep — VERSION-01 enforces it). For what changed in any milestone, read the tag table and
+entries in [`CHANGELOG.md`](CHANGELOG.md); this file describes the repo as it stands, not its
+history, and deliberately does not restate milestone narrative.
+
 A Claude Code **plugin** that ships a first-principles analysis agent (`first-principles:first-principles`) plus fourteen slash-invocable skills: the thirteen companion skills (pre-mortem, inversion, fishbone, five-whys, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) and the `first-principles-analysis` launcher. The entire deliverable is pure Markdown — no executable code ships inside the plugin.
 
 ## Commands
@@ -185,13 +190,18 @@ Full detail — thresholds, catalog fixtures, and the per-sentinel ownership map
 
 The canonical requirements and traceability surface lives in the git-tracked tree:
 
-- **`docs/v8.0-final-closure.md`** — terminal state entry point: final baselines, accepted
-  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5), final coverage headline
-  (133 reproducible / 96 audit-only / 0 gap / 229 total), and deferred-ledger disposition
-  summary. Start here for the v8.0 end-state. (Phase 142 terminal record.)
-- **`docs/requirements-traceability.md`** — authoritative source of truth: active
-  residuals, coverage headline (126 reproducible / 88 audit-only / 0 gap / 214 total),
-  compact historical ledger, and gap findings. Start here. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15 v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88, 229 → 214 rows.)
+- **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
+  Active residuals, the current coverage headline
+  (**126 reproducible / 88 audit-only / 0 gap / 214 total**), compact historical ledger, and gap
+  findings. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
+  reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
+  v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,
+  229 → 214 rows.)
+- **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
+  limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
+  v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
+  wrap the project; work continued and that figure has been superseded twice — see the bullet
+  above. Do not quote its headline as current.
 - **`docs/requirements-matrix.md`** — generated 214-row capability→requirement→test
   matrix. Regenerate with:
   ```sh

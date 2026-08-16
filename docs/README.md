@@ -15,9 +15,16 @@
 > The gate-load-bearing documents (`live-monitoring-runbook.md`, `gen-01-rearch-milestone.md`),
 > the standing governing records, and all current-state developer docs were kept.
 
-> **Final state — start here:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — terminal
-> release record, accepted limitations, final coverage headline (133/96/0/229), and deferred-ledger
-> disposition summary.
+> **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
+> — the authoritative surface: active residuals, dispositions, and the **current** coverage
+> headline of **126 reproducible / 88 audit-only / 0 gap / 214 total**.
+>
+> **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
+> limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
+> document calls its figure "final" because v8.0 was intended to wrap the project; work continued,
+> and the headline has moved twice since (133/96 → 132/97 at the v8.8 post-close re-tier, then
+> → 126/88 when 15 builder requirements were retired, taking the row count 229 → 214). Read it as
+> a record of where v8.0 stood, not as the current state.
 >
 > Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but not built in that milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 

@@ -107,7 +107,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact t
 | 2 | Challenge Assumptions | Classified Assumptions Table |
 | 3 | Establish Ground Truths | Ground Truths list (GT-N IDs) |
 | 4 | Reason Upward | Derivation Chains (`GT-N + GT-M → conclusion`) |
-| 5 | Validate | Signed-off analysis with validation rubric pass |
+| 5 | Validate | Signed-off analysis with a Self-Audit Gate pass |
 
 Eight of these companion techniques (Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order thinking, estimate, theoretical-limit) are *named* in the agent body via `{{TOOL:slug}}` tokens — each with a hand-written summary in the body's `## Companion tools` section — while their full procedures ship as on-demand reference siblings rather than in the body itself (see [Token substitution](#token-substitution)). All thirteen companion skills — these eight techniques plus the five phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate) — are additionally registered as standalone, slash-only skills (`disable-model-invocation: true`).
 

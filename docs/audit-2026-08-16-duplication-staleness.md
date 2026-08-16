@@ -15,8 +15,8 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | Stream | Status |
 |---|---|
 | 0 — version-stamp equality assertion | **DONE.** `scripts/check-version-stamps.py` (VERSION-01), wired into CI and the offline battery (16 → 17 gates). Proven by fault injection on the live tree, not only on fixtures. |
-| 1 — fix stale claims (S-1…S-6) | **Partly done as a side effect of stream 5** — see the table below. S-1 and S-2 remain, and both are larger than a wording fix. |
-| 2 — retire 4 dead scripts | Open. |
+| 1 — fix stale claims (S-1…S-8) | **DONE.** S-3/S-4/S-6/S-8 fixed during stream 5; S-1 and S-2 fixed here; **S-5 retracted** as a false finding (see below). Also fixed the v8.15 Self-Audit Gate rename, which had never reached the user-facing docs. |
+| 2 — retire dead scripts | **DONE — 3 of 4 retired.** `check-sub-skill-routing.py`, `check-focused-output.py`, `check-inventory.py` (plus `tests/test_81_inventory.py`). `check-body-budget.py` **kept by decision**: TEARDOWN-01 deliberately preserved the reporter when it retired the gate, and the battery's `[INFO]` line is its live consumer — only its documentation footprint was pruned. |
 | 3 — adjudicate 9 milestone docs | Open. |
 | 4 — `tests/` archival decision | Open. |
 | 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
@@ -38,11 +38,25 @@ was found because merging two copies forced a comparison:
 | Version badge | `README.md` | hardcoded `8.0.0` while shipping `8.17.1`; now a tag-reading badge that cannot go stale |
 | Plugin README | `first-principles/README.md` | described v3.0.0: "plugin contents removed", six tools, six examples, no skills directory |
 
-**Still open, and deliberately so.** S-1 (`CLAUDE.md` is ~9 milestones behind) and S-2 (two
-competing coverage headlines) are not wording fixes: S-1 needs a judgement about which of ten
-milestones' facts still matter to a session, and S-2 needs a decision about whether
-`v8.0-final-closure.md` may keep calling a superseded number "final". Both belong to stream 1
-proper.
+**Outturn against estimate.** Streams 0–2 and 5 are complete. Two estimates in §7 proved wrong in
+opposite directions, both recorded rather than quietly adjusted:
+
+- **Stream 2 was over-estimated.** Its "matrix re-tier + regeneration" cost rested on two rows
+  being pinned by TRACE-03. Both rows carry an **empty `artifact_link`**, and only `artifact_link`
+  is deep-resolved — so no re-tier was required to pass any gate.
+- **Stream 2 was also under-estimated, for a reason the audit never saw.**
+  `tests/test_65_doc_invariants.py` hard-pinned the two retired shims across six tests, and
+  `deliverable_path` on one matrix row named a script about to be deleted. Retiring a shim means
+  moving its regression guards onto the successor, not deleting them — that migration, not the
+  deletion, was the actual work.
+
+**Follow-up logged, not done.** Two shipped-content items each need a `shared/` edit, a regen and a
+17-stamp version bump, so they belong to a release rather than to a documentation pass:
+
+1. `shared/spine/tool-map.yml`'s phrase "the *inlined* fishbone procedure" — the wording that made
+   S-8's wrong reading natural.
+2. `shared/skills/first-principles-analysis/SKILL.md` still says "the validation rubric", the name
+   v8.15 replaced with "Self-Audit Gate" precisely because two instruments shared it.
 
 ---
 
@@ -51,7 +65,7 @@ proper.
 | Axis | Verdict |
 |---|---|
 | **Capability duplication (product surface — 14 skills)** | **Clean.** No redundant technique found. Overlap is real but deliberate and partly gated. |
-| **Capability duplication (tooling — 23 scripts)** | **3 confirmed dead/duplicate, 1 needs adjudication.** ~80 KB of code. |
+| **Capability duplication (tooling — 23 scripts)** | **3 dead, retired** (~41 KB); a 4th kept by decision. `check-routing.py` looked like a fifth and is not. |
 | **Information duplication** | **Substantial.** 8 topic clusters restated across 3–7 of the 21 hand-maintained doc surfaces, plus one value (the version stamp) duplicated across 17 *files*. |
 | **Stale information** | **Confirmed, concentrated.** Worst offender is `CLAUDE.md` (loaded every session, ~9 milestones behind). |
 | **Stale artifacts (`tests/`)** | **441 of 551 tracked files (80 %; 3.0 MB of 3.9 MB) are unpinned archive.** |
@@ -111,10 +125,10 @@ deep-resolved by TRACE-03, so a script named there cannot simply be deleted.
 
 | Script | Size | In CI | In battery | Matrix rows | Verdict |
 |---|---|---|---|---|---|
-| `check-sub-skill-routing.py` | 5.7 K | no | no | **0** | **Dead, clean removal** — self-declared deprecated shim; `check-routing-battery.py`'s header names it as replaced. |
-| `check-inventory.py` | 27 K | no | no | **0** | **Dead input corpus, clean removal** — parses `.planning/milestones/vX.Y-REQUIREMENTS.md`, a tree that is git-ignored and superseded by `docs/requirements-traceability.md` under CANON-01. Its `--self-test` passes on inline fixtures, so it looks alive. Its "AUDIT-01..AUDIT-04 gate" docstring has no matching matrix rows. |
-| `check-focused-output.py` | 7.8 K | no | no | **1** | **Dead but pinned** — deprecated shim, but retiring it means re-tiering its matrix row and regenerating `docs/data/matrix.json` (a tracked file). |
-| `check-body-budget.py` | 9.5 K | no | yes (report-only) | **2** | **Retired gate still shipping** — the 644-line budget was torn down under TEARDOWN-01. Keeping it as a reporter is defensible; its 15-place documentation footprint is not. Same matrix re-tier cost. |
+| `check-sub-skill-routing.py` | 5.7 K | no | no | **0** | **RETIRED** — self-declared deprecated shim; `check-routing-battery.py`'s header names it as replaced. |
+| `check-inventory.py` | 27 K | no | no | **0** | **RETIRED** — parsed `.planning/milestones/vX.Y-REQUIREMENTS.md`, a corpus that exists locally but is git-ignored (absent from CI and a fresh clone) and superseded by `docs/requirements-traceability.md` under CANON-01. Its `--self-test` passes on inline fixtures, so it looks alive. Its "AUDIT-01..AUDIT-04 gate" docstring has no matching matrix rows. |
+| `check-focused-output.py` | 7.8 K | no | no | **1** | **RETIRED.** The "pinned" verdict was wrong: the row's `artifact_link` is empty and only `artifact_link` is deep-resolved, so no re-tier was needed. Its `deliverable_path` did name the script, which is reported but never existence-checked — repointed at the successor so the matrix would not carry a dangling path. |
+| `check-body-budget.py` | 9.5 K | no | yes (report-only) | **2** | **KEPT by decision.** TEARDOWN-01 retired the gate but deliberately preserved the reporter, and the battery's `[INFO]` line is a live consumer — deleting it would reverse a documented decision. Only its documentation footprint was pruned. |
 | `check-routing.py` | 35 K | no | yes | **15** | **Keep.** Both it and the battery carry a "boundary" signal, but they differ (main-agent DELEGATE/NO-DELEGATE vs. sub-skill boundary) and the battery's header names only the *other two* scripts as replaced. 15 matrix rows depend on it. |
 | `run-live-monitoring.sh` | 1.6 K | no | no | pinned | **Keep** — a TRACE-03 assertion (`GEN-02-RUNBOOK`) checks it exists. |
 
@@ -212,10 +226,26 @@ Lines 79, 80 and 108 still say "Eleven companion skills" / "Eleven domain-spread
 ("The skill surface has since grown to thirteen — `estimate` in v7.2…"). Three separate patches
 rather than one rewrite. Where this pattern appears, assume more of it.
 
-**S-5 — `docs/adoption-telemetry.csv` appears abandoned.** Two rows, last dated 2026-07-27, never
-extended. One inbound reference, from a test document. Confirm against whatever recorded the
-project's shift to a personal/portfolio tool before removing — that decision is not in the tracked
-tree as far as this audit found.
+**S-5 — RETRACTED. Not a finding.** ~~`docs/adoption-telemetry.csv` appears abandoned.~~
+
+The file is **already local-only by an explicit, recorded decision** — untracked and gitignored at
+commit `de08ffb` (2026-07-28, "chore: keep adoption telemetry local-only"), whose message states
+the reasoning in full: adoption stopped being a graded surface at v8.8 (personal/portfolio tool,
+not a distribution play), the populating script `scripts/snapshot-traffic.sh` was removed in the
+same technical-debt audit, and the file was deliberately kept on disk while no longer being
+published. `.gitignore:15-17` carries the same rationale as a comment. So the decision *is*
+recorded in the tracked tree, and the file is not a stale artifact but a deliberate one.
+
+**Why the audit got this wrong — a method defect worth keeping.** The finding came from reading
+`ls docs/`, which lists the working directory, while every other check in this audit ran against
+`git ls-files`. The completeness sweep that verified each `docs/` file was indexed in
+`docs/README.md` iterated the *tracked* list, so it never examined this file and never flagged the
+mismatch. An untracked file sitting in a tracked directory is invisible to a tracked-file
+inventory and conspicuous to a directory listing; mixing the two sources produced a finding about
+a file that was not in the audit's own scope. **Fix on sight anywhere else in this document:
+`ls` is not `git ls-files`.**
+
+Acting on this would have deleted a local file git could not restore.
 
 **S-6 — `docs/whole-system-remeasure-verdict.md` is unindexed.** It is the only tracked `docs/`
 file missing from the `docs/README.md` index — a v7.11 verdict that survived the 2026-08-16

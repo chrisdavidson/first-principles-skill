@@ -19,7 +19,7 @@ Each phase produces the named artifact that is the entry condition for the next 
 | 2. Challenge Assumptions | Classify every assumption by type, apply its treatment, record a verdict | Classified Assumptions Table | Every assumption classified, verdicted, and verified or flagged |
 | 3. Establish Ground Truths | Compile facts that pass the irreducibility test; assign stable GT-IDs | Ground Truths list | All ground truths have IDs, citations or `?` flags, and pass irreducibility |
 | 4. Reason Upward | Build derivation chains from ground truths toward an answer | Derivation Chains | Question answered, every conclusion chained, second-order pass applied and non-contradicting |
-| 5. Validate | Stress-test each chain, find weak links, apply the validation rubric | Signed-off analysis | Every conclusion traces to a ground truth; every weak link resolved or caveated |
+| 5. Validate | Stress-test each chain, find weak links, apply the Self-Audit Gate | Signed-off analysis | Every conclusion traces to a ground truth; every weak link resolved or caveated |
 
 ## Mode selection (Step 0)
 

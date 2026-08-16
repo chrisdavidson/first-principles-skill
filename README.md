@@ -28,7 +28,7 @@ The agent applies a five-phase procedure. Each phase produces a named artifact; 
 
 **Phase 4 — Reason Upward:** Constructs answers from the ground truths using whatever reasoning approach the problem calls for — derivation is free-form but must be self-documenting. Dead-end paths are recorded, not quietly discarded. Produces *Derivation Chains* in the format `GT-N + GT-M → [intermediate claim] → [conclusion]`.
 
-**Phase 5 — Validate:** Adversarial pass over the completed chains. Finds the weakest link in each chain, checks whether unverified assumptions are load-bearing, and applies a validation rubric as a systematic gate. Produces the *Signed-off analysis* — the complete output document with all conclusions traced and all weak links either resolved or explicitly flagged.
+**Phase 5 — Validate:** Adversarial pass over the completed chains. Finds the weakest link in each chain, checks whether unverified assumptions are load-bearing, and applies the Self-Audit Gate as a systematic check. Produces the *Signed-off analysis* — the complete output document with all conclusions traced and all weak links either resolved or explicitly flagged.
 
 For the complete procedure with entry/exit criteria per phase and the exact output document structure, see [`first-principles/agents/first-principles.md`](first-principles/agents/first-principles.md). The agent body is the authoritative spec — the summary above orients; it defines. For a one-page working reference with each phase's exit gate, the assumption-type treatments, and the derivation-chain format, see [docs/METHODOLOGY-CHEATSHEET.md](docs/METHODOLOGY-CHEATSHEET.md).
 
@@ -48,11 +48,11 @@ Thirteen tools extend the methodology when the analysis calls for them. The eigh
 - **Challenge Assumptions** (`/first-principles:challenge-assumptions`) — Phase 2 focused-mode stub. Invoke directly to classify and test every assumption (physical law / constraint / convention / untested belief) before reasoning upward.
 - **Ground Truths** (`/first-principles:ground-truths`) — Phase 3 focused-mode stub. Invoke directly to compile GT-ID-anchored verified facts for use as derivation-chain inputs.
 - **Reason Upward** (`/first-principles:reason-upward`) — Phase 4 focused-mode stub. Invoke directly to build derivation chains upward from named ground truths; records dead-end paths explicitly.
-- **Validate** (`/first-principles:validate`) — Phase 5 focused-mode stub. Invoke directly to stress-test each derivation chain for weak links and apply the validation rubric before presenting conclusions.
+- **Validate** (`/first-principles:validate`) — Phase 5 focused-mode stub. Invoke directly to stress-test each derivation chain for weak links and apply the Self-Audit Gate before presenting conclusions.
 
 ## Worked examples
 
-Fourteen domain-spread examples show the methodology applied end-to-end, each with a real dead-end and a validation rubric pass:
+Fourteen domain-spread examples show the methodology applied end-to-end, each with a real dead-end and a Self-Audit Gate pass:
 
 - **[Software and systems](first-principles/agents/references/examples/software-systems.md)** — Evaluating a microservices migration decision for a monolithic codebase, tracing the actual constraints and ground truths rather than following distributed-systems fashion.
 - **[Product and business](first-principles/agents/references/examples/product-business.md)** — Deciding whether to build a new pricing tier, decomposing the business assumptions and grounding the recommendation in verified market and unit-economics facts.
@@ -75,7 +75,7 @@ This project is a fork and enhancement of [`github.com/chrisdavidson/first-princ
 
 The v3.8 enhanced successor adds four things the original does not have:
 
-1. **Validation rubric** — a scoring/self-check the model applies after Phase 5 to verify the analysis met the rigor bar, with explicit criteria, levels, and a gate that blocks presenting conclusions until the rubric clears.
+1. **The Self-Audit Gate** — a scoring self-check the model applies after Phase 5 to verify the analysis met the rigor bar, with explicit criteria, levels, and a gate that blocks presenting conclusions until it clears. It scores *this analysis's own structure*, never the subject matter — a distinction v8.15 made explicit by renaming it from "validation rubric", which had collided with subject-matter rubrics an analysis might be asked to produce. The file is still `validation-rubric.md`.
 2. **A companion-skill surface** — eight techniques as fully described on-demand reference siblings of the agent, each with when-to-use guidance tied to a specific phase of the 5-phase spine, plus five focused-mode phase stubs for direct phase invocation. All thirteen are listed under [Companion tools](#companion-tools) above.
 3. **Domain-spread worked examples** — each demonstrating a real dead-end and a complete validation pass, listed under [Worked examples](#worked-examples) above.
 4. **Sharpened 5-phase methodology** — explicit entry and exit criteria per phase, named artifacts with stable IDs, a stakes-escalation rule for assumptions, and derivation chain format requirements that close the gaps where the original is loose.
