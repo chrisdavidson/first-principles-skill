@@ -957,6 +957,36 @@ def _run_self_test() -> None:
     #   "invert" fires inversion.
     #   Intended winner: pre-mortem (row 1 beats row 3 — already correct, no reorder
     #   needed, D-05 flagship-first kept intentionally).
+    #
+    # Pairs 4-6 added at the 2026-08-16 audit, stream 6 (finding CAP-1). The audit
+    # found three further plausible overlap pairs disambiguated only in reference
+    # prose, with no SEMGATE row and no phrase-table precedence lock — so a row-order
+    # change could silently flip any of them, and VAL-04 is structurally blind to it.
+    # Each was measured before it was asserted; none required a phrase-table change.
+    #
+    # Pair 4: fishbone vs. five-whys (S-A07)
+    #   Both triggers fire: "map the .* cause space" fires fishbone; "root cause"
+    #   fires five-whys.
+    #   Winner: fishbone (row 4 beats row 5). Agrees with fishbone's scope prose —
+    #   breadth across the cause space, used before narrowing to one chain.
+    #
+    # Pair 5: theoretical-limit vs. estimate (S-A09)
+    #   Both triggers fire: "theoretical limit" fires theoretical-limit; "roughly
+    #   how much" fires estimate.
+    #   Winner: theoretical-limit (row 2 beats row 8). Their prose divides them by
+    #   question type — ceiling-under-the-laws vs. magnitude-rebuild — without
+    #   granting estimate precedence when a prompt asks both at once.
+    #
+    # Pair 6: pre-mortem vs. trade-off (S-A11)
+    #   Both fire, lopsidedly: one pre-mortem trigger against four trade-off ones.
+    #   Winner: pre-mortem (row 1 beats row 6) — precedence is by row, not by
+    #   trigger count, which is what makes this pair worth locking. It is the same
+    #   D-05 flagship-first resolution as pair 3. Note that pre-mortem's own prose
+    #   says it is "not the right tool for evaluating options (use trade-off
+    #   analysis)": that prose governs a reader choosing a technique for an options
+    #   task, while the row order governs a prompt that opens with a flagship
+    #   trigger. S-A12 is the control — with no pre-mortem trigger present, the pair
+    #   does not resolve to pre-mortem.
     # -----------------------------------------------------------------------
 
     _SEMGATE07_DECOMP_FW_PROMPT = (
@@ -979,6 +1009,26 @@ def _run_self_test() -> None:
         "have to be true for this expansion to go badly?"
     )
     _SEMGATE07_INV_PM_EXPECTED = "focused-pre-mortem"
+
+    _SEMGATE07_FB_FW_PROMPT = (
+        "For our molten-salt thermal storage system the round-trip efficiency keeps sliding "
+        "back after each fix — map the whole cause space across categories first, then tell "
+        "me the root cause of the recurring loss."
+    )
+    _SEMGATE07_FB_FW_EXPECTED = "focused-fishbone"
+
+    _SEMGATE07_TL_EST_PROMPT = (
+        "For a molten-salt thermal storage installation, what is the theoretical limit on "
+        "round-trip efficiency given thermodynamic laws, and roughly how much salt inventory "
+        "would a 500 MWh block need?"
+    )
+    _SEMGATE07_TL_EST_EXPECTED = "focused-theoretical-limit"
+
+    _SEMGATE07_PM_TO_PROMPT = (
+        "I'm nervous about this plan to commit to a single molten-salt supplier — build me a "
+        "trade-off analysis that scores the options on weighted criteria before we sign."
+    )
+    _SEMGATE07_PM_TO_EXPECTED = "focused-pre-mortem"
 
     # Drift guard: hardcoded absorbed-decompose↔five-whys literal must still match
     # the live catalog S-A01 row, OR the row must be absent (deletion is the
@@ -1077,6 +1127,63 @@ def _run_self_test() -> None:
         wrong.append(
             f"SEMGATE-07 S-A05 (expected {_SEMGATE07_INV_PM_EXPECTED!r}, got {semgate07_inv_pm_computed!r})"
         )
+
+    # -----------------------------------------------------------------------
+    # Category 7 (continued): pairs 4-6, the CAP-1 pairs (2026-08-16 audit stream 6).
+    #
+    # Same contract as pairs 1-3 above, expressed as a table because three more
+    # copies of the block would be three more places to drift. Each entry carries
+    # its own drift guard (catalog row present-and-different → FAIL; row absent →
+    # survivable, since the hardcoded literal is what gets classified) and its own
+    # regression hint naming the row-order change that would flip it.
+    # -----------------------------------------------------------------------
+
+    _SEMGATE07_CAP1_PAIRS = (
+        (
+            "S-A07", _SEMGATE07_FB_FW_PROMPT, _SEMGATE07_FB_FW_EXPECTED,
+            "fishbone↔five-whys co-fire",
+            "regression: five-whys may have moved above fishbone in row order",
+        ),
+        (
+            "S-A09", _SEMGATE07_TL_EST_PROMPT, _SEMGATE07_TL_EST_EXPECTED,
+            "theoretical-limit↔estimate co-fire",
+            "regression: estimate may have moved above theoretical-limit in row order",
+        ),
+        (
+            "S-A11", _SEMGATE07_PM_TO_PROMPT, _SEMGATE07_PM_TO_EXPECTED,
+            "pre-mortem↔trade-off co-fire (4 trade-off triggers vs 1 pre-mortem trigger)",
+            "regression: trade-off may have moved above pre-mortem in row order — "
+            "precedence is by row, not by trigger count",
+        ),
+    )
+
+    for _row_id, _prompt, _expected, _pair_label, _hint in _SEMGATE07_CAP1_PAIRS:
+        _catalog_prompt = next((p for rid, p, _ in fixtures if rid == _row_id), None)
+        if _catalog_prompt is not None and _catalog_prompt != _prompt:
+            print(
+                f"check-step0-emulator --self-test: SEMGATE-07 {_row_id} FAIL "
+                f"(hardcoded {_pair_label} literal drifted from the live catalog {_row_id} row — "
+                f"re-sync the literal or update the gate)"
+            )
+            wrong.append(
+                f"SEMGATE-07 {_row_id} (literal drifted from catalog row "
+                f"{_catalog_prompt!r} != {_prompt!r})"
+            )
+
+        _computed = classify(_prompt, rules)
+        if _computed == _expected:
+            print(
+                f"check-step0-emulator --self-test: SEMGATE-07 {_row_id} PASS "
+                f"({_pair_label} → {_computed})"
+            )
+        else:
+            print(
+                f"check-step0-emulator --self-test: SEMGATE-07 {_row_id} FAIL "
+                f"(expected {_expected!r}, got {_computed!r}; pair: {_pair_label}; {_hint})"
+            )
+            wrong.append(
+                f"SEMGATE-07 {_row_id} (expected {_expected!r}, got {_computed!r})"
+            )
 
     # -----------------------------------------------------------------------
     # Category 7 (continued): All-8-coverage assertion (D-09)
@@ -1602,7 +1709,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE + NEGCAT-GUARD-1 + NEGCAT-GUARD-2 + NEGCAT-GUARD-3 + NEGCAT-GUARD-4 + NEGCAT-OBLIQUE named assertions")
+    print(f"check-step0-emulator --self-test: PASS — {len(fixtures)} fixtures + RR-80-01 + FIVEWHYS-ABSORB + ESTIMATE-07 + TLIMIT-07 + SEMGATE-07 (6 pairs: S-A01/A03/A05 + CAP-1 S-A07/A09/A11) + FIX01-LOCK + PREMORTEM-GUARD + TIEBREAK-OBLIQUE + TIEBREAK-DECISIVE + NEGCAT-GUARD-1 + NEGCAT-GUARD-2 + NEGCAT-GUARD-3 + NEGCAT-GUARD-4 + NEGCAT-OBLIQUE named assertions")
 
 
 def _require_python_version() -> None:

@@ -20,7 +20,7 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | 3 — adjudicate 9 milestone docs | **DONE — 9 of 9 adjudicated, 0 deleted.** Three classes (governing record / frozen evidence / gate-pinned artifact); each verdict written as a banner in the document itself, summarised in a `docs/README.md` table. The estimate assumed pruning would follow; it should not — see below. |
 | 4 — `tests/` archival decision | **DONE — decision is keep all 550, labelled; nothing deleted.** `tests/README.md` records the classification and `scripts/trace-tests-usage.py` re-derives it. The two-way pinned/archival split was replaced by three tiers, and §6's composition figures are corrected below. The stream-2 orphans are dispositioned in that README. **Original note, kept:** | stream 2 newly orphaned `tests/focused-output-catalog.md`, `tests/sub-skill-routing-catalog.md`, and the `focused-output-baseline-v*.md` / `sub-skill-routing-baseline-v*.md` sets — they were consumed only by the two retired shims. Several sit inside FROZEN-EVIDENCE's pathspec and must not be edited in place. They moved from live fixtures to archive of a retired tool; recorded here so they are not mistaken for still-live. |
 | 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
-| 6 — extend SEMGATE (optional) | Open. |
+| 6 — extend SEMGATE (optional) | **DONE.** All three CAP-1 pairs locked: 6 catalog rows (S-A07…S-A12, co-fire + boundary control each) and 3 catalog-independent emulator assertions under SEMGATE-07. No phrase-table change was needed — each pair already resolved as intended, and the measurement came before the assertion. Proven by three injections, not by a passing first run. |
 
 **Stale claims fixed while consolidating**, none of which were the point of the exercise — each
 was found because merging two copies forced a comparison:
@@ -114,6 +114,54 @@ disambiguated only in reference prose, with no SEMGATE row and no phrase-table p
 `five-whys ↔ fishbone`, `estimate ↔ theoretical-limit`, `pre-mortem ↔ trade-off`. VAL-04 is
 structurally blind to these (it scans skill *descriptions*, never the Step 0 phrase table — the
 emulator's own comment says so). A row-order change could silently flip any of them.
+
+> **Closed (stream 6).** All three pairs are now locked, on the same two-layer contract as the
+> original three: a catalog row plus a catalog-independent hardcoded literal in
+> `check-step0-emulator.py`, so deleting the row cannot make the assertion vacuous. Six rows were
+> added — each pair gets a co-fire row (both triggers fire; one winner) and a **boundary control**
+> (neither trigger fires; `full-composer`), following the existing odd/even S-A convention.
+>
+> | Pair | Row | Winner | Locked by row order |
+> |---|---|---|---|
+> | fishbone ↔ five-whys | S-A07 / S-A08 | `focused-fishbone` | fishbone row 4 over five-whys row 5 |
+> | theoretical-limit ↔ estimate | S-A09 / S-A10 | `focused-theoretical-limit` | row 2 over row 8 |
+> | pre-mortem ↔ trade-off | S-A11 / S-A12 | `focused-pre-mortem` | row 1 over row 6 |
+>
+> **Measured before asserted, and nothing was reordered.** Each pair was classified first and the
+> observed winner locked — honesty-not-score. All three already resolved the way the reference
+> prose implies, so `shared/` was not touched and no version bump is involved. Had one disagreed,
+> the finding would have been reported rather than fixed by reordering: the phrase table is
+> shipped agent content, and changing it is a release, not an audit pass.
+>
+> **The pre-mortem ↔ trade-off pair is the one worth reading twice.** Its co-fire prompt fires
+> **four** trade-off triggers against **one** pre-mortem trigger, and pre-mortem still wins —
+> precedence is by row, not by trigger count. It is tempting to call that a defect, since
+> pre-mortem's own prose says it is "not the right tool for evaluating options (use trade-off
+> analysis)". It is not: that prose governs a reader choosing a technique for an options task,
+> while the row order governs a prompt that opens with a flagship trigger, which is the documented
+> D-05 flagship-first design already locked for inversion↔pre-mortem at S-A05. S-A12 is the
+> control that keeps the claim honest — remove the pre-mortem trigger and the pair no longer
+> resolves to pre-mortem.
+>
+> **Proven by injection, not by a passing first run.** Every new fixture passed immediately, which
+> is the exact condition under which this project has twice shipped a gate that asserted nothing.
+> Three injections against the live tree: (1) flipping `_SEMGATE07_TL_EST_EXPECTED` to the wrong
+> technique → STEP0-08 RED naming S-A09; (2) editing the catalog's S-A11 prompt → the drift guard
+> fires, distinctly from the classification assertion; (3) swapping the fishbone and five-whys
+> rows in `shared/spine/SKILL-body.md` → S-A07 flips to `focused-five-whys` and both the catalog
+> row and the hardcoded assertion fail. Each was restored and re-verified. Injection 3 is the one
+> that matters: it proves the assertion locks the row order rather than merely restating it.
+>
+> **One thing it broke, and who did not catch it.** Six new rows tripped
+> `test_step0_live_task1.py`'s frozen 35-row count (now 41). That guard lives in the
+> **live-unwired** tier from stream 4 — a suite CI never runs — so on CI alone the count would
+> have gone stale silently. The stream-4 finding demonstrating itself one commit later.
+>
+> **Scope note, recorded rather than resolved.** CAP-1 is apparatus-sourced, and the post-v8.11
+> scope gate bars new instruments absent a use-journal entry or a real-output trigger. This
+> extends an existing gate's coverage over pairs the audit had already documented rather than
+> building a new instrument, and it was executed on the user's explicit instruction. Noted here so
+> the tension is on the record; no findings document was produced, which is what the gate bars.
 
 **Finding CAP-2 (by design, worth stating).** The 8 technique skills nest *inside* the 5 phase
 skills — `inversion.md` says "use inversion during Phase 2 (Challenge Assumptions)",

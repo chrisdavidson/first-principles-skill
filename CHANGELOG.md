@@ -15,6 +15,18 @@ installed session.
 
 ### Added
 
+- **SEMGATE now locks all six documented technique-overlap pairs, not three.** The audit's CAP-1
+  finding was that `fishbone ↔ five-whys`, `theoretical-limit ↔ estimate` and
+  `pre-mortem ↔ trade-off` were disambiguated only in reference prose — no catalog row, no
+  precedence lock — so a Step 0 phrase-table reorder could silently flip any of them, and VAL-04
+  is structurally blind to that axis. Six rows added to `tests/step0-fixture-catalog.md`
+  (S-A07…S-A12: a co-fire row and a `full-composer` boundary control per pair) plus three
+  catalog-independent assertions in `check-step0-emulator.py`, so deleting a row cannot make the
+  assertion vacuous. Each pair was **measured before it was asserted** and all three already
+  resolved as intended, so no phrase table was reordered and no version bump is involved.
+  Proven by three injections against the live tree — a wrong expected value, a drifted catalog
+  prompt, and a fishbone/five-whys row swap that flips S-A07 — because every new fixture passing
+  on the first run is how a vacuous gate looks.
 - **VERSION-01 gate — the stamp-lockstep rule above is now enforced.**
   `scripts/check-version-stamps.py` discovers every hand-maintained version stamp by glob and
   asserts they all carry the same value. Until now nothing checked this: `sync-content.py` copies
