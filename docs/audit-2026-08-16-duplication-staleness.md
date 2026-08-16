@@ -18,7 +18,7 @@ the §7 effort table keeps its original estimates so the forecast stays auditabl
 | 1 — fix stale claims (S-1…S-8) | **DONE.** S-3/S-4/S-6/S-8 fixed during stream 5; S-1 and S-2 fixed here; **S-5 retracted** as a false finding (see below). Also fixed the v8.15 Self-Audit Gate rename, which had never reached the user-facing docs. |
 | 2 — retire dead scripts | **DONE — 3 of 4 retired.** `check-sub-skill-routing.py`, `check-focused-output.py`, `check-inventory.py` (plus `tests/test_81_inventory.py`). `check-body-budget.py` **kept by decision**: TEARDOWN-01 deliberately preserved the reporter when it retired the gate, and the battery's `[INFO]` line is its live consumer — only its documentation footprint was pruned. |
 | 3 — adjudicate 9 milestone docs | **DONE — 9 of 9 adjudicated, 0 deleted.** Three classes (governing record / frozen evidence / gate-pinned artifact); each verdict written as a banner in the document itself, summarised in a `docs/README.md` table. The estimate assumed pruning would follow; it should not — see below. |
-| 4 — `tests/` archival decision | Open. **Note for whoever runs it:** stream 2 newly orphaned `tests/focused-output-catalog.md`, `tests/sub-skill-routing-catalog.md`, and the `focused-output-baseline-v*.md` / `sub-skill-routing-baseline-v*.md` sets — they were consumed only by the two retired shims. Several sit inside FROZEN-EVIDENCE's pathspec and must not be edited in place. They moved from live fixtures to archive of a retired tool; recorded here so they are not mistaken for still-live. |
+| 4 — `tests/` archival decision | **DONE — decision is keep all 550, labelled; nothing deleted.** `tests/README.md` records the classification and `scripts/trace-tests-usage.py` re-derives it. The two-way pinned/archival split was replaced by three tiers, and §6's composition figures are corrected below. The stream-2 orphans are dispositioned in that README. **Original note, kept:** | stream 2 newly orphaned `tests/focused-output-catalog.md`, `tests/sub-skill-routing-catalog.md`, and the `focused-output-baseline-v*.md` / `sub-skill-routing-baseline-v*.md` sets — they were consumed only by the two retired shims. Several sit inside FROZEN-EVIDENCE's pathspec and must not be edited in place. They moved from live fixtures to archive of a retired tool; recorded here so they are not mistaken for still-live. |
 | 5 — doc consolidation | **DONE.** All eight doc clusters consolidated; the ninth (the version stamp) is gated by stream 0. Per-cluster owners in §4. |
 | 6 — extend SEMGATE (optional) | Open. |
 
@@ -50,6 +50,14 @@ opposite directions, both recorded rather than quietly adjusted:
   moving its regression guards onto the successor, not deleting them — that migration, not the
   deletion, was the actual work.
 
+- **Stream 4's estimate priced the wrong task.** "The decision is one commit; the cost is proving
+  the 441 are unpinned (this audit's trace is reproducible)" assumed re-running the trace would
+  confirm §6. It did not: the aggregate held and the composition did not, §6's pinned breakdown
+  did not sum to its own headline, and a third tier had to be introduced. The estimate also
+  assumed the trace was reproducible in the literal sense — it was a one-off run described in
+  prose, so the re-run had to be rebuilt from scratch. It is now committed as
+  `scripts/trace-tests-usage.py`, which is the part of stream 4 with a future.
+
 - **Stream 3's estimate was right on cost and wrong on shape.** The 3–4 h and the "VAL-03 breaks
   on any bad link" risk both assumed adjudication would be followed by pruning. It was not:
   nine documents were classed and nine kept. The cost was in *proving* each standing — resolving
@@ -74,7 +82,7 @@ opposite directions, both recorded rather than quietly adjusted:
 | **Capability duplication (tooling — 23 scripts)** | **3 dead, retired** — ~40 KB of scripts plus `tests/test_81_inventory.py`; a 4th kept by decision. `check-routing.py` looked like a fifth and is not. |
 | **Information duplication** | **Substantial.** 8 topic clusters restated across 3–7 of the 21 hand-maintained doc surfaces, plus one value (the version stamp) duplicated across 17 *files*. |
 | **Stale information** | **Confirmed, concentrated** — worst offender was `CLAUDE.md`, which every session loads. **Closed in stream 1** (S-5 retracted as a false finding); the table below records each claim as found. |
-| **Stale artifacts (`tests/`)** | **441 of 551 tracked files (80 %; 3.0 MB of 3.9 MB) are unpinned archive.** |
+| **Stale artifacts (`tests/`)** | **441 of 551 tracked files (80 %; 3.0 MB of 3.9 MB) are unpinned archive.** *Stream 4 re-measured this: the 441 holds, but 550 is the tracked count and the sizes were over-read (2.25 MB of 2.85 MB). More importantly the two-way split was wrong in kind — see the closure block in §6.* |
 
 Estimated remediation: **13–20 h** for the staleness-only pass (streams 0–4),
 **24–39 h** for everything including doc consolidation. Full breakdown in §7.
@@ -380,6 +388,64 @@ prior measurement comparable. Treat this as *which subset is pinned*, not *can w
 and note that `_battery_core.py` embeds capture excerpts as **string literals** (11
 `_load_excerpt_v*` generations), so a capture can be load-bearing by provenance while its
 filename appears nowhere in code. That is a diff-review question, not a grep question.
+
+> **Closed (stream 4). Decision: keep all 550 tracked files, labelled; nothing deleted.**
+> The classification lives in [`tests/README.md`](../tests/README.md) and is re-derived, not
+> asserted, by `scripts/trace-tests-usage.py` — a manual tool of the same standing as
+> `check-traceability.py emit`. §6's own claim of reproducibility is what made re-running it the
+> first task; the re-run agreed on the aggregate and disagreed on almost everything else.
+>
+> **The aggregate reproduces. The composition does not, and §6 does not sum to itself.**
+> Two separate facts, stated separately because the coincidence is misleading:
+>
+> - **Aggregate agrees.** 441 archive against 441 — but partly by luck: this count runs against
+>   550 tracked files, not 551 (stream 2 deleted `tests/test_81_inventory.py`), and it moves 7
+>   pytest suites *out* of archive that §6 had counted *in*.
+> - **Composition disagrees, and §6's pinned breakdown never added up.** As written it lists
+>   56 captures + 24 quality-fixtures + 16 quality-baseline + 6 step0-baseline + 4 catalogs =
+>   **106**, under a headline of 110. Measured: **55** captures, **24** quality-fixtures, **16**
+>   quality-baseline, **1** quality-probe, **3** catalogs opened at runtime, plus 2 files pinned
+>   only by `artifact_link` — 102 gate-pinned. **Zero** `step0-baseline-v*.md` files are opened by
+>   any gate; §6's 6 came from counting matrix `deliverable_path` entries, which are reported and
+>   never existence-checked. Same field-level error as §3 and as stream 3's finding 3.
+>
+> **Two tiers were not enough, and the missing one is the finding.** Splitting only
+> pinned/archival hid **7 pytest suites carrying 123 assertions that no CI job runs** — CI runs
+> pytest on exactly one path, `scripts/check-links_anchors_test.py`. §6 classed them as archive,
+> which is the more comfortable of the two available wrong answers: they are live tests with no
+> automation behind them, including the retirement guards stream 2 migrated into
+> `test_65_doc_invariants.py` one commit earlier. A third tier, **live-unwired**, now names them.
+> Wiring them into CI is logged as follow-up, not done here — classification was the remit.
+>
+> **The audit's own excerpt caveat is wrong, and the way it is wrong is instructive.**
+> `_battery_core.py` does **not** embed capture excerpts as string literals; every
+> `_load_excerpt_v*` helper calls `Path.read_text()` at runtime. The real trap is the opposite
+> shape: a loader passed as a *function object* inside a sentinel tuple
+> (`..., _load_excerpt_v74, ...`) is invisible to `grep '_load_excerpt_v74('`, so a live
+> generation reads as dead code. This nearly shipped here — the grep said no call site, the
+> runtime trace showed five v7.4 files being read, and the trace was right. Measured result:
+> **8 of 12 capture generations (164 files) are read by nothing**, which is a runtime observation,
+> not an inference about loaders.
+>
+> **`FROZEN-EVIDENCE` does not protect against deletion**, contrary to the reading its name
+> invites. It is `git diff --quiet` over a pathspec: it catches uncommitted worktree edits to
+> frozen files, and a committed `git rm` passes it clean.
+>
+> **A VAL-03 blind spot, found while checking this closure's own two links.** `_check_docs_file`
+> skips any link target beginning with `../` — its docstring says so — so parent-relative links
+> out of `docs/` are counted by no gate. There are five in the tree. Four resolve; the fifth,
+> `docs/requirements-traceability.md:249`, pointed at `../.planning/PROJECT.md`, which is
+> **gitignored and untracked** — dead in a fresh clone, and directly contradicting the
+> `docs/history/` line two rows above it in the same list, which is deliberately backticked rather
+> than linked for exactly that reason. Demoted to backticks here. The gate gap is recorded, not
+> closed: teaching VAL-03 to resolve `../` targets is a change to a gate's behaviour and belongs
+> to a milestone, not to an audit remediation pass.
+>
+> **Stream-2 orphans dispositioned.** All six are in the archive tier. The two baseline sets sit
+> inside the `FROZEN-EVIDENCE` pathspec, so the battery now protects the frozen evidence of a
+> retired tool — **both entries are kept deliberately**: retiring a tool does not unfreeze what it
+> measured, and dropping them would make those files editable in place, reducing protection to
+> tidy a list.
 
 ---
 

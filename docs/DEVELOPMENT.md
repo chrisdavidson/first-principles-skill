@@ -153,6 +153,12 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 | `check-step0-live.py` | STEP0-06 | `python3 scripts/check-step0-live.py --self-test` (CI) / `python3 scripts/check-step0-live.py --repeat 5 --min-pass 3` (full manual, 60 invocations) | Live Step 0 harness via approach-② bypass channel. `--self-test` is STEP0-06 CI gate. Full manual run requires a live Claude session. |
 | `check-traceability.py` | TRACE-03 | `python3 scripts/check-traceability.py --self-test` | Traceability matrix gate. `emit` subcommand regenerates `docs/requirements-matrix.md`. |
 
+**Reporting tools** (manual, never gates — same standing as `check-traceability.py emit`):
+
+| Script | Command | What it reports |
+|--------|---------|-----------------|
+| `trace-tests-usage.py` | `python3 scripts/trace-tests-usage.py` | Classifies every tracked `tests/` file as gate-pinned / live-unwired / archive, by tracing what each offline gate actually opens at runtime. Re-derives the table in [`tests/README.md`](../tests/README.md); `--list-archive` prints the archive set. |
+
 **Retired shims.** Retired at the 2026-08-16 audit ([`audit-2026-08-16-duplication-staleness.md`](audit-2026-08-16-duplication-staleness.md)): the two deprecated shims `check-sub-skill-routing.py` and `check-focused-output.py`, plus `check-inventory.py`. Call `check-routing-battery.py` directly, with its namespaced `--boundary-*` / `--focused-*` threshold flags.
 
 **Internal helpers** (underscore-prefixed, not directly invoked):

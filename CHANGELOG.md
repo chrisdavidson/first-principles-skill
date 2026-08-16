@@ -53,6 +53,21 @@ installed session.
 
 ### Changed
 
+- **`tests/` is classified, and nothing is deleted.** 550 tracked files sorted into three tiers —
+  **102 gate-pinned** (opened at runtime by an offline gate, or `artifact_link`-resolved),
+  **7 live-unwired**, **441 archive** — recorded in a new `tests/README.md` with the decision and
+  its reasoning. The audit's two-way pinned/archival split was the wrong shape: it hid the middle
+  tier. Re-running its trace reproduced the 441 aggregate but disagreed on the composition, and
+  its pinned breakdown never summed to its own headline (56 + 24 + 16 + 6 + 4 = 106, under a
+  headline of 110). Zero `step0-baseline-v*.md` files are opened by any gate; the audit's six came
+  from counting `deliverable_path` entries, which are reported and never existence-checked.
+- **`scripts/trace-tests-usage.py`** — new manual reporting tool that re-derives that
+  classification by tracing `open` events under `sys.addaudithook` while each gate runs. The audit
+  called its own trace reproducible while it existed only as prose; this makes the claim literal.
+- **7 pytest suites carrying 123 assertions are run by no CI job** — CI runs pytest on exactly one
+  path, `scripts/check-links_anchors_test.py`. Among them are the retirement guards migrated into
+  `test_65_doc_invariants.py` one commit earlier. Named as a tier rather than silently reclassed;
+  wiring them into CI is logged as follow-up.
 - **The nine surviving milestone documents in `docs/` are adjudicated, and none deleted.** They
   had survived the 2026-08-16 prune as an undifferentiated block, with nothing distinguishing a
   rule still in force from a measurement true only of its date. Each now opens with a **Standing**
