@@ -245,23 +245,39 @@ what the analysis did, not against how well-formed the citation looks.
   the identifiers referenced in the Derivation Chains section; every verified GT has a source
   citation that is more specific than "common knowledge" or "known fact"; every GT carries a
   provenance label; every unverified or delegate-reported GT is marked with the `?` suffix;
-  the count of `?`-marked GTs is stated and every unsuffixed GT feeding a HIGH-confidence chain
-  names its read-at-source location; no assumption that was discarded in Phase 2 (Verdict:
-  Discard) appears in this list.
+  the `?`-marked GTs are **enumerated by ID** and that enumeration matches the suffixed entries
+  in the Ground Truths list when checked against it; every unsuffixed GT feeding a
+  HIGH-confidence chain names its read-at-source location; no assumption that was discarded in
+  Phase 2 (Verdict: Discard) appears in this list.
+
+  **Check the enumeration, do not quote it.** Quoting the analysis's own provenance summary as
+  the satisfying span does not discharge this criterion — that verifies a summary was written,
+  not that it is correct. Read the Ground Truths list, collect the IDs actually carrying `?`,
+  and compare against the enumeration. Cite the comparison as the satisfying span (*"enumerated
+  GT-2, GT-5, GT-9, GT-14; list carries `?` on exactly those four"*). Where a stated count and
+  its enumeration disagree, the enumeration governs and the mismatched count is itself a defect.
 
 - **Sound** — GT-IDs are present and stable, but one or more verified GTs cite "common
   knowledge," "known fact," or no source at all; OR provenance labels are missing though the
   `?` suffixes themselves are correctly applied; OR one unread GT (unverified or
   delegate-reported) is used without the `?` suffix **and it feeds only MEDIUM or LOW
-  confidence chains**.
+  confidence chains**; OR the `?`-marked GTs are summarized by a bare count rather than
+  enumerated, though the suffixes in the list are themselves correct.
+
+  An enumeration that **disagrees with the list** does not band here — it bands **Hand-wavy**.
+  A count that merely accompanies a correct enumeration and disagrees with it is a defect but
+  bands Sound, since the enumeration governs and remains checkable.
 
 - **Hand-wavy** — GT-IDs are present but they are not stable (the same ID is used for
   different facts at different points in the document, or IDs are renumbered between sections);
   OR the list includes an assumption that was assigned a Discard verdict in Phase 2; OR
-  multiple unread GTs are used in chains without the `?` suffix; OR **any unsuffixed GT feeds a
-  HIGH-confidence chain without naming a read-at-source location** — a HIGH-confidence
-  conclusion resting on a figure nobody read is the failure this criterion exists to catch, and
-  a single instance is enough to land here.
+  multiple unread GTs are used in chains without the `?` suffix; OR **the `?` enumeration
+  disagrees with the Ground Truths list** — an enumeration that omits a suffixed GT understates
+  the analysis's unverified inputs in the direction that flatters it, and unlike a bare count it
+  was checkable, so a mismatch is a stronger failure than never enumerating at all; OR **any
+  unsuffixed GT feeds a HIGH-confidence chain without naming a read-at-source location** — a
+  HIGH-confidence conclusion resting on a figure nobody read is the failure this criterion
+  exists to catch, and a single instance is enough to land here.
 
 - **Absent** — no GT-IDs are assigned to any fact in the Ground Truths section; OR the Ground
   Truths section lists claims without distinguishing verified from unverified (no `?` suffix

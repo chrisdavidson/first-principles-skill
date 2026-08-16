@@ -13,7 +13,39 @@ installed session.
 
 ## [Unreleased]
 
-### Known defect — the `?`-count exit criterion is satisfied in form and fails in substance
+_Nothing yet._
+
+## [8.17.0] - 2026-08-16
+
+Fixes the defect recorded below: the `?`-count is now **enumerated by ID** rather than asserted
+as an integer, and the Self-Audit Gate checks the enumeration against the Ground Truths list
+instead of quoting it.
+
+### Changed
+
+- **Phase 3 exit criterion now requires an enumeration, not a count** (`shared/spine/SKILL-body.md`).
+  Write `?-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)` — the list, not the number. **A stated
+  integer no longer satisfies the criterion**, on the grounds that an integer cannot be checked
+  against the list it summarizes and an enumeration can, by inspection. Where a count accompanies
+  an enumeration and the two disagree, **the enumeration governs.**
+- **Output template's provenance summary** updated to the same form, with a worked example
+  (`shared/spine/references/output-template.md` §3).
+- **Self-Audit Gate Criterion 3 now verifies rather than quotes** (`shared/spine/references/validation-rubric.md`).
+  Explicit instruction added: *"Check the enumeration, do not quote it."* Quoting the analysis's
+  own provenance summary as the satisfying span does not discharge the criterion — that verifies a
+  summary was written, not that it is correct. The gate must read the Ground Truths list, collect
+  the IDs actually carrying `?`, compare, and cite the comparison.
+- **Band ladder retightened for this criterion.** A bare count with otherwise-correct suffixes now
+  bands **Sound** rather than Rigorous. **An enumeration that disagrees with the list bands
+  Hand-wavy** — a mismatch understates unverified inputs in the direction that flatters the
+  analysis, and unlike a bare count it was checkable, so it is a stronger failure than never
+  enumerating at all.
+
+### Known defect (fixed above; retained for the record)
+
+The defect this release fixes, as originally recorded:
+
+#### The `?`-count exit criterion was satisfied in form and failed in substance
 
 v8.16.0's Phase 3 exit criterion requires the count of `?`-marked ground truths to be stated
 explicitly. **Across every draft observed in post-release testing, a count was stated and none
@@ -41,13 +73,12 @@ the criterion the provenance discipline leans on hardest: the count is the summa
 reader uses to calibrate the whole analysis. A wrong count understates unverified inputs by up
 to seven ground truths, in the direction that flatters the analysis.
 
-**Proposed fix, not yet implemented:** derive the count rather than assert it — require the
-`?`-marked IDs to be *enumerated*, and make the Gate check the enumeration against the Phase 3
-list rather than against the stated number. An enumeration is checkable by inspection; a bare
-integer is not.
+**Fix, implemented in this release:** derive the count rather than assert it — the `?`-marked IDs
+are enumerated, and the Gate checks the enumeration against the Ground Truths list rather than
+quoting the stated number. An enumeration is checkable by inspection; a bare integer is not.
 
-*Not a regression: the criterion is new in 8.16.0 and has never reported a correct figure.
-Recorded here so it is not rediscovered as a fresh finding.*
+*Not a regression: the criterion was new in 8.16.0 and never reported a correct figure in the
+one release it shipped in.*
 
 ## [8.16.0] - 2026-08-16
 
