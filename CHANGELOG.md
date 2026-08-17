@@ -41,6 +41,17 @@ Fixes the reason the agent could not open its own Self-Audit Gate.
   there. `_rewrite_detail_link()` in `sync-content.py` now takes a per-surface prefix
   (`AGENT_REF_PREFIX`) instead of one hardcoded form.
 
+**Known residual — this fixes the first hop, not the whole chain.** The agent's own reference
+siblings under `first-principles/agents/references/` still carry 16 file-relative links between
+each other (`](pre-mortem.md)`, `](five-whys-detail.md)`, and so on). Those resolve correctly
+*within that directory* but not from a session working directory, so an agent that successfully
+opens `${CLAUDE_PLUGIN_ROOT}/agents/references/five-whys.md` and then follows its pointer to
+`five-whys-detail.md` fails in exactly the way this release fixes one level up. Left alone
+deliberately: it is outside the agent body, and the bare form there is a DEC'd invariant
+(DEC-A) that GATE-02-v8.5 actively asserts, so changing it is a separate, gated decision rather
+than a tail of this one. The Self-Audit Gate, output template, assumption taxonomy and worked
+examples are all reached in one hop from the body and are therefore unaffected by this residual.
+
 ### Changed
 
 - **VAL-03 resolves `${CLAUDE_PLUGIN_ROOT}` rather than skipping it.** The cheap accommodation
