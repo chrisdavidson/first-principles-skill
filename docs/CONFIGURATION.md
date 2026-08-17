@@ -185,6 +185,8 @@ distinction is worth keeping visible.
 | Every hand-maintained version stamp carries the **same** value | VERSION-01 |
 | `disable-model-invocation: true` must be present on every focused-mode skill stub | convention — no gate |
 | All reference file links use forward slashes and are one level deep from the referencing file (no nested `a.md → b.md → c.md`) | VAL-03 |
+| Every reference link in the **agent body** is plugin-root-anchored — `${CLAUDE_PLUGIN_ROOT}/agents/references/…`, never file-relative `references/…` | VAL-03 (resolves the token onto `first-principles/`), GATE-02-v8.5 (asserts the per-surface form for the four `-detail.md` pointers) |
+| Every reference link in a **skill stub** stays file-relative `references/…` — the harness resolves a slash-invoked skill against its own directory | GATE-02-v8.5 |
 | No link in `shared/` or `first-principles/` may escape the plugin root with `../` | convention — no gate (see the v8.17.1 entry in `CHANGELOG.md`) |
 | Edit `shared/` only; never edit the generated tree (`first-principles/`) directly | DUAL-04 |
 

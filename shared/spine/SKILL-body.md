@@ -13,7 +13,7 @@ Each phase produces a named artifact. That artifact is the entry condition for t
 
 > **Essence Statement** → **Classified Assumptions Table** → **Ground Truths list** → **Derivation Chains** → **signed-off analysis**
 
-The accumulated artifacts together form the standardized output document, whose full section shape is defined in the [First Principles Analysis Output Template](references/output-template.md). Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
+The accumulated artifacts together form the standardized output document, whose full section shape is defined in the [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md). Working through these phases in order is what makes the analysis auditable — a skeptic can inspect any artifact and verify that the phase that produced it was executed rather than skipped.
 
 ### Turn discipline
 
@@ -95,7 +95,7 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Stakes-escalation rule:** The higher the stakes of the conclusion resting on an assumption, the more that assumption must be pushed toward physical law or verified ground truth. A critical conclusion resting on a convention or untested belief is a fragile conclusion — either verify the assumption or flag the conclusion's confidence accordingly.
 
-For a refined within-type subtype catalog with prescribed treatments and cited evidence, see [Assumption Taxonomy](references/assumption-taxonomy.md). Subtypes are recommended-but-not-required; the parent type's treatment remains a valid fallback.
+For a refined within-type subtype catalog with prescribed treatments and cited evidence, see [Assumption Taxonomy](${CLAUDE_PLUGIN_ROOT}/agents/references/assumption-taxonomy.md). Subtypes are recommended-but-not-required; the parent type's treatment remains a valid fallback.
 
 **Named artifact:** Classified Assumptions Table — a table with columns: Assumption, Type, Treatment, Verdict, Verification.
 
@@ -151,7 +151,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
 
-**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the criteria in the [Self-Audit Gate](references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring, and it scores this analysis's own structure, not the subject matter. Do not re-author the criteria here; apply them.
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the criteria in the [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring, and it scores this analysis's own structure, not the subject matter. Do not re-author the criteria here; apply them.
 
 **Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
 
@@ -186,7 +186,7 @@ Each chain must contain at least one intermediate step — the intermediate is w
 
 **Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of what verification would raise it to HIGH.
 
-For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see the [First Principles Analysis Output Template](references/output-template.md).
+For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see the [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md).
 
 ---
 
@@ -212,7 +212,7 @@ convention — `C1`, `C2`, ... in document order):
 
 Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the
 Self-Audit Gate begin. Score the completed analysis against the criteria in the
-[Self-Audit Gate](references/validation-rubric.md) as a feedback loop:
+[Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a feedback loop:
 
 1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
@@ -316,23 +316,23 @@ names the ceiling; estimate sizes the quantities under it).
 
 ### Reference docs
 
-- Output format template → [First Principles Analysis Output Template](references/output-template.md)
-- Self-audit gate (scores this analysis, not the subject) → [Self-Audit Gate](references/validation-rubric.md)
+- Output format template → [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md)
+- Self-audit gate (scores this analysis, not the subject) → [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md)
 - Testing this agent headlessly → [docs/testing-agents-headlessly.md](https://github.com/chrisdavidson/first-principles-skill/blob/master/docs/testing-agents-headlessly.md) (stream-json + jq subagent-capture pattern)
 
 #### Worked Examples
 
-- [Software Systems](references/examples/software-systems.md) — microservices-vs-monolith analysis decomposed to first principles
-- [Software Systems (build-vs-buy)](references/examples/software-systems-2.md) — capability-cost-risk trade-off for build-vs-adopt decisions
-- [Product/Business](references/examples/product-business.md) — pricing/strategy decision worked from verified ground truths
-- [Product/Business (feature prioritization)](references/examples/product-business-2.md) — value-vs-cost-vs-evidence for build-next decisions
-- [Personal/General](references/examples/personal-general.md) — everyday decision analyzed without reasoning by analogy
-- [Personal/General (financial decision)](references/examples/personal-general-2.md) — quantitative chains with values-laden tie-breakers
-- [Science/Engineering](references/examples/science-engineering.md) — physical-law-anchored derivation in an engineering domain
-- [Science/Engineering (failure analysis)](references/examples/science-engineering-2.md) — diagnostic root-cause reasoning (symptom → cause)
-- [Ishikawa (Fishbone)](references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
-- [Composed Inversion + Second-Order](references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
-- [Self-Application (meta)](references/examples/self-application.md) — the agent applying the methodology to its own design
-- [5-Whys: Reduce-to-Primitives (Irreducibility Drill)](references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
-- [Estimate (Fermi)](references/examples/estimate-fermi.md) — Fermi magnitude rebuild from unit-factors bracketed with bounds, feeding Phase 4
-- [Theoretical Limit (Carnot)](references/examples/theoretical-limit-carnot.md) — constraint-relaxation to the law-permitted ceiling, bracketing the gap to convention, feeding Phase 4
+- [Software Systems](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/software-systems.md) — microservices-vs-monolith analysis decomposed to first principles
+- [Software Systems (build-vs-buy)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/software-systems-2.md) — capability-cost-risk trade-off for build-vs-adopt decisions
+- [Product/Business](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/product-business.md) — pricing/strategy decision worked from verified ground truths
+- [Product/Business (feature prioritization)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/product-business-2.md) — value-vs-cost-vs-evidence for build-next decisions
+- [Personal/General](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/personal-general.md) — everyday decision analyzed without reasoning by analogy
+- [Personal/General (financial decision)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/personal-general-2.md) — quantitative chains with values-laden tie-breakers
+- [Science/Engineering](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/science-engineering.md) — physical-law-anchored derivation in an engineering domain
+- [Science/Engineering (failure analysis)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/science-engineering-2.md) — diagnostic root-cause reasoning (symptom → cause)
+- [Ishikawa (Fishbone)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/ishikawa-fishbone.md) — breadth-first cause-category brainstorm feeding Phase 2
+- [Composed Inversion + Second-Order](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/composed-inversion-second-order.md) — Phase 2 inversion chained with Phase 4 consequence extension
+- [Self-Application (meta)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/self-application.md) — the agent applying the methodology to its own design
+- [5-Whys: Reduce-to-Primitives (Irreducibility Drill)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/decompose-irreducibility.md) — irreducibility drill bottoming out at a physical law, feeding Phase 3
+- [Estimate (Fermi)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/estimate-fermi.md) — Fermi magnitude rebuild from unit-factors bracketed with bounds, feeding Phase 4
+- [Theoretical Limit (Carnot)](${CLAUDE_PLUGIN_ROOT}/agents/references/examples/theoretical-limit-carnot.md) — constraint-relaxation to the law-permitted ceiling, bracketing the gap to convention, feeding Phase 4

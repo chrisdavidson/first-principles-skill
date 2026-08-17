@@ -13,6 +13,51 @@ installed session.
 
 ## [Unreleased]
 
+## [8.17.3] — 2026-08-16
+
+Fixes the reason the agent could not open its own Self-Audit Gate.
+
+### Fixed
+
+- **Agent-body reference links are now plugin-root-anchored.** Every `references/…` link the
+  agent body carried was file-relative. An agent body is read with the *session* working
+  directory in force — not the directory the agent file lives in — so
+  `references/validation-rubric.md` resolved against the user's project, where it does not
+  exist, and the read failed. All 25 of the agent body's reference links (21 in
+  `shared/spine/SKILL-body.md` plus the four `-detail.md` pointers `sync-content.py` emits onto
+  the agent surface) now carry the `${CLAUDE_PLUGIN_ROOT}/agents/references/` prefix, which
+  Claude Code substitutes in agent and skill content wherever it appears. This reaches the
+  Self-Audit Gate, the output template, the assumption taxonomy, the fourteen worked examples,
+  and the four on-demand detail appendices.
+
+  The live v8.14.0 run against the Umesh Bhatt article is the observation behind this: zero
+  `Band:` / `Rigorous` / `Hand-wavy` markers across 533k characters — the Phase 5 gate never
+  fired. Absolutising the link removes one of that failure's two documented causes (the other,
+  a name collision with a user-requested rubric, was addressed at 8.15.0). **It is not proof the
+  gate now fires** — no live run has been taken since; that measurement is still owed.
+
+- **Skill stubs deliberately keep the file-relative form.** A slash-invoked skill is resolved by
+  the harness against its own skill directory, so `references/<slug>-detail.md` already works
+  there. `_rewrite_detail_link()` in `sync-content.py` now takes a per-surface prefix
+  (`AGENT_REF_PREFIX`) instead of one hardcoded form.
+
+### Changed
+
+- **VAL-03 resolves `${CLAUDE_PLUGIN_ROOT}` rather than skipping it.** The cheap accommodation
+  would have been to skip the unfamiliar prefix the way `http://` is skipped — which would have
+  dropped the entire agent body out of link checking while `check-links.py` still printed PASS.
+  `_resolve_link` maps the token onto `first-principles/` instead, so every absolutised link is
+  still validated, and validated against the path the agent will actually open. Section 8 of the
+  `--self-test` pins this with a positive assertion, a non-vacuity check that the rubric really
+  is there, and a negative control; both a repointed target and a reversion-to-skip were
+  fault-injected and caught.
+- **GATE-02-v8.5 asserts the two assembly surfaces separately.** The drift guard previously
+  expected one rewritten pointer form on both the agent body and the skill stub. It now expects
+  the plugin-root-anchored form on the agent body — *and zero file-relative fallbacks there* —
+  and the file-relative form on the stub.
+
+Battery: 17/17 GREEN.
+
 ## [8.17.2] — 2026-08-16
 
 Closes all six streams of the 2026-08-16 duplication-and-staleness audit (PR #8).

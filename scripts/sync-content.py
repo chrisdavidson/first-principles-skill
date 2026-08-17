@@ -238,6 +238,32 @@ SPINE_REFERENCES = (
 # an appendix-style `## Example` heading and are deliberately excluded.
 SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fishbone"})
 
+# Plugin-root-anchored prefix for every reference link emitted into the agent
+# body (first-principles/agents/first-principles.md).
+#
+# Why not a file-relative `references/...` target: an agent body is consumed
+# with the *session* working directory in force, not the directory the agent
+# file lives in. A relative target therefore resolves against the user's
+# project — where `references/validation-rubric.md` does not exist — so the
+# agent cannot open its own Self-Audit Gate, output template, assumption
+# taxonomy, worked examples, or `-detail.md` appendices. Observed live at
+# v8.14.0: the Phase 5 self-audit gate never fired across a 533k-char run.
+#
+# `${CLAUDE_PLUGIN_ROOT}` is the documented portable intra-plugin path form and
+# is explicitly sanctioned for component files — commands, *agents*, skills —
+# not just hooks.json and MCP manifests. It expands to the plugin install
+# directory, which is this repo's `first-principles/`, so the agent surface's
+# own references sit under `${CLAUDE_PLUGIN_ROOT}/agents/references/`.
+#
+# The skill stubs deliberately do NOT use this prefix: a slash-invoked skill is
+# resolved by the harness against its own skill directory, so their historical
+# file-relative `references/...` targets already work.
+#
+# VAL-03 (`scripts/check-links.py`) resolves this prefix back to
+# `first-principles/` and keeps full-checking every one of these links — the
+# absolutisation does not cost link-validation coverage.
+AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/agents/references/"
+
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
 # Breakdown: 1 agent + 11 reference siblings + 4 agent detail siblings +
 # 14 worked-example siblings + 14 skill stubs + 4 skill detail siblings.
@@ -432,8 +458,8 @@ def _extract_procedure(slug: str) -> str:
     return _normalise_trailing_newline(slice_text)
 
 
-def _rewrite_detail_link(slice_text: str, slug: str) -> str:
-    """Rewrite a bare '<slug>-detail.md' pointer target to 'references/<slug>-detail.md'.
+def _rewrite_detail_link(slice_text: str, slug: str, prefix: str = "references/") -> str:
+    """Rewrite a bare '<slug>-detail.md' pointer target to '<prefix><slug>-detail.md'.
 
     Exists because the assembled agent body (first-principles/agents/first-
     principles.md) and the skill stub (first-principles/skills/<slug>/SKILL.md)
@@ -448,13 +474,21 @@ def _rewrite_detail_link(slice_text: str, slug: str) -> str:
     asserts against (DEC-B); this helper's rewritten form is a separate
     property asserted against the assembled output instead.
 
+    `prefix` selects the per-surface form. The skill stub keeps the historical
+    file-relative `references/` default: a slash-invoked skill is resolved by
+    the harness against its own skill directory, so a relative target works
+    there. The agent body passes AGENT_REF_PREFIX instead — an agent body is
+    read with the *session* working directory in force, not the plugin
+    directory, so a file-relative target silently resolves against the user's
+    project and the read fails. See AGENT_REF_PREFIX for the full rationale.
+
     No-op for any slug outside SLUGS_WITH_DETAIL. Matches only the exact
     inline-link target string, not a loose regex, so it cannot match
     anything but the pointer.
     """
     if slug not in SLUGS_WITH_DETAIL:
         return slice_text
-    return slice_text.replace(f"]({slug}-detail.md)", f"](references/{slug}-detail.md)")
+    return slice_text.replace(f"]({slug}-detail.md)", f"]({prefix}{slug}-detail.md)")
 
 
 # v8.5 Phase 154 GATE-02 (D-01 template): the three trigger bullets every
@@ -787,7 +821,8 @@ def generate_agent(spine_meta: dict, tool_map: dict) -> dict[Path, str]:
     # --- Companion Techniques: 7 ## Procedure sections in TOOLS order ---
     companion_header = "\n## Companion Techniques\n\n"
     companion_blocks = "".join(
-        _rewrite_detail_link(_extract_procedure(slug), slug) + "\n" for slug in TOOLS
+        _rewrite_detail_link(_extract_procedure(slug), slug, AGENT_REF_PREFIX) + "\n"
+        for slug in TOOLS
     )
 
     # --- Assemble body and stitch frontmatter ---
@@ -1312,24 +1347,43 @@ def cmd_self_test() -> int:
         failures.append(f"FAIL (f): unexpected exception: {exc!r}")
 
     # (g) GATE-02 rewrite assertion — a distinct property from (d)-(f)'s
-    # bare-form check (DEC-B, 154-01-SUMMARY.md): the rewritten
-    # `references/`-prefixed form must appear exactly once per slug in the
-    # assembled agent body and the skill stub; the agent reference sibling
-    # must still carry the bare form. Driven off generate_all()'s in-memory
-    # return value, never files on disk.
+    # bare-form check (DEC-B, 154-01-SUMMARY.md): the rewritten form must
+    # appear exactly once per slug in the assembled agent body and the skill
+    # stub; the agent reference sibling must still carry the bare form.
+    # Driven off generate_all()'s in-memory return value, never files on disk.
+    #
+    # The two assembly surfaces now expect DIFFERENT rewritten forms. The
+    # agent body carries the plugin-root-anchored AGENT_REF_PREFIX (an agent
+    # body is read with the session working directory in force, so a
+    # file-relative target does not resolve — see AGENT_REF_PREFIX); the skill
+    # stub keeps the file-relative `references/` form, which the harness does
+    # resolve against the skill's own directory. Asserting per-surface is what
+    # stops the agent body silently regressing to the non-resolving form.
     try:
         wrong: list[str] = []
         all_targets = generate_all()
         agent_body = all_targets[AGENT_PATH]
         for slug in sorted(SLUGS_WITH_DETAIL):
             rewritten = f"](references/{slug}-detail.md)"
+            agent_rewritten = f"]({AGENT_REF_PREFIX}{slug}-detail.md)"
             bare = f"]({slug}-detail.md)"
 
-            body_count = agent_body.count(rewritten)
+            body_count = agent_body.count(agent_rewritten)
             if body_count != 1:
                 wrong.append(
-                    f"{slug}: agent body carries the rewritten pointer "
-                    f"{body_count} times, expected exactly 1"
+                    f"{slug}: agent body carries the plugin-root-anchored "
+                    f"pointer {agent_rewritten!r} {body_count} times, "
+                    f"expected exactly 1"
+                )
+
+            # The agent body must carry NO file-relative pointer form: one
+            # would resolve against the user's session directory and fail.
+            body_relative = agent_body.count(rewritten)
+            if body_relative != 0:
+                wrong.append(
+                    f"{slug}: agent body carries the file-relative pointer "
+                    f"{rewritten!r} {body_relative} times, expected 0 — a "
+                    f"file-relative target does not resolve from an agent body"
                 )
 
             stub_content = all_targets.get(SKILLS_DIR / slug / "SKILL.md", "")
@@ -1355,9 +1409,11 @@ def cmd_self_test() -> int:
         else:
             print(
                 f"(g) GATE-02 rewrite assertion: PASS — the rewritten "
-                f"pointer appears exactly once in the agent body and skill "
-                f"stub, and the agent reference sibling keeps the bare "
-                f"form, for all {len(SLUGS_WITH_DETAIL)} slugs"
+                f"pointer appears exactly once in the agent body "
+                f"(plugin-root-anchored, with zero file-relative fallbacks) "
+                f"and once in the skill stub (file-relative), and the agent "
+                f"reference sibling keeps the bare form, for all "
+                f"{len(SLUGS_WITH_DETAIL)} slugs"
             )
     except Exception as exc:
         failures.append(f"FAIL (g): unexpected exception: {exc!r}")

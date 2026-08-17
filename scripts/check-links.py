@@ -100,6 +100,16 @@ from pathlib import Path
 # Path resolution: relative to this script's location, not Path.cwd() (mirrors sync-content.py).
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# `${CLAUDE_PLUGIN_ROOT}` is Claude Code's portable intra-plugin path token: at
+# runtime it expands to wherever the plugin was installed. The agent body uses
+# it for every reference link so those links resolve against the plugin
+# directory rather than the session working directory (see AGENT_REF_PREFIX in
+# scripts/sync-content.py for why that matters). In THIS repo the plugin
+# directory is `first-principles/`, so link checking maps the token onto that
+# path — see _resolve_link, which resolves the token rather than skipping it.
+PLUGIN_ROOT_TOKEN = "${CLAUDE_PLUGIN_ROOT}"
+PLUGIN_ROOT_TOKEN_TARGET = "first-principles"
+
 # Scan globs: surfaces that receive BOTH relative-link and namespace-ref validation.
 # Phase 26.1 adds the agent surface — first-principles.md is the agent spine and
 # references/*.md its companion files. references/examples/ is illustrative
@@ -253,8 +263,21 @@ def _frontmatter_line_offset(full_text: str, body: str) -> int:
 def _resolve_link(raw_target: str, source_file: Path) -> Path:
     """Resolve a markdown link target to an absolute path.
 
-    Strips any #fragment. Paths starting with '/' are repo-root relative;
-    others are relative to the containing file's parent directory.
+    Strips any #fragment. Targets starting with the `${CLAUDE_PLUGIN_ROOT}/`
+    portable-path token are plugin-root relative and map onto this repo's
+    plugin directory (PLUGIN_ROOT_TOKEN_TARGET); paths starting with '/' are
+    repo-root relative; others are relative to the containing file's parent
+    directory.
+
+    The `${CLAUDE_PLUGIN_ROOT}` branch is a *resolution* rule, not a skip
+    rule, and that is deliberate. The agent body's reference links carry this
+    prefix because an agent body is read with the session working directory in
+    force, not the plugin directory (see AGENT_REF_PREFIX in
+    scripts/sync-content.py). Silently skipping the token would drop the
+    entire agent body out of VAL-03's link checking while the gate still
+    reported green — exactly the vacuous-gate failure mode this repo guards
+    against. Mapping it instead keeps every one of those links validated, and
+    validates them against the path the agent will actually open at runtime.
 
     URL-decode: not applied — repo doesn't use encoded paths today.
     (Deferred edge case: if encoded paths are introduced, add urllib.parse.unquote here.)
@@ -262,6 +285,9 @@ def _resolve_link(raw_target: str, source_file: Path) -> Path:
     target = raw_target.split("#")[0]
     if not target:
         return source_file  # Pure anchor — no file to resolve.
+    if target.startswith(PLUGIN_ROOT_TOKEN):
+        rest = target[len(PLUGIN_ROOT_TOKEN):].lstrip("/")
+        return (REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET / rest).resolve()
     if target.startswith("/"):
         return (REPO_ROOT / target.lstrip("/")).resolve()
     return (source_file.parent / target).resolve()
@@ -738,6 +764,55 @@ def _run_self_test() -> int:
                 f"resolving link. stderr: {main_stderr!r}"
             )
 
+    # --- 8. ${CLAUDE_PLUGIN_ROOT} portable-path resolution ---
+    # The agent body's reference links carry the ${CLAUDE_PLUGIN_ROOT} prefix
+    # so they resolve against the plugin install directory at runtime instead
+    # of the session working directory. The cheap way to stop VAL-03 choking
+    # on an unfamiliar prefix would have been to SKIP it — which would have
+    # silently dropped the whole agent body out of link checking while the
+    # gate still printed PASS. _resolve_link maps the token instead, and this
+    # section is what keeps that a real check rather than a comment.
+    #
+    # Drives the production _resolve_link with the production PLUGIN_ROOT_TOKEN
+    # / PLUGIN_ROOT_TOKEN_TARGET constants against the LIVE tree (not the temp
+    # fixture, whose root _resolve_link does not consult), so reverting the
+    # mapping to a skip — or repointing PLUGIN_ROOT_TOKEN_TARGET — fails here.
+    agent_body = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
+    token_link = f"{PLUGIN_ROOT_TOKEN}/agents/references/validation-rubric.md"
+
+    resolved_hit = _resolve_link(token_link, agent_body)
+    expected_hit = (
+        REPO_ROOT / PLUGIN_ROOT_TOKEN_TARGET
+        / "agents" / "references" / "validation-rubric.md"
+    ).resolve()
+    if resolved_hit != expected_hit:
+        wrong.append(
+            f"{PLUGIN_ROOT_TOKEN} resolution: _resolve_link({token_link!r}) "
+            f"returned {resolved_hit}, expected {expected_hit} — the token is "
+            "being treated as a literal path segment (or skipped) instead of "
+            "mapped onto the plugin directory"
+        )
+    if not resolved_hit.exists():
+        wrong.append(
+            f"{PLUGIN_ROOT_TOKEN} resolution (non-vacuity): {resolved_hit} does "
+            "not exist, so a passing live scan of the agent body would prove "
+            "nothing — the rubric this token exists to reach is missing"
+        )
+
+    # Negative control: a token-prefixed target that does NOT exist must
+    # resolve to a missing path, so _check_file still flags it. Without this,
+    # a mapping that resolved every token link onto some always-present path
+    # would satisfy the positive assertion above and check nothing.
+    resolved_miss = _resolve_link(
+        f"{PLUGIN_ROOT_TOKEN}/agents/references/no-such-reference.md", agent_body
+    )
+    if resolved_miss.exists():
+        wrong.append(
+            f"{PLUGIN_ROOT_TOKEN} resolution (negative control): a token link "
+            f"to a nonexistent reference resolved to an existing path "
+            f"{resolved_miss} — broken agent-body links would go unreported"
+        )
+
     if wrong:
         sys.stderr.write("check-links --self-test: FAIL\n")
         for w in wrong:
@@ -751,7 +826,10 @@ def _run_self_test() -> int:
         "synthetic fixture (non-vacuity, disjointness, positive detection + "
         "negative controls on both axes, run-to-run determinism, and "
         "end-to-end main() dispatch wiring); both currently match zero live "
-        "findings on the real tree today (D-06)."
+        "findings on the real tree today (D-06). Also proven: "
+        "${CLAUDE_PLUGIN_ROOT} link targets are RESOLVED onto the plugin "
+        "directory, not skipped — so absolutising the agent body's reference "
+        "links did not silently remove it from link checking."
     )
     return 0
 

@@ -3,7 +3,7 @@ name: fishbone
 description: Runs a focused fishbone only — breadth-first cause-category map. Invoke via /fishbone only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.2"
+  version: "8.17.3"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/fishbone/SKILL.md by sync-content.py -->
