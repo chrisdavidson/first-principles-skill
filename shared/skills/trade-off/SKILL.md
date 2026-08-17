@@ -3,7 +3,7 @@ name: trade-off
 description: Runs a focused trade-off only — weighted-criteria scoring. Invoke via /trade-off only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.4"
+  version: "8.17.5"
 license: MIT
 ---
 # Focused Trade-off Mode

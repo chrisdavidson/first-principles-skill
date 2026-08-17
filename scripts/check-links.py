@@ -112,8 +112,17 @@ PLUGIN_ROOT_TOKEN_TARGET = "first-principles"
 
 # Scan globs: surfaces that receive BOTH relative-link and namespace-ref validation.
 # Phase 26.1 adds the agent surface — first-principles.md is the agent spine and
-# references/*.md its companion files. references/examples/ is illustrative
-# content (worked examples), NOT link-checked source.
+# references/*.md its companion files.
+#
+# references/examples/ was excluded as "illustrative content, NOT link-checked
+# source" until v8.17.5. That exclusion hid a real broken link: a worked example
+# QUOTED the agent body's `](references/assumption-taxonomy.md)` inside prose,
+# which markdown rendered as a live link resolving to
+# agents/references/examples/references/… — a file that never existed. Being
+# illustrative makes a file's links no less broken, and no scan covered this
+# directory, so a plugin-wide sweep is what surfaced it rather than the gate.
+# The glob is now full-checked; the quotation was made inert (a code span) since
+# it was never navigation in the first place.
 #
 # Phase 26.1 Plan 04 deviation (Rule 3, in-scope): monolith + plugin-spine
 # entries removed for the same "dead config after Plan 05" reason as the
@@ -133,10 +142,22 @@ PLUGIN_ROOT_TOKEN_TARGET = "first-principles"
 # The target directory does not exist yet, so this entry matches zero files
 # until Phase 154 lands — the inline `--self-test` fixture is what makes it
 # load-bearing in the meantime (D-03).
+#
+# v8.17.5 (D-02 closed): first-principles/skills/*/SKILL.md is PROMOTED here
+# from NAMESPACE_ONLY_GLOBS. It sat namespace-only for one reason — 12
+# cross-technique links in the stubs used the shared/ source filename
+# convention and did not resolve under the plugin directory layout, so
+# full-checking would have failed immediately. Those 12 now target
+# `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md` and resolve, so the
+# justification for the deferral is gone and the surface is fully checked.
+# It stays in NAMESPACE_ONLY_GLOBS too — _collect_files dedups, and both
+# axes now apply to it.
 FULL_CHECK_GLOBS = [
     "first-principles/agents/first-principles.md",
     "first-principles/agents/references/*.md",
     "first-principles/skills/*/references/*.md",
+    "first-principles/skills/*/SKILL.md",
+    "first-principles/agents/references/examples/*.md",
 ]
 
 # Scan globs: surfaces that receive namespace-ref validation ONLY.
@@ -145,28 +166,28 @@ FULL_CHECK_GLOBS = [
 #
 # v8.5 GATE-01 (D-05): restored first-principles/skills/*/SKILL.md, which
 # Phase 26.1 removed on the (incorrect, never-realized) assumption that Plan 05
-# would delete the whole skills/ tree — it did not. Namespace-only (NOT
-# full-check) is deliberate and load-bearing per D-01: scouting found 14
-# pre-existing cross-skill relative links in the generated stubs (e.g.
-# `[5-Whys](five-whys.md)` in fishbone/SKILL.md) that resolve under the
-# shared/ source filename convention, not the plugin directory layout —
-# full-checking this glob would immediately fail those links. D-02 defers
-# fixing them to a future phase. This restoration's value today is
-# pre-positioned coverage plus docstring truth (D-06): it currently matches
-# files but finds zero backticked namespace refs in any of them, so it is
-# NOT closing a live gap — the inline `--self-test` fixture is what proves
-# this axis load-bearing in the meantime.
+# would delete the whole skills/ tree — it did not.
+#
+# HISTORICAL, resolved at v8.17.5. This entry was namespace-only (NOT
+# full-check) for one concrete reason: 12 cross-technique links in the
+# generated stubs (e.g. `[5-Whys](five-whys.md)` in fishbone/SKILL.md) used the
+# shared/ source filename convention rather than the plugin directory layout,
+# so full-checking would have failed them immediately, and D-02 deferred the
+# question of where they SHOULD point. That question is now answered — they
+# target `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md` and resolve — so the
+# glob has been ADDED to FULL_CHECK_GLOBS above. It remains listed here as
+# well: _collect_files dedups by resolved path, and the surface legitimately
+# wants both axes. Do not read this entry as evidence that the surface is
+# still namespace-only.
 #
 # Count history (v8.5 Phase 154, D-17): Plan 154-02's split moved 2 of
 # fishbone's cross-skill links (its Failure modes and Handoff sections) into
-# fishbone-detail.md, converting them to namespace refs and dropping the live
-# non-resolving cross-skill count in these SKILL.md files from 14 to 12. A raw
-# relative-link scan of this glob now also matches 4 new, correctly-resolving
-# `references/<slug>-detail.md` on-demand-load pointers Plan 154-03
-# introduced (16 relative-link matches total across the glob) — those 4 are
-# NOT part of the non-resolving count this namespace-only decision is about;
-# they are already full-checked via the FULL_CHECK_GLOBS entry
-# first-principles/skills/*/references/*.md above.
+# fishbone-detail.md, dropping the non-resolving cross-skill count in these
+# SKILL.md files from 14 to 12 — the 12 that v8.17.5 retargeted. The 4
+# `references/<slug>-detail.md` on-demand-load pointers Plan 154-03 introduced
+# were never part of that non-resolving count: they resolve against the
+# stub's own directory, which is how the harness loads a slash-invoked skill,
+# and they are deliberately left file-relative.
 NAMESPACE_ONLY_GLOBS = [
     "shared/**/*.md",
     "first-principles/skills/*/SKILL.md",
@@ -603,14 +624,17 @@ def _run_self_test() -> int:
         # Uses the PRODUCTION FULL_CHECK_GLOBS / NAMESPACE_ONLY_GLOBS lists
         # (not a hand-picked single pattern) so removing either new glob
         # entry from the module constants is detectable here.
+        # v8.17.5: FULL_CHECK_GLOBS now also matches SKILL.md (promoted from
+        # namespace-only once D-02 retargeted the 12 cross-technique links),
+        # so the expected count is 3, not 2.
         references_files = _collect_files(FULL_CHECK_GLOBS, root=tmp_root)
-        if len(references_files) != 2:
+        if len(references_files) != 3:
             wrong.append(
                 "non-vacuity: FULL_CHECK_GLOBS matched "
                 f"{len(references_files)} file(s) under the fixture root, "
-                "expected 2 (references/good.md, references/bad.md) — a "
-                "zero-match glob is the exact failure mode this mode exists "
-                "to prevent"
+                "expected 3 (references/good.md, references/bad.md, SKILL.md) "
+                "— a zero-match glob is the exact failure mode this mode "
+                "exists to prevent"
             )
 
         skill_files = _collect_files(NAMESPACE_ONLY_GLOBS, root=tmp_root)
@@ -621,23 +645,32 @@ def _run_self_test() -> int:
                 "expected 1 (SKILL.md)"
             )
 
-        # --- 2. Disjointness (edge:adjacency) ---
+        # --- 2. Deliberate overlap + dedup (edge:adjacency) ---
+        # Until v8.17.5 these two globs were disjoint and this section asserted
+        # exactly that. SKILL.md is now INTENTIONALLY in both lists — it wants
+        # relative-link checking AND namespace-ref checking — so disjointness
+        # is no longer the property to hold. The risk it guarded against is
+        # unchanged, though: main() must visit the shared file, and must visit
+        # it once. Assert the overlap is exactly what we intend and that
+        # dedup collapses it, rather than asserting an overlap of zero.
         references_set = set(references_files)
         skill_set = set(skill_files)
         overlap = references_set & skill_set
-        if overlap:
+        if overlap != skill_set:
             wrong.append(
-                "disjointness: references glob and SKILL.md glob share "
-                f"member(s): {sorted(str(p) for p in overlap)} — main()'s "
-                "dedup step could silently drop one of them"
+                "overlap: expected every NAMESPACE_ONLY_GLOBS match to also be "
+                f"a FULL_CHECK_GLOBS match (SKILL.md is in both lists as of "
+                f"v8.17.5), but the shared set was "
+                f"{sorted(str(p) for p in overlap)} vs "
+                f"{sorted(str(p) for p in skill_set)}"
             )
         union_size = len(references_set | skill_set)
-        sum_size = len(references_set) + len(skill_set)
-        if union_size != sum_size:
+        if union_size != len(references_set):
             wrong.append(
-                f"disjointness: union size {union_size} != sum of individual "
-                f"sizes {sum_size} — main()'s dedup step could silently "
-                "drop one of them"
+                f"dedup: union size {union_size} != FULL_CHECK size "
+                f"{len(references_set)} — the namespace-only glob is matching "
+                "a file the full-check glob does not, which main()'s dedup "
+                "would then have to reconcile"
             )
 
         # --- 3/4/5/6. Positive detection, negative controls, determinism ---
@@ -820,16 +853,21 @@ def _run_self_test() -> int:
         return 1
 
     print(
-        "check-links --self-test: PASS — both newly-extended VAL-03 scan "
-        "surfaces (first-principles/skills/*/references/*.md, D-01; "
+        "check-links --self-test: PASS — the VAL-03 scan surfaces "
+        "(first-principles/skills/*/references/*.md, D-01; "
         "first-principles/skills/*/SKILL.md, D-05) proven load-bearing on a "
-        "synthetic fixture (non-vacuity, disjointness, positive detection + "
-        "negative controls on both axes, run-to-run determinism, and "
-        "end-to-end main() dispatch wiring); both currently match zero live "
-        "findings on the real tree today (D-06). Also proven: "
-        "${CLAUDE_PLUGIN_ROOT} link targets are RESOLVED onto the plugin "
-        "directory, not skipped — so absolutising the agent body's reference "
-        "links did not silently remove it from link checking."
+        "synthetic fixture (non-vacuity, intended glob overlap + dedup, "
+        "positive detection + negative controls on both axes, run-to-run "
+        "determinism, and end-to-end main() dispatch wiring). Live-finding "
+        "status (supersedes D-06's 'both vacuous' note): "
+        "skills/*/references/*.md matches 4 real files and "
+        "skills/*/SKILL.md is now FULL-checked as of v8.17.5, contributing "
+        "16 real relative links — so neither surface is vacuous any more; "
+        "the namespace-ref axis still finds zero backticked refs in the "
+        "stubs. Also proven: ${CLAUDE_PLUGIN_ROOT} link targets are RESOLVED "
+        "onto the plugin directory, not skipped — so absolutising the agent "
+        "body's reference links did not silently remove it from link "
+        "checking."
     )
     return 0
 

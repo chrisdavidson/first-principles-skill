@@ -3,7 +3,7 @@ name: second-order
 description: Runs a focused second-order only — 2nd/3rd-order effects. Invoke via /second-order only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.4"
+  version: "8.17.5"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/second-order/SKILL.md by sync-content.py -->
@@ -24,18 +24,18 @@ Downstream effects are where most reasoning quietly fails.
 
 **Decision rule — second-order vs. inversion:** second-order is the
 positive-direction pass on a conclusion ("if it holds, what follows?");
-[inversion](inversion.md) is the negative-direction pass ("what would have
+[inversion](${CLAUDE_PLUGIN_ROOT}/skills/inversion/SKILL.md) is the negative-direction pass ("what would have
 to be true for it to fail?"). Run them as a pair: inversion surfaces silent
 preconditions, second-order surfaces silent consequences.
 
 **Decision rule — second-order vs. trade-off analysis:** when 2nd-order
 effects diverge across two or more candidate options, the decision becomes
-a selection problem. Hand off to [trade-off analysis](trade-off.md),
+a selection problem. Hand off to [trade-off analysis](${CLAUDE_PLUGIN_ROOT}/skills/trade-off/SKILL.md),
 which locks criteria and weights before scoring so divergent effects can be
 compared without reverse-engineering the answer.
 
 **Not a good fit:** stress-testing a claim's preconditions — use
-[inversion](inversion.md). Tracing backward to a root cause — use 5-Whys.
+[inversion](${CLAUDE_PLUGIN_ROOT}/skills/inversion/SKILL.md). Tracing backward to a root cause — use 5-Whys.
 
 ---
 
@@ -123,10 +123,10 @@ Phase 2. The contradicting effect becomes the evidence triggering a new
 `untested belief` row, mirroring how inversion's preconditions enter Phase 2
 from the other direction.
 
-For the negative-direction counterpart, pair with [inversion](inversion.md):
+For the negative-direction counterpart, pair with [inversion](${CLAUDE_PLUGIN_ROOT}/skills/inversion/SKILL.md):
 second-order traces downstream consequences, inversion surfaces upstream
 preconditions. When divergent 2nd-order effects across options force a
-selection, hand off to [trade-off analysis](trade-off.md).
+selection, hand off to [trade-off analysis](${CLAUDE_PLUGIN_ROOT}/skills/trade-off/SKILL.md).
 
 ---
 

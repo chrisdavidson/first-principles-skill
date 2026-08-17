@@ -104,8 +104,14 @@ question is whether the budget tracks anything the agent actually depends on.
   the Phase 2 Assumptions Table block delegates the Subtype Catalog to
   `references/assumption-taxonomy.md` via a body-resident link
   ("For a refined within-type subtype catalog with prescribed treatments and
-  cited evidence, see [Assumption Taxonomy](references/assumption-taxonomy.md).
-  Subtypes are recommended-but-not-required..."). The pattern (link out, one
+  cited evidence, see ..." — an inline link labelled "Assumption Taxonomy"
+  targeting `references/assumption-taxonomy.md` — "Subtypes are
+  recommended-but-not-required..."). Described rather than reproduced: writing the
+  link out verbatim made this quotation a *live* link that resolved to
+  `agents/references/examples/references/…` and broke. Quoted as the body stood
+  when this example was written; it has since moved to the plugin-root-anchored
+  form `${CLAUDE_PLUGIN_ROOT}/agents/references/assumption-taxonomy.md` (v8.17.3),
+  which does not disturb the point being made here. The pattern (link out, one
   level deep, with a one-line description of what the reader will find there)
   is therefore precedent — not novel — for this agent surface. No regression in
   agent reasoning quality has been observed since that delegation shipped in

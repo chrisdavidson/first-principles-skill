@@ -3,7 +3,7 @@ name: fishbone
 description: Runs a focused fishbone only — breadth-first cause-category map. Invoke via /fishbone only.
 disable-model-invocation: true
 metadata:
-  version: "8.17.4"
+  version: "8.17.5"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/fishbone/SKILL.md by sync-content.py -->
@@ -25,7 +25,7 @@ problem recurs despite surface fixes and the cause is unclear; you need a struct
 to ensure no category of cause is overlooked before narrowing focus.
 
 **Not a good fit:** the problem has a single traceable causal chain and you need to drill
-to the root cause — that calls for a [5-Whys](five-whys.md) analysis instead, which is a
+to the root cause — that calls for a [5-Whys](${CLAUDE_PLUGIN_ROOT}/skills/five-whys/SKILL.md) analysis instead, which is a
 depth-first root-cause drill down one causal chain rather than a breadth-first map across
 categories.
 

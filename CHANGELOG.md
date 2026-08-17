@@ -13,6 +13,100 @@ installed session.
 
 ## [Unreleased]
 
+## [8.17.5] — 2026-08-17
+
+Closes **D-02**, the last of the three link surfaces. Every markdown link the plugin ships now
+resolves.
+
+### Fixed
+
+- **Skill-stub cross-technique links target the peer stub.** The 12 remaining broken links
+  (`](pre-mortem.md)` ×4 and `](second-order.md)` ×2 in `skills/inversion/SKILL.md`,
+  `](inversion.md)` ×3 and `](trade-off.md)` ×2 in `skills/second-order/SKILL.md`,
+  `](five-whys.md)` in `skills/fishbone/SKILL.md`) now point at
+  `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md`.
+
+  **This was a different defect from the agent surface's**, which is why it was held back rather
+  than swept in with v8.17.4. The agent surface had *no* resolution — a bare filename resolved
+  against the session working directory. A skill stub *does* get resolution: the harness resolves
+  a slash-invoked skill against its own directory. These links broke because that mechanism
+  pointed them somewhere wrong — `skills/inversion/pre-mortem.md` does not exist. Absent
+  resolution and a wrong path need different fixes.
+
+  The target was a genuine choice between three options, and the peer-stub file link won because
+  it leaves the surrounding prose byte-identical, resolves on disk, and unlocks the VAL-03
+  promotion below. The alternatives — a backticked `/first-principles:pre-mortem` namespace ref
+  (more idiomatic for a slash-invoked skill, but rewrites 12 sentences) and a link into the
+  agent's own reference tree (a layering smell) — were considered and declined.
+
+- **The four `references/<slug>-detail.md` pointers stay file-relative.** They already resolve
+  against the stub's own directory, which is exactly how the harness loads a skill.
+  `_absolutise_skill_peer_links()` runs *after* `_rewrite_detail_link()` specifically so the
+  detail target has a `/` by then and falls outside the bare-filename pattern; the reverse order
+  would mis-target it as a peer skill.
+
+### Changed
+
+- **VAL-03 now full-checks `first-principles/skills/*/SKILL.md`, retiring D-05's deferral.** That
+  surface was namespace-only for exactly one reason: full-checking it would have failed the 12
+  links above, and D-02 deferred deciding where they should point. With the decision made, the
+  glob was promoted into `FULL_CHECK_GLOBS`. It stays in `NAMESPACE_ONLY_GLOBS` as well —
+  `_collect_files` dedups by resolved path and the surface legitimately wants both axes. The live
+  scan went from 221 to 237 checked links.
+
+- **The self-test's disjointness assertion became an overlap-and-dedup assertion.** The two glob
+  lists were disjoint and the self-test asserted it; `SKILL.md` is now deliberately in both. The
+  underlying risk is unchanged — main() must visit the shared file, exactly once — so the check
+  now asserts the overlap is precisely what is intended and that dedup collapses it, rather than
+  asserting an overlap of zero.
+
+- **D-06's honesty note is superseded and says so.** It recorded that both newly-added VAL-03
+  surfaces matched zero live findings, making the `--self-test` fixture the only thing keeping
+  them load-bearing. That is no longer true: `skills/*/references/*.md` matches 4 real files and
+  `skills/*/SKILL.md` now contributes 16 real relative links. The namespace-ref axis is still
+  vacuous (zero backticked refs in any stub) and the PASS line still says so.
+
+- **GATE-02-v8.5 sweeps the skill-stub surface too**, mirroring v8.17.4's agent-side sweep, and
+  fails loudly if it matches zero stubs. An unrecognised bare target raises at generation.
+
+- **A fourth broken link, found by sweeping rather than by a gate.** After the three surfaces
+  were done, a plugin-wide resolve-every-link sweep turned up one more:
+  `agents/references/examples/self-application.md` **quoted** the agent body's
+  `](references/assumption-taxonomy.md)` inside prose, and markdown rendered that quotation as a
+  live link resolving to `agents/references/examples/references/…` — a path that never existed.
+  It survived because `references/examples/` was excluded from VAL-03 as "illustrative content,
+  NOT link-checked source". Being illustrative makes a file's links no less broken. The glob is
+  now full-checked, and the quotation is described rather than reproduced, since it was never
+  navigation. The example's own point is unaffected; the stale pre-8.17.3 body text it quotes is
+  now marked as historical.
+
+  Worth noting how it was found: three gates were green and the three surfaces I set out to fix
+  were all correct. What surfaced it was asking a different question — *does every link in the
+  shipped tree resolve?* — instead of *did my change work?*
+
+### Where each surface now stands
+
+| Surface | Link form | Why |
+|---|---|---|
+| Agent body | `${CLAUDE_PLUGIN_ROOT}/agents/references/…` | read with the session cwd in force; substitution documented for agent content |
+| Agent reference siblings | `${CLAUDE_PLUGIN_ROOT}/agents/references/…` | same, but the token is inference-resolvable rather than documented-substituted (v8.17.4) |
+| Skill stubs — cross-technique | `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md` | peer content lives under its own skill directory |
+| Skill stubs — detail pointers | `references/<slug>-detail.md` | resolves against the stub's own directory, which is how a skill is loaded |
+| Worked examples | prose, no live links | the one link there was a quotation, not navigation |
+| `shared/` sources | bare filenames | canonical and surface-neutral; each emitter rewrites for its own surface |
+
+Plugin-wide verification: **57 links checked across the shipped tree, 0 unresolvable.**
+
+### Still owed
+
+**No live run has verified that the Self-Audit Gate now fires.** Unchanged across 8.17.3, .4 and
+.5. All three remove documented causes; none is evidence.
+
+Battery: 17/17 GREEN. Three fault injections: a broken peer link in a stub (VAL-03 reports it —
+proving the promotion is non-vacuous), the peer rewrite removed (GATE-02's stub sweep names
+`fishbone`, `inversion` and `second-order`), and the glob demoted back to namespace-only (the
+self-test's non-vacuity and overlap assertions both fire).
+
 ## [8.17.4] — 2026-08-17
 
 Closes the second-hop residual v8.17.3 named and deferred. **Overturns DEC-A.**

@@ -264,6 +264,22 @@ SLUGS_WITH_DETAIL = frozenset({"five-whys", "theoretical-limit", "estimate", "fi
 # absolutisation does not cost link-validation coverage.
 AGENT_REF_PREFIX = "${CLAUDE_PLUGIN_ROOT}/agents/references/"
 
+# Plugin-root-anchored prefix for a cross-technique link emitted into a SKILL
+# STUB (first-principles/skills/<slug>/SKILL.md). A stub's bare cross-links
+# (`](pre-mortem.md)`) are the same 12 source links the agent surface carries,
+# but they fail here for a different reason: not absent resolution — the
+# harness does resolve a slash-invoked skill against its own directory — but a
+# WRONG PATH, since `skills/inversion/pre-mortem.md` does not exist. The stub's
+# peer lives at `skills/pre-mortem/SKILL.md`.
+#
+# Resolved at v8.17.5, closing D-02. The alternatives were a backticked
+# namespace ref (`/first-principles:pre-mortem`) and a link into the agent's
+# own reference tree; the peer-stub file link was chosen because it leaves the
+# surrounding prose byte-identical, resolves on disk, and lets VAL-03 promote
+# this surface from namespace-only to full link-checking — which also retires
+# D-05's deferral, whose whole justification was these 12 non-resolving links.
+SKILL_PEER_PREFIX = "${CLAUDE_PLUGIN_ROOT}/skills/"
+
 # Canonical total count of files that sync-content.py generates (len(generate_all())).
 # Breakdown: 1 agent + 11 reference siblings + 4 agent detail siblings +
 # 14 worked-example siblings + 14 skill stubs + 4 skill detail siblings.
@@ -534,6 +550,55 @@ def _absolutise_agent_ref_links(text: str, source_rel: str) -> str:
     return rewritten
 
 
+def _absolutise_skill_peer_links(text: str, source_rel: str) -> str:
+    """Retarget bare cross-technique links in a skill stub to the peer stub.
+
+    A stub's `](pre-mortem.md)` pointers are routing prose — "use this other
+    technique instead" — and they never resolved: the harness resolves a
+    slash-invoked skill against its own directory, so the target read as
+    `skills/inversion/pre-mortem.md`, which does not exist. The peer's content
+    lives at `skills/pre-mortem/SKILL.md`. Rewritten to
+    `${CLAUDE_PLUGIN_ROOT}/skills/<slug>/SKILL.md`.
+
+    MUST run AFTER `_rewrite_detail_link()`. That helper turns the bare
+    `<slug>-detail.md` pointer into `references/<slug>-detail.md`, which
+    contains a `/` and so no longer matches `_BARE_MD_TARGET_RE` — that
+    ordering is what keeps the detail pointer (which already resolves
+    correctly against the stub's own directory) out of this rewrite. Running
+    them in the other order would mis-target the detail sibling as a peer
+    skill.
+
+    Only TOOLS slugs are peers: the other six skills are phase skills with no
+    `shared/references/<slug>.md`, so nothing links to them by filename. Any
+    other bare `.md` target raises, for the same reason
+    `_absolutise_agent_ref_links()` raises — silently passing one through
+    would leave a non-resolving link alive with no signal, and VAL-03 now
+    full-checks this surface, so a mis-anchored target is caught rather than
+    invisible.
+    """
+    allowed = {f"{slug}.md": slug for slug in TOOLS}
+    unknown: list[str] = []
+
+    def sub(m: re.Match) -> str:
+        target = m.group(1)
+        peer = allowed.get(target)
+        if peer is None:
+            unknown.append(target)
+            return m.group(0)
+        return f"]({SKILL_PEER_PREFIX}{peer}/SKILL.md)"
+
+    rewritten = _BARE_MD_TARGET_RE.sub(sub, text)
+    if unknown:
+        raise ValueError(
+            f"{source_rel}: bare markdown link target(s) {sorted(set(unknown))!r} "
+            f"in skill-stub content do not name a companion-technique peer "
+            f"skill. Cross-technique links must target a TOOLS slug; anything "
+            f"else is a typo or needs an explicit decision about where it "
+            f"should point on the skill surface."
+        )
+    return rewritten
+
+
 def _rewrite_detail_link(slice_text: str, slug: str, prefix: str = "references/") -> str:
     """Rewrite a bare '<slug>-detail.md' pointer target to '<prefix><slug>-detail.md'.
 
@@ -729,7 +794,15 @@ def _expand_skill_token(body: str, slug: str) -> str:
                 f"{{{{PROCEDURE:{captured}}}}} — token slug must match the "
                 f"stub's own slug ({slug!r})"
             )
-        return _rewrite_detail_link(_extract_skill_content(slug), slug).rstrip("\n")
+        # Order is load-bearing: _rewrite_detail_link first (it gives the
+        # detail pointer a `/`, taking it out of _BARE_MD_TARGET_RE's reach),
+        # then peer retargeting over what remains. See
+        # _absolutise_skill_peer_links().
+        expanded = _rewrite_detail_link(_extract_skill_content(slug), slug)
+        expanded = _absolutise_skill_peer_links(
+            expanded, f"shared/references/{slug}.md (-> skills/{slug}/SKILL.md)"
+        )
+        return expanded.rstrip("\n")
 
     out = SKILL_TOKEN_RE.sub(sub, body)
     if seen == 0 and slug not in LAUNCHER_SKILLS:
@@ -1540,6 +1613,33 @@ def cmd_self_test() -> int:
                 "files — the sweep is vacuous, so its clean result proves "
                 "nothing"
             )
+
+        # Same sweep over the skill-stub surface (v8.17.5, D-02 closed). The
+        # 12 cross-technique links now target the peer stub; the only relative
+        # targets that may survive here are the four
+        # `references/<slug>-detail.md` pointers, which resolve against the
+        # stub's own directory and carry a `/`, so _BARE_MD_TARGET_RE does not
+        # match them. Any BARE target reaching a stub is a link that will not
+        # resolve — VAL-03 full-checks this surface now, but this catches it
+        # at generation with a message that names the cause.
+        stub_swept = 0
+        for path, content in all_targets.items():
+            if path.name != "SKILL.md" or path.parent.parent != SKILLS_DIR:
+                continue
+            stub_swept += 1
+            leftover = sorted(set(_BARE_MD_TARGET_RE.findall(content)))
+            if leftover:
+                wrong.append(
+                    f"skills/{path.parent.name}/SKILL.md: carries bare markdown "
+                    f"target(s) {leftover!r} — a bare filename resolves against "
+                    f"the stub's own directory, where no peer technique file "
+                    f"exists (D-02 closed at v8.17.5)"
+                )
+        if stub_swept == 0:
+            wrong.append(
+                "skill-stub bare-target sweep matched ZERO stubs — the sweep "
+                "is vacuous, so its clean result proves nothing"
+            )
         if wrong:
             failures.append(f"FAIL (g): GATE-02 rewrite assertion: {wrong!r}")
         else:
@@ -1551,7 +1651,8 @@ def cmd_self_test() -> int:
                 f"reference sibling is anchored too (DEC-A overturned at "
                 f"v8.17.4), for all {len(SLUGS_WITH_DETAIL)} slugs; "
                 f"directory-wide sweep found zero bare markdown targets "
-                f"across {swept} emitted agent reference files"
+                f"across {swept} emitted agent reference files and "
+                f"{stub_swept} skill stubs"
             )
     except Exception as exc:
         failures.append(f"FAIL (g): unexpected exception: {exc!r}")
