@@ -92,7 +92,7 @@ recurse. If no, apply the stop test (see §Stop test).
 **Validate the parent claim.** Verified only if every branch is verified — one assumed
 branch flags the whole parent with `?`.
 
-**Read [five-whys-detail.md](five-whys-detail.md) when you need:**
+**Read [five-whys-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/five-whys-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them
 - handoff guidance to another technique

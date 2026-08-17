@@ -28,15 +28,15 @@ its support. Also a useful sanity check after Phase 4: invert the headline
 conclusion and ask whether any necessary precondition is unverified.
 
 **Decision rule — inversion vs. pre-mortem:** inversion stress-tests a **claim**;
-[pre-mortem](pre-mortem.md) stress-tests a **plan**. With only a stated belief,
+[pre-mortem](${CLAUDE_PLUGIN_ROOT}/agents/references/pre-mortem.md) stress-tests a **plan**. With only a stated belief,
 conclusion, or design principle in hand, inversion is the right tool. If a
 concrete plan with actions and a timeline exists, pre-mortem fits better — it
 reasons about implementation failure modes that claim-level inversion cannot see.
 
 **Not a good fit:** stress-testing a plan with timelines and dependencies — use
-[pre-mortem](pre-mortem.md). Tracing what already went wrong on a single causal
+[pre-mortem](${CLAUDE_PLUGIN_ROOT}/agents/references/pre-mortem.md). Tracing what already went wrong on a single causal
 chain — use 5-Whys. Inversion is the negative-direction pass on a claim;
-[second-order](second-order.md) thinking is the positive-direction pass
+[second-order](${CLAUDE_PLUGIN_ROOT}/agents/references/second-order.md) thinking is the positive-direction pass
 on the same conclusion — run inversion first to find what could fail, then
 second-order to trace consequences of what holds.
 
@@ -108,7 +108,7 @@ invert it" is the same error as "the cause is real because I drew it on a fishbo
 
 **Confusing inversion with pre-mortem when a plan exists.** If the artifact under
 analysis is a plan with timelines and dependencies, claim-level inversion will
-miss the implementation-failure modes that [pre-mortem](pre-mortem.md) is
+miss the implementation-failure modes that [pre-mortem](${CLAUDE_PLUGIN_ROOT}/agents/references/pre-mortem.md) is
 designed to surface. Use the claim-vs-plan decision rule above.
 
 ---
@@ -143,6 +143,6 @@ skipping it. A precondition is promoted only after evidence confirms it — unti
 then it stays `untested belief`, and any chain depending on it inherits the D-07 caveat.
 
 For the positive-direction counterpart, pair inversion with
-[second-order-thinking](second-order.md): inversion surfaces what must
+[second-order-thinking](${CLAUDE_PLUGIN_ROOT}/agents/references/second-order.md): inversion surfaces what must
 hold; second-order traces downstream consequences once it does. Inversion
-stress-tests claims; [pre-mortem](pre-mortem.md) stress-tests plans.
+stress-tests claims; [pre-mortem](${CLAUDE_PLUGIN_ROOT}/agents/references/pre-mortem.md) stress-tests plans.

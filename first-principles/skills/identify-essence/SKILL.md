@@ -3,7 +3,7 @@ name: identify-essence
 description: Slash-only Phase 1 stub — expose core question by stripping framing artifacts.
 disable-model-invocation: true
 metadata:
-  version: "8.17.3"
+  version: "8.17.4"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/identify-essence/SKILL.md by sync-content.py -->

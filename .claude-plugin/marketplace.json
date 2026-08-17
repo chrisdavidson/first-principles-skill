@@ -8,7 +8,7 @@
     {
       "name": "first-principles",
       "source": "./first-principles",
-      "version": "8.17.3",
+      "version": "8.17.4",
       "description": "A Claude Code plugin: the 5-phase first-principles methodology plus 13 namespaced skills — 8 companion-technique skills (Five Whys, pre-mortem, trade-off analysis, fishbone, inversion, second-order thinking, estimate, theoretical-limit) and 5 focused-phase skills (identify-essence, challenge-assumptions, ground-truths, reason-upward, validate). Use when reasoning from ground truths rather than analogy or convention.",
       "category": "reasoning"
     }

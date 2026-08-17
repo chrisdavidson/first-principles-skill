@@ -13,6 +13,81 @@ installed session.
 
 ## [Unreleased]
 
+## [8.17.4] — 2026-08-17
+
+Closes the second-hop residual v8.17.3 named and deferred. **Overturns DEC-A.**
+
+### Fixed
+
+- **The agent's reference siblings are now anchored to each other.** v8.17.3 fixed the first hop
+  (agent body → `references/validation-rubric.md`) and left 16 links *between* files in
+  `first-principles/agents/references/` bare — 4 `-detail.md` pointers plus 12 cross-technique
+  links (`](pre-mortem.md)`, `](inversion.md)`, `](trade-off.md)`, `](five-whys.md)`). So an
+  agent that successfully opened `five-whys.md` and followed its pointer to `five-whys-detail.md`
+  failed at the second hop in exactly the way the first hop used to. All 16 now carry the
+  `${CLAUDE_PLUGIN_ROOT}/agents/references/` prefix. With the four `-detail.md` files and the
+  three spine references carrying zero relative links, the agent-side reference graph is now
+  clean end to end.
+
+- **`shared/references/*.md` deliberately keeps the bare form.** The rewrite lives at the
+  emission layer (`_absolutise_agent_ref_links()` in `sync-content.py`), not in the source,
+  because those same 16 links also feed the skill stubs — where the correct target is a
+  different path. Skill stubs are byte-unchanged by this release.
+
+### Changed
+
+- **DEC-A is overturned, deliberately and by name.** DEC-A held that an agent reference sibling
+  must keep its bare pointer because it lands in the same directory as its detail file. That
+  reasoning was true of the filesystem and false of the reader: a model opens these files with
+  the *session* working directory in force, so "same directory" never applied to it.
+  GATE-02-v8.5's (g) assertion is inverted to match — anchored exactly once, bare **zero** times.
+
+- **GATE-02-v8.5 gained a directory-wide bare-target sweep.** The per-slug loop only ever visited
+  the four `SLUGS_WITH_DETAIL` pointers; the 12 cross-technique links lived in files it never
+  named, so a per-slug assertion could not have caught them and could not catch a future one. The
+  sweep asserts the property that actually matters — no emitted agent reference file carries a
+  bare markdown target — and fails loudly if it matches zero files rather than reporting a
+  vacuous clean.
+
+- **An unrecognised bare `.md` target now raises.** The allowed-target set is derived from
+  `TOOLS` / `SLUGS_WITH_DETAIL` / `SPINE_REFERENCES` rather than hand-maintained. A bare link to
+  something not emitted into that directory is a typo: passing it through would leave the
+  same-class bug alive with no signal, and anchoring it blindly would mint a broken absolute
+  path.
+
+### Scope of the claim on this surface — narrower than the agent body's
+
+The documented substitution table covers **"Skill and agent content"** — the registered
+component content the harness itself loads. These reference siblings are **not** registered
+components; they are plain files the model opens with Read, and the docs are **silent** on
+whether placeholders are substituted inside them (checked 2026-08-17 against
+`code.claude.com`'s plugins-reference and skills pages; the env var is also not exported to an
+agent's Bash). The token is used here because it is **self-describing and inference-resolvable**
+— the model reached the file via an already-expanded absolute path, so
+`${CLAUDE_PLUGIN_ROOT}/agents/references/x.md` is trivially recoverable, whereas a bare `x.md`
+requires reconstructing the directory from nothing. This is a strictly better pointer, not a
+guaranteed-substituted one. v8.17.3's substitution claim applies to the agent body and is not
+restated here.
+
+### Still open
+
+The **12 cross-technique links reaching the skill stubs** (`](five-whys.md)` in
+`skills/fishbone/SKILL.md`) remain broken, and this is not the same defect wearing a different
+hat. Those break because they point at a *wrong path* inside a resolution mechanism that works —
+a slash-invoked skill does resolve against its own directory — whereas the agent surface had no
+resolution at all. The correct target is genuinely undecided (`D-02`): the peer skill stub at
+`${CLAUDE_PLUGIN_ROOT}/skills/five-whys/SKILL.md`, or the same content on the agent surface at
+`${CLAUDE_PLUGIN_ROOT}/agents/references/five-whys.md`. Those are not interchangeable, so the
+choice is a decision, not a sweep.
+
+Also still owed, unchanged from 8.17.3: **no live run has verified the Self-Audit Gate now
+fires.**
+
+Battery: 17/17 GREEN. Three fault injections: a broken anchored link on the sibling glob (VAL-03
+reports it), an unrecognised bare target (emission raises), and the rewrite call removed
+(GATE-02's sweep names `inversion.md` and `second-order.md` — files the per-slug loop never
+visits).
+
 ## [8.17.3] — 2026-08-16
 
 Fixes the reason the agent could not open its own Self-Audit Gate.

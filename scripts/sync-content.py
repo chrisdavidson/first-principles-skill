@@ -458,6 +458,82 @@ def _extract_procedure(slug: str) -> str:
     return _normalise_trailing_newline(slice_text)
 
 
+# Matches an inline-link target that is a BARE markdown filename — no
+# directory component, no scheme, no anchor, no `${...}` token. Deliberately
+# narrow: `_absolutise_agent_ref_links()` must never touch a target that is
+# already anchored, already relative-with-a-path, or a URL.
+_BARE_MD_TARGET_RE = re.compile(r"\]\((?!https?:|mailto:|#|\$\{)([A-Za-z0-9._-]+\.md)\)")
+
+
+def _agent_ref_allowed_targets() -> frozenset[str]:
+    """Filenames that legitimately sit in first-principles/agents/references/.
+
+    Derived from the same module-level lists that drive emission — never a
+    hand-maintained second copy — so adding a companion tool or a spine
+    reference extends this set automatically, and a bare link to anything
+    NOT emitted into that directory is a typo this module should refuse to
+    ship rather than silently anchor into a broken absolute path.
+    """
+    names = {f"{slug}.md" for slug in TOOLS}
+    names |= {f"{slug}-detail.md" for slug in SLUGS_WITH_DETAIL}
+    names |= {f"{stem}.md" for stem in SPINE_REFERENCES}
+    return frozenset(names)
+
+
+def _absolutise_agent_ref_links(text: str, source_rel: str) -> str:
+    """Anchor every bare sibling-filename link in an agent reference file.
+
+    The agent's on-demand reference siblings under
+    first-principles/agents/references/ link to each other by bare filename
+    (`](pre-mortem.md)`, `](five-whys-detail.md)`). Those targets resolve
+    correctly *within that directory* — which is why DEC-A originally left
+    them alone — but the model that opens one of these files is not sitting in
+    that directory: it reads with the session working directory in force, the
+    same condition that broke the agent body's own links before v8.17.3. So a
+    second-hop load (references/five-whys.md -> five-whys-detail.md) failed in
+    exactly the way the first hop did. **This function overturns DEC-A**, and
+    GATE-02-v8.5's (g) assertion was flipped to match: the sibling surface now
+    expects the anchored form and zero bare targets.
+
+    Scope of the claim, deliberately narrower than the agent body's: the
+    documented substitution table covers "Skill and agent content" — the
+    registered component content the harness itself loads. These reference
+    files are NOT registered components; they are plain files the model opens
+    with Read, and the docs are SILENT on whether placeholders are substituted
+    inside them (checked 2026-08-17 against code.claude.com's plugins-reference
+    and skills pages). The token is used here because it is **self-describing
+    and inference-resolvable** — the model reached this file via an already-
+    expanded absolute path, so `${CLAUDE_PLUGIN_ROOT}/agents/references/x.md`
+    is trivially recoverable, whereas a bare `x.md` requires reconstructing the
+    directory from nothing. Do not restate the body's substitution guarantee
+    for this surface.
+
+    Raises ValueError on a bare `.md` target that is not an emitted sibling.
+    Passing it through would leave the same-class bug alive with no signal;
+    anchoring it blindly would mint a broken absolute path. Fail loudly.
+    """
+    allowed = _agent_ref_allowed_targets()
+    unknown: list[str] = []
+
+    def sub(m: re.Match) -> str:
+        target = m.group(1)
+        if target not in allowed:
+            unknown.append(target)
+            return m.group(0)
+        return f"]({AGENT_REF_PREFIX}{target})"
+
+    rewritten = _BARE_MD_TARGET_RE.sub(sub, text)
+    if unknown:
+        raise ValueError(
+            f"{source_rel}: bare markdown link target(s) {sorted(set(unknown))!r} "
+            f"are not files emitted into first-principles/agents/references/. "
+            f"Either the filename is a typo, or a new reference file needs "
+            f"adding to TOOLS / SLUGS_WITH_DETAIL / SPINE_REFERENCES so "
+            f"_agent_ref_allowed_targets() knows about it."
+        )
+    return rewritten
+
+
 def _rewrite_detail_link(slice_text: str, slug: str, prefix: str = "references/") -> str:
     """Rewrite a bare '<slug>-detail.md' pointer target to '<prefix><slug>-detail.md'.
 
@@ -857,8 +933,15 @@ def generate_agent_references() -> dict[Path, str]:
 
     Source = shared/references/{slug}.md (the canonical tree). Per D-01/D-02,
     the agent's on-demand reference siblings ship verbatim — NO frontmatter,
-    NO `{{TOOL:<slug>}}` marker expansion, NO edits to the source body. Trailing
-    newline normalised to exactly one.
+    NO `{{TOOL:<slug>}}` marker expansion. Trailing newline normalised to
+    exactly one.
+
+    ONE exception to verbatim, added at v8.17.4: bare sibling-filename link
+    targets are anchored by `_absolutise_agent_ref_links()`, because a model
+    reading this file does so with the session working directory in force, not
+    this directory. That overturns DEC-A — see that function's docstring. The
+    source in shared/ deliberately keeps the bare form: it also feeds the skill
+    stubs, whose correct target is a different path.
 
     A `GENERATED_MARKER` HTML-comment line is prepended (followed by a blank
     line) so code reviewers and the .reviewignore consumer can shortcut the
@@ -875,6 +958,7 @@ def generate_agent_references() -> dict[Path, str]:
                 f"first-principles/agents/references/{slug}.md"
             ),
         )
+        body = _absolutise_agent_ref_links(body, f"shared/references/{slug}.md")
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}.md")
         targets[AGENT_DIR / "references" / f"{slug}.md"] = (
             _normalise_trailing_newline(marker + "\n" + body)
@@ -889,14 +973,17 @@ def generate_agent_detail_references() -> dict[Path, str]:
     detail siblings). Mirrors generate_agent_references() line for line,
     changing only the iterated set (SLUGS_WITH_DETAIL instead of TOOLS), the
     source suffix (-detail.md), and the target filename. Per D-01/D-02, ships
-    verbatim — NO frontmatter, NO `{{TOOL:<slug>}}` marker expansion, NO edits
-    to the source body. Trailing newline normalised to exactly one.
+    verbatim — NO frontmatter, NO `{{TOOL:<slug>}}` marker expansion. Trailing
+    newline normalised to exactly one.
 
-    This sibling lands in the SAME directory as its companion reference file
-    (AGENT_DIR/references/), so the bare-filename pointer target that
-    `_extract_procedure()` emits already resolves here unrewritten (DEC-A) —
-    only the assembled agent body and the skill stub, each one directory
-    level ABOVE their own detail sibling, need `_rewrite_detail_link()`.
+    Runs `_absolutise_agent_ref_links()` for the same reason its sibling
+    emitter does — a model reads this file with the session working directory
+    in force, not this directory. These four files carry ZERO relative links
+    today, so the call is currently a no-op; it is wired anyway so a future
+    back-link added to a detail appendix cannot reintroduce the second-hop
+    break silently. No positive assertion is made about link forms here: with
+    zero links present it would be vacuous, so GATE-02-v8.5 checks only that
+    no bare target survives.
 
     A `GENERATED_MARKER` HTML-comment line is prepended (same shape as
     generate_agent_references()), followed by `DETAIL_SIBLING_LINT_EXEMPT` —
@@ -912,6 +999,9 @@ def generate_agent_detail_references() -> dict[Path, str]:
                 f"agent's on-demand detail sibling at "
                 f"first-principles/agents/references/{slug}-detail.md"
             ),
+        )
+        body = _absolutise_agent_ref_links(
+            body, f"shared/references/{slug}-detail.md"
         )
         marker = GENERATED_MARKER.format(source_rel=f"references/{slug}-detail.md")
         targets[AGENT_DIR / "references" / f"{slug}-detail.md"] = (
@@ -1394,16 +1484,62 @@ def cmd_self_test() -> int:
                     f"{stub_count} times, expected exactly 1"
                 )
 
+            # v8.17.4 overturns DEC-A. The sibling used to be asserted to KEEP
+            # the bare pointer, on the reasoning that it lands in the same
+            # directory as its detail file. That reasoning held for the
+            # filesystem and failed for the reader: a model opens this file
+            # with the session working directory in force, so the bare target
+            # resolved against the user's project and the second hop
+            # (references/five-whys.md -> five-whys-detail.md) broke exactly
+            # as the first hop did before v8.17.3. The assertion is inverted:
+            # anchored exactly once, bare zero times.
             ref_content = all_targets.get(
                 AGENT_DIR / "references" / f"{slug}.md", ""
             )
-            ref_bare_count = ref_content.count(bare)
-            if ref_bare_count != 1:
+            ref_anchored_count = ref_content.count(agent_rewritten)
+            if ref_anchored_count != 1:
                 wrong.append(
-                    f"{slug}: agent reference sibling carries the bare "
-                    f"pointer {ref_bare_count} times, expected exactly 1 "
-                    f"(must stay unrewritten — DEC-A, 154-01-SUMMARY.md)"
+                    f"{slug}: agent reference sibling carries the "
+                    f"plugin-root-anchored pointer {agent_rewritten!r} "
+                    f"{ref_anchored_count} times, expected exactly 1 "
+                    f"(DEC-A overturned at v8.17.4)"
                 )
+            ref_bare_count = ref_content.count(bare)
+            if ref_bare_count != 0:
+                wrong.append(
+                    f"{slug}: agent reference sibling still carries the bare "
+                    f"pointer {bare!r} {ref_bare_count} times, expected 0 — a "
+                    f"bare target does not resolve from a session working "
+                    f"directory (DEC-A overturned at v8.17.4)"
+                )
+
+        # Directory-wide sweep. The per-slug loop above only covers the four
+        # SLUGS_WITH_DETAIL pointers; the second-hop break also came from 12
+        # cross-technique links (](pre-mortem.md), ](inversion.md), …) that no
+        # per-slug assertion would ever reach. Assert the property that
+        # actually matters — NO emitted agent reference file carries a bare
+        # markdown target — over every file in that directory, so a newly
+        # added cross-link cannot reintroduce the bug in a file this loop
+        # does not name.
+        ref_dir = AGENT_DIR / "references"
+        swept = 0
+        for path, content in all_targets.items():
+            if path.parent != ref_dir or path.suffix != ".md":
+                continue
+            swept += 1
+            leftover = sorted(set(_BARE_MD_TARGET_RE.findall(content)))
+            if leftover:
+                wrong.append(
+                    f"{path.name}: carries bare markdown target(s) {leftover!r} "
+                    f"— every link in an agent reference file must be "
+                    f"plugin-root-anchored (DEC-A overturned at v8.17.4)"
+                )
+        if swept == 0:
+            wrong.append(
+                "directory-wide bare-target sweep matched ZERO agent reference "
+                "files — the sweep is vacuous, so its clean result proves "
+                "nothing"
+            )
         if wrong:
             failures.append(f"FAIL (g): GATE-02 rewrite assertion: {wrong!r}")
         else:
@@ -1412,8 +1548,10 @@ def cmd_self_test() -> int:
                 f"pointer appears exactly once in the agent body "
                 f"(plugin-root-anchored, with zero file-relative fallbacks) "
                 f"and once in the skill stub (file-relative), and the agent "
-                f"reference sibling keeps the bare form, for all "
-                f"{len(SLUGS_WITH_DETAIL)} slugs"
+                f"reference sibling is anchored too (DEC-A overturned at "
+                f"v8.17.4), for all {len(SLUGS_WITH_DETAIL)} slugs; "
+                f"directory-wide sweep found zero bare markdown targets "
+                f"across {swept} emitted agent reference files"
             )
     except Exception as exc:
         failures.append(f"FAIL (g): unexpected exception: {exc!r}")

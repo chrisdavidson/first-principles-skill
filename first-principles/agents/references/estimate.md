@@ -79,7 +79,7 @@ bracket spans an order of magnitude and straddles the decision threshold, tighte
 the dominant uncertain factor with a better measurement or escalate the
 uncertainty explicitly.
 
-**Read [estimate-detail.md](estimate-detail.md) when you need:**
+**Read [estimate-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/estimate-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them
 - handoff guidance to another technique
