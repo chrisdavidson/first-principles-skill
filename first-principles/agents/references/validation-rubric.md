@@ -281,6 +281,11 @@ what the analysis did, not against how well-formed the citation looks.
   HIGH-confidence conclusion resting on a figure nobody read is the failure this criterion
   exists to catch, and a single instance is enough to land here.
 
+  **Fix — acquire before you downgrade.** Branch one, preferred: acquire the evidence — open
+  the cited source, per the Phase 3 verification step, and let the read move the provenance
+  label. Branch two: downgrade the confidence — carry the `?` and drop the chain from HIGH,
+  taken only when the source cannot be opened. The preference, explicitly: acquisition is preferred when the source is reachable, because a gate whose only available Fix weakens the output resolves every failure toward less claim rather than more evidence. The unreachable case is not a free pass — the downgrade branch still requires the Phase 3 failure record, which source and why unreachable, so a reader can tell a downgrade from a skipped attempt.
+
 - **Absent** — no GT-IDs are assigned to any fact in the Ground Truths section; OR the Ground
   Truths section lists claims without distinguishing verified from unverified (no `?` suffix
   appears anywhere, no citations appear anywhere, and the list is undifferentiated); OR the
