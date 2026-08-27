@@ -234,3 +234,13 @@ None — no external service configuration required.
 *Completed: 2026-08-27*
 
 Note: `.planning/` is gitignored per CLAUDE.md — this summary is not published to the public repo.
+
+## Self-Check: PASSED
+
+- FOUND: shared/spine/SKILL-body.md
+- FOUND: first-principles/agents/first-principles.md
+- FOUND: scripts/check-act-limb.py
+- FOUND: .planning/phases/01-evidence-acquisition/01-03-SUMMARY.md
+- FOUND commit: 5772273 (Task 1)
+- FOUND commit: fe66f4d (Task 2)
+- FOUND commit: 18db9d0 (SUMMARY.md)
