@@ -6,6 +6,9 @@ __pycache__/
 generated/
 docs/history/
 
+# Local Python virtualenv for the validation scripts (uv-managed, never published).
+.venv/
+
 # Raw stream-json capture dumps — kept locally, not published (19MB, read by no gate).
 # The .txt excerpts the RR-* sentinels diff against ARE tracked; only the raw
 # .jsonl transports are ignored. quality-fixtures/probe .jsonl stay tracked (QUAL-01).
