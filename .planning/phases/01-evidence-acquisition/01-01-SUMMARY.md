@@ -156,3 +156,13 @@ None — no external service configuration required.
 ---
 *Phase: 01-evidence-acquisition*
 *Completed: 2026-08-27*
+
+## Self-Check: PASSED
+
+- FOUND: shared/spine/SKILL-body.md
+- FOUND: shared/spine/references/validation-rubric.md
+- FOUND: first-principles/agents/first-principles.md
+- FOUND: first-principles/agents/references/validation-rubric.md
+- FOUND commit: fa1d9ba (Task 1)
+- FOUND commit: d4cfffe (Task 2)
+- FOUND commit: 234771e (SUMMARY.md)
