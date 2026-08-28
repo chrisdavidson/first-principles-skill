@@ -28,10 +28,31 @@ Exit codes:
        missing, misplaced, duplicated, or malformed)
     2  environment error (Python <3.12, target file not found)
 
---self-test: runs an offline control battery (controls a-s) built by mutating
-             in-memory copies of the real emitted files, and exits 0 if every
-             control behaves as intended; exits 1 on any wrong-pass or
-             wrong-reason failure.
+--self-test: runs an offline control battery built by mutating in-memory copies
+             of the real emitted files, and exits 0 if every control behaves as
+             intended; exits 1 on any wrong-pass or wrong-reason failure.
+
+## What this gate does not assert
+
+Stated here rather than left for the next maintainer to rediscover, because
+`01-REVIEW.md` WR-03 found that the absence of such a statement let a reader take
+`Body-1..Body-13` as covering the step's MEANING. No sibling gate in this repo
+carries a section like this yet; this one sets the pattern.
+
+- It asserts that named literals are PRESENT, in the right block, at the right
+  count. It does not assert that the surrounding prose *means* what those
+  literals imply.
+- A semantically inverted step that retains every anchored literal passes.
+  `_B16_IMPERATIVE` closes the one inversion WR-03 reproduced — replacing
+  `attempt to open the cited source directly` with `do not open the cited
+  source` — and no more. A literal anchor cannot assert semantic direction.
+- `Body-13` asserts that the population clause and the exclusion clause are keyed
+  on the SAME predicate token. It does not assert that the predicate is the RIGHT
+  one; whether `located in the cited source` is the correct thing to gate a read
+  on is a semantic property no literal-anchor gate can reach.
+- Reaching semantic direction needs a live-measurement layer, which this repo
+  deliberately does not gate on: a K-of-5 result is a recorded observation, not a
+  gate (governing record section 2 item 3, `docs/v8.7-constraint-teardown.md`).
 """
 
 from __future__ import annotations
@@ -111,6 +132,13 @@ _B5B_INCLUSIVE = (
 # reachable by promotion — without it the population silently re-excludes
 # `?`-carrying entries and the circularity returns
 _B3_TOOLS = ["Read", "Grep", "WebFetch"]  # ACT-01: the three instruments, same paragraph
+_B16_IMPERATIVE = "attempt to open the cited source directly"
+# WR-03 (01-06), ACT-01: the step's OPERATIVE IMPERATIVE — the clause that says
+# to do the read. Every other anchor in this file survived the reviewer's
+# inversion of it (`do not open the cited source`), so the gate returned a clean
+# PASS on a step that instructed the opposite of what it was added to require.
+# Anchoring the literal catches THAT inversion and no other; the module
+# docstring's "What this gate does not assert" section states the residual.
 _B4_EXCLUSION = "do not earn a read"  # ACT-04: the exclusion clause (the other half of the bound)
 _B5_NO_FALLBACK = "no silent fallback to an unmarked ground truth"  # ACT-03: the failure path
 _B6B_ASSIGNMENT = (
@@ -303,15 +331,6 @@ _ANCHOR_CONTROL_PENDING: dict[str, str] = {
     # "asserted but never mutated by any control" are here; the fifth,
     # `_R6B_SHARED_REASON`, already clears the count via its 01-06 derivation and
     # gains its own control in Task 3.
-    "_B3_TOOLS": "01-06 Task 2 — control (ae), strip 'WebFetch' from the step paragraph",
-    "_B6_READ_AT_SOURCE": "01-06 Task 2 — control (ah)",
-    "_B6_REPORTED_BY_DELEGATE": "01-06 Task 2 — control (ai)",
-    "_B12B_NOT_FOUND_ASSIGN": "01-06 Task 2 — control (ag)",
-    # Not predicted by the plan: `_B2_POPULATION_ACTION` is derived from
-    # `_B13_POPULATION_GATE`, so control (aa) already mutates its VALUE — but (aa)
-    # declares Body-13 / population predicate, leaving Body-5's `population
-    # action` sub-item with no control of its own. Task 2 adds one.
-    "_B2_POPULATION_ACTION": "01-06 Task 2 — control (aw)",
     # The three slice-boundary constants the plan expected to exempt. The run
     # shows Task 3's Rubric-4 and Rubric-2 controls must build fixtures against
     # these slices, so they earn real controls rather than an exemption.
@@ -538,12 +557,20 @@ def _check_body_text(text: str) -> list[str]:
     else:
         para = paragraphs[0]
 
-        # Body-4 (ACT-01, instruments): all three tool names in the same paragraph.
+        # Body-4 (ACT-01, instruments and imperative): all three tool names in
+        # the same paragraph, and the step's operative imperative (WR-03, 01-06).
+        # The imperative half is a PARTIAL fix by construction — see the anchor's
+        # own comment and the docstring's "What this gate does not assert".
+        missing_instruments: list[str] = []
         missing_tools = [t for t in _B3_TOOLS if t not in para]
         if missing_tools:
+            missing_instruments.append(f"tool name(s): {', '.join(missing_tools)}")
+        if _B16_IMPERATIVE not in para:
+            missing_instruments.append("operative imperative")
+        if missing_instruments:
             failures.append(
-                "Body-4 (ACT-01, instruments): step paragraph missing tool "
-                f"name(s): {', '.join(missing_tools)}"
+                "Body-4 (ACT-01, instruments and imperative): step paragraph "
+                f"missing {'; '.join(missing_instruments)}"
             )
 
         # Body-5 (ACT-04, the bound): the population's two halves (WR-04 split
@@ -935,6 +962,105 @@ def _mutate_body_removing_from_block(real_body: str, block_anchor: str, target: 
         )
     mutated_block = original_block.replace(target, "")
     mutated_region = region.replace(original_block, mutated_block, 1)
+    return head + mutated_region + tail
+
+
+def _mutate_body_substituting_in_block(
+    real_body: str, block_anchor: str, target: str, replacement: str
+) -> str:
+    """Return a copy of *real_body* with *target* replaced by *replacement* only
+    inside the blank-line-delimited block containing *block_anchor* within the
+    Phase 3 slice.
+
+    `_mutate_body_removing_from_block` is the `replacement=""` case of this and
+    delegates to it. Split out at 01-06 for control (af), which must REPLACE the
+    step's operative imperative with its inversion rather than delete it — a
+    deletion fixture would not reproduce `01-REVIEW.md` WR-03, whose whole point
+    is that the inverted prose still reads as a complete instruction.
+
+    Positionally anchored to the Phase 3 byte range, and raising on a non-unique
+    block, for the WR-08 reason documented on the remover below.
+    """
+    region_start = real_body.find(_PHASE3_START)
+    if region_start == -1:
+        raise AssertionError("Phase 3 start heading not found while building a fixture")
+    region_end = real_body.find(_PHASE4_START, region_start)
+    if region_end == -1:
+        raise AssertionError(
+            "Phase 4 start heading not found after Phase 3 while building a fixture"
+        )
+    head = real_body[:region_start]
+    region = real_body[region_start:region_end]
+    tail = real_body[region_end:]
+
+    blocks = _paragraph_containing(region, block_anchor)
+    if len(blocks) != 1:
+        raise AssertionError(
+            f"expected exactly one block containing {block_anchor!r} inside the "
+            f"Phase 3 region while building a fixture, found {len(blocks)}"
+        )
+    original_block = blocks[0]
+    region_occurrences = region.count(original_block)
+    if region_occurrences != 1:
+        raise AssertionError(
+            f"expected the block containing {block_anchor!r} to occur exactly "
+            f"once inside the Phase 3 region while building a fixture, found "
+            f"{region_occurrences}"
+        )
+    target_occurrences = original_block.count(target)
+    if target_occurrences != 1:
+        raise AssertionError(
+            f"expected exactly one occurrence of {target!r} inside the block "
+            f"containing {block_anchor!r} while building a fixture, found "
+            f"{target_occurrences} — a substitution that matches nothing is a "
+            "no-op fixture, and a no-op fixture reports `correctly failed` while "
+            "testing nothing"
+        )
+    mutated_block = original_block.replace(target, replacement, 1)
+    mutated_region = region.replace(original_block, mutated_block, 1)
+    return head + mutated_region + tail
+
+
+def _mutate_body_duplicating_block(real_body: str, block_anchor: str) -> str:
+    """Return a copy of *real_body* with the blank-line-delimited block containing
+    *block_anchor* duplicated in place inside the Phase 3 slice.
+
+    Added at 01-06 for control (al), which exercises `Body-12`'s
+    `len(table_blocks) != 1` guard — the vacuity guard 01-04 added and never
+    controlled. Positionally anchored and uniqueness-guarded for the same WR-08
+    reason as the remover: the pre-mutation block count inside the Phase 3 region
+    must be exactly 1, or the fixture is duplicating something other than what it
+    names.
+    """
+    region_start = real_body.find(_PHASE3_START)
+    if region_start == -1:
+        raise AssertionError("Phase 3 start heading not found while building a fixture")
+    region_end = real_body.find(_PHASE4_START, region_start)
+    if region_end == -1:
+        raise AssertionError(
+            "Phase 4 start heading not found after Phase 3 while building a fixture"
+        )
+    head = real_body[:region_start]
+    region = real_body[region_start:region_end]
+    tail = real_body[region_end:]
+
+    blocks = _paragraph_containing(region, block_anchor)
+    if len(blocks) != 1:
+        raise AssertionError(
+            f"expected exactly one block containing {block_anchor!r} inside the "
+            f"Phase 3 region while building a fixture, found {len(blocks)}"
+        )
+    original_block = blocks[0]
+    region_occurrences = region.count(original_block)
+    if region_occurrences != 1:
+        raise AssertionError(
+            f"expected the block containing {block_anchor!r} to occur exactly "
+            f"once inside the Phase 3 region while building a fixture, found "
+            f"{region_occurrences}"
+        )
+    mutated_region = region.replace(
+        original_block, original_block + "\n\n" + original_block, 1
+    )
     return head + mutated_region + tail
 
 
@@ -1332,6 +1458,71 @@ def _run_self_test() -> int:
     _check_negative(
         "ad", _check_body_text(ad_body), "Body-11", "Named artifact block failure reasons"
     )
+
+    # --- (ae)-(ai), (ak), (al), (aw): the body-side assertions `01-REVIEW.md`
+    # WR-02 measured as individually neutralizable with `--self-test` green.
+    # Each declares its own check ID plus a detail unique to its sub-item.
+
+    # (ae) Negative, one instrument name stripped (ACT-01). `Body-4` had no
+    # control at all: WR-02 measured the whole instruments check as deletable.
+    # The fixture and its declared detail both read the ANCHOR rather than a
+    # retyped literal, so re-pointing `_B3_TOOLS` re-points its control too —
+    # and so the anchor-control ratchet can see that this control exists.
+    ae_body = _mutate_body_removing_from_step_paragraph(real_body, _B3_TOOLS[-1])
+    _check_negative("ae", _check_body_text(ae_body), "Body-4", _B3_TOOLS[-1])
+
+    # (af) THE WR-03 REPRODUCTION. Not a strip: it REPLACES the step's operative
+    # imperative with the reviewer's inversion, so the paragraph still reads as a
+    # complete instruction while instructing the opposite. Against the pre-01-06
+    # gate this exact fixture returned `[]` — a clean PASS on a step that told
+    # the analysis not to open the source the step exists to open.
+    af_body = _mutate_body_substituting_in_block(
+        real_body, _B1_STEP_LEAD, _B16_IMPERATIVE, "do not open the cited source"
+    )
+    _check_negative("af", _check_body_text(af_body), "Body-4", "operative imperative")
+
+    # (ag) Negative, the not-found branch's assignment verb stripped — one of the
+    # five constants WR-02 named as asserted but never mutated by any control.
+    ag_body = _mutate_body_removing_from_step_paragraph(real_body, _B12B_NOT_FOUND_ASSIGN)
+    _check_negative(
+        "ag", _check_body_text(ag_body), "Body-6", "not-found assignment verb"
+    )
+
+    # (ah) Negative, the success-branch provenance label stripped (ACT-02).
+    # `Body-7` had no control; both its labels are WR-02 constants.
+    ah_body = _mutate_body_removing_from_step_paragraph(real_body, _B6_READ_AT_SOURCE)
+    _check_negative("ah", _check_body_text(ah_body), "Body-7", "read-at-source")
+
+    # (ai) Negative, the no-read-branch provenance label stripped (ACT-02).
+    ai_body = _mutate_body_removing_from_step_paragraph(
+        real_body, _B6_REPORTED_BY_DELEGATE
+    )
+    _check_negative("ai", _check_body_text(ai_body), "Body-7", "reported-by-delegate")
+
+    # (ak) Negative, the plain failure-record name stripped from the EXIT
+    # CRITERION block. Control (q) covers the Named artifact half; WR-02 measured
+    # this half as separately deletable.
+    ak_body = _mutate_body_removing_from_block(
+        real_body, "**Exit criterion:**", _B11_FAILURE_RECORD_PLAIN
+    )
+    _check_negative(
+        "ak", _check_body_text(ak_body), "Body-11", "Exit criterion block (plain name)"
+    )
+
+    # (al) Negative, the provenance-table block duplicated inside the Phase 3
+    # slice — exercises `Body-12`'s `len(table_blocks) != 1` guard, the vacuity
+    # guard 01-04 added and never controlled.
+    al_body = _mutate_body_duplicating_block(real_body, "| **unverified** |")
+    _check_negative("al", _check_body_text(al_body), "Body-12", "occurs 2 time(s)")
+
+    # (aw) Negative, the population's ACTION half stripped. Not predicted by the
+    # plan; the anchor-control ratchet found it. `_B2_POPULATION_ACTION` is
+    # DERIVED from `_B13_POPULATION_GATE`, so control (aa) already mutates the
+    # same token — but (aa) declares Body-13 / population predicate, which left
+    # Body-5's `population action` sub-item with no control of its own. Same
+    # fixture, different declared assertion, and both are live.
+    aw_body = _mutate_body_removing_from_step_paragraph(real_body, _B2_POPULATION_ACTION)
+    _check_negative("aw", _check_body_text(aw_body), "Body-5", "population action")
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
