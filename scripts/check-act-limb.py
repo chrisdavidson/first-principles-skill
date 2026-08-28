@@ -74,6 +74,25 @@ _B13_SHARED_PREDICATE = "located in the cited source"
 # clause are the two polarities of. The 01-05 blocking gap was precisely that
 # they were keyed on two different predicates and so gave opposite eligibility
 # answers for the same ground truth.
+#
+# --- WR-14 (01-06): the coherence pairs plan 01-05 did not take, now derived ---
+# Each name below is the SINGLE source for a token two anchors must agree on.
+# Deriving makes the relation true by construction; `_check_anchor_coherence`
+# asserts it at runtime, so an editor who un-derives one half — restating it as
+# an independent literal and then re-pointing only that half — fails loudly
+# instead of leaving two surfaces silently naming different things. A comment
+# claiming byte-identity, which is what 01-04 shipped, asserts nothing.
+_SHARED_NOT_FOUND_REASON = "citation does not support the claim"
+# The not-found outcome's reason token, shared by the body's not-found branch
+# (Body-6, via `_B12_NOT_FOUND_BRANCH`) and the rubric's widened downgrade
+# branch (Rubric-6, via `_R6B_SHARED_REASON`).
+_STEP_NAME_PLAIN = "Phase 3 verification step"
+# The verification step's own name — bolded where the body DEFINES it (Body-10),
+# plain-with-article where the rubric POINTS at it (Rubric-5).
+_FAILURE_RECORD_PLAIN = "Phase 3 failure record"
+# The failure record's name — bolded where the step writes it (Body-10), plain
+# where it is referred to (Body-11's Named artifact and Exit criterion blocks),
+# plain-with-article where the rubric points at it (Rubric-5).
 
 # --- B1-B11: Phase 3 Operation verification-step literal anchors ---
 # (plan 01-01 shipped B1/B3/B4/B5/B6/B7; plan 01-03 repaired B2 and added
@@ -110,12 +129,14 @@ _B9_SHARED_POPULATION = _SHARED_HIGH_CONFIDENCE
 # literal byte-identical to the intent half of the combined population anchor
 # 01-05 retired, which is exactly the duplication that lets two anchors that
 # must agree drift apart silently.
-_B10_STEP_NAME = "**Phase 3 verification step**"  # CR-05/WR-05 (01-03): pointer definition
-_B10_FAILURE_RECORD_NAME = "**Phase 3 failure record**"  # CR-05/WR-05 (01-03): pointer definition
-_B11_FAILURE_RECORD_PLAIN = (
-    "Phase 3 failure record"
-)  # CR-05/WR-05 (01-03): the artifact-promotion string, unbolded — expected in
-# the Named artifact and Exit criterion blocks
+_B10_STEP_NAME = f"**{_STEP_NAME_PLAIN}**"
+# CR-05/WR-05 (01-03): pointer definition. DERIVED at 01-06 (WR-14) — it was an
+# independent literal related to `_R5_STEP_POINTER` by convention only.
+_B10_FAILURE_RECORD_NAME = f"**{_FAILURE_RECORD_PLAIN}**"
+# CR-05/WR-05 (01-03): pointer definition. DERIVED at 01-06 (WR-14).
+_B11_FAILURE_RECORD_PLAIN = _FAILURE_RECORD_PLAIN
+# CR-05/WR-05 (01-03): the artifact-promotion string, unbolded — expected in
+# the Named artifact and Exit criterion blocks. DERIVED at 01-06 (WR-14).
 
 # --- B12-B14: the not-found outcome branch (01-04 gap, CR-01) ---
 # The 01-03 repair fixed the circular selector and the no-op failure branch but
@@ -123,10 +144,10 @@ _B11_FAILURE_RECORD_PLAIN = (
 # claim satisfied none of the step's three outcome branches, and the 01-03
 # exclusion permanently barred it from a later read. These four anchors are the
 # gate's half of the 01-04 repair.
-_B12_NOT_FOUND_BRANCH = (
-    "citation does not support the claim"
-)  # 01-04 gap (CR-01): the not-found outcome branch's reason token — its
-# absence means the step's branches no longer partition its population
+_B12_NOT_FOUND_BRANCH = _SHARED_NOT_FOUND_REASON
+# 01-04 gap (CR-01): the not-found outcome branch's reason token — its absence
+# means the step's branches no longer partition its population. DERIVED at
+# 01-06 (WR-14) from the token `_R6B_SHARED_REASON` also derives from.
 _B12B_NOT_FOUND_ASSIGN = (
     "marks that ground truth `?`"
 )  # 01-04 gap (CR-01): the not-found branch's assignment verb — deliberately
@@ -198,8 +219,10 @@ _R3_DOWNGRADE = "downgrade the confidence"  # ACT-05: branch two (fallback)
 _R4_PREFERENCE = (
     "acquisition is preferred when the source is reachable"
 )  # ACT-05: the stated preference between the two branches
-_R5_STEP_POINTER = "the Phase 3 verification step"  # CR-05/WR-05 (01-03): pointer use
-_R5_FAILURE_POINTER = "the Phase 3 failure record"  # CR-05/WR-05 (01-03): pointer use
+_R5_STEP_POINTER = f"the {_STEP_NAME_PLAIN}"
+# CR-05/WR-05 (01-03): pointer use. DERIVED at 01-06 (WR-14).
+_R5_FAILURE_POINTER = f"the {_FAILURE_RECORD_PLAIN}"
+# CR-05/WR-05 (01-03): pointer use. DERIVED at 01-06 (WR-14).
 
 # --- R6: the widened downgrade branch (01-04 gap, CR-01) ---
 _R6_DOWNGRADE_SCOPE = (
@@ -207,11 +230,11 @@ _R6_DOWNGRADE_SCOPE = (
 )  # 01-04 gap (CR-01): widens the downgrade branch's precondition beyond
 # "cannot be opened"; its absence means Criterion 3 inherits the same
 # unhandled-outcome hole the body had
-_R6B_SHARED_REASON = (
-    "citation does not support the claim"
-)  # 01-04 gap (CR-01): the cross-file coherence token, byte-identical to
-# _B12_NOT_FOUND_BRANCH — the same pattern Body-10/Rubric-5 use for the
-# pointer names
+_R6B_SHARED_REASON = _SHARED_NOT_FOUND_REASON
+# 01-04 gap (CR-01): the cross-file coherence token. DERIVED at 01-06 (WR-14)
+# from the same `_SHARED_NOT_FOUND_REASON` the body's `_B12_NOT_FOUND_BRANCH`
+# derives from — it was previously an independent literal whose byte-identity
+# with that anchor was asserted by a comment and by nothing else.
 
 # --- The frozen pre-01-05 regression fixture (control (y), 01-05 gap CR-01) ---
 # Each pair is `(repaired, pre_01_05)`. The pre-05 halves are the EXACT text
@@ -251,6 +274,53 @@ _PRE05_REGRESSION_SUBSTITUTIONS: tuple[tuple[str, str], ...] = (
 # exception cannot leave it set.
 _HARN01_DISPATCH_REENTRANT = False
 
+# --- The anchor-control coverage ratchet (WR-02's standing half, 01-06) ---
+# `01-REVIEW.md` WR-02 measured five anchor constants that were asserted but
+# never mutated by any control. An anchor with no control is an assertion that
+# has never been shown to fail, which at the verdict line is indistinguishable
+# from an assertion that does not exist — the whole reason 17 of 33 sites in
+# this file were individually neutralizable with `--self-test` still green.
+#
+# The ratchet: every module-level `_UPPER_SNAKE` constant must be referenced at
+# least three times in this file (its definition, at least one assertion, and at
+# least one control), or appear in one of the two lists below.
+#
+# EXEMPT is permanent; each entry must say in one sentence why a dedicated
+# mutation control is impossible or meaningless. PENDING is temporary debt; each
+# entry names the task that discharges it, and an entry that is NO LONGER short
+# is itself reported, so the list cannot rot into a permanent allow-list. Putting
+# a constant in EXEMPT to avoid writing a control for it inverts the ratchet.
+#
+# The two dicts sit between the bookkeeping markers because
+# `_check_anchor_control_coverage` excludes that region from its reference
+# counts — otherwise listing a constant here would raise its own count and a
+# pending entry could satisfy the ratchet by being mentioned in the ratchet.
+# --- ratchet-bookkeeping-begin ---
+_ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {
+    # Measured by running the check with both lists empty at 01-06 Task 1, not
+    # predicted. Four of the five constants `01-REVIEW.md` WR-02 named as
+    # "asserted but never mutated by any control" are here; the fifth,
+    # `_R6B_SHARED_REASON`, already clears the count via its 01-06 derivation and
+    # gains its own control in Task 3.
+    "_B3_TOOLS": "01-06 Task 2 — control (ae), strip 'WebFetch' from the step paragraph",
+    "_B6_READ_AT_SOURCE": "01-06 Task 2 — control (ah)",
+    "_B6_REPORTED_BY_DELEGATE": "01-06 Task 2 — control (ai)",
+    "_B12B_NOT_FOUND_ASSIGN": "01-06 Task 2 — control (ag)",
+    # Not predicted by the plan: `_B2_POPULATION_ACTION` is derived from
+    # `_B13_POPULATION_GATE`, so control (aa) already mutates its VALUE — but (aa)
+    # declares Body-13 / population predicate, leaving Body-5's `population
+    # action` sub-item with no control of its own. Task 2 adds one.
+    "_B2_POPULATION_ACTION": "01-06 Task 2 — control (aw)",
+    # The three slice-boundary constants the plan expected to exempt. The run
+    # shows Task 3's Rubric-4 and Rubric-2 controls must build fixtures against
+    # these slices, so they earn real controls rather than an exemption.
+    "_CRIT2_START": "01-06 Task 3 — control (aq)",
+    "_CRIT5_START": "01-06 Task 3 — control (ar)",
+    "_CRIT6_START": "01-06 Task 3 — controls (am)/(an)",
+}
+# --- ratchet-bookkeeping-end ---
+
 
 def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
     """Return the text strictly between *start_heading* and *end_heading*.
@@ -273,6 +343,161 @@ def _paragraph_containing(slice_text: str, anchor: str) -> list[str]:
     """Return every blank-line-delimited block in *slice_text* that contains *anchor*."""
     blocks = re.split(r"\n\s*\n", slice_text)
     return [block for block in blocks if anchor in block]
+
+
+def _check_anchor_coherence() -> list[str]:
+    """Assert the derived anchor pairs still stand in the relation their
+    derivation creates. Returns failure strings (empty == valid).
+
+    `01-REVIEW.md` WR-14: the gate's stated cross-file design is that the body
+    and the rubric share a token, so a one-sided edit is caught — but each side
+    was a SEPARATE literal, related by a comment saying "byte-identical to
+    ...". Editing the body's token and its anchor without touching the rubric's
+    pair left both files passing while the two surfaces named different things,
+    which is the exact drift the pairing exists to prevent.
+
+    Derivation alone makes the relation true by construction. This function is
+    what fails loudly if a future editor UN-derives them — restates one half as
+    an independent literal and then re-points only that half. The pair table is
+    built inside the function body, not at import, so it reads the current
+    module globals rather than a snapshot.
+    """
+    failures: list[str] = []
+    pairs: tuple[tuple[str, str, str], ...] = (
+        ("body/rubric not-found reason token", _B12_NOT_FOUND_BRANCH, _R6B_SHARED_REASON),
+        ("body step-name definition", _B10_STEP_NAME, f"**{_STEP_NAME_PLAIN}**"),
+        ("rubric step-name pointer", _R5_STEP_POINTER, f"the {_STEP_NAME_PLAIN}"),
+        (
+            "body failure-record definition",
+            _B10_FAILURE_RECORD_NAME,
+            f"**{_FAILURE_RECORD_PLAIN}**",
+        ),
+        ("rubric failure-record pointer", _R5_FAILURE_POINTER, f"the {_FAILURE_RECORD_PLAIN}"),
+        ("body failure-record plain name", _B11_FAILURE_RECORD_PLAIN, _FAILURE_RECORD_PLAIN),
+    )
+    for name, actual, expected in pairs:
+        if actual != expected:
+            failures.append(
+                f"Coherence (WR-14, derived anchor pair): {name} — {actual!r} != "
+                f"{expected!r}; the two halves must be derived from one token, not "
+                "restated as independent literals"
+            )
+    return failures
+
+
+def _check_anchor_control_coverage(source: str) -> list[str]:
+    """Fail when a module-level anchor constant ships without a control.
+
+    Enumerates every module-level `_UPPER_SNAKE` assignment in *source* and
+    requires at least three references to each (definition + at least one
+    assertion + at least one control), unless the name is listed in
+    `_ANCHOR_CONTROL_EXEMPT` (permanent, must carry a justification) or in
+    `_ANCHOR_CONTROL_PENDING` (temporary debt, must still be short — a pending
+    entry that is no longer short is a stale ratchet entry and is itself
+    reported).
+
+    `01-REVIEW.md` WR-02's standing half: without this, the next anchor added to
+    this file can ship with no control and nothing says so.
+    """
+    failures: list[str] = []
+    marker_start = "# --- ratchet-bookkeeping-begin ---"
+    marker_end = "# --- ratchet-bookkeeping-end ---"
+    constant_re = re.compile(r"^(_[A-Z][A-Z0-9_]*)\s*(?::[^=\n]+)?=", re.MULTILINE)
+
+    # Ratchet self-integrity. The three names below are machinery, not content
+    # anchors, so they are exempt from the reference count — but a neutralized
+    # or retyped machinery global would silently disable the ratchet (or, for
+    # the re-entrancy sentinel, silently degrade control (m) to its nested-skip
+    # path), so their TYPES are asserted here instead.
+    if not isinstance(_ANCHOR_CONTROL_EXEMPT, dict) or not isinstance(
+        _ANCHOR_CONTROL_PENDING, dict
+    ):
+        failures.append(
+            "Coverage (WR-02, ratchet integrity): _ANCHOR_CONTROL_EXEMPT and "
+            "_ANCHOR_CONTROL_PENDING must both be dicts, found "
+            f"{type(_ANCHOR_CONTROL_EXEMPT).__name__} and "
+            f"{type(_ANCHOR_CONTROL_PENDING).__name__}"
+        )
+        return failures
+    if not isinstance(_HARN01_DISPATCH_REENTRANT, bool):
+        failures.append(
+            "Coverage (WR-02, ratchet integrity): _HARN01_DISPATCH_REENTRANT must be a "
+            f"bool, found {type(_HARN01_DISPATCH_REENTRANT).__name__} — a non-bool "
+            "sentinel is truthy and silently turns control (m) into a skip"
+        )
+
+    names = list(dict.fromkeys(constant_re.findall(source)))
+    if not names:
+        failures.append(
+            "Coverage (WR-02, anchor-control ratchet): the enumerator matched no "
+            "module-level anchor constants — a ratchet that enumerates nothing is "
+            "broken, not satisfied"
+        )
+        return failures
+
+    start = source.find(marker_start)
+    end = source.find(marker_end, start + 1) if start != -1 else -1
+    if start == -1 or end == -1:
+        failures.append(
+            "Coverage (WR-02, ratchet integrity): bookkeeping markers not found — "
+            "cannot exclude the exempt/pending lists from the reference counts"
+        )
+        return failures
+    counting_source = source[:start] + source[end + len(marker_end) :]
+
+    for name in names:
+        exempt = name in _ANCHOR_CONTROL_EXEMPT
+        pending = name in _ANCHOR_CONTROL_PENDING
+        # Word-boundary count: `_FAILURE_RECORD_PLAIN` is a proper substring of
+        # `_B11_FAILURE_RECORD_PLAIN`, and a plain `str.count` would credit the
+        # shorter name with the longer name's references.
+        count = len(
+            re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source)
+        )
+        if exempt and pending:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): "
+                f"{name} is listed in BOTH _ANCHOR_CONTROL_EXEMPT and "
+                "_ANCHOR_CONTROL_PENDING — permanent and temporary are not both"
+            )
+            continue
+        if exempt:
+            if not str(_ANCHOR_CONTROL_EXEMPT[name]).strip():
+                failures.append(
+                    "Coverage (WR-02, anchor-control ratchet): "
+                    f"{name} is exempt with an empty justification — an unjustified "
+                    "exemption is an allow-list entry, not a decision"
+                )
+            continue
+        if pending:
+            if count >= 3:
+                failures.append(
+                    "Coverage (WR-02, anchor-control ratchet): "
+                    f"{name} is listed pending ({_ANCHOR_CONTROL_PENDING[name]}) but is "
+                    f"already referenced {count} time(s) — a stale ratchet entry is "
+                    "itself a finding; remove it from _ANCHOR_CONTROL_PENDING"
+                )
+            continue
+        if count < 3:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): "
+                f"{name} is referenced {count} time(s), expected at least 3 "
+                "(definition, at least one assertion, at least one control)"
+            )
+
+    for name in _ANCHOR_CONTROL_EXEMPT:
+        if name not in names:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): exempt entry "
+                f"{name} names no module-level anchor constant — stale"
+            )
+    for name in _ANCHOR_CONTROL_PENDING:
+        if name not in names:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): pending entry "
+                f"{name} names no module-level anchor constant — stale"
+            )
+    return failures
 
 
 def _check_body_text(text: str) -> list[str]:
@@ -395,7 +620,7 @@ def _check_body_text(text: str) -> list[str]:
         if _B5_NO_FALLBACK not in para:
             missing_failure.append("no-fallback clause")
         if _B6B_ASSIGNMENT not in para:
-            missing_failure.append("assignment verb")
+            missing_failure.append("unreachable assignment verb")
         if _B12_NOT_FOUND_BRANCH not in para:
             missing_failure.append("not-found branch")
         if _B12B_NOT_FOUND_ASSIGN not in para:
@@ -485,11 +710,11 @@ def _check_body_text(text: str) -> list[str]:
     if not named_artifact_blocks or not any(
         _B11_FAILURE_RECORD_PLAIN in block for block in named_artifact_blocks
     ):
-        missing_artifact.append("Named artifact block")
+        missing_artifact.append("Named artifact block (plain name)")
     if not exit_criterion_blocks or not any(
         _B11_FAILURE_RECORD_PLAIN in block for block in exit_criterion_blocks
     ):
-        missing_artifact.append("Exit criterion block")
+        missing_artifact.append("Exit criterion block (plain name)")
     # WR-12 (01-05) gate half, scoped to the Named artifact block ONLY: the
     # artifact's own definition must admit the reason the not-found branch
     # writes into it. The pre-05 definition said `why unreachable`, so the
@@ -650,7 +875,11 @@ def _validate_files() -> int:
     body_text = AGENT_FILE.read_text(encoding="utf-8")
     rubric_text = RUBRIC_FILE.read_text(encoding="utf-8")
 
-    failures = _check_body_text(body_text) + _check_rubric_text(rubric_text)
+    failures = (
+        _check_anchor_coherence()
+        + _check_body_text(body_text)
+        + _check_rubric_text(rubric_text)
+    )
 
     if failures:
         for msg in failures:
@@ -789,18 +1018,88 @@ def _run_self_test() -> int:
 
     problems: list[str] = []
 
-    def _check_negative(label: str, failures: list[str], expected_substring: str) -> None:
+    # Two module-level checks run before the fixture battery. Neither reads a
+    # fixture: (coh) asserts the derived anchor pairs still stand in the relation
+    # their derivation creates (WR-14), and (cov) asserts no anchor constant has
+    # shipped without a control (WR-02's standing half). Both print in the roster
+    # even when green, so the coverage position is visible without reading code.
+    coherence_failures = _check_anchor_coherence()
+    if coherence_failures:
+        print(f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}")
+        problems.append("(coh): derived anchor pairs disagree")
+    else:
+        print("(coh) anchor coherence: PASS (0 failures)")
+
+    coverage_failures = _check_anchor_control_coverage(
+        Path(__file__).read_text(encoding="utf-8")
+    )
+    if coverage_failures:
+        print("(cov) anchor-control coverage: FAIL — " + "; ".join(coverage_failures))
+        problems.append("(cov): anchor constant(s) without a control")
+    else:
+        print(
+            "(cov) anchor-control coverage: PASS — every module-level anchor is "
+            f"referenced >=3 times or listed ({len(_ANCHOR_CONTROL_EXEMPT)} exempt, "
+            f"{len(_ANCHOR_CONTROL_PENDING)} pending)"
+        )
+
+    def _check_negative(
+        label: str,
+        failures: list[str],
+        expected_check_id: str,
+        expected_detail: str | None = None,
+    ) -> None:
+        """Assert a mutated fixture failed, and failed for its OWN reason.
+
+        The match key is the failing message's own CHECK ID, plus (optionally) a
+        sub-item detail unique to the assertion under test. `01-REVIEW.md` WR-02
+        is why: the previous contract matched a free-text substring against ANY
+        failure in the list, so a SIBLING check's message could satisfy a
+        control's expectation. Controls (c), (h) and (i) all declared
+        `"expected exactly 1"` and all three were satisfied by Body-2's message —
+        so (h), labelled a placement control, never exercised Body-3 and was an
+        exact duplicate of (c). A control could report `correctly failed` while
+        the assertion it names was dead, which is indistinguishable at the
+        verdict line from a control that works.
+
+        The ID match is boundary-anchored (`Body-1` must not match `Body-10` or
+        `Body-4..9`, `Rubric-3` must not match `Rubric-3/5/6`), and a wrong-reason
+        report names the check IDs that DID fire so a mis-targeted control is
+        diagnosable in one read rather than by re-running the fixture by hand.
+        """
+
+        def _fired_ids(msgs: list[str]) -> list[str]:
+            return sorted({m.split(" ", 1)[0].rstrip(":") for m in msgs})
+
+        def _id_matches(msg: str, check_id: str) -> bool:
+            if not msg.startswith(check_id):
+                return False
+            rest = msg[len(check_id) :]
+            return rest[:1] in (" ", ":")
+
         if not failures:
             print(f"({label}) WRONGLY PASSED (expected failure)")
             problems.append(f"{label}: no failures produced")
-        elif not any(expected_substring in f for f in failures):
+            return
+        matched = [f for f in failures if _id_matches(f, expected_check_id)]
+        if not matched:
             print(
-                f"({label}) failed for the WRONG reason (expected substring "
-                f"{expected_substring!r}, got: {'; '.join(failures)})"
+                f"({label}) failed for the WRONG reason (expected check ID "
+                f"{expected_check_id!r}; check IDs that DID fire: "
+                f"{', '.join(_fired_ids(failures))}; got: {'; '.join(failures)})"
             )
             problems.append(f"{label}: wrong-reason failure")
-        else:
-            print(f"({label}) correctly failed ({len(failures)} failure(s))")
+            return
+        if expected_detail is not None and not any(expected_detail in f for f in matched):
+            print(
+                f"({label}) failed for the WRONG reason (check ID "
+                f"{expected_check_id!r} fired but no message of that ID contains "
+                f"detail {expected_detail!r}; check IDs that DID fire: "
+                f"{', '.join(_fired_ids(failures))}; got: {'; '.join(matched)})"
+            )
+            problems.append(f"{label}: wrong-reason failure")
+            return
+        print(f"({label}) correctly failed ({len(failures)} failure(s))")
 
     # (a) Positive control — body.
     a_failures = _check_body_text(real_body)
@@ -820,7 +1119,7 @@ def _run_self_test() -> int:
 
     # (c) Negative, step missing (ACT-01).
     c_body = real_body.replace(_B1_STEP_LEAD, "REMOVED")
-    _check_negative("c", _check_body_text(c_body), "expected exactly 1")
+    _check_negative("c", _check_body_text(c_body), "Body-2", "0 time(s) in the Phase 3 slice")
 
     # (d) Negative, the population's intent half stripped (ACT-04) — proves the
     # gate asserts the bound, not mere presence. Retargeted at 01-05 from the
@@ -830,23 +1129,33 @@ def _run_self_test() -> int:
     # is unique to Body-5's message, so the control still reports for its own
     # declared reason rather than on Body-9's.
     d_body = _mutate_body_removing_from_step_paragraph(real_body, _B2_POPULATION_INTENT)
-    _check_negative("d", _check_body_text(d_body), "population intent")
+    _check_negative("d", _check_body_text(d_body), "Body-5", "population intent")
 
     # (e) Negative, exclusion clause stripped (ACT-04, second half).
     e_body = _mutate_body_removing_from_step_paragraph(real_body, _B4_EXCLUSION)
-    _check_negative("e", _check_body_text(e_body), "exclusion clause")
+    _check_negative("e", _check_body_text(e_body), "Body-5", "exclusion clause")
 
     # (f) Negative, failure path stripped (ACT-03).
     f_body = _mutate_body_removing_from_step_paragraph(real_body, _B5_NO_FALLBACK)
-    _check_negative("f", _check_body_text(f_body), "failure path")
+    _check_negative("f", _check_body_text(f_body), "Body-6", "no-fallback clause")
 
     # (g) Negative, injection containment stripped (T-01-01).
     g_body = _mutate_body_removing_from_step_paragraph(real_body, _B7_EVIDENCE_NOT_INSTRUCTION)
-    _check_negative("g", _check_body_text(g_body), "injection containment")
+    _check_negative("g", _check_body_text(g_body), "Body-8", "injection containment")
 
-    # (h) Negative, misplaced (placement). Remove the step lead from Phase 3 and
-    # append the original step paragraph verbatim to the end of the file, after
-    # the Phase 4 heading.
+    # (h) Negative, PLACEMENT — the property the label always claimed: the step
+    # lead exists in Phase 3 AND NOWHERE ELSE.
+    #
+    # Repaired at 01-06 (WR-02). The pre-01-06 fixture removed the Phase 3 copy
+    # and appended the paragraph after the Phase 4 heading, so it fired Body-2
+    # (0 in the slice) and was an exact duplicate of (c) — under the old
+    # substring contract both declared "expected exactly 1" and both were
+    # satisfied by Body-2's message, so Body-3 was never exercised by anything.
+    #
+    # The repair leaves the Phase 3 copy INTACT and appends one further verbatim
+    # copy at the end of the file: phase3.count(lead) == 1 (Body-2 passes,
+    # paragraph checks all run and pass) while text.count(lead) == 2, so Body-3
+    # is the sole failure.
     phase3_for_h = _slice(real_body, _PHASE3_START, _PHASE4_START)
     if phase3_for_h is None:
         raise AssertionError("Phase 3 slice not found while building fixture (h)")
@@ -854,9 +1163,8 @@ def _run_self_test() -> int:
     if len(h_paragraphs) != 1:
         raise AssertionError("expected exactly one step paragraph while building fixture (h)")
     h_original_para = h_paragraphs[0]
-    h_body = real_body.replace(_B1_STEP_LEAD, "REMOVED")
-    h_body = h_body + "\n\n" + h_original_para
-    _check_negative("h", _check_body_text(h_body), "expected exactly 1")
+    h_body = real_body + "\n\n" + h_original_para
+    _check_negative("h", _check_body_text(h_body), "Body-3", "2 time(s) in the whole file")
 
     # (i) Negative, duplicated. Duplicate the step paragraph inside the Phase 3 slice.
     phase3_for_i = _slice(real_body, _PHASE3_START, _PHASE4_START)
@@ -869,34 +1177,40 @@ def _run_self_test() -> int:
     i_body = real_body.replace(
         i_original_para, i_original_para + "\n\n" + i_original_para, 1
     )
-    _check_negative("i", _check_body_text(i_body), "expected exactly 1")
+    _check_negative("i", _check_body_text(i_body), "Body-2", "2 time(s) in the Phase 3 slice")
 
     # (j) Negative, Phase 3 heading removed.
     j_body = real_body.replace(_PHASE3_START, "")
-    _check_negative("j", _check_body_text(j_body), "Phase 3 slice not found")
+    _check_negative("j", _check_body_text(j_body), "Body-1", "Phase 3 slice not found")
 
     # (k) Negative, rubric Fix note stripped (ACT-05).
     k_rubric = real_rubric.replace(_R1_FIX_LEAD, "REMOVED")
-    _check_negative("k", _check_rubric_text(k_rubric), "Fix note lead")
+    _check_negative(
+        "k", _check_rubric_text(k_rubric), "Rubric-2", "0 time(s) in the Criterion 3 slice"
+    )
 
     # (l) Negative, rubric preference stripped (ACT-05).
     l_rubric = real_rubric.replace(_R4_PREFERENCE, "")
-    _check_negative("l", _check_rubric_text(l_rubric), "stated preference")
+    _check_negative("l", _check_rubric_text(l_rubric), "Rubric-3", "stated preference")
 
     # (n) Negative, inclusive clause stripped (gap 1 / CR-04 regression control).
-    # A partial, local mitigation of CR-01 (each new control's expected substring
-    # is unique to its own assertion's message) — the full fix, auditing the
-    # pre-existing (c)-(l) controls' shared substrings, is deferred to Phase 4.
+    # The shared-substring weakness this comment used to defer (`01-REVIEW.md`
+    # WR-02) is CLOSED at 01-06: `_check_negative` now matches on the failing
+    # check's own ID plus a sub-item detail, and every control in this battery
+    # declares both. The comment also used to tag that weakness with an ID the
+    # anchor block above had already bound to the not-found branch-exhaustiveness
+    # gap, so one ID named two unrelated findings in one file (`01-REVIEW.md`
+    # WR-15). Every review ID in this file now names exactly one finding.
     n_body = _mutate_body_removing_from_step_paragraph(real_body, _B5B_INCLUSIVE)
-    _check_negative("n", _check_body_text(n_body), "inclusive clause")
+    _check_negative("n", _check_body_text(n_body), "Body-5", "inclusive clause")
 
     # (o) Negative, assignment verb stripped (gap 2 / CR-03 regression control).
     o_body = _mutate_body_removing_from_step_paragraph(real_body, _B6B_ASSIGNMENT)
-    _check_negative("o", _check_body_text(o_body), "assignment verb")
+    _check_negative("o", _check_body_text(o_body), "Body-6", "unreachable assignment verb")
 
     # (p) Negative, step name stripped (CR-05, pointer definition).
     p_body = _mutate_body_removing_from_step_paragraph(real_body, _B10_STEP_NAME)
-    _check_negative("p", _check_body_text(p_body), "Body-10")
+    _check_negative("p", _check_body_text(p_body), "Body-10", "step name")
 
     # (q) Negative, failure-record name stripped from the Named artifact block —
     # exercises the generalized mutation helper against a block the old,
@@ -904,7 +1218,9 @@ def _run_self_test() -> int:
     q_body = _mutate_body_removing_from_block(
         real_body, "**Named artifact:**", _B11_FAILURE_RECORD_PLAIN
     )
-    _check_negative("q", _check_body_text(q_body), "Body-11")
+    _check_negative(
+        "q", _check_body_text(q_body), "Body-11", "Named artifact block (plain name)"
+    )
 
     # (r) Negative, coherence broken — remove the shared population token from
     # the Exit criterion block. Body-9 has had no control until now; this closes
@@ -912,15 +1228,15 @@ def _run_self_test() -> int:
     r_body = _mutate_body_removing_from_block(
         real_body, "**Exit criterion:**", _B9_SHARED_POPULATION
     )
-    _check_negative("r", _check_body_text(r_body), "Body-9")
+    _check_negative("r", _check_body_text(r_body), "Body-9", "population bound occurs")
 
     # (s) Negative, rubric pointer stripped (CR-05, pointer use).
     s_rubric = real_rubric.replace(_R5_STEP_POINTER, "")
-    _check_negative("s", _check_rubric_text(s_rubric), "Rubric-5")
+    _check_negative("s", _check_rubric_text(s_rubric), "Rubric-5", "step pointer")
 
     # (t) Negative, not-found branch's reason token stripped (01-04 gap, CR-01).
     t_body = _mutate_body_removing_from_step_paragraph(real_body, _B12_NOT_FOUND_BRANCH)
-    _check_negative("t", _check_body_text(t_body), "not-found branch")
+    _check_negative("t", _check_body_text(t_body), "Body-6", "not-found branch")
 
     # (u) Negative, the not-found branch's once-per-citation termination clause
     # stripped (01-05 gap, CR-01). Retargeted at 01-05: its previous target was
@@ -929,7 +1245,7 @@ def _run_self_test() -> int:
     # the termination clause, which is what would re-open the unbounded-re-read
     # half of this gap.
     u_body = _mutate_body_removing_from_step_paragraph(real_body, _B12D_RECORD_ONCE)
-    _check_negative("u", _check_body_text(u_body), "record-once termination")
+    _check_negative("u", _check_body_text(u_body), "Body-6", "record-once termination")
 
     # (v) Negative, provenance table's widened `unverified` test stripped
     # (01-04 gap, CR-01) — a NEW call site of _mutate_body_removing_from_block
@@ -937,11 +1253,11 @@ def _run_self_test() -> int:
     v_body = _mutate_body_removing_from_block(
         real_body, "| **unverified** |", _B14_TABLE_NOT_FOUND
     )
-    _check_negative("v", _check_body_text(v_body), "Body-12")
+    _check_negative("v", _check_body_text(v_body), "Body-12", "missing the not-found test")
 
     # (w) Negative, rubric downgrade scope stripped (01-04 gap, CR-01).
     w_rubric = real_rubric.replace(_R6_DOWNGRADE_SCOPE, "")
-    _check_negative("w", _check_rubric_text(w_rubric), "Rubric-6")
+    _check_negative("w", _check_rubric_text(w_rubric), "Rubric-6", "downgrade scope")
 
     # (x) Negative, CR-02 regression: a gutted-but-relocated Fix note. Built
     # the way the verifier reproduced CR-02 in 01-VERIFICATION.md — replace
@@ -966,13 +1282,13 @@ def _run_self_test() -> int:
     )
     x_replacement = x_gutted_fix_note + "\n\n" + x_noise_block
     x_rubric = real_rubric.replace(x_original_fix_note, x_replacement, 1)
-    _check_negative("x", _check_rubric_text(x_rubric), "Rubric-3")
+    _check_negative("x", _check_rubric_text(x_rubric), "Rubric-3", "acquire branch")
 
     # --- (y)-(ad): the 01-05 one-predicate repair (CR-01, WR-12) ---
-    # Each declares an expected substring that appears in NO other failure
-    # message in this file, so none of them can report `correctly failed` on a
-    # sibling check's message (the WR-02 weakness noted at control (n), whose
-    # general fix is plan 01-06's).
+    # Each declares its own check ID plus a sub-item detail unique to the
+    # assertion under test, so none of them can report `correctly failed` on a
+    # sibling check's message. That property is now enforced for the WHOLE
+    # battery by `_check_negative`'s contract, not just for this group.
 
     # (y) THE LOAD-BEARING CONTROL, and the one `01-VERIFICATION.md`'s
     # `missing:` item 3 names. Rewinds the step paragraph to its actual
@@ -980,18 +1296,18 @@ def _run_self_test() -> int:
     # coherence assertion non-vacuous: it is demonstrated RED on the prose the
     # verifier found broken, not merely GREEN on the prose that replaced it.
     y_body = _build_pre05_regression_body(real_body)
-    _check_negative("y", _check_body_text(y_body), "divergent predicate")
+    _check_negative("y", _check_body_text(y_body), "Body-13", "divergent predicate")
 
     # (z) Negative, the exclusion clause's polarity of the shared predicate
     # stripped — fails if a future edit re-keys the exclusion off the predicate
     # the population is keyed on.
     z_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_EXCLUSION_GATE)
-    _check_negative("z", _check_body_text(z_body), "exclusion predicate")
+    _check_negative("z", _check_body_text(z_body), "Body-13", "exclusion predicate")
 
     # (aa) Negative, the population clause's polarity of the shared predicate
     # stripped — the mirror of (z).
     aa_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_POPULATION_GATE)
-    _check_negative("aa", _check_body_text(aa_body), "population predicate")
+    _check_negative("aa", _check_body_text(aa_body), "Body-13", "population predicate")
 
     # (ab) Negative, the exclusion's failure-record termination limb stripped —
     # the turn-budget half of the 01-05 gap (T-01-02). Without this limb both
@@ -999,13 +1315,13 @@ def _run_self_test() -> int:
     ab_body = _mutate_body_removing_from_step_paragraph(
         real_body, _B15_FAILURE_RECORD_EXCLUSION
     )
-    _check_negative("ab", _check_body_text(ab_body), "failure-record exclusion")
+    _check_negative("ab", _check_body_text(ab_body), "Body-5", "failure-record exclusion")
 
     # (ac) Negative, the not-found branch's STATE-keyed trigger stripped — fails
     # if a future edit re-keys the branch back onto an act this step performed
     # in this pass, which is the shape the defect took at 01-04.
     ac_body = _mutate_body_removing_from_step_paragraph(real_body, _B12C_NOT_FOUND_STATE)
-    _check_negative("ac", _check_body_text(ac_body), "not-found state trigger")
+    _check_negative("ac", _check_body_text(ac_body), "Body-6", "not-found state trigger")
 
     # (ad) Negative, WR-12: the generalized reason phrase stripped from the
     # Named artifact block, so the artifact's own definition no longer admits
@@ -1013,7 +1329,9 @@ def _run_self_test() -> int:
     ad_body = _mutate_body_removing_from_block(
         real_body, "**Named artifact:**", _B17_NAMED_ARTIFACT_REASON
     )
-    _check_negative("ad", _check_body_text(ad_body), "Named artifact block failure reasons")
+    _check_negative(
+        "ad", _check_body_text(ad_body), "Body-11", "Named artifact block failure reasons"
+    )
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
