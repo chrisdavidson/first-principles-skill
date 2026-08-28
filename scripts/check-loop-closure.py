@@ -189,6 +189,21 @@ _COMPLETENESS_CLAIM = "complete enough that Phase 4 can reason upward"  # L10a
 # the clause names the edges or defers to the bound.
 _REENTRY_EXCEPTION = "except through the bounded re-entry edges named under Turn discipline"
 _SECOND_ORDER = "second-order"  # scoped to the Turn discipline bound paragraph (S3)
+
+# L17 / L18 / X6: the edge enumeration.
+#
+# The list used to name five edges, two of which — "the Self-Audit Gate's
+# Fix/Repeat loop" and "the Self-Audit Gate rubric's re-score instruction" — are
+# one operation described in two documents (revise, then re-score). The rubric's
+# own sentence points back at the body's rule, which then listed it as a separate
+# edge from the loop it belongs to. Under "Each edge fires at most one
+# re-perception pass", enumerating one loop twice grants it two passes, and an
+# analysis can defend a second re-score by naming the other entry. The count is
+# load-bearing prose — a reader checks it against the list — so it is pinned,
+# with the superseded count pinned ABSENT.
+_EDGE_COUNT = "Four re-entry edges exist in this methodology"  # L17
+_ONE_EDGE_TWO_STATEMENTS = "one edge, two statements"  # L18
+_SUPERSEDED_EDGE_COUNT = "Five re-entry edges exist in this methodology"  # X6
 _RE_PERCEPTION_PASS = "re-perception pass"  # scoped to the Repeat line (S1)
 
 # Anchors for scoped, single-line assertions. Each must match exactly one
@@ -337,6 +352,21 @@ def _check_body_text(text: str) -> list[str]:
 
     if not _contains(text, _BOUND):
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
+    if not _contains(text, _EDGE_COUNT):
+        failures.append(
+            f'{src}: the re-entry edge enumeration has lost its count ("{_EDGE_COUNT}")'
+        )
+    if _contains(text, _SUPERSEDED_EDGE_COUNT):
+        failures.append(
+            f'{src}: the edge enumeration double-counts the Fix/Repeat loop, granting it '
+            f'two passes under a per-edge bound ("{_SUPERSEDED_EDGE_COUNT}")'
+        )
+    if not _contains(text, _ONE_EDGE_TWO_STATEMENTS):
+        failures.append(
+            f'{src}: the enumeration no longer says the Fix/Repeat loop and the rubric\'s '
+            f're-score instruction are one edge stated twice '
+            f'("{_ONE_EDGE_TWO_STATEMENTS}")'
+        )
     if not _contains(text, _BOUND_BODY):
         failures.append(
             f'{src}: the bound has lost its polarity carrier — a bare noun phrase '
@@ -1006,6 +1036,18 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(contract, _ASK_FALLBACK_MIDRUN),
             check_contract,
             f'{_CONTRACT_NAME}: the AskUserQuestion-unavailable fallback has no mid-run branch',
+        ),
+        (
+            "N36 (body: restore the superseded five-edge enumeration)",
+            lambda: _strip_everywhere(body, _EDGE_COUNT, _SUPERSEDED_EDGE_COUNT),
+            check_body,
+            f'{_BODY_NAME}: the edge enumeration double-counts the Fix/Repeat loop',
+        ),
+        (
+            "N37 (body: strip L18, the one-edge-two-statements clause)",
+            lambda: _strip_everywhere(body, _ONE_EDGE_TWO_STATEMENTS),
+            check_body,
+            f"{_BODY_NAME}: the enumeration no longer says the Fix/Repeat loop",
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",

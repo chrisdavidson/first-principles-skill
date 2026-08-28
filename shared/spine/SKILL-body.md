@@ -27,16 +27,17 @@ wait for that notification — not to issue sleep loops, wait scripts, repeated 
 filler turns. Polling consumes turns without producing an artifact, and the turns it consumes are
 taken from the validation pass at the end.
 
-**Re-entry edges are bounded.** Five re-entry edges exist in this methodology: the second-order
-pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop, the Self-Audit
-Gate rubric's re-score instruction, the Criterion 1 Absent verdict's return to Phase 1 to re-frame
-the Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
-edge fires **at most one re-perception pass** per analysis. After that pass, any criterion still
-failing — or newly failing as a result of the Fix — is reported as an **unresolved gap with a
-confidence caveat**, not a second pass; the edge has already fired and does not fire again,
-regardless of which criterion is at fault.
-This bound holds because the turn budget is `maxTurns: 60` and the Self-Audit Gate runs last: an
-unbounded loop spends the gate's own budget, and the gate is what gets dropped.
+**Re-entry edges are bounded.** Four re-entry edges exist in this methodology: the second-order
+pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop (stated in
+"Before presenting conclusions" below and again in the rubric's re-score instruction — one
+edge, two statements), the Criterion 1 Absent verdict's return to Phase 1 to re-frame the
+Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
+edge fires **at most one re-perception pass** per analysis. After that pass, any criterion
+still failing — or newly failing as a result of the Fix — is reported as an **unresolved gap
+with a confidence caveat**, not a second pass; the edge has already fired and does not fire
+again, regardless of which criterion is at fault. This bound holds because the turn budget is
+`maxTurns: 60` and the Self-Audit Gate runs last: an unbounded loop spends the gate's own
+budget, and the gate is what gets dropped.
 
 **If you regenerate the analysis**, treat the rewrite as a *revision*, not a fresh draft: before
 presenting it, confirm every named artifact present in the prior version is carried forward, or is
