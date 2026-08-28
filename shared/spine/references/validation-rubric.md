@@ -26,7 +26,7 @@ one condition alone does not constitute a pass:
 1. **Gate cleared** — no criterion scores Absent.
 2. **Hand-wavy cap cleared** — at most one criterion scores Hand-wavy.
 
-If either condition is not met, revise the analysis and re-score from the beginning.
+If either condition is not met, revise the analysis and re-score — bounded to **at most one re-perception pass** per analysis, per the rule stated in full under `SKILL.md`'s Turn discipline section. If the same criterion still fails after that single pass, present it as an unresolved gap with a stated confidence caveat instead of re-scoring again.
 
 **Assumption Audit (verify before scoring)**
 
@@ -192,6 +192,7 @@ a short list of success criteria — in the Problem Essence section (output sect
 - **Absent** — no Essence Statement is present (the Problem Essence section is empty, contains
   only a restatement of the original prompt with no analytical distillation, or the section
   heading appears with nothing below it).
+  This verdict routes back to Phase 1 to re-frame the Essence Statement — or, when the cause is an input that was never supplied, to re-opening input under the Input Contract — rather than an in-place rewrite of output section 1; the route is bounded by the same rule described under `SKILL.md`'s "Before presenting conclusions" section.
 
 ### Criterion 2: Challenge Assumptions
 
