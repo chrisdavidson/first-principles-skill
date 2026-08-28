@@ -87,6 +87,23 @@ _ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
 _TURN_DISCIPLINE = "Turn discipline"  # L9
 _UNBOUNDED_RESCORE = "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
 
+# X3: the phrase-shape the unbounded instruction keeps returning as. The rubric's
+# Usage Note shipped it in wording X2 does not match ("the relevant sections"
+# rather than "the analysis") AND split across a hard-wrap boundary, so two
+# independent blind spots kept it green. X3 pins the surviving fragment — the
+# operative "start over" instruction itself — so a reworded restatement is caught
+# on the part that carries the meaning.
+_UNBOUNDED_RESCORE_ALT = "re-score from the beginning"  # X3 (must be ABSENT)
+
+# The Usage Note is the LAST operative sentence a model reads before it starts
+# scoring, so recency favours whatever it says. L11 pins it to the same bound the
+# rubric states at the top of the file; without this positive pin, deleting the
+# bound from the Usage Note (rather than contradicting it) would pass X3.
+_USAGE_NOTE_BOUND = (
+    "revise the relevant sections and re-score — bounded to "
+    "**at most one re-perception pass** per analysis"
+)  # L11
+
 _COMPLETENESS_CLAIM = "complete enough that Phase 4 can reason upward"  # L10a
 _REENTRY_EXCEPTION = "re-entry"  # L10b, scoped to the Phase 3 exit line only
 _SECOND_ORDER = "second-order"  # scoped to the Turn discipline bound paragraph (S3)
@@ -277,6 +294,16 @@ def _check_rubric_text(text: str) -> list[str]:
     if _contains(text, _UNBOUNDED_RESCORE):
         failures.append(
             f'{src}: unbounded re-score instruction still present ("{_UNBOUNDED_RESCORE}")'
+        )
+    if _contains(text, _UNBOUNDED_RESCORE_ALT):
+        failures.append(
+            f'{src}: unbounded re-score instruction still present in its reworded form '
+            f'("{_UNBOUNDED_RESCORE_ALT}")'
+        )
+    if not _contains(text, _USAGE_NOTE_BOUND):
+        failures.append(
+            f'{src}: the Usage Note no longer brings its closing re-score instruction '
+            f'under the bound ("{_USAGE_NOTE_BOUND}")'
         )
 
     return failures
@@ -551,6 +578,25 @@ def _run_self_test() -> int:
             lambda: rubric + "\n" + _UNBOUNDED_RESCORE + "\n",
             check_rubric,
             f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
+        ),
+        (
+            "N16 (rubric: reinstate X3 — the reworded 'start over' instruction)",
+            lambda: rubric + "\n" + _UNBOUNDED_RESCORE_ALT + "\n",
+            check_rubric,
+            f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
+        ),
+        (
+            "N17 (rubric: reinstate X3 hard-wrapped — the exact two-blind-spot "
+            "shape that shipped the Usage Note contradiction)",
+            lambda: _reinstate_hard_wrapped(rubric, _UNBOUNDED_RESCORE_ALT),
+            check_rubric,
+            f'{_RUBRIC_NAME}: unbounded re-score instruction still present in its reworded form',
+        ),
+        (
+            "N18 (rubric: strip L11, the Usage Note's bounded remedy)",
+            lambda: _strip_everywhere(rubric, _USAGE_NOTE_BOUND),
+            check_rubric,
+            f'{_RUBRIC_NAME}: the Usage Note no longer brings its closing re-score instruction',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",

@@ -393,5 +393,8 @@ of the signed-off analysis as a whole.
 Score every criterion. Produce one verdict block per criterion, using the prescribed format
 from the Verdict Block Format section above. The analysis must clear the gate (no criterion
 at Absent) and the hand-wavy cap (at most one criterion at Hand-wavy) before conclusions are
-presented. If either condition is not met, revise the relevant sections and re-score from
-the beginning.
+presented. If either condition is not met, revise the relevant sections and re-score — bounded
+to **at most one re-perception pass** per analysis, per the rule stated in full under "How to
+Apply This Gate" at the top of this document. If a criterion still fails after that single
+pass, present it as an unresolved gap with a stated confidence caveat instead of re-scoring
+again. This closing note restates that bound; it does not create a second, looser one.
