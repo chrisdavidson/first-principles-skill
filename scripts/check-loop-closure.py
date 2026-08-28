@@ -791,6 +791,38 @@ def _run_self_test() -> int:
         f"live tree has {len(live_failures)} failure(s): {'; '.join(live_failures)}",
     )
 
+    # Every fixture below is derived from the live text, so a live tree that is
+    # missing a pinned literal makes the next mutator raise `target not found in
+    # text` — the remaining controls never run and the operator gets a traceback
+    # in place of the diagnostic table the self-test exists to print. That is
+    # also the most likely reason someone runs --self-test at all: the live gate
+    # went red and they want to know whether the gate or the content broke.
+    # Short-circuit with the diagnosis, and exit 1 deliberately rather than
+    # coincidentally (Python's uncaught-exception code).
+    if live_failures:
+        sys.stderr.write(
+            "check-loop-closure --self-test: cannot run the negative controls — the "
+            "live tree is not clean, and every fixture is derived from it. Fix the "
+            "live tree first:\n"
+            + "".join(f"  {msg}\n" for msg in live_failures)
+        )
+        return 1
+
+    def _guarded(label: str, thunk):
+        """Run *thunk*, converting any fixture-construction error into a reported
+        FAIL. A fixture that cannot be built is a control that did not run — the
+        self-test must say so in its own table, not abort the remaining controls
+        with a traceback."""
+        try:
+            return thunk(), True
+        except Exception as exc:  # noqa: BLE001 — deliberately broad; see docstring
+            _report(
+                label,
+                False,
+                f"fixture construction failed: {type(exc).__name__}: {exc}",
+            )
+            return None, False
+
     # --- Negative controls: table of (label, mutated-text-thunk, which-check, expected-substring) ---
 
     def check_body(text: str) -> list[str]:
@@ -1076,7 +1108,9 @@ def _run_self_test() -> int:
     mutated_body_n13: str | None = None
 
     for label, make_mutated, checker, expected_substring in negative_controls:
-        mutated = make_mutated()
+        mutated, built = _guarded(label, make_mutated)
+        if not built:
+            continue
         if label.startswith("N1 "):
             mutated_body_n1 = mutated
         if label.startswith("N9 "):
@@ -1111,7 +1145,14 @@ def _run_self_test() -> int:
     #
     # The replacement asserts the DELTA (exactly one occurrence gone) and the
     # LOCATION (the one that went was the bound paragraph's).
-    assert mutated_body_n13 is not None
+    if mutated_body_n13 is None:
+        _report(
+            "N13 scope check (exactly one occurrence removed, and it was the bound "
+            "paragraph's)",
+            False,
+            "N13's fixture could not be built, so its scope could not be checked",
+        )
+        return 1
     before = body.count(_SECOND_ORDER)
     after = mutated_body_n13.count(_SECOND_ORDER)
     section_after, _ = _extract_turn_discipline_section(mutated_body_n13)
@@ -1133,8 +1174,14 @@ def _run_self_test() -> int:
     )
 
     # --- (b) Anti-masking controls ---
-    assert mutated_contract_n9 is not None
-    assert mutated_body_n1 is not None
+    if mutated_contract_n9 is None or mutated_body_n1 is None:
+        _report(
+            "anti-masking controls",
+            False,
+            "the N1 and/or N9 fixture could not be built, so attribution could not "
+            "be checked",
+        )
+        return 1
 
     # The two controls that used to sit here mutated ONE file at a time and
     # asserted the other file's basename did not appear in the message set. They
@@ -1190,21 +1237,20 @@ def _run_self_test() -> int:
     )
 
     # --- (c) Anchor-arity controls ---
-    duplicated_s1 = _duplicate_line(body, _S1_ANCHOR)
-    s1_failures = _check_body_text(duplicated_s1)
-    _report(
-        "anchor-arity (duplicated Repeat line reports 'expected exactly one')",
-        any("expected exactly one" in f and _S1_ANCHOR in f for f in s1_failures),
-        f"failures: {'; '.join(s1_failures)}",
-    )
-
-    duplicated_s2 = _duplicate_line(body, _S2_ANCHOR)
-    s2_failures = _check_body_text(duplicated_s2)
-    _report(
-        "anchor-arity (duplicated Phase 3 exit line reports 'expected exactly one')",
-        any("expected exactly one" in f and _S2_ANCHOR in f for f in s2_failures),
-        f"failures: {'; '.join(s2_failures)}",
-    )
+    for arity_label, arity_anchor in (
+        ("Repeat line", _S1_ANCHOR),
+        ("Phase 3 exit line", _S2_ANCHOR),
+    ):
+        label = f"anchor-arity (duplicated {arity_label} reports 'expected exactly one')"
+        duplicated, built = _guarded(label, lambda a=arity_anchor: _duplicate_line(body, a))
+        if not built:
+            continue
+        arity_failures = _check_body_text(duplicated)
+        _report(
+            label,
+            any("expected exactly one" in f and arity_anchor in f for f in arity_failures),
+            f"failures: {'; '.join(arity_failures)}",
+        )
 
     # --- (d) Reflow controls: the false-RED direction of the same defect.
     # A pinned literal that merely MOVED across a wrap boundary — present,
@@ -1217,11 +1263,19 @@ def _run_self_test() -> int:
         ("rubric / L8 bound", rubric, _BOUND, check_rubric),
         ("contract / L12 landing point", contract, _MIDRUN_LANDING, check_contract),
     ]
-    for label, source, literal, checker in reflow_controls:
-        reflowed = _break_literal_across_lines(source, literal)
+    for reflow_label, source, literal, checker in reflow_controls:
+        label = (
+            f"reflow control ({reflow_label} re-wrapped, content unchanged, "
+            f"gate stays green)"
+        )
+        reflowed, built = _guarded(
+            label, lambda s=source, l=literal: _break_literal_across_lines(s, l)
+        )
+        if not built:
+            continue
         failures = checker(reflowed)
         _report(
-            f"reflow control ({label} re-wrapped, content unchanged, gate stays green)",
+            label,
             not failures,
             f"a pure re-wrap produced {len(failures)} failure(s): {'; '.join(failures)}",
         )
