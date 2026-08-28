@@ -74,6 +74,29 @@ _RUBRIC_NAME = "validation-rubric.md"
 # one string for both checks to compare against.
 # ---------------------------------------------------------------------------
 _BOUND = "at most one re-perception pass"  # L1 (body) / L8 (rubric)
+
+# L1a / L8a: the bound WITH its polarity carrier.
+#
+# `_BOUND` on its own is a bare noun phrase, so substring presence cannot tell
+# the rule from its negation. Both of these pass a bare-`_BOUND` check while
+# inverting the rule the phase exists to install:
+#     body:   "edge fires more than **at most one re-perception pass** per analysis"
+#     rubric: "not bounded to **at most one re-perception pass** per analysis"
+# Hedging qualifiers accrete onto rules over edits, so this is drift, not
+# contrivance. These two literals pin the operative verb phrase immediately
+# adjacent to the bound, so a hedge inserted between them breaks the match.
+# `_BOUND` itself is retained for the D1 cross-file drift assertion.
+_BOUND_BODY = "Each edge fires **at most one re-perception pass** per analysis."  # L1a
+_BOUND_RUBRIC = (
+    "revise the analysis and re-score — bounded to "
+    "**at most one re-perception pass** per analysis"
+)  # L8a
+
+# X4 / X5: the two demonstrated inversions, pinned ABSENT directly. A positive
+# pin catches a hedge inserted INSIDE the pinned span; these catch the negation
+# forms that a plain substring test would swallow whole.
+_INVERTED_BOUND_BODY = "more than **at most one re-perception pass**"  # X4
+_INVERTED_BOUND_RUBRIC = "not bounded to **at most one re-perception pass**"  # X5
 _DEGRADE = "unresolved gap with a confidence caveat"  # L2
 
 # L14: the degradation sentence used to be criterion-scoped ("A second failure of
@@ -252,6 +275,16 @@ def _check_body_text(text: str) -> list[str]:
 
     if not _contains(text, _BOUND):
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
+    if not _contains(text, _BOUND_BODY):
+        failures.append(
+            f'{src}: the bound has lost its polarity carrier — a bare noun phrase '
+            f'cannot distinguish the rule from its negation ("{_BOUND_BODY}")'
+        )
+    if _contains(text, _INVERTED_BOUND_BODY):
+        failures.append(
+            f'{src}: the bound has been inverted by a hedging qualifier '
+            f'("{_INVERTED_BOUND_BODY}")'
+        )
     if not _contains(text, _DEGRADE):
         failures.append(f'{src}: missing the degradation path ("{_DEGRADE}")')
     if not _contains(text, _BOUND_SUBORDINATION):
@@ -361,6 +394,16 @@ def _check_rubric_text(text: str) -> list[str]:
     # L8 uses the SAME _BOUND constant as the body's L1 — assertion D1.
     if not _contains(text, _BOUND):
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
+    if not _contains(text, _BOUND_RUBRIC):
+        failures.append(
+            f'{src}: the bound has lost its polarity carrier — a bare noun phrase '
+            f'cannot distinguish the rule from its negation ("{_BOUND_RUBRIC}")'
+        )
+    if _contains(text, _INVERTED_BOUND_RUBRIC):
+        failures.append(
+            f'{src}: the bound has been inverted by a hedging qualifier '
+            f'("{_INVERTED_BOUND_RUBRIC}")'
+        )
     if not _contains(text, _TURN_DISCIPLINE):
         failures.append(
             f'{src}: missing the Turn discipline cross-reference ("{_TURN_DISCIPLINE}")'
@@ -772,6 +815,29 @@ def _run_self_test() -> int:
             lambda: _duplicate_bound_paragraph(body),
             check_body,
             f"{_BODY_NAME}: expected exactly one paragraph in Turn discipline containing",
+        ),
+        (
+            "N27 (body: invert the bound with 'more than' — the bare noun phrase "
+            "survives, the rule does not)",
+            lambda: _strip_everywhere(
+                body,
+                _BOUND_BODY,
+                "Each edge fires more than **at most one re-perception pass** per analysis.",
+            ),
+            check_body,
+            f'{_BODY_NAME}: the bound has lost its polarity carrier',
+        ),
+        (
+            "N28 (rubric: invert the bound with 'not' — a plain substring test "
+            "swallows the negation whole)",
+            lambda: _strip_everywhere(
+                rubric,
+                _BOUND_RUBRIC,
+                "revise the analysis and re-score — not bounded to "
+                "**at most one re-perception pass** per analysis",
+            ),
+            check_rubric,
+            f'{_RUBRIC_NAME}: the bound has lost its polarity carrier',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",
