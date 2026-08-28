@@ -276,11 +276,14 @@ Self-Audit Gate begin. Score the completed analysis against the criteria in the
 
 1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
-3. **Repeat** — re-score once after fixing. If a criterion still fails after that single re-perception pass, report it as an unresolved gap with a confidence caveat instead of fixing it again — see Turn discipline for the bound governing every re-entry edge.
+3. **Repeat** — re-score once after fixing. If a criterion still fails after that single
+   re-perception pass, report it as an unresolved gap with a confidence caveat instead of
+   fixing it again — see Turn discipline for the bound governing every re-entry edge.
 
-**A Criterion 1 Absent verdict returns to Phase 1.** When the Self-Audit Gate scores Criterion 1
-Absent — the Essence Statement is missing, or the Problem Essence section holds only a
-restatement of the prompt with no analytical distillation — the analysis **returns to Phase 1 to re-frame the Essence Statement** and re-enters the phase chain from there. This is not an
+**A Criterion 1 Absent verdict returns to Phase 1.** When the Self-Audit Gate scores Criterion
+1 Absent — the Essence Statement is missing, or the Problem Essence section holds only a
+restatement of the prompt with no analytical distillation — the analysis **returns to Phase 1
+to re-frame the Essence Statement** and re-enters the phase chain from there. This is not an
 in-place rewrite of output section 1: an Essence Statement patched in place does not re-derive
 the artifacts downstream of it. This return is bounded by the Turn discipline rule (one
 re-perception pass) and is a revision like any other — artifacts carried forward or explicitly

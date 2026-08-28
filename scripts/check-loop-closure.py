@@ -180,16 +180,51 @@ def _require_python_version() -> None:
         sys.exit(2)
 
 
-def _find_unique_line(text: str, anchor: str) -> tuple[str | None, int]:
-    """Return (the matching line, match count) for lines starting with *anchor*.
+_LIST_ITEM_RE = re.compile(r"^\s*(?:\d+[.)]|[-*+])\s")
 
-    Returns (None, n) when n != 1, so a caller can report "expected exactly
-    one, found N" rather than silently picking the first match (or none).
+
+def _block_end(lines: list[str], idx: int) -> int:
+    """Index one past the last line of the logical block starting at *idx*.
+
+    A block ends at a blank line, at the start of a new list item, at a heading,
+    or at a horizontal rule. Shared by the checker (`_find_unique_block`) and by
+    the self-test's mutators (`_mutate_block`) so the two cannot drift apart
+    about what "the Repeat line" means."""
+    end = idx + 1
+    while end < len(lines):
+        stripped = lines[end].strip()
+        if not stripped:
+            break
+        if _LIST_ITEM_RE.match(lines[end]) or stripped.startswith("#") or set(stripped) == {"-"}:
+            break
+        end += 1
+    return end
+
+
+def _find_unique_block(text: str, anchor: str) -> tuple[str | None, int]:
+    """Return (the logical block starting at *anchor*, match count).
+
+    Returns (None, n) when n != 1, so a caller can report "expected exactly one,
+    found N" rather than silently picking the first match (or none). The anchor
+    is matched line-anchored (`startswith` on a line), never as a free substring.
+
+    A "block" is the LOGICAL Markdown unit, not the physical line: the anchor
+    line plus every following line that continues it — non-blank, not the start
+    of a new list item, not a heading or a horizontal rule.
+
+    Scoping these assertions to the physical line is what forced SKILL-body.md's
+    two pinned-literal lines out to 186 and 258 characters in a file that
+    otherwise wraps at ~95: the document had been hand-shaped around the matcher,
+    and the next markdownlint config change, formatter run or routine re-wrap
+    would have turned this gate red for no content reason. Reading the logical
+    unit removes that coupling, so the source can be wrapped like its neighbours.
     """
-    matches = [ln for ln in text.splitlines() if ln.startswith(anchor)]
-    if len(matches) == 1:
-        return matches[0], 1
-    return None, len(matches)
+    lines = text.splitlines()
+    starts = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
+    if len(starts) != 1:
+        return None, len(starts)
+    idx = starts[0]
+    return "\n".join(lines[idx:_block_end(lines, idx)]), 1
 
 
 def _extract_turn_discipline_section(text: str) -> str | None:
@@ -240,7 +275,7 @@ def _check_body_text(text: str) -> list[str]:
         )
 
     # S1: the Repeat line names the bound.
-    s1_line, s1_count = _find_unique_line(text, _S1_ANCHOR)
+    s1_line, s1_count = _find_unique_block(text, _S1_ANCHOR)
     if s1_count != 1:
         failures.append(
             f'{src}: expected exactly one line starting with "{_S1_ANCHOR}", found {s1_count}'
@@ -252,7 +287,7 @@ def _check_body_text(text: str) -> list[str]:
 
     # S2: the Phase 3 exit-criterion line keeps the completeness claim AND
     # carries the new re-entry exception clause.
-    s2_line, s2_count = _find_unique_line(text, _S2_ANCHOR)
+    s2_line, s2_count = _find_unique_block(text, _S2_ANCHOR)
     if s2_count != 1:
         failures.append(
             f'{src}: expected exactly one line starting with "{_S2_ANCHOR}", found {s2_count}'
@@ -428,15 +463,22 @@ def _strip_everywhere(text: str, target: str, replacement: str = "REMOVED") -> s
     return pattern.sub(replacement, text)
 
 
-def _mutate_line(text: str, anchor: str, transform) -> str:
-    """Find the single line starting with *anchor*, apply *transform* to it,
-    and return the reassembled text. Asserts exactly one match exists."""
+def _mutate_block(text: str, anchor: str, transform) -> str:
+    """Find the single logical block starting with *anchor*, apply *transform*
+    to the whole block, and return the reassembled text. Asserts exactly one
+    match exists.
+
+    Block-scoped rather than physical-line-scoped, matching what
+    `_find_unique_block` reads — otherwise re-wrapping a pinned literal onto a
+    continuation line silently takes the mutator's target out of reach and the
+    control stops being a control."""
     lines = text.splitlines(keepends=True)
     matches = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
     assert len(matches) == 1, f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
     idx = matches[0]
-    lines[idx] = transform(lines[idx])
-    return "".join(lines)
+    end = _block_end(lines, idx)
+    block = "".join(lines[idx:end])
+    return "".join(lines[:idx]) + transform(block) + "".join(lines[end:])
 
 
 def _duplicate_line(text: str, anchor: str) -> str:
@@ -451,14 +493,34 @@ def _duplicate_line(text: str, anchor: str) -> str:
     return "".join(lines)
 
 
-def _append_to_line(line: str, suffix: str) -> str:
-    nl = "\n" if line.endswith("\n") else ""
-    core = line[: -1] if nl else line
+def _append_to_block(block: str, suffix: str) -> str:
+    nl = "\n" if block.endswith("\n") else ""
+    core = block[:-1] if nl else block
     return f"{core} {suffix}{nl}"
 
 
-def _strip_from_line(line: str, target: str) -> str:
-    return _replace_once(line, target)
+def _strip_from_block(block: str, target: str) -> str:
+    return _replace_once(block, target)
+
+
+def _break_literal_across_lines(text: str, literal: str) -> str:
+    """Reflow *literal* in *text* so every space inside it becomes a line break.
+
+    The fixture for the false-RED direction: the literal is present and
+    unchanged, only its wrapping moved. A raw `literal in text` test reports a
+    failure for that, which is why SKILL-body.md's two pinned-literal lines had
+    been stretched to 186 and 258 characters against a file that wraps at ~95.
+    Raises if the construction did not in fact break the literal."""
+    pattern = _flex_pattern(literal)
+    match = pattern.search(text)
+    assert match is not None, f"target not found in text: {literal!r}"
+    broken = _WS.sub("\n", match.group(0))
+    # Guard on THIS occurrence, not on the whole document: a literal that also
+    # appears elsewhere (the bound is stated twice in the rubric) would otherwise
+    # mask a fixture that broke nothing.
+    if literal in broken:
+        raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
+    return text[: match.start()] + broken + text[match.end():]
 
 
 def _duplicate_bound_paragraph(body: str) -> str:
@@ -592,25 +654,25 @@ def _run_self_test() -> int:
         ),
         (
             "N5 (body: reinstate X1 on the Repeat line)",
-            lambda: _mutate_line(body, _S1_ANCHOR, lambda ln: _append_to_line(ln, _UNBOUNDED_REPEAT)),
+            lambda: _mutate_block(body, _S1_ANCHOR, lambda b: _append_to_block(b, _UNBOUNDED_REPEAT)),
             check_body,
             f'{_BODY_NAME}: unbounded Repeat instruction still present',
         ),
         (
             "N6 (body: strip re-perception pass from the Repeat line only)",
-            lambda: _mutate_line(body, _S1_ANCHOR, lambda ln: _strip_from_line(ln, _RE_PERCEPTION_PASS)),
+            lambda: _mutate_block(body, _S1_ANCHOR, lambda b: _strip_from_block(b, _RE_PERCEPTION_PASS)),
             check_body,
             f'{_BODY_NAME}: the "{_S1_ANCHOR}" line is missing "{_RE_PERCEPTION_PASS}"',
         ),
         (
             "N7 (body: strip re-entry from the Phase 3 exit line only)",
-            lambda: _mutate_line(body, _S2_ANCHOR, lambda ln: _strip_from_line(ln, _REENTRY_EXCEPTION)),
+            lambda: _mutate_block(body, _S2_ANCHOR, lambda b: _strip_from_block(b, _REENTRY_EXCEPTION)),
             check_body,
             f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause',
         ),
         (
             "N8 (body: strip the completeness claim from the Phase 3 exit line)",
-            lambda: _mutate_line(body, _S2_ANCHOR, lambda ln: _strip_from_line(ln, _COMPLETENESS_CLAIM)),
+            lambda: _mutate_block(body, _S2_ANCHOR, lambda b: _strip_from_block(b, _COMPLETENESS_CLAIM)),
             check_body,
             f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the completeness claim',
         ),
@@ -867,6 +929,26 @@ def _run_self_test() -> int:
         any("expected exactly one" in f and _S2_ANCHOR in f for f in s2_failures),
         f"failures: {'; '.join(s2_failures)}",
     )
+
+    # --- (d) Reflow controls: the false-RED direction of the same defect.
+    # A pinned literal that merely MOVED across a wrap boundary — present,
+    # unchanged, only re-wrapped — must not fail. Without these, the source has
+    # to stay hand-shaped around the matcher, and every routine reflow is a
+    # spurious red the standard remedy (re-unwrap the line) further entrenches.
+    reflow_controls = [
+        ("body / L3 Phase-1 route", body, _PHASE1_ROUTE, check_body),
+        ("body / L10a completeness claim", body, _COMPLETENESS_CLAIM, check_body),
+        ("rubric / L8 bound", rubric, _BOUND, check_rubric),
+        ("contract / L12 landing point", contract, _MIDRUN_LANDING, check_contract),
+    ]
+    for label, source, literal, checker in reflow_controls:
+        reflowed = _break_literal_across_lines(source, literal)
+        failures = checker(reflowed)
+        _report(
+            f"reflow control ({label} re-wrapped, content unchanged, gate stays green)",
+            not failures,
+            f"a pure re-wrap produced {len(failures)} failure(s): {'; '.join(failures)}",
+        )
 
     if offenders:
         sys.stderr.write(
