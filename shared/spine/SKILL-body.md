@@ -27,10 +27,24 @@ wait for that notification — not to issue sleep loops, wait scripts, repeated 
 filler turns. Polling consumes turns without producing an artifact, and the turns it consumes are
 taken from the validation pass at the end.
 
+**Re-entry edges are bounded.** Five re-entry edges exist in this methodology: the second-order
+pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop, the Self-Audit
+Gate rubric's re-score instruction, the Criterion 1 Absent verdict's return to Phase 1 to re-frame
+the Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
+edge fires **at most one re-perception pass** per analysis. A second failure of the same criterion
+after one pass is reported as an **unresolved gap with a confidence caveat**, not a second pass.
+This bound holds because the turn budget is `maxTurns: 60` and the Self-Audit Gate runs last: an
+unbounded loop spends the gate's own budget, and the gate is what gets dropped.
+
 **If you regenerate the analysis**, treat the rewrite as a *revision*, not a fresh draft: before
 presenting it, confirm every named artifact present in the prior version is carried forward, or is
 explicitly retired with a stated reason. An artifact silently lost between drafts is
-indistinguishable from one that was never produced.
+indistinguishable from one that was never produced. When a re-entry edge fires, disclose it the
+same way: **name which re-entry edge fired**, what triggered it — which criterion scored Absent,
+or which input was missing — and what changed as a result, stated at the top of the response
+alongside the omission disclosures required under "Before presenting conclusions": a disclosed
+re-entry is recoverable, a silent one is not. This disclosure is process output, not a seventh
+output section.
 
 ---
 
