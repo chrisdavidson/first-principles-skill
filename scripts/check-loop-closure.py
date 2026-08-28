@@ -125,6 +125,22 @@ _NO_PER_DELEGATION = "does not confirm framing on every delegation"  # L6
 _ASK_TOOL = "AskUserQuestion"  # L7
 _ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
 
+# L16: the fallback's mid-run branch.
+#
+# The clarification clause was widened to fire mid-run, but the unavailability
+# fallback stayed written for the pre-analysis case only — "states what it needs
+# ... before proceeding with a best-effort analysis". Applied at the mid-run
+# trigger point, the gate has already scored a criterion Absent, and two rules
+# forbid what that licenses: the rubric's "any criterion scored Absent fails the
+# entire analysis — it must be revised before conclusions are presented", and the
+# body's "do not present conclusions until ... the Self-Audit Gate is cleared".
+# Proceeding best-effort past an Absent verdict is the escape hatch those two
+# rules exist to close.
+_ASK_FALLBACK_MIDRUN = (
+    "If it is unavailable at the mid-run re-open, the analysis does not proceed "
+    "past the Absent verdict"
+)  # L16
+
 # L12: the mid-run re-open's landing point. It used to read "re-enters through
 # Phase 2" — but Phase 2's own entry criterion is "The Essence Statement from
 # Phase 1 is complete", which is definitionally what a Criterion 1 Absent
@@ -440,6 +456,12 @@ def _check_input_contract_text(text: str) -> list[str]:
     if not _contains(text, _ASK_FALLBACK):
         failures.append(
             f'{src}: missing the AskUserQuestion-unavailable fallback clause ("{_ASK_FALLBACK}")'
+        )
+    if not _contains(text, _ASK_FALLBACK_MIDRUN):
+        failures.append(
+            f'{src}: the AskUserQuestion-unavailable fallback has no mid-run branch — as '
+            f'written it licenses proceeding best-effort past an Absent verdict '
+            f'("{_ASK_FALLBACK_MIDRUN}")'
         )
     if not _contains(text, _MIDRUN_LANDING):
         failures.append(
@@ -978,6 +1000,12 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(meta, _ASK_PERMITTED),
             check_meta,
             f'{_META_NAME}: the mid-run re-open edge requires "{_ASK_PERMITTED}"',
+        ),
+        (
+            "N35 (input-contract: strip L16, the fallback's mid-run branch)",
+            lambda: _strip_everywhere(contract, _ASK_FALLBACK_MIDRUN),
+            check_contract,
+            f'{_CONTRACT_NAME}: the AskUserQuestion-unavailable fallback has no mid-run branch',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",
