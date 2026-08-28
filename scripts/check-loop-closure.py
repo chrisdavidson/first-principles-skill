@@ -15,15 +15,26 @@ Exit codes:
        instruction has been reinstated)
     2  environment error (Python <3.12, a source file is missing)
 
---self-test: runs a positive control (the live tree must be clean), thirteen
-             negative controls (N1-N13, each a single stripped/reinstated
-             literal on an in-memory copy of one real file), two anti-masking
-             controls (proving a failure is attributed to the right source
-             file), and two anchor-arity controls (proving a scoped, single-
-             line assertion does not go vacuous when its anchor matches zero
-             or more than one line). Exits 0 if every control behaves as
-             expected; exits 1 if any control wrongly passes or fails for the
-             wrong reason.
+--self-test: runs a positive control (the live tree must be clean), then a
+             table of negative controls (each a single stripped, reinstated or
+             inverted literal on an in-memory copy of one real file), a scope
+             control (proving the bound-paragraph mutation is confined to that
+             paragraph), anti-masking controls (proving a failure is attributed
+             to the right source file), and anchor-arity controls (proving a
+             scoped, single-line assertion does not go vacuous when its anchor
+             matches zero or more than one line). Exits 0 if every control
+             behaves as expected; exits 1 if any control wrongly passes or
+             fails for the wrong reason.
+
+             The control count is reported by the emitted PASS lines, never
+             asserted here as a magic number — a hand-maintained tally in a
+             docstring goes stale by construction.
+
+             Two of the negative controls reinstate their literal PRE-WRAPPED
+             at the guarded files' own ~95-column width. That is the shape a
+             real regression takes in a hard-wrapped Markdown repo, and the
+             blind spot that let an unbounded re-score instruction ship with
+             this gate green; see `_flat()` and `_reinstate_hard_wrapped()`.
 
 This gate reads three `shared/` SOURCE files as three separate strings — never
 the merged, generated `first-principles/agents/first-principles.md` — so a
@@ -38,7 +49,9 @@ separate, later step; the battery's printed tally is unaffected by this file.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
+import textwrap
 from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -87,6 +100,37 @@ _S2_ANCHOR = "**Exit criterion:** All ground truths have stable IDs"
 _TURN_DISCIPLINE_HEADING = "### Turn discipline"
 
 
+_WS = re.compile(r"\s+")
+
+# The prevailing hard-wrap width of every Markdown file this gate guards. Used
+# only by the self-test, to build a fixture in the shape a real regression takes.
+_WRAP_WIDTH = 95
+
+
+def _flat(text: str) -> str:
+    """Collapse every whitespace run to a single space.
+
+    Every file this gate guards is hard-wrapped at ~95 columns, so a pinned
+    multi-word literal can straddle a line break. A raw `literal in text` test
+    is blind to that: it reads a newline as a different character than a space,
+    so a reinstated unbounded instruction that happens to wrap inside the pinned
+    phrase sails through, and a merely-reflowed (but unchanged) pinned phrase
+    reports a false failure. Both directions are defects; normalising whitespace
+    on both the haystack and the needle closes both.
+
+    Every presence and absence assertion in this module compares `_flat(text)`
+    against `_flat(literal)` for exactly this reason. Do not reintroduce a raw
+    `in text` comparison against a multi-word literal.
+    """
+    return _WS.sub(" ", text)
+
+
+def _contains(text: str, literal: str) -> bool:
+    """Whitespace-insensitive containment — the only membership test this
+    module's assertions may use against a multi-word pinned literal."""
+    return _flat(literal) in _flat(text)
+
+
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
         sys.stderr.write(
@@ -131,15 +175,15 @@ def _check_body_text(text: str) -> list[str]:
     failures: list[str] = []
     src = _BODY_NAME
 
-    if _BOUND not in text:
+    if not _contains(text, _BOUND):
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
-    if _DEGRADE not in text:
+    if not _contains(text, _DEGRADE):
         failures.append(f'{src}: missing the degradation path ("{_DEGRADE}")')
-    if _PHASE1_ROUTE not in text:
+    if not _contains(text, _PHASE1_ROUTE):
         failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
-    if _FIRING_RECORD not in text:
+    if not _contains(text, _FIRING_RECORD):
         failures.append(f'{src}: missing the re-entry firing record ("{_FIRING_RECORD}")')
-    if _UNBOUNDED_REPEAT in text:
+    if _contains(text, _UNBOUNDED_REPEAT):
         failures.append(
             f'{src}: unbounded Repeat instruction still present ("{_UNBOUNDED_REPEAT}")'
         )
@@ -150,7 +194,7 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(
             f'{src}: expected exactly one line starting with "{_S1_ANCHOR}", found {s1_count}'
         )
-    elif _RE_PERCEPTION_PASS not in s1_line:
+    elif not _contains(s1_line, _RE_PERCEPTION_PASS):
         failures.append(
             f'{src}: the "{_S1_ANCHOR}" line is missing "{_RE_PERCEPTION_PASS}"'
         )
@@ -163,12 +207,12 @@ def _check_body_text(text: str) -> list[str]:
             f'{src}: expected exactly one line starting with "{_S2_ANCHOR}", found {s2_count}'
         )
     else:
-        if _COMPLETENESS_CLAIM not in s2_line:
+        if not _contains(s2_line, _COMPLETENESS_CLAIM):
             failures.append(
                 f'{src}: the Phase 3 exit-criterion line lost the completeness claim '
                 f'("{_COMPLETENESS_CLAIM}")'
             )
-        if _REENTRY_EXCEPTION not in s2_line:
+        if not _contains(s2_line, _REENTRY_EXCEPTION):
             failures.append(
                 f'{src}: the Phase 3 exit-criterion line lost the re-entry exception clause '
                 f'("{_REENTRY_EXCEPTION}")'
@@ -184,13 +228,13 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(f'{src}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section')
     else:
         paragraphs = [p for p in section.split("\n\n") if p.strip()]
-        bound_paragraphs = [p for p in paragraphs if _BOUND in p]
+        bound_paragraphs = [p for p in paragraphs if _contains(p, _BOUND)]
         if len(bound_paragraphs) != 1:
             failures.append(
                 f"{src}: expected exactly one paragraph in Turn discipline containing "
                 f'the bound ("{_BOUND}"), found {len(bound_paragraphs)}'
             )
-        elif _SECOND_ORDER not in bound_paragraphs[0]:
+        elif not _contains(bound_paragraphs[0], _SECOND_ORDER):
             failures.append(
                 f'{src}: the bound paragraph in Turn discipline does not name the '
                 f'second-order edge ("{_SECOND_ORDER}")'
@@ -203,15 +247,15 @@ def _check_input_contract_text(text: str) -> list[str]:
     failures: list[str] = []
     src = _CONTRACT_NAME
 
-    if _MIDRUN_SCOPE not in text:
+    if not _contains(text, _MIDRUN_SCOPE):
         failures.append(f'{src}: missing the mid-run scope clause ("{_MIDRUN_SCOPE}")')
-    if _NO_PER_DELEGATION not in text:
+    if not _contains(text, _NO_PER_DELEGATION):
         failures.append(
             f'{src}: missing the per-delegation prohibition ("{_NO_PER_DELEGATION}")'
         )
-    if _ASK_TOOL not in text:
+    if not _contains(text, _ASK_TOOL):
         failures.append(f'{src}: missing the AskUserQuestion tool reference')
-    if _ASK_FALLBACK not in text:
+    if not _contains(text, _ASK_FALLBACK):
         failures.append(
             f'{src}: missing the AskUserQuestion-unavailable fallback clause ("{_ASK_FALLBACK}")'
         )
@@ -224,13 +268,13 @@ def _check_rubric_text(text: str) -> list[str]:
     src = _RUBRIC_NAME
 
     # L8 uses the SAME _BOUND constant as the body's L1 — assertion D1.
-    if _BOUND not in text:
+    if not _contains(text, _BOUND):
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
-    if _TURN_DISCIPLINE not in text:
+    if not _contains(text, _TURN_DISCIPLINE):
         failures.append(
             f'{src}: missing the Turn discipline cross-reference ("{_TURN_DISCIPLINE}")'
         )
-    if _UNBOUNDED_RESCORE in text:
+    if _contains(text, _UNBOUNDED_RESCORE):
         failures.append(
             f'{src}: unbounded re-score instruction still present ("{_UNBOUNDED_RESCORE}")'
         )
@@ -277,12 +321,24 @@ def _validate_live_tree() -> None:
 # ---------------------------------------------------------------------------
 
 
+def _flex_pattern(target: str) -> re.Pattern[str]:
+    """A pattern matching *target* with any whitespace run standing in for each
+    of its spaces — the fixture-side counterpart of `_flat()`.
+
+    Without this, a control that strips a pinned literal breaks the moment the
+    real file reflows that literal across a line boundary: the raw
+    `str.replace` finds nothing, the precondition guard trips, and the control
+    stops being a control."""
+    return re.compile(r"\s+".join(re.escape(w) for w in _flat(target).strip().split(" ")))
+
+
 def _replace_once(text: str, target: str, replacement: str = "REMOVED") -> str:
-    """Single-site substitution — never a regex sweep, so a mutation cannot
+    """Single-site substitution — never a broad sweep, so a mutation cannot
     accidentally remove a second occurrence and make a control pass for a
-    reason it did not intend."""
-    assert text.count(target) >= 1, f"target not found in text: {target!r}"
-    return text.replace(target, replacement, 1)
+    reason it did not intend. Whitespace-tolerant (see `_flex_pattern`)."""
+    pattern = _flex_pattern(target)
+    assert pattern.search(text) is not None, f"target not found in text: {target!r}"
+    return pattern.sub(replacement, text, count=1)
 
 
 def _strip_everywhere(text: str, target: str, replacement: str = "REMOVED") -> str:
@@ -298,9 +354,12 @@ def _strip_everywhere(text: str, target: str, replacement: str = "REMOVED") -> s
     exists to catch. Used only for the whole-text presence checks (L1-L6,
     L8); the S1/S2/S3 line- and paragraph-scoped mutations stay single-site
     via `_replace_once`/`_mutate_line`, since those targets are confirmed
-    single-occurrence within their scoped line or paragraph."""
-    assert text.count(target) >= 1, f"target not found in text: {target!r}"
-    return text.replace(target, replacement)
+    single-occurrence within their scoped line or paragraph.
+
+    Whitespace-tolerant (see `_flex_pattern`)."""
+    pattern = _flex_pattern(target)
+    assert pattern.search(text) is not None, f"target not found in text: {target!r}"
+    return pattern.sub(replacement, text)
 
 
 def _mutate_line(text: str, anchor: str, transform) -> str:
@@ -336,6 +395,33 @@ def _strip_from_line(line: str, target: str) -> str:
     return _replace_once(line, target)
 
 
+def _reinstate_hard_wrapped(base: str, literal: str) -> str:
+    """Reinstate *literal* into *base* inside a paragraph hard-wrapped at
+    `_WRAP_WIDTH`, with the wrap boundary falling INSIDE the literal.
+
+    This is the shape a real regression takes in this repo: someone re-adds
+    prose and the editor or formatter reflows it at the file's own width. The
+    raw `literal in text` test the gate used before CR-01 is blind to exactly
+    this, which is how the rubric's Usage Note shipped an unbounded re-score
+    instruction with the gate green.
+
+    The two guards below make the fixture self-proving: the constructed text
+    must NOT contain the literal contiguously (otherwise the control would pass
+    for the trivial unwrapped reason and prove nothing about wrapping), and
+    must contain it once whitespace is normalised (otherwise the fixture is not
+    a reinstatement at all). If either guard trips, this raises rather than
+    handing back a vacuous fixture."""
+    for filler in range(0, 80):
+        lead = "The analysis re-scores, " + ("fixes it again, " * filler)
+        sentence = f"{lead}{literal}, however many passes that takes."
+        wrapped = "\n".join(textwrap.wrap(sentence, width=_WRAP_WIDTH))
+        if literal not in wrapped and _contains(wrapped, literal):
+            return base + "\n\n" + wrapped + "\n"
+    raise ValueError(
+        f"could not build a hard-wrapped fixture splitting the literal: {literal!r}"
+    )
+
+
 def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
     """N13: strip `second-order` from the Turn discipline bound paragraph
     ONLY. A whole-text str.replace(..., 1) is not used here — `second-order`
@@ -347,11 +433,11 @@ def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
     section = _extract_turn_discipline_section(body)
     assert section is not None, "could not locate Turn discipline section"
     paragraphs = section.split("\n\n")
-    bound_indices = [i for i, p in enumerate(paragraphs) if _BOUND in p]
+    bound_indices = [i for i, p in enumerate(paragraphs) if _contains(p, _BOUND)]
     assert len(bound_indices) == 1, f"expected exactly one bound paragraph, found {len(bound_indices)}"
     idx = bound_indices[0]
     original_paragraph = paragraphs[idx]
-    assert _SECOND_ORDER in original_paragraph, "bound paragraph does not contain second-order"
+    assert _contains(original_paragraph, _SECOND_ORDER), "bound paragraph does not contain second-order"
     mutated_paragraph = _replace_once(original_paragraph, _SECOND_ORDER)
     mutated_section = section.replace(original_paragraph, mutated_paragraph, 1)
     mutated_body = body.replace(section, mutated_section, 1)
@@ -471,6 +557,20 @@ def _run_self_test() -> int:
             lambda: _mutate_bound_paragraph_strip_second_order(body),
             check_body,
             f'{_BODY_NAME}: the bound paragraph in Turn discipline does not name the second-order edge',
+        ),
+        (
+            "N14 (body: reinstate X1 hard-wrapped at the file's own width — the "
+            "shape a real regression takes; this is the control whose absence "
+            "let a whitespace-sensitive removal check ship)",
+            lambda: _reinstate_hard_wrapped(body, _UNBOUNDED_REPEAT),
+            check_body,
+            f'{_BODY_NAME}: unbounded Repeat instruction still present',
+        ),
+        (
+            "N15 (rubric: reinstate X2 hard-wrapped at the file's own width)",
+            lambda: _reinstate_hard_wrapped(rubric, _UNBOUNDED_RESCORE),
+            check_rubric,
+            f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
         ),
     ]
 
