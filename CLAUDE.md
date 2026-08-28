@@ -90,8 +90,8 @@ shared/                         ← canonical source (edit here)
     SKILL.meta.yml              ← frontmatter for the agent
     tool-map.yml                ← slug → inline name mapping for token substitution
     references/
-      output-template.md        ← inlined into agent body by sync-content.py
-      validation-rubric.md      ← inlined into agent body by sync-content.py
+      output-template.md        ← emitted as an agent reference sibling, NOT inlined
+      validation-rubric.md      ← emitted as an agent reference sibling, NOT inlined
   agent/                        ← phase-procedure fragments stitched into the agent body
   references/                   ← companion tool reference files (five-whys.md, etc.)
   references/<slug>-detail.md   ← v8.5 on-demand appendix siblings (SLUGS_WITH_DETAIL only)

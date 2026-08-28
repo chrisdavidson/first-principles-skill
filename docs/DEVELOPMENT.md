@@ -115,8 +115,8 @@ eliminated as a confound before the real finding could be trusted.
 | `shared/spine/SKILL-body.md` | Agent body template (uses `{{TOOL:slug}}` tokens) |
 | `shared/spine/SKILL.meta.yml` | Agent frontmatter (name, description, version, disallowedTools, maxTurns) |
 | `shared/spine/tool-map.yml` | Slug → inline name mapping for token substitution |
-| `shared/spine/references/output-template.md` | Output document template inlined into the agent |
-| `shared/spine/references/validation-rubric.md` | Validation rubric inlined into the agent |
+| `shared/spine/references/output-template.md` | Output document template; ships as an agent reference sibling, not inlined |
+| `shared/spine/references/validation-rubric.md` | Self-Audit Gate; ships as an agent reference sibling, not inlined |
 | `shared/agent/` | Phase procedure fragments stitched into the agent body |
 | `shared/references/<slug>.md` | Companion technique reference files (sourced by `{{TOOL:slug}}` and `{{PROCEDURE:slug}}`) |
 | `shared/examples/` | Worked example files |

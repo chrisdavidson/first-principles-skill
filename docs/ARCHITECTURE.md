@@ -23,8 +23,8 @@ tests/            ← routing catalog fixtures and step 0 capture files
 | Agent body template | `shared/spine/SKILL-body.md` | Assembled agent body; contains `{{TOOL:slug}}` tokens |
 | Agent frontmatter | `shared/spine/SKILL.meta.yml` | Frontmatter fields emitted to the generated agent |
 | Token → name map | `shared/spine/tool-map.yml` | Slug → inline name mapping for `{{TOOL:slug}}` substitution |
-| Output template | `shared/spine/references/output-template.md` | Inlined into agent body |
-| Validation rubric | `shared/spine/references/validation-rubric.md` | Inlined into agent body |
+| Output template | `shared/spine/references/output-template.md` | Emitted as an agent reference sibling; **not** inlined |
+| Validation rubric | `shared/spine/references/validation-rubric.md` | Emitted as an agent reference sibling; **not** inlined |
 | Phase procedures | `shared/agent/` | Phase fragments stitched into the agent body |
 | Companion references | `shared/references/` | Five Whys, fishbone, inversion, pre-mortem, trade-off, second-order, estimate, theoretical-limit, identify-essence, challenge-assumptions, ground-truths, reason-upward, validate |
 | Worked examples | `shared/examples/` | Fourteen domain-spread example files |
@@ -50,9 +50,9 @@ Generated output tree:
 1. Read `shared/spine/SKILL.meta.yml` — emit frontmatter to `first-principles/agents/first-principles.md`
 2. Read `shared/spine/SKILL-body.md` — resolve `{{TOOL:slug}}` tokens
 3. For each `{{TOOL:slug}}`: substitute the phrase held under that slug's `agent` key in `shared/spine/tool-map.yml` (`_expand()`), e.g. `{{TOOL:fishbone}}` → "the inlined fishbone procedure"
-4. Inline `shared/spine/references/output-template.md` and `shared/spine/references/validation-rubric.md` at their respective insertion points
+4. Nothing from `shared/spine/references/` is inlined at this point. `output-template.md` and `validation-rubric.md` were inlined into the body until Phase 34-02 (Path B); they now ship as sibling reference files only, and the body reaches them through `${CLAUDE_PLUGIN_ROOT}/agents/references/…` links. Do not reintroduce an inlining step here — `sync-content.py` carries a standing NOTE against it.
 5. Stitch phase fragments from `shared/agent/` in order
-6. Copy `shared/references/*.md` and `shared/examples/*.md` verbatim to `first-principles/agents/references/`
+6. Copy `shared/references/*.md` and `shared/examples/*.md` verbatim to `first-principles/agents/references/`, and `shared/spine/references/*.md` to the same directory via `generate_agent_spine_references()`
 7. For each `shared/skills/<slug>/SKILL.md`: resolve `{{PROCEDURE:slug}}` tokens (replaced by the full body of `shared/references/<slug>.md` from `## When to reach for this` onward) and write to `first-principles/skills/<slug>/SKILL.md`
 
 **Drift detection:** `scripts/sync-content.py --check` verifies that `shared/` and the generated tree are in sync. Exit code 1 on any drift. This runs as a pre-commit gate and as CI gate DUAL-04.
