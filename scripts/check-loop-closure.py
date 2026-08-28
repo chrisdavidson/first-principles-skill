@@ -1,0 +1,581 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+"""HARN-02 gate: assert every re-entry edge and its bound survives in the three
+`shared/` source files that carry Phase 2's loop-closure prose.
+
+Usage:
+    python3 scripts/check-loop-closure.py [--self-test]
+
+Exit codes:
+    0  all checks passed
+    1  validation failure (a pinned literal is missing, or an unbounded
+       instruction has been reinstated)
+    2  environment error (Python <3.12, a source file is missing)
+
+--self-test: runs a positive control (the live tree must be clean), thirteen
+             negative controls (N1-N13, each a single stripped/reinstated
+             literal on an in-memory copy of one real file), two anti-masking
+             controls (proving a failure is attributed to the right source
+             file), and two anchor-arity controls (proving a scoped, single-
+             line assertion does not go vacuous when its anchor matches zero
+             or more than one line). Exits 0 if every control behaves as
+             expected; exits 1 if any control wrongly passes or fails for the
+             wrong reason.
+
+This gate reads three `shared/` SOURCE files as three separate strings — never
+the merged, generated `first-principles/agents/first-principles.md` — so a
+failure message can name which source file the missing edge belongs to.
+Negative controls always mutate an in-memory copy of the real text; no file on
+disk is ever written by this script.
+
+Not registered in `scripts/check-firewall-battery.sh`. Registration is a
+separate, later step; the battery's printed tally is unaffected by this file.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+REPO_ROOT: Path = Path(__file__).resolve().parents[1]
+BODY_PATH: Path = REPO_ROOT / "shared" / "spine" / "SKILL-body.md"
+CONTRACT_PATH: Path = REPO_ROOT / "shared" / "agent" / "input-contract.md"
+RUBRIC_PATH: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+
+_BODY_NAME = "SKILL-body.md"
+_CONTRACT_NAME = "input-contract.md"
+_RUBRIC_NAME = "validation-rubric.md"
+
+# ---------------------------------------------------------------------------
+# Pinned literals (see 02-03-PLAN.md <gate_contract>; wording confirmed
+# byte-identical to 02-01-SUMMARY.md / 02-02-SUMMARY.md's "Exact Final
+# Wording of Added Sentences").
+#
+# `_BOUND` is used against BOTH SKILL-body.md and validation-rubric.md — this
+# single shared constant IS assertion D1 (cross-file drift): the two prose
+# sites cannot diverge without both failing this gate, because there is only
+# one string for both checks to compare against.
+# ---------------------------------------------------------------------------
+_BOUND = "at most one re-perception pass"  # L1 (body) / L8 (rubric)
+_DEGRADE = "unresolved gap with a confidence caveat"  # L2
+_PHASE1_ROUTE = "returns to Phase 1 to re-frame the Essence Statement"  # L3
+_FIRING_RECORD = "name which re-entry edge fired"  # L4
+_UNBOUNDED_REPEAT = "until every criterion clears the gate"  # X1 (must be ABSENT)
+
+_MIDRUN_SCOPE = "not only before the analysis starts"  # L5
+_NO_PER_DELEGATION = "does not confirm framing on every delegation"  # L6
+_ASK_TOOL = "AskUserQuestion"  # L7
+_ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
+
+_TURN_DISCIPLINE = "Turn discipline"  # L9
+_UNBOUNDED_RESCORE = "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
+
+_COMPLETENESS_CLAIM = "complete enough that Phase 4 can reason upward"  # L10a
+_REENTRY_EXCEPTION = "re-entry"  # L10b, scoped to the Phase 3 exit line only
+_SECOND_ORDER = "second-order"  # scoped to the Turn discipline bound paragraph (S3)
+_RE_PERCEPTION_PASS = "re-perception pass"  # scoped to the Repeat line (S1)
+
+# Anchors for scoped, single-line assertions. Each must match exactly one
+# line — zero or two is itself a failure (see _find_unique_line below), so a
+# duplicated or renamed anchor is caught rather than silently skipped.
+_S1_ANCHOR = "3. **Repeat**"
+_S2_ANCHOR = "**Exit criterion:** All ground truths have stable IDs"
+_TURN_DISCIPLINE_HEADING = "### Turn discipline"
+
+
+def _require_python_version() -> None:
+    if sys.version_info < (3, 12):
+        sys.stderr.write(
+            f"scripts/check-loop-closure.py requires Python >=3.12 "
+            f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"
+        )
+        sys.exit(2)
+
+
+def _find_unique_line(text: str, anchor: str) -> tuple[str | None, int]:
+    """Return (the matching line, match count) for lines starting with *anchor*.
+
+    Returns (None, n) when n != 1, so a caller can report "expected exactly
+    one, found N" rather than silently picking the first match (or none).
+    """
+    matches = [ln for ln in text.splitlines() if ln.startswith(anchor)]
+    if len(matches) == 1:
+        return matches[0], 1
+    return None, len(matches)
+
+
+def _extract_turn_discipline_section(text: str) -> str | None:
+    """Slice the `### Turn discipline` section out of *text*: from the heading
+    to the next horizontal rule (a line consisting of `---`)."""
+    start = text.find(_TURN_DISCIPLINE_HEADING)
+    if start == -1:
+        return None
+    rule_idx = text.find("\n---", start)
+    if rule_idx == -1:
+        return text[start:]
+    return text[start:rule_idx]
+
+
+# ---------------------------------------------------------------------------
+# Pure check functions. Each takes text and returns a list of failure-message
+# strings; never raises, never prints. Every message is prefixed with the
+# source file's basename, so a merged check could not tell which file to fix.
+# ---------------------------------------------------------------------------
+
+
+def _check_body_text(text: str) -> list[str]:
+    failures: list[str] = []
+    src = _BODY_NAME
+
+    if _BOUND not in text:
+        failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
+    if _DEGRADE not in text:
+        failures.append(f'{src}: missing the degradation path ("{_DEGRADE}")')
+    if _PHASE1_ROUTE not in text:
+        failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
+    if _FIRING_RECORD not in text:
+        failures.append(f'{src}: missing the re-entry firing record ("{_FIRING_RECORD}")')
+    if _UNBOUNDED_REPEAT in text:
+        failures.append(
+            f'{src}: unbounded Repeat instruction still present ("{_UNBOUNDED_REPEAT}")'
+        )
+
+    # S1: the Repeat line names the bound.
+    s1_line, s1_count = _find_unique_line(text, _S1_ANCHOR)
+    if s1_count != 1:
+        failures.append(
+            f'{src}: expected exactly one line starting with "{_S1_ANCHOR}", found {s1_count}'
+        )
+    elif _RE_PERCEPTION_PASS not in s1_line:
+        failures.append(
+            f'{src}: the "{_S1_ANCHOR}" line is missing "{_RE_PERCEPTION_PASS}"'
+        )
+
+    # S2: the Phase 3 exit-criterion line keeps the completeness claim AND
+    # carries the new re-entry exception clause.
+    s2_line, s2_count = _find_unique_line(text, _S2_ANCHOR)
+    if s2_count != 1:
+        failures.append(
+            f'{src}: expected exactly one line starting with "{_S2_ANCHOR}", found {s2_count}'
+        )
+    else:
+        if _COMPLETENESS_CLAIM not in s2_line:
+            failures.append(
+                f'{src}: the Phase 3 exit-criterion line lost the completeness claim '
+                f'("{_COMPLETENESS_CLAIM}")'
+            )
+        if _REENTRY_EXCEPTION not in s2_line:
+            failures.append(
+                f'{src}: the Phase 3 exit-criterion line lost the re-entry exception clause '
+                f'("{_REENTRY_EXCEPTION}")'
+            )
+
+    # S3: exactly one paragraph inside Turn discipline carries the bound, and
+    # that paragraph names the second-order edge. The second-order→Phase 2
+    # edge has no site-of-trigger sentence of its own (nothing in this phase
+    # edits it) — it is bounded only by being named here, so this is the sole
+    # assertion protecting that edge.
+    section = _extract_turn_discipline_section(text)
+    if section is None:
+        failures.append(f'{src}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section')
+    else:
+        paragraphs = [p for p in section.split("\n\n") if p.strip()]
+        bound_paragraphs = [p for p in paragraphs if _BOUND in p]
+        if len(bound_paragraphs) != 1:
+            failures.append(
+                f"{src}: expected exactly one paragraph in Turn discipline containing "
+                f'the bound ("{_BOUND}"), found {len(bound_paragraphs)}'
+            )
+        elif _SECOND_ORDER not in bound_paragraphs[0]:
+            failures.append(
+                f'{src}: the bound paragraph in Turn discipline does not name the '
+                f'second-order edge ("{_SECOND_ORDER}")'
+            )
+
+    return failures
+
+
+def _check_input_contract_text(text: str) -> list[str]:
+    failures: list[str] = []
+    src = _CONTRACT_NAME
+
+    if _MIDRUN_SCOPE not in text:
+        failures.append(f'{src}: missing the mid-run scope clause ("{_MIDRUN_SCOPE}")')
+    if _NO_PER_DELEGATION not in text:
+        failures.append(
+            f'{src}: missing the per-delegation prohibition ("{_NO_PER_DELEGATION}")'
+        )
+    if _ASK_TOOL not in text:
+        failures.append(f'{src}: missing the AskUserQuestion tool reference')
+    if _ASK_FALLBACK not in text:
+        failures.append(
+            f'{src}: missing the AskUserQuestion-unavailable fallback clause ("{_ASK_FALLBACK}")'
+        )
+
+    return failures
+
+
+def _check_rubric_text(text: str) -> list[str]:
+    failures: list[str] = []
+    src = _RUBRIC_NAME
+
+    # L8 uses the SAME _BOUND constant as the body's L1 — assertion D1.
+    if _BOUND not in text:
+        failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
+    if _TURN_DISCIPLINE not in text:
+        failures.append(
+            f'{src}: missing the Turn discipline cross-reference ("{_TURN_DISCIPLINE}")'
+        )
+    if _UNBOUNDED_RESCORE in text:
+        failures.append(
+            f'{src}: unbounded re-score instruction still present ("{_UNBOUNDED_RESCORE}")'
+        )
+
+    return failures
+
+
+def _check_loop_closure(body: str, contract: str, rubric: str) -> list[str]:
+    """Pure aggregator over three strings — lets the self-test feed it
+    mutated in-memory copies without touching any file on disk."""
+    return (
+        _check_body_text(body)
+        + _check_input_contract_text(contract)
+        + _check_rubric_text(rubric)
+    )
+
+
+def _read_source_files() -> tuple[str, str, str]:
+    missing = [str(p) for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH) if not p.exists()]
+    if missing:
+        sys.stderr.write(
+            "check-loop-closure: source file(s) not found: " + ", ".join(missing) + "\n"
+        )
+        sys.exit(2)
+    return (
+        BODY_PATH.read_text(encoding="utf-8"),
+        CONTRACT_PATH.read_text(encoding="utf-8"),
+        RUBRIC_PATH.read_text(encoding="utf-8"),
+    )
+
+
+def _validate_live_tree() -> None:
+    body, contract, rubric = _read_source_files()
+    failures = _check_loop_closure(body, contract, rubric)
+    if failures:
+        for msg in failures:
+            sys.stderr.write(f"check-loop-closure: FAIL — {msg}\n")
+        sys.exit(1)
+    print("check-loop-closure: PASS")
+
+
+# ---------------------------------------------------------------------------
+# Self-test: in-memory mutation fixtures, never touching a file on disk.
+# ---------------------------------------------------------------------------
+
+
+def _replace_once(text: str, target: str, replacement: str = "REMOVED") -> str:
+    """Single-site substitution — never a regex sweep, so a mutation cannot
+    accidentally remove a second occurrence and make a control pass for a
+    reason it did not intend."""
+    assert text.count(target) >= 1, f"target not found in text: {target!r}"
+    return text.replace(target, replacement, 1)
+
+
+def _strip_everywhere(text: str, target: str, replacement: str = "REMOVED") -> str:
+    """Remove EVERY occurrence of *target* from *text*.
+
+    A whole-text "must contain" assertion (`target not in text`) is a
+    text-wide existential claim, not a site-scoped one. `_DEGRADE`
+    ("unresolved gap with a confidence caveat") is currently stated twice in
+    `SKILL-body.md` — once in the canonical Turn discipline bound paragraph,
+    once in the Repeat item's own sentence — so a single-site strip
+    (`_replace_once`) leaves the second copy standing and the presence
+    assertion never fires: exactly the WRONGLY PASSED failure this control
+    exists to catch. Used only for the whole-text presence checks (L1-L6,
+    L8); the S1/S2/S3 line- and paragraph-scoped mutations stay single-site
+    via `_replace_once`/`_mutate_line`, since those targets are confirmed
+    single-occurrence within their scoped line or paragraph."""
+    assert text.count(target) >= 1, f"target not found in text: {target!r}"
+    return text.replace(target, replacement)
+
+
+def _mutate_line(text: str, anchor: str, transform) -> str:
+    """Find the single line starting with *anchor*, apply *transform* to it,
+    and return the reassembled text. Asserts exactly one match exists."""
+    lines = text.splitlines(keepends=True)
+    matches = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
+    assert len(matches) == 1, f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    idx = matches[0]
+    lines[idx] = transform(lines[idx])
+    return "".join(lines)
+
+
+def _duplicate_line(text: str, anchor: str) -> str:
+    """Find the single line starting with *anchor* and duplicate it — used by
+    the anchor-arity controls to prove a scoped assertion does not silently
+    pick the first of several matches."""
+    lines = text.splitlines(keepends=True)
+    matches = [i for i, ln in enumerate(lines) if ln.startswith(anchor)]
+    assert len(matches) == 1, f"expected exactly one line starting with {anchor!r}, found {len(matches)}"
+    idx = matches[0]
+    lines.insert(idx, lines[idx])
+    return "".join(lines)
+
+
+def _append_to_line(line: str, suffix: str) -> str:
+    nl = "\n" if line.endswith("\n") else ""
+    core = line[: -1] if nl else line
+    return f"{core} {suffix}{nl}"
+
+
+def _strip_from_line(line: str, target: str) -> str:
+    return _replace_once(line, target)
+
+
+def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
+    """N13: strip `second-order` from the Turn discipline bound paragraph
+    ONLY. A whole-text str.replace(..., 1) is not used here — `second-order`
+    occurs earlier in the Step 0 trigger table than in Turn discipline in the
+    current file, so a naive single-site replace would hit the wrong
+    occurrence if the document were ever reordered. Slicing out the bound
+    paragraph and mutating only that slice keeps the control targeting what
+    it claims to target regardless of document order."""
+    section = _extract_turn_discipline_section(body)
+    assert section is not None, "could not locate Turn discipline section"
+    paragraphs = section.split("\n\n")
+    bound_indices = [i for i, p in enumerate(paragraphs) if _BOUND in p]
+    assert len(bound_indices) == 1, f"expected exactly one bound paragraph, found {len(bound_indices)}"
+    idx = bound_indices[0]
+    original_paragraph = paragraphs[idx]
+    assert _SECOND_ORDER in original_paragraph, "bound paragraph does not contain second-order"
+    mutated_paragraph = _replace_once(original_paragraph, _SECOND_ORDER)
+    mutated_section = section.replace(original_paragraph, mutated_paragraph, 1)
+    mutated_body = body.replace(section, mutated_section, 1)
+    return mutated_body
+
+
+def _run_self_test() -> int:
+    body, contract, rubric = _read_source_files()
+
+    offenders: list[str] = []
+
+    def _report(label: str, ok: bool, detail: str = "") -> None:
+        if ok:
+            print(f"check-loop-closure --self-test: {label} PASS")
+        else:
+            print(f"check-loop-closure --self-test: {label} FAIL — {detail}")
+            offenders.append(label)
+
+    # (a) Positive control: the live tree itself must be clean. If it is not,
+    # the self-test fails — a gate whose positive control is not green is
+    # measuring nothing.
+    live_failures = _check_loop_closure(body, contract, rubric)
+    _report(
+        "positive control (live tree)",
+        not live_failures,
+        f"live tree has {len(live_failures)} failure(s): {'; '.join(live_failures)}",
+    )
+
+    # --- Negative controls: table of (label, mutated-text-thunk, which-check, expected-substring) ---
+
+    def check_body(text: str) -> list[str]:
+        return _check_body_text(text)
+
+    def check_contract(text: str) -> list[str]:
+        return _check_input_contract_text(text)
+
+    def check_rubric(text: str) -> list[str]:
+        return _check_rubric_text(text)
+
+    negative_controls = [
+        (
+            "N1 (body: strip L1 bound)",
+            lambda: _strip_everywhere(body, _BOUND),
+            check_body,
+            f'{_BODY_NAME}: missing the re-entry bound',
+        ),
+        (
+            "N2 (body: strip L3 Phase-1 route)",
+            lambda: _strip_everywhere(body, _PHASE1_ROUTE),
+            check_body,
+            f'{_BODY_NAME}: missing the Phase-1 re-entry route',
+        ),
+        (
+            "N3 (body: strip L4 firing record)",
+            lambda: _strip_everywhere(body, _FIRING_RECORD),
+            check_body,
+            f'{_BODY_NAME}: missing the re-entry firing record',
+        ),
+        (
+            "N4 (body: strip L2 degradation path — occurs twice in the real "
+            "text, so every occurrence must be stripped for the control to "
+            "be load-bearing)",
+            lambda: _strip_everywhere(body, _DEGRADE),
+            check_body,
+            f'{_BODY_NAME}: missing the degradation path',
+        ),
+        (
+            "N5 (body: reinstate X1 on the Repeat line)",
+            lambda: _mutate_line(body, _S1_ANCHOR, lambda ln: _append_to_line(ln, _UNBOUNDED_REPEAT)),
+            check_body,
+            f'{_BODY_NAME}: unbounded Repeat instruction still present',
+        ),
+        (
+            "N6 (body: strip re-perception pass from the Repeat line only)",
+            lambda: _mutate_line(body, _S1_ANCHOR, lambda ln: _strip_from_line(ln, _RE_PERCEPTION_PASS)),
+            check_body,
+            f'{_BODY_NAME}: the "{_S1_ANCHOR}" line is missing "{_RE_PERCEPTION_PASS}"',
+        ),
+        (
+            "N7 (body: strip re-entry from the Phase 3 exit line only)",
+            lambda: _mutate_line(body, _S2_ANCHOR, lambda ln: _strip_from_line(ln, _REENTRY_EXCEPTION)),
+            check_body,
+            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause',
+        ),
+        (
+            "N8 (body: strip the completeness claim from the Phase 3 exit line)",
+            lambda: _mutate_line(body, _S2_ANCHOR, lambda ln: _strip_from_line(ln, _COMPLETENESS_CLAIM)),
+            check_body,
+            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the completeness claim',
+        ),
+        (
+            "N9 (input-contract: strip L5 mid-run scope)",
+            lambda: _strip_everywhere(contract, _MIDRUN_SCOPE),
+            check_contract,
+            f'{_CONTRACT_NAME}: missing the mid-run scope clause',
+        ),
+        (
+            "N10 (input-contract: strip L6 per-delegation prohibition)",
+            lambda: _strip_everywhere(contract, _NO_PER_DELEGATION),
+            check_contract,
+            f'{_CONTRACT_NAME}: missing the per-delegation prohibition',
+        ),
+        (
+            "N11 (rubric: strip L8 bound)",
+            lambda: _strip_everywhere(rubric, _BOUND),
+            check_rubric,
+            f'{_RUBRIC_NAME}: missing the re-entry bound',
+        ),
+        (
+            "N12 (rubric: reinstate X2 unbounded re-score)",
+            lambda: rubric + "\n" + _UNBOUNDED_RESCORE + "\n",
+            check_rubric,
+            f'{_RUBRIC_NAME}: unbounded re-score instruction still present',
+        ),
+        (
+            "N13 (body: strip second-order from the bound paragraph only)",
+            lambda: _mutate_bound_paragraph_strip_second_order(body),
+            check_body,
+            f'{_BODY_NAME}: the bound paragraph in Turn discipline does not name the second-order edge',
+        ),
+    ]
+
+    mutated_body_n1: str | None = None
+    mutated_contract_n9: str | None = None
+
+    for label, make_mutated, checker, expected_substring in negative_controls:
+        mutated = make_mutated()
+        if label.startswith("N1 "):
+            mutated_body_n1 = mutated
+        if label.startswith("N9 "):
+            mutated_contract_n9 = mutated
+        failures = checker(mutated)
+        if not failures:
+            _report(label, False, "WRONGLY PASSED (expected a failure, got none)")
+            continue
+        if not any(expected_substring in f for f in failures):
+            _report(
+                label,
+                False,
+                f"failed for the WRONG reason (expected substring {expected_substring!r}, "
+                f"got: {'; '.join(failures)})",
+            )
+            continue
+        _report(label, True)
+
+    # N13's own instruction: verify the mutation left at least one other
+    # `second-order` occurrence in the mutated text — otherwise it was not
+    # actually scoped to the bound paragraph.
+    n13_mutated = _mutate_bound_paragraph_strip_second_order(body)
+    _report(
+        "N13 scope check (other second-order mentions survive)",
+        n13_mutated.count(_SECOND_ORDER) >= 1,
+        "mutation removed every second-order occurrence — not scoped to the bound paragraph",
+    )
+
+    # --- (b) Anti-masking controls ---
+    assert mutated_contract_n9 is not None
+    assert mutated_body_n1 is not None
+
+    mixed_contract_failures = _check_loop_closure(body, mutated_contract_n9, rubric)
+    names_contract = any(_CONTRACT_NAME in f for f in mixed_contract_failures)
+    names_body_wrongly = any(_BODY_NAME in f for f in mixed_contract_failures)
+    _report(
+        "anti-masking (N9 mutation attributed to input-contract.md, not SKILL-body.md)",
+        names_contract and not names_body_wrongly,
+        f"failures: {'; '.join(mixed_contract_failures)}",
+    )
+
+    mixed_body_failures = _check_loop_closure(mutated_body_n1, contract, rubric)
+    names_body = any(_BODY_NAME in f for f in mixed_body_failures)
+    names_contract_wrongly = any(_CONTRACT_NAME in f for f in mixed_body_failures)
+    _report(
+        "anti-masking (N1 mutation attributed to SKILL-body.md, not input-contract.md)",
+        names_body and not names_contract_wrongly,
+        f"failures: {'; '.join(mixed_body_failures)}",
+    )
+
+    # --- (c) Anchor-arity controls ---
+    duplicated_s1 = _duplicate_line(body, _S1_ANCHOR)
+    s1_failures = _check_body_text(duplicated_s1)
+    _report(
+        "anchor-arity (duplicated Repeat line reports 'expected exactly one')",
+        any("expected exactly one" in f and _S1_ANCHOR in f for f in s1_failures),
+        f"failures: {'; '.join(s1_failures)}",
+    )
+
+    duplicated_s2 = _duplicate_line(body, _S2_ANCHOR)
+    s2_failures = _check_body_text(duplicated_s2)
+    _report(
+        "anchor-arity (duplicated Phase 3 exit line reports 'expected exactly one')",
+        any("expected exactly one" in f and _S2_ANCHOR in f for f in s2_failures),
+        f"failures: {'; '.join(s2_failures)}",
+    )
+
+    if offenders:
+        sys.stderr.write(
+            "check-loop-closure --self-test: FAIL — these controls wrongly passed or "
+            "failed for the wrong reason: " + ", ".join(offenders) + "\n"
+        )
+        return 1
+
+    print("check-loop-closure --self-test: PASS")
+    return 0
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="HARN-02: assert every re-entry edge and its bound is present "
+        "across the three shared/ source files."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the positive control, negative controls, and anti-masking/anchor-arity controls",
+    )
+    args = parser.parse_args()
+
+    _require_python_version()
+
+    if args.self_test:
+        sys.exit(_run_self_test())
+
+    _validate_live_tree()
+
+
+if __name__ == "__main__":
+    main()
