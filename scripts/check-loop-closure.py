@@ -461,6 +461,26 @@ def _strip_from_line(line: str, target: str) -> str:
     return _replace_once(line, target)
 
 
+def _duplicate_bound_paragraph(body: str) -> str:
+    """Duplicate the Turn discipline bound paragraph, so the S3 arity guard sees
+    two matches instead of one.
+
+    The comment above S3 states it is the sole assertion protecting the
+    second-order -> Phase 2 edge, and the arity guard is the part that stops that
+    assertion going vacuous when the paragraph is split or duplicated. It was the
+    untested half of the sole protection for that edge."""
+    section = _extract_turn_discipline_section(body)
+    assert section is not None, "could not locate Turn discipline section"
+    paragraphs = section.split("\n\n")
+    bound_indices = [i for i, para in enumerate(paragraphs) if _contains(para, _BOUND)]
+    assert len(bound_indices) == 1, (
+        f"expected exactly one bound paragraph, found {len(bound_indices)}"
+    )
+    idx = bound_indices[0]
+    paragraphs.insert(idx, paragraphs[idx])
+    return body.replace(section, "\n\n".join(paragraphs), 1)
+
+
 def _reinstate_hard_wrapped(base: str, literal: str) -> str:
     """Reinstate *literal* into *base* inside a paragraph hard-wrapped at
     `_WRAP_WIDTH`, with the wrap boundary falling INSIDE the literal.
@@ -655,6 +675,41 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(body, _BOUND_SUBORDINATION),
             check_body,
             f'{_BODY_NAME}: the degradation sentence is not subordinated to the edge-scoped bound',
+        ),
+        # N22-N26 cover the five check branches that had no negative control
+        # at all. An unexercised assertion is one nobody has shown can fire.
+        (
+            "N22 (input-contract: strip L7, the AskUserQuestion tool reference)",
+            lambda: _strip_everywhere(contract, _ASK_TOOL),
+            check_contract,
+            f'{_CONTRACT_NAME}: missing the AskUserQuestion tool reference',
+        ),
+        (
+            "N23 (input-contract: strip L7b, the unavailable-fallback clause)",
+            lambda: _strip_everywhere(contract, _ASK_FALLBACK),
+            check_contract,
+            f'{_CONTRACT_NAME}: missing the AskUserQuestion-unavailable fallback clause',
+        ),
+        (
+            "N24 (rubric: strip L9, the Turn discipline cross-reference)",
+            lambda: _strip_everywhere(rubric, _TURN_DISCIPLINE),
+            check_rubric,
+            f'{_RUBRIC_NAME}: missing the Turn discipline cross-reference',
+        ),
+        (
+            "N25 (body: rename the Turn discipline heading — the section becomes "
+            "unlocatable)",
+            lambda: body.replace(_TURN_DISCIPLINE_HEADING, "### Turn budget", 1),
+            check_body,
+            f'{_BODY_NAME}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section',
+        ),
+        (
+            "N26 (body: duplicate the bound paragraph — exercises S3's arity "
+            "guard, the untested half of the sole assertion protecting the "
+            "second-order edge)",
+            lambda: _duplicate_bound_paragraph(body),
+            check_body,
+            f"{_BODY_NAME}: expected exactly one paragraph in Turn discipline containing",
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",
