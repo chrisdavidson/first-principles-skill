@@ -137,6 +137,18 @@ _R4_PREFERENCE = (
 _R5_STEP_POINTER = "the Phase 3 verification step"  # CR-05/WR-05 (01-03): pointer use
 _R5_FAILURE_POINTER = "the Phase 3 failure record"  # CR-05/WR-05 (01-03): pointer use
 
+# --- R6: the widened downgrade branch (01-04 gap, CR-01) ---
+_R6_DOWNGRADE_SCOPE = (
+    "or opens without containing the asserted figure or wording"
+)  # 01-04 gap (CR-01): widens the downgrade branch's precondition beyond
+# "cannot be opened"; its absence means Criterion 3 inherits the same
+# unhandled-outcome hole the body had
+_R6B_SHARED_REASON = (
+    "citation does not support the claim"
+)  # 01-04 gap (CR-01): the cross-file coherence token, byte-identical to
+# _B12_NOT_FOUND_BRANCH — the same pattern Body-10/Rubric-5 use for the
+# pointer names
+
 # v8.5-Phase-154-style re-entrancy sentinel guarding the dispatch control (m) below.
 # That control drives main(["--self-test"]) to prove the CLI dispatch layer itself
 # reaches this block (not just that _run_self_test() is correct when called
@@ -387,20 +399,6 @@ def _check_rubric_text(text: str) -> list[str]:
             "whole file, expected exactly 1"
         )
 
-    # Rubric-3 (ACT-05, both branches and the preference).
-    missing: list[str] = []
-    if _R2_ACQUIRE not in crit3:
-        missing.append("acquire branch")
-    if _R3_DOWNGRADE not in crit3:
-        missing.append("downgrade branch")
-    if _R4_PREFERENCE not in crit3:
-        missing.append("stated preference")
-    if missing:
-        failures.append(
-            "Rubric-3 (ACT-05, branches and preference): Criterion 3 slice missing "
-            f"{', '.join(missing)}"
-        )
-
     # Rubric-4 (Pitfall 5, scope discipline): the Fix note must not have been
     # duplicated into a neighbouring criterion.
     crit2 = _slice(text, _CRIT2_START, _CRIT3_START)
@@ -416,19 +414,68 @@ def _check_rubric_text(text: str) -> list[str]:
             "Criterion 5 slice — must be Criterion-3-local"
         )
 
-    # Rubric-5 (CR-05, pointer use): the Criterion 3 slice points at both names
-    # the body now defines (Body-10 asserts the definitions; this asserts the
-    # pointer). Neither half alone catches a dangling cross-reference.
-    missing_pointers: list[str] = []
-    if _R5_STEP_POINTER not in crit3:
-        missing_pointers.append("step pointer")
-    if _R5_FAILURE_POINTER not in crit3:
-        missing_pointers.append("failure-record pointer")
-    if missing_pointers:
+    # Rubric-3, Rubric-5 and Rubric-6 all read the SAME Fix-note paragraph
+    # block, closing CR-02: the verifier reproduced a false PASS on a
+    # gutted-but-relocated Fix note because the required phrases were searched
+    # for anywhere in the whole Criterion 3 slice rather than inside the Fix
+    # note itself. Locating the block once means all three checks share one
+    # scope, so a future edit cannot widen one back without widening the
+    # others inconsistently.
+    fix_note_blocks = _paragraph_containing(crit3, _R1_FIX_LEAD)
+    if len(fix_note_blocks) != 1:
         failures.append(
-            "Rubric-5 (CR-05, pointer use): Criterion 3 slice missing "
-            f"{', '.join(missing_pointers)}"
+            "Rubric-3/5/6 (CR-02, block scope): Fix note paragraph occurs "
+            f"{len(fix_note_blocks)} time(s) in the Criterion 3 slice, expected "
+            "exactly 1 — cannot check branches, preference, pointers, or "
+            "downgrade scope"
         )
+    else:
+        fix_note = fix_note_blocks[0]
+
+        # Rubric-3 (ACT-05, both branches and the preference) — paragraph-scoped
+        # (CR-02 closure).
+        missing: list[str] = []
+        if _R2_ACQUIRE not in fix_note:
+            missing.append("acquire branch")
+        if _R3_DOWNGRADE not in fix_note:
+            missing.append("downgrade branch")
+        if _R4_PREFERENCE not in fix_note:
+            missing.append("stated preference")
+        if missing:
+            failures.append(
+                "Rubric-3 (ACT-05, branches and preference): Fix note paragraph "
+                f"missing {', '.join(missing)}"
+            )
+
+        # Rubric-5 (CR-05, pointer use) — paragraph-scoped (CR-02 closure). The
+        # Criterion 3 slice points at both names the body now defines (Body-10
+        # asserts the definitions; this asserts the pointer). Neither half
+        # alone catches a dangling cross-reference.
+        missing_pointers: list[str] = []
+        if _R5_STEP_POINTER not in fix_note:
+            missing_pointers.append("step pointer")
+        if _R5_FAILURE_POINTER not in fix_note:
+            missing_pointers.append("failure-record pointer")
+        if missing_pointers:
+            failures.append(
+                "Rubric-5 (CR-05, pointer use): Fix note paragraph missing "
+                f"{', '.join(missing_pointers)}"
+            )
+
+        # Rubric-6 (ACT-05, downgrade scope, 01-04 gap CR-01) —
+        # paragraph-scoped from the start: the downgrade branch's widened
+        # precondition and the reason token shared with the body's not-found
+        # branch.
+        missing_scope: list[str] = []
+        if _R6_DOWNGRADE_SCOPE not in fix_note:
+            missing_scope.append("downgrade scope")
+        if _R6B_SHARED_REASON not in fix_note:
+            missing_scope.append("shared reason token")
+        if missing_scope:
+            failures.append(
+                "Rubric-6 (ACT-05, downgrade scope): Fix note paragraph missing "
+                f"{', '.join(missing_scope)}"
+            )
 
     return failures
 
@@ -667,6 +714,35 @@ def _run_self_test() -> int:
         real_body, "| **unverified** |", _B14_TABLE_NOT_FOUND
     )
     _check_negative("v", _check_body_text(v_body), "Body-12")
+
+    # (w) Negative, rubric downgrade scope stripped (01-04 gap, CR-01).
+    w_rubric = real_rubric.replace(_R6_DOWNGRADE_SCOPE, "")
+    _check_negative("w", _check_rubric_text(w_rubric), "Rubric-6")
+
+    # (x) Negative, CR-02 regression: a gutted-but-relocated Fix note. Built
+    # the way the verifier reproduced CR-02 in 01-VERIFICATION.md — replace
+    # the Fix-note block with a stub keeping only its lead sentence, then
+    # scatter the five phrases the pre-Task-4 slice-scoped checks looked for
+    # as noise text elsewhere inside the Criterion 3 slice, outside the Fix
+    # note itself. Before Task 4's block-scoping this exact shape of fixture
+    # returned `[]` (recorded in 01-VERIFICATION.md's "Reproduction method for
+    # CR-02"); it must now fail.
+    crit3_for_x = _slice(real_rubric, _CRIT3_START, _CRIT4_START)
+    if crit3_for_x is None:
+        raise AssertionError("Criterion 3 slice not found while building fixture (x)")
+    x_fix_note_blocks = _paragraph_containing(crit3_for_x, _R1_FIX_LEAD)
+    if len(x_fix_note_blocks) != 1:
+        raise AssertionError("expected exactly one Fix note block while building fixture (x)")
+    x_original_fix_note = x_fix_note_blocks[0]
+    x_gutted_fix_note = _R1_FIX_LEAD + " (removed)"
+    x_noise_block = (
+        _R2_ACQUIRE + " " + _R3_DOWNGRADE + " " + _R4_PREFERENCE + " "
+        + _R5_STEP_POINTER + " " + _R5_FAILURE_POINTER
+        + " (noise, relocated outside the Fix note)"
+    )
+    x_replacement = x_gutted_fix_note + "\n\n" + x_noise_block
+    x_rubric = real_rubric.replace(x_original_fix_note, x_replacement, 1)
+    _check_negative("x", _check_rubric_text(x_rubric), "Rubric-3")
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
