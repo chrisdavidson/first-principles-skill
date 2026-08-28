@@ -68,10 +68,24 @@ wait for that notification — not to issue sleep loops, wait scripts, repeated 
 filler turns. Polling consumes turns without producing an artifact, and the turns it consumes are
 taken from the validation pass at the end.
 
+**Re-entry edges are bounded.** Five re-entry edges exist in this methodology: the second-order
+pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop, the Self-Audit
+Gate rubric's re-score instruction, the Criterion 1 Absent verdict's return to Phase 1 to re-frame
+the Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
+edge fires **at most one re-perception pass** per analysis. A second failure of the same criterion
+after one pass is reported as an **unresolved gap with a confidence caveat**, not a second pass.
+This bound holds because the turn budget is `maxTurns: 60` and the Self-Audit Gate runs last: an
+unbounded loop spends the gate's own budget, and the gate is what gets dropped.
+
 **If you regenerate the analysis**, treat the rewrite as a *revision*, not a fresh draft: before
 presenting it, confirm every named artifact present in the prior version is carried forward, or is
 explicitly retired with a stated reason. An artifact silently lost between drafts is
-indistinguishable from one that was never produced.
+indistinguishable from one that was never produced. When a re-entry edge fires, disclose it the
+same way: **name which re-entry edge fired**, what triggered it — which criterion scored Absent,
+or which input was missing — and what changed as a result, stated at the top of the response
+alongside the omission disclosures required under "Before presenting conclusions": a disclosed
+re-entry is recoverable, a silent one is not. This disclosure is process output, not a seventh
+output section.
 
 ---
 
@@ -168,7 +182,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Named artifact:** Ground Truths list — a numbered list of verified facts with stable GT-IDs, source citations, and a provenance label. Unverified and delegate-reported entries are marked with the `?` suffix. Where a read was attempted and did not confirm the claim, the entry carries its Phase 3 failure record — which source, and why the read failed: unreachable (404, paywall, no network, path not found, ambiguous citation), or `citation does not support the claim`.
 
-**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **Enumerate the `?`-marked ground truths by ID** — write the list, not a number: *"`?`-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)."* A stated integer does not satisfy this criterion, because an integer cannot be checked against the list it summarizes; the enumeration can, by inspection. If a count accompanies the enumeration it must equal its length, and **where the two disagree the enumeration governs.** For **every unsuffixed ground truth that feeds a HIGH-confidence derivation chain, name where the figure was read** — the page, table, section, or quoted passage. Neither an empty enumeration nor a count of zero satisfies this criterion on its own; the named read-locations are what make it auditable. For every entry whose read was attempted and failed, the Phase 3 failure record names the source and the reason. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts.
+**Exit criterion:** All ground truths have stable IDs, source citations or explicit unverified flags, a provenance label, and have passed the irreducibility test. No assumption that was discarded in Phase 2 appears in this list. **Enumerate the `?`-marked ground truths by ID** — write the list, not a number: *"`?`-marked: GT-2, GT-5, GT-9, GT-14 (4 of 22)."* A stated integer does not satisfy this criterion, because an integer cannot be checked against the list it summarizes; the enumeration can, by inspection. If a count accompanies the enumeration it must equal its length, and **where the two disagree the enumeration governs.** For **every unsuffixed ground truth that feeds a HIGH-confidence derivation chain, name where the figure was read** — the page, table, section, or quoted passage. Neither an empty enumeration nor a count of zero satisfies this criterion on its own; the named read-locations are what make it auditable. For every entry whose read was attempted and failed, the Phase 3 failure record names the source and the reason. The list is complete enough that Phase 4 can reason upward without needing to return to Phase 2 for new facts, except through the bounded re-entry edges named under Turn discipline: when a Criterion 1 return or a mid-run `AskUserQuestion` brings new facts into this list, that is the methodology working as specified, not a failure of this exit criterion.
 
 ---
 
@@ -259,7 +273,17 @@ Self-Audit Gate begin. Score the completed analysis against the criteria in the
 
 1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
-3. **Repeat** — re-score after fixing until every criterion clears the gate.
+3. **Repeat** — re-score once after fixing. If a criterion still fails after that single re-perception pass, report it as an unresolved gap with a confidence caveat instead of fixing it again — see Turn discipline for the bound governing every re-entry edge.
+
+**A Criterion 1 Absent verdict returns to Phase 1.** When the Self-Audit Gate scores Criterion 1
+Absent — the Essence Statement is missing, or the Problem Essence section holds only a
+restatement of the prompt with no analytical distillation — the analysis **returns to Phase 1 to re-frame the Essence Statement** and re-enters the phase chain from there. This is not an
+in-place rewrite of output section 1: an Essence Statement patched in place does not re-derive
+the artifacts downstream of it. This return is bounded by the Turn discipline rule (one
+re-perception pass) and is a revision like any other — artifacts carried forward or explicitly
+retired, and the firing recorded, per that same section. When the Absent verdict instead traces
+to an input the user never supplied — rather than to framing the analysis could have done
+itself — the route is to re-open input via `AskUserQuestion` under the Input Contract instead.
 
 **The Self-Audit Gate scores THIS analysis's own structure — never the subject matter.** If the
 request also asks for a rubric, scorecard, or grading scheme applied to the thing being analyzed
