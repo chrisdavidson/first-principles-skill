@@ -36,9 +36,12 @@ Exit codes:
              blind spot that let an unbounded re-score instruction ship with
              this gate green; see `_flat()` and `_reinstate_hard_wrapped()`.
 
-This gate reads three `shared/` SOURCE files as three separate strings — never
+This gate reads four `shared/` SOURCE files as four separate strings — never
 the merged, generated `first-principles/agents/first-principles.md` — so a
-failure message can name which source file the missing edge belongs to.
+failure message can name which source file the missing edge belongs to. The
+fourth is `SKILL.meta.yml`: the mid-run re-open edge's prose is unfirable
+without the frontmatter permission it depends on, so the prose and the
+permission are asserted together.
 Negative controls always mutate an in-memory copy of the real text; no file on
 disk is ever written by this script.
 
@@ -58,10 +61,12 @@ REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 BODY_PATH: Path = REPO_ROOT / "shared" / "spine" / "SKILL-body.md"
 CONTRACT_PATH: Path = REPO_ROOT / "shared" / "agent" / "input-contract.md"
 RUBRIC_PATH: Path = REPO_ROOT / "shared" / "spine" / "references" / "validation-rubric.md"
+META_PATH: Path = REPO_ROOT / "shared" / "spine" / "SKILL.meta.yml"
 
 _BODY_NAME = "SKILL-body.md"
 _CONTRACT_NAME = "input-contract.md"
 _RUBRIC_NAME = "validation-rubric.md"
+_META_NAME = "SKILL.meta.yml"
 
 # ---------------------------------------------------------------------------
 # Pinned literals (see 02-03-PLAN.md <gate_contract>; wording confirmed
@@ -129,6 +134,16 @@ _ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
 # pin the artifact-tracking clause rather than a bare phase number.
 _MIDRUN_LANDING = "re-enters at the phase that owns the artifact the Absent verdict named"  # L12
 _MIDRUN_LANDING_BODY = "re-enters at the phase that owns the missing artifact"  # L13
+
+# L15: the frontmatter permission the mid-run re-open edge depends on.
+#
+# The gate pins that edge's PROSE (L5, L6, L7, L7b, L12) across two files, but
+# the edge is unfirable unless the agent is permitted to call the tool. Drop this
+# key and every prose assertion stays green while one of the enumerated re-entry
+# edges silently becomes dead: the agent follows an instruction to use a tool it
+# cannot invoke, and the documented unavailability fallback fires permanently and
+# invisibly. Nothing else in this repo ties that key to the prose that needs it.
+_ASK_PERMITTED = "AskUserQuestion: permitted"  # L15
 
 _TURN_DISCIPLINE = "Turn discipline"  # L9
 _UNBOUNDED_RESCORE = "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
@@ -474,18 +489,36 @@ def _check_rubric_text(text: str) -> list[str]:
     return failures
 
 
-def _check_loop_closure(body: str, contract: str, rubric: str) -> list[str]:
-    """Pure aggregator over three strings — lets the self-test feed it
+def _check_meta_text(text: str) -> list[str]:
+    failures: list[str] = []
+    src = _META_NAME
+
+    if not _contains(text, _ASK_PERMITTED):
+        failures.append(
+            f'{src}: the mid-run re-open edge requires "{_ASK_PERMITTED}" in the agent '
+            f"frontmatter — without it the edge is unfirable and its prose is dead"
+        )
+
+    return failures
+
+
+def _check_loop_closure(body: str, contract: str, rubric: str, meta: str) -> list[str]:
+    """Pure aggregator over four strings — lets the self-test feed it
     mutated in-memory copies without touching any file on disk."""
     return (
         _check_body_text(body)
         + _check_input_contract_text(contract)
         + _check_rubric_text(rubric)
+        + _check_meta_text(meta)
     )
 
 
-def _read_source_files() -> tuple[str, str, str]:
-    missing = [str(p) for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH) if not p.exists()]
+def _read_source_files() -> tuple[str, str, str, str]:
+    missing = [
+        str(p)
+        for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH, META_PATH)
+        if not p.exists()
+    ]
     if missing:
         sys.stderr.write(
             "check-loop-closure: source file(s) not found: " + ", ".join(missing) + "\n"
@@ -495,12 +528,13 @@ def _read_source_files() -> tuple[str, str, str]:
         BODY_PATH.read_text(encoding="utf-8"),
         CONTRACT_PATH.read_text(encoding="utf-8"),
         RUBRIC_PATH.read_text(encoding="utf-8"),
+        META_PATH.read_text(encoding="utf-8"),
     )
 
 
 def _validate_live_tree() -> None:
-    body, contract, rubric = _read_source_files()
-    failures = _check_loop_closure(body, contract, rubric)
+    body, contract, rubric, meta = _read_source_files()
+    failures = _check_loop_closure(body, contract, rubric, meta)
     if failures:
         for msg in failures:
             sys.stderr.write(f"check-loop-closure: FAIL — {msg}\n")
@@ -684,7 +718,7 @@ def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
 
 
 def _run_self_test() -> int:
-    body, contract, rubric = _read_source_files()
+    body, contract, rubric, meta = _read_source_files()
 
     offenders: list[str] = []
 
@@ -698,7 +732,7 @@ def _run_self_test() -> int:
     # (a) Positive control: the live tree itself must be clean. If it is not,
     # the self-test fails — a gate whose positive control is not green is
     # measuring nothing.
-    live_failures = _check_loop_closure(body, contract, rubric)
+    live_failures = _check_loop_closure(body, contract, rubric, meta)
     _report(
         "positive control (live tree)",
         not live_failures,
@@ -715,6 +749,9 @@ def _run_self_test() -> int:
 
     def check_rubric(text: str) -> list[str]:
         return _check_rubric_text(text)
+
+    def check_meta(text: str) -> list[str]:
+        return _check_meta_text(text)
 
     negative_controls = [
         (
@@ -936,6 +973,13 @@ def _run_self_test() -> int:
             f'{_BODY_NAME}: expected exactly one paragraph starting with "{_S4_ANCHOR}", found 2',
         ),
         (
+            "N34 (meta: strip L15, the AskUserQuestion frontmatter permission the "
+            "mid-run re-open edge depends on)",
+            lambda: _strip_everywhere(meta, _ASK_PERMITTED),
+            check_meta,
+            f'{_META_NAME}: the mid-run re-open edge requires "{_ASK_PERMITTED}"',
+        ),
+        (
             "N13 (body: strip second-order from the bound paragraph only)",
             lambda: _mutate_bound_paragraph_strip_second_order(body),
             check_body,
@@ -1050,7 +1094,7 @@ def _run_self_test() -> int:
 
     body_alone = _check_body_text(mutated_body_n1)
     contract_alone = _check_input_contract_text(mutated_contract_n9)
-    simultaneous = _check_loop_closure(mutated_body_n1, mutated_contract_n9, rubric)
+    simultaneous = _check_loop_closure(mutated_body_n1, mutated_contract_n9, rubric, meta)
     _report(
         "anti-masking (simultaneous body+contract mutations stay separately "
         "attributed, and nothing leaks between the two message sets)",
