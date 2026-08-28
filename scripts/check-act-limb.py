@@ -316,8 +316,10 @@ _HARN01_DISPATCH_REENTRANT = False
 # `01-REVIEW.md` WR-02 measured five anchor constants that were asserted but
 # never mutated by any control. An anchor with no control is an assertion that
 # has never been shown to fail, which at the verdict line is indistinguishable
-# from an assertion that does not exist — the whole reason 17 of 33 sites in
-# this file were individually neutralizable with `--self-test` still green.
+# from an assertion that does not exist. `01-REVIEW.md` WR-02 measured 17 of 33
+# assertion sites in the pre-01-06 file as individually neutralizable with
+# `--self-test` still green; plan 01-06's closing audit, re-measuring with its
+# own site enumeration, put the same file at 22 of 53 and this one at 0 of 58.
 #
 # The ratchet: every module-level `_UPPER_SNAKE` constant must be referenced at
 # least three times in this file (its definition, at least one assertion, and at
@@ -335,13 +337,13 @@ _HARN01_DISPATCH_REENTRANT = False
 # pending entry could satisfy the ratchet by being mentioned in the ratchet.
 # --- ratchet-bookkeeping-begin ---
 _ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
-_ANCHOR_CONTROL_PENDING: dict[str, str] = {
-    # Measured by running the check with both lists empty at 01-06 Task 1, not
-    # predicted. Four of the five constants `01-REVIEW.md` WR-02 named as
-    # "asserted but never mutated by any control" are here; the fifth,
-    # `_R6B_SHARED_REASON`, already clears the count via its 01-06 derivation and
-    # gains its own control in Task 3.
-}
+# Both lists are EMPTY as of plan 01-06, and that is the claim: every
+# module-level anchor in this file carries at least one control, and nothing is
+# excused. Plan 01-06 seeded PENDING with eight constants measured by running
+# this check with both lists empty — not with a predicted list — and discharged
+# all eight by writing their controls. Re-seed PENDING rather than widen EXEMPT
+# if a future anchor arrives before its control does.
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # --- ratchet-bookkeeping-end ---
 
 
@@ -408,7 +410,11 @@ def _check_anchor_coherence() -> list[str]:
     return failures
 
 
-def _check_anchor_control_coverage(source: str) -> list[str]:
+def _check_anchor_control_coverage(
+    source: str,
+    exempt: dict[str, str] | None = None,
+    pending: dict[str, str] | None = None,
+) -> list[str]:
     """Fail when a module-level anchor constant ships without a control.
 
     Enumerates every module-level `_UPPER_SNAKE` assignment in *source* and
@@ -421,8 +427,15 @@ def _check_anchor_control_coverage(source: str) -> list[str]:
 
     `01-REVIEW.md` WR-02's standing half: without this, the next anchor added to
     this file can ship with no control and nothing says so.
+
+    *exempt* and *pending* default to the module-level lists. They are injectable
+    only so control (av) can drive every branch of this function against
+    synthetic input — the ratchet is itself an assertion, and an assertion whose
+    branches are never exercised is the thing this whole plan exists to remove.
     """
     failures: list[str] = []
+    exempt_list = _ANCHOR_CONTROL_EXEMPT if exempt is None else exempt
+    pending_list = _ANCHOR_CONTROL_PENDING if pending is None else pending
     marker_start = "# --- ratchet-bookkeeping-begin ---"
     marker_end = "# --- ratchet-bookkeeping-end ---"
     constant_re = re.compile(r"^(_[A-Z][A-Z0-9_]*)\s*(?::[^=\n]+)?=", re.MULTILINE)
@@ -469,34 +482,34 @@ def _check_anchor_control_coverage(source: str) -> list[str]:
     counting_source = source[:start] + source[end + len(marker_end) :]
 
     for name in names:
-        exempt = name in _ANCHOR_CONTROL_EXEMPT
-        pending = name in _ANCHOR_CONTROL_PENDING
+        is_exempt = name in exempt_list
+        is_pending = name in pending_list
         # Word-boundary count: `_FAILURE_RECORD_PLAIN` is a proper substring of
         # `_B11_FAILURE_RECORD_PLAIN`, and a plain `str.count` would credit the
         # shorter name with the longer name's references.
         count = len(
             re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source)
         )
-        if exempt and pending:
+        if is_exempt and is_pending:
             failures.append(
                 "Coverage (WR-02, anchor-control ratchet): "
                 f"{name} is listed in BOTH _ANCHOR_CONTROL_EXEMPT and "
                 "_ANCHOR_CONTROL_PENDING — permanent and temporary are not both"
             )
             continue
-        if exempt:
-            if not str(_ANCHOR_CONTROL_EXEMPT[name]).strip():
+        if is_exempt:
+            if not str(exempt_list[name]).strip():
                 failures.append(
                     "Coverage (WR-02, anchor-control ratchet): "
                     f"{name} is exempt with an empty justification — an unjustified "
                     "exemption is an allow-list entry, not a decision"
                 )
             continue
-        if pending:
+        if is_pending:
             if count >= 3:
                 failures.append(
                     "Coverage (WR-02, anchor-control ratchet): "
-                    f"{name} is listed pending ({_ANCHOR_CONTROL_PENDING[name]}) but is "
+                    f"{name} is listed pending ({pending_list[name]}) but is "
                     f"already referenced {count} time(s) — a stale ratchet entry is "
                     "itself a finding; remove it from _ANCHOR_CONTROL_PENDING"
                 )
@@ -508,13 +521,13 @@ def _check_anchor_control_coverage(source: str) -> list[str]:
                 "(definition, at least one assertion, at least one control)"
             )
 
-    for name in _ANCHOR_CONTROL_EXEMPT:
+    for name in exempt_list:
         if name not in names:
             failures.append(
                 "Coverage (WR-02, anchor-control ratchet): exempt entry "
                 f"{name} names no module-level anchor constant — stale"
             )
-    for name in _ANCHOR_CONTROL_PENDING:
+    for name in pending_list:
         if name not in names:
             failures.append(
                 "Coverage (WR-02, anchor-control ratchet): pending entry "
@@ -691,27 +704,28 @@ def _check_body_text(text: str) -> list[str]:
             )
 
         # Body-10 (CR-05, pointer definition): the step names itself and its
-        # failure record — each bold name occurs exactly once in the Phase 3
-        # slice, and both occur inside the step paragraph. Rubric-5 below asserts
-        # the other half of the binding — that the rubric actually points at
-        # these names. Neither half alone catches a dangling pointer, which is
-        # exactly how CR-05 survived Body-9 (whose two counted occurrences were
-        # both intra-file).
-        step_name_slice_count = phase3.count(_B10_STEP_NAME)
-        failure_record_slice_count = phase3.count(_B10_FAILURE_RECORD_NAME)
+        # failure record, and both bold names are DEFINED inside the step
+        # paragraph. Rubric-5 asserts the other half of the binding — that the
+        # rubric actually points at these names. Neither half alone catches a
+        # dangling pointer, which is exactly how CR-05 survived Body-9 (whose two
+        # counted occurrences were both intra-file).
+        #
+        # WR-13 (01-06): this used to require each bold name to occur EXACTLY
+        # ONCE in the Phase 3 slice, and only then checked containment. That
+        # count shaped the prose instead of checking it. Because the not-found
+        # branch could not bold its mention without tripping the count, it shipped
+        # writing "a Phase 3 failure record" while its sibling branch two clauses
+        # later wrote "the **Phase 3 failure record**" — two branches naming one
+        # artifact two ways, for the gate's convenience. The reviewer confirmed
+        # it by mutation: bolding the not-found mention, a purely cosmetic
+        # consistency fix, FAILED the gate. An anchor that fails a correct edit
+        # and passes only the inconsistent one is shaping the artifact rather
+        # than checking it, so the count is gone and containment — the property
+        # the check actually needs — is all that remains.
         missing_names: list[str] = []
-        if step_name_slice_count != 1:
-            missing_names.append(
-                f"step name ({step_name_slice_count} occurrence(s) in slice, expected 1)"
-            )
-        elif _B10_STEP_NAME not in para:
+        if _B10_STEP_NAME not in para:
             missing_names.append("step name (not inside the step paragraph)")
-        if failure_record_slice_count != 1:
-            missing_names.append(
-                "failure record name "
-                f"({failure_record_slice_count} occurrence(s) in slice, expected 1)"
-            )
-        elif _B10_FAILURE_RECORD_NAME not in para:
+        if _B10_FAILURE_RECORD_NAME not in para:
             missing_names.append("failure record name (not inside the step paragraph)")
         if missing_names:
             failures.append(
@@ -1786,6 +1800,149 @@ def _run_self_test() -> int:
     # distinguishable rather than two fixtures sharing one message.
     ay_rubric = real_rubric.replace(_C3_ABSENT_START, "")
     _check_negative("ay", _check_rubric_text(ay_rubric), "Rubric-7", "Absent band lead")
+
+    # (aj) Negative, the bold failure-record name stripped from the step
+    # paragraph. Body-10's failure-record sub-check has never had a control:
+    # `01-REVIEW.md` WR-02 measured all four of its pre-01-06 sub-checks as
+    # individually deletable with `--self-test` green.
+    aj_body = _mutate_body_removing_from_step_paragraph(
+        real_body, _B10_FAILURE_RECORD_NAME
+    )
+    _check_negative("aj", _check_body_text(aj_body), "Body-10", "failure record name")
+
+    # --- (av)-(bb): controls for the anchor-control ratchet itself ---
+    # The ratchet is an assertion like any other, so it gets the same treatment.
+    # Each drives one branch of `_check_anchor_control_coverage` against a
+    # synthetic source and synthetic lists — no file is read, and the module's own
+    # (empty) lists are untouched.
+    _RATCHET_FIXTURE = (
+        '_FAKE_ANCHOR = "a value"\n'
+        "# --- ratchet-bookkeeping-begin ---\n"
+        "_ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}\n"
+        "_ANCHOR_CONTROL_PENDING: dict[str, str] = {}\n"
+        "# --- ratchet-bookkeeping-end ---\n"
+        "if _FAKE_ANCHOR not in para:\n    pass\n"
+    )
+    _RATCHET_LISTED = {
+        "_ANCHOR_CONTROL_EXEMPT": "machinery",
+        "_ANCHOR_CONTROL_PENDING": "machinery",
+    }
+
+    # (av) An anchor referenced twice — definition plus one assertion, no control.
+    # This is the shortfall the ratchet exists to catch.
+    _check_negative(
+        "av",
+        _check_anchor_control_coverage(
+            _RATCHET_FIXTURE, exempt=dict(_RATCHET_LISTED), pending={}
+        ),
+        "Coverage",
+        "referenced 2 time(s)",
+    )
+
+    # (az) An exemption with an empty justification — an allow-list entry wearing
+    # a decision's clothes.
+    _check_negative(
+        "az",
+        _check_anchor_control_coverage(
+            _RATCHET_FIXTURE,
+            exempt={**_RATCHET_LISTED, "_FAKE_ANCHOR": "   "},
+            pending={},
+        ),
+        "Coverage",
+        "empty justification",
+    )
+
+    # (ba) A pending entry that is no longer short — the stale ratchet entry that
+    # would otherwise rot into a permanent allow-list.
+    _check_negative(
+        "ba",
+        _check_anchor_control_coverage(
+            _RATCHET_FIXTURE.replace("if _FAKE_ANCHOR not in para:", "if _FAKE_ANCHOR and _FAKE_ANCHOR:"),
+            exempt=dict(_RATCHET_LISTED),
+            pending={"_FAKE_ANCHOR": "some future task"},
+        ),
+        "Coverage",
+        "a stale ratchet entry is itself a finding",
+    )
+
+    # (bb) A constant listed in BOTH lists — permanent and temporary at once.
+    _check_negative(
+        "bb",
+        _check_anchor_control_coverage(
+            _RATCHET_FIXTURE,
+            exempt={**_RATCHET_LISTED, "_FAKE_ANCHOR": "justified"},
+            pending={"_FAKE_ANCHOR": "some future task"},
+        ),
+        "Coverage",
+        "listed in BOTH",
+    )
+
+    # (bc) The bookkeeping markers removed — without them the reference counts
+    # would silently include the ratchet's own lists, so a pending entry could
+    # satisfy the ratchet by being mentioned in the ratchet.
+    _check_negative(
+        "bc",
+        _check_anchor_control_coverage(
+            _RATCHET_FIXTURE.replace("# --- ratchet-bookkeeping-begin ---\n", ""),
+            exempt=dict(_RATCHET_LISTED),
+            pending={},
+        ),
+        "Coverage",
+        "bookkeeping markers not found",
+    )
+
+    # --- (bd)-(bf): the three assertion sites the closing neutralization audit
+    # found still individually neutralizable with `--self-test` green. They were
+    # not on the plan's list; the audit is what surfaced them, which is the
+    # audit doing its job rather than confirming a prediction.
+
+    # (bd) Negative, Body-13's SHARED-COUNT sub-item. Same fixture as (aa) —
+    # every mutation that drops the count below 2 must also remove one of the two
+    # polarity gates, because both occurrences of the shared token live inside
+    # them — but declared against the count sub-item, which (aa) and (z) leave
+    # uncontrolled by declaring the polarity sub-items instead.
+    bd_body = _mutate_body_removing_from_step_paragraph(real_body, _B13_POPULATION_GATE)
+    _check_negative(
+        "bd", _check_body_text(bd_body), "Body-13", "shared predicate token"
+    )
+
+    # (be) Negative, the Criterion 3 heading removed — Rubric-1, which had no
+    # control at all. The body's equivalent site has had one since 01-01 (control
+    # (j)); the rubric's had none, so `Rubric-1` could be deleted outright with
+    # the battery still green.
+    be_rubric = real_rubric.replace(_CRIT3_START, "")
+    _check_negative(
+        "be", _check_rubric_text(be_rubric), "Rubric-1", "Criterion 3 slice not found"
+    )
+
+    # (bf) Negative, the Hand-wavy and Absent band leads SWAPPED, so both are
+    # present but out of order and `_slice` returns None for a third reason.
+    # This is Rubric-7's own defensive branch — the one that says the bands are
+    # present but the ladder is inverted — and a defensive branch nothing can
+    # reach is indistinguishable from one that is not there.
+    bf_head, bf_region, bf_tail = _split_criterion3_region(real_rubric)
+    _BF_PLACEHOLDER = "<<01-06 fixture (bf) band swap>>"
+    bf_swapped = (
+        bf_region.replace(_C3_HANDWAVY_START, _BF_PLACEHOLDER, 1)
+        .replace(_C3_ABSENT_START, _C3_HANDWAVY_START, 1)
+        .replace(_BF_PLACEHOLDER, _C3_ABSENT_START, 1)
+    )
+    if _BF_PLACEHOLDER in bf_swapped or bf_swapped == bf_region:
+        raise AssertionError(
+            "band swap did not complete while building fixture (bf) — the two "
+            "band leads are not both present exactly once in the Criterion 3 region"
+        )
+    if bf_swapped.find(_C3_ABSENT_START) >= bf_swapped.find(_C3_HANDWAVY_START):
+        raise AssertionError(
+            "fixture (bf) did not invert the band order — the Absent lead must "
+            "precede the Hand-wavy lead for this fixture to test anything"
+        )
+    _check_negative(
+        "bf",
+        _check_rubric_text(bf_head + bf_swapped + bf_tail),
+        "Rubric-7",
+        "out of order",
+    )
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
