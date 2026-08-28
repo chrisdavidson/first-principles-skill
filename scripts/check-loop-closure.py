@@ -3,8 +3,9 @@
 # requires-python = ">=3.12"
 # dependencies = []
 # ///
-"""HARN-02 gate: assert every re-entry edge and its bound survives in the three
-`shared/` source files that carry Phase 2's loop-closure prose.
+"""HARN-02 gate: assert every re-entry edge and its bound survives in the four
+`shared/` source files that carry Phase 2's loop-closure prose and the
+frontmatter permission one of those edges depends on.
 
 Usage:
     python3 scripts/check-loop-closure.py [--self-test]
