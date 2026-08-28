@@ -247,6 +247,16 @@ _R3_DOWNGRADE = "downgrade the confidence"  # ACT-05: branch two (fallback)
 _R4_PREFERENCE = (
     "acquisition is preferred when the source is reachable"
 )  # ACT-05: the stated preference between the two branches
+# --- C3 band boundaries (WR-11, 01-06): Criterion 3's four-band ladder ---
+# Each lead below is verified UNIQUE in the whole emitted rubric. The file also
+# carries a generic band table whose bullets open with the same `- **Sound** — `
+# prefix and continue differently, so the prefix alone would slice the wrong
+# region; these anchors carry enough of the band's own first clause to be
+# unambiguous.
+_C3_SOUND_START = "- **Sound** — GT-IDs are present and stable"
+_C3_HANDWAVY_START = "- **Hand-wavy** — GT-IDs are present but they are not stable"
+_C3_ABSENT_START = "- **Absent** — no GT-IDs are assigned to any fact"
+
 _R5_STEP_POINTER = f"the {_STEP_NAME_PLAIN}"
 # CR-05/WR-05 (01-03): pointer use. DERIVED at 01-06 (WR-14).
 _R5_FAILURE_POINTER = f"the {_FAILURE_RECORD_PLAIN}"
@@ -331,12 +341,6 @@ _ANCHOR_CONTROL_PENDING: dict[str, str] = {
     # "asserted but never mutated by any control" are here; the fifth,
     # `_R6B_SHARED_REASON`, already clears the count via its 01-06 derivation and
     # gains its own control in Task 3.
-    # The three slice-boundary constants the plan expected to exempt. The run
-    # shows Task 3's Rubric-4 and Rubric-2 controls must build fixtures against
-    # these slices, so they earn real controls rather than an exemption.
-    "_CRIT2_START": "01-06 Task 3 — control (aq)",
-    "_CRIT5_START": "01-06 Task 3 — control (ar)",
-    "_CRIT6_START": "01-06 Task 3 — controls (am)/(an)",
 }
 # --- ratchet-bookkeeping-end ---
 
@@ -824,6 +828,40 @@ def _check_rubric_text(text: str) -> list[str]:
             "Criterion 5 slice — must be Criterion-3-local"
         )
 
+    # Rubric-7 (ACT-05, band placement, WR-11): the Fix note must sit inside
+    # Criterion 3's HAND-WAVY band, not merely somewhere inside Criterion 3.
+    #
+    # `01-REVIEW.md` WR-11 reproduced the hole: 01-04 scoped Rubric-3/5/6 to the
+    # Fix-note BLOCK, but nothing scoped the block to the band it must attach to,
+    # so moving the intact note out of Hand-wavy and into **Sound** returned `[]`
+    # — a clean PASS on a rubric telling the agent to acquire-before-downgrade in
+    # response to a score that is not a failing band at all.
+    #
+    # The missing-slice branch is a LOUD failure, deliberately unlike Rubric-4's
+    # `if crit2 is not None` pattern: `_slice`'s own docstring says a vanished
+    # section is "a failure to report, not an empty string to silently pass
+    # through (the D-11 vacuity failure mode)", and WR-10 records that Rubric-4
+    # violates it. Rubric-7 is written the other way, and names WHICH boundary
+    # vanished so its two controls fail for distinguishable reasons.
+    handwavy = _slice(crit3, _C3_HANDWAVY_START, _C3_ABSENT_START)
+    if handwavy is None:
+        missing_bands: list[str] = []
+        if _C3_HANDWAVY_START not in crit3:
+            missing_bands.append("Hand-wavy band lead")
+        if _C3_ABSENT_START not in crit3:
+            missing_bands.append("Absent band lead")
+        if not missing_bands:
+            missing_bands.append("both band leads present but out of order")
+        failures.append(
+            "Rubric-7 (ACT-05, band placement): Criterion 3 Hand-wavy band slice "
+            f"not found — {', '.join(missing_bands)}"
+        )
+    elif _R1_FIX_LEAD not in handwavy:
+        failures.append(
+            "Rubric-7 (ACT-05, band placement): Fix note is inside Criterion 3 but "
+            "not inside its Hand-wavy band"
+        )
+
     # Rubric-3, Rubric-5 and Rubric-6 all read the SAME Fix-note paragraph
     # block, closing CR-02: the verifier reproduced a false PASS on a
     # gutted-but-relocated Fix note because the required phrases were searched
@@ -1072,6 +1110,69 @@ def _mutate_body_removing_from_step_paragraph(real_body: str, target: str) -> st
     return _mutate_body_removing_from_block(real_body, _B1_STEP_LEAD, target)
 
 
+def _split_criterion3_region(real_rubric: str) -> tuple[str, str, str]:
+    """Return `(head, region, tail)` around the Criterion 3 byte range of
+    *real_rubric*, so a rubric fixture can be spliced positionally rather than
+    replaced against the whole file.
+
+    Added at 01-06. The rubric controls previously used whole-file
+    `str.replace`, which mutates occurrences outside the Fix note — the WR-08
+    defect class, on the rubric surface. Every rubric anchor happens to be unique
+    in the emitted file today, so no shipped control was actually mis-targeting;
+    positional anchoring is what keeps that true after a future prose edit
+    introduces a second occurrence somewhere else.
+    """
+    start = real_rubric.find(_CRIT3_START)
+    if start == -1:
+        raise AssertionError(
+            "Criterion 3 start heading not found while building a rubric fixture"
+        )
+    end = real_rubric.find(_CRIT4_START, start)
+    if end == -1:
+        raise AssertionError(
+            "Criterion 4 start heading not found after Criterion 3 while building a "
+            "rubric fixture"
+        )
+    return real_rubric[:start], real_rubric[start:end], real_rubric[end:]
+
+
+def _mutate_rubric_removing_from_fix_note(real_rubric: str, target: str) -> str:
+    """Return a copy of *real_rubric* with *target* removed only from the Fix-note
+    block inside the Criterion 3 region.
+
+    The rubric counterpart of `_mutate_body_removing_from_block`, with the same
+    guards: the Fix-note block must be unique inside the Criterion 3 region, and
+    *target* must actually occur inside it. A substitution that matches nothing
+    is a no-op fixture, and a no-op fixture returns the unmutated rubric — which
+    `_check_rubric_text` passes, so the control would report `correctly failed`
+    while testing nothing.
+    """
+    head, region, tail = _split_criterion3_region(real_rubric)
+    blocks = _paragraph_containing(region, _R1_FIX_LEAD)
+    if len(blocks) != 1:
+        raise AssertionError(
+            "expected exactly one Fix note block inside the Criterion 3 region "
+            f"while building a rubric fixture, found {len(blocks)}"
+        )
+    original_block = blocks[0]
+    region_occurrences = region.count(original_block)
+    if region_occurrences != 1:
+        raise AssertionError(
+            "expected the Fix note block to occur exactly once inside the "
+            f"Criterion 3 region while building a rubric fixture, found "
+            f"{region_occurrences}"
+        )
+    target_occurrences = original_block.count(target)
+    if target_occurrences < 1:
+        raise AssertionError(
+            f"expected {target!r} to occur inside the Fix note block while "
+            "building a rubric fixture, found none — a fixture that removes "
+            "nothing tests nothing"
+        )
+    mutated_block = original_block.replace(target, "")
+    return head + region.replace(original_block, mutated_block, 1) + tail
+
+
 def _build_pre05_regression_body(real_body: str) -> str:
     """Return a copy of *real_body* whose Phase 3 step paragraph has been rewound
     to its pre-01-05 wording, by reversing each `_PRE05_REGRESSION_SUBSTITUTIONS`
@@ -1245,7 +1346,9 @@ def _run_self_test() -> int:
 
     # (c) Negative, step missing (ACT-01).
     c_body = real_body.replace(_B1_STEP_LEAD, "REMOVED")
-    _check_negative("c", _check_body_text(c_body), "Body-2", "0 time(s) in the Phase 3 slice")
+    _check_negative(
+        "c", _check_body_text(c_body), "Body-2", "lead occurs 0 time(s) in the Phase 3 slice"
+    )
 
     # (d) Negative, the population's intent half stripped (ACT-04) — proves the
     # gate asserts the bound, not mere presence. Retargeted at 01-05 from the
@@ -1290,7 +1393,9 @@ def _run_self_test() -> int:
         raise AssertionError("expected exactly one step paragraph while building fixture (h)")
     h_original_para = h_paragraphs[0]
     h_body = real_body + "\n\n" + h_original_para
-    _check_negative("h", _check_body_text(h_body), "Body-3", "2 time(s) in the whole file")
+    _check_negative(
+        "h", _check_body_text(h_body), "Body-3", "lead occurs 2 time(s) in the whole file"
+    )
 
     # (i) Negative, duplicated. Duplicate the step paragraph inside the Phase 3 slice.
     phase3_for_i = _slice(real_body, _PHASE3_START, _PHASE4_START)
@@ -1303,7 +1408,9 @@ def _run_self_test() -> int:
     i_body = real_body.replace(
         i_original_para, i_original_para + "\n\n" + i_original_para, 1
     )
-    _check_negative("i", _check_body_text(i_body), "Body-2", "2 time(s) in the Phase 3 slice")
+    _check_negative(
+        "i", _check_body_text(i_body), "Body-2", "lead occurs 2 time(s) in the Phase 3 slice"
+    )
 
     # (j) Negative, Phase 3 heading removed.
     j_body = real_body.replace(_PHASE3_START, "")
@@ -1312,11 +1419,16 @@ def _run_self_test() -> int:
     # (k) Negative, rubric Fix note stripped (ACT-05).
     k_rubric = real_rubric.replace(_R1_FIX_LEAD, "REMOVED")
     _check_negative(
-        "k", _check_rubric_text(k_rubric), "Rubric-2", "0 time(s) in the Criterion 3 slice"
+        "k",
+        _check_rubric_text(k_rubric),
+        "Rubric-2",
+        "lead occurs 0 time(s) in the Criterion 3 slice",
     )
 
-    # (l) Negative, rubric preference stripped (ACT-05).
-    l_rubric = real_rubric.replace(_R4_PREFERENCE, "")
+    # (l) Negative, rubric preference stripped (ACT-05). Retargeted at 01-06
+    # from whole-file `str.replace` onto the Criterion-3-anchored, block-scoped
+    # helper, closing the WR-08 defect class on the rubric surface.
+    l_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R4_PREFERENCE)
     _check_negative("l", _check_rubric_text(l_rubric), "Rubric-3", "stated preference")
 
     # (n) Negative, inclusive clause stripped (gap 1 / CR-04 regression control).
@@ -1356,8 +1468,9 @@ def _run_self_test() -> int:
     )
     _check_negative("r", _check_body_text(r_body), "Body-9", "population bound occurs")
 
-    # (s) Negative, rubric pointer stripped (CR-05, pointer use).
-    s_rubric = real_rubric.replace(_R5_STEP_POINTER, "")
+    # (s) Negative, rubric pointer stripped (CR-05, pointer use). Block-scoped
+    # at 01-06, as (l).
+    s_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R5_STEP_POINTER)
     _check_negative("s", _check_rubric_text(s_rubric), "Rubric-5", "step pointer")
 
     # (t) Negative, not-found branch's reason token stripped (01-04 gap, CR-01).
@@ -1382,7 +1495,8 @@ def _run_self_test() -> int:
     _check_negative("v", _check_body_text(v_body), "Body-12", "missing the not-found test")
 
     # (w) Negative, rubric downgrade scope stripped (01-04 gap, CR-01).
-    w_rubric = real_rubric.replace(_R6_DOWNGRADE_SCOPE, "")
+    # Block-scoped at 01-06, as (l).
+    w_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R6_DOWNGRADE_SCOPE)
     _check_negative("w", _check_rubric_text(w_rubric), "Rubric-6", "downgrade scope")
 
     # (x) Negative, CR-02 regression: a gutted-but-relocated Fix note. Built
@@ -1513,7 +1627,9 @@ def _run_self_test() -> int:
     # slice — exercises `Body-12`'s `len(table_blocks) != 1` guard, the vacuity
     # guard 01-04 added and never controlled.
     al_body = _mutate_body_duplicating_block(real_body, "| **unverified** |")
-    _check_negative("al", _check_body_text(al_body), "Body-12", "occurs 2 time(s)")
+    _check_negative(
+        "al", _check_body_text(al_body), "Body-12", "table block occurs 2 time(s)"
+    )
 
     # (aw) Negative, the population's ACTION half stripped. Not predicted by the
     # plan; the anchor-control ratchet found it. `_B2_POPULATION_ACTION` is
@@ -1523,6 +1639,153 @@ def _run_self_test() -> int:
     # fixture, different declared assertion, and both are live.
     aw_body = _mutate_body_removing_from_step_paragraph(real_body, _B2_POPULATION_ACTION)
     _check_negative("aw", _check_body_text(aw_body), "Body-5", "population action")
+
+    # --- (am)-(au), (ax), (ay): the rubric-side assertions `01-REVIEW.md` WR-02
+    # measured as individually neutralizable, plus WR-11's band-placement gap.
+
+    # (am) Negative, the Fix-note LEAD relocated out of Criterion 3 into
+    # Criterion 6, leaving exactly ONE whole-file occurrence. Control (k) removes
+    # the lead entirely, so BOTH halves of Rubric-2 fire; (am) reaches the case
+    # (k) cannot — the slice half firing while the whole-file half passes.
+    am_head, am_region, am_tail = _split_criterion3_region(real_rubric)
+    am_region_moved = am_region.replace(_R1_FIX_LEAD, "", 1)
+    if am_region_moved == am_region:
+        raise AssertionError(
+            "Fix note lead not found in the Criterion 3 region while building "
+            "fixture (am)"
+        )
+    am_rubric = (am_head + am_region_moved + am_tail).replace(
+        _CRIT6_START,
+        _CRIT6_START + "\n\n" + _R1_FIX_LEAD + " (relocated by fixture (am))",
+        1,
+    )
+    _check_negative(
+        "am",
+        _check_rubric_text(am_rubric),
+        "Rubric-2",
+        "lead occurs 0 time(s) in the Criterion 3 slice",
+    )
+
+    # (an) Negative, a SECOND Fix-note lead appended inside the Criterion 6
+    # slice: the Criterion 3 count stays 1 (slice half passes) while the
+    # whole-file count becomes 2 (whole-file half fires) — the mirror of (am).
+    # Criterion 6 is chosen because Rubric-4 guards only Criteria 2 and 5, so
+    # using either of those would fire Rubric-4 too and blur the isolation.
+    an_rubric = real_rubric.replace(
+        _CRIT6_START,
+        _CRIT6_START + "\n\n" + _R1_FIX_LEAD + " (duplicated by fixture (an))",
+        1,
+    )
+    _check_negative(
+        "an",
+        _check_rubric_text(an_rubric),
+        "Rubric-2",
+        "lead occurs 2 time(s) in the whole file",
+    )
+
+    # (ao) Negative, the acquire branch stripped from the Fix-note block.
+    ao_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R2_ACQUIRE)
+    _check_negative("ao", _check_rubric_text(ao_rubric), "Rubric-3", "acquire branch")
+
+    # (ap) Negative, the downgrade branch stripped from the Fix-note block.
+    ap_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R3_DOWNGRADE)
+    _check_negative("ap", _check_rubric_text(ap_rubric), "Rubric-3", "downgrade branch")
+
+    # (aq) Negative, the Fix-note lead duplicated into the Criterion 2 slice.
+    # Rubric-2's whole-file half fires alongside Rubric-4 — WR-10's finding, left
+    # standing here on purpose: this task gives Rubric-4's two sites controls and
+    # changes neither guard.
+    aq_rubric = real_rubric.replace(
+        _CRIT2_START,
+        _CRIT2_START + "\n\n" + _R1_FIX_LEAD + " (duplicated by fixture (aq))",
+        1,
+    )
+    _check_negative("aq", _check_rubric_text(aq_rubric), "Rubric-4", "Criterion 2 slice")
+
+    # (ar) Negative, the Fix-note lead duplicated into the Criterion 5 slice.
+    ar_rubric = real_rubric.replace(
+        _CRIT5_START,
+        _CRIT5_START + "\n\n" + _R1_FIX_LEAD + " (duplicated by fixture (ar))",
+        1,
+    )
+    _check_negative("ar", _check_rubric_text(ar_rubric), "Rubric-4", "Criterion 5 slice")
+
+    # (as) Negative, the failure-record pointer stripped from the Fix-note block.
+    # Control (s) covers the step pointer; WR-02 measured this half as separately
+    # deletable.
+    as_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R5_FAILURE_POINTER)
+    _check_negative(
+        "as", _check_rubric_text(as_rubric), "Rubric-5", "failure-record pointer"
+    )
+
+    # (at) Negative, the shared not-found reason token stripped from the Fix-note
+    # block — the fifth of the five constants WR-02 named as asserted but never
+    # mutated by any control.
+    at_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R6B_SHARED_REASON)
+    _check_negative(
+        "at", _check_rubric_text(at_rubric), "Rubric-6", "shared reason token"
+    )
+
+    # (au) THE WR-11 REPRODUCTION, and the most load-bearing control in this
+    # group. Lifts the INTACT Fix-note block out of the Hand-wavy band and
+    # re-inserts it byte for byte inside the Sound band. Every other Rubric check
+    # still passes on this fixture — the Rubric-2 counts are unchanged, the block
+    # is still unique inside Criterion 3, Rubric-3/5/6 still find every literal,
+    # Rubric-4 sees nothing in Criteria 2 or 5 — so Rubric-7 must be the SOLE
+    # failure. Against the pre-Task-3 gate this exact fixture returned `[]`.
+    au_head, au_region, au_tail = _split_criterion3_region(real_rubric)
+    au_blocks = _paragraph_containing(au_region, _R1_FIX_LEAD)
+    if len(au_blocks) != 1:
+        raise AssertionError(
+            "expected exactly one Fix note block while building fixture (au), "
+            f"found {len(au_blocks)}"
+        )
+    au_fix_note = au_blocks[0]
+    au_without = au_region.replace("\n\n" + au_fix_note, "", 1)
+    if au_without == au_region:
+        raise AssertionError(
+            "Fix note block not excised while building fixture (au) — the block "
+            "is not preceded by a blank line as assumed"
+        )
+    au_sound_blocks = _paragraph_containing(au_without, _C3_SOUND_START)
+    if len(au_sound_blocks) != 1:
+        raise AssertionError(
+            "expected exactly one Sound band lead block while building fixture "
+            f"(au), found {len(au_sound_blocks)}"
+        )
+    au_region_new = au_without.replace(
+        au_sound_blocks[0], au_sound_blocks[0] + "\n\n" + au_fix_note, 1
+    )
+    # Fixture self-check: the relocated note must land BETWEEN the Sound band's
+    # lead and the Hand-wavy band's lead. Without this, a future prose reorder
+    # could leave the note where it started and (au) would report `correctly
+    # failed` on some unrelated defect.
+    au_sound_at = au_region_new.find(_C3_SOUND_START)
+    au_note_at = au_region_new.find(_R1_FIX_LEAD)
+    au_handwavy_at = au_region_new.find(_C3_HANDWAVY_START)
+    if not 0 <= au_sound_at < au_note_at < au_handwavy_at:
+        raise AssertionError(
+            "fixture (au) did not land the Fix note inside the Sound band "
+            f"(sound={au_sound_at}, note={au_note_at}, handwavy={au_handwavy_at})"
+        )
+    au_rubric = au_head + au_region_new + au_tail
+    _check_negative(
+        "au", _check_rubric_text(au_rubric), "Rubric-7", "not inside its Hand-wavy band"
+    )
+
+    # (ax) Negative, the Hand-wavy band lead removed — Rubric-7's loud-on-vanish
+    # branch. A silent skip here is exactly the vacuity hole WR-10 records for
+    # Rubric-4.
+    ax_rubric = real_rubric.replace(_C3_HANDWAVY_START, "")
+    _check_negative(
+        "ax", _check_rubric_text(ax_rubric), "Rubric-7", "Hand-wavy band lead"
+    )
+
+    # (ay) Negative, the Absent band lead removed — the other boundary of the
+    # same slice, reported by its own name so the two controls are
+    # distinguishable rather than two fixtures sharing one message.
+    ay_rubric = real_rubric.replace(_C3_ABSENT_START, "")
+    _check_negative("ay", _check_rubric_text(ay_rubric), "Rubric-7", "Absent band lead")
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
