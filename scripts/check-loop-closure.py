@@ -151,7 +151,12 @@ _USAGE_NOTE_BOUND = (
 )  # L11
 
 _COMPLETENESS_CLAIM = "complete enough that Phase 4 can reason upward"  # L10a
-_REENTRY_EXCEPTION = "re-entry"  # L10b, scoped to the Phase 3 exit line only
+# L10b: the exception CLAUSE, not the token. This used to be the seven-character
+# token "re-entry", which any sentence containing the word satisfied — including
+# one that removes the exception ("this exit criterion admits no re-entry"). The
+# pin could not distinguish the clause from its negation, and did not check that
+# the clause names the edges or defers to the bound.
+_REENTRY_EXCEPTION = "except through the bounded re-entry edges named under Turn discipline"
 _SECOND_ORDER = "second-order"  # scoped to the Turn discipline bound paragraph (S3)
 _RE_PERCEPTION_PASS = "re-perception pass"  # scoped to the Repeat line (S1)
 
@@ -160,6 +165,11 @@ _RE_PERCEPTION_PASS = "re-perception pass"  # scoped to the Repeat line (S1)
 # duplicated or renamed anchor is caught rather than silently skipped.
 _S1_ANCHOR = "3. **Repeat**"
 _S2_ANCHOR = "**Exit criterion:** All ground truths have stable IDs"
+# S4: the Phase-1 route sentence must live in the paragraph that owns it. Checked
+# whole-text, the sentence could migrate anywhere in the document — into a
+# companion-tool blurb, say — and still pass. S1, S2 and S3 are all scoped; L3
+# was not, with no stated reason.
+_S4_ANCHOR = "**A Criterion 1 Absent verdict returns to Phase 1.**"
 _TURN_DISCIPLINE_HEADING = "### Turn discipline"
 
 
@@ -314,8 +324,20 @@ def _check_body_text(text: str) -> list[str]:
             f'bound — a criterion-scoped carve-out leaves the loop reopenable by '
             f'alternating which criterion fails ("{_BOUND_SUBORDINATION}")'
         )
-    if not _contains(text, _PHASE1_ROUTE):
-        failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
+    # S4: L3 is scoped to the paragraph that owns it, not checked whole-text.
+    s4_block, s4_count = _find_unique_block(text, _S4_ANCHOR)
+    if s4_count != 1:
+        failures.append(
+            f'{src}: expected exactly one paragraph starting with "{_S4_ANCHOR}", '
+            f"found {s4_count}"
+        )
+        if not _contains(text, _PHASE1_ROUTE):
+            failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
+    elif not _contains(s4_block, _PHASE1_ROUTE):
+        failures.append(
+            f'{src}: missing the Phase-1 re-entry route from the paragraph that owns it '
+            f'("{_PHASE1_ROUTE}")'
+        )
     if not _contains(text, _FIRING_RECORD):
         failures.append(f'{src}: missing the re-entry firing record ("{_FIRING_RECORD}")')
     if _contains(text, _UNBOUNDED_REPEAT):
@@ -881,6 +903,37 @@ def _run_self_test() -> int:
             ),
             check_body,
             f'{_BODY_NAME}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section',
+        ),
+        (
+            "N31 (body: relocate L3 out of its owning paragraph — whole-text "
+            "presence still holds, the scoped assertion must not)",
+            lambda: _mutate_block(
+                body, _S4_ANCHOR, lambda b: _strip_from_block(b, _PHASE1_ROUTE)
+            )
+            + "\n\n"
+            + _PHASE1_ROUTE
+            + "\n",
+            check_body,
+            f'{_BODY_NAME}: missing the Phase-1 re-entry route from the paragraph that owns it',
+        ),
+        (
+            "N32 (body: replace the Phase 3 exception clause with its negation — "
+            "the old seven-character 're-entry' token survived this)",
+            lambda: _mutate_block(
+                body,
+                _S2_ANCHOR,
+                lambda b: _strip_from_block(b, _REENTRY_EXCEPTION).replace(
+                    "REMOVED", "and this exit criterion admits no re-entry", 1
+                ),
+            ),
+            check_body,
+            f'{_BODY_NAME}: the Phase 3 exit-criterion line lost the re-entry exception clause',
+        ),
+        (
+            "N33 (body: duplicate the Criterion-1 paragraph anchor)",
+            lambda: _duplicate_line(body, _S4_ANCHOR),
+            check_body,
+            f'{_BODY_NAME}: expected exactly one paragraph starting with "{_S4_ANCHOR}", found 2',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",
