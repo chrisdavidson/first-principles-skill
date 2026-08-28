@@ -680,6 +680,7 @@ def _run_self_test() -> int:
 
     mutated_body_n1: str | None = None
     mutated_contract_n9: str | None = None
+    mutated_body_n13: str | None = None
 
     for label, make_mutated, checker, expected_substring in negative_controls:
         mutated = make_mutated()
@@ -687,6 +688,8 @@ def _run_self_test() -> int:
             mutated_body_n1 = mutated
         if label.startswith("N9 "):
             mutated_contract_n9 = mutated
+        if label.startswith("N13 "):
+            mutated_body_n13 = mutated
         failures = checker(mutated)
         if not failures:
             _report(label, False, "WRONGLY PASSED (expected a failure, got none)")
@@ -701,14 +704,39 @@ def _run_self_test() -> int:
             continue
         _report(label, True)
 
-    # N13's own instruction: verify the mutation left at least one other
-    # `second-order` occurrence in the mutated text — otherwise it was not
-    # actually scoped to the bound paragraph.
-    n13_mutated = _mutate_bound_paragraph_strip_second_order(body)
+    # N13 scope check: prove the bound-paragraph mutation is confined to that
+    # paragraph.
+    #
+    # This assertion used to read `n13_mutated.count(_SECOND_ORDER) >= 1`, which
+    # could not fail. `SKILL-body.md` names `second-order` many times and the
+    # mutation is built on `_replace_once`, which removes at most one, so the
+    # post-mutation count could never reach 0 — the only value the old assertion
+    # rejected. It passed for "removed the right one", for "removed nothing at
+    # all", and for "removed the wrong one" alike. A control that distinguishes
+    # nothing reads as coverage while providing none — the same defect class as
+    # the bug `_strip_everywhere` was written to fix.
+    #
+    # The replacement asserts the DELTA (exactly one occurrence gone) and the
+    # LOCATION (the one that went was the bound paragraph's).
+    assert mutated_body_n13 is not None
+    before = body.count(_SECOND_ORDER)
+    after = mutated_body_n13.count(_SECOND_ORDER)
+    section_after = _extract_turn_discipline_section(mutated_body_n13)
+    bound_paras_after = [
+        para
+        for para in (section_after or "").split("\n\n")
+        if _contains(para, _BOUND)
+    ]
+    bound_para_after = bound_paras_after[0] if len(bound_paras_after) == 1 else ""
     _report(
-        "N13 scope check (other second-order mentions survive)",
-        n13_mutated.count(_SECOND_ORDER) >= 1,
-        "mutation removed every second-order occurrence — not scoped to the bound paragraph",
+        "N13 scope check (exactly one occurrence removed, and it was the bound "
+        "paragraph's)",
+        after == before - 1
+        and len(bound_paras_after) == 1
+        and not _contains(bound_para_after, _SECOND_ORDER),
+        f"before={before} after={after} (expected {before - 1}); bound paragraphs "
+        f"found={len(bound_paras_after)} (expected 1); bound paragraph still names "
+        f"second-order={_contains(bound_para_after, _SECOND_ORDER)} (expected False)",
     )
 
     # --- (b) Anti-masking controls ---
