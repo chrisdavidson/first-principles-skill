@@ -743,22 +743,57 @@ def _run_self_test() -> int:
     assert mutated_contract_n9 is not None
     assert mutated_body_n1 is not None
 
-    mixed_contract_failures = _check_loop_closure(body, mutated_contract_n9, rubric)
-    names_contract = any(_CONTRACT_NAME in f for f in mixed_contract_failures)
-    names_body_wrongly = any(_BODY_NAME in f for f in mixed_contract_failures)
+    # The two controls that used to sit here mutated ONE file at a time and
+    # asserted the other file's basename did not appear in the message set. They
+    # could not fail: no message string in `_check_body_text` contains the
+    # literal "input-contract.md" and none in `_check_input_contract_text`
+    # contains "SKILL-body.md", so the "wrongly names the other file" term was
+    # always False and the controls collapsed onto N1 and N9, which had already
+    # run. They added two free green lines and asserted nothing.
+    #
+    # The replacement mutates BOTH files at once and asserts each file's failure
+    # set is exactly what that file's own check produces in isolation, with no
+    # message left unattributed to either. That is a real claim about the
+    # aggregator, and it is falsifiable — the meta-control below proves the
+    # predicate can return False rather than being structurally incapable of it.
+    def _attribution_ok(
+        failures: list[str], body_alone: list[str], contract_alone: list[str]
+    ) -> bool:
+        body_msgs = [f for f in failures if f.startswith(_BODY_NAME + ":")]
+        contract_msgs = [f for f in failures if f.startswith(_CONTRACT_NAME + ":")]
+        return (
+            bool(body_msgs)
+            and bool(contract_msgs)
+            and body_msgs == body_alone
+            and contract_msgs == contract_alone
+            and len(body_msgs) + len(contract_msgs) == len(failures)
+        )
+
+    body_alone = _check_body_text(mutated_body_n1)
+    contract_alone = _check_input_contract_text(mutated_contract_n9)
+    simultaneous = _check_loop_closure(mutated_body_n1, mutated_contract_n9, rubric)
     _report(
-        "anti-masking (N9 mutation attributed to input-contract.md, not SKILL-body.md)",
-        names_contract and not names_body_wrongly,
-        f"failures: {'; '.join(mixed_contract_failures)}",
+        "anti-masking (simultaneous body+contract mutations stay separately "
+        "attributed, and nothing leaks between the two message sets)",
+        _attribution_ok(simultaneous, body_alone, contract_alone),
+        f"body-attributed={len([f for f in simultaneous if f.startswith(_BODY_NAME + ':')])} "
+        f"(expected {len(body_alone)}), contract-attributed="
+        f"{len([f for f in simultaneous if f.startswith(_CONTRACT_NAME + ':')])} "
+        f"(expected {len(contract_alone)}), total={len(simultaneous)}; "
+        f"failures: {'; '.join(simultaneous)}",
     )
 
-    mixed_body_failures = _check_loop_closure(mutated_body_n1, contract, rubric)
-    names_body = any(_BODY_NAME in f for f in mixed_body_failures)
-    names_contract_wrongly = any(_CONTRACT_NAME in f for f in mixed_body_failures)
+    # Meta-control: feed the attribution predicate a deliberately mis-attributed
+    # failure list. If it accepts that, it is incapable of failing and the
+    # control above proves nothing — which is precisely the defect WR-02 named.
+    leaked = simultaneous + [
+        f"{_BODY_NAME}: a leaked message no single-file check ever produced"
+    ]
     _report(
-        "anti-masking (N1 mutation attributed to SKILL-body.md, not input-contract.md)",
-        names_body and not names_contract_wrongly,
-        f"failures: {'; '.join(mixed_body_failures)}",
+        "anti-masking meta-control (the attribution predicate can return False)",
+        not _attribution_ok(leaked, body_alone, contract_alone),
+        "the attribution predicate accepted a deliberately mis-attributed failure "
+        "list — it cannot fail, so the control above is not load-bearing",
     )
 
     # --- (c) Anchor-arity controls ---
