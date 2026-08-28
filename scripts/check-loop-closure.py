@@ -84,6 +84,16 @@ _NO_PER_DELEGATION = "does not confirm framing on every delegation"  # L6
 _ASK_TOOL = "AskUserQuestion"  # L7
 _ASK_FALLBACK = "If `AskUserQuestion` is unavailable at runtime"  # L7b
 
+# L12: the mid-run re-open's landing point. It used to read "re-enters through
+# Phase 2" — but Phase 2's own entry criterion is "The Essence Statement from
+# Phase 1 is complete", which is definitionally what a Criterion 1 Absent
+# verdict reports missing. The route handed the user's answer to a phase whose
+# entry condition the verdict itself falsified, and skipped the only phase that
+# produces the missing artifact. The landing point now tracks the artifact, so
+# pin the artifact-tracking clause rather than a bare phase number.
+_MIDRUN_LANDING = "re-enters at the phase that owns the artifact the Absent verdict named"  # L12
+_MIDRUN_LANDING_BODY = "re-enters at the phase that owns the missing artifact"  # L13
+
 _TURN_DISCIPLINE = "Turn discipline"  # L9
 _UNBOUNDED_RESCORE = "revise the analysis and re-score from the beginning"  # X2 (must be ABSENT)
 
@@ -204,6 +214,11 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(
             f'{src}: unbounded Repeat instruction still present ("{_UNBOUNDED_REPEAT}")'
         )
+    if not _contains(text, _MIDRUN_LANDING_BODY):
+        failures.append(
+            f'{src}: the mid-run re-open route is not widened past Criterion 1 with an '
+            f'artifact-tracking landing point ("{_MIDRUN_LANDING_BODY}")'
+        )
 
     # S1: the Repeat line names the bound.
     s1_line, s1_count = _find_unique_line(text, _S1_ANCHOR)
@@ -275,6 +290,11 @@ def _check_input_contract_text(text: str) -> list[str]:
     if not _contains(text, _ASK_FALLBACK):
         failures.append(
             f'{src}: missing the AskUserQuestion-unavailable fallback clause ("{_ASK_FALLBACK}")'
+        )
+    if not _contains(text, _MIDRUN_LANDING):
+        failures.append(
+            f'{src}: the mid-run re-open does not route its answer by which artifact is '
+            f'missing ("{_MIDRUN_LANDING}")'
         )
 
     return failures
@@ -597,6 +617,18 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(rubric, _USAGE_NOTE_BOUND),
             check_rubric,
             f'{_RUBRIC_NAME}: the Usage Note no longer brings its closing re-score instruction',
+        ),
+        (
+            "N19 (input-contract: strip L12, the artifact-tracking landing point)",
+            lambda: _strip_everywhere(contract, _MIDRUN_LANDING),
+            check_contract,
+            f'{_CONTRACT_NAME}: the mid-run re-open does not route its answer by which artifact',
+        ),
+        (
+            "N20 (body: strip L13, the widened mid-run route)",
+            lambda: _strip_everywhere(body, _MIDRUN_LANDING_BODY),
+            check_body,
+            f'{_BODY_NAME}: the mid-run re-open route is not widened past Criterion 1',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",

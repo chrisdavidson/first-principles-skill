@@ -243,6 +243,10 @@ re-perception pass) and is a revision like any other — artifacts carried forwa
 retired, and the firing recorded, per that same section. When the Absent verdict instead traces
 to an input the user never supplied — rather than to framing the analysis could have done
 itself — the route is to re-open input via `AskUserQuestion` under the Input Contract instead.
+That re-open is not exclusive to Criterion 1: whenever any criterion's Absent verdict traces to
+an input the user never supplied, the same route applies, and the answer re-enters at the phase
+that owns the missing artifact — Phase 1 when the Essence Statement itself is what is missing,
+Phase 2 when it already stands — under the same one-pass bound.
 
 **The Self-Audit Gate scores THIS analysis's own structure — never the subject matter.** If the
 request also asks for a rubric, scorecard, or grading scheme applied to the thing being analyzed
