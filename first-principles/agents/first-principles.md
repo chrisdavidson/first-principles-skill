@@ -73,8 +73,10 @@ taken from the validation pass at the end.
 pass's return to Phase 2 for re-challenging, the Self-Audit Gate's Fix/Repeat loop, the Self-Audit
 Gate rubric's re-score instruction, the Criterion 1 Absent verdict's return to Phase 1 to re-frame
 the Essence Statement (below), and the mid-run `AskUserQuestion` re-open (Input Contract). Each
-edge fires **at most one re-perception pass** per analysis. A second failure of the same criterion
-after one pass is reported as an **unresolved gap with a confidence caveat**, not a second pass.
+edge fires **at most one re-perception pass** per analysis. After that pass, any criterion still
+failing — or newly failing as a result of the Fix — is reported as an **unresolved gap with a
+confidence caveat**, not a second pass; the edge has already fired and does not fire again,
+regardless of which criterion is at fault.
 This bound holds because the turn budget is `maxTurns: 60` and the Self-Audit Gate runs last: an
 unbounded loop spends the gate's own budget, and the gate is what gets dropped.
 

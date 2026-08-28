@@ -75,6 +75,19 @@ _RUBRIC_NAME = "validation-rubric.md"
 # ---------------------------------------------------------------------------
 _BOUND = "at most one re-perception pass"  # L1 (body) / L8 (rubric)
 _DEGRADE = "unresolved gap with a confidence caveat"  # L2
+
+# L14: the degradation sentence used to be criterion-scoped ("A second failure of
+# the SAME criterion after one pass..."), competing with the edge-scoped bound in
+# the sentence immediately before it. That carve-out said nothing about a
+# criterion failing for the FIRST time after a pass — and the Fix step ("revise
+# every criterion that does not pass") routinely perturbs sections other than the
+# one it targets — so a reader applying it as the operative rule could loop
+# indefinitely by alternating which criterion fails. This clause subordinates the
+# degradation sentence to the edge-scoped bound; it is the load-bearing half.
+_BOUND_SUBORDINATION = (
+    "the edge has already fired and does not fire again, regardless of which "
+    "criterion is at fault"
+)  # L14
 _PHASE1_ROUTE = "returns to Phase 1 to re-frame the Essence Statement"  # L3
 _FIRING_RECORD = "name which re-entry edge fired"  # L4
 _UNBOUNDED_REPEAT = "until every criterion clears the gate"  # X1 (must be ABSENT)
@@ -206,6 +219,12 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(f'{src}: missing the re-entry bound ("{_BOUND}")')
     if not _contains(text, _DEGRADE):
         failures.append(f'{src}: missing the degradation path ("{_DEGRADE}")')
+    if not _contains(text, _BOUND_SUBORDINATION):
+        failures.append(
+            f'{src}: the degradation sentence is not subordinated to the edge-scoped '
+            f'bound — a criterion-scoped carve-out leaves the loop reopenable by '
+            f'alternating which criterion fails ("{_BOUND_SUBORDINATION}")'
+        )
     if not _contains(text, _PHASE1_ROUTE):
         failures.append(f'{src}: missing the Phase-1 re-entry route ("{_PHASE1_ROUTE}")')
     if not _contains(text, _FIRING_RECORD):
@@ -629,6 +648,13 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(body, _MIDRUN_LANDING_BODY),
             check_body,
             f'{_BODY_NAME}: the mid-run re-open route is not widened past Criterion 1',
+        ),
+        (
+            "N21 (body: strip L14, the clause subordinating the degradation "
+            "sentence to the edge-scoped bound)",
+            lambda: _strip_everywhere(body, _BOUND_SUBORDINATION),
+            check_body,
+            f'{_BODY_NAME}: the degradation sentence is not subordinated to the edge-scoped bound',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",

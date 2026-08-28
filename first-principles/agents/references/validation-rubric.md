@@ -28,7 +28,7 @@ one condition alone does not constitute a pass:
 1. **Gate cleared** — no criterion scores Absent.
 2. **Hand-wavy cap cleared** — at most one criterion scores Hand-wavy.
 
-If either condition is not met, revise the analysis and re-score — bounded to **at most one re-perception pass** per analysis, per the rule stated in full under `SKILL.md`'s Turn discipline section. If the same criterion still fails after that single pass, present it as an unresolved gap with a stated confidence caveat instead of re-scoring again.
+If either condition is not met, revise the analysis and re-score — bounded to **at most one re-perception pass** per analysis, per the rule stated in full under `SKILL.md`'s Turn discipline section. After that single pass, any criterion still failing — or newly failing as a result of the revision — is presented as an unresolved gap with a stated confidence caveat instead of being re-scored again.
 
 **Assumption Audit (verify before scoring)**
 
