@@ -250,16 +250,37 @@ def _find_unique_block(text: str, anchor: str) -> tuple[str | None, int]:
     return "\n".join(lines[idx:_block_end(lines, idx)]), 1
 
 
-def _extract_turn_discipline_section(text: str) -> str | None:
-    """Slice the `### Turn discipline` section out of *text*: from the heading
-    to the next horizontal rule (a line consisting of `---`)."""
-    start = text.find(_TURN_DISCIPLINE_HEADING)
-    if start == -1:
-        return None
-    rule_idx = text.find("\n---", start)
-    if rule_idx == -1:
-        return text[start:]
-    return text[start:rule_idx]
+def _extract_turn_discipline_section(text: str) -> tuple[str | None, int]:
+    """Slice the `### Turn discipline` section out of *text*, from the heading to
+    the next horizontal rule. Returns (section, heading match count); the section
+    is None whenever the count is not exactly 1.
+
+    Three defects in the previous `str.find` implementation, each of which this
+    file's sibling `_find_unique_block` was already written to refuse:
+
+    * `find` took the FIRST match silently. A duplicated `### Turn discipline`
+      heading — the exact scenario the anchor-arity controls exist to catch for
+      S1 and S2 — was accepted without comment. The count is now returned so the
+      caller can report a duplicate distinctly from a missing heading.
+    * `find` is a substring search, not line-anchored, and `#### Turn discipline`
+      CONTAINS `### Turn discipline`. Demoting the heading one level left the
+      extraction working and pointed S3 at a section that was no longer a peer of
+      Step 0 and the phases. Matching whole lines refuses that.
+    * The terminator `find("\\n---")` also matched `----`, `-----`, or any line
+      merely BEGINNING with `---`, silently truncating the section. The
+      terminator is now a line that IS `---`.
+    """
+    lines = text.splitlines(keepends=True)
+    starts = [
+        i for i, ln in enumerate(lines) if ln.rstrip("\n") == _TURN_DISCIPLINE_HEADING
+    ]
+    if len(starts) != 1:
+        return None, len(starts)
+    idx = starts[0]
+    for j in range(idx + 1, len(lines)):
+        if lines[j].rstrip("\n") == "---":
+            return "".join(lines[idx:j]), 1
+    return "".join(lines[idx:]), 1
 
 
 # ---------------------------------------------------------------------------
@@ -342,9 +363,14 @@ def _check_body_text(text: str) -> list[str]:
     # edge has no site-of-trigger sentence of its own (nothing in this phase
     # edits it) — it is bounded only by being named here, so this is the sole
     # assertion protecting that edge.
-    section = _extract_turn_discipline_section(text)
-    if section is None:
+    section, heading_count = _extract_turn_discipline_section(text)
+    if section is None and heading_count == 0:
         failures.append(f'{src}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section')
+    elif section is None:
+        failures.append(
+            f'{src}: expected exactly one "{_TURN_DISCIPLINE_HEADING}" heading, '
+            f"found {heading_count} — a duplicated heading is not a missing one"
+        )
     else:
         paragraphs = [p for p in section.split("\n\n") if p.strip()]
         bound_paragraphs = [p for p in paragraphs if _contains(p, _BOUND)]
@@ -574,7 +600,7 @@ def _duplicate_bound_paragraph(body: str) -> str:
     second-order -> Phase 2 edge, and the arity guard is the part that stops that
     assertion going vacuous when the paragraph is split or duplicated. It was the
     untested half of the sole protection for that edge."""
-    section = _extract_turn_discipline_section(body)
+    section, _ = _extract_turn_discipline_section(body)
     assert section is not None, "could not locate Turn discipline section"
     paragraphs = section.split("\n\n")
     bound_indices = [i for i, para in enumerate(paragraphs) if _contains(para, _BOUND)]
@@ -621,7 +647,7 @@ def _mutate_bound_paragraph_strip_second_order(body: str) -> str:
     occurrence if the document were ever reordered. Slicing out the bound
     paragraph and mutating only that slice keeps the control targeting what
     it claims to target regardless of document order."""
-    section = _extract_turn_discipline_section(body)
+    section, _ = _extract_turn_discipline_section(body)
     assert section is not None, "could not locate Turn discipline section"
     paragraphs = section.split("\n\n")
     bound_indices = [i for i, p in enumerate(paragraphs) if _contains(p, _BOUND)]
@@ -840,6 +866,23 @@ def _run_self_test() -> int:
             f'{_RUBRIC_NAME}: the bound has lost its polarity carrier',
         ),
         (
+            "N29 (body: duplicate the Turn discipline heading — a duplicate must "
+            "report distinctly from a missing heading, not be silently accepted)",
+            lambda: _duplicate_line(body, _TURN_DISCIPLINE_HEADING),
+            check_body,
+            f'{_BODY_NAME}: expected exactly one "{_TURN_DISCIPLINE_HEADING}" heading, found 2',
+        ),
+        (
+            "N30 (body: demote the Turn discipline heading one level — "
+            "'#### Turn discipline' CONTAINS the anchor, so a substring search "
+            "accepted it)",
+            lambda: body.replace(
+                _TURN_DISCIPLINE_HEADING, "#" + _TURN_DISCIPLINE_HEADING, 1
+            ),
+            check_body,
+            f'{_BODY_NAME}: could not locate the "{_TURN_DISCIPLINE_HEADING}" section',
+        ),
+        (
             "N13 (body: strip second-order from the bound paragraph only)",
             lambda: _mutate_bound_paragraph_strip_second_order(body),
             check_body,
@@ -904,7 +947,7 @@ def _run_self_test() -> int:
     assert mutated_body_n13 is not None
     before = body.count(_SECOND_ORDER)
     after = mutated_body_n13.count(_SECOND_ORDER)
-    section_after = _extract_turn_discipline_section(mutated_body_n13)
+    section_after, _ = _extract_turn_discipline_section(mutated_body_n13)
     bound_paras_after = [
         para
         for para in (section_after or "").split("\n\n")
