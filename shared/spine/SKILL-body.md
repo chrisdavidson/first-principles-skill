@@ -232,7 +232,17 @@ Self-Audit Gate begin. Score the completed analysis against the criteria in the
 
 1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
 2. **Fix** — revise every criterion that does not pass.
-3. **Repeat** — re-score after fixing until every criterion clears the gate.
+3. **Repeat** — re-score once after fixing. If a criterion still fails after that single re-perception pass, report it as an unresolved gap with a confidence caveat instead of fixing it again — see Turn discipline for the bound governing every re-entry edge.
+
+**A Criterion 1 Absent verdict returns to Phase 1.** When the Self-Audit Gate scores Criterion 1
+Absent — the Essence Statement is missing, or the Problem Essence section holds only a
+restatement of the prompt with no analytical distillation — the analysis **returns to Phase 1 to re-frame the Essence Statement** and re-enters the phase chain from there. This is not an
+in-place rewrite of output section 1: an Essence Statement patched in place does not re-derive
+the artifacts downstream of it. This return is bounded by the Turn discipline rule (one
+re-perception pass) and is a revision like any other — artifacts carried forward or explicitly
+retired, and the firing recorded, per that same section. When the Absent verdict instead traces
+to an input the user never supplied — rather than to framing the analysis could have done
+itself — the route is to re-open input via `AskUserQuestion` under the Input Contract instead.
 
 **The Self-Audit Gate scores THIS analysis's own structure — never the subject matter.** If the
 request also asks for a rubric, scorecard, or grading scheme applied to the thing being analyzed
