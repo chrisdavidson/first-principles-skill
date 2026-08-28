@@ -1,0 +1,22 @@
+[project]
+name = "first-principles-skill-tooling"
+version = "0.0.0"
+description = "Local validation-script environment for the first-principles plugin. Not published; the plugin itself is pure Markdown."
+requires-python = ">=3.12"
+
+# Runtime dependency of the validation scripts. Kept in sync with the PEP 723
+# `dependencies` blocks in scripts/*.py — those stay authoritative for a bare
+# `uv run scripts/<name>.py`, which resolves per-script. This project env is the
+# faster path: `uv run python scripts/<name>.py` reuses .venv with no resolve.
+dependencies = ["pyyaml>=6.0"]
+
+[dependency-groups]
+# pytest is needed only by scripts/check-links_anchors_test.py, which the
+# VAL-03 battery leg shells out to. It is not a script dependency, so it is not
+# declared in any PEP 723 block.
+dev = ["pytest>=8"]
+
+[tool.uv]
+# No build step — this project exists only to pin an interpreter and its
+# packages for scripts/. Without this, uv tries to build a wheel and fails.
+package = false
