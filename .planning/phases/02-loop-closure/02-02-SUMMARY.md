@@ -137,3 +137,12 @@ Otherwise: plan executed exactly as written — no other deviations.
 ---
 *Phase: 02-loop-closure*
 *Completed: 2026-08-28*
+
+## Self-Check: PASSED
+
+- FOUND: shared/agent/input-contract.md
+- FOUND: shared/spine/references/validation-rubric.md
+- FOUND: first-principles/agents/first-principles.md
+- FOUND: first-principles/agents/references/validation-rubric.md
+- FOUND: .planning/phases/02-loop-closure/02-02-SUMMARY.md
+- FOUND commits: e22b835, 5f9ab52, 82cb4d7, 9041422
