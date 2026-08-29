@@ -2138,5 +2138,235 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md."
+  },
+  {
+    "key": "v8.18/ACT-01",
+    "bare_id": "ACT-01",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/ACT-02",
+    "bare_id": "ACT-02",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/ACT-03",
+    "bare_id": "ACT-03",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/ACT-04",
+    "bare_id": "ACT-04",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/ACT-05",
+    "bare_id": "ACT-05",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/LOOP-01",
+    "bare_id": "LOOP-01",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/LOOP-02",
+    "bare_id": "LOOP-02",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/agent/input-contract.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/LOOP-03",
+    "bare_id": "LOOP-03",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/LOOP-04",
+    "bare_id": "LOOP-04",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/LOOP-05",
+    "bare_id": "LOOP-05",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/PAR-01",
+    "bare_id": "PAR-01",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/PAR-02",
+    "bare_id": "PAR-02",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/focused-validation-step.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/PAR-03",
+    "bare_id": "PAR-03",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/HARN-01",
+    "bare_id": "HARN-01",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/HARN-02",
+    "bare_id": "HARN-02",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-loop-closure.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/HARN-03",
+    "bare_id": "HARN-03",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-focused-parity.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/HARN-04",
+    "bare_id": "HARN-04",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/SHIP-01",
+    "bare_id": "SHIP-01",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/SHIP-02",
+    "bare_id": "SHIP-02",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/SHIP-03",
+    "bare_id": "SHIP-03",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/SHIP-06",
+    "bare_id": "SHIP-06",
+    "milestone": "v8.18",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.18/SHIP-04",
+    "bare_id": "SHIP-04",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by inspecting the shipped record \u2014 the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) \u2014 not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement."
+  },
+  {
+    "key": "v8.18/SHIP-05",
+    "bare_id": "SHIP-05",
+    "milestone": "v8.18",
+    "capability": "Methodology",
+    "deliverable_path": "docs/v8.18-praor-loop-closure.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by inspecting the shipped record \u2014 the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) \u2014 not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement."
   }
 ]
