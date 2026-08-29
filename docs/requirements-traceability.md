@@ -25,11 +25,14 @@ The full 237-row capability-to-requirement-to-test mapping is in the generated m
 > v7.9 block: **"each backed by a deterministic offline gate."** v7.12, v7.13, and v8.0 were live-measure and audit
 > milestones with no deterministic offline gate behind their requirements — the note above states
 > that correctly for its own moment. HARN-01/HARN-02/HARN-03 are deterministic, offline, and (per
-> D-01/D-03 of `04-CONTEXT.md`) registered in both the firewall battery and CI, so v8.18's 21
-> gate-backed requirements are the first since v7.9 to satisfy the same test the note above applies
-> to v7.12/v7.13/v8.0. This addendum therefore applies the project's own rule to a new milestone
-> that happens to meet it, rather than making an exception to that rule. The Phase 142 note stands
-> unedited as an accurate record of what was decided at that time, for the milestones it names.
+> D-01/D-03 of `.planning/phases/04-ship/04-CONTEXT.md` — local-only, git-ignored; not present in
+> a fresh clone, so named as plain text rather than linked, the same treatment the Cross-links
+> section gives `docs/history/` and `.planning/PROJECT.md`) registered in both the firewall
+> battery and CI, so v8.18's 21 gate-backed requirements are the first since v7.9 to satisfy the
+> same test the note above applies to v7.12/v7.13/v8.0. This addendum therefore applies the
+> project's own rule to a new milestone that happens to meet it, rather than making an exception
+> to that rule. The Phase 142 note stands unedited as an accurate record of what was decided at
+> that time, for the milestones it names.
 
 **Headline history (D-01).** The coverage headline has moved six times since the matrix was
 first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log — one
