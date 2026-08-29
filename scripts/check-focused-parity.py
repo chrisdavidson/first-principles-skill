@@ -223,6 +223,23 @@ _WRAPPER_ADMITS = "then run the focused-mode validation step below"
 # clause either) is the exact contradiction D-01 exists to close.
 _WRAPPER_RETIRED = "produce only its canonical output sections"
 
+# CR-02 closure guard (`03-VERIFICATION.md` gap 2, quick task `260828-uzh`):
+# the em-dash-joined continuation of the wrapper sentence, taken verbatim
+# from the emitted tree. Measured live: matches exactly once per non-launcher
+# stub under `_count_flex` (the em dash currently ends a line and "do not
+# run" begins the next, which `_count_flex`'s whitespace flexibility
+# absorbs) and zero times in the launcher. Because the anchor contains the
+# em dash literally, an ASCII-hyphen regression (the exact defect
+# `260828-uzh` fixed) drops the count to zero.
+_WRAPPER_FOLLOW_ON = "step below — do not run the full 5-phase first-principles analysis."
+
+# CR-02 closure guard, negative half: a line-initial ASCII hyphen followed by
+# the negative constraint is exactly the CommonMark defect that turned the
+# wrapper paragraph into an orphan bullet list — MULTILINE-anchored and
+# applied to the RAW body, never the flattened text, because the defect is
+# positional and flattening destroys it.
+_WRAPPER_HYPHEN_RE = re.compile(r"^-\s+do not run the full 5-phase", re.MULTILINE)
+
 # D-06: the four recognised completion-condition forms, keyed by name for
 # readable failure messages. Verified live across all 13 emitted stubs
 # (03-PATTERNS.md): 8 use the bold Exit-criterion line, five-whys uses the
@@ -582,7 +599,8 @@ def _load_real_stubs() -> dict[str, str]:
 
 
 def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
-    """Validate the ten stub-surface assertions against *stubs*.
+    """Validate the stub-surface assertions (`Stub-0` through `Stub-12`)
+    against *stubs*.
 
     *stubs* is a slug -> body mapping for all 14 generated skills. Operating
     on a plain dict rather than reading disk directly is what makes this
@@ -764,6 +782,48 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
             failures.append(
                 f"Stub-10 (D-03, bound): {slug} states an additional numeric "
                 f"revision bound not matching the one-pass clause: {other_bounds}"
+            )
+
+    # --- Stub-11 (D-01/CR-02, wrapper renders as one paragraph) ------------
+    # Two halves, both checking the wrapper sentence that precedes the
+    # `## Focused-mode validation` section (not that section itself, which
+    # Stub-4/Stub-9/Stub-10 already cover). The positive half pins the
+    # em-dash-joined continuation verbatim, so an ASCII-hyphen regression
+    # (which drops the em dash) fails; the negative half scans the RAW body
+    # for a line-initial hyphen re-entering the same clause, which is the
+    # exact CommonMark defect quick task `260828-uzh` fixed and had no guard
+    # against silent re-entry until this check.
+    for slug, body in sorted(non_launcher.items()):
+        count = _count_flex(body, _WRAPPER_FOLLOW_ON)
+        if count != 1:
+            failures.append(
+                f"Stub-11 (D-01/CR-02, wrapper follow-on): {slug} carries "
+                f"{_WRAPPER_FOLLOW_ON!r} {count} time(s), expected exactly 1"
+            )
+    for slug, body in sorted(stubs.items()):
+        hyphen_matches = _WRAPPER_HYPHEN_RE.findall(body)
+        if hyphen_matches:
+            failures.append(
+                f"Stub-11 (D-01/CR-02, wrapper line-initial hyphen): {slug} "
+                f"carries a line-initial hyphen re-entering the negative "
+                f"constraint {hyphen_matches!r} time(s) — CommonMark reads this "
+                "as a bullet interrupting the wrapper paragraph"
+            )
+
+    # --- Stub-12 (unresolved generation token) ------------------------------
+    # `sync-content.py`'s Guard 2 justifies itself by claiming a surviving
+    # `{{...}}` marker "would be flagged by check-agent.py's unresolved-sync
+    # guard" — false, since check-agent.py is agent-only and CI passes it
+    # only the agent body. Nothing else scans the emitted skill stubs for an
+    # unresolved token, so this is the only check that makes that claim true.
+    for slug, body in sorted(stubs.items()):
+        if "{{" in body:
+            offending = next(
+                (line for line in body.splitlines() if "{{" in line), "<unknown line>"
+            )
+            failures.append(
+                f"Stub-12 (unresolved token): {slug} carries an unresolved "
+                f"generation token: {offending!r}"
             )
 
     return failures
@@ -1676,6 +1736,29 @@ def _run_self_test_body() -> int:
     # (k) Stub-7 retired-clause control: reinstate the retired wrapper clause.
     k_stubs = _append_to(real_stubs, "ground-truths", _WRAPPER_RETIRED)
     _check_negative("k", _check_stub_surface(k_stubs), "Stub-7")
+
+    # (g3) Stub-11 wrapper follow-on control: strip the em-dash-joined
+    # continuation literal from one stub.
+    g3_stubs = _mutate_one(real_stubs, "pre-mortem", _WRAPPER_FOLLOW_ON, "")
+    _check_negative("g3", _check_stub_surface(g3_stubs), "Stub-11", "wrapper follow-on")
+
+    # (g4) Stub-11 line-initial-hyphen control: inject a line-initial
+    # "- do not run the full 5-phase ..." line into a DIFFERENT stub than
+    # (g3), so the two Stub-11 halves are proven independently reachable —
+    # a shared ID with two distinguishable details, per D-12.
+    g4_stubs = _append_to(
+        real_stubs, "fishbone", "- do not run the full 5-phase first-principles analysis."
+    )
+    assert _WRAPPER_HYPHEN_RE.search(g4_stubs["fishbone"]) is not None, (
+        "g4 fixture precondition failed: _WRAPPER_HYPHEN_RE does not match the injected line"
+    )
+    _check_negative("g4", _check_stub_surface(g4_stubs), "Stub-11", "line-initial hyphen")
+
+    # (g5) Stub-12 unresolved-token control: append an unresolved
+    # `{{TOOL:fishbone}}` marker to one stub and assert the failure names
+    # that slug.
+    g5_stubs = _append_to(real_stubs, "theoretical-limit", "{{TOOL:fishbone}}")
+    _check_negative("g5", _check_stub_surface(g5_stubs), "Stub-12", "theoretical-limit")
 
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
     # marker; the failure must NAME the slug.
