@@ -877,10 +877,126 @@ def _rows_v711() -> list[MatrixRow]:
     ]
 
 
+def _rows_v818() -> list[MatrixRow]:
+    """v8.18 milestone rows — 23 requirements, 21 reproducible + 2 audit-only (D-05/D-06, Phase 4).
+
+    All rows carry milestone="v8.18". Keys use the milestone-qualified form
+    "v8.18/<bare_id>".
+
+    D-05 departure from Phase 142 D-01: `docs/requirements-traceability.md:11` records that
+    v7.12, v7.13 and v8.0 requirements are validated by their milestone audits rather than
+    matrix rows, because those milestones were live-measure and audit work with no
+    deterministic offline gate behind their requirements. No v8.x milestone has added a row
+    since v7.9 (Phase 123) for that reason. v8.18's requirements are the first since v7.9 to
+    pass headline-history row 2's test — "each backed by a deterministic offline gate" —
+    because HARN-01/HARN-02/HARN-03 are deterministic, offline, and (per D-01/D-03) both
+    battery- and CI-registered. This is an application of the existing rule, not an exception
+    to it. See the dated addendum beside the Phase 142 D-01 note in
+    docs/requirements-traceability.md (D-08: the original note stays byte-intact).
+
+    Capability assignment: ACT-*/LOOP-*/PAR-* change the agent's methodology prose, so they
+    are "Methodology"; HARN-01..04 and SHIP-01/02/03/06 are harness and release apparatus, so
+    they are "Test-Network"; SHIP-04 and SHIP-05 are records of the methodology milestone, so
+    they are "Methodology" too — which under _SEVERITY_LABEL gives them MEDIUM rather than
+    HIGH if either is ever downgraded to a gap, matching the judgment that a missing
+    changelog entry is not a verification-system gap.
+
+    Tiering (D-06, decided per row against "does something re-run", not by block):
+    SHIP-04 (CHANGELOG entry exists) and SHIP-05 (docs record exists) are audit-only, with
+    artifact_link="" and a non-empty gap_rationale — no gate re-runs to check a changelog
+    entry or a docs/ record. The other 21 are reproducible with a named artifact_link:
+      ACT-*                -> scripts/check-act-limb.py
+      LOOP-*                -> scripts/check-loop-closure.py
+      PAR-* / HARN-03       -> scripts/check-focused-parity.py
+      HARN-01               -> scripts/check-act-limb.py
+      HARN-02               -> scripts/check-loop-closure.py
+      HARN-04, SHIP-03, SHIP-06 -> scripts/check-firewall-battery.sh
+      SHIP-01               -> scripts/sync-content.py
+      SHIP-02               -> scripts/check-version-stamps.py
+    Rejected: all 23 reproducible (would give SHIP-04/SHIP-05 an artifact_link that does not
+    exist — the vacuous-green shape this project has flagged four times).
+    """
+    audit_v818 = (
+        "Validated by inspecting the shipped record — the CHANGELOG.md milestone entry "
+        "(SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — "
+        "not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog "
+        "entry or a docs/ narrative exists, or is proposed, for either requirement."
+    )
+    return [
+        MatrixRow("v8.18/ACT-01", "ACT-01", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/ACT-02", "ACT-02", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/ACT-03", "ACT-03", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/ACT-04", "ACT-04", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/ACT-05", "ACT-05", "v8.18", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/LOOP-01", "LOOP-01", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/LOOP-02", "LOOP-02", "v8.18", "Methodology",
+                  "shared/agent/input-contract.md",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/LOOP-03", "LOOP-03", "v8.18", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/LOOP-04", "LOOP-04", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/LOOP-05", "LOOP-05", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/PAR-01", "PAR-01", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-focused-parity.py", ""),
+        MatrixRow("v8.18/PAR-02", "PAR-02", "v8.18", "Methodology",
+                  "shared/spine/focused-validation-step.md",
+                  "reproducible", "scripts/check-focused-parity.py", ""),
+        MatrixRow("v8.18/PAR-03", "PAR-03", "v8.18", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible", "scripts/check-focused-parity.py", ""),
+        MatrixRow("v8.18/HARN-01", "HARN-01", "v8.18", "Test-Network",
+                  "scripts/check-act-limb.py",
+                  "reproducible", "scripts/check-act-limb.py", ""),
+        MatrixRow("v8.18/HARN-02", "HARN-02", "v8.18", "Test-Network",
+                  "scripts/check-loop-closure.py",
+                  "reproducible", "scripts/check-loop-closure.py", ""),
+        MatrixRow("v8.18/HARN-03", "HARN-03", "v8.18", "Test-Network",
+                  "scripts/check-focused-parity.py",
+                  "reproducible", "scripts/check-focused-parity.py", ""),
+        MatrixRow("v8.18/HARN-04", "HARN-04", "v8.18", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.18/SHIP-01", "SHIP-01", "v8.18", "Test-Network",
+                  "scripts/sync-content.py",
+                  "reproducible", "scripts/sync-content.py", ""),
+        MatrixRow("v8.18/SHIP-02", "SHIP-02", "v8.18", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", ""),
+        MatrixRow("v8.18/SHIP-03", "SHIP-03", "v8.18", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.18/SHIP-06", "SHIP-06", "v8.18", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.18/SHIP-04", "SHIP-04", "v8.18", "Methodology",
+                  "CHANGELOG.md", "audit-only", "", audit_v818),
+        MatrixRow("v8.18/SHIP-05", "SHIP-05", "v8.18", "Methodology",
+                  "docs/v8.18-praor-loop-closure.md", "audit-only", "", audit_v818),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Two inclusion paths per D-05:
+    Four inclusion paths per D-05:
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -891,6 +1007,10 @@ def build_matrix_rows() -> list[MatrixRow]:
     (c) v7.9 milestone (8 rows) — first milestone block since v5.3; all reproducible
         (Phase 123, D-01). NEGCAT-01/02 (Phase 120), OCH-01/02/03 (Phase 121),
         COLLIDE-01/02 (Phase 122), RECON-01 (Phase 123).
+    (d) v8.18 milestone (23 rows, 21 reproducible + 2 audit-only) — first milestone block
+        since v7.9 (Phase 4/D-05): the discriminator is headline-history row 2's phrase
+        "each backed by a deterministic offline gate", which v7.12, v7.13 and v8.0 did not
+        satisfy but HARN-01/02/03 do. See `_rows_v818()` for the full per-row rationale.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -915,6 +1035,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v79())
     # --- v7.11 milestone (D-04 / Phase 131) — 11 audit-only rows ---
     rows.extend(_rows_v711())
+    # --- v8.18 milestone (D-05 / Phase 4) — 21 reproducible + 2 audit-only ---
+    rows.extend(_rows_v818())
     return rows
 
 
