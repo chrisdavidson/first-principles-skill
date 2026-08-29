@@ -176,3 +176,14 @@ None - no external service configuration required.
 ---
 *Phase: 04-ship*
 *Completed: 2026-08-29*
+
+## Self-Check: PASSED
+
+- FOUND: `CHANGELOG.md`
+- FOUND: `docs/requirements-traceability.md`
+- FOUND: `docs/v8.18-praor-loop-closure.md`
+- FOUND: `scripts/check-traceability.py`
+- FOUND: `.planning/phases/04-ship/04-08-SUMMARY.md`
+- FOUND: commit `eb4637a` (Task 2)
+- FOUND: commit `4287a95` (Task 3)
+- FOUND: commit `eadf6c5` (SUMMARY metadata)
