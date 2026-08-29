@@ -11,8 +11,8 @@ license: MIT
 # Focused Reason Upward Mode
 
 You are running in focused-reason-upward mode. Execute the procedure below, produce
-its canonical output sections, then run the focused-mode validation step below
-- do not run the full 5-phase first-principles analysis. Skip Step 0 technique
+its canonical output sections, then run the focused-mode validation step below —
+do not run the full 5-phase first-principles analysis. Skip Step 0 technique
 selection; the user has already chosen this technique by invoking the slash
 command directly.
 
