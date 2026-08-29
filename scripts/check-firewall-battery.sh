@@ -15,19 +15,20 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (17):
+# Gates (20):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
+#   HARN-01   HARN-02       HARN-03
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# 14 of the 15 non-inline gates are registered through the `gate` helper
+# 17 of the 18 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 15 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 18 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 17.
+# than going through `gate`, for a reported total of 20.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -80,6 +81,38 @@
 # invariant is a property of the working tree. Battery composition moved
 # 16 -> 17. A gate that appears silently is indistinguishable from a gate that
 # was always there.
+#
+# Composition change (HARN-04, Phase 4, v8.18.0): the battery gained three
+# gates — HARN-01 (scripts/check-act-limb.py), HARN-02
+# (scripts/check-loop-closure.py), and HARN-03 (scripts/check-focused-parity.py).
+# HARN-01 guards the Act limb (the Phase 3 verification step and the
+# Criterion 3 Fix note are present, correctly placed, and internally coherent
+# in the emitted tree); HARN-02 guards the Observe->Perceive re-entry edges
+# (a fired edge is bounded to one re-perception pass and is recorded); HARN-03
+# guards focused-mode parity (stub surface, agent surface, and cross-surface
+# parity-token set equality). All three scripts existed and passed standalone
+# since Phases 1-3 with nothing registering them — this closes that gap.
+# Battery composition moved 17 -> 20 (18 `gate`/`gate_prereq` registrations
+# plus the 2 inline checks, INVARIANT-CHECK and FROZEN-EVIDENCE).
+#
+# Each of the three registers as a single `--self-test`-only `gate` call, not
+# the two-command `--self-test` + live shape some other gates use: every one
+# of the three self-tests already contains a positive control that runs over
+# the real, live emitted tree (check-act-limb (a)/(b) over the body and
+# rubric; check-loop-closure (a), "the live tree itself must be clean";
+# check-focused-parity (a)/(a2)/(a3) over the stub, agent, and cross-surface
+# targets), so a separate live invocation at the registration site would
+# assert nothing the self-test does not already assert.
+#
+# Accepted residual, stated rather than absorbed: if a future refactor removes
+# one of those internal positive controls, that gate's registration becomes
+# vacuous with respect to the shipped tree, and nothing at the registration
+# site itself would notice. This was surfaced, weighed, and accepted rather
+# than guarded against here — no guard checking that every gate script is
+# registered is added in this phase; it is explicitly out of scope.
+#
+# A gate that appears silently is indistinguishable from a gate that was
+# always there.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -312,6 +345,26 @@ gate "COLLIDE-01" \
 gate "QUAL-01" \
     "check-quality-harness.py --self-test" \
     "python3 scripts/check-quality-harness.py --self-test"
+
+# HARN-01 — Act limb: the Phase 3 verification step and the Criterion 3 Fix
+#           note are present, correctly placed, and internally coherent in
+#           the emitted tree
+gate "HARN-01" \
+    "check-act-limb.py --self-test" \
+    "python3 scripts/check-act-limb.py --self-test"
+
+# HARN-02 — Observe->Perceive re-entry edges: a Criterion 1 Absent verdict
+#           routes back to Phase 1, every re-entry edge is bounded to one
+#           re-perception pass, and a fired edge is recorded
+gate "HARN-02" \
+    "check-loop-closure.py --self-test" \
+    "python3 scripts/check-loop-closure.py --self-test"
+
+# HARN-03 — focused-mode parity: stub surface, agent surface, and
+#           cross-surface parity-token set equality
+gate "HARN-03" \
+    "check-focused-parity.py --self-test" \
+    "python3 scripts/check-focused-parity.py --self-test"
 
 # body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
 # Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
