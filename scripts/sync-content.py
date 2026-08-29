@@ -6,7 +6,7 @@
 """Sync canonical shared/ content into the agent surface.
 
 Usage:
-    python3 scripts/sync-content.py --write    # regenerate all 47 target files
+    python3 scripts/sync-content.py --write    # regenerate all 48 target files
     python3 scripts/sync-content.py --check    # compare on-disk vs generated; exit 1 on drift
 
 Exit codes:
@@ -878,14 +878,18 @@ def _expand_focused_validation_token(body: str, slug: str) -> str:
             f"here would ship broken instead of raising. Remove the link."
         )
 
-    # Guard 2: a nested {{...}} marker surviving into the emitted stub is
-    # treated as an unresolved-sync failure by check-agent.py's _MARKER_RE.
+    # Guard 2: a nested {{...}} marker surviving into the emitted stub. This
+    # is a GENERATION-TIME guard, not a downstream safety net —
+    # check-agent.py is agent-only (CI passes it only the agent body, never
+    # a skill stub) and cannot see this surface. The emitted-stub surface is
+    # scanned for a surviving marker by HARN-03's `Stub-12`
+    # (`scripts/check-focused-parity.py`, 03-05 Task 3), not by
+    # check-agent.py.
     if "{{" in snippet:
         raise ValueError(
             f"shared/spine/focused-validation-step.md contains a nested "
-            f"'{{{{' token sequence. A surviving marker in the emitted stub "
-            f"would be flagged by check-agent.py's unresolved-sync guard — "
-            f"remove the nested token."
+            f"'{{{{' token sequence. A surviving marker would ship into "
+            f"every emitted stub unresolved — remove the nested token."
         )
 
     replacement = snippet.rstrip("\n")

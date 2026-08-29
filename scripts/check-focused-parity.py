@@ -3,30 +3,35 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0"]
 # ///
-"""HARN-03 gate (stub-surface half): assert the `## Focused-mode validation`
-section that plan 03-02 inlined into all 13 slash-invocable focused stubs is
-present, correctly placed, correctly counted, and carries every load-bearing
-literal — and stays absent from the `first-principles-analysis` launcher.
+"""HARN-03 gate: assert the `## Focused-mode validation` section that plan
+03-02 inlined into all 13 slash-invocable focused stubs is present,
+correctly placed, correctly counted, and carries every load-bearing
+literal — stays absent from the `first-principles-analysis` launcher — and
+that the agent's own focused-mode branch states an equivalent,
+cross-surface-derived proportionality note.
 
 Phase 3 (Focused-Mode Parity) closed PAR-02 by inlining a single canonical
 snippet (`shared/spine/focused-validation-step.md`) into all 13
 `shared/skills/<slug>/SKILL.md` sources via a new `{{FOCUSED_VALIDATION}}`
 token (03-02), after amending the wrapper sentence that used to contradict it
 and stating a completion condition for every technique that lacked one
-(03-01). This gate asserts those two plans' combined result against the
-**emitted** tree — `first-principles/skills/<slug>/SKILL.md` — never against
-`shared/`, because the emitted tree is what a slash-invoked skill actually
-loads at runtime; DUAL-04 (`sync-content.py --check`) already guarantees
-`shared/` and the emitted tree agree, and the v8.14 failure mode this
-project's gate culture guards against was a defect that existed only on the
-emitted surface (D-11).
+(03-01). Plan 03-04 then added the agent-surface assertions (Step 0 names
+Validate, the agent-body proportionality note) and the cross-surface parity
+check between the two proportionality notes, in this same file, built on top
+of the stub-surface machinery 03-03 shipped — the whitespace matching, the
+ID-based negative-control matcher, and the anchor-control coverage ratchet
+are all written to be extended, not duplicated. This gate asserts that
+combined result against the **emitted** tree — `first-principles/skills/
+<slug>/SKILL.md` and `first-principles/agents/first-principles.md` — never
+against `shared/`, because the emitted tree is what a slash-invoked skill
+and the agent actually load at runtime; DUAL-04 (`sync-content.py --check`)
+already guarantees `shared/` and the emitted tree agree, and the v8.14
+failure mode this project's gate culture guards against was a defect that
+existed only on the emitted surface (D-11).
 
-Scope: this file guards the STUB surface only. The agent-surface assertions
-(Step 0 names Validate, the agent-body proportionality note) and the
-cross-surface parity check between the two proportionality notes are plan
-03-04's job, built on top of the machinery this file ships — the whitespace
-matching, the ID-based negative-control matcher, and the anchor-control
-coverage ratchet are all written to be extended, not duplicated.
+Scope: this file guards three things in one pass — the stub surface, the
+agent surface, and the cross-surface parity between them — reading the
+generated tree only (D-11).
 
 This gate is not yet registered in `scripts/check-firewall-battery.sh` —
 Phase 4 / HARN-04 owns registration and the battery tally bump.
@@ -36,14 +41,16 @@ Usage:
 
 Exit codes:
     0  all checks passed
-    1  validation failure (a `Stub-N` assertion, the anchor coherence check,
-       or the anchor-control coverage ratchet failed)
+    1  validation failure (a `Stub-N`, `Agent-N` or `Parity-N` assertion,
+       the anchor coherence check, or the anchor-control coverage ratchet
+       failed)
     2  environment error (Python <3.12, the plugin skills directory missing)
 
 --self-test: runs an offline control battery built by mutating in-memory
-             copies of the real emitted stub bodies, and exits 0 if every
-             control behaves as intended; exits 1 on any wrong-pass or
-             wrong-reason failure. Never writes to the repository.
+             copies of the real emitted stub and agent-surface texts, and
+             exits 0 if every control behaves as intended; exits 1 on any
+             wrong-pass or wrong-reason failure. Never writes to the
+             repository.
 
 ## What this gate does not assert
 
@@ -64,6 +71,13 @@ rediscover.
   project deliberately does not gate on: a K-of-5 result is a recorded
   observation, not a gate (governing record section 2 item 3,
   `docs/v8.7-constraint-teardown.md`).
+- Stub-4, Stub-5, Stub-8, Stub-9, Stub-10 and Parity-4 all pin literals whose
+  only source is the one `shared/spine/focused-validation-step.md` snippet
+  inlined 13 times. The 13-way loops those checks run therefore read as
+  breadth across 13 independent files, but they exercise one source file
+  copied 13 times, not 13 independently-authored ones — a per-slug drift in
+  what got inlined where is caught by DUAL-04 (`sync-content.py --check`),
+  not by this gate.
 """
 
 from __future__ import annotations
@@ -190,6 +204,10 @@ _WHEN_TO_REACH_HEADING = "## When to reach for this"
 _CLOSING_HANDOFF_ANCHOR = "invoke the main `first-principles`"
 
 # D-03: the three verdict-state literals, emitted verbatim and unconditionally.
+# IN-01 (`03-REVIEW.md`): the ` - ` in the third literal is an ASCII hyphen,
+# deliberately — it is pinned here, so a later prose "tidy-up" of that
+# hyphen to an em dash (matching this repo's usual dash convention) would
+# break this gate. Do not "fix" the hyphen without updating this literal.
 _VERDICT_LITERALS: tuple[str, ...] = (
     "Focused-mode validation: satisfied",
     "Focused-mode validation: revised once, now satisfied",
@@ -263,8 +281,17 @@ _ONE_PASS_BOUND = "Revise at most one time."
 
 # D-03 (negative half): no OTHER numeric revision bound may be stated
 # anywhere in a stub — "revise twice", "revise two times", "revise N times"
-# for any N other than the one-pass clause above.
-_OTHER_BOUND_RE = re.compile(r"[Rr]evise\s+(?:twice|two\s+times|three\s+times|\d+\s+times)")
+# for any N other than the one-pass clause above. WR-02 (`03-REVIEW.md`)
+# measured the original adjacency-only pattern blind to a small bounded run
+# of intervening words between "Revise" and the bound — including the
+# single-word drift of the sanctioned clause itself, "Revise at most two
+# times." A `(?:\s+\S+){0,4}?` window closes that, with a negative lookahead
+# excluding the sanctioned "at most one" phrasing so the legitimate clause
+# cannot self-trip its own negative-control regex.
+_OTHER_BOUND_RE = re.compile(
+    r"[Rr]evise\b(?:\s+(?!at\s+most\s+one\b)\S+){0,4}?\s+"
+    r"(?:twice|two\s+times?|three\s+times?|four\s+times?|\d+\s+times?)\b"
+)
 
 # ---------------------------------------------------------------------------
 # Agent-surface content anchors (plan 03-04, D-04/D-09/D-10). Same discipline
@@ -1082,9 +1109,16 @@ def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[
     """D-10's runtime cross-surface derivation — the assertion the whole
     plan exists for: derive the set of parity tokens actually present in the
     agent-side proportionality note, and require EVERY one of the 13
-    non-launcher stub validation notes to carry EXACTLY that set (set
-    equality, not subset — a stub carrying an EXTRA token the agent note
-    dropped is also drift, per the plan's action text).
+    non-launcher stub validation notes to carry that full set.
+
+    Parity-4 cannot detect a stub carrying an "extra" token the agent note
+    dropped, and does not claim to: Parity-3 already returns early unless
+    `derived` holds all five `_PARITY_TOKENS`, so `agent_set` is always the
+    full five-token set by the time Parity-4 runs, and `stub_set` is built
+    by filtering that same `_PARITY_TOKENS` tuple — so `stub_set` is always
+    a subset of `agent_set`, never a superset. Parity-4 is therefore a
+    subset check in practice: does each stub's section carry every token
+    the agent note (already proven complete by Parity-3) carries.
 
     Three anti-vacuity guards run, in order, before the 13-way comparison —
     each its own separately-failable check ID, because an empty or
@@ -1150,11 +1184,9 @@ def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[
         stub_set = {t for t in _PARITY_TOKENS if _contains(stub_note, t)}
         if stub_set != agent_set:
             missing_in_stub = sorted(agent_set - stub_set)
-            extra_in_stub = sorted(stub_set - agent_set)
             failures.append(
                 f"Parity-4 (D-10, cross-surface equality): {slug} drifts "
-                f"from the agent note — missing {missing_in_stub}, extra "
-                f"{extra_in_stub}"
+                f"from the agent note — missing {missing_in_stub}"
             )
 
     # --- Parity-5 (D-10, stub count) ----------------------------------------
@@ -1526,7 +1558,9 @@ _problems: list[str] = []
 
 
 def _run_self_test() -> int:
-    """Run the offline control battery (controls a-r). Returns 0 on all-pass,
+    """Run the offline control battery — the alphabetic stub/agent/parity
+    controls, the `q`-series ratchet controls, the `n0` harness
+    meta-controls, and the dispatch control `(r)`. Returns 0 on all-pass,
     1 on any failure.
 
     WR-04 repair (`03-REVIEW.md`): `_run_self_test_body()` does the actual
@@ -1789,8 +1823,14 @@ def _run_self_test_body() -> int:
     # bound (`_OTHER_BOUND_RE`'s territory) into one stub, alongside the
     # real one-pass clause, and confirm the "additional numeric revision
     # bound" branch fires distinctly from (o)'s "missing clause" branch.
+    # Two fixtures: the pre-existing narrow-window form, and (WR-02,
+    # `03-REVIEW.md`) the widened-window form — the single-word drift of the
+    # sanctioned clause the widened regex now sees.
     o2_stubs = _append_to(real_stubs, "reason-upward", "Revise twice if the first pass fails.")
     _check_negative("o2", _check_stub_surface(o2_stubs), "Stub-10", "additional numeric revision bound")
+
+    o2b_stubs = _append_to(real_stubs, "estimate", "Revise at most two times if the first pass fails.")
+    _check_negative("o2b", _check_stub_surface(o2b_stubs), "Stub-10", "additional numeric revision bound")
 
     # (p) reflow control (positive): every real stub body re-wrapped at a
     # width distinct from the shipped files' must still PASS — the direct,
@@ -2335,16 +2375,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="check-focused-parity.py",
         description=(
-            "HARN-03 (stub-surface half): assert the '## Focused-mode validation' "
-            "section is present, correctly placed, correctly counted, and carries "
-            "every load-bearing literal in all 13 emitted focused stubs, and stays "
-            "absent from the launcher."
+            "HARN-03: assert the '## Focused-mode validation' section is present, "
+            "correctly placed, correctly counted, and carries every load-bearing "
+            "literal in all 13 emitted focused stubs and stays absent from the "
+            "launcher (stub surface); that the agent's own focused-mode branch "
+            "states an equivalent proportionality note (agent surface); and that "
+            "the two surfaces stay in derived agreement (cross-surface parity)."
         ),
     )
     parser.add_argument(
         "--self-test",
         action="store_true",
-        help="run the offline self-test control battery (controls a-r)",
+        help="run the offline self-test control battery",
     )
     args = parser.parse_args(argv)
 
