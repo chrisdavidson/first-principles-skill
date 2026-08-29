@@ -235,18 +235,11 @@ _COMPLETION_CONDITION_FORMS: dict[str, str] = {
     "inline-stop-criterion": "stop criterion",
 }
 
-# PAR-01: the five parity literals plan 03-01 put on the agent surface and
-# plan 03-02 put on the stub surface via the same inlined snippet. Plan
-# 03-04's cross-surface check requires the SAME five on both surfaces; this
-# file only requires them present on the stub surface (D-11's scope for this
-# plan).
-_PARITY_LITERALS: tuple[str, ...] = (
-    "six-criterion Self-Audit Gate",
-    "six-section analysis document",
-    "scope-proportionate",
-    "does not acquire evidence",
-    "stays marked",
-)
+# PAR-01/D-10: the five parity tokens are defined ONCE, further below (the
+# `_PT_*` constants plan 03-04 Task 1 introduced), collected there into a
+# single `_PARITY_TOKENS` tuple both the stub-surface (this constant's
+# original home, Stub-9) and the agent-surface (Agent-5/Agent-6) assertions
+# reference — never retyped as a second independent five-string literal.
 
 # D-03: the one-pass revision bound.
 _ONE_PASS_BOUND = "Revise at most one time."
@@ -306,6 +299,30 @@ _PT_SCOPE_PROPORTIONATE = "scope-proportionate"
 _PT_NO_ACQUIRE_EVIDENCE = "does not acquire evidence"
 _PT_STAYS_MARKED = "stays marked"
 
+# D-10 static derivation: ONE tuple collecting all five _PT_* constants,
+# referenced by the stub-surface assertion (Stub-9, ex-`_PARITY_LITERALS`)
+# and by `_check_cross_surface_parity()`'s runtime derivation. Never
+# retyped as a second independent five-string literal anywhere in this file.
+_PARITY_TOKENS: tuple[str, ...] = (
+    _PT_SIX_CRITERION_GATE,
+    _PT_SIX_SECTION_DOC,
+    _PT_SCOPE_PROPORTIONATE,
+    _PT_NO_ACQUIRE_EVIDENCE,
+    _PT_STAYS_MARKED,
+)
+
+# D-09/D-10 static derivation: the agent-surface assertions' two component
+# groupings, each DERIVED from the shared _PT_* constants above (never
+# retyped) — the depth-difference component (Agent-5) and the larger,
+# absent-Act-limb component (Agent-6). `_check_anchor_coherence()` verifies
+# these still equal a fresh recomputation from the same _PT_* names.
+_AGENT_DEPTH_TOKENS: tuple[str, ...] = (
+    _PT_SIX_CRITERION_GATE,
+    _PT_SIX_SECTION_DOC,
+    _PT_SCOPE_PROPORTIONATE,
+)
+_AGENT_ACT_LIMB_TOKENS: tuple[str, ...] = (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MARKED)
+
 
 # ---------------------------------------------------------------------------
 # The anchor-control coverage ratchet (D-12, copied in shape from
@@ -319,22 +336,7 @@ _PT_STAYS_MARKED = "stays marked"
 
 # --- ratchet-bookkeeping-begin ---
 _ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
-_ANCHOR_CONTROL_PENDING: dict[str, str] = {
-    # Task 1 (plan 03-04) seed, MEASURED (not predicted) by running the
-    # coverage check against the file as Task 1 leaves it: the five _PT_*
-    # parity-token constants each have a definition and exactly one
-    # assertion reference (inside Agent-5's/Agent-6's inline tuples), with no
-    # self-test control yet. Task 2's Part A static-derivation unification
-    # (collecting them into _PARITY_TOKENS, referenced a second time each by
-    # Stub-9 and by the new _AGENT_DEPTH_TOKENS/_AGENT_ACT_LIMB_TOKENS
-    # constants, plus the coherence table and the n1-n5 controls) gives each
-    # a third-and-beyond reference.
-    "_PT_SIX_CRITERION_GATE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
-    "_PT_SIX_SECTION_DOC": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
-    "_PT_SCOPE_PROPORTIONATE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
-    "_PT_NO_ACQUIRE_EVIDENCE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
-    "_PT_STAYS_MARKED": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
-}
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # --- ratchet-bookkeeping-end ---
 
 # Re-entrancy sentinel guarding the dispatch control (r), copied in shape
@@ -470,19 +472,52 @@ def _check_anchor_control_coverage(
 
 
 def _check_anchor_coherence() -> list[str]:
-    """Assert derived cross-anchor pairs still stand in the relation their
-    derivation creates.
+    """Assert the derived anchor pairs still stand in the relation their
+    derivation creates (D-10's static half, `scripts/check-act-limb.py`
+    WR-14's shape).
 
-    This file has no derived anchor pairs YET — D-10's cross-surface parity
-    check (deriving a shared token set from the agent-surface proportionality
-    note and requiring it on the stub surface) is plan 03-04's addition, on
-    top of this plan's stub-surface-only machinery. This function exists now,
-    empty, so `_validate_files()`'s composition shape does not change when
-    03-04 populates it — an empty coherence check that asserts nothing is
-    honestly different from one that asserts something and always passes,
-    and this docstring is where that honesty lives.
+    Derivation alone makes the relation true by construction — every pair
+    below is built from the same `_PT_*` constants on both sides. This
+    function is what fails loudly if a future editor UN-derives one half:
+    re-points `_AGENT_DEPTH_TOKENS`, `_AGENT_ACT_LIMB_TOKENS`, or
+    `_PARITY_TOKENS` to an independently retyped literal tuple that happens
+    to differ from a fresh recomputation off the shared `_PT_*` names. The
+    pair table is built INSIDE the function body, not at import, so it reads
+    the current module globals rather than a snapshot — the same shape
+    `check-act-limb.py`'s `_check_anchor_coherence()` uses.
     """
-    return []
+    failures: list[str] = []
+    pairs: tuple[tuple[str, tuple[str, ...], tuple[str, ...]], ...] = (
+        (
+            "agent depth-component tokens (Agent-5)",
+            _AGENT_DEPTH_TOKENS,
+            (_PT_SIX_CRITERION_GATE, _PT_SIX_SECTION_DOC, _PT_SCOPE_PROPORTIONATE),
+        ),
+        (
+            "agent act-limb-component tokens (Agent-6)",
+            _AGENT_ACT_LIMB_TOKENS,
+            (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MARKED),
+        ),
+        (
+            "stub/cross-surface parity-token set (Stub-9, Parity-2..5)",
+            _PARITY_TOKENS,
+            (
+                _PT_SIX_CRITERION_GATE,
+                _PT_SIX_SECTION_DOC,
+                _PT_SCOPE_PROPORTIONATE,
+                _PT_NO_ACQUIRE_EVIDENCE,
+                _PT_STAYS_MARKED,
+            ),
+        ),
+    )
+    for name, actual, expected in pairs:
+        if actual != expected:
+            failures.append(
+                f"Coherence (D-10, derived anchor pair): {name} — {actual!r} "
+                f"!= {expected!r}; the two halves must be derived from one "
+                "token, not restated as independent literals"
+            )
+    return failures
 
 
 # ---------------------------------------------------------------------------
@@ -663,7 +698,7 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
 
     # --- Stub-9 (PAR-01, parity tokens present) ---------------------------
     for slug, body in sorted(non_launcher.items()):
-        missing = [p for p in _PARITY_LITERALS if _count_flex(body, p) == 0]
+        missing = [p for p in _PARITY_TOKENS if _count_flex(body, p) == 0]
         if missing:
             failures.append(
                 f"Stub-9 (PAR-01, parity tokens present): {slug} is missing "
@@ -719,16 +754,32 @@ def _agent_parity_note(text: str) -> str | None:
     agent body: the text between the `MODE = full-composer` bullet
     (`_AGENT_FULL_COMPOSER_ANCHOR`) and the next standalone `---` divider.
 
-    Returns `None` when either anchor cannot be found in *text* — distinct
-    from an empty string, which means BOTH anchors were found but nothing
-    (or only whitespace) lies between them. Agent-4 reports these as two
-    separate failure conditions; Parity-1 (plan 03-04 Task 2) reuses this
-    same distinction as its own anti-vacuity guard.
+    The full-composer anchor is searched for only AFTER
+    `_AGENT_EXECUTION_BRANCHING_LABEL` — the "Default rule" paragraph
+    earlier in Step 0 also sets `MODE = full-composer` in prose (the same
+    landmine Agent-3 already had to account for), so anchoring on the FIRST
+    occurrence in the whole file would capture a much larger, wrong slice
+    starting from that earlier sentence. Measured live: the naive
+    first-occurrence anchor produced a 1796-character slice that swallowed
+    the branching-block bullets themselves, not the ~500-character
+    proportionality paragraph alone — masked in earlier ad hoc checks only
+    because the noisy prefix happened not to break substring containment.
+
+    Returns `None` when any anchor cannot be found in *text* — distinct from
+    an empty string, which means all anchors were found but nothing (or
+    only whitespace) lies between the full-composer bullet and the divider.
+    Agent-4 reports these as two separate failure conditions; Parity-1
+    (plan 03-04 Task 2) reuses this same distinction as its own anti-vacuity
+    guard.
     """
-    fc_match = _find_flex(text, _AGENT_FULL_COMPOSER_ANCHOR)
+    eb_match = _find_flex(text, _AGENT_EXECUTION_BRANCHING_LABEL)
+    if eb_match is None:
+        return None
+    after_eb = text[eb_match.end() :]
+    fc_match = _find_flex(after_eb, _AGENT_FULL_COMPOSER_ANCHOR)
     if fc_match is None:
         return None
-    after = text[fc_match.end() :]
+    after = after_eb[fc_match.end() :]
     divider_match = re.search(r"^---\s*$", after, re.MULTILINE)
     if divider_match is None:
         return None
@@ -840,7 +891,7 @@ def _check_agent_surface(
         )
 
     # --- Agent-5 (PAR-01, depth component) ----------------------------------
-    depth_tokens = (_PT_SIX_CRITERION_GATE, _PT_SIX_SECTION_DOC, _PT_SCOPE_PROPORTIONATE)
+    depth_tokens = _AGENT_DEPTH_TOKENS
     if note:
         missing_depth = [t for t in depth_tokens if not _contains(note, t)]
         if missing_depth:
@@ -855,7 +906,7 @@ def _check_agent_surface(
         )
 
     # --- Agent-6 (PAR-01, act-limb component) -------------------------------
-    act_limb_tokens = (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MARKED)
+    act_limb_tokens = _AGENT_ACT_LIMB_TOKENS
     if note:
         missing_act = [t for t in act_limb_tokens if not _contains(note, t)]
         if missing_act:
@@ -915,6 +966,95 @@ def _check_agent_surface(
     return failures
 
 
+def _check_cross_surface_parity(agent_text: str, stubs: dict[str, str]) -> list[str]:
+    """D-10's runtime cross-surface derivation — the assertion the whole
+    plan exists for: derive the set of parity tokens actually present in the
+    agent-side proportionality note, and require EVERY one of the 13
+    non-launcher stub validation notes to carry EXACTLY that set (set
+    equality, not subset — a stub carrying an EXTRA token the agent note
+    dropped is also drift, per the plan's action text).
+
+    Three anti-vacuity guards run, in order, before the 13-way comparison —
+    each its own separately-failable check ID, because an empty or
+    unreadable agent note would otherwise make `set() <= anything` trivially
+    true and every stub "pass" for the wrong reason:
+
+    - Parity-1: the agent note is absent or blank.
+    - Parity-2: the note is present but yields ZERO parity tokens.
+    - Parity-3: the note yields SOME but not all five tokens.
+
+    Only once all three guards clear does Parity-4 run the 13-way
+    comparison, and Parity-5 re-asserts the 13-count at THIS layer — the
+    guard against a silently-shrunk iteration making Parity-4 vacuously true
+    even if Stub-1 already caught the same shrink at the stub-surface layer.
+
+    Returns failure strings, each beginning with a stable
+    `Parity-N (D-10, <label>): <detail>` check ID.
+    """
+    failures: list[str] = []
+    note = _agent_parity_note(agent_text)
+
+    # --- Parity-1 (D-10, note missing) -------------------------------------
+    if note is None or not note.strip():
+        failures.append(
+            "Parity-1 (D-10, note missing): the agent-side proportionality "
+            "note is absent or blank — cross-surface parity cannot be derived"
+        )
+        return failures
+
+    derived = tuple(t for t in _PARITY_TOKENS if _contains(note, t))
+
+    # --- Parity-2 (D-10, empty derivation) ----------------------------------
+    if not derived:
+        failures.append(
+            "Parity-2 (D-10, empty derivation): the agent note yields ZERO "
+            "parity tokens — a derived set of zero would trivially satisfy "
+            "every stub and is therefore treated as a gate failure, not a pass"
+        )
+        return failures
+
+    # --- Parity-3 (D-10, incomplete derivation) -----------------------------
+    if len(derived) != len(_PARITY_TOKENS):
+        missing = [t for t in _PARITY_TOKENS if t not in derived]
+        failures.append(
+            f"Parity-3 (D-10, incomplete derivation): the agent note yields "
+            f"{len(derived)} of {len(_PARITY_TOKENS)} parity tokens; missing: "
+            f"{missing}"
+        )
+        return failures
+
+    agent_set = set(derived)
+
+    # --- Parity-4 (D-10, cross-surface equality) ----------------------------
+    non_launcher = {slug: body for slug, body in stubs.items() if slug != LAUNCHER_SLUG}
+    for slug, body in sorted(non_launcher.items()):
+        stub_note = _stub_parity_note(body)
+        if stub_note is None or not stub_note.strip():
+            failures.append(
+                f"Parity-4 (D-10, cross-surface equality): {slug} has no "
+                f"{_STUB_SECTION_HEADING!r} section to derive tokens from"
+            )
+            continue
+        stub_set = {t for t in _PARITY_TOKENS if _contains(stub_note, t)}
+        if stub_set != agent_set:
+            missing_in_stub = sorted(agent_set - stub_set)
+            extra_in_stub = sorted(stub_set - agent_set)
+            failures.append(
+                f"Parity-4 (D-10, cross-surface equality): {slug} drifts "
+                f"from the agent note — missing {missing_in_stub}, extra "
+                f"{extra_in_stub}"
+            )
+
+    # --- Parity-5 (D-10, stub count) ----------------------------------------
+    if len(non_launcher) != EXPECTED_STUB_COUNT:
+        failures.append(
+            f"Parity-5 (D-10, stub count): {len(non_launcher)} non-launcher "
+            f"stub notes were iterated, expected exactly {EXPECTED_STUB_COUNT}"
+        )
+
+    return failures
+
+
 def _validate_files() -> int:
     """Validate the live emitted stub tree. Returns a process exit code."""
     if not PLUGIN_SKILLS_DIR.exists():
@@ -961,6 +1101,7 @@ def _validate_files() -> int:
         _check_anchor_coherence()
         + _check_stub_surface(stubs)
         + _check_agent_surface(agent_text, reference_texts, stubs["fishbone"])
+        + _check_cross_surface_parity(agent_text, stubs)
         + _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
     )
 
@@ -1120,6 +1261,82 @@ def _move_section_before_when(stubs: dict[str, str], slug: str) -> dict[str, str
     return new_stubs
 
 
+def _move_validate_outside_branching(text: str) -> str:
+    """Build the Agent-3 placement-violation fixture: cut the validate-named
+    literal out of its natural place (inside the branching bullet) and
+    prepend a standalone copy of it, parenthesised, at the very top of the
+    file — guaranteed to sit BEFORE `_AGENT_EXECUTION_BRANCHING_LABEL`, so
+    the literal is present exactly once but no longer falls between the
+    label and the full-composer bullet."""
+    eb_match = _find_flex(text, _AGENT_EXECUTION_BRANCHING_LABEL)
+    if eb_match is None:
+        raise AssertionError(
+            "placement fixture precondition failed: execution-branching label not found"
+        )
+    prefix = text[: eb_match.start()]
+    suffix = text[eb_match.start() :]
+    replacement = "Derivation Chains, and Second-Order Effects when applicable"
+    suffix_without = _replace_once(suffix, _AGENT_VALIDATE_NAMED, replacement)
+    return prefix + f"({_AGENT_VALIDATE_NAMED})\n\n" + suffix_without
+
+
+def _strip_agent_note(text: str) -> str:
+    """Build the Agent-4/Parity-1 fixture: remove the WHOLE proportionality
+    note slice `_agent_parity_note()` extracts, leaving the surrounding
+    anchors (the full-composer bullet, the trailing `---` divider) intact
+    but nothing between them — the "anchors found, slice empty" branch,
+    distinct from "anchors not found" entirely."""
+    note = _agent_parity_note(text)
+    if not note:
+        raise AssertionError("agent parity note precondition failed: note is empty or None")
+    return _replace_once(text, note, "")
+
+
+def _mutate_ref(
+    reference_texts: dict[str, str], slug: str, target: str, replacement: str = ""
+) -> dict[str, str]:
+    """Return a copy of *reference_texts* with a single-site substitution
+    applied to one slug's text — the agent-reference-surface counterpart of
+    `_mutate_one`."""
+    new_texts = dict(reference_texts)
+    new_texts[slug] = _replace_once(reference_texts[slug], target, replacement)
+    return new_texts
+
+
+def _duplicate_in_ref(reference_texts: dict[str, str], slug: str, text: str) -> dict[str, str]:
+    """Return a copy of *reference_texts* with *text* appended a second time
+    to one slug's body — the agent-reference-surface counterpart of
+    `_append_to`, builds Agent-7's duplicate-count fixture."""
+    new_texts = dict(reference_texts)
+    new_texts[slug] = reference_texts[slug] + "\n\n" + text
+    return new_texts
+
+
+def _move_exit_criterion_to_top(reference_texts: dict[str, str], slug: str) -> dict[str, str]:
+    """Build the Agent-7 "outside Procedure" placement-violation fixture:
+    cut the Exit-criterion LINE (the whole line it sits on, not just the
+    bold marker) out of its natural place inside `## Procedure` and prepend
+    it at the very top of the file — guaranteed to sit before the `##
+    Procedure` heading regardless of whether that file's Procedure section
+    is followed by another H2 or runs to EOF (fishbone.md has no trailing
+    H2; pre-mortem.md and second-order.md do), so this one fixture shape
+    covers all three files without a per-file EOF/H2 branch."""
+    text = reference_texts[slug]
+    match = _find_flex(text, _EXIT_CRITERION_LINE)
+    if match is None:
+        raise AssertionError(
+            f"placement fixture precondition failed for {slug}: Exit criterion line not found"
+        )
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    line_end = line_end + 1 if line_end != -1 else len(text)
+    line_text = text[line_start:line_end]
+    without = text[:line_start] + text[line_end:]
+    new_texts = dict(reference_texts)
+    new_texts[slug] = line_text + without
+    return new_texts
+
+
 def _reflow(text: str, width: int) -> str:
     """Rewrap every plain paragraph in *text* to *width* columns, leaving
     headings, list items, table rows, code fences and blank lines untouched.
@@ -1196,6 +1413,21 @@ def _run_self_test() -> int:
         )
         return 2
 
+    if not AGENT_FILE.exists():
+        sys.stderr.write(f"check-focused-parity --self-test: agent file not found: {AGENT_FILE}\n")
+        return 2
+    real_agent_text = AGENT_FILE.read_text(encoding="utf-8")
+
+    real_reference_texts: dict[str, str] = {}
+    for slug in _AGENT_REFERENCE_SLUGS:
+        ref_path = AGENT_REFERENCES_DIR / f"{slug}.md"
+        if not ref_path.exists():
+            sys.stderr.write(
+                f"check-focused-parity --self-test: agent reference file not found: {ref_path}\n"
+            )
+            return 2
+        real_reference_texts[slug] = ref_path.read_text(encoding="utf-8")
+
     # A representative slug per completion-condition form, used by controls
     # (l) and (m). Chosen from the confirmed live mapping in 03-PATTERNS.md.
     form_reps = {
@@ -1211,7 +1443,12 @@ def _run_self_test() -> int:
         print(f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}")
         _problems.append("(coh): anchor coherence check failed unexpectedly")
     else:
-        print("(coh) anchor coherence: PASS (trivial — no derived pairs yet; plan 03-04 adds them)")
+        print(
+            "(coh) anchor coherence: PASS — 3 derived anchor pairs "
+            "(agent depth tokens, agent act-limb tokens, stub/cross-surface "
+            "parity-token set), each recomputed from the shared _PT_* "
+            "constants and compared to the module-level tuple it derives"
+        )
 
     coverage_failures = _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
     if coverage_failures:
@@ -1226,6 +1463,18 @@ def _run_self_test() -> int:
 
     # (a) positive control: the real emitted files produce zero failures.
     _check_positive("a", _check_stub_surface(real_stubs))
+
+    # (a2) agent-surface positive control: the real emitted agent body and
+    # its three reference siblings produce zero Agent-N failures.
+    _check_positive(
+        "a2",
+        _check_agent_surface(real_agent_text, real_reference_texts, real_stubs["fishbone"]),
+    )
+
+    # (a3) cross-surface positive control: the real agent note and all 13
+    # real stub notes derive the same parity-token set — zero Parity-N
+    # failures.
+    _check_positive("a3", _check_cross_surface_parity(real_agent_text, real_stubs))
 
     # (b) Stub-1 zero-match control: strip the heading from EVERY non-launcher
     # stub. Distinct from (c)'s wrong-count message.
@@ -1313,7 +1562,7 @@ def _run_self_test() -> int:
 
     # (n) Stub-9 parity control: for EACH of the five parity literals, a
     # fixture with that one literal stripped from one stub.
-    for i, literal in enumerate(_PARITY_LITERALS, start=1):
+    for i, literal in enumerate(_PARITY_TOKENS, start=1):
         n_stubs = _mutate_one(real_stubs, "challenge-assumptions", literal)
         _check_negative(f"n{i}", _check_stub_surface(n_stubs), "Stub-9", literal)
 
@@ -1333,6 +1582,186 @@ def _run_self_test() -> int:
     # measured guard against the Phase 2 whitespace defect.
     p_stubs = {slug: _reflow(body, _WRAP_WIDTH) for slug, body in real_stubs.items()}
     _check_positive("p", _check_stub_surface(p_stubs))
+
+    # --- Agent-surface and cross-surface controls (plan 03-04 Task 2) ------
+
+    # (s) Agent-1 control: strip the validate-named literal.
+    s_agent = _replace_once(
+        real_agent_text,
+        _AGENT_VALIDATE_NAMED,
+        "Derivation Chains, and Second-Order Effects when applicable",
+    )
+    _check_negative(
+        "s",
+        _check_agent_surface(s_agent, real_reference_texts, real_stubs["fishbone"]),
+        "Agent-1",
+    )
+
+    # (t) Agent-2 control: reinstate the retired parenthetical form.
+    t_agent = real_agent_text + "\n\n" + _AGENT_VALIDATE_RETIRED + "\n"
+    _check_negative(
+        "t",
+        _check_agent_surface(t_agent, real_reference_texts, real_stubs["fishbone"]),
+        "Agent-2",
+    )
+
+    # (u) Agent-3 control: move the validate-named literal outside the
+    # branching block entirely (it is still present exactly once).
+    u_agent = _move_validate_outside_branching(real_agent_text)
+    _check_negative(
+        "u",
+        _check_agent_surface(u_agent, real_reference_texts, real_stubs["fishbone"]),
+        "Agent-3",
+    )
+
+    # (v/v2) Agent-4 control: remove the proportionality paragraph entirely.
+    # Must fire BOTH Agent-4 (agent-surface note-present check) and Parity-1
+    # (cross-surface note-missing anti-vacuity guard) from the SAME fixture —
+    # each asserted under its own label.
+    v_agent = _strip_agent_note(real_agent_text)
+    _check_negative(
+        "v",
+        _check_agent_surface(v_agent, real_reference_texts, real_stubs["fishbone"]),
+        "Agent-4",
+    )
+    _check_negative("v2", _check_cross_surface_parity(v_agent, real_stubs), "Parity-1")
+
+    # (w1-w3) Agent-5 controls: strip each of the three depth literals in
+    # turn, so no single literal's assertion can rot.
+    for i, literal in enumerate(_AGENT_DEPTH_TOKENS, start=1):
+        w_agent = _replace_once(real_agent_text, literal, "XXX")
+        _check_negative(
+            f"w{i}",
+            _check_agent_surface(w_agent, real_reference_texts, real_stubs["fishbone"]),
+            "Agent-5",
+            literal,
+        )
+
+    # (x1-x2) Agent-6 controls: strip each of the two act-limb literals.
+    for i, literal in enumerate(_AGENT_ACT_LIMB_TOKENS, start=1):
+        x_agent = _replace_once(real_agent_text, literal, "XXX")
+        _check_negative(
+            f"x{i}",
+            _check_agent_surface(x_agent, real_reference_texts, real_stubs["fishbone"]),
+            "Agent-6",
+            literal,
+        )
+
+    # (y1-y9) Agent-7 controls: for each of the three reference files, in
+    # turn — (a) strip the Exit criterion line, (b) duplicate it (the
+    # failure must cite the count), (c) move it outside `## Procedure`.
+    y_index = 0
+    for ref_slug in _AGENT_REFERENCE_SLUGS:
+        y_index += 1
+        strip_refs = _mutate_ref(real_reference_texts, ref_slug, _EXIT_CRITERION_LINE, "")
+        _check_negative(
+            f"y{y_index}",
+            _check_agent_surface(real_agent_text, strip_refs, real_stubs["fishbone"]),
+            "Agent-7",
+            "expected exactly 1",
+        )
+
+        y_index += 1
+        dup_refs = _duplicate_in_ref(real_reference_texts, ref_slug, _EXIT_CRITERION_LINE)
+        _check_negative(
+            f"y{y_index}",
+            _check_agent_surface(real_agent_text, dup_refs, real_stubs["fishbone"]),
+            "Agent-7",
+            "2 time(s)",
+        )
+
+        y_index += 1
+        moved_refs = _move_exit_criterion_to_top(real_reference_texts, ref_slug)
+        _check_negative(
+            f"y{y_index}",
+            _check_agent_surface(real_agent_text, moved_refs, real_stubs["fishbone"]),
+            "Agent-7",
+            "falls outside",
+        )
+
+    # (z) Agent-8 control: strip the Exit criterion line from the fishbone
+    # stub fixture — the D-05 clamp-safety case.
+    z_fishbone_stub = _replace_once(real_stubs["fishbone"], _EXIT_CRITERION_LINE, "")
+    _check_negative(
+        "z",
+        _check_agent_surface(real_agent_text, real_reference_texts, z_fishbone_stub),
+        "Agent-8",
+    )
+
+    # (aa) Parity-1 control: the agent note is absent (strip the
+    # branching-label anchor `_agent_parity_note()` depends on).
+    aa_agent = _replace_once(real_agent_text, _AGENT_EXECUTION_BRANCHING_LABEL, "")
+    _check_negative("aa", _check_cross_surface_parity(aa_agent, real_stubs), "Parity-1")
+
+    # (ab) Parity-2 control: the agent note is present (anchors intact) but
+    # every parity token has been replaced with neutral prose that names
+    # none of the five — the empty-derivation anti-vacuity proof.
+    real_note = _agent_parity_note(real_agent_text)
+    assert real_note  # positive control (a3) already proved this is non-empty
+    ab_agent = _replace_once(
+        real_agent_text,
+        real_note,
+        "Focused mode behaves differently in ways not described by any pinned phrase here.",
+    )
+    _check_negative("ab", _check_cross_surface_parity(ab_agent, real_stubs), "Parity-2")
+
+    # (ac) Parity-3 control: the agent note is missing exactly ONE of the
+    # five tokens — must fire Parity-3, NOT Parity-2.
+    ac_agent = _replace_once(real_agent_text, _PT_SIX_SECTION_DOC, "XXX")
+    _check_negative("ac", _check_cross_surface_parity(ac_agent, real_stubs), "Parity-3")
+
+    # (ad) Parity-4 one-sided-reword control — the exact scenario D-10
+    # exists to catch: reword a parity token in ONE stub's section while
+    # leaving the agent note untouched.
+    ad_stubs = _mutate_one(real_stubs, "validate", _PT_STAYS_MARKED, "remains flagged")
+    _check_negative(
+        "ad", _check_cross_surface_parity(real_agent_text, ad_stubs), "Parity-4", "validate"
+    )
+
+    # (ae) Parity-4 reverse control: reword a parity token in the AGENT note
+    # while leaving all 13 stubs untouched. MEASURED (not assumed) which ID
+    # this trips: removing any one of the five tokens from the agent note
+    # makes the agent-side derivation itself incomplete (4 of 5), so
+    # Parity-3's guard returns before the 13-way stub comparison (Parity-4)
+    # ever runs — this is the anti-vacuity layering working as intended, not
+    # a mis-targeted control. Documented here rather than asserting Parity-4
+    # and silently getting a "wrong reason" report.
+    ae_agent = _replace_once(real_agent_text, _PT_SIX_CRITERION_GATE, "XXX")
+    _check_negative("ae", _check_cross_surface_parity(ae_agent, real_stubs), "Parity-3")
+
+    # (af) Parity-5 control: a fixture set with 12 stubs (one whole
+    # non-launcher slug removed), re-asserting the count at the parity
+    # layer distinctly from Stub-1's own count check.
+    af_stubs = dict(real_stubs)
+    del af_stubs["five-whys"]
+    _check_negative("af", _check_cross_surface_parity(real_agent_text, af_stubs), "Parity-5")
+
+    # (ag) Coherence control: un-derive one anchor in a scratch namespace
+    # (assign an independent literal that differs from a fresh
+    # recomputation) and assert `_check_anchor_coherence` fires.
+    _this_module_for_ag = sys.modules[__name__]
+    original_depth_tokens = _this_module_for_ag._AGENT_DEPTH_TOKENS
+    try:
+        _this_module_for_ag._AGENT_DEPTH_TOKENS = (
+            _PT_SIX_CRITERION_GATE,
+            "an independently retyped literal, not derived from _PT_SIX_SECTION_DOC",
+            _PT_SCOPE_PROPORTIONATE,
+        )
+        ag_failures = _check_anchor_coherence()
+    finally:
+        _this_module_for_ag._AGENT_DEPTH_TOKENS = original_depth_tokens
+    _check_negative("ag", ag_failures, "Coherence")
+
+    # (ah/ah2) Reflow control (positive): the agent body re-wrapped at a
+    # width distinct from the shipped file's must still PASS both the
+    # agent-surface and the cross-surface checks — the direct, measured
+    # guard against the Phase 2 whitespace defect, applied to this plan's
+    # own new surface.
+    ah_agent = _reflow(real_agent_text, _WRAP_WIDTH)
+    _check_positive(
+        "ah", _check_agent_surface(ah_agent, real_reference_texts, real_stubs["fishbone"])
+    )
+    _check_positive("ah2", _check_cross_surface_parity(ah_agent, real_stubs))
 
     # (q) ratchet branch control: drive `_check_anchor_control_coverage`
     # against synthetic sources to exercise every branch.
