@@ -142,6 +142,20 @@ LAUNCHER_SKILLS = frozenset({"first-principles-analysis"})
 # 46-02-PLAN.md mandates for "procedure inlined" to be empirically falsifiable.
 SKILL_TOKEN_RE = re.compile(r"\{\{PROCEDURE:([a-z][a-z0-9-]*)\}\}")
 
+# Token in shared/skills/<slug>/SKILL.md replaced by sync with the canonical
+# focused-mode validation step (03-02-PLAN.md, PAR-02). Unlike {{TOOL:slug}}
+# and {{PROCEDURE:slug}}, this token takes NO slug argument — it resolves
+# from one fixed path, not a per-slug reference file, because the validation
+# step is technique-agnostic and identical in all 13 stubs.
+FOCUSED_VALIDATION_TOKEN_RE = re.compile(r"\{\{FOCUSED_VALIDATION\}\}")
+
+# Fixed source for the {{FOCUSED_VALIDATION}} token. Deliberately NOT under
+# shared/spine/references/ (which is 1:1 with SPINE_REFERENCES and would make
+# it an emitted target) — this file is inlined whole into every non-launcher
+# stub and is never emitted as its own file, so GENERATED_TARGET_COUNT stays
+# 48 and the path must never be added to SPINE_REFERENCES.
+FOCUSED_VALIDATION_SOURCE = SHARED / "spine" / "focused-validation-step.md"
+
 # Marker line stamped on every generated stub body, immediately after the
 # closing frontmatter delimiter (Pitfall 7 mitigation, 46-02-PLAN must_haves).
 SKILL_DO_NOT_EDIT_LINE = (
@@ -823,6 +837,78 @@ def _expand_skill_token(body: str, slug: str) -> str:
     return out
 
 
+def _expand_focused_validation_token(body: str, slug: str) -> str:
+    """Replace `{{FOCUSED_VALIDATION}}` with the canonical validation snippet.
+
+    Mirrors `_expand_skill_token()`'s enforcement shape (missing-token raise,
+    launcher raise) but differs in the one structural way the token itself
+    differs: it takes no slug argument and resolves from ONE fixed path
+    (`FOCUSED_VALIDATION_SOURCE`), not a per-slug reference file. Because
+    there is no capture group, the substitution is a plain fixed-string
+    replacement, not a `sub(m)` callback that inspects `m.group(1)`.
+
+    Must be called AFTER `_expand_skill_token()` has produced its result, and
+    must NOT be folded inside it — this substitution runs on `expanded_body`,
+    the already-expanded `{{PROCEDURE:<slug>}}` output. Because of that
+    ordering, this snippet never passes through `_absolutise_skill_peer_links()`
+    (which only runs inside `_expand_skill_token()`'s `sub()` callback), so a
+    bare `.md` link in the snippet would ship broken instead of raising —
+    guard 1 below exists to make that case raise here instead.
+    """
+    snippet = _read_required(
+        FOCUSED_VALIDATION_SOURCE,
+        hint=(
+            "shared/spine/focused-validation-step.md is required as the "
+            "single source for the {{FOCUSED_VALIDATION}} token inlined into "
+            "every non-launcher skill stub (03-02-PLAN.md, PAR-02)"
+        ),
+    )
+
+    # Guard 1 (bare-link guard): this snippet is inlined AFTER
+    # _expand_skill_token() returns, so it never passes through
+    # _absolutise_skill_peer_links(). A bare `.md` link here would ship as a
+    # broken link instead of raising at generation time.
+    bare_targets = sorted(set(_BARE_MD_TARGET_RE.findall(snippet)))
+    if bare_targets:
+        raise ValueError(
+            f"shared/spine/focused-validation-step.md contains bare "
+            f"markdown link target(s) {bare_targets!r}. This file is "
+            f"inlined after _expand_skill_token() returns, so it never "
+            f"passes through _absolutise_skill_peer_links() — a bare link "
+            f"here would ship broken instead of raising. Remove the link."
+        )
+
+    # Guard 2: a nested {{...}} marker surviving into the emitted stub is
+    # treated as an unresolved-sync failure by check-agent.py's _MARKER_RE.
+    if "{{" in snippet:
+        raise ValueError(
+            f"shared/spine/focused-validation-step.md contains a nested "
+            f"'{{{{' token sequence. A surviving marker in the emitted stub "
+            f"would be flagged by check-agent.py's unresolved-sync guard — "
+            f"remove the nested token."
+        )
+
+    replacement = snippet.rstrip("\n")
+    seen = len(FOCUSED_VALIDATION_TOKEN_RE.findall(body))
+    out = FOCUSED_VALIDATION_TOKEN_RE.sub(lambda m: replacement, body)
+
+    if seen == 0 and slug not in LAUNCHER_SKILLS:
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md is missing the required "
+            f"{{{{FOCUSED_VALIDATION}}}} token — without it the emitted "
+            f"stub has no Observe limb, violating PAR-02 (PAR-02 is "
+            f"unconditional: documentation alone cannot satisfy it)."
+        )
+    if seen and slug in LAUNCHER_SKILLS:
+        raise ValueError(
+            f"shared/skills/{slug}/SKILL.md is a launcher stub "
+            f"(LAUNCHER_SKILLS) but contains a {{{{FOCUSED_VALIDATION}}}} "
+            f"token. A launcher dispatches the composer agent, which "
+            f"already runs Phase 5 — it must not carry the token."
+        )
+    return out
+
+
 def generate_skill_stub(slug: str) -> tuple[Path, str]:
     """Return (target_path, content) for one focused-mode stub.
 
@@ -876,6 +962,7 @@ def generate_skill_stub(slug: str) -> tuple[Path, str]:
             )
 
     expanded_body = _expand_skill_token(body_block, slug)
+    expanded_body = _expand_focused_validation_token(expanded_body, slug)
     do_not_edit = SKILL_DO_NOT_EDIT_LINE.format(slug=slug)
     # Place DO-NOT-EDIT line immediately after the closing `---` line, with a
     # single blank line separator so the marker reads as its own paragraph and
@@ -1694,6 +1781,102 @@ def cmd_self_test() -> int:
                 failures.append(f"FAIL (h): unexpected exception: {exc!r}")
         finally:
             _this_module._GATE02_DISPATCH_REENTRANT = False
+
+    # (i) FOCUSED_VALIDATION missing-token control (03-02-PLAN.md, PAR-02):
+    # an in-memory stub body carrying {{PROCEDURE:<slug>}} but no
+    # {{FOCUSED_VALIDATION}} token must raise, and the message must name the
+    # missing token — proving PAR-02 is enforced at generation time, not
+    # only by a downstream gate.
+    try:
+        fixture_body = "{{PROCEDURE:five-whys}}\n\n---\n"
+        try:
+            _expand_focused_validation_token(fixture_body, "five-whys")
+            failures.append("FAIL (i): missing-token control did NOT raise")
+        except ValueError as exc:
+            if "FOCUSED_VALIDATION" in str(exc) and "missing" in str(exc).lower():
+                print(
+                    "(i) FOCUSED_VALIDATION missing-token control: PASS — "
+                    "a stub body lacking the token raises, citing the "
+                    "missing token"
+                )
+            else:
+                failures.append(
+                    f"FAIL (i): raised for the wrong reason: {exc}"
+                )
+        except Exception as exc:
+            failures.append(f"FAIL (i): unexpected exception type: {exc!r}")
+    except Exception as exc:
+        failures.append(f"FAIL (i): unexpected exception: {exc!r}")
+
+    # (j) FOCUSED_VALIDATION launcher control: an in-memory launcher body
+    # carrying {{FOCUSED_VALIDATION}} must raise, citing LAUNCHER_SKILLS or
+    # the launcher slug — a launcher dispatches the composer agent, which
+    # already runs Phase 5, so it must never carry the token.
+    try:
+        try:
+            _expand_focused_validation_token(
+                "{{FOCUSED_VALIDATION}}", "first-principles-analysis"
+            )
+            failures.append("FAIL (j): launcher control did NOT raise")
+        except ValueError as exc:
+            if "LAUNCHER_SKILLS" in str(exc) or "first-principles-analysis" in str(exc):
+                print(
+                    "(j) FOCUSED_VALIDATION launcher control: PASS — a "
+                    "launcher body carrying the token raises, citing "
+                    "LAUNCHER_SKILLS"
+                )
+            else:
+                failures.append(
+                    f"FAIL (j): raised for the wrong reason: {exc}"
+                )
+        except Exception as exc:
+            failures.append(f"FAIL (j): unexpected exception type: {exc!r}")
+    except Exception as exc:
+        failures.append(f"FAIL (j): unexpected exception: {exc!r}")
+
+    # (k) FOCUSED_VALIDATION bare-link control: a snippet fixture carrying a
+    # bare `.md` link target must raise from the bare-link guard, with a
+    # message naming the offending target. Drives the real function against
+    # a fixture file by temporarily pointing the module-level
+    # FOCUSED_VALIDATION_SOURCE constant at a tempdir fixture, restoring in a
+    # `finally` clause (the (b) idiom) — never mutates a real file.
+    try:
+        with tempfile.TemporaryDirectory() as d:
+            fixture_path = Path(d) / "focused-validation-step.md"
+            fixture_path.write_text(
+                "## Focused-mode validation\n\n"
+                "See [details](bad-target.md) for more.\n",
+                encoding="utf-8",
+            )
+            original_source = _this_module.FOCUSED_VALIDATION_SOURCE
+            try:
+                _this_module.FOCUSED_VALIDATION_SOURCE = fixture_path
+                try:
+                    _expand_focused_validation_token(
+                        "{{FOCUSED_VALIDATION}}", "five-whys"
+                    )
+                    failures.append(
+                        "FAIL (k): bare-link control did NOT raise"
+                    )
+                except ValueError as exc:
+                    if "bad-target.md" in str(exc):
+                        print(
+                            "(k) FOCUSED_VALIDATION bare-link control: "
+                            "PASS — a snippet fixture with a bare .md link "
+                            "raises, naming the offending target"
+                        )
+                    else:
+                        failures.append(
+                            f"FAIL (k): raised for the wrong reason: {exc}"
+                        )
+                except Exception as exc:
+                    failures.append(
+                        f"FAIL (k): unexpected exception type: {exc!r}"
+                    )
+            finally:
+                _this_module.FOCUSED_VALIDATION_SOURCE = original_source
+    except Exception as exc:
+        failures.append(f"FAIL (k): unexpected exception: {exc!r}")
 
     if failures:
         for msg in failures:
