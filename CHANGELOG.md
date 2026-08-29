@@ -13,6 +13,91 @@ installed session.
 
 ## [Unreleased]
 
+## [8.18.0] — 2026-08-29
+
+Closes the four PRAOR-loop gaps found by the 2026-08-27 review of the agent body against
+Perceive → Reason → Act → Observe → Report: no Act limb, an unreachable evidence rule, no
+Observe→Perceive return edge, and stub/focused-mode divergence. Full record:
+[`docs/v8.18-praor-loop-closure.md`](docs/v8.18-praor-loop-closure.md).
+
+### Added
+
+- **Phase 3 gains a bounded evidence-acquisition step.** The methodology now names a
+  verification action — open the cited source with `Read`/`Grep`/`WebFetch` — that makes
+  `read-at-source` provenance reachable rather than only a label the agent could apply without
+  earning it. The provenance rule states plainly what each suffix means: a ground truth the
+  agent actually read carries `read-at-source`; a well-formed citation it did not open stays
+  `reported-by-delegate` and keeps its `?`. When a source cannot be opened, the failure is
+  recorded — which source, why unreachable — and there is no silent fallback to an unmarked
+  ground truth. The step names its own bound (which ground truths earn a read — those feeding
+  HIGH-confidence chains — and which do not) so it cannot starve the Self-Audit Gate's turn
+  budget under `maxTurns: 60`, since the gate runs last and is what gets dropped when a budget
+  runs out.
+- **Observe→Perceive re-entry edges.** A Criterion 1 Absent verdict now has a named, bounded
+  route back to Phase 1 to re-frame the Essence Statement, and `input-contract.md` states that
+  `AskUserQuestion` may re-open input mid-run when validation reveals a missing input, not only
+  before the analysis starts. Every re-entry edge carries a stated maximum number of
+  re-perception passes, and a fired edge is recorded — what changed and why — so a reader can
+  tell a revised analysis from a first draft.
+- **A scope-proportionate `{{FOCUSED_VALIDATION}}` step**, now emitted into all 13 focused slash
+  stubs (`shared/skills/<slug>/SKILL.md`), giving a slash-invoked technique an Observe limb
+  instead of stopping at its raw procedural output.
+- **Three new offline gates** — HARN-01 (`scripts/check-act-limb.py`), HARN-02
+  (`scripts/check-loop-closure.py`), HARN-03 (`scripts/check-focused-parity.py`) — each asserting
+  its corresponding closure is present and well-formed in the emitted tree, with negative
+  controls proving every assertion site can fail. All three are registered in
+  `scripts/check-firewall-battery.sh` and gained a CI job in `.github/workflows/validation.yml`.
+- **23 v8.18 traceability rows** (`_rows_v818()` in `scripts/check-traceability.py`, 21
+  reproducible / 2 audit-only) and the `V818-ROWS` sentinel pinning the tier partition by
+  requirement ID — the first milestone requirement block registered as matrix rows since v7.9.
+
+### Changed
+
+- **Step 0's execution-branching parenthetical now names Validate** among the phases that run
+  under focused mode, closing the gap where the agent's own documentation understated what its
+  internal `focused-<technique>` mode did.
+- **The offline battery moved 17 → 20**, all three new gates registered and green.
+- **All 17 hand-maintained version stamps moved to `8.18.0`** in lockstep; `check-version-stamps.py`
+  reports all 17 in agreement.
+- **The coverage headline moved 126/88/0/214 → 147/90/0/237**, the first v8.x milestone block
+  since v7.9 to register matrix rows — a stated departure from the historical Phase 142 D-01 note
+  (which reasoned no further block should register after v8.0's "final" accounting), left
+  byte-intact with a dated addendum beside it in `docs/requirements-traceability.md`. The
+  discriminator: v8.18's 21 reproducible requirements are each backed by a re-runnable offline
+  gate, the first requirement block since v7.9 with that property.
+- **`docs/v8.0-final-closure.md`'s immutability trait is lifted.** That document previously kept
+  its coverage figures deliberately untouched on the reasoning that rewriting them would falsify
+  the historical record; that reasoning's founding premise — that v8.0 wrapped the project and no
+  further milestone would move the headline — expired once the headline moved for the first time,
+  well before this release. The document's current-state claims (§4's superseded-by note, the
+  standing banner, the battery-tally line) now read `147/90/0/237` and `20/20`, in a new dated
+  addendum appended in the same append-only shape as its existing 2026-07-19 FREEZE-02 addendum;
+  its own v8.0-dated measurement (`133/96/0/229`, battery `15/15`) is left untouched as the
+  historical fact it records. This is a v8.18.0 policy change in its own right, separate from the
+  figure move above — the `## [8.17.2]` entry's correction note (below) records only that the
+  figure moved; this bullet is where the freeze-lift itself is recorded.
+
+### Fixed
+
+- **Self-Audit Criterion 3's `read-at-source` rule was unreachable** — no step existed that could
+  earn the label. Closed by the evidence-acquisition step above.
+- **A Criterion 1 Absent verdict had no named route back** to Phase 1 or to re-opening input.
+  Closed by the Observe→Perceive edges above.
+- **The 13 focused stubs stopped at raw technique output** instead of completing the loop with a
+  validation step. Closed by the `{{FOCUSED_VALIDATION}}` snippet above.
+- **VAL-03's third leg shelled out to an interpreter that could not import pytest**, which made
+  `bash scripts/check-firewall-battery.sh` report `FIREWALL: RED` on an otherwise clean tree —
+  indistinguishable from a real link-check regression. `resolve_pytest_python()` now tries
+  `.venv/bin/python3` first, then `python3`, each confirmed by an `import pytest` preflight, and a
+  `gate_prereq()` wrapper reports an unmet prerequisite as a third, distinguishable outcome —
+  `FIREWALL: BLOCKED`, exit 2 — that a real gate failure still outranks.
+
+The three new gates are structural: they assert the prescribed prose is present and well-formed
+in the emitted tree, not that the agent performs the acquisition step or fires a re-entry edge on
+any given live run. MEAS-01 (a live harness for the Act limb) and MEAS-02 (a quality A/B for
+evidence acquisition versus confidence downgrade) remain deferred v2 requirements — see
+`docs/v8.18-praor-loop-closure.md` §7.
+
 ## [8.17.5] — 2026-08-17
 
 Closes **D-02**, the last of the three link surfaces. Every markdown link the plugin ships now
