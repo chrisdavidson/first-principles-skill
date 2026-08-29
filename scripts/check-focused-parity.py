@@ -78,7 +78,7 @@ from pathlib import Path
 # mirrors scripts/check-trigger-collisions.py.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from _skill_io import PLUGIN_SKILLS_DIR, iter_plugin_skills  # noqa: E402
+from _skill_io import PLUGIN_SKILLS_DIR, REPO_ROOT, iter_plugin_skills  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Path / structural constants. No leading underscore: not ratchet-tracked
@@ -88,6 +88,12 @@ from _skill_io import PLUGIN_SKILLS_DIR, iter_plugin_skills  # noqa: E402
 
 LAUNCHER_SLUG = "first-principles-analysis"
 EXPECTED_STUB_COUNT = 13
+
+# D-11: the agent-surface generated-tree targets this gate reads. Never
+# `shared/` — DUAL-04 already guarantees `shared/` and the emitted tree
+# agree, and D-11's scope for this gate is "what actually ships."
+AGENT_FILE = REPO_ROOT / "first-principles" / "agents" / "first-principles.md"
+AGENT_REFERENCES_DIR = REPO_ROOT / "first-principles" / "agents" / "references"
 
 # ---------------------------------------------------------------------------
 # Whitespace-insensitive matching machinery — copied in shape from
@@ -250,6 +256,56 @@ _ONE_PASS_BOUND = "Revise at most one time."
 # for any N other than the one-pass clause above.
 _OTHER_BOUND_RE = re.compile(r"[Rr]evise\s+(?:twice|two\s+times|three\s+times|\d+\s+times)")
 
+# ---------------------------------------------------------------------------
+# Agent-surface content anchors (plan 03-04, D-04/D-09/D-10). Same discipline
+# as the stub-surface anchors above: one module-level `_UPPER_SNAKE` constant
+# per pinned literal, taken verbatim from the live-verified emitted tree
+# (never retyped from memory), with a comment naming the decision it serves.
+# ---------------------------------------------------------------------------
+
+# D-04/D-06: the bold Exit-criterion line shape, reused on the agent
+# reference-sibling surface (Agent-7) and the fishbone stub clamp-safety
+# check (Agent-8) — the same literal `_COMPLETION_CONDITION_FORMS` already
+# pins for the stub surface under the key "exit-criterion".
+_EXIT_CRITERION_LINE = "**Exit criterion:**"
+
+# PAR-03: the amended focused-mode branching parenthetical, naming Validate.
+# Taken verbatim from `03-01-SUMMARY.md` and confirmed live against
+# `first-principles/agents/first-principles.md`.
+_AGENT_VALIDATE_NAMED = "Derivation Chains, Validate, and Second-Order Effects when applicable"
+
+# PAR-03 (negative half): the pre-edit parenthetical this amendment replaced.
+# Anchored starting at "Derivation Chains," rather than only the shorter
+# trailing fragment "...applicable) run as written" — that shorter fragment
+# is a substring of BOTH the retired form and the amended form (the sentence
+# always ends "...applicable) run as written." regardless of whether
+# "Validate," was inserted earlier in the list), so it cannot distinguish
+# them. Confirmed live: the longer anchor below is 0 occurrences on the
+# correct (amended) tree; the shorter fragment alone is 1 (a false positive).
+_AGENT_VALIDATE_RETIRED = "Derivation Chains, Second-Order Effects when applicable) run as written"
+
+# Placement anchors for Agent-3: the validate-named literal must fall between
+# the branching label and the full-composer bullet.
+_AGENT_EXECUTION_BRANCHING_LABEL = "**Execution branching.**"
+_AGENT_FULL_COMPOSER_ANCHOR = "MODE = full-composer"
+
+# D-11's interfaces block, live-verified: `agents/references/` emits only the
+# 8 TOOLS slugs, never the five phase slugs — so Agent-7 iterates this
+# explicit three-slug tuple (the three D-04 gave a stated Exit criterion),
+# not a 13-way loop, which would raise FileNotFoundError against a directory
+# that never emits identify-essence.md, challenge-assumptions.md, etc.
+_AGENT_REFERENCE_SLUGS: tuple[str, ...] = ("fishbone", "pre-mortem", "second-order")
+
+# PAR-01 parity tokens, one module-level constant per literal (D-10's static
+# derivation, plan 03-04 Task 2 unifies these into a single `_PARITY_TOKENS`
+# tuple shared by both surfaces). Taken verbatim from `03-01-SUMMARY.md`,
+# confirmed live in `first-principles/agents/first-principles.md`.
+_PT_SIX_CRITERION_GATE = "six-criterion Self-Audit Gate"
+_PT_SIX_SECTION_DOC = "six-section analysis document"
+_PT_SCOPE_PROPORTIONATE = "scope-proportionate"
+_PT_NO_ACQUIRE_EVIDENCE = "does not acquire evidence"
+_PT_STAYS_MARKED = "stays marked"
+
 
 # ---------------------------------------------------------------------------
 # The anchor-control coverage ratchet (D-12, copied in shape from
@@ -263,7 +319,22 @@ _OTHER_BOUND_RE = re.compile(r"[Rr]evise\s+(?:twice|two\s+times|three\s+times|\d
 
 # --- ratchet-bookkeeping-begin ---
 _ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
-_ANCHOR_CONTROL_PENDING: dict[str, str] = {}
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {
+    # Task 1 (plan 03-04) seed, MEASURED (not predicted) by running the
+    # coverage check against the file as Task 1 leaves it: the five _PT_*
+    # parity-token constants each have a definition and exactly one
+    # assertion reference (inside Agent-5's/Agent-6's inline tuples), with no
+    # self-test control yet. Task 2's Part A static-derivation unification
+    # (collecting them into _PARITY_TOKENS, referenced a second time each by
+    # Stub-9 and by the new _AGENT_DEPTH_TOKENS/_AGENT_ACT_LIMB_TOKENS
+    # constants, plus the coherence table and the n1-n5 controls) gives each
+    # a third-and-beyond reference.
+    "_PT_SIX_CRITERION_GATE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
+    "_PT_SIX_SECTION_DOC": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
+    "_PT_SCOPE_PROPORTIONATE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
+    "_PT_NO_ACQUIRE_EVIDENCE": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
+    "_PT_STAYS_MARKED": "Task 2's _PARITY_TOKENS unification, coherence table, and control battery give this a third reference.",
+}
 # --- ratchet-bookkeeping-end ---
 
 # Re-entrancy sentinel guarding the dispatch control (r), copied in shape
@@ -616,6 +687,234 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
     return failures
 
 
+# ---------------------------------------------------------------------------
+# Agent-surface real-content checks (plan 03-04).
+# ---------------------------------------------------------------------------
+
+
+def _procedure_bounds(text: str) -> tuple[int, int] | None:
+    """Return the (start, end) character offsets of *text*'s `## Procedure`
+    section — from the heading line's start to the next H2 heading, or EOF
+    if none follows. Returns `None` if no `## Procedure` heading is found.
+
+    The two regexes are local, not module-level `_UPPER_SNAKE` constants —
+    deliberately, so they are not swept into the anchor-control coverage
+    ratchet (D-12): they are structural parsing machinery, not a pinned
+    content literal a stub or the agent body must carry, and the ratchet
+    exists to guard the latter.
+    """
+    heading_re = re.compile(r"^##\s+Procedure\s*$", re.MULTILINE)
+    next_h2_re = re.compile(r"^##\s+\S.*$", re.MULTILINE)
+    heading_match = heading_re.search(text)
+    if heading_match is None:
+        return None
+    rest = text[heading_match.end() :]
+    next_h2_match = next_h2_re.search(rest)
+    end = heading_match.end() + next_h2_match.start() if next_h2_match else len(text)
+    return heading_match.start(), end
+
+
+def _agent_parity_note(text: str) -> str | None:
+    """Extract the focused-mode proportionality paragraph from the emitted
+    agent body: the text between the `MODE = full-composer` bullet
+    (`_AGENT_FULL_COMPOSER_ANCHOR`) and the next standalone `---` divider.
+
+    Returns `None` when either anchor cannot be found in *text* — distinct
+    from an empty string, which means BOTH anchors were found but nothing
+    (or only whitespace) lies between them. Agent-4 reports these as two
+    separate failure conditions; Parity-1 (plan 03-04 Task 2) reuses this
+    same distinction as its own anti-vacuity guard.
+    """
+    fc_match = _find_flex(text, _AGENT_FULL_COMPOSER_ANCHOR)
+    if fc_match is None:
+        return None
+    after = text[fc_match.end() :]
+    divider_match = re.search(r"^---\s*$", after, re.MULTILINE)
+    if divider_match is None:
+        return None
+    return after[: divider_match.start()].strip()
+
+
+def _stub_parity_note(body: str) -> str | None:
+    """Extract a stub's `## Focused-mode validation` section: from the
+    heading (`_STUB_SECTION_HEADING`) to the next standalone `---` divider,
+    or EOF if none follows. Mirrors `_agent_parity_note()`'s divider-stop
+    shape so both surfaces are sliced the same way before token derivation.
+    Returns `None` if the heading itself is not found. Plan 03-04 Task 2's
+    `_check_cross_surface_parity()` is this helper's only caller.
+    """
+    heading_match = _find_flex(body, _STUB_SECTION_HEADING)
+    if heading_match is None:
+        return None
+    after = body[heading_match.start() :]
+    divider_match = re.search(r"^---\s*$", after, re.MULTILINE)
+    if divider_match is None:
+        return after
+    return after[: divider_match.start()]
+
+
+def _check_agent_surface(
+    agent_text: str,
+    reference_texts: dict[str, str],
+    fishbone_stub_text: str,
+) -> list[str]:
+    """Validate the eight agent-surface assertions.
+
+    *agent_text* is the emitted agent body
+    (`first-principles/agents/first-principles.md`). *reference_texts* maps
+    each of `_AGENT_REFERENCE_SLUGS` (fishbone, pre-mortem, second-order —
+    NOT all 13; `agents/references/` only emits the 8 TOOLS slugs, per this
+    plan's live-verified interfaces block) to that file's full text.
+    *fishbone_stub_text* is the emitted `skills/fishbone/SKILL.md` body,
+    checked for the D-05 clamp-safety case (Agent-8).
+
+    Operating on plain strings/dicts rather than reading disk directly is
+    what makes this function callable identically against the real emitted
+    tree and against an in-memory self-test fixture, matching
+    `_check_stub_surface()`'s shape.
+
+    Returns failure strings, each beginning with a stable
+    `Agent-N (<REQ-ID>, <label>): <detail>` check ID.
+    """
+    failures: list[str] = []
+
+    # --- Agent-1 (PAR-03, validate named) --------------------------------
+    if not _contains(agent_text, _AGENT_VALIDATE_NAMED):
+        failures.append(
+            "Agent-1 (PAR-03, validate named): the amended branching "
+            f"parenthetical {_AGENT_VALIDATE_NAMED!r} was not found"
+        )
+
+    # --- Agent-2 (PAR-03, retired form absent) -----------------------------
+    retired_count = _count_flex(agent_text, _AGENT_VALIDATE_RETIRED)
+    if retired_count != 0:
+        failures.append(
+            "Agent-2 (PAR-03, retired form absent): the retired parenthetical "
+            f"{_AGENT_VALIDATE_RETIRED!r} appears {retired_count} time(s), "
+            "expected 0"
+        )
+
+    # --- Agent-3 (PAR-03, placement) ---------------------------------------
+    # Both the validate-named literal and the full-composer bullet are
+    # searched for only in the text AFTER the branching label — the
+    # "Default rule" paragraph earlier in Step 0 also sets `MODE =
+    # full-composer` in prose, so the FIRST occurrence of that anchor in the
+    # whole file is not the branching bullet this check cares about.
+    eb_match = _find_flex(agent_text, _AGENT_EXECUTION_BRANCHING_LABEL)
+    if eb_match is None:
+        failures.append(
+            "Agent-3 (PAR-03, placement): the "
+            f"{_AGENT_EXECUTION_BRANCHING_LABEL!r} label was not found; "
+            "cannot check ordering"
+        )
+    else:
+        remainder = agent_text[eb_match.end() :]
+        validate_match = _find_flex(remainder, _AGENT_VALIDATE_NAMED)
+        fc_match = _find_flex(remainder, _AGENT_FULL_COMPOSER_ANCHOR)
+        if validate_match is None or fc_match is None:
+            failures.append(
+                "Agent-3 (PAR-03, placement): one or both of the "
+                "validate-named literal and the full-composer bullet were "
+                f"not found after {_AGENT_EXECUTION_BRANCHING_LABEL!r}; "
+                "cannot check ordering"
+            )
+        elif not (validate_match.start() < fc_match.start()):
+            failures.append(
+                "Agent-3 (PAR-03, placement): the validate-named literal "
+                f"does not fall between {_AGENT_EXECUTION_BRANCHING_LABEL!r} "
+                f"and {_AGENT_FULL_COMPOSER_ANCHOR!r}"
+            )
+
+    # --- Agent-4 (PAR-01, note present) -------------------------------------
+    note = _agent_parity_note(agent_text)
+    if note is None:
+        failures.append(
+            "Agent-4 (PAR-01, note present): the proportionality note's "
+            f"anchor pair ({_AGENT_FULL_COMPOSER_ANCHOR!r} then a trailing "
+            "'---' divider) was not found"
+        )
+    elif not note:
+        failures.append(
+            "Agent-4 (PAR-01, note present): the proportionality note's "
+            "anchors were found but the slice between them is empty"
+        )
+
+    # --- Agent-5 (PAR-01, depth component) ----------------------------------
+    depth_tokens = (_PT_SIX_CRITERION_GATE, _PT_SIX_SECTION_DOC, _PT_SCOPE_PROPORTIONATE)
+    if note:
+        missing_depth = [t for t in depth_tokens if not _contains(note, t)]
+        if missing_depth:
+            failures.append(
+                "Agent-5 (PAR-01, depth component): the proportionality "
+                f"note is missing depth-component literal(s): {missing_depth}"
+            )
+    else:
+        failures.append(
+            "Agent-5 (PAR-01, depth component): cannot check depth-component "
+            "literals — the proportionality note could not be extracted"
+        )
+
+    # --- Agent-6 (PAR-01, act-limb component) -------------------------------
+    act_limb_tokens = (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MARKED)
+    if note:
+        missing_act = [t for t in act_limb_tokens if not _contains(note, t)]
+        if missing_act:
+            failures.append(
+                "Agent-6 (PAR-01, act-limb component): the proportionality "
+                f"note is missing act-limb-component literal(s): {missing_act}"
+            )
+    else:
+        failures.append(
+            "Agent-6 (PAR-01, act-limb component): cannot check act-limb-"
+            "component literals — the proportionality note could not be "
+            "extracted"
+        )
+
+    # --- Agent-7 (D-04/D-06, agent reference conditions) --------------------
+    for slug in _AGENT_REFERENCE_SLUGS:
+        text = reference_texts.get(slug)
+        if text is None:
+            failures.append(
+                "Agent-7 (D-04/D-06, agent reference conditions): "
+                f"agents/references/{slug}.md text was not supplied to the "
+                "checker"
+            )
+            continue
+        count = _count_flex(text, _EXIT_CRITERION_LINE)
+        if count != 1:
+            failures.append(
+                "Agent-7 (D-04/D-06, agent reference conditions): "
+                f"agents/references/{slug}.md carries {_EXIT_CRITERION_LINE!r} "
+                f"{count} time(s), expected exactly 1"
+            )
+            continue
+        bounds = _procedure_bounds(text)
+        if bounds is None:
+            failures.append(
+                "Agent-7 (D-04/D-06, agent reference conditions): "
+                f"agents/references/{slug}.md has no '## Procedure' heading"
+            )
+            continue
+        match = _find_flex(text, _EXIT_CRITERION_LINE)
+        assert match is not None  # count == 1 guarantees a match
+        if not (bounds[0] <= match.start() < bounds[1]):
+            failures.append(
+                "Agent-7 (D-04/D-06, agent reference conditions): "
+                f"agents/references/{slug}.md's {_EXIT_CRITERION_LINE!r} "
+                "line falls outside its '## Procedure' section"
+            )
+
+    # --- Agent-8 (D-05, clamp safety) ---------------------------------------
+    if _count_flex(fishbone_stub_text, _EXIT_CRITERION_LINE) == 0:
+        failures.append(
+            "Agent-8 (D-05, clamp safety): first-principles/skills/fishbone/"
+            f"SKILL.md is missing {_EXIT_CRITERION_LINE!r} — the "
+            "SLUGS_WITH_DETAIL '## Example' clamp may have truncated it"
+        )
+
+    return failures
+
+
 def _validate_files() -> int:
     """Validate the live emitted stub tree. Returns a process exit code."""
     if not PLUGIN_SKILLS_DIR.exists():
@@ -638,9 +937,30 @@ def _validate_files() -> int:
         )
         return 2
 
+    if not AGENT_FILE.exists():
+        sys.stderr.write(f"check-focused-parity: agent file not found: {AGENT_FILE}\n")
+        return 2
+    agent_text = AGENT_FILE.read_text(encoding="utf-8")
+
+    reference_texts: dict[str, str] = {}
+    for slug in _AGENT_REFERENCE_SLUGS:
+        ref_path = AGENT_REFERENCES_DIR / f"{slug}.md"
+        if not ref_path.exists():
+            sys.stderr.write(f"check-focused-parity: agent reference file not found: {ref_path}\n")
+            return 2
+        reference_texts[slug] = ref_path.read_text(encoding="utf-8")
+
+    if "fishbone" not in stubs:
+        sys.stderr.write(
+            "check-focused-parity: fishbone stub not found in the loaded stub set — "
+            "cannot check the D-05 clamp-safety case (Agent-8)\n"
+        )
+        return 2
+
     failures = (
         _check_anchor_coherence()
         + _check_stub_surface(stubs)
+        + _check_agent_surface(agent_text, reference_texts, stubs["fishbone"])
         + _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
     )
 
