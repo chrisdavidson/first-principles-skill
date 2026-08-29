@@ -4,14 +4,16 @@
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
 # Runs all 17 offline gate commands, captures each exit code, and prints a
-# FIREWALL: GREEN / RED verdict. A GREEN result is the hard authorization gate
-# for the Phase-129/130 live runs (D-01). VAL-01 (claude plugin validate) is a
-# CLI schema check that spends ZERO model tokens and is explicitly permitted
-# inside this offline firewall.
+# FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
+# authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
+# plugin validate) is a CLI schema check that spends ZERO model tokens and is
+# explicitly permitted inside this offline firewall.
 #
 # Usage:  bash scripts/check-firewall-battery.sh
-# Exits:  0 = FIREWALL GREEN (all gates pass)
-#         1 = FIREWALL RED   (one or more gates failed)
+# Exits:  0 = FIREWALL GREEN   (all gates pass, no unmet prerequisite)
+#         1 = FIREWALL RED     (one or more gates genuinely failed)
+#         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
+#             currently only VAL-03's pytest interpreter; see below)
 #
 # Gates (17):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
@@ -19,10 +21,36 @@
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# The first 15 are registered through the `gate` helper below; the final two
-# (INVARIANT-CHECK, FROZEN-EVIDENCE) are inline checks that each increment the
-# same PASS/FAIL/TOTAL tally rather than going through `gate`, for a reported
-# total of 17.
+# 14 of the 15 non-inline gates are registered through the `gate` helper
+# below. VAL-03 is registered through EITHER `gate` (a pytest-capable
+# interpreter was resolved for its third leg) OR `gate_prereq` (none was —
+# see "VAL-03 pytest resolution" below); either way it occupies exactly one
+# of the 15 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# inline checks that each increment the same PASS/FAIL/TOTAL tally rather
+# than going through `gate`, for a reported total of 17.
+#
+# VAL-03 pytest resolution (SHIP-06, plan 03-08):
+# VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
+# `resolve_pytest_python` (below) picks the interpreter that runs it:
+# $REPO/.venv/bin/python3 first, then `python3` — each confirmed by an
+# `import pytest` execution preflight, never by parsing any pytest run's own
+# output, so a real test failure whose text happens to mention pytest can
+# never be reclassified as a missing prerequisite. Set FIREWALL_PYTEST_PYTHON
+# to override with a single named candidate (no fallback) — it exists so
+# this file's own measurements can drive every outcome deterministically,
+# and it is still subject to the same preflight, so it cannot be used to
+# fake a pass. If no candidate can import pytest, VAL-03 still runs its
+# first two legs (check-links.py --self-test, check-links.py) — a failure
+# there is reported as a genuine [FAIL] and outranks the prerequisite gap —
+# and, only if both pass, reports [PREREQ] instead of [PASS] and increments
+# a PREREQ counter (never PASS). GREEN now requires FAIL == 0 AND
+# PREREQ == 0; an unmet prerequisite alone yields FIREWALL: BLOCKED and
+# exit 2, a third, distinguishable, still-non-zero outcome — never GREEN,
+# and never confused with a genuine gate failure (FIREWALL: RED, exit 1).
+# Rejected: `uv run --with pytest`, which would resolve and potentially fetch
+# a package from a remote index on every battery run — this script is by
+# construction an OFFLINE firewall, and only already-installed interpreters
+# are used.
 #
 # Composition change (HARNESS-01, Phase 164 -- docs/v8.7-quality-baseline-freeze.md):
 # the battery gained one gate, QUAL-01, the promoted quality-measurement
@@ -65,6 +93,7 @@ cd "$REPO"
 TOTAL=0
 PASS=0
 FAIL=0
+PREREQ=0
 
 # ---------------------------------------------------------------------------
 # gate <gate-id> <display-cmd> <bash-cmd> [<bash-cmd2> ...]
@@ -89,6 +118,83 @@ gate() {
         printf "[FAIL] %-14s  %s\n" "$gate_id" "$display_cmd"
         FAIL=$((FAIL + 1))
     fi
+}
+
+# ---------------------------------------------------------------------------
+# gate_prereq <gate-id> <display-cmd> <reason> <bash-cmd> [<bash-cmd2> ...]
+#
+# Same run-and-tally shape as `gate`, for a gate whose full form has an
+# unmet EXTERNAL prerequisite (currently: no pytest-capable interpreter for
+# VAL-03's third leg). Runs every supplied sub-command exactly as `gate`
+# does, via `bash -c ... >/dev/null 2>&1`, and increments TOTAL exactly once.
+#
+#   - If any supplied sub-command failed, the prerequisite gap is
+#     irrelevant — a real failure OUTRANKS it. Prints [FAIL] and increments
+#     FAIL, identically to `gate`. This is what stops the prerequisite
+#     branch from converting a genuine leg-1/leg-2 failure into a skip.
+#   - Only when every supplied sub-command passed does it print [PREREQ]
+#     carrying <reason> and increment the PREREQ counter. It never
+#     increments PASS — an unmet prerequisite is not a pass.
+# ---------------------------------------------------------------------------
+gate_prereq() {
+    local gate_id="$1"
+    local display_cmd="$2"
+    local reason="$3"
+    shift 3
+    local gate_exit=0
+    local cmd_str
+    for cmd_str in "$@"; do
+        bash -c "$cmd_str" >/dev/null 2>&1 || gate_exit=1
+    done
+    TOTAL=$((TOTAL + 1))
+    if [ "$gate_exit" -ne 0 ]; then
+        printf "[FAIL] %-14s  %s\n" "$gate_id" "$display_cmd"
+        FAIL=$((FAIL + 1))
+    else
+        printf "[PREREQ] %-14s  %s\n" "$gate_id" "$reason"
+        PREREQ=$((PREREQ + 1))
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# resolve_pytest_python
+#
+# Echoes the path of the first candidate interpreter that can `import
+# pytest`, and returns non-zero having echoed nothing if no candidate can.
+#
+# Candidate order:
+#   - If FIREWALL_PYTEST_PYTHON is set and non-empty, it is the ONLY
+#     candidate — no fallback. This exists so this file's own measurements
+#     can drive every VAL-03 outcome deterministically. It is still subject
+#     to the same import preflight below, so it cannot be used to fake a
+#     pass.
+#   - Otherwise: $REPO/.venv/bin/python3, then `python3` (resolved via PATH).
+#
+# The test for each candidate is an EXECUTION preflight — run the candidate
+# with `-c 'import pytest'`, stdout/stderr suppressed — never a parse of any
+# pytest run's output, so a real test failure whose text happens to mention
+# pytest can never be reclassified as a missing prerequisite. `command -v`
+# guards a candidate that is not an executable file at all (a bad
+# FIREWALL_PYTEST_PYTHON, or an absent .venv), so this reports "not usable"
+# instead of erroring under `set -u`.
+# ---------------------------------------------------------------------------
+resolve_pytest_python() {
+    local candidates=()
+    if [ -n "${FIREWALL_PYTEST_PYTHON:-}" ]; then
+        candidates=("$FIREWALL_PYTEST_PYTHON")
+    else
+        candidates=("$REPO/.venv/bin/python3" "python3")
+    fi
+    local cand
+    for cand in "${candidates[@]}"; do
+        if command -v "$cand" >/dev/null 2>&1; then
+            if "$cand" -c 'import pytest' >/dev/null 2>&1; then
+                echo "$cand"
+                return 0
+            fi
+        fi
+    done
+    return 1
 }
 
 echo "=== Phase 128 Offline Firewall Battery (READY-03 / D-06) ==="
@@ -132,12 +238,31 @@ gate "VAL-02" \
     "markdownlint-cli2 --config .markdownlint.jsonc 'first-principles/**/*.md'"
 
 # VAL-03 — check-links.py --self-test (v8.5 GATE-01) + relative MD link
-#           validity + anchor tests
-gate "VAL-03" \
-    "check-links.py --self-test + live + pytest check-links_anchors_test.py" \
-    "python3 scripts/check-links.py --self-test" \
-    "python3 scripts/check-links.py" \
-    "python3 -m pytest scripts/check-links_anchors_test.py -q"
+#           validity + anchor tests. Leg 3 needs a pytest-capable
+#           interpreter, resolved by resolve_pytest_python() (see header
+#           comment "VAL-03 pytest resolution"). When none is found, legs 1
+#           and 2 still run through gate_prereq — a failure there still
+#           reports [FAIL]/RED, and only a clean pass of both reports
+#           [PREREQ]/BLOCKED instead of [PASS]/GREEN.
+_val03_python=$(resolve_pytest_python)
+if [ -n "$_val03_python" ]; then
+    gate "VAL-03" \
+        "check-links.py --self-test + live + $_val03_python -m pytest check-links_anchors_test.py" \
+        "python3 scripts/check-links.py --self-test" \
+        "python3 scripts/check-links.py" \
+        "$_val03_python -m pytest scripts/check-links_anchors_test.py -q"
+else
+    if [ -n "${FIREWALL_PYTEST_PYTHON:-}" ]; then
+        _val03_reason="no pytest-capable interpreter found — FIREWALL_PYTEST_PYTHON=$FIREWALL_PYTEST_PYTHON was the only candidate (override in effect, no fallback) and could not import pytest, or is not an executable file; the anchors test did NOT run. Remedy: unset FIREWALL_PYTEST_PYTHON to use the default resolution order (\$REPO/.venv/bin/python3, then python3), or point it at an interpreter that has pytest installed."
+    else
+        _val03_reason="no pytest-capable interpreter found — tried $REPO/.venv/bin/python3 and python3, neither could import pytest; the anchors test did NOT run. Remedy: run 'uv sync' to create .venv (ships pytest), or install pytest for whichever interpreter 'python3' resolves to."
+    fi
+    gate_prereq "VAL-03" \
+        "check-links.py --self-test + live (pytest anchors test SKIPPED — no interpreter)" \
+        "$_val03_reason" \
+        "python3 scripts/check-links.py --self-test" \
+        "python3 scripts/check-links.py"
+fi
 
 # VAL-04 — 4-gram trigger-phrase collision scan (self-test + live)
 gate "VAL-04" \
@@ -296,12 +421,25 @@ fi
 
 # ---------------------------------------------------------------------------
 # Final verdict
+#
+# GREEN requires FAIL == 0 AND PREREQ == 0 — an unmet prerequisite is NOT a
+# pass. Three outcomes, in priority order: a genuine failure always yields
+# RED regardless of PREREQ (a real defect outranks an unmet prerequisite);
+# only when nothing failed does an unmet prerequisite yield BLOCKED instead
+# of GREEN.
 # ---------------------------------------------------------------------------
 echo ""
-if [ "$FAIL" -eq 0 ]; then
+if [ "$FAIL" -eq 0 ] && [ "$PREREQ" -eq 0 ]; then
     echo "FIREWALL: GREEN ($PASS/$TOTAL)"
     exit 0
-else
-    echo "FIREWALL: RED ($FAIL gate(s) failed; $PASS/$TOTAL passed)"
+elif [ "$FAIL" -gt 0 ]; then
+    if [ "$PREREQ" -gt 0 ]; then
+        echo "FIREWALL: RED ($FAIL gate(s) failed, $PREREQ prerequisite(s) unmet; $PASS/$TOTAL passed)"
+    else
+        echo "FIREWALL: RED ($FAIL gate(s) failed; $PASS/$TOTAL passed)"
+    fi
     exit 1
+else
+    echo "FIREWALL: BLOCKED ($PREREQ prerequisite(s) unmet; $PASS/$TOTAL passed)"
+    exit 2
 fi
