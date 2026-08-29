@@ -263,18 +263,7 @@ _OTHER_BOUND_RE = re.compile(r"[Rr]evise\s+(?:twice|two\s+times|three\s+times|\d
 
 # --- ratchet-bookkeeping-begin ---
 _ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
-_ANCHOR_CONTROL_PENDING: dict[str, str] = {
-    "_WRAP_WIDTH": "Task 2 adds the reflow control (p), which references this.",
-    "_VERDICT_LITERALS": "Task 2 adds the Stub-4 verdict control (g), which references this.",
-    "_PROVENANCE_LEAK_TERMS": "Task 2 adds the Stub-5 provenance-leak control (i), which references this.",
-    "_COMPLETION_CONDITION_FORMS": "Task 2 adds the Stub-8 completion-condition controls (l)/(m), which reference this.",
-    "_PARITY_LITERALS": "Task 2 adds the Stub-9 parity controls (n), which reference this.",
-    "_OTHER_BOUND_RE": "Task 2 adds the Stub-10 other-bound control (o2), which references this.",
-}
-# Measured by running the coverage check with both lists empty, not
-# predicted — six module-level anchors have only a definition and one
-# assertion site each until Task 2's self-test controls add a third
-# reference. Task 2 discharges every entry above to an empty dict.
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # --- ratchet-bookkeeping-end ---
 
 # Re-entrancy sentinel guarding the dispatch control (r), copied in shape
@@ -666,15 +655,504 @@ def _validate_files() -> int:
 
 # ---------------------------------------------------------------------------
 # Self-test: in-memory mutation fixtures, never touching a file on disk.
+# ---------------------------------------------------------------------------
+
+
+def _check_negative(
+    label: str,
+    failures: list[str],
+    expected_check_id: str,
+    expected_detail: str | None = None,
+) -> None:
+    """Assert a mutated fixture failed, and failed for its OWN reason.
+
+    Copied in shape from `scripts/check-act-limb.py`'s `_check_negative`
+    (`01-REVIEW.md` WR-02's repair): the match key is the failing message's
+    own leading check ID, plus (optionally) a sub-item detail unique to the
+    assertion under test. Free-text substring matching against ANY failure in
+    the list is forbidden — that lets a SIBLING check's failure satisfy a
+    control's expectation, which is indistinguishable at the verdict line
+    from a control whose target assertion is dead.
+
+    The ID match is boundary-anchored (`Stub-1` must not match `Stub-10`),
+    and a wrong-reason report names the check IDs that DID fire so a
+    mis-targeted control is diagnosable in one read.
+    """
+
+    def _fired_ids(msgs: list[str]) -> list[str]:
+        return sorted({m.split(" ", 1)[0].rstrip(":") for m in msgs})
+
+    def _id_matches(msg: str, check_id: str) -> bool:
+        if not msg.startswith(check_id):
+            return False
+        rest = msg[len(check_id):]
+        return rest[:1] in (" ", ":")
+
+    if not failures:
+        print(f"({label}) WRONGLY PASSED (expected failure)")
+        _problems.append(f"{label}: no failures produced")
+        return
+    matched = [f for f in failures if _id_matches(f, expected_check_id)]
+    if not matched:
+        print(
+            f"({label}) failed for the WRONG reason (expected check ID "
+            f"{expected_check_id!r}; check IDs that DID fire: "
+            f"{', '.join(_fired_ids(failures))}; got: {'; '.join(failures)})"
+        )
+        _problems.append(f"{label}: wrong-reason failure")
+        return
+    if expected_detail is not None and not any(expected_detail in f for f in matched):
+        print(
+            f"({label}) failed for the WRONG reason (check ID "
+            f"{expected_check_id!r} fired but no message of that ID contains "
+            f"detail {expected_detail!r}; got: {'; '.join(matched)})"
+        )
+        _problems.append(f"{label}: wrong-detail failure")
+        return
+    print(f"({label}) correctly failed ({expected_check_id})")
+
+
+def _check_positive(label: str, failures: list[str]) -> None:
+    """Assert a fixture that should pass produced zero failures."""
+    if failures:
+        print(f"({label}) WRONGLY FAILED: {'; '.join(failures)}")
+        _problems.append(f"{label}: unexpected failure(s)")
+    else:
+        print(f"({label}) correctly passed (0 failures)")
+
+
+def _mutate_one(stubs: dict[str, str], slug: str, target: str, replacement: str = "") -> dict[str, str]:
+    """Return a copy of *stubs* with a single-site whitespace-tolerant
+    substitution applied to one slug's body. Never mutates the input dict or
+    any string it holds — `str` is immutable and `dict(stubs)` is a shallow
+    copy, so the caller's fixture is untouched."""
+    new_stubs = dict(stubs)
+    new_stubs[slug] = _replace_once(stubs[slug], target, replacement)
+    return new_stubs
+
+
+def _mutate_all_non_launcher(stubs: dict[str, str], target: str, replacement: str = "") -> dict[str, str]:
+    """Like `_mutate_one`, applied to every non-launcher slug — builds the
+    Stub-1 zero-match fixture (control b)."""
+    new_stubs = dict(stubs)
+    for slug in stubs:
+        if slug != LAUNCHER_SLUG:
+            new_stubs[slug] = _replace_once(stubs[slug], target, replacement)
+    return new_stubs
+
+
+def _append_to(stubs: dict[str, str], slug: str, text: str) -> dict[str, str]:
+    """Return a copy of *stubs* with *text* appended to one slug's body —
+    builds duplicate/injection fixtures."""
+    new_stubs = dict(stubs)
+    new_stubs[slug] = stubs[slug] + "\n\n" + text
+    return new_stubs
+
+
+def _move_section_after_handoff(stubs: dict[str, str], slug: str) -> dict[str, str]:
+    """Build the Stub-2 placement-violation fixture (control d): cut the
+    validation section (heading through the point just before the closing
+    handoff anchor) and reinsert it AFTER the handoff anchor, inverting the
+    two blocks' order so the heading now follows the handoff instead of
+    preceding it."""
+    body = stubs[slug]
+    heading_match = _find_flex(body, _STUB_SECTION_HEADING)
+    handoff_match = _find_flex(body, _CLOSING_HANDOFF_ANCHOR)
+    if heading_match is None or handoff_match is None:
+        raise AssertionError(
+            f"placement fixture precondition failed for {slug}: both anchors "
+            "must be found"
+        )
+    if not heading_match.start() < handoff_match.start():
+        raise AssertionError(
+            f"placement fixture precondition failed for {slug}: expected "
+            "heading before handoff in the baseline fixture"
+        )
+    before = body[: heading_match.start()]
+    middle = body[heading_match.start() : handoff_match.start()]
+    tail_from_handoff = body[handoff_match.start() :]
+    mutated = before + tail_from_handoff.rstrip("\n") + "\n\n" + middle.rstrip("\n") + "\n"
+    new_stubs = dict(stubs)
+    new_stubs[slug] = mutated
+    return new_stubs
+
+
+def _move_section_before_when(stubs: dict[str, str], slug: str) -> dict[str, str]:
+    """Build the Stub-2 "before the inlined procedure" placement-violation
+    fixture (control d4): cut the whole tail from the heading through end of
+    file (heading, section, and the closing handoff paragraph together, in
+    their original relative order) and move it to the very front of the
+    body, ahead of `## When to reach for this`. Moving the whole tail as one
+    block keeps the heading-before-handoff relation intact, so this fixture
+    isolates the "before When to reach" branch without also tripping the
+    "after handoff" branch `_move_section_after_handoff` already covers."""
+    body = stubs[slug]
+    heading_match = _find_flex(body, _STUB_SECTION_HEADING)
+    if heading_match is None:
+        raise AssertionError(
+            f"before-when fixture precondition failed for {slug}: heading not found"
+        )
+    before = body[: heading_match.start()]
+    tail = body[heading_match.start() :]
+    mutated = tail.rstrip("\n") + "\n\n" + before.rstrip("\n") + "\n"
+    new_stubs = dict(stubs)
+    new_stubs[slug] = mutated
+    return new_stubs
+
+
+def _reflow(text: str, width: int) -> str:
+    """Rewrap every plain paragraph in *text* to *width* columns, leaving
+    headings, list items, table rows, code fences and blank lines untouched.
+
+    A structural, not literal, transformation: it exists to prove this
+    file's whitespace-insensitive matching survives an ordinary Markdown
+    reflow at a width distinct from the shipped files' — the direct guard
+    against the Phase 2 defect (pinned literals defeated by hard-wrapping)
+    that this repo already paid for once. `break_long_words=False,
+    break_on_hyphens=False` keep a hyphenated literal (e.g.
+    `scope-proportionate`) or a bold-marker literal (e.g.
+    `**Exit criterion:**`) from being split WITHIN a single flex-pattern
+    "word" — a break `_flex_pattern` cannot tolerate, since it only inserts
+    flexible whitespace between space-separated words, not inside one.
+    """
+    lines = text.split("\n")
+    out: list[str] = []
+    buf: list[str] = []
+
+    def _flush() -> None:
+        if buf:
+            wrapped = textwrap.wrap(
+                " ".join(buf), width=width, break_long_words=False, break_on_hyphens=False
+            )
+            out.extend(wrapped or [""])
+            buf.clear()
+
+    for line in lines:
+        stripped = line.strip()
+        is_structural = (
+            not stripped
+            or stripped.startswith("#")
+            or stripped.startswith("-")
+            or stripped.startswith("|")
+            or stripped.startswith("```")
+            or (stripped[:1].isdigit() and ". " in stripped[:4])
+        )
+        if is_structural:
+            _flush()
+            out.append(line)
+        else:
+            buf.append(stripped)
+    _flush()
+    return "\n".join(out)
+
+
+_problems: list[str] = []
+
 
 def _run_self_test() -> int:
-    """Task 1 placeholder. The real control battery — `_check_negative`,
-    the fixture-mutation helpers, and the per-assertion-site controls —
-    lands in Task 2, which replaces this stub outright."""
-    print(
-        "check-focused-parity --self-test: controls land in Task 2 "
-        "(placeholder — Task 1 ships the assertions and machinery only)"
+    """Run the offline control battery (controls a-r). Returns 0 on all-pass,
+    1 on any failure."""
+    if not PLUGIN_SKILLS_DIR.exists():
+        sys.stderr.write(
+            "check-focused-parity --self-test: cannot derive fixtures — "
+            f"{PLUGIN_SKILLS_DIR} not found\n"
+        )
+        return 2
+
+    global _problems
+    _problems = []
+
+    try:
+        real_stubs = _load_real_stubs()
+    except (ValueError, FileNotFoundError) as exc:
+        sys.stderr.write(f"check-focused-parity --self-test: could not read fixtures: {exc}\n")
+        return 2
+
+    if LAUNCHER_SLUG not in real_stubs or len(real_stubs) != EXPECTED_STUB_COUNT + 1:
+        sys.stderr.write(
+            "check-focused-parity --self-test: unexpected live stub set shape "
+            f"({len(real_stubs)} entries, launcher present: "
+            f"{LAUNCHER_SLUG in real_stubs}) — cannot build fixtures safely\n"
+        )
+        return 2
+
+    # A representative slug per completion-condition form, used by controls
+    # (l) and (m). Chosen from the confirmed live mapping in 03-PATTERNS.md.
+    form_reps = {
+        "exit-criterion": "validate",
+        "stop-test-heading": "five-whys",
+        "output-contract-heading": "inversion",
+        "inline-stop-criterion": "estimate",
+    }
+
+    # Two module-level checks, printed before the fixture battery.
+    coherence_failures = _check_anchor_coherence()
+    if coherence_failures:
+        print(f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}")
+        _problems.append("(coh): anchor coherence check failed unexpectedly")
+    else:
+        print("(coh) anchor coherence: PASS (trivial — no derived pairs yet; plan 03-04 adds them)")
+
+    coverage_failures = _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
+    if coverage_failures:
+        print("(cov) anchor-control coverage: FAIL — " + "; ".join(coverage_failures))
+        _problems.append("(cov): anchor constant(s) without a control")
+    else:
+        print(
+            "(cov) anchor-control coverage: PASS — every module-level anchor is "
+            f"referenced >=3 times or listed ({len(_ANCHOR_CONTROL_EXEMPT)} exempt, "
+            f"{len(_ANCHOR_CONTROL_PENDING)} pending)"
+        )
+
+    # (a) positive control: the real emitted files produce zero failures.
+    _check_positive("a", _check_stub_surface(real_stubs))
+
+    # (b) Stub-1 zero-match control: strip the heading from EVERY non-launcher
+    # stub. Distinct from (c)'s wrong-count message.
+    b_stubs = _mutate_all_non_launcher(real_stubs, _STUB_SECTION_HEADING)
+    _check_negative("b", _check_stub_surface(b_stubs), "Stub-1", "ZERO")
+
+    # (c) Stub-1 wrong-count control: strip the heading from exactly one stub.
+    c_stubs = _mutate_one(real_stubs, "five-whys", _STUB_SECTION_HEADING)
+    _check_negative("c", _check_stub_surface(c_stubs), "Stub-1", "12 of 13")
+
+    # (c2) Stub-1 structural-count control: remove a whole non-launcher slug
+    # from the stub set (rather than mutating a body's content), exercising
+    # the "N non-launcher slugs are present" sub-assertion the (b)/(c)
+    # content-only mutations never reach.
+    c2_stubs = dict(real_stubs)
+    del c2_stubs["five-whys"]
+    _check_negative("c2", _check_stub_surface(c2_stubs), "Stub-1", "non-launcher slugs are present")
+
+    # (d) Stub-2 placement control: move the section after the handoff.
+    d_stubs = _move_section_after_handoff(real_stubs, "trade-off")
+    _check_negative("d", _check_stub_surface(d_stubs), "Stub-2", "at or after")
+
+    # (d2) Stub-2 missing-"When to reach"-anchor control: strip that heading
+    # while leaving the validation section heading and the handoff anchor
+    # intact, exercising the "is missing the ... anchor needed to check
+    # ordering" branch for the When-to-reach anchor specifically.
+    d2_stubs = _mutate_one(real_stubs, "trade-off", _WHEN_TO_REACH_HEADING)
+    _check_negative("d2", _check_stub_surface(d2_stubs), "Stub-2", _WHEN_TO_REACH_HEADING)
+
+    # (d3) Stub-2 missing-handoff-anchor control: strip the closing handoff
+    # anchor while leaving the other two anchors intact, exercising the
+    # sibling "missing the closing handoff anchor" branch.
+    d3_stubs = _mutate_one(real_stubs, "trade-off", _CLOSING_HANDOFF_ANCHOR)
+    _check_negative("d3", _check_stub_surface(d3_stubs), "Stub-2", "closing handoff anchor")
+
+    # (d4) Stub-2 "before When to reach" placement control: move the whole
+    # heading+section+handoff tail to the front of the body, ahead of
+    # `## When to reach for this` — exercises the "occurs at or before"
+    # branch, the mirror of (d)'s "at or after handoff" branch.
+    d4_stubs = _move_section_before_when(real_stubs, "trade-off")
+    _check_negative("d4", _check_stub_surface(d4_stubs), "Stub-2", "at or before")
+
+    # (e) Stub-2 duplicate control: the heading appears twice in one stub.
+    e_stubs = _append_to(real_stubs, "trade-off", _STUB_SECTION_HEADING)
+    _check_negative("e", _check_stub_surface(e_stubs), "Stub-2", "2 time(s)")
+
+    # (f) Stub-3 launcher control: inject the heading into the launcher.
+    f_stubs = _append_to(real_stubs, LAUNCHER_SLUG, _STUB_SECTION_HEADING)
+    _check_negative("f", _check_stub_surface(f_stubs), "Stub-3")
+
+    # (g) Stub-4 verdict control: strip one verdict literal from one stub.
+    g_stubs = _mutate_one(real_stubs, "second-order", _VERDICT_LITERALS[0])
+    _check_negative("g", _check_stub_surface(g_stubs), "Stub-4", "verdict literal")
+
+    # (h) Stub-5 mark control: strip the `?` clause from one stub.
+    h_stubs = _mutate_one(real_stubs, "second-order", _UNVERIFIED_MARK_CLAUSE)
+    _check_negative("h", _check_stub_surface(h_stubs), "Stub-5", "unverified mark clause")
+
+    # (i) Stub-5 provenance-leak control: inject `read-at-source` into one stub.
+    i_stubs = _append_to(real_stubs, "second-order", f"Provenance: {_PROVENANCE_LEAK_TERMS[0]}.")
+    _check_negative("i", _check_stub_surface(i_stubs), "Stub-5", "leaks")
+
+    # (j) Stub-6 wrapper control: strip the amended wrapper clause.
+    j_stubs = _mutate_one(real_stubs, "ground-truths", _WRAPPER_ADMITS)
+    _check_negative("j", _check_stub_surface(j_stubs), "Stub-6")
+
+    # (k) Stub-7 retired-clause control: reinstate the retired wrapper clause.
+    k_stubs = _append_to(real_stubs, "ground-truths", _WRAPPER_RETIRED)
+    _check_negative("k", _check_stub_surface(k_stubs), "Stub-7")
+
+    # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
+    # marker; the failure must NAME the slug.
+    l_stubs = _mutate_one(
+        real_stubs, form_reps["exit-criterion"], _COMPLETION_CONDITION_FORMS["exit-criterion"]
     )
+    _check_negative("l", _check_stub_surface(l_stubs), "Stub-8", form_reps["exit-criterion"])
+
+    # (m) Stub-8 all-forms control: for EACH of the four recognised forms, a
+    # fixture in which that form is the ONLY thing carrying its
+    # representative slug's completion condition, mutated away.
+    for i, (form_name, rep_slug) in enumerate(form_reps.items(), start=1):
+        literal = _COMPLETION_CONDITION_FORMS[form_name]
+        m_stubs = _mutate_one(real_stubs, rep_slug, literal)
+        _check_negative(f"m{i}", _check_stub_surface(m_stubs), "Stub-8", rep_slug)
+
+    # (n) Stub-9 parity control: for EACH of the five parity literals, a
+    # fixture with that one literal stripped from one stub.
+    for i, literal in enumerate(_PARITY_LITERALS, start=1):
+        n_stubs = _mutate_one(real_stubs, "challenge-assumptions", literal)
+        _check_negative(f"n{i}", _check_stub_surface(n_stubs), "Stub-9", literal)
+
+    # (o) Stub-10 bound control: strip the one-pass bound clause.
+    o_stubs = _mutate_one(real_stubs, "reason-upward", _ONE_PASS_BOUND)
+    _check_negative("o", _check_stub_surface(o_stubs), "Stub-10", "one-pass bound clause")
+
+    # (o2) Stub-10 other-bound control: inject a competing numeric revision
+    # bound (`_OTHER_BOUND_RE`'s territory) into one stub, alongside the
+    # real one-pass clause, and confirm the "additional numeric revision
+    # bound" branch fires distinctly from (o)'s "missing clause" branch.
+    o2_stubs = _append_to(real_stubs, "reason-upward", "Revise twice if the first pass fails.")
+    _check_negative("o2", _check_stub_surface(o2_stubs), "Stub-10", "additional numeric revision bound")
+
+    # (p) reflow control (positive): every real stub body re-wrapped at a
+    # width distinct from the shipped files' must still PASS — the direct,
+    # measured guard against the Phase 2 whitespace defect.
+    p_stubs = {slug: _reflow(body, _WRAP_WIDTH) for slug, body in real_stubs.items()}
+    _check_positive("p", _check_stub_surface(p_stubs))
+
+    # (q) ratchet branch control: drive `_check_anchor_control_coverage`
+    # against synthetic sources to exercise every branch.
+    markers = "# --- ratchet-bookkeeping-begin ---\n# --- ratchet-bookkeeping-end ---\n"
+
+    q1_source = markers + '_FOO = "bar"\n'
+    q1_failures = _check_anchor_control_coverage(q1_source, exempt={}, pending={})
+    if any("referenced 1 time(s)" in f for f in q1_failures):
+        print("(q1) under-referenced constant: correctly failed")
+    else:
+        print(f"(q1) under-referenced constant: WRONGLY PASSED OR WRONG REASON: {q1_failures}")
+        _problems.append("q1: under-referenced constant control did not fire correctly")
+
+    q2_failures = _check_anchor_control_coverage(
+        q1_source, exempt={"_FOO": "justified in one sentence"}, pending={}
+    )
+    if not q2_failures:
+        print("(q2) valid exempt entry: correctly passed")
+    else:
+        print(f"(q2) valid exempt entry: WRONGLY FAILED: {q2_failures}")
+        _problems.append("q2: valid exempt entry incorrectly failed")
+
+    q3_failures = _check_anchor_control_coverage(q1_source, exempt={"_FOO": "   "}, pending={})
+    if any("empty justification" in f for f in q3_failures):
+        print("(q3) exempt entry with empty justification: correctly failed")
+    else:
+        print(f"(q3) exempt entry with empty justification: WRONGLY PASSED OR WRONG REASON: {q3_failures}")
+        _problems.append("q3: empty-justification exempt control did not fire correctly")
+
+    q4_failures = _check_anchor_control_coverage(
+        q1_source, exempt={}, pending={"_FOO": "Task 2 discharges this"}
+    )
+    if not q4_failures:
+        print("(q4) short pending entry (count < 3): correctly passed")
+    else:
+        print(f"(q4) short pending entry: WRONGLY FAILED: {q4_failures}")
+        _problems.append("q4: short pending entry incorrectly failed")
+
+    q5_source = markers + '_FOO = "bar"\n_FOO\n_FOO\n'
+    q5_failures = _check_anchor_control_coverage(
+        q5_source, exempt={}, pending={"_FOO": "stale on purpose"}
+    )
+    if any("already referenced 3 time(s)" in f for f in q5_failures):
+        print("(q5) stale pending entry (count >= 3): correctly failed")
+    else:
+        print(f"(q5) stale pending entry: WRONGLY PASSED OR WRONG REASON: {q5_failures}")
+        _problems.append("q5: stale pending entry control did not fire correctly")
+
+    q6_failures = _check_anchor_control_coverage(
+        q1_source, exempt={"_FOO": "x"}, pending={"_FOO": "y"}
+    )
+    if any("BOTH" in f for f in q6_failures):
+        print("(q6) constant listed in both EXEMPT and PENDING: correctly failed")
+    else:
+        print(f"(q6) both-lists control: WRONGLY PASSED OR WRONG REASON: {q6_failures}")
+        _problems.append("q6: both-exempt-and-pending control did not fire correctly")
+
+    q7_failures = _check_anchor_control_coverage(markers)
+    if any("enumerator matched no" in f for f in q7_failures):
+        print("(q7) no anchors present: correctly failed")
+    else:
+        print(f"(q7) no-anchors control: WRONGLY PASSED OR WRONG REASON: {q7_failures}")
+        _problems.append("q7: no-anchors control did not fire correctly")
+
+    q8_failures = _check_anchor_control_coverage('_FOO = "bar"\n_FOO\n_FOO\n')
+    if any("bookkeeping markers not found" in f for f in q8_failures):
+        print("(q8) missing bookkeeping markers: correctly failed")
+    else:
+        print(f"(q8) missing-markers control: WRONGLY PASSED OR WRONG REASON: {q8_failures}")
+        _problems.append("q8: missing-markers control did not fire correctly")
+
+    _this_module = sys.modules[__name__]
+    original_exempt = _this_module._ANCHOR_CONTROL_EXEMPT
+    try:
+        _this_module._ANCHOR_CONTROL_EXEMPT = "not a dict"  # type: ignore[assignment]
+        q9_failures = _check_anchor_control_coverage(q1_source)
+    finally:
+        _this_module._ANCHOR_CONTROL_EXEMPT = original_exempt
+    if any("must both be dicts" in f for f in q9_failures):
+        print("(q9) retyped machinery global (_ANCHOR_CONTROL_EXEMPT): correctly failed")
+    else:
+        print(f"(q9) retyped-global control: WRONGLY PASSED OR WRONG REASON: {q9_failures}")
+        _problems.append("q9: retyped machinery global control did not fire correctly")
+
+    original_reentrant = _this_module._DISPATCH_REENTRANT
+    try:
+        _this_module._DISPATCH_REENTRANT = "not a bool"  # type: ignore[assignment]
+        q10_failures = _check_anchor_control_coverage(q1_source)
+    finally:
+        _this_module._DISPATCH_REENTRANT = original_reentrant
+    if any("_DISPATCH_REENTRANT must be a bool" in f for f in q10_failures):
+        print("(q10) retyped machinery global (_DISPATCH_REENTRANT): correctly failed")
+    else:
+        print(f"(q10) retyped-reentrant control: WRONGLY PASSED OR WRONG REASON: {q10_failures}")
+        _problems.append("q10: retyped _DISPATCH_REENTRANT control did not fire correctly")
+
+    # (r) dispatch control: prove the CLI layer reaches this block, not
+    # merely that _run_self_test() is correct when called directly.
+    if not _this_module._DISPATCH_REENTRANT:
+        _this_module._DISPATCH_REENTRANT = True
+        try:
+            import contextlib
+            import io
+
+            dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(dispatch_err):
+                dispatch_rc = main(["--self-test"])
+            dispatch_text = dispatch_out.getvalue()
+            if dispatch_rc != 0:
+                print(
+                    "(r) dispatch control: WRONGLY FAILED — main(['--self-test']) "
+                    f"returned {dispatch_rc}, expected 0"
+                )
+                _problems.append(f"r: main(['--self-test']) returned {dispatch_rc}, expected 0")
+            elif "(a) correctly passed" not in dispatch_text:
+                print(
+                    "(r) dispatch control: WRONGLY FAILED — captured stdout did not "
+                    f"contain control (a)'s pass text: {dispatch_text!r}"
+                )
+                _problems.append("r: captured stdout missing control (a) pass text")
+            else:
+                print(
+                    "(r) dispatch control: PASS — main(['--self-test']) reaches this "
+                    "block end-to-end"
+                )
+        except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
+            print(f"(r) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+            _problems.append(f"r: unexpected exception: {exc!r}")
+        finally:
+            _this_module._DISPATCH_REENTRANT = False
+    else:
+        print("(r) dispatch control: skipped (nested self-test run)")
+
+    if _problems:
+        sys.stderr.write(
+            "check-focused-parity --self-test: FAIL — " + "; ".join(_problems) + "\n"
+        )
+        return 1
+
+    print("check-focused-parity --self-test: PASS")
     return 0
 
 
