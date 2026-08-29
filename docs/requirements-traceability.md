@@ -10,7 +10,7 @@ The full 237-row capability-to-requirement-to-test mapping is in the generated m
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
-> 88 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
+> 90 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.13 residual-delta live re-baseline Phase 137; latest artifact `tests/step0-baseline-v7.13.md`; reproducible = measured, not passing — v7.13 S-P02 1/5, S-P10 0/5, S-P14 0/5 all CARRIED; v7.8 remains the canonical full 8-technique baseline) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
@@ -59,8 +59,11 @@ is already discharged — no row is a currently-open action item.
 > META-Q4 re-tier which moved the headline to 97 without updating that section's own count, and was
 > deliberately left uncorrected by the prior quick task (`260728-vxn`) pending a separate doc-hygiene
 > pass — recorded as a known, visible drift rather than silently absorbed. Quick task `260728-wdi`
-> is that pass: the heading now reads 88 audit-only rows, agreeing with the headline above and with
-> `docs/data/matrix.json`.
+> is that pass. **The rest of this note is dated history, not a live claim:** as of 2026-07-28
+> the heading was corrected to agree with the then-current `126/88/0/214` headline and with
+> `docs/data/matrix.json` as generated at that date. The headline has since moved again — to
+> `147/90/0/237` at v8.18 Phase 4, recorded as headline-history row 8 above — and the heading
+> moved with it; both now read 90.
 
 ## v8.0 Terminal State (2026-07-06)
 
