@@ -218,3 +218,42 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-traceability.py --self-test
+
+  check-act-limb:
+    name: check-act-limb (HARN-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-act-limb.py --self-test
+
+  check-loop-closure:
+    name: check-loop-closure (HARN-02)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-loop-closure.py --self-test
+
+  check-focused-parity:
+    name: check-focused-parity (HARN-03)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+      - run: uv sync --locked --group dev
+      - run: uv run python3 scripts/check-focused-parity.py --self-test
