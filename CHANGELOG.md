@@ -49,7 +49,8 @@ Observe→Perceive return edge, and stub/focused-mode divergence. Full record:
   `scripts/check-firewall-battery.sh` and gained a CI job in `.github/workflows/validation.yml`.
 - **23 v8.18 traceability rows** (`_rows_v818()` in `scripts/check-traceability.py`, 21
   reproducible / 2 audit-only) and the `V818-ROWS` sentinel pinning the tier partition by
-  requirement ID — the first milestone requirement block registered as matrix rows since v7.9.
+  requirement ID — the first **v8.x** milestone requirement block registered as matrix rows
+  since v7.9 (the v7.11 block, `_rows_v711()`, registered 11 audit-only rows in between).
 
 ### Changed
 
