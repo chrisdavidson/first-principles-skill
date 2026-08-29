@@ -113,6 +113,12 @@ labels and blank branches.
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
+**Exit criterion:** Every category in the chosen set has been walked, each candidate
+cause is attached to exactly one category, unverified candidate causes are explicitly
+marked as unverified, and the highest-priority branches for evidence gathering or
+further depth are named. A reader can tell which causes were tested and which are
+still candidates.
+
 **Read [fishbone-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/fishbone-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them

@@ -119,8 +119,10 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Validate, and Second-Order Effects when applicable) run as written.
 - If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all eight companion techniques.
+
+**Focused mode validates proportionately, and the difference is stated, not hidden.** A slash-invoked focused skill runs a scope-proportionate check rather than the six-criterion Self-Audit Gate, because that gate scores a six-section analysis document while a focused run produces one technique's output sections — walking all six criteria against output that fills only one of the six sections would score structure that was never produced. The second component of the divergence is larger: a focused run does not acquire evidence — it opens no cited source — so a claim resting on a source the run did not open stays marked with the `?` rather than being resolved, and this is a disclosed residual, not an omission. Both surfaces carry this divergence stated in full, so a reader of either one sees it.
 
 ---
 
@@ -495,6 +497,12 @@ branch flags the whole parent with `?`.
    causes explicitly. Select the highest-priority branches for evidence gathering or
    further depth analysis.
 
+**Exit criterion:** Every category in the chosen set has been walked, each candidate
+cause is attached to exactly one category, unverified candidate causes are explicitly
+marked as unverified, and the highest-priority branches for evidence gathering or
+further depth are named. A reader can tell which causes were tested and which are
+still candidates.
+
 **Read [fishbone-detail.md](${CLAUDE_PLUGIN_ROOT}/agents/references/fishbone-detail.md) when you need:**
 - a worked example of this technique
 - the failure modes and how to avoid them
@@ -551,6 +559,12 @@ branch flags the whole parent with `?`.
 5. **Act on findings.** Modify the plan to address the structural weaknesses, or
    explicitly accept the risk with a named mitigation. A pre-mortem with no
    downstream plan change was box-ticking.
+
+**Exit criterion:** The failure has been stated as having already happened, causes
+are written from that stance, causes are clustered into structural weaknesses, and
+every cluster has either a named plan change or an explicitly accepted risk with a
+named mitigation. A pre-mortem that ends without one of those two outcomes per
+cluster is box-ticking, not a finding.
 
 ---
 
@@ -613,6 +627,11 @@ near-tie is a real finding and either option is defensible.
    Derivation Chain as additional order-marked steps (`→[2nd]`, `→[3rd]`).
    Any contradicting effect routes the conclusion back to Phase 2
    (Challenge Assumptions) — never directly to Phase 3 or past Phase 2.
+
+**Exit criterion:** Every first-order effect in scope has been carried to at least
+its second order, each derived effect carries its order mark, contradicting effects
+are identified as contradicting, and each effect is routed — non-contradicting
+effects into the Derivation Chain, contradicting effects back to Phase 2.
 
 ---
 
