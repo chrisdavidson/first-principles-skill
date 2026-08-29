@@ -1614,6 +1614,40 @@ def _run_self_test() -> int:
         "Agent-3",
     )
 
+    # (u2) Agent-3 ordering-violation control: a SYNTHETIC fixture where BOTH
+    # the validate-named literal and the full-composer bullet are present
+    # after the branching label, but in the WRONG relative order. (u) above
+    # removes the validate literal from `remainder` entirely, so it only
+    # ever exercises the "not found after ..." branch; this control isolates
+    # the sibling "does not fall between" ordering-elif branch, found
+    # unreached by this task's own mandated neutralization audit.
+    u2_agent = (
+        f"{_AGENT_EXECUTION_BRANCHING_LABEL}\n\n"
+        f"- If `{_AGENT_FULL_COMPOSER_ANCHOR}`: execute Phases 1-5 as written.\n\n"
+        f"- If `MODE = focused-<technique>`: ... ({_AGENT_VALIDATE_NAMED}) "
+        "run as written.\n"
+    )
+    _check_negative(
+        "u2",
+        _check_agent_surface(u2_agent, real_reference_texts, real_stubs["fishbone"]),
+        "Agent-3",
+        "does not fall between",
+    )
+
+    # (u3) Agent-3/Agent-4/Agent-5/Agent-6 "anchors entirely absent" control:
+    # strip the branching label itself. Found unreached by this task's own
+    # mandated neutralization audit — (aa) below strips the SAME anchor but
+    # only drives `_check_cross_surface_parity`, never `_check_agent_surface`,
+    # so Agent-3's "label not found" branch and Agent-4/5/6's "note could not
+    # be extracted" fallback branches had no control of their own. One
+    # fixture, four assertions, each under its own label.
+    u3_agent = _replace_once(real_agent_text, _AGENT_EXECUTION_BRANCHING_LABEL, "")
+    u3_failures = _check_agent_surface(u3_agent, real_reference_texts, real_stubs["fishbone"])
+    _check_negative("u3", u3_failures, "Agent-3", "label was not found")
+    _check_negative("u3b", u3_failures, "Agent-4", "anchor pair")
+    _check_negative("u3c", u3_failures, "Agent-5", "could not be extracted")
+    _check_negative("u3d", u3_failures, "Agent-6", "could not be extracted")
+
     # (v/v2) Agent-4 control: remove the proportionality paragraph entirely.
     # Must fire BOTH Agent-4 (agent-surface note-present check) and Parity-1
     # (cross-surface note-missing anti-vacuity guard) from the SAME fixture —
@@ -1679,6 +1713,31 @@ def _run_self_test() -> int:
             "falls outside",
         )
 
+    # (y10) Agent-7 "text not supplied" control: pass a reference_texts dict
+    # missing one of the three slugs entirely (distinct from stripping
+    # content FROM a slug's text, which (y1)/(y4)/(y7) already cover).
+    y10_refs = {
+        slug: text for slug, text in real_reference_texts.items() if slug != "fishbone"
+    }
+    _check_negative(
+        "y10",
+        _check_agent_surface(real_agent_text, y10_refs, real_stubs["fishbone"]),
+        "Agent-7",
+        "text was not supplied",
+    )
+
+    # (y11) Agent-7 "no Procedure heading" control: rename the `## Procedure`
+    # heading itself in one reference file, so `_procedure_bounds()` returns
+    # None even though the Exit-criterion line count is still exactly 1 —
+    # distinct from (y3)'s "moved outside a Procedure that still exists".
+    y11_refs = _mutate_ref(real_reference_texts, "pre-mortem", "## Procedure", "## Steps")
+    _check_negative(
+        "y11",
+        _check_agent_surface(real_agent_text, y11_refs, real_stubs["fishbone"]),
+        "Agent-7",
+        "no '## Procedure' heading",
+    )
+
     # (z) Agent-8 control: strip the Exit criterion line from the fishbone
     # stub fixture — the D-05 clamp-safety case.
     z_fishbone_stub = _replace_once(real_stubs["fishbone"], _EXIT_CRITERION_LINE, "")
@@ -1716,6 +1775,20 @@ def _run_self_test() -> int:
     ad_stubs = _mutate_one(real_stubs, "validate", _PT_STAYS_MARKED, "remains flagged")
     _check_negative(
         "ad", _check_cross_surface_parity(real_agent_text, ad_stubs), "Parity-4", "validate"
+    )
+
+    # (ad2) Parity-4 "no section" control: strip the
+    # `## Focused-mode validation` heading from one stub entirely, so
+    # `_stub_parity_note()` returns None for that slug — distinct from (ad)'s
+    # reworded-but-still-present section, and distinct from (af)'s
+    # whole-slug removal (which trips Parity-5's count, not Parity-4's
+    # per-slug branch).
+    ad2_stubs = _mutate_one(real_stubs, "trade-off", _STUB_SECTION_HEADING, "")
+    _check_negative(
+        "ad2",
+        _check_cross_surface_parity(real_agent_text, ad2_stubs),
+        "Parity-4",
+        "trade-off",
     )
 
     # (ae) Parity-4 reverse control: reword a parity token in the AGENT note
@@ -1832,6 +1905,29 @@ def _run_self_test() -> int:
     else:
         print(f"(q8) missing-markers control: WRONGLY PASSED OR WRONG REASON: {q8_failures}")
         _problems.append("q8: missing-markers control did not fire correctly")
+
+    # (q11) stale exempt entry: an exempt-list name that matches no
+    # module-level anchor constant in *source* must be reported stale.
+    q11_failures = _check_anchor_control_coverage(
+        q1_source, exempt={"_NOTREAL": "justified in one sentence"}, pending={}
+    )
+    if any("exempt entry" in f and "stale" in f for f in q11_failures):
+        print("(q11) stale exempt entry: correctly failed")
+    else:
+        print(f"(q11) stale-exempt control: WRONGLY PASSED OR WRONG REASON: {q11_failures}")
+        _problems.append("q11: stale-exempt-entry control did not fire correctly")
+
+    # (q12) stale pending entry: a pending-list name that matches no
+    # module-level anchor constant in *source* must be reported stale — the
+    # mirror of (q11) for the other list.
+    q12_failures = _check_anchor_control_coverage(
+        q1_source, exempt={}, pending={"_NOTREAL": "Task N discharges this"}
+    )
+    if any("pending entry" in f and "stale" in f for f in q12_failures):
+        print("(q12) stale pending entry (unmatched name): correctly failed")
+    else:
+        print(f"(q12) stale-pending control: WRONGLY PASSED OR WRONG REASON: {q12_failures}")
+        _problems.append("q12: stale-pending-entry control did not fire correctly")
 
     _this_module = sys.modules[__name__]
     original_exempt = _this_module._ANCHOR_CONTROL_EXEMPT
