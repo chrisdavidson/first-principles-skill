@@ -367,6 +367,13 @@ _AGENT_DEPTH_TOKENS: tuple[str, ...] = (
 )
 _AGENT_ACT_LIMB_TOKENS: tuple[str, ...] = (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MARKED)
 
+# `expect_rejection`'s wording marker (03-07, closing 03-UAT.md's cosmetic
+# gap): the literal `_check_negative`/`_check_positive` print INSTEAD OF
+# their alarm-shaped `WRONGLY .../WRONG reason` text when the caller is
+# DRIVING the checker to be rejected on purpose (the `(n0)` meta-controls).
+# Never gates `_problems.append(...)` — wording only.
+_META_CONTROL_MARK = "meta-control fired as intended"
+
 
 # ---------------------------------------------------------------------------
 # The anchor-control coverage ratchet (D-12, copied in shape from
@@ -1270,6 +1277,8 @@ def _check_negative(
     failures: list[str],
     expected_check_id: str,
     expected_detail: str | None = None,
+    *,
+    expect_rejection: bool = False,
 ) -> None:
     """Assert a mutated fixture failed, and failed for its OWN reason.
 
@@ -1284,6 +1293,12 @@ def _check_negative(
     The ID match is boundary-anchored (`Stub-1` must not match `Stub-10`),
     and a wrong-reason report names the check IDs that DID fire so a
     mis-targeted control is diagnosable in one read.
+
+    `expect_rejection` (default `False`) reroutes the WORDING of a rejection
+    path's diagnostic for a call that is DRIVING this checker to be rejected
+    on purpose (the `(n0)` meta-controls); it never gates, skips, or alters
+    the `_problems.append(...)` on that path, and never touches the success
+    path.
     """
 
     def _fired_ids(msgs: list[str]) -> list[str]:
@@ -1296,33 +1311,63 @@ def _check_negative(
         return rest[:1] in (" ", ":")
 
     if not failures:
-        print(f"({label}) WRONGLY PASSED (expected failure)")
+        if expect_rejection:
+            print(
+                f"({label}) {_META_CONTROL_MARK}: expected failure, "
+                "correctly got none"
+            )
+        else:
+            print(f"({label}) WRONGLY PASSED (expected failure)")
         _problems.append(f"{label}: no failures produced")
         return
     matched = [f for f in failures if _id_matches(f, expected_check_id)]
     if not matched:
-        print(
-            f"({label}) failed for the WRONG reason (expected check ID "
-            f"{expected_check_id!r}; check IDs that DID fire: "
-            f"{', '.join(_fired_ids(failures))}; got: {'; '.join(failures)})"
-        )
+        if expect_rejection:
+            print(
+                f"({label}) {_META_CONTROL_MARK}: rejected for a different "
+                f"check ID than {expected_check_id!r} (check IDs that DID "
+                f"fire: {', '.join(_fired_ids(failures))}; got: "
+                f"{'; '.join(failures)})"
+            )
+        else:
+            print(
+                f"({label}) failed for the WRONG reason (expected check ID "
+                f"{expected_check_id!r}; check IDs that DID fire: "
+                f"{', '.join(_fired_ids(failures))}; got: {'; '.join(failures)})"
+            )
         _problems.append(f"{label}: wrong-reason failure")
         return
     if expected_detail is not None and not any(expected_detail in f for f in matched):
-        print(
-            f"({label}) failed for the WRONG reason (check ID "
-            f"{expected_check_id!r} fired but no message of that ID contains "
-            f"detail {expected_detail!r}; got: {'; '.join(matched)})"
-        )
+        if expect_rejection:
+            print(
+                f"({label}) {_META_CONTROL_MARK}: check ID "
+                f"{expected_check_id!r} fired but without detail "
+                f"{expected_detail!r} (got: {'; '.join(matched)})"
+            )
+        else:
+            print(
+                f"({label}) failed for the WRONG reason (check ID "
+                f"{expected_check_id!r} fired but no message of that ID contains "
+                f"detail {expected_detail!r}; got: {'; '.join(matched)})"
+            )
         _problems.append(f"{label}: wrong-detail failure")
         return
     print(f"({label}) correctly failed ({expected_check_id})")
 
 
-def _check_positive(label: str, failures: list[str]) -> None:
-    """Assert a fixture that should pass produced zero failures."""
+def _check_positive(label: str, failures: list[str], *, expect_rejection: bool = False) -> None:
+    """Assert a fixture that should pass produced zero failures.
+
+    `expect_rejection` (default `False`) reroutes the WORDING of the
+    rejection-path diagnostic for a call DRIVING this checker to fail on
+    purpose (the `(n0)` meta-controls); it never gates or skips the
+    `_problems.append(...)` that path already performs.
+    """
     if failures:
-        print(f"({label}) WRONGLY FAILED: {'; '.join(failures)}")
+        if expect_rejection:
+            print(f"({label}) {_META_CONTROL_MARK}: {'; '.join(failures)}")
+        else:
+            print(f"({label}) WRONGLY FAILED: {'; '.join(failures)}")
         _problems.append(f"{label}: unexpected failure(s)")
     else:
         print(f"({label}) correctly passed (0 failures)")
@@ -2129,12 +2174,27 @@ def _run_self_test_body() -> int:
     # expected number, then remove those entries — the one place in this
     # file where deleting a recorded `_problems` entry is legitimate,
     # because these entries are INTENDED (proof the guarantee correctly
-    # fired), not a masked real failure.
+    # fired), not a masked real failure. The four driven calls below opt
+    # into `expect_rejection` (03-07, closing 03-UAT.md's cosmetic gap) so
+    # an operator watching a green run sees four `meta-control fired as
+    # intended` lines here, never the alarm-shaped `WRONGLY`/`WRONG reason`
+    # wording those same rejection paths print by default — control (n0f)
+    # proves that flag is wording-only and cannot mask a real failure.
     n0_before = len(_problems)
-    _check_negative("n0a-empty", [], "Stub-1")
-    _check_negative("n0b-boundary", ["Stub-10 (D-03, bound): x"], "Stub-1")
-    _check_negative("n0c-detail", ["Stub-1 (PAR-02, count): x"], "Stub-1", "ZZZ-not-present")
-    _check_positive("n0d-positive", ["synthetic failure for meta-control n0d"])
+    _check_negative("n0a-empty", [], "Stub-1", expect_rejection=True)
+    _check_negative(
+        "n0b-boundary", ["Stub-10 (D-03, bound): x"], "Stub-1", expect_rejection=True
+    )
+    _check_negative(
+        "n0c-detail",
+        ["Stub-1 (PAR-02, count): x"],
+        "Stub-1",
+        "ZZZ-not-present",
+        expect_rejection=True,
+    )
+    _check_positive(
+        "n0d-positive", ["synthetic failure for meta-control n0d"], expect_rejection=True
+    )
     try:
         _replace_once("no such target token anywhere in this text", "not present at all")
     except AssertionError:
