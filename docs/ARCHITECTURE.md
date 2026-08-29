@@ -120,9 +120,11 @@ design, because a working session must be able to see the gate list without open
 
 Gates run on three surfaces, and the distinction matters: **17 in CI**
 (`.github/workflows/validation.yml`, on push/PR to master), **20 tallied in the offline battery**
-(`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a superset
-of CI's offline gates plus QUAL-01 and two inline checks; CI additionally runs VAL-01, which needs
-the `claude` CLI.
+(`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a
+strict superset of CI: all 17 CI gates — VAL-01 included, so it runs on both surfaces and
+needs the `claude` CLI in both — plus QUAL-01, which is battery-only by design and is the
+one registered gate with no CI job, plus the two inline checks INVARIANT-CHECK and
+FROZEN-EVIDENCE. That is 17 + 1 + 2 = 20.
 
 | Gate | Job / Mechanism | Script | What it checks |
 |------|----------------|--------|----------------|
