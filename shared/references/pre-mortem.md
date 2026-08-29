@@ -53,6 +53,12 @@ the mechanism.
    explicitly accept the risk with a named mitigation. A pre-mortem with no
    downstream plan change was box-ticking.
 
+**Exit criterion:** The failure has been stated as having already happened, causes
+are written from that stance, causes are clustered into structural weaknesses, and
+every cluster has either a named plan change or an explicitly accepted risk with a
+named mitigation. A pre-mortem that ends without one of those two outcomes per
+cluster is box-ticking, not a finding.
+
 ---
 
 ## Example

@@ -70,6 +70,11 @@ compared without reverse-engineering the answer.
    Any contradicting effect routes the conclusion back to Phase 2
    (Challenge Assumptions) — never directly to Phase 3 or past Phase 2.
 
+**Exit criterion:** Every first-order effect in scope has been carried to at least
+its second order, each derived effect carries its order mark, contradicting effects
+are identified as contradicting, and each effect is routed — non-contradicting
+effects into the Derivation Chain, contradicting effects back to Phase 2.
+
 ---
 
 ## Worked mini-example
