@@ -31,10 +31,11 @@ The full 237-row capability-to-requirement-to-test mapping is in the generated m
 > that happens to meet it, rather than making an exception to that rule. The Phase 142 note stands
 > unedited as an accurate record of what was decided at that time, for the milestones it names.
 
-**Headline history (D-01).** The coverage headline has moved eight times since the matrix was
-first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log, one row
-per move, replacing what used to be seven separately stacked prose annotations. Every delta below
-is already discharged — no row is a currently-open action item.
+**Headline history (D-01).** The coverage headline has moved six times since the matrix was
+first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log — one
+row per reconciliation event, of which rows 4 and 5 are deliberate zero-drift reconciliations that
+moved no count — replacing what used to be seven separately stacked prose annotations. Every delta
+below is already discharged — no row is a currently-open action item.
 
 | # | Milestone / task | Headline before → after | Cause |
 |---|-------------------|--------------------------|-------|
