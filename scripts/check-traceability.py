@@ -2084,6 +2084,153 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
 
+def _self_test_v818_rows_sentinel(wrong_results: list[str]) -> None:
+    """V818-ROWS named sentinel (D-07 / Phase 4).
+
+    Asserts the 23 v8.18 milestone rows registered in _rows_v818():
+      (a) Exactly 23 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 23 IDs.
+      (c) Tier partition pinned by ID, not by count (D-07's first adaptation): the
+          audit-only bare_id set is exactly {"SHIP-04", "SHIP-05"} AND the reproducible
+          bare_id set is exactly the other 21, named. A blanket 21/2 count assert is
+          explicitly rejected — swapping SHIP-04's tier with SHIP-01's would keep the
+          counts right and pass silently, the same class of silent pass (f) closes below.
+      (d) Deep-resolve artifact_link over the 21 reproducible rows only (D-07's second
+          adaptation) — a straight copy of the v7.9 (d) iterates all rows, which is wrong
+          here because 2 of the 23 rows are audit-only. Also asserts both audit-only rows
+          carry artifact_link == "", so the skip cannot silently become a skip-everything.
+      (e) Positive counter-check: HARN-04 is present exactly once, reproducible, and
+          carries a non-empty artifact_link (mirrors the V79-ROWS RECON-01 idiom).
+      (f) milestone/key lock: every row has milestone == "v8.18" AND a key prefixed
+          "v8.18/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
+          TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
+
+    Called from _rows_v818() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier swap, or dangling
+    artifact_link fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 23 rows.
+    _v818_rows = _rows_v818()
+    _v818_count = len(_v818_rows)
+    _EXPECTED_V818_IDS = {
+        "ACT-01", "ACT-02", "ACT-03", "ACT-04", "ACT-05",
+        "LOOP-01", "LOOP-02", "LOOP-03", "LOOP-04", "LOOP-05",
+        "PAR-01", "PAR-02", "PAR-03",
+        "HARN-01", "HARN-02", "HARN-03", "HARN-04",
+        "SHIP-01", "SHIP-02", "SHIP-03", "SHIP-04", "SHIP-05", "SHIP-06",
+    }
+    _EXPECTED_V818_AUDIT_ONLY_IDS = {"SHIP-04", "SHIP-05"}
+    _EXPECTED_V818_REPRODUCIBLE_IDS = _EXPECTED_V818_IDS - _EXPECTED_V818_AUDIT_ONLY_IDS
+    if _v818_count != 23:
+        print(
+            f"  V818-ROWS FAIL: expected exactly 23 rows in _rows_v818(), "
+            f"got {_v818_count} — drift guard failed."
+        )
+        wrong_results.append("V818-ROWS: row count drift (expected 23)")
+    else:
+        print(f"  V818-ROWS PASS: row count == 23")
+
+    # (b) bare_id set assertion.
+    _v818_ids = {r.bare_id for r in _v818_rows}
+    if _v818_ids != _EXPECTED_V818_IDS:
+        _missing = _EXPECTED_V818_IDS - _v818_ids
+        _extra = _v818_ids - _EXPECTED_V818_IDS
+        print(
+            f"  V818-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V818-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V818-ROWS PASS: bare_id set = {sorted(_v818_ids)!r}")
+
+    # (c) Tier partition pinned by ID, not by count.
+    _audit_only_ids = {r.bare_id for r in _v818_rows if r.coverage_tier == "audit-only"}
+    _reproducible_ids = {r.bare_id for r in _v818_rows if r.coverage_tier == "reproducible"}
+    if _audit_only_ids != _EXPECTED_V818_AUDIT_ONLY_IDS:
+        print(
+            f"  V818-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V818_AUDIT_ONLY_IDS)!r}, got={sorted(_audit_only_ids)!r}"
+        )
+        wrong_results.append("V818-ROWS: audit-only bare_id set mismatch")
+    elif _reproducible_ids != _EXPECTED_V818_REPRODUCIBLE_IDS:
+        print(
+            f"  V818-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V818_REPRODUCIBLE_IDS)!r}, got={sorted(_reproducible_ids)!r}"
+        )
+        wrong_results.append("V818-ROWS: reproducible bare_id set mismatch")
+    else:
+        print(
+            f"  V818-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
+            f"21 reproducible IDs confirmed by name"
+        )
+
+    # (d) Deep-resolve artifact_link over the 21 reproducible rows only; both audit-only
+    #     rows must carry artifact_link == "" (so the skip cannot become a skip-everything).
+    _v818_repro_rows = [r for r in _v818_rows if r.coverage_tier == "reproducible"]
+    _v818_audit_rows = [r for r in _v818_rows if r.coverage_tier == "audit-only"]
+    _link_issues: list[str] = []
+    for _row in _v818_repro_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    _nonempty_audit_links = [r.bare_id for r in _v818_audit_rows if r.artifact_link != ""]
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V818-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V818-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    elif _nonempty_audit_links:
+        print(
+            f"  V818-ROWS FAIL: audit-only row(s) with non-empty artifact_link — "
+            f"{_nonempty_audit_links!r}"
+        )
+        wrong_results.append("V818-ROWS: audit-only row(s) with non-empty artifact_link")
+    else:
+        print(
+            f"  V818-ROWS PASS: all {len(_v818_repro_rows)} reproducible artifact_links "
+            f"deep-resolve OK, both audit-only rows carry artifact_link=''"
+        )
+
+    # (e) Positive counter-check: HARN-04 is present, reproducible, non-empty artifact_link.
+    _harn04_rows = [r for r in _v818_rows if r.bare_id == "HARN-04"]
+    _harn04_present = len(_harn04_rows) == 1
+    _harn04_repro = _harn04_rows[0].coverage_tier == "reproducible" if _harn04_rows else False
+    _harn04_link = _harn04_rows[0].artifact_link if _harn04_rows else ""
+    if _harn04_present and _harn04_repro and _harn04_link:
+        print(
+            f"  V818-ROWS PASS: HARN-04 present and reproducible "
+            f"(artifact_link={_harn04_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V818-ROWS FAIL: HARN-04 positive counter-check failed "
+            f"(present={_harn04_present}, reproducible={_harn04_repro}, link={_harn04_link!r})"
+        )
+        wrong_results.append("V818-ROWS: HARN-04 counter-check failed")
+
+    # (f) milestone/key lock.
+    _bad_ms = [
+        r.key for r in _v818_rows
+        if r.milestone != "v8.18" or not r.key.startswith("v8.18/")
+    ]
+    if _bad_ms:
+        print(f"  V818-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V818-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V818-ROWS PASS: all {_v818_count} rows carry milestone='v8.18' and 'v8.18/' key prefix")
+
+    # (g) capability lock.
+    _bad_cap = [r.bare_id for r in _v818_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V818-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V818-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V818-ROWS PASS: all {_v818_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
+
+
 def _run_self_test() -> None:
     """Run the inline artifact-resolution / schema / sentinel fixtures — no .planning/ reads required.
 
@@ -2111,6 +2258,12 @@ def _run_self_test() -> None:
       V79-ROWS: live row count + bare_id set + reproducible-tier + deep-resolve + RECON-01
                 positive counter-check (D-01 / Phase 123); locks all 8 v7.9 milestone rows
                 against silent drift; no live claude session required.
+      V818-ROWS: live row count + bare_id set + ID-pinned 21/2 tier partition + deep-resolve
+                 over reproducible rows only + HARN-04 positive counter-check + milestone/key
+                 attribution lock + capability lock (D-07 / Phase 4); locks all 23 v8.18
+                 milestone rows against silent drift, including a tier swap between two
+                 named IDs that a blanket count assert would miss; no live claude session
+                 required.
     """
     wrong_results: list[str] = []
     _self_test_valid_rows_fixtures(wrong_results)
@@ -2118,6 +2271,7 @@ def _run_self_test() -> None:
     _self_test_schema_fixtures(wrong_results)
     _self_test_pyanchor_resolver(wrong_results)
     _self_test_v79_rows_sentinel(wrong_results)
+    _self_test_v818_rows_sentinel(wrong_results)
     if wrong_results:
         sys.stderr.write(
             f"check-traceability --self-test: FAIL — {', '.join(wrong_results)}\n"
