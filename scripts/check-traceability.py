@@ -996,7 +996,9 @@ def _rows_v818() -> list[MatrixRow]:
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Four inclusion paths per D-05:
+    Five inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
+    at v8.18 Phase 4.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -1007,10 +1009,16 @@ def build_matrix_rows() -> list[MatrixRow]:
     (c) v7.9 milestone (8 rows) — first milestone block since v5.3; all reproducible
         (Phase 123, D-01). NEGCAT-01/02 (Phase 120), OCH-01/02/03 (Phase 121),
         COLLIDE-01/02 (Phase 122), RECON-01 (Phase 123).
-    (d) v8.18 milestone (23 rows, 21 reproducible + 2 audit-only) — first milestone block
-        since v7.9 (Phase 4/D-05): the discriminator is headline-history row 2's phrase
-        "each backed by a deterministic offline gate", which v7.12, v7.13 and v8.0 did not
-        satisfy but HARN-01/02/03 do. See `_rows_v818()` for the full per-row rationale.
+    (d) v7.11 milestone (11 rows) — all audit-only (Phase 131 RECON-03, D-04): validated by
+        one-shot manual live runs, not by deterministic offline CI gates, which is why they
+        carry artifact_link="" and a shared gap_rationale. See `_rows_v711()`. This path was
+        present in the body from Phase 131 but absent from this docstring until 2026-08-29;
+        its absence is what made the "first block since v7.9" claim below look true.
+    (e) v8.18 milestone (23 rows, 21 reproducible + 2 audit-only) — first **v8.x** milestone block
+        since v7.9 (Phase 4/D-05; the v7.11 block at (d) is the last non-v8.x addition): the
+        discriminator is headline-history row 2's phrase "each backed by a deterministic offline
+        gate", which v7.12, v7.13 and v8.0 did not satisfy but HARN-01/02/03 do. See
+        `_rows_v818()` for the full per-row rationale.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
