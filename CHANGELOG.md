@@ -352,9 +352,16 @@ bump; there is none to read.
   (`shared/skills/first-principles-analysis/SKILL.md`) and is logged as follow-up, since changing
   it requires a regen and a version bump.
 - The coverage headline now has one authoritative home. Three surfaces asserted the superseded
-  v8.0 figure (133/96/0/229) as current against the real 126/88/0/214;
+  v8.0 figure (133/96/0/229) as current against the real 147/90/0/237;
   `docs/requirements-traceability.md` is the single source, and `docs/v8.0-final-closure.md` keeps
   its numbers unedited with a superseded-by note, since it is the record of what v8.0 measured.
+
+  > **Correction (v8.18.0, 2026-08-29).** This entry originally quoted the real figure as
+  > `126/88/0/214` — accurate when 8.17.2 shipped, now superseded by the v8.18 matrix-row
+  > registration (`147/90/0/237`, see `docs/requirements-traceability.md` headline-history row 8).
+  > Separately, `docs/v8.0-final-closure.md`'s "keeps its numbers unedited" policy described above
+  > was itself **lifted at v8.18.0** — its premise (that v8.0 had wrapped the project) expired when
+  > the project resumed. See the `## [8.18.0]` entry below.
 
 ## [8.17.1] - 2026-08-16
 
