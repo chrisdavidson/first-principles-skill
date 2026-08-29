@@ -83,6 +83,11 @@ banner **in the document itself**, because the one failure this closes — `v8.0
 asserting a "final" coverage headline that had moved twice — survived precisely because the
 warning lived in `CLAUDE.md` and not in the document a reader opens.
 
+**The count of nine is the 2026-08-16 adjudication set**, not a running total. A per-milestone
+record added afterwards — `v8.18-praor-loop-closure.md` among them — carries its own standing
+class in its own metadata block rather than joining this table; this section is a dated record of
+what the 2026-08-16 prune resolved, not a registry every future milestone document re-enters.
+
 Three classes, and no deletions: adjudication was the deliverable, and every one of the nine
 earned its keep on a distinct ground.
 
@@ -172,6 +177,19 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 | Document | What it covers |
 |----------|----------------|
 | [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | 2026-07-29. Phase 188 — the pre-registered continuation-decision rule and DELIV-02 outcome table (both committed before their evidence), the per-path DELIV-01 delivery verdict (fresh install and update path stated side by side, deliberately not collapsed), the second-date `RUNTIME-WIDE` re-observation result, and the dated continuation decision. **Outcome:** the fresh install path is DELIVERED and, as a separate fact, the update path is also DELIVERED; applying the pre-registered mapping to that finding reaches **STOP** for Phases 189-191. |
+
+## v8.18 — PRAOR loop closure
+
+The 2026-08-27 review of the agent body against Perceive → Reason → Act → Observe → Report found
+four gaps — no Act limb, an unreachable Self-Audit evidence rule, no Observe→Perceive return edge,
+and stub/focused-mode divergence — closed across Phases 1-3 and gated by three new offline gates
+(HARN-01, HARN-02, HARN-03). The offline battery moved **17 → 20**, all 17 version stamps moved to
+`8.18.0`, and the traceability coverage headline moved to **147/90/0/237** — the first v8.x
+milestone requirement block registered as matrix rows since v7.9.
+
+| Document | What it covers |
+|----------|----------------|
+| [v8.18-praor-loop-closure.md](v8.18-praor-loop-closure.md) | 2026-08-29. The v8.18.0 milestone record — the four PRAOR-loop gaps found by the 2026-08-27 review, each gap's disposition and guarding gate, the HARN-04 battery/CI registrations, the traceability move, the standing-record changes (`v8.0-final-closure.md`'s lifted immutability trait, the `CHANGELOG.md:355` correction note), and the deliberate deferrals with their triggers. |
 
 ## Reference & history
 
