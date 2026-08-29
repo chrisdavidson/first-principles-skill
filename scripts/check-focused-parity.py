@@ -335,7 +335,15 @@ _AGENT_ACT_LIMB_TOKENS: tuple[str, ...] = (_PT_NO_ACQUIRE_EVIDENCE, _PT_STAYS_MA
 # ---------------------------------------------------------------------------
 
 # --- ratchet-bookkeeping-begin ---
-_ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
+_ANCHOR_CONTROL_EXEMPT: dict[str, str] = {
+    "_WS": (
+        "the matching layer's own whitespace-flattening regex, not a pinned "
+        "content literal — exercised indirectly by every _count_flex/_contains "
+        "call and by the reflow controls (p) and (ah); pinning a control to a "
+        "regex object rather than a content literal would be a control in "
+        "name only"
+    ),
+}
 _ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # --- ratchet-bookkeeping-end ---
 
@@ -351,6 +359,7 @@ def _check_anchor_control_coverage(
     source: str,
     exempt: dict[str, str] | None = None,
     pending: dict[str, str] | None = None,
+    require_control_region: bool = False,
 ) -> list[str]:
     """Fail when a module-level anchor constant ships without a control.
 
@@ -362,11 +371,23 @@ def _check_anchor_control_coverage(
     pending entry that is no longer short is a stale ratchet entry and is
     itself reported).
 
-    *exempt* and *pending* default to the module-level lists. They are
-    injectable only so control (q) can drive every branch of this function
-    against synthetic input — the ratchet is itself an assertion, and an
-    assertion whose branches are never exercised is exactly what this gate
-    exists to prevent elsewhere in the file.
+    CR-01 (`03-VERIFICATION.md` gap 1): a raw textual-occurrence count lets
+    an assertion's own f-string failure message stand in for its control —
+    the message interpolates the anchor's name, which reads as a third
+    "reference" with no control behind it. When *require_control_region* is
+    True, references are additionally split into two regions at the
+    `def _run_self_test` boundary: every non-exempt, non-pending anchor
+    reaching the >=3 threshold must have at least one reference AT OR AFTER
+    that boundary (the control-battery region), not merely >=3 references
+    anywhere in the file. A boundary that cannot be found is a ratchet-
+    integrity failure, not a silent skip of the requirement — a rename of
+    `_run_self_test` must not quietly degrade this check.
+
+    *exempt* and *pending* default to the module-level lists. They, and
+    *require_control_region*, are injectable only so control (q) can drive
+    every branch of this function against synthetic input — the ratchet is
+    itself an assertion, and an assertion whose branches are never exercised
+    is exactly what this gate exists to prevent elsewhere in the file.
     """
     failures: list[str] = []
     exempt_list = _ANCHOR_CONTROL_EXEMPT if exempt is None else exempt
@@ -416,6 +437,18 @@ def _check_anchor_control_coverage(
         return failures
     counting_source = source[:start] + source[end + len(marker_end) :]
 
+    control_boundary = -1
+    if require_control_region:
+        control_boundary = counting_source.find("def _run_self_test")
+        if control_boundary == -1:
+            failures.append(
+                "Coverage (D-12, ratchet integrity): required a control-battery "
+                "boundary marker 'def _run_self_test' but it was not found — a "
+                "rename that silently degrades this requirement to a skip is "
+                "exactly the failure mode this repair exists to close"
+            )
+            return failures
+
     for name in names:
         is_exempt = name in exempt_list
         is_pending = name in pending_list
@@ -455,6 +488,20 @@ def _check_anchor_control_coverage(
                 f"{name} is referenced {count} time(s), expected at least 3 "
                 "(definition, at least one assertion, at least one control)"
             )
+        elif require_control_region:
+            control_refs = len(
+                re.findall(
+                    rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])",
+                    counting_source[control_boundary:],
+                )
+            )
+            if control_refs == 0:
+                failures.append(
+                    "Coverage (D-12, control region): "
+                    f"{name} reaches {count} references but zero of them are "
+                    "in the control battery — an assertion's own failure "
+                    "message is not a control"
+                )
 
     for name in exempt_list:
         if name not in names:
@@ -1102,7 +1149,9 @@ def _validate_files() -> int:
         + _check_stub_surface(stubs)
         + _check_agent_surface(agent_text, reference_texts, stubs["fishbone"])
         + _check_cross_surface_parity(agent_text, stubs)
-        + _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
+        + _check_anchor_control_coverage(
+            Path(__file__).read_text(encoding="utf-8"), require_control_region=True
+        )
     )
 
     if failures:
@@ -1450,14 +1499,18 @@ def _run_self_test() -> int:
             "constants and compared to the module-level tuple it derives"
         )
 
-    coverage_failures = _check_anchor_control_coverage(Path(__file__).read_text(encoding="utf-8"))
+    coverage_failures = _check_anchor_control_coverage(
+        Path(__file__).read_text(encoding="utf-8"), require_control_region=True
+    )
     if coverage_failures:
         print("(cov) anchor-control coverage: FAIL — " + "; ".join(coverage_failures))
         _problems.append("(cov): anchor constant(s) without a control")
     else:
         print(
             "(cov) anchor-control coverage: PASS — every module-level anchor is "
-            f"referenced >=3 times or listed ({len(_ANCHOR_CONTROL_EXEMPT)} exempt, "
+            "referenced >=3 times with at least one reference inside the "
+            "control-battery region (at or after 'def _run_self_test'), or "
+            f"listed ({len(_ANCHOR_CONTROL_EXEMPT)} exempt, "
             f"{len(_ANCHOR_CONTROL_PENDING)} pending)"
         )
 
@@ -1528,6 +1581,18 @@ def _run_self_test() -> int:
     # (g) Stub-4 verdict control: strip one verdict literal from one stub.
     g_stubs = _mutate_one(real_stubs, "second-order", _VERDICT_LITERALS[0])
     _check_negative("g", _check_stub_surface(g_stubs), "Stub-4", "verdict literal")
+
+    # (g2) Stub-4 unconditional-clause control (CR-01 closure,
+    # 03-VERIFICATION.md gap 1): strip the "without exception" clause from
+    # one stub. Uses a DIFFERENT slug from (g) so the two Stub-4
+    # sub-assertions (verdict literals vs. the unconditional clause) are
+    # proven independently reachable, not accidentally covered by the same
+    # mutation. Before this control existed, disabling the condition at
+    # Stub-4's second sub-assertion while leaving its failure-message text
+    # intact left `--self-test` green — the exact mutation
+    # `03-VERIFICATION.md` measured as the blocking gap.
+    g2_stubs = _mutate_one(real_stubs, "second-order", _UNCONDITIONAL_CLAUSE)
+    _check_negative("g2", _check_stub_surface(g2_stubs), "Stub-4", "unconditional")
 
     # (h) Stub-5 mark control: strip the `?` clause from one stub.
     h_stubs = _mutate_one(real_stubs, "second-order", _UNVERIFIED_MARK_CLAUSE)
@@ -1791,6 +1856,20 @@ def _run_self_test() -> int:
         "trade-off",
     )
 
+    # (ad3) Parity-4 control naming _PT_NO_ACQUIRE_EVIDENCE directly (CR-01
+    # closure, D-12 ratchet region split): before this control existed, this
+    # anchor was exercised only INDIRECTLY through the _AGENT_ACT_LIMB_TOKENS
+    # tuple loop and had zero direct control-battery reference, which the
+    # tightened ratchet now requires. Uses a different slug from (ad)'s
+    # "validate" so the two Parity-4 rewording controls are independently
+    # reachable; the replacement is checked to not itself still contain the
+    # original token.
+    assert _PT_NO_ACQUIRE_EVIDENCE not in "cannot acquire evidence"
+    ad3_stubs = _mutate_one(real_stubs, "estimate", _PT_NO_ACQUIRE_EVIDENCE, "cannot acquire evidence")
+    _check_negative(
+        "ad3", _check_cross_surface_parity(real_agent_text, ad3_stubs), "Parity-4", "estimate"
+    )
+
     # (ae) Parity-4 reverse control: reword a parity token in the AGENT note
     # while leaving all 13 stubs untouched. MEASURED (not assumed) which ID
     # this trips: removing any one of the five tokens from the agent note
@@ -1928,6 +2007,40 @@ def _run_self_test() -> int:
     else:
         print(f"(q12) stale-pending control: WRONGLY PASSED OR WRONG REASON: {q12_failures}")
         _problems.append("q12: stale-pending-entry control did not fire correctly")
+
+    # (q13)/(q14)/(q15) control-region branch (Task 1's D-12 region split,
+    # CR-01 closure): the region split is itself an assertion and needs its
+    # own controls, distinct from (q1)-(q12) which all call with the default
+    # require_control_region=False and are unaffected by this change.
+    q13_source = markers + '_FOO = "bar"\n_FOO\n_FOO\ndef _run_self_test():\n    pass\n'
+    q13_failures = _check_anchor_control_coverage(
+        q13_source, exempt={}, pending={}, require_control_region=True
+    )
+    if any("zero of them are in the control battery" in f for f in q13_failures):
+        print("(q13) anchor referenced 3x, all above control-region boundary: correctly failed")
+    else:
+        print(f"(q13) control-region-boundary control: WRONGLY PASSED OR WRONG REASON: {q13_failures}")
+        _problems.append("q13: control-region boundary control did not fire correctly")
+
+    q14_source = markers + '_FOO = "bar"\n_FOO\ndef _run_self_test():\n    _FOO\n'
+    q14_failures = _check_anchor_control_coverage(
+        q14_source, exempt={}, pending={}, require_control_region=True
+    )
+    if not q14_failures:
+        print("(q14) anchor with one reference below control-region boundary: correctly passed")
+    else:
+        print(f"(q14) control-region-boundary control: WRONGLY FAILED: {q14_failures}")
+        _problems.append("q14: control-region boundary control incorrectly failed")
+
+    q15_source = markers + '_FOO = "bar"\n_FOO\n_FOO\n'
+    q15_failures = _check_anchor_control_coverage(
+        q15_source, exempt={}, pending={}, require_control_region=True
+    )
+    if any("control-battery boundary marker" in f for f in q15_failures):
+        print("(q15) missing control-region boundary with require_control_region=True: correctly failed")
+    else:
+        print(f"(q15) missing-boundary control: WRONGLY PASSED OR WRONG REASON: {q15_failures}")
+        _problems.append("q15: missing-boundary ratchet-integrity control did not fire correctly")
 
     _this_module = sys.modules[__name__]
     original_exempt = _this_module._ANCHOR_CONTROL_EXEMPT
