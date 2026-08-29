@@ -39,6 +39,16 @@ python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blin
 This list is a convenience, not the authority — a hand-maintained list of gates goes stale by
 construction. `bash scripts/check-firewall-battery.sh` runs the set that actually exists.
 
+**pytest is a prerequisite for the full battery, not for any script above.** None of the
+scripts listed here need it — it is needed only by VAL-03's third leg, which runs
+`scripts/check-links_anchors_test.py` under pytest (`check-links.py` itself has no such
+dependency). `scripts/check-firewall-battery.sh` resolves a pytest-capable interpreter itself:
+`.venv/bin/python3` first, then `python3`, each confirmed by an `import pytest` preflight.
+Run `uv sync` to create `.venv` (it ships pytest), or install pytest for whichever interpreter
+`python3` resolves to. If neither interpreter can import pytest, the battery prints
+`[PREREQ] VAL-03` and `FIREWALL: BLOCKED`, exiting 2 — distinct from `FIREWALL: RED` / exit 1,
+which still means a gate genuinely failed.
+
 ### Routing battery (requires a running Claude Code session)
 
 ```sh
@@ -154,7 +164,7 @@ battery-only inline checks, is [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#ci-
 
 HARN-01 is listed for discoverability only. It is **not registered** — neither CI nor battery — is **not** counted in any surface total on this page, and runs only when it is invoked directly. Phase 4 / HARN-04 owns registering it in `scripts/check-firewall-battery.sh` and moving the tally.
 
-`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **17/17** — in one shot and prints a FIREWALL: GREEN/RED verdict. QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17. The tally is 15 `gate` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
+`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **17/17** — in one shot and prints a FIREWALL: GREEN / RED / BLOCKED verdict (SHIP-06: BLOCKED, exit 2, is a third outcome for an unmet external prerequisite — currently only VAL-03's pytest interpreter — and is distinct from a genuine gate failure, RED, exit 1). QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17. The tally is 15 `gate`/`gate_prereq` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
 
 ### Pre-commit gates
 
