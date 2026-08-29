@@ -45,7 +45,7 @@ Observe→Perceive return edge, and stub/focused-mode divergence. Full record:
 - **Three new offline gates** — HARN-01 (`scripts/check-act-limb.py`), HARN-02
   (`scripts/check-loop-closure.py`), HARN-03 (`scripts/check-focused-parity.py`) — each asserting
   its corresponding closure is present and well-formed in the emitted tree, with negative
-  controls proving every assertion site can fail. All three are registered in
+  controls proving every tree-reading assertion site can fail. All three are registered in
   `scripts/check-firewall-battery.sh` and gained a CI job in `.github/workflows/validation.yml`.
 - **23 v8.18 traceability rows** (`_rows_v818()` in `scripts/check-traceability.py`, 21
   reproducible / 2 audit-only) and the `V818-ROWS` sentinel pinning the tier partition by
