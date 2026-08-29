@@ -83,6 +83,8 @@ rediscover.
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import re
 import sys
 import textwrap
@@ -1602,6 +1604,29 @@ def _reflow(text: str, width: int) -> str:
 _problems: list[str] = []
 
 
+def _transcript_alarm_verdict(text: str | None) -> tuple[str, list[str]]:
+    """Classify a captured `--self-test` transcript into exactly one of
+    three verdicts. A PURE function — no printing, no `_problems` mutation,
+    no global read — so control `(s)` can drive it on a real capture and
+    control `(s2)` can drive it directly on synthetic fixtures (03-07,
+    D-12: the new code path this plan adds needs its own control).
+
+    - `("unavailable", [])` when `text is None` — the capture this verdict
+      depends on never completed (e.g. control (r) raised before it could
+      assign `dispatch_text`).
+    - `("alarmed", offending_lines)` when any line contains `WRONGLY` or
+      `WRONG reason` — the exact alarm-shaped substrings a real control
+      failure prints.
+    - `("clean", [])` otherwise.
+    """
+    if text is None:
+        return "unavailable", []
+    offending = [line for line in text.splitlines() if "WRONGLY" in line or "WRONG reason" in line]
+    if offending:
+        return "alarmed", offending
+    return "clean", []
+
+
 def _run_self_test() -> int:
     """Run the offline control battery — the alphabetic stub/agent/parity
     controls, the `q`-series ratchet controls, the `n0` harness
@@ -2217,6 +2242,108 @@ def _run_self_test_body() -> int:
             f"guarantee-firings, got {n0_delta}: {_problems[n0_before:]}"
         )
 
+    # (n0f) meta-control wording control (T-03-07-01/02, D-12): the new
+    # `expect_rejection` code path Task 1 added is itself a masking-channel
+    # risk — a flipped default, or the flag applied to a real (non-driven)
+    # control, would make a genuine control failure print as a reassuring
+    # line. Proves, for BOTH checkers: the default path still emits the
+    # alarm-shaped text and still records exactly one `_problems` entry
+    # (catching a flipped default); the flagged path emits
+    # `_META_CONTROL_MARK` with NEITHER `WRONGLY` NOR `WRONG reason` and
+    # ALSO still records exactly one `_problems` entry (catching the flag
+    # suppressing the recording, not merely the wording). Own bookkeeping,
+    # separate from the `n0_delta == 4` accounting above; deletes only the
+    # four synthetic entries it creates.
+    n0f_before = len(_problems)
+
+    neg_default_before = len(_problems)
+    neg_default_out = io.StringIO()
+    with contextlib.redirect_stdout(neg_default_out):
+        _check_negative("n0f-neg-default", [], "Stub-1")
+    neg_default_text = neg_default_out.getvalue()
+    neg_default_delta = len(_problems) - neg_default_before
+
+    neg_flagged_before = len(_problems)
+    neg_flagged_out = io.StringIO()
+    with contextlib.redirect_stdout(neg_flagged_out):
+        _check_negative("n0f-neg-flagged", [], "Stub-1", expect_rejection=True)
+    neg_flagged_text = neg_flagged_out.getvalue()
+    neg_flagged_delta = len(_problems) - neg_flagged_before
+
+    pos_default_before = len(_problems)
+    pos_default_out = io.StringIO()
+    with contextlib.redirect_stdout(pos_default_out):
+        _check_positive("n0f-pos-default", ["synthetic n0f positive failure"])
+    pos_default_text = pos_default_out.getvalue()
+    pos_default_delta = len(_problems) - pos_default_before
+
+    pos_flagged_before = len(_problems)
+    pos_flagged_out = io.StringIO()
+    with contextlib.redirect_stdout(pos_flagged_out):
+        _check_positive(
+            "n0f-pos-flagged", ["synthetic n0f positive failure"], expect_rejection=True
+        )
+    pos_flagged_text = pos_flagged_out.getvalue()
+    pos_flagged_delta = len(_problems) - pos_flagged_before
+
+    n0f_synthetic_count = len(_problems) - n0f_before
+    del _problems[n0f_before : n0f_before + n0f_synthetic_count]
+
+    n0f_failures: list[str] = []
+    if "WRONGLY PASSED" not in neg_default_text:
+        n0f_failures.append(
+            f"n0f: default _check_negative lost its alarm wording: {neg_default_text!r}"
+        )
+    if neg_default_delta != 1:
+        n0f_failures.append(
+            f"n0f: default _check_negative recorded {neg_default_delta} "
+            "_problems entries, expected 1"
+        )
+    if (
+        _META_CONTROL_MARK not in neg_flagged_text
+        or "WRONGLY" in neg_flagged_text
+        or "WRONG reason" in neg_flagged_text
+    ):
+        n0f_failures.append(f"n0f: flagged _check_negative wording is wrong: {neg_flagged_text!r}")
+    if neg_flagged_delta != 1:
+        n0f_failures.append(
+            f"n0f: flagged _check_negative recorded {neg_flagged_delta} "
+            "_problems entries, expected 1"
+        )
+    if "WRONGLY FAILED" not in pos_default_text:
+        n0f_failures.append(
+            f"n0f: default _check_positive lost its alarm wording: {pos_default_text!r}"
+        )
+    if pos_default_delta != 1:
+        n0f_failures.append(
+            f"n0f: default _check_positive recorded {pos_default_delta} "
+            "_problems entries, expected 1"
+        )
+    if (
+        _META_CONTROL_MARK not in pos_flagged_text
+        or "WRONGLY" in pos_flagged_text
+        or "WRONG reason" in pos_flagged_text
+    ):
+        n0f_failures.append(f"n0f: flagged _check_positive wording is wrong: {pos_flagged_text!r}")
+    if pos_flagged_delta != 1:
+        n0f_failures.append(
+            f"n0f: flagged _check_positive recorded {pos_flagged_delta} "
+            "_problems entries, expected 1"
+        )
+
+    if n0f_failures:
+        print("(n0f) meta-control wording control: FAIL — " + "; ".join(n0f_failures))
+        _problems.append("n0f: " + "; ".join(n0f_failures))
+    else:
+        print(
+            "(n0f) meta-control wording control: PASS — default wording for "
+            "both checkers still reads as an unmistakable alarm and still "
+            "records exactly one _problems entry each; flagged wording for "
+            f"both checkers carries {_META_CONTROL_MARK!r} instead of any "
+            "alarm-shaped text, and still records exactly one _problems "
+            "entry each"
+        )
+
     # (q) ratchet branch control: drive `_check_anchor_control_coverage`
     # against synthetic sources to exercise every branch.
     markers = "# --- ratchet-bookkeeping-begin ---\n# --- ratchet-bookkeeping-end ---\n"
@@ -2371,12 +2498,18 @@ def _run_self_test_body() -> int:
 
     # (r) dispatch control: prove the CLI layer reaches this block, not
     # merely that _run_self_test() is correct when called directly.
+    #
+    # `dispatch_text` is bound HERE, before the guard and before the `try`
+    # (T-03-07-03 / WR structural note, 03-07): if the nested
+    # `main(["--self-test"])` call below raises, the `except` branch leaves
+    # `dispatch_text` unassigned by this block — without a binding at this
+    # scope, control (s) below would then hit an unhandled `NameError`
+    # instead of degrading to a labelled failure line. Bound on the
+    # reentrant path, the raising path and the success path alike.
+    dispatch_text: str | None = None
     if not _this_module._DISPATCH_REENTRANT:
         _this_module._DISPATCH_REENTRANT = True
         try:
-            import contextlib
-            import io
-
             dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
             with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(dispatch_err):
                 dispatch_rc = main(["--self-test"])
@@ -2405,6 +2538,91 @@ def _run_self_test_body() -> int:
             _this_module._DISPATCH_REENTRANT = False
     else:
         print("(r) dispatch control: skipped (nested self-test run)")
+
+    # (s) whole-transcript no-alarm assertion (T-03-07-03): the property
+    # this plan exists to establish — "a green run reads green" — asserted
+    # by the harness itself, not merely observed by an operator. Reuses
+    # control (r)'s already-captured nested `main(["--self-test"])` stdout
+    # via `dispatch_text`; does NOT run a second nested self-test (the
+    # `_DISPATCH_REENTRANT` sentinel makes that a skip, mirrored below).
+    # The nested run legitimately omits (r)'s own PASS line — it prints the
+    # nested-skip line instead — so this assertion is scoped to alarm-
+    # shaped substrings via `_transcript_alarm_verdict`, never to (r)'s own
+    # text.
+    if _this_module._DISPATCH_REENTRANT:
+        print("(s) whole-transcript no-alarm assertion: skipped (nested self-test run)")
+    else:
+        s_verdict, s_offending = _transcript_alarm_verdict(dispatch_text)
+        if s_verdict == "unavailable":
+            print(
+                "(s) whole-transcript no-alarm assertion: FAIL — control (r)'s "
+                "capture never completed (dispatch_text is None), so the "
+                "whole-transcript assertion could not be made — an assertion "
+                "that could not run is a failure, not an absence"
+            )
+            _problems.append("s: dispatch_text unavailable, assertion could not run")
+        elif s_verdict == "alarmed":
+            print(
+                "(s) whole-transcript no-alarm assertion: FAIL — nested "
+                f"--self-test transcript contains {len(s_offending)} "
+                f"alarm-shaped line(s): {s_offending!r}"
+            )
+            _problems.append(f"s: alarm-shaped line(s) in nested transcript: {s_offending!r}")
+        else:
+            print(
+                "(s) whole-transcript no-alarm assertion: PASS — nested "
+                "--self-test transcript contains zero alarm-shaped lines"
+            )
+
+    # (s2) degraded-path control (D-12): (s) rests on
+    # `_transcript_alarm_verdict`, a new code path that needs its own
+    # control rather than resting on `dispatch_text`'s `None` initializer
+    # merely being present. Drives the pure helper directly with three
+    # fixtures, UNCONDITIONALLY — not gated on `_DISPATCH_REENTRANT`, so
+    # the nested self-test run exercises this control too. Never echoes its
+    # synthetic fixture text on the PASS path: those fixtures contain
+    # `WRONGLY`/`WRONG reason` by construction, and printing them would put
+    # alarm-shaped lines straight back into the transcript (s) asserts is
+    # clean.
+    s2_failures: list[str] = []
+
+    s2_verdict, s2_offending = _transcript_alarm_verdict(None)
+    if s2_verdict != "unavailable" or s2_offending != []:
+        s2_failures.append(
+            f"s2: None input gave verdict {s2_verdict!r} (offending "
+            f"{s2_offending!r}), expected ('unavailable', [])"
+        )
+
+    s2_clean_fixture = "check-focused-parity --self-test: PASS\n(a) correctly passed (0 failures)\n"
+    s2_verdict, s2_offending = _transcript_alarm_verdict(s2_clean_fixture)
+    if s2_verdict != "clean" or s2_offending != []:
+        s2_failures.append(
+            f"s2: clean fixture gave verdict {s2_verdict!r} (offending "
+            f"{s2_offending!r}), expected ('clean', [])"
+        )
+
+    s2_alarmed_fixture = (
+        "(x) WRONGLY PASSED (expected failure)\n"
+        "(y) failed for the WRONG reason (synthetic)\n"
+        "(z) correctly passed (0 failures)\n"
+    )
+    s2_verdict, s2_offending = _transcript_alarm_verdict(s2_alarmed_fixture)
+    if s2_verdict != "alarmed" or len(s2_offending) != 2:
+        s2_failures.append(
+            f"s2: alarmed fixture gave verdict {s2_verdict!r} with "
+            f"{len(s2_offending)} offending line(s), expected ('alarmed', 2 lines)"
+        )
+
+    if s2_failures:
+        print("(s2) degraded-path control: FAIL — " + "; ".join(s2_failures))
+        _problems.append("s2: " + "; ".join(s2_failures))
+    else:
+        print(
+            "(s2) degraded-path control: PASS — _transcript_alarm_verdict "
+            "correctly classifies None as unavailable, a clean transcript as "
+            "clean, and a transcript carrying two alarm-shaped lines as "
+            "alarmed with both lines returned"
+        )
 
     if _problems:
         sys.stderr.write(
