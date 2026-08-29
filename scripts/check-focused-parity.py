@@ -835,11 +835,16 @@ def _agent_parity_note(text: str) -> str | None:
 
 def _stub_parity_note(body: str) -> str | None:
     """Extract a stub's `## Focused-mode validation` section: from the
-    heading (`_STUB_SECTION_HEADING`) to the next standalone `---` divider,
-    or EOF if none follows. Mirrors `_agent_parity_note()`'s divider-stop
-    shape so both surfaces are sliced the same way before token derivation.
-    Returns `None` if the heading itself is not found. Plan 03-04 Task 2's
-    `_check_cross_surface_parity()` is this helper's only caller.
+    heading (`_STUB_SECTION_HEADING`) to the next standalone `---` divider.
+    Shares `_agent_parity_note()`'s contract, not merely its shape: both
+    return `None` when either required anchor (including the trailing
+    divider) is missing, rather than one of them silently widening its
+    slice to end-of-file. (WR-10, `03-REVIEW.md`: before this fix, a stub
+    that lost its trailing divider had its "section" silently widen to
+    end-of-file, so `_check_cross_surface_parity()` derived tokens from text
+    outside the validation section — a false pass, not a failure.) Plan
+    03-04 Task 2's `_check_cross_surface_parity()` is this helper's only
+    caller.
     """
     heading_match = _find_flex(body, _STUB_SECTION_HEADING)
     if heading_match is None:
@@ -847,7 +852,7 @@ def _stub_parity_note(body: str) -> str | None:
     after = body[heading_match.start() :]
     divider_match = re.search(r"^---\s*$", after, re.MULTILINE)
     if divider_match is None:
-        return after
+        return None
     return after[: divider_match.start()]
 
 
@@ -1310,6 +1315,31 @@ def _move_section_before_when(stubs: dict[str, str], slug: str) -> dict[str, str
     return new_stubs
 
 
+def _strip_stub_trailing_divider(stubs: dict[str, str], slug: str) -> dict[str, str]:
+    """Build the WR-10 Parity-4 fixture: remove the standalone `---` divider
+    that follows one stub's `## Focused-mode validation` section, leaving
+    the section's own content untouched. After this mutation,
+    `_stub_parity_note()` must return `None` for *slug* — matching
+    `_agent_parity_note()`'s no-divider contract — rather than silently
+    widening the derived slice to end-of-file."""
+    body = stubs[slug]
+    heading_match = _find_flex(body, _STUB_SECTION_HEADING)
+    if heading_match is None:
+        raise AssertionError(
+            f"trailing-divider fixture precondition failed for {slug}: heading not found"
+        )
+    after = body[heading_match.start() :]
+    divider_match = re.search(r"^---\s*$", after, re.MULTILINE)
+    if divider_match is None:
+        raise AssertionError(
+            f"trailing-divider fixture precondition failed for {slug}: no divider found"
+        )
+    new_after = after[: divider_match.start()] + after[divider_match.end() :]
+    new_stubs = dict(stubs)
+    new_stubs[slug] = body[: heading_match.start()] + new_after
+    return new_stubs
+
+
 def _move_validate_outside_branching(text: str) -> str:
     """Build the Agent-3 placement-violation fixture: cut the validate-named
     literal out of its natural place (inside the branching bullet) and
@@ -1437,7 +1467,23 @@ _problems: list[str] = []
 
 def _run_self_test() -> int:
     """Run the offline control battery (controls a-r). Returns 0 on all-pass,
-    1 on any failure."""
+    1 on any failure.
+
+    WR-04 repair (`03-REVIEW.md`): `_run_self_test_body()` does the actual
+    fixture-building and control-running work and is the sole writer of the
+    module-global `_problems` list for the duration of one run. This thin
+    wrapper exists because control (r) re-enters this function in-process
+    via `main(["--self-test"])`: without the save/restore below, the nested
+    call's `_problems = []` would silently discard everything an OUTER run
+    had already recorded before reaching (r). The wrapper saves the
+    incoming `_problems` (which may be an outer run's accumulation, or the
+    empty list on a top-level invocation), lets the body run with a fresh
+    list, and restores the union — outer entries first — in a `finally` so
+    an outer-only failure survives a nested run. The exit code is still
+    driven by the body's OWN accumulation (its return value), not the
+    restored union, or a nested run would report an outer run's failures as
+    its own exit code.
+    """
     if not PLUGIN_SKILLS_DIR.exists():
         sys.stderr.write(
             "check-focused-parity --self-test: cannot derive fixtures — "
@@ -1446,8 +1492,19 @@ def _run_self_test() -> int:
         return 2
 
     global _problems
+    saved_problems = _problems
     _problems = []
+    try:
+        return _run_self_test_body()
+    finally:
+        _problems = saved_problems + _problems
 
+
+def _run_self_test_body() -> int:
+    """The fixture-building and control-running work `_run_self_test()`
+    wraps. Split out so the wrapper's `_problems` save/restore (WR-04) sits
+    outside every early-return path this function takes, including the
+    environment-error returns below."""
     try:
         real_stubs = _load_real_stubs()
     except (ValueError, FileNotFoundError) as exc:
@@ -1513,6 +1570,16 @@ def _run_self_test() -> int:
             f"listed ({len(_ANCHOR_CONTROL_EXEMPT)} exempt, "
             f"{len(_ANCHOR_CONTROL_PENDING)} pending)"
         )
+
+    # (b0) Stub-0 precondition control (WR-11, `03-REVIEW.md`): a stub set
+    # with the launcher entry removed. Before this control existed, nothing
+    # proved the precondition fires — if it went dead, `launcher_body =
+    # stubs[LAUNCHER_SLUG]` would raise an unhandled KeyError rather than
+    # producing the documented Stub-0 failure and exit code 2.
+    b0_stubs = {slug: body for slug, body in real_stubs.items() if slug != LAUNCHER_SLUG}
+    _check_negative(
+        "b0", _check_stub_surface(b0_stubs), "Stub-0", "is missing from the stub set"
+    )
 
     # (a) positive control: the real emitted files produce zero failures.
     _check_positive("a", _check_stub_surface(real_stubs))
@@ -1870,6 +1937,18 @@ def _run_self_test() -> int:
         "ad3", _check_cross_surface_parity(real_agent_text, ad3_stubs), "Parity-4", "estimate"
     )
 
+    # (ad4) Parity-4 divider-less control (WR-10): strip the standalone
+    # `---` divider following one stub's validation section, leaving the
+    # section's own content intact — distinct from (ad2)'s whole-heading
+    # removal. Before the WR-10 fix, `_stub_parity_note()`'s fallback
+    # silently widened to end-of-file instead of returning None, so this
+    # fixture would have passed for the wrong reason. Uses a slug none of
+    # (ad)/(ad2)/(ad3)/(af) already mutate.
+    ad4_stubs = _strip_stub_trailing_divider(real_stubs, "inversion")
+    _check_negative(
+        "ad4", _check_cross_surface_parity(real_agent_text, ad4_stubs), "Parity-4", "inversion"
+    )
+
     # (ae) Parity-4 reverse control: reword a parity token in the AGENT note
     # while leaving all 13 stubs untouched. MEASURED (not assumed) which ID
     # this trips: removing any one of the five tokens from the agent note
@@ -1914,6 +1993,46 @@ def _run_self_test() -> int:
         "ah", _check_agent_surface(ah_agent, real_reference_texts, real_stubs["fishbone"])
     )
     _check_positive("ah2", _check_cross_surface_parity(ah_agent, real_stubs))
+
+    # (n0) harness meta-controls (WR-12, `03-REVIEW.md`): the self-test
+    # harness's own anti-masking guarantees — `_check_negative`'s empty-
+    # failure rejection, boundary-anchored ID matching (`Stub-10` must not
+    # satisfy an expectation of `Stub-1`), wrong-detail rejection,
+    # `_check_positive` recording a problem on non-empty input, and
+    # `_replace_once`'s not-found raise — are themselves unproven unless
+    # something exercises them; each is disabled in turn while leaving
+    # `--self-test` green (measured by the reviewer). Drive each guarantee
+    # against synthetic input and assert `_problems` grows by exactly the
+    # expected number, then remove those entries — the one place in this
+    # file where deleting a recorded `_problems` entry is legitimate,
+    # because these entries are INTENDED (proof the guarantee correctly
+    # fired), not a masked real failure.
+    n0_before = len(_problems)
+    _check_negative("n0a-empty", [], "Stub-1")
+    _check_negative("n0b-boundary", ["Stub-10 (D-03, bound): x"], "Stub-1")
+    _check_negative("n0c-detail", ["Stub-1 (PAR-02, count): x"], "Stub-1", "ZZZ-not-present")
+    _check_positive("n0d-positive", ["synthetic failure for meta-control n0d"])
+    try:
+        _replace_once("no such target token anywhere in this text", "not present at all")
+    except AssertionError:
+        pass
+    else:
+        _problems.append("n0e-replace-once: did not raise on a missing target")
+    n0_delta = len(_problems) - n0_before
+    if n0_delta == 4:
+        print(
+            "(n0) harness meta-controls: PASS — 5 harness guarantees proven "
+            "(_check_negative empty-failure rejection, boundary-anchored ID "
+            "matching, wrong-detail rejection; _check_positive non-empty "
+            "rejection; _replace_once's not-found raise, verified by "
+            "exception rather than a _problems entry)"
+        )
+        del _problems[n0_before:]
+    else:
+        print(
+            "(n0) harness meta-controls: FAIL — expected exactly 4 recorded "
+            f"guarantee-firings, got {n0_delta}: {_problems[n0_before:]}"
+        )
 
     # (q) ratchet branch control: drive `_check_anchor_control_coverage`
     # against synthetic sources to exercise every branch.
