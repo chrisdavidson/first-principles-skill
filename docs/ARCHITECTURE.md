@@ -141,7 +141,7 @@ FROZEN-EVIDENCE. That is 17 + 1 + 2 = 20.
 | BATT-06 | `check-routing-battery` (CI) | `scripts/check-routing-battery.py --self-test` | Merged dual-signal battery self-test (boundary + focused-output); anti-masking sentinels |
 | STEP0-08 | `check-step0-emulator` (CI) | `scripts/check-step0-emulator.py --self-test` | Offline Step 0 phrase-detection classifier self-test |
 | STEP0-06 | `check-step0-live` (CI) | `scripts/check-step0-live.py --self-test` | Step 0 live-harness scoring/parsing logic self-test |
-| TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution) |
+| TRACE-03 | `check-traceability` (CI) | `scripts/check-traceability.py --self-test` | Traceability gate self-test (capability/tier schema + artifact resolution, plus the `HEADLINE-LOCK` sentinel tying the published headline and both tracked matrix artifacts to `build_matrix_rows()`) |
 | QUAL-01 | battery only — **not a CI job** | `scripts/check-quality-harness.py --self-test` | Offline blind A/B quality-measurement harness self-test |
 | HARN-01 | `check-act-limb` (CI) | `scripts/check-act-limb.py` | Offline Act-limb gate: the Phase 3 verification step and the Criterion 3 Fix note are present, correctly placed, and internally coherent in the emitted tree |
 | HARN-02 | `check-loop-closure` (CI) | `scripts/check-loop-closure.py` | Offline Observe→Perceive re-entry-edge gate: a Criterion 1 Absent verdict routes back to Phase 1, every re-entry edge is bounded to one re-perception pass, and a fired edge is recorded |

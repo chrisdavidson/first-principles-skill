@@ -2239,6 +2239,139 @@ def _self_test_v818_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
 
+def _self_test_headline_lock(wrong_results: list[str]) -> None:
+    """HEADLINE-LOCK named sentinel (WR-08 / v8.18 Phase 4 review).
+
+    Ties the three published, hand-copied or generator-written coverage surfaces back to
+    build_matrix_rows(), which nothing previously did. The v8.18 review measured the gap:
+    no script anywhere contained the literal headline figure, and TRACE-03's --self-test
+    never re-rendered the matrix to compare it against the tracked artifacts, because the
+    `emit` subcommand is a manual regeneration step that CI does not run.
+
+    That gap is not hypothetical. The same review's CR-01 was exactly this drift: an
+    `88 audit-only` figure surviving in two places six and fifty lines from a headline the
+    same commit had moved to 90. It was corrected by hand, closing the instance and leaving
+    the mechanism intact, so the next headline move would have reopened it identically.
+
+    Asserts:
+      (a) Published-headline lock: docs/requirements-traceability.md states exactly the
+          headline build_matrix_rows() produces. Every one of the four figures is derived
+          live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
+          mean that the first real gap row makes this sentinel fail while blaming the prose,
+          which would be a correct document losing to a stale assertion.
+      (b) Non-vacuity control for (a): the same predicate, run against a copy of the document
+          with the reproducible count perturbed, must report a mismatch. Without this, a
+          rewritten (a) that always passes is indistinguishable from a passing (a).
+      (c) Markdown artifact freshness: docs/requirements-matrix.md on disk is byte-identical
+          to render_matrix_markdown(rows). Deterministic — the renderer embeds no timestamp.
+      (d) JSON artifact freshness: docs/data/matrix.json on disk is byte-identical to what
+          emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
+      (e) Non-vacuity control for (c)/(d): perturbed copies of both artifacts must compare
+          unequal, proving the comparison is a real comparison and not a tautology.
+
+    Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
+    it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
+    no live claude session, no network, no writes.
+    """
+    _rows = build_matrix_rows()
+    _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
+    _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
+    _gap = sum(1 for r in _rows if r.coverage_tier == "gap")
+    _expected = (
+        f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    _headline = f"**Coverage headline:** {_expected}"
+
+    def _headline_matches(text: str) -> bool:
+        """The (a) predicate, isolated so (b) can exercise the identical code path."""
+        return _headline in text
+
+    # (a) Published-headline lock.
+    _trace_path = REPO_ROOT / "docs" / "requirements-traceability.md"
+    if not _trace_path.is_file():
+        print(f"  HEADLINE-LOCK FAIL: {_trace_path} not found")
+        wrong_results.append("HEADLINE-LOCK: docs/requirements-traceability.md missing")
+        return
+    _trace = _trace_path.read_text(encoding="utf-8")
+    if _headline_matches(_trace):
+        print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
+    else:
+        print(
+            f"  HEADLINE-LOCK FAIL: docs/requirements-traceability.md does not state "
+            f"{_expected!r} — build_matrix_rows() and the published headline disagree"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: published headline disagrees with build_matrix_rows() "
+            f"(expected {_expected!r})"
+        )
+
+    # (b) Non-vacuity control for (a): perturb the reproducible count, expect a mismatch.
+    _mutated_trace = _trace.replace(
+        _headline, f"**Coverage headline:** {_repro + 1} reproducible / {_audit} "
+        f"audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    if _headline_matches(_mutated_trace):
+        print("  HEADLINE-LOCK FAIL: (a) passed a perturbed headline — assertion is vacuous")
+        wrong_results.append("HEADLINE-LOCK: (a) negative control did not fail")
+    else:
+        print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
+
+    # (c) Markdown artifact freshness.
+    _md_path = REPO_ROOT / "docs" / "requirements-matrix.md"
+    _md_live = render_matrix_markdown(_rows)
+    if not _md_path.is_file():
+        print(f"  HEADLINE-LOCK FAIL: {_md_path} not found")
+        wrong_results.append("HEADLINE-LOCK: docs/requirements-matrix.md missing")
+        return
+    _md_disk = _md_path.read_text(encoding="utf-8")
+    if _md_disk == _md_live:
+        print(
+            f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
+            f"render_matrix_markdown() ({len(_rows)} rows)"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
+            "re-run the emit subcommand"
+        )
+        wrong_results.append(
+            "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
+        )
+
+    # (d) JSON artifact freshness — built exactly as emit_matrix writes it.
+    _json_path = REPO_ROOT / "docs" / "data" / "matrix.json"
+    _json_live = json.dumps([asdict(r) for r in _rows], indent=2)
+    if not _json_path.is_file():
+        print(f"  HEADLINE-LOCK FAIL: {_json_path} not found")
+        wrong_results.append("HEADLINE-LOCK: docs/data/matrix.json missing")
+        return
+    _json_disk = _json_path.read_text(encoding="utf-8")
+    if _json_disk == _json_live:
+        print(
+            f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
+            f"({len(_rows)} rows)"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit subcommand"
+        )
+        wrong_results.append(
+            "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
+        )
+
+    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal.
+    _md_vacuous = (_md_disk + "\n") == _md_live
+    _json_vacuous = (_json_disk + "\n") == _json_live
+    if _md_vacuous or _json_vacuous:
+        print(
+            f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
+            f"(md={_md_vacuous}, json={_json_vacuous})"
+        )
+        wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
+    else:
+        print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+
+
 def _run_self_test() -> None:
     """Run the inline artifact-resolution / schema / sentinel fixtures — no .planning/ reads required.
 
@@ -2272,6 +2405,13 @@ def _run_self_test() -> None:
                  milestone rows against silent drift, including a tier swap between two
                  named IDs that a blanket count assert would miss; no live claude session
                  required.
+      HEADLINE-LOCK: ties the published coverage headline in
+                 docs/requirements-traceability.md, and both tracked artifacts
+                 (docs/requirements-matrix.md, docs/data/matrix.json), back to
+                 build_matrix_rows() — with non-vacuity controls on both comparisons
+                 (WR-08 / Phase 4 review). Closes the drift class that produced that
+                 review's own CR-01, which was corrected by hand with the mechanism
+                 left intact. All four headline figures are derived live, gap included.
     """
     wrong_results: list[str] = []
     _self_test_valid_rows_fixtures(wrong_results)
@@ -2280,6 +2420,7 @@ def _run_self_test() -> None:
     _self_test_pyanchor_resolver(wrong_results)
     _self_test_v79_rows_sentinel(wrong_results)
     _self_test_v818_rows_sentinel(wrong_results)
+    _self_test_headline_lock(wrong_results)
     if wrong_results:
         sys.stderr.write(
             f"check-traceability --self-test: FAIL — {', '.join(wrong_results)}\n"
