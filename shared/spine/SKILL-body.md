@@ -74,8 +74,10 @@ Before executing the 5-phase procedure, classify the user's input contract to de
 
 **Execution branching.**
 
-- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Second-Order Effects when applicable) run as written.
+- If `MODE = focused-<technique>`: execute the standing procedure (Phases 1–5) but **only enumerate the named technique** in Phase 4 — do not walk the other seven companion techniques. The named artifact for Phase 4 becomes "Focused-<technique> Analysis" rather than the full eight-technique sweep. All other phases (Essence, Assumptions, Ground Truths, Derivation Chains, Validate, and Second-Order Effects when applicable) run as written.
 - If `MODE = full-composer`: execute Phases 1–5 as written below, with Phase 4 enumerating all eight companion techniques.
+
+**Focused mode validates proportionately, and the difference is stated, not hidden.** A slash-invoked focused skill runs a scope-proportionate check rather than the six-criterion Self-Audit Gate, because that gate scores a six-section analysis document while a focused run produces one technique's output sections — walking all six criteria against output that fills only one of the six sections would score structure that was never produced. The second component of the divergence is larger: a focused run does not acquire evidence — it opens no cited source — so a claim resting on a source the run did not open stays marked with the `?` rather than being resolved, and this is a disclosed residual, not an omission. Both surfaces carry this divergence stated in full, so a reader of either one sees it.
 
 ---
 
