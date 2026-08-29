@@ -8,12 +8,15 @@ license: MIT
 ---
 # Focused Ground Truths Mode
 
-You are running in focused-ground-truths mode. Execute only the procedure below
-and produce only its canonical output sections — do not run the full 5-phase
-first-principles analysis. Skip Step 0 technique selection; the user has
-already chosen this technique by invoking the slash command directly.
+You are running in focused-ground-truths mode. Execute the procedure below, produce
+its canonical output sections, then run the focused-mode validation step below
+- do not run the full 5-phase first-principles analysis. Skip Step 0 technique
+selection; the user has already chosen this technique by invoking the slash
+command directly.
 
 {{PROCEDURE:ground-truths}}
+
+{{FOCUSED_VALIDATION}}
 
 ---
 

@@ -8,12 +8,15 @@ license: MIT
 ---
 # Focused Theoretical-Limit Mode
 
-You are running in focused-theoretical-limit mode. Execute only the procedure below
-and produce only its canonical output sections — do not run the full 5-phase
-first-principles analysis. Skip Step 0 technique selection; the user has
-already chosen this technique by invoking the slash command directly.
+You are running in focused-theoretical-limit mode. Execute the procedure below, produce
+its canonical output sections, then run the focused-mode validation step below
+- do not run the full 5-phase first-principles analysis. Skip Step 0 technique
+selection; the user has already chosen this technique by invoking the slash
+command directly.
 
 {{PROCEDURE:theoretical-limit}}
+
+{{FOCUSED_VALIDATION}}
 
 ---
 
