@@ -189,7 +189,7 @@ milestone requirement block registered as matrix rows since v7.9.
 
 | Document | What it covers |
 |----------|----------------|
-| [v8.18-praor-loop-closure.md](v8.18-praor-loop-closure.md) | 2026-08-29. The v8.18.0 milestone record — the four PRAOR-loop gaps found by the 2026-08-27 review, each gap's disposition and guarding gate, the HARN-04 battery/CI registrations, the traceability move, the standing-record changes (`v8.0-final-closure.md`'s lifted immutability trait, the `CHANGELOG.md:355` correction note), and the deliberate deferrals with their triggers. |
+| [v8.18-praor-loop-closure.md](v8.18-praor-loop-closure.md) | 2026-08-29. The v8.18.0 milestone record — the four PRAOR-loop gaps found by the 2026-08-27 review, each gap's disposition and guarding gate, the HARN-04 battery/CI registrations, the traceability move, the standing-record changes (`v8.0-final-closure.md`'s lifted immutability trait, the correction note inside the `## [8.17.2]` CHANGELOG entry), and the deliberate deferrals with their triggers. |
 
 ## Reference & history
 
