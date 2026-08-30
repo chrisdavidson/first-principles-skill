@@ -15,20 +15,20 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (20):
+# Gates (21):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
-#   HARN-01   HARN-02       HARN-03
+#   HARN-01   HARN-02       HARN-03   HC-BOUND
 #   INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# 17 of the 18 non-inline gates are registered through the `gate` helper
+# 18 of the 19 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 18 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 19 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 20.
+# than going through `gate`, for a reported total of 21.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -113,6 +113,17 @@
 #
 # A gate that appears silently is indistinguishable from a gate that was
 # always there.
+#
+# Composition change (HC-BOUND, Phase 6, v8.19.0): the battery gained one gate,
+# HC-BOUND (scripts/check-high-confidence-bound.py --self-test). HC-BOUND asserts
+# the tightened Criteria 3 and 5 HIGH-confidence bound is present and well-formed
+# in the Self-Audit rubric, and that all three documented EXCEPT exceptions are
+# present on both rubric surfaces (canonical and emitted). The gate registers as a
+# single `--self-test`-only `gate` call because its self-test already contains
+# positive controls (a, a2, a3) that run over the real, live rubric files, so a
+# separate live invocation would assert nothing the self-test does not already assert.
+# Battery composition moved 20 -> 21. A gate that appears silently is
+# indistinguishable from a gate that was always there.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -365,6 +376,14 @@ gate "HARN-02" \
 gate "HARN-03" \
     "check-focused-parity.py --self-test" \
     "python3 scripts/check-focused-parity.py --self-test"
+
+# HC-BOUND — HIGH-confidence bound: Phase 5 tightening of Criterion 3 (Evidence)
+#            and Criterion 5 (Conclusion) is present and well-formed in the
+#            Self-Audit rubric, and all three documented EXCEPT exceptions are
+#            present on both rubric surfaces
+gate "HC-BOUND" \
+    "check-high-confidence-bound.py --self-test" \
+    "python3 scripts/check-high-confidence-bound.py --self-test"
 
 # body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
 # Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
