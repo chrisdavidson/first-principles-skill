@@ -219,6 +219,100 @@ def extract_registered_paths(manifest: dict) -> tuple[list[str], list[str]]:
     return (skill_paths, agent_paths)
 
 
+def verify_skill_names(skills: set[str], skills_dir: Path) -> list[dict]:
+    """Verify each discovered skill's SKILL.md frontmatter `name:` matches its
+    directory basename.
+
+    Implements REG-04/REG-05 per D-01: "registered with correct name/type" is
+    reinterpreted as present-at-conventional-path AND frontmatter name equals
+    the basename. Returns one record per skill, iterating `sorted(skills)`
+    for deterministic output. Never calls sys.exit — gating is Plan 02's job.
+    """
+    records: list[dict] = []
+    for name in sorted(skills):
+        skill_md = skills_dir / name / "SKILL.md"
+        frontmatter_name = (
+            _read_frontmatter_name(skill_md) if skill_md.is_file() else None
+        )
+        records.append(
+            {
+                "directory_name": name,
+                "frontmatter_name": frontmatter_name,
+                "type": "skill",
+                "matches": frontmatter_name == name,
+            }
+        )
+    return records
+
+
+def verify_agent_name(
+    agent_present: bool, agent_path: Path, expected_name: str
+) -> dict:
+    """Verify the main agent's frontmatter `name:` matches expected_name.
+
+    Implements REG-04/REG-05 per D-01, singular equivalent of
+    verify_skill_names(). Callers pass the existing AGENT_NAME constant as
+    expected_name rather than a second literal. Never calls sys.exit.
+    """
+    frontmatter_name = _read_frontmatter_name(agent_path) if agent_present else None
+    return {
+        "expected_name": expected_name,
+        "frontmatter_name": frontmatter_name,
+        "type": "agent",
+        "present": agent_present,
+        "matches": agent_present and frontmatter_name == expected_name,
+    }
+
+
+def verify_manifest_paths(
+    registered_skill_paths: list[str],
+    registered_agent_paths: list[str],
+    plugin_dir: Path,
+) -> list[dict]:
+    """Verify each manifest-declared path resolves to an existing file inside
+    plugin_dir.
+
+    Implements D-03. Takes the already-normalized path lists that
+    extract_registered_paths() produces, plus a base directory, so a
+    self-test can drive it with fabricated data — it must not read
+    MANIFEST_PATH or any module constant. Emits skill records first, then
+    agent records, preserving input order. Returns [] when both input lists
+    are empty (the live tree's normal state today).
+
+    Resolution rule (threat T-02-03): the joined target must BOTH exist on
+    disk AND stay inside plugin_dir after resolution (Path.is_relative_to()
+    against plugin_dir.resolve()) — an absolute path or a `..` escape reports
+    resolved: False rather than silently resolving outside the plugin.
+    """
+    plugin_dir_resolved = plugin_dir.resolve()
+
+    def _resolve(declared_path: str) -> bool:
+        stripped = declared_path[2:] if declared_path.startswith("./") else declared_path
+        candidate = plugin_dir / stripped
+        if not candidate.exists():
+            return False
+        return candidate.resolve().is_relative_to(plugin_dir_resolved)
+
+    records: list[dict] = []
+    for declared_path in registered_skill_paths:
+        records.append(
+            {
+                "declared_path": declared_path,
+                "component_kind": "skill",
+                "resolved": _resolve(declared_path),
+            }
+        )
+    for declared_path in registered_agent_paths:
+        records.append(
+            {
+                "declared_path": declared_path,
+                "component_kind": "agent",
+                "resolved": _resolve(declared_path),
+            }
+        )
+    return records
+
+
 def build_discovery_report(
     skills: set[str],
     agent_present: bool,
