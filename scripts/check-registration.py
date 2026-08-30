@@ -951,12 +951,274 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    # Control 22 — report shape against a REAL tempdir fixture (Plan 02):
+    # two skill directories (one matching, one mismatched) plus an agent
+    # file, driven through build_discovery_report() with skills_dir/
+    # plugin_dir pointed at the fixture. Unlike Control 14 (shape only,
+    # against the default live tree), this control additionally asserts
+    # the verification records' VALUES — the axis Control 14 deliberately
+    # does not cover.
+    with tempfile.TemporaryDirectory() as tmp22:
+        tmp22_path = Path(tmp22)
+        (tmp22_path / "skills" / "alpha").mkdir(parents=True)
+        (tmp22_path / "skills" / "alpha" / "SKILL.md").write_text(
+            "---\nname: alpha\n---\nbody", encoding="utf-8"
+        )
+        (tmp22_path / "skills" / "beta").mkdir(parents=True)
+        (tmp22_path / "skills" / "beta" / "SKILL.md").write_text(
+            "---\nname: wrong-name\n---\nbody", encoding="utf-8"
+        )
+        (tmp22_path / "agents").mkdir(parents=True)
+        agent_file_22 = tmp22_path / "agents" / "agent.md"
+        agent_file_22.write_text(
+            "---\nname: first-principles\n---\nbody", encoding="utf-8"
+        )
+
+        fixture_manifest = {"skills": ["./skills/does-not-exist/"]}
+        report_22 = build_discovery_report(
+            {"alpha", "beta"},
+            True,
+            agent_file_22,
+            fixture_manifest,
+            tmp22_path / "manifest.json",
+            skills_dir=tmp22_path / "skills",
+            plugin_dir=tmp22_path,
+        )
+
+        expected_keys_22 = {
+            "discovered_skills",
+            "discovered_skill_count",
+            "discovered_agent",
+            "manifest_path",
+            "manifest_skills_field",
+            "manifest_agents_field",
+            "registered_skill_paths",
+            "registered_agent_paths",
+            "registration_source",
+            "skill_name_verification",
+            "agent_name_verification",
+            "manifest_path_verification",
+        }
+        if set(report_22) != expected_keys_22:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 report "
+                f"shape (tempdir): key set {sorted(report_22)} != expected "
+                f"{sorted(expected_keys_22)}\n"
+            )
+            sys.exit(1)
+
+        round_tripped_22 = json.loads(json.dumps(report_22))
+        if round_tripped_22 != report_22:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 report "
+                "shape (tempdir): JSON round-trip did not equal the "
+                "original report\n"
+            )
+            sys.exit(1)
+
+        # Phase 1 keys still carry their Phase 1 values — a regression guard
+        # on the backward-compatible extension.
+        if report_22["discovered_skills"] != ["alpha", "beta"]:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 Phase 1 "
+                f"regression: discovered_skills = {report_22['discovered_skills']!r}\n"
+            )
+            sys.exit(1)
+        if report_22["discovered_skill_count"] != 2:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 Phase 1 "
+                f"regression: discovered_skill_count = "
+                f"{report_22['discovered_skill_count']!r}\n"
+            )
+            sys.exit(1)
+        if report_22["discovered_agent"] != {
+            "name": AGENT_NAME,
+            "present": True,
+            "path": str(agent_file_22),
+        }:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 Phase 1 "
+                f"regression: discovered_agent = {report_22['discovered_agent']!r}\n"
+            )
+            sys.exit(1)
+        if report_22["registration_source"] != "manifest-paths":
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 Phase 1 "
+                f"regression: registration_source = "
+                f"{report_22['registration_source']!r}\n"
+            )
+            sys.exit(1)
+
+        # Values axis: one skill matches True, one matches False.
+        skill_matches_22 = {
+            r["directory_name"]: r["matches"]
+            for r in report_22["skill_name_verification"]
+        }
+        if skill_matches_22 != {"alpha": True, "beta": False}:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 "
+                f"skill_name_verification values: {skill_matches_22!r}, "
+                "expected {'alpha': True, 'beta': False}\n"
+            )
+            sys.exit(1)
+
+        # Manifest record resolved False (declared path does not exist).
+        manifest_resolved_22 = [
+            r["resolved"] for r in report_22["manifest_path_verification"]
+        ]
+        if manifest_resolved_22 != [False]:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 22 "
+                f"manifest_path_verification values: {manifest_resolved_22!r}, "
+                "expected [False]\n"
+            )
+            sys.exit(1)
+
+    # Control 23 — collect_verification_failures, in-memory literal reports
+    # (D-04): a clean report returns []; a report carrying two mismatched
+    # skills, a mismatched agent and one unresolved path returns EXACTLY
+    # four lines, each naming its offending identifier. Anti-masking: the
+    # count assertion is exact (4), not merely non-zero, so a
+    # first-failure-only implementation fails this control.
+    clean_report_23 = {
+        "skill_name_verification": [
+            {
+                "directory_name": "alpha",
+                "frontmatter_name": "alpha",
+                "type": "skill",
+                "matches": True,
+            }
+        ],
+        "agent_name_verification": {
+            "expected_name": "first-principles",
+            "frontmatter_name": "first-principles",
+            "type": "agent",
+            "present": True,
+            "matches": True,
+        },
+        "manifest_path_verification": [],
+    }
+    clean_failures_23 = collect_verification_failures(clean_report_23)
+    if clean_failures_23 != []:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 23 clean report: "
+            f"expected [], got {clean_failures_23!r}\n"
+        )
+        sys.exit(1)
+
+    failing_report_23 = {
+        "skill_name_verification": [
+            {
+                "directory_name": "skill-one",
+                "frontmatter_name": "wrong-one",
+                "type": "skill",
+                "matches": False,
+            },
+            {
+                "directory_name": "skill-two",
+                "frontmatter_name": None,
+                "type": "skill",
+                "matches": False,
+            },
+        ],
+        "agent_name_verification": {
+            "expected_name": "first-principles",
+            "frontmatter_name": "wrong-agent-name",
+            "type": "agent",
+            "present": True,
+            "matches": False,
+        },
+        "manifest_path_verification": [
+            {
+                "declared_path": "./skills/ghost/",
+                "component_kind": "skill",
+                "resolved": False,
+            }
+        ],
+    }
+    failing_failures_23 = collect_verification_failures(failing_report_23)
+    if len(failing_failures_23) != 4:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 23 anti-masking: "
+            f"expected exactly 4 failure lines, got {len(failing_failures_23)}: "
+            f"{failing_failures_23!r}\n"
+        )
+        sys.exit(1)
+    joined_failures_23 = "\n".join(failing_failures_23)
+    for identifier in (
+        "skill-one",
+        "wrong-one",
+        "skill-two",
+        "first-principles",
+        "wrong-agent-name",
+        "./skills/ghost/",
+    ):
+        if identifier not in joined_failures_23:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 23: "
+                f"identifier {identifier!r} missing from failure lines: "
+                f"{failing_failures_23!r}\n"
+            )
+            sys.exit(1)
+
+    # Control 24 — format_report_text rendering, in-memory (same two
+    # literal reports as Control 23, extended with the nine Phase 1 keys
+    # so format_report_text's earlier lines don't KeyError). The clean
+    # report contains the section header and no "Failures:" block; the
+    # failing report contains "Failures:" and every one of the four lines.
+    # Anti-masking: without the negative half, a formatter that always
+    # emits the Failures block would pass.
+    base_fields_24 = {
+        "discovered_skills": ["alpha"],
+        "discovered_skill_count": 1,
+        "discovered_agent": {
+            "name": "first-principles",
+            "present": True,
+            "path": "/synthetic/agent.md",
+        },
+        "manifest_path": "/synthetic/manifest.json",
+        "manifest_skills_field": None,
+        "manifest_agents_field": None,
+        "registered_skill_paths": [],
+        "registered_agent_paths": [],
+        "registration_source": "default-directory-auto-discovery",
+    }
+    clean_text_24 = format_report_text({**base_fields_24, **clean_report_23})
+    if "Registration verification (REG-04/REG-05):" not in clean_text_24:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 24 clean report: "
+            "missing 'Registration verification (REG-04/REG-05):' header\n"
+        )
+        sys.exit(1)
+    if "Failures:" in clean_text_24:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 24 anti-masking: "
+            "clean report text unexpectedly contains 'Failures:'\n"
+        )
+        sys.exit(1)
+
+    failing_text_24 = format_report_text({**base_fields_24, **failing_report_23})
+    if "Failures:" not in failing_text_24:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 24 failing "
+            "report: missing 'Failures:' block\n"
+        )
+        sys.exit(1)
+    for failure_line in failing_failures_23:
+        if failure_line not in failing_text_24:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 24 failing "
+                f"report: failure line missing from text: {failure_line!r}\n"
+            )
+            sys.exit(1)
+
     print(
-        "check-registration --self-test: PASS (21 controls: discovery "
+        "check-registration --self-test: PASS (24 controls: discovery "
         "exclusions D-10/D-11/D-12, agent presence, manifest fail-fast "
         "D-09, absent-key tolerance D-07, report shape, frontmatter name "
         "extraction, skill/agent name verification, manifest-path "
-        "resolution and containment)"
+        "resolution and containment, tempdir-fixture report values, "
+        "failure collection accumulate-then-report, text rendering)"
     )
     sys.exit(0)
 
@@ -994,8 +1256,6 @@ def main() -> None:
     )
 
     # Non-vacuity guards, mirroring COLLIDE-01's `if not plugin_names` guard.
-    # These are the only two live failure conditions in Phase 1 — manifest
-    # registration comparison is Phase 2's job and must not gate here.
     if not skills:
         sys.stderr.write(
             "check-registration: FAIL — discovered 0 skill directories under "
@@ -1009,9 +1269,35 @@ def main() -> None:
         )
         sys.exit(1)
 
+    # Plan 02 (D-07): registration verification findings — name mismatches
+    # and unresolved manifest-declared paths — gate exit 1 here. Environment
+    # errors (manifest I/O/parse failures) already exited 2 above, inside
+    # parse_manifest(), before we ever reached this point.
+    verification_failures = collect_verification_failures(report)
+    if verification_failures:
+        # Print the full report first so the operator sees the whole summary
+        # before the failure lines (REG-06 accumulate-then-report).
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(format_report_text(report))
+        for failure in verification_failures:
+            sys.stderr.write(failure + "\n")
+        sys.stderr.write(
+            "check-registration: FAIL — "
+            f"{len(verification_failures)} registration verification "
+            "failure(s)\n"
+        )
+        sys.exit(1)
+
+    skill_verifications = report["skill_name_verification"]
+    skill_matched = sum(1 for r in skill_verifications if r["matches"])
+    skill_total = len(skill_verifications)
+
     pass_line = (
         f"check-registration: PASS (discovered {len(skills)} skills, "
-        "agent present, manifest parsed)"
+        "agent present, manifest parsed, "
+        f"{skill_matched}/{skill_total} names verified)"
     )
 
     if args.json:
