@@ -10,6 +10,10 @@ Usage:
     python3 scripts/check-registration.py [--self-test] [--json]
 
 Exit codes: 0 pass, 1 validation/content failure, 2 environment error.
+
+--self-test: runs 15 named, decision-traceable controls against tempdir and
+in-memory fixtures — fully offline and deterministic, no network access and
+no live Claude session, independent of the live first-principles/ tree.
 """
 
 from __future__ import annotations
@@ -219,8 +223,265 @@ def format_report_text(report: dict) -> str:
     return "\n".join(lines)
 
 
+def _write_skills_fixture(base: Path) -> None:
+    """Build a synthetic skills-directory fixture under base for --self-test.
+
+    Creates real directories alpha and beta, a hidden directory .hidden, a
+    symlink gamma pointing at alpha, and a plain file notes.txt — exercising
+    all three discover_skills() exclusions (D-10, D-11, D-12) in one fixture.
+    """
+    (base / "alpha").mkdir(parents=True, exist_ok=True)
+    (base / "beta").mkdir(parents=True, exist_ok=True)
+    (base / ".hidden").mkdir(parents=True, exist_ok=True)
+    (base / "gamma").symlink_to(base / "alpha")
+    (base / "notes.txt").write_text("", encoding="utf-8")
+
+
 def _run_self_test() -> None:
-    raise NotImplementedError("Task 3 adds the offline self-test")
+    """Run 15 named, decision-traceable offline controls against the
+    production helpers, using tempdir and in-memory fixtures only.
+
+    Fully deterministic and offline: no network, no live Claude session, no
+    dependence on the live first-principles/ tree, so adding or removing a
+    skill can never flip this self-test. Every control invokes a production
+    helper by name — none reimplements a filter or parser inline — so a
+    no-op helper cannot pass.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        _write_skills_fixture(tmp_path)
+
+        # Control 1 — D-10 dotfile exclusion. Set equality (not a membership
+        # check) proves the filter removed .hidden AND kept the real entries.
+        result = discover_skills(tmp_path)
+        if result != {"alpha", "beta"}:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-10 dotfile "
+                f"exclusion: discover_skills returned {sorted(result)}, "
+                "expected ['alpha', 'beta']\n"
+            )
+            sys.exit(1)
+
+        # Control 2 — D-11 symlink exclusion. Anti-masking: the symlink
+        # target (alpha) itself must survive the exclusion.
+        if "gamma" in result:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-11 symlink "
+                "exclusion: 'gamma' present in discover_skills result\n"
+            )
+            sys.exit(1)
+        if "alpha" not in result:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-11 symlink "
+                "exclusion: 'alpha' (the symlink target) missing from "
+                "discover_skills result — filter is over-broad\n"
+            )
+            sys.exit(1)
+
+        # Control 3 — D-12 non-directory exclusion.
+        if "notes.txt" in result or "notes" in result:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-12 non-directory "
+                f"exclusion: plain file leaked into result {sorted(result)}\n"
+            )
+            sys.exit(1)
+
+        # Control 4 — absent skills dir returns empty set, never raises.
+        absent_result = discover_skills(tmp_path / "does-not-exist")
+        if absent_result != set():
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — absent skills dir: "
+                f"discover_skills returned {sorted(absent_result)}, expected []\n"
+            )
+            sys.exit(1)
+
+        # Control 5 — agent present.
+        agent_file = tmp_path / "agent.md"
+        agent_file.write_text("agent body\n", encoding="utf-8")
+        present, path = discover_agent(agent_file)
+        if not (present is True and path == agent_file):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — agent present: "
+                f"discover_agent returned ({present!r}, {path!r})\n"
+            )
+            sys.exit(1)
+
+        # Control 6 — agent absent.
+        missing_agent = tmp_path / "missing.md"
+        present, path = discover_agent(missing_agent)
+        if not (present is False and path == missing_agent):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — agent absent: "
+                f"discover_agent returned ({present!r}, {path!r})\n"
+            )
+            sys.exit(1)
+
+        # Control 7 — manifest valid.
+        good_manifest = tmp_path / "good.json"
+        good_manifest.write_text('{"name": "x"}', encoding="utf-8")
+        parsed = parse_manifest(good_manifest)
+        if parsed != {"name": "x"}:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — manifest valid: "
+                f"parse_manifest returned {parsed!r}\n"
+            )
+            sys.exit(1)
+
+        # Control 8 — D-09 malformed JSON fail-fast. Must prove SystemExit
+        # actually fires, not merely that no exception escaped.
+        bad_manifest = tmp_path / "bad.json"
+        bad_manifest.write_text("{not json", encoding="utf-8")
+        raised = False
+        try:
+            parse_manifest(bad_manifest)
+        except SystemExit as exc:
+            raised = True
+            if exc.code != 2:
+                sys.stderr.write(
+                    "check-registration --self-test: FAIL — D-09 malformed "
+                    f"JSON fail-fast: exit code {exc.code}, expected 2\n"
+                )
+                sys.exit(1)
+        if not raised:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-09 malformed JSON "
+                "fail-fast: parse_manifest did not raise SystemExit\n"
+            )
+            sys.exit(1)
+
+        # Control 9 — non-object manifest root.
+        array_manifest = tmp_path / "arr.json"
+        array_manifest.write_text("[]", encoding="utf-8")
+        raised = False
+        try:
+            parse_manifest(array_manifest)
+        except SystemExit as exc:
+            raised = True
+            if exc.code != 2:
+                sys.stderr.write(
+                    "check-registration --self-test: FAIL — non-object "
+                    f"manifest root: exit code {exc.code}, expected 2\n"
+                )
+                sys.exit(1)
+        if not raised:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — non-object manifest "
+                "root: parse_manifest did not raise SystemExit\n"
+            )
+            sys.exit(1)
+
+        # Control 10 — missing manifest.
+        raised = False
+        try:
+            parse_manifest(tmp_path / "nope.json")
+        except SystemExit as exc:
+            raised = True
+            if exc.code != 2:
+                sys.stderr.write(
+                    "check-registration --self-test: FAIL — missing "
+                    f"manifest: exit code {exc.code}, expected 2\n"
+                )
+                sys.exit(1)
+        if not raised:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — missing manifest: "
+                "parse_manifest did not raise SystemExit\n"
+            )
+            sys.exit(1)
+
+    # Control 11 — D-07 absent keys tolerated. Direct negative control
+    # against the Pitfall-3 failure mode (treating an absent key as an error).
+    absent_keys_result = extract_registered_paths({})
+    if absent_keys_result != ([], []):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-07 absent keys "
+            f"tolerated: extract_registered_paths({{}}) returned "
+            f"{absent_keys_result!r}\n"
+        )
+        sys.exit(1)
+
+    # Control 12 — string-valued field normalization.
+    string_field_result = extract_registered_paths({"skills": "./x"})
+    if string_field_result != (["./x"], []):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — string-valued field "
+            f"normalization: got {string_field_result!r}\n"
+        )
+        sys.exit(1)
+
+    # Control 13 — list-valued field passthrough.
+    list_field_result = extract_registered_paths(
+        {"agents": ["./a.md", "./b.md"]}
+    )
+    if list_field_result != ([], ["./a.md", "./b.md"]):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — list-valued field "
+            f"passthrough: got {list_field_result!r}\n"
+        )
+        sys.exit(1)
+
+    # Control 14 — report shape. Key-set equality, JSON round-trip, and the
+    # default-auto-discovery registration_source for an empty manifest.
+    fixture_skills = {"alpha", "beta"}
+    fixture_agent_path = Path("/synthetic/agents/agent.md")
+    report = build_discovery_report(
+        fixture_skills, True, fixture_agent_path, {}, Path("/synthetic/manifest.json")
+    )
+    expected_keys = {
+        "discovered_skills",
+        "discovered_skill_count",
+        "discovered_agent",
+        "manifest_path",
+        "manifest_skills_field",
+        "manifest_agents_field",
+        "registered_skill_paths",
+        "registered_agent_paths",
+        "registration_source",
+    }
+    if set(report) != expected_keys:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — report shape: key set "
+            f"{sorted(report)} != expected {sorted(expected_keys)}\n"
+        )
+        sys.exit(1)
+    round_tripped = json.loads(json.dumps(report))
+    if round_tripped != report:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — report shape: JSON "
+            "round-trip did not equal the original report\n"
+        )
+        sys.exit(1)
+    if report["registration_source"] != "default-directory-auto-discovery":
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — report shape: expected "
+            "registration_source 'default-directory-auto-discovery', got "
+            f"{report['registration_source']!r}\n"
+        )
+        sys.exit(1)
+
+    # Control 15 — report registration_source flips. Anti-constant control
+    # for control 14: without this, a hardcoded return value would pass.
+    flipped_report = build_discovery_report(
+        fixture_skills,
+        True,
+        fixture_agent_path,
+        {"skills": "./extra"},
+        Path("/synthetic/manifest.json"),
+    )
+    if flipped_report["registration_source"] != "manifest-paths":
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — report "
+            "registration_source flips: expected 'manifest-paths', got "
+            f"{flipped_report['registration_source']!r}\n"
+        )
+        sys.exit(1)
+
+    print(
+        "check-registration --self-test: PASS (15 controls: discovery "
+        "exclusions D-10/D-11/D-12, agent presence, manifest fail-fast "
+        "D-09, absent-key tolerance D-07, report shape)"
+    )
+    sys.exit(0)
 
 
 def main() -> None:
