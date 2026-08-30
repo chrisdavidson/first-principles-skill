@@ -1,17 +1,22 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.12"
-# dependencies = []
+# dependencies = ["pyyaml>=6.0"]
 # ///
-"""REG-GUARD (Phase 1) discovery layer: enumerate plugin skills/agent and parse
-the plugin manifest.
+# NOTE: D-02 (Phase 2) deliberately overrides 02-RESEARCH.md's Pitfall 3
+# stdlib-only recommendation — PyYAML robustness on frontmatter edge cases
+# (multiline block scalars, complex quoting) is worth the added dependency.
+# Do not "restore" the dependency-free `[]` form.
+"""REG-GUARD (Phase 1/2) discovery + verification layer: enumerate plugin
+skills/agent, parse the plugin manifest, and verify frontmatter `name:`
+fields match their conventional directory/file basenames.
 
 Usage:
     python3 scripts/check-registration.py [--self-test] [--json]
 
 Exit codes: 0 pass, 1 validation/content failure, 2 environment error.
 
---self-test: runs 15 named, decision-traceable controls against tempdir and
+--self-test: runs 21 named, decision-traceable controls against tempdir and
 in-memory fixtures — fully offline and deterministic, no network access and
 no live Claude session, independent of the live first-principles/ tree.
 """
@@ -22,9 +27,18 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    sys.stderr.write(
+        "check-registration: PyYAML is required (pip install 'pyyaml>=6.0')\n"
+    )
+    sys.exit(2)
 
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -33,6 +47,10 @@ SKILLS_DIR: Path = PLUGIN_DIR / "skills"
 AGENT_NAME: str = "first-principles"
 AGENT_PATH: Path = PLUGIN_DIR / "agents" / "first-principles.md"
 MANIFEST_PATH: Path = PLUGIN_DIR / ".claude-plugin" / "plugin.json"
+
+# Matches scripts/_skill_io.py's constant of the same name — splits frontmatter
+# text on the `---` fence lines.
+_FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 
 
 def _require_python_version() -> None:
@@ -84,6 +102,52 @@ def discover_agent(agent_path: Path) -> tuple[bool, Path]:
     if agent_path.is_symlink():
         return (False, agent_path)
     return (agent_path.is_file(), agent_path)
+
+
+def extract_frontmatter_name(text: str) -> str | None:
+    """Return the frontmatter `name:` value from already-read SKILL.md/agent
+    text, or None for any malformed or absent shape.
+
+    Implements REG-04/REG-05 (Phase 2) and D-02/D-04. Pure function — takes
+    text, never a Path, so self-test controls can drive it with in-memory
+    literals (D-04). Nothing in this function raises: malformed frontmatter
+    is a finding, not a crash (ASVS V5, threat T-02-01).
+    """
+    parts = _FENCE_RE.split(text, maxsplit=2)
+    if len(parts) < 3:
+        return None
+    if parts[0].strip():
+        # Content before the opening fence — not valid frontmatter.
+        return None
+
+    try:
+        frontmatter = yaml.safe_load(parts[1])
+    except yaml.YAMLError:
+        return None
+
+    if not isinstance(frontmatter, dict):
+        return None
+
+    name = frontmatter.get("name")
+    if not isinstance(name, str):
+        return None
+    name = name.strip()
+    if not name:
+        return None
+    return name
+
+
+def _read_frontmatter_name(path: Path) -> str | None:
+    """Thin I/O wrapper around extract_frontmatter_name for a file on disk.
+
+    Implements D-04's tempdir-driven wrapper tier. Keeps the read and the
+    parse split exactly this way so the pure branch stays file-I/O-free.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return None
+    return extract_frontmatter_name(text)
 
 
 def parse_manifest(manifest_path: Path) -> dict:
