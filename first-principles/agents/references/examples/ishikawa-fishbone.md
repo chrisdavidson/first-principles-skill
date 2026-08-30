@@ -312,14 +312,13 @@ row is challenged with specific counter-evidence rather than dismissed generical
 ---
 
 **Criterion 3: Establish Ground Truths**
-Quoted span: "GT-5? The average workflow-automation rate achieved by active Northbrook accounts
-is approximately 40% below the benchmark figure used in sales demos — source: unverified;
-preliminary estimate from 4 accounts, not a statistically valid sample"
-Band: **Rigorous**
-Justification: All five GTs carry stable identifiers; every verified GT has a specific source
-citation naming the data type and confirming party; the single unverified GT is marked with
-the `?` suffix and explained with a specific reason; no discarded assumption appears in the
-GT list.
+Quoted span: "GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo
+benchmark, preliminary estimate from 4 accounts)"
+Band: **Sound**
+Justification: GT-1 is unsuffixed and its source is reachable (no Phase 3 failure record
+marks it unreachable), but GT-1 feeds only the third derivation chain, which is rated
+MEDIUM — GT-1 does not feed a HIGH-confidence chain; GT-2, GT-3, and GT-4 each feed at
+least one of the two HIGH-confidence chains, so this is a single-GT shortfall.
 
 ---
 
@@ -343,7 +342,9 @@ Justification: Every derivation chain carries an explicit Confidence rating; the
 chains consume only verified GTs; the MEDIUM chain names the specific unverified input (GT-5?),
 explains the downgrade, and states the exact verification that would raise confidence to HIGH;
 the overall Conclusion's MEDIUM rating matches the weakest chain; no chain consuming GT-5? is
-rated HIGH.
+rated HIGH. The same GT-5?-driven MEDIUM chain that leaves GT-1 without a HIGH-confidence
+chain is named by Criterion 3 and banded there; it is noted here without independently
+lowering this criterion's band, per the rubric's precedence rule.
 
 ---
 
@@ -361,5 +362,6 @@ narrow verified set — which conventional reasoning would have missed.
 
 **Overall verdict: PASS**
 
-All six criteria score Rigorous. No criterion is at Hand-wavy or Absent. Gate cleared (no
-Absent); hand-wavy cap cleared (zero Hand-wavy criteria).
+Five criteria score Rigorous; Criterion 3 scores Sound (GT-1 feeds only a MEDIUM chain). No
+criterion is at Hand-wavy or Absent. Gate cleared (no Absent); hand-wavy cap cleared (zero
+Hand-wavy criteria).

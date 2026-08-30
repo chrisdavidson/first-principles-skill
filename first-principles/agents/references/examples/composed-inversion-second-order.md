@@ -297,12 +297,13 @@ verification step that would lift each one.
 ---
 
 **Criterion 3: Establish Ground Truths**
-Band: **Rigorous**
-> A shadow-read simulation against a one-hour recorded production trace shows
+Band: **Sound**
+> **Confidence:** MEDIUM — the chain consumes GT-5? as a load-bearing input. Raising to HIGH
 
-Justification: Every GT carries a stable identifier; every verified GT cites a specific
-source; the single unverified GT carries the `?` suffix and the chain that consumes it
-inherits the MEDIUM confidence rating per the spine's Phase 3 discipline.
+Justification: GT-1 and GT-2 are unsuffixed and their sources are reachable (no Phase 3
+failure record marks either unreachable), but both feed only the single first-order chain,
+which is rated MEDIUM — neither feeds a HIGH-confidence chain, which the tightened Rigorous
+descriptor requires absent an unreachable-source exception; no such exception applies here.
 
 ---
 
@@ -324,7 +325,9 @@ Band: **Rigorous**
 Justification: The derivation chain's weakest link is named (GT-5?); the chain's confidence
 rating matches the unverified-input rule; the overall Conclusion section's confidence
 rating matches the weakest chain; the specific verification that would raise confidence to
-HIGH is named.
+HIGH is named. The same GT-5?-driven MEDIUM chain is named by Criterion 3 and banded there;
+it is noted here without independently lowering this criterion's band, per the rubric's
+precedence rule.
 
 ---
 
