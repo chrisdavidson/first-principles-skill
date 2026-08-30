@@ -59,6 +59,28 @@ _C5_SOUND_LEAD = "- **Sound** — confidence ratings exist on chains"
 # --- Whitespace flattening layer (copied from check-focused-parity.py) ---
 _WS = re.compile(r"\s+")
 
+# --- The anchor-control coverage ratchet (D-12) ---
+# WR-02's standing half: every module-level `_UPPER_SNAKE` constant must be
+# referenced at least three times in this file (its definition, at least one
+# assertion, and at least one control), or appear in one of the two lists below.
+#
+# EXEMPT is permanent; each entry must say in one sentence why a dedicated
+# mutation control is impossible or meaningless. PENDING is temporary debt; each
+# entry names the task that discharges it, and an entry that is NO LONGER short
+# is itself reported, so the list cannot rot into a permanent allow-list. Putting
+# a constant in EXEMPT to avoid writing a control for it inverts the ratchet.
+#
+# The two dicts sit between the bookkeeping markers because
+# `_check_anchor_control_coverage` excludes that region from its reference
+# counts — otherwise listing a constant here would raise its own count and a
+# pending entry could satisfy the ratchet by being mentioned in the ratchet.
+# --- ratchet-bookkeeping-begin ---
+_ANCHOR_CONTROL_EXEMPT: dict[str, str] = {
+    "_WS": "Machinery layer (whitespace regex); no content anchor to control.",
+}
+_ANCHOR_CONTROL_PENDING: dict[str, str] = {}
+# --- ratchet-bookkeeping-end ---
+
 
 def _flat(text: str) -> str:
     """Collapse every whitespace run to a single space."""
@@ -94,6 +116,122 @@ def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
     if end_idx == -1:
         return None
     return text[content_start:end_idx]
+
+
+def _check_anchor_control_coverage(
+    source: str,
+    exempt: dict[str, str] | None = None,
+    pending: dict[str, str] | None = None,
+) -> list[str]:
+    """Fail when a module-level anchor constant ships without a control.
+
+    Enumerates every module-level `_UPPER_SNAKE` assignment in *source* and
+    requires at least three references to each (definition + at least one
+    assertion + at least one control), unless the name is listed in
+    `_ANCHOR_CONTROL_EXEMPT` (permanent, must carry a justification) or in
+    `_ANCHOR_CONTROL_PENDING` (temporary debt, must still be short — a pending
+    entry that is no longer short is a stale ratchet entry and is itself
+    reported).
+
+    *exempt* and *pending* default to the module-level lists. They are injectable
+    only so control can drive every branch of this function against synthetic
+    input — the ratchet is itself an assertion, and an assertion whose branches
+    are never exercised is the thing this plan exists to remove.
+    """
+    failures: list[str] = []
+    exempt_list = _ANCHOR_CONTROL_EXEMPT if exempt is None else exempt
+    pending_list = _ANCHOR_CONTROL_PENDING if pending is None else pending
+    marker_start = "# --- ratchet-bookkeeping-begin ---"
+    marker_end = "# --- ratchet-bookkeeping-end ---"
+    constant_re = re.compile(r"^(_[A-Z][A-Z0-9_]*)\s*(?::[^=\n]+)?=", re.MULTILINE)
+
+    # Ratchet self-integrity. The three names below are machinery, not content
+    # anchors, so they are exempt from the reference count — but a neutralized
+    # or retyped machinery global would silently disable the ratchet, so their
+    # TYPES are asserted here instead.
+    if not isinstance(_ANCHOR_CONTROL_EXEMPT, dict) or not isinstance(
+        _ANCHOR_CONTROL_PENDING, dict
+    ):
+        failures.append(
+            "Coverage (WR-02, ratchet integrity): _ANCHOR_CONTROL_EXEMPT and "
+            "_ANCHOR_CONTROL_PENDING must both be dicts, found "
+            f"{type(_ANCHOR_CONTROL_EXEMPT).__name__} and "
+            f"{type(_ANCHOR_CONTROL_PENDING).__name__}"
+        )
+        return failures
+
+    names = list(dict.fromkeys(constant_re.findall(source)))
+    if not names:
+        failures.append(
+            "Coverage (WR-02, anchor-control ratchet): the enumerator matched no "
+            "module-level anchor constants — a ratchet that enumerates nothing is "
+            "broken, not satisfied"
+        )
+        return failures
+
+    start = source.find(marker_start)
+    end = source.find(marker_end, start + 1) if start != -1 else -1
+    if start == -1 or end == -1:
+        failures.append(
+            "Coverage (WR-02, ratchet integrity): bookkeeping markers not found — "
+            "cannot exclude the exempt/pending lists from the reference counts"
+        )
+        return failures
+    counting_source = source[:start] + source[end + len(marker_end) :]
+
+    for name in names:
+        is_exempt = name in exempt_list
+        is_pending = name in pending_list
+        # Word-boundary count: `_FAILURE_RECORD_PLAIN` is a proper substring of
+        # `_B11_FAILURE_RECORD_PLAIN`, and a plain `str.count` would credit the
+        # shorter name with the longer name's references.
+        count = len(
+            re.findall(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])", counting_source)
+        )
+        if is_exempt and is_pending:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): "
+                f"{name} is listed in BOTH _ANCHOR_CONTROL_EXEMPT and "
+                "_ANCHOR_CONTROL_PENDING — permanent and temporary are not both"
+            )
+            continue
+        if is_exempt:
+            if not str(exempt_list[name]).strip():
+                failures.append(
+                    "Coverage (WR-02, anchor-control ratchet): "
+                    f"{name} is exempt with an empty justification — an unjustified "
+                    "exemption is an allow-list entry, not a decision"
+                )
+            continue
+        if is_pending:
+            if count >= 3:
+                failures.append(
+                    "Coverage (WR-02, anchor-control ratchet): "
+                    f"{name} is listed pending ({pending_list[name]}) but is "
+                    f"already referenced {count} time(s) — a stale ratchet entry is "
+                    "itself a finding; remove it from _ANCHOR_CONTROL_PENDING"
+                )
+            continue
+        if count < 3:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): "
+                f"{name} is referenced {count} time(s), expected at least 3 "
+                "(definition, at least one assertion, at least one control)"
+            )
+
+    for name in exempt_list:
+        if name not in names:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): exempt entry "
+                f"{name} names no module-level anchor constant — stale"
+            )
+    for name in pending_list:
+        if name not in names:
+            failures.append(
+                "Coverage (WR-02, anchor-control ratchet): pending entry "
+                f"{name} names no module-level anchor constant — stale"
+            )
+    return failures
 
 
 def _rigorous_region(slice_text: str | None, sound_anchor: str) -> str | None:
@@ -391,6 +529,20 @@ def _run_self_test() -> int:
 
     problems: list[str] = []
 
+    # --- Pre-battery anchor-control ratchet check (WR-02) ---
+    # Run the ratchet with module-level dicts; failures here precede control battery
+    print("\n=== Anchor-Control Coverage (WR-02) ===")
+    source = Path(__file__).read_text(encoding="utf-8")
+    ratchet_failures = _check_anchor_control_coverage(source)
+    if ratchet_failures:
+        for msg in ratchet_failures:
+            print(f"FAIL — {msg}")
+            problems.append(f"ratchet: {msg}")
+    else:
+        exempt_count = len(_ANCHOR_CONTROL_EXEMPT)
+        pending_count = len(_ANCHOR_CONTROL_PENDING)
+        print(f"PASS — {exempt_count} exempt, {pending_count} pending")
+
     def _check_negative(
         label: str,
         failures: list[str],
@@ -678,6 +830,15 @@ def _run_self_test() -> int:
         print(f"(e) fixture derivation failed: {e}")
         problems.append(f"e: fixture error")
 
+    # (e2) HC-14: Remove "How to Apply This Gate" heading (anchor control for _HOW_TO_APPLY)
+    try:
+        e2_mutated = canonical.replace(_HOW_TO_APPLY, "")
+        e2_failures = _check_exceptions_summary(e2_mutated, "test")
+        _check_negative("e2", e2_failures, "HC-14")
+    except Exception as e:
+        print(f"(e2) error: {e}")
+        problems.append("e2: error")
+
     # (f) HC-12: Remove Criterion 5 absent-fails EXCEPT
     try:
         f_mutated = _mutate_remove_c5_absent_fails_except(canonical)
@@ -844,7 +1005,7 @@ def _run_self_test() -> int:
 
     # CLI dispatch control
     print(f"\n=== Roster ===")
-    print(f"Controls run: 18, problems: {len(problems)}")
+    print(f"Controls run: 19, problems: {len(problems)}")
 
     if problems:
         print(f"FAIL — problems: {'; '.join(problems)}")
