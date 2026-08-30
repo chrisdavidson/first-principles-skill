@@ -357,7 +357,28 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
   appears in a load-bearing chain has a confidence caveat stating which unverified input
   caused the downgrade and what specific verification raises confidence to HIGH; the
   overall Conclusion section's confidence rating (HIGH / MEDIUM / LOW) matches the weakest
-  chain that contributes to it; no chain that consumes a GT-N? input is rated HIGH confidence.
+  chain that contributes to it, counting only chains not covered by an EXCEPT clause stated
+  in this same descriptor; no chain that consumes a GT-N? input is rated HIGH confidence.
+  Every claim in the Conclusion section rests on at least one HIGH-confidence chain, so that
+  this aggregation yields HIGH. EXCEPT: a chain is explicitly marked speculative — for
+  example `[Speculative]` — and the analysis states, in the same place, that the claim it
+  supports is not load-bearing and is offered for exploration only; that mark plus that
+  statement is the satisfying evidence, and the chain may remain MEDIUM. EXCEPT: a chain is
+  an absent-fails derivation — of the form "if [assumption] were true we could conclude X;
+  [assumption] is false; therefore X does not follow" — whose named false assumption is the
+  satisfying evidence, and the chain may remain MEDIUM because it establishes what does not
+  follow rather than what does.
+
+  **A conclusion without a HIGH chain is a banding matter, not a gate failure.** A conclusion
+  resting on no HIGH-confidence chain, uncovered by either EXCEPT clause above, bands this
+  criterion below Rigorous rather than failing the gate — one such conclusion bands Sound;
+  the same shortfall across multiple conclusions bands Hand-wavy. A MEDIUM or LOW overall
+  Conclusion rating remains a legitimate, honestly-caveated analysis — `output-template.md`
+  permits it and this criterion does not forbid it; what such an analysis is not is Rigorous
+  on Criterion 5, and its verdict block must say so rather than reporting Rigorous alongside
+  a MEDIUM rating. An exception is claimed, not assumed: an analysis relying on one of the
+  two EXCEPT clauses above names it in the Criterion 5 verdict block and cites the evidence
+  that clause requires; an unclaimed exception is not applied on the analysis's behalf.
 
 - **Sound** — confidence ratings exist on chains, but one or more GT-N? inputs in chains are
   not mentioned in the chain's confidence line; OR a chain is rated HIGH confidence while
