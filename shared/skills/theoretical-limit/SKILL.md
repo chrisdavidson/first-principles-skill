@@ -3,7 +3,7 @@ name: theoretical-limit
 description: Strips conventions to the law-permitted ceiling. Invoke via /theoretical-limit only.
 disable-model-invocation: true
 metadata:
-  version: "8.18.0"
+  version: "8.19.0"
 license: MIT
 ---
 # Focused Theoretical-Limit Mode

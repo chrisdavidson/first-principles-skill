@@ -3,7 +3,7 @@ name: trade-off
 description: Runs a focused trade-off only — weighted-criteria scoring. Invoke via /trade-off only.
 disable-model-invocation: true
 metadata:
-  version: "8.18.0"
+  version: "8.19.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/trade-off/SKILL.md by sync-content.py -->
