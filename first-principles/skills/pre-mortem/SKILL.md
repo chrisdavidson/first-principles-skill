@@ -3,7 +3,7 @@ name: pre-mortem
 description: Runs a focused pre-mortem only — prospective-hindsight failure analysis. Invoke via /pre-mortem only.
 disable-model-invocation: true
 metadata:
-  version: "8.19.0"
+  version: "8.20.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/pre-mortem/SKILL.md by sync-content.py -->

@@ -3,7 +3,7 @@ name: five-whys
 description: Runs a focused 5-Whys only — root-cause drill on a symptom or a reduce-to-primitives irreducibility drill on a claim. Invoke via /five-whys only.
 disable-model-invocation: true
 metadata:
-  version: "8.19.0"
+  version: "8.20.0"
 license: MIT
 ---
 # Focused 5-Whys Mode
