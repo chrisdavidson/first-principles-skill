@@ -13,6 +13,64 @@ installed session.
 
 ## [Unreleased]
 
+## [8.20.0] — 2026-08-30
+
+Hardens the HARN-01 gate with complete structural isolation coverage: all 16 neutralizable
+branches now carry named control fixtures, and an anti-masking assertion gates on full coverage.
+
+### Changed
+
+- **HARN-01 self-test hardening: 16/16 branch coverage with anti-masking assertion.**
+  - Coverage: **8 body-side branches** (B-01, B-02, B-03, B-04-tools, B-04-imperative,
+    B-05-termination, B-06-not-found-assign, B-12-table) **+ 8 rubric-side branches** (R-01,
+    R-02-slice, R-02-whole, R-03-block, R-04-crit2, R-04-crit5, R-05-pointer, R-07-band).
+  - Each branch has a named isolation control fixture ensuring the gate detects its removal or
+    mutation without misclassifying it as a pass.
+  - **Anti-masking gate:** `_check_negative()` records a `branch_id` when each fixture correctly
+    fails. The run fails naming any uncovered branches unless the recorded set equals all 16.
+    This prevents a fixture being silently disabled while the gate still reports PASS.
+  - **Control count:** Phase 7 delivered 8 fixtures (50 controls); Phase 8 delivered 8 more
+    fixtures (8 additional controls), for a total of **58 controls** (50 → 58).
+  - Coverage moved **8/16 → 16/16**. Documentation: `scripts/check-act-limb-branches.md` lists
+    every branch with its line number, condition, neutralization point, and owning fixture.
+- **The battery remains unchanged at 21/21.** HARN-01 was hardened, not added. The gate was
+  registered in v8.18.0 and this release tightens its control structure.
+- **All 17 hand-maintained version stamps moved to `8.20.0`** in lockstep.
+
+The HARN-01 controls are structural assertions over the emitted tree. They prove each branch's
+decision logic cannot be individually neutralized without detection; they do not measure agent
+behavior on a live run. MEAS-01 (live harness for evidence acquisition) and MEAS-02 (quality
+A/B) remain deferred.
+
+## [8.19.0] — 2026-08-30
+
+Implements the HIGH-confidence bound gate (HC-BOUND) and tightens confidence scoring in the
+Self-Audit Criterion 3 (Evidence) and Criterion 5 (Conclusion). Reconstructed from annotated tag.
+
+### Added
+
+- **HC-BOUND gate** — structural validation asserting Phase 5 confidence tightening is present
+  and well-formed in both the canonical and emitted rubric surfaces. Three documented EXCEPT
+  exceptions (unreachable sources, speculative chains, absent-fails derivations) are verified.
+
+### Changed
+
+- **Criterion 3 (Evidence) tightening:** At least one HIGH-confidence chain must support each
+  cited reachable source. Chains lacking HIGH-confidence assignment are listed and flagged during
+  the analysis.
+- **Criterion 5 (Conclusion) tightening:** Every conclusion must rest on at least one
+  HIGH-confidence chain. LOW- and MEDIUM-only conclusions are flagged.
+- **Anchor-control ratchet:** 19 controls added to the self-test to verify the tightened
+  boundary and exception handling.
+- **The battery moved 20 → 21** with HC-BOUND registration in CI.
+- **All 17 hand-maintained version stamps moved to `8.19.0`** in lockstep.
+
+HC-BOUND is a structural gate: it asserts the prescribed prose is present and well-formed in
+the emitted rubric. It does not measure whether the agent actually *achieves* the confidence
+bound on a live run. MEAS-01 and MEAS-02 remain deferred.
+
+Source: `git show v8.19.0` (annotated tag body).
+
 ## [8.18.0] — 2026-08-29
 
 Closes the four PRAOR-loop gaps found by the 2026-08-27 review of the agent body against
