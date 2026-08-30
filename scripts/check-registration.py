@@ -634,10 +634,217 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    # Control 16 — extract_frontmatter_name on literal strings (in-memory,
+    # D-04): plain scalar, single-quoted, and double-quoted name values all
+    # return the bare name.
+    for literal, expected in (
+        ("---\nname: alpha\n---\nbody", "alpha"),
+        ("---\nname: 'alpha'\n---\nbody", "alpha"),
+        ('---\nname: "alpha"\n---\nbody', "alpha"),
+    ):
+        got = extract_frontmatter_name(literal)
+        if got != expected:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 16 literal "
+                f"frontmatter name extraction: {literal!r} -> {got!r}, "
+                f"expected {expected!r}\n"
+            )
+            sys.exit(1)
+
+    # Control 17 — anti-constant control for Control 16: a literal whose
+    # frontmatter says `name: beta` must return exactly "beta", not a
+    # hardcoded "alpha".
+    beta_result = extract_frontmatter_name("---\nname: beta\n---\nbody")
+    if beta_result != "beta":
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 17 anti-constant: "
+            f"expected 'beta', got {beta_result!r}\n"
+        )
+        sys.exit(1)
+
+    # Control 18 — malformed frontmatter shapes all return None without
+    # raising (in-memory, D-04; ASVS V5, threat T-02-01).
+    malformed_cases = {
+        "no name key": "---\ndescription: x\n---\nbody",
+        "no fences at all": "just some plain text, no frontmatter",
+        "opening fence but no closing fence": "---\nname: alpha\nbody text",
+        "content before opening fence": "leading content\n---\nname: alpha\n---\nbody",
+        "unparseable YAML": "---\nname: [unterminated\n---\nbody",
+    }
+    for case_name, text in malformed_cases.items():
+        result = extract_frontmatter_name(text)
+        if result is not None:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 18 malformed "
+                f"frontmatter ({case_name}): expected None, got {result!r}\n"
+            )
+            sys.exit(1)
+
+    # Control 19 — verify_skill_names against a mixed tempdir fixture
+    # (D-04 wrapper tier): alpha matches, beta mismatches, delta has no
+    # SKILL.md at all.
+    with tempfile.TemporaryDirectory() as tmp19:
+        tmp19_path = Path(tmp19)
+        (tmp19_path / "alpha").mkdir(parents=True)
+        (tmp19_path / "alpha" / "SKILL.md").write_text(
+            "---\nname: alpha\n---\nbody", encoding="utf-8"
+        )
+        (tmp19_path / "beta").mkdir(parents=True)
+        (tmp19_path / "beta" / "SKILL.md").write_text(
+            "---\nname: gamma\n---\nbody", encoding="utf-8"
+        )
+        (tmp19_path / "delta").mkdir(parents=True)
+
+        skill_records = verify_skill_names({"alpha", "beta", "delta"}, tmp19_path)
+        expected_records = [
+            {
+                "directory_name": "alpha",
+                "frontmatter_name": "alpha",
+                "type": "skill",
+                "matches": True,
+            },
+            {
+                "directory_name": "beta",
+                "frontmatter_name": "gamma",
+                "type": "skill",
+                "matches": False,
+            },
+            {
+                "directory_name": "delta",
+                "frontmatter_name": None,
+                "type": "skill",
+                "matches": False,
+            },
+        ]
+        if skill_records != expected_records:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 19 "
+                f"verify_skill_names: got {skill_records!r}, expected "
+                f"{expected_records!r}\n"
+            )
+            sys.exit(1)
+        # Anti-masking: at least one True and one False, so neither a
+        # constant-True nor constant-False implementation can pass.
+        matches_seen = {r["matches"] for r in skill_records}
+        if matches_seen != {True, False}:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 19 "
+                "anti-masking: verify_skill_names matches values were "
+                f"{matches_seen!r}, expected both True and False present\n"
+            )
+            sys.exit(1)
+
+    # Control 20 — verify_agent_name against a mixed tempdir fixture:
+    # matching name, mismatched name, and an absent agent file.
+    with tempfile.TemporaryDirectory() as tmp20:
+        tmp20_path = Path(tmp20)
+
+        matching_agent = tmp20_path / "matching-agent.md"
+        matching_agent.write_text(
+            "---\nname: first-principles\n---\nbody", encoding="utf-8"
+        )
+        matching_result = verify_agent_name(True, matching_agent, "first-principles")
+        if not (
+            matching_result["matches"] is True
+            and matching_result["frontmatter_name"] == "first-principles"
+        ):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 20 "
+                f"verify_agent_name matching case: {matching_result!r}\n"
+            )
+            sys.exit(1)
+
+        mismatched_agent = tmp20_path / "mismatched-agent.md"
+        mismatched_agent.write_text("---\nname: other\n---\nbody", encoding="utf-8")
+        mismatched_result = verify_agent_name(
+            True, mismatched_agent, "first-principles"
+        )
+        if not (
+            mismatched_result["matches"] is False
+            and mismatched_result["frontmatter_name"] == "other"
+        ):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 20 "
+                f"verify_agent_name mismatched case: {mismatched_result!r}\n"
+            )
+            sys.exit(1)
+
+        absent_agent = tmp20_path / "does-not-exist.md"
+        absent_result = verify_agent_name(False, absent_agent, "first-principles")
+        if not (
+            absent_result["matches"] is False
+            and absent_result["present"] is False
+            and absent_result["frontmatter_name"] is None
+        ):
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 20 "
+                f"verify_agent_name absent case: {absent_result!r}\n"
+            )
+            sys.exit(1)
+
+    # Control 21 — verify_manifest_paths against a mixed tempdir fixture:
+    # a resolving path, a non-existent path, a `../` escape (containment,
+    # threat T-02-03), and the empty-lists case.
+    with tempfile.TemporaryDirectory() as tmp21:
+        tmp21_path = Path(tmp21)
+        plugin_root = tmp21_path / "plugin"
+        (plugin_root / "skills" / "alpha").mkdir(parents=True)
+        (plugin_root / "skills" / "alpha" / "SKILL.md").write_text(
+            "body", encoding="utf-8"
+        )
+        (plugin_root / "agents").mkdir(parents=True)
+        (plugin_root / "agents" / "agent.md").write_text("body", encoding="utf-8")
+        # A real file OUTSIDE plugin_root, so the escape control proves
+        # containment rather than mere absence.
+        (tmp21_path / "escape.md").write_text("body", encoding="utf-8")
+
+        path_records = verify_manifest_paths(
+            [
+                "./skills/alpha/SKILL.md",
+                "./skills/does-not-exist/",
+                "../escape.md",
+            ],
+            ["./agents/agent.md"],
+            plugin_root,
+        )
+        if len(path_records) != 4:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 21 "
+                f"verify_manifest_paths record count: got {len(path_records)}, "
+                "expected 4\n"
+            )
+            sys.exit(1)
+        resolved_flags = [r["resolved"] for r in path_records]
+        if resolved_flags != [True, False, False, True]:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 21 "
+                f"verify_manifest_paths resolved flags: got {resolved_flags!r}, "
+                "expected [True, False, False, True]\n"
+            )
+            sys.exit(1)
+        kinds = [r["component_kind"] for r in path_records]
+        if kinds != ["skill", "skill", "skill", "agent"]:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 21 "
+                f"verify_manifest_paths component_kind: got {kinds!r}\n"
+            )
+            sys.exit(1)
+
+        empty_records = verify_manifest_paths([], [], plugin_root)
+        if empty_records != []:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 21 "
+                f"verify_manifest_paths empty inputs: got {empty_records!r}, "
+                "expected []\n"
+            )
+            sys.exit(1)
+
     print(
-        "check-registration --self-test: PASS (15 controls: discovery "
+        "check-registration --self-test: PASS (21 controls: discovery "
         "exclusions D-10/D-11/D-12, agent presence, manifest fail-fast "
-        "D-09, absent-key tolerance D-07, report shape)"
+        "D-09, absent-key tolerance D-07, report shape, frontmatter name "
+        "extraction, skill/agent name verification, manifest-path "
+        "resolution and containment)"
     )
     sys.exit(0)
 
