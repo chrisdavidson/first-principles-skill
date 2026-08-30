@@ -60,6 +60,30 @@ would let a single defect trip the hand-wavy cap on its own.
 
 ---
 
+## Exceptions Summary
+
+Three conditions relax the HIGH-confidence requirements introduced into Criteria 3 and 5.
+This section is a navigation aid, listing them together for quick reference; where its
+wording differs from the per-criterion clause, the per-criterion clause governs.
+
+**(a) Unreachable source** — Criterion 3. A ground truth cites a source the Phase 3
+verification step could not open; the Phase 3 failure record naming which source and why
+unreachable is the satisfying evidence; the ground truth may feed only MEDIUM or LOW chains.
+
+**(b) Speculative chain** — Criterion 5. A chain is explicitly marked speculative and the
+analysis states the claim it supports is not load-bearing; the mark plus that statement is
+the satisfying evidence; the chain may remain MEDIUM.
+
+**(c) Absent-fails derivation** — Criterion 5. A chain establishes that a conclusion does not
+follow from an assumption shown to be false; the named false assumption is the satisfying
+evidence; the chain may remain MEDIUM.
+
+An exception is claimed, not assumed: an analysis relying on one names it in the relevant
+verdict block and cites the required evidence; an unclaimed exception is not applied on the
+analysis's behalf.
+
+---
+
 ## Scoring Model
 
 Score each of the 6 criteria using this shared 4-level scale, applied uniformly across all criteria
