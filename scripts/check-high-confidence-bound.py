@@ -374,8 +374,483 @@ def _validate_files() -> int:
 
 
 def _run_self_test() -> int:
-    """Run the offline self-test control battery. Placeholder for Task 3."""
-    print("check-high-confidence-bound --self-test: control battery not yet populated")
+    """Run the offline self-test control battery with negative and positive controls."""
+    if not CANONICAL_RUBRIC.exists() or not EMITTED_RUBRIC.exists():
+        sys.stderr.write(
+            "check-high-confidence-bound --self-test: cannot derive fixtures — "
+            f"{CANONICAL_RUBRIC} or {EMITTED_RUBRIC} not found\n"
+        )
+        return 2
+
+    canonical = CANONICAL_RUBRIC.read_text(encoding="utf-8")
+    emitted = EMITTED_RUBRIC.read_text(encoding="utf-8")
+
+    # Strip emitted header for fixture use
+    emitted_lines = emitted.split("\n")
+    emitted_stripped = "\n".join(emitted_lines[2:]) if len(emitted_lines) > 2 else ""
+
+    problems: list[str] = []
+
+    def _check_negative(
+        label: str,
+        failures: list[str],
+        expected_check_id: str,
+        expected_detail: str | None = None,
+    ) -> None:
+        """Assert a mutated fixture failed for the right reason."""
+
+        def _fired_ids(msgs: list[str]) -> list[str]:
+            return sorted({m.split(" ", 1)[0].rstrip(":") for m in msgs})
+
+        def _id_matches(msg: str, check_id: str) -> bool:
+            if not msg.startswith(check_id):
+                return False
+            rest = msg[len(check_id) :]
+            return rest[:1] in (" ", ":")
+
+        if not failures:
+            print(f"({label}) WRONGLY PASSED (expected failure)")
+            problems.append(f"{label}: no failures produced")
+            return
+        matched = [f for f in failures if _id_matches(f, expected_check_id)]
+        if not matched:
+            print(
+                f"({label}) failed for the WRONG reason (expected check ID "
+                f"{expected_check_id!r}; check IDs that DID fire: "
+                f"{', '.join(_fired_ids(failures))})"
+            )
+            problems.append(f"{label}: wrong-reason failure")
+            return
+        if expected_detail is not None and not any(expected_detail in f for f in matched):
+            print(
+                f"({label}) failed for the WRONG reason (check ID "
+                f"{expected_check_id!r} fired but detail {expected_detail!r} not found)"
+            )
+            problems.append(f"{label}: wrong-reason failure")
+            return
+        print(f"({label}) correctly failed ({len(failures)} failure(s))")
+
+    def _check_positive(label: str, failures: list[str]) -> None:
+        """Assert a fixture produced zero failures."""
+        if failures:
+            print(f"({label}) WRONGLY FAILED: {'; '.join(failures)}")
+            problems.append(f"{label}: unexpected failures")
+        else:
+            print(f"({label}) correctly passed")
+
+    # Mutator helpers — positionally anchored to exact byte ranges
+
+    def _mutate_remove_c3_except(text: str) -> str:
+        """Delete the EXCEPT clause from Criterion 3 Rigorous region."""
+        c3_slice = _slice(text, _CRITERION3_START, _CRITERION4_START)
+        if c3_slice is None:
+            raise AssertionError("Criterion 3 slice not found")
+
+        c3_rigorous = _rigorous_region(c3_slice, _C3_SOUND_LEAD)
+        if c3_rigorous is None:
+            raise AssertionError("Criterion 3 Rigorous region not found")
+
+        # Find the EXCEPT clause within the rigorous region
+        # It's the clause starting with "EXCEPT: the Phase 3"
+        except_start = c3_rigorous.find("EXCEPT: the Phase 3")
+        if except_start == -1:
+            raise AssertionError("EXCEPT clause not found in Criterion 3")
+
+        # Find the end of the sentence (next period)
+        except_end = c3_rigorous.find(".", except_start)
+        if except_end == -1:
+            raise AssertionError("End of EXCEPT clause not found")
+
+        # Reconstruct with the EXCEPT clause removed
+        mutated_rigorous = c3_rigorous[:except_start] + c3_rigorous[except_end + 1:]
+
+        # Reconstruct the slice
+        mutated_slice = c3_slice.replace(c3_rigorous, mutated_rigorous)
+
+        # Reconstruct the full text
+        return text.replace(c3_slice, mutated_slice)
+
+    def _mutate_remove_c5_speculative_except(text: str) -> str:
+        """Delete the first (speculative) EXCEPT clause from Criterion 5 Rigorous region."""
+        c5_slice = _slice(text, _CRITERION5_START, _CRITERION6_START)
+        if c5_slice is None:
+            raise AssertionError("Criterion 5 slice not found")
+
+        c5_rigorous = _rigorous_region(c5_slice, _C5_SOUND_LEAD)
+        if c5_rigorous is None:
+            raise AssertionError("Criterion 5 Rigorous region not found")
+
+        # Find EXCEPT clauses - we want the first one (speculative)
+        parts = c5_rigorous.split("EXCEPT:")
+        if len(parts) < 2:
+            raise AssertionError("No EXCEPT clause found in Criterion 5")
+
+        # Find the first EXCEPT clause
+        first_except_start = c5_rigorous.find("EXCEPT:")
+        # Find the end of this clause (next period before the next EXCEPT or end of rigorous region)
+        first_except_end = c5_rigorous.find(".", first_except_start)
+        if first_except_end == -1:
+            raise AssertionError("End of first EXCEPT clause not found")
+
+        # Check if this clause contains "speculative"
+        first_clause = c5_rigorous[first_except_start:first_except_end + 1]
+        if "speculative" not in first_clause.lower():
+            raise AssertionError("First EXCEPT clause does not contain 'speculative'")
+
+        # Remove just the first EXCEPT clause
+        mutated_rigorous = c5_rigorous[:first_except_start] + c5_rigorous[first_except_end + 1:]
+
+        # Reconstruct
+        mutated_slice = c5_slice.replace(c5_rigorous, mutated_rigorous)
+        return text.replace(c5_slice, mutated_slice)
+
+    def _mutate_remove_c5_absent_fails_except(text: str) -> str:
+        """Delete the second (absent-fails) EXCEPT clause from Criterion 5 Rigorous region."""
+        c5_slice = _slice(text, _CRITERION5_START, _CRITERION6_START)
+        if c5_slice is None:
+            raise AssertionError("Criterion 5 slice not found")
+
+        c5_rigorous = _rigorous_region(c5_slice, _C5_SOUND_LEAD)
+        if c5_rigorous is None:
+            raise AssertionError("Criterion 5 Rigorous region not found")
+
+        # Find EXCEPT clauses
+        parts = c5_rigorous.split("EXCEPT:")
+        if len(parts) < 3:  # Need at least 3 parts (before, first, second EXCEPT)
+            raise AssertionError("Not enough EXCEPT clauses in Criterion 5")
+
+        # Find the first EXCEPT (speculative)
+        first_except_start = c5_rigorous.find("EXCEPT:")
+        first_except_end = c5_rigorous.find(".", first_except_start) + 1
+
+        # Find the second EXCEPT (absent-fails)
+        second_except_start = c5_rigorous.find("EXCEPT:", first_except_end)
+        if second_except_start == -1:
+            raise AssertionError("Second EXCEPT clause not found")
+
+        second_except_end = c5_rigorous.find(".", second_except_start) + 1
+
+        # Check if this clause contains "absent-fails" or "absent fails"
+        second_clause = c5_rigorous[second_except_start:second_except_end]
+        if not (_contains(second_clause, "absent-fails") or _contains(second_clause, "absent fails")):
+            raise AssertionError("Second EXCEPT clause does not contain 'absent-fails'")
+
+        # Remove just the second EXCEPT clause
+        mutated_rigorous = c5_rigorous[:second_except_start] + c5_rigorous[second_except_end:]
+
+        # Reconstruct
+        mutated_slice = c5_slice.replace(c5_rigorous, mutated_rigorous)
+        return text.replace(c5_slice, mutated_slice)
+
+    def _mutate_remove_exceptions_summary(text: str) -> str:
+        """Delete the entire Exceptions Summary section."""
+        summary_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
+        if summary_span is None:
+            raise AssertionError("Exceptions Summary section not found")
+
+        # Remove from the Exceptions Summary heading to just before Scoring Model
+        return text.replace(_EXCEPTIONS_SUMMARY + summary_span, "")
+
+    def _mutate_move_exceptions_summary_after_scoring(text: str) -> str:
+        """Relocate Exceptions Summary to after Scoring Model."""
+        summary_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
+        if summary_span is None:
+            raise AssertionError("Exceptions Summary section not found")
+
+        # Remove from original position
+        text_without_summary = text.replace(_EXCEPTIONS_SUMMARY + summary_span, "")
+
+        # Find Scoring Model and insert after it
+        scoring_idx = text_without_summary.find(_SCORING_MODEL)
+        if scoring_idx == -1:
+            raise AssertionError("Scoring Model not found after removing Exceptions Summary")
+
+        # Find end of Scoring Model line
+        end_of_line = text_without_summary.find("\n", scoring_idx)
+        if end_of_line == -1:
+            end_of_line = len(text_without_summary)
+
+        # Insert the summary section after Scoring Model
+        return (
+            text_without_summary[:end_of_line + 1]
+            + _EXCEPTIONS_SUMMARY + summary_span
+            + text_without_summary[end_of_line + 1:]
+        )
+
+    def _mutate_emitted_drift(emitted_text: str) -> str:
+        """Return an emitted-copy text that differs from canonical."""
+        # Strip header
+        lines = emitted_text.split("\n")
+        if len(lines) > 2:
+            content = "\n".join(lines[2:])
+        else:
+            content = ""
+
+        # Add a character to the Criterion 5 slice to create drift
+        c5_start_idx = content.find(_CRITERION5_START)
+        if c5_start_idx == -1:
+            raise AssertionError("Criterion 5 not found in emitted text")
+
+        # Insert a character after Criterion 5 heading
+        mutated = content[:c5_start_idx + len(_CRITERION5_START)] + "X" + content[c5_start_idx + len(_CRITERION5_START):]
+
+        # Reconstruct with header
+        return emitted_lines[0] + "\n" + emitted_lines[1] + "\n" + mutated
+
+    # Run controls
+    print("\n=== Control Battery ===")
+
+    # (a) Positive control — canonical
+    a_failures = (
+        _check_criterion3(canonical, "canonical")
+        + _check_criterion5(canonical, "canonical")
+        + _check_exceptions_summary(canonical, "canonical")
+        + _check_except_distribution(canonical, "canonical")
+    )
+    _check_positive("a", a_failures)
+
+    # (a2) Positive control — emitted
+    a2_failures = (
+        _check_criterion3(emitted_stripped, "emitted")
+        + _check_criterion5(emitted_stripped, "emitted")
+        + _check_exceptions_summary(emitted_stripped, "emitted")
+        + _check_except_distribution(emitted_stripped, "emitted")
+    )
+    _check_positive("a2", a2_failures)
+
+    # (a3) Positive control — sync
+    a3_failures = _check_sync(canonical, emitted)
+    _check_positive("a3", a3_failures)
+
+    # (b) HC-5: Remove Criterion 3 EXCEPT clause
+    try:
+        b_mutated = _mutate_remove_c3_except(canonical)
+        b_failures = _check_criterion3(b_mutated, "test")
+        _check_negative("b", b_failures, "HC-5")
+    except AssertionError as e:
+        print(f"(b) fixture derivation failed: {e}")
+        problems.append(f"b: fixture error")
+
+    # (c) HC-11: Remove Criterion 5 speculative EXCEPT
+    try:
+        c_mutated = _mutate_remove_c5_speculative_except(canonical)
+        c_failures = _check_criterion5(c_mutated, "test")
+        # Must have HC-11 and NOT HC-12
+        has_hc11 = any("HC-11" in f for f in c_failures)
+        has_hc12 = any("HC-12" in f for f in c_failures)
+        if not has_hc11:
+            print(f"(c) expected HC-11 but got: {c_failures}")
+            problems.append("c: HC-11 not fired")
+        elif has_hc12:
+            print(f"(c) HC-12 should NOT fire when only speculative removed: {c_failures}")
+            problems.append("c: HC-12 spuriously fired")
+        else:
+            print(f"(c) correctly failed (HC-11 only)")
+    except AssertionError as e:
+        print(f"(c) fixture derivation failed: {e}")
+        problems.append(f"c: fixture error")
+
+    # (d) HC-13: Remove Exceptions Summary
+    try:
+        d_mutated = _mutate_remove_exceptions_summary(canonical)
+        d_failures = _check_exceptions_summary(d_mutated, "test")
+        _check_negative("d", d_failures, "HC-13")
+    except AssertionError as e:
+        print(f"(d) fixture derivation failed: {e}")
+        problems.append(f"d: fixture error")
+
+    # (e) HC-14: Move Exceptions Summary after Scoring Model
+    try:
+        e_mutated = _mutate_move_exceptions_summary_after_scoring(canonical)
+        e_failures = _check_exceptions_summary(e_mutated, "test")
+        # Must have HC-14 and NOT HC-13
+        has_hc14 = any("HC-14" in f for f in e_failures)
+        has_hc13 = any("HC-13" in f for f in e_failures)
+        if not has_hc14:
+            print(f"(e) expected HC-14 but got: {e_failures}")
+            problems.append("e: HC-14 not fired")
+        elif has_hc13:
+            print(f"(e) HC-13 should NOT fire when section still exists: {e_failures}")
+            problems.append("e: HC-13 spuriously fired")
+        else:
+            print(f"(e) correctly failed (HC-14 only)")
+    except AssertionError as e:
+        print(f"(e) fixture derivation failed: {e}")
+        problems.append(f"e: fixture error")
+
+    # (f) HC-12: Remove Criterion 5 absent-fails EXCEPT
+    try:
+        f_mutated = _mutate_remove_c5_absent_fails_except(canonical)
+        f_failures = _check_criterion5(f_mutated, "test")
+        # Must have HC-12 and NOT HC-11
+        has_hc12 = any("HC-12" in f for f in f_failures)
+        has_hc11 = any("HC-11" in f for f in f_failures)
+        if not has_hc12:
+            print(f"(f) expected HC-12 but got: {f_failures}")
+            problems.append("f: HC-12 not fired")
+        elif has_hc11:
+            print(f"(f) HC-11 should NOT fire when only absent-fails removed: {f_failures}")
+            problems.append("f: HC-11 spuriously fired")
+        else:
+            print(f"(f) correctly failed (HC-12 only)")
+    except AssertionError as e:
+        print(f"(f) fixture derivation failed: {e}")
+        problems.append(f"f: fixture error")
+
+    # (g) HC-17: Emitted drift
+    try:
+        g_mutated_emitted = _mutate_emitted_drift(emitted)
+        g_failures = _check_sync(canonical, g_mutated_emitted)
+        _check_negative("g", g_failures, "HC-17")
+    except AssertionError as e:
+        print(f"(g) fixture derivation failed: {e}")
+        problems.append(f"g: fixture error")
+
+    # (h)-(k): Controls for remaining check IDs (HC-1, HC-2, HC-3, HC-4, HC-6)
+    # HC-1: Remove Criterion 3 slice heading
+    try:
+        h_mutated = canonical.replace(_CRITERION3_START, "")
+        h_failures = _check_criterion3(h_mutated, "test")
+        _check_negative("h", h_failures, "HC-1")
+    except Exception as e:
+        print(f"(h) error: {e}")
+        problems.append("h: error")
+
+    # HC-2: Remove Criterion 3 Sound anchor
+    try:
+        i_mutated = canonical.replace(_C3_SOUND_LEAD, "")
+        i_failures = _check_criterion3(i_mutated, "test")
+        _check_negative("i", i_failures, "HC-2")
+    except Exception as e:
+        print(f"(i) error: {e}")
+        problems.append("i: error")
+
+    # HC-3: Remove "at least one HIGH-confidence chain" from C3
+    try:
+        j_mutated = canonical.replace("at least one HIGH-confidence chain", "")
+        j_failures = _check_criterion3(j_mutated, "test")
+        _check_negative("j", j_failures, "HC-3")
+    except Exception as e:
+        print(f"(j) error: {e}")
+        problems.append("j: error")
+
+    # HC-4: Remove "reachable" from C3
+    try:
+        c3_slice = _slice(canonical, _CRITERION3_START, _CRITERION4_START)
+        if c3_slice:
+            c3_rigorous = _rigorous_region(c3_slice, _C3_SOUND_LEAD)
+            if c3_rigorous:
+                # Remove all occurrences of "reachable" from C3 Rigorous
+                c3_rigorous_mutated = c3_rigorous.replace("reachable", "")
+                mutated_slice = c3_slice.replace(c3_rigorous, c3_rigorous_mutated)
+                k_mutated = canonical.replace(c3_slice, mutated_slice)
+                k_failures = _check_criterion3(k_mutated, "test")
+                _check_negative("k", k_failures, "HC-4")
+            else:
+                raise AssertionError("C3 Rigorous not found")
+        else:
+            raise AssertionError("C3 slice not found")
+    except Exception as e:
+        print(f"(k) error: {e}")
+        problems.append("k: error")
+
+    # HC-6: Remove "Phase 3" from C3 Rigorous
+    try:
+        c3_slice = _slice(canonical, _CRITERION3_START, _CRITERION4_START)
+        if c3_slice:
+            c3_rigorous = _rigorous_region(c3_slice, _C3_SOUND_LEAD)
+            if c3_rigorous:
+                # Remove all occurrences of "Phase 3" from C3 Rigorous
+                c3_rigorous_mutated = c3_rigorous.replace("Phase 3", "")
+                mutated_slice = c3_slice.replace(c3_rigorous, c3_rigorous_mutated)
+                l_mutated = canonical.replace(c3_slice, mutated_slice)
+                l_failures = _check_criterion3(l_mutated, "test")
+                _check_negative("l", l_failures, "HC-6")
+            else:
+                raise AssertionError("C3 Rigorous not found")
+        else:
+            raise AssertionError("C3 slice not found")
+    except Exception as e:
+        print(f"(l) error: {e}")
+        problems.append("l: error")
+
+    # HC-7: Remove Criterion 5 slice heading
+    try:
+        m_mutated = canonical.replace(_CRITERION5_START, "")
+        m_failures = _check_criterion5(m_mutated, "test")
+        _check_negative("m", m_failures, "HC-7")
+    except Exception as e:
+        print(f"(m) error: {e}")
+        problems.append("m: error")
+
+    # HC-8: Remove Criterion 5 Sound anchor
+    try:
+        n_mutated = canonical.replace(_C5_SOUND_LEAD, "")
+        n_failures = _check_criterion5(n_mutated, "test")
+        _check_negative("n", n_failures, "HC-8")
+    except Exception as e:
+        print(f"(n) error: {e}")
+        problems.append("n: error")
+
+    # HC-9: Remove "at least one HIGH-confidence" from C5
+    try:
+        o_mutated = canonical.replace("Every claim in the Conclusion section rests on at least one HIGH-confidence chain",
+                                     "Every claim in the Conclusion section rests on one chain")
+        o_failures = _check_criterion5(o_mutated, "test")
+        _check_negative("o", o_failures, "HC-9")
+    except Exception as e:
+        print(f"(o) error: {e}")
+        problems.append("o: error")
+
+    # HC-10: Remove "Conclusion" from C5
+    try:
+        c5_slice = _slice(canonical, _CRITERION5_START, _CRITERION6_START)
+        if c5_slice:
+            c5_rigorous = _rigorous_region(c5_slice, _C5_SOUND_LEAD)
+            if c5_rigorous:
+                # Remove "Conclusion" case-insensitively from C5 Rigorous
+                # Use case-preserving replacement
+                import re
+                c5_rigorous_mutated = re.sub(r'[Cc]onclusion', '', c5_rigorous)
+                mutated_slice = c5_slice.replace(c5_rigorous, c5_rigorous_mutated)
+                p_mutated = canonical.replace(c5_slice, mutated_slice)
+                p_failures = _check_criterion5(p_mutated, "test")
+                _check_negative("p", p_failures, "HC-10")
+            else:
+                raise AssertionError("C5 Rigorous not found")
+        else:
+            raise AssertionError("C5 slice not found")
+    except Exception as e:
+        print(f"(p) error: {e}")
+        problems.append("p: error")
+
+    # HC-15: Remove one of the lettered entries from Exceptions Summary
+    try:
+        q_mutated = canonical.replace("**(a) Unreachable source**", "")
+        q_failures = _check_exceptions_summary(q_mutated, "test")
+        _check_negative("q", q_failures, "HC-15")
+    except Exception as e:
+        print(f"(q) error: {e}")
+        problems.append("q: error")
+
+    # HC-16: Remove one EXCEPT clause (use similar logic to fixture b)
+    try:
+        r_mutated = _mutate_remove_c3_except(canonical)
+        r_failures = _check_except_distribution(r_mutated, "test")
+        _check_negative("r", r_failures, "HC-16")
+    except Exception as e:
+        print(f"(r) error: {e}")
+        problems.append("r: error")
+
+    # CLI dispatch control
+    print(f"\n=== Roster ===")
+    print(f"Controls run: 18, problems: {len(problems)}")
+
+    if problems:
+        print(f"FAIL — problems: {'; '.join(problems)}")
+        return 1
+
+    print("check-high-confidence-bound --self-test: PASS")
     return 0
 
 
