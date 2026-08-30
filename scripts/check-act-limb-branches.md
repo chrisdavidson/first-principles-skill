@@ -1,8 +1,8 @@
 # HARN-01 Decision Branch Inventory
 
-**Version:** Phase 7 Plan 01  
+**Version:** Phase 7-8 Plan 01  
 **Date:** 2026-08-30  
-**Purpose:** Document all 16 neutralizable decision branches in the HARN-01 gate (`scripts/check-act-limb.py`), map them to existing controls, and track Phase 7 fixture coverage.
+**Purpose:** Document all 16 neutralizable decision branches in the HARN-01 gate (`scripts/check-act-limb.py`), map them to existing controls, and track Phase 7-8 fixture coverage.
 
 ---
 
@@ -61,7 +61,7 @@ A **neutralizable branch** is one where removing or mutating a single anchor cau
 
 ---
 
-## Phase 7 Target: 8 Neutralizable Branches Requiring Fixtures
+## Phase 7-8 Target: 16 Neutralizable Branches (100% Coverage)
 
 The following 16 branches comprise the HARN-01 gate's decision logic. Phase 7 implements fixtures for 8 of them (marked PHASE-7). Phase 8 will complete the remaining 8 (marked PHASE-8).
 
@@ -117,6 +117,19 @@ The following 16 branches comprise the HARN-01 gate's decision logic. Phase 7 im
    - Expected check: Rubric-7 / out of order
    - Rationale: (bf) already exists; (bn) is consolidation/verification
 
+### Phase 8 Fixtures: bo-bv (8 remaining isolation controls)
+
+| Label | Branch ID | Check | Mutation | Expected |
+|-------|-----------|-------|----------|----------|
+| (bo) | B-01 | Body-1 | Remove Phase 3 heading | Slice not found |
+| (bp) | B-02 | Body-2 | Remove step lead from slice only | Count 0 in slice |
+| (bq) | B-03 | Body-3 | Duplicate step lead outside Phase 3 | Count 2 in whole file |
+| (br) | B-04-imperative | Body-4 | Invert operative imperative | Missing operative |
+| (bs) | R-01 | Rubric-1 | Remove Criterion 3 heading | Slice not found |
+| (bt) | R-02-slice | Rubric-2 | Remove fix-note lead from slice | Count 0 in slice |
+| (bu) | R-04-crit2 | Rubric-4 | Place fix-note in Criterion 2 | Scope violation |
+| (bv) | R-04-crit5 | Rubric-4 | Place fix-note in Criterion 5 | Scope violation |
+
 ---
 
 ## 16-Branch Specification
@@ -162,18 +175,20 @@ Current controls (a-bf, bg-bn, m) map to branches:
 - (ax)-(ay): Band missing sub-branches
 - (az)-(bf): Ratchet controls + remaining body/rubric
 - (bg)-(bn): **Phase 7 fixtures** (8 branch-isolation controls added)
+- (bo)-(bv): **Phase 8 fixtures** (8 remaining branch-isolation controls, 100% coverage achieved)
 - (m): Dispatch control
 
 ---
 
-## Phase 7 Completion Summary
+## Phase 7-8 Completion Summary
 
-- [x] Fixtures bg-bn implemented and added to `_run_self_test()` (8 fixtures total)
-- [x] Each fixture includes docstring with branch ID, mutation, and expected check ID
-- [x] All fixtures execute without errors: `python3 scripts/check-act-limb.py --self-test` exits 0
+- [x] Fixtures bo-bv implemented and added to `_run_self_test()` (8 Phase 8 fixtures total)
+- [x] All 16 branches now have dedicated isolation controls (100% coverage)
+- [x] Self-test exits 0 with all 58 controls (50 from phases 1-7 + 8 from phase 8)
 - [x] Live gate check passes: `python3 scripts/check-act-limb.py` exits 0
-- [x] Branch inventory updated with fixture labels (bg-bn) in "Coverage Status" column
+- [x] Anti-masking assertions require full 16-branch coverage; gate fails if coverage drops
+- [x] Branch inventory updated: 16/16 branches marked COVERED
 - [x] Anchor-control ratchet still passes (0 exempt, 0 pending)
 
-**Status:** Phase 7 complete. 50% coverage achieved (8/16 branches).
-**Remaining for Phase 8:** 8 branches pending (B-01/02/03 + body slice/count gates, R-01/02-slice + rubric slice gates).
+**Status:** Phase 7-8 complete. 100% coverage achieved (16/16 branches).
+**Remaining:** None for HARN-01 gate hardening; Phase 8 completes the isolation control fixture work.
