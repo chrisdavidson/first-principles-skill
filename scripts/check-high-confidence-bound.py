@@ -206,5 +206,207 @@ def _check_criterion5(text: str, surface: str) -> list[str]:
     return failures
 
 
+def _check_exceptions_summary(text: str, surface: str) -> list[str]:
+    """Check Exceptions Summary section. Returns failure strings."""
+    failures: list[str] = []
+
+    # HC-13: Exceptions Summary occurs exactly once
+    count = _count_flex(text, _EXCEPTIONS_SUMMARY)
+    if count != 1:
+        failures.append(f"HC-13: {surface} — Exceptions Summary occurs {count} time(s), expected 1")
+        return failures
+
+    # HC-14: Placement — strictly between How to Apply and Scoring Model
+    how_to_idx = text.find(_HOW_TO_APPLY)
+    exceptions_idx = text.find(_EXCEPTIONS_SUMMARY)
+    scoring_idx = text.find(_SCORING_MODEL)
+
+    if how_to_idx == -1 or exceptions_idx == -1 or scoring_idx == -1:
+        # Should not happen if HC-13 passed, but be defensive
+        failures.append(f"HC-14: {surface} — placement check failed (missing heading)")
+        return failures
+
+    if exceptions_idx < how_to_idx:
+        failures.append(f"HC-14: {surface} — Exceptions Summary appears before How to Apply This Gate")
+    elif exceptions_idx > scoring_idx:
+        failures.append(f"HC-14: {surface} — Exceptions Summary appears after Scoring Model")
+
+    # HC-15: Three lettered entries present, in order, inside the section
+    exceptions_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
+    if exceptions_span is not None:
+        # Check for the three lettered entries
+        entries = [
+            ("(a)", "nreachable source"),  # nreachable matches "unreachable source" case-insensitively
+            ("(b)", "peculative chain"),    # peculative matches "speculative chain" case-insensitively
+            ("(c)", "bsent-fails derivation"), # bsent-fails matches "absent-fails" case-insensitively
+        ]
+
+        entry_positions = []
+        for letter, keyword in entries:
+            # Check if both letter and keyword appear in the span
+            if _contains(exceptions_span, letter) and _contains(exceptions_span, keyword):
+                # Find position of the letter to check order
+                letter_idx = exceptions_span.lower().find(letter)
+                entry_positions.append((letter, keyword, letter_idx))
+            else:
+                failures.append(f"HC-15: {surface} — Exceptions Summary: entry '{letter}' with '{keyword}' not found")
+
+        # Check order
+        if len(entry_positions) == 3:
+            # Verify they are in a-b-c order by position
+            positions = [pos[2] for pos in entry_positions]
+            if positions != sorted(positions):
+                failures.append(f"HC-15: {surface} — Exceptions Summary: entries not in a-b-c order")
+
+    return failures
+
+
+def _check_except_distribution(text: str, surface: str) -> list[str]:
+    """Check EXCEPT clause distribution across sections. Returns failure strings."""
+    failures: list[str] = []
+
+    # HC-16: EXCEPT: occurs exactly 3 times total, with specific distribution
+    total_except = _count_flex(text, "EXCEPT:")
+
+    # Count in Criterion 3 slice
+    c3_slice = _slice(text, _CRITERION3_START, _CRITERION4_START)
+    c3_except = _count_flex(c3_slice, "EXCEPT:") if c3_slice else 0
+
+    # Count in Criterion 5 slice
+    c5_slice = _slice(text, _CRITERION5_START, _CRITERION6_START)
+    c5_except = _count_flex(c5_slice, "EXCEPT:") if c5_slice else 0
+
+    # Count in Exceptions Summary span
+    exceptions_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
+    summary_except = _count_flex(exceptions_span, "EXCEPT:") if exceptions_span else 0
+
+    if total_except != 3 or c3_except != 1 or c5_except != 2 or summary_except != 0:
+        failures.append(
+            f"HC-16: {surface} — EXCEPT distribution incorrect: "
+            f"total={total_except} (expect 3), C3={c3_except} (expect 1), "
+            f"C5={c5_except} (expect 2), Summary={summary_except} (expect 0)"
+        )
+
+    return failures
+
+
+def _check_sync(canonical_text: str, emitted_text: str) -> list[str]:
+    """Check that emitted copy is byte-identical to canonical from line 3 onward. Returns failure strings."""
+    failures: list[str] = []
+
+    # HC-17: Check header shape first
+    emitted_lines = emitted_text.split("\n")
+    if len(emitted_lines) < 2:
+        failures.append(
+            f"HC-17: emitted rubric has fewer than 2 lines; "
+            f"expected GENERATED header + blank line"
+        )
+        return failures
+
+    # Check first line contains GENERATED
+    if "GENERATED" not in emitted_lines[0]:
+        failures.append(
+            f"HC-17: emitted rubric first line does not contain 'GENERATED'; "
+            f"expected 'GENERATED — DO NOT EDIT' marker"
+        )
+        return failures
+
+    # Check second line is blank
+    if emitted_lines[1].strip() != "":
+        failures.append(
+            f"HC-17: emitted rubric second line is not blank; "
+            f"expected blank line after GENERATED header"
+        )
+        return failures
+
+    # Now check byte-for-byte sync from line 3 onward
+    emitted_content = "\n".join(emitted_lines[2:])
+    if emitted_content != canonical_text:
+        failures.append(
+            f"HC-17: emitted rubric diverges from canonical source; "
+            f"sync-content.py regeneration required"
+        )
+
+    return failures
+
+
+def _validate_files() -> int:
+    """Validate the live rubric files. Returns a process exit code."""
+    if not CANONICAL_RUBRIC.exists():
+        sys.stderr.write(
+            f"check-high-confidence-bound: canonical rubric file not found: {CANONICAL_RUBRIC}\n"
+        )
+        return 2
+
+    if not EMITTED_RUBRIC.exists():
+        sys.stderr.write(
+            f"check-high-confidence-bound: emitted rubric file not found: {EMITTED_RUBRIC}\n"
+        )
+        return 2
+
+    canonical_text = CANONICAL_RUBRIC.read_text(encoding="utf-8")
+    emitted_text = EMITTED_RUBRIC.read_text(encoding="utf-8")
+
+    # Strip the two-line header from emitted text for comparison
+    emitted_lines = emitted_text.split("\n")
+    emitted_stripped = "\n".join(emitted_lines[2:]) if len(emitted_lines) > 2 else ""
+
+    # Run all checks on both canonical and emitted (with header stripped)
+    failures = (
+        _check_criterion3(canonical_text, "canonical")
+        + _check_criterion5(canonical_text, "canonical")
+        + _check_exceptions_summary(canonical_text, "canonical")
+        + _check_except_distribution(canonical_text, "canonical")
+        + _check_criterion3(emitted_stripped, "emitted")
+        + _check_criterion5(emitted_stripped, "emitted")
+        + _check_exceptions_summary(emitted_stripped, "emitted")
+        + _check_except_distribution(emitted_stripped, "emitted")
+        + _check_sync(canonical_text, emitted_text)
+    )
+
+    if failures:
+        for msg in failures:
+            sys.stderr.write(f"check-high-confidence-bound: FAIL — {msg}\n")
+        return 1
+
+    print("check-high-confidence-bound: PASS")
+    return 0
+
+
+def _run_self_test() -> int:
+    """Run the offline self-test control battery. Placeholder for Task 3."""
+    print("check-high-confidence-bound --self-test: control battery not yet populated")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the check-high-confidence-bound CLI and return a process exit code."""
+    if sys.version_info < (3, 12):
+        sys.stderr.write(
+            "scripts/check-high-confidence-bound.py requires Python >=3.12 "
+            f"(running {sys.version_info.major}.{sys.version_info.minor}).\n"
+        )
+        return 2
+
+    parser = argparse.ArgumentParser(
+        prog="check-high-confidence-bound.py",
+        description=(
+            "HC-04: assert the Phase 5 tightening of Criterion 3 (Evidence) and "
+            "Criterion 5 (Conclusion) is present and well-formed in the Self-Audit rubric."
+        ),
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the offline self-test control battery",
+    )
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return _run_self_test()
+
+    return _validate_files()
+
+
 if __name__ == "__main__":
-    sys.exit(0)
+    sys.exit(main())
