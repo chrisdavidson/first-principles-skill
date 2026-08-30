@@ -319,11 +319,20 @@ def build_discovery_report(
     agent_path: Path,
     manifest: dict,
     manifest_path: Path,
+    *,
+    skills_dir: Path = SKILLS_DIR,
+    plugin_dir: Path = PLUGIN_DIR,
 ) -> dict:
     """Return a pure, JSON-serializable discovery report dict.
 
-    Implements D-13/D-14. No I/O — Phase 2 can call this with in-memory
-    fixtures. Every value is JSON-serializable: no Path objects, no sets.
+    Implements D-13/D-14. No I/O beyond what verify_skill_names/
+    verify_agent_name perform via their own file reads — Phase 2 can call
+    this with in-memory fixtures by passing skills_dir/plugin_dir. Every
+    value is JSON-serializable: no Path objects, no sets.
+
+    D-05 (Plan 02): three verification keys are appended after
+    registration_source, preserving the flat single-level shape and the
+    nine Phase 1 keys byte-identical.
     """
     registered_skill_paths, registered_agent_paths = extract_registered_paths(
         manifest
@@ -347,7 +356,57 @@ def build_discovery_report(
         "registered_skill_paths": registered_skill_paths,
         "registered_agent_paths": registered_agent_paths,
         "registration_source": registration_source,
+        "skill_name_verification": verify_skill_names(skills, skills_dir),
+        "agent_name_verification": verify_agent_name(
+            agent_present, agent_path, AGENT_NAME
+        ),
+        "manifest_path_verification": verify_manifest_paths(
+            registered_skill_paths, registered_agent_paths, plugin_dir
+        ),
     }
+
+
+def collect_verification_failures(report: dict) -> list[str]:
+    """Return one human-readable failure line per registration-verification
+    finding in report, or [] on a clean report.
+
+    Implements REG-06's accumulate-then-report requirement — every
+    discrepancy in one run, not just the first. Reads only the three
+    verification keys build_discovery_report() adds; never calls sys.exit.
+    """
+    failures: list[str] = []
+
+    for record in report["skill_name_verification"]:
+        if not record["matches"]:
+            frontmatter_name = record["frontmatter_name"] or "(none)"
+            failures.append(
+                "skill name mismatch: directory "
+                f"'{record['directory_name']}' vs frontmatter "
+                f"'{frontmatter_name}'"
+            )
+
+    agent_record = report["agent_name_verification"]
+    if not agent_record["matches"]:
+        if not agent_record["present"]:
+            failures.append(
+                f"agent absent: expected '{agent_record['expected_name']}' "
+                "not found at conventional path"
+            )
+        else:
+            frontmatter_name = agent_record["frontmatter_name"] or "(none)"
+            failures.append(
+                f"agent name mismatch: expected '{agent_record['expected_name']}' "
+                f"vs frontmatter '{frontmatter_name}'"
+            )
+
+    for record in report["manifest_path_verification"]:
+        if not record["resolved"]:
+            failures.append(
+                f"manifest {record['component_kind']} path does not resolve "
+                f"under the plugin directory: '{record['declared_path']}'"
+            )
+
+    return failures
 
 
 def format_report_text(report: dict) -> str:
@@ -377,6 +436,51 @@ def format_report_text(report: dict) -> str:
     )
 
     lines.append(f"Registration source: {report['registration_source']}")
+
+    skill_verifications = report["skill_name_verification"]
+    skill_matched = sum(1 for r in skill_verifications if r["matches"])
+    skill_total = len(skill_verifications)
+    skill_mismatches = skill_total - skill_matched
+
+    agent_verification = report["agent_name_verification"]
+    if agent_verification["matches"]:
+        agent_status = f"name-matched ({agent_verification['expected_name']})"
+    elif not agent_verification["present"]:
+        agent_status = f"MISMATCH — absent (expected '{agent_verification['expected_name']}')"
+    else:
+        frontmatter_name = agent_verification["frontmatter_name"] or "(none)"
+        agent_status = (
+            f"MISMATCH — expected '{agent_verification['expected_name']}' vs "
+            f"frontmatter '{frontmatter_name}'"
+        )
+
+    path_verifications = report["manifest_path_verification"]
+    path_skill_count = sum(
+        1 for r in path_verifications if r["component_kind"] == "skill"
+    )
+    path_agent_count = sum(
+        1 for r in path_verifications if r["component_kind"] == "agent"
+    )
+    path_unresolved = sum(1 for r in path_verifications if not r["resolved"])
+
+    lines.append("")
+    lines.append("Registration verification (REG-04/REG-05):")
+    lines.append(
+        f"  Skills verified: {skill_matched}/{skill_total} name-matched, "
+        f"{skill_mismatches} mismatch(es)"
+    )
+    lines.append(f"  Agent verified: {agent_status}")
+    lines.append(
+        "  Manifest-declared additional paths: "
+        f"{path_skill_count} skills, {path_agent_count} agents "
+        f"({path_unresolved} unresolved)"
+    )
+
+    failures = collect_verification_failures(report)
+    if failures:
+        lines.append("  Failures:")
+        for failure in failures:
+            lines.append(f"    {failure}")
 
     return "\n".join(lines)
 
@@ -580,6 +684,11 @@ def _run_self_test() -> None:
 
     # Control 14 — report shape. Key-set equality, JSON round-trip, and the
     # default-auto-discovery registration_source for an empty manifest.
+    # Task 1 (Plan 02): the report now carries 12 keys, including three
+    # verification keys. This control drives synthetic skill names/agent
+    # path against the DEFAULT live skills_dir/plugin_dir, so the new
+    # records legitimately carry frontmatter_name: None / matches: False —
+    # shape only. Control 22 owns the values axis against a real fixture.
     fixture_skills = {"alpha", "beta"}
     fixture_agent_path = Path("/synthetic/agents/agent.md")
     report = build_discovery_report(
@@ -595,6 +704,9 @@ def _run_self_test() -> None:
         "registered_skill_paths",
         "registered_agent_paths",
         "registration_source",
+        "skill_name_verification",
+        "agent_name_verification",
+        "manifest_path_verification",
     }
     if set(report) != expected_keys:
         sys.stderr.write(
