@@ -1258,6 +1258,7 @@ def _run_self_test() -> int:
     real_rubric = RUBRIC_FILE.read_text(encoding="utf-8")
 
     problems: list[str] = []
+    covered_branches: set[str] = set()
 
     # Two module-level checks run before the fixture battery. Neither reads a
     # fixture: (coh) asserts the derived anchor pairs still stand in the relation
@@ -1289,6 +1290,7 @@ def _run_self_test() -> int:
         failures: list[str],
         expected_check_id: str,
         expected_detail: str | None = None,
+        branch_id: str | None = None,
     ) -> None:
         """Assert a mutated fixture failed, and failed for its OWN reason.
 
@@ -1307,6 +1309,9 @@ def _run_self_test() -> int:
         `Body-4..9`, `Rubric-3` must not match `Rubric-3/5/6`), and a wrong-reason
         report names the check IDs that DID fire so a mis-targeted control is
         diagnosable in one read rather than by re-running the fixture by hand.
+
+        If branch_id is provided and the fixture correctly fails, the branch ID
+        is recorded in covered_branches for anti-masking assertion tracking.
         """
 
         def _fired_ids(msgs: list[str]) -> list[str]:
@@ -1341,6 +1346,8 @@ def _run_self_test() -> int:
             problems.append(f"{label}: wrong-reason failure")
             return
         print(f"({label}) correctly failed ({len(failures)} failure(s))")
+        if branch_id is not None:
+            covered_branches.add(branch_id)
 
     # (a) Positive control — body.
     a_failures = _check_body_text(real_body)
@@ -1485,7 +1492,7 @@ def _run_self_test() -> int:
     # (s) Negative, rubric pointer stripped (CR-05, pointer use). Block-scoped
     # at 01-06, as (l).
     s_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R5_STEP_POINTER)
-    _check_negative("s", _check_rubric_text(s_rubric), "Rubric-5", "step pointer")
+    _check_negative("s", _check_rubric_text(s_rubric), "Rubric-5", "step pointer", "R-05-pointer")
 
     # (t) Negative, not-found branch's reason token stripped (01-04 gap, CR-01).
     t_body = _mutate_body_removing_from_step_paragraph(real_body, _B12_NOT_FOUND_BRANCH)
@@ -1506,7 +1513,7 @@ def _run_self_test() -> int:
     v_body = _mutate_body_removing_from_block(
         real_body, "| **unverified** |", _B14_TABLE_NOT_FOUND
     )
-    _check_negative("v", _check_body_text(v_body), "Body-12", "missing the not-found test")
+    _check_negative("v", _check_body_text(v_body), "Body-12", "missing the not-found test", "B-12-table")
 
     # (w) Negative, rubric downgrade scope stripped (01-04 gap, CR-01).
     # Block-scoped at 01-06, as (l).
@@ -1569,7 +1576,7 @@ def _run_self_test() -> int:
     ab_body = _mutate_body_removing_from_step_paragraph(
         real_body, _B15_FAILURE_RECORD_EXCLUSION
     )
-    _check_negative("ab", _check_body_text(ab_body), "Body-5", "failure-record exclusion")
+    _check_negative("ab", _check_body_text(ab_body), "Body-5", "failure-record exclusion", "B-05-termination")
 
     # (ac) Negative, the not-found branch's STATE-keyed trigger stripped — fails
     # if a future edit re-keys the branch back onto an act this step performed
@@ -1597,7 +1604,7 @@ def _run_self_test() -> int:
     # retyped literal, so re-pointing `_B3_TOOLS` re-points its control too —
     # and so the anchor-control ratchet can see that this control exists.
     ae_body = _mutate_body_removing_from_step_paragraph(real_body, _B3_TOOLS[-1])
-    _check_negative("ae", _check_body_text(ae_body), "Body-4", _B3_TOOLS[-1])
+    _check_negative("ae", _check_body_text(ae_body), "Body-4", _B3_TOOLS[-1], "B-04-tools")
 
     # (af) THE WR-03 REPRODUCTION. Not a strip: it REPLACES the step's operative
     # imperative with the reviewer's inversion, so the paragraph still reads as a
@@ -1613,7 +1620,7 @@ def _run_self_test() -> int:
     # five constants WR-02 named as asserted but never mutated by any control.
     ag_body = _mutate_body_removing_from_step_paragraph(real_body, _B12B_NOT_FOUND_ASSIGN)
     _check_negative(
-        "ag", _check_body_text(ag_body), "Body-6", "not-found assignment verb"
+        "ag", _check_body_text(ag_body), "Body-6", "not-found assignment verb", "B-06-not-found-assign"
     )
 
     # (ah) Negative, the success-branch provenance label stripped (ACT-02).
@@ -1695,6 +1702,7 @@ def _run_self_test() -> int:
         _check_rubric_text(an_rubric),
         "Rubric-2",
         "lead occurs 2 time(s) in the whole file",
+        "R-02-whole",
     )
 
     # (ao) Negative, the acquire branch stripped from the Fix-note block.
@@ -1799,7 +1807,7 @@ def _run_self_test() -> int:
     # same slice, reported by its own name so the two controls are
     # distinguishable rather than two fixtures sharing one message.
     ay_rubric = real_rubric.replace(_C3_ABSENT_START, "")
-    _check_negative("ay", _check_rubric_text(ay_rubric), "Rubric-7", "Absent band lead")
+    _check_negative("ay", _check_rubric_text(ay_rubric), "Rubric-7", "Absent band lead", "R-07-band")
 
     # (aj) Negative, the bold failure-record name stripped from the step
     # paragraph. Body-10's failure-record sub-check has never had a control:
@@ -2072,6 +2080,7 @@ def _run_self_test() -> int:
         _check_rubric_text(bl_head + bl_region_duplicated + bl_tail),
         "Rubric-3/5/6",
         "Fix note paragraph occurs 2 time(s)",
+        "R-03-block",
     )
 
     # (bm) Negative, Rubric-5 failure-record pointer isolation — remove only the
@@ -2111,6 +2120,140 @@ def _run_self_test() -> int:
         "Rubric-7",
         "out of order",
     )
+
+    # --- Phase 8 Body-side fixtures (bo-br) ---
+
+    # (bo) Negative, Body-1 Phase 3 slice detection — remove the Phase 3 heading
+    # marker to test the slice-finding gate. Fixture (j) already tests this at the
+    # code level; (bo) proves the section heading itself is required. Targets branch
+    # B-01 / scripts/check-act-limb-branches.md.
+    bo_body = real_body.replace(_PHASE3_START, "", 1)
+    _check_negative("bo", _check_body_text(bo_body), "Body-1", "Phase 3 slice not found", "B-01")
+
+    # (bp) Negative, Body-2 step lead count in slice — remove the step-lead
+    # marker only from inside the Phase 3 slice, keeping it elsewhere. The slice
+    # count becomes 0 (check fires) while whole-file count passes. Isolates the
+    # slice-count half from the whole-file half. Targets branch B-02 /
+    # scripts/check-act-limb-branches.md.
+    bp_phase3 = _slice(real_body, _PHASE3_START, _PHASE4_START)
+    if bp_phase3 is None:
+        raise AssertionError("Phase 3 slice not found while building fixture (bp)")
+    bp_phase3_removed = bp_phase3.replace(_B1_STEP_LEAD, "", 1)
+    if bp_phase3_removed == bp_phase3:
+        raise AssertionError("step lead not found in Phase 3 while building fixture (bp)")
+    bp_start_idx = real_body.find(_PHASE3_START)
+    bp_end_idx = real_body.find(_PHASE4_START, bp_start_idx)
+    bp_body = real_body[:bp_start_idx] + _PHASE3_START + bp_phase3_removed + real_body[bp_end_idx:]
+    _check_negative(
+        "bp", _check_body_text(bp_body), "Body-2", "step lead occurs 0 time(s) in the Phase 3 slice", "B-02"
+    )
+
+    # (bq) Negative, Body-3 step lead whole-file uniqueness — duplicate the
+    # step-lead marker outside Phase 3 but inside the Body to test whole-file
+    # uniqueness. The slice count passes (1) but whole-file count fails (2).
+    # Targets branch B-03 / scripts/check-act-limb-branches.md.
+    bq_phase4_start = real_body.find(_PHASE4_START)
+    bq_phase4_end = real_body.find("### Phase 5:", bq_phase4_start)
+    if bq_phase4_start == -1 or bq_phase4_end == -1:
+        raise AssertionError("Phase 4 or Phase 5 slice not found while building fixture (bq)")
+    bq_phase4 = real_body[bq_phase4_start + len(_PHASE4_START):bq_phase4_end]
+    bq_phase4_with_dup = (
+        bq_phase4[:100] + "\n\n" + _B1_STEP_LEAD + " (duplicated by fixture (bq))"
+        + bq_phase4[100:]
+    )
+    bq_body = (
+        real_body[:bq_phase4_start + len(_PHASE4_START)]
+        + bq_phase4_with_dup
+        + real_body[bq_phase4_end:]
+    )
+    _check_negative(
+        "bq", _check_body_text(bq_body), "Body-3", "step lead occurs 2 time(s) in the whole file", "B-03"
+    )
+
+    # (br) Negative, Body-4 operative imperative — replace the operative
+    # imperative with its inversion to test the imperative check. Uses the same
+    # replacement as fixture (af) but targets the imperative-only branch to ensure
+    # it fires independently. Targets branch B-04-imperative /
+    # scripts/check-act-limb-branches.md.
+    br_body = _mutate_body_substituting_in_block(
+        real_body, _B1_STEP_LEAD, _B16_IMPERATIVE, "do not open the cited source"
+    )
+    _check_negative("br", _check_body_text(br_body), "Body-4", "operative imperative", "B-04-imperative")
+
+    # --- Phase 8 Rubric-side fixtures (bs-bv) ---
+
+    # (bs) Negative, Rubric-1 Criterion 3 slice detection — remove the Criterion 3
+    # heading marker to test the slice-finding gate. Fixture (be) already tests
+    # this; (bs) proves the section heading itself is required. Targets branch R-01 /
+    # scripts/check-act-limb-branches.md.
+    bs_rubric = real_rubric.replace(_CRIT3_START, "", 1)
+    _check_negative("bs", _check_rubric_text(bs_rubric), "Rubric-1", "Criterion 3 slice not found", "R-01")
+
+    # (bt) Negative, Rubric-2 fix-note count in slice only — remove the fix-note
+    # lead from inside Criterion 3 only, keeping it elsewhere (e.g., Criterion 6).
+    # The slice count becomes 0 (check fires) while whole-file count passes.
+    # Isolates the slice-count half from the whole-file half. Targets branch
+    # R-02-slice / scripts/check-act-limb-branches.md.
+    bt_head, bt_region, bt_tail = _split_criterion3_region(real_rubric)
+    bt_region_removed = bt_region.replace(_R1_FIX_LEAD, "", 1)
+    if bt_region_removed == bt_region:
+        raise AssertionError("Fix note lead not found in Criterion 3 while building fixture (bt)")
+    bt_rubric = bt_head + bt_region_removed + bt_tail
+    _check_negative(
+        "bt", _check_rubric_text(bt_rubric), "Rubric-2", "lead occurs 0 time(s) in the Criterion 3 slice", "R-02-slice"
+    )
+
+    # (bu) Negative, Rubric-4 Criterion 2 scope boundary — append the fix-note
+    # lead to the Criterion 2 area to test the scope guard. This places content
+    # that should be confined to Criterion 3 into Criterion 2, which should fail.
+    # Targets branch R-04-crit2 / scripts/check-act-limb-branches.md.
+    bu_crit2 = _slice(real_rubric, _CRIT2_START, _CRIT3_START)
+    if bu_crit2 is None:
+        raise AssertionError("Criterion 2 slice not found while building fixture (bu)")
+    bu_rubric = real_rubric.replace(
+        _CRIT2_START + bu_crit2,
+        _CRIT2_START + bu_crit2 + "\n\n" + _R1_FIX_LEAD + " (misplaced by fixture (bu))",
+        1,
+    )
+    if bu_rubric == real_rubric:
+        raise AssertionError("Criterion 2 modification failed while building fixture (bu)")
+    _check_negative(
+        "bu", _check_rubric_text(bu_rubric), "Rubric-4", "Criterion 2 slice", "R-04-crit2"
+    )
+
+    # (bv) Negative, Rubric-4 Criterion 5 scope boundary — append the fix-note
+    # lead to the Criterion 5 area to test the scope guard. This places content
+    # that should be confined to Criterion 3 into Criterion 5, which should fail.
+    # Mirror of (bu). Targets branch R-04-crit5 / scripts/check-act-limb-branches.md.
+    bv_crit5 = _slice(real_rubric, _CRIT5_START, _CRIT6_START)
+    if bv_crit5 is None:
+        raise AssertionError("Criterion 5 slice not found while building fixture (bv)")
+    bv_rubric = real_rubric.replace(
+        _CRIT5_START + bv_crit5,
+        _CRIT5_START + bv_crit5 + "\n\n" + _R1_FIX_LEAD + " (misplaced by fixture (bv))",
+        1,
+    )
+    if bv_rubric == real_rubric:
+        raise AssertionError("Criterion 5 modification failed while building fixture (bv)")
+    _check_negative(
+        "bv", _check_rubric_text(bv_rubric), "Rubric-4", "Criterion 5 slice", "R-04-crit5"
+    )
+
+    # Anti-masking assertion: all 16 neutralizable branches must have coverage
+    # from the fixture battery. This gate requires full branch coverage so that
+    # no single removed fixture can leave a branch untested.
+    REQUIRED_BRANCHES = {
+        "B-01", "B-02", "B-03", "B-04-imperative", "B-04-tools", "B-05-termination",
+        "B-06-not-found-assign", "B-12-table",
+        "R-01", "R-02-slice", "R-02-whole", "R-04-crit2", "R-04-crit5", "R-03-block",
+        "R-05-pointer", "R-07-band"
+    }
+    uncovered = REQUIRED_BRANCHES - covered_branches
+    if uncovered:
+        print(f"ANTI-MASKING GATE FAILURE: {len(uncovered)} branch(es) not covered: {sorted(uncovered)}")
+        problems.append(f"Anti-masking: {len(uncovered)} branches uncovered")
+    else:
+        print(f"ANTI-MASKING GATE: All 16 branches covered ✓")
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
