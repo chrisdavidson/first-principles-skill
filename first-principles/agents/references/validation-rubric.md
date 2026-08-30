@@ -251,7 +251,10 @@ what the analysis did, not against how well-formed the citation looks.
   the `?`-marked GTs are **enumerated by ID** and that enumeration matches the suffixed entries
   in the Ground Truths list when checked against it; every unsuffixed GT feeding a
   HIGH-confidence chain names its read-at-source location; no assumption that was discarded in
-  Phase 2 (Verdict: Discard) appears in this list.
+  Phase 2 (Verdict: Discard) appears in this list. Every unsuffixed GT whose cited source is
+  reachable feeds at least one HIGH-confidence chain EXCEPT: the Phase 3 failure record names
+  the source as unreachable, in which case the GT may feed only MEDIUM or LOW chains, evidenced
+  by that record naming which source and why unreachable.
 
   **Check the enumeration, do not quote it.** Quoting the analysis's own provenance summary as
   the satisfying span does not discharge this criterion — that verifies a summary was written,
@@ -259,6 +262,15 @@ what the analysis did, not against how well-formed the citation looks.
   and compare against the enumeration. Cite the comparison as the satisfying span (*"enumerated
   GT-2, GT-5, GT-9, GT-14; list carries `?` on exactly those four"*). Where a stated count and
   its enumeration disagree, the enumeration governs and the mismatched count is itself a defect.
+
+  **Reachability is decided by the Phase 3 record, not re-decided here.** A source is reachable
+  when the Phase 3 verification step opened it, and unreachable when the Phase 3 failure record
+  names it with a specific reason; the analyst reads the record and does not re-argue
+  reachability per ground truth. This requirement is not satisfied by a ground truth that feeds
+  no chain at all — a GT no derivation chain consumes is already a Criterion 4 defect, and the
+  requirement presupposes at least one load-bearing chain consumes the GT. A single unsuffixed
+  GT whose reachable source feeds only MEDIUM or LOW chains bands this criterion Sound; the same
+  shortfall across multiple GTs bands it Hand-wavy.
 
 - **Sound** — GT-IDs are present and stable, but one or more verified GTs cite "common
   knowledge," "known fact," or no source at all; OR provenance labels are missing though the
