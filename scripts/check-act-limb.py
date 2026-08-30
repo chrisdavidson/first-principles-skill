@@ -1944,6 +1944,174 @@ def _run_self_test() -> int:
         "out of order",
     )
 
+    # --- Phase 7 Fixture Strategy ---
+    # Each Phase 7 fixture (bg-bn) follows this structure:
+    #
+    # 1. LABEL: single letter pair (bg, bh, bi, ..., bn) — the next available label
+    #    after (bf). Labels follow alphabetical order within each letter range.
+    #
+    # 2. FIXTURE DOCSTRING: explains what defect it catches, the mutation strategy,
+    #    and why the branch matters. Docstring links to the branch ID from
+    #    scripts/check-act-limb-branches.md (e.g., "# B-04-tools-variant").
+    #
+    # 3. MUTATION: uses an existing helper to neutralize one decision branch:
+    #    - _mutate_body_removing_from_step_paragraph(body, anchor)
+    #    - _mutate_body_removing_from_block(body, block_marker, anchor)
+    #    - _mutate_body_duplicating_block(body, block_marker)
+    #    - _mutate_rubric_removing_from_fix_note(rubric, anchor)
+    #    - _split_criterion3_region(rubric) + manual mutation
+    #
+    # 4. CALL: _check_negative(label, failures, "Check-ID", "detail phrase")
+    #    - label: fixture identifier (bg, bh, etc.)
+    #    - failures: result of _check_body_text() or _check_rubric_text()
+    #    - Check-ID: Body-1, Body-4, Rubric-2, etc. (matches the check the fixture targets)
+    #    - detail phrase: unique sub-item phrase from that check's error message
+    #
+    # 5. FAILURE EXPECTATION: the control verifies that the mutation causes
+    #    the specific Check-ID to fire with a detail phrase match. The detail
+    #    prevents sibling checks from masking the target assertion.
+    #
+    # WHY THIS MATTERS (WR-02 closure):
+    # A control that removes an anchor and expects "some failure" but doesn't
+    # specify WHICH check should fire can silently pass on a DIFFERENT check's
+    # message. The detail phrase requirement ensures the control exercises its
+    # target branch, not a sibling assertion. This closes the masking hole.
+    #
+    # BRANCH COVERAGE (from scripts/check-act-limb-branches.md):
+    # Phase 7 targets 8 of 16 neutralizable branches:
+    # - Body: B-04-tools-variant, B-05-termination-variant, B-06-failure-path,
+    #   B-12-table-edge (4 fixtures: bg, bh, bi, bj)
+    # - Rubric: R-02-whole-isolation, R-03-block-scope, R-05-failure-pointer,
+    #   R-07-band-defensive (4 fixtures: bk, bl, bm, bn)
+
+    # --- Phase 7 Body-side fixtures (bg-bj) ---
+
+    # (bg) Negative, Body-4 tools — remove one instrument name (WebFetch) from
+    # step paragraph. Fixture (ae) also removes a tool; (bg) ensures the scope is
+    # paragraph-only and proves Body-4 fires on any missing tool, not just the
+    # last one. Targets branch B-04-tools-variant / scripts/check-act-limb-branches.md.
+    bg_body = _mutate_body_removing_from_step_paragraph(real_body, _B3_TOOLS[2])
+    _check_negative("bg", _check_body_text(bg_body), "Body-4", "WebFetch")
+
+    # (bh) Negative, Body-5 termination scope — remove the failure-record
+    # exclusion termination clause ONLY FROM the step paragraph (scoped mutation).
+    # Fixture (ab) removes it globally; (bh) isolates the step-paragraph scope
+    # and proves the gate checks at that level. Targets branch
+    # B-05-termination-variant / scripts/check-act-limb-branches.md.
+    bh_body = _mutate_body_removing_from_step_paragraph(
+        real_body, _B15_FAILURE_RECORD_EXCLUSION
+    )
+    _check_negative("bh", _check_body_text(bh_body), "Body-5", "failure-record exclusion")
+
+    # (bi) Negative, Body-6 failure path — remove only the no-fallback clause,
+    # leaving other failure-path items intact (not-found branch, not-found assign,
+    # etc.). This isolates Body-6's first sub-item from its siblings. Fixture (f)
+    # already controls this; (bi) ensures the correct check fires when no fallback
+    # is missing. Targets branch B-06-failure-path-isolation /
+    # scripts/check-act-limb-branches.md.
+    bi_body = _mutate_body_removing_from_step_paragraph(real_body, _B5_NO_FALLBACK)
+    _check_negative("bi", _check_body_text(bi_body), "Body-6", "no-fallback clause")
+
+    # (bj) Negative, Body-12 table block completely removed from Phase 3 slice.
+    # Fixtures (v) and (al) test table content and duplication; (bj) tests the
+    # "zero table blocks found" edge case. Uses block-removal helper to excise
+    # the entire table paragraph. Targets branch B-12-table-edge /
+    # scripts/check-act-limb-branches.md.
+    bj_body = _mutate_body_removing_from_block(
+        real_body, "| **unverified** |", "| **unverified** |"
+    )
+    _check_negative(
+        "bj",
+        _check_body_text(bj_body),
+        "Body-12",
+        "table block occurs 0 time(s)",
+    )
+
+    # --- Phase 7 Rubric-side fixtures (bk-bn) ---
+
+    # (bk) Negative, Rubric-2 whole-file count isolation — append the fix-note
+    # lead to Criterion 6 (outside Criterion 3), keeping the Criterion 3 copy
+    # intact. The Criterion 3 count remains 1 (slice check passes) while the
+    # whole-file count becomes 2 (whole-file check fires). This is the mirror of
+    # fixture (am) and isolates the whole-file half from the slice half. Targets
+    # branch R-02-whole-isolation / scripts/check-act-limb-branches.md.
+    bk_head, bk_region, bk_tail = _split_criterion3_region(real_rubric)
+    bk_rubric = (bk_head + bk_region + bk_tail).replace(
+        _CRIT6_START,
+        _CRIT6_START + "\n\n" + _R1_FIX_LEAD + " (duplicated by fixture (bk))",
+        1,
+    )
+    _check_negative(
+        "bk",
+        _check_rubric_text(bk_rubric),
+        "Rubric-2",
+        "lead occurs 2 time(s) in the whole file",
+    )
+
+    # (bl) Negative, Rubric-3/5/6 block scope — duplicate the fix-note block
+    # inside the Criterion 3 slice. The `len(fix_note_blocks) != 1` guard fires
+    # before any of the three checks (Rubric-3, Rubric-5, Rubric-6) can examine
+    # the block contents. This exercises the scope guard in isolation. No existing
+    # fixture drives this branch; (bl) is the first. Targets branch
+    # R-03-block-scope / scripts/check-act-limb-branches.md.
+    bl_head, bl_region, bl_tail = _split_criterion3_region(real_rubric)
+    bl_fix_note_blocks = _paragraph_containing(bl_region, _R1_FIX_LEAD)
+    if len(bl_fix_note_blocks) != 1:
+        raise AssertionError(
+            "expected exactly one Fix note block while building fixture (bl), "
+            f"found {len(bl_fix_note_blocks)}"
+        )
+    bl_original_fix_note = bl_fix_note_blocks[0]
+    bl_region_duplicated = bl_region.replace(
+        bl_original_fix_note,
+        bl_original_fix_note + "\n\n" + bl_original_fix_note,
+        1,
+    )
+    _check_negative(
+        "bl",
+        _check_rubric_text(bl_head + bl_region_duplicated + bl_tail),
+        "Rubric-3/5/6",
+        "Fix note paragraph occurs 2 time(s)",
+    )
+
+    # (bm) Negative, Rubric-5 failure-record pointer isolation — remove only the
+    # failure-record pointer from the fix-note block (keeping step pointer intact).
+    # Fixture (as) already controls this; (bm) ensures isolation and correct
+    # check-ID firing. Targets branch R-05-failure-pointer-isolation /
+    # scripts/check-act-limb-branches.md.
+    bm_rubric = _mutate_rubric_removing_from_fix_note(real_rubric, _R5_FAILURE_POINTER)
+    _check_negative("bm", _check_rubric_text(bm_rubric), "Rubric-5", "failure-record pointer")
+
+    # (bn) Negative, Rubric-7 band defensive branch — swap the Hand-wavy and
+    # Absent band leads in place within Criterion 3, so both are present but out
+    # of order. This exercises Rubric-7's defensive branch (bands present but
+    # ladder inverted). Fixture (bf) is similar; (bn) ensures this specific failure
+    # mode fires. Targets branch R-07-band-defensive /
+    # scripts/check-act-limb-branches.md.
+    bn_head, bn_region, bn_tail = _split_criterion3_region(real_rubric)
+    _BN_PLACEHOLDER = "<<07-01 fixture (bn) band swap>>"
+    bn_swapped = (
+        bn_region.replace(_C3_HANDWAVY_START, _BN_PLACEHOLDER, 1)
+        .replace(_C3_ABSENT_START, _C3_HANDWAVY_START, 1)
+        .replace(_BN_PLACEHOLDER, _C3_ABSENT_START, 1)
+    )
+    if _BN_PLACEHOLDER in bn_swapped or bn_swapped == bn_region:
+        raise AssertionError(
+            "band swap did not complete while building fixture (bn) — the two "
+            "band leads are not both present exactly once in the Criterion 3 region"
+        )
+    if bn_swapped.find(_C3_ABSENT_START) >= bn_swapped.find(_C3_HANDWAVY_START):
+        raise AssertionError(
+            "fixture (bn) did not invert the band order — the Absent lead must "
+            "precede the Hand-wavy lead for this fixture to test anything"
+        )
+    _check_negative(
+        "bn",
+        _check_rubric_text(bn_head + bn_swapped + bn_tail),
+        "Rubric-7",
+        "out of order",
+    )
+
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
     _this_module = sys.modules[__name__]
