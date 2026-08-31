@@ -110,6 +110,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import inspect
 import io
 import json
 import random
@@ -1862,6 +1863,256 @@ def _selftest_analysis_persistence() -> bool:
             print(
                 "self-test FAIL: analysis_persistence control 6 (anti-masking, "
                 "multi-dispatch) — a .md sibling was written despite the raise",
+                file=sys.stderr,
+            )
+            ok = False
+
+    return ok
+
+
+def _selftest_single_refusal() -> bool:
+    """Item 21 (v8.24.0 Phase 4, CAP-01 closure): the `--single` CALL SITE
+    refuses to reach `build_judge_packet` when the analysis was not
+    persisted. Item 20's six controls all passed while the call site
+    consuming `_extract_and_persist_analysis` was defective (CR-02), so
+    this item asserts the call site, not the helper — control 4 is the
+    reason this is its own item rather than a seventh control on item 20.
+
+    Five independently-failable controls, plus a tempdir-copy discipline
+    identical to item 20's (fixtures copied before the helper touches
+    them; a committed `tests/` path is never passed directly):
+
+    1. POSITIVE — a tempdir copy of PR-P1.jsonl through
+       `_persist_or_refuse_analysis` returns `(<tmp>/PR-P1.md, "")`; the
+       file exists and is byte-identical to the committed PR-P1.md.
+    2. NEGATIVE (the CR-02 class) — a tempdir copy of
+       gen-internal-tools.jsonl returns `(None, msg)` naming
+       `no_terminal_result` and `Refusing`; no `.md` sibling exists.
+    3. ANTI-VACUITY / reachability — on that same tempdir copy,
+       `extract_agent_analysis` still returns exactly 2,769 chars, proving
+       control 2's refusal fires on a capture whose analysis extracts
+       perfectly, not on a degenerate unextractable one.
+    4. CALL-SITE STRUCTURE — `main()`'s `--single` source block is sliced
+       between two literal anchors and asserted to call
+       `_persist_or_refuse_analysis(`, contain `return 1` before
+       `build_judge_packet(`, never call `extract_agent_analysis(`
+       directly, and read the judged text back via
+       `analysis_path.read_text(`. A missing anchor is itself a FAILURE
+       naming the drift, never a traceback and never a silent skip.
+    5. ANTI-MASKING (guardrail pass-through) — a tempdir copy of
+       gen-multi-dispatch.jsonl makes the wrapper raise
+       `MultipleAgentDispatchError`, and a tempdir copy of
+       gen-stub-only.jsonl makes it raise `AgentAnalysisExtractionError`;
+       neither collapses into `(None, msg)`.
+    """
+    ok = True
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+
+        # Control 1: positive round trip against real evidence.
+        pr_p1_src = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
+        pr_p1_copy = tmp_path / "PR-P1.jsonl"
+        pr_p1_copy.write_bytes(pr_p1_src.read_bytes())
+        result1_path, result1_msg = _persist_or_refuse_analysis(
+            pr_p1_copy, subagent_type="first-principles:first-principles"
+        )
+        expected_md_path = tmp_path / "PR-P1.md"
+        if result1_path != expected_md_path or result1_msg != "":
+            print(
+                f"self-test FAIL: single_refusal control 1 (positive) — "
+                f"expected ({expected_md_path}, ''), got "
+                f"({result1_path}, {result1_msg!r})",
+                file=sys.stderr,
+            )
+            ok = False
+        elif not expected_md_path.exists():
+            print(
+                "self-test FAIL: single_refusal control 1 (positive) — "
+                f"{expected_md_path} does not exist on disk",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            written_text = expected_md_path.read_text(encoding="utf-8")
+            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(encoding="utf-8")
+            if written_text != committed_text:
+                print(
+                    "self-test FAIL: single_refusal control 1 (positive) — "
+                    "written .md is not byte-identical to the committed "
+                    "PR-P1.md",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 2 + 3: negative refusal (the CR-02 class) and the
+        # anti-vacuity reachability check that gives it meaning.
+        internal_src = FIXTURES_DIR / "gen-internal-tools.jsonl"
+        internal_copy = tmp_path / "gen-internal-tools.jsonl"
+        internal_copy.write_bytes(internal_src.read_bytes())
+        result2_path, result2_msg = _persist_or_refuse_analysis(
+            internal_copy, subagent_type="first-principles:first-principles"
+        )
+        if result2_path is not None:
+            print(
+                f"self-test FAIL: single_refusal control 2 (negative) — "
+                f"expected a None path for a non-completed capture, got "
+                f"{result2_path}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            if "no_terminal_result" not in result2_msg:
+                print(
+                    f"self-test FAIL: single_refusal control 2 (negative) — "
+                    f"refusal message does not name the classified outcome: "
+                    f"{result2_msg!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if "Refusing" not in result2_msg:
+                print(
+                    f"self-test FAIL: single_refusal control 2 (negative) — "
+                    f"refusal message does not read as a refusal: "
+                    f"{result2_msg!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+        if internal_copy.with_suffix(".md").exists():
+            print(
+                "self-test FAIL: single_refusal control 2 (negative) — a "
+                ".md sibling was written despite the refusal",
+                file=sys.stderr,
+            )
+            ok = False
+
+        internal_analysis = extract_agent_analysis(
+            internal_copy, subagent_type="first-principles:first-principles"
+        )
+        if len(internal_analysis) != 2769:
+            print(
+                f"self-test FAIL: single_refusal control 3 (anti-vacuity) — "
+                f"expected 2769 chars from a capture that extracts "
+                f"perfectly, got {len(internal_analysis)}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 5: anti-masking — a guardrail failure must never collapse
+        # into a refusal tuple.
+        multi_src = FIXTURES_DIR / "gen-multi-dispatch.jsonl"
+        multi_copy = tmp_path / "gen-multi-dispatch.jsonl"
+        multi_copy.write_bytes(multi_src.read_bytes())
+        try:
+            _persist_or_refuse_analysis(
+                multi_copy, subagent_type="first-principles:first-principles"
+            )
+            print(
+                "self-test FAIL: single_refusal control 5 (anti-masking, "
+                "multi-dispatch) — gen-multi-dispatch.jsonl did not raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except MultipleAgentDispatchError:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: single_refusal control 5 (anti-masking, "
+                f"multi-dispatch) — raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        stub_src = FIXTURES_DIR / "gen-stub-only.jsonl"
+        stub_copy = tmp_path / "gen-stub-only.jsonl"
+        stub_copy.write_bytes(stub_src.read_bytes())
+        try:
+            _persist_or_refuse_analysis(
+                stub_copy, subagent_type="first-principles:first-principles"
+            )
+            print(
+                "self-test FAIL: single_refusal control 5 (anti-masking, "
+                "extraction failure) — gen-stub-only.jsonl (completed, "
+                "unextractable) did not raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except AgentAnalysisExtractionError:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: single_refusal control 5 (anti-masking, "
+                f"extraction failure) — raised the wrong exception type: "
+                f"{exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Control 4: the --single call site's structure, sliced from main()'s
+    # own source so a regression cannot land un-noticed.
+    src = inspect.getsource(main)
+    start_anchor = "\n    if args.single is not None:"
+    end_anchor = "\n    if args.detect_defects is not None:"
+    start_idx = src.find(start_anchor)
+    end_idx = src.find(end_anchor)
+    if start_idx == -1 or end_idx == -1:
+        print(
+            "self-test FAIL: single_refusal control 4 (call-site structure) "
+            "— the --single/--detect-defects anchors have moved; this "
+            "control cannot locate the block it must inspect",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        block = src[start_idx:end_idx]
+        if "_persist_or_refuse_analysis(" not in block:
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — _persist_or_refuse_analysis( not called in "
+                "the --single block",
+                file=sys.stderr,
+            )
+            ok = False
+        if "return 1" not in block:
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — no 'return 1' in the --single block",
+                file=sys.stderr,
+            )
+            ok = False
+        if "build_judge_packet(" not in block:
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — build_judge_packet( not called in the "
+                "--single block",
+                file=sys.stderr,
+            )
+            ok = False
+        if (
+            "return 1" in block
+            and "build_judge_packet(" in block
+            and block.index("return 1") >= block.index("build_judge_packet(")
+        ):
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — 'return 1' does not precede "
+                "build_judge_packet( — the refusal does not gate the judge",
+                file=sys.stderr,
+            )
+            ok = False
+        if "extract_agent_analysis(" in block:
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — extract_agent_analysis( is still called "
+                "directly in the --single block (WR-03)",
+                file=sys.stderr,
+            )
+            ok = False
+        if "analysis_path.read_text(" not in block:
+            print(
+                "self-test FAIL: single_refusal control 4 (call-site "
+                "structure) — analysis_path.read_text( not found; the "
+                "judged text is not read back from the persisted path",
                 file=sys.stderr,
             )
             ok = False
@@ -7621,10 +7872,15 @@ def self_test() -> int:
     README. Item 20 (v8.24.0 Phase 4, CAP-01) proves
     `_extract_and_persist_analysis` leaves the extracted analysis beside its
     source `.jsonl`, with the completed-gate and both extraction guardrails
-    carried through the new write path. Each of the twenty items prints its
-    own labelled PASS/FAILED result line — exactly twenty such lines,
-    always, per run (D-16: the fault-injection proof for each item is
-    recorded in the corresponding plan's SUMMARY.md).
+    carried through the new write path. Item 21 (v8.24.0 Phase 4, CAP-01
+    closure) proves the `--single` CALL SITE — not the helper — refuses to
+    reach `build_judge_packet` when the analysis was not persisted (CR-02):
+    item 20's six controls all passed while the call site consuming that
+    helper was defective, so this item asserts the consumer. Each of the
+    twenty-one items prints its own labelled PASS/FAILED result line —
+    exactly twenty-one such lines, always, per run (D-16: the
+    fault-injection proof for each item is recorded in the corresponding
+    plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -7832,6 +8088,18 @@ def self_test() -> int:
         print("self-test: analysis_persistence sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: analysis_persistence sub-check PASSED")
+
+    # Item 21 (v8.24.0 Phase 4, CAP-01 closure): _selftest_single_refusal
+    # proves the --single CALL SITE refuses to reach build_judge_packet
+    # when the analysis was not persisted (CR-02). Five controls:
+    # positive, negative refusal (no_terminal_result), anti-vacuity
+    # reachability, call-site structure, and anti-masking guardrail
+    # pass-through (multi-dispatch, stub-only).
+    if not _selftest_single_refusal():
+        all_passed = False
+        print("self-test: single_refusal sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: single_refusal sub-check PASSED")
 
     return 0 if all_passed else 1
 
