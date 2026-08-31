@@ -474,6 +474,12 @@ fi
 # resolves the asymmetry in the keep direction. See
 # docs/technical-debt-audit-2026-07-28.md — pruned from the tree 2026-08-16,
 # read it with `git show 09326e7~1:docs/technical-debt-audit-2026-07-28.md`.
+#
+# Coverage change (v8.24.0 Phase 4, CAP-02): one path added,
+# tests/quality-provenance-v8.24 — the irreplaceable PR-P1 capture carrying
+# real subagent WebFetch/Read tool calls, recovered from a reaping-vulnerable
+# scratchpad and not reproducible without a paid live run. Nothing else in
+# this battery enforces its byte-freeze.
 # ---------------------------------------------------------------------------
 git diff --quiet -- \
     'tests/step0-baseline-v*.md' \
@@ -493,6 +499,7 @@ git diff --quiet -- \
     'tests/quality-baseline-v8.7-postfix' \
     'tests/quality-baseline-v8.10-oos' \
     'tests/defrobust-v8.11' \
+    'tests/quality-provenance-v8.24' \
     2>/dev/null
 _frozen_exit=$?
 
