@@ -583,7 +583,7 @@ bullet would demonstrate the form at the point of use. Widening `_VERDICT_VOCAB`
 more expensive option — it moves the 267-cell census `_VERDICT_FORM_RE`'s separator policy is
 calibrated against — and run 3 is evidence it is unnecessary.
 
-### PROV-GUARD reports clean on an analysis it parsed nothing from (GAP-11) — OPEN
+### PROV-GUARD reports clean on an analysis it parsed nothing from (GAP-11) — FIXED
 
 The most serious of the four, because it fails green. On run 4 the verifier returns:
 
@@ -601,7 +601,7 @@ Two independent form dependencies, either sufficient alone:
 | Symbol | Requires | Run 4 wrote |
 |---|---|---|
 | `_GT_LINE_RE` (`check-provenance.py:127`) | `- **GT-n**` list item | `1. **GT-n** — …` |
-| `_READ_AT_SOURCE_LABEL` (`:133`) | `*Provenance: read-at-source.*`, period **inside** the emphasis | `*Provenance: read-at-source* — aws.amazon.com/…` |
+| `_READ_AT_SOURCE_LABEL` (`:133`, since removed) | `*Provenance: read-at-source.*`, period **inside** the emphasis | `*Provenance: read-at-source* — aws.amazon.com/…` |
 
 Measured by normalizing only the list marker and the label period, leaving all content untouched:
 12 labels are then found, and all 12 report `unmatched_sources` — a third dependency, in
@@ -632,7 +632,103 @@ parsed ground truths, or zero labels against a capture containing fetches, must 
 return PASS — is independent of how many renderings the parser accepts, and it converts every
 future rendering surprise from a silent pass into a loud failure. Widening `_GT_LINE_RE` to admit
 ordered-list items and relaxing the label period are then improvements rather than load-bearing
-guesses. Neither is applied here.
+guesses.
+
+#### Fix (2026-08-31, backlog phase 999.7)
+
+Both halves shipped, floor first.
+
+**The floor.** `verify()` now computes `coverage_floor_breach` and feeds it into
+`provenance_flag`. Two conditions, and the second is a conjunction on purpose:
+
+- section 3 yields **zero ground truths** — the parser could not read it at all; or
+- **zero read-at-source labels** *and* the capture holds **at least one** retrieved source.
+
+Zero labels with zero fetches is an analysis that fetched nothing, has nothing to verify, and is
+legitimately clean; firing there would turn the floor into an unstated "every analysis must cite a
+fetch" policy. That conjunct is held by exactly one control (`FLOOR-nofetch-negative`) and by
+nothing else — removing it fails that control alone.
+
+**The reach.** Three form dependencies widened: `_GT_LINE_RE` accepts every CommonMark list marker
+(`-`, `*`, `+`, `1.`, `1)`) rather than `-` alone; the label's trailing period is optional; and
+`_source_string` gained a label-led fallback for the rendering that carries no `— source:` clause,
+taking the first comma-delimited component because `_anchored_match` compares netloc and path
+exactly and trailing prose defeats every bind. `_claim_body` now stops at whichever of the two
+delimiters comes first, so the provenance clause's own digits are not mined as claim literals.
+
+**A redundant branch was removed, and the reach controls are why it was found.** `_label` tested a
+`_READ_AT_SOURCE_LABEL` string constant before falling through to `_PROVENANCE_LABEL_RE`. Measured
+across the label form, a differently-labelled GT and the bare mention, the two branches agree in
+every case — the constant was dead weight before 999.7. Once both were widened it was worse than
+dead: reverting it alone changed no behaviour, so `REACH-labelperiod-positive` had nothing to fail
+against and the widening was unfalsifiable. `_PROVENANCE_LABEL_RE` is now the single authority.
+
+**Measured.** The committed fixture is unchanged — still `7/7 sources matched, 35/35 literals
+located`, held by the hardcoded `_EXPECTED_SOURCES` / `_EXPECTED_LITERALS` pins. Run 4 moves from
+silence to specifics:
+
+| | before | after |
+|---|---|---|
+| provenance labels | 0 | **12** |
+| literals checked | 0 | **15** |
+| unmatched sources | 0 | **5** |
+| unlocated literals | 0 | **2** |
+| `coverage_floor_breach` | n/a | 0 (the floor is satisfied once the reach lands) |
+| `provenance_flag` | **0 — PASS** | **1 — FAIL** |
+
+The five unmatched sources are three different things, and only one is an agent defect:
+
+| GT | cited source | reading |
+|---|---|---|
+| GT-2, GT-4 | `same page`, `same table` | anaphoric citation — resolvable by a human from the preceding GT, by no checker |
+| GT-5, GT-6 | `Lambda quotas doc` | informal name for `docs.aws.amazon.com/…/gettingstarted-limits.html`; the fixture handles this class with backticked filenames, run 4 backticked nothing |
+| GT-12 | `accounting identity; irreducible by definition.` | **genuine defect** — a definitional identity labelled `read-at-source` when nothing was read |
+
+**Verification.** Eight new controls (24 → 32), four floor and four reach, with six fault
+injections each failing the control that owns it:
+
+| Injection | Fails |
+|---|---|
+| floor does not reach `provenance_flag` | `FLOOR-zerogt-positive`, `FLOOR-zerolabel-positive` |
+| drop the `and tool_calls` conjunct | `FLOOR-nofetch-negative` **alone** |
+| floor fires unconditionally | `FLOOR-nofetch-negative`, `FLOOR-covered-negative` |
+| revert the list-marker class | `REACH-marker-positive` |
+| require the label period again | `REACH-labelperiod-positive`, `REACH-labelled-source-positive` |
+| drop the label-led source fallback | `REACH-labelled-source-positive` |
+| drop `_claim_body`'s label stop | `REACH-labelled-source-positive` (over-mines to 2 literals) |
+| degrade `_label` to a substring test | `REACH-labelform-negative` |
+
+`FLOOR-zerogt-positive` originally used an ordered-list rendering — the measured run-4 cause. The
+marker widening then made that fixture readable and the control failed on its own asserted
+precondition rather than passing vacuously. It was repointed at a **table**-rendered section 3,
+which carries no list item at all and which no future marker widening can absorb.
+
+### A currency sigil defeats literal location (GAP-12) — OPEN
+
+Found only because GAP-11's fix let the gate read run 4 at all. Two of run 4's literals report
+unlocated:
+
+```text
+GT-3  $0.000011244
+GT-3  $0.000001235
+```
+
+**Both are in the retrieved text.** `aws.amazon.com/fargate/pricing` returns
+`"0.000011244 per vCPU second"` and `"0.000001235 per GB per second"` — one hit each. The analysis
+writes them with a leading `$`; the source does not. `verify`'s comparison normalizes commas on
+both sides and states that *"'$' is never stripped"*, so the sigil alone defeats the match. These
+are **false positives** — the numbers were read at source exactly as claimed.
+
+The obvious fix — normalize `$` the way commas are normalized — is not obviously right, which is
+why it is not taken here. It loosens the check symmetrically: a bare `42` in an analysis would then
+match `$42` in a source, and a real misattribution between a count and a price becomes harder to
+see. The current policy is the stricter of the two and its cost was invisible until now.
+
+Unlike the whole-span matching in limitation 3, this policy carries **no recorded measurement** —
+it is stated in `verify`'s docstring and pinned by no control, and every literal in the committed
+fixture happens to match under either rule. Deciding it needs the adversarial corpus from backlog
+999.2, which is the instrument for measuring whether a loosening costs a real detection. Filed as
+backlog **999.11**.
 
 ## Promotion
 

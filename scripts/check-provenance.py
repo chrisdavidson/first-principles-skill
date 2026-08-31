@@ -124,15 +124,41 @@ class GroundTruth:
 
 # A section-3 list item: "- **GT-1** <rest of line>". `re.M` so `$` anchors each
 # GT to its own line -- every GT in the fixture is single-line.
-_GT_LINE_RE = re.compile(r"^\-\s+\*\*(GT-\d+\??)\*\*\s+(.*)$", re.M)
+#
+# 999.7: the marker class was `-` alone, which is the committed fixture's
+# rendering and nothing else. PR-P1 run 4 rendered the identical content as an
+# ORDERED list and this gate read zero ground truths from it, then reported a
+# clean bill. Unordered (`-`, `*`, `+`) and ordered (`1.`, `1)`) markers are all
+# valid CommonMark list items and all appear in real agent output. The `**GT-n**`
+# bold-id anchor is what actually identifies the line and is unchanged.
+_GT_LINE_RE = re.compile(
+    r"^(?:[-*+]|\d+[.)])\s+\*\*(GT-\d+\??)\*\*\s+(.*)$", re.M
+)
 
 # The literal label FORM, never the bare "read-at-source" substring: the fixture's
 # section 3 contains "read-at-source" 26 times total (7 in this label, 19 more
 # inside each GT's own "read-at-source: <location>" clause), but the label form
 # itself only 7 times.
-_READ_AT_SOURCE_LABEL = "*Provenance: read-at-source.*"
-
-_PROVENANCE_LABEL_RE = re.compile(r"\*Provenance:\s*([a-zA-Z][a-zA-Z\-]*)\.\*")
+# The label FORM, never the bare "read-at-source" substring: the fixture's
+# section 3 contains "read-at-source" 26 times total (7 in this label, 19 more
+# inside each GT's own "read-at-source: <location>" clause), but the label form
+# itself only 7 times. The `*Provenance:` prefix and closing `*` are what carry
+# that distinction and are unchanged.
+#
+# 999.7, two changes. The trailing period is now OPTIONAL: it was required
+# inside the emphasis -- `*Provenance: read-at-source.*` and nothing else -- so
+# PR-P1 run 4's `*Provenance: read-at-source*` scored zero labels. A sentence
+# terminator belongs to the prose, not to the label, and requiring it encodes
+# one author's punctuation as a contract.
+#
+# And this regex is now the SINGLE authority for the label form. `_label` used
+# to test a `_READ_AT_SOURCE_LABEL` string constant first and fall through to
+# here; that branch was measured decisive in no case -- it agreed with this
+# regex on the label form, on a differently-labelled GT, and on the bare
+# mention alike -- so it was dead weight before 999.7 and, once both were
+# widened, it also made the widening untestable: reverting it alone changed no
+# behaviour, leaving `REACH-labelperiod-positive` with nothing to fail against.
+_PROVENANCE_LABEL_RE = re.compile(r"\*Provenance:\s*([a-zA-Z][a-zA-Z\-]*)\.?\*")
 
 # D-01, locked verbatim. No word-boundary anchor: it deliberately also matches a
 # digit run that is the tail of an alphanumeric identifier (see limit 2 above).
@@ -145,7 +171,17 @@ def _claim_body(line_body: str) -> str:
     Without this split, digits inside the 'read-at-source: <location>'
     description are scanned too and the literal count lands on 37, not 35.
     """
-    return re.split(r"\s+—\s+source:", line_body)[0]
+    ends: list[int] = []
+    m = re.search(r"\s+—\s+source:", line_body)
+    if m:
+        ends.append(m.start())
+    # 999.7: in the label-led rendering there is no "— source:" clause at all,
+    # so without this the provenance clause's own digits are mined as claim
+    # literals and every one of them is then "located" in the source it names.
+    m2 = _PROVENANCE_LABEL_RE.search(line_body)
+    if m2:
+        ends.append(m2.start())
+    return line_body[: min(ends)] if ends else line_body
 
 
 def _source_string(line_body: str) -> str:
@@ -153,22 +189,33 @@ def _source_string(line_body: str) -> str:
     '*Provenance:' label if the source clause carries no semicolon, stripped.
     """
     m = re.search(r"—\s+source:\s*(.*)", line_body)
-    if not m:
+    if m:
+        rest = m.group(1)
+        if ";" in rest:
+            return rest.split(";", 1)[0].strip()
+        return rest.split("*Provenance:", 1)[0].strip()
+    # 999.7: label-led rendering -- the source trails the provenance label
+    # rather than sitting in its own "— source:" clause. Take the first
+    # comma-delimited component, which is the source itself; what follows it is
+    # the read-location description ("duration pricing example", "on-demand rate
+    # table"). Deliberately NOT the whole remainder: `_join_key` feeds
+    # `_anchored_match`, which compares netloc and path exactly, so trailing
+    # prose would defeat every bind.
+    m2 = _PROVENANCE_LABEL_RE.search(line_body)
+    if not m2:
         return ""
-    rest = m.group(1)
-    if ";" in rest:
-        return rest.split(";", 1)[0].strip()
-    return rest.split("*Provenance:", 1)[0].strip()
+    rest = line_body[m2.end():].lstrip()
+    rest = re.sub(r"^[\u2014\u2013-]\s*", "", rest)
+    return rest.split(",", 1)[0].strip()
 
 
 def _label(line_body: str) -> str:
     """Return the GT's provenance label word ("read-at-source", "unverified", ...).
 
-    Checks the exact `_READ_AT_SOURCE_LABEL` form as a substring first -- see
-    that constant's own comment for why the bare substring is rejected.
+    Matches the label FORM via `_PROVENANCE_LABEL_RE` -- see that pattern's own
+    comment for why a bare "read-at-source" substring is not a label, and for
+    why the redundant string-constant pre-check it used to carry was removed.
     """
-    if _READ_AT_SOURCE_LABEL in line_body:
-        return "read-at-source"
     m = _PROVENANCE_LABEL_RE.search(line_body)
     return m.group(1) if m else ""
 
@@ -323,6 +370,8 @@ class ProvenanceResult:
     zero_literal_gts: int
     orphan_fetches: int
     provenance_flag: int
+    coverage_floor_breach: int
+    _floor_reasons: tuple[str, ...]
     _unmatched_gt_ids: tuple[str, ...]
     _unreadable_gt_ids: tuple[str, ...]
     _zero_literal_gt_ids: tuple[str, ...]
@@ -407,9 +456,42 @@ def verify(
     misattributed_literals = len(misattributed_pairs)
     zero_literal_gts = len(zero_literal_ids)
     orphan_fetches = len(orphan_targets)
+    # 999.7 COVERAGE FLOOR. Every counter above is a count of defects FOUND, so
+    # an analysis this parser cannot read at all scores zero on all of them and
+    # returns a clean bill -- PASS by silence. Measured on PR-P1 run 4, which
+    # renders its GTs as an ordered list and its label without the trailing
+    # period: sixteen ground truths, twelve of them read-at-source, every cited
+    # source genuinely fetched, and this gate reported
+    # `provenance_labels 0, literals_checked 0, provenance_flag 0`.
+    #
+    # The floor is deliberately independent of how many renderings the parsers
+    # accept. Widening a regex fixes the rendering that was measured; the floor
+    # converts every rendering NOT yet measured from a silent pass into a loud
+    # failure, which is the property that actually generalises.
+    floor_reasons: list[str] = []
+    if not ground_truths:
+        floor_reasons.append(
+            "section 3 yielded zero ground truths -- the parser could not read it"
+        )
+    elif not read_gts and tool_calls:
+        # Anti-overreach: `read_gts` empty with NO tool calls is an analysis that
+        # fetched nothing, which has nothing to verify and is legitimately clean.
+        # It is the conjunction that is contradictory -- sources were retrieved
+        # and none of them is claimed by a read-at-source label.
+        floor_reasons.append(
+            f"zero read-at-source labels against {len(tool_calls)} retrieved source(s)"
+        )
+    coverage_floor_breach = 1 if floor_reasons else 0
+
     provenance_flag = (
         1
-        if (unmatched_sources or unreadable_sources or unlocated_literals or misattributed_literals)
+        if (
+            unmatched_sources
+            or unreadable_sources
+            or unlocated_literals
+            or misattributed_literals
+            or coverage_floor_breach
+        )
         else 0
     )
 
@@ -423,6 +505,8 @@ def verify(
         zero_literal_gts=zero_literal_gts,
         orphan_fetches=orphan_fetches,
         provenance_flag=provenance_flag,
+        coverage_floor_breach=coverage_floor_breach,
+        _floor_reasons=tuple(floor_reasons),
         _unmatched_gt_ids=tuple(unmatched_ids),
         _unreadable_gt_ids=tuple(unreadable_ids),
         _zero_literal_gt_ids=tuple(zero_literal_ids),
@@ -1126,6 +1210,215 @@ def _control_d06_orphan_negative() -> None:
         )
 
 
+def _control_floor_zerogt_positive() -> None:
+    """999.7 floor positive: an analysis whose section 3 the parser cannot read
+    at all fails, instead of returning a clean bill by silence.
+
+    Uses a TABLE-rendered section 3 -- a plausible rendering carrying no
+    `**GT-n**` list item at all, so no widening of the list-marker class can
+    reach it. The control originally used an ordered list, which was the
+    measured PR-P1 run-4 cause; the 999.7 marker widening then made that
+    fixture readable and this control failed on its own precondition rather
+    than passing vacuously. That is the intended behaviour and is why the
+    precondition is asserted rather than assumed: the floor must be pinned by
+    an input no future widening quietly absorbs.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        # Table rendering: no list item, so no marker widening reaches it.
+        unreadable = _synth_analysis(
+            ["| ID | Claim | Source |",
+             "|---|---|---|",
+             "| GT-1 | claims 42 | https://example.com/pricing "
+             "*Provenance: read-at-source.* |"]
+        )
+        result = verify(unreadable, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 0, (
+            "control precondition broken: the parser was expected to read "
+            f"nothing here, got {result.provenance_labels} label(s)"
+        )
+        assert result.coverage_floor_breach == 1, (
+            "zero parsed ground truths did not breach the coverage floor"
+        )
+        assert result.provenance_flag == 1, (
+            f"floor breach did not reach provenance_flag, got "
+            f"{result.provenance_flag} -- the gate still passes by silence"
+        )
+
+
+def _control_floor_zerolabel_positive() -> None:
+    """999.7 floor positive: ground truths parse, none is read-at-source, and
+    the run retrieved sources anyway. Sources were fetched and nothing claims
+    them -- the labels exist in a form the parser cannot see, or the analysis
+    fetched without labelling. Either way it is not verifiable and must not pass.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "claims 42", "https://example.com/pricing", label="unverified")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 0, (
+            f"control precondition broken: expected no read-at-source label, "
+            f"got {result.provenance_labels}"
+        )
+        assert result.coverage_floor_breach == 1, (
+            "zero read-at-source labels against a capture holding fetches did "
+            "not breach the coverage floor"
+        )
+        assert result.provenance_flag == 1, (
+            f"floor breach did not reach provenance_flag, got {result.provenance_flag}"
+        )
+
+
+def _control_floor_nofetch_negative() -> None:
+    """999.7 floor ANTI-OVERREACH: zero read-at-source labels and zero retrieved
+    sources is an analysis that fetched nothing. There is nothing to verify, so
+    it is legitimately clean and the floor must NOT fire.
+
+    This is the control that keeps the floor a coverage check rather than a
+    blanket "every analysis must cite a fetch" rule, which is a different and
+    unstated policy. Removing the `and tool_calls` conjunct fails here.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(tmp, [])
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "claims 42", "https://example.com/pricing", label="unverified")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 0, (
+            f"control precondition broken: expected no read-at-source label, "
+            f"got {result.provenance_labels}"
+        )
+        assert result.coverage_floor_breach == 0, (
+            f"floor fired on an analysis that fetched nothing and claimed "
+            f"nothing: {result._floor_reasons!r}"
+        )
+        assert result.provenance_flag == 0, (
+            f"expected a clean flag, got {result.provenance_flag}"
+        )
+
+
+def _control_floor_covered_negative() -> None:
+    """999.7 floor negative: a normal, readable, labelled analysis does not
+    breach the floor. Non-vacuity -- a floor that fired unconditionally would
+    pass both positives while making the gate useless.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "claims 42", "https://example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 1, (
+            f"control precondition broken: expected 1 label, got {result.provenance_labels}"
+        )
+        assert result.coverage_floor_breach == 0, (
+            f"floor fired on a fully covered analysis: {result._floor_reasons!r}"
+        )
+        assert result.provenance_flag == 0, (
+            f"expected a clean flag, got {result.provenance_flag}"
+        )
+
+
+def _control_reach_marker_positive() -> None:
+    """999.7 reach: every CommonMark list marker carries a GT, not just `-`.
+
+    Ordered markers are the measured PR-P1 run-4 rendering; `*` and `+` are
+    included because the old class was one character wide for no stated reason
+    and a rendering that differs only in its bullet glyph is not a different
+    claim.
+    """
+    for marker in ("-", "*", "+", "1.", "2)"):
+        line = f"{marker} **GT-1** claims 42 — source: https://example.com/p; " \
+               "read-at-source: rate table. *Provenance: read-at-source.*"
+        gts = _parse_ground_truths(line)
+        assert len(gts) == 1, f"marker {marker!r} did not yield a GT: {gts!r}"
+        assert gts[0].label == "read-at-source", (
+            f"marker {marker!r} lost the label: {gts[0].label!r}"
+        )
+
+
+def _control_reach_labelperiod_positive() -> None:
+    """999.7 reach: the label counts with or without its trailing period."""
+    for label_form in ("*Provenance: read-at-source.*", "*Provenance: read-at-source*"):
+        line = f"- **GT-1** claims 42 — source: https://example.com/p; " \
+               f"read-at-source: rate table. {label_form}"
+        gts = _parse_ground_truths(line)
+        assert len(gts) == 1 and gts[0].label == "read-at-source", (
+            f"label form {label_form!r} not recognised: {gts!r}"
+        )
+
+
+def _control_reach_labelled_source_positive() -> None:
+    """999.7 reach: the label-LED rendering binds and verifies end to end.
+
+    Run 4 carries no `— source:` clause at all -- the source trails the
+    provenance label. Asserts the whole path: parse, bind, locate. Also pins
+    that the claim body stops at the label, so the read-location description's
+    own digits are not mined as claim literals and then trivially "located".
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing",
+              "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            ["- **GT-1** claims 42. *Provenance: read-at-source* — "
+             "example.com/pricing, rate table row 7, quoted verbatim."]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 1, (
+            f"label-led GT not counted: {result.provenance_labels}"
+        )
+        assert result.unmatched_sources == 0, (
+            f"label-led source did not bind: {result._unmatched_gt_ids!r}"
+        )
+        # "42" only. The trailing "row 7" belongs to the location description
+        # and must not be mined -- if it were, literals_checked would be 2.
+        assert result.literals_checked == 1, (
+            f"claim body over-mined the provenance clause: "
+            f"literals_checked={result.literals_checked}"
+        )
+        assert result.unlocated_literals == 0, (
+            f"literal not located: {result._unlocated_pairs!r}"
+        )
+        assert result.coverage_floor_breach == 0
+
+
+def _control_reach_labelform_negative() -> None:
+    """999.7 reach ANTI-OVERREACH: making the period optional must not degrade
+    the label into a bare-substring test.
+
+    A GT mentioning "read-at-source" in prose, with no `*Provenance:` wrapper,
+    is still not a labelled GT. This is the property `_PROVENANCE_LABEL_RE`'s
+    comment exists to protect, restated against the widened form.
+    """
+    line = ("- **GT-1** claims 42 — source: https://example.com/p; "
+            "read-at-source: rate table.")
+    gts = _parse_ground_truths(line)
+    assert len(gts) == 1, f"precondition broken: {gts!r}"
+    assert gts[0].label != "read-at-source", (
+        "a bare 'read-at-source' mention with no *Provenance: wrapper was "
+        "counted as a label -- the widening collapsed into a substring test"
+    )
+
+
 def _control_prov05_record_roundtrip() -> None:
     """PROV-05: build the record via provenance_defect_record, write
     record_to_tsv's output into the tempdir, read it back with
@@ -1280,6 +1573,14 @@ def _control_gate01_antimask_selfproof() -> None:
 #   D03-zeroliteral-negative     D-03  zero-literal GT, negative
 #   D06-orphan-positive          D-06  orphan fetch, positive (reported, not failing)
 #   D06-orphan-negative          D-06  orphan fetch, negative
+#   REACH-marker-positive        999.7  every list marker carries a GT
+#   REACH-labelperiod-positive   999.7  label counts with or without its period
+#   REACH-labelled-source-positive 999.7  label-led source binds and verifies
+#   REACH-labelform-negative     999.7  anti-overreach: bare mention still not a label
+#   FLOOR-zerogt-positive        999.7  zero parsed GTs breaches the coverage floor
+#   FLOOR-zerolabel-positive     999.7  zero labels + retrieved sources breaches it
+#   FLOOR-nofetch-negative       999.7  anti-overreach: no fetches -> nothing to verify
+#   FLOOR-covered-negative       999.7  non-vacuity: a covered analysis does not breach
 #   PROV05-record-roundtrip      PROV-05  22-column TSV round-trip
 #   PROV04-network-blocked       D-14  full fixture verification under a socket block
 #   PROV04-network-armed-proof   D-14  the block is armed, not silently inert
@@ -1306,6 +1607,14 @@ REQUIRED_CONTROLS: frozenset[str] = frozenset(
         "D03-zeroliteral-negative",
         "D06-orphan-positive",
         "D06-orphan-negative",
+        "REACH-marker-positive",
+        "REACH-labelperiod-positive",
+        "REACH-labelled-source-positive",
+        "REACH-labelform-negative",
+        "FLOOR-zerogt-positive",
+        "FLOOR-zerolabel-positive",
+        "FLOOR-nofetch-negative",
+        "FLOOR-covered-negative",
         "PROV05-record-roundtrip",
         "PROV04-network-blocked",
         "PROV04-network-armed-proof",
@@ -1342,6 +1651,14 @@ def _run_self_test() -> None:
     _run_control("D03-zeroliteral-negative", _control_d03_zeroliteral_negative)
     _run_control("D06-orphan-positive", _control_d06_orphan_positive)
     _run_control("D06-orphan-negative", _control_d06_orphan_negative)
+    _run_control("REACH-marker-positive", _control_reach_marker_positive)
+    _run_control("REACH-labelperiod-positive", _control_reach_labelperiod_positive)
+    _run_control("REACH-labelled-source-positive", _control_reach_labelled_source_positive)
+    _run_control("REACH-labelform-negative", _control_reach_labelform_negative)
+    _run_control("FLOOR-zerogt-positive", _control_floor_zerogt_positive)
+    _run_control("FLOOR-zerolabel-positive", _control_floor_zerolabel_positive)
+    _run_control("FLOOR-nofetch-negative", _control_floor_nofetch_negative)
+    _run_control("FLOOR-covered-negative", _control_floor_covered_negative)
     _run_control("PROV05-record-roundtrip", _control_prov05_record_roundtrip)
     _run_control("PROV04-network-blocked", _control_prov04_network_blocked)
     _run_control("PROV04-network-armed-proof", _control_prov04_network_armed_proof)
@@ -1435,6 +1752,12 @@ def _validate_live_fixture() -> None:
         failures.append(
             f"misattributed_literals={result.misattributed_literals} {result._misattributed_pairs}"
         )
+    # 999.7: the floor is checked on the live leg too. The `_EXPECTED_*` pins
+    # above would already catch zero coverage ON THIS FIXTURE, but they are
+    # fixture-shaped numbers; the floor is the shape-independent statement, and
+    # stating it here keeps the live leg honest if those pins are ever relaxed.
+    if result.coverage_floor_breach:
+        failures.append(f"coverage_floor_breach: {'; '.join(result._floor_reasons)}")
 
     if failures:
         sys.stderr.write("check-provenance: FAIL — " + "; ".join(failures) + "\n")
@@ -1469,7 +1792,9 @@ def _validate_live_fixture() -> None:
     )
     print(
         f"check-provenance: {result.zero_literal_gts} zero-literal GT(s), "
-        f"{result.orphan_fetches} orphan fetch(es), provenance_flag={result.provenance_flag}"
+        f"{result.orphan_fetches} orphan fetch(es), "
+        f"coverage_floor_breach={result.coverage_floor_breach}, "
+        f"provenance_flag={result.provenance_flag}"
     )
     print("check-provenance: PASS")
 
