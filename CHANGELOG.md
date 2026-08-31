@@ -13,6 +13,57 @@ installed session.
 
 ## [Unreleased]
 
+## [8.22.0] — 2026-08-30
+
+First published release since 8.17.5. Tags `v8.18.0`, `v8.19.0` and `v8.20.0` were cut but
+never released, so installs remained on 8.17.5; this release carries their content forward.
+
+**Version note.** The `v8.21.0` tag is superseded and should not be used: it was cut without
+bumping the 17 stamps, so the content at that tag stamps itself `8.20.0`. Installing it would
+have been an inert update for anyone already on 8.20.0 — the v8.14 failure mode. The tag is
+left in place on origin rather than moved; 8.22.0 replaces it. The REG-GUARD work that tag was
+meant to carry is released here.
+
+### Added
+
+- **REG-GUARD** — offline plugin registration completeness gate
+  (`scripts/check-registration.py`). Verifies every skill directory under
+  `first-principles/skills/` and the main agent carry a frontmatter `name:` matching their own
+  directory/file basename, and that any manifest-declared additional paths resolve inside the
+  plugin. Registered as CI job `check-registration (REG-GUARD)` and in the firewall battery,
+  both running `--self-test` and the live scan. Self-test carries 24 isolated control fixtures
+  with positive and anti-masking negative controls; because those fixtures are tempdir/in-memory
+  and never read the shipped tree, only the live leg asserts the invariant on the shipped
+  plugin. Battery moved from 21/21 to 22/22.
+
+### Fixed
+
+- **GATE-01 was not provably validating the shipped agent.** `claude plugin validate` (VAL-01)
+  never reaches the agent at all: the CLI walks *subdirectories* of `agents/` and skips flat
+  `agents/*.md`, so it validates the 29 reference siblings under `agents/references/` — which
+  are not agents — and misses `agents/first-principles.md`, which is. Verified against a
+  minimal probe plugin: a flat `agents/solo.md` alone emits no `Validating agent:` line.
+  `claude plugin details` confirms the loader is correct where the validator is not
+  (`Agents (1)`), so this is an upstream CLI bug, not a plugin defect. That left GATE-01 as the
+  sole validator of the agent frontmatter, carrying weight it was not built to carry:
+  - `AGENT_FILE` was dead code; the battery and CI each passed the same relative path via
+    `--file`, making the gate cwd-sensitive and its target silently re-pointable. `--file` now
+    defaults to the repo-anchored constant and both live legs drop the argument.
+  - A clean PASS was unfalsifiable. `_assert_live_coverage()` now mutates the frontmatter the
+    run actually read (stripping `name:`) and fails unless the checker reports that specific
+    defect, so a vacuous checker cannot report green.
+  - The live leg prints a `COVERAGE — validated <path>` line.
+
+### Known issues
+
+- The 29 `No frontmatter block found` warnings from `claude plugin validate` are the upstream
+  misclassification described above and are expected. They are deliberately **not** silenced:
+  adding frontmatter would make 29 inert content files look like agent definitions, which is
+  worse than the warning.
+- VERSION-01 checks that the 17 stamps agree with *each other*, not that they agree with the
+  git tag — which is why the `v8.21.0` mislabel passed every gate. `claude plugin tag`
+  validates tag-vs-manifest agreement and is the intended guard for future releases.
+
 ## [8.20.0] — 2026-08-30
 
 Hardens the HARN-01 gate with complete structural isolation coverage: all 16 neutralizable

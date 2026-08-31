@@ -3,7 +3,7 @@ name: reason-upward
 description: Slash-only Phase 4 stub — build derivation chains upward from named ground truths.
 disable-model-invocation: true
 metadata:
-  version: "8.20.0"
+  version: "8.22.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/reason-upward/SKILL.md by sync-content.py -->
