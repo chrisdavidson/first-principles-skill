@@ -652,6 +652,39 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
     return primary
 
 
+def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path | None:
+    """Extract the analysis from `jsonl_path` and write it beside its source.
+
+    (a) Adds no extraction logic of its own — Guardrails A and B and the A4
+    cross-check apply in full because `extract_agent_analysis` is called
+    here unmodified, with no try/except around it.
+    (b) The `completed` gate is checked first, via `classify_invocation_outcome`
+    (defined far below this point in the file — the forward reference
+    resolves at call time and is correct, but the distance is surprising
+    enough to deserve this note), matching the skip condition
+    `run_generation_arm` already applies before writing its own sibling
+    `analyses/` copy.
+    (c) `None` means "capture did not complete" (no `.md` is written); a
+    raised exception means "completed but unextractable" — a
+    `MultipleAgentDispatchError` or `AgentAnalysisExtractionError` from
+    Guardrail A/B or the A4 cross-check. These are two different failures
+    and must never be collapsed into one.
+    (d) `with_suffix` replaces only the final suffix, so a capture id
+    containing a dot (e.g. `foo.bar.jsonl`) would truncate to `foo.bar.md`
+    -> `foo.md`... no current catalog id contains a dot, but a future one
+    must be checked before this assumption is relied on again.
+
+    Returns the written `.md` path, or `None` if the capture did not
+    complete.
+    """
+    if classify_invocation_outcome(jsonl_path) != "completed":
+        return None
+    analysis = extract_agent_analysis(jsonl_path, subagent_type=subagent_type)
+    dest = jsonl_path.with_suffix(".md")
+    dest.write_text(analysis, encoding="utf-8")
+    return dest
+
+
 def extract_judge_verdict(jsonl_path: Path) -> str:
     """Extract the judge's own verdict text from a claude -p judge-invocation capture.
 
@@ -1585,6 +1618,218 @@ def _selftest_capture_tool_reader() -> bool:
                 "self-test FAIL: capture_tool_reader control 7 (guardrail "
                 "non-interference) — extracted analysis is not decisively "
                 "longer than the top-level result field",
+                file=sys.stderr,
+            )
+            ok = False
+
+    return ok
+
+
+def _selftest_analysis_persistence() -> bool:
+    """Item 20 (v8.24.0 Phase 4, CAP-01): _extract_and_persist_analysis proves
+    it leaves the extracted analysis beside its source .jsonl, in code, with
+    the completed-gate and both extraction guardrails carried through.
+
+    Six independently-failable controls, each on a fixture copied into a
+    tempfile.TemporaryDirectory() before the helper touches it — never on a
+    committed fixture path directly, since the helper writes beside its
+    source and a committed tests/ path is inside the FROZEN-EVIDENCE
+    pathspec:
+
+    1. POSITIVE round trip — a tempdir copy of PROVENANCE_FIXTURE_DIR's
+       PR-P1.jsonl produces a `.md` sibling at exactly `<tmp>/PR-P1.md`,
+       byte-identical to the committed PR-P1.md, 34,943 chars.
+    2. POSITIVE second capture — a tempdir copy of FIXTURES_DIR's
+       gen-single-dispatch.jsonl produces an 8,739-char `.md` sibling,
+       matching the length _selftest_guardrail_a already pins.
+    3. GUARDRAIL A CARRIED THROUGH — for the gen-single-dispatch case, the
+       written text does not contain _LAUNCH_ACK_PHRASE and is decisively
+       longer than (never equal to) _read_top_level_result on the same
+       capture.
+    4. NEGATIVE — a tempdir copy of gen-internal-tools.jsonl
+       (no_terminal_result) returns None, and no `.md` sibling exists on
+       disk.
+    5. ANTI-MASKING (extraction failure not swallowed) — a tempdir copy of
+       gen-stub-only.jsonl (completed, but raises on extraction) makes the
+       helper raise, not return None, and leaves no `.md` sibling.
+    6. ANTI-MASKING (multi-dispatch reaches the caller) — a tempdir copy of
+       gen-multi-dispatch.jsonl raises MultipleAgentDispatchError with the
+       dispatch count "2" in the message, and leaves no `.md` sibling.
+    """
+    ok = True
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+
+        # Control 1: positive round trip against real evidence.
+        pr_p1_src = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
+        pr_p1_copy = tmp_path / "PR-P1.jsonl"
+        pr_p1_copy.write_bytes(pr_p1_src.read_bytes())
+        result1 = _extract_and_persist_analysis(
+            pr_p1_copy, subagent_type="first-principles:first-principles"
+        )
+        expected_md_path = tmp_path / "PR-P1.md"
+        if result1 != expected_md_path:
+            print(
+                f"self-test FAIL: analysis_persistence control 1 (positive "
+                f"round trip) — expected return {expected_md_path}, got {result1}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            written_text = expected_md_path.read_text(encoding="utf-8")
+            committed_text = (PROVENANCE_FIXTURE_DIR / "PR-P1.md").read_text(encoding="utf-8")
+            if written_text != committed_text:
+                print(
+                    "self-test FAIL: analysis_persistence control 1 (positive "
+                    "round trip) — written .md is not byte-identical to the "
+                    "committed PR-P1.md",
+                    file=sys.stderr,
+                )
+                ok = False
+            if len(written_text) != 34943:
+                print(
+                    f"self-test FAIL: analysis_persistence control 1 (positive "
+                    f"round trip) — expected 34943 chars, got {len(written_text)}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 2 + 3: second capture, different donor; Guardrail A carried
+        # through the wrapper.
+        single_src = FIXTURES_DIR / "gen-single-dispatch.jsonl"
+        single_copy = tmp_path / "gen-single-dispatch.jsonl"
+        single_copy.write_bytes(single_src.read_bytes())
+        result2 = _extract_and_persist_analysis(
+            single_copy, subagent_type="first-principles:first-principles"
+        )
+        expected_single_md = tmp_path / "gen-single-dispatch.md"
+        if result2 != expected_single_md:
+            print(
+                f"self-test FAIL: analysis_persistence control 2 (positive "
+                f"second capture) — expected return {expected_single_md}, "
+                f"got {result2}",
+                file=sys.stderr,
+            )
+            ok = False
+        else:
+            single_text = expected_single_md.read_text(encoding="utf-8")
+            if len(single_text) != 8739:
+                print(
+                    f"self-test FAIL: analysis_persistence control 2 (positive "
+                    f"second capture) — expected 8739 chars, got {len(single_text)}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if _LAUNCH_ACK_PHRASE in single_text:
+                print(
+                    "self-test FAIL: analysis_persistence control 3 (guardrail "
+                    "A carried through) — written text contains "
+                    f"_LAUNCH_ACK_PHRASE {_LAUNCH_ACK_PHRASE!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            result_field = _read_top_level_result(single_copy)
+            if single_text == result_field or len(single_text) <= 2 * len(result_field):
+                print(
+                    "self-test FAIL: analysis_persistence control 3 (guardrail "
+                    "A carried through) — written text is not decisively "
+                    f"longer than the top-level result field (written "
+                    f"len={len(single_text)}, result field len={len(result_field)})",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 4: negative — not completed means no file.
+        internal_src = FIXTURES_DIR / "gen-internal-tools.jsonl"
+        internal_copy = tmp_path / "gen-internal-tools.jsonl"
+        internal_copy.write_bytes(internal_src.read_bytes())
+        result4 = _extract_and_persist_analysis(
+            internal_copy, subagent_type="first-principles:first-principles"
+        )
+        if result4 is not None:
+            print(
+                f"self-test FAIL: analysis_persistence control 4 (negative) "
+                f"— expected None for a non-completed capture, got {result4}",
+                file=sys.stderr,
+            )
+            ok = False
+        if internal_copy.with_suffix(".md").exists():
+            print(
+                "self-test FAIL: analysis_persistence control 4 (negative) "
+                "— a .md sibling was written for a non-completed capture",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 5: anti-masking — a guardrail failure is not swallowed.
+        stub_src = FIXTURES_DIR / "gen-stub-only.jsonl"
+        stub_copy = tmp_path / "gen-stub-only.jsonl"
+        stub_copy.write_bytes(stub_src.read_bytes())
+        try:
+            _extract_and_persist_analysis(
+                stub_copy, subagent_type="first-principles:first-principles"
+            )
+            print(
+                "self-test FAIL: analysis_persistence control 5 (anti-masking, "
+                "extraction failure) — gen-stub-only.jsonl (completed, "
+                "unextractable) did not raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except AgentAnalysisExtractionError:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: analysis_persistence control 5 (anti-masking, "
+                f"extraction failure) — raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if stub_copy.with_suffix(".md").exists():
+            print(
+                "self-test FAIL: analysis_persistence control 5 (anti-masking, "
+                "extraction failure) — a .md sibling was written despite the "
+                "raise",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 6: anti-masking — the multi-dispatch guardrail still
+        # reaches the caller.
+        multi_src = FIXTURES_DIR / "gen-multi-dispatch.jsonl"
+        multi_copy = tmp_path / "gen-multi-dispatch.jsonl"
+        multi_copy.write_bytes(multi_src.read_bytes())
+        try:
+            _extract_and_persist_analysis(
+                multi_copy, subagent_type="first-principles:first-principles"
+            )
+            print(
+                "self-test FAIL: analysis_persistence control 6 (anti-masking, "
+                "multi-dispatch) — gen-multi-dispatch.jsonl did not raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except MultipleAgentDispatchError as exc:
+            if "2" not in str(exc):
+                print(
+                    f"self-test FAIL: analysis_persistence control 6 "
+                    f"(anti-masking, multi-dispatch) — raised but did not "
+                    f"name the dispatch count found: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: analysis_persistence control 6 (anti-masking, "
+                f"multi-dispatch) — raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if multi_copy.with_suffix(".md").exists():
+            print(
+                "self-test FAIL: analysis_persistence control 6 (anti-masking, "
+                "multi-dispatch) — a .md sibling was written despite the raise",
                 file=sys.stderr,
             )
             ok = False
@@ -7341,10 +7586,13 @@ def self_test() -> int:
     Item 19 (v8.24.0 Phase 4, CAP-03) proves `_iter_capture_tool_calls`
     asserts the committed PR-P1 fixture's event inventory (1 Agent, 7
     WebFetch, 2 Read, 11 tool_result) in code, not only in the fixture's
-    README. Each of the nineteen items prints its own labelled PASS/FAILED
-    result line — exactly nineteen such lines, always, per run (D-16: the
-    fault-injection proof for each item is recorded in the corresponding
-    plan's SUMMARY.md).
+    README. Item 20 (v8.24.0 Phase 4, CAP-01) proves
+    `_extract_and_persist_analysis` leaves the extracted analysis beside its
+    source `.jsonl`, with the completed-gate and both extraction guardrails
+    carried through the new write path. Each of the twenty items prints its
+    own labelled PASS/FAILED result line — exactly twenty such lines,
+    always, per run (D-16: the fault-injection proof for each item is
+    recorded in the corresponding plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -7539,6 +7787,19 @@ def self_test() -> int:
         print("self-test: capture_tool_reader sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: capture_tool_reader sub-check PASSED")
+
+    # Item 20 (v8.24.0 Phase 4, CAP-01): _extract_and_persist_analysis
+    # leaves the extracted analysis beside its source .jsonl. Six controls:
+    # positive round trip (PR-P1), positive second capture
+    # (gen-single-dispatch), guardrail A carried through the wrapper,
+    # negative not-completed-means-no-file (gen-internal-tools), and two
+    # anti-masking controls (gen-stub-only, gen-multi-dispatch) proving a
+    # guardrail failure is never swallowed into a None.
+    if not _selftest_analysis_persistence():
+        all_passed = False
+        print("self-test: analysis_persistence sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: analysis_persistence sub-check PASSED")
 
     return 0 if all_passed else 1
 
@@ -7791,6 +8052,14 @@ def main(argv: list[str] | None = None) -> int:
         wrapped_prompt = _wrap_for_bypass(row.text)
         _run_prompt_to(wrapped_prompt, out_path, plugin_dir=args.plugin_dir)
         print(f"Probe capture written: {out_path}")
+        analysis_path = _extract_and_persist_analysis(
+            out_path, subagent_type="first-principles:first-principles"
+        )
+        if analysis_path is not None:
+            print(f"Probe analysis written: {analysis_path}")
+        else:
+            outcome = classify_invocation_outcome(out_path)
+            print(f"Probe analysis not written — outcome was {outcome!r}")
         return 0
 
     if args.single is not None:
@@ -7798,6 +8067,10 @@ def main(argv: list[str] | None = None) -> int:
         analysis = extract_agent_analysis(
             args.single, subagent_type="first-principles:first-principles"
         )
+        analysis_path = _extract_and_persist_analysis(
+            args.single, subagent_type="first-principles:first-principles"
+        )
+        print(f"Analysis written: {analysis_path}")
         packet_dir = build_judge_packet(analysis)
         judge_capture = packet_dir / "judge-capture.jsonl"
         # D-05 Assumption A3: plugin_dir=None omits --plugin-dir entirely, so
