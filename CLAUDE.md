@@ -217,18 +217,19 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 
 - **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
   Active residuals, the current coverage headline
-  (**147 reproducible / 90 audit-only / 0 gap / 237 total**), compact historical ledger, and gap
+  (**161 reproducible / 91 audit-only / 0 gap / 252 total**), compact historical ledger, and gap
   findings. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
   reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
   v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,
   229 → 214 rows; the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05,
-  126/88 → 147/90, 214 → 237 rows.)
+  126/88 → 147/90, 214 → 237 rows; the 15 v8.24 milestone requirements registered as matrix rows
+  at Phase 6 / D-06, 147/90 → 161/91, 237 → 252 rows.)
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
-  wrap the project; work continued and that figure has been superseded three times — see the
+  wrap the project; work continued and that figure has been superseded four times — see the
   bullet above. Do not quote its headline as current.
-- **`docs/requirements-matrix.md`** — generated 237-row capability→requirement→test
+- **`docs/requirements-matrix.md`** — generated 252-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
   python3 scripts/check-traceability.py emit \
