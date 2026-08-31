@@ -118,13 +118,13 @@ restating it — `CONTRIBUTING.md`, `CONFIGURATION.md`, `DATA-FLOW.md`, `TESTING
 measurement docs all point at this anchor. `CLAUDE.md` keeps its own operational copy by
 design, because a working session must be able to see the gate list without opening `docs/`.
 
-Gates run on three surfaces, and the distinction matters: **19 in CI**
-(`.github/workflows/validation.yml`, on push/PR to master), **22 tallied in the offline battery**
+Gates run on three surfaces, and the distinction matters: **20 in CI**
+(`.github/workflows/validation.yml`, on push/PR to master), **23 tallied in the offline battery**
 (`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a
-strict superset of CI: all 19 CI gates — VAL-01 included, so it runs on both surfaces and
+strict superset of CI: all 20 CI gates — VAL-01 included, so it runs on both surfaces and
 needs the `claude` CLI in both — plus QUAL-01, which is battery-only by design and is the
 one registered gate with no CI job, plus the two inline checks INVARIANT-CHECK and
-FROZEN-EVIDENCE. That is 19 + 1 + 2 = 22.
+FROZEN-EVIDENCE. That is 20 + 1 + 2 = 23.
 
 | Gate | Job / Mechanism | Script | What it checks |
 |------|----------------|--------|----------------|
@@ -148,6 +148,7 @@ FROZEN-EVIDENCE. That is 19 + 1 + 2 = 22.
 | HARN-02 | `check-loop-closure` (CI) | `scripts/check-loop-closure.py` | Offline Observe→Perceive re-entry-edge gate: a Criterion 1 Absent verdict routes back to Phase 1, every re-entry edge is bounded to one re-perception pass, and a fired edge is recorded |
 | HARN-03 | `check-focused-parity` (CI) | `scripts/check-focused-parity.py` | Offline focused-mode parity gate: stub surface, agent surface and cross-surface parity-token set equality, with the D-12 anchor-control ratchet |
 | HC-BOUND | `check-high-confidence-bound` (CI) | `scripts/check-high-confidence-bound.py --self-test` | Offline structural validation gate: asserts Phase 5 tightening of Criterion 3 (Evidence) and Criterion 5 (Conclusion) HIGH-confidence bound is present and well-formed in both rubric surfaces (canonical and emitted), and all three documented EXCEPT exceptions are present. Structural only; does not measure agent behavior (MEAS-01/MEAS-02, deferred to v8.20+). |
+| PROV-GUARD | `check-provenance` (CI) | `scripts/check-provenance.py` | Offline gate: every `*Provenance: read-at-source*` GT in an analysis's section 3 joins to a real `WebFetch`/`Read` of that source in the run's stored `.jsonl` capture, and every literal it states appears verbatim in that source's retrieved text; live leg reads `tests/quality-provenance-v8.24/` and reports `7/7 sources matched, 35/35 literals located`. Records fact, not form — every other column `detect_defects` emits scores the analysis's form. Does not assert that a stated number means what the analysis says (backlog 999.4), treats identifier digit-tails like `x86` → `86` as expected (not a bug), does not use whole-span bold/quoted matching (measured and rejected, 4/11 and 4/8), and its no-network control blocks `socket` but not a `subprocess` shell-out. Self-test **and** live leg on both surfaces, matching VERSION-01, GATE-01, COLLIDE-01 and REG-GUARD. |
 | INVARIANT-CHECK | battery only (inline) | — | Anti-masking constants still hold: `pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2` |
 | FROZEN-EVIDENCE | battery only (inline) | `git diff --quiet` | Frozen baselines and captures are unmodified |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
@@ -158,6 +159,9 @@ was registered at v8.19.0 under Phase 6 (HC-04) — it also has a CI job plus a 
 battery `gate` call, and is counted in the battery total above. REG-GUARD was registered at v8.21.0
 under Phase 3 (REG-03) — it has a CI job plus a battery `gate` call that runs both `--self-test` **and**
 the live scan, matching VERSION-01, GATE-01 and COLLIDE-01, and is counted in the battery total above.
+PROV-GUARD was registered at v8.24.0 under Phase 6 (GATE-02/GATE-03) — a CI job plus a battery `gate`
+call running both `--self-test` **and** the live leg, matching VERSION-01, GATE-01, COLLIDE-01 and
+REG-GUARD — and is counted in the battery total above.
 
 **Two gates are called GATE-02 and they are not the same gate.** `VAL-04 / GATE-02` is the v3.0
 trigger-collision scanner (`check-trigger-collisions.py`), carried by a single job whose live name
