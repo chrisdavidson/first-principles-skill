@@ -415,9 +415,322 @@ def record_to_tsv(record: dict) -> str:
     return f"{header}\n{row}\n"
 
 
+# ---------------------------------------------------------------------------
+# --self-test (D-16): named control inventory, fully in-memory or
+# tempdir-scoped -- no network access and no live Claude session. Every
+# control adds its id to _covered_controls only after its OWN assertion
+# passed for its OWN stated reason -- never merely "did not raise".
+# ---------------------------------------------------------------------------
+
+_covered_controls: set[str] = set()
+_self_test_failures: list[str] = []
+
+
+def _fail(control_id: str, msg: str) -> None:
+    sys.stderr.write(f"check-provenance --self-test: FAIL — {control_id}: {msg}\n")
+    _self_test_failures.append(control_id)
+
+
+def _run_control(control_id: str, fn) -> None:
+    """Run one control, recording pass/fail. A control signals failure by
+    raising AssertionError (a plain `assert`) -- any other exception is a
+    genuine bug in the control itself and is left to propagate.
+    """
+    try:
+        fn()
+    except AssertionError as exc:
+        _fail(control_id, str(exc))
+    else:
+        _covered_controls.add(control_id)
+        print(f"check-provenance --self-test: {control_id} PASS")
+
+
+_SYNTH_DISPATCH_ID = "toolu_dispatch1"
+_SYNTH_TARGET_KEY = {"WebFetch": "url", "Read": "file_path"}
+
+
+def _synth_capture(
+    tmpdir: Path, calls: list[tuple[str, str, str]], *, dispatch: bool = True
+) -> Path:
+    """Write a synthesized JSONL capture into `tmpdir`: one `Agent` dispatch
+    event (unless `dispatch=False`) followed by one child `tool_use` +
+    matching `tool_result` per `(tool_name, target, retrieved_text)` triple in
+    `calls`. Mirrors the verified minimal event shape from 05-RESEARCH.md's
+    "D-07 minimal synthetic Read-arm fixture" section exactly -- copy that
+    shape, do not improvise a new one.
+    """
+    events: list[dict] = []
+    if dispatch:
+        events.append(
+            {
+                "type": "assistant",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": _SYNTH_DISPATCH_ID,
+                            "name": "Agent",
+                            "input": {"subagent_type": _FIXTURE_SUBAGENT_TYPE},
+                        }
+                    ]
+                },
+            }
+        )
+    for i, (tool_name, target, retrieved_text) in enumerate(calls):
+        call_id = f"toolu_call{i}"
+        events.append(
+            {
+                "type": "assistant",
+                "parent_tool_use_id": _SYNTH_DISPATCH_ID,
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_use",
+                            "id": call_id,
+                            "name": tool_name,
+                            "input": {_SYNTH_TARGET_KEY[tool_name]: target},
+                        }
+                    ]
+                },
+            }
+        )
+        events.append(
+            {
+                "type": "user",
+                "message": {
+                    "content": [
+                        {
+                            "type": "tool_result",
+                            "tool_use_id": call_id,
+                            "content": retrieved_text,
+                        }
+                    ]
+                },
+            }
+        )
+    path = tmpdir / "synthetic.jsonl"
+    path.write_text(
+        "\n".join(json.dumps(e) for e in events) + "\n", encoding="utf-8"
+    )
+    return path
+
+
+def _gt_line(
+    gt_id: str,
+    claim: str,
+    source: str,
+    *,
+    label: str = "read-at-source",
+    location: str = "synthesized location",
+) -> str:
+    """Build one section-3 GT list item in the exact form `_GT_LINE_RE` /
+    `_source_string` / `_label` parse. The trailing 'read-at-source: <location>'
+    clause is present regardless of `label` -- this is deliberate: it is what
+    makes PROV01-labelform-negative's bare-substring trap realistic (every
+    real GT in the fixture carries this clause whether or not it is actually
+    read-at-source labelled).
+    """
+    return (
+        f"- **{gt_id}** {claim} — source: {source}; read-at-source: {location}. "
+        f"*Provenance: {label}.*"
+    )
+
+
+def _synth_analysis(gt_lines: list[str]) -> str:
+    """Wrap `gt_lines` (already-built section-3 list items) in the smallest
+    six-section skeleton `_slice_sections` resolves -- copied from
+    check-quality-harness.py's `_selftest_gap5_conclusion_heading` in-line
+    document (harness:6901-6949), trimmed to section 3's content only. Only
+    section 3 is exercised by `parse_analysis`; sections 1/2/4/5/6 exist
+    purely so `_slice_sections` resolves all six numbers in order.
+    """
+    gts = "\n".join(gt_lines)
+    return f"""# 1. Problem Essence
+
+**Core problem:** synthesized self-test fixture.
+
+# 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| placeholder | convention | Challenge before use | Accept — synthesized | n/a |
+
+# 3. Ground Truths
+
+{gts}
+
+# 4. Derivation Chains
+
+### Conclusion C1: synthesized
+
+GT-1 (a)
+-> synthesized conclusion
+
+# 5. Abandoned Reasoning
+
+None.
+
+# 6. Conclusion
+
+**Recommended approach:** synthesized.
+"""
+
+
+def _control_prov02_readarm_positive() -> None:
+    """D-07 positive: a synthesized Read capture supplies the exact path a GT
+    cites, carrying the GT's one literal. This is the only exercise the
+    `Read` arm gets -- the committed capture's 2 `Read` calls are cited by no
+    GT.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/fixture-source.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/fixture-source.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        got = (
+            result.provenance_labels,
+            result.unmatched_sources,
+            result.unreadable_sources,
+            result.literals_checked,
+            result.unlocated_literals,
+            result.misattributed_literals,
+            result.zero_literal_gts,
+            result.orphan_fetches,
+            result.provenance_flag,
+        )
+        want = (1, 0, 0, 1, 0, 0, 0, 0, 0)
+        assert got == want, f"D-11 counter tuple: got {got!r}, want {want!r}"
+
+
+def _control_prov02_readarm_negative() -> None:
+    """D-07 negative: the same GT, but the capture's Read supplies a
+    DIFFERENT path -- the cited source was never actually read.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/other-file.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/fixture-source.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 1, (
+            f"expected 1 unmatched source, got {result.unmatched_sources}"
+        )
+        assert result._unmatched_gt_ids == ("GT-1",), (
+            f"expected GT-1 named, got {result._unmatched_gt_ids!r}"
+        )
+        assert result.provenance_flag == 1, (
+            f"expected provenance_flag=1, got {result.provenance_flag}"
+        )
+
+
+def _control_d08_unreadable_positive() -> None:
+    """D-08 positive: the bound source's retrieved text is one character
+    SHORTER than `_MIN_RETRIEVED_TEXT_CHARS`. Must count as unreadable, never
+    as unmatched or as a fabrication, and its literal must not be counted
+    into `literals_checked`.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        short_text = "42 " + "z" * (_MIN_RETRIEVED_TEXT_CHARS - 4)
+        assert len(short_text) == _MIN_RETRIEVED_TEXT_CHARS - 1
+        capture = _synth_capture(tmp, [("Read", "/tmp/thin.txt", short_text)])
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/thin.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unreadable_sources == 1, (
+            f"expected 1 unreadable source, got {result.unreadable_sources}"
+        )
+        assert result.unmatched_sources == 0, (
+            f"an unreadable source must not also count as unmatched, got {result.unmatched_sources}"
+        )
+        assert result.unlocated_literals == 0, (
+            f"an unreadable source must not count as fabrication, got {result.unlocated_literals}"
+        )
+        assert result.literals_checked == 0, (
+            f"an unreadable source's literal must not be counted, got {result.literals_checked}"
+        )
+
+
+def _control_d08_unreadable_negative() -> None:
+    """D-08 negative: retrieved text one character ABOVE the floor and
+    containing the literal -- pins the floor itself, not just the branch.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        text = "42 " + "z" * (_MIN_RETRIEVED_TEXT_CHARS - 2)
+        assert len(text) == _MIN_RETRIEVED_TEXT_CHARS + 1
+        capture = _synth_capture(tmp, [("Read", "/tmp/thin.txt", text)])
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/thin.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unreadable_sources == 0, (
+            f"expected 0 unreadable sources, got {result.unreadable_sources}"
+        )
+        assert result.provenance_flag == 0, (
+            f"expected provenance_flag=0, got {result.provenance_flag}"
+        )
+
+
+def _control_prov02_dispatch_raises() -> None:
+    """Constraint 5 guard: a synthesized capture built WITHOUT the `Agent`
+    dispatch event must make `_capture_subagent_tool_calls` raise `ValueError`,
+    and `verify()` must let it propagate rather than converting it to a
+    zero-finding result. This is the guard against reintroducing the
+    conflation constraint 5 exists to close.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/fixture-source.txt", "the retrieved literal value is 42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+            dispatch=False,
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/fixture-source.txt`")]
+        )
+        try:
+            verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(
+                "verify() did not propagate ValueError for a never-dispatched subagent"
+            )
+
+
 def _run_self_test() -> None:
-    """Stub. Plan 05-03 fills this with the full D-16 control battery."""
-    print("check-provenance --self-test: stub -- plan 05-03 fills the control battery")
+    """D-16 control battery: positive and negative controls for every named
+    finding family, the synthesized Read-arm fixture (D-07), the PROV-04
+    no-network proof, and the anti-masking coverage assertion.
+    """
+    _covered_controls.clear()
+    _self_test_failures.clear()
+
+    _run_control("PROV02-readarm-positive", _control_prov02_readarm_positive)
+    _run_control("PROV02-readarm-negative", _control_prov02_readarm_negative)
+    _run_control("D08-unreadable-positive", _control_d08_unreadable_positive)
+    _run_control("D08-unreadable-negative", _control_d08_unreadable_negative)
+    _run_control("PROV02-dispatch-raises", _control_prov02_dispatch_raises)
+
+    if _self_test_failures:
+        sys.stderr.write(
+            f"check-provenance --self-test: {len(_self_test_failures)} "
+            f"control(s) failed: {sorted(set(_self_test_failures))}\n"
+        )
+        sys.exit(1)
+
+    print("check-provenance --self-test: PASS")
 
 
 # ---------------------------------------------------------------------------
