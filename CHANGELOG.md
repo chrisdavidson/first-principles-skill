@@ -25,13 +25,52 @@ installed session.
   defect-incidence TSVs in `tests/` are the original ten-column shape; a positional reader
   keyed to the current field count would have rejected every one of them the moment the schema
   widened. The reader stays loud on a ragged row or a header missing a required flag column
-  (T-164-12 discipline). Pinned by self-test Item 17, whose controls (f)-(h) assert the three
+  (T-164-12 discipline). Pinned by self-test Item 18, whose controls (f)-(h) assert the three
   appended columns carry **non-zero** findings and track their audit-only lists — pinning them
   only at zero, which every other fixture reports, would have passed with the columns hardcoded
   to a constant.
 
 ### Fixed
 
+- **A closure ledger was scored as a traceability defect rather than as traceability.** Found
+  by re-running the PR-P1 fixture live against the working tree while verifying the three new
+  columns above. The analysis traced its Conclusion claims through an explicit
+  `§6→§4 closure ledger` — each claim quoted beside the chain that produced it — instead of
+  inline parentheticals. `_conclusion_claims` mined the ledger's own rows as ten additional
+  claims (7 → 14) while `_claim_is_traced`, which only accepts a citation found *inside* the
+  claim text, left the three claims those rows discharged counted as untraced (0 → 3). The
+  new `selfaudit_disagreements` column then escalated that into a Criterion 6 over-claim
+  finding. **The rubric does not support the charge**: Criterion 6 requires only that each
+  claim "traces to a specific named derivation chain in section 4" and does not prescribe
+  where the citation sits, and `output-template.md` §6 prescribes three prose blocks with no
+  inline-citation instruction at all. So an agent that traced its claims *more* explicitly
+  scored worse on both numerator and denominator, and the widened schema turned a detector
+  blind spot into an accusation. The detector was the defect, not the verdict — the same
+  shape as the 8.23.0 Criterion 4 finding, with the surfaces reversed.
+
+  Two independent halves: `_conclusion_claims` no longer mines fenced code blocks (verbatim
+  structural content, not section-6 prose), and `_claim_is_traced` accepts a closure-ledger
+  entry that quotes the claim and cites a real chain. Ledger credit is deliberately narrow —
+  an entry must cite a chain id that actually appears in section 4, quote at least four
+  content tokens, and cover 70% **of the fragment's** tokens (never the claim's, so a long
+  claim cannot absorb a short unrelated quote). Re-scored: the live run moves from
+  `claims 14, untraced 3, selfaudit_disagreements 1` to `claims 4, untraced 0,
+  selfaudit_disagreements 0`; the two prior runs, which cite inline and have no fenced §6
+  content, are byte-unchanged.
+
+  Pinned by self-test Item 17 (`_selftest_ledger_traceability`), ten controls: three
+  positive/fault-injection, four anti-overreach (a ledger citing a chain that does not exist,
+  a sub-minimum fragment, a fragment quoting something else, a long claim absorbing a short
+  quote), one discriminating the fence rule from the claim filter, and one frozen-corpus
+  movement pin. Five fault injections each fail the sub-check on the control that owns it.
+- **The frozen corpus gained a count pin the flags could not provide.**
+  `_CALIBRATION_UNTRACED_FLAGS` is saturated at `[1, 1, 1, 1, 1, 1]` and is therefore
+  structurally blind to any movement in the counts beneath it — the blindness
+  184-REVIEW.md WR-01 found in `_CALIBRATION_CHAIN_FLAGS`, which stayed green through a +7
+  false-positive regression. `_CALIBRATION_CONCLUSION_CLAIMS` and
+  `_CALIBRATION_UNTRACED_CLAIMS` pin what the flags cannot see, measured before the change
+  above and re-measured byte-identical after it. Two of the five fault injections move the
+  frozen corpus and are caught only by this pin.
 - Corrected the 8.23.0 entry's chain-form figures, which were captured at intermediate states
   and did not reproduce against the detector shipped in that same release.
 - QUAL-01's coverage description in `CLAUDE.md` and `docs/ARCHITECTURE.md` had not been
