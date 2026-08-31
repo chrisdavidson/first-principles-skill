@@ -146,29 +146,43 @@ which is what C6 (trade-off collapse over C1–C3) and C7 (second-order extensio
 is rejected whatever its arrow form. The template neither blesses nor forbids composition heads;
 the detector silently forbids them.
 
-### Heading form: the detector cannot parse the form the template prescribes (GAP-5)
+### Heading form: the detector could not parse the form the template prescribes (GAP-5) — FIXED
 
 `output-template.md` §4 prescribes: *"Number each `### Conclusion:` block … (e.g.,
-`### Conclusion C1: [Conclusion text]`)"*. Run 2 used exactly that form. Measured against
-`_chain_ids`:
+`### Conclusion C1: [Conclusion text]`)"*. Run 2 used exactly that form and `_chain_ids`
+returned `[]`.
 
-| Heading | Parsed |
-|---|---|
-| `### C1 — text` | `[]` |
-| `### C1: text` | `[]` |
-| `### Conclusion C1: text` | `[]` |
-| `### Chain C1: text` | `['Chain C1']` |
+**Correction to an earlier reading of this finding.** Single-heading probes also showed
+`### C1 —` and `### C1:` returning `[]`, which suggested a broad heading-parsing failure. That
+was an artifact of `_MIN_BARE_LABEL_FAMILY_SIZE = 2`: a bare single-letter label is only
+accepted when the document uses it at least twice, so a one-heading probe is excluded by
+design. Re-measured in full-document context (7 headings), the bare forms parse correctly. The
+defect was narrower than first stated and specific to the `Conclusion `-prefixed form:
 
-`_CHAIN_HEADING_RE` anchors the label immediately after the hashes, so only the `Chain `-prefixed
-form is recognised. **This fails silently green.** With zero chain IDs found, `_chain_blocks`
-falls back to returning the whole section as one block; that block contains at least one
-well-formed chain somewhere, so `malformed_chain_blocks` reports **0** — a clean bill of health
-produced by not looking. The run-2 raw score was `chain_blocks: 1, malformed: 0,
-untraced_claims: 7 of 7`; normalising the headings to a parseable form turned it into
-`chain_blocks: 7, malformed: 2, untraced: 0`.
+| Heading (7 per document) | Pre-fix | Post-fix |
+|---|---|---|
+| `### C1 — text` | parsed | parsed |
+| `### C1: text` | parsed | parsed |
+| `### Chain C1: text` | parsed | parsed |
+| `### Conclusion C1: text` | **`[]`** | parsed |
+| `### Conclusion C1 — text` | **`[]`** | parsed |
 
-This is the more serious of the two. A malformed-chain regression on any analysis using the
-template's own heading form is invisible to the harness.
+**The failure direction was silently green.** With zero ids, `_chain_blocks` falls back to
+returning the whole section as one block; that block contained one well-formed chain, so
+`malformed_chain_blocks` reported **0** on a document with two genuinely malformed chains.
+Run 2 raw: `chain_blocks: 1, malformed: 0, untraced: 7 of 7`.
+
+**Fix (`scripts/check-quality-harness.py`):** `_CHAIN_LABEL_PATTERN` accepts a `Conclusion `
+prefix alongside `Chain `; `_CHAIN_PREFIX_RE` strips it during normalization so an abbreviated
+`(C1)` citation still traces to a stored `Conclusion C1`. Pinned by
+`_selftest_gap5_conclusion_heading` (self-test Item 14), six controls, both halves
+fault-injected:
+
+- reverting the label pattern fails controls (a), (b) and (d) — (d) reproduces the
+  silently-green mechanism exactly, 2 blocks collapsing to 1
+- reverting the normalization prefix fails control (c) alone
+
+Run 2 now scores `chain_blocks: 7, malformed: 2, untraced: 0` with its **original** headings.
 
 ## Promotion
 
