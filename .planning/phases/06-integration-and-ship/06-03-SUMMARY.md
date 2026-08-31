@@ -94,3 +94,10 @@ None - no external service configuration required.
 ---
 *Phase: 06-integration-and-ship*
 *Completed: 2026-08-31*
+
+## Self-Check: PASSED
+
+- FOUND: commit `0dfc197` (task commit, 32 files)
+- FOUND: commit `60e601f` (SUMMARY.md commit)
+- FOUND: `.planning/phases/06-integration-and-ship/06-03-SUMMARY.md` on disk
+- FOUND: `version": "8.24.0"` in `.claude-plugin/marketplace.json`
