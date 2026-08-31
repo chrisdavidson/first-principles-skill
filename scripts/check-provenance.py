@@ -709,6 +709,333 @@ def _control_prov02_dispatch_raises() -> None:
             )
 
 
+def _labelform_analysis() -> str:
+    """One read-at-source GT plus one GT that mentions the bare substring
+    'read-at-source' in its own 'read-at-source: <location>' clause but
+    carries the *unverified* label -- the shared fixture for the
+    PROV01-labelform pair.
+    """
+    return _synth_analysis(
+        [
+            _gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`", label="read-at-source"),
+            _gt_line("GT-2", "a fact citing 7", "`/tmp/b.txt`", label="unverified"),
+        ]
+    )
+
+
+def _control_prov01_labelform_positive() -> None:
+    """PROV-01 positive: the label-FORM GT is counted."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("Read", "/tmp/a.txt", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("Read", "/tmp/b.txt", "7 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        result = verify(_labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 1, (
+            f"expected 1 read-at-source label, got {result.provenance_labels}"
+        )
+
+
+def _control_prov01_labelform_negative() -> None:
+    """PROV-01 negative: the bare 'read-at-source' substring inside the
+    *unverified* GT's own location clause is never counted.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("Read", "/tmp/a.txt", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("Read", "/tmp/b.txt", "7 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        result = verify(_labelform_analysis(), capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.provenance_labels == 1, (
+            f"the bare substring in GT-2's location clause must never be "
+            f"counted, got provenance_labels={result.provenance_labels}"
+        )
+
+
+def _control_prov02_bind_positive() -> None:
+    """PROV-02 positive: the WebFetch arm, mirroring the Read-arm pair --
+    source cited and fetched.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 0, (
+            f"expected the WebFetch arm to bind, got {result.unmatched_sources} unmatched"
+        )
+
+
+def _control_prov02_unmatched_negative() -> None:
+    """PROV-02 negative: the WebFetch arm, source cited and never fetched."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(tmp, [])
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 1, (
+            f"expected 1 unmatched source, got {result.unmatched_sources}"
+        )
+        assert result.provenance_flag == 1, (
+            f"expected provenance_flag=1, got {result.provenance_flag}"
+        )
+
+
+def _control_prov03_located_positive() -> None:
+    """PROV-03 positive: the GT's one literal is present in the bound
+    source's retrieved text.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unlocated_literals == 0, (
+            f"expected 0 unlocated literals, got {result.unlocated_literals}"
+        )
+        assert result.misattributed_literals == 0, (
+            f"expected 0 misattributed literals, got {result.misattributed_literals}"
+        )
+
+
+def _control_prov03_unlocated_negative() -> None:
+    """PROV-03 negative: the GT's literal is absent from the bound source's
+    retrieved text. Must also assert misattributed_literals == 0, proving
+    the two families are not conflated.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unlocated_literals == 1, (
+            f"expected 1 unlocated literal, got {result.unlocated_literals}"
+        )
+        assert result.misattributed_literals == 0, (
+            f"expected 0 misattributed literals (families must not conflate), "
+            f"got {result.misattributed_literals}"
+        )
+
+
+def _control_d04_misattributed_positive() -> None:
+    """D-04 positive: a two-source capture where the GT's literal is absent
+    from its BOUND source but present in the OTHER fetched source --
+    misattribution, not fabrication.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("Read", "/tmp/b.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.misattributed_literals == 1, (
+            f"expected 1 misattributed literal, got {result.misattributed_literals}"
+        )
+        assert result.unlocated_literals == 0, (
+            f"expected 0 unlocated literals (families must not conflate), "
+            f"got {result.unlocated_literals}"
+        )
+
+
+def _control_d04_misattributed_negative() -> None:
+    """D-04 negative: the same literal absent from BOTH fetched sources --
+    fabrication, not misattribution.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("Read", "/tmp/a.txt", "no matching number here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("Read", "/tmp/b.txt", "still nothing here " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unlocated_literals == 1, (
+            f"expected 1 unlocated literal, got {result.unlocated_literals}"
+        )
+        assert result.misattributed_literals == 0, (
+            f"expected 0 misattributed literals, got {result.misattributed_literals}"
+        )
+
+
+def _control_d03_zeroliteral_positive() -> None:
+    """D-03 positive: a read-at-source GT whose claim body contains no
+    numeric token at all -- reported, never failing.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/a.txt", "no digits in this retrieved text at all " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a claim with no numeric token", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.zero_literal_gts == 1, (
+            f"expected 1 zero-literal GT, got {result.zero_literal_gts}"
+        )
+        assert result.literals_checked == 0, (
+            f"expected 0 literals checked, got {result.literals_checked}"
+        )
+        assert result.provenance_flag == 0, (
+            f"zero-literal GTs must never gate the run, got provenance_flag={result.provenance_flag}"
+        )
+
+
+def _control_d03_zeroliteral_negative() -> None:
+    """D-03 negative: the same GT shape but with one literal present."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a claim citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.zero_literal_gts == 0, (
+            f"expected 0 zero-literal GTs, got {result.zero_literal_gts}"
+        )
+
+
+def _control_d06_orphan_positive() -> None:
+    """D-06 positive: a capture with one fetched source cited by no GT --
+    reported, never failing (the fixture's own 2 reference-file Reads are the
+    normal case).
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("Read", "/tmp/uncited.txt", "cited by nothing " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a claim citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.orphan_fetches == 1, (
+            f"expected 1 orphan fetch, got {result.orphan_fetches}"
+        )
+        assert result.provenance_flag == 0, (
+            f"orphan fetches must never gate the run, got provenance_flag={result.provenance_flag}"
+        )
+
+
+def _control_d06_orphan_negative() -> None:
+    """D-06 negative: every fetched source is cited by a GT."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("Read", "/tmp/a.txt", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a claim citing 42", "`/tmp/a.txt`")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.orphan_fetches == 0, (
+            f"expected 0 orphan fetches, got {result.orphan_fetches}"
+        )
+
+
+def _control_prov05_record_roundtrip() -> None:
+    """PROV-05: build the record via provenance_defect_record, write
+    record_to_tsv's output into the tempdir, read it back with
+    read_defect_incidence, and assert the flag sums and row shape survive
+    the round-trip.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS)],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        record = provenance_defect_record(analysis, "synthetic", result)
+        tsv_text = record_to_tsv(record)
+        tsv_path = tmp / "roundtrip.tsv"
+        tsv_path.write_text(tsv_text, encoding="utf-8")
+
+        read_back = read_defect_incidence(tsv_path)
+        assert read_back["n"] == 1, f"expected n=1, got {read_back['n']}"
+        assert read_back["untraced"] == record["untraced_flag"], (
+            f"untraced sum diverged from detect_defects: "
+            f"{read_back['untraced']} vs {record['untraced_flag']}"
+        )
+        assert read_back["verdict"] == record["verdict_flag"], (
+            f"verdict sum diverged from detect_defects: "
+            f"{read_back['verdict']} vs {record['verdict_flag']}"
+        )
+        assert read_back["chain"] == record["chain_flag"], (
+            f"chain sum diverged from detect_defects: "
+            f"{read_back['chain']} vs {record['chain_flag']}"
+        )
+
+        row_cells = tsv_text.splitlines()[1].split("\t")
+        assert len(row_cells) == len(_DEFECT_RECORD_FIELDS), (
+            f"expected {len(_DEFECT_RECORD_FIELDS)} cells, got {len(row_cells)}"
+        )
+        for field in (
+            "provenance_labels",
+            "unmatched_sources",
+            "unreadable_sources",
+            "literals_checked",
+            "unlocated_literals",
+            "misattributed_literals",
+            "zero_literal_gts",
+            "orphan_fetches",
+            "provenance_flag",
+        ):
+            assert isinstance(record[field], int), (
+                f"{field} is {type(record[field]).__name__}, not int -- "
+                f"the 'n/a' sentinel was not overwritten"
+            )
+
+
 def _run_self_test() -> None:
     """D-16 control battery: positive and negative controls for every named
     finding family, the synthesized Read-arm fixture (D-07), the PROV-04
@@ -722,6 +1049,19 @@ def _run_self_test() -> None:
     _run_control("D08-unreadable-positive", _control_d08_unreadable_positive)
     _run_control("D08-unreadable-negative", _control_d08_unreadable_negative)
     _run_control("PROV02-dispatch-raises", _control_prov02_dispatch_raises)
+    _run_control("PROV01-labelform-positive", _control_prov01_labelform_positive)
+    _run_control("PROV01-labelform-negative", _control_prov01_labelform_negative)
+    _run_control("PROV02-bind-positive", _control_prov02_bind_positive)
+    _run_control("PROV02-unmatched-negative", _control_prov02_unmatched_negative)
+    _run_control("PROV03-located-positive", _control_prov03_located_positive)
+    _run_control("PROV03-unlocated-negative", _control_prov03_unlocated_negative)
+    _run_control("D04-misattributed-positive", _control_d04_misattributed_positive)
+    _run_control("D04-misattributed-negative", _control_d04_misattributed_negative)
+    _run_control("D03-zeroliteral-positive", _control_d03_zeroliteral_positive)
+    _run_control("D03-zeroliteral-negative", _control_d03_zeroliteral_negative)
+    _run_control("D06-orphan-positive", _control_d06_orphan_positive)
+    _run_control("D06-orphan-negative", _control_d06_orphan_negative)
+    _run_control("PROV05-record-roundtrip", _control_prov05_record_roundtrip)
 
     if _self_test_failures:
         sys.stderr.write(
