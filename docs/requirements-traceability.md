@@ -34,6 +34,33 @@ The full 252-row capability-to-requirement-to-test mapping is in the generated m
 > to that rule. The Phase 142 note stands unedited as an accurate record of what was decided at
 > that time, for the milestones it names.
 
+> **PROV-GUARD registered, dated 2026-08-31 (v8.24 Phase 6 / D-01, D-14):** `scripts/check-provenance.py`
+> is registered as gate id **`PROV-GUARD`** — not `PROV-01`, since that is a requirement id in this
+> milestone and `GATE-01` was already taken by `check-agent.py` — on both surfaces: CI job
+> `check-provenance (PROV-GUARD)` and a battery `gate` call running `--self-test` **and** the live
+> leg. It asserts that every `*Provenance: read-at-source*` ground truth in an analysis's section 3
+> joins to a real `WebFetch`/`Read` of that source in the run's stored `.jsonl` capture, and that
+> every literal the ground truth states appears verbatim in that source's retrieved text. Live
+> result, quoted verbatim rather than paraphrased: `7/7 sources matched, 35/35 literals located`.
+> In one sentence: every other column `detect_defects` emits scores the *form* of an analysis; this
+> is the first check in the stack that can falsify a `*Provenance: read-at-source*` label against
+> what the run actually fetched — it records fact, not form.
+>
+> **What it does not assert** — four documented limits, each traceable to the module docstring:
+> 1. it verifies a stated number appears in the retrieved text of the named source; it does not
+>    verify the number *means* what the analysis says, nor that the chain citing it is valid
+>    inference — that is backlog `999.4`;
+> 2. the literal regex also matches digit runs that are the tail of an alphanumeric identifier
+>    (`x86` yields `86`), which still verify but carry no independent evidentiary weight — expected
+>    behaviour, not a parser bug;
+> 3. whole-span bold/quoted matching was measured and rejected (`4/11` bold spans, 4/8 quoted spans
+>    located) and must not be resurrected as a "cleaner" rule;
+> 4. PROV-04's no-network control blocks `socket`; it does not cover a `subprocess` shell-out — a
+>    stated residual.
+>
+> **Why VAL-04 is the milestone's one audit-only row:** no gate re-runs to check that a docs record
+> exists (the v8.18 SHIP-04/SHIP-05 precedent), which is why this addendum is the record.
+
 **Headline history (D-01).** The coverage headline has moved seven times since the matrix was
 first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log — one
 row per reconciliation event, of which rows 4 and 5 are deliberate zero-drift reconciliations that
