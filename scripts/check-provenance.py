@@ -57,6 +57,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from unittest import mock
+from urllib.parse import urlsplit
 
 
 # Repo-anchored, not caller-supplied: check-agent.py's rationale reproduced here --
@@ -232,12 +233,46 @@ def _join_key(source: str) -> str:
     return key.rstrip("/.")
 
 
+def _anchored_match(key: str, target: str) -> bool:
+    """CR-01: anchor the source<->fetch join instead of raw substring
+    containment, so a key can never bind by mere prefix/substring collision
+    (e.g. 'example.com' must not match '...ref=example.com-mirror', and
+    'lambda' must not match inside 'lambda-old'). Both sides are parsed with
+    `urllib.parse.urlsplit` -- never a raw substring test.
+
+    `key` is either a host+path string (scheme-stripped, from a bare GT
+    source with a path) or a bare token (a backticked filename, or a bare
+    hostname with no path):
+
+    - If `key` contains '/', treat it as host+path: require exact host
+      (netloc) equality (case-insensitive) AND exact path equality (mod a
+      trailing '/'). A trailing scheme is added back (`https://`) purely so
+      `urlsplit` parses the netloc/path split correctly; the scheme itself is
+      never compared.
+    - Otherwise, treat `key` as a single bare token: it binds either as an
+      exact netloc match (a bare-hostname source) or as an exact
+      `/`-delimited path segment of the target's path (a backticked filename
+      cited without its containing directory) -- never as a substring
+      landing mid-segment.
+    """
+    target_parts = urlsplit(target)
+    if "/" in key:
+        key_parts = urlsplit("https://" + key)
+        return (
+            key_parts.netloc.lower() == target_parts.netloc.lower()
+            and key_parts.path.rstrip("/") == target_parts.path.rstrip("/")
+        )
+    if key == target_parts.netloc:
+        return True
+    return key in target_parts.path.split("/")
+
+
 def _bind(
     gt: GroundTruth, tool_calls: list[tuple[str, str, str]]
 ) -> tuple[str, str, str] | None:
-    """Bind `gt` to the one capture triple whose target contains gt's join key.
+    """Bind `gt` to the one capture triple whose target anchors on gt's join
+    key (see `_anchored_match` -- never a raw substring test).
 
-    A GT binds when its join key is a SUBSTRING of exactly one triple's target.
     Zero matches is unmatched (returns None). Two or more matches is ALSO a
     failure -- an ambiguous join must never be silently resolved by taking the
     first (measured: no collisions on the fixture) -- and also returns None.
@@ -245,7 +280,7 @@ def _bind(
     key = _join_key(gt.source)
     if not key:
         return None
-    matches = [t for t in tool_calls if key in t[1]]
+    matches = [t for t in tool_calls if _anchored_match(key, t[1])]
     if len(matches) == 1:
         return matches[0]
     return None
