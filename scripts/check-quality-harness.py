@@ -2634,6 +2634,14 @@ _DEFECT_RECORD_FIELDS = (
     "chain_blocks",
     "malformed_chain_blocks",
     "chain_flag",
+    # Appended (not inserted) so that every committed ten-column
+    # defect-incidence TSV keeps its existing column ORDER. `read_defect_
+    # incidence` maps by header name, so a ten-column file and a
+    # thirteen-column file both parse; appending keeps positional readers
+    # outside this file working too.
+    "dependency_cycles",
+    "ungrounded_chains",
+    "selfaudit_disagreements",
 )
 
 
@@ -2886,12 +2894,18 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_untraced_claims_text": untraced,
         "_nonconforming_verdict_text": nonconforming_verdicts,
         "_malformed_chain_blocks_text": malformed_blocks,
+        "dependency_cycles": len(dependency["cycles"]),
+        "ungrounded_chains": len(dependency["ungrounded"]),
+        # Placeholder: the reconciliation needs the finished record, so it
+        # is computed immediately below and this value replaced. It is
+        # declared here so the key order matches _DEFECT_RECORD_FIELDS.
+        "selfaudit_disagreements": 0,
         "_dependency_cycles": dependency["cycles"],
         "_ungrounded_chains": dependency["ungrounded"],
     }
-    record["_selfaudit_disagreements"] = _selfaudit_calibration_defects(
-        analysis_text, record
-    )
+    disagreements = _selfaudit_calibration_defects(analysis_text, record)
+    record["selfaudit_disagreements"] = len(disagreements)
+    record["_selfaudit_disagreements"] = disagreements
     return record
 
 
@@ -2925,6 +2939,9 @@ _EXPECTED_CONFORMANT_RECORD = {
     "chain_blocks": 2,
     "malformed_chain_blocks": 0,
     "chain_flag": 0,
+    "dependency_cycles": 0,
+    "ungrounded_chains": 0,
+    "selfaudit_disagreements": 0,
 }
 _EXPECTED_DEFECTIVE_RECORD = {
     "conclusion_claims": 3,
@@ -2936,6 +2953,9 @@ _EXPECTED_DEFECTIVE_RECORD = {
     "chain_blocks": 2,
     "malformed_chain_blocks": 1,
     "chain_flag": 1,
+    "dependency_cycles": 0,
+    "ungrounded_chains": 0,
+    "selfaudit_disagreements": 0,
 }
 
 # D-19 pinned observed calibration vector: the detector's OBSERVED per-
@@ -5161,6 +5181,156 @@ def _selftest_selfaudit_calibration() -> bool:
     return ok
 
 
+def _selftest_incidence_schema_compat() -> bool:
+    """`read_defect_incidence` maps by header name, so widening the schema
+    does not orphan the files already committed.
+
+    Three columns were appended to `_DEFECT_RECORD_FIELDS`
+    (`dependency_cycles`, `ungrounded_chains`, `selfaudit_disagreements`) so
+    that findings previously visible only to an importing caller reach the
+    emitted TSV. Every defect-incidence TSV in `tests/` predates them and is
+    the original ten-column shape; a positional reader keyed to the CURRENT
+    field count would have rejected all twelve at once.
+
+    Controls (a)-(c) pin the compatibility. Controls (d)-(e) pin that the
+    reader stayed LOUD — the T-164-12 discipline this widening must not
+    quietly relax.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: incidence_schema_compat {msg}", file=sys.stderr)
+        ok = False
+
+    import tempfile
+
+    narrow_header = "\t".join(_DEFECT_RECORD_FIELDS[:10])
+    narrow_row = "condA-P1\t9\t4\t1\t13\t13\t1\t5\t2\t1"
+    wide_header = "\t".join(_DEFECT_RECORD_FIELDS)
+    wide_row = narrow_row + "\t0\t0\t2"
+
+    with tempfile.TemporaryDirectory() as d:
+        def _w(name: str, text: str) -> Path:
+            f = Path(d) / name
+            f.write_text(text, encoding="utf-8")
+            return f
+
+        # (a) a real committed ten-column file still parses.
+        committed = FIXTURES_DIR / "calibration-v8.6-corpus.tsv"
+        try:
+            got = read_defect_incidence(committed)
+        except Exception as exc:  # noqa: BLE001
+            _fail(f"(a) committed ten-column corpus no longer parses: {exc}")
+        else:
+            if got["n"] != 6:
+                _fail(f"(a) committed corpus row count changed: {got!r}")
+
+        # (b) a widened file parses, with identical flag sums.
+        a = read_defect_incidence(_w("narrow.tsv", f"{narrow_header}\n{narrow_row}\n"))
+        b = read_defect_incidence(_w("wide.tsv", f"{wide_header}\n{wide_row}\n"))
+        if a != b:
+            _fail(f"(b) narrow and wide files disagree: {a!r} vs {b!r}")
+
+        # (c) a headerless file falls back to positional mapping.
+        c = read_defect_incidence(_w("nohdr.tsv", wide_row + "\n"))
+        if c["n"] != 1 or c["chain"] != 1:
+            _fail(f"(c) headerless positional fallback wrong: {c!r}")
+
+        # (d) LOUDNESS: a data row narrower than its own header still raises.
+        try:
+            read_defect_incidence(_w("ragged.tsv", f"{wide_header}\n{narrow_row}\n"))
+        except ValueError:
+            pass
+        else:
+            _fail("(d) ragged row (13-col header, 10-col row) did not raise")
+
+        # (e) LOUDNESS: a header missing a required flag column raises.
+        bad = narrow_header.replace("chain_flag", "chain_flagg")
+        try:
+            read_defect_incidence(_w("badhdr.tsv", f"{bad}\n{narrow_row}\n"))
+        except ValueError:
+            pass
+        else:
+            _fail("(e) header missing 'chain_flag' did not raise")
+
+    # (f)-(h) NON-VACUITY: the three appended columns must actually CARRY the
+    # findings. Pinning them only at zero — which every fixture in this file
+    # otherwise reports — would pass with the columns hardcoded to a constant,
+    # which is precisely the failure this control exists to make impossible.
+    # The document below is built to score non-zero on all three at once:
+    # C1 and C2 cite each other (a cycle), C3 cites chains that do not exist
+    # (ungrounded), and the Self-Audit Gate claims Criterion 4 Rigorous over
+    # the top of the cycle (a disagreement).
+    doc = """# 1. Problem Essence
+
+**Core problem:** whether the appended columns carry their findings.
+
+# 2. Assumptions Table
+
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| An assumption | convention | Challenge before use | Accept — survives challenge | source |
+
+# 3. Ground Truths
+
+- **GT-1** a fact — source: a source; read-at-source: a location
+
+# 4. Derivation Chains
+
+### Conclusion C1: first
+
+GT-1 (a) + C2 (b)
+-> an intermediate claim
+-> the first conclusion
+
+### Conclusion C2: second
+
+GT-1 (a) + C1 (b)
+-> an intermediate claim
+-> the second conclusion
+
+### Conclusion C3: third
+
+C8 (a) + C9 (b)
+-> an intermediate claim
+-> the third conclusion
+
+# 5. Abandoned Reasoning
+
+Nothing material here - the fixture exists to exercise the dependency graph.
+
+# 6. Conclusion
+
+**Recommended approach:** the first conclusion (C1).
+
+## Process output
+
+**Criterion 4: Reason Upward**
+Quoted span: *"GT-1 (a) + C2 (b)"*
+Band: **Rigorous**
+Justification: every chain names its GT-IDs.
+"""
+    rec = detect_defects(doc, "schema-nonvacuity")
+    for field, want in (("dependency_cycles", 2),
+                        ("ungrounded_chains", 1),
+                        ("selfaudit_disagreements", 1)):
+        if rec[field] != want:
+            _fail(f"(f-h) emitted {field}: expected {want}, got {rec[field]!r}")
+
+    # The emitted count must track the audit list, not be computed twice.
+    for scalar, listed in (("dependency_cycles", "_dependency_cycles"),
+                           ("ungrounded_chains", "_ungrounded_chains"),
+                           ("selfaudit_disagreements", "_selfaudit_disagreements")):
+        if rec[scalar] != len(rec[listed]):
+            _fail(
+                f"(f-h) {scalar}={rec[scalar]!r} disagrees with "
+                f"len({listed})={len(rec[listed])}"
+            )
+
+    return ok
+
+
 def _selftest_limitation2_citationnorm() -> bool:
     """FIX-CONTRACT-01 limitation 2: `_claim_is_traced()` normalizes stored
     chain ids AND claim text so abbreviated ("(C1)"), lowercase-bolded
@@ -6125,10 +6295,16 @@ _GOODHART_GUARD_INDICES = (1, 3, 5)
 def read_defect_incidence(path: Path | str) -> dict:
     """Parse a `run_detect_defects`-shaped defect-incidence.tsv into per-family sums.
 
-    Reads the ten-column `_DEFECT_RECORD_FIELDS` shape (header row plus one
-    data row per analysis). Skips the header row when it is the first line
-    (`cells[0] == "analysis_id"`) — a real analysis id is never literally
-    that string.
+    Reads a `_DEFECT_RECORD_FIELDS`-shaped file (header row plus one data row
+    per analysis). **Columns are mapped by HEADER NAME when a header is
+    present**, so a file written before a column was appended parses
+    unchanged: every committed defect-incidence TSV in `tests/` is the
+    original ten-column shape, and widening the schema must not orphan them.
+    A headerless file falls back to positional mapping against the current
+    `_DEFECT_RECORD_FIELDS`, which is the only reading available for it.
+
+    The header is recognised by `cells[0] == "analysis_id"` — a real analysis
+    id is never literally that string.
 
     Returns {"untraced": int, "verdict": int, "chain": int, "n": int} — the
     summed `untraced_flag`/`verdict_flag`/`chain_flag` columns across every
@@ -6143,23 +6319,34 @@ def read_defect_incidence(path: Path | str) -> dict:
     if not path.is_file():
         raise ValueError(f"{path}: defect-incidence file not found")
 
+    _REQUIRED = ("untraced_flag", "verdict_flag", "chain_flag")
+
     untraced = 0
     verdict = 0
     chain = 0
     n = 0
+    header: tuple[str, ...] | None = None
     text = path.read_text(encoding="utf-8")
     for lineno, line in enumerate(text.splitlines(), start=1):
         if not line.strip():
             continue
         cells = line.split("\t")
         if lineno == 1 and cells[0] == "analysis_id":
+            header = tuple(c.strip() for c in cells)
+            missing = [c for c in _REQUIRED if c not in header]
+            if missing:
+                raise ValueError(
+                    f"{path}:{lineno}: header is missing required "
+                    f"column(s) {missing}: {list(header)!r}"
+                )
             continue
-        if len(cells) != len(_DEFECT_RECORD_FIELDS):
+        fields = header if header is not None else _DEFECT_RECORD_FIELDS
+        if len(cells) != len(fields):
             raise ValueError(
-                f"{path}:{lineno}: expected {len(_DEFECT_RECORD_FIELDS)} "
+                f"{path}:{lineno}: expected {len(fields)} "
                 f"tab-separated columns, got {len(cells)}: {cells!r}"
             )
-        record = dict(zip(_DEFECT_RECORD_FIELDS, cells))
+        record = dict(zip(fields, cells))
         try:
             untraced += int(record["untraced_flag"])
             verdict += int(record["verdict_flag"])
@@ -6654,6 +6841,17 @@ def self_test() -> int:
     else:
         print("self-test: limitation3_extractionscope sub-check PASSED")
 
+    # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
+    # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
+    # Its PASSED line coexists with a carried red state reported on the
+    # `contract_pin:` summary line printed above, never silently suppressed
+    # (honesty-not-score, D-01).
+    if not _selftest_contract_pin():
+        all_passed = False
+        print("self-test: contract_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: contract_pin sub-check PASSED")
+
     # Item 14 (GAP-5): the `### Conclusion C1:` heading form prescribed by
     # output-template.md §4 parses end-to-end. Pins ids -> blocks -> malformed
     # count, because the pre-fix failure was silently GREEN: zero ids made
@@ -6686,16 +6884,15 @@ def self_test() -> int:
     else:
         print("self-test: selfaudit_calibration sub-check PASSED")
 
-    # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
-    # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
-    # Its PASSED line coexists with a carried red state reported on the
-    # `contract_pin:` summary line printed above, never silently suppressed
-    # (honesty-not-score, D-01).
-    if not _selftest_contract_pin():
+    # Item 17 (schema widening): `read_defect_incidence` maps by header name,
+    # so the twelve committed ten-column defect-incidence TSVs keep parsing
+    # after three columns were appended — and still fails loudly on a ragged
+    # row or a header missing a required flag column.
+    if not _selftest_incidence_schema_compat():
         all_passed = False
-        print("self-test: contract_pin sub-check FAILED", file=sys.stderr)
+        print("self-test: incidence_schema_compat sub-check FAILED", file=sys.stderr)
     else:
-        print("self-test: contract_pin sub-check PASSED")
+        print("self-test: incidence_schema_compat sub-check PASSED")
 
     return 0 if all_passed else 1
 

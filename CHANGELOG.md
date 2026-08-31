@@ -13,6 +13,34 @@ installed session.
 
 ## [Unreleased]
 
+### Changed
+
+- **The chain-dependency and self-audit findings now reach the emitted TSV.** Three columns
+  were appended to `_DEFECT_RECORD_FIELDS` — `dependency_cycles`, `ungrounded_chains`,
+  `selfaudit_disagreements` — closing the 8.23.0 known limitation. They were previously
+  audit-only fields, reachable only by importing the module and reading the returned dict, so
+  `--detect-defects` reported nothing about cycles or self-audit disagreement.
+- `read_defect_incidence` now maps columns **by header name** when a header is present,
+  falling back to positional mapping only for a headerless file. All twelve committed
+  defect-incidence TSVs in `tests/` are the original ten-column shape; a positional reader
+  keyed to the current field count would have rejected every one of them the moment the schema
+  widened. The reader stays loud on a ragged row or a header missing a required flag column
+  (T-164-12 discipline). Pinned by self-test Item 17, whose controls (f)-(h) assert the three
+  appended columns carry **non-zero** findings and track their audit-only lists — pinning them
+  only at zero, which every other fixture reports, would have passed with the columns hardcoded
+  to a constant.
+
+### Fixed
+
+- Corrected the 8.23.0 entry's chain-form figures, which were captured at intermediate states
+  and did not reproduce against the detector shipped in that same release.
+- QUAL-01's coverage description in `CLAUDE.md` and `docs/ARCHITECTURE.md` had not been
+  updated for the chain-heading, chain-dependency and self-audit-reconciliation checks.
+- Self-test items 14-16 were registered above item 13, so they executed before it and the
+  numbering implied a sequence that did not hold. Registrations relocated; execution order now
+  matches.
+
+
 ## [8.23.0] — 2026-08-31
 
 Ships the arrow-led chain-form fix and the three measurement-instrument defects found while
@@ -26,8 +54,12 @@ without this stamp bump the 8.22.0 install would never see any of it.
   one line should be rendered; both showed only the single-line form. A live run needed six hops
   and rendered them as `1.` / `2.` / `3.`, which splits one chain into disconnected GT-headed
   one-hop fragments. Both surfaces now state the arrow-led wrap and name the ordered-list
-  rendering as non-conforming. Measured against `check-quality-harness`: 6 of 6 chain blocks
-  malformed before, 0 of 5 GT-headed chains after; untraced §6 claims 1 of 8 to 0 of 7.
+  rendering as non-conforming. Measured against the detector **as shipped in this release**:
+  the pre-fix analysis scores 5 of 6 chain blocks malformed with 1 of 8 §6 claims untraced; the
+  post-fix analysis scores 0 of 7 malformed with 0 of 7 untraced. (The pre-fix figure was
+  originally observed as 6 of 6 against the detector of the day; it reads 5 of 6 here because
+  the GAP-6 fix below now accepts that analysis's one composition head — the number moved
+  because a definition changed, which is the intended behaviour of a pinned figure, not drift.)
 
 - **GAP-5 — the detector could not parse the chain heading the template prescribes.**
   `output-template.md` §4 prescribes `### Conclusion C1: [text]`, but `_CHAIN_HEADING_RE`
