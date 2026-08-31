@@ -4047,7 +4047,7 @@ def _chain_head_refs(block: str) -> tuple[set[str], set[str]]:
     `GT-C1` — a ground truth whose identifier happens to start with `C` —
     is never miscounted as a reference to chain `C1`.
     """
-    for ln in block.splitlines():
+    for idx, ln in enumerate(block.splitlines()):
         s = ln.strip()
         # Skip the block's own markdown heading. `_chain_blocks` starts each
         # block at its heading line, and that line carries the chain's OWN
@@ -4055,6 +4055,27 @@ def _chain_head_refs(block: str) -> tuple[set[str], set[str]]:
         # composing chain self-referential and report the whole section as
         # one cycle.
         if s.startswith("#"):
+            continue
+        # GAP-8: the same hazard, via the OTHER label form. `_chain_ids` and
+        # `_chain_blocks` recognise two shapes — `_CHAIN_HEADING_RE`
+        # (hash-led) and `_CHAIN_BOLD_RE` (bold-led, no hashes) — and start a
+        # block at whichever matched, but the guard above keys on markdown
+        # heading SYNTAX rather than on "is this the block's own label line".
+        # A bold-labelled analysis therefore reproduced the exact failure the
+        # comment above predicts: PR-P1 run 4 labelled its chains
+        # `**C1 — …**` and every one of its eight chains was reported both
+        # self-cyclic and ungrounded, all artifact.
+        #
+        # Restricted to `idx == 0` deliberately, NOT applied to every line.
+        # `_CHAIN_BOLD_RE`'s label alternation includes `[A-Z]{2}-\d+`, so a
+        # fully-bolded HEAD line — `**GT-1 + GT-2 (label) → … → …**` — also
+        # matches it (label `GT-1`); a blanket skip would swallow that head
+        # and turn a well-formed grounded chain into an ungrounded one. The
+        # block's own label is guaranteed to sit at line 0 because
+        # `_chain_blocks` slices from the label match's own `start()`, so the
+        # narrow form fixes the defect and cannot reach a head line further
+        # down. Pinned by `_selftest_gap8_bold_chain_labels` control (d).
+        if idx == 0 and _CHAIN_BOLD_RE.match(s):
             continue
         if not _CHAIN_HEAD_TOKEN_RE.search(s):
             continue
@@ -6522,6 +6543,102 @@ def _selftest_gap6_composition_heads() -> bool:
     return ok
 
 
+def _selftest_gap8_bold_chain_labels() -> bool:
+    """GAP-8: a bold-labelled chain is not read as citing itself.
+
+    Observed 2026-08-31 on PR-P1 run 4 (v8.24.0 verified body): an analysis
+    labelling its chains `**C1 — …**` rather than `### Conclusion C1:` scored
+    all eight chains BOTH self-cyclic and ungrounded — every finding artifact.
+
+    `_chain_ids` / `_chain_blocks` recognise two label shapes,
+    `_CHAIN_HEADING_RE` (hash-led) and `_CHAIN_BOLD_RE` (bold-led), and start
+    a block at whichever matched. `_chain_head_refs`'s skip guard covered only
+    the first, so the bold label stayed inside the block and was read as the
+    head — reproducing verbatim the failure that guard's own comment predicts.
+
+    Controls (a)-(c) pin the fix. Control (d) is the anti-overreach control
+    that forces the `idx == 0` restriction: `_CHAIN_BOLD_RE`'s label
+    alternation includes `[A-Z]{2}-\\d+`, so a fully-bolded HEAD line matches
+    it too, and a blanket "skip any bold-label line" guard would swallow that
+    head. Controls (e)-(f) are non-vacuity: the widening must not neuter the
+    cycle and grounding checks it operates on, nor the heading form.
+
+    Fault injections, each failing the control that owns it:
+
+    - reverting the guard entirely          -> (a), (b), (c), (d), (f)
+    - widening `idx == 0` to every line     -> (d) ALONE
+    - neutering `_chain_dependency_defects` -> (e), (f)
+
+    Injection 2 failing (d) and nothing else is the load-bearing measurement:
+    it proves (d) is the only control holding the `idx == 0` restriction, so
+    the restriction cannot be relaxed back to a blanket skip silently.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: gap8_bold_chain_labels {msg}", file=sys.stderr)
+        ok = False
+
+    tail = "\n-> intermediate claim\n-> the conclusion"
+
+    def _section(*pairs: tuple[str, str]) -> str:
+        return "\n\n".join(
+            f"**{cid} — t**\n\n{head}{tail}" for cid, head in pairs)
+
+    # (a) the regressing shape: a bold label above a GT head. The label must
+    #     be skipped and the GTs read — NOT `(set(), {'C1'})`.
+    if _chain_head_refs(f"**C1 — t**\n\nGT-1 (a) + GT-2 (b){tail}") != (
+        {"GT-1", "GT-2"}, set()
+    ):
+        _fail("(a) bold-labelled GT head not read as its own head")
+
+    # (b) a bold-labelled COMPOSING chain still reports its real chain ref,
+    #     so the skip did not cost the composition signal GAP-6 added.
+    if _chain_head_refs(f"**C2 — t**\n\nGT-3 (c) + C1 (d){tail}") != (
+        {"GT-3"}, {"C1"}
+    ):
+        _fail("(b) bold-labelled composing head lost its chain ref")
+
+    # (c) end-to-end on the run-4 shape: a clean two-chain DAG under bold
+    #     labels reports neither cycles nor ungrounded chains.
+    dep = _chain_dependency_defects(
+        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "GT-3 (c) + C1 (d)")))
+    if dep["cycles"] or dep["ungrounded"]:
+        _fail(f"(c) clean bold-labelled DAG reported defects: {dep!r}")
+
+    # (d) ANTI-OVERREACH: a bolded HEAD line below the label is still read.
+    #     Pins `idx == 0`; a blanket bold skip returns `(set(), set())` here
+    #     and turns a well-formed grounded chain into a head-less one.
+    if _chain_head_refs(f"**C1 — t**\n\n**GT-1 (a) + GT-2 (b)**{tail}") != (
+        {"GT-1", "GT-2"}, set()
+    ):
+        _fail("(d) bolded head line below the label was wrongly skipped")
+
+    # (e) NON-VACUITY: a real cycle under bold labels is still detected, and
+    #     the heading form is untouched. A guard that skipped everything
+    #     would pass (a)-(d) while detecting nothing.
+    cyc = _chain_dependency_defects(
+        _section(("C1", "GT-1 (a) + C2 (b)"), ("C2", "GT-2 (c) + C1 (d)")))
+    if sorted(cyc["cycles"]) != ["c1", "c2"]:
+        _fail(f"(e) bold-labelled two-node cycle not reported: {cyc!r}")
+    if _chain_head_refs(f"### Conclusion C1: t\n\nGT-1 (a) + GT-2 (b){tail}") != (
+        {"GT-1", "GT-2"}, set()
+    ):
+        _fail("(e) heading-form head regressed")
+
+    # (f) NON-VACUITY: a genuinely ungrounded bold-labelled chain is still
+    #     reported, and does not come back as a cycle.
+    ung = _chain_dependency_defects(
+        _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "C8 + C9")))
+    if ung["ungrounded"] != ["c2"]:
+        _fail(f"(f) bold-labelled ungrounded chain not reported: {ung!r}")
+    if ung["cycles"]:
+        _fail(f"(f) ungrounded chain spuriously reported as a cycle: {ung!r}")
+
+    return ok
+
+
 def _selftest_selfaudit_calibration() -> bool:
     """The Self-Audit Gate's claimed bands are reconciled against measurement.
 
@@ -8605,6 +8722,20 @@ def self_test() -> int:
         print("self-test: single_refusal sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: single_refusal sub-check PASSED")
+
+    # Item 22 (GAP-8): a bold-labelled chain is not read as citing itself.
+    # `_chain_ids`/`_chain_blocks` accept two label shapes; `_chain_head_refs`
+    # guarded only the hash-led one, so PR-P1 run 4's `**C1 — …**` labels made
+    # all eight of its chains self-cyclic AND ungrounded, every finding
+    # artifact. Six controls: three positive, one anti-overreach forcing the
+    # `idx == 0` restriction (a fully-bolded HEAD line also matches
+    # `_CHAIN_BOLD_RE`), two non-vacuity holding the cycle, grounding and
+    # heading-form checks in place.
+    if not _selftest_gap8_bold_chain_labels():
+        all_passed = False
+        print("self-test: gap8_bold_chain_labels sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: gap8_bold_chain_labels sub-check PASSED")
 
     return 0 if all_passed else 1
 

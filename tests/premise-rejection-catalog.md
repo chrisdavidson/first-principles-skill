@@ -378,8 +378,8 @@ as a second provenance fixture is an open decision, not a step already taken.
 | Chain blocks / malformed | 6 / 5 | 7 / 0 | 5 / 0 | 8 / **8** |
 | §6 claims / untraced | 8 / 1 | 7 / 0 | 4 / 0 | 9 / **0** |
 | Verdict cells / non-conforming | 15 / 0 | 16 / 0 | 16 / 0 | 24 / **3** |
-| Dependency cycles / ungrounded | 0 / 0 | 0 / 0 | 0 / 0 | **8 / 8** |
-| Self-audit disagreements | 2 | 0 | 0 | **3** |
+| Dependency cycles / ungrounded | 0 / 0 | 0 / 0 | 0 / 0 | **8 / 8** → 0 / 0 (GAP-8 fixed) |
+| Self-audit disagreements | 2 | 0 | 0 | **3** → 2 (GAP-8 fixed) |
 | Provenance labels / literals located | n/a | n/a | 7 / 35 | **0 / 0** |
 | §2 premise verdict | A1 `convention` → Discard | A1 `convention` → Discard | A1 `convention` → Discard | A1 `convention` → **Discard** |
 
@@ -397,7 +397,7 @@ describes. The one genuine agent deviation is GAP-10.
 which counts structural conformance; the governing record demotes even K-of-5 from this class of
 harness to a recorded observation (`docs/v8.7-constraint-teardown.md` §2 item 3), and this is n=1.
 
-### Bold chain labels defeat the self-reference guard (GAP-8) — OPEN
+### Bold chain labels defeat the self-reference guard (GAP-8) — FIXED
 
 `_chain_head_refs` skips a block's own label line before reading the head, and its comment names
 the exact failure the skip prevents:
@@ -437,12 +437,62 @@ about what a label is, and the disagreement is invisible while every analysis us
 | run 3, all columns | — | unchanged |
 | frozen v8.7 corpus, all six analyses, every column | — | unchanged; `malformed [2, 2, 2, 2, 3, 3]` still matches `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` |
 
-It is left unapplied because the missing work is the controls, not the line: a positive control on
-a bold-labelled composing chain, and an anti-overreach control proving a genuinely bold-led *head*
-line is not swallowed by the widened guard.
-
 **Failure direction: false positive.** Unlike GAP-5 and GAP-11, this defect reports defects that
 are not there, so it cannot hide a real one. It is the safer direction and is still wrong.
+
+#### Fix (2026-08-31, backlog phase 999.8)
+
+**The widening measured above is wrong as stated, and writing the anti-overreach control is what
+exposed it.** `_CHAIN_BOLD_RE`'s label alternation includes `[A-Z]{2}-\d+`, so a fully-bolded
+*head* line matches it too — `**GT-1 + GT-2 (label) → … → …**` matches with label `GT-1`. A blanket
+`s.startswith("#") or _CHAIN_BOLD_RE.match(s)` guard would therefore swallow that head and convert
+a well-formed grounded chain into a head-less one. The prototype passed every check above because
+none of them contained a bolded head.
+
+Shipped instead: the skip is restricted to the block's **own first line**, which is where
+`_chain_blocks` guarantees the label sits (it slices from the label match's own `start()`), so the
+guard fixes the defect and cannot reach a head line further down.
+
+```python
+if idx == 0 and _CHAIN_BOLD_RE.match(s):
+    continue
+```
+
+**Measured, old guard vs new, over three bolded-head configurations** — the question being whether
+the restriction costs anything a blanket skip would have kept:
+
+| Configuration | old | new | |
+|---|---|---|---|
+| heading label + bolded head line | `([], [])` | `([], [])` | no delta |
+| no label, bolded head line | `([], [])` | `([], [])` | no delta |
+| bold label + bolded head line | `(['c1','c2'], ['c1','c2'])` | `([], [])` | **strictly better** |
+
+There is no configuration in which the change loses a finding. A bolded head line is already
+claimed as a *label* by `_chain_ids` upstream — in every configuration above it produces spurious
+ids and wrong block boundaries — so the head it would have contributed was already unreachable.
+That upstream defect is untouched here and is not otherwise recorded; it is real but has not been
+observed on live output.
+
+**Movement.** Run 4: cycles 8 → **0**, ungrounded 8 → **0**, self-audit disagreements 3 → **2**
+(the survivor is Criterion 4 against `malformed_chain_blocks`, which is GAP-9 and correctly
+stands). Run 3: unchanged on every column. Frozen v8.7 corpus: unchanged on every column,
+`malformed [2, 2, 2, 2, 3, 3]` still matching `_CALIBRATION_MALFORMED_CHAIN_BLOCKS`. Battery
+GREEN 23/23, FROZEN-EVIDENCE included.
+
+**Verification.** `_selftest_gap8_bold_chain_labels`, QUAL-01 self-test Item 22, six controls:
+three positive (bold-labelled GT head, bold-labelled composing head, clean two-chain DAG), one
+anti-overreach (d), two non-vacuity (cycle detection and heading form; ungrounded detection).
+Three fault injections, each failing the controls it owns:
+
+| Injection | Fails |
+|---|---|
+| revert the guard entirely | (a), (b), (c), (d), (f) |
+| widen `idx == 0` to every line | **(d) alone** |
+| neuter `_chain_dependency_defects` | (e), (f) |
+
+The second injection failing (d) **and nothing else** is the load-bearing measurement: it proves
+(d) is the only control holding the restriction, so a future relaxation back to a blanket skip
+cannot pass silently.
 
 ### A wrapped hop is unrepresentable under the prescribed chain form (GAP-9) — OPEN
 
