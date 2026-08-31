@@ -208,6 +208,12 @@ def _is_separator_row(cells: list[str]) -> bool:
 # Model: scripts/check-step0-live.py::_read_step0_catalog (lines 155-202)
 # ---------------------------------------------------------------------------
 
+# A catalog id becomes a filesystem path (<id>.jsonl and its .md sibling —
+# see _extract_and_persist_analysis clause (d)), so it is validated at this
+# boundary rather than at each of the places it is later used. `/` and `..`
+# are rejected because they let an id write outside --out.
+_CATALOG_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
 
 def _read_quality_catalog(path: Path) -> list[QualityPrompt]:
     """Parse tests/quality-catalog-v8.7.md into a list of QualityPrompt rows.
@@ -256,6 +262,12 @@ def _read_quality_catalog(path: Path) -> list[QualityPrompt]:
         if len(cells) < 2 or not cells[0].strip() or not cells[1].strip():
             raise ValueError(f"{path}:{lineno}: row missing ID or prompt text: {cells!r}")
         row_id = cells[0]
+        if not _CATALOG_ID_RE.match(row_id):
+            raise ValueError(
+                f"{path}:{lineno}: catalog id {row_id!r} is not a safe filename "
+                f"stem — ids become output paths ({row_id}.jsonl and its .md "
+                f"sibling), so an id containing '/' or '..' writes outside --out"
+            )
         prompt_text = cells[1]
         notes = cells[2] if len(cells) > 2 else ""
         prompts.append(QualityPrompt(id=row_id, text=prompt_text, notes=notes))
@@ -670,10 +682,11 @@ def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path 
     `MultipleAgentDispatchError` or `AgentAnalysisExtractionError` from
     Guardrail A/B or the A4 cross-check. These are two different failures
     and must never be collapsed into one.
-    (d) `with_suffix` replaces only the final suffix, so a capture id
-    containing a dot (e.g. `foo.bar.jsonl`) would truncate to `foo.bar.md`
-    -> `foo.md`... no current catalog id contains a dot, but a future one
-    must be checked before this assumption is relied on again.
+    (d) The destination is `jsonl_path.with_suffix(".md")`, so whatever
+    shaped `jsonl_path` also shapes this write. On the `--probe` path that
+    shape comes from a catalog id, validated at the catalog boundary by
+    `_CATALOG_ID_RE` before it ever reaches a filesystem path. On the
+    `--single` path it comes from a path the operator typed directly.
 
     Returns the written `.md` path, or `None` if the capture did not
     complete.
@@ -1184,6 +1197,17 @@ _MALFORMED_CATALOG_FIXTURE = "\n".join(
     ]
 )
 
+_TRAVERSAL_ID_CATALOG_FIXTURE = "\n".join(
+    [
+        "# Traversal-Id Catalog",
+        "",
+        "| ID | Prompt | Notes |",
+        "|---|---|---|",
+        "| ../../scripts/check-agent | some prompt | note |",
+        "",
+    ]
+)
+
 
 def _self_test_catalog_parse_positive() -> bool:
     """Positive: the real catalog parses to exactly the three expected IDs."""
@@ -1207,7 +1231,9 @@ def _self_test_catalog_parse_positive() -> bool:
 
 
 def _self_test_catalog_parse_negative() -> bool:
-    """Negative: a catalog with the wrong header columns must raise."""
+    """Negative: a catalog with a bad header, or with an unsafe id, must raise."""
+    ok = True
+
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".md", delete=False, encoding="utf-8"
     ) as tmp:
@@ -1216,26 +1242,71 @@ def _self_test_catalog_parse_negative() -> bool:
     try:
         try:
             _read_quality_catalog(tmp_path)
+            print(
+                "self-test FAIL: catalog_parse_negative did not raise on a "
+                "malformed header",
+                file=sys.stderr,
+            )
+            ok = False
         except ValueError:
-            return True
+            pass
         except Exception as exc:  # noqa: BLE001
             print(
                 f"self-test FAIL: catalog_parse_negative raised the wrong "
                 f"exception type: {exc!r}",
                 file=sys.stderr,
             )
-            return False
-        print(
-            "self-test FAIL: catalog_parse_negative did not raise on a "
-            "malformed header",
-            file=sys.stderr,
-        )
-        return False
+            ok = False
     finally:
         try:
             tmp_path.unlink()
         except OSError:
             pass
+
+    with tempfile.NamedTemporaryFile(
+        mode="w", suffix=".md", delete=False, encoding="utf-8"
+    ) as tmp:
+        tmp.write(_TRAVERSAL_ID_CATALOG_FIXTURE)
+        traversal_path = Path(tmp.name)
+    try:
+        try:
+            _read_quality_catalog(traversal_path)
+            print(
+                "self-test FAIL: catalog_parse_negative did not raise on a "
+                "traversal catalog id",
+                file=sys.stderr,
+            )
+            ok = False
+        except ValueError as exc:
+            msg = str(exc)
+            if "../../scripts/check-agent" not in msg:
+                print(
+                    f"self-test FAIL: catalog_parse_negative traversal-id "
+                    f"error does not name the offending id: {msg!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if f"{traversal_path}:5" not in msg:
+                print(
+                    f"self-test FAIL: catalog_parse_negative traversal-id "
+                    f"error does not name the source line number: {msg!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: catalog_parse_negative traversal-id "
+                f"raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    finally:
+        try:
+            traversal_path.unlink()
+        except OSError:
+            pass
+
+    return ok
 
 
 def _selftest_guardrail_a() -> bool:
