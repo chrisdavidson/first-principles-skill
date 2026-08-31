@@ -269,21 +269,36 @@ def _anchored_match(key: str, target: str) -> bool:
 
 def _bind(
     gt: GroundTruth, tool_calls: list[tuple[str, str, str]]
-) -> tuple[str, str, str] | None:
-    """Bind `gt` to the one capture triple whose target anchors on gt's join
+) -> tuple[int, tuple[str, str, str], tuple[int, ...]] | None:
+    """Bind `gt` to the capture triple(s) whose target anchors on gt's join
     key (see `_anchored_match` -- never a raw substring test).
 
-    Zero matches is unmatched (returns None). Two or more matches is ALSO a
-    failure -- an ambiguous join must never be silently resolved by taking the
-    first (measured: no collisions on the fixture) -- and also returns None.
+    Zero matches is unmatched (returns None). Two or more matches with
+    DIFFERING `target` strings is a genuine ambiguous join -- an ambiguous
+    join must never be silently resolved by taking the first (measured: no
+    such collision on the fixture) -- and also returns None (CR-01/CR-02).
+
+    Two or more matches that all share the SAME `target` string (e.g. a
+    WebFetch retried after a transient failure, or fetched twice for two
+    different literals) are NOT ambiguous: they bind to the first occurrence,
+    and every matching index is returned alongside it so the caller can mark
+    all of them bound rather than reporting the retry as unmatched (CR-02).
+
+    Returns `(index, triple, all_matched_indices)` on a successful bind, so
+    `verify()` never needs to re-derive the index via a value-equality
+    `tool_calls.index(triple)` lookup.
     """
     key = _join_key(gt.source)
     if not key:
         return None
-    matches = [t for t in tool_calls if _anchored_match(key, t[1])]
-    if len(matches) == 1:
-        return matches[0]
-    return None
+    matches = [(i, t) for i, t in enumerate(tool_calls) if _anchored_match(key, t[1])]
+    if not matches:
+        return None
+    distinct_targets = {t[1] for _, t in matches}
+    if len(distinct_targets) > 1:
+        return None
+    first_index, first_triple = matches[0]
+    return first_index, first_triple, tuple(i for i, _ in matches)
 
 
 # ---------------------------------------------------------------------------
@@ -346,12 +361,12 @@ def verify(
     literals_checked = 0
 
     for gt in read_gts:
-        triple = _bind(gt, tool_calls)
-        if triple is None:
+        bound = _bind(gt, tool_calls)
+        if bound is None:
             unmatched_ids.append(gt.gt_id)
             continue
-        idx = tool_calls.index(triple)
-        bound_indices.add(idx)
+        idx, triple, all_indices = bound
+        bound_indices.update(all_indices)
         retrieved = triple[2]
 
         # D-08: an unreadable bound source is counted INSTEAD OF running literal
