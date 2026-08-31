@@ -1015,11 +1015,17 @@ def _rows_v824() -> list[MatrixRow]:
     _rows_v818() rejects it -- VAL-04 would get an artifact_link that does not exist, the
     vacuous-green shape.
 
-    Honesty note on GATE-02: no offline gate re-reads .github/workflows/validation.yml.
-    GATE-02's artifact_link points at scripts/check-firewall-battery.sh because that is the
-    offline surface which re-runs the same PROV-GUARD gate the CI job registers; GATE-02's own
-    ROADMAP success criterion is file-shape correctness against the 19 sibling jobs, and D-17
-    explicitly did not require a live CI-run observation.
+    GATE-02 (WR-02, v8.24 code review): this row used to point at
+    scripts/check-firewall-battery.sh with a docstring note conceding that no offline gate
+    re-read .github/workflows/validation.yml -- which made "reproducible" a claim nothing
+    could falsify, the vacuously-green shape this function's tiering paragraph above rejects
+    for VAL-04. REG-GUARD now carries a real leg for it: verify_ci_job_registration() reads
+    the battery's own `gate "<ID>"` registrations and every CI job's `name: <job> (<GATE-ID>)`
+    field, and fails when a battery gate has no CI job (QUAL-01 is the single named
+    battery-only exemption). Deleting the check-provenance job from validation.yml now turns
+    REG-GUARD red -- measured as a live negative control -- so the artifact_link points at
+    that assertion by symbol anchor, binding the row to the check rather than to a file's mere
+    existence.
     """
     audit_v824 = (
         "Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this "
@@ -1057,7 +1063,8 @@ def _rows_v824() -> list[MatrixRow]:
                   "reproducible", "scripts/check-provenance.py", ""),
         MatrixRow("v8.24/GATE-02", "GATE-02", "v8.24", "Test-Network",
                   ".github/workflows/validation.yml",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible",
+                  "scripts/check-registration.py#verify_ci_job_registration", ""),
         MatrixRow("v8.24/GATE-03", "GATE-03", "v8.24", "Test-Network",
                   "scripts/check-firewall-battery.sh",
                   "reproducible", "scripts/check-firewall-battery.sh", ""),

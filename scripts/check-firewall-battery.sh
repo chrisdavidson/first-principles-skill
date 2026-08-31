@@ -327,8 +327,12 @@ gate "VERSION-01" \
     "python3 scripts/check-version-stamps.py --self-test" \
     "python3 scripts/check-version-stamps.py"
 
-# REG-GUARD — registration completeness: every skill directory and the main
-#             agent carry a frontmatter `name:` matching their own basename.
+# REG-GUARD — registration completeness over two surfaces: (a) every skill
+#             directory and the main agent carry a frontmatter `name:` matching
+#             their own basename; (b) every gate registered in THIS file has a
+#             matching `name: <job> (<GATE-ID>)` job in
+#             .github/workflows/validation.yml, QUAL-01 excepted as the one
+#             documented battery-only gate (WR-02, v8.24).
 #             Runs the live scan as well as the self-test, for the same reason
 #             VERSION-01 above does: the self-test is fixture-isolated, so the
 #             self-test alone asserts nothing about the shipped tree.

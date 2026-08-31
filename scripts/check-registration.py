@@ -16,9 +16,16 @@ Usage:
 
 Exit codes: 0 pass, 1 validation/content failure, 2 environment error.
 
---self-test: runs 21 named, decision-traceable controls against tempdir and
+--self-test: runs 29 named, decision-traceable controls against tempdir and
 in-memory fixtures — fully offline and deterministic, no network access and
 no live Claude session, independent of the live first-principles/ tree.
+
+Two registration axes. The plugin axis (Phase 1/2) is above. The CI-job axis
+(WR-02, v8.24 Phase 6) asserts that every gate `scripts/check-firewall-battery.sh`
+registers also has a `name: <job> (<GATE-ID>)` job in
+`.github/workflows/validation.yml`, with QUAL-01 the one named, documented
+battery-only exemption — so deleting a CI job can no longer leave every offline
+gate green.
 """
 
 from __future__ import annotations
@@ -47,6 +54,33 @@ SKILLS_DIR: Path = PLUGIN_DIR / "skills"
 AGENT_NAME: str = "first-principles"
 AGENT_PATH: Path = PLUGIN_DIR / "agents" / "first-principles.md"
 MANIFEST_PATH: Path = PLUGIN_DIR / ".claude-plugin" / "plugin.json"
+
+# --- CI-job registration axis (WR-02, v8.24 Phase 6) ------------------------
+# The second registration surface this gate covers: a gate that the offline
+# firewall battery runs must also be wired into CI, or the two surfaces drift
+# and a deleted CI job leaves every offline gate green. Same shape as the
+# plugin axis above — a declared component must resolve on the surface that is
+# supposed to carry it.
+BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
+CI_WORKFLOW_PATH: Path = REPO_ROOT / ".github" / "workflows" / "validation.yml"
+
+# Gate ids the battery runs that deliberately carry NO CI job. QUAL-01 is
+# battery-only by design — CLAUDE.md's CI gates table states it outright
+# ("QUAL-01 is battery-only — it has no CI job, and
+# `bash scripts/check-firewall-battery.sh` is the only thing that runs it").
+# Kept as an explicit, named exemption rather than a silent skip: adding a gate
+# here is a visible diff, which is the whole point of the check.
+BATTERY_ONLY_GATE_IDS: frozenset[str] = frozenset({"QUAL-01"})
+
+# `gate "VAL-01" \` / `    gate_prereq "VAL-03" \` — the battery's two
+# registration verbs. The function *definitions* (`gate() {`) never match: the
+# id must be a double-quoted token, and a `#` comment line cannot reach `gate`.
+_BATTERY_GATE_RE = re.compile(r'^[ \t]*gate(?:_prereq)?[ \t]+"([^"]+)"', re.MULTILINE)
+
+# `check-provenance (PROV-GUARD)` → job "check-provenance", ids "PROV-GUARD".
+# A job name with no parenthetical (`GATE-02-v8.5`) is treated as the gate id
+# itself; a parenthetical holding several ids (`VAL-04/GATE-02`) splits on "/".
+_CI_JOB_NAME_RE = re.compile(r"^(?P<job>.*?)\s*\((?P<ids>[^()]+)\)\s*$")
 
 # Matches scripts/_skill_io.py's constant of the same name — splits frontmatter
 # text on the `---` fence lines.
@@ -409,6 +443,172 @@ def collect_verification_failures(report: dict) -> list[str]:
     return failures
 
 
+def extract_battery_gate_ids(battery_text: str) -> list[str]:
+    """Return every gate id `scripts/check-firewall-battery.sh` registers.
+
+    Reads the battery's own `gate "<ID>"` / `gate_prereq "<ID>"` registration
+    lines — the same text the battery executes — so this cannot drift from what
+    actually runs. Order-preserving with duplicates removed: VAL-03 registers
+    twice (a `gate` call and a `gate_prereq` call in the two arms of the
+    pytest-resolution `if`), and that is one gate, not two.
+    """
+    seen: list[str] = []
+    for gate_id in _BATTERY_GATE_RE.findall(battery_text):
+        if gate_id not in seen:
+            seen.append(gate_id)
+    return seen
+
+
+def parse_ci_job_name(job_name: str) -> list[str]:
+    """Return the gate ids a CI job's `name:` field declares.
+
+    Three observed forms in `.github/workflows/validation.yml`:
+      - `check-provenance (PROV-GUARD)`      -> ["PROV-GUARD"]
+      - `check-trigger-collisions (VAL-04/GATE-02)` -> ["VAL-04", "GATE-02"]
+      - `GATE-02-v8.5`                       -> ["GATE-02-v8.5"]
+
+    The third form is the bare-name job; treating the whole name as the id is
+    what keeps it covered rather than silently unmatched.
+    """
+    stripped = job_name.strip()
+    if not stripped:
+        return []
+    match = _CI_JOB_NAME_RE.match(stripped)
+    if match is None:
+        return [stripped]
+    return [part.strip() for part in match.group("ids").split("/") if part.strip()]
+
+
+def extract_ci_gate_ids(workflow: dict) -> dict[str, str]:
+    """Map gate id -> declaring CI job name, from a parsed workflow document.
+
+    Reads each entry under the workflow's top-level `jobs:` mapping and parses
+    that job's `name:` field with parse_ci_job_name(). The workflow-level
+    `name: validation` is out of scope by construction — it is not under
+    `jobs:`. A job with no `name:` contributes nothing (it cannot declare a
+    gate id it does not carry).
+    """
+    mapping: dict[str, str] = {}
+    jobs = workflow.get("jobs") if isinstance(workflow, dict) else None
+    if not isinstance(jobs, dict):
+        return mapping
+    for job_body in jobs.values():
+        if not isinstance(job_body, dict):
+            continue
+        job_name = job_body.get("name")
+        if not isinstance(job_name, str):
+            continue
+        for gate_id in parse_ci_job_name(job_name):
+            mapping.setdefault(gate_id, job_name)
+    return mapping
+
+
+def verify_ci_job_registration(
+    battery_gate_ids: list[str],
+    ci_gate_ids: dict[str, str],
+    *,
+    battery_only: frozenset[str] = BATTERY_ONLY_GATE_IDS,
+) -> list[dict]:
+    """Return one JSON-serializable record per battery gate id.
+
+    Pure: does no I/O, so the self-test drives it with in-memory literals.
+    Each record is {gate_id, ci_job_name, registered, battery_only}. A gate in
+    `battery_only` is recorded with registered=True and battery_only=True — an
+    exemption that is visible in the report rather than an omission.
+    """
+    records: list[dict] = []
+    for gate_id in battery_gate_ids:
+        job_name = ci_gate_ids.get(gate_id)
+        exempt = gate_id in battery_only
+        records.append(
+            {
+                "gate_id": gate_id,
+                "ci_job_name": job_name,
+                "registered": bool(job_name) or exempt,
+                "battery_only": exempt,
+            }
+        )
+    return records
+
+
+def collect_ci_registration_failures(records: list[dict]) -> list[str]:
+    """Return one failure line per battery gate with no CI job, or [].
+
+    Accumulate-then-report, matching collect_verification_failures() (REG-06).
+    """
+    return [
+        "battery gate has no CI job: "
+        f"'{record['gate_id']}' is registered in scripts/check-firewall-battery.sh "
+        "but no job in .github/workflows/validation.yml declares it "
+        "(expected a `name: <job> (<GATE-ID>)` entry)"
+        for record in records
+        if not record["registered"]
+    ]
+
+
+def build_ci_registration_records(
+    *,
+    battery_path: Path = BATTERY_PATH,
+    workflow_path: Path = CI_WORKFLOW_PATH,
+) -> list[dict]:
+    """Read both live surfaces and return verify_ci_job_registration() records.
+
+    The only I/O entry point for this axis. Exits 2 (environment error) if
+    either surface is unreadable or the workflow is not parseable YAML —
+    matching parse_manifest()'s fail-fast contract, because a missing surface
+    is not a registration finding, it is a broken checkout.
+    """
+    for path in (battery_path, workflow_path):
+        if not path.exists():
+            sys.stderr.write(
+                f"check-registration: required file not found: {path}\n"
+            )
+            sys.exit(2)
+
+    battery_text = battery_path.read_text(encoding="utf-8")
+    try:
+        workflow = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        sys.stderr.write(
+            f"check-registration: could not parse {workflow_path}: {exc}\n"
+        )
+        sys.exit(2)
+
+    battery_gate_ids = extract_battery_gate_ids(battery_text)
+    if not battery_gate_ids:
+        # Non-vacuity guard, mirroring main()'s `if not skills`. A regressed
+        # extractor returning [] would otherwise report "0 failures" — the
+        # exact vacuously-green shape this check exists to prevent.
+        sys.stderr.write(
+            "check-registration: FAIL — extracted 0 gate registrations from "
+            f"{battery_path} (extractor regression? expected a populated list)\n"
+        )
+        sys.exit(1)
+
+    return verify_ci_job_registration(
+        battery_gate_ids, extract_ci_gate_ids(workflow)
+    )
+
+
+def format_ci_registration_text(records: list[dict]) -> str:
+    """Render CI-registration records as human-readable multi-line text."""
+    exempt = [r for r in records if r["battery_only"]]
+    matched = [r for r in records if r["registered"] and not r["battery_only"]]
+    lines = [
+        "",
+        "CI job registration (GATE-02 — battery gate -> validation.yml job):",
+        f"  Battery gates: {len(records)} registered in "
+        "scripts/check-firewall-battery.sh",
+        f"  CI-matched: {len(matched)}; battery-only by design: "
+        f"{len(exempt)} ({', '.join(r['gate_id'] for r in exempt) or 'none'})",
+    ]
+    failures = collect_ci_registration_failures(records)
+    if failures:
+        lines.append("  Failures:")
+        lines.extend(f"    {failure}" for failure in failures)
+    return "\n".join(lines)
+
+
 def format_report_text(report: dict) -> str:
     """Render a discovery report dict as human-readable multi-line text."""
     lines: list[str] = []
@@ -500,7 +700,7 @@ def _write_skills_fixture(base: Path) -> None:
 
 
 def _run_self_test() -> None:
-    """Run 15 named, decision-traceable offline controls against the
+    """Run 29 named, decision-traceable offline controls against the
     production helpers, using tempdir and in-memory fixtures only.
 
     Fully deterministic and offline: no network, no live Claude session, no
@@ -1212,13 +1412,180 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    # --- CI-job registration axis (WR-02, v8.24 Phase 6) --------------------
+    # In-memory only, matching every control above: these never read the real
+    # scripts/check-firewall-battery.sh or .github/workflows/validation.yml, so
+    # adding or removing a gate can never flip the self-test. The live leg
+    # (main()) is what asserts the invariant on the shipped surfaces — the same
+    # split REG-GUARD's plugin axis already uses.
+
+    # Control 25 — extract_battery_gate_ids: ordered extraction with VAL-03's
+    # double registration collapsed to one. Anti-masking: the fixture also
+    # carries the `gate() {` function definition and a commented-out
+    # registration, neither of which may appear in the result.
+    battery_fixture_25 = (
+        "gate() {\n"
+        '    local gate_id="$1"\n'
+        "}\n"
+        "gate_prereq() {\n"
+        "    :\n"
+        "}\n"
+        '# gate "COMMENTED-OUT" \\\n'
+        'gate "DUAL-04" \\\n'
+        '    "sync-content.py --check"\n'
+        'if [ -n "$_p" ]; then\n'
+        '    gate "VAL-03" \\\n'
+        '        "check-links.py"\n'
+        "else\n"
+        '    gate_prereq "VAL-03" \\\n'
+        '        "check-links.py" \\\n'
+        '        "no pytest"\n'
+        "fi\n"
+        'gate "QUAL-01" \\\n'
+        '    "check-quality-harness.py --self-test"\n'
+    )
+    extracted_25 = extract_battery_gate_ids(battery_fixture_25)
+    if extracted_25 != ["DUAL-04", "VAL-03", "QUAL-01"]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 25: "
+            f"extract_battery_gate_ids returned {extracted_25!r}, expected "
+            "['DUAL-04', 'VAL-03', 'QUAL-01'] (order-preserving, VAL-03 "
+            "deduped, definitions and comments excluded)\n"
+        )
+        sys.exit(1)
+
+    # Control 26 — parse_ci_job_name over all three observed name forms.
+    for job_name_26, expected_26 in (
+        ("check-provenance (PROV-GUARD)", ["PROV-GUARD"]),
+        ("check-trigger-collisions (VAL-04/GATE-02)", ["VAL-04", "GATE-02"]),
+        ("GATE-02-v8.5", ["GATE-02-v8.5"]),
+        ("", []),
+    ):
+        parsed_26 = parse_ci_job_name(job_name_26)
+        if parsed_26 != expected_26:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — Control 26: "
+                f"parse_ci_job_name({job_name_26!r}) returned {parsed_26!r}, "
+                f"expected {expected_26!r}\n"
+            )
+            sys.exit(1)
+
+    # Control 27 — extract_ci_gate_ids over an in-memory workflow document.
+    # Anti-masking: the workflow-level `name:` ("validation") must NOT be
+    # harvested as a gate id, and a job with no `name:` contributes nothing.
+    workflow_27 = {
+        "name": "validation",
+        "jobs": {
+            "prov": {"name": "check-provenance (PROV-GUARD)"},
+            "trig": {"name": "check-trigger-collisions (VAL-04/GATE-02)"},
+            "pointer": {"name": "GATE-02-v8.5"},
+            "nameless": {"runs-on": "ubuntu-latest"},
+        },
+    }
+    ci_map_27 = extract_ci_gate_ids(workflow_27)
+    if set(ci_map_27) != {"PROV-GUARD", "VAL-04", "GATE-02", "GATE-02-v8.5"}:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 27: "
+            f"extract_ci_gate_ids returned ids {sorted(ci_map_27)!r}, expected "
+            "['GATE-02', 'GATE-02-v8.5', 'PROV-GUARD', 'VAL-04']\n"
+        )
+        sys.exit(1)
+    if "validation" in ci_map_27:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 27 anti-masking: "
+            "the workflow-level name 'validation' was harvested as a gate id\n"
+        )
+        sys.exit(1)
+    if ci_map_27["VAL-04"] != "check-trigger-collisions (VAL-04/GATE-02)":
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 27: VAL-04 mapped "
+            f"to job {ci_map_27['VAL-04']!r}, expected the declaring job name\n"
+        )
+        sys.exit(1)
+    if extract_ci_gate_ids({}) != {}:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 27: a workflow "
+            "with no jobs: mapping must yield {}\n"
+        )
+        sys.exit(1)
+
+    # Control 28 — NEGATIVE CONTROL, the one this axis exists for: a battery
+    # gate whose CI job has been deleted must produce exactly one failure line,
+    # and that line must name the gate. This is the in-memory twin of the live
+    # control (delete the check-provenance job from validation.yml; the gate
+    # must go red).
+    battery_ids_28 = ["DUAL-04", "PROV-GUARD", "QUAL-01"]
+    ci_map_missing_28 = {"DUAL-04": "sync-check (DUAL-04)"}
+    records_28 = verify_ci_job_registration(battery_ids_28, ci_map_missing_28)
+    failures_28 = collect_ci_registration_failures(records_28)
+    if len(failures_28) != 1 or "PROV-GUARD" not in failures_28[0]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 28 negative "
+            "control: deleting PROV-GUARD's CI job produced "
+            f"{failures_28!r}, expected exactly one failure naming PROV-GUARD\n"
+        )
+        sys.exit(1)
+    if "PROV-GUARD" not in format_ci_registration_text(records_28):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 28: the rendered "
+            "report does not name the unregistered gate PROV-GUARD\n"
+        )
+        sys.exit(1)
+
+    # Control 29 — anti-masking positive half: with every non-exempt gate
+    # CI-registered, the same helpers must report zero failures, and QUAL-01's
+    # battery-only exemption must be recorded as an exemption (not silently
+    # dropped from the records). Without this half, a collector that always
+    # returned [] would pass Control 28's sibling assertions.
+    ci_map_full_29 = {
+        "DUAL-04": "sync-check (DUAL-04)",
+        "PROV-GUARD": "check-provenance (PROV-GUARD)",
+    }
+    records_29 = verify_ci_job_registration(battery_ids_28, ci_map_full_29)
+    failures_29 = collect_ci_registration_failures(records_29)
+    if failures_29:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29 anti-masking: "
+            f"a fully registered battery reported failures {failures_29!r}\n"
+        )
+        sys.exit(1)
+    if [r["gate_id"] for r in records_29] != battery_ids_28:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29: records must "
+            f"cover every battery gate in order, got "
+            f"{[r['gate_id'] for r in records_29]!r}\n"
+        )
+        sys.exit(1)
+    qual_29 = [r for r in records_29 if r["gate_id"] == "QUAL-01"]
+    if len(qual_29) != 1 or not qual_29[0]["battery_only"] or qual_29[0]["ci_job_name"]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29: QUAL-01 must "
+            f"be recorded as a battery-only exemption, got {qual_29!r}\n"
+        )
+        sys.exit(1)
+    # Exemption must not be over-broad: with QUAL-01 removed from the exempt
+    # set, the very same inputs must fail.
+    records_29b = verify_ci_job_registration(
+        battery_ids_28, ci_map_full_29, battery_only=frozenset()
+    )
+    failures_29b = collect_ci_registration_failures(records_29b)
+    if len(failures_29b) != 1 or "QUAL-01" not in failures_29b[0]:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — Control 29 exemption "
+            "scope: with an empty exempt set QUAL-01 must fail, got "
+            f"{failures_29b!r}\n"
+        )
+        sys.exit(1)
+
     print(
-        "check-registration --self-test: PASS (24 controls: discovery "
+        "check-registration --self-test: PASS (29 controls: discovery "
         "exclusions D-10/D-11/D-12, agent presence, manifest fail-fast "
         "D-09, absent-key tolerance D-07, report shape, frontmatter name "
         "extraction, skill/agent name verification, manifest-path "
         "resolution and containment, tempdir-fixture report values, "
-        "failure collection accumulate-then-report, text rendering)"
+        "failure collection accumulate-then-report, text rendering, "
+        "battery/CI gate-id extraction, CI-job registration with "
+        "missing-job negative control and exemption-scope control)"
     )
     sys.exit(0)
 
@@ -1226,8 +1593,8 @@ def _run_self_test() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "REG-GUARD (Phase 1 discovery): enumerate plugin skills/agent "
-            "and parse the plugin manifest."
+            "REG-GUARD: enumerate plugin skills/agent, parse the plugin "
+            "manifest, and verify every firewall-battery gate has a CI job."
         )
     )
     parser.add_argument(
@@ -1269,11 +1636,17 @@ def main() -> None:
         )
         sys.exit(1)
 
+    # WR-02 (v8.24 Phase 6): the CI-job registration axis. Read live here, not
+    # inside build_discovery_report(), which stays pure over in-memory fixtures.
+    ci_records = build_ci_registration_records()
+    report["ci_job_registration"] = ci_records
+
     # Plan 02 (D-07): registration verification findings — name mismatches
     # and unresolved manifest-declared paths — gate exit 1 here. Environment
     # errors (manifest I/O/parse failures) already exited 2 above, inside
     # parse_manifest(), before we ever reached this point.
     verification_failures = collect_verification_failures(report)
+    verification_failures.extend(collect_ci_registration_failures(ci_records))
     if verification_failures:
         # Print the full report first so the operator sees the whole summary
         # before the failure lines (REG-06 accumulate-then-report).
@@ -1281,6 +1654,7 @@ def main() -> None:
             print(json.dumps(report, indent=2))
         else:
             print(format_report_text(report))
+            print(format_ci_registration_text(ci_records))
         for failure in verification_failures:
             sys.stderr.write(failure + "\n")
         sys.stderr.write(
@@ -1294,10 +1668,15 @@ def main() -> None:
     skill_matched = sum(1 for r in skill_verifications if r["matches"])
     skill_total = len(skill_verifications)
 
+    ci_matched = sum(
+        1 for r in ci_records if r["registered"] and not r["battery_only"]
+    )
     pass_line = (
         f"check-registration: PASS (discovered {len(skills)} skills, "
         "agent present, manifest parsed, "
-        f"{skill_matched}/{skill_total} names verified)"
+        f"{skill_matched}/{skill_total} names verified, "
+        f"{ci_matched}/{len(ci_records)} battery gates CI-registered "
+        f"+ {len(ci_records) - ci_matched} battery-only by design)"
     )
 
     if args.json:
@@ -1307,6 +1686,7 @@ def main() -> None:
         sys.stderr.write(pass_line + "\n")
     else:
         print(format_report_text(report))
+        print(format_ci_registration_text(ci_records))
         print(pass_line)
 
     sys.exit(0)
