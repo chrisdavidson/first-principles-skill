@@ -146,6 +146,11 @@ REGEN_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-regenerated"
 # against REGEN_DIR's analyses/ (the frozen pre-fix analyses it re-judged
 # same-day), not its own.
 POSTFIX_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-postfix"
+# Phase 4 (v8.24.0), CAP-02/CAP-03: the committed PR-P1 capture — the only
+# fixture in the repo carrying real subagent WebFetch/Read tool calls,
+# recovered from a reaping-vulnerable scratchpad and not reproducible
+# without a paid live run. See tests/quality-provenance-v8.24/README.md.
+PROVENANCE_FIXTURE_DIR: Path = REPO_ROOT / "tests" / "quality-provenance-v8.24"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -471,6 +476,77 @@ def _tool_result_text(content) -> str:
     if isinstance(content, list):
         return "".join(b.get("text", "") for b in content if isinstance(b, dict))
     return ""
+
+
+_CAPTURE_TOOL_TARGET_KEYS = {"WebFetch": "url", "Read": "file_path"}
+
+
+def _iter_capture_tool_calls(
+    jsonl_path: Path, tool_names: tuple[str, ...] = ("WebFetch", "Read")
+) -> list[tuple[str, str, str]]:
+    """Yield (tool_name, target, retrieved_text) triples for the named tools.
+
+    (a) Deliberately does NOT reuse _find_agent_dispatch_ids, which is
+    hard-filtered to name == "Agent" plus a subagent_type match and returns
+    bare ids with no path to input.url or input.file_path. Reusing it here
+    would return an empty list on every capture -- a silent wrong answer,
+    the worst failure shape for a provenance building block. Keeping the
+    traversals separate also means a defect here cannot reach Guardrail B's
+    dispatch-counting logic.
+
+    (b) It never opens the path a Read call names. retrieved_text comes
+    exclusively from the capture's own tool_result block. Turning this into
+    an actual filesystem read would make a capture's contents drive a file
+    open, and would break replayability besides.
+
+    (c) An empty return is the correct, non-exceptional result for a capture
+    holding none of the target tools. This is a reader, not a verifier;
+    reporting an unmatched label as a defect is a later verifier's job, not
+    this function's.
+
+    (d) It makes no judgement about Guardrail A or B and calls no function
+    that does.
+    """
+    objs = _iter_jsonl_objects(jsonl_path)
+
+    calls: list[tuple[str, str, str]] = []  # (tool_use_id, tool_name, target)
+    for obj in objs:
+        if obj.get("type") != "assistant":
+            continue
+        msg = obj.get("message", {})
+        content = msg.get("content", []) if isinstance(msg, dict) else []
+        for c in content if isinstance(content, list) else []:
+            if not isinstance(c, dict) or c.get("type") != "tool_use":
+                continue
+            name = c.get("name")
+            if name not in tool_names:
+                continue
+            key = _CAPTURE_TOOL_TARGET_KEYS.get(name)
+            inp = c.get("input")
+            inp = inp if isinstance(inp, dict) else {}
+            target = inp.get(key, "") if key else ""
+            tool_use_id = c.get("id")
+            if tool_use_id:
+                calls.append((tool_use_id, name, target))
+
+    results: dict[str, str] = {}
+    for obj in objs:
+        if obj.get("type") != "user":
+            continue
+        msg = obj.get("message", {})
+        content = msg.get("content", []) if isinstance(msg, dict) else []
+        for c in content if isinstance(content, list) else []:
+            if not isinstance(c, dict) or c.get("type") != "tool_result":
+                continue
+            tool_use_id = c.get("tool_use_id")
+            if not tool_use_id:
+                continue
+            results[tool_use_id] = _tool_result_text(c.get("content"))
+
+    return [
+        (name, target, results.get(tool_use_id, ""))
+        for tool_use_id, name, target in calls
+    ]
 
 
 def _read_top_level_result(jsonl_path: Path) -> str:
@@ -1241,6 +1317,277 @@ def _selftest_guardrail_b() -> bool:
             file=sys.stderr,
         )
         ok = False
+
+    return ok
+
+
+def _selftest_capture_tool_reader() -> bool:
+    """Item 19 (v8.24.0 Phase 4, CAP-03): _iter_capture_tool_calls proves the
+    committed PR-P1 fixture's event inventory in code, not only in prose.
+
+    Seven independently-failable controls:
+
+    1. POSITIVE reader output — _iter_capture_tool_calls on the committed
+       fixture returns exactly 9 triples: 7 WebFetch, 2 Read. Every target
+       and retrieved_text is non-empty. The 7 WebFetch targets all start
+       with "https://". The 2 Read targets end with the two named
+       reference filenames.
+    2. POSITIVE asserted event inventory — counting tool_use blocks by name
+       and tool_result blocks directly over _iter_jsonl_objects of the
+       committed fixture yields Agent 1, ToolSearch 1, WebFetch 7, Read 2,
+       tool_result 11.
+    3. ANTI-MASKING — no Agent and no ToolSearch triple appears in the
+       reader's output, even though control 2 proves both blocks exist in
+       the same file. A reader that returned every tool_use would fail
+       this and pass control 2.
+    4. ANTI-VACUITY (the 7 is measured, not constant) — a mutated copy of
+       the fixture with every "WebFetch" tool-use name replaced by a name
+       not in the default tuple must return exactly 2 triples, both Read.
+       A hardcoded 7, or a loop that never actually matched, cannot
+       survive this.
+    5. ANTI-VACUITY (the id-join is real) — a mutated copy with every
+       tool_result block removed must still return 9 triples with
+       non-empty targets, but every retrieved_text must be empty —
+       proving the non-empty-text assertion in control 1 is load-bearing
+       rather than trivially satisfied.
+    6. NEGATIVE graceful degradation — _iter_capture_tool_calls on
+       tests/quality-probe-v8.7/probe-P1.jsonl (zero external tool calls)
+       returns [] and does not raise.
+    7. GUARDRAIL NON-INTERFERENCE — on the same committed fixture, with
+       the extraction code unchanged: _find_agent_dispatch_ids returns
+       exactly 1 id; extract_agent_analysis does not raise and returns
+       34,943 chars, more than twice the length of (and not equal to)
+       _read_top_level_result on the same file (2,636 chars). Re-proves
+       Guardrails A and B on the new fixture without touching their own
+       self-test items.
+
+    Both mutated copies (controls 4 and 5) are written only into a
+    tempfile.TemporaryDirectory() — never into tests/, which is now inside
+    the FROZEN-EVIDENCE pathspec.
+    """
+    ok = True
+    fixture_path = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
+    probe_path = REPO_ROOT / "tests" / "quality-probe-v8.7" / "probe-P1.jsonl"
+
+    # Control 1: positive reader output.
+    triples = _iter_capture_tool_calls(fixture_path)
+    webfetch_triples = [t for t in triples if t[0] == "WebFetch"]
+    read_triples = [t for t in triples if t[0] == "Read"]
+    if len(webfetch_triples) != 7 or len(read_triples) != 2:
+        print(
+            f"self-test FAIL: capture_tool_reader control 1 (positive) — "
+            f"expected 7 WebFetch + 2 Read, got {len(webfetch_triples)} "
+            f"WebFetch + {len(read_triples)} Read",
+            file=sys.stderr,
+        )
+        ok = False
+    if not all(target and text for _, target, text in triples):
+        print(
+            "self-test FAIL: capture_tool_reader control 1 (positive) — "
+            "an empty target or retrieved_text was found among the "
+            "reader's triples",
+            file=sys.stderr,
+        )
+        ok = False
+    if not all(target.startswith("https://") for _, target, _ in webfetch_triples):
+        print(
+            "self-test FAIL: capture_tool_reader control 1 (positive) — "
+            "not every WebFetch target starts with https://",
+            file=sys.stderr,
+        )
+        ok = False
+    read_targets = {target for _, target, _ in read_triples}
+    if not any(t.endswith("agents/references/validation-rubric.md") for t in read_targets) or not any(
+        t.endswith("agents/references/output-template.md") for t in read_targets
+    ):
+        print(
+            f"self-test FAIL: capture_tool_reader control 1 (positive) — "
+            f"Read targets do not match the expected pair: {sorted(read_targets)!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 2: asserted event inventory, counted directly over
+    # _iter_jsonl_objects (not via the reader under test).
+    objs = _iter_jsonl_objects(fixture_path)
+    tool_use_counts: dict[str, int] = {}
+    tool_result_count = 0
+    for obj in objs:
+        if obj.get("type") == "assistant":
+            msg = obj.get("message", {})
+            content = msg.get("content", []) if isinstance(msg, dict) else []
+            for c in content if isinstance(content, list) else []:
+                if isinstance(c, dict) and c.get("type") == "tool_use":
+                    name = c.get("name")
+                    tool_use_counts[name] = tool_use_counts.get(name, 0) + 1
+        elif obj.get("type") == "user":
+            msg = obj.get("message", {})
+            content = msg.get("content", []) if isinstance(msg, dict) else []
+            for c in content if isinstance(content, list) else []:
+                if isinstance(c, dict) and c.get("type") == "tool_result":
+                    tool_result_count += 1
+    expected_inventory = {"Agent": 1, "ToolSearch": 1, "WebFetch": 7, "Read": 2}
+    if tool_use_counts != expected_inventory or tool_result_count != 11:
+        print(
+            f"self-test FAIL: capture_tool_reader control 2 (event "
+            f"inventory) — expected {expected_inventory} tool_use and 11 "
+            f"tool_result, got {tool_use_counts} tool_use and "
+            f"{tool_result_count} tool_result",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 3: anti-masking — the filter is real, not decorative.
+    if any(name in ("Agent", "ToolSearch") for name, _, _ in triples):
+        print(
+            "self-test FAIL: capture_tool_reader control 3 (anti-masking) "
+            "— an Agent or ToolSearch triple leaked into the reader's "
+            "output",
+            file=sys.stderr,
+        )
+        ok = False
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+
+        # Control 4: anti-vacuity — rename every WebFetch tool-use so the
+        # default tuple no longer matches it.
+        renamed_objs = []
+        for obj in objs:
+            obj_copy = json.loads(json.dumps(obj))
+            if obj_copy.get("type") == "assistant":
+                msg = obj_copy.get("message")
+                content = msg.get("content") if isinstance(msg, dict) else None
+                if isinstance(content, list):
+                    for c in content:
+                        if isinstance(c, dict) and c.get("type") == "tool_use" and c.get(
+                            "name"
+                        ) == "WebFetch":
+                            c["name"] = "NotAWebFetchTool"
+            renamed_objs.append(obj_copy)
+        renamed_path = tmp_path / "renamed.jsonl"
+        renamed_path.write_text(
+            "\n".join(json.dumps(o) for o in renamed_objs), encoding="utf-8"
+        )
+        renamed_triples = _iter_capture_tool_calls(renamed_path)
+        if len(renamed_triples) != 2 or any(name != "Read" for name, _, _ in renamed_triples):
+            print(
+                f"self-test FAIL: capture_tool_reader control 4 "
+                f"(anti-vacuity, rename) — expected exactly 2 Read "
+                f"triples after renaming every WebFetch, got "
+                f"{renamed_triples!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 5: anti-vacuity — strip every tool_result block so the
+        # id-join has nothing to match.
+        stripped_objs = []
+        for obj in objs:
+            obj_copy = json.loads(json.dumps(obj))
+            if obj_copy.get("type") == "user":
+                msg = obj_copy.get("message")
+                content = msg.get("content") if isinstance(msg, dict) else None
+                if isinstance(content, list):
+                    msg["content"] = [
+                        c
+                        for c in content
+                        if not (isinstance(c, dict) and c.get("type") == "tool_result")
+                    ]
+            stripped_objs.append(obj_copy)
+        stripped_path = tmp_path / "stripped.jsonl"
+        stripped_path.write_text(
+            "\n".join(json.dumps(o) for o in stripped_objs), encoding="utf-8"
+        )
+        stripped_triples = _iter_capture_tool_calls(stripped_path)
+        if len(stripped_triples) != 9 or not all(target for _, target, _ in stripped_triples):
+            print(
+                f"self-test FAIL: capture_tool_reader control 5 "
+                f"(anti-vacuity, id-join) — expected 9 triples with "
+                f"non-empty targets after stripping tool_result blocks, "
+                f"got {stripped_triples!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        elif any(text for _, _, text in stripped_triples):
+            print(
+                "self-test FAIL: capture_tool_reader control 5 "
+                "(anti-vacuity, id-join) — retrieved_text was non-empty "
+                "after stripping every tool_result block; the "
+                "non-empty-text assertion in control 1 is not load-bearing",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Control 6: negative — graceful degradation on a capture with zero
+    # matching tool calls.
+    try:
+        probe_triples = _iter_capture_tool_calls(probe_path)
+    except Exception as exc:  # noqa: BLE001 — self-test must report, not crash
+        print(
+            f"self-test FAIL: capture_tool_reader control 6 (negative) — "
+            f"raised unexpectedly on probe-P1.jsonl: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        if probe_triples != []:
+            print(
+                f"self-test FAIL: capture_tool_reader control 6 (negative) "
+                f"— expected [] on probe-P1.jsonl, got {probe_triples!r}",
+                file=sys.stderr,
+            )
+            ok = False
+
+    # Control 7: guardrail non-interference — re-prove Guardrails A and B
+    # on the new fixture without touching their own self-test items.
+    dispatch_ids = _find_agent_dispatch_ids(objs, "first-principles:first-principles")
+    if len(dispatch_ids) != 1:
+        print(
+            f"self-test FAIL: capture_tool_reader control 7 (guardrail "
+            f"non-interference) — expected exactly 1 Agent dispatch id, "
+            f"got {len(dispatch_ids)}",
+            file=sys.stderr,
+        )
+        ok = False
+    try:
+        analysis = extract_agent_analysis(
+            fixture_path, subagent_type="first-principles:first-principles"
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(
+            f"self-test FAIL: capture_tool_reader control 7 (guardrail "
+            f"non-interference) — extract_agent_analysis raised "
+            f"unexpectedly: {exc!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        result_field = _read_top_level_result(fixture_path)
+        if len(analysis) != 34943:
+            print(
+                f"self-test FAIL: capture_tool_reader control 7 (guardrail "
+                f"non-interference) — expected 34943-char analysis, got "
+                f"{len(analysis)}",
+                file=sys.stderr,
+            )
+            ok = False
+        if len(result_field) != 2636:
+            print(
+                f"self-test FAIL: capture_tool_reader control 7 (guardrail "
+                f"non-interference) — expected 2636-char top-level result "
+                f"field, got {len(result_field)}",
+                file=sys.stderr,
+            )
+            ok = False
+        if analysis == result_field or len(analysis) <= 2 * len(result_field):
+            print(
+                "self-test FAIL: capture_tool_reader control 7 (guardrail "
+                "non-interference) — extracted analysis is not decisively "
+                "longer than the top-level result field",
+                file=sys.stderr,
+            )
+            ok = False
 
     return ok
 
@@ -6982,10 +7329,22 @@ def self_test() -> int:
     naming DETECT-02/DETECT-03 as owners of the current inverted-detector
     mismatch); its PASSED line coexists with a carried red state reported on
     the `contract_pin:` summary line, printed on every run so the carry is
-    never silent. Each of the thirteen items prints its own labelled
-    PASS/FAILED result line — exactly thirteen such lines, always, per run
-    (D-16: the fault-injection proof for each item is recorded in the
-    corresponding plan's SUMMARY.md).
+    never silent. Item 14 (GAP-5) parses the `### Conclusion C1:` heading
+    form output-template.md §4 prescribes end-to-end. Item 15 (GAP-6) admits
+    composition chain heads (`GT-5 + C6`, `C1 + C2`) plus their acyclicity/
+    grounding checks. Item 16 (self-audit calibration) reconciles the
+    Self-Audit Gate's claimed bands against the mechanical record. Item 17
+    (ledger traceability, LEDGER-01) proves a closure ledger discharges the
+    claims it quotes without its own rows being mined as extra claims. Item
+    18 (schema widening) proves `read_defect_incidence` keeps parsing the
+    committed defect-incidence TSVs by header name after column widening.
+    Item 19 (v8.24.0 Phase 4, CAP-03) proves `_iter_capture_tool_calls`
+    asserts the committed PR-P1 fixture's event inventory (1 Agent, 7
+    WebFetch, 2 Read, 11 tool_result) in code, not only in the fixture's
+    README. Each of the nineteen items prints its own labelled PASS/FAILED
+    result line — exactly nineteen such lines, always, per run (D-16: the
+    fault-injection proof for each item is recorded in the corresponding
+    plan's SUMMARY.md).
     """
     all_passed = True
 
@@ -7167,6 +7526,19 @@ def self_test() -> int:
         print("self-test: incidence_schema_compat sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: incidence_schema_compat sub-check PASSED")
+
+    # Item 19 (v8.24.0 Phase 4, CAP-03): _iter_capture_tool_calls asserts
+    # the committed PR-P1 fixture's event inventory (1 Agent, 7 WebFetch,
+    # 2 Read, 11 tool_result) in code, not only in the fixture's README.
+    # Seven controls: positive reader output, positive event inventory,
+    # anti-masking, two anti-vacuity mutation controls (rename, id-join
+    # strip), negative graceful degradation, and guardrail
+    # non-interference.
+    if not _selftest_capture_tool_reader():
+        all_passed = False
+        print("self-test: capture_tool_reader sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: capture_tool_reader sub-check PASSED")
 
     return 0 if all_passed else 1
 
