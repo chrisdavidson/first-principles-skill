@@ -336,7 +336,10 @@ gate "VERSION-01" \
 #             Runs the live scan as well as the self-test, for the same reason
 #             VERSION-01 above does: the self-test is fixture-isolated, so the
 #             self-test alone asserts nothing about the shipped tree.
-#             Bare `python3`, not `uv run` — see Phase 3 note below.
+#             Bare `python3`, not `uv run` — see the "Rejected: `uv run
+#             --with pytest`" note in this file's header: `uv run` may resolve
+#             and fetch from a remote index, and this script is by construction
+#             an OFFLINE firewall.
 gate "REG-GUARD" \
     "check-registration.py --self-test + live" \
     "python3 scripts/check-registration.py --self-test" \
@@ -387,7 +390,10 @@ gate "QUAL-01" \
 #              asserts nothing about the committed capture at
 #              tests/quality-provenance-v8.24/ — the live leg reads
 #              7/7 sources matched, 35/35 literals located.
-#              Bare `python3`, not `uv run` — see Phase 3 note below.
+#              Bare `python3`, not `uv run` — see the "Rejected: `uv run
+#              --with pytest`" note in this file's header: `uv run` may resolve
+#              and fetch from a remote index, and this script is by construction
+#              an OFFLINE firewall.
 gate "PROV-GUARD" \
     "check-provenance.py --self-test + live" \
     "python3 scripts/check-provenance.py --self-test" \
