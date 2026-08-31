@@ -339,7 +339,9 @@ Reasoning (D-03).
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the GT-IDs it consumes,
   contains at least one intermediate claim (a claim that cannot be stated from either
-  named GT alone), and reaches a conclusion; the Abandoned Reasoning section either documents
+  named GT alone), and reaches a conclusion; each chain is rendered in the prescribed
+  arrow-led form — a chain too long for one line wraps with `→`-led continuation lines,
+  never as an ordered list; the Abandoned Reasoning section either documents
   at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
   OR uses the honest-depth escape valve with a reason that is specific to this analysis's
   problem and appears in no other analysis without alteration; no analogy
@@ -356,7 +358,14 @@ Reasoning (D-03).
   missing chain — where the prescribed form is exactly one chain per conclusion; OR
   one dead end in Abandoned Reasoning is described with a vague abandonment reason
   ("seemed unlikely," "ran out of time") rather than the specific structural reason
-  (assumption false, contradicts a GT, circular, intermediate could not be established).
+  (assumption false, contradicts a GT, circular, intermediate could not be established); OR
+  one or more chains render their hops as an ordered list (`1.`, `2.`, `3.`) instead of the
+  prescribed arrow-led continuation form, which splits one chain into disconnected one-hop
+  fragments even where every hop is individually sound — **this clause is why the criterion
+  cannot be scored on reasoning quality alone.** A chain that names its GT-IDs, carries a
+  genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
+  while still failing the prescribed form; scoring only the semantics is what lets a
+  Rigorous verdict coexist with a section of malformed chains.
 
 - **Hand-wavy** — some conclusions lack derivation chains; OR chains reference GT-IDs that
   do not appear in the Ground Truths section; OR an analogy is used as direct evidence

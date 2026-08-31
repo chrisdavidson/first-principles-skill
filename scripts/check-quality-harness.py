@@ -2761,6 +2761,89 @@ def _chain_dependency_defects(section4: str) -> dict:
     }
 
 
+# Self-Audit Gate verdict blocks, emitted as PROCESS output rather than as one
+# of the six template sections, so these are matched against the whole
+# analysis text and not against a slice.
+_SELFAUDIT_CRITERION_RE = re.compile(
+    r"^\*\*Criterion[ \t]+(?P<num>[1-6])[ \t]*:[^\n]*\*\*[ \t]*$", re.MULTILINE
+)
+_SELFAUDIT_BAND_RE = re.compile(
+    r"^\**Band:\**[ \t]*\*\*(?P<band>Rigorous|Sound|Hand-wavy|Absent)\*\*",
+    re.MULTILINE,
+)
+
+# Which measured field contradicts a claimed **Rigorous** on which criterion.
+# Only Rigorous is contradicted: Sound, Hand-wavy and Absent already concede a
+# defect, and under the Criterion 4 Sound band ("chains render their hops as an
+# ordered list ... instead of the prescribed arrow-led form") a Sound verdict
+# alongside malformed chains is the CORRECT self-report, not a disagreement.
+_SELFAUDIT_CONTRADICTIONS: dict[int, tuple[str, ...]] = {
+    2: ("nonconforming_verdict_cells",),
+    4: ("malformed_chain_blocks", "_dependency_cycles"),
+    6: ("untraced_claims",),
+}
+
+
+def _selfaudit_bands(analysis_text: str) -> dict[int, str]:
+    """Map criterion number -> claimed band, from the emitted verdict blocks.
+
+    A criterion block runs from its `**Criterion N: ...**` line to the next
+    such line (or end of text); the first `Band: **X**` inside it is the
+    claim. A criterion with no band line is omitted rather than defaulted —
+    an unstated band is not a claim, and must not be scored as one.
+    """
+    heads = list(_SELFAUDIT_CRITERION_RE.finditer(analysis_text))
+    bands: dict[int, str] = {}
+    for i, m in enumerate(heads):
+        end = heads[i + 1].start() if i + 1 < len(heads) else len(analysis_text)
+        block = analysis_text[m.end() : end]
+        bm = _SELFAUDIT_BAND_RE.search(block)
+        if bm:
+            bands.setdefault(int(m.group("num")), bm.group("band"))
+    return bands
+
+
+def _selfaudit_calibration_defects(analysis_text: str, record: dict) -> list[dict]:
+    """Disagreements between the Self-Audit Gate's claimed bands and measurement.
+
+    The Self-Audit Gate is self-reported and nothing reconciled it against the
+    mechanical record. Observed 2026-08-30: an analysis scored itself
+    **Criterion 4: Reason Upward — Rigorous** and returned **Gate: PASS** while
+    every one of its six chains was mechanically malformed.
+
+    That run was NOT lying, which is the point of this check. Criterion 4's
+    band descriptors scored only semantics — names its GT-IDs, carries an
+    intermediate, reaches a conclusion — all of which those chains did. The
+    prescribed rendering appeared in the criterion's preamble and in no band,
+    so a Rigorous verdict was defensible on the rubric as written. The rubric
+    now names the form in the Rigorous and Sound bands; this function is what
+    makes the resulting claim falsifiable rather than merely stated.
+
+    Returns one record per disagreement, in criterion order. An analysis with
+    no verdict blocks returns `[]` — absence of a self-audit is a separate
+    defect, owned by the agent body's "say so explicitly at the top of the
+    response" disclosure rule, and is not silently recoded as agreement here.
+    """
+    bands = _selfaudit_bands(analysis_text)
+    out: list[dict] = []
+    for num in sorted(_SELFAUDIT_CONTRADICTIONS):
+        if bands.get(num) != "Rigorous":
+            continue
+        for field in _SELFAUDIT_CONTRADICTIONS[num]:
+            value = record.get(field)
+            count = len(value) if isinstance(value, list) else (value or 0)
+            if count:
+                out.append(
+                    {
+                        "criterion": num,
+                        "claimed": "Rigorous",
+                        "contradicted_by": field,
+                        "measured": count,
+                    }
+                )
+    return out
+
+
 def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     """D-18: parse `analysis_text` structurally and report the three defect families.
 
@@ -2788,7 +2871,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     claims = _conclusion_claims(section6, chain_ids)
     untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks)]
 
-    return {
+    record = {
         "analysis_id": analysis_id,
         "conclusion_claims": len(claims),
         "untraced_claims": len(untraced),
@@ -2806,6 +2889,10 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_dependency_cycles": dependency["cycles"],
         "_ungrounded_chains": dependency["ungrounded"],
     }
+    record["_selfaudit_disagreements"] = _selfaudit_calibration_defects(
+        analysis_text, record
+    )
+    return record
 
 
 def run_detect_defects(analyses_dir: Path, out_path: Path) -> None:
@@ -4991,6 +5078,89 @@ def _selftest_gap6_composition_heads() -> bool:
     return ok
 
 
+def _selftest_selfaudit_calibration() -> bool:
+    """The Self-Audit Gate's claimed bands are reconciled against measurement.
+
+    Observed 2026-08-30: a live analysis scored itself **Criterion 4 —
+    Rigorous** and **Gate: PASS** with 6 of 6 chains mechanically malformed.
+    Nothing compared the two, so the disagreement was invisible.
+
+    Controls (a)-(d) pin the disagreement firing per criterion. Controls
+    (e)-(h) are the anti-overreach half: a correct self-report, a conceded
+    band, a missing self-audit, and an unstated band must each produce NO
+    finding. Without those, a check that simply always fired would pass the
+    positives — honesty-not-score, D-01.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: selfaudit_calibration {msg}", file=sys.stderr)
+        ok = False
+
+    def _audit(**bands: str) -> str:
+        names = {
+            2: "Challenge Assumptions", 4: "Reason Upward",
+            6: "Conclusion-to-Ground-Truth Traceability",
+        }
+        return "\n\n".join(
+            f"**Criterion {n}: {names[n]}**\nQuoted span: *\"x\"*\n"
+            f"Band: **{b}**\nJustification: y."
+            for n, b in ((int(k[1:]), v) for k, v in bands.items()))
+
+    clean = {"malformed_chain_blocks": 0, "untraced_claims": 0,
+             "nonconforming_verdict_cells": 0, "_dependency_cycles": []}
+
+    # (a) Criterion 4 Rigorous vs malformed chains — the observed case.
+    d = _selfaudit_calibration_defects(
+        _audit(c4="Rigorous"), {**clean, "malformed_chain_blocks": 6})
+    if [x["criterion"] for x in d] != [4] or d[0]["measured"] != 6:
+        _fail(f"(a) C4 Rigorous vs 6 malformed chains not reported: {d!r}")
+
+    # (b) Criterion 6 Rigorous vs untraced claims.
+    d = _selfaudit_calibration_defects(
+        _audit(c6="Rigorous"), {**clean, "untraced_claims": 1})
+    if [x["criterion"] for x in d] != [6]:
+        _fail(f"(b) C6 Rigorous vs untraced claim not reported: {d!r}")
+
+    # (c) Criterion 2 Rigorous vs non-conforming verdict cells.
+    d = _selfaudit_calibration_defects(
+        _audit(c2="Rigorous"), {**clean, "nonconforming_verdict_cells": 3})
+    if [x["criterion"] for x in d] != [2]:
+        _fail(f"(c) C2 Rigorous vs nonconforming verdicts not reported: {d!r}")
+
+    # (d) Criterion 4 Rigorous vs a dependency cycle (GAP-6's defect).
+    d = _selfaudit_calibration_defects(
+        _audit(c4="Rigorous"), {**clean, "_dependency_cycles": ["c1", "c2"]})
+    if not d or d[0]["contradicted_by"] != "_dependency_cycles":
+        _fail(f"(d) C4 Rigorous vs dependency cycle not reported: {d!r}")
+
+    # (e) ANTI-OVERREACH: a correct Rigorous claim on a clean record.
+    if _selfaudit_calibration_defects(_audit(c2="Rigorous", c4="Rigorous",
+                                             c6="Rigorous"), clean):
+        _fail("(e) clean record with Rigorous claims spuriously reported")
+
+    # (f) ANTI-OVERREACH: Sound alongside malformed chains is the CORRECT
+    #     self-report under the Criterion 4 Sound band, not a disagreement.
+    if _selfaudit_calibration_defects(
+            _audit(c4="Sound"), {**clean, "malformed_chain_blocks": 6}):
+        _fail("(f) conceded Sound band wrongly reported as a disagreement")
+
+    # (g) ANTI-OVERREACH: no self-audit at all yields no finding — absence is
+    #     a disclosure defect owned elsewhere, not silent agreement here.
+    if _selfaudit_calibration_defects(
+            "no verdict blocks here", {**clean, "malformed_chain_blocks": 6}):
+        _fail("(g) missing self-audit wrongly produced a calibration finding")
+
+    # (h) ANTI-OVERREACH: a criterion block with no Band line states no claim.
+    noband = "**Criterion 4: Reason Upward**\nQuoted span: *\"x\"*\nJustification: y."
+    if _selfaudit_calibration_defects(
+            noband, {**clean, "malformed_chain_blocks": 6}):
+        _fail("(h) unstated band wrongly scored as a Rigorous claim")
+
+    return ok
+
+
 def _selftest_limitation2_citationnorm() -> bool:
     """FIX-CONTRACT-01 limitation 2: `_claim_is_traced()` normalizes stored
     chain ids AND claim text so abbreviated ("(C1)"), lowercase-bolded
@@ -6504,6 +6674,17 @@ def self_test() -> int:
         print("self-test: gap6_composition_heads sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: gap6_composition_heads sub-check PASSED")
+
+    # Item 16 (self-audit calibration): the Self-Audit Gate's claimed bands are
+    # reconciled against the mechanical record, so a Rigorous verdict cannot
+    # sit unchallenged on top of measured defects. Four positive controls, four
+    # anti-overreach controls (correct claim, conceded band, absent self-audit,
+    # unstated band).
+    if not _selftest_selfaudit_calibration():
+        all_passed = False
+        print("self-test: selfaudit_calibration sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: selfaudit_calibration sub-check PASSED")
 
     # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
     # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
