@@ -17,15 +17,16 @@
 
 > **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
 > — the authoritative surface: active residuals, dispositions, and the **current** coverage
-> headline of **147 reproducible / 90 audit-only / 0 gap / 237 total**.
+> headline of **161 reproducible / 91 audit-only / 0 gap / 252 total**.
 >
 > **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
 > limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
 > document calls its figure "final" because v8.0 was intended to wrap the project; work continued,
-> and the headline has moved three times since (133/96 → 132/97 at the v8.8 post-close re-tier,
+> and the headline has moved four times since (133/96 → 132/97 at the v8.8 post-close re-tier,
 > then → 126/88 when 15 builder requirements were retired, taking the row count 229 → 214, then
 > → 147/90 when the 23 v8.18 requirements were registered as matrix rows, taking the row count
-> 214 → 237). Read it as a record of where v8.0 stood, not as the current state.
+> 214 → 237, then → 161/91 when the 15 v8.24 requirements were registered as matrix rows, taking
+> the row count 237 → 252). Read it as a record of where v8.0 stood, not as the current state.
 >
 > Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but not built in that milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 
@@ -96,7 +97,7 @@ earned its keep on a distinct ground.
 | [v8.7-constraint-teardown.md](v8.7-constraint-teardown.md) | **Governing record** | TEARDOWN-01/02/03 and the K-of-5 demotion are in force; 16 surfaces cite it, including both pre-commit hooks and a string `check-body-budget.py` prints at runtime |
 | [v8.5-byte-freeze-relaxation.md](v8.5-byte-freeze-relaxation.md) | **Governing record** | The relaxation still scopes which reference files may split; `sync-content.py` and `check-step0-live.py` cite it as the authority |
 | [v8.14-delivery-verification.md](v8.14-delivery-verification.md) | **Governing record** | The published form of the pre-registered STOP governing Phases 189–191 and GREENMEAN-01's WON'T-DO. One inbound reference; inbound count is the wrong test |
-| [v8.0-final-closure.md](v8.0-final-closure.md) | **Split** — governing / superseded | Its terminal ACCEPTED-FINAL dispositions still stand; **every count in it is superseded** (133/96/0/229 → 147/90/0/237; battery 15/15 → 22/22) |
+| [v8.0-final-closure.md](v8.0-final-closure.md) | **Split** — governing / superseded | Its terminal ACCEPTED-FINAL dispositions still stand; **every count in it is superseded** (133/96/0/229 → 161/91/0/252; battery 15/15 → 23/23) |
 | [gen-01-rearch-milestone.md](gen-01-rearch-milestone.md) | **Gate-pinned artifact** | The only one of the nine whose file a gate resolves: TRACE-03 fixture (9) deep-resolves it, proven by removal |
 | [whole-system-remeasure-verdict.md](whole-system-remeasure-verdict.md) | **Frozen evidence** | Provenance anchor for 13 live matrix rows' dispositions |
 | [v8.7-quality-baseline-freeze.md](v8.7-quality-baseline-freeze.md) | **Frozen evidence** (live baseline) | Provenance for QUAL-01 and the committed `tests/quality-baseline-v8.7*` the harness still reads. Carries inline DETECT-05 corrections — read them before quoting a figure |
@@ -144,7 +145,7 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 |----------|----------------|
 | [v8.0-final-closure.md](v8.0-final-closure.md) | The v8.0 terminal ACCEPTED-FINAL dispositions and deferred-ledger summary. **Its counts are superseded** — see its Standing banner and the table above |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
-| [requirements-matrix.md](requirements-matrix.md) | Generated 237-row capability → requirement → test matrix |
+| [requirements-matrix.md](requirements-matrix.md) | Generated 252-row capability → requirement → test matrix |
 
 ## v8.5 — Context optimization (reference-file split)
 
