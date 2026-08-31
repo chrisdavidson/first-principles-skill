@@ -204,6 +204,217 @@ def parse_analysis(analysis_text: str) -> list[GroundTruth]:
     return _parse_ground_truths(section3)
 
 
+# ---------------------------------------------------------------------------
+# PROV-02: source <-> fetch join
+# ---------------------------------------------------------------------------
+
+_BACKTICK_RE = re.compile(r"`([^`]+)`")
+
+
+def _join_key(source: str) -> str:
+    """Return the join key used to bind a GT's source string to a capture triple.
+
+    If `source` contains backticked tokens, return the LAST one -- the verbatim
+    filename join for the two doc-name-plus-backticked-filename sources. Otherwise
+    return the bare source string stripped of a leading http(s) scheme and of any
+    trailing '/' or '.'.
+
+    Exact-URL canonicalization is rejected: it fails outright on the two
+    backticked-filename GTs, whose source strings are not URLs at all -- "AWS
+    Lambda Developer Guide" is not a resolvable scheme+host.
+    """
+    tokens = _BACKTICK_RE.findall(source)
+    if tokens:
+        return tokens[-1]
+    key = source.strip()
+    key = re.sub(r"^https?://", "", key)
+    return key.rstrip("/.")
+
+
+def _bind(
+    gt: GroundTruth, tool_calls: list[tuple[str, str, str]]
+) -> tuple[str, str, str] | None:
+    """Bind `gt` to the one capture triple whose target contains gt's join key.
+
+    A GT binds when its join key is a SUBSTRING of exactly one triple's target.
+    Zero matches is unmatched (returns None). Two or more matches is ALSO a
+    failure -- an ambiguous join must never be silently resolved by taking the
+    first (measured: no collisions on the fixture) -- and also returns None.
+    """
+    key = _join_key(gt.source)
+    if not key:
+        return None
+    matches = [t for t in tool_calls if key in t[1]]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+# ---------------------------------------------------------------------------
+# PROV-03 location, D-03/D-04/D-06/D-08 finding families, PROV-05 record
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class ProvenanceResult:
+    """The nine D-11 counters plus underscore-prefixed audit lists.
+
+    The audit lists let a caller (the D-15 mutation control, the self-test) assert
+    on a SPECIFIC gt_id/literal rather than merely on a count.
+    """
+
+    provenance_labels: int
+    unmatched_sources: int
+    unreadable_sources: int
+    literals_checked: int
+    unlocated_literals: int
+    misattributed_literals: int
+    zero_literal_gts: int
+    orphan_fetches: int
+    provenance_flag: int
+    _unmatched_gt_ids: tuple[str, ...]
+    _unreadable_gt_ids: tuple[str, ...]
+    _zero_literal_gt_ids: tuple[str, ...]
+    _unlocated_pairs: tuple[tuple[str, str], ...]
+    _misattributed_pairs: tuple[tuple[str, str], ...]
+    _orphan_targets: tuple[str, ...]
+
+
+def verify(
+    analysis_text: str, capture_path: Path, subagent_type: str, analysis_id: str
+) -> ProvenanceResult:
+    """PROV-02/PROV-03 engine: join, locate, and roll every read-at-source GT into
+    a `ProvenanceResult`.
+
+    Calls `_capture_subagent_tool_calls` WITHOUT a try/except wrapper -- a
+    `ValueError` from a never-dispatched subagent must propagate (constraint 5).
+
+    Comparison is comma-normalized on both sides (the literal and the retrieved
+    text each have ',' stripped before the substring test); '$' is never stripped.
+    """
+    ground_truths = parse_analysis(analysis_text)
+    read_gts = [gt for gt in ground_truths if gt.label == "read-at-source"]
+
+    tool_calls = _capture_subagent_tool_calls(capture_path, subagent_type)
+
+    # Per-source normalized corpus, built once -- the D-04 cross-source lookup is
+    # then near-free.
+    corpus: dict[int, str] = {i: t[2].replace(",", "") for i, t in enumerate(tool_calls)}
+
+    bound_indices: set[int] = set()
+    unmatched_ids: list[str] = []
+    unreadable_ids: list[str] = []
+    zero_literal_ids: list[str] = []
+    unlocated_pairs: list[tuple[str, str]] = []
+    misattributed_pairs: list[tuple[str, str]] = []
+    literals_checked = 0
+
+    for gt in read_gts:
+        triple = _bind(gt, tool_calls)
+        if triple is None:
+            unmatched_ids.append(gt.gt_id)
+            continue
+        idx = tool_calls.index(triple)
+        bound_indices.add(idx)
+        retrieved = triple[2]
+
+        # D-08: an unreadable bound source is counted INSTEAD OF running literal
+        # location for that GT, so an infrastructure failure is never mislabelled
+        # as fabrication.
+        if len(retrieved) < _MIN_RETRIEVED_TEXT_CHARS:
+            unreadable_ids.append(gt.gt_id)
+            continue
+
+        # D-03: zero checkable literals is reported, never failed.
+        if not gt.literals:
+            zero_literal_ids.append(gt.gt_id)
+            continue
+
+        own_corpus = retrieved.replace(",", "")
+        for literal in gt.literals:
+            literals_checked += 1
+            norm = literal.replace(",", "")
+            if norm in own_corpus:
+                continue
+            # D-04: absent from the bound source but present in a DIFFERENT
+            # fetched source is a distinct finding from absent-everywhere.
+            found_elsewhere = any(
+                j != idx and norm in other for j, other in corpus.items()
+            )
+            if found_elsewhere:
+                misattributed_pairs.append((gt.gt_id, literal))
+            else:
+                unlocated_pairs.append((gt.gt_id, literal))
+
+    # D-06: a tool call bound to no read-at-source GT is an orphan fetch --
+    # counted and reported, never failed.
+    orphan_targets = [t[1] for i, t in enumerate(tool_calls) if i not in bound_indices]
+
+    unmatched_sources = len(unmatched_ids)
+    unreadable_sources = len(unreadable_ids)
+    unlocated_literals = len(unlocated_pairs)
+    misattributed_literals = len(misattributed_pairs)
+    zero_literal_gts = len(zero_literal_ids)
+    orphan_fetches = len(orphan_targets)
+    provenance_flag = (
+        1
+        if (unmatched_sources or unreadable_sources or unlocated_literals or misattributed_literals)
+        else 0
+    )
+
+    return ProvenanceResult(
+        provenance_labels=len(read_gts),
+        unmatched_sources=unmatched_sources,
+        unreadable_sources=unreadable_sources,
+        literals_checked=literals_checked,
+        unlocated_literals=unlocated_literals,
+        misattributed_literals=misattributed_literals,
+        zero_literal_gts=zero_literal_gts,
+        orphan_fetches=orphan_fetches,
+        provenance_flag=provenance_flag,
+        _unmatched_gt_ids=tuple(unmatched_ids),
+        _unreadable_gt_ids=tuple(unreadable_ids),
+        _zero_literal_gt_ids=tuple(zero_literal_ids),
+        _unlocated_pairs=tuple(unlocated_pairs),
+        _misattributed_pairs=tuple(misattributed_pairs),
+        _orphan_targets=tuple(orphan_targets),
+    )
+
+
+def provenance_defect_record(analysis_text: str, analysis_id: str, result: ProvenanceResult) -> dict:
+    """PROV-05: `detect_defects`'s 22-column record with the nine provenance keys
+    overwritten from a real `ProvenanceResult` -- replacing the harness's "n/a"
+    sentinel only when a capture was actually read. Does not modify
+    `run_detect_defects`; this script owns its own single-row emission (D-09
+    discretion, RESEARCH assumption A2).
+    """
+    record = detect_defects(analysis_text, analysis_id)
+    record.update(
+        {
+            "provenance_labels": result.provenance_labels,
+            "unmatched_sources": result.unmatched_sources,
+            "unreadable_sources": result.unreadable_sources,
+            "literals_checked": result.literals_checked,
+            "unlocated_literals": result.unlocated_literals,
+            "misattributed_literals": result.misattributed_literals,
+            "zero_literal_gts": result.zero_literal_gts,
+            "orphan_fetches": result.orphan_fetches,
+            "provenance_flag": result.provenance_flag,
+        }
+    )
+    return record
+
+
+def record_to_tsv(record: dict) -> str:
+    """Render `record` as a two-line TSV string (header + one data row) over
+    `_DEFECT_RECORD_FIELDS`, so the round-trip through `read_defect_incidence` is
+    exercisable.
+    """
+    header = "\t".join(_DEFECT_RECORD_FIELDS)
+    row = "\t".join(str(record[f]) for f in _DEFECT_RECORD_FIELDS)
+    return f"{header}\n{row}\n"
+
+
 def _run_self_test() -> None:
     """Stub. Plan 05-03 fills this with the full D-16 control battery."""
     print("check-provenance --self-test: stub -- plan 05-03 fills the control battery")
