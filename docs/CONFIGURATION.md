@@ -178,7 +178,7 @@ distinction is worth keeping visible.
 
 | Invariant | Enforced by |
 |---|---|
-| `name` in frontmatter must match the parent directory name exactly | GATE-01, COLLIDE-01 |
+| `name` in frontmatter must match the parent directory name exactly | GATE-01, COLLIDE-01, REG-GUARD |
 | `description` fields must be third-person, ≤ 1,024 chars, no XML tags | GATE-01, VAL-05 |
 | Reserved words `anthropic` and `claude` are forbidden in skill `name` fields | VAL-01 |
 | `metadata.version` must be a double-quoted YAML string — never a bare number | VERSION-01 |

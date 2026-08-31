@@ -118,13 +118,13 @@ restating it — `CONTRIBUTING.md`, `CONFIGURATION.md`, `DATA-FLOW.md`, `TESTING
 measurement docs all point at this anchor. `CLAUDE.md` keeps its own operational copy by
 design, because a working session must be able to see the gate list without opening `docs/`.
 
-Gates run on three surfaces, and the distinction matters: **18 in CI**
-(`.github/workflows/validation.yml`, on push/PR to master), **21 tallied in the offline battery**
+Gates run on three surfaces, and the distinction matters: **19 in CI**
+(`.github/workflows/validation.yml`, on push/PR to master), **22 tallied in the offline battery**
 (`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a
-strict superset of CI: all 18 CI gates — VAL-01 included, so it runs on both surfaces and
+strict superset of CI: all 19 CI gates — VAL-01 included, so it runs on both surfaces and
 needs the `claude` CLI in both — plus QUAL-01, which is battery-only by design and is the
 one registered gate with no CI job, plus the two inline checks INVARIANT-CHECK and
-FROZEN-EVIDENCE. That is 18 + 1 + 2 = 21.
+FROZEN-EVIDENCE. That is 19 + 1 + 2 = 22.
 
 | Gate | Job / Mechanism | Script | What it checks |
 |------|----------------|--------|----------------|
@@ -134,6 +134,7 @@ FROZEN-EVIDENCE. That is 18 + 1 + 2 = 21.
 | VAL-04 / GATE-02 | `check-trigger-collisions` (CI) | `scripts/check-trigger-collisions.py` | No 4-gram collision across skill descriptions |
 | VAL-05 | `check-description-budget` (CI) | `scripts/check-description-budget.py` | All skill listings under 2000-char cap |
 | VERSION-01 | `check-version-stamps` (CI) | `scripts/check-version-stamps.py` | All 17 hand-maintained version stamps carry the same value (self-test **and** live scan) |
+| REG-GUARD | `check-registration` (CI) | `scripts/check-registration.py` | Offline plugin registration completeness gate: every skill directory and the main agent carry a frontmatter `name:` matching their own basename; manifest-declared additional paths resolve inside the plugin. Self-test **and** live scan on both surfaces, matching VERSION-01, GATE-01 and COLLIDE-01: the self-test fixtures are isolated from the shipped tree, so only the live leg asserts the invariant on the shipped plugin. |
 | COLLIDE-01 | `check-install-collisions` (CI) | `scripts/check-install-collisions.py` | Dual-install name-collision self-test + live-tree scan (no skill/agent name collisions between plugin and monolith install surfaces) |
 | DUAL-04 | `sync-check` (CI) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync |
 | GATE-02-v8.5 | `pointer-drift-guard` (CI) | `scripts/sync-content.py --self-test` | Offline pointer drift-guard: each split core reference file's Procedure slice carries exactly one well-formed link to its own `-detail.md` sibling |
@@ -154,7 +155,9 @@ FROZEN-EVIDENCE. That is 18 + 1 + 2 = 21.
 HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each has a CI job plus a
 single `--self-test`-only battery `gate` call, and each is counted in the battery total above. HC-BOUND
 was registered at v8.19.0 under Phase 6 (HC-04) — it also has a CI job plus a single `--self-test`-only
-battery `gate` call, and is counted in the battery total above.
+battery `gate` call, and is counted in the battery total above. REG-GUARD was registered at v8.21.0
+under Phase 3 (REG-03) — it has a CI job plus a battery `gate` call that runs both `--self-test` **and**
+the live scan, matching VERSION-01, GATE-01 and COLLIDE-01, and is counted in the battery total above.
 
 **Two gates are called GATE-02 and they are not the same gate.** `VAL-04 / GATE-02` is the v3.0
 trigger-collision scanner (`check-trigger-collisions.py`), carried by a single job whose live name

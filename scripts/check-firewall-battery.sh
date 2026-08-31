@@ -327,6 +327,17 @@ gate "VERSION-01" \
     "python3 scripts/check-version-stamps.py --self-test" \
     "python3 scripts/check-version-stamps.py"
 
+# REG-GUARD — registration completeness: every skill directory and the main
+#             agent carry a frontmatter `name:` matching their own basename.
+#             Runs the live scan as well as the self-test, for the same reason
+#             VERSION-01 above does: the self-test is fixture-isolated, so the
+#             self-test alone asserts nothing about the shipped tree.
+#             Bare `python3`, not `uv run` — see Phase 3 note below.
+gate "REG-GUARD" \
+    "check-registration.py --self-test + live" \
+    "python3 scripts/check-registration.py --self-test" \
+    "python3 scripts/check-registration.py"
+
 # GATE-01 — agent structural checks (self-test + live agent file)
 gate "GATE-01" \
     "check-agent.py --self-test + --file first-principles/agents/first-principles.md" \
