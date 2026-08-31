@@ -2025,15 +2025,17 @@ def _verdict_conforms(cell: str) -> bool:
 
 
 # Chain-label families the frozen corpus actually uses: a two-letter prefix
-# followed by a hyphen and a number (DC-1), the word "Chain" followed by a
-# letter or a number (Chain A, Chain 1), and — FIX-CONTRACT-01 limitation 1
+# followed by a hyphen and a number (DC-1), the word "Chain" OR "Conclusion"
+# followed by a letter or a number (Chain A, Chain 1, Conclusion C1 — the
+# last being the form output-template.md §4 prescribes; see GAP-5 in
+# `_selftest_gap5_conclusion_heading`), and — FIX-CONTRACT-01 limitation 1
 # — a document's own bare single-letter convention (C1, A, E5: one
 # uppercase letter optionally followed by digits) when used consistently as
 # a §4 lead-in family (see _MIN_BARE_LABEL_FAMILY_SIZE below). The bare form
 # is listed last in the alternation so the two more specific forms above it
 # always win when they also match (e.g. "Chain A" matches the "Chain "
 # alternative and never falls through to the bare one).
-_CHAIN_LABEL_PATTERN = r"(?:[A-Z]{2}-\d+|Chain\s+[A-Za-z0-9]+)"
+_CHAIN_LABEL_PATTERN = r"(?:[A-Z]{2}-\d+|(?:Chain|Conclusion)\s+[A-Za-z0-9]+)"
 _CHAIN_LABEL_PATTERN_BARE = r"[A-Z]\d*"
 _CHAIN_LABEL_PATTERN_ANY = r"(?:" + _CHAIN_LABEL_PATTERN + r"|" + _CHAIN_LABEL_PATTERN_BARE + r")"
 
@@ -2429,11 +2431,11 @@ _GT_MENTION_RE = re.compile(r"GT-\d+\??")
 # multi-id one ("(Chains C2, C3)") all substring-match the same underlying
 # chain — without needing to change how the id is stored or how citations
 # are written.
-_CHAIN_PREFIX_RE = re.compile(r"^chain\s+", re.IGNORECASE)
+_CHAIN_PREFIX_RE = re.compile(r"^(?:chain|conclusion)\s+", re.IGNORECASE)
 
 
 def _normalize_chain_id(chain_id: str) -> str:
-    """Case-fold and strip a leading 'Chain '/'chain ' token."""
+    """Case-fold and strip a leading 'Chain '/'Conclusion ' token."""
     return _CHAIN_PREFIX_RE.sub("", chain_id.strip()).casefold()
 
 
@@ -4654,6 +4656,97 @@ def _selftest_limitation1_chainlabels() -> bool:
     return ok
 
 
+def _selftest_gap5_conclusion_heading() -> bool:
+    """GAP-5: the `### Conclusion C1:` heading form is recognized end-to-end.
+
+    `output-template.md` §4 prescribes this form verbatim — "Number each
+    `### Conclusion:` block in this section `C1`, `C2`, ... in document order
+    (e.g., `### Conclusion C1: [Conclusion text]`)" — but `_CHAIN_HEADING_RE`
+    anchored its label immediately after the hashes, so only the "Chain "
+    prefixed and bare forms parsed. The prescribed form produced zero ids.
+
+    **The failure direction is silently green, which is why this fixture pins
+    the whole path (ids -> blocks -> defect record) rather than the regex
+    alone.** With zero ids, `_chain_blocks()` falls back to returning the whole
+    section as ONE block; that block contains at least one well-formed chain
+    somewhere, so `any()` matches and `malformed_chain_blocks` reports 0 on a
+    document with genuinely malformed chains. Observed 2026-08-30 on a live
+    agent run: raw score `chain_blocks: 1, malformed: 0, untraced: 7 of 7`;
+    the same document with headings normalized scored `chain_blocks: 7,
+    malformed: 2, untraced: 0`.
+
+    Controls: (a) positive, colon separator; (b) positive, em-dash separator;
+    (c) id normalization, so an abbreviated "(C1)" citation still traces;
+    (d) anti-vacuity end-to-end — a two-chain section with exactly one
+    malformed chain must report 2 blocks and 1 malformed, which is precisely
+    what the pre-fix fallback could not do; (e) negative, a bare
+    "**Conclusion:**" lead-in carries no label and must not mint an id;
+    (f) negative, a heading with no label and no separator likewise.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: gap5_conclusion_heading {msg}", file=sys.stderr)
+        ok = False
+
+    well_formed = "GT-1 (a) + GT-2 (b)\n-> intermediate claim\n-> the conclusion"
+    malformed = "GT-3 (c) + GT-4 (d) -> lone hop with no intermediate"
+
+    # (a) colon separator — the exact prescribed form.
+    colon = (
+        f"### Conclusion C1: first\n\n{well_formed}\n\n"
+        f"### Conclusion C2: second\n\n{well_formed}\n"
+    )
+    if _chain_ids(colon) != ["Conclusion C1", "Conclusion C2"]:
+        _fail(f"(a) colon form expected two ids, got {_chain_ids(colon)!r}")
+
+    # (b) em-dash separator.
+    dash = (
+        f"### Conclusion C1 - first\n\n{well_formed}\n\n"
+        f"### Conclusion C2 - second\n\n{well_formed}\n"
+    ).replace(" - ", " \u2014 ")
+    if _chain_ids(dash) != ["Conclusion C1", "Conclusion C2"]:
+        _fail(f"(b) em-dash form expected two ids, got {_chain_ids(dash)!r}")
+
+    # (c) normalization, so "(C1)" in section 6 traces to a stored
+    #     "Conclusion C1".
+    if _normalize_chain_id("Conclusion C1") != "c1":
+        _fail(
+            f"(c) expected 'Conclusion C1' to normalize to 'c1', got "
+            f"{_normalize_chain_id('Conclusion C1')!r}"
+        )
+
+    # (d) anti-vacuity: one well-formed chain and one malformed chain must
+    #     report as two blocks with exactly one malformed. Pre-fix this
+    #     collapsed to one block and zero malformed — a green verdict
+    #     produced by not looking.
+    mixed = (
+        f"### Conclusion C1: sound\n\n{well_formed}\n\n"
+        f"### Conclusion C2: broken\n\n{malformed}\n"
+    )
+    blocks = _chain_blocks(mixed)
+    if len(blocks) != 2:
+        _fail(f"(d) expected 2 chain blocks, got {len(blocks)}")
+    else:
+        bad = [b for b in blocks if not _chain_block_well_formed(b)]
+        if len(bad) != 1:
+            _fail(
+                f"(d) expected exactly 1 malformed block, got {len(bad)} — "
+                f"the whole-section fallback may have masked it"
+            )
+
+    # (e) negative: a bare bold "Conclusion:" lead-in carries no label.
+    if _chain_ids("**Conclusion:** the analysis recommends option B.\n"):
+        _fail("(e) bare '**Conclusion:**' lead-in spuriously minted a chain id")
+
+    # (f) negative: a heading with no label and no separator.
+    if _chain_ids("### Conclusion\n\nsome prose\n"):
+        _fail("(f) label-less '### Conclusion' heading spuriously minted an id")
+
+    return ok
+
+
 def _selftest_limitation2_citationnorm() -> bool:
     """FIX-CONTRACT-01 limitation 2: `_claim_is_traced()` normalizes stored
     chain ids AND claim text so abbreviated ("(C1)"), lowercase-bolded
@@ -6146,6 +6239,17 @@ def self_test() -> int:
         print("self-test: limitation3_extractionscope sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: limitation3_extractionscope sub-check PASSED")
+
+    # Item 14 (GAP-5): the `### Conclusion C1:` heading form prescribed by
+    # output-template.md §4 parses end-to-end. Pins ids -> blocks -> malformed
+    # count, because the pre-fix failure was silently GREEN: zero ids made
+    # `_chain_blocks` fall back to one whole-section block whose single
+    # well-formed chain suppressed every malformed one in the same section.
+    if not _selftest_gap5_conclusion_heading():
+        all_passed = False
+        print("self-test: gap5_conclusion_heading sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: gap5_conclusion_heading sub-check PASSED")
 
     # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
     # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
