@@ -250,6 +250,18 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step — the intermediate is where the reasoning happens.
 
+**A chain too long for one line wraps with arrow-led continuation lines — never numbered steps.**
+Every line after the head begins with `→`:
+
+```text
+GT-1 + GT-6 → [intermediate claim]
+→ [further intermediate]
+→ [conclusion]
+```
+
+Rendering the same hops as `1.` / `2.` / `3.` list items splits one chain into disconnected
+one-hop fragments and does not satisfy this format.
+
 **Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of what verification would raise it to HIGH.
 
 For the full annotated template with section-by-section guidance, type definitions, verdict vocabulary, and worked placeholder text, see the [First Principles Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md).

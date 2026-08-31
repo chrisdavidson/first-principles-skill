@@ -127,6 +127,23 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
+**Multi-hop chains wrap with arrow-led continuation lines — never numbered steps.** A chain
+carrying more hops than fit on one line continues on further lines, each beginning with `→`.
+The head line carries the GT identifiers; every continuation line carries exactly one hop:
+
+```text
+GT-1 ([brief fact label]) + GT-6 ([brief fact label])
+→ [intermediate claim]
+→ [further intermediate]
+→ [conclusion]
+```
+
+Do **not** render the hops as an ordered list (`1.` / `2.` / `3.`). A numbered list restates
+each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather
+than one complete one — the intermediate steps stop being connected to the conclusion they
+build toward. Inline annotations (`*[Assumes: A14 — …]*`) attach to the end of the hop line
+they qualify and do not break the wrap.
+
 ### Converting structured-technique outputs into chains
 
 Structured-technique outputs (trade-off matrices, second-order effect lists) do not appear in this section as-is — each converts into the chain format above using the rule for its technique below. This subsection is the single source of truth for the conversion; the per-technique Handoff sections point back here rather than restating it, so future structured techniques extend this one place.
