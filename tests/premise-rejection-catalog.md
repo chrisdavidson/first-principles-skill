@@ -215,6 +215,60 @@ fault-injected:
 
 Run 2 now scores `chain_blocks: 7, malformed: 2, untraced: 0` with its **original** headings.
 
+## Self-audit calibration — FIXED
+
+Both runs scored themselves **Criterion 4: Reason Upward — Rigorous** and returned **Gate:
+PASS**. Run 1 did so with every chain mechanically malformed. Nothing reconciled the two.
+
+**The agent was not flattering itself, which is the substance of this finding.** Criterion 4's
+band descriptors scored only semantics — names its GT-IDs, carries a genuine intermediate,
+reaches a conclusion — and run 1's numbered-step chains did all three. The prescribed rendering
+appeared in the criterion's *preamble* and in none of its four bands. A Rigorous verdict was
+defensible on the rubric as written; the rubric was the defect, not the verdict.
+
+**Fix, both halves:**
+
+1. **Rubric** (`shared/spine/references/validation-rubric.md`, Criterion 4): the Rigorous band
+   now requires the prescribed arrow-led rendering, and the Sound band names ordered-list
+   rendering as the demotion — so the self-audit can score the axis at all.
+2. **Detector** (`scripts/check-quality-harness.py`): `_selfaudit_calibration_defects()` parses
+   the emitted verdict blocks and reconciles each claimed band against the mechanical record,
+   making the self-report falsifiable rather than merely stated.
+
+Only a claimed **Rigorous** is contradicted. Sound, Hand-wavy and Absent already concede a
+defect, and under the amended Sound band a Sound verdict alongside malformed chains is the
+*correct* self-report.
+
+| Criterion | Contradicted by |
+|---|---|
+| 2 — Challenge Assumptions | `nonconforming_verdict_cells` |
+| 4 — Reason Upward | `malformed_chain_blocks`, `_dependency_cycles` |
+| 6 — Traceability | `untraced_claims` |
+
+**Verification.** Pinned by `_selftest_selfaudit_calibration` (self-test Item 16): four positive
+controls and four anti-overreach controls (a correct Rigorous claim on a clean record, a
+conceded Sound band, an absent self-audit, an unstated band). Three fault injections — neutering
+the check, firing on any band, defaulting an unstated band to Rigorous — each fail the
+sub-check.
+
+Measured end-to-end on both live runs:
+
+```text
+run 1  Criterion 4 claimed Rigorous but malformed_chain_blocks = 5
+       Criterion 6 claimed Rigorous but untraced_claims       = 1
+       (Criterion 2 correctly NOT flagged — 0 nonconforming verdict cells)
+
+run 2  bands {1..6} incl. four Rigorous, disagreements: none
+```
+
+Run 1's malformed count reads 5 rather than the originally observed 6 because the GAP-6
+widening now accepts its `C3 step 4 + C4 step 4` composition head — one of the six was a
+composition, not a form defect.
+
+**Absence is not agreement.** An analysis with no verdict blocks returns no findings rather than
+a clean bill: a missing self-audit is a disclosure defect owned by the agent body's "say so
+explicitly at the top of the response" rule, and recoding it as agreement here would hide it.
+
 ## Promotion
 
 | Target | Cost | Note |
