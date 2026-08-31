@@ -11,7 +11,41 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
-## [Unreleased]
+## [8.24.0] — 2026-08-31
+
+Ships capture-based provenance verification: the generation `.jsonl` capture is now retained
+beside the extracted analysis, a real capture fixture is committed, and PROV-GUARD — the first
+check in the stack that can falsify a `*Provenance: read-at-source*` label against what the run
+actually fetched — is registered in CI and the firewall battery. Records fact, not form. New
+gate PROV-GUARD; the firewall battery moves **22/22 → 23/23**.
+
+### Added
+
+- **PROV-GUARD**, a new offline gate (`scripts/check-provenance.py`), registered as a CI job
+  (`check-provenance (PROV-GUARD)`) and a battery `gate` call, both running `--self-test` and the
+  live leg. It parses an analysis's section 3 ground truths and provenance labels, joins every
+  `read-at-source` GT to the real `WebFetch`/`Read` call in the run's stored `.jsonl` capture that
+  fetched its cited source, and requires every numeric/currency literal the GT states to appear
+  verbatim in that source's retrieved text. Live result:
+  `7/7 sources matched, 35/35 literals located`. **What it does not assert:** it does not verify a stated number means what the
+  analysis says it means, nor that the citing chain is valid inference (backlog `999.4`); the
+  literal regex also matches digit tails of identifiers (`x86` yields `86`), which is expected
+  behaviour, not a parser bug; whole-span bold/quoted matching was measured and rejected
+  (4/11 bold spans, 4/8 quoted spans located); PROV-04's no-network control blocks `socket` but
+  does not cover a `subprocess` shell-out.
+- **Capture retention and a committed fixture.** `--probe` and `--single` now persist the
+  extracted analysis beside its source `.jsonl`, closing the standing blocker on verifying those
+  paths after the run ends. `tests/quality-provenance-v8.24/` is committed and registered as a
+  whole-directory entry in the battery's FROZEN-EVIDENCE path list.
+- **Provenance findings as named `_DEFECT_RECORD_FIELDS` columns**, not audit-only underscore
+  fields, so a fabricated or mislocated literal reaches the emitted TSV alongside every other
+  defect.
+- **15 traceability-matrix rows** for the milestone's requirements, via a new `_rows_v824()`
+  locked by a V824-ROWS count sentinel. The coverage headline moves
+  `147/90/0/237 → 161/91/0/252`.
+- **Gate-count tallies corrected** across `scripts/check-firewall-battery.sh`'s header (stale
+  since v8.21.0, omitting REG-GUARD), `CLAUDE.md`, and `docs/ARCHITECTURE.md` — each now reads
+  the post-PROV-GUARD numbers.
 
 ### Changed
 
