@@ -847,6 +847,102 @@ def _control_prov02_unmatched_negative() -> None:
         )
 
 
+def _control_prov02_ambiguous_positive() -> None:
+    """WR-02 positive: two DIFFERENT fetched targets both anchor-match the
+    same join key (same host+path, different query string -- so the two
+    triples are genuinely distinct capture entries, not a retry) -- a
+    genuine ambiguous join, must stay unmatched even after the CR-02 fix for
+    duplicate fetches.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("WebFetch", "https://example.com/pricing", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("WebFetch", "https://example.com/pricing?ref=other", "42 " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 1, (
+            f"two distinct-target matches must stay ambiguous/unmatched, "
+            f"got {result.unmatched_sources}"
+        )
+        assert result._unmatched_gt_ids == ("GT-1",), (
+            f"expected GT-1 named as unmatched, got {result._unmatched_gt_ids!r}"
+        )
+
+
+def _control_prov02_ambiguous_negative() -> None:
+    """WR-02 negative / CR-02 regression guard: the SAME target fetched
+    twice (a WebFetch retry) must bind cleanly -- not reported as
+    unmatched_sources -- and BOTH occurrences must be marked bound (not left
+    as an orphan fetch), pinning the 'mark all matching indices bound' half
+    of the CR-02 fix.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                ("WebFetch", "https://example.com/pricing", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+                ("WebFetch", "https://example.com/pricing", "the price is 42 dollars " + "z" * _MIN_RETRIEVED_TEXT_CHARS),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com/pricing")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 0, (
+            f"a duplicate fetch of the same target must bind cleanly, "
+            f"got {result.unmatched_sources} unmatched"
+        )
+        assert result.provenance_flag == 0, (
+            f"expected provenance_flag=0 for a correctly-bound retried fetch, "
+            f"got {result.provenance_flag}"
+        )
+        assert result.orphan_fetches == 0, (
+            f"both occurrences of the retried fetch must be marked bound, "
+            f"not left as an orphan, got {result.orphan_fetches}"
+        )
+
+
+def _control_prov02_anchor_negative() -> None:
+    """CR-01 regression guard: an unrelated URL that merely contains the
+    cited join key as a raw substring (not anchored on a host/path
+    boundary) must NOT bind. Mirrors the review's exact repro: 'example.com'
+    must not bind to '...ref=example.com-mirror', even though the digit
+    literal happens to also appear in the unrelated page's retrieved text.
+    """
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        capture = _synth_capture(
+            tmp,
+            [
+                (
+                    "WebFetch",
+                    "https://spam-aggregator.test/links?ref=example.com-mirror",
+                    "the number 42 shows up here too " + "z" * _MIN_RETRIEVED_TEXT_CHARS,
+                ),
+            ],
+        )
+        analysis = _synth_analysis(
+            [_gt_line("GT-1", "a fact citing 42", "example.com")]
+        )
+        result = verify(analysis, capture, _FIXTURE_SUBAGENT_TYPE, "synthetic")
+        assert result.unmatched_sources == 1, (
+            f"a substring collision must not bind; expected 1 unmatched "
+            f"source, got {result.unmatched_sources}"
+        )
+        assert result.provenance_flag == 1, (
+            f"expected provenance_flag=1 (the CR-01 false PASS must not "
+            f"recur), got {result.provenance_flag}"
+        )
+
+
 def _control_prov03_located_positive() -> None:
     """PROV-03 positive: the GT's one literal is present in the bound
     source's retrieved text.
@@ -1173,6 +1269,9 @@ def _control_gate01_antimask_selfproof() -> None:
 #   PROV01-labelform-negative    PROV-01  bare substring rejected, negative
 #   PROV02-bind-positive         PROV-02  WebFetch-arm bind, positive
 #   PROV02-unmatched-negative    PROV-02  WebFetch-arm bind, negative
+#   PROV02-ambiguous-positive    WR-02  two distinct targets both match key -> unmatched
+#   PROV02-ambiguous-negative    WR-02/CR-02  duplicate fetch of same target -> binds cleanly
+#   PROV02-anchor-negative       CR-01  substring collision (no boundary) must not bind
 #   PROV03-located-positive      PROV-03  literal location, positive
 #   PROV03-unlocated-negative    PROV-03  literal location, negative
 #   D04-misattributed-positive   D-04  attribution error, positive
@@ -1196,6 +1295,9 @@ REQUIRED_CONTROLS: frozenset[str] = frozenset(
         "PROV01-labelform-negative",
         "PROV02-bind-positive",
         "PROV02-unmatched-negative",
+        "PROV02-ambiguous-positive",
+        "PROV02-ambiguous-negative",
+        "PROV02-anchor-negative",
         "PROV03-located-positive",
         "PROV03-unlocated-negative",
         "D04-misattributed-positive",
@@ -1229,6 +1331,9 @@ def _run_self_test() -> None:
     _run_control("PROV01-labelform-negative", _control_prov01_labelform_negative)
     _run_control("PROV02-bind-positive", _control_prov02_bind_positive)
     _run_control("PROV02-unmatched-negative", _control_prov02_unmatched_negative)
+    _run_control("PROV02-ambiguous-positive", _control_prov02_ambiguous_positive)
+    _run_control("PROV02-ambiguous-negative", _control_prov02_ambiguous_negative)
+    _run_control("PROV02-anchor-negative", _control_prov02_anchor_negative)
     _run_control("PROV03-located-positive", _control_prov03_located_positive)
     _run_control("PROV03-unlocated-negative", _control_prov03_unlocated_negative)
     _run_control("D04-misattributed-positive", _control_d04_misattributed_positive)
