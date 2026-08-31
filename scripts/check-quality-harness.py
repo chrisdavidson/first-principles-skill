@@ -2503,6 +2503,106 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
     return bool(_GT_MENTION_RE.search(text))
 
 
+# --- LEDGER-01: closure-ledger traceability --------------------------------
+#
+# Observed 2026-08-31 on a live PR-P1 run: an analysis that traced its
+# Conclusion claims through an explicit "§6→§4 closure ledger" rather than
+# inline parentheticals scored WORSE on both halves of the traceability
+# signal than one that cited inline. The ledger's own lines were mined as
+# ten extra claims (denominator inflated 7 -> 14) while the three prose
+# claims they discharged stayed counted as untraced (numerator 0 -> 3).
+# `selfaudit_disagreements` then escalated that into a charge that the
+# agent over-claimed Criterion 6.
+#
+# The rubric does not support that charge. Criterion 6 requires only that
+# every Conclusion claim "traces to a specific named derivation chain in
+# section 4" — it does not prescribe WHERE the citation sits — and
+# output-template.md's section 6 prescribes three prose blocks with no
+# inline-citation instruction at all. A ledger discharges the same
+# obligation an inline parenthetical does. The detector was the defect,
+# not the verdict.
+_FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+
+# A ledger entry pairs a quoted claim fragment with a named chain on one
+# line:  - "Lambda is 2.10x more expensive per unit of compute"  -> chain C1
+_LEDGER_QUOTE_RE = re.compile(r"[\"\u201c]([^\"\u201d\n]{8,})[\"\u201d]")
+
+_TOKEN_RE = re.compile(r"[a-z0-9]+(?:\.[0-9]+)?")
+
+_TRACE_STOPWORDS = frozenset(
+    "a an and are as at be by do does for from in is it its of on or "
+    "that the to with not no was were this these those".split()
+)
+
+# A fragment below this many content tokens is too generic to discharge a
+# claim by overlap — a quoted "serverless is cheaper" would otherwise match
+# any claim that happens to use those words.
+_MIN_LEDGER_FRAGMENT_TOKENS = 4
+
+# Fraction of the FRAGMENT's content tokens that must appear in the claim.
+# Measured against the fragment and never against the claim: a long claim
+# must not earn credit merely by being long enough to contain a short
+# unrelated quote.
+_LEDGER_COVERAGE_THRESHOLD = 0.7
+
+
+def _content_tokens(text: str) -> set[str]:
+    """Case-folded alphanumeric tokens with stopwords dropped."""
+    return {t for t in _TOKEN_RE.findall(text.casefold()) if t not in _TRACE_STOPWORDS}
+
+
+def _cites_chain(text: str, chain_ids: list[str]) -> bool:
+    """Whether `text` names a chain id — exact stored form, or the
+    normalized abbreviated/pluralized form (FIX-CONTRACT-01 limitation 2).
+
+    Lifted verbatim out of `_claim_is_traced`'s first two clauses so the
+    ledger scanner can require a CHAIN citation specifically, where
+    `_label_has_any_citation` would also accept a bare GT mention.
+    """
+    if any(cid in text for cid in chain_ids):
+        return True
+    folded = text.casefold()
+    for cid in chain_ids:
+        normalized = _normalize_chain_id(cid)
+        if _normalized_id_safe_for_loose_match(normalized) and normalized in folded:
+            return True
+    return False
+
+
+def _closure_ledger_fragments(section6: str, chain_ids: list[str]) -> list[str]:
+    """Quoted claim fragments from closure-ledger lines in section 6.
+
+    A ledger line is any line that BOTH quotes a span and cites a real
+    chain id. Both halves are load-bearing: a quote citing nothing traces
+    nothing, and a chain citation with no quote names which chain but not
+    which claim. An id cited but absent from section 4 is not a chain id
+    and yields no fragment — so a ledger cannot invent its own authority.
+    """
+    fragments: list[str] = []
+    for line in section6.splitlines():
+        if not _cites_chain(line, chain_ids):
+            continue
+        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(line))
+    return fragments
+
+
+def _ledger_fragment_covers(fragment: str, claim_text: str) -> bool:
+    """Whether a ledger fragment quotes substantially the content of a claim.
+
+    Overlap rather than substring: a ledger paraphrases lightly (`"Lambda
+    is 2.10x more expensive ..."` against a claim reading `"... it is
+    2.10x more expensive ..."`), so an exact-substring rule would credit
+    almost nothing. The two guards above — a minimum fragment size and a
+    coverage fraction taken over the fragment — are what keep the overlap
+    from degenerating into "any long claim matches any short quote".
+    """
+    frag = _content_tokens(fragment)
+    if len(frag) < _MIN_LEDGER_FRAGMENT_TOKENS:
+        return False
+    covered = len(frag & _content_tokens(claim_text))
+    return covered / len(frag) >= _LEDGER_COVERAGE_THRESHOLD
+
+
 def _is_assertive_claim(text: str) -> bool:
     """Keep only items with sentence-ending punctuation or over forty characters.
 
@@ -2575,9 +2675,17 @@ def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> lis
     """
     chain_ids = chain_ids or []
     claims: list[str] = []
+    in_fence = False
     for line in section6.splitlines():
         stripped = line.strip()
-        if not stripped:
+        # LEDGER-01: a fenced block is verbatim structural content — a
+        # closure ledger, a formula, a captured snippet — not section-6
+        # prose. Mining it for claims counted a ledger's own rows as ten
+        # additional claims on the live PR-P1 run.
+        if _FENCE_RE.match(stripped):
+            in_fence = not in_fence
+            continue
+        if in_fence or not stripped:
             continue
         m_bold = _BOLD_LEADIN_COLON_RE.match(stripped)
         if m_bold:
@@ -2600,27 +2708,31 @@ def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> lis
     return claims
 
 
-def _claim_is_traced(claim_text: str, chain_ids: list[str], chain_blocks: list[str]) -> bool:
+def _claim_is_traced(
+    claim_text: str,
+    chain_ids: list[str],
+    chain_blocks: list[str],
+    ledger_fragments: tuple[str, ...] | list[str] = (),
+) -> bool:
     """A claim is traced if it names a chain identifier — either the exact
     stored form (e.g. "Chain C1") or a normalized abbreviated/pluralized
     citation of it (e.g. "(C1)", "chain **C1**", "(Chains C2, C3)" —
     FIX-CONTRACT-01 limitation 2) — or names >=2 GT ids that also appear
-    together inside a single chain block (D-20).
+    together inside a single chain block (D-20) — or is quoted by a
+    closure-ledger entry that cites a real chain (LEDGER-01).
+
+    `ledger_fragments` defaults to empty, so every call site that predates
+    LEDGER-01 keeps its exact prior behaviour.
     """
-    if any(cid in claim_text for cid in chain_ids):
+    if _cites_chain(claim_text, chain_ids):
         return True
-    folded = claim_text.casefold()
-    for cid in chain_ids:
-        normalized = _normalize_chain_id(cid)
-        if _normalized_id_safe_for_loose_match(normalized) and normalized in folded:
-            return True
     gt_mentions = {m.group(0).rstrip("?") for m in _GT_MENTION_RE.finditer(claim_text)}
     if len(gt_mentions) >= 2:
         for block in chain_blocks:
             block_gts = {m.group(0).rstrip("?") for m in _GT_MENTION_RE.finditer(block)}
             if gt_mentions <= block_gts:
                 return True
-    return False
+    return any(_ledger_fragment_covers(f, claim_text) for f in ledger_fragments)
 
 
 _DEFECT_RECORD_FIELDS = (
@@ -2877,7 +2989,10 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
 
     dependency = _chain_dependency_defects(section4)
     claims = _conclusion_claims(section6, chain_ids)
-    untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks)]
+    ledger = _closure_ledger_fragments(section6, chain_ids)
+    untraced = [
+        c for c in claims if not _claim_is_traced(c, chain_ids, blocks, ledger)
+    ]
 
     record = {
         "analysis_id": analysis_id,
@@ -2894,6 +3009,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_untraced_claims_text": untraced,
         "_nonconforming_verdict_text": nonconforming_verdicts,
         "_malformed_chain_blocks_text": malformed_blocks,
+        "_closure_ledger_fragments": ledger,
         "dependency_cycles": len(dependency["cycles"]),
         "ungrounded_chains": len(dependency["ungrounded"]),
         # Placeholder: the reconciliation needs the finished record, so it
@@ -3145,6 +3261,18 @@ _CALIBRATION_ANALYSIS_ORDER = (
     "condB-P3",
 )
 _CALIBRATION_UNTRACED_FLAGS = [1, 1, 1, 1, 1, 1]
+
+# LEDGER-01: `_CALIBRATION_UNTRACED_FLAGS` is saturated at 1 across all six
+# analyses and is therefore structurally blind to ANY movement in the counts
+# beneath it — the same blindness 184-REVIEW.md WR-01 found in
+# `_CALIBRATION_CHAIN_FLAGS`, which stayed green through a +7 false-positive
+# regression. The two vectors below pin what the flags cannot see. Measured
+# on tests/quality-baseline-v8.7/analyses/ in _CALIBRATION_ANALYSIS_ORDER
+# immediately BEFORE the LEDGER-01 claim-extraction change, and re-measured
+# byte-identical after it — which is the evidence that widening traceability
+# to closure ledgers moved nothing on the frozen corpus.
+_CALIBRATION_CONCLUSION_CLAIMS = [9, 9, 8, 5, 6, 4]
+_CALIBRATION_UNTRACED_CLAIMS = [4, 5, 6, 3, 3, 4]
 _CALIBRATION_VERDICT_FLAGS = [1, 1, 1, 1, 1, 1]
 _CALIBRATION_CHAIN_FLAGS = [1, 1, 1, 1, 1, 1]
 
@@ -5181,6 +5309,141 @@ def _selftest_selfaudit_calibration() -> bool:
     return ok
 
 
+def _selftest_ledger_traceability() -> bool:
+    """A closure ledger discharges the claims it quotes, and its own rows
+    are not counted as additional claims.
+
+    Observed 2026-08-31 on a live PR-P1 run scored with this detector: an
+    analysis that traced its Conclusion through an explicit "closure
+    ledger" instead of inline parentheticals was penalised on BOTH halves
+    of the signal — ten ledger rows mined as extra claims (7 -> 14) while
+    the three claims they discharged stayed flagged untraced (0 -> 3) —
+    and `selfaudit_calibration` then escalated that into a Criterion 6
+    over-claim finding against an agent that had done nothing wrong.
+
+    Controls (a)-(c) pin the fix. Controls (d)-(g) are the anti-overreach
+    half: a ledger citing a chain that does not exist, a fragment too
+    generic to identify a claim, and a fragment that quotes something else
+    must each discharge NOTHING. Without them a rule that credited any
+    ledger-shaped line would pass the positives — honesty-not-score, D-01.
+    Control (h) discriminates the fence rule from the claim filter, and
+    (i) pins the frozen corpus against movement.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: ledger_traceability {msg}", file=sys.stderr)
+        ok = False
+
+    chain_ids = ["Chain C1", "Chain C2", "Chain C3"]
+    prose = (
+        "**Recommended approach:** Do not start with Lambda. Measure bill "
+        "composition and duty cycle first, then purchase Compute Savings "
+        "Plan coverage sized to the post-cleanup baseline.\n\n"
+        "**Key insight:** Lambda's advantage is not that it is cheap - it is "
+        "2.10 times more expensive per unit of actual compute than Fargate. "
+        "Its advantage is that it bills nothing for idle.\n\n"
+        "**Trade-offs acknowledged:** A Savings Plan commits you to an hourly "
+        "floor for three years and is not reversible, so cleanup moves ahead "
+        "of sizing it.\n"
+    )
+    rows = "\n".join(
+        (
+            '- "Do not start with Lambda; measure bill composition and duty '
+            'cycle first" -> chain C1',
+            '- "Lambda is 2.10 times more expensive per unit of actual '
+            'compute than Fargate" -> chain C2',
+            '- "A Savings Plan commits you to an hourly floor for three '
+            'years" -> chain C3',
+        )
+    ) + "\n"
+    ledgered = prose + "\n## Closure ledger\n\n" + '```' + "text\n" + rows + '```' + "\n"
+
+    # (a) POSITIVE: every prose claim is discharged by the ledger.
+    claims = _conclusion_claims(ledgered, chain_ids)
+    frags = _closure_ledger_fragments(ledgered, chain_ids)
+    untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, [], frags)]
+    if untraced:
+        _fail(f"(a) ledgered claims still reported untraced: {untraced!r}")
+
+    # (b) DENOMINATOR: the ledger's own rows are not extra claims.
+    if len(claims) != 3:
+        _fail(f"(b) expected 3 prose claims, got {len(claims)}: {claims!r}")
+
+    # (c) FAULT INJECTION: strip the ledger and the same three claims must
+    #     go back to untraced — proving (a) is the ledger's doing and not a
+    #     weakened claim extractor.
+    bare_claims = _conclusion_claims(prose, chain_ids)
+    bare_untraced = [
+        c for c in bare_claims
+        if not _claim_is_traced(c, chain_ids, [], _closure_ledger_fragments(prose, chain_ids))
+    ]
+    if len(bare_untraced) != 3:
+        _fail(f"(c) ledger-free section did not report 3 untraced: {bare_untraced!r}")
+
+    # (d) ANTI-OVERREACH: a ledger citing a chain absent from section 4 has
+    #     no authority to discharge anything.
+    bogus = prose + "\n" + '```' + "text\n" + rows.replace("C1", "C9").replace(
+        "C2", "C8").replace("C3", "C7") + '```' + "\n"
+    if _closure_ledger_fragments(bogus, chain_ids):
+        _fail("(d) ledger citing non-existent chains yielded fragments")
+
+    # (e) ANTI-OVERREACH: a fragment below the minimum size identifies no
+    #     particular claim and must not discharge one.
+    generic_claim = (
+        "**Key insight:** The convention that serverless is cheaper does not "
+        "survive contact with the duty cycle."
+    )
+    generic_frags = _closure_ledger_fragments(
+        '- "serverless is cheaper" -> chain C1\n', chain_ids)
+    if not generic_frags:
+        _fail("(e) precondition: generic ledger line yielded no fragment to reject")
+    elif _claim_is_traced(generic_claim, chain_ids, [], generic_frags):
+        _fail("(e) sub-minimum fragment wrongly discharged a claim")
+
+    # (f) ANTI-OVERREACH: a well-formed ledger entry quoting SOMETHING ELSE
+    #     discharges nothing.
+    other_frags = _closure_ledger_fragments(
+        '- "the migration raises network and observability lines" -> chain C1\n',
+        chain_ids)
+    savings_claim = [c for c in claims if "Savings Plan commits" in c]
+    if not (other_frags and savings_claim):
+        _fail("(f) precondition: unrelated-fragment control not constructed")
+    elif _claim_is_traced(savings_claim[0], chain_ids, [], other_frags):
+        _fail("(f) unrelated fragment wrongly discharged a claim")
+
+    # (g) ANTI-OVERREACH: coverage is measured over the FRAGMENT, so a long
+    #     claim cannot absorb a short quote it never made.
+    if _ledger_fragment_covers("alpha beta gamma delta epsilon zeta",
+                               " ".join(["padding"] * 400)):
+        _fail("(g) coverage credited a claim that contains none of the fragment")
+
+    # (h) The fence rule, not `_is_assertive_claim`, is what excludes the
+    #     ledger rows: unfenced, the same rows ARE claims (each self-cited).
+    unfenced = prose + "\n## Closure ledger\n\n" + rows
+    if len(_conclusion_claims(unfenced, chain_ids)) != 6:
+        _fail("(h) unfenced ledger rows were excluded by something other "
+              "than the fence rule")
+
+    # (i) The frozen calibration corpus does not move. The saturated
+    #     `_CALIBRATION_UNTRACED_FLAGS` cannot see this axis at all.
+    base = REPO_ROOT / "tests" / "quality-baseline-v8.7" / "analyses"
+    measured_claims, measured_untraced = [], []
+    for name in _CALIBRATION_ANALYSIS_ORDER:
+        rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
+        measured_claims.append(rec["conclusion_claims"])
+        measured_untraced.append(rec["untraced_claims"])
+    if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
+        _fail(f"(i) conclusion_claims moved: {measured_claims} != "
+              f"{_CALIBRATION_CONCLUSION_CLAIMS}")
+    if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
+        _fail(f"(i) untraced_claims moved: {measured_untraced} != "
+              f"{_CALIBRATION_UNTRACED_CLAIMS}")
+
+    return ok
+
+
 def _selftest_incidence_schema_compat() -> bool:
     """`read_defect_incidence` maps by header name, so widening the schema
     does not orphan the files already committed.
@@ -6884,7 +7147,18 @@ def self_test() -> int:
     else:
         print("self-test: selfaudit_calibration sub-check PASSED")
 
-    # Item 17 (schema widening): `read_defect_incidence` maps by header name,
+    # Item 17 (ledger traceability, LEDGER-01): a closure ledger discharges the
+    # claims it quotes, and its own rows are not mined as extra claims. Three
+    # positive/fault-injection controls, four anti-overreach controls (bogus
+    # chain, sub-minimum fragment, unrelated fragment, long-claim absorption),
+    # one fence-vs-filter discriminator, and a frozen-corpus movement pin.
+    if not _selftest_ledger_traceability():
+        all_passed = False
+        print("self-test: ledger_traceability sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: ledger_traceability sub-check PASSED")
+
+    # Item 18 (schema widening): `read_defect_incidence` maps by header name,
     # so the twelve committed ten-column defect-incidence TSVs keep parsing
     # after three columns were appended — and still fails loudly on a ragged
     # row or a header missing a required flag column.

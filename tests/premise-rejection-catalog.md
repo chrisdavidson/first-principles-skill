@@ -269,6 +269,97 @@ composition, not a form defect.
 a clean bill: a missing self-audit is a disclosure defect owned by the agent body's "say so
 explicitly at the top of the response" rule, and recoding it as agreement here would hide it.
 
+## Third run — PR-P1, 2026-08-31 (n=1), first run with verified provenance
+
+Re-run while verifying the three columns appended to `_DEFECT_RECORD_FIELDS`. **This is the
+first PR-P1 run whose agent body is known.** It was dispatched through
+`check-quality-harness.py --probe` over the Plan-36-locked `claude -p --plugin-dir
+first-principles` transport, so it read the working tree at 8.23.0.
+
+**The two runs above did not.** Both were dispatched through the in-session `Agent` tool,
+which resolves to the installed plugin; `~/.claude/plugins/installed_plugins.json` pins that
+to a cache of commit `5fc9edd` at **v8.20.0**, and that cached agent body does not contain the
+arrow-led wrap rule at all. Either the session was launched with an override this transcript
+does not record, or run 2's improvement is not attributable to the fix it is recorded against.
+**The "Post-fix re-run" section above should be read with that caveat**; it is left unedited
+because which body ran is not established either way, and rewriting it on a guess would
+replace one unsupported attribution with another. Run 3 is confounded against both prior runs
+on two axes at once (plugin version and transport) and is not a matched comparison.
+
+| Axis | run 1 | run 2 | run 3 |
+|---|---|---|---|
+| Provenance | Agent tool, body unknown | Agent tool, body unknown | `--plugin-dir`, **8.23.0 verified** |
+| Chain blocks / malformed | 6 / 5 | 7 / 0 | 5 / **0** |
+| §6 claims / untraced | 8 / 1 | 7 / 0 | 4 / **0** |
+| Verdict cells / non-conforming | 15 / 0 | 16 / 0 | 16 / **0** |
+| Dependency cycles / ungrounded | 0 / 0 | 0 / 0 | 0 / 0 |
+| Self-audit disagreements | 2 | 0 | **0** |
+| §2 premise verdict | A1 `convention` → Discard | A1 `convention` → Discard | A1 `convention` → **Discard**, refuted by GT-4 read-at-source |
+
+The premise axis passes a third time, on a verified body. GAP-1 — that no gate locks this in —
+is unchanged.
+
+### The ledger blind spot (GAP-7) — FIXED
+
+Run 3 scored `claims 14, untraced 3, selfaudit_disagreements 1` before the fix. All three
+findings were artifacts of one detector defect, not properties of the analysis.
+
+Run 3 traced its Conclusion through an explicit `§6→§4 closure ledger` — each claim quoted
+beside the chain that produced it — rather than through inline parentheticals:
+
+```text
+- "Lambda is 2.10× more expensive per unit of actual compute than Fargate"  → chain C1 ✓
+```
+
+`_conclusion_claims` mined the ledger's ten rows as ten additional claims, and
+`_claim_is_traced` — which only accepts a citation found *inside* the claim text — left the
+three prose claims those rows discharged counted as untraced. `selfaudit_calibration` then
+reported Criterion 6 as an over-claim.
+
+**Criterion 6 does not require an inline citation.** Its Rigorous band requires that every
+Conclusion claim "traces to a specific named derivation chain in section 4" and says nothing
+about where the citation sits; `output-template.md` §6 prescribes three prose blocks and gives
+no citation instruction at all. A ledger discharges that obligation at least as well as a
+parenthetical. So an analysis that traced its claims *more* explicitly scored worse on both
+numerator and denominator — and the newly widened schema converted the detector's blind spot
+into a charge against the agent.
+
+**This is the 8.23.0 Criterion 4 finding with the surfaces reversed.** There, the rubric scored
+only semantics and the agent's Rigorous verdict was defensible — the rubric was the defect. Here
+the rubric is right and the instrument is wrong. Both were found the same way: by disagreeing
+with a self-report and then asking which side was mistaken rather than assuming it was the agent.
+
+**Fix (`scripts/check-quality-harness.py`), two independent halves:**
+
+1. `_conclusion_claims` skips fenced code blocks — verbatim structural content, not §6 prose.
+   This is general: any fenced formula or captured snippet in §6 was being mined for claims.
+2. `_claim_is_traced` accepts a closure-ledger entry, via a new `ledger_fragments` parameter
+   that defaults empty so every prior call site keeps its exact behaviour.
+
+**Credit is deliberately narrow**, because a rule that credited any ledger-shaped line would
+let an agent discharge its whole Conclusion with three cosmetic rows. An entry must cite a
+chain id that actually appears in section 4 (so a ledger cannot invent its own authority),
+quote at least four content tokens (so `"serverless is cheaper"` identifies no particular
+claim), and cover 70% **of the fragment's** tokens — measured over the fragment and never the
+claim, so a long claim cannot earn credit by being long enough to contain a short unrelated
+quote. Overlap rather than substring, because a ledger paraphrases lightly: `"Lambda is 2.10×
+more expensive …"` against a claim reading `"… it is 2.10× more expensive …"`.
+
+**Verification.** Pinned by `_selftest_ledger_traceability` (self-test Item 17), ten controls:
+three positive/fault-injection, four anti-overreach, one discriminating the fence rule from the
+claim filter, one frozen-corpus movement pin. Five fault injections — removing the fence skip,
+dropping the ledger clause, dropping the minimum-fragment guard, measuring coverage over the
+claim, dropping the chain-citation requirement — each fail the sub-check on the control that
+owns it.
+
+**Measured movement.** Run 3 goes to `claims 4, untraced 0, selfaudit_disagreements 0`. Runs 1
+and 2 are byte-unchanged: neither has a fenced §6 block or a ledger. The frozen v8.7 corpus is
+unchanged on both axes — `_CALIBRATION_CONCLUSION_CLAIMS` `[9, 9, 8, 5, 6, 4]` and
+`_CALIBRATION_UNTRACED_CLAIMS` `[4, 5, 6, 3, 3, 4]`, measured before the change and re-measured
+after. Those two pins are new: `_CALIBRATION_UNTRACED_FLAGS` is saturated at `[1]*6` and is
+structurally blind to this axis, and two of the five injections above move the corpus and are
+caught by nothing else.
+
 ## Promotion
 
 | Target | Cost | Note |
