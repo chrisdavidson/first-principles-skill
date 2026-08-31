@@ -495,17 +495,20 @@ _CAPTURE_TOOL_TARGET_KEYS = {"WebFetch": "url", "Read": "file_path"}
 
 
 def _iter_capture_tool_calls(
-    jsonl_path: Path, tool_names: tuple[str, ...] = ("WebFetch", "Read")
+    jsonl_path: Path,
+    tool_names: tuple[str, ...] = ("WebFetch", "Read"),
+    dispatch_ids: frozenset[str] | None = None,
 ) -> list[tuple[str, str, str]]:
     """Yield (tool_name, target, retrieved_text) triples for the named tools.
 
-    (a) Deliberately does NOT reuse _find_agent_dispatch_ids, which is
-    hard-filtered to name == "Agent" plus a subagent_type match and returns
-    bare ids with no path to input.url or input.file_path. Reusing it here
-    would return an empty list on every capture -- a silent wrong answer,
-    the worst failure shape for a provenance building block. Keeping the
-    traversals separate also means a defect here cannot reach Guardrail B's
-    dispatch-counting logic.
+    (a) Deliberately does NOT depend on _find_agent_dispatch_ids for its own
+    traversal -- that function is hard-filtered to name == "Agent" plus a
+    subagent_type match and returns bare ids with no path to input.url or
+    input.file_path, so folding this reader's traversal into it would return
+    an empty list on every capture. _capture_subagent_tool_calls (below)
+    composes the two functions instead of merging their traversals, so this
+    reader still never calls _find_agent_dispatch_ids itself and a defect
+    here cannot reach Guardrail B's dispatch-counting logic.
 
     (b) It never opens the path a Read call names. retrieved_text comes
     exclusively from the capture's own tool_result block. Turning this into
@@ -519,12 +522,41 @@ def _iter_capture_tool_calls(
 
     (d) It makes no judgement about Guardrail A or B and calls no function
     that does.
+
+    (e) dispatch_ids=None (the default) is unfiltered: it returns every
+    matching tool call in the capture, parent-session and dispatched-subagent
+    alike, and the caller owns the distinction. Passing a frozenset scopes
+    the result to only the tool_use blocks whose enclosing assistant event's
+    parent_tool_use_id is a member of that set -- i.e. only a named
+    subagent's own calls. _capture_subagent_tool_calls is the filtered,
+    one-call entry point built for this; it is what Phase 5's
+    check-provenance.py is documented to consume.
+
+    (f) Measured 2026-08-31: no committed fixture holds a parent-session
+    WebFetch/Read. tests/quality-provenance-v8.24/README.md lines 126-129
+    describe tests/quality-fixtures-v8.7/gen-internal-tools.jsonl's tools as
+    "the parent's tools"; measured, they are the subagent's, attributed to
+    that file's own Agent dispatch id. The README is frozen evidence and is
+    deliberately not corrected in place -- the correction is pinned instead
+    by a synthesised mutation in self-test item 19 control 9, the only
+    committed control with teeth on the parent/subagent attribution axis.
     """
+    unmapped = [n for n in tool_names if n not in _CAPTURE_TOOL_TARGET_KEYS]
+    if unmapped:
+        raise ValueError(
+            f"_iter_capture_tool_calls: no target key registered in "
+            f"_CAPTURE_TOOL_TARGET_KEYS for {unmapped!r}; register a target "
+            f"key rather than accept a blank target"
+        )
+
     objs = _iter_jsonl_objects(jsonl_path)
 
     calls: list[tuple[str, str, str]] = []  # (tool_use_id, tool_name, target)
     for obj in objs:
         if obj.get("type") != "assistant":
+            continue
+        parent_id = obj.get("parent_tool_use_id")
+        if dispatch_ids is not None and parent_id not in dispatch_ids:
             continue
         msg = obj.get("message", {})
         content = msg.get("content", []) if isinstance(msg, dict) else []
@@ -534,10 +566,9 @@ def _iter_capture_tool_calls(
             name = c.get("name")
             if name not in tool_names:
                 continue
-            key = _CAPTURE_TOOL_TARGET_KEYS.get(name)
             inp = c.get("input")
             inp = inp if isinstance(inp, dict) else {}
-            target = inp.get(key, "") if key else ""
+            target = inp.get(_CAPTURE_TOOL_TARGET_KEYS[name], "")
             tool_use_id = c.get("id")
             if tool_use_id:
                 calls.append((tool_use_id, name, target))
@@ -560,6 +591,36 @@ def _iter_capture_tool_calls(
         (name, target, results.get(tool_use_id, ""))
         for tool_use_id, name, target in calls
     ]
+
+
+def _capture_subagent_tool_calls(
+    jsonl_path: Path,
+    subagent_type: str,
+    tool_names: tuple[str, ...] = ("WebFetch", "Read"),
+) -> list[tuple[str, str, str]]:
+    """Return only the named subagent's own (tool_name, target, retrieved_text) triples.
+
+    Composes _find_agent_dispatch_ids (read-only, never edited) with
+    _iter_capture_tool_calls's dispatch_ids filter, so a caller gets
+    subagent-scoped triples in one call rather than having to thread the
+    dispatch-id lookup through by hand. Raises ValueError, rather than
+    returning [], when subagent_type never dispatched in this capture --
+    returning [] here would reintroduce the exact conflation this wrapper
+    exists to close: an empty result would be indistinguishable between
+    "this subagent issued no tool calls" and "there is no such subagent in
+    this capture." Phase 5's check-provenance.py is the named consumer this
+    wrapper is built for.
+    """
+    objs = _iter_jsonl_objects(jsonl_path)
+    ids = _find_agent_dispatch_ids(objs, subagent_type)
+    if not ids:
+        raise ValueError(
+            f"_capture_subagent_tool_calls: subagent_type {subagent_type!r} "
+            f"never dispatched in {jsonl_path}"
+        )
+    return _iter_capture_tool_calls(
+        jsonl_path, tool_names=tool_names, dispatch_ids=frozenset(ids)
+    )
 
 
 def _read_top_level_result(jsonl_path: Path) -> str:
