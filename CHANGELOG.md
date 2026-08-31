@@ -13,6 +13,75 @@ installed session.
 
 ## [Unreleased]
 
+## [8.23.0] — 2026-08-31
+
+Ships the arrow-led chain-form fix and the three measurement-instrument defects found while
+verifying it. No new gate; the firewall battery stays at 22/22. Content-only release —
+without this stamp bump the 8.22.0 install would never see any of it.
+
+### Fixed
+
+- **Derivation chains rendered as ordered lists.** Neither `shared/spine/SKILL-body.md` nor
+  `shared/spine/references/output-template.md` said how a chain carrying more hops than fit on
+  one line should be rendered; both showed only the single-line form. A live run needed six hops
+  and rendered them as `1.` / `2.` / `3.`, which splits one chain into disconnected GT-headed
+  one-hop fragments. Both surfaces now state the arrow-led wrap and name the ordered-list
+  rendering as non-conforming. Measured against `check-quality-harness`: 6 of 6 chain blocks
+  malformed before, 0 of 5 GT-headed chains after; untraced §6 claims 1 of 8 to 0 of 7.
+
+- **GAP-5 — the detector could not parse the chain heading the template prescribes.**
+  `output-template.md` §4 prescribes `### Conclusion C1: [text]`, but `_CHAIN_HEADING_RE`
+  anchored its label immediately after the hashes, so only the `Chain `-prefixed and bare forms
+  parsed. **The failure direction was silently green:** with zero chain ids `_chain_blocks`
+  falls back to one whole-section block whose single well-formed chain suppressed every
+  malformed one, reporting `malformed_chain_blocks: 0` on a document with two. A
+  malformed-chain regression on any analysis following the template was invisible to the
+  harness. Pinned by self-test Item 14.
+
+- **GAP-6 — composition chain heads rejected.** `GT-5 (label) + C6 (label)` scored malformed
+  whatever its arrow form, while `GT-5 (label) + GT-2 (label)` scored well-formed — yet two
+  shapes the output template itself produces are compositions (the trade-off matrix collapse
+  and the second-order extension). Composition is now accepted. Because GT-only heads were
+  acyclic *by construction* — a ground truth is an axiom and cannot depend on a chain — the
+  widening ships with `_chain_dependency_defects()`, reporting cycles and chains that reach no
+  ground truth by any path; without it the change would have traded a false positive for a
+  false negative on circular reasoning, which the validation rubric names as an abandonment
+  reason in its own right. Pinned by self-test Item 15.
+
+- **Criterion 4 scored reasoning quality but not chain form, and the Self-Audit Gate was never
+  reconciled against measurement.** Two live runs scored themselves Criterion 4 — Rigorous with
+  Gate: PASS, one of them with every chain mechanically malformed. The verdicts were defensible:
+  Criterion 4's band descriptors scored only semantics, and the prescribed rendering appeared in
+  the criterion's preamble and in none of its four bands. The rubric was the defect, not the
+  verdict. The Rigorous band now requires the rendering and the Sound band names ordered-list
+  rendering as the demotion; `_selfaudit_calibration_defects()` reconciles claimed bands against
+  the measured record so the self-report is falsifiable rather than merely stated. Only a
+  claimed **Rigorous** is contradicted — the other bands already concede a defect. Pinned by
+  self-test Item 16.
+
+### Added
+
+- `tests/premise-rejection-catalog.md` — candidate fixture covering a stressor class no
+  existing fixture reached: a false premise asserted as consensus while the solution is
+  pre-selected. The only pre-existing "Everyone knows" rows are slash-invoked
+  `/first-principles:inversion`, where the premise is the *named subject* of the requested
+  technique. 2×2 factorial over (premise contested × solution pre-selected), with an
+  anti-contrarianism control so an agent that rejects every premise handed to it fails.
+  **Not wired to any gate** — no script reads it and no CI job runs it; committed as a proposal
+  with its promotion targets and their costs recorded in the file.
+
+### Known limitations
+
+- The dependency (`_dependency_cycles`, `_ungrounded_chains`) and self-audit
+  (`_selfaudit_disagreements`) results are audit-only fields on `detect_defects`, **not**
+  `_DEFECT_RECORD_FIELDS` columns: that schema is compared column-by-column against the
+  committed calibration corpus, and adding a column is a separate decision. Consequence:
+  nothing gates on cycles or on self-audit disagreement — both are visible to a caller, not
+  to CI.
+- Both live runs behind these fixes are n=1 and recorded as observations, not gates, per the
+  governing record in `docs/v8.7-constraint-teardown.md` §2 item 3.
+
+
 ## [8.22.0] — 2026-08-30
 
 First published release since 8.17.5. Tags `v8.18.0`, `v8.19.0` and `v8.20.0` were cut but
