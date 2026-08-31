@@ -3,7 +3,7 @@ name: ground-truths
 description: Slash-only Phase 3 stub — compile GT-ID-anchored verified facts for derivation chains.
 disable-model-invocation: true
 metadata:
-  version: "8.22.0"
+  version: "8.23.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/ground-truths/SKILL.md by sync-content.py -->
