@@ -4,13 +4,13 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 147 reproducible / 90 audit-only / 0 gap / 237 total
+**Coverage headline:** 161 reproducible / 91 audit-only / 0 gap / 252 total
 
-The full 237-row capability-to-requirement-to-test mapping is in the generated matrix:
+The full 252-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
-> 90 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
+> 91 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.13 residual-delta live re-baseline Phase 137; latest artifact `tests/step0-baseline-v7.13.md`; reproducible = measured, not passing — v7.13 S-P02 1/5, S-P10 0/5, S-P14 0/5 all CARRIED; v7.8 remains the canonical full 8-technique baseline) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
@@ -34,7 +34,34 @@ The full 237-row capability-to-requirement-to-test mapping is in the generated m
 > to that rule. The Phase 142 note stands unedited as an accurate record of what was decided at
 > that time, for the milestones it names.
 
-**Headline history (D-01).** The coverage headline has moved six times since the matrix was
+> **PROV-GUARD registered, dated 2026-08-31 (v8.24 Phase 6 / D-01, D-14):** `scripts/check-provenance.py`
+> is registered as gate id **`PROV-GUARD`** — not `PROV-01`, since that is a requirement id in this
+> milestone and `GATE-01` was already taken by `check-agent.py` — on both surfaces: CI job
+> `check-provenance (PROV-GUARD)` and a battery `gate` call running `--self-test` **and** the live
+> leg. It asserts that every `*Provenance: read-at-source*` ground truth in an analysis's section 3
+> joins to a real `WebFetch`/`Read` of that source in the run's stored `.jsonl` capture, and that
+> every literal the ground truth states appears verbatim in that source's retrieved text. Live
+> result, quoted verbatim rather than paraphrased: `7/7 sources matched, 35/35 literals located`.
+> In one sentence: every other column `detect_defects` emits scores the *form* of an analysis; this
+> is the first check in the stack that can falsify a `*Provenance: read-at-source*` label against
+> what the run actually fetched — it records fact, not form.
+>
+> **What it does not assert** — four documented limits, each traceable to the module docstring:
+> 1. it verifies a stated number appears in the retrieved text of the named source; it does not
+>    verify the number *means* what the analysis says, nor that the chain citing it is valid
+>    inference — that is backlog `999.4`;
+> 2. the literal regex also matches digit runs that are the tail of an alphanumeric identifier
+>    (`x86` yields `86`), which still verify but carry no independent evidentiary weight — expected
+>    behaviour, not a parser bug;
+> 3. whole-span bold/quoted matching was measured and rejected (`4/11` bold spans, 4/8 quoted spans
+>    located) and must not be resurrected as a "cleaner" rule;
+> 4. PROV-04's no-network control blocks `socket`; it does not cover a `subprocess` shell-out — a
+>    stated residual.
+>
+> **Why VAL-04 is the milestone's one audit-only row:** no gate re-runs to check that a docs record
+> exists (the v8.18 SHIP-04/SHIP-05 precedent), which is why this addendum is the record.
+
+**Headline history (D-01).** The coverage headline has moved seven times since the matrix was
 first regenerated at 121/85/0/206 (Phase 119 CONF-04). This table is a compact change log — one
 row per reconciliation event, of which rows 4 and 5 are deliberate zero-drift reconciliations that
 moved no count — replacing what used to be seven separately stacked prose annotations. Every delta
@@ -50,6 +77,7 @@ below is already discharged — no row is a currently-open action item.
 | 6 | v8.8 post-close TEARDOWN-01 cleanup | 133/96/0/229 → 132/97/0/229 | −1 reproducible / +1 audit-only. Requirement **META-Q4** (agent-body budget) was re-tiered `reproducible` → `audit-only` in `scripts/check-traceability.py` and the matrix regenerated. It had been tiered `reproducible` on the strength of `scripts/git-hooks/pre-commit` invoking `scripts/check-body-budget.py`; TEARDOWN-01 (v8.7 Phase 163) retired the body-budget stanza from that hook, so the hook no longer invokes the script. The body line count is now report-only (`check-body-budget.py` always exits 0; reported every firewall-battery run as `[INFO] body-size` but not gated) — inspectable, not reproducibly enforced, i.e. genuinely audit-only. |
 | 7 | quick task `260728-vxn` | 132/97/0/229 → 126/88/0/214 | −6 reproducible / −9 audit-only. All 15 v4.0/v4.1 builder requirements (CLI-01, CLI-02, CLI-03, CLI-04, CLI-05, CLI-06, CLI-07, CLI-08, INST-01, INST-02, INST-03, INST-04, INST-05, INST-06, INST-07) were retired from `scripts/check-traceability.py` and are absent from both regenerated artifacts. 9 audit-only rows were removed (CLI-01..08 + INST-06) and 6 reproducible rows were removed (INST-01..05, INST-07), for a net −15 total rows (229 → 214). The source of this decision is `docs/technical-debt-audit-2026-07-28.md`, whose top-listed Decision-For-The-User was a binary choice — repair the builder's test coverage and keep it, or retire the whole trio — and the user chose retire. `main.py`, both `templates/*.tmpl` files, the gitignored `generated/` output directory, and the four builder test files (`tests/test_59_02_task1.py`, `tests/test_60_01_check_agent_candidate.py`, `tests/test_64_01_install.py`, `tests/test_builder_check_adapters.py`) were deleted in the same quick task. **This is a product decision, not a coverage downgrade** — the 15 requirements are not unmet; the deliverable they described no longer exists. |
 | 8 | v8.18 Phase 4 (SHIP-03 / D-05) | 126/88/0/214 → 147/90/0/237 | **+21 reproducible / +2 audit-only.** The 23 v8.18 milestone requirements (ACT-01..05, LOOP-01..05, PAR-01..03, HARN-01..04, SHIP-01..06) were registered as matrix rows for the first time (`_rows_v818()`, `scripts/check-traceability.py`) — the first **v8.x** milestone block added since v7.9 (row 2 above; row 3's v7.11 block is the last non-v8.x addition in between). 21 are reproducible, each backed by a deterministic offline gate (`scripts/check-act-limb.py`, `scripts/check-loop-closure.py`, `scripts/check-focused-parity.py`, `scripts/check-firewall-battery.sh`, `scripts/sync-content.py`, `scripts/check-version-stamps.py`); SHIP-04 and SHIP-05 are audit-only because no gate re-runs to check a CHANGELOG entry or a docs record. See the dated addendum beside the Phase 142 D-01 note above for why this departs from that note. |
+| 9 | v8.24 Phase 6 (D-06/D-07) | 147/90/0/237 → 161/91/0/252 | **+14 reproducible / +1 audit-only.** The 15 v8.24 milestone requirements (CAP-01..03, PROV-01..05, GATE-01..03, VAL-01..04) were registered as matrix rows for the first time (`_rows_v824()`, `scripts/check-traceability.py`). 14 are reproducible, each backed by a deterministic offline gate (`scripts/check-provenance.py`, `scripts/check-firewall-battery.sh`, `scripts/check-version-stamps.py`, `scripts/sync-content.py`); VAL-04 is audit-only because no gate re-runs to check that a docs record exists — the v8.18 SHIP-04/SHIP-05 precedent. |
 
 > **Honesty note (v8.8 D-01 — RESOLVED):** the prior "known-stale / vacuously-green" flag on
 > META-Q4 (TRACE-03 reporting coverage that no longer existed — "green because nothing checks it")
@@ -68,7 +96,8 @@ below is already discharged — no row is a currently-open action item.
 > the heading was corrected to agree with the then-current `126/88/0/214` headline and with
 > `docs/data/matrix.json` as generated at that date. The headline has since moved again — to
 > `147/90/0/237` at v8.18 Phase 4, recorded as headline-history row 8 above — and the heading
-> moved with it; both now read 90.
+> moved with it; both now read 90. The headline moved again at v8.24 Phase 6 to `161/91/0/252`
+> (headline-history row 9 above), and the audit-only-rows heading moved with it; both now read 91.
 
 ## v8.0 Terminal State (2026-07-06)
 
@@ -219,11 +248,11 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 - **RR-119-01** [MEDIUM] — S-N01 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,2,1,1,3]; under-count caveat; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-119-02** [MEDIUM] — S-N02 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,3,3,1,1]; under-count caveat documented — runs 2,3 are detector under-counts where agent still ran a pre-mortem; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 
-**90 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
+**91 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
 
 ### GAP-02: Candidate work list
 
-Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only row. Priority: MEDIUM audit-only items (52, derived from the `_SEVERITY_LABEL` 2×2 map over `coverage_tier` × `capability` plus the `_ACTIVE_TAIL_SEVERITY` overrides in `scripts/check-traceability.py` lines 1215-1233, applied to the current 90-row audit-only total; HIGH audit-only items number 38 under the same derivation. The prior figure of 85 tracked the 206-era audit-only total — see the `121/85/0/206` headline recorded above — not a MEDIUM sub-count; it was never produced by this severity method). The rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02→RR-92-01→RR-95-01→RR-108-01→RR-114-01, RR-79-03→RR-92-02→RR-95-02→RR-108-02-CLOSED, RR-77-08) now have confirming offline gates; Phase 117 CONF-02 adds RR-117-01 (S-P03 fishbone CLOSED) and RR-117-02 (S-N03 precision); Phase 119 CONF-04 adds RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar). Closing the remaining live routing dip (RR-114-01 S-P02 1/5, chain: RR-79-02->RR-92-01->RR-95-01->RR-108-01->RR-114-01) **was** scoped as a future live-routing milestone — **SUPERSEDED**, no such milestone exists (v8.0 terminal). RR-108-02 S-P05 is CLOSED at 4/5 at the v7.6 re-baseline (lone canonical improver); RR-79-01 S-P01 and RR-117-01 S-P03 are CLOSED at Phase 117 v7.7 CONF-01 and their CLOSE SUSTAINED at Phase 119 v7.8 CONF-03. v7.4 introduced three first-time residuals: RR-108-03 (decompose, 0/5) RESOLVED-BY-MERGE (v7.5 decompose→five-whys merge, see `decompose-five-whys-merge.md`), RR-108-04 (estimate, 0/5) CARRIED-INDETERMINATE (spend-limit-truncated at v7.4), RR-108-05 (theoretical-limit, 0/5) CARRIED-INDETERMINATE (spend-limit-truncated at v7.4) — both measurements stand; the CARRIED-INDETERMINATE *status* is **SUPERSEDED** by the ACCEPTED-FINAL disposition below. v7.6 Phase 114 measurement: S-P16 0/5 (merge did NOT improve five-whys routing — REGRESSION; fix forward-committed and APPLIED at Phase 117 — see `merge-validation-verdict.md` Phase 117 section); S-P01/S-P03 regressions RESOLVED at Phase 117 v7.7 CONF-01 and SUSTAINED at Phase 119 v7.8 CONF-03. Merge pairs recorded as deferred at the time: theoretical-limit↔inversion (SECOND recommendation) and estimate↔? (FLAG, partner unscoped) — **SUPERSEDED**, terminally closed as won't-do (v8.0). GEN-01 and GEN-02 are resolved (see GAP-01 above) and no longer appear in this work list. Phase 117 FIX-01/FIX-02/CONF-01/CONF-02 + Phase 118 FIX-03/FIX-04 + Phase 119 CONF-03/CONF-04 complete: the v7.8 fix-and-confirm chain is closed (D-1c CONFIRMED; all 5 blocking conjuncts hold; honesty-not-score: positive conjuncts S-P01 3/5 + S-P03 4/5 sustained; S-N01/S-N02 moved over bar — under-count caveat documented, not reclassified D-4). Recorded as deferred at the time (out-of-scope Fix-#3): NON_BLOCKING_NEGATIVE_IDS reclassification for S-N01/S-N02 (the prompts remain semantically pre-mortem; their resolved-over-bar state is documented) — **SUPERSEDED**, terminally closed as won't-do (v8.0). **[v8.0 ACCEPTED-FINAL]** RR-114-01 (1/5), RR-108-04 (0/5), and RR-108-05 (0/5) are all ACCEPTED-FINAL — no future milestone; project wrapped at Phase 142. The CARRIED-INDETERMINATE notation for RR-108-04/RR-108-05 and the "future live-routing milestone" framing for RR-114-01 are superseded by this terminal disposition. The still-deferred merge-pair recommendations (theoretical-limit↔inversion SECOND, estimate↔? FLAG) and the NON_BLOCKING_NEGATIVE_IDS reclassification for S-N01/S-N02 are likewise terminally closed as won't-do — no future milestones exist.
+Future-milestone candidates: add a confirming Test-Network or Methodology gate for each remaining audit-only row. Priority: MEDIUM audit-only items (53, derived from the `_SEVERITY_LABEL` 2×2 map over `coverage_tier` × `capability` plus the `_ACTIVE_TAIL_SEVERITY` overrides in `scripts/check-traceability.py` lines 1215-1233, applied to the current 91-row audit-only total; HIGH audit-only items number 38 under the same derivation. The prior figure of 85 tracked the 206-era audit-only total — see the `121/85/0/206` headline recorded above — not a MEDIUM sub-count; it was never produced by this severity method). The rows promoted in Phase 86 (RR-80-01, RR-79-01, RR-79-02→RR-92-01→RR-95-01→RR-108-01→RR-114-01, RR-79-03→RR-92-02→RR-95-02→RR-108-02-CLOSED, RR-77-08) now have confirming offline gates; Phase 117 CONF-02 adds RR-117-01 (S-P03 fishbone CLOSED) and RR-117-02 (S-N03 precision); Phase 119 CONF-04 adds RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar). Closing the remaining live routing dip (RR-114-01 S-P02 1/5, chain: RR-79-02->RR-92-01->RR-95-01->RR-108-01->RR-114-01) **was** scoped as a future live-routing milestone — **SUPERSEDED**, no such milestone exists (v8.0 terminal). RR-108-02 S-P05 is CLOSED at 4/5 at the v7.6 re-baseline (lone canonical improver); RR-79-01 S-P01 and RR-117-01 S-P03 are CLOSED at Phase 117 v7.7 CONF-01 and their CLOSE SUSTAINED at Phase 119 v7.8 CONF-03. v7.4 introduced three first-time residuals: RR-108-03 (decompose, 0/5) RESOLVED-BY-MERGE (v7.5 decompose→five-whys merge, see `decompose-five-whys-merge.md`), RR-108-04 (estimate, 0/5) CARRIED-INDETERMINATE (spend-limit-truncated at v7.4), RR-108-05 (theoretical-limit, 0/5) CARRIED-INDETERMINATE (spend-limit-truncated at v7.4) — both measurements stand; the CARRIED-INDETERMINATE *status* is **SUPERSEDED** by the ACCEPTED-FINAL disposition below. v7.6 Phase 114 measurement: S-P16 0/5 (merge did NOT improve five-whys routing — REGRESSION; fix forward-committed and APPLIED at Phase 117 — see `merge-validation-verdict.md` Phase 117 section); S-P01/S-P03 regressions RESOLVED at Phase 117 v7.7 CONF-01 and SUSTAINED at Phase 119 v7.8 CONF-03. Merge pairs recorded as deferred at the time: theoretical-limit↔inversion (SECOND recommendation) and estimate↔? (FLAG, partner unscoped) — **SUPERSEDED**, terminally closed as won't-do (v8.0). GEN-01 and GEN-02 are resolved (see GAP-01 above) and no longer appear in this work list. Phase 117 FIX-01/FIX-02/CONF-01/CONF-02 + Phase 118 FIX-03/FIX-04 + Phase 119 CONF-03/CONF-04 complete: the v7.8 fix-and-confirm chain is closed (D-1c CONFIRMED; all 5 blocking conjuncts hold; honesty-not-score: positive conjuncts S-P01 3/5 + S-P03 4/5 sustained; S-N01/S-N02 moved over bar — under-count caveat documented, not reclassified D-4). Recorded as deferred at the time (out-of-scope Fix-#3): NON_BLOCKING_NEGATIVE_IDS reclassification for S-N01/S-N02 (the prompts remain semantically pre-mortem; their resolved-over-bar state is documented) — **SUPERSEDED**, terminally closed as won't-do (v8.0). **[v8.0 ACCEPTED-FINAL]** RR-114-01 (1/5), RR-108-04 (0/5), and RR-108-05 (0/5) are all ACCEPTED-FINAL — no future milestone; project wrapped at Phase 142. The CARRIED-INDETERMINATE notation for RR-108-04/RR-108-05 and the "future live-routing milestone" framing for RR-114-01 are superseded by this terminal disposition. The still-deferred merge-pair recommendations (theoretical-limit↔inversion SECOND, estimate↔? FLAG) and the NON_BLOCKING_NEGATIVE_IDS reclassification for S-N01/S-N02 are likewise terminally closed as won't-do — no future milestones exist.
 
 ## Historical Ledger
 
@@ -268,7 +297,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (237 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (252 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** `docs/history/` — local-only, git-ignored; not present in a fresh clone
 - **Project overview and active milestone context:** `.planning/PROJECT.md` — local-only,
   git-ignored; not present in a fresh clone, so deliberately not a link (same treatment as the

@@ -2368,5 +2368,155 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "Validated by inspecting the shipped record \u2014 the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) \u2014 not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement."
+  },
+  {
+    "key": "v8.24/CAP-01",
+    "bare_id": "CAP-01",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/CAP-02",
+    "bare_id": "CAP-02",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/quality-provenance-v8.24/README.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/CAP-03",
+    "bare_id": "CAP-03",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/PROV-01",
+    "bare_id": "PROV-01",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-provenance.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/PROV-02",
+    "bare_id": "PROV-02",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-provenance.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/PROV-03",
+    "bare_id": "PROV-03",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-provenance.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/PROV-04",
+    "bare_id": "PROV-04",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-provenance.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/PROV-05",
+    "bare_id": "PROV-05",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/GATE-01",
+    "bare_id": "GATE-01",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-provenance.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-provenance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/GATE-02",
+    "bare_id": "GATE-02",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": ".github/workflows/validation.yml",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/GATE-03",
+    "bare_id": "GATE-03",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/VAL-01",
+    "bare_id": "VAL-01",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/VAL-02",
+    "bare_id": "VAL-02",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/VAL-03",
+    "bare_id": "VAL-03",
+    "milestone": "v8.24",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.24/VAL-04",
+    "bare_id": "VAL-04",
+    "milestone": "v8.24",
+    "capability": "Methodology",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this file's PROV-GUARD record -- not by a re-runnable offline gate. No gate re-runs to check that a docs record exists, and none is proposed (the v8.18 SHIP-04/SHIP-05 precedent, D-07)."
   }
 ]
