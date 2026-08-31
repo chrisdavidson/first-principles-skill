@@ -685,6 +685,38 @@ def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path 
     return dest
 
 
+def _persist_or_refuse_analysis(
+    jsonl_path: Path, subagent_type: str
+) -> tuple[Path | None, str]:
+    """Decide whether `--single` may proceed to a paid live judge invocation.
+
+    (a) This is the `--single` call site's decision helper, extracted as a
+    function precisely because the phase-04 verification found a correct
+    helper (`_extract_and_persist_analysis`) behind an incorrect call site
+    (CR-02): a decision that lives inline in `main()` cannot be self-tested
+    without a live `claude`, so the decision itself is pulled out here where
+    it can be exercised on a path alone.
+    (b) The empty string in the success tuple `(path, "")` is not a message
+    — callers must branch on the path being `None`, never on the message
+    being falsy.
+    (c) `MultipleAgentDispatchError` and `AgentAnalysisExtractionError`
+    propagate through this wrapper untouched. A completed-but-unextractable
+    capture is a different failure from a capture that did not complete,
+    and collapsing the two into a single refusal would be the exact defect
+    clause (c) of the wrapped helper's docstring exists to prevent.
+    """
+    path = _extract_and_persist_analysis(jsonl_path, subagent_type=subagent_type)
+    if path is not None:
+        return (path, "")
+    outcome = classify_invocation_outcome(jsonl_path)
+    message = (
+        f"Refusing to judge {jsonl_path}: analysis not persisted — outcome "
+        f"was {outcome!r}, not 'completed'. A judged score with no retained "
+        f"analysis has no provenance."
+    )
+    return (None, message)
+
+
 def extract_judge_verdict(jsonl_path: Path) -> str:
     """Extract the judge's own verdict text from a claude -p judge-invocation capture.
 
@@ -8064,13 +8096,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.single is not None:
         _ensure_claude_available()
-        analysis = extract_agent_analysis(
+        analysis_path, refusal = _persist_or_refuse_analysis(
             args.single, subagent_type="first-principles:first-principles"
         )
-        analysis_path = _extract_and_persist_analysis(
-            args.single, subagent_type="first-principles:first-principles"
-        )
+        if analysis_path is None:
+            print(refusal, file=sys.stderr)
+            return 1
         print(f"Analysis written: {analysis_path}")
+        analysis = analysis_path.read_text(encoding="utf-8")
         packet_dir = build_judge_packet(analysis)
         judge_capture = packet_dir / "judge-capture.jsonl"
         # D-05 Assumption A3: plugin_dir=None omits --plugin-dir entirely, so
