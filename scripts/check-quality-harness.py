@@ -6744,16 +6744,26 @@ def _selftest_incidence_schema_compat() -> bool:
     """`read_defect_incidence` maps by header name, so widening the schema
     does not orphan the files already committed.
 
-    Three columns were appended to `_DEFECT_RECORD_FIELDS`
-    (`dependency_cycles`, `ungrounded_chains`, `selfaudit_disagreements`) so
-    that findings previously visible only to an importing caller reach the
-    emitted TSV. Every defect-incidence TSV in `tests/` predates them and is
-    the original ten-column shape; a positional reader keyed to the CURRENT
-    field count would have rejected all twelve at once.
+    Three columns were appended to `_DEFECT_RECORD_FIELDS` at the v8.18
+    widening (`dependency_cycles`, `ungrounded_chains`,
+    `selfaudit_disagreements`) so that findings previously visible only to
+    an importing caller reach the emitted TSV. Nine more were appended for
+    PROV-05 (D-11): `provenance_labels`, `unmatched_sources`,
+    `unreadable_sources`, `literals_checked`, `unlocated_literals`,
+    `misattributed_literals`, `zero_literal_gts`, `orphan_fetches`,
+    `provenance_flag`. The file now pins three widths — ten (the twelve
+    committed files), thirteen (the v8.18-era shape) and twenty-two (the
+    current shape) — all parsing to identical `untraced`/`verdict`/`chain`
+    sums. The nine provenance columns are read as bare strings by design
+    (`read_defect_incidence` `int()`s only the three `*_flag` columns), so
+    the `"n/a"` sentinel (D-10) round-trips safely.
 
-    Controls (a)-(c) pin the compatibility. Controls (d)-(e) pin that the
-    reader stayed LOUD — the T-164-12 discipline this widening must not
-    quietly relax.
+    Controls (a)-(c) pin the compatibility, (d)-(e) pin loudness, (i)-(k)
+    extend both to the twenty-two-column width (D-12): (i) all three widths
+    agree, (j) the `n/a` sentinel perturbs no int-summed flag, and (k) the
+    ragged-row and missing-`chain_flag` failures stay loud at the new width
+    while a renamed `provenance_flag` column does not — it is deliberately
+    not in `_REQUIRED`.
     """
     ok = True
 
@@ -6823,6 +6833,62 @@ def _selftest_incidence_schema_compat() -> bool:
             pass
         else:
             _fail("(e) header missing 'chain_flag' did not raise")
+
+        # (i) three widths agree: ten-, thirteen- and twenty-two-column
+        # files all parse to the identical {"untraced","verdict","chain","n"}
+        # dict (D-12).
+        i_narrow = read_defect_incidence(_w("i-narrow.tsv", f"{narrow_header}\n{narrow_row}\n"))
+        i_wide = read_defect_incidence(_w("i-wide.tsv", f"{wide_header}\n{wide_row}\n"))
+        i_widest = read_defect_incidence(_w("i-widest.tsv", f"{widest_header}\n{widest_row}\n"))
+        if i_narrow != i_wide:
+            _fail(f"(i) narrow and wide disagree: {i_narrow!r} vs {i_wide!r}")
+        if i_narrow != i_widest:
+            _fail(f"(i) narrow and widest disagree: {i_narrow!r} vs {i_widest!r}")
+        if i_wide != i_widest:
+            _fail(f"(i) wide and widest disagree: {i_wide!r} vs {i_widest!r}")
+
+        # (j) the "n/a" sentinel perturbs nothing: the twenty-two-column
+        # result's untraced/verdict/chain sums equal the ten-column result's
+        # — nine "n/a" provenance cells changed no int-summed flag. This is
+        # what makes D-10's string sentinel safe: `_REQUIRED` covers only
+        # untraced_flag/verdict_flag/chain_flag.
+        for key in ("untraced", "verdict", "chain"):
+            if i_widest[key] != i_narrow[key]:
+                _fail(
+                    f"(j) n/a sentinel perturbed {key!r}: "
+                    f"widest={i_widest[key]!r} narrow={i_narrow[key]!r}"
+                )
+
+        # (k) LOUDNESS survives the widening.
+        # (k-1) a 22-column header paired with the 13-cell wide_row raises.
+        try:
+            read_defect_incidence(_w("k-ragged.tsv", f"{widest_header}\n{wide_row}\n"))
+        except ValueError:
+            pass
+        else:
+            _fail("(k) 22-col header with 13-cell row did not raise")
+
+        # (k-2) a 22-column header with provenance_flag renamed still
+        # parses cleanly — proving the new column is deliberately NOT in
+        # `_REQUIRED`.
+        k_renamed = widest_header.replace("provenance_flag", "provenance_flagg")
+        try:
+            read_defect_incidence(_w("k-renamed-prov.tsv", f"{k_renamed}\n{widest_row}\n"))
+        except ValueError as exc:
+            _fail(
+                f"(k) 22-col header with provenance_flag renamed "
+                f"unexpectedly raised: {exc}"
+            )
+
+        # (k-3) the same header with chain_flag renamed still raises —
+        # chain_flag stays required at the new width too.
+        k_bad_required = widest_header.replace("chain_flag", "chain_flagg")
+        try:
+            read_defect_incidence(_w("k-badreq.tsv", f"{k_bad_required}\n{widest_row}\n"))
+        except ValueError:
+            pass
+        else:
+            _fail("(k) 22-col header missing 'chain_flag' did not raise")
 
     # (f)-(h) NON-VACUITY: the three appended columns must actually CARRY the
     # findings. Pinning them only at zero — which every fixture in this file
