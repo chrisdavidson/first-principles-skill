@@ -146,6 +146,11 @@ REGEN_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-regenerated"
 # against REGEN_DIR's analyses/ (the frozen pre-fix analyses it re-judged
 # same-day), not its own.
 POSTFIX_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-postfix"
+# Phase 4 (v8.24.0), CAP-02/CAP-03: the committed PR-P1 capture — the only
+# fixture in the repo carrying real subagent WebFetch/Read tool calls,
+# recovered from a reaping-vulnerable scratchpad and not reproducible
+# without a paid live run. See tests/quality-provenance-v8.24/README.md.
+PROVENANCE_FIXTURE_DIR: Path = REPO_ROOT / "tests" / "quality-provenance-v8.24"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -471,6 +476,77 @@ def _tool_result_text(content) -> str:
     if isinstance(content, list):
         return "".join(b.get("text", "") for b in content if isinstance(b, dict))
     return ""
+
+
+_CAPTURE_TOOL_TARGET_KEYS = {"WebFetch": "url", "Read": "file_path"}
+
+
+def _iter_capture_tool_calls(
+    jsonl_path: Path, tool_names: tuple[str, ...] = ("WebFetch", "Read")
+) -> list[tuple[str, str, str]]:
+    """Yield (tool_name, target, retrieved_text) triples for the named tools.
+
+    (a) Deliberately does NOT reuse _find_agent_dispatch_ids, which is
+    hard-filtered to name == "Agent" plus a subagent_type match and returns
+    bare ids with no path to input.url or input.file_path. Reusing it here
+    would return an empty list on every capture -- a silent wrong answer,
+    the worst failure shape for a provenance building block. Keeping the
+    traversals separate also means a defect here cannot reach Guardrail B's
+    dispatch-counting logic.
+
+    (b) It never opens the path a Read call names. retrieved_text comes
+    exclusively from the capture's own tool_result block. Turning this into
+    an actual filesystem read would make a capture's contents drive a file
+    open, and would break replayability besides.
+
+    (c) An empty return is the correct, non-exceptional result for a capture
+    holding none of the target tools. This is a reader, not a verifier;
+    reporting an unmatched label as a defect is a later verifier's job, not
+    this function's.
+
+    (d) It makes no judgement about Guardrail A or B and calls no function
+    that does.
+    """
+    objs = _iter_jsonl_objects(jsonl_path)
+
+    calls: list[tuple[str, str, str]] = []  # (tool_use_id, tool_name, target)
+    for obj in objs:
+        if obj.get("type") != "assistant":
+            continue
+        msg = obj.get("message", {})
+        content = msg.get("content", []) if isinstance(msg, dict) else []
+        for c in content if isinstance(content, list) else []:
+            if not isinstance(c, dict) or c.get("type") != "tool_use":
+                continue
+            name = c.get("name")
+            if name not in tool_names:
+                continue
+            key = _CAPTURE_TOOL_TARGET_KEYS.get(name)
+            inp = c.get("input")
+            inp = inp if isinstance(inp, dict) else {}
+            target = inp.get(key, "") if key else ""
+            tool_use_id = c.get("id")
+            if tool_use_id:
+                calls.append((tool_use_id, name, target))
+
+    results: dict[str, str] = {}
+    for obj in objs:
+        if obj.get("type") != "user":
+            continue
+        msg = obj.get("message", {})
+        content = msg.get("content", []) if isinstance(msg, dict) else []
+        for c in content if isinstance(content, list) else []:
+            if not isinstance(c, dict) or c.get("type") != "tool_result":
+                continue
+            tool_use_id = c.get("tool_use_id")
+            if not tool_use_id:
+                continue
+            results[tool_use_id] = _tool_result_text(c.get("content"))
+
+    return [
+        (name, target, results.get(tool_use_id, ""))
+        for tool_use_id, name, target in calls
+    ]
 
 
 def _read_top_level_result(jsonl_path: Path) -> str:
