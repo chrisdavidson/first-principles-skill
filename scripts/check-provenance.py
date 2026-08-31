@@ -56,6 +56,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from unittest import mock
 
 
 # Repo-anchored, not caller-supplied: check-agent.py's rationale reproduced here --
@@ -1036,6 +1037,131 @@ def _control_prov05_record_roundtrip() -> None:
             )
 
 
+def _control_prov04_network_blocked() -> None:
+    """D-14: patch both `socket.socket` and `socket.create_connection` to
+    raise, then run the FULL committed-fixture verification under the patch
+    -- the real path never touches the network. New ground for this repo: no
+    existing gate monkeypatches a stdlib network call.
+    """
+    with (
+        mock.patch("socket.socket", side_effect=OSError("network disabled by control")),
+        mock.patch(
+            "socket.create_connection",
+            side_effect=OSError("network disabled by control"),
+        ),
+    ):
+        analysis_text = _FIXTURE_ANALYSIS.read_text(encoding="utf-8")
+        result = verify(analysis_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1")
+        assert result.provenance_labels == _EXPECTED_SOURCES, (
+            f"expected {_EXPECTED_SOURCES} sources, got {result.provenance_labels}"
+        )
+        assert result.literals_checked == _EXPECTED_LITERALS, (
+            f"expected {_EXPECTED_LITERALS} literals, got {result.literals_checked}"
+        )
+        assert not (
+            result.unmatched_sources
+            or result.unreadable_sources
+            or result.unlocated_literals
+            or result.misattributed_literals
+        ), f"expected zero failing families under the network block, got {result!r}"
+
+    # Restore proof: after the `with` block exits, socket.create_connection
+    # must be the real stdlib callable again (the mock context manager's own
+    # restore discipline).
+    assert socket.create_connection.__module__ == "socket", (
+        "socket.create_connection was not restored after the patch context exited"
+    )
+
+
+def _control_prov04_network_armed_proof() -> None:
+    """D-14 armed-proof: a deliberate connect attempt under the same patch
+    must raise, or PROV04-network-blocked is a control that proves nothing.
+    """
+    with (
+        mock.patch("socket.socket", side_effect=OSError("network disabled by control")),
+        mock.patch(
+            "socket.create_connection",
+            side_effect=OSError("network disabled by control"),
+        ),
+    ):
+        try:
+            socket.create_connection(("example.com", 80), timeout=1)
+        except OSError:
+            pass
+        else:
+            raise AssertionError(
+                "armed-proof: create_connection was NOT blocked -- the patch is inert"
+            )
+
+
+def _control_gate01_antimask_selfproof() -> None:
+    """D-16: prove the anti-masking assertion itself is not inert. Compute the
+    diff against a deliberately shrunk copy of `_covered_controls` (one id
+    removed) and assert the diff is non-empty and names that id.
+    """
+    shrunk = set(_covered_controls)
+    assert shrunk, "cannot self-proof against an empty covered_controls set"
+    removed = sorted(shrunk)[0]
+    shrunk.discard(removed)
+    diff = REQUIRED_CONTROLS - shrunk
+    assert diff, "anti-masking diff was empty against a deliberately shrunk set"
+    assert removed in diff, (
+        f"expected {removed!r} to be named in the diff, got {sorted(diff)!r}"
+    )
+
+
+# D-16 inventory: every self-test control id, mapped to the decision it traces
+# to. Deliberately in-code with NO sidecar `.md` -- the HARN-01 pattern is not
+# adopted here because these controls are self-describing.
+#
+#   PROV02-readarm-positive      D-07  synthesized Read-arm, positive
+#   PROV02-readarm-negative      D-07  synthesized Read-arm, negative
+#   D08-unreadable-positive      D-08  unreadable-source floor, positive
+#   D08-unreadable-negative      D-08  unreadable-source floor, negative
+#   PROV02-dispatch-raises       constraint 5  never-dispatched ValueError propagates
+#   PROV01-labelform-positive    PROV-01  label-form match, positive
+#   PROV01-labelform-negative    PROV-01  bare substring rejected, negative
+#   PROV02-bind-positive         PROV-02  WebFetch-arm bind, positive
+#   PROV02-unmatched-negative    PROV-02  WebFetch-arm bind, negative
+#   PROV03-located-positive      PROV-03  literal location, positive
+#   PROV03-unlocated-negative    PROV-03  literal location, negative
+#   D04-misattributed-positive   D-04  attribution error, positive
+#   D04-misattributed-negative   D-04  fabrication (absent everywhere), negative
+#   D03-zeroliteral-positive     D-03  zero-literal GT, positive (reported, not failing)
+#   D03-zeroliteral-negative     D-03  zero-literal GT, negative
+#   D06-orphan-positive          D-06  orphan fetch, positive (reported, not failing)
+#   D06-orphan-negative          D-06  orphan fetch, negative
+#   PROV05-record-roundtrip      PROV-05  22-column TSV round-trip
+#   PROV04-network-blocked       D-14  full fixture verification under a socket block
+#   PROV04-network-armed-proof   D-14  the block is armed, not silently inert
+#   GATE01-antimask-selfproof    D-16  the anti-masking assertion is not itself inert
+REQUIRED_CONTROLS: frozenset[str] = frozenset(
+    {
+        "PROV02-readarm-positive",
+        "PROV02-readarm-negative",
+        "D08-unreadable-positive",
+        "D08-unreadable-negative",
+        "PROV02-dispatch-raises",
+        "PROV01-labelform-positive",
+        "PROV01-labelform-negative",
+        "PROV02-bind-positive",
+        "PROV02-unmatched-negative",
+        "PROV03-located-positive",
+        "PROV03-unlocated-negative",
+        "D04-misattributed-positive",
+        "D04-misattributed-negative",
+        "D03-zeroliteral-positive",
+        "D03-zeroliteral-negative",
+        "D06-orphan-positive",
+        "D06-orphan-negative",
+        "PROV05-record-roundtrip",
+        "PROV04-network-blocked",
+        "PROV04-network-armed-proof",
+        "GATE01-antimask-selfproof",
+    }
+)
+
+
 def _run_self_test() -> None:
     """D-16 control battery: positive and negative controls for every named
     finding family, the synthesized Read-arm fixture (D-07), the PROV-04
@@ -1062,6 +1188,29 @@ def _run_self_test() -> None:
     _run_control("D06-orphan-positive", _control_d06_orphan_positive)
     _run_control("D06-orphan-negative", _control_d06_orphan_negative)
     _run_control("PROV05-record-roundtrip", _control_prov05_record_roundtrip)
+    _run_control("PROV04-network-blocked", _control_prov04_network_blocked)
+    _run_control("PROV04-network-armed-proof", _control_prov04_network_armed_proof)
+    _run_control("GATE01-antimask-selfproof", _control_gate01_antimask_selfproof)
+
+    # D-16 anti-masking: the full named inventory must have run, and nothing
+    # that ran may be absent from the inventory (a control cannot silently
+    # drift behind the code in either direction).
+    uncovered = REQUIRED_CONTROLS - _covered_controls
+    unregistered = _covered_controls - REQUIRED_CONTROLS
+    if uncovered:
+        print(
+            f"ANTI-MASKING GATE FAILURE: {len(uncovered)} control(s) not "
+            f"covered: {sorted(uncovered)}"
+        )
+        _self_test_failures.append("ANTI-MASKING-uncovered")
+    elif unregistered:
+        print(
+            f"ANTI-MASKING GATE FAILURE: {len(unregistered)} control(s) ran "
+            f"but are not registered in REQUIRED_CONTROLS: {sorted(unregistered)}"
+        )
+        _self_test_failures.append("ANTI-MASKING-unregistered")
+    else:
+        print(f"ANTI-MASKING GATE: All {len(REQUIRED_CONTROLS)} controls covered ✓")
 
     if _self_test_failures:
         sys.stderr.write(
