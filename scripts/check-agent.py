@@ -34,6 +34,10 @@ _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 # Unresolved sync marker pattern — the sync pipeline uses {{TOOL:<slug>}} markers
 _MARKER_RE = re.compile(r"\{\{.*?\}\}")
 
+# Top-level `name:` frontmatter key, used by the live anti-vacuity control in
+# _assert_live_coverage() to mutate the text this run actually read.
+_NAME_KEY_RE = re.compile(r"^name:.*$\n", re.MULTILINE)
+
 # Expected locked values
 _EXPECTED_NAME = "first-principles"
 _MAX_DESCRIPTION_LEN = 1024
@@ -327,6 +331,43 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     return failures
 
 
+def _assert_live_coverage(text: str, agent_path: Path) -> None:
+    """Anti-vacuity control: prove the checker engaged *this* file's content.
+
+    GATE-01 is the only gate that validates the agent frontmatter. `claude
+    plugin validate` (VAL-01) does not: it walks *subdirectories* of `agents/`
+    and never validates a flat `agents/*.md`, so it inspects the 29 reference
+    siblings and skips the one file that is actually an agent. Verified against
+    the CLI with a minimal single-agent probe plugin — a flat `agents/solo.md`
+    alone produces no `Validating agent:` line at all.
+
+    A clean PASS therefore cannot be taken on trust: if `_check_agent_text`
+    ever went vacuous, or the live leg were pointed at some other file, nothing
+    downstream would notice. So mutate the frontmatter this run actually read —
+    strip the `name:` key — and require the checker to report that specific
+    defect. Mirrors the anti-masking negatives REG-GUARD and GATE-02-v8.5 carry,
+    but runs on the live leg rather than in `--self-test`: the self-test
+    fixtures are in-memory by design and never read the shipped tree, so only
+    the live leg can assert this against the shipped plugin.
+    """
+    mutated, substitutions = _NAME_KEY_RE.subn("", text, count=1)
+    if substitutions != 1:
+        sys.stderr.write(
+            f"check-agent: COVERAGE FAIL — could not locate a 'name:' frontmatter "
+            f"key to mutate in {agent_path}; the anti-vacuity control cannot run\n"
+        )
+        sys.exit(1)
+
+    control_failures = _check_agent_text(mutated)
+    if not any("missing required key 'name'" in msg for msg in control_failures):
+        sys.stderr.write(
+            f"check-agent: COVERAGE FAIL — stripping 'name:' from {agent_path} did "
+            f"not produce the expected failure; GATE-01 is passing vacuously and is "
+            f"NOT validating this file\n"
+        )
+        sys.exit(1)
+
+
 def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> None:
     """Validate the agent file at *agent_path*. Exits non-zero on failure."""
     if not agent_path.exists():
@@ -343,6 +384,12 @@ def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> Non
             sys.stderr.write(f"check-agent: FAIL — {msg}\n")
         sys.exit(1)
 
+    # Only the canonical agent carries the `name:` key the control mutates;
+    # builder candidates run under --skip-name-check and are exempt.
+    if not skip_name_check:
+        _assert_live_coverage(text, agent_path)
+
+    print(f"check-agent: COVERAGE — validated {agent_path}")
     print("check-agent: PASS")
 
 
@@ -422,7 +469,10 @@ def main() -> None:
     parser.add_argument(
         "--file",
         default=None,
-        help="path to the agent .md file to validate",
+        help=(
+            "path to the agent .md file to validate "
+            "(default: the shipped agent at AGENT_FILE)"
+        ),
     )
     parser.add_argument(
         "--skip-name-check",
@@ -441,10 +491,13 @@ def main() -> None:
         _run_self_test()
         return
 
-    if args.file is None:
-        parser.error("--file is required when not using --self-test")
+    # Default to the repo-anchored AGENT_FILE rather than requiring a caller-
+    # supplied path. The battery and CI previously each passed the same relative
+    # path, which made the gate cwd-sensitive and left its target silently
+    # re-pointable; the constant is now the single source of truth.
+    agent_path = AGENT_FILE if args.file is None else Path(args.file)
 
-    _validate_agent_file(Path(args.file), skip_name_check=args.skip_name_check)
+    _validate_agent_file(agent_path, skip_name_check=args.skip_name_check)
 
 
 if __name__ == "__main__":

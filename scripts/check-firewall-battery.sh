@@ -338,11 +338,16 @@ gate "REG-GUARD" \
     "python3 scripts/check-registration.py --self-test" \
     "python3 scripts/check-registration.py"
 
-# GATE-01 — agent structural checks (self-test + live agent file)
+# GATE-01 — agent structural checks (self-test + live agent file).
+# The live leg takes no --file: it targets the repo-anchored AGENT_FILE constant,
+# so the gate cannot be silently re-pointed and is not cwd-sensitive. It emits a
+# COVERAGE line naming the file it validated, backed by an anti-vacuity control.
+# GATE-01 is the ONLY gate validating the agent frontmatter — VAL-01 does not
+# reach it (see the VAL-01 row in CLAUDE.md).
 gate "GATE-01" \
-    "check-agent.py --self-test + --file first-principles/agents/first-principles.md" \
+    "check-agent.py --self-test + live shipped agent (AGENT_FILE)" \
     "python3 scripts/check-agent.py --self-test" \
-    "python3 scripts/check-agent.py --file first-principles/agents/first-principles.md"
+    "python3 scripts/check-agent.py"
 
 # BATT-06 — merged boundary + focused-output battery self-test
 gate "BATT-06" \

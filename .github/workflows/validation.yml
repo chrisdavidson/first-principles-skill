@@ -165,7 +165,9 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --group dev
       - run: uv run python3 scripts/check-agent.py --self-test
-      - run: uv run python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
+      # No --file: targets the repo-anchored AGENT_FILE constant so the gate's
+      # target cannot drift. Prints a COVERAGE line naming the validated file.
+      - run: uv run python3 scripts/check-agent.py
 
   check-routing-battery:
     name: check-routing-battery (BATT-06)
