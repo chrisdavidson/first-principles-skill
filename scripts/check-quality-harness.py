@@ -652,6 +652,39 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
     return primary
 
 
+def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path | None:
+    """Extract the analysis from `jsonl_path` and write it beside its source.
+
+    (a) Adds no extraction logic of its own — Guardrails A and B and the A4
+    cross-check apply in full because `extract_agent_analysis` is called
+    here unmodified, with no try/except around it.
+    (b) The `completed` gate is checked first, via `classify_invocation_outcome`
+    (defined far below this point in the file — the forward reference
+    resolves at call time and is correct, but the distance is surprising
+    enough to deserve this note), matching the skip condition
+    `run_generation_arm` already applies before writing its own sibling
+    `analyses/` copy.
+    (c) `None` means "capture did not complete" (no `.md` is written); a
+    raised exception means "completed but unextractable" — a
+    `MultipleAgentDispatchError` or `AgentAnalysisExtractionError` from
+    Guardrail A/B or the A4 cross-check. These are two different failures
+    and must never be collapsed into one.
+    (d) `with_suffix` replaces only the final suffix, so a capture id
+    containing a dot (e.g. `foo.bar.jsonl`) would truncate to `foo.bar.md`
+    -> `foo.md`... no current catalog id contains a dot, but a future one
+    must be checked before this assumption is relied on again.
+
+    Returns the written `.md` path, or `None` if the capture did not
+    complete.
+    """
+    if classify_invocation_outcome(jsonl_path) != "completed":
+        return None
+    analysis = extract_agent_analysis(jsonl_path, subagent_type=subagent_type)
+    dest = jsonl_path.with_suffix(".md")
+    dest.write_text(analysis, encoding="utf-8")
+    return dest
+
+
 def extract_judge_verdict(jsonl_path: Path) -> str:
     """Extract the judge's own verdict text from a claude -p judge-invocation capture.
 
@@ -7791,6 +7824,14 @@ def main(argv: list[str] | None = None) -> int:
         wrapped_prompt = _wrap_for_bypass(row.text)
         _run_prompt_to(wrapped_prompt, out_path, plugin_dir=args.plugin_dir)
         print(f"Probe capture written: {out_path}")
+        analysis_path = _extract_and_persist_analysis(
+            out_path, subagent_type="first-principles:first-principles"
+        )
+        if analysis_path is not None:
+            print(f"Probe analysis written: {analysis_path}")
+        else:
+            outcome = classify_invocation_outcome(out_path)
+            print(f"Probe analysis not written — outcome was {outcome!r}")
         return 0
 
     if args.single is not None:
@@ -7798,6 +7839,10 @@ def main(argv: list[str] | None = None) -> int:
         analysis = extract_agent_analysis(
             args.single, subagent_type="first-principles:first-principles"
         )
+        analysis_path = _extract_and_persist_analysis(
+            args.single, subagent_type="first-principles:first-principles"
+        )
+        print(f"Analysis written: {analysis_path}")
         packet_dir = build_judge_packet(analysis)
         judge_capture = packet_dir / "judge-capture.jsonl"
         # D-05 Assumption A3: plugin_dir=None omits --plugin-dir entirely, so
