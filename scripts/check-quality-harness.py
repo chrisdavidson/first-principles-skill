@@ -2128,9 +2128,29 @@ def _chain_blocks(section4: str) -> list[str]:
 # identifier vocabulary.
 _ARROW = r"(?:→|->)"
 _GT_TOKEN_WIDE = r"GT-[A-Za-z0-9]+\??"
+
+# GAP-6: a chain head may cite a prior CONCLUSION alongside (or instead of)
+# ground truths — `GT-5 (label) + C6 (label) -> ... -> ...`. Before this,
+# `_CHAIN_FORM_LINE_RE` accepted GT-only heads, so every composing chain
+# scored malformed however well-formed its arrows were. Two shapes the
+# output template itself produces are compositions: the trade-off matrix
+# collapse, whose criteria rest on earlier conclusions, and the
+# second-order order-marked extension.
+#
+# GT-only heads were acyclic by construction — a ground truth is an axiom
+# and cannot depend on a chain. Admitting chain refs admits cycles (C1
+# citing C2 citing C1) and chains that never reach a ground truth at all,
+# neither of which any shape-level predicate can see. That is why this
+# widening ships WITH `_chain_dependency_defects` below rather than alone:
+# without it the change trades a false positive (composition scored
+# malformed) for a false negative (circular reasoning scored clean), and
+# circular reasoning is the more serious defect — the validation rubric
+# names it an abandonment reason in its own right.
+_CHAIN_REF_TOKEN = r"C\d+"
+_CHAIN_HEAD_TOKEN = r"(?:" + _GT_TOKEN_WIDE + r"|" + _CHAIN_REF_TOKEN + r")"
 _CHAIN_FORM_LINE_RE = re.compile(
-    _GT_TOKEN_WIDE + r"(?:[ \t]*\([^)\n]*\))?"
-    r"(?:[ \t]*\+[ \t]*" + _GT_TOKEN_WIDE + r"(?:[ \t]*\([^)\n]*\))?)*"
+    _CHAIN_HEAD_TOKEN + r"(?:[ \t]*\([^)\n]*\))?"
+    r"(?:[ \t]*\+[ \t]*" + _CHAIN_HEAD_TOKEN + r"(?:[ \t]*\([^)\n]*\))?)*"
     r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*?"
     r"[ \t]*" + _ARROW + r"[ \t]*\S[^\n]*"
 )
@@ -2167,7 +2187,15 @@ _CHAIN_FORM_LINE_RE = re.compile(
 # `C-RENDER-BLOCKQUOTE-BOLD`, `C-RENDER-EXAMPLE-PREFIX`,
 # `C-RENDER-LIST-ITEM`, `C-RENDER-SECONDORDER-PREFIX`, `C-WRAP-BULLETED`)
 # plus the `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` self-test assertion.
-_GT_HEAD_RE = re.compile(_GT_TOKEN_WIDE)
+# Widened with `_CHAIN_HEAD_TOKEN` (GAP-6) so a chain-headed composition
+# line is a candidate at all. Measured against the frozen corpus before
+# and after: `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` stays [2, 2, 2, 2, 3,
+# 3] under both this widening and the narrower "+ continuation only"
+# variant, so neither introduces a false positive there.
+_GT_HEAD_RE = re.compile(_CHAIN_HEAD_TOKEN)
+# Readable alias for GAP-6 call sites that test head candidacy rather
+# than GT presence; same compiled pattern, clearer at the use site.
+_CHAIN_HEAD_TOKEN_RE = _GT_HEAD_RE
 
 # Bounded-join continuation test (D-06): a stripped line continues the
 # current candidate segment only while it itself begins with an arrow. A
@@ -2609,6 +2637,130 @@ _DEFECT_RECORD_FIELDS = (
 )
 
 
+_HEAD_ARROW_SPLIT_RE = re.compile(_ARROW)
+_CHAIN_REF_WORD_RE = re.compile(r"\b" + _CHAIN_REF_TOKEN + r"\b")
+
+
+def _chain_head_refs(block: str) -> tuple[set[str], set[str]]:
+    """Return `(gt_refs, chain_refs)` cited in a block's head line.
+
+    The head is the portion of the first candidate line preceding its first
+    arrow. GT tokens are stripped before the chain-ref scan so that
+    `GT-C1` — a ground truth whose identifier happens to start with `C` —
+    is never miscounted as a reference to chain `C1`.
+    """
+    for ln in block.splitlines():
+        s = ln.strip()
+        # Skip the block's own markdown heading. `_chain_blocks` starts each
+        # block at its heading line, and that line carries the chain's OWN
+        # id (`### Conclusion C1:`) — reading it as a head would make every
+        # composing chain self-referential and report the whole section as
+        # one cycle.
+        if s.startswith("#"):
+            continue
+        if not _CHAIN_HEAD_TOKEN_RE.search(s):
+            continue
+        head = _HEAD_ARROW_SPLIT_RE.split(s, 1)[0]
+        gts = set(re.findall(_GT_TOKEN_WIDE, head))
+        chains = set(_CHAIN_REF_WORD_RE.findall(re.sub(_GT_TOKEN_WIDE, " ", head)))
+        if gts or chains:
+            return gts, chains
+    return set(), set()
+
+
+def _chain_dependency_defects(section4: str) -> dict:
+    """GAP-6 safety net: cycles and ungrounded chains among composition heads.
+
+    Widening `_CHAIN_FORM_LINE_RE` to accept `GT-5 + C6` heads removed the
+    property that made GT-only heads safe — a ground truth is an axiom, so a
+    GT-only dependency graph cannot cycle. This reports the two defects the
+    widening admits:
+
+    - **cycles** — `C1` citing `C2` citing `C1`, or a chain citing itself.
+      Circular reasoning, which the validation rubric names as an
+      abandonment reason in its own right.
+    - **ungrounded** — a chain with no ground truth in its own head and no
+      path through its dependencies to one. Its conclusion rests on nothing
+      verified, however well-formed its arrows are.
+
+    Returns `{"cycles": [...], "ungrounded": [...]}` with normalized ids, in
+    document order. A section whose chains cannot be paired with ids (no
+    labels, or a block/id count mismatch) returns both lists empty rather
+    than guessing — the shape checks already cover an unlabelled section.
+
+    Reported through `detect_defects`'s audit-only underscore fields. It is
+    deliberately NOT a `_DEFECT_RECORD_FIELDS` column: that schema is
+    compared column-by-column against the committed calibration corpus, and
+    a new column there is a separate decision from this one.
+    """
+    ids = _chain_ids(section4)
+    blocks = _chain_blocks(section4)
+    if not ids or len(ids) != len(blocks):
+        return {"cycles": [], "ungrounded": []}
+
+    norm = [_normalize_chain_id(i) for i in ids]
+    known = set(norm)
+    deps: dict[str, set[str]] = {}
+    own_gt: dict[str, bool] = {}
+    headed: dict[str, bool] = {}
+    for name, block in zip(norm, blocks):
+        gts, chain_refs = _chain_head_refs(block)
+        deps[name] = {c.casefold() for c in chain_refs} & known
+        own_gt[name] = bool(gts)
+        # A block citing NOTHING has no head this function can read. That is
+        # a SHAPE defect and `_chain_block_well_formed` already owns it —
+        # reporting it here too would count one defect twice and would make
+        # this signal a noisier duplicate of the malformed-block count
+        # rather than an orthogonal one. Measured on the frozen corpus:
+        # condA-P3 "Chain C" and condB-P2 "Chain D" are head-less
+        # second-order effect lists, already inside the pinned
+        # `_CALIBRATION_MALFORMED_CHAIN_BLOCKS` counts.
+        headed[name] = bool(gts or chain_refs)
+
+    # Cycle detection: white/grey/black DFS. A grey re-entry is a back edge.
+    WHITE, GREY, BLACK = 0, 1, 2
+    colour = dict.fromkeys(norm, WHITE)
+    in_cycle: set[str] = set()
+
+    def visit(node: str, stack: list[str]) -> None:
+        colour[node] = GREY
+        stack.append(node)
+        for dep in sorted(deps.get(node, ())):
+            if colour.get(dep) == GREY:
+                in_cycle.update(stack[stack.index(dep):])
+            elif colour.get(dep) == WHITE:
+                visit(dep, stack)
+        stack.pop()
+        colour[node] = BLACK
+
+    for name in norm:
+        if colour[name] == WHITE:
+            visit(name, [])
+
+    # Grounding: reachable to a ground truth through the dependency graph.
+    memo: dict[str, bool] = {}
+
+    def grounded(node: str, seen: frozenset[str] = frozenset()) -> bool:
+        if node in memo:
+            return memo[node]
+        if node in seen:
+            return False  # cycle: contributes no grounding of its own
+        if own_gt.get(node):
+            memo[node] = True
+            return True
+        result = any(
+            grounded(dep, seen | {node}) for dep in sorted(deps.get(node, ()))
+        )
+        if not seen:
+            memo[node] = result
+        return result
+
+    return {
+        "cycles": [n for n in norm if n in in_cycle],
+        "ungrounded": [n for n in norm if headed[n] and not grounded(n)],
+    }
+
+
 def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     """D-18: parse `analysis_text` structurally and report the three defect families.
 
@@ -2632,6 +2784,7 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
     blocks = _chain_blocks(section4)
     malformed_blocks = [b for b in blocks if not _chain_block_well_formed(b)]
 
+    dependency = _chain_dependency_defects(section4)
     claims = _conclusion_claims(section6, chain_ids)
     untraced = [c for c in claims if not _claim_is_traced(c, chain_ids, blocks)]
 
@@ -2650,6 +2803,8 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_untraced_claims_text": untraced,
         "_nonconforming_verdict_text": nonconforming_verdicts,
         "_malformed_chain_blocks_text": malformed_blocks,
+        "_dependency_cycles": dependency["cycles"],
+        "_ungrounded_chains": dependency["ungrounded"],
     }
 
 
@@ -4747,6 +4902,95 @@ def _selftest_gap5_conclusion_heading() -> bool:
     return ok
 
 
+def _selftest_gap6_composition_heads() -> bool:
+    """GAP-6: a chain may compose on a prior conclusion, and the cycles that
+    admits are detected.
+
+    Observed 2026-08-30: a live analysis scored 2 of 7 chains malformed, both
+    of them compositions — a trade-off collapse headed `GT-5 (...) + C1 + C2
+    + C3 (...)` and a second-order extension headed `GT-5 (...) + C6 (...)`.
+    Isolated, `GT-5 (label) + GT-2 (label)` measured well-formed while
+    `GT-5 (label) + C6 (label)` measured malformed, whatever the arrow form.
+
+    Controls (a)-(c) pin the widening, including the GT-only base case so the
+    change cannot silently stop checking the shape it always checked.
+    Controls (d)-(g) pin `_chain_dependency_defects`, which is the price of
+    the widening: GT-only heads were acyclic by construction, and chain refs
+    remove that guarantee.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: gap6_composition_heads {msg}", file=sys.stderr)
+        ok = False
+
+    tail = "\n-> intermediate claim\n-> the conclusion"
+
+    # (a) GT + chain composition head — the shape that regressed.
+    if not _chain_block_well_formed("GT-5 (label) + C6 (buy first)" + tail):
+        _fail("(a) 'GT-5 (label) + C6 (label)' head scored malformed")
+
+    # (b) chain-only head.
+    if not _chain_block_well_formed("C1 + C2" + tail):
+        _fail("(b) chain-only head 'C1 + C2' scored malformed")
+
+    # (c) NON-VACUITY: the GT-only base case must still be well-formed, and a
+    #     one-hop chain must still be malformed. A widening that accepted
+    #     everything would pass (a) and (b) while checking nothing.
+    if not _chain_block_well_formed("GT-1 (a) + GT-2 (b)" + tail):
+        _fail("(c) GT-only head regressed to malformed")
+    if _chain_block_well_formed("GT-1 (a) + GT-2 (b) -> lone hop"):
+        _fail("(c) one-hop chain wrongly scored well-formed — widening is vacuous")
+
+    def _section(*pairs: tuple[str, str]) -> str:
+        return "\n\n".join(
+            f"### Conclusion {cid}: t\n\n{head}{tail}" for cid, head in pairs)
+
+    # (d) clean DAG: C2 composes on C1, which is GT-headed.
+    clean = _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "GT-3 (c) + C1 (d)"))
+    dep = _chain_dependency_defects(clean)
+    if dep["cycles"] or dep["ungrounded"]:
+        _fail(f"(d) clean DAG reported defects: {dep!r}")
+
+    # (e) two-node cycle.
+    cyc = _section(("C1", "GT-1 (a) + C2 (b)"), ("C2", "GT-2 (c) + C1 (d)"))
+    if sorted(_chain_dependency_defects(cyc)["cycles"]) != ["c1", "c2"]:
+        _fail(
+            f"(e) two-node cycle not reported: "
+            f"{_chain_dependency_defects(cyc)!r}"
+        )
+
+    # (f) self-loop.
+    selfloop = _section(("C1", "GT-1 (a) + C1 (b)"))
+    if _chain_dependency_defects(selfloop)["cycles"] != ["c1"]:
+        _fail(
+            f"(f) self-loop not reported: "
+            f"{_chain_dependency_defects(selfloop)!r}"
+        )
+
+    # (h) scope guard: a head-less block is a SHAPE defect owned by
+    #     `_chain_block_well_formed`, not a grounding defect. Reporting it
+    #     here too would double-count. Pinned because the frozen corpus
+    #     contains exactly this shape (condA-P3, condB-P2).
+    headless = _section(("C1", "GT-1 (a) + GT-2 (b)")) + (
+        "\n\n### Conclusion C2: t\n\n1. **2nd order:** an effect with no "
+        "chain head at all\n")
+    dep = _chain_dependency_defects(headless)
+    if "c2" in dep["ungrounded"]:
+        _fail(f"(h) head-less block wrongly reported ungrounded: {dep!r}")
+
+    # (g) ungrounded: C2 reaches no ground truth by any path.
+    ungrounded = _section(("C1", "GT-1 (a) + GT-2 (b)"), ("C2", "C8 + C9"))
+    dep = _chain_dependency_defects(ungrounded)
+    if dep["ungrounded"] != ["c2"]:
+        _fail(f"(g) ungrounded chain not reported: {dep!r}")
+    if dep["cycles"]:
+        _fail(f"(g) ungrounded chain spuriously reported as a cycle: {dep!r}")
+
+    return ok
+
+
 def _selftest_limitation2_citationnorm() -> bool:
     """FIX-CONTRACT-01 limitation 2: `_claim_is_traced()` normalizes stored
     chain ids AND claim text so abbreviated ("(C1)"), lowercase-bolded
@@ -6250,6 +6494,16 @@ def self_test() -> int:
         print("self-test: gap5_conclusion_heading sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: gap5_conclusion_heading sub-check PASSED")
+
+    # Item 15 (GAP-6): composition chain heads (`GT-5 + C6`, `C1 + C2`) are
+    # well-formed, the GT-only base case and the one-hop negative still hold,
+    # and `_chain_dependency_defects` reports the cycles and ungrounded chains
+    # that admitting chain refs makes possible.
+    if not _selftest_gap6_composition_heads():
+        all_passed = False
+        print("self-test: gap6_composition_heads sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: gap6_composition_heads sub-check PASSED")
 
     # Item 13 (Phase 182 Plan 01, DETECT-01): the D-18 contract-pin red-carry
     # mechanism — `_CONTRACT_FIXTURES` compared against `_DETECT01_PINNED_RED`.
