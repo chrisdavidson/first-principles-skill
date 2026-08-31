@@ -4020,6 +4020,18 @@ _DEFECT_RECORD_FIELDS = (
     "dependency_cycles",
     "ungrounded_chains",
     "selfaudit_disagreements",
+    # Phase 5 (PROV-05, D-11): nine more appended, same discipline as above —
+    # every committed thirteen-column file keeps its order; `read_defect_
+    # incidence` maps by header name so both old and new widths parse.
+    "provenance_labels",
+    "unmatched_sources",
+    "unreadable_sources",
+    "literals_checked",
+    "unlocated_literals",
+    "misattributed_literals",
+    "zero_literal_gts",
+    "orphan_fetches",
+    "provenance_flag",
 )
 
 
@@ -4285,6 +4297,24 @@ def detect_defects(analysis_text: str, analysis_id: str) -> dict:
         "_dependency_cycles": dependency["cycles"],
         "_ungrounded_chains": dependency["ungrounded"],
     }
+    # Phase 5 (PROV-05, D-10): the harness owns only the default. The
+    # sentinel is the string "n/a", never 0 — "no capture available" and
+    # "checked, found clean" must not print the same value, and
+    # `read_defect_incidence` `int()`s only the three `*_flag` columns, so a
+    # string round-trips safely through every other column. A capture-aware
+    # caller (e.g. check-provenance.py) overwrites these keys with real
+    # values; `detect_defects` itself gains no capture argument.
+    record.update({
+        "provenance_labels": "n/a",
+        "unmatched_sources": "n/a",
+        "unreadable_sources": "n/a",
+        "literals_checked": "n/a",
+        "unlocated_literals": "n/a",
+        "misattributed_literals": "n/a",
+        "zero_literal_gts": "n/a",
+        "orphan_fetches": "n/a",
+        "provenance_flag": "n/a",
+    })
     disagreements = _selfaudit_calibration_defects(analysis_text, record)
     record["selfaudit_disagreements"] = len(disagreements)
     record["_selfaudit_disagreements"] = disagreements
@@ -6736,8 +6766,18 @@ def _selftest_incidence_schema_compat() -> bool:
 
     narrow_header = "\t".join(_DEFECT_RECORD_FIELDS[:10])
     narrow_row = "condA-P1\t9\t4\t1\t13\t13\t1\t5\t2\t1"
-    wide_header = "\t".join(_DEFECT_RECORD_FIELDS)
+    # Pinned to the v8.18-era thirteen-column shape, matching how
+    # narrow_header is pinned to [:10] — _DEFECT_RECORD_FIELDS itself is now
+    # 22 names (PROV-05, D-11), so an unsliced join here would silently
+    # widen wide_header out from under wide_row's 13 cells.
+    wide_header = "\t".join(_DEFECT_RECORD_FIELDS[:13])
     wide_row = narrow_row + "\t0\t0\t2"
+    # Phase 5 (PROV-05, D-11/D-12): the current full-width shape, twenty-two
+    # names, with the nine new provenance cells filled with the "n/a"
+    # sentinel (D-10) — proves the sentinel perturbs none of the int-summed
+    # flags.
+    widest_header = "\t".join(_DEFECT_RECORD_FIELDS)
+    widest_row = wide_row + "\tn/a" * 9
 
     with tempfile.TemporaryDirectory() as d:
         def _w(name: str, text: str) -> Path:
@@ -6761,8 +6801,9 @@ def _selftest_incidence_schema_compat() -> bool:
         if a != b:
             _fail(f"(b) narrow and wide files disagree: {a!r} vs {b!r}")
 
-        # (c) a headerless file falls back to positional mapping.
-        c = read_defect_incidence(_w("nohdr.tsv", wide_row + "\n"))
+        # (c) a headerless file falls back to positional mapping, read
+        # against the current 22-name _DEFECT_RECORD_FIELDS tuple.
+        c = read_defect_incidence(_w("nohdr.tsv", widest_row + "\n"))
         if c["n"] != 1 or c["chain"] != 1:
             _fail(f"(c) headerless positional fallback wrong: {c!r}")
 
