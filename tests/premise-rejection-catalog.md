@@ -129,10 +129,10 @@ After the arrow-led-wrap rule was added to `shared/spine/SKILL-body.md` and
 
 The five GT-headed chains (C1–C5) all pass. **The fix is verified on the axis it targeted.**
 
-### The two residual failures are not agent defects (GAP-6)
+### Composition chain heads (GAP-6) — FIXED
 
-C6 and C7 fail for a different, pre-existing reason: their head lines cite prior *chains*
-alongside ground truths. Isolated:
+C6 and C7 failed for a reason unrelated to arrow form: their head lines cite prior *chains*
+alongside ground truths. Isolated pre-fix:
 
 | Head form | `_chain_block_well_formed` |
 |---|---|
@@ -141,10 +141,41 @@ alongside ground truths. Isolated:
 | `GT-5 (label) + C6 (buy commitments first)` | False |
 | `C3 step 4 + C4 step 4` | False |
 
-`_CHAIN_FORM_LINE_RE` accepts GT-only heads. A chain that composes on an earlier conclusion —
-which is what C6 (trade-off collapse over C1–C3) and C7 (second-order extension of C6) are —
-is rejected whatever its arrow form. The template neither blesses nor forbids composition heads;
-the detector silently forbids them.
+**Decision: allow composition, and pay for it with an acyclicity check.** Forbidding it forces
+either restating every upstream ground truth in every downstream head — verbose, and it destroys
+the visible dependency structure — or collapsing a multi-stage argument into one mega-chain. The
+template already produces two composing shapes itself: the trade-off matrix collapse, whose
+criteria rest on earlier conclusions, and the second-order order-marked extension.
+
+But GT-only heads were **acyclic by construction** — a ground truth is an axiom and cannot depend
+on a chain. Admitting chain refs admits `C1` citing `C2` citing `C1`, which no shape-level
+predicate can see, and circular reasoning is a defect the validation rubric names as an
+abandonment reason in its own right. Widening alone would have traded a false positive
+(composition scored malformed) for a false negative (circular reasoning scored clean) — the worse
+of the two.
+
+**Fix (`scripts/check-quality-harness.py`):** `_CHAIN_HEAD_TOKEN` admits `C<n>` refs in
+`_CHAIN_FORM_LINE_RE` and `_GT_HEAD_RE`; new `_chain_dependency_defects()` reports cycles and
+chains that reach no ground truth by any path, exposed through `detect_defects`'s audit-only
+underscore fields.
+
+**Deliberately not a `_DEFECT_RECORD_FIELDS` column.** That schema is compared column-by-column
+against the committed calibration corpus; adding a column there is a separate decision, recorded
+here as an open follow-up rather than taken silently.
+
+**Scope guard.** A block citing *nothing* has no readable head — that is a shape defect
+`_chain_block_well_formed` already owns, so it is excluded from the ungrounded list. Measured:
+without the guard, frozen analyses `condA-P3` (Chain C) and `condB-P2` (Chain D) — head-less
+second-order effect lists already inside the pinned malformed counts — were reported twice.
+
+**Verification.** Pinned by `_selftest_gap6_composition_heads` (self-test Item 15), eight
+controls, all four parts fault-injected (head widening, cycle detection, heading-skip guard,
+grounding check) — each injection fails the sub-check. `_CALIBRATION_MALFORMED_CHAIN_BLOCKS`
+stays `[2, 2, 2, 2, 3, 3]`, measured before and after under both the full widening and a narrower
+`+`-continuation-only variant. The frozen corpus reports no cycles and no ungrounded chains.
+
+Run 2 with its original headings now scores **`chain_blocks: 7, malformed: 0, untraced: 0,
+nonconforming verdicts: 0, cycles: none, ungrounded: none`** — fully clean.
 
 ### Heading form: the detector could not parse the form the template prescribes (GAP-5) — FIXED
 
