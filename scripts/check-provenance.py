@@ -420,6 +420,103 @@ def _run_self_test() -> None:
     print("check-provenance --self-test: stub -- plan 05-03 fills the control battery")
 
 
+# ---------------------------------------------------------------------------
+# Live leg (D-13: no --analysis / --capture flag -- targets the repo-anchored
+# fixture constants only) with the D-15 anti-vacuity mutation.
+# ---------------------------------------------------------------------------
+
+# GT-1's own literal, mutated to a value absent from the retrieved text of every
+# fetched source. D-15: modelled line-for-line on check-agent.py's
+# _assert_live_coverage -- the live PASS is backed by an in-memory mutation of the
+# bytes the run actually read, so a vacuous verifier (broken regex, empty parse,
+# swallowed exception) cannot report green.
+_MUTATE_FROM = "$0.0000166667"
+_MUTATE_TO = "$0.0000199999"
+
+
+def _validate_live_fixture() -> None:
+    """PROV-GUARD's live leg: verify the committed fixture, then require the D-15
+    in-memory mutation to surface as an unlocated finding naming GT-1 before PASS
+    prints. Nothing is written to disk: `tests/quality-provenance-v8.24/` is
+    frozen evidence, and FROZEN-EVIDENCE sweeps for untracked files too.
+    """
+    if not _FIXTURE_ANALYSIS.is_file():
+        sys.stderr.write(f"check-provenance: fixture analysis not found: {_FIXTURE_ANALYSIS}\n")
+        sys.exit(2)
+    if not _FIXTURE_CAPTURE.is_file():
+        sys.stderr.write(f"check-provenance: fixture capture not found: {_FIXTURE_CAPTURE}\n")
+        sys.exit(2)
+
+    analysis_text = _FIXTURE_ANALYSIS.read_text(encoding="utf-8")
+
+    result = verify(analysis_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1")
+
+    # Compare against the module constants, not merely reflected from whatever the
+    # run computed, so a silent drop in extraction is caught (D-02).
+    failures: list[str] = []
+    if result.provenance_labels != _EXPECTED_SOURCES:
+        failures.append(
+            f"provenance_labels={result.provenance_labels}, expected {_EXPECTED_SOURCES}"
+        )
+    if result.literals_checked != _EXPECTED_LITERALS:
+        failures.append(
+            f"literals_checked={result.literals_checked}, expected {_EXPECTED_LITERALS}"
+        )
+    if result.unmatched_sources:
+        failures.append(
+            f"unmatched_sources={result.unmatched_sources} {result._unmatched_gt_ids}"
+        )
+    if result.unreadable_sources:
+        failures.append(
+            f"unreadable_sources={result.unreadable_sources} {result._unreadable_gt_ids}"
+        )
+    if result.unlocated_literals:
+        failures.append(
+            f"unlocated_literals={result.unlocated_literals} {result._unlocated_pairs}"
+        )
+    if result.misattributed_literals:
+        failures.append(
+            f"misattributed_literals={result.misattributed_literals} {result._misattributed_pairs}"
+        )
+
+    if failures:
+        sys.stderr.write("check-provenance: FAIL — " + "; ".join(failures) + "\n")
+        sys.exit(1)
+
+    # COVERAGE: a clean PASS cannot be taken on trust -- mutate the bytes this run
+    # actually read (one numeric literal, GT-1's) and require the checker to
+    # report that specific defect before printing PASS.
+    mutated_text, count = re.subn(re.escape(_MUTATE_FROM), _MUTATE_TO, analysis_text, count=1)
+    if count != 1:
+        sys.stderr.write(
+            f"check-provenance: COVERAGE FAIL — could not locate the literal to "
+            f"mutate ({_MUTATE_FROM!r}); the anti-vacuity control cannot run\n"
+        )
+        sys.exit(1)
+
+    mutated_result = verify(mutated_text, _FIXTURE_CAPTURE, _FIXTURE_SUBAGENT_TYPE, "PR-P1")
+    if not any(gt_id == "GT-1" for gt_id, _lit in mutated_result._unlocated_pairs):
+        sys.stderr.write(
+            "check-provenance: COVERAGE FAIL — the mutated literal did NOT produce "
+            "the expected unlocated finding; this gate is passing vacuously and is "
+            "NOT verifying this fixture\n"
+        )
+        sys.exit(1)
+
+    sources_matched = result.provenance_labels - result.unmatched_sources
+    literals_located = result.literals_checked - result.unlocated_literals - result.misattributed_literals
+    print(
+        f"check-provenance: COVERAGE — verified {_FIXTURE_ANALYSIS} against "
+        f"{_FIXTURE_CAPTURE} ({sources_matched}/{result.provenance_labels} sources "
+        f"matched, {literals_located}/{result.literals_checked} literals located)"
+    )
+    print(
+        f"check-provenance: {result.zero_literal_gts} zero-literal GT(s), "
+        f"{result.orphan_fetches} orphan fetch(es), provenance_flag={result.provenance_flag}"
+    )
+    print("check-provenance: PASS")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="PROV-GUARD: verify read-at-source provenance against a stored capture."
