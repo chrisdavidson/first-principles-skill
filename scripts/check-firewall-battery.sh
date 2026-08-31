@@ -15,20 +15,20 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (21):
+# Gates (23):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
-#   HARN-01   HARN-02       HARN-03   HC-BOUND
-#   INVARIANT-CHECK  FROZEN-EVIDENCE
+#   HARN-01   HARN-02       HARN-03   HC-BOUND     REG-GUARD
+#   PROV-GUARD  INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# 18 of the 19 non-inline gates are registered through the `gate` helper
+# 20 of the 21 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 19 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 21 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 21.
+# than going through `gate`, for a reported total of 23.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -372,6 +372,22 @@ gate "COLLIDE-01" \
 gate "QUAL-01" \
     "check-quality-harness.py --self-test" \
     "python3 scripts/check-quality-harness.py --self-test"
+
+# PROV-GUARD — capture-based provenance verification: every read-at-source
+#              ground truth in an analysis's section 3 joins to a real
+#              WebFetch/Read of that source in the run's stored capture, and
+#              every literal it states appears verbatim in the retrieved
+#              text. Runs the live scan as well as the self-test, for the
+#              same reason VERSION-01 and REG-GUARD above do: the self-test's
+#              fixtures are tempdir/in-memory, so the self-test alone
+#              asserts nothing about the committed capture at
+#              tests/quality-provenance-v8.24/ — the live leg reads
+#              7/7 sources matched, 35/35 literals located.
+#              Bare `python3`, not `uv run` — see Phase 3 note below.
+gate "PROV-GUARD" \
+    "check-provenance.py --self-test + live" \
+    "python3 scripts/check-provenance.py --self-test" \
+    "python3 scripts/check-provenance.py"
 
 # HARN-01 — Act limb: the Phase 3 verification step and the Criterion 3 Fix
 #           note are present, correctly placed, and internally coherent in
