@@ -495,17 +495,20 @@ _CAPTURE_TOOL_TARGET_KEYS = {"WebFetch": "url", "Read": "file_path"}
 
 
 def _iter_capture_tool_calls(
-    jsonl_path: Path, tool_names: tuple[str, ...] = ("WebFetch", "Read")
+    jsonl_path: Path,
+    tool_names: tuple[str, ...] = ("WebFetch", "Read"),
+    dispatch_ids: frozenset[str] | None = None,
 ) -> list[tuple[str, str, str]]:
     """Yield (tool_name, target, retrieved_text) triples for the named tools.
 
-    (a) Deliberately does NOT reuse _find_agent_dispatch_ids, which is
-    hard-filtered to name == "Agent" plus a subagent_type match and returns
-    bare ids with no path to input.url or input.file_path. Reusing it here
-    would return an empty list on every capture -- a silent wrong answer,
-    the worst failure shape for a provenance building block. Keeping the
-    traversals separate also means a defect here cannot reach Guardrail B's
-    dispatch-counting logic.
+    (a) Deliberately does NOT depend on _find_agent_dispatch_ids for its own
+    traversal -- that function is hard-filtered to name == "Agent" plus a
+    subagent_type match and returns bare ids with no path to input.url or
+    input.file_path, so folding this reader's traversal into it would return
+    an empty list on every capture. _capture_subagent_tool_calls (below)
+    composes the two functions instead of merging their traversals, so this
+    reader still never calls _find_agent_dispatch_ids itself and a defect
+    here cannot reach Guardrail B's dispatch-counting logic.
 
     (b) It never opens the path a Read call names. retrieved_text comes
     exclusively from the capture's own tool_result block. Turning this into
@@ -519,12 +522,41 @@ def _iter_capture_tool_calls(
 
     (d) It makes no judgement about Guardrail A or B and calls no function
     that does.
+
+    (e) dispatch_ids=None (the default) is unfiltered: it returns every
+    matching tool call in the capture, parent-session and dispatched-subagent
+    alike, and the caller owns the distinction. Passing a frozenset scopes
+    the result to only the tool_use blocks whose enclosing assistant event's
+    parent_tool_use_id is a member of that set -- i.e. only a named
+    subagent's own calls. _capture_subagent_tool_calls is the filtered,
+    one-call entry point built for this; it is what Phase 5's
+    check-provenance.py is documented to consume.
+
+    (f) Measured 2026-08-31: no committed fixture holds a parent-session
+    WebFetch/Read. tests/quality-provenance-v8.24/README.md lines 126-129
+    describe tests/quality-fixtures-v8.7/gen-internal-tools.jsonl's tools as
+    "the parent's tools"; measured, they are the subagent's, attributed to
+    that file's own Agent dispatch id. The README is frozen evidence and is
+    deliberately not corrected in place -- the correction is pinned instead
+    by a synthesised mutation in self-test item 19 control 9, the only
+    committed control with teeth on the parent/subagent attribution axis.
     """
+    unmapped = [n for n in tool_names if n not in _CAPTURE_TOOL_TARGET_KEYS]
+    if unmapped:
+        raise ValueError(
+            f"_iter_capture_tool_calls: no target key registered in "
+            f"_CAPTURE_TOOL_TARGET_KEYS for {unmapped!r}; register a target "
+            f"key rather than accept a blank target"
+        )
+
     objs = _iter_jsonl_objects(jsonl_path)
 
     calls: list[tuple[str, str, str]] = []  # (tool_use_id, tool_name, target)
     for obj in objs:
         if obj.get("type") != "assistant":
+            continue
+        parent_id = obj.get("parent_tool_use_id")
+        if dispatch_ids is not None and parent_id not in dispatch_ids:
             continue
         msg = obj.get("message", {})
         content = msg.get("content", []) if isinstance(msg, dict) else []
@@ -534,10 +566,9 @@ def _iter_capture_tool_calls(
             name = c.get("name")
             if name not in tool_names:
                 continue
-            key = _CAPTURE_TOOL_TARGET_KEYS.get(name)
             inp = c.get("input")
             inp = inp if isinstance(inp, dict) else {}
-            target = inp.get(key, "") if key else ""
+            target = inp.get(_CAPTURE_TOOL_TARGET_KEYS[name], "")
             tool_use_id = c.get("id")
             if tool_use_id:
                 calls.append((tool_use_id, name, target))
@@ -560,6 +591,36 @@ def _iter_capture_tool_calls(
         (name, target, results.get(tool_use_id, ""))
         for tool_use_id, name, target in calls
     ]
+
+
+def _capture_subagent_tool_calls(
+    jsonl_path: Path,
+    subagent_type: str,
+    tool_names: tuple[str, ...] = ("WebFetch", "Read"),
+) -> list[tuple[str, str, str]]:
+    """Return only the named subagent's own (tool_name, target, retrieved_text) triples.
+
+    Composes _find_agent_dispatch_ids (read-only, never edited) with
+    _iter_capture_tool_calls's dispatch_ids filter, so a caller gets
+    subagent-scoped triples in one call rather than having to thread the
+    dispatch-id lookup through by hand. Raises ValueError, rather than
+    returning [], when subagent_type never dispatched in this capture --
+    returning [] here would reintroduce the exact conflation this wrapper
+    exists to close: an empty result would be indistinguishable between
+    "this subagent issued no tool calls" and "there is no such subagent in
+    this capture." Phase 5's check-provenance.py is the named consumer this
+    wrapper is built for.
+    """
+    objs = _iter_jsonl_objects(jsonl_path)
+    ids = _find_agent_dispatch_ids(objs, subagent_type)
+    if not ids:
+        raise ValueError(
+            f"_capture_subagent_tool_calls: subagent_type {subagent_type!r} "
+            f"never dispatched in {jsonl_path}"
+        )
+    return _iter_capture_tool_calls(
+        jsonl_path, tool_names=tool_names, dispatch_ids=frozenset(ids)
+    )
 
 
 def _read_top_level_result(jsonl_path: Path) -> str:
@@ -1462,7 +1523,7 @@ def _selftest_capture_tool_reader() -> bool:
     """Item 19 (v8.24.0 Phase 4, CAP-03): _iter_capture_tool_calls proves the
     committed PR-P1 fixture's event inventory in code, not only in prose.
 
-    Seven independently-failable controls:
+    Thirteen independently-failable controls:
 
     1. POSITIVE reader output — _iter_capture_tool_calls on the committed
        fixture returns exactly 9 triples: 7 WebFetch, 2 Read. Every target
@@ -1497,10 +1558,49 @@ def _selftest_capture_tool_reader() -> bool:
        _read_top_level_result on the same file (2,636 chars). Re-proves
        Guardrails A and B on the new fixture without touching their own
        self-test items.
+    8. POSITIVE, anti-masking for the dispatch_ids filter — pins the
+       literal PR-P1 dispatch id and proves filtering by it does not
+       simply reject everything: the filtered result equals the
+       unfiltered 9 triples.
+    9. DISCRIMINATION — the only control in the suite with teeth on the
+       parent/subagent attribution axis. On a tempdir copy of PR-P1 with
+       every assistant envelope carrying a "Read" tool_use rewritten to
+       parent_tool_use_id=None (a synthesised parent-session Read — no
+       committed fixture holds one; measured 2026-08-31, every non-Agent
+       tool call in every committed capture carries its own file's Agent
+       dispatch id as parent_tool_use_id), filtering by PR-P1's dispatch
+       id must drop both rewritten Read triples and keep exactly the 7
+       WebFetch triples. An implementation that ignores
+       parent_tool_use_id returns 9 in both the unfiltered and the
+       filtered case and fails here.
+    10. CROSS-CAPTURE — filtering tests/quality-fixtures-v8.7/
+        gen-internal-tools.jsonl by PR-P1's dispatch id returns []. This
+        leg alone is satisfiable by any filter whatsoever (a filter that
+        rejects everything also passes it); control 9, not this one, is
+        what makes the attribution axis failable.
+    11. ANTI-OVER-REJECTION — filtering gen-internal-tools.jsonl by its
+        OWN dispatch id (not PR-P1's) returns exactly one Read triple
+        ending svg-precision/references/spec.md, 6,309 chars. This is the
+        review-corrected value: tests/quality-provenance-v8.24/README.md
+        lines 126-129 describe this fixture's tools as "the parent's
+        tools"; measured, the Read is the SUBAGENT's own, attributed to
+        this file's own Agent dispatch id
+        (toolu_01TQ6wqRTxaExMFGutr8Rj5Y). The README is frozen evidence
+        and is not edited; this control is where the correction is
+        pinned by a test rather than merely restated in prose. A `== []`
+        result here means the filter over-rejects a subagent's own call.
+    12. WR-04 — tool_names=("Agent",) and tool_names=("WebFetch", "Bash")
+        both raise ValueError naming the offending value and
+        _CAPTURE_TOOL_TARGET_KEYS; one bad name in an otherwise-valid
+        tuple is enough to raise.
+    13. WRAPPER — _capture_subagent_tool_calls(PR-P1, subagent_type)
+        equals control 8's filtered result; called with a subagent_type
+        that never dispatched, it raises ValueError naming the
+        subagent_type rather than returning [].
 
-    Both mutated copies (controls 4 and 5) are written only into a
-    tempfile.TemporaryDirectory() — never into tests/, which is now inside
-    the FROZEN-EVIDENCE pathspec.
+    Both mutated copies (controls 4 and 5) and control 9's mutated copy are
+    written only into a tempfile.TemporaryDirectory() — never into tests/,
+    which is now inside the FROZEN-EVIDENCE pathspec.
     """
     ok = True
     fixture_path = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
@@ -1725,6 +1825,226 @@ def _selftest_capture_tool_reader() -> bool:
                 file=sys.stderr,
             )
             ok = False
+
+    # Control 8: POSITIVE, anti-masking for the dispatch_ids filter — pin
+    # the literal dispatch id and prove filtering by it does not simply
+    # reject everything.
+    pr_p1_dispatch_ids = _find_agent_dispatch_ids(
+        objs, "first-principles:first-principles"
+    )
+    if pr_p1_dispatch_ids != ["toolu_01WdhFJm9dSLjMurLvtpo3MX"]:
+        print(
+            f"self-test FAIL: capture_tool_reader control 8 (positive, "
+            f"anti-masking) — expected dispatch id "
+            f"['toolu_01WdhFJm9dSLjMurLvtpo3MX'], got {pr_p1_dispatch_ids!r}",
+            file=sys.stderr,
+        )
+        ok = False
+    pr_p1_dispatch_set = frozenset(pr_p1_dispatch_ids)
+    filtered_triples = _iter_capture_tool_calls(
+        fixture_path, dispatch_ids=pr_p1_dispatch_set
+    )
+    if filtered_triples != triples:
+        print(
+            f"self-test FAIL: capture_tool_reader control 8 (positive, "
+            f"anti-masking) — filtering by PR-P1's own dispatch id changed "
+            f"the result: expected the same {len(triples)} triples, got "
+            f"{len(filtered_triples)}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 9: DISCRIMINATION — the only control with teeth on the
+    # parent/subagent attribution axis. Synthesise a parent-session Read by
+    # rewriting parent_tool_use_id=None on every assistant envelope whose
+    # tool_use block is named "Read". No committed fixture supplies this
+    # case (measured 2026-08-31: every non-Agent tool call in every
+    # committed capture carries its own file's Agent dispatch id).
+    read_mutated_objs = []
+    read_mutation_count = 0
+    for obj in objs:
+        obj_copy = json.loads(json.dumps(obj))
+        if obj_copy.get("type") == "assistant":
+            msg = obj_copy.get("message")
+            content = msg.get("content") if isinstance(msg, dict) else None
+            is_read_envelope = isinstance(content, list) and any(
+                isinstance(c, dict)
+                and c.get("type") == "tool_use"
+                and c.get("name") == "Read"
+                for c in content
+            )
+            if is_read_envelope:
+                obj_copy["parent_tool_use_id"] = None
+                read_mutation_count += 1
+        read_mutated_objs.append(obj_copy)
+
+    if read_mutation_count != 2:
+        print(
+            f"self-test FAIL: capture_tool_reader control 9 "
+            f"(discrimination) — mutation setup failed: expected exactly "
+            f"2 Read-bearing assistant envelopes rewritten, got "
+            f"{read_mutation_count}; the mutation predicate matched "
+            f"nothing (or too much), so the control below would be "
+            f"vacuous",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        with tempfile.TemporaryDirectory() as tmpdir9:
+            read_mutated_path = Path(tmpdir9) / "read-mutated.jsonl"
+            read_mutated_path.write_text(
+                "\n".join(json.dumps(o) for o in read_mutated_objs),
+                encoding="utf-8",
+            )
+            unfiltered_mutated = _iter_capture_tool_calls(read_mutated_path)
+            filtered_mutated = _iter_capture_tool_calls(
+                read_mutated_path, dispatch_ids=pr_p1_dispatch_set
+            )
+            if len(unfiltered_mutated) != 9:
+                print(
+                    f"self-test FAIL: capture_tool_reader control 9 "
+                    f"(discrimination) — unfiltered call on the mutated "
+                    f"copy should still see 9 triples, got "
+                    f"{len(unfiltered_mutated)}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if len(filtered_mutated) != 7 or any(
+                name != "WebFetch" for name, _, _ in filtered_mutated
+            ):
+                print(
+                    f"self-test FAIL: capture_tool_reader control 9 "
+                    f"(discrimination) — filtering by PR-P1's dispatch id "
+                    f"on the mutated copy should drop both synthesised "
+                    f"parent-session Read triples and keep exactly 7 "
+                    f"WebFetch triples, got {filtered_mutated!r}. An "
+                    f"implementation that ignores parent_tool_use_id "
+                    f"returns 9 in both the unfiltered and filtered case.",
+                    file=sys.stderr,
+                )
+                ok = False
+
+    # Control 10: CROSS-CAPTURE — the weak leg. Satisfiable by any filter
+    # whatsoever; control 9, not this one, is what makes the attribution
+    # axis failable.
+    internal_path = FIXTURES_DIR / "gen-internal-tools.jsonl"
+    cross_capture_triples = _iter_capture_tool_calls(
+        internal_path, dispatch_ids=pr_p1_dispatch_set
+    )
+    if cross_capture_triples != []:
+        print(
+            f"self-test FAIL: capture_tool_reader control 10 "
+            f"(cross-capture) — filtering gen-internal-tools.jsonl by "
+            f"PR-P1's dispatch id should return [], got "
+            f"{cross_capture_triples!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 11: ANTI-OVER-REJECTION + the README correction. Measured
+    # 2026-08-31: gen-internal-tools.jsonl's Read is the SUBAGENT's own,
+    # attributed to toolu_01TQ6wqRTxaExMFGutr8Rj5Y, contradicting
+    # tests/quality-provenance-v8.24/README.md lines 126-129 (which the
+    # README is frozen evidence and is not edited to correct — the
+    # correction is asserted here instead). A "== []" result here would
+    # mean the filter over-rejects a subagent's own call.
+    internal_objs = _iter_jsonl_objects(internal_path)
+    internal_dispatch_ids = _find_agent_dispatch_ids(
+        internal_objs, "first-principles:first-principles"
+    )
+    internal_own_triples = _iter_capture_tool_calls(
+        internal_path, dispatch_ids=frozenset(internal_dispatch_ids)
+    )
+    if (
+        len(internal_own_triples) != 1
+        or internal_own_triples[0][0] != "Read"
+        or not internal_own_triples[0][1].endswith(
+            "svg-precision/references/spec.md"
+        )
+        or len(internal_own_triples[0][2]) != 6309
+    ):
+        print(
+            f"self-test FAIL: capture_tool_reader control 11 "
+            f"(anti-over-rejection) — expected exactly one Read triple "
+            f"ending svg-precision/references/spec.md with 6309 chars "
+            f"when filtering gen-internal-tools.jsonl by its own dispatch "
+            f"id, got {internal_own_triples!r}",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 12: WR-04 — an unmapped tool_names value raises rather than
+    # returning a blank target.
+    try:
+        _iter_capture_tool_calls(fixture_path, tool_names=("Agent",))
+    except ValueError as exc:
+        if "Agent" not in str(exc) or "_CAPTURE_TOOL_TARGET_KEYS" not in str(exc):
+            print(
+                f"self-test FAIL: capture_tool_reader control 12 (WR-04) "
+                f"— ValueError message does not name Agent and "
+                f"_CAPTURE_TOOL_TARGET_KEYS: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    else:
+        print(
+            "self-test FAIL: capture_tool_reader control 12 (WR-04) — "
+            "tool_names=('Agent',) did not raise ValueError",
+            file=sys.stderr,
+        )
+        ok = False
+    try:
+        _iter_capture_tool_calls(fixture_path, tool_names=("WebFetch", "Bash"))
+    except ValueError as exc:
+        if "Bash" not in str(exc) or "_CAPTURE_TOOL_TARGET_KEYS" not in str(exc):
+            print(
+                f"self-test FAIL: capture_tool_reader control 12 (WR-04) "
+                f"— ValueError message does not name Bash and "
+                f"_CAPTURE_TOOL_TARGET_KEYS: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    else:
+        print(
+            "self-test FAIL: capture_tool_reader control 12 (WR-04) — "
+            "tool_names=('WebFetch', 'Bash') did not raise ValueError, "
+            "even though 'Bash' is unmapped",
+            file=sys.stderr,
+        )
+        ok = False
+
+    # Control 13: WRAPPER — _capture_subagent_tool_calls composes the
+    # filter correctly, and raises rather than returning [] when the named
+    # subagent never dispatched.
+    wrapper_triples = _capture_subagent_tool_calls(
+        fixture_path, "first-principles:first-principles"
+    )
+    if wrapper_triples != filtered_triples:
+        print(
+            f"self-test FAIL: capture_tool_reader control 13 (wrapper) — "
+            f"_capture_subagent_tool_calls does not equal control 8's "
+            f"filtered result",
+            file=sys.stderr,
+        )
+        ok = False
+    try:
+        _capture_subagent_tool_calls(fixture_path, "no-such:agent")
+    except ValueError as exc:
+        if "no-such:agent" not in str(exc):
+            print(
+                f"self-test FAIL: capture_tool_reader control 13 "
+                f"(wrapper) — ValueError message does not name the "
+                f"subagent_type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+    else:
+        print(
+            "self-test FAIL: capture_tool_reader control 13 (wrapper) — "
+            "a never-dispatched subagent_type did not raise ValueError",
+            file=sys.stderr,
+        )
+        ok = False
 
     return ok
 
@@ -8134,13 +8454,20 @@ def self_test() -> int:
     else:
         print("self-test: incidence_schema_compat sub-check PASSED")
 
-    # Item 19 (v8.24.0 Phase 4, CAP-03): _iter_capture_tool_calls asserts
+    # Item 19 (v8.24.0 Phase 4, CAP-03; Plan 04-04 gap closure): asserts
     # the committed PR-P1 fixture's event inventory (1 Agent, 7 WebFetch,
-    # 2 Read, 11 tool_result) in code, not only in the fixture's README.
-    # Seven controls: positive reader output, positive event inventory,
-    # anti-masking, two anti-vacuity mutation controls (rename, id-join
-    # strip), negative graceful degradation, and guardrail
-    # non-interference.
+    # 2 Read, 11 tool_result) in code, not only in the fixture's README,
+    # and that _iter_capture_tool_calls's dispatch_ids filter genuinely
+    # distinguishes a dispatched subagent's tool calls from the parent
+    # session's own. Thirteen controls: positive reader output, positive
+    # event inventory, anti-masking, two anti-vacuity mutation controls
+    # (rename, id-join strip), negative graceful degradation, guardrail
+    # non-interference, positive dispatch_ids anti-masking, the
+    # discrimination control (a synthesised parent-session Read — the
+    # only control with teeth on the attribution axis), a cross-capture
+    # weak leg, anti-over-rejection (with the README correction), WR-04's
+    # unmapped-tool-name rejection, and the _capture_subagent_tool_calls
+    # wrapper.
     if not _selftest_capture_tool_reader():
         all_passed = False
         print("self-test: capture_tool_reader sub-check FAILED", file=sys.stderr)

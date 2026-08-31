@@ -480,37 +480,65 @@ fi
 # real subagent WebFetch/Read tool calls, recovered from a reaping-vulnerable
 # scratchpad and not reproducible without a paid live run. Nothing else in
 # this battery enforces its byte-freeze.
+#
+# Strengthened (v8.24.0 Phase 4 Plan 04-04, WR-01): this was one leg —
+# `git diff --quiet -- <paths>` with no commit argument, which compares
+# worktree to INDEX, not to HEAD. Measured in an isolated repo before this
+# change:
+#   unstaged edit    exit 1 (RED, as documented)
+#   staged edit      exit 0 (GREEN -- the documented guarantee did not hold;
+#                            staged is exactly the state a file is in
+#                            immediately before `git commit`)
+#   untracked add    exit 0 (invisible either way; git diff never sees an
+#                            untracked file regardless of the HEAD argument)
+# Two legs now share one pathspec array (_FROZEN_PATHS) so they cannot drift
+# apart: leg 1 adds the HEAD argument, catching staged and unstaged edits
+# alike; leg 2 sweeps `git status --porcelain --untracked-files=all` over the
+# same paths, catching a new file injected into a frozen directory. This is
+# one inline check gaining a second leg, not a new gate -- TOTAL still
+# increments once for FROZEN-EVIDENCE. The one gap that remains unchanged by
+# either leg: a committed `git rm` of a frozen file is in HEAD, so no
+# worktree comparison can see it (the fixture README already documents this
+# residual gap).
 # ---------------------------------------------------------------------------
-git diff --quiet -- \
-    'tests/step0-baseline-v*.md' \
-    'tests/step0-captures-v*' \
-    'tests/routing-baseline-v3.*.md' \
-    'tests/routing-battery-baseline-v4.3.md' \
-    'tests/routing-baseline-v7.11.md' \
-    'tests/routing-battery-baseline-v7.11.md' \
-    'tests/routing-baseline-v7.13.md' \
-    'tests/routing-battery-baseline-v8.5.md' \
-    'tests/focused-output-baseline-v*.md' \
-    'tests/sub-skill-routing-baseline-v*.md' \
-    'tests/quality-catalog-v8.7.md' \
-    'tests/quality-probe-v8.7' \
-    'tests/quality-baseline-v8.7-regenerated' \
-    'tests/quality-baseline-v8.7' \
-    'tests/quality-baseline-v8.7-postfix' \
-    'tests/quality-baseline-v8.10-oos' \
-    'tests/defrobust-v8.11' \
-    'tests/quality-provenance-v8.24' \
-    2>/dev/null
+_FROZEN_PATHS=(
+    'tests/step0-baseline-v*.md'
+    'tests/step0-captures-v*'
+    'tests/routing-baseline-v3.*.md'
+    'tests/routing-battery-baseline-v4.3.md'
+    'tests/routing-baseline-v7.11.md'
+    'tests/routing-battery-baseline-v7.11.md'
+    'tests/routing-baseline-v7.13.md'
+    'tests/routing-battery-baseline-v8.5.md'
+    'tests/focused-output-baseline-v*.md'
+    'tests/sub-skill-routing-baseline-v*.md'
+    'tests/quality-catalog-v8.7.md'
+    'tests/quality-probe-v8.7'
+    'tests/quality-baseline-v8.7-regenerated'
+    'tests/quality-baseline-v8.7'
+    'tests/quality-baseline-v8.7-postfix'
+    'tests/quality-baseline-v8.10-oos'
+    'tests/defrobust-v8.11'
+    'tests/quality-provenance-v8.24'
+)
+
+git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
 _frozen_exit=$?
 
+_frozen_untracked=$(git status --porcelain --untracked-files=all -- "${_FROZEN_PATHS[@]}" 2>/dev/null)
+
 TOTAL=$((TOTAL + 1))
-if [ "$_frozen_exit" -eq 0 ]; then
+if [ "$_frozen_exit" -eq 0 ] && [ -z "$_frozen_untracked" ]; then
     printf "[PASS] %-14s  %s\n" "FROZEN-EVIDENCE" \
-        "git diff --quiet: frozen baselines/captures unmodified (D-04)"
+        "diff-vs-HEAD + untracked sweep: frozen baselines/captures unmodified (D-04)"
     PASS=$((PASS + 1))
+elif [ "$_frozen_exit" -ne 0 ]; then
+    printf "[FAIL] %-14s  %s\n" "FROZEN-EVIDENCE" \
+        "frozen baseline/capture files have modifications relative to HEAD (staged or unstaged) — D-04 violation"
+    FAIL=$((FAIL + 1))
 else
     printf "[FAIL] %-14s  %s\n" "FROZEN-EVIDENCE" \
-        "frozen baseline/capture files have uncommitted modifications (D-04 violation)"
+        "untracked files have appeared inside a frozen path — D-04 violation: $_frozen_untracked"
     FAIL=$((FAIL + 1))
 fi
 
