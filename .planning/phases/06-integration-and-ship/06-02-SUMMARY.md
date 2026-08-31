@@ -106,3 +106,14 @@ None - no external service configuration required.
 ---
 *Phase: 06-integration-and-ship*
 *Completed: 2026-08-31*
+
+## Self-Check: PASSED
+
+- FOUND: `scripts/check-traceability.py`
+- FOUND: `docs/requirements-matrix.md`
+- FOUND: `docs/data/matrix.json`
+- FOUND: `docs/requirements-traceability.md`
+- FOUND: `.planning/phases/06-integration-and-ship/06-02-SUMMARY.md`
+- FOUND commit `1d0000e` (Task 1)
+- FOUND commit `3d3f146` (Task 2)
+- FOUND commit `1957db9` (SUMMARY.md)
