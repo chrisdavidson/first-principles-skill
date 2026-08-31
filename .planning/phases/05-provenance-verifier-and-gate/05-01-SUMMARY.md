@@ -105,3 +105,11 @@ None - no external service configuration required.
 ---
 *Phase: 05-provenance-verifier-and-gate*
 *Completed: 2026-08-31*
+
+## Self-Check: PASSED
+
+- FOUND: scripts/check-quality-harness.py
+- FOUND: .planning/phases/05-provenance-verifier-and-gate/05-01-SUMMARY.md
+- FOUND: ef416b8 (Task 1 commit)
+- FOUND: 2c298c0 (Task 2 commit)
+- FOUND: ddd3df7 (SUMMARY commit)
