@@ -110,6 +110,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import fnmatch
 import inspect
 import io
 import json
@@ -152,6 +153,13 @@ POSTFIX_DIR: Path = REPO_ROOT / "tests" / "quality-baseline-v8.7-postfix"
 # recovered from a reaping-vulnerable scratchpad and not reproducible
 # without a paid live run. See tests/quality-provenance-v8.24/README.md.
 PROVENANCE_FIXTURE_DIR: Path = REPO_ROOT / "tests" / "quality-provenance-v8.24"
+# Phase 999.5 (WR-B): the frozen-path write guard reads its pathspec list from
+# the battery script rather than restating it, so the two cannot drift. The
+# review that filed WR-B named the absence of exactly this shared source as the
+# reason the frozen half of the guard was left undone. Reading the shell array
+# has precedent: `scripts/check-registration.py` already parses this same file
+# for its `gate`/`gate_prereq` registrations (WR-02, v8.24 Phase 6).
+BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
 
 # D-08 noise-floor rationale, in this harness's own words: three problems at
 # two runs each buys a within-condition noise floor. The source experiment
@@ -409,6 +417,26 @@ class AgentAnalysisExtractionError(ValueError):
     channels both non-empty but disagree) — RESEARCH.md Assumption A4 names
     this untested-truncation risk; a loud failure is the correct response to a
     divergence this project has never measured.
+    """
+
+
+class AnalysisWriteRefused(ValueError):
+    """Raised when the analysis extracted fine but its destination is unsafe to write.
+
+    Phase 999.5 (WR-B). Deliberately NOT `AgentAnalysisExtractionError`, and
+    the reason is the same one clause (c) of `_extract_and_persist_analysis`'s
+    docstring already states for the None/raise split: these are different
+    failures and collapsing them destroys information. An extraction error
+    means the capture cannot be read; this means the capture read perfectly
+    and the *destination* was refused. A caller that wants to retry into a
+    different directory can act on the second and not the first.
+
+    Two refusal conditions, both preventive rather than after-the-fact:
+    (a) the destination is a symlink — the write would follow it out of the
+        directory the caller chose;
+    (b) the destination is inside a FROZEN-EVIDENCE pathspec — the write
+        would dirty committed evidence in the worktree, which the battery
+        would then report RED on its *next* run, after the damage.
     """
 
 
@@ -726,6 +754,120 @@ def extract_agent_analysis(jsonl_path: Path, subagent_type: str) -> str:
     return primary
 
 
+# ---------------------------------------------------------------------------
+# Phase 999.5 (WR-B): destination guards for the analysis persistence write
+# ---------------------------------------------------------------------------
+
+# `_FROZEN_PATHS=(` ... `)` in scripts/check-firewall-battery.sh. Anchored to a
+# line-start `)` so a `)` inside an entry cannot terminate the match early.
+_FROZEN_PATHS_ARRAY_RE = re.compile(
+    r"^_FROZEN_PATHS=\(\n(.*?)^\)$", re.MULTILINE | re.DOTALL
+)
+# One single-quoted entry per line, which is the array's only observed form.
+_FROZEN_PATHS_ENTRY_RE = re.compile(r"^[ \t]*'([^']+)'[ \t]*$", re.MULTILINE)
+
+
+def read_frozen_pathspecs(battery_text: str) -> list[str]:
+    """Return the pathspecs `_FROZEN_PATHS` names in the battery script text.
+
+    Fails CLOSED: an unparseable or empty array raises rather than returning
+    an empty list. An empty list would silently disable the guard, which is
+    the failure direction this whole phase exists to remove — a guard that
+    reports "nothing is frozen" because it could not read the list is
+    indistinguishable, at the call site, from one that read the list and
+    found no match.
+    """
+    match = _FROZEN_PATHS_ARRAY_RE.search(battery_text)
+    if match is None:
+        raise AnalysisWriteRefused(
+            f"cannot locate the _FROZEN_PATHS array in {BATTERY_PATH} — the "
+            "frozen-path write guard cannot be evaluated, so the write is "
+            "refused rather than allowed"
+        )
+    entries = _FROZEN_PATHS_ENTRY_RE.findall(match.group(1))
+    if not entries:
+        raise AnalysisWriteRefused(
+            f"the _FROZEN_PATHS array in {BATTERY_PATH} parsed to zero "
+            "entries — the frozen-path write guard cannot be evaluated, so "
+            "the write is refused rather than allowed"
+        )
+    return entries
+
+
+def _frozen_spec_matches(rel_posix: str, spec: str) -> bool:
+    """Does one `_FROZEN_PATHS` pathspec cover this repo-relative path?
+
+    Mirrors git's DEFAULT pathspec matching, which is what the battery's
+    `git diff` / `git status` legs actually apply: a `*` is fnmatch without
+    FNM_PATHNAME, so it crosses `/`, and a bare directory name covers
+    everything beneath it. The second arm supplies that directory-prefix
+    semantics for both the literal entries (`tests/quality-provenance-v8.24`)
+    and the globbed ones (`tests/step0-captures-v*`).
+
+    `fnmatchcase` rather than `fnmatch`: the latter applies
+    `os.path.normcase`, which would make the result platform-dependent.
+    """
+    return fnmatch.fnmatchcase(rel_posix, spec) or fnmatch.fnmatchcase(
+        rel_posix, f"{spec}/*"
+    )
+
+
+def is_frozen_destination(dest: Path, battery_text: str | None = None) -> bool:
+    """Is `dest` inside a FROZEN-EVIDENCE pathspec?
+
+    The parent is resolved but the leaf is not joined through `resolve()`, so
+    a symlinked *parent* pointing into a frozen directory is caught here while
+    a symlinked *leaf* stays visible to the separate symlink guard — the two
+    conditions stay independently diagnosable rather than one masking the
+    other.
+
+    A destination outside the repository is never frozen; the battery's
+    pathspecs are repo-relative and have no meaning elsewhere.
+    """
+    if battery_text is None:
+        try:
+            battery_text = BATTERY_PATH.read_text(encoding="utf-8")
+        except OSError as exc:
+            # Same fail-closed reasoning as `read_frozen_pathspecs`: an
+            # unreadable list is not an empty list.
+            raise AnalysisWriteRefused(
+                f"cannot read {BATTERY_PATH} ({exc}) — the frozen-path write "
+                "guard cannot be evaluated, so the write is refused rather "
+                "than allowed"
+            ) from exc
+    resolved = dest.parent.resolve() / dest.name
+    if not resolved.is_relative_to(REPO_ROOT):
+        return False
+    rel_posix = resolved.relative_to(REPO_ROOT).as_posix()
+    return any(
+        _frozen_spec_matches(rel_posix, spec)
+        for spec in read_frozen_pathspecs(battery_text)
+    )
+
+
+def _guard_analysis_destination(dest: Path) -> None:
+    """Refuse an unsafe persistence destination, or return silently.
+
+    Order is deliberate: the symlink check runs first and does no filesystem
+    resolution of its own, so a symlink is always reported as a symlink even
+    when it also points into a frozen path. The reverse order would report
+    the frozen condition for a link whose real defect is that it is a link.
+    """
+    if dest.is_symlink():
+        raise AnalysisWriteRefused(
+            f"refusing to write the extracted analysis through a symlink at "
+            f"{dest} — the write would land wherever the link points, not in "
+            f"the directory the caller named"
+        )
+    if is_frozen_destination(dest):
+        raise AnalysisWriteRefused(
+            f"refusing to write the extracted analysis to {dest} — it is "
+            f"inside a FROZEN-EVIDENCE pathspec (see _FROZEN_PATHS in "
+            f"{BATTERY_PATH}). Writing there dirties committed evidence in "
+            f"the worktree; re-run against a copy outside tests/ instead"
+        )
+
+
 def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path | None:
     """Extract the analysis from `jsonl_path` and write it beside its source.
 
@@ -748,6 +890,14 @@ def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path 
     shape comes from a catalog id, validated at the catalog boundary by
     `_CATALOG_ID_RE` before it ever reaches a filesystem path. On the
     `--single` path it comes from a path the operator typed directly.
+    (e) Phase 999.5 (WR-B): that destination is now guarded before it is
+    written, raising `AnalysisWriteRefused` for a symlink or a
+    FROZEN-EVIDENCE path. This is a THIRD outcome, not a variant of the two
+    in clause (c): `None` means the capture did not complete, a guardrail
+    error means it completed but could not be read, and this means it was
+    read fine and the destination was refused. The guard is preventive —
+    FROZEN-EVIDENCE catches the same damage, but only on the battery's next
+    run, by which time the worktree is already dirty.
 
     Returns the written `.md` path, or `None` if the capture did not
     complete.
@@ -756,6 +906,7 @@ def _extract_and_persist_analysis(jsonl_path: Path, subagent_type: str) -> Path 
         return None
     analysis = extract_agent_analysis(jsonl_path, subagent_type=subagent_type)
     dest = jsonl_path.with_suffix(".md")
+    _guard_analysis_destination(dest)
     dest.write_text(analysis, encoding="utf-8")
     return dest
 
@@ -779,8 +930,18 @@ def _persist_or_refuse_analysis(
     capture is a different failure from a capture that did not complete,
     and collapsing the two into a single refusal would be the exact defect
     clause (c) of the wrapped helper's docstring exists to prevent.
+    (d) `AnalysisWriteRefused` is the one exception this wrapper DOES
+    convert into a refusal tuple, and the asymmetry with (c) is the point:
+    a guardrail error is a statement about the capture's contents that the
+    caller must be able to act on, whereas a refused destination is already
+    a refusal — the exact thing this helper exists to express. Converting
+    it loses nothing and keeps `--single tests/quality-provenance-v8.24/
+    PR-P1.jsonl` (WR-B's own worked example) from ending in a traceback.
     """
-    path = _extract_and_persist_analysis(jsonl_path, subagent_type=subagent_type)
+    try:
+        path = _extract_and_persist_analysis(jsonl_path, subagent_type=subagent_type)
+    except AnalysisWriteRefused as exc:
+        return (None, f"Refusing to judge {jsonl_path}: {exc}")
     if path is not None:
         return (path, "")
     outcome = classify_invocation_outcome(jsonl_path)
@@ -790,6 +951,57 @@ def _persist_or_refuse_analysis(
         f"analysis has no provenance."
     )
     return (None, message)
+
+
+def _persist_or_diagnose_analysis(
+    jsonl_path: Path, subagent_type: str
+) -> tuple[Path | None, str, int]:
+    """Decide what `--probe` reports after a paid live run, and with what status.
+
+    Phase 999.5 (WR-A). The `--probe` call site had no `try`/`except` at all,
+    so a capture that completed but could not be extracted ended a *paid*
+    invocation in a bare traceback that never mentioned the one fact the
+    operator most needs — that the `.jsonl` is intact and re-extractable
+    without paying again.
+
+    (a) This is a function rather than an inline `try` in `main()` for the
+    reason `_persist_or_refuse_analysis`'s clause (a) records about CR-02: a
+    decision that lives inline in `main()` cannot be self-tested without a
+    live `claude`. The `--probe` block is the least testable code in this
+    file precisely because everything above it costs money.
+    (b) The three-outcome return mirrors the wrapped helper's three
+    outcomes exactly, and the exit code is what distinguishes them where a
+    message alone would not: `0` for "written" and for "the capture never
+    completed" (nothing was owed), `1` for "completed but not persisted"
+    (something was owed and not delivered). A diagnosis printed with a `0`
+    exit is a diagnosis a script cannot see.
+    (c) `AnalysisWriteRefused` is caught alongside the two guardrail errors
+    rather than separately: from `--probe`'s perspective all three mean the
+    same actionable thing — the capture survived, the analysis did not, and
+    no second live run is required to try again.
+
+    Returns `(path_or_None, message, exit_code)`. The message is always
+    non-empty; the caller decides only which stream it goes to.
+    """
+    try:
+        path = _extract_and_persist_analysis(jsonl_path, subagent_type=subagent_type)
+    except (
+        MultipleAgentDispatchError,
+        AgentAnalysisExtractionError,
+        AnalysisWriteRefused,
+    ) as exc:
+        return (
+            None,
+            f"Probe analysis NOT written — the capture completed but its "
+            f"analysis could not be persisted: {exc}. The raw capture is "
+            f"intact at {jsonl_path} and can be re-extracted without another "
+            f"live run.",
+            1,
+        )
+    if path is not None:
+        return (path, f"Probe analysis written: {path}", 0)
+    outcome = classify_invocation_outcome(jsonl_path)
+    return (None, f"Probe analysis not written — outcome was {outcome!r}", 0)
 
 
 def extract_judge_verdict(jsonl_path: Path) -> str:
@@ -2504,6 +2716,480 @@ def _selftest_single_refusal() -> bool:
                 "self-test FAIL: single_refusal control 4 (call-site "
                 "structure) — analysis_path.read_text( not found; the "
                 "judged text is not read back from the persisted path",
+                file=sys.stderr,
+            )
+            ok = False
+
+    return ok
+
+
+def _selftest_persistence_write_guards() -> bool:
+    """Item 23 (Phase 999.5, WR-A + WR-B): the persistence write refuses an
+    unsafe destination, and `--probe` diagnoses a failed persist instead of
+    ending a paid live run in a bare traceback.
+
+    Both findings are about the same call chain and are asserted together
+    because the WR-A helper's own refusal path is reached through the WR-B
+    guard — splitting them would leave that join untested from either side.
+
+    Thirteen independently-failable controls. Every write-driving control uses
+    a tempdir copy, with the single deliberate exception of control 5, whose
+    whole point is the committed path (see its note):
+
+    WR-B, the destination guard
+      1. POSITIVE (symlink) — a tempdir `PR-P1.md` symlinked at a decoy makes
+         `_extract_and_persist_analysis` raise `AnalysisWriteRefused` naming
+         "symlink"; the decoy's bytes are unchanged and the link is still a
+         link, so nothing was written through it.
+      2. NON-VACUITY for control 1 — the same tempdir copy with no symlink at
+         the destination writes normally and returns the `.md` path, proving
+         control 1's refusal is caused by the link and not by the fixture.
+      3. PATHSPEC PARSE — `read_frozen_pathspecs` over the live battery text
+         returns a non-empty list containing `tests/quality-provenance-v8.24`
+         and `tests/step0-baseline-v*.md`, i.e. both a literal directory entry
+         and a globbed one.
+      4. FAIL-CLOSED — battery text with the array renamed, battery text with
+         an emptied array, and an unreadable battery path each raise
+         `AnalysisWriteRefused` rather than yielding an empty pathspec list.
+         An empty list would silently disable the guard, and "I could not
+         read the list" is not "nothing is frozen".
+      5. POSITIVE (frozen path, on the committed tree) — calling the helper
+         directly on `PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"` — WR-B's own
+         worked example — raises `AnalysisWriteRefused` naming
+         "FROZEN-EVIDENCE", and the committed `PR-P1.md` is byte-unchanged.
+         This is the one control that names a committed path on purpose: the
+         guard is only meaningful if it fires on the real frozen tree. It is
+         safe to run even if the guard is broken, because item 20 control 1
+         pins that this extraction reproduces `PR-P1.md` byte-identically —
+         a failed guard would rewrite identical content, so FROZEN-EVIDENCE
+         cannot be tripped by this control either way.
+      6. ANTI-OVERREACH — `is_frozen_destination` is False for a repo path
+         outside every pathspec (`tests/routing-catalog.md`) and for a path
+         outside the repo entirely, and True for a nested path under a
+         globbed directory entry. Without this, a guard that answered True
+         unconditionally would pass controls 1-5.
+
+    WR-A, the probe diagnosis
+      7. POSITIVE — a tempdir PR-P1 copy through `_persist_or_diagnose_
+         analysis` returns `(<tmp>/PR-P1.md, "Probe analysis written: ...", 0)`.
+      8. NOT-COMPLETED — a tempdir `gen-internal-tools.jsonl` returns
+         `(None, msg, 0)` naming `no_terminal_result`; status 0 because
+         nothing was owed.
+      9. THE WR-A CASE — a tempdir `gen-stub-only.jsonl` (completed,
+         unextractable: the exact capture the review reproduced against)
+         returns `(None, msg, 1)`, does NOT raise, and the message names both
+         the intact `.jsonl` path and that no second live run is needed.
+     10. MULTI-DISPATCH — a tempdir `gen-multi-dispatch.jsonl` likewise
+         returns status 1 rather than raising.
+     11. ANTI-COSMETIC — controls 9 and 10 must carry a NON-ZERO status. A
+         diagnosis printed on a 0 exit is invisible to any caller that
+         branches on the status, which would restore WR-A's damage with
+         better prose. Asserted separately so a status regression names
+         itself rather than hiding inside control 9's tuple comparison.
+     12. CALL-SITE STRUCTURE — `main()`'s `--probe` block is sliced between
+         two literal anchors and asserted to call
+         `_persist_or_diagnose_analysis(`, to never call
+         `_extract_and_persist_analysis(` directly, and to return the helper's
+         status rather than a literal `return 0`. A missing anchor is itself a
+         FAILURE naming the drift, never a traceback and never a silent skip.
+         Item 21 control 4 is the precedent: item 20's six controls all passed
+         while the call site consuming the helper was defective.
+
+    WR-B's other consumer
+     13. SINGLE REFUSAL ASYMMETRY — `_persist_or_refuse_analysis` converts
+         `AnalysisWriteRefused` into a `(None, msg)` refusal naming
+         "Refusing", so `--single` against a frozen capture exits on a
+         refusal rather than a traceback; and it still RAISES for both
+         guardrail errors, so item 21 control 5's invariant is intact. The
+         second half is what makes the first half a considered asymmetry
+         rather than a blanket `except`.
+    """
+    ok = True
+    subagent = "first-principles:first-principles"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_path = Path(tmpdir)
+        pr_p1_src = PROVENANCE_FIXTURE_DIR / "PR-P1.jsonl"
+
+        # Control 1: symlink destination is refused, and nothing is written
+        # through the link.
+        link_dir = tmp_path / "symlink-case"
+        link_dir.mkdir()
+        link_copy = link_dir / "PR-P1.jsonl"
+        link_copy.write_bytes(pr_p1_src.read_bytes())
+        decoy = link_dir / "decoy.md"
+        decoy.write_text("DECOY", encoding="utf-8")
+        (link_dir / "PR-P1.md").symlink_to(decoy)
+        try:
+            _extract_and_persist_analysis(link_copy, subagent_type=subagent)
+            print(
+                "self-test FAIL: persistence_write_guards control 1 (symlink) "
+                "— writing through a symlinked destination did not raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except AnalysisWriteRefused as exc:
+            if "symlink" not in str(exc):
+                print(
+                    f"self-test FAIL: persistence_write_guards control 1 "
+                    f"(symlink) — refusal does not name the condition: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: persistence_write_guards control 1 (symlink) "
+                f"— raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if decoy.read_text(encoding="utf-8") != "DECOY":
+            print(
+                "self-test FAIL: persistence_write_guards control 1 (symlink) "
+                "— the analysis was written through the link into the decoy",
+                file=sys.stderr,
+            )
+            ok = False
+        if not (link_dir / "PR-P1.md").is_symlink():
+            print(
+                "self-test FAIL: persistence_write_guards control 1 (symlink) "
+                "— the destination is no longer a symlink; it was replaced",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 2: non-vacuity — same fixture, no symlink, writes fine.
+        clean_dir = tmp_path / "clean-case"
+        clean_dir.mkdir()
+        clean_copy = clean_dir / "PR-P1.jsonl"
+        clean_copy.write_bytes(pr_p1_src.read_bytes())
+        clean_result = _extract_and_persist_analysis(clean_copy, subagent_type=subagent)
+        if clean_result != clean_dir / "PR-P1.md" or not clean_result.exists():
+            print(
+                f"self-test FAIL: persistence_write_guards control 2 "
+                f"(non-vacuity) — an unguarded destination did not receive the "
+                f"write; got {clean_result}",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 3: the pathspec list parses off the live battery script.
+        battery_text = BATTERY_PATH.read_text(encoding="utf-8")
+        specs = read_frozen_pathspecs(battery_text)
+        for expected_spec in ("tests/quality-provenance-v8.24", "tests/step0-baseline-v*.md"):
+            if expected_spec not in specs:
+                print(
+                    f"self-test FAIL: persistence_write_guards control 3 "
+                    f"(pathspec parse) — {expected_spec!r} not among the "
+                    f"{len(specs)} parsed entries",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 4: fail-closed on an unparseable or empty array.
+        renamed = battery_text.replace("_FROZEN_PATHS=(", "_THAWED_PATHS=(", 1)
+        emptied = _FROZEN_PATHS_ARRAY_RE.sub("_FROZEN_PATHS=(\n)", battery_text, count=1)
+        for label, mutated in (("renamed array", renamed), ("emptied array", emptied)):
+            try:
+                read_frozen_pathspecs(mutated)
+                print(
+                    f"self-test FAIL: persistence_write_guards control 4 "
+                    f"(fail-closed, {label}) — returned instead of raising; a "
+                    f"guard that cannot read its list must refuse, not allow",
+                    file=sys.stderr,
+                )
+                ok = False
+            except AnalysisWriteRefused:
+                pass
+            except Exception as exc:  # noqa: BLE001
+                print(
+                    f"self-test FAIL: persistence_write_guards control 4 "
+                    f"(fail-closed, {label}) — wrong exception type: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 4 (third case): an UNREADABLE battery script is also
+        # fail-closed. This is a different branch from an unparseable one —
+        # the read raises before the parser is ever reached — and it is the
+        # branch a harness copied out of the repo would hit.
+        saved_battery_path = globals()["BATTERY_PATH"]
+        globals()["BATTERY_PATH"] = tmp_path / "no-such-battery.sh"
+        try:
+            is_frozen_destination(REPO_ROOT / "tests" / "probe.md")
+            print(
+                "self-test FAIL: persistence_write_guards control 4 "
+                "(fail-closed, unreadable battery) — an unreadable pathspec "
+                "source returned instead of raising",
+                file=sys.stderr,
+            )
+            ok = False
+        except AnalysisWriteRefused:
+            pass
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: persistence_write_guards control 4 "
+                f"(fail-closed, unreadable battery) — wrong exception type: "
+                f"{exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        finally:
+            globals()["BATTERY_PATH"] = saved_battery_path
+
+        # Control 5: the frozen tree itself — WR-B's worked example.
+        committed_md = PROVENANCE_FIXTURE_DIR / "PR-P1.md"
+        before = committed_md.read_bytes()
+        try:
+            _extract_and_persist_analysis(pr_p1_src, subagent_type=subagent)
+            print(
+                "self-test FAIL: persistence_write_guards control 5 (frozen "
+                "path) — writing into tests/quality-provenance-v8.24/ did not "
+                "raise",
+                file=sys.stderr,
+            )
+            ok = False
+        except AnalysisWriteRefused as exc:
+            if "FROZEN-EVIDENCE" not in str(exc):
+                print(
+                    f"self-test FAIL: persistence_write_guards control 5 "
+                    f"(frozen path) — refusal does not name the condition: "
+                    f"{exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: persistence_write_guards control 5 (frozen "
+                f"path) — raised the wrong exception type: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+        if committed_md.read_bytes() != before:
+            print(
+                "self-test FAIL: persistence_write_guards control 5 (frozen "
+                "path) — the committed PR-P1.md changed on disk",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 6: anti-overreach — the guard must discriminate.
+        overreach_cases = (
+            (REPO_ROOT / "tests" / "routing-catalog.md", False, "unfrozen repo path"),
+            (tmp_path / "anywhere.md", False, "path outside the repository"),
+            (
+                REPO_ROOT / "tests" / "step0-captures-v8.6" / "nested" / "x.md",
+                True,
+                "nested path under a globbed directory entry",
+            ),
+        )
+        for candidate, expected, label in overreach_cases:
+            actual = is_frozen_destination(candidate, battery_text=battery_text)
+            if actual is not expected:
+                print(
+                    f"self-test FAIL: persistence_write_guards control 6 "
+                    f"(anti-overreach, {label}) — expected {expected}, got "
+                    f"{actual} for {candidate}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Controls 7-11: the --probe decision helper.
+        probe_dir = tmp_path / "probe-case"
+        probe_dir.mkdir()
+
+        def _probe_copy(name: str) -> Path:
+            src = (
+                PROVENANCE_FIXTURE_DIR / name
+                if (PROVENANCE_FIXTURE_DIR / name).exists()
+                else FIXTURES_DIR / name
+            )
+            dst = probe_dir / name
+            dst.write_bytes(src.read_bytes())
+            return dst
+
+        # Control 7: positive.
+        p7 = _probe_copy("PR-P1.jsonl")
+        path7, msg7, status7 = _persist_or_diagnose_analysis(p7, subagent_type=subagent)
+        if path7 != probe_dir / "PR-P1.md" or status7 != 0 or "written" not in msg7:
+            print(
+                f"self-test FAIL: persistence_write_guards control 7 (probe "
+                f"positive) — got ({path7}, {msg7!r}, {status7})",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 8: not completed — nothing was owed, so status 0.
+        p8 = _probe_copy("gen-internal-tools.jsonl")
+        path8, msg8, status8 = _persist_or_diagnose_analysis(p8, subagent_type=subagent)
+        if path8 is not None or status8 != 0 or "no_terminal_result" not in msg8:
+            print(
+                f"self-test FAIL: persistence_write_guards control 8 (probe "
+                f"not-completed) — got ({path8}, {msg8!r}, {status8})",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Controls 9 + 10: the two failure captures must be diagnosed, never
+        # raised, out of the probe helper.
+        failure_statuses: dict[str, int] = {}
+        for control_no, name in ((9, "gen-stub-only.jsonl"), (10, "gen-multi-dispatch.jsonl")):
+            fixture = _probe_copy(name)
+            try:
+                fpath, fmsg, fstatus = _persist_or_diagnose_analysis(
+                    fixture, subagent_type=subagent
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(
+                    f"self-test FAIL: persistence_write_guards control "
+                    f"{control_no} (probe {name}) — the helper raised instead "
+                    f"of diagnosing: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+                continue
+            failure_statuses[name] = fstatus
+            if fpath is not None:
+                print(
+                    f"self-test FAIL: persistence_write_guards control "
+                    f"{control_no} (probe {name}) — expected no path, got {fpath}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if str(fixture) not in fmsg or "without another" not in fmsg:
+                print(
+                    f"self-test FAIL: persistence_write_guards control "
+                    f"{control_no} (probe {name}) — the diagnosis does not "
+                    f"tell the operator the capture is intact and re-usable: "
+                    f"{fmsg!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+            if fixture.with_suffix(".md").exists():
+                print(
+                    f"self-test FAIL: persistence_write_guards control "
+                    f"{control_no} (probe {name}) — a .md sibling was written "
+                    f"for an unpersistable capture",
+                    file=sys.stderr,
+                )
+                ok = False
+
+        # Control 11: anti-cosmetic — the diagnosis must carry a non-zero
+        # status or no caller can act on it.
+        for name, fstatus in failure_statuses.items():
+            if fstatus == 0:
+                print(
+                    f"self-test FAIL: persistence_write_guards control 11 "
+                    f"(anti-cosmetic) — {name} was diagnosed with exit status "
+                    f"0; a caller branching on the status cannot see it",
+                    file=sys.stderr,
+                )
+                ok = False
+        if len(failure_statuses) != 2:
+            print(
+                f"self-test FAIL: persistence_write_guards control 11 "
+                f"(anti-cosmetic) — expected 2 recorded failure statuses, got "
+                f"{len(failure_statuses)}; controls 9/10 did not both run",
+                file=sys.stderr,
+            )
+            ok = False
+
+        # Control 13: --single's wrapper converts a write refusal but still
+        # raises for the two guardrail errors.
+        try:
+            refuse_path, refuse_msg = _persist_or_refuse_analysis(
+                pr_p1_src, subagent_type=subagent
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"self-test FAIL: persistence_write_guards control 13 (single "
+                f"refusal asymmetry) — a frozen destination raised out of the "
+                f"refusal wrapper instead of becoming a refusal tuple: {exc!r}",
+                file=sys.stderr,
+            )
+            ok = False
+            refuse_path, refuse_msg = None, "Refusing"  # keep the next checks readable
+        if refuse_path is not None or "Refusing" not in refuse_msg:
+            print(
+                f"self-test FAIL: persistence_write_guards control 13 (single "
+                f"refusal asymmetry) — a frozen destination did not become a "
+                f"refusal tuple; got ({refuse_path}, {refuse_msg!r})",
+                file=sys.stderr,
+            )
+            ok = False
+        if committed_md.read_bytes() != before:
+            print(
+                "self-test FAIL: persistence_write_guards control 13 (single "
+                "refusal asymmetry) — the committed PR-P1.md changed on disk",
+                file=sys.stderr,
+            )
+            ok = False
+        for exc_type, name in (
+            (MultipleAgentDispatchError, "gen-multi-dispatch.jsonl"),
+            (AgentAnalysisExtractionError, "gen-stub-only.jsonl"),
+        ):
+            guard_copy = tmp_path / f"asym-{name}"
+            guard_copy.write_bytes((FIXTURES_DIR / name).read_bytes())
+            try:
+                _persist_or_refuse_analysis(guard_copy, subagent_type=subagent)
+                print(
+                    f"self-test FAIL: persistence_write_guards control 13 "
+                    f"(single refusal asymmetry) — {name} was collapsed into a "
+                    f"refusal tuple; guardrail errors must still reach the "
+                    f"caller (item 21 control 5)",
+                    file=sys.stderr,
+                )
+                ok = False
+            except exc_type:
+                pass
+            except Exception as exc:  # noqa: BLE001
+                print(
+                    f"self-test FAIL: persistence_write_guards control 13 "
+                    f"(single refusal asymmetry) — {name} raised the wrong "
+                    f"exception type: {exc!r}",
+                    file=sys.stderr,
+                )
+                ok = False
+
+    # Control 12: the --probe call site's structure, sliced from main()'s own
+    # source so a regression cannot land un-noticed.
+    src = inspect.getsource(main)
+    start_anchor = "\n    if args.probe is not None:"
+    end_anchor = "\n    if args.single is not None:"
+    start_idx = src.find(start_anchor)
+    end_idx = src.find(end_anchor)
+    if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
+        print(
+            "self-test FAIL: persistence_write_guards control 12 (call-site "
+            "structure) — the --probe/--single anchors have moved; this "
+            "control cannot locate the block it must inspect",
+            file=sys.stderr,
+        )
+        ok = False
+    else:
+        block = src[start_idx:end_idx]
+        if "_persist_or_diagnose_analysis(" not in block:
+            print(
+                "self-test FAIL: persistence_write_guards control 12 "
+                "(call-site structure) — _persist_or_diagnose_analysis( not "
+                "called in the --probe block (WR-A)",
+                file=sys.stderr,
+            )
+            ok = False
+        if "_extract_and_persist_analysis(" in block:
+            print(
+                "self-test FAIL: persistence_write_guards control 12 "
+                "(call-site structure) — _extract_and_persist_analysis( is "
+                "called directly in the --probe block, bypassing the "
+                "diagnosis (WR-A)",
+                file=sys.stderr,
+            )
+            ok = False
+        if "return probe_status" not in block:
+            print(
+                "self-test FAIL: persistence_write_guards control 12 "
+                "(call-site structure) — the --probe block does not return "
+                "the helper's status; a diagnosed failure would still exit 0",
                 file=sys.stderr,
             )
             ok = False
@@ -8737,6 +9423,21 @@ def self_test() -> int:
     else:
         print("self-test: gap8_bold_chain_labels sub-check PASSED")
 
+    # Item 23 (Phase 999.5): the persistence write refuses an unsafe
+    # destination (WR-B: symlink, FROZEN-EVIDENCE path), and --probe
+    # diagnoses a failed persist rather than ending a paid live run in a bare
+    # traceback (WR-A). Thirteen controls: two on the symlink guard (positive
+    # plus non-vacuity), two on the pathspec source (parse, fail-closed), one
+    # driving the real frozen tree, one anti-overreach, four on the probe
+    # helper's three outcomes, one anti-cosmetic status assertion, and one
+    # call-site structure control in the shape item 21 control 4 established,
+    # and one asserting --single's refusal asymmetry.
+    if not _selftest_persistence_write_guards():
+        all_passed = False
+        print("self-test: persistence_write_guards sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: persistence_write_guards sub-check PASSED")
+
     return 0 if all_passed else 1
 
 
@@ -8988,15 +9689,14 @@ def main(argv: list[str] | None = None) -> int:
         wrapped_prompt = _wrap_for_bypass(row.text)
         _run_prompt_to(wrapped_prompt, out_path, plugin_dir=args.plugin_dir)
         print(f"Probe capture written: {out_path}")
-        analysis_path = _extract_and_persist_analysis(
+        # Phase 999.5 (WR-A): the decision lives in a helper so it can be
+        # self-tested without a live `claude`; this block only routes the
+        # message to the stream the status code implies.
+        _analysis_path, probe_message, probe_status = _persist_or_diagnose_analysis(
             out_path, subagent_type="first-principles:first-principles"
         )
-        if analysis_path is not None:
-            print(f"Probe analysis written: {analysis_path}")
-        else:
-            outcome = classify_invocation_outcome(out_path)
-            print(f"Probe analysis not written — outcome was {outcome!r}")
-        return 0
+        print(probe_message, file=sys.stderr if probe_status else sys.stdout)
+        return probe_status
 
     if args.single is not None:
         _ensure_claude_available()
