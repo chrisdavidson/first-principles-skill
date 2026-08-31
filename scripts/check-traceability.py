@@ -1015,6 +1015,20 @@ def _rows_v824() -> list[MatrixRow]:
     _rows_v818() rejects it -- VAL-04 would get an artifact_link that does not exist, the
     vacuous-green shape.
 
+    CAP-01/CAP-03 (CR-02, v8.24 code review): both rows deliver into
+    scripts/check-quality-harness.py, and both originally pointed their artifact_link at
+    scripts/check-quality-harness.py's sibling scripts/check-provenance.py -- a script that
+    mentions neither requirement and touches neither deliverable, so _resolve_artifact()'s
+    bare-path existence check resolved it while nothing re-ran the requirement. Deleting the
+    two self-test items would have left both rows reporting "reproducible" against an artifact
+    that exists: the same vacuously-green shape the paragraph above rejects, and the shape
+    headline-history row 6 (META-Q4) records. They now point at the assertions that actually
+    re-run them, by symbol anchor rather than by file, so the link binds to the assertion:
+    QUAL-01's _selftest_analysis_persistence() ("Item 20 (v8.24.0 Phase 4, CAP-01)") and
+    _selftest_capture_tool_reader() ("Item 19 (v8.24.0 Phase 4, CAP-03)"). CAP-02 keeps
+    scripts/check-provenance.py -- its deliverable is the committed fixture, which that
+    script's live leg genuinely reads.
+
     GATE-02 (WR-02, v8.24 code review): this row used to point at
     scripts/check-firewall-battery.sh with a docstring note conceding that no offline gate
     re-read .github/workflows/validation.yml -- which made "reproducible" a claim nothing
@@ -1036,13 +1050,15 @@ def _rows_v824() -> list[MatrixRow]:
     return [
         MatrixRow("v8.24/CAP-01", "CAP-01", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_analysis_persistence", ""),
         MatrixRow("v8.24/CAP-02", "CAP-02", "v8.24", "Test-Network",
                   "tests/quality-provenance-v8.24/README.md",
                   "reproducible", "scripts/check-provenance.py", ""),
         MatrixRow("v8.24/CAP-03", "CAP-03", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_capture_tool_reader", ""),
         MatrixRow("v8.24/PROV-01", "PROV-01", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
                   "reproducible", "scripts/check-provenance.py", ""),

@@ -252,16 +252,16 @@
 | v8.18/SHIP-06 | SHIP-06 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
 | v8.18/SHIP-04 | SHIP-04 | Methodology | CHANGELOG.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
 | v8.18/SHIP-05 | SHIP-05 | Methodology | docs/v8.18-praor-loop-closure.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
-| v8.24/CAP-01 | CAP-01 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/CAP-01 | CAP-01 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_analysis_persistence |  |
 | v8.24/CAP-02 | CAP-02 | Test-Network | tests/quality-provenance-v8.24/README.md | reproducible | scripts/check-provenance.py |  |
-| v8.24/CAP-03 | CAP-03 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/CAP-03 | CAP-03 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_capture_tool_reader |  |
 | v8.24/PROV-01 | PROV-01 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
 | v8.24/PROV-02 | PROV-02 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
 | v8.24/PROV-03 | PROV-03 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
 | v8.24/PROV-04 | PROV-04 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
 | v8.24/PROV-05 | PROV-05 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-provenance.py |  |
 | v8.24/GATE-01 | GATE-01 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/GATE-02 | GATE-02 | Test-Network | .github/workflows/validation.yml | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.24/GATE-02 | GATE-02 | Test-Network | .github/workflows/validation.yml | reproducible | scripts/check-registration.py#verify_ci_job_registration |  |
 | v8.24/GATE-03 | GATE-03 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
 | v8.24/VAL-01 | VAL-01 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
 | v8.24/VAL-02 | VAL-02 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
