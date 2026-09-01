@@ -342,23 +342,27 @@ def _headline_scan_floor_breaches(read: _HeadlineScanRead) -> list[str]:
     return []
 
 
-def _headline_hits(
-    text: str, literals: tuple[str, str] | None = None
-) -> list[tuple[int, str]]:
+def _headline_hits(text: str) -> list[tuple[int, str]]:
     """Return every (1-based line number, line text) pair whose line contains either
-    the current headline's prose or compact-slash rendering as a substring.
+    the current headline's prose or compact-slash rendering, after complete HTML comments
+    have been stripped from the whole text (see `_strip_complete_html_comments()`).
 
     Shared by every per-surface assertion in `_self_test_headline_lock()`, its own
     non-vacuity control, and the (j) tree-wide scan via `_headline_scan_read()` — never
     re-implemented in parallel — so a control that calls this function proves the real
     assertion's code path is non-vacuous, not a copy that could silently diverge.
 
-    `literals`, when given, overrides the (slash, prose) pair matched against instead of
-    calling `_headline_literals()` — resolved the same way `_is_historical_headline_hit()`
-    resolves its own `literals` parameter. This parameter exists only so a headline-move
-    control can drive it explicitly; no production call site passes it.
+    This function deliberately has NO `literals` override. It carried one, documented as
+    existing "only so a headline-move control can drive it explicitly", but no control was
+    ever written: all four call sites used the default, and the (h2) headline-move control
+    goes through `_is_historical_headline_hit()`'s own `literals` parameter instead. An
+    untested branch in a gate whose stated design rule is that every helper is exercised by
+    the identical function object its real assertion calls is worth less than nothing, so it
+    was deleted rather than left as a claim (WR-07, Phase 10 review). If a future control
+    genuinely needs to drive a headline move at this layer, add it back together with that
+    control, in the same commit.
     """
-    _slash_lit, _prose_lit = literals if literals is not None else _headline_literals()
+    _slash_lit, _prose_lit = _headline_literals()
     return [
         (_i, _line)
         for _i, _line in enumerate(
