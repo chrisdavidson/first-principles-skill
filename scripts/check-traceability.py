@@ -3166,6 +3166,32 @@ def _headline_lock_preamble(wrong_results: list[str]) -> tuple[str, ...]:
             f"({sorted(_expected_exempt)})"
         )
 
+    # Named-membership lock (Phase 10 UAT, test 8 residual (a)): _TRACE03_DOC_ROWS may only
+    # grow or shrink by an edit that also updates this literal, exactly as HISTORICAL_EXEMPT_FILES
+    # is locked above. Hoisting the pair out of block (n) (CN-02) removed the drift risk between
+    # (n)'s two former inline copies, but it also made dropping a surface a ONE-line edit where it
+    # previously took two: with the pair unasserted, rewriting it to ("CLAUDE.md",) silently stops
+    # checking docs/ARCHITECTURE.md's TRACE-03 row while the self-test still exits 0 — measured at
+    # the Phase 10 UAT. The comparison is symmetric-difference based so shrinkage is caught, not
+    # just growth; a growth-only heuristic would not be a membership lock. Restating the pair here
+    # is the point: a lock deriving its expectation from the constant would assert nothing.
+    _expected_trace03_rows = {"CLAUDE.md", "docs/ARCHITECTURE.md"}
+    _trace03_drift = sorted(set(_TRACE03_DOC_ROWS) ^ _expected_trace03_rows)
+    if _trace03_drift:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) _TRACE03_DOC_ROWS has changed ({_trace03_drift}) — "
+            "block (n) checks the TRACE-03 row transcription only on the files named in that "
+            "tuple, so dropping one silently stops checking it; update this literal to match"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (0) unreviewed TRACE-03 doc-row set change {_trace03_drift}"
+        )
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (0) _TRACE03_DOC_ROWS membership locked "
+            f"({sorted(_expected_trace03_rows)})"
+        )
+
     _rows = build_matrix_rows()
     _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
     _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
@@ -4846,7 +4872,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           A final (0) assertion (IN-09) requires _SUPERSEDED_PLACEHOLDER to differ from the
           live slash rendering, so the day a real headline collides with the fixed
           placeholder used throughout (h)/(h2)/(i2)/(k), the gate says so explicitly instead
-          of three controls degenerating simultaneously and silently.
+          of three controls degenerating simultaneously and silently. _TRACE03_DOC_ROWS is
+          membership-locked on the same pattern (Phase 10 UAT): block (n) checks the TRACE-03
+          row transcription only on the files that tuple names, so dropping one silently stops
+          checking that row — measured green before this lock existed. The expectation is
+          restated as a literal on purpose; deriving it from the constant would assert nothing.
       (a) Published-headline lock: docs/requirements-traceability.md states exactly the
           headline build_matrix_rows() produces. Every one of the four figures is derived
           live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
