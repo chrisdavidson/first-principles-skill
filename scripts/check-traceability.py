@@ -131,6 +131,20 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 _HTML_COMMENT_CLOSE: str = "-->"
 _ARROW_TOKENS: tuple[str, ...] = ("→", "->", _HTML_COMMENT_CLOSE)
 
+# The SHAPE a coverage figure takes in the compact-slash rendering — four slash-separated
+# integer counts — as a regex source fragment. It contains no digit of the headline itself,
+# so it is not a hardcoded figure. Used only on the RIGHT-hand side of the arrow layer's
+# second orientation, where "any digit run" was an undisclosed fail-open (WR-09, Phase 10
+# review): a line stating the current figure followed by an arrow and ANY digits — a mermaid
+# edge whose SOURCE label is the headline, a "current → projected" planning note, a table cell
+# "| 161/91/0/252 | → | 5 |" — was silently exempted from both the per-surface presence
+# assertion and the tree-wide scan, which is the direction that hides a CURRENT-FACT statement
+# rather than a superseded one. The left-hand orientation deliberately keeps the looser
+# "any digit run" form: there the current literal sits AFTER the arrow, so the line reads
+# "superseded → current", and this tree writes that superseded reading in shapes narrower than
+# a full 4-tuple (e.g. "147/90 → 161/91").
+_COVERAGE_FIGURE_PATTERN: str = r"\d+/\d+/\d+/\d+"
+
 # A fixed, non-current placeholder figure used to construct delta-shaped synthetic lines
 # (a superseded reading, an arrow, then the current figure) throughout _self_test_headline_lock().
 # It is not the headline and is therefore outside the no-literal rule that governs every other
@@ -203,8 +217,14 @@ def _is_historical_headline_hit(
       1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
       2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) must delimit THIS line's
          headline mention from an adjacent figure, on one side or the other — a superseded
-         reading immediately followed by the arrow and the current literal, or the current
-         literal immediately followed by the arrow and a trailing digit run. An unrelated
+         reading (any digit run) immediately followed by the arrow and the current literal,
+         or the current literal immediately followed by the arrow and a figure SHAPED like a
+         coverage reading (_COVERAGE_FIGURE_PATTERN: four slash-separated counts). The two
+         orientations are deliberately asymmetric (WR-09, Phase 10 review): the right-hand
+         one used to accept any digit run, which silently exempted a current-fact statement
+         followed by an arrow and anything numeric at all. A delta whose right-hand side is
+         written in the PROSE rendering is therefore not exempted — fail-closed and loud,
+         which is the safe direction here. An unrelated
          numeric arrow elsewhere on the line (a battery-count delta, a K-of-5 vector) is not
          evidence that THIS line's headline mention is historical; only an arrow anchored to
          the headline literal itself is. The HTML comment terminator is removed only as part
@@ -229,11 +249,15 @@ def _is_historical_headline_hit(
     under this anchored test that it had before — zero verdicts moved. The green self-test
     result after this change is therefore a checked property, not a hope.
 
-    Two residual detection limits are disclosed, not closed: (1) a headline hard-wrapped across
-    two physical lines is not detected — matching is line-scoped, as it always has been; (2) a
-    line of the form "<digits> --> <current literal>" is treated as a delta even when it is a
-    mermaid edge whose target label happens to begin with the headline text — measured as
-    unreachable in this tree today. The verdict IS invariant when the figure and the line move
+    Three residual detection limits are disclosed, not closed: (1) a headline hard-wrapped
+    across two physical lines is not detected — matching is line-scoped, as it always has been;
+    (2) a line of the form "<digits> --> <current literal>" is treated as a delta even when it
+    is a mermaid edge whose target label happens to begin with the headline text — measured as
+    unreachable in this tree today; (3) symmetrically, "<current literal> --> <coverage-shaped
+    figure>" is treated as a delta even when it is a mermaid edge whose SOURCE label is the
+    headline. (3) is what remains of WR-09 after the right-hand narrowing above: it is far
+    narrower than the previous "any digit run", and (i2) arms 7 and 8 lock both halves of the
+    decision so it stays a choice rather than an accident. The verdict IS invariant when the figure and the line move
     TOGETHER (a real headline move does exactly that, and block (h2) asserts it); it is not,
     and was never claimed to be, independent of the figure altogether.
     """
@@ -246,7 +270,8 @@ def _is_historical_headline_hit(
             if re.search(
                 rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*{re.escape(_lit)}", _stripped
             ) or re.search(
-                rf"{re.escape(_lit)}\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped
+                rf"{re.escape(_lit)}\s*{re.escape(_tok)}\s*{_COVERAGE_FIGURE_PATTERN}",
+                _stripped,
             ):
                 return True
     return False
@@ -3093,7 +3118,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
-      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08): six named arms, every
+      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08, WR-09): eight named arms, every
           one driving through `_unregistered_headline_finding()` itself, never a parallel
           copy. 1. mermaid edge and 2. bare HTML comment close must NOT exempt a line sharing
           it with the current headline (the fail-unsafe case CR-03 names); 3. a genuine delta
@@ -3106,7 +3131,12 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           `<!-- ... -->` comment preceding the headline must NOT exempt it, proving the
           narrowed strip does not donate its terminator to the arrow layer once removed —
           without arm 6, arm 5 alone would also pass against a classifier that simply stopped
-          stripping comments.
+          stripping comments; 7. the current headline followed by an arrow and a BARE DIGIT RUN
+          must NOT be exempt (WR-09's fail-open: that orientation used to accept any digits, so
+          a mermaid edge whose SOURCE label is the headline, or a "current → projected" note,
+          silently hid a current-fact statement), while 8. the same shape with a
+          COVERAGE-SHAPED right-hand figure must stay exempt — without arm 8, arm 7 would also
+          pass against a classifier that deleted the orientation instead of narrowing it.
       (i3) Hit-detection controls (WR-06/WR-08, Phase 10 review): four arms driving
           `_headline_hits()`
           itself rather than the classifier. Complete HTML comments are stripped from WHOLE
@@ -4084,6 +4114,57 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             )
             wrong_results.append(
                 "HEADLINE-LOCK: (i2) complete-comment strip counter-arm failed"
+            )
+
+        # 7. Right-direction arrow non-exemption (WR-09, Phase 10 review). The arrow layer's
+        # second orientation used to exempt "<current literal> <arrow> <any digit run>", so a
+        # line stating the current figure followed by an arrow and any digits at all — a
+        # mermaid edge whose SOURCE label is the headline, a "current → projected" planning
+        # note, a table cell "| <literal> | → | 5 |" — was silently dropped from both (f) and
+        # the tree-wide scan. That is the direction that hides a CURRENT-FACT statement rather
+        # than a superseded one, and neither TRACE-03 doc row disclosed it. The right-hand side
+        # must now be shaped like a coverage reading, and this arm encodes that decision so it
+        # cannot revert to an accident.
+        _i2_right_digits_line = f"{_slash} {_HTML_COMMENT_CLOSE} 999"
+        _i2_right_digits_finding, _i2_right_digits_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_right_digits_line)
+        )
+        if _i2_right_digits_finding and _i2_path in _i2_right_digits_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) the current headline followed by an arrow and a "
+                "bare digit run is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) the current headline followed by an arrow and a "
+                "bare digit run was NOT reported as a finding — the right-direction arrow "
+                "rule is fail-open again"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) right-direction digit-run non-exemption failed"
+            )
+
+        # 8. Right-direction arrow exemption counter-arm (WR-09, fail-closed half). A genuine
+        # "current figure → some other coverage reading" delta must stay exempt — without this
+        # arm, arm 7 would also pass against a classifier that simply deleted the right-hand
+        # orientation altogether.
+        _i2_right_figure_line = f"{_slash} → {_SUPERSEDED_PLACEHOLDER}"
+        _i2_right_figure_finding, _ = _unregistered_headline_finding(
+            _i2_path, (1, _i2_right_figure_line)
+        )
+        if not _i2_right_figure_finding:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) the current headline followed by an arrow and a "
+                "coverage-shaped figure is NOT reported as a finding — exempt as expected"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a genuine right-direction delta (current figure "
+                "→ another coverage reading) was reported as a finding — the narrowing "
+                "deleted the right-hand orientation instead of tightening it"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) right-direction figure exemption failed"
             )
 
     # (i3) Hit-detection controls (WR-06, Phase 10 review). These drive `_headline_hits()`
