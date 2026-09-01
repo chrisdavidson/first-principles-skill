@@ -6762,9 +6762,30 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
 
 @dataclass(frozen=True)
 class _RenderRegistrySnapshot:
-    """A by-value snapshot of the eight registries the rendering-contract
-    mechanism depends on, one field per registry named in
-    `_RENDER_REGISTRY_FIELDS`.
+    """A by-value snapshot of the registries the rendering-contract
+    mechanism depends on — one field per entry of
+    `_RENDER_REGISTRY_FIELDS` (eleven today, ten registries: the
+    extraction table contributes both `extraction_rows`, the
+    authoritative all-four-column arm, and the derived `extraction_ids`).
+
+    The count is stated once, here, and DERIVED everywhere it is asserted:
+    control (h2)'s anti-masking floor compares the dataclass's own field
+    names against `_RENDER_REGISTRY_FIELDS`, so a field added without
+    being registered fails rather than making a hand-typed number stale.
+    A hard number in prose went stale within one plan (WR-06,
+    `11-REVIEW-gap-closure.md`: two present-tense descriptions still said
+    "eight" after the ninth field landed).
+
+    SCOPE: every module-level rendering-contract registry is a field here
+    as of CR-01 (`_RENDER_PRE_CONTRACT_WORDINGS`) and WR-03 (the
+    extraction table's non-id columns). The two module constants that are
+    deliberately NOT fields are `_RENDER_REGISTRY_FIELDS` itself — the
+    field roster this snapshot is asserted against, which cannot lock
+    itself — and `_RENDER_RULE_LITERAL_DIGEST`, a pin compared inside the
+    `literals` arm. Nothing makes this scope self-maintaining: a NEW
+    registry added to the mechanism without a matching field is invisible
+    to (h2)'s floor, which asserts field/roster agreement, not
+    registry/field agreement.
 
     Exists so `_render_registry_lock_problems` cannot be handed a loose
     tuple or a hand-built dict on the positive arm: `.live()` is the ONLY
@@ -8362,9 +8383,11 @@ def _selftest_render_contract() -> bool:
     gate's scan scope — CR-01's fix note is what closes that gap.
 
     Plan 11-08 (CR-02/WR-01, `11-VERIFICATION.md` gap 2) widened control
-    (h) from a two-registry MEMBERSHIP LOCK to a by-value lock over all
-    EIGHT registries the rendering-contract mechanism depends on, and
-    added control (h2). The verifier reproduced, on a scratch copy, that
+    (h) from a two-registry MEMBERSHIP LOCK to a by-value lock over every
+    registry the rendering-contract mechanism depends on — one field per
+    entry of `_RENDER_REGISTRY_FIELDS`, the count stated once on
+    `_RenderRegistrySnapshot` and derived here (WR-06) — and added
+    control (h2). The verifier reproduced, on a scratch copy, that
     replacing `_RENDER_CONTRACT_EXTRACTION_TABLE` with an empty tuple made
     the extraction loop run zero times — `problems` stayed empty, every
     `_get(...)` returned `None`, controls (b)-(f) were skipped by their
@@ -8741,8 +8764,9 @@ def _selftest_render_contract() -> bool:
 
     # (h) MEMBERSHIP LOCK. Copies the `_TRACE03_DOC_ROWS` precedent (Phase
     #     10, commit `6d3c131`), widened by plan 11-08 (CR-02/WR-01) to
-    #     cover all EIGHT registries the rendering-contract mechanism
-    #     depends on, not just two: dropping, shrinking, reordering or
+    #     cover every registry the rendering-contract mechanism depends
+    #     on — one field per entry of `_RENDER_REGISTRY_FIELDS`, never a
+    #     number restated here (WR-06) — not just two: dropping, shrinking, reordering or
     #     text-gutting any of them must not silently stop checking it.
     #     `_render_registry_lock_problems` compares the LIVE snapshot
     #     against literals written inline inside that function, never
