@@ -142,8 +142,30 @@ _SUPERSEDED_PLACEHOLDER: str = "0/0/0/1"
 
 # Non-greedy, single-pass match of a COMPLETE HTML comment (opening through closing marker),
 # substituted with a space rather than the empty string so removing a comment can never join
-# two previously separate tokens into a new false match.
+# two previously separate tokens into a new false match. `re.DOTALL` is load-bearing as of the
+# WR-06 fix: `_strip_complete_html_comments()` applies this pattern to WHOLE FILE TEXT, so a
+# comment spanning several lines is matched as one span. Applied to a single line (which is
+# what `_is_historical_headline_hit()` still does, deliberately — its input is one line by
+# contract) the flag is inert, and while that was the only call site an ordinary block comment
+# in any docs/*.md was reported by the tree-wide scan as a current-fact statement.
 _HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
+
+
+def _strip_complete_html_comments(text: str) -> str:
+    """Remove every COMPLETE HTML comment from `text`, preserving both the line count and
+    token separation (WR-06, Phase 10 review).
+
+    Each matched comment is replaced by a single space plus one newline per newline the
+    comment spanned: the space stops the removal joining two previously separate tokens into
+    a new false match (the reason the substitution was never the empty string), and the
+    newlines keep every following line at its original 1-based number, which the scan's
+    findings and every control's line-number assertion depend on.
+
+    Only COMPLETE comments are removed — an unclosed "<!--" is left exactly as written, which
+    is what keeps a bare "-->" available to the arrow layer as the ASCII long arrow rather
+    than silently deleting a genuine delta's arrow (the WR-07 property (i2) arms 5 and 6 lock).
+    """
+    return _HTML_COMMENT_RE.sub(lambda _m: " " + "\n" * _m.group(0).count("\n"), text)
 
 
 def _headline_literals() -> tuple[str, str]:
@@ -339,7 +361,9 @@ def _headline_hits(
     _slash_lit, _prose_lit = literals if literals is not None else _headline_literals()
     return [
         (_i, _line)
-        for _i, _line in enumerate(text.splitlines(), start=1)
+        for _i, _line in enumerate(
+            _strip_complete_html_comments(text).splitlines(), start=1
+        )
         if _prose_lit in _line or _slash_lit in _line
     ]
 
@@ -3067,6 +3091,17 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           narrowed strip does not donate its terminator to the arrow layer once removed —
           without arm 6, arm 5 alone would also pass against a classifier that simply stopped
           stripping comments.
+      (i3) Hit-detection controls (WR-06, Phase 10 review): two arms driving `_headline_hits()`
+          itself rather than the classifier. Complete HTML comments are stripped from WHOLE
+          FILE TEXT before hits are collected — while that strip ran per line inside the
+          classifier, an ordinary block comment stating the headline across three lines was
+          reported by the tree-wide scan as a current-fact statement, breaking CI on a
+          legitimate edit with a message naming the wrong problem, and `re.DOTALL` on the
+          comment pattern was inert. Arm 1 requires such a comment to produce no hit while a
+          real statement two lines later is still found AT ITS ORIGINAL LINE NUMBER (the strip
+          substitutes one newline per newline removed, so findings stay citable); arm 2
+          requires the same text with the markers replaced by plain words to produce both
+          hits, so arm 1 cannot pass against a scanner that stopped matching.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07, BL-02 fix): files are
           collected through the shared `_headline_scan_files()` helper, then actually opened
           and classified through `_headline_scan_read()` (T-10-09) — the single source of
@@ -4029,6 +4064,63 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             wrong_results.append(
                 "HEADLINE-LOCK: (i2) complete-comment strip counter-arm failed"
             )
+
+    # (i3) Hit-detection controls (WR-06, Phase 10 review). These drive `_headline_hits()`
+    # itself — the function every per-surface assertion and the (j) scan collect their hits
+    # through — rather than the classifier (i)/(i2) exercise.
+    #   Arm 1 (multi-line comment): the strip that removes complete HTML comments used to run
+    #   per LINE, inside the classifier, so a perfectly ordinary block comment stating the
+    #   headline across three lines was reported by the tree-wide scan as a current-fact
+    #   statement — a fail-closed defect, but one that breaks CI on a legitimate edit with a
+    #   message naming the wrong problem. The strip now runs over WHOLE FILE TEXT in
+    #   `_headline_hits()`, and this arm requires a headline commented out that way to produce
+    #   no hit while a real statement two lines later still does, AT ITS ORIGINAL LINE NUMBER
+    #   (the strip preserves line count precisely so findings stay citable).
+    #   Arm 2 (anti-tautology): the identical text with the comment markers replaced by plain
+    #   words must produce BOTH hits — without it, arm 1 would also pass against a
+    #   `_headline_hits()` that had simply stopped matching.
+    _i3_commented = "\n".join(
+        (
+            "<!--",
+            f"An old note: {_prose}",
+            _HTML_COMMENT_CLOSE,
+            f"Current: {_prose}",
+        )
+    )
+    _i3_uncommented = "\n".join(
+        (
+            "(comment opens here)",
+            f"An old note: {_prose}",
+            "(comment closes here)",
+            f"Current: {_prose}",
+        )
+    )
+    _i3_commented_hits = [_lineno for _lineno, _ in _headline_hits(_i3_commented)]
+    _i3_uncommented_hits = [_lineno for _lineno, _ in _headline_hits(_i3_uncommented)]
+    if _i3_commented_hits == [4]:
+        print(
+            "  HEADLINE-LOCK PASS: (i3) a headline inside a complete multi-line HTML comment "
+            "produces no hit, while a real statement below it is still found at its original "
+            "line number (4) — comment stripping is whole-text and line-count preserving"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (i3) expected exactly one hit at line 4 for a headline "
+            f"commented out across three lines; got {_i3_commented_hits}"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i3) multi-line comment arm failed")
+    if _i3_uncommented_hits == [2, 4]:
+        print(
+            "  HEADLINE-LOCK PASS: (i3) anti-tautology arm — the same text without comment "
+            "markers produces both hits (lines 2 and 4), so arm 1 is not passing against a "
+            "scanner that stopped matching"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (i3) anti-tautology arm — expected hits at lines [2, 4] "
+            f"for the uncommented text; got {_i3_uncommented_hits}"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i3) anti-tautology arm failed")
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
