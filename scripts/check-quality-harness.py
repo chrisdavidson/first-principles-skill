@@ -7506,6 +7506,199 @@ def _selftest_gap8_bold_chain_labels() -> bool:
     return ok
 
 
+def _selftest_render_contract() -> bool:
+    """Phase 11 (CONTRACT-01, CONTRACT-02, CONTRACT-04): the emission
+    rendering contract's own worked examples in `output-template.md` §4
+    (chain form), §6 (citation form) and the Verdict Vocabulary
+    (current-constraint expiry) are scored by the unmodified detectors
+    with the expected verdicts, sourced from the shipped canonical bytes.
+
+    Observed 2026-08-31 on run 4 (v8.24.0 verified body): GAP-9's hop
+    broken mid-bracket across physical lines, and GAP-10's expiry
+    qualifier hoisted into the verdict token slot, both rendered
+    non-conformingly while the template gave no worked counter-example to
+    check against. Phase 11 Plan 01 (11-01) closed that gap by authoring
+    one conforming and one or two non-conforming examples for each shape
+    directly in `output-template.md`, behind unique fenced-block anchors.
+
+    D-02 keeps `_chain_block_well_formed` byte-unchanged — every control
+    here calls it from outside; none of them, nor anything in this file,
+    modifies it.
+
+    Controls (a)-(b) pin the eight measured verdicts. Control (c) pins
+    minimality of the wrap counter-example: it must differ from the
+    conforming example by exactly the inserted continuation line, so the
+    counter-example demonstrably teaches the wrap rule and nothing else.
+    Control (d) pins the same-hops property of the numbered
+    counter-example: it renders THE SAME hops as the conforming example,
+    not a different chain that happens to fail. Control (e) pins the
+    Case B verdict pair. Control (f) pins citation credit for both
+    accepted forms — inline and closure-ledger — and proves the same
+    otherwise-untraced claim becomes traced purely because the ledger row
+    is present. Control (g) is NON-VACUITY: it re-asserts two
+    long-standing base cases from outside this item, so a widened
+    detector that scored everything `True` (or everything `False`) could
+    not pass (b)/(e) by accident.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: render_contract {msg}", file=sys.stderr)
+        ok = False
+
+    # (a) Extraction. A problem here means the fixture id below is absent
+    #     from `fixtures`, so every later control that touches it is
+    #     skipped, never run against an empty string.
+    fixtures, problems = _render_contract_fixtures()
+    for problem in problems:
+        _fail(f"(a) extraction {problem}")
+
+    def _get(fixture_id: str) -> str | None:
+        return fixtures.get(fixture_id)
+
+    conforming = _get("R-CHAIN-CONFORMING")
+    wrapped = _get("R-CHAIN-WRAPPED")
+    numbered = _get("R-CHAIN-NUMBERED")
+    cite_inline = _get("R-CITE-INLINE")
+    cite_ledger = _get("R-CITE-LEDGER")
+    cite_none = _get("R-CITE-NONE")
+    verdict_expiry = _get("R-VERDICT-EXPIRY")
+    verdict_bad = _get("R-VERDICT-EXPIRY-BAD")
+
+    # (b) Chain verdicts.
+    if conforming is not None and not _chain_block_well_formed(conforming):
+        _fail(
+            "(b) R-CHAIN-CONFORMING (doc label 'Conforming — head, then "
+            "one hop per line:') scored malformed, expected well-formed"
+        )
+    if wrapped is not None and _chain_block_well_formed(wrapped):
+        _fail(
+            "(b) R-CHAIN-WRAPPED (doc label 'Non-conforming — a hop "
+            "broken across physical lines:') scored well-formed, "
+            "expected malformed"
+        )
+    if numbered is not None and _chain_block_well_formed(numbered):
+        _fail(
+            "(b) R-CHAIN-NUMBERED (doc label 'Non-conforming — the same "
+            "hops rendered as a numbered list:') scored well-formed, "
+            "expected malformed"
+        )
+
+    # (c) Minimality of the wrap counter-example: dropping the single line
+    #     that is neither the first line nor begins (after .strip()) with
+    #     `→` must reproduce R-CHAIN-CONFORMING byte for byte. This proves
+    #     the doc's Case A counter-example differs from its conforming
+    #     twin by exactly the wrap and nothing else.
+    if wrapped is not None and conforming is not None:
+        wrapped_lines = wrapped.split("\n")
+        kept = [
+            line
+            for i, line in enumerate(wrapped_lines)
+            if i == 0 or line.strip().startswith("→")
+        ]
+        dropped = [
+            line
+            for i, line in enumerate(wrapped_lines)
+            if not (i == 0 or line.strip().startswith("→"))
+        ]
+        rebuilt = "\n".join(kept)
+        if len(dropped) != 1:
+            _fail(
+                f"(c) R-CHAIN-WRAPPED does not differ from its conforming "
+                f"twin by exactly one non-arrow-led continuation line: "
+                f"{len(dropped)} such lines found"
+            )
+        elif rebuilt != conforming:
+            _fail(
+                "(c) dropping R-CHAIN-WRAPPED's single non-arrow-led "
+                "continuation line did not reproduce R-CHAIN-CONFORMING "
+                "byte for byte"
+            )
+
+    # (d) Same-hops property of the numbered counter-example: every line
+    #     of R-CHAIN-CONFORMING, with any leading `→ ` removed, must
+    #     appear as a substring of R-CHAIN-NUMBERED — proving the
+    #     numbered example renders THE SAME hops, not a different chain
+    #     that happens to fail.
+    if conforming is not None and numbered is not None:
+        for line in conforming.split("\n"):
+            bare = line[2:] if line.startswith("→ ") else line
+            if bare not in numbered:
+                _fail(
+                    f"(d) R-CHAIN-CONFORMING hop {bare!r} does not appear "
+                    f"in R-CHAIN-NUMBERED — the numbered example may "
+                    f"render different hops, not just a different form"
+                )
+
+    # (e) Verdict cells. CONTRACT-04 needed no schema change: this pair is
+    #     the evidence — `_VERDICT_VOCAB` and `_VERDICT_FORM_RE` are
+    #     untouched.
+    if verdict_expiry is not None and not _verdict_conforms(verdict_expiry):
+        _fail(
+            "(e) R-VERDICT-EXPIRY (doc label 'Conforming — a current "
+            "constraint recording its expiry:') scored non-conforming, "
+            "expected conforming"
+        )
+    if verdict_bad is not None and _verdict_conforms(verdict_bad):
+        _fail(
+            "(e) R-VERDICT-EXPIRY-BAD (doc label 'Non-conforming — the "
+            "expiry hoisted into the token slot:') scored conforming, "
+            "expected non-conforming"
+        )
+
+    # (f) Citation credit. Both accepted forms — inline and
+    #     closure-ledger — are proven, and the closure-ledger leg proves
+    #     the SAME otherwise-untraced claim (R-CITE-NONE) flips from
+    #     untraced to traced purely because the ledger row is present.
+    if conforming is not None and cite_inline is not None:
+        if not _claim_is_traced(cite_inline, ["C1"], [conforming]):
+            _fail(
+                "(f) R-CITE-INLINE (doc label 'Conforming — inline chain "
+                "citation:') scored untraced, expected traced"
+            )
+    if conforming is not None and cite_none is not None:
+        if _claim_is_traced(cite_none, ["C1"], [conforming]):
+            _fail(
+                "(f) R-CITE-NONE (doc label 'Non-conforming — a claim "
+                "naming no chain and quoted by no ledger row:') scored "
+                "traced with no ledger fragments, expected untraced"
+            )
+    if cite_ledger is not None:
+        ledger_fragments = _closure_ledger_fragments(cite_ledger, ["C1"])
+        if not ledger_fragments:
+            _fail(
+                "(f) R-CITE-LEDGER (doc label 'Conforming — closure-ledger "
+                "row:') yielded zero closure-ledger fragments"
+            )
+        elif conforming is not None and cite_none is not None:
+            if not _claim_is_traced(
+                cite_none, ["C1"], [conforming], ledger_fragments
+            ):
+                _fail(
+                    "(f) R-CITE-NONE with R-CITE-LEDGER's fragments still "
+                    "scored untraced — the ledger row does not discharge "
+                    "the claim it quotes"
+                )
+
+    # (g) NON-VACUITY: the module's own long-standing base cases still
+    #     hold from outside this item. A control that scored everything
+    #     `True`, or everything `False`, would pass (b) and (e) only by
+    #     accident.
+    if _chain_block_well_formed("GT-1 (a) + GT-2 (b) -> lone hop"):
+        _fail(
+            "(g) NON-VACUITY: the one-hop base case "
+            "'GT-1 (a) + GT-2 (b) -> lone hop' wrongly scored well-formed"
+        )
+    if _verdict_conforms("Accept"):
+        _fail(
+            "(g) NON-VACUITY: the bare-token base case 'Accept' (no "
+            "em-dash, no justification) wrongly scored conforming"
+        )
+
+    return ok
+
+
 def _selftest_selfaudit_calibration() -> bool:
     """The Self-Audit Gate's claimed bands are reconciled against measurement.
 
