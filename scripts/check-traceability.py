@@ -123,6 +123,16 @@ HEADLINE_SCAN_GLOBS: list[str] = [
                      # protection against a future surface silently gaining a stale mention
 ]
 
+# The two hand-maintained TRACE-03 doc rows block (n) locks. Named here, next to the constant
+# whose transcription it checks, because every other multi-use path set in this module is a
+# named module-level constant with a justification comment — and because block (n) exists
+# precisely to catch hand-copied duplicates drifting, which made typing this pair twice inside
+# (n) itself the module's own smallest instance of the defect it guards (CN-02, Phase 10
+# review). Both files are current-fact surfaces for the gate inventory; CLAUDE.md is
+# additionally a COVERED_HEADLINE_SURFACES member (for its coverage-headline statement, a
+# different claim in a different section), docs/ARCHITECTURE.md is not.
+_TRACE03_DOC_ROWS: tuple[str, ...] = ("CLAUDE.md", "docs/ARCHITECTURE.md")
+
 
 # Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03/WR-07).
 # Neither constant contains any digit from the coverage headline itself. _HTML_COMMENT_CLOSE is
@@ -4818,7 +4828,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             return None
         return _rows[0]
 
-    for _n_row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md"):
+    for _n_row_file in _TRACE03_DOC_ROWS:
         _n_row = _n_trace03_row(_n_row_file)
         if _n_row is None:
             continue
@@ -4846,7 +4856,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     _n_different_prose = ", ".join(f"`{_g}`" for _g in _n_different_globs)
     _n_vacuity_rows = {
         _row_file: _n_trace03_row(_row_file)
-        for _row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md")
+        for _row_file in _TRACE03_DOC_ROWS
     }
     _n_vacuity_violations = [
         _row_file
