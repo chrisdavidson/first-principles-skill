@@ -6839,6 +6839,15 @@ def _render_registry_lock_problems(
     function (a return before reaching its comparison) is caught rather
     than passing by omission — the exact failure mode (h) had before this
     plan.
+
+    ORDERING DISCIPLINE (WR-05, `11-REVIEW-gap-closure.md`): every
+    `checked.add("<field>")` sits AFTER the comparison it records, never
+    before it. Written the other way round — which is how this function
+    shipped until that finding — the set records fields the function
+    *intended* to compare rather than comparisons it actually ran, so a
+    `return`, a `continue`, or a deleted comparison body between the
+    `add` and the comparison still reported the field as checked and the
+    floor still passed. Keep every `add` at the bottom of its own block.
     """
     problems: list[str] = []
     checked: set[str] = set()
@@ -6849,14 +6858,13 @@ def _render_registry_lock_problems(
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
 
-    checked.add("extraction_ids")
     if sorted(snapshot.extraction_ids) != expected_ids:
         problems.append(
             f"extraction_ids: sorted ids {sorted(snapshot.extraction_ids)!r} "
             f"!= expected {expected_ids!r}"
         )
+    checked.add("extraction_ids")
 
-    checked.add("fixture_shape")
     if sorted(snapshot.fixture_shape) != expected_ids:
         problems.append(
             f"fixture_shape: sorted keys {sorted(snapshot.fixture_shape)!r} "
@@ -6882,16 +6890,16 @@ def _render_registry_lock_problems(
                     f"fixture_shape: {fixture_id} shape {actual_shape!r} "
                     f"!= expected discriminating shape {expected_shape!r}"
                 )
+    checked.add("fixture_shape")
 
-    checked.add("fixture_forbidden")
     expected_forbidden = {"R-CITE-NONE": ("C1",)}
     if snapshot.fixture_forbidden != expected_forbidden:
         problems.append(
             f"fixture_forbidden: {snapshot.fixture_forbidden!r} != "
             f"expected {expected_forbidden!r}"
         )
+    checked.add("fixture_forbidden")
 
-    checked.add("surfaces")
     expected_surfaces = (
         "shared/spine/references/output-template.md",
         "shared/spine/SKILL-body.md",
@@ -6902,8 +6910,8 @@ def _render_registry_lock_problems(
             f"surfaces: {snapshot.surfaces!r} != expected "
             f"{expected_surfaces!r}"
         )
+    checked.add("surfaces")
 
-    checked.add("required_rules")
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
             "R1", "R2", "R3", "R4", "R5", "R6",
@@ -6918,8 +6926,8 @@ def _render_registry_lock_problems(
             f"required_rules: {snapshot.required_rules!r} != expected "
             f"{expected_required_rules!r}"
         )
+    checked.add("required_rules")
 
-    checked.add("contradiction_phrases")
     expected_contradiction_phrases = (
         "wraps with arrow-led continuation",
         "wrap with arrow-led continuation",
@@ -6932,16 +6940,16 @@ def _render_registry_lock_problems(
             f"contradiction_phrases: {snapshot.contradiction_phrases!r} != "
             f"expected {expected_contradiction_phrases!r}"
         )
+    checked.add("contradiction_phrases")
 
-    checked.add("qual01_doc_rows")
     expected_qual01_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
     if snapshot.qual01_doc_rows != expected_qual01_doc_rows:
         problems.append(
             f"qual01_doc_rows: {snapshot.qual01_doc_rows!r} != expected "
             f"{expected_qual01_doc_rows!r}"
         )
+    checked.add("qual01_doc_rows")
 
-    checked.add("qual01_doc_row_tokens")
     expected_qual01_doc_row_tokens = (
         "emission rendering contract",
         "validation-rubric.md",
@@ -6951,11 +6959,11 @@ def _render_registry_lock_problems(
             f"qual01_doc_row_tokens: {snapshot.qual01_doc_row_tokens!r} != "
             f"expected {expected_qual01_doc_row_tokens!r}"
         )
+    checked.add("qual01_doc_row_tokens")
 
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
     # while the field still reads as covered.
-    checked.add("literals")
     expected_literal_clauses = {
         "R1": "a hop is never broken across physical lines",
         "R2": "it is two hops — split it",
@@ -6987,6 +6995,7 @@ def _render_registry_lock_problems(
             f"literals: digest {literal_digest!r} != pinned "
             f"{_RENDER_RULE_LITERAL_DIGEST!r}"
         )
+    checked.add("literals")
 
     return problems, checked
 
