@@ -6832,8 +6832,7 @@ class _RenderRegistrySnapshot:
     extraction table's non-id columns). The two module constants that are
     deliberately NOT fields are `_RENDER_REGISTRY_FIELDS` itself — the
     field roster this snapshot is asserted against, which cannot lock
-    itself — and `_RENDER_RULE_LITERAL_DIGEST`, a pin compared inside the
-    `literals` arm. Nothing makes this scope self-maintaining: a NEW
+    itself. Nothing makes this scope self-maintaining: a NEW
     registry added to the mechanism without a matching field is invisible
     to (h2)'s floor, which asserts field/roster agreement, not
     registry/field agreement.
@@ -6900,20 +6899,6 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "qual01_doc_row_tokens",
     "pre_contract_wordings",
 )
-
-# A `sha256:<hex>` pin over `_RENDER_RULE_LITERALS`, recomputed as
-# `"\x00".join(f"{k}={v}" for k, v in sorted(literals.items()))` encoded
-# UTF-8. Recompute ONLY with an explicit, reviewed contract change — a
-# diff to this constant should always accompany a diff to the literals it
-# pins. It sits beside the clause arm in `_render_registry_lock_problems`
-# because the clause arm only proves ONE required substring survived per
-# literal; the digest arm catches every other text change, including one
-# that keeps the required clause and appends a permission the clause never
-# excluded.
-_RENDER_RULE_LITERAL_DIGEST = (
-    "sha256:90093fc609847566fd55a60b861fe226315ede2c8365d15567e81fc3159275e3"
-)
-
 
 def _render_registry_lock_problems(
     snapshot: "_RenderRegistrySnapshot",
@@ -7187,15 +7172,35 @@ def _render_registry_lock_problems(
                     f"{clause!r}"
                 )
 
+    # A `sha256:<hex>` pin over `_RENDER_RULE_LITERALS`, recomputed as
+    # `"\x00".join(f"{k}={v}" for k, v in sorted(literals.items()))`
+    # encoded UTF-8. Recompute ONLY with an explicit, reviewed contract
+    # change — a diff to this literal should always accompany a diff to the
+    # literals it pins. It sits beside the clause arm because the clause arm
+    # only proves ONE required substring survived per literal; the digest
+    # arm catches every other text change, including one that keeps the
+    # required clause and appends a permission the clause never excluded.
+    #
+    # Written INLINE here, like every other expectation in this function
+    # (CR-02/IN-01, `11-REVIEW-gap-closure.md`). It used to be the module
+    # constant `_RENDER_RULE_LITERAL_DIGEST`, which was the one arm
+    # breaking this function's own stated discipline — not tautological
+    # (the pin is hand-written, not derived at runtime) but an invitation
+    # to relax the rule elsewhere, and the reason the published
+    # `| QUAL-01 |` rows' "locked by value against inline expectations"
+    # was not literally true of every arm.
+    expected_literal_digest = (
+        "sha256:90093fc609847566fd55a60b861fe226315ede2c8365d15567e81fc3159275e3"
+    )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
             f"{k}={v}" for k, v in sorted(snapshot.literals.items())
         ).encode("utf-8")
     ).hexdigest()
-    if literal_digest != _RENDER_RULE_LITERAL_DIGEST:
+    if literal_digest != expected_literal_digest:
         problems.append(
             f"literals: digest {literal_digest!r} != pinned "
-            f"{_RENDER_RULE_LITERAL_DIGEST!r}"
+            f"{expected_literal_digest!r}"
         )
     checked.add("literals")
 
