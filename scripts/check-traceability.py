@@ -3113,7 +3113,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           the first two would also pass against a floor helper that returned a breach
           unconditionally.
       (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the read
-          loop's own two decline/error branches: four arms, every one driving
+          loop's own decline and error branches: five arms, every one driving
           `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the identical
           function objects (j) calls, never a parallel copy. Arm 1 removes one
           registered surface from a COPY of the live read result's `read_relpaths` and
@@ -3134,7 +3134,12 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           in `skipped` with the confinement reason and absent from `read_relpaths`, while a
           plain in-root file in the SAME call is read — the module's only path-confinement
           guard, whose outright deletion previously left the gate green because arm 3
-          exercises the other decline reason only. Each arm asserts
+          exercises the other decline reason only. Arm 5 (WR-03, Phase 10 review) drives it
+          over a throwaway tree holding one undecodable and one valid file, and requires the
+          undecodable one in `read_errors` — absent from both `read_relpaths` and `skipped` —
+          while the valid one is read: collapsing the UnicodeDecodeError/OSError split into a
+          fail-open `except Exception: continue` previously left the gate green for any
+          UNREGISTERED surface, which no floor covers. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
           degrade into a tautology if a future edit changes a constant. What these arms lock
           is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
@@ -4418,6 +4423,54 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                         f"read_errors={_m_arm4_result.read_errors}"
                     )
                     wrong_results.append("HEADLINE-LOCK: (m) arm 4 failed")
+
+    # Arm 5: read-error visibility (WR-03, Phase 10 review). The explicit
+    # UnicodeDecodeError / OSError split is the only thing in this gate that turns an I/O
+    # failure into a FAIL rather than a silent skip, and nothing asserted it: replacing both
+    # handlers with a bare `except Exception: continue` — the textbook fail-open in a gate
+    # whose brief is to fail closed — left --self-test at exit 0. The coverage floor catches
+    # that swallow only for registered or exempt surfaces; an undecodable UNREGISTERED
+    # docs/*.md would drop from FAIL to invisible with no control noticing. This arm drives
+    # the identical function object over a throwaway tree (same `root` mechanism as arm 4)
+    # containing one undecodable file and one valid file, and requires the undecodable one in
+    # `read_errors` — absent from BOTH `read_relpaths` and `skipped`, since a swallow that
+    # merely re-labelled the failure as a skip would be the same fail-open — while the valid
+    # file in the same call is read. Only the decode branch is driven: an OSError cannot be
+    # provoked portably here (a chmod-based fixture is a no-op for a root-privileged runner,
+    # and a dangling symlink is declined by is_file() before the read), and the fail-open
+    # rewrite this arm exists to catch removes both handlers together.
+    with tempfile.TemporaryDirectory() as _m_arm5_tmp:
+        _m_arm5_root = Path(_m_arm5_tmp)
+        _m_arm5_valid = _m_arm5_root / "valid.md"
+        _m_arm5_valid.write_text("A decodable in-root surface with no headline.\n", encoding="utf-8")
+        _m_arm5_undecodable = _m_arm5_root / "undecodable.md"
+        _m_arm5_undecodable.write_bytes(b"\xff\xfe headline")
+        _m_arm5_result = _headline_scan_read(
+            [_m_arm5_valid, _m_arm5_undecodable], root=_m_arm5_root
+        )
+        _m_arm5_errors = {_p: _reason for _p, _reason in _m_arm5_result.read_errors}
+        _m_arm5_skips = {_p for _p, _reason in _m_arm5_result.skipped}
+        _m_arm5_ok = (
+            "could not be decoded as UTF-8"
+            in _m_arm5_errors.get(str(_m_arm5_undecodable), "")
+            and str(_m_arm5_undecodable) not in _m_arm5_skips
+            and _m_arm5_result.read_relpaths == {"valid.md"}
+        )
+        if _m_arm5_ok:
+            print(
+                "  HEADLINE-LOCK PASS: (m) arm 5 — an undecodable candidate is named in "
+                "read_errors (not skipped, not read) while a valid file in the same call IS "
+                "read — an I/O failure cannot be swallowed into a silent skip"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (m) arm 5 — expected the undecodable candidate in "
+                "read_errors and only 'valid.md' to be read; got "
+                f"read_errors={_m_arm5_result.read_errors}, "
+                f"skipped={_m_arm5_result.skipped}, "
+                f"read_relpaths={sorted(_m_arm5_result.read_relpaths)}"
+            )
+            wrong_results.append("HEADLINE-LOCK: (m) arm 5 failed")
 
     # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
     # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
