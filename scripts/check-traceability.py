@@ -2753,6 +2753,18 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           appended is NOT reported (proving the scan is gated behind HEADLINE-03's
           classifier, not merely a membership test). Preconditions are asserted explicitly so
           the control cannot silently degrade into a tautology.
+      (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, T-10-09): unlike
+          (k), which exercises `_unregistered_headline_finding()` in isolation, (l) drives
+          `_headline_scan_files()` and `_headline_scan_floor_breaches()` themselves — the
+          same functions (j) calls — with alternative glob lists, so glob expansion, file
+          collection and `relative_to()` path derivation are all genuinely exercised. Three
+          arms: an empty-globs arm (the CR-01 reproduction, permanently encoded) asserting a
+          non-empty breach list naming a registered surface; a narrowed-globs arm proving the
+          floor degrades proportionally on a "temporarily narrow the scan" typo, not only on
+          total absence; and a live-globs positive arm (anti-tautology) asserting the real
+          HEADLINE_SCAN_GLOBS constant reaches every registered-plus-exempt path and produces
+          zero breaches. Without the positive arm, the first two would also pass against a
+          floor helper that returned a breach unconditionally.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -3416,6 +3428,95 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 wrong_results.append(
                     "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
                 )
+
+    # (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, T-10-09). Unlike
+    # (k), which exercises _unregistered_headline_finding() in isolation, (l) drives the REAL
+    # _headline_scan_files() and _headline_scan_floor_breaches() — the same function objects
+    # (j) calls — with alternative glob lists, so glob expansion, file collection and
+    # relative_to() path derivation are all genuinely exercised (not a hand-built simulation
+    # of the detection function, per the research's Pitfall 4 concern). Writes nothing to
+    # disk: Path.glob over the existing tree plus in-memory set arithmetic.
+    _l_reachable = COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
+
+    def _l_reached_paths(files: list[Path]) -> set[str]:
+        return {
+            _p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()
+        } & _l_reachable
+
+    _l_live_files = _headline_scan_files(HEADLINE_SCAN_GLOBS)
+    _l_live_reached = _l_reached_paths(_l_live_files)
+
+    # Arm 1: empty-globs (the CR-01 reproduction, permanently encoded). A control that only
+    # asserted "non-empty" would pass against a floor that reported a generic message, so
+    # this requires the breach to name a specific registered surface.
+    _l_empty_files = _headline_scan_files([])
+    _l_empty_breaches = _headline_scan_floor_breaches(_l_empty_files, 0)
+    _l_named_surface = sorted(COVERED_HEADLINE_SURFACES)[0]
+    if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
+        print(
+            "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives the "
+            f"real collection helper to a non-empty breach naming a registered surface "
+            f"({_l_named_surface})"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (l) empty-globs arm — an emptied glob list did not "
+            "produce a breach naming a registered surface"
+        )
+        wrong_results.append("HEADLINE-LOCK: (l) empty-globs arm failed")
+
+    # Arm 2: narrowed-globs (the "narrowing typo" case, e.g. a well-meaning "temporarily
+    # narrow the scan" edit). Proves the floor degrades proportionally rather than only
+    # detecting total absence. Precondition asserted explicitly, following (i)/(k): the
+    # narrowed glob must genuinely reach fewer registered-or-exempt paths than the live
+    # globs, or this arm would prove nothing.
+    _l_narrow_globs = ["CHANGELOG.md"]
+    _l_narrow_files = _headline_scan_files(_l_narrow_globs)
+    _l_narrow_reached = _l_reached_paths(_l_narrow_files)
+    if len(_l_narrow_reached) >= len(_l_live_reached):
+        print(
+            "  HEADLINE-LOCK FAIL: (l) narrowed-globs arm — precondition violated, the "
+            "narrowed glob list does not reach fewer registered-or-exempt paths than the "
+            "live globs"
+        )
+        wrong_results.append("HEADLINE-LOCK: (l) narrowed-globs arm precondition violated")
+    else:
+        _l_narrow_breaches = _headline_scan_floor_breaches(_l_narrow_files, 0)
+        _l_missing = sorted(_l_reachable - _l_narrow_reached)
+        _l_breach_text = " ".join(_l_narrow_breaches)
+        if _l_narrow_breaches and all(_m in _l_breach_text for _m in _l_missing):
+            print(
+                "  HEADLINE-LOCK PASS: (l) narrowed-globs arm — a single-pattern glob list "
+                f"drives the real collection helper to a breach naming every "
+                f"registered-or-exempt surface it cannot reach ({_l_missing})"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (l) narrowed-globs arm — breach list did not name "
+                f"every unreachable registered-or-exempt surface ({_l_missing})"
+            )
+            wrong_results.append("HEADLINE-LOCK: (l) narrowed-globs arm failed")
+
+    # Arm 3: live-globs positive arm (anti-tautology). Without this arm, arms 1 and 2 would
+    # both pass against a floor helper that returned a breach unconditionally.
+    _l_live_breaches = _headline_scan_floor_breaches(_l_live_files, _accounted_hits)
+    if _l_live_reached == _l_reachable and not _l_live_breaches:
+        print(
+            "  HEADLINE-LOCK PASS: (l) live-globs positive arm — the real "
+            f"HEADLINE_SCAN_GLOBS constant reaches all {len(_l_reachable)} "
+            "registered-plus-exempt paths and produces zero breaches"
+        )
+    else:
+        _l_live_missing = sorted(_l_reachable - _l_live_reached)
+        print(
+            "  HEADLINE-LOCK FAIL: (l) live-globs positive arm — the real glob list does "
+            f"not cleanly reach every registered-plus-exempt path with zero breaches "
+            f"(unreachable: {_l_live_missing}; breaches: {_l_live_breaches})"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (l) live-globs positive arm failed (unreachable: "
+            f"{_l_live_missing})"
+        )
 
 
 def _run_self_test() -> None:
