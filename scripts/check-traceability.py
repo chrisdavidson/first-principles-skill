@@ -96,8 +96,12 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # scan, block (j) of _self_test_headline_lock(), never here.
 HISTORICAL_EXEMPT_FILES: frozenset[str] = frozenset({
     "CHANGELOG.md",                 # dated log by definition; already covered by the arrow
-                                     # layer at its one live occurrence (line 45), kept here too
-                                     # because a dated log is definitionally historical narration
+                                     # layer at its single delta-row occurrence (located by
+                                     # scanning, never by line number — this block's own
+                                     # stated rule, and a log that gains entries at the TOP on
+                                     # every release invalidates a line-number note by the next
+                                     # version bump), kept here too because a dated log is
+                                     # definitionally historical narration
     "docs/v8.0-final-closure.md",   # frozen v8.0 terminal record; its "Superseded" callout
                                      # states both current renderings with NO arrow on that
                                      # line — the live proof that the arrow layer alone is
