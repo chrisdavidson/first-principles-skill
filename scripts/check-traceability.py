@@ -3153,10 +3153,15 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
           exists to catch, newly created by the fix for it, and the two copies had already
           diverged once inside this phase (one stated the accounted-hit floor's union claim,
-          the other did not). Asserts the rendered glob list is present in both files, guards
-          both files for existence first (a named FAIL rather than a traceback), and carries
-          a non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from
-          both — without it, a lock whose comparison always succeeded would be
+          the other did not). Asserts the rendered glob list is present in each file's own
+          TRACE-03 ROW — the single line beginning "| TRACE-03 ", located by slicing the file
+          and FAILing when a file carries zero or several such lines (WR-04, Phase 10 review:
+          the previous whole-file containment test would have let the row's own transcription
+          drift to anything at all as soon as the glob list was mentioned anywhere else in
+          either file, the exact drift class this block exists to close). Guards both files
+          for existence first (a named FAIL rather than a traceback), and carries a
+          non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from both
+          rows, sliced the same way — without it, a lock whose comparison always succeeded would be
           indistinguishable from a passing lock, the same anti-tautology rule (b), (e), (i),
           (k), (l) and (m) already observe. This lock asserts the GLOB LIST's transcription
           only; the rest of each row's prose remains unasserted, which is a real and
@@ -4481,17 +4486,50 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # as a literal here, exactly as every other assertion in this sentinel derives from
     # build_matrix_rows().
     _n_glob_prose = ", ".join(f"`{_g}`" for _g in HEADLINE_SCAN_GLOBS)
-    for _n_row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md"):
-        _n_row_path = REPO_ROOT / _n_row_file
-        if not _n_row_path.is_file():
-            print(f"  HEADLINE-LOCK FAIL: (n) {_n_row_path} not found")
-            wrong_results.append(f"HEADLINE-LOCK: (n) {_n_row_file} missing")
-            continue
-        _n_row_text = _n_row_path.read_text(encoding="utf-8")
-        if _n_glob_prose in _n_row_text:
+    _n_row_prefix = "| TRACE-03 "
+
+    def _n_trace03_row(relpath: str) -> str | None:
+        """The single TRACE-03 table row in `relpath`, or None (with a named FAIL already
+        recorded) when the file is missing or does not carry exactly one.
+
+        Scoping to the row is what makes this a transcription lock rather than a whole-file
+        containment test (WR-04, Phase 10 review): the previous form searched the entire
+        file, so any future mention of the glob list ANYWHERE in CLAUDE.md or
+        docs/ARCHITECTURE.md — a new note, an appendix — would let the TRACE-03 row's own
+        transcription drift to anything at all while (n) stayed green, which is precisely the
+        drift class this block was added to close. A file carrying zero or several TRACE-03
+        rows is a FAIL, never a silent skip, because "which row do I lock" would otherwise
+        have no answer.
+        """
+        _path = REPO_ROOT / relpath
+        if not _path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: (n) {_path} not found")
+            wrong_results.append(f"HEADLINE-LOCK: (n) {relpath} missing")
+            return None
+        _rows = [
+            _line
+            for _line in _path.read_text(encoding="utf-8").splitlines()
+            if _line.startswith(_n_row_prefix)
+        ]
+        if len(_rows) != 1:
             print(
-                f"  HEADLINE-LOCK PASS: (n) {_n_row_file} transcribes HEADLINE_SCAN_GLOBS "
-                f"correctly ({_n_glob_prose})"
+                f"  HEADLINE-LOCK FAIL: (n) {relpath} carries {len(_rows)} lines beginning "
+                f"{_n_row_prefix!r} — expected exactly one TRACE-03 row to lock"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (n) {relpath} has {len(_rows)} TRACE-03 rows, expected 1"
+            )
+            return None
+        return _rows[0]
+
+    for _n_row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md"):
+        _n_row = _n_trace03_row(_n_row_file)
+        if _n_row is None:
+            continue
+        if _n_glob_prose in _n_row:
+            print(
+                f"  HEADLINE-LOCK PASS: (n) {_n_row_file}'s TRACE-03 row transcribes "
+                f"HEADLINE_SCAN_GLOBS correctly ({_n_glob_prose})"
             )
         else:
             print(
@@ -4510,11 +4548,14 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # lock — the same anti-tautology rule (b), (e), (i), (k), (l) and (m) already observe.
     _n_different_globs = ["docs/*.markdown", "CONTRIBUTING.md"]
     _n_different_prose = ", ".join(f"`{_g}`" for _g in _n_different_globs)
+    _n_vacuity_rows = {
+        _row_file: _n_trace03_row(_row_file)
+        for _row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md")
+    }
     _n_vacuity_violations = [
         _row_file
-        for _row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md")
-        if (REPO_ROOT / _row_file).is_file()
-        and _n_different_prose in (REPO_ROOT / _row_file).read_text(encoding="utf-8")
+        for _row_file, _row in _n_vacuity_rows.items()
+        if _row is not None and _n_different_prose in _row
     ]
     if _n_vacuity_violations:
         print(
@@ -4526,7 +4567,8 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     else:
         print(
             f"  HEADLINE-LOCK PASS: (n) non-vacuity arm — a deliberately different glob "
-            f"rendering ({_n_different_prose}) is absent from both TRACE-03 rows"
+            f"rendering ({_n_different_prose}) is absent from both TRACE-03 rows "
+            f"(row-scoped, not whole-file)"
         )
 
 
