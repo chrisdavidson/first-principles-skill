@@ -111,48 +111,103 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 ]
 
 
-# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03). Neither
-# constant contains any digit from the coverage headline itself.
-_ARROW_TOKENS: tuple[str, str] = ("→", "->")
+# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03/WR-07).
+# Neither constant contains any digit from the coverage headline itself. _HTML_COMMENT_CLOSE is
+# defined FIRST and _ARROW_TOKENS references it by name (never retyped), because the same three
+# bytes play a dual role in this tree: they close an HTML comment AND are a plausible way a
+# Markdown author writes a delta arrow (the ASCII long arrow). That dual role is exactly why the
+# comment strip below must remove only COMPLETE comments, and must run before the arrow test —
+# treating every bare occurrence of "-->" as a comment terminator would silently delete a
+# genuine delta's arrow (WR-07).
 _HTML_COMMENT_CLOSE: str = "-->"
+_ARROW_TOKENS: tuple[str, ...] = ("→", "->", _HTML_COMMENT_CLOSE)
+
+# Non-greedy, single-pass match of a COMPLETE HTML comment (opening through closing marker),
+# substituted with a space rather than the empty string so removing a comment can never join
+# two previously separate tokens into a new false match.
+_HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 
-def _is_historical_headline_hit(relpath: str, line: str) -> bool:
+def _headline_literals() -> tuple[str, str]:
+    """Derive the current coverage headline's two renderings live from build_matrix_rows().
+
+    Returns (slash_rendering, prose_rendering) — slash first, so a caller unpacking both
+    names cannot silently swap them without a type error going unnoticed.
+
+    Deliberately NOT memoized — no caching decorator, no module-level cache variable. A cache
+    would survive a monkeypatched build_matrix_rows() and silently defeat the headline-move
+    simulation the verifier and block (h2) both depend on: both rely on calling this function
+    again, after replacing build_matrix_rows(), and seeing the new figures reflected. Measured
+    cost: 0.150 ms per call over 200 calls, which every call site in this module can afford
+    without caching.
+    """
+    _rows = build_matrix_rows()
+    _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
+    _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
+    _gap = sum(1 for r in _rows if r.coverage_tier == "gap")
+    _slash = f"{_repro}/{_audit}/{_gap}/{len(_rows)}"
+    _prose = f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    return _slash, _prose
+
+
+def _is_historical_headline_hit(
+    relpath: str, line: str, literals: tuple[str, str] | None = None
+) -> bool:
     """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
     presence assertion, its positive controls, and the tree-wide unregistered-surface scan.
 
     A hit (a line already known to contain the current headline literal, in either rendering)
     is historical if EITHER layer applies, checked in this order:
       1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
-      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) sits between two figures on the
-         line — a superseded slash-form reading joined to its replacement by an arrow, e.g. a
-         ledger row reading "<old slash reading> → <new slash reading>" — this is adjacency,
-         not line membership. A mermaid edge ("A --> B"), an HTML comment terminator ("-->"),
-         or an unrelated prose arrow elsewhere on the same line is NOT evidence that this
-         line's headline mention is historical; only an arrow delimiting two figures is. The
-         HTML comment terminator is stripped from the line before the arrow test runs, so it
-         can never itself supply the arrow (it would otherwise falsely satisfy the ASCII "->"
-         token, since "-->" contains "->" as a substring).
+      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) must delimit THIS line's
+         headline mention from an adjacent figure, on one side or the other — a superseded
+         reading immediately followed by the arrow and the current literal, or the current
+         literal immediately followed by the arrow and a trailing digit run. An unrelated
+         numeric arrow elsewhere on the line (a battery-count delta, a K-of-5 vector) is not
+         evidence that THIS line's headline mention is historical; only an arrow anchored to
+         the headline literal itself is. The HTML comment terminator is removed only as part
+         of a COMPLETE comment before the arrow test runs (via _HTML_COMMENT_RE, substituting
+         a space), so an open-but-unclosed marker can never supply an arrow, while a genuine
+         delta written with the ASCII long arrow keeps it (WR-07).
 
     Deliberately does not do any tense, marker-word, or surrounding-prose detection — this tree
     contains at least four distinct historical phrasings ("stayed X", "moved to X", "from X to
     Y", "the then-current X") and a marker list could never be proven exhaustive. The two
     structural layers above are what the live tree actually requires (see the
-    <measured_classification_table> in this phase's plan) and nothing more.
+    <measured_baseline> in this phase's plan) and nothing more.
+
+    `literals`, when given, overrides the (slash, prose) pair the arrow layer anchors to
+    instead of calling `_headline_literals()`. It exists for exactly one caller — block (h2)'s
+    headline-move invariance control, which must evaluate a perturbed line against the SAME
+    perturbed figure rather than the live one — and no production call site passes it.
 
     This narrowing was measured against the live tree during planning (Phase 10 Plan 04's
-    <measured_live_baseline>): every one of the 11 headline-bearing lines in the current scan
-    scope keeps the identical classification under this adjacency test that it had under the
-    prior whole-line test — zero verdicts moved. The green self-test result after this change is
-    therefore a checked property, not a hope.
+    <measured_baseline>, re-measured for the figure-anchored form in Plan 08): every one of the
+    11 headline-bearing lines in the current scan scope keeps the identical classification
+    under this anchored test that it had before — zero verdicts moved. The green self-test
+    result after this change is therefore a checked property, not a hope.
+
+    Two residual detection limits are disclosed, not closed: (1) a headline hard-wrapped across
+    two physical lines is not detected — matching is line-scoped, as it always has been; (2) a
+    line of the form "<digits> --> <current literal>" is treated as a delta even when it is a
+    mermaid edge whose target label happens to begin with the headline text — measured as
+    unreachable in this tree today. The verdict IS invariant when the figure and the line move
+    TOGETHER (a real headline move does exactly that, and block (h2) asserts it); it is not,
+    and was never claimed to be, independent of the figure altogether.
     """
     if relpath in HISTORICAL_EXEMPT_FILES:
         return True
-    _stripped = line.replace(_HTML_COMMENT_CLOSE, "")
-    return any(
-        re.search(rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped)
-        for _tok in _ARROW_TOKENS
-    )
+    _slash_lit, _prose_lit = literals if literals is not None else _headline_literals()
+    _stripped = _HTML_COMMENT_RE.sub(" ", line)
+    for _tok in _ARROW_TOKENS:
+        for _lit in (_slash_lit, _prose_lit):
+            if re.search(
+                rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*{re.escape(_lit)}", _stripped
+            ) or re.search(
+                rf"{re.escape(_lit)}\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped
+            ):
+                return True
+    return False
 
 
 def _headline_scan_files(globs: list[str]) -> list[Path]:
