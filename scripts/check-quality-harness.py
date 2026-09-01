@@ -7985,7 +7985,16 @@ def _selftest_render_contract() -> bool:
     is present. Control (g) is NON-VACUITY: it re-asserts two
     long-standing base cases from outside this item, so a widened
     detector that scored everything `True` (or everything `False`) could
-    not pass (b)/(e) by accident.
+    not pass (b)/(e) by accident. Control (p), added by plan 11-09 (gap
+    2's second half), is the CONSUMPTION FLOOR: `_get` records every id it
+    is asked for, and the floor asserts that set against a locked eight-id
+    set written inline — plus that `fixtures` matches the same locked set
+    whenever `problems` is empty (the exact condition CR-02's reproduction
+    left silent), plus that every locked id is either in `fixtures` or
+    named in a reported problem. A fixture that is extracted but never
+    requested, or requested but never scored or reported, now fails by
+    name instead of being silently skipped by controls (b)-(f)'s
+    `is not None` guards.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
     multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
@@ -8067,7 +8076,14 @@ def _selftest_render_contract() -> bool:
     for problem in problems:
         _fail(f"(a) extraction {problem}")
 
+    # `requested_ids` backs control (p) below: every id `_get` is asked
+    # for, regardless of whether the lookup finds it. Controls (b)-(f) are
+    # all guarded by `is not None`, so a fixture id that is never requested
+    # here would otherwise be a silent skip, not a reported problem.
+    requested_ids: set[str] = set()
+
     def _get(fixture_id: str) -> str | None:
+        requested_ids.add(fixture_id)
         return fixtures.get(fixture_id)
 
     conforming = _get("R-CHAIN-CONFORMING")
@@ -8207,6 +8223,53 @@ def _selftest_render_contract() -> bool:
         _fail(
             "(g) NON-VACUITY: the bare-token base case 'Accept' (no "
             "em-dash, no justification) wrongly scored conforming"
+        )
+
+    # (p) CONSUMPTION FLOOR. Plan 11-09, gap 2's second half
+    #     (`11-VERIFICATION.md`): controls (b)-(f) above are all guarded by
+    #     `is not None`, so a fixture id absent from `fixtures` is silently
+    #     SKIPPED rather than reported — this is exactly the path the
+    #     verifier's CR-02 reproduction relied on once
+    #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
+    #     empty, every `_get(...)` returned `None`, and the sub-check still
+    #     printed PASSED. The locked eight-id set below is written INLINE,
+    #     matching plan 11-08's (h) lock literal, never read off a module
+    #     constant, so this floor cannot be made tautologically green by
+    #     comparing a constant against itself. This control proves every
+    #     locked fixture was requested and either scored or reported; it
+    #     does NOT prove the verdict each control asserted is the right
+    #     verdict — that is controls (b)-(f)'s job, and control (g)'s
+    #     non-vacuity pair is what keeps those honest.
+    render_locked_fixture_ids = {
+        "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
+        "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+        "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
+    }
+    if requested_ids != render_locked_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: requested_ids {sorted(requested_ids)!r} "
+            f"!= locked fixture ids {sorted(render_locked_fixture_ids)!r} — "
+            f"a scoring control stopped asking for a fixture"
+        )
+    if not problems and set(fixtures) != render_locked_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: problems is empty but fixtures "
+            f"{sorted(fixtures)!r} != locked fixture ids "
+            f"{sorted(render_locked_fixture_ids)!r} — an emptied "
+            f"extraction table leaves both problems and fixtures empty, "
+            f"which is precisely the condition nothing used to notice"
+        )
+    render_unaccounted_fixture_ids = sorted(
+        fid
+        for fid in render_locked_fixture_ids
+        if fid not in fixtures and not any(fid in p for p in problems)
+    )
+    if render_unaccounted_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: fixture id(s) "
+            f"{render_unaccounted_fixture_ids!r} are neither in fixtures "
+            f"nor named in a reported problem — never scored, never "
+            f"reported"
         )
 
     # (h) MEMBERSHIP LOCK. Copies the `_TRACE03_DOC_ROWS` precedent (Phase
