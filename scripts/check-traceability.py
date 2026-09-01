@@ -58,15 +58,18 @@ VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 # Surfaces where the published coverage headline is asserted as a present-tense claim by
 # _self_test_headline_lock(). This set is allowed to under-count without being wrong: it
 # does not need to be exhaustive for correctness, only for the gate to stay green — a
-# surface stating the headline but missing from this set is left for a tree-wide scan to
-# catch loudly (a later phase's own mechanism), never silently accepted here. Treat this as
-# a "known covered" record, not a trusted exhaustive inventory.
+# surface stating the headline but missing from this set is caught loudly by the
+# HEADLINE_SCAN_GLOBS tree-wide scan, block (j) of _self_test_headline_lock(), never
+# silently accepted here. Treat this as a "known covered" record, not a trusted exhaustive
+# inventory. Locate each entry's own statement by scanning the live file, never by a
+# hardcoded line number (IN-01) — this module's own stated rule, since any unrelated edit
+# to the file invalidates an unverified line-number comment.
 COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
-    "docs/requirements-traceability.md",  # line 7, prose form (already gated pre-Phase-10)
-    "CLAUDE.md",                          # line 220, prose form
-    "docs/README.md",                     # line 20, prose form
-    "docs/MEASUREMENT-MAP.md",            # line 52, prose form
-    "docs/COMPONENT-DIAGRAM.md",          # line 97, slash form ONLY — no prose form in this file
+    "docs/requirements-traceability.md",  # prose form (already gated pre-Phase-10)
+    "CLAUDE.md",                          # prose form
+    "docs/README.md",                     # prose form
+    "docs/MEASUREMENT-MAP.md",            # prose form
+    "docs/COMPONENT-DIAGRAM.md",          # slash form ONLY — no prose form in this file
 })
 
 # Whole-file historical exemption for HEADLINE-03: files whose entire purpose is recording a
@@ -74,10 +77,15 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # even with no arrow on the line — each entry below is a deliberate editorial decision, not a
 # default, and every entry must carry its own justification.
 #
-# Two mechanical invariants are asserted by _self_test_headline_lock()'s (0) preamble
-# (WR-01, WARNING scope): this set is disjoint from COVERED_HEADLINE_SURFACES, and every
-# entry resolves to an existing file. The "every entry must carry its own justification"
-# requirement above remains a convention, not mechanically enforced.
+# Three mechanical invariants are asserted by _self_test_headline_lock()'s (0) preamble: this
+# set is disjoint from COVERED_HEADLINE_SURFACES; every entry resolves to an existing file
+# (WR-01, WARNING scope); and, as of WR-03, this set's MEMBERSHIP is locked by name against a
+# literal expectation — growth or shrinkage is a deliberate, reviewable edit in two places
+# rather than a one-line change, the way REG-GUARD pins QUAL-01 as its own named exemption. A
+# whole-file exemption disables both (f) and the tree-wide scan (j) for that file's entire
+# contents, permanently, which is exactly why an unreviewed addition or removal must fail the
+# gate rather than pass silently. The free-text "justification" prose in each entry's own
+# comment below remains unenforced — only set MEMBERSHIP is mechanically locked.
 #
 # Safe-failure direction: because the search target used against this set is always the
 # *current* literal derived live from build_matrix_rows() (never a generic numeric pattern), a
@@ -85,7 +93,7 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # here ever needs retiring on that account. This set only needs to grow (a new milestone-closure
 # doc), and a document that states the current literal without an arrow and is missing from this
 # set is not silently accepted: it is loudly caught as an unregistered surface by the tree-wide
-# scan (a later plan in this phase), never here.
+# scan, block (j) of _self_test_headline_lock(), never here.
 HISTORICAL_EXEMPT_FILES: frozenset[str] = frozenset({
     "CHANGELOG.md",                 # dated log by definition; already covered by the arrow
                                      # layer at its one live occurrence (line 45), kept here too
@@ -122,6 +130,15 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 # genuine delta's arrow (WR-07).
 _HTML_COMMENT_CLOSE: str = "-->"
 _ARROW_TOKENS: tuple[str, ...] = ("→", "->", _HTML_COMMENT_CLOSE)
+
+# A fixed, non-current placeholder figure used to construct delta-shaped synthetic lines
+# (a superseded reading, an arrow, then the current figure) throughout _self_test_headline_lock().
+# It is not the headline and is therefore outside the no-literal rule that governs every other
+# headline-adjacent figure in this module — but it is typed in exactly ONE place (IN-09): every
+# consumer references this constant, never a retyped copy, so a future collision between this
+# placeholder and a live headline degenerates loudly in one spot rather than in three silently.
+# Block (0) asserts this constant differs from the live slash rendering.
+_SUPERSEDED_PLACEHOLDER: str = "0/0/0/1"
 
 # Non-greedy, single-pass match of a COMPLETE HTML comment (opening through closing marker),
 # substituted with a space rather than the empty string so removing a comment can never join
@@ -2879,11 +2896,21 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     the mechanism intact, so the next headline move would have reopened it identically.
 
     Asserts:
-      (0) Preamble (WR-01, WARNING scope): COVERED_HEADLINE_SURFACES and
-          HISTORICAL_EXEMPT_FILES are disjoint — the two sets carry contradictory meanings
-          ("must state the current fact" vs "never states a current fact") — and every entry
-          in HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
-          silently keep exempting a whole file's contents from both (f) and (j).
+      (0) Preamble: COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES are disjoint
+          (WR-01, WARNING scope) — the two sets carry contradictory meanings ("must state
+          the current fact" vs "never states a current fact") — and every entry in
+          HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
+          silently keep exempting a whole file's contents from both (f) and (j). As of
+          WR-03, HISTORICAL_EXEMPT_FILES' MEMBERSHIP is also locked by name against a
+          literal expectation set: growth or shrinkage now fails the gate naming the
+          symmetric difference, so a new whole-file escape hatch — which disables both (f)
+          and the tree-wide scan for that file's entire contents, permanently — requires a
+          second, reviewable edit rather than a one-line change. What remains unenforced is
+          the free-text justification each entry's own comment carries, not its membership.
+          A final (0) assertion (IN-09) requires _SUPERSEDED_PLACEHOLDER to differ from the
+          live slash rendering, so the day a real headline collides with the fixed
+          placeholder used throughout (h)/(h2)/(i2)/(k), the gate says so explicitly instead
+          of three controls degenerating simultaneously and silently.
       (a) Published-headline lock: docs/requirements-traceability.md states exactly the
           headline build_matrix_rows() produces. Every one of the four figures is derived
           live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
@@ -3043,16 +3070,29 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           construct their inputs by hand rather than driving the loop itself. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
           degrade into a tautology if a future edit changes a constant.
+      (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows in
+          CLAUDE.md and docs/ARCHITECTURE.md transcribe HEADLINE_SCAN_GLOBS' live value by
+          hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
+          exists to catch, newly created by the fix for it, and the two copies had already
+          diverged once inside this phase (one stated the accounted-hit floor's union claim,
+          the other did not). Asserts the rendered glob list is present in both files, guards
+          both files for existence first (a named FAIL rather than a traceback), and carries
+          a non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from
+          both — without it, a lock whose comparison always succeeded would be
+          indistinguishable from a passing lock, the same anti-tautology rule (b), (e), (i),
+          (k), (l) and (m) already observe. This lock asserts the GLOB LIST's transcription
+          only; the rest of each row's prose remains unasserted, which is a real and
+          disclosed limit, not an oversight.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
     no live claude session, no network, no writes.
     """
-    # (0) Preamble: two mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING
-    # scope — not one of the three established CRITICALs, and deliberately kept to exactly
-    # these two assertions). The "every entry must carry its own justification" convention
-    # in the constant's comment block remains unenforced; a comment-parsing check is out of
-    # scope here.
+    # (0) Preamble: mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING scope
+    # for the first two — not one of the three established CRITICALs). The free-text "every
+    # entry must carry its own justification" convention in the constant's comment block
+    # remains unenforced; a comment-parsing check is out of scope here. What IS enforced, as
+    # of WR-03, is the set's own membership (below).
     _disjoint_violation = sorted(COVERED_HEADLINE_SURFACES & HISTORICAL_EXEMPT_FILES)
     if _disjoint_violation:
         print(
@@ -3086,6 +3126,34 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         print(
             "  HEADLINE-LOCK PASS: (0) every HISTORICAL_EXEMPT_FILES entry resolves to an "
             "existing file"
+        )
+
+    # Named-membership lock (WR-03): HISTORICAL_EXEMPT_FILES may only grow or shrink by an
+    # edit that also updates this literal, following the same pattern REG-GUARD uses to pin
+    # QUAL-01 as its own single named battery-only exemption. Without this, adding an
+    # arbitrary current-fact document to the set (e.g. docs/TESTING.md) produces zero
+    # findings and silently makes that file's entire contents invisible to both (f) and the
+    # tree-wide scan (j), forever — a whole-file exemption is exactly the shape of escape
+    # hatch that must be a deliberate, reviewable edit in two places, never a one-line
+    # change. The comparison is symmetric-difference based, so the lock catches shrinkage
+    # (a member silently removed, defeating whatever that entry's own comment justifies) as
+    # well as growth — a growth-only heuristic would not be a membership lock.
+    _expected_exempt = {"CHANGELOG.md", "docs/v8.0-final-closure.md"}
+    _exempt_drift = sorted(set(HISTORICAL_EXEMPT_FILES) ^ _expected_exempt)
+    if _exempt_drift:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) HISTORICAL_EXEMPT_FILES has changed "
+            f"({_exempt_drift}) — a whole-file exemption disables both (f) and the "
+            "tree-wide scan for that file's entire contents and must be justified here, "
+            "with this literal updated to match"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (0) unreviewed whole-file exemption change {_exempt_drift}"
+        )
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (0) HISTORICAL_EXEMPT_FILES membership locked "
+            f"({sorted(_expected_exempt)})"
         )
 
     _rows = build_matrix_rows()
@@ -3122,94 +3190,143 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     else:
         print("  HEADLINE-LOCK PASS: (0) _headline_literals()'s prose rendering matches _expected")
 
+    # Placeholder-collision assertion (IN-09): _SUPERSEDED_PLACEHOLDER must differ from the
+    # live slash rendering. Every (h)/(h2)/(i2)/(k) delta-shaped synthetic line is built by
+    # joining this fixed placeholder to the CURRENT figure with an arrow — if the placeholder
+    # ever equalled the live headline, that join would silently stop being a genuine delta
+    # and all four controls would degenerate into asserting nothing, together and silently.
+    if _SUPERSEDED_PLACEHOLDER == _slash:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) _SUPERSEDED_PLACEHOLDER {_SUPERSEDED_PLACEHOLDER!r} "
+            f"collides with the live slash rendering {_slash!r} — every delta-shaped "
+            "synthetic line built from it would silently stop being a genuine delta"
+        )
+        wrong_results.append("HEADLINE-LOCK: (0) placeholder/live-headline collision")
+    else:
+        print(
+            "  HEADLINE-LOCK PASS: (0) _SUPERSEDED_PLACEHOLDER does not collide with the "
+            "live headline"
+        )
+
     def _headline_matches(text: str) -> bool:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
         return _headline in text
 
-    # (a) Published-headline lock.
+    # (a) Published-headline lock. Scoped guard (WR-01): a missing artifact here skips only
+    # (b), which is the sole downstream consumer of `_trace` — every block from (c) onward
+    # is independent of this guard and must run whether or not it holds, so the guard never
+    # aborts the function.
     _trace_path = REPO_ROOT / "docs" / "requirements-traceability.md"
     if not _trace_path.is_file():
         print(f"  HEADLINE-LOCK FAIL: {_trace_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/requirements-traceability.md missing")
-        return
-    _trace = _trace_path.read_text(encoding="utf-8")
-    if _headline_matches(_trace):
-        print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
     else:
-        print(
-            f"  HEADLINE-LOCK FAIL: docs/requirements-traceability.md does not state "
-            f"{_expected!r} — build_matrix_rows() and the published headline disagree"
-        )
-        wrong_results.append(
-            f"HEADLINE-LOCK: published headline disagrees with build_matrix_rows() "
-            f"(expected {_expected!r})"
-        )
+        _trace = _trace_path.read_text(encoding="utf-8")
+        if _headline_matches(_trace):
+            print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: docs/requirements-traceability.md does not state "
+                f"{_expected!r} — build_matrix_rows() and the published headline disagree"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: published headline disagrees with build_matrix_rows() "
+                f"(expected {_expected!r})"
+            )
 
-    # (b) Non-vacuity control for (a): perturb the reproducible count, expect a mismatch.
-    _mutated_trace = _trace.replace(
-        _headline, f"**Coverage headline:** {_repro + 1} reproducible / {_audit} "
-        f"audit-only / {_gap} gap / {len(_rows)} total"
-    )
-    if _headline_matches(_mutated_trace):
-        print("  HEADLINE-LOCK FAIL: (a) passed a perturbed headline — assertion is vacuous")
-        wrong_results.append("HEADLINE-LOCK: (a) negative control did not fail")
-    else:
-        print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
+        # (b) Non-vacuity control for (a): perturb the reproducible count, expect a mismatch.
+        # Scoped inside (a)'s guard because it consumes `_trace` directly.
+        _mutated_trace = _trace.replace(
+            _headline, f"**Coverage headline:** {_repro + 1} reproducible / {_audit} "
+            f"audit-only / {_gap} gap / {len(_rows)} total"
+        )
+        if _headline_matches(_mutated_trace):
+            print("  HEADLINE-LOCK FAIL: (a) passed a perturbed headline — assertion is vacuous")
+            wrong_results.append("HEADLINE-LOCK: (a) negative control did not fail")
+        else:
+            print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
 
-    # (c) Markdown artifact freshness.
+    # (c) Markdown artifact freshness. Scoped guard (WR-01): a missing artifact here skips
+    # only the md half of (e), which is the sole downstream consumer of `_md_disk` — every
+    # block from (f) onward is independent of this guard and must run whether or not it
+    # holds, so the guard never aborts the function.
     _md_path = REPO_ROOT / "docs" / "requirements-matrix.md"
     _md_live = render_matrix_markdown(_rows)
-    if not _md_path.is_file():
+    _md_ok = _md_path.is_file()
+    if not _md_ok:
         print(f"  HEADLINE-LOCK FAIL: {_md_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/requirements-matrix.md missing")
-        return
-    _md_disk = _md_path.read_text(encoding="utf-8")
-    if _md_disk == _md_live:
-        print(
-            f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
-            f"render_matrix_markdown() ({len(_rows)} rows)"
-        )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
-            "re-run the emit subcommand"
-        )
-        wrong_results.append(
-            "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
-        )
+        _md_disk = _md_path.read_text(encoding="utf-8")
+        if _md_disk == _md_live:
+            print(
+                f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
+                f"render_matrix_markdown() ({len(_rows)} rows)"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
+                "re-run the emit subcommand"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
+            )
 
-    # (d) JSON artifact freshness — built exactly as emit_matrix writes it.
+    # (d) JSON artifact freshness — built exactly as emit_matrix writes it. Scoped guard
+    # (WR-01): a missing artifact here skips only the json half of (e), which is the sole
+    # downstream consumer of `_json_disk` — every block from (f) onward is independent of
+    # this guard and must run whether or not it holds, so the guard never aborts the
+    # function.
     _json_path = REPO_ROOT / "docs" / "data" / "matrix.json"
     _json_live = json.dumps([asdict(r) for r in _rows], indent=2)
-    if not _json_path.is_file():
+    _json_ok = _json_path.is_file()
+    if not _json_ok:
         print(f"  HEADLINE-LOCK FAIL: {_json_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/data/matrix.json missing")
-        return
-    _json_disk = _json_path.read_text(encoding="utf-8")
-    if _json_disk == _json_live:
-        print(
-            f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
-            f"({len(_rows)} rows)"
-        )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit subcommand"
-        )
-        wrong_results.append(
-            "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
-        )
+        _json_disk = _json_path.read_text(encoding="utf-8")
+        if _json_disk == _json_live:
+            print(
+                f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
+                f"({len(_rows)} rows)"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit "
+                "subcommand"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
+            )
 
-    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal.
-    _md_vacuous = (_md_disk + "\n") == _md_live
-    _json_vacuous = (_json_disk + "\n") == _json_live
-    if _md_vacuous or _json_vacuous:
+    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal. Scoped
+    # to run only when both artifacts it compares are present — a precondition failure here
+    # is named rather than an abort, and does not skip any block that follows.
+    if not (_md_ok and _json_ok):
+        _e_missing = [
+            _name
+            for _ok, _name in (
+                (_md_ok, "docs/requirements-matrix.md"),
+                (_json_ok, "docs/data/matrix.json"),
+            )
+            if not _ok
+        ]
         print(
-            f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
-            f"(md={_md_vacuous}, json={_json_vacuous})"
+            f"  HEADLINE-LOCK FAIL: (e) precondition violated — cannot run the non-vacuity "
+            f"control because {_e_missing} is missing"
         )
-        wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
+        wrong_results.append(f"HEADLINE-LOCK: (e) precondition violated (missing {_e_missing})")
     else:
-        print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+        _md_vacuous = (_md_disk + "\n") == _md_live
+        _json_vacuous = (_json_disk + "\n") == _json_live
+        if _md_vacuous or _json_vacuous:
+            print(
+                f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
+                f"(md={_md_vacuous}, json={_json_vacuous})"
+            )
+            wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
+        else:
+            print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
 
     # (f) Per-surface headline presence across every currently covered surface (sorted for
     # deterministic output), including docs/requirements-traceability.md again via the
@@ -3338,7 +3455,9 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # in-scope _prose/_slash locals; the delta row's superseded left-hand figure is a fixed,
     # non-current placeholder and is not the headline, so it may be typed.
     _synthetic_no_arrow_line = f"Superseded: the headline is now {_prose}."
-    _synthetic_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_slash} | ... |"
+    _synthetic_delta_line = (
+        f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_slash} | ... |"
+    )
     for _relpath, _line, _want in (
         ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, "whole-file"),
         ("CHANGELOG.md", _synthetic_no_arrow_line, "whole-file"),
@@ -3461,7 +3580,9 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # two constructed lines are NOT byte-equal, so a future edit that made the perturbation a
     # no-op cannot leave this comparing a string to itself forever.
     _perturbed_no_arrow_line = f"Superseded: the headline is now {_perturbed_prose}."
-    _perturbed_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_perturbed_slash} | ... |"
+    _perturbed_delta_line = (
+        f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_perturbed_slash} | ... |"
+    )
     _perturbed_literals = (_perturbed_slash, _perturbed_prose)
     _h2_cases = (
         ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
@@ -3608,7 +3729,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
         # 3. A genuine delta line IS exempt — without this arm, controls 1 and 2 would pass
         # against a classifier that returns False unconditionally.
-        _i2_delta_line = f"0/0/0/1 → {_slash}"
+        _i2_delta_line = f"{_SUPERSEDED_PLACEHOLDER} → {_slash}"
         _i2_delta_finding, _ = _unregistered_headline_finding(_i2_path, (1, _i2_delta_line))
         if not _i2_delta_finding:
             print(
@@ -3648,7 +3769,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # with the ASCII long arrow must stay exempt — the rendering the unconditional
         # comment strip used to destroy. References _HTML_COMMENT_CLOSE for the arrow rather
         # than retyping it, so the control and the classifier share the one literal.
-        _i2_long_arrow_delta_line = f"0/0/0/1 {_HTML_COMMENT_CLOSE} {_slash}"
+        _i2_long_arrow_delta_line = f"{_SUPERSEDED_PLACEHOLDER} {_HTML_COMMENT_CLOSE} {_slash}"
         _i2_long_arrow_finding, _ = _unregistered_headline_finding(
             _i2_path, (1, _i2_long_arrow_delta_line)
         )
@@ -3674,7 +3795,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # arrow between the placeholder and the current literal — a comment strip that merely
         # stopped running (rather than one narrowed to complete comments) would let this line
         # through undetected, which is exactly the risk this arm exists to catch.
-        _i2_complete_comment_line = f"<!-- 0/0/0/1 --> {_prose}"
+        _i2_complete_comment_line = f"<!-- {_SUPERSEDED_PLACEHOLDER} --> {_prose}"
         _i2_complete_comment_finding, _i2_complete_comment_msg = _unregistered_headline_finding(
             _i2_path, (1, _i2_complete_comment_line)
         )
@@ -3777,50 +3898,73 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         _unreg_finding, _unreg_msg = _unregistered_headline_finding(
             _synth_path, (1, _synth_line)
         )
-        # Direction 2: the SAME synthetic line attributed to a REGISTERED path is NOT
-        # reported — otherwise the decision function would simply flag everything and the
-        # scan's greenness on the live tree would be luck, not correctness.
-        _registered_path = sorted(COVERED_HEADLINE_SURFACES)[0]
-        _reg_finding, _ = _unregistered_headline_finding(_registered_path, (1, _synth_line))
-        # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03" clause):
-        # a genuinely delta-shaped line — a fixed superseded figure, an arrow, then the
-        # current slash rendering (built from the in-scope _slash local, never typed) — at
-        # the SAME unregistered synthetic path, is NOT reported. This proves the scan is
-        # gated behind the historical classifier and not merely a registered-surface
-        # membership test. The left-hand figure is a fixed non-current placeholder; it is
-        # not the headline and does not fall under the no-literal rule.
-        _superseded_figure = "0/0/0/1"
-        _delta_line = f"{_superseded_figure} → {_slash}"
-        if not _is_historical_headline_hit(_synth_path, _delta_line):
+        # Direction 2 precondition (WR-02): build the candidate list as the sorted
+        # difference of the two registered/exempt sets rather than indexing the bare
+        # sorted registered-surfaces set directly — an empty COVERED_HEADLINE_SURFACES
+        # must report a named precondition failure instead of raising IndexError, and if
+        # the alphabetically-first registered surface were ever also whole-file exempt,
+        # this direction would pass through the classifier gate rather than the
+        # registration gate and prove nothing about registration while still printing PASS.
+        _k_registered_candidates = sorted(COVERED_HEADLINE_SURFACES - HISTORICAL_EXEMPT_FILES)
+        if not _k_registered_candidates:
             print(
-                "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped line "
-                "is not classified historical, so direction 3 would prove nothing"
+                "  HEADLINE-LOCK FAIL: (k) precondition violated — no registered, "
+                "non-whole-file-exempt surface available for direction 2"
             )
-            wrong_results.append("HEADLINE-LOCK: (k) precondition violated (delta-shaped)")
+            wrong_results.append(
+                "HEADLINE-LOCK: (k) precondition violated (no registered path)"
+            )
         else:
-            _delta_finding, _ = _unregistered_headline_finding(_synth_path, (1, _delta_line))
-            if (
-                _unreg_finding
-                and _synth_path in _unreg_msg
-                and not _reg_finding
-                and not _delta_finding
-            ):
+            # Direction 2: the SAME synthetic line attributed to a REGISTERED path is NOT
+            # reported — otherwise the decision function would simply flag everything and
+            # the scan's greenness on the live tree would be luck, not correctness.
+            _registered_path = _k_registered_candidates[0]
+            _reg_finding, _ = _unregistered_headline_finding(
+                _registered_path, (1, _synth_line)
+            )
+            # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03"
+            # clause): a genuinely delta-shaped line — a fixed superseded figure, an arrow,
+            # then the current slash rendering (built from the in-scope _slash local, never
+            # typed) — at the SAME unregistered synthetic path, is NOT reported. This
+            # proves the scan is gated behind the historical classifier and not merely a
+            # registered-surface membership test. The left-hand figure is a fixed
+            # non-current placeholder; it is not the headline and does not fall under the
+            # no-literal rule.
+            _delta_line = f"{_SUPERSEDED_PLACEHOLDER} → {_slash}"
+            if not _is_historical_headline_hit(_synth_path, _delta_line):
                 print(
-                    f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} "
-                    f"is reported as a finding, the same line at a registered surface is "
-                    f"not, and a delta-shaped line at the same synthetic path is not — "
-                    f"non-vacuous and gated behind HEADLINE-03"
-                )
-            else:
-                print(
-                    f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan "
-                    f"did not behave as expected (unregistered finding={_unreg_finding}, "
-                    f"registered finding={_reg_finding}, delta-shaped finding="
-                    f"{_delta_finding})"
+                    "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped "
+                    "line is not classified historical, so direction 3 would prove nothing"
                 )
                 wrong_results.append(
-                    "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                    "HEADLINE-LOCK: (k) precondition violated (delta-shaped)"
                 )
+            else:
+                _delta_finding, _ = _unregistered_headline_finding(
+                    _synth_path, (1, _delta_line)
+                )
+                if (
+                    _unreg_finding
+                    and _synth_path in _unreg_msg
+                    and not _reg_finding
+                    and not _delta_finding
+                ):
+                    print(
+                        f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface "
+                        f"{_synth_path} is reported as a finding, the same line at a "
+                        f"registered surface is not, and a delta-shaped line at the same "
+                        f"synthetic path is not — non-vacuous and gated behind HEADLINE-03"
+                    )
+                else:
+                    print(
+                        f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide "
+                        f"scan did not behave as expected (unregistered finding="
+                        f"{_unreg_finding}, registered finding={_reg_finding}, "
+                        f"delta-shaped finding={_delta_finding})"
+                    )
+                    wrong_results.append(
+                        "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                    )
 
     # (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09).
     # Unlike (k), which exercises _unregistered_headline_finding() in isolation, arms 1 and 2
@@ -3849,25 +3993,38 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     # Arm 1: empty-globs (the CR-01 reproduction, permanently encoded). A control that only
     # asserted "non-empty" would pass against a floor that reported a generic message, so
-    # this requires the breach to name a specific registered surface.
+    # this requires the breach to name a specific registered surface. WR-02: the candidate
+    # surface is selected only after an explicit, named precondition confirms the
+    # registered-surfaces set is non-empty — indexing its sorted form directly would raise
+    # IndexError out of --self-test rather than reporting a finding.
     _l_empty_files = _headline_scan_files([])
     _l_empty_read = _headline_scan_read(_l_empty_files)
     _l_empty_breaches = _headline_scan_floor_breaches(
         _l_empty_read.read_relpaths, _l_empty_read.hits_by_surface
     )
-    _l_named_surface = sorted(COVERED_HEADLINE_SURFACES)[0]
-    if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
+    _l_registered_candidates = sorted(COVERED_HEADLINE_SURFACES)
+    if not _l_registered_candidates:
         print(
-            "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives the "
-            f"real collection and read helpers to a non-empty breach naming a registered "
-            f"surface ({_l_named_surface})"
+            "  HEADLINE-LOCK FAIL: (l) empty-globs arm precondition violated — "
+            "COVERED_HEADLINE_SURFACES is empty, arm 1 would prove nothing"
+        )
+        wrong_results.append(
+            "HEADLINE-LOCK: (l) empty-globs arm precondition violated (empty)"
         )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: (l) empty-globs arm — an emptied glob list did not "
-            "produce a breach naming a registered surface"
-        )
-        wrong_results.append("HEADLINE-LOCK: (l) empty-globs arm failed")
+        _l_named_surface = _l_registered_candidates[0]
+        if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
+            print(
+                "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives "
+                f"the real collection and read helpers to a non-empty breach naming a "
+                f"registered surface ({_l_named_surface})"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (l) empty-globs arm — an emptied glob list did not "
+                "produce a breach naming a registered surface"
+            )
+            wrong_results.append("HEADLINE-LOCK: (l) empty-globs arm failed")
 
     # Arm 2: narrowed-globs (the "narrowing typo" case, e.g. a well-meaning "temporarily
     # narrow the scan" edit). Proves the floor degrades proportionally rather than only
@@ -4053,6 +4210,63 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "correctly recorded as skipped"
         )
         wrong_results.append("HEADLINE-LOCK: (m) arm 3 failed")
+
+    # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
+    # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
+    # exact drift class HEADLINE-LOCK exists to catch, newly created by the fix for it, and
+    # the two copies had already diverged once inside this phase. Rendered the same way the
+    # rows already state it (a comma-joined sequence of backtick-quoted patterns) so the lock
+    # goes green on today's text without any doc edit — derived from the constant, never typed
+    # as a literal here, exactly as every other assertion in this sentinel derives from
+    # build_matrix_rows().
+    _n_glob_prose = ", ".join(f"`{_g}`" for _g in HEADLINE_SCAN_GLOBS)
+    for _n_row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md"):
+        _n_row_path = REPO_ROOT / _n_row_file
+        if not _n_row_path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: (n) {_n_row_path} not found")
+            wrong_results.append(f"HEADLINE-LOCK: (n) {_n_row_file} missing")
+            continue
+        _n_row_text = _n_row_path.read_text(encoding="utf-8")
+        if _n_glob_prose in _n_row_text:
+            print(
+                f"  HEADLINE-LOCK PASS: (n) {_n_row_file} transcribes HEADLINE_SCAN_GLOBS "
+                f"correctly ({_n_glob_prose})"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (n) {_n_row_file} does not transcribe "
+                f"HEADLINE_SCAN_GLOBS (expected {_n_glob_prose!r} to appear in its TRACE-03 "
+                "row)"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (n) {_n_row_file} TRACE-03 row does not transcribe "
+                f"HEADLINE_SCAN_GLOBS ({_n_glob_prose})"
+            )
+
+    # Non-vacuity arm: a DELIBERATELY DIFFERENT glob list, rendered the identical way, must be
+    # ABSENT from both files. Without this, a lock whose comparison always succeeded (e.g. a
+    # containment test against an empty string) would be indistinguishable from a passing
+    # lock — the same anti-tautology rule (b), (e), (i), (k), (l) and (m) already observe.
+    _n_different_globs = ["docs/*.markdown", "CONTRIBUTING.md"]
+    _n_different_prose = ", ".join(f"`{_g}`" for _g in _n_different_globs)
+    _n_vacuity_violations = [
+        _row_file
+        for _row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md")
+        if (REPO_ROOT / _row_file).is_file()
+        and _n_different_prose in (REPO_ROOT / _row_file).read_text(encoding="utf-8")
+    ]
+    if _n_vacuity_violations:
+        print(
+            f"  HEADLINE-LOCK FAIL: (n) non-vacuity arm — a deliberately different glob "
+            f"rendering ({_n_different_prose}) was found in {_n_vacuity_violations}, so the "
+            "containment test above cannot be trusted"
+        )
+        wrong_results.append("HEADLINE-LOCK: (n) non-vacuity arm did not fail")
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (n) non-vacuity arm — a deliberately different glob "
+            f"rendering ({_n_different_prose}) is absent from both TRACE-03 rows"
+        )
 
 
 def _run_self_test() -> None:
