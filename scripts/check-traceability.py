@@ -106,6 +106,12 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 ]
 
 
+# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03). Neither
+# constant contains any digit from the coverage headline itself.
+_ARROW_TOKENS: tuple[str, str] = ("→", "->")
+_HTML_COMMENT_CLOSE: str = "-->"
+
+
 def _is_historical_headline_hit(relpath: str, line: str) -> bool:
     """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
     presence assertion, its positive controls, and the tree-wide unregistered-surface scan.
@@ -113,16 +119,35 @@ def _is_historical_headline_hit(relpath: str, line: str) -> bool:
     A hit (a line already known to contain the current headline literal, in either rendering)
     is historical if EITHER layer applies, checked in this order:
       1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
-      2. same-line arrow: the line itself contains "→" (U+2192) or the ASCII "->", marking it
-         as a delta/ledger row rather than a present-tense claim.
+      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) sits between two figures on the
+         line — a superseded slash-form reading joined to its replacement by an arrow, e.g. a
+         ledger row reading "<old slash reading> → <new slash reading>" — this is adjacency,
+         not line membership. A mermaid edge ("A --> B"), an HTML comment terminator ("-->"),
+         or an unrelated prose arrow elsewhere on the same line is NOT evidence that this
+         line's headline mention is historical; only an arrow delimiting two figures is. The
+         HTML comment terminator is stripped from the line before the arrow test runs, so it
+         can never itself supply the arrow (it would otherwise falsely satisfy the ASCII "->"
+         token, since "-->" contains "->" as a substring).
 
     Deliberately does not do any tense, marker-word, or surrounding-prose detection — this tree
     contains at least four distinct historical phrasings ("stayed X", "moved to X", "from X to
     Y", "the then-current X") and a marker list could never be proven exhaustive. The two
     structural layers above are what the live tree actually requires (see the
     <measured_classification_table> in this phase's plan) and nothing more.
+
+    This narrowing was measured against the live tree during planning (Phase 10 Plan 04's
+    <measured_live_baseline>): every one of the 11 headline-bearing lines in the current scan
+    scope keeps the identical classification under this adjacency test that it had under the
+    prior whole-line test — zero verdicts moved. The green self-test result after this change is
+    therefore a checked property, not a hope.
     """
-    return relpath in HISTORICAL_EXEMPT_FILES or "→" in line or "->" in line
+    if relpath in HISTORICAL_EXEMPT_FILES:
+        return True
+    _stripped = line.replace(_HTML_COMMENT_CLOSE, "")
+    return any(
+        re.search(rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped)
+        for _tok in _ARROW_TOKENS
+    )
 
 
 # ---------------------------------------------------------------------------
