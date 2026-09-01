@@ -7676,6 +7676,28 @@ def _selftest_render_contract() -> bool:
     long-standing base cases from outside this item, so a widened
     detector that scored everything `True` (or everything `False`) could
     not pass (b)/(e) by accident.
+
+    Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
+    multi-hop head form (CONTRACT-05) across BOTH canonical surfaces, per
+    D-04: a rule shipped uncontrolled lands in the exact defect class
+    PROJECT.md's through-line names — a form stated in more places than
+    anything checks. Control (h) is a MEMBERSHIP LOCK, copying the
+    `_TRACE03_DOC_ROWS` precedent (Phase 10, commit `6d3c131`): dropping a
+    surface or a rule from the registered sets must not silently stop
+    checking it. Control (i) is POSITIVE — it goes RED if a rule is
+    deleted from a shipped surface today. Control (j) is the COVERAGE
+    FLOOR, Phase 10 block (l)'s corrected shape: derived from the records
+    `_read_render_surfaces()` actually returned, never a re-glob. Controls
+    (k) and (l) are the NEGATIVE legs — missing-rule and contradiction —
+    each mutating an in-memory copy of the real bytes, never the file on
+    disk (Phase 10 block (m)'s shape, `scripts/check-agent.py:334`
+    `_assert_live_coverage`).
+
+    DISCLOSED LIMITATION: control (l)'s contradiction leg detects the
+    ENUMERATED phrasings in `_RENDER_CONTRADICTION_PHRASES`, not arbitrary
+    contradiction of R1. It is load-bearing rather than decorative because
+    three of those phrasings were in the tree before Phase 11 Plans 01/02
+    landed.
     """
     ok = True
 
@@ -7831,6 +7853,103 @@ def _selftest_render_contract() -> bool:
         _fail(
             "(g) NON-VACUITY: the bare-token base case 'Accept' (no "
             "em-dash, no justification) wrongly scored conforming"
+        )
+
+    # (h) MEMBERSHIP LOCK. Copies the `_TRACE03_DOC_ROWS` precedent (Phase
+    #     10, commit `6d3c131`): dropping a surface or a rule from either
+    #     registered set must not silently stop checking it. Compared
+    #     against a literal written inline here, not against the module
+    #     constant it is meant to guard.
+    expected_surfaces = (
+        "shared/spine/references/output-template.md",
+        "shared/spine/SKILL-body.md",
+    )
+    if _RENDER_RULE_SURFACES != expected_surfaces:
+        _fail(
+            f"(h) MEMBERSHIP LOCK: _RENDER_RULE_SURFACES shrank or "
+            f"reordered — expected {expected_surfaces!r}, got "
+            f"{_RENDER_RULE_SURFACES!r}"
+        )
+    expected_literal_keys = ["R1", "R2", "R3", "R4", "R5"]
+    if sorted(_RENDER_RULE_LITERALS) != expected_literal_keys:
+        _fail(
+            f"(h) MEMBERSHIP LOCK: _RENDER_RULE_LITERALS key set shrank — "
+            f"expected {expected_literal_keys!r}, got "
+            f"{sorted(_RENDER_RULE_LITERALS)!r}"
+        )
+
+    # (i) POSITIVE. Reads the real shipped bytes; goes RED if a rule is
+    #     deleted from either canonical surface today, or if either surface
+    #     currently contradicts the no-wrap rule.
+    render_reads, render_read_problems = _read_render_surfaces()
+    for problem in render_read_problems:
+        _fail(f"(i) POSITIVE: could not read a registered surface: {problem}")
+    for read in render_reads:
+        for problem in _render_rule_report(read):
+            _fail(f"(i) POSITIVE: {problem}")
+
+    # (j) COVERAGE FLOOR. Phase 10 block (l)'s corrected shape: derived
+    #     from the relpaths the read loop actually RETURNED, never from a
+    #     re-glob or a restated list. A surface the read loop declined to
+    #     open is named at (i) above rather than silently reducing
+    #     coverage to whatever was read; this floor additionally proves no
+    #     registered surface silently dropped out of the returned records.
+    read_relpaths = {read.relpath for read in render_reads}
+    if read_relpaths != set(_RENDER_RULE_SURFACES):
+        _fail(
+            f"(j) COVERAGE FLOOR: relpaths actually read {read_relpaths!r} "
+            f"do not equal the registered surfaces "
+            f"{set(_RENDER_RULE_SURFACES)!r}"
+        )
+
+    # (k) NEGATIVE, missing. For each real record and each literal key,
+    #     build a NEW _RenderSurfaceRead from that record's real text with
+    #     every occurrence of the literal replaced by the empty string —
+    #     never mutating the file on disk — and require
+    #     _render_rule_report to report a problem naming that relpath and
+    #     that key. Ten cases (2 surfaces x 5 literals).
+    missing_cases_unfired: list[str] = []
+    for read in render_reads:
+        for key, literal in _RENDER_RULE_LITERALS.items():
+            stripped_text = read.text.replace(literal, "")
+            stripped = _RenderSurfaceRead(relpath=read.relpath, text=stripped_text)
+            stripped_problems = _render_rule_report(stripped)
+            if not any(
+                read.relpath in p and key in p for p in stripped_problems
+            ):
+                missing_cases_unfired.append(f"{read.relpath}/{key}")
+    if missing_cases_unfired:
+        _fail(
+            f"(k) NEGATIVE missing: {len(missing_cases_unfired)} case(s) "
+            f"did not fire when the literal was stripped in memory: "
+            f"{missing_cases_unfired!r}"
+        )
+
+    # (l) NEGATIVE, contradiction. For each real record and each
+    #     contradiction phrasing, build a NEW _RenderSurfaceRead from that
+    #     record's real text with the phrase appended — never mutating the
+    #     file on disk — and require _render_rule_report to report a
+    #     problem naming that relpath and that phrase. Ten cases (2
+    #     surfaces x 5 phrasings).
+    contradiction_cases_unfired: list[str] = []
+    for read in render_reads:
+        for phrase in _RENDER_CONTRADICTION_PHRASES:
+            contradicted_text = read.text + " " + phrase
+            contradicted = _RenderSurfaceRead(
+                relpath=read.relpath, text=contradicted_text
+            )
+            contradicted_problems = _render_rule_report(contradicted)
+            if not any(
+                read.relpath in p and phrase in p
+                for p in contradicted_problems
+            ):
+                contradiction_cases_unfired.append(f"{read.relpath}/{phrase}")
+    if contradiction_cases_unfired:
+        _fail(
+            f"(l) NEGATIVE contradiction: "
+            f"{len(contradiction_cases_unfired)} case(s) did not fire when "
+            f"the phrase was appended in memory: "
+            f"{contradiction_cases_unfired!r}"
         )
 
     return ok
