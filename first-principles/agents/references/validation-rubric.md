@@ -336,14 +336,14 @@ intermediate step — **and** the **Abandoned Reasoning** section (output sectio
 Both sections are in scope for this criterion. Folds in:
 dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
-Reasoning (D-03).
+Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the GT-IDs it consumes,
   contains at least one intermediate claim (a claim that cannot be stated from either
   named GT alone), and reaches a conclusion; each chain is rendered in the prescribed
-  arrow-led form — a chain too long for one line wraps with `→`-led continuation lines,
-  never as an ordered list; the Abandoned Reasoning section either documents
+  arrow-led form. A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. Hops rendered as an ordered list do not satisfy the prescribed form; the Abandoned Reasoning
+  section either documents
   at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
   OR uses the honest-depth escape valve with a reason that is specific to this analysis's
   problem and appears in no other analysis without alteration; no analogy
@@ -362,7 +362,7 @@ Reasoning (D-03).
   ("seemed unlikely," "ran out of time") rather than the specific structural reason
   (assumption false, contradicts a GT, circular, intermediate could not be established); OR
   one or more chains render their hops as an ordered list (`1.`, `2.`, `3.`) instead of the
-  prescribed arrow-led continuation form, which splits one chain into disconnected one-hop
+  prescribed arrow-led hop form, which splits one chain into disconnected one-hop
   fragments even where every hop is individually sound — **this clause is why the criterion
   cannot be scored on reasoning quality alone.** A chain that names its GT-IDs, carries a
   genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
