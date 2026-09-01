@@ -2658,6 +2658,14 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           docs/v8.0-final-closure.md still containing a no-arrow current-literal line today
           — is reported as INFO, never asserted, because it legitimately stops being true
           the moment the headline moves.
+      (h2) Headline-move invariance control (T-10-05 continuation): for each (h) case,
+          asserts `_headline_exempt_layer()` returns the SAME layer for the identical line
+          built from `_prose`/`_slash` and from `_perturbed_prose`/`_perturbed_slash` — a
+          cheap, deterministic, in-process stand-in for manually simulating a headline move,
+          permanently asserting that the (h) controls stay figure-independent rather than
+          leaving that property incidental. A second arm requires the two constructed lines
+          to be non-byte-equal, so a future edit that made the perturbation a no-op cannot
+          leave this passing vacuously forever.
       (i) Non-vacuity control for the classifier (T-10-04): feeds
           `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
           containing the current literal with no arrow, and requires NOT historical.
@@ -3031,6 +3039,62 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 "  HEADLINE-LOCK INFO: (h) docs/v8.0-final-closure.md no longer carries a "
                 "live no-arrow current-literal line — expected after a headline move, "
                 "reported only, not asserted"
+            )
+
+    # (h2) Headline-move invariance control: Task 1's (h) rewrite makes the three controls
+    # figure-independent, but nothing yet ASSERTS that they are — a future edit could rebind
+    # one back to a live literal and every control would stay green, the defect one layer
+    # down. For each (h) case, build the identical synthetic line twice — once from
+    # _prose/_slash, once from _perturbed_prose/_perturbed_slash (already in scope for block
+    # (g), reused rather than re-derived) — and require _headline_exempt_layer() to return
+    # the SAME layer for both; it must, because the classifier never reads the figure. A
+    # second arm asserts the two constructed lines are NOT byte-equal, so a future edit that
+    # made the perturbation a no-op cannot leave this comparing a string to itself forever.
+    _perturbed_no_arrow_line = f"Superseded: the headline is now {_perturbed_prose}."
+    _perturbed_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_perturbed_slash} | ... |"
+    _h2_cases = (
+        ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
+        ("CHANGELOG.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
+        ("docs/requirements-traceability.md", _synthetic_delta_line, _perturbed_delta_line),
+    )
+    _h2_precondition_failed = [
+        _relpath for _relpath, _orig_line, _pert_line in _h2_cases if _orig_line == _pert_line
+    ]
+    if _h2_precondition_failed:
+        print(
+            f"  HEADLINE-LOCK FAIL: (h2) precondition violated for "
+            f"{_h2_precondition_failed} — synthetic and perturbed lines are byte-equal, "
+            "the perturbation did not change the line"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (h2) precondition violated for {_h2_precondition_failed}"
+        )
+    else:
+        _h2_mismatches = [
+            (_relpath, _headline_exempt_layer(_relpath, _orig_line),
+             _headline_exempt_layer(_relpath, _pert_line))
+            for _relpath, _orig_line, _pert_line in _h2_cases
+        ]
+        _h2_broken = [
+            (_relpath, _layer_orig, _layer_pert)
+            for _relpath, _layer_orig, _layer_pert in _h2_mismatches
+            if _layer_orig != _layer_pert
+        ]
+        if _h2_broken:
+            print(
+                f"  HEADLINE-LOCK FAIL: (h2) layer attribution is NOT invariant under a "
+                f"perturbed figure: {_h2_broken} — a consumer has been rebound to the "
+                "current literal"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (h2) invariance broken for "
+                f"{[r for r, _, _ in _h2_broken]}"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK PASS: (h2) all three (h) verdicts (docs/v8.0-final-"
+                "closure.md, CHANGELOG.md, docs/requirements-traceability.md) are "
+                "invariant under a perturbed figure"
             )
 
     # (i) Non-vacuity control for the classifier itself (T-10-04): prevents (h)'s positive
