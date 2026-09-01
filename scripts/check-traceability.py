@@ -40,6 +40,7 @@ import sys
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import NamedTuple
 
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -259,6 +260,150 @@ def _headline_scan_floor_breaches(
             "the scan is not reading what it claims to read"
         ]
     return []
+
+
+def _headline_hits(
+    text: str, literals: tuple[str, str] | None = None
+) -> list[tuple[int, str]]:
+    """Return every (1-based line number, line text) pair whose line contains either
+    the current headline's prose or compact-slash rendering as a substring.
+
+    Shared by every per-surface assertion in `_self_test_headline_lock()`, its own
+    non-vacuity control, and the (j) tree-wide scan via `_headline_scan_read()` — never
+    re-implemented in parallel — so a control that calls this function proves the real
+    assertion's code path is non-vacuous, not a copy that could silently diverge.
+
+    `literals`, when given, overrides the (slash, prose) pair matched against instead of
+    calling `_headline_literals()` — resolved the same way `_is_historical_headline_hit()`
+    resolves its own `literals` parameter. This parameter exists only so a headline-move
+    control can drive it explicitly; no production call site passes it.
+    """
+    _slash_lit, _prose_lit = literals if literals is not None else _headline_literals()
+    return [
+        (_i, _line)
+        for _i, _line in enumerate(text.splitlines(), start=1)
+        if _prose_lit in _line or _slash_lit in _line
+    ]
+
+
+def _unregistered_headline_finding(
+    relpath: str, hit: tuple[int, str]
+) -> tuple[bool, str]:
+    """The (j) scan's per-hit decision, shared by the real scan (via
+    `_headline_scan_read()`) and its (k) non-vacuity control — a control exercising a
+    parallel copy would prove nothing (research Pitfall 4). Returns
+    (is_finding, message-or-empty-string).
+
+    A hit is a finding only if BOTH of these hold: `_is_historical_headline_hit()`
+    classifies it non-historical, AND `relpath` is absent from
+    COVERED_HEADLINE_SURFACES. Gating the decision behind the classifier first is what
+    proves the scan cannot false-positive on a correctly historical or delta statement
+    (T-10-07) — HEADLINE-05's documented dependency on HEADLINE-03 is enforced by this
+    function calling the classifier directly, not by convention.
+    """
+    _lineno, _line = hit
+    if _is_historical_headline_hit(relpath, _line):
+        return False, ""
+    if relpath in COVERED_HEADLINE_SURFACES:
+        return False, ""
+    return True, (
+        f"{relpath}:{_lineno} states the current headline as a non-historical "
+        "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
+    )
+
+
+def _scan_relpaths(files: list[Path]) -> set[str]:
+    """REPO_ROOT-relative POSIX relpath of every regular file in `files`.
+
+    This is the GLOB-reach definition (IN-07): it answers "which registered paths did
+    the globs MATCH", never "which did the scan actually OPEN". Those are two different
+    questions, and conflating them is BL-02's root cause. The single source of truth for
+    what the tree-wide scan actually read is `_headline_scan_read().read_relpaths`,
+    never this function.
+    """
+    return {_p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()}
+
+
+class _HeadlineScanRead(NamedTuple):
+    """The single source of truth for what the (j) tree-wide scan actually read.
+
+    Any caller recomputing reachability from a separate glob or `is_file()` sweep
+    instead of reading these fields reintroduces BL-02 — the shipped defect where the
+    PASS line's "reached" claim, and the accounted-hit floor, were derived from a
+    different, more permissive filter than the one the read loop actually applied.
+    """
+    read_relpaths: set[str]
+    hits_by_surface: dict[str, int]
+    findings: list[tuple[str, str]]
+    skipped: list[tuple[str, str]]
+    read_errors: list[tuple[str, str]]
+
+
+def _headline_scan_read(scan_files: list[Path]) -> _HeadlineScanRead:
+    """Open and classify every candidate in `scan_files`, returning a structured record
+    of exactly what happened — the single source of truth for what the (j) tree-wide
+    scan read. Module level so block (j) and block (m)'s permanent controls call the
+    identical function object (research Pitfall 4).
+
+    `read_relpaths` and `hits_by_surface` are populated AS THE LOOP GOES, never
+    recomputed afterwards from a separate glob or `is_file()` sweep — any caller that
+    does so reintroduces BL-02. `hits_by_surface` carries an explicit zero entry for
+    every relpath in `read_relpaths`, so a starved registered surface is representable
+    rather than silently absent from the mapping.
+
+    Every candidate the loop declines to open is recorded in `skipped` with a distinct
+    reason ("not a regular file" or "resolves outside REPO_ROOT") — never a silent
+    `continue`. A read error other than a UTF-8 decode failure — permission denied,
+    is-a-directory, or any other `OSError` — is recorded in `read_errors` rather than
+    propagating as a traceback out of --self-test (`UnicodeDecodeError` derives from
+    `ValueError`, not `OSError`, so both are caught explicitly).
+
+    Returns pure data: this function never prints and never touches wrong_results. The
+    caller owns both.
+    """
+    _read_relpaths: set[str] = set()
+    _hits_by_surface: dict[str, int] = {}
+    _findings: list[tuple[str, str]] = []
+    _skipped: list[tuple[str, str]] = []
+    _read_errors: list[tuple[str, str]] = []
+    _repo_root_resolved = REPO_ROOT.resolve()
+
+    for _scan_path in scan_files:
+        if not _scan_path.is_file():
+            _skipped.append((str(_scan_path), "not a regular file"))
+            continue
+        _resolved_scan_path = _scan_path.resolve()
+        if not _resolved_scan_path.is_relative_to(_repo_root_resolved):
+            _skipped.append((str(_scan_path), "resolves outside REPO_ROOT"))
+            continue  # never follow a symlink resolving outside the repository
+        try:
+            _scan_text = _scan_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as _decode_exc:
+            _read_errors.append(
+                (str(_scan_path), f"could not be decoded as UTF-8: {_decode_exc}")
+            )
+            continue
+        except OSError as _os_exc:
+            _read_errors.append((str(_scan_path), f"could not be read: {_os_exc}"))
+            continue
+
+        _scan_relpath = _scan_path.relative_to(REPO_ROOT).as_posix()
+        _read_relpaths.add(_scan_relpath)
+        _hits_by_surface.setdefault(_scan_relpath, 0)
+        for _hit in _headline_hits(_scan_text):
+            _is_finding, _finding_msg = _unregistered_headline_finding(_scan_relpath, _hit)
+            if _is_finding:
+                _findings.append((_scan_relpath, _finding_msg))
+            elif not _is_historical_headline_hit(_scan_relpath, _hit[1]):
+                _hits_by_surface[_scan_relpath] += 1
+
+    return _HeadlineScanRead(
+        read_relpaths=_read_relpaths,
+        hits_by_surface=_hits_by_surface,
+        findings=_findings,
+        skipped=_skipped,
+        read_errors=_read_errors,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2924,20 +3069,6 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     else:
         print("  HEADLINE-LOCK PASS: (0) _headline_literals()'s prose rendering matches _expected")
 
-    def _headline_hits(text: str) -> list[tuple[int, str]]:
-        """Return every (1-based line number, line text) pair whose line contains either
-        the current headline's prose or compact-slash rendering as a substring.
-
-        Shared by every per-surface assertion below and its own non-vacuity control —
-        never re-implemented in parallel — so a control that calls this function proves the
-        real assertion's code path is non-vacuous, not a copy that could silently diverge.
-        """
-        return [
-            (_i, _line)
-            for _i, _line in enumerate(text.splitlines(), start=1)
-            if _prose in _line or _slash in _line
-        ]
-
     def _headline_matches(text: str) -> bool:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
         return _headline in text
@@ -3355,30 +3486,6 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "line as historical — non-vacuous"
         )
 
-    def _unregistered_headline_finding(
-        relpath: str, hit: tuple[int, str]
-    ) -> tuple[bool, str]:
-        """The (j) scan's per-hit decision, shared by the real scan below and its (k)
-        non-vacuity control — a control exercising a parallel copy would prove nothing
-        (research Pitfall 4). Returns (is_finding, message-or-empty-string).
-
-        A hit is a finding only if BOTH of these hold: `_is_historical_headline_hit()`
-        classifies it non-historical, AND `relpath` is absent from
-        COVERED_HEADLINE_SURFACES. Gating the decision behind the classifier first is what
-        proves the scan cannot false-positive on a correctly historical or delta statement
-        (T-10-07) — HEADLINE-05's documented dependency on HEADLINE-03 is enforced by this
-        function calling the classifier directly, not by convention.
-        """
-        _lineno, _line = hit
-        if _is_historical_headline_hit(relpath, _line):
-            return False, ""
-        if relpath in COVERED_HEADLINE_SURFACES:
-            return False, ""
-        return True, (
-            f"{relpath}:{_lineno} states the current headline as a non-historical "
-            "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
-        )
-
     # (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08). Six named arms, each
     # driving through _unregistered_headline_finding() — the SAME decision function (j) and
     # (k) call, never a parallel copy. Writes nothing to disk. One sentence per arm on what it
@@ -3535,39 +3642,27 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
-    # non-vacuity control) so glob expansion is never a parallel copy.
+    # non-vacuity control) so glob expansion is never a parallel copy. The read itself
+    # goes through the shared _headline_scan_read() helper (BL-02 fix) — the single
+    # source of truth for what was actually opened, never re-derived from a separate
+    # is_file() sweep.
     _scan_files: list[Path] = _headline_scan_files(HEADLINE_SCAN_GLOBS)
 
-    _scanned_count = 0
-    _accounted_hits = 0
     _scan_ok = True
-    _repo_root_resolved = REPO_ROOT.resolve()
-    for _scan_path in _scan_files:
-        if not _scan_path.is_file():
-            continue
-        _resolved_scan_path = _scan_path.resolve()
-        if not _resolved_scan_path.is_relative_to(_repo_root_resolved):
-            continue  # never follow a symlink resolving outside the repository
-        try:
-            _scan_text = _scan_path.read_text(encoding="utf-8")
-        except UnicodeDecodeError as _decode_exc:
-            print(
-                f"  HEADLINE-LOCK FAIL: (j) {_scan_path} could not be decoded as UTF-8: "
-                f"{_decode_exc}"
-            )
-            wrong_results.append(f"HEADLINE-LOCK: (j) {_scan_path} decode error")
-            _scan_ok = False
-            continue
-        _scanned_count += 1
-        _scan_relpath = _scan_path.relative_to(REPO_ROOT).as_posix()
-        for _hit in _headline_hits(_scan_text):
-            _is_finding, _finding_msg = _unregistered_headline_finding(_scan_relpath, _hit)
-            if _is_finding:
-                print(f"  HEADLINE-LOCK FAIL: (j) {_finding_msg}")
-                wrong_results.append(f"HEADLINE-LOCK: (j) {_finding_msg}")
-                _scan_ok = False
-            elif not _is_historical_headline_hit(_scan_relpath, _hit[1]):
-                _accounted_hits += 1
+    _scan_result = _headline_scan_read(_scan_files)
+    for _finding_relpath, _finding_msg in _scan_result.findings:
+        print(f"  HEADLINE-LOCK FAIL: (j) {_finding_msg}")
+        wrong_results.append(f"HEADLINE-LOCK: (j) {_finding_msg}")
+        _scan_ok = False
+    for _err_path, _err_reason in _scan_result.read_errors:
+        print(f"  HEADLINE-LOCK FAIL: (j) {_err_path} {_err_reason}")
+        wrong_results.append(f"HEADLINE-LOCK: (j) {_err_path} read error")
+        _scan_ok = False
+    for _skip_path, _skip_reason in _scan_result.skipped:
+        print(f"  HEADLINE-LOCK INFO: (j) skipped {_skip_path} — {_skip_reason}")
+
+    _scanned_count = len(_scan_result.read_relpaths)
+    _accounted_hits = sum(_scan_result.hits_by_surface.values())
 
     # (j-floor) Coverage floor and accounted-hit floor (CR-01 fix): the scan must have
     # actually reached every registered-plus-exempt surface and accounted for at least one
