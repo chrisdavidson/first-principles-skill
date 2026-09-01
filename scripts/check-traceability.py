@@ -2641,18 +2641,31 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           rendering guess cannot correctly single out just the historical line. For surfaces
           with a single, non-historical occurrence this has the same effect as plan 10-01's
           blanket perturbation. Each control's message names its own surface.
-      (h) Positive controls (HEADLINE-03, ROADMAP criterion 3): the three named historical
-          statements — docs/v8.0-final-closure.md's frozen Superseded callout,
-          docs/requirements-traceability.md's own ledger delta row, and CHANGELOG.md's
-          delta entry — classify as historical, proven by a positive control rather than
-          merely the absence of a failure, and with the exempting LAYER asserted
-          specifically via `_headline_exempt_layer()`: docs/v8.0-final-closure.md must be
-          exempted by the WHOLE-FILE layer at a hit line with NO arrow (the live proof
-          arrow-adjacency alone is insufficient), and docs/requirements-traceability.md's
-          ledger row must be exempted by the ARROW layer specifically, inside a file that is
-          NOT whole-file exempt (T-10-05 — if it were, assertion (a) would be defeated).
-          Every statement is located by scanning the live file rather than a hardcoded line
-          number, so an unrelated edit cannot break this control.
+      (h) Positive controls (HEADLINE-03, ROADMAP criterion 3, CR-02 fix): layer
+          attribution is asserted on SYNTHETIC lines carrying the current literal at the
+          REAL surface relpath — docs/v8.0-final-closure.md and CHANGELOG.md must attribute
+          a no-arrow line to the WHOLE-FILE layer, and docs/requirements-traceability.md
+          must attribute a delta-shaped line to the ARROW layer specifically, inside a file
+          that is NOT whole-file exempt (T-10-05 — if it were, assertion (a) would be
+          defeated). None of the three needs the live file to still contain today's figure,
+          because `_is_historical_headline_hit()` does not depend on the figure at all — a
+          control bound to a live occurrence tested a strictly narrower, stronger
+          precondition than the historicity property it claimed to prove, and broke on
+          every legitimate headline move (CR-02). A discriminating arm (WR-06) evaluates the
+          identical no-arrow line at a relpath that is NOT whole-file exempt and requires
+          `""`, proving whole-file MEMBERSHIP — not the line's content — is what rescues the
+          two whole-file cases. The one genuinely live-file claim that survives —
+          docs/v8.0-final-closure.md still containing a no-arrow current-literal line today
+          — is reported as INFO, never asserted, because it legitimately stops being true
+          the moment the headline moves.
+      (h2) Headline-move invariance control (T-10-05 continuation): for each (h) case,
+          asserts `_headline_exempt_layer()` returns the SAME layer for the identical line
+          built from `_prose`/`_slash` and from `_perturbed_prose`/`_perturbed_slash` — a
+          cheap, deterministic, in-process stand-in for manually simulating a headline move,
+          permanently asserting that the (h) controls stay figure-independent rather than
+          leaving that property incidental. A second arm requires the two constructed lines
+          to be non-byte-equal, so a future edit that made the perturbation a no-op cannot
+          leave this passing vacuously forever.
       (i) Non-vacuity control for the classifier (T-10-04): feeds
           `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
           containing the current literal with no arrow, and requires NOT historical.
@@ -2918,20 +2931,95 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # there regardless of the line; anything else the classifier accepted is arrow-layer.
         return "whole-file" if relpath in HISTORICAL_EXEMPT_FILES else "arrow"
 
-    # (h) Positive controls (ROADMAP criterion 3): the three named historical statements
-    # classify as historical, with the exempting layer asserted specifically. Each statement
-    # is located by scanning the live file for a hit satisfying the expected layer, never a
-    # hardcoded line number, so an unrelated edit elsewhere in the file cannot break this.
+    # (h) Positive controls (ROADMAP criterion 3, CR-02 fix): layer attribution is asserted
+    # on SYNTHETIC lines carrying the current literal at the REAL surface relpath, never on
+    # a line located by scanning the live file for today's figure. _is_historical_headline_
+    # hit() does not depend on the figure at all, so binding the control to a live
+    # occurrence of it made the precondition ("this line contains today's headline")
+    # strictly stronger than the property under test ("this line is historical") — the next
+    # legitimate headline move broke all three controls and could only be resolved by
+    # editing CHANGELOG.md or docs/v8.0-final-closure.md, two records this repo designates
+    # historical and frozen (CR-02). Every literal below is built from the in-scope
+    # _prose/_slash locals; the delta row's superseded left-hand figure is a fixed,
+    # non-current placeholder and is not the headline, so it may be typed.
+    _synthetic_no_arrow_line = f"Superseded: the headline is now {_prose}."
+    _synthetic_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_slash} | ... |"
+    for _relpath, _line, _want in (
+        ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, "whole-file"),
+        ("CHANGELOG.md", _synthetic_no_arrow_line, "whole-file"),
+        ("docs/requirements-traceability.md", _synthetic_delta_line, "arrow"),
+    ):
+        if (
+            _relpath == "docs/requirements-traceability.md"
+            and _relpath in HISTORICAL_EXEMPT_FILES
+        ):
+            # Explicit precondition (T-10-05): if this file were ever added to the
+            # whole-file exemption, assertion (a) (which requires this same file to state
+            # the current headline as a present-tense claim) would be defeated. Say so
+            # rather than silently attributing the delta row to the wrong layer.
+            print(
+                f"  HEADLINE-LOCK FAIL: (h) precondition violated — {_relpath} is in "
+                "HISTORICAL_EXEMPT_FILES, which would defeat assertion (a)"
+            )
+            wrong_results.append(f"HEADLINE-LOCK: (h) {_relpath} precondition violated")
+            continue
+        _got = _headline_exempt_layer(_relpath, _line)
+        if _got == _want:
+            print(
+                f"  HEADLINE-LOCK PASS: (h) {_relpath} attributes a synthetic "
+                f"{'delta-shaped' if _want == 'arrow' else 'no-arrow'} line carrying the "
+                f"current literal to the {_want.upper()} layer"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (h) {_relpath} attributed a synthetic "
+                f"{'delta-shaped' if _want == 'arrow' else 'no-arrow'} line to {_got!r}, "
+                f"wanted {_want!r}"
+            )
+            wrong_results.append(f"HEADLINE-LOCK: (h) {_relpath} layer attribution failed")
+
+    # Discriminating arm (WR-06 fix): the identical synthetic no-arrow line, evaluated at a
+    # relpath that is NOT whole-file exempt, must attribute "" — proving it is whole-file
+    # MEMBERSHIP, not the line's content, that rescues the two whole-file cases above. This
+    # is what stops the CHANGELOG.md/v8.0-final-closure.md cases from being tautological:
+    # the same line at a non-exempt path is correctly NOT rescued.
+    _non_exempt_relpath = "docs/does-not-exist-synthetic-non-exempt-headline-check.md"
+    if _non_exempt_relpath in HISTORICAL_EXEMPT_FILES:
+        print(
+            "  HEADLINE-LOCK FAIL: (h) precondition violated — the discriminating arm's "
+            "synthetic path is in HISTORICAL_EXEMPT_FILES"
+        )
+        wrong_results.append("HEADLINE-LOCK: (h) discriminating-arm precondition violated")
+    else:
+        _got = _headline_exempt_layer(_non_exempt_relpath, _synthetic_no_arrow_line)
+        if _got == "":
+            print(
+                "  HEADLINE-LOCK PASS: (h) the same no-arrow synthetic line attributes to "
+                "'' at a non-whole-file-exempt relpath — whole-file MEMBERSHIP rescues the "
+                "line, not its content"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (h) the no-arrow synthetic line attributed to "
+                f"{_got!r} at a non-exempt relpath — should be '' (content alone should "
+                "not rescue it)"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (h) discriminating arm did not attribute ''"
+            )
+
+    # Demoted live-file observation (CR-02): the whole-file layer's only live proof in this
+    # tree — a no-arrow current-literal line genuinely present in docs/v8.0-final-closure.md
+    # — is reported for visibility in diff review, never asserted, because it legitimately
+    # stops being true the moment the headline moves; binding the gate to it is precisely
+    # the defect CR-02 records. A missing docs/v8.0-final-closure.md is still a real
+    # repository defect and stays a wrong_results finding.
     _v80_path = REPO_ROOT / "docs" / "v8.0-final-closure.md"
     if not _v80_path.is_file():
         print(f"  HEADLINE-LOCK FAIL: (h) {_v80_path} not found")
         wrong_results.append("HEADLINE-LOCK: (h) docs/v8.0-final-closure.md missing")
     else:
         _v80_text = _v80_path.read_text(encoding="utf-8")
-        # This one must be exempted by the WHOLE-FILE layer specifically: it is located by
-        # requiring NO arrow on its own line, which is the only live proof in this tree that
-        # arrow-adjacency alone is insufficient — if it were rescued by the arrow layer
-        # instead, the classifier would be wrong (research counter-example).
         _v80_hit = next(
             (
                 (_i, _line)
@@ -2940,86 +3028,73 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             ),
             None,
         )
-        if _v80_hit is not None and _headline_exempt_layer(
-            "docs/v8.0-final-closure.md", _v80_hit[1]
-        ) == "whole-file":
+        if _v80_hit is not None:
             print(
-                "  HEADLINE-LOCK PASS: (h) docs/v8.0-final-closure.md's frozen Superseded "
-                f"callout (line {_v80_hit[0]}, no arrow on its own line) is classified "
-                "historical via the WHOLE-FILE layer — the live proof arrow-adjacency "
-                "alone is insufficient"
+                "  HEADLINE-LOCK INFO: (h) docs/v8.0-final-closure.md still carries a live "
+                f"no-arrow current-literal line (line {_v80_hit[0]}) — reported only, not "
+                "asserted, because it is expected to stop being true on a headline move"
             )
         else:
             print(
-                "  HEADLINE-LOCK FAIL: (h) docs/v8.0-final-closure.md's no-arrow "
-                "current-literal line is not classified historical via the whole-file "
-                "layer as expected"
-            )
-            wrong_results.append(
-                "HEADLINE-LOCK: (h) docs/v8.0-final-closure.md whole-file layer "
-                "attribution failed"
+                "  HEADLINE-LOCK INFO: (h) docs/v8.0-final-closure.md no longer carries a "
+                "live no-arrow current-literal line — expected after a headline move, "
+                "reported only, not asserted"
             )
 
-    # The ledger delta row must be exempted by the ARROW layer specifically, inside a file
-    # that is NOT whole-file exempt — if this file were whole-file exempt instead, the real
-    # assertion (a) (which requires this same file to state the current headline as a
-    # present-tense claim) would be defeated (T-10-05).
-    _trace_arrow_hit = next(
-        (
-            (_i, _line)
-            for _i, _line in _headline_hits(_trace)
-            if "→" in _line or "->" in _line
-        ),
-        None,
+    # (h2) Headline-move invariance control: Task 1's (h) rewrite makes the three controls
+    # figure-independent, but nothing yet ASSERTS that they are — a future edit could rebind
+    # one back to a live literal and every control would stay green, the defect one layer
+    # down. For each (h) case, build the identical synthetic line twice — once from
+    # _prose/_slash, once from _perturbed_prose/_perturbed_slash (already in scope for block
+    # (g), reused rather than re-derived) — and require _headline_exempt_layer() to return
+    # the SAME layer for both; it must, because the classifier never reads the figure. A
+    # second arm asserts the two constructed lines are NOT byte-equal, so a future edit that
+    # made the perturbation a no-op cannot leave this comparing a string to itself forever.
+    _perturbed_no_arrow_line = f"Superseded: the headline is now {_perturbed_prose}."
+    _perturbed_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_perturbed_slash} | ... |"
+    _h2_cases = (
+        ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
+        ("CHANGELOG.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
+        ("docs/requirements-traceability.md", _synthetic_delta_line, _perturbed_delta_line),
     )
-    if (
-        "docs/requirements-traceability.md" not in HISTORICAL_EXEMPT_FILES
-        and _trace_arrow_hit is not None
-        and _headline_exempt_layer(
-            "docs/requirements-traceability.md", _trace_arrow_hit[1]
-        )
-        == "arrow"
-    ):
+    _h2_precondition_failed = [
+        _relpath for _relpath, _orig_line, _pert_line in _h2_cases if _orig_line == _pert_line
+    ]
+    if _h2_precondition_failed:
         print(
-            "  HEADLINE-LOCK PASS: (h) docs/requirements-traceability.md's own ledger "
-            f"delta row recording the move to the current headline (line "
-            f"{_trace_arrow_hit[0]}) is classified historical via the ARROW layer, inside "
-            "a file that is NOT whole-file exempt"
-        )
-    else:
-        print(
-            "  HEADLINE-LOCK FAIL: (h) docs/requirements-traceability.md's ledger delta "
-            "row is not classified historical via the arrow layer, inside a non-whole-file"
-            "-exempt file, as expected"
+            f"  HEADLINE-LOCK FAIL: (h2) precondition violated for "
+            f"{_h2_precondition_failed} — synthetic and perturbed lines are byte-equal, "
+            "the perturbation did not change the line"
         )
         wrong_results.append(
-            "HEADLINE-LOCK: (h) docs/requirements-traceability.md arrow layer "
-            "attribution failed"
+            f"HEADLINE-LOCK: (h2) precondition violated for {_h2_precondition_failed}"
         )
-
-    _changelog_path = REPO_ROOT / "CHANGELOG.md"
-    if not _changelog_path.is_file():
-        print(f"  HEADLINE-LOCK FAIL: (h) {_changelog_path} not found")
-        wrong_results.append("HEADLINE-LOCK: (h) CHANGELOG.md missing")
     else:
-        _changelog_text = _changelog_path.read_text(encoding="utf-8")
-        _changelog_hits = _headline_hits(_changelog_text)
-        _changelog_hit = _changelog_hits[0] if _changelog_hits else None
-        if _changelog_hit is not None and _headline_exempt_layer(
-            "CHANGELOG.md", _changelog_hit[1]
-        ) == "whole-file":
+        _h2_mismatches = [
+            (_relpath, _headline_exempt_layer(_relpath, _orig_line),
+             _headline_exempt_layer(_relpath, _pert_line))
+            for _relpath, _orig_line, _pert_line in _h2_cases
+        ]
+        _h2_broken = [
+            (_relpath, _layer_orig, _layer_pert)
+            for _relpath, _layer_orig, _layer_pert in _h2_mismatches
+            if _layer_orig != _layer_pert
+        ]
+        if _h2_broken:
             print(
-                f"  HEADLINE-LOCK PASS: (h) CHANGELOG.md's delta entry "
-                f"(line {_changelog_hit[0]}) is classified historical via the WHOLE-FILE "
-                "layer"
+                f"  HEADLINE-LOCK FAIL: (h2) layer attribution is NOT invariant under a "
+                f"perturbed figure: {_h2_broken} — a consumer has been rebound to the "
+                "current literal"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (h2) invariance broken for "
+                f"{[r for r, _, _ in _h2_broken]}"
             )
         else:
             print(
-                "  HEADLINE-LOCK FAIL: (h) CHANGELOG.md's delta entry is not classified "
-                "historical via the whole-file layer as expected"
-            )
-            wrong_results.append(
-                "HEADLINE-LOCK: (h) CHANGELOG.md whole-file layer attribution failed"
+                "  HEADLINE-LOCK PASS: (h2) all three (h) verdicts (docs/v8.0-final-"
+                "closure.md, CHANGELOG.md, docs/requirements-traceability.md) are "
+                "invariant under a perturbed figure"
             )
 
     # (i) Non-vacuity control for the classifier itself (T-10-04): prevents (h)'s positive
