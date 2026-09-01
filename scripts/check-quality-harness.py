@@ -6723,6 +6723,17 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
     "docs/ARCHITECTURE.md",
 )
 
+# The tokens each registered `| QUAL-01 |` table row must carry (plan
+# 11-10, WR-04/IN-02/IN-03). The second token is what makes the row's
+# disclosure of the third scanned surface (validation-rubric.md)
+# load-bearing rather than decorative — a row could name "emission
+# rendering contract" while still describing only the two-surface world
+# CR-01 closed.
+_QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
+    "emission rendering contract",
+    "validation-rubric.md",
+)
+
 
 @dataclass(frozen=True)
 class _RenderRegistrySnapshot:
@@ -6750,6 +6761,7 @@ class _RenderRegistrySnapshot:
     literals: dict[str, str]
     contradiction_phrases: tuple[str, ...]
     qual01_doc_rows: tuple[str, ...]
+    qual01_doc_row_tokens: tuple[str, ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -6765,6 +6777,7 @@ class _RenderRegistrySnapshot:
             literals=_RENDER_RULE_LITERALS,
             contradiction_phrases=_RENDER_CONTRADICTION_PHRASES,
             qual01_doc_rows=_QUAL01_DOC_ROWS,
+            qual01_doc_row_tokens=_QUAL01_DOC_ROW_TOKENS,
         )
 
 
@@ -6782,6 +6795,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "literals",
     "contradiction_phrases",
     "qual01_doc_rows",
+    "qual01_doc_row_tokens",
 )
 
 # A `sha256:<hex>` pin over `_RENDER_RULE_LITERALS`, recomputed as
@@ -6893,6 +6907,17 @@ def _render_registry_lock_problems(
         problems.append(
             f"qual01_doc_rows: {snapshot.qual01_doc_rows!r} != expected "
             f"{expected_qual01_doc_rows!r}"
+        )
+
+    checked.add("qual01_doc_row_tokens")
+    expected_qual01_doc_row_tokens = (
+        "emission rendering contract",
+        "validation-rubric.md",
+    )
+    if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
+        problems.append(
+            f"qual01_doc_row_tokens: {snapshot.qual01_doc_row_tokens!r} != "
+            f"expected {expected_qual01_doc_row_tokens!r}"
         )
 
     # `literals` carries TWO arms under the single field name — both
@@ -7056,6 +7081,55 @@ def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
                 f"phrase {phrase!r}"
             )
     return problems
+
+
+def _qual01_row_problem(read: _RenderSurfaceRead) -> list[str]:
+    """Report every `_QUAL01_DOC_ROW_TOKENS` entry missing from *read*'s
+    `| QUAL-01 |` table row — one problem per missing token, naming the
+    relpath and the token, never a single all-or-nothing verdict (plan
+    11-10, IN-02/IN-03).
+
+    Takes the `_RenderSurfaceRead` record itself, never a loose
+    `(relpath, text)` pair — mirrors `_render_rule_report`'s discipline.
+    ROW-SCOPED (IN-03): only a physical line whose `lstrip()` starts with
+    the exact prefix `| QUAL-01 |` is inspected. A file may mention
+    "QUAL-01" on other lines (`CLAUDE.md` has three: the commands block,
+    the CI-gates intro paragraph, and the battery-tally paragraph) — a
+    claim stated on one of those does not satisfy this check; only the
+    table row itself does.
+    """
+    qual01_row_lines = [
+        line
+        for line in read.text.splitlines()
+        if line.lstrip().startswith("| QUAL-01 |")
+    ]
+    problems: list[str] = []
+    for token in _QUAL01_DOC_ROW_TOKENS:
+        if not any(token in line for line in qual01_row_lines):
+            problems.append(
+                f"{read.relpath}: the '| QUAL-01 |' row is missing "
+                f"required token {token!r}"
+            )
+    return problems
+
+
+def _read_qual01_doc_rows() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
+    """Read every `_QUAL01_DOC_ROWS` entry into a typed record, mirroring
+    `_read_render_surfaces()` exactly: a path that cannot be opened is a
+    NAMED problem carrying the relpath and the `OSError` repr, never a
+    silent skip.
+    """
+    reads: list[_RenderSurfaceRead] = []
+    problems: list[str] = []
+    for relpath in _QUAL01_DOC_ROWS:
+        path = REPO_ROOT / relpath
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            problems.append(f"could not read {relpath}: {exc!r}")
+            continue
+        reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
+    return tuple(reads), problems
 
 
 def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
@@ -8141,6 +8215,27 @@ def _selftest_render_contract() -> bool:
     with no literal — are load-bearing by mutating an in-memory copy and
     requiring the specific problem to fire.
 
+    Control (m) checks the two doc-side QUAL-01 gate-description rows
+    themselves, closing WR-04/IN-02/IN-03 (`11-REVIEW.md`) together: the
+    two rows fused two independent mechanisms into one inaccurate sentence
+    and omitted this item's third scanned surface, and the control that
+    policed them was loose enough not to notice. Plan 11-10 rebuilt it to
+    read through the same `_RenderSurfaceRead` discipline every other leg
+    uses (`_read_qual01_doc_rows()` is the only producer;
+    `_qual01_row_problem` cannot be handed a hand-built `(relpath, text)`
+    pair — IN-02), to check only the physical line whose `lstrip()` starts
+    with `| QUAL-01 |` rather than any line mentioning "QUAL-01" — IN-03,
+    proven by a dedicated ANTI-MASKING arm that puts the token on a
+    non-row line and requires the problem to still fire — and to require
+    both `_QUAL01_DOC_ROW_TOKENS` entries independently, reporting one
+    problem per missing token by name rather than a single all-or-nothing
+    verdict. `_QUAL01_DOC_ROW_TOKENS` is itself a ninth locked
+    `_RenderRegistrySnapshot` field, so dropping either required token
+    from the tuple is caught by control (h2)'s anti-masking floor even if
+    every doc row still carries it. A NEGATIVE-CASE COUNT FLOOR derives
+    the expected 4 (2 doc rows x 2 tokens) from the two registries rather
+    than restating it.
+
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
     formerly a single control (l), into three explicitly-labelled arms
     after finding it tautological: it built `read.text + " " + phrase`
@@ -8533,6 +8628,14 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
+            "qual01_doc_row_tokens with one token dropped",
+            "qual01_doc_row_tokens",
+            replace(
+                render_live_snapshot,
+                qual01_doc_row_tokens=render_live_snapshot.qual01_doc_row_tokens[1:],
+            ),
+        ),
+        (
             "literals clause arm: R1 gutted (WR-01 reproduction)",
             "literals",
             replace(
@@ -8777,8 +8880,13 @@ def _selftest_render_contract() -> bool:
     #     TRACE-03 doc rows' prose is asserted by nothing — a gate
     #     description that over-claims what the gate covers is the same
     #     defect class this milestone exists to close, one layer up.
-    #     DISCLOSED LIMITATION: this leg asserts the token's presence on a
-    #     QUAL-01 line only, not the rest of either row's prose.
+    #     Reads through the same typed-record discipline as (i)-(l):
+    #     `_qual01_row_problem` can only be handed a `_RenderSurfaceRead`
+    #     produced by `_read_qual01_doc_rows()`, never a hand-built
+    #     `(relpath, text)` pair (plan 11-10, IN-02).
+    #     DISCLOSED LIMITATION: asserts the required tokens' presence on
+    #     the `| QUAL-01 |` table row only, not the rest of either row's
+    #     prose — the row can still over-claim in words no token covers.
     expected_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
     if _QUAL01_DOC_ROWS != expected_doc_rows:
         _fail(
@@ -8786,44 +8894,87 @@ def _selftest_render_contract() -> bool:
             f"expected {expected_doc_rows!r}, got {_QUAL01_DOC_ROWS!r}"
         )
 
-    def _qual01_row_problem(relpath: str, text: str) -> str | None:
-        for line in text.splitlines():
-            if "QUAL-01" in line and "emission rendering contract" in line:
-                return None
-        return (
-            f"{relpath}: no physical line carries both 'QUAL-01' and "
-            f"'emission rendering contract'"
-        )
+    qual01_reads, qual01_read_problems = _read_qual01_doc_rows()
+    for problem in qual01_read_problems:
+        _fail(f"(m) could not read a registered doc row: {problem}")
 
-    for relpath in _QUAL01_DOC_ROWS:
-        doc_path = REPO_ROOT / relpath
-        try:
-            doc_text = doc_path.read_text(encoding="utf-8")
-        except OSError as exc:
-            _fail(f"(m) could not read {relpath}: {exc!r}")
-            continue
+    qual01_read_relpaths: set[str] = set()
+    for read in qual01_reads:
+        qual01_read_relpaths.add(read.relpath)
 
-        problem = _qual01_row_problem(relpath, doc_text)
-        if problem is not None:
+        # POSITIVE: every registered doc row carries every required token
+        # on its `| QUAL-01 |` row.
+        for problem in _qual01_row_problem(read):
             _fail(f"(m) POSITIVE: {problem}")
 
-        # Negative arm: strip the token from the QUAL-01 line in an
-        # in-memory copy — never the file on disk — and require the same
-        # checker to report the defect naming that file.
-        mutated_lines = [
-            line.replace("emission rendering contract", "")
-            if "QUAL-01" in line
-            else line
-            for line in doc_text.splitlines()
-        ]
-        mutated_text = "\n".join(mutated_lines)
-        mutated_problem = _qual01_row_problem(relpath, mutated_text)
-        if mutated_problem is None:
-            _fail(
-                f"(m) NEGATIVE: stripping 'emission rendering contract' "
-                f"from {relpath}'s QUAL-01 line did not produce a "
-                f"reported problem"
+        for token in _QUAL01_DOC_ROW_TOKENS:
+            # NEGATIVE, per (file, token): strip that ONE token from the
+            # `| QUAL-01 |` row in an in-memory copy — never the file on
+            # disk — and require the same checker to report the defect
+            # naming that file and that token.
+            stripped_lines = [
+                line.replace(token, "")
+                if line.lstrip().startswith("| QUAL-01 |")
+                else line
+                for line in read.text.splitlines()
+            ]
+            stripped_read = _RenderSurfaceRead(
+                relpath=read.relpath, text="\n".join(stripped_lines)
             )
+            stripped_problems = _qual01_row_problem(stripped_read)
+            if not any(
+                read.relpath in p and token in p for p in stripped_problems
+            ):
+                _fail(
+                    f"(m) NEGATIVE: stripping {token!r} from "
+                    f"{read.relpath}'s '| QUAL-01 |' row did not produce "
+                    f"a problem naming that file and that token"
+                )
+
+            # ANTI-MASKING, the IN-03 arm made explicit: build an
+            # in-memory copy where the `| QUAL-01 |` row has lost the
+            # token but a NON-row line elsewhere in the file gains it.
+            # Without this arm the row-scoping is asserted by nothing.
+            masked_lines = list(stripped_lines)
+            masked_lines.append(f"<!-- non-row QUAL-01 mention: {token} -->")
+            masked_read = _RenderSurfaceRead(
+                relpath=read.relpath, text="\n".join(masked_lines)
+            )
+            masked_problems = _qual01_row_problem(masked_read)
+            if not any(
+                read.relpath in p and token in p for p in masked_problems
+            ):
+                _fail(
+                    f"(m) ANTI-MASKING: {read.relpath}'s '| QUAL-01 |' "
+                    f"row lost {token!r} while a non-row line gained it, "
+                    f"and no problem was reported — the row-scoping is "
+                    f"not being enforced"
+                )
+
+    # COVERAGE FLOOR: the relpaths actually read must equal
+    # `set(_QUAL01_DOC_ROWS)`, derived from the records the read loop
+    # itself returned — never a re-glob (copies control (j)'s shape).
+    if qual01_read_relpaths != set(_QUAL01_DOC_ROWS):
+        _fail(
+            f"(m) COVERAGE FLOOR: read relpaths "
+            f"{sorted(qual01_read_relpaths)!r} != registered "
+            f"{sorted(_QUAL01_DOC_ROWS)!r}"
+        )
+
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 2 required tokens = 4 cases
+    # above, derived from the two registries rather than restated, and
+    # floored against an inline expected total of 4 — a doc row or a
+    # required token silently dropped shrinks the derived count.
+    qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
+        _QUAL01_DOC_ROW_TOKENS
+    )
+    if qual01_negative_case_count != 4:
+        _fail(
+            f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
+            f"{qual01_negative_case_count} (file, token) case(s) from "
+            f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 4"
+        )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
     #     branch: a `_RenderSurfaceRead` whose relpath is a sentinel that
