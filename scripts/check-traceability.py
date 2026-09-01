@@ -2894,21 +2894,22 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     def _headline_exempt_layer(relpath: str, line: str) -> str:
         """Which layer of _is_historical_headline_hit() classifies (relpath, line) as
-        historical, in the SAME order the real classifier checks them: "whole-file" if
-        relpath is a member of HISTORICAL_EXEMPT_FILES (checked first, regardless of arrow
-        presence on the line), "arrow" if not whole-file-exempt but the line itself carries
-        an arrow, or "" if neither layer applies. The positive controls below assert this
-        specific attribution rather than only the boolean _is_historical_headline_hit()
-        outcome, so a classifier that reordered or merged the two layers would still be
-        caught — per T-10-05, a classifier that (wrongly) whole-file-exempted
-        docs/requirements-traceability.md would make this return "whole-file" for its ledger
-        row instead of "arrow", failing the second positive control below.
+        historical: "whole-file" if relpath is a member of HISTORICAL_EXEMPT_FILES,
+        "arrow" if the classifier accepted the line for any other reason, or "" if the
+        classifier does not call it historical at all.
+
+        Delegates to _is_historical_headline_hit() rather than re-deriving the arrow test,
+        so this helper can never disagree with the classifier it attributes — a control
+        exercising a parallel copy would prove nothing (research Pitfall 4, the same rule
+        _unregistered_headline_finding() below already observes). If the classifier's arrow
+        layer is narrowed or a third layer is ever added, this helper picks up the change
+        automatically instead of silently keeping stale semantics while still printing PASS.
         """
-        if relpath in HISTORICAL_EXEMPT_FILES:
-            return "whole-file"
-        if "→" in line or "->" in line:
-            return "arrow"
-        return ""
+        if not _is_historical_headline_hit(relpath, line):
+            return ""
+        # Whole-file is checked first by the classifier, so a member relpath is attributed
+        # there regardless of the line; anything else the classifier accepted is arrow-layer.
+        return "whole-file" if relpath in HISTORICAL_EXEMPT_FILES else "arrow"
 
     # (h) Positive controls (ROADMAP criterion 3): the three named historical statements
     # classify as historical, with the exempting layer asserted specifically. Each statement
@@ -3153,32 +3154,44 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         _registered_path = sorted(COVERED_HEADLINE_SURFACES)[0]
         _reg_finding, _ = _unregistered_headline_finding(_registered_path, (1, _synth_line))
         # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03" clause):
-        # the same synthetic line, still at the unregistered synthetic path, but with an
-        # arrow appended, is NOT reported — proving the scan is gated behind the historical
-        # classifier and not merely a registered-surface membership test.
-        _arrow_line = _synth_line + " →"
-        _arrow_finding, _ = _unregistered_headline_finding(_synth_path, (1, _arrow_line))
-        if (
-            _unreg_finding
-            and _synth_path in _unreg_msg
-            and not _reg_finding
-            and not _arrow_finding
-        ):
+        # a genuinely delta-shaped line — a fixed superseded figure, an arrow, then the
+        # current slash rendering (built from the in-scope _slash local, never typed) — at
+        # the SAME unregistered synthetic path, is NOT reported. This proves the scan is
+        # gated behind the historical classifier and not merely a registered-surface
+        # membership test. The left-hand figure is a fixed non-current placeholder; it is
+        # not the headline and does not fall under the no-literal rule.
+        _superseded_figure = "0/0/0/1"
+        _delta_line = f"{_superseded_figure} → {_slash}"
+        if not _is_historical_headline_hit(_synth_path, _delta_line):
             print(
-                f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} is "
-                f"reported as a finding, the same line at a registered surface is not, and "
-                f"the same synthetic path with an arrow appended is not — non-vacuous and "
-                f"gated behind HEADLINE-03"
+                "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped line "
+                "is not classified historical, so direction 3 would prove nothing"
             )
+            wrong_results.append("HEADLINE-LOCK: (k) precondition violated (delta-shaped)")
         else:
-            print(
-                f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan did "
-                f"not behave as expected (unregistered finding={_unreg_finding}, registered "
-                f"finding={_reg_finding}, arrow-adjacent finding={_arrow_finding})"
-            )
-            wrong_results.append(
-                "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
-            )
+            _delta_finding, _ = _unregistered_headline_finding(_synth_path, (1, _delta_line))
+            if (
+                _unreg_finding
+                and _synth_path in _unreg_msg
+                and not _reg_finding
+                and not _delta_finding
+            ):
+                print(
+                    f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} "
+                    f"is reported as a finding, the same line at a registered surface is "
+                    f"not, and a delta-shaped line at the same synthetic path is not — "
+                    f"non-vacuous and gated behind HEADLINE-03"
+                )
+            else:
+                print(
+                    f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan "
+                    f"did not behave as expected (unregistered finding={_unreg_finding}, "
+                    f"registered finding={_reg_finding}, delta-shaped finding="
+                    f"{_delta_finding})"
+                )
+                wrong_results.append(
+                    "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                )
 
 
 def _run_self_test() -> None:
