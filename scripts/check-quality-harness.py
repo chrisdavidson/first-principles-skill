@@ -6459,9 +6459,15 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
       `_RENDER_FIXTURE_FORBIDDEN` substring. Reports which fixture and
       which substring.
 
-      mode 3: the fixture ids actually extracted do not equal the ids in
-      `_RENDER_CONTRACT_EXTRACTION_TABLE` — a membership check guarding
-      against a row silently failing to contribute its id.
+      mode 3: `_render_fixture_accounting_problems()` — a duplicated row
+      id (which `fixtures_by_id`, a dict, would otherwise silently dedup)
+      and a count mismatch between `len(fixtures_by_id) + len(problems)`
+      and the table's row count. This does NOT answer "does every row's
+      id appear somewhere" — an earlier version of this docstring claimed
+      that and the code did not keep the promise (WR-06,
+      `11-VERIFICATION.md`/`11-REVIEW.md`): the membership question is
+      answered by control (h)'s registry lock and control (p)'s
+      consumption floor in `_selftest_render_contract`, not here.
     """
     fixtures_by_id: dict[str, str] = {}
     problems: list[str] = []
@@ -6511,24 +6517,68 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
 
         fixtures_by_id[fixture_id] = extracted
 
-    # mode 3: membership check — every row's id must be accounted for
-    # either in `fixtures_by_id` (clean read) or already named in a
-    # reported problem above (a failed read still names its own id in the
-    # problem string, so this only catches a row silently contributing
-    # neither).
-    accounted_ids = set(fixtures_by_id)
-    for row in _RENDER_CONTRACT_EXTRACTION_TABLE:
-        fixture_id = row[0]
-        if fixture_id in accounted_ids:
-            continue
-        if not any(fixture_id in p for p in problems):
-            problems.append(
-                f"[mode 3: unaccounted fixture] {fixture_id}: row present "
-                f"in _RENDER_CONTRACT_EXTRACTION_TABLE but neither "
-                f"extracted nor named in a reported problem"
-            )
+    # mode 3: pure reconciliation, driven by parameters rather than by
+    # reading the module constant directly, so a self-test control can
+    # drive it with a duplicated-id table without editing the constant.
+    problems.extend(
+        _render_fixture_accounting_problems(
+            tuple(row[0] for row in _RENDER_CONTRACT_EXTRACTION_TABLE),
+            set(fixtures_by_id),
+            problems,
+        )
+    )
 
     return fixtures_by_id, problems
+
+
+def _render_fixture_accounting_problems(
+    row_ids: tuple[str, ...],
+    extracted_ids: set[str],
+    problems: list[str],
+) -> list[str]:
+    """Plan 11-09's replacement for the mode 3 block WR-06
+    (`11-REVIEW.md`) found unreachable by construction: the old condition
+    — `fixture_id not in accounted_ids and not any(fixture_id in p for p
+    in problems)` — could never be true, because every one of
+    `_render_contract_fixtures()`'s five loop exits either inserts the id
+    into `fixtures_by_id` or appends a problem string naming it verbatim.
+
+    Reports two things a pure per-id membership check cannot catch:
+
+      - a duplicated row id in *row_ids* — `fixtures_by_id` is a dict, so
+        a duplicate silently dedups rather than surfacing as a count
+        mismatch;
+      - a mismatch between `len(extracted_ids) + len(problems)` and
+        `len(row_ids)` — the count reconciliation WR-06's fix note
+        proposed.
+
+    Takes its inputs as parameters, never reads
+    `_RENDER_CONTRACT_EXTRACTION_TABLE` (or any other module constant)
+    directly, so control (q) in `_selftest_render_contract` can drive it
+    with a constructed duplicated-id table without touching the module
+    constant it guards in production.
+    """
+    accounting_problems: list[str] = []
+
+    seen_counts: dict[str, int] = {}
+    for row_id in row_ids:
+        seen_counts[row_id] = seen_counts.get(row_id, 0) + 1
+    duplicated_ids = sorted(
+        row_id for row_id, count in seen_counts.items() if count > 1
+    )
+    if duplicated_ids:
+        accounting_problems.append(
+            f"[mode 3: duplicated row id] {duplicated_ids!r} appear more "
+            f"than once in the extraction table"
+        )
+
+    if len(extracted_ids) + len(problems) != len(row_ids):
+        accounting_problems.append(
+            f"[mode 3: count mismatch] {len(extracted_ids)} extracted + "
+            f"{len(problems)} problems != {len(row_ids)} registered rows"
+        )
+
+    return accounting_problems
 
 
 # Phase 11 (CONTRACT-03, CONTRACT-05, D-04) reconciliation controls. Case A's
@@ -6633,6 +6683,37 @@ _RENDER_CONTRADICTION_PHRASES: tuple[str, ...] = (
     "too long for one line wraps",
     "a hop may be broken",
     "may wrap across physical lines",
+)
+
+# Real wrap-permitting wordings this tree actually shipped before the
+# rendering contract landed, byte-recovered with `git show` (plan 11-09,
+# WR-07, `11-REVIEW.md`) rather than retyped — each entry is commented
+# with its source file and the commit it was read from. Control (l1) in
+# `_selftest_render_contract` appends each of these to a real record's
+# text and requires `_render_rule_report` to catch it: this pins
+# `_RENDER_CONTRADICTION_PHRASES` against wordings that were really in
+# this tree, so narrowing the phrase list past one of them goes RED.
+_RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
+    # shared/spine/SKILL-body.md, pre-Phase-11, commit 54cad62
+    # ("fix(chain-form): teach arrow-led continuation wrap in both spine
+    # surfaces"). Verified via `git show 54cad62~1:shared/spine/SKILL-body.md`
+    # showing no wrap wording, then `git show 54cad62:shared/spine/SKILL-body.md`
+    # carrying this sentence.
+    "**A chain too long for one line wraps with arrow-led continuation "
+    "lines — never numbered steps.**",
+    # shared/spine/references/output-template.md, pre-Phase-11, the same
+    # commit 54cad62 — a differently-worded twin added to the second
+    # surface in the same commit.
+    "**Multi-hop chains wrap with arrow-led continuation lines — never "
+    "numbered steps.**",
+    # shared/spine/references/validation-rubric.md, removed by plan 11-06
+    # commit e4ff9c0 ("fix(11-06): reword validation-rubric.md Criterion 4
+    # to the split-not-wrap form") — CR-01's own finding
+    # (`11-REVIEW.md`/`11-VERIFICATION.md`): this wording shipped for a
+    # full milestone inside the tree while sitting outside this gate's
+    # pre-Plan-11-07 scan scope.
+    "a chain too long for one line wraps with `→`-led continuation "
+    "lines, never as an ordered list",
 )
 
 # The two doc-side QUAL-01 gate-description rows that must state the new
@@ -7985,7 +8066,21 @@ def _selftest_render_contract() -> bool:
     is present. Control (g) is NON-VACUITY: it re-asserts two
     long-standing base cases from outside this item, so a widened
     detector that scored everything `True` (or everything `False`) could
-    not pass (b)/(e) by accident.
+    not pass (b)/(e) by accident. Control (p), added by plan 11-09 (gap
+    2's second half), is the CONSUMPTION FLOOR: `_get` records every id it
+    is asked for, and the floor asserts that set against a locked eight-id
+    set written inline — plus that `fixtures` matches the same locked set
+    whenever `problems` is empty (the exact condition CR-02's reproduction
+    left silent), plus that every locked id is either in `fixtures` or
+    named in a reported problem. A fixture that is extracted but never
+    requested, or requested but never scored or reported, now fails by
+    name instead of being silently skipped by controls (b)-(f)'s
+    `is not None` guards. Control (q), also added by plan 11-09, drives
+    `_render_fixture_accounting_problems()` — the mode 3 replacement in
+    `_render_contract_fixtures()` — directly with a clean case, a
+    duplicated-id case and a count-mismatch case, proving WR-06's
+    unreachable membership check has been replaced by something that can
+    actually fire.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
     multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
@@ -8037,21 +8132,42 @@ def _selftest_render_contract() -> bool:
     Control (i) is POSITIVE — it goes RED if a rule is deleted from a
     shipped surface today. Control (j) is the COVERAGE FLOOR, Phase 10
     block (l)'s corrected shape: derived from the records
-    `_read_render_surfaces()` actually returned, never a re-glob. Controls
-    (k) and (l) are the NEGATIVE legs — missing-rule and contradiction —
-    each mutating an in-memory copy of the real bytes, never the file on
-    disk (Phase 10 block (m)'s shape, `scripts/check-agent.py:334`
-    `_assert_live_coverage`). Controls (n) and (o), added by plan 11-07,
-    prove `_render_rule_report`'s two fail-closed branches — an
-    unregistered surface and a required key with no literal — are
-    load-bearing by mutating an in-memory copy and requiring the specific
-    problem to fire.
+    `_read_render_surfaces()` actually returned, never a re-glob. Control
+    (k) is the NEGATIVE leg for a missing rule, mutating an in-memory copy
+    of the real bytes, never the file on disk (Phase 10 block (m)'s shape,
+    `scripts/check-agent.py:334` `_assert_live_coverage`). Controls (n)
+    and (o), added by plan 11-07, prove `_render_rule_report`'s two
+    fail-closed branches — an unregistered surface and a required key
+    with no literal — are load-bearing by mutating an in-memory copy and
+    requiring the specific problem to fire.
 
-    DISCLOSED LIMITATION: control (l)'s contradiction leg detects the
-    ENUMERATED phrasings in `_RENDER_CONTRADICTION_PHRASES`, not arbitrary
-    contradiction of R1. It is load-bearing rather than decorative because
-    three of those phrasings were in the tree before Phase 11 Plans 01/02
-    landed.
+    Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
+    formerly a single control (l), into three explicitly-labelled arms
+    after finding it tautological: it built `read.text + " " + phrase`
+    and asserted the phrase was reported, which is `x in (y + x)` — true
+    for every string, so it verified message formatting, not detection.
+    Control (l1) DETECTION is the falsifiable replacement: it appends each
+    of the real, `git show`-recovered pre-contract wordings in
+    `_RENDER_PRE_CONTRACT_WORDINGS` to a real record and requires a
+    contradiction problem, going RED if `_RENDER_CONTRADICTION_PHRASES` is
+    narrowed past a wording that was actually shipped. Control (l2)
+    MESSAGE FORM keeps the original per-phrase loop, relabelled as what it
+    is — a check on the reported problem's shape, which controls (i) and
+    (k) match on, not a detection test. Control (l3) is the
+    negative-of-the-negative: appending R1's own correct literal must
+    produce NO contradiction problem, closing the gap an
+    always-reports-a-contradiction `_render_rule_report` would leave in
+    (l1) alone.
+
+    DISCLOSED LIMITATION: (l1)/(l2) together detect the ENUMERATED
+    phrasings in `_RENDER_CONTRADICTION_PHRASES`, not arbitrary
+    contradiction of R1 — the enumeration is now pinned against the real
+    historical wordings recovered in `_RENDER_PRE_CONTRACT_WORDINGS`
+    rather than merely asserted tautologically, but the residual is
+    unchanged: contradiction of R1 in wording nobody has written yet is
+    still undetected. That is a stated limitation, not a bug — three of
+    the enumerated phrasings were live findings in this tree, not
+    hypotheticals.
     """
     ok = True
 
@@ -8067,7 +8183,14 @@ def _selftest_render_contract() -> bool:
     for problem in problems:
         _fail(f"(a) extraction {problem}")
 
+    # `requested_ids` backs control (p) below: every id `_get` is asked
+    # for, regardless of whether the lookup finds it. Controls (b)-(f) are
+    # all guarded by `is not None`, so a fixture id that is never requested
+    # here would otherwise be a silent skip, not a reported problem.
+    requested_ids: set[str] = set()
+
     def _get(fixture_id: str) -> str | None:
+        requested_ids.add(fixture_id)
         return fixtures.get(fixture_id)
 
     conforming = _get("R-CHAIN-CONFORMING")
@@ -8207,6 +8330,93 @@ def _selftest_render_contract() -> bool:
         _fail(
             "(g) NON-VACUITY: the bare-token base case 'Accept' (no "
             "em-dash, no justification) wrongly scored conforming"
+        )
+
+    # (p) CONSUMPTION FLOOR. Plan 11-09, gap 2's second half
+    #     (`11-VERIFICATION.md`): controls (b)-(f) above are all guarded by
+    #     `is not None`, so a fixture id absent from `fixtures` is silently
+    #     SKIPPED rather than reported — this is exactly the path the
+    #     verifier's CR-02 reproduction relied on once
+    #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
+    #     empty, every `_get(...)` returned `None`, and the sub-check still
+    #     printed PASSED. The locked eight-id set below is written INLINE,
+    #     matching plan 11-08's (h) lock literal, never read off a module
+    #     constant, so this floor cannot be made tautologically green by
+    #     comparing a constant against itself. This control proves every
+    #     locked fixture was requested and either scored or reported; it
+    #     does NOT prove the verdict each control asserted is the right
+    #     verdict — that is controls (b)-(f)'s job, and control (g)'s
+    #     non-vacuity pair is what keeps those honest.
+    render_locked_fixture_ids = {
+        "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
+        "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+        "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
+    }
+    if requested_ids != render_locked_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: requested_ids {sorted(requested_ids)!r} "
+            f"!= locked fixture ids {sorted(render_locked_fixture_ids)!r} — "
+            f"a scoring control stopped asking for a fixture"
+        )
+    if not problems and set(fixtures) != render_locked_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: problems is empty but fixtures "
+            f"{sorted(fixtures)!r} != locked fixture ids "
+            f"{sorted(render_locked_fixture_ids)!r} — an emptied "
+            f"extraction table leaves both problems and fixtures empty, "
+            f"which is precisely the condition nothing used to notice"
+        )
+    render_unaccounted_fixture_ids = sorted(
+        fid
+        for fid in render_locked_fixture_ids
+        if fid not in fixtures and not any(fid in p for p in problems)
+    )
+    if render_unaccounted_fixture_ids:
+        _fail(
+            f"(p) CONSUMPTION FLOOR: fixture id(s) "
+            f"{render_unaccounted_fixture_ids!r} are neither in fixtures "
+            f"nor named in a reported problem — never scored, never "
+            f"reported"
+        )
+
+    # (q) ISOLATION, fixture accounting. Plan 11-09's replacement for the
+    #     old unreachable mode 3 block (WR-06, `11-REVIEW.md`): drives
+    #     `_render_fixture_accounting_problems` directly with three
+    #     constructed inputs, never touching
+    #     `_RENDER_CONTRACT_EXTRACTION_TABLE`. A clean case must report no
+    #     problem, a duplicated-id case must name the duplicate, and a
+    #     count-mismatch case must name both counts — each assertion fails
+    #     when its own branch alone is neutralized.
+    render_accounting_clean = _render_fixture_accounting_problems(
+        ("A", "B", "C"), {"A", "B", "C"}, []
+    )
+    if render_accounting_clean:
+        _fail(
+            f"(q) ISOLATION clean case wrongly reported a problem: "
+            f"{render_accounting_clean!r}"
+        )
+
+    render_accounting_dup = _render_fixture_accounting_problems(
+        ("A", "A", "B"), {"A", "B"}, []
+    )
+    if not any(
+        "duplicated row id" in p and "'A'" in p for p in render_accounting_dup
+    ):
+        _fail(
+            f"(q) ISOLATION duplicated-id case did not name the "
+            f"duplicate: {render_accounting_dup!r}"
+        )
+
+    render_accounting_mismatch = _render_fixture_accounting_problems(
+        ("A", "B", "C"), {"A"}, []
+    )
+    if not any(
+        "1 extracted" in p and "0 problems" in p and "3 registered" in p
+        for p in render_accounting_mismatch
+    ):
+        _fail(
+            f"(q) ISOLATION count-mismatch case did not name both "
+            f"counts: {render_accounting_mismatch!r}"
         )
 
     # (h) MEMBERSHIP LOCK. Copies the `_TRACE03_DOC_ROWS` precedent (Phase
@@ -8479,14 +8689,45 @@ def _selftest_render_contract() -> bool:
             f"{missing_cases_run}"
         )
 
-    # (l) NEGATIVE, contradiction. For each real record and each
-    #     contradiction phrasing, build a NEW _RenderSurfaceRead from that
-    #     record's real text with the phrase appended — never mutating the
-    #     file on disk — and require _render_rule_report to report a
-    #     problem naming that relpath and that phrase. Fifteen cases (3
-    #     surfaces x 5 phrasings) — the contradiction scan is unscoped and
-    #     runs against every registered surface regardless of its
-    #     required-rule set.
+    # (l1) NEGATIVE, contradiction — DETECTION, falsifiable. Plan 11-09
+    #     (WR-07, `11-REVIEW.md`): for each real record and each of the
+    #     real pre-contract historical wordings in
+    #     `_RENDER_PRE_CONTRACT_WORDINGS` (byte-recovered via `git show`,
+    #     never retyped), build a NEW `_RenderSurfaceRead` from that
+    #     record's real text with the wording appended — never mutating
+    #     the file on disk — and require `_render_rule_report` to report a
+    #     contradiction problem. This is the arm that carries the real
+    #     risk: it goes RED if `_RENDER_CONTRADICTION_PHRASES` is narrowed
+    #     past a wording that was actually shipped in this tree.
+    render_l1_unfired: list[str] = []
+    for read in render_reads:
+        for wording in _RENDER_PRE_CONTRACT_WORDINGS:
+            historical = _RenderSurfaceRead(
+                relpath=read.relpath, text=read.text + "\n" + wording
+            )
+            historical_problems = _render_rule_report(historical)
+            if not any(
+                read.relpath in p and "contradicts the no-wrap rule" in p
+                for p in historical_problems
+            ):
+                render_l1_unfired.append(f"{read.relpath}/{wording[:40]!r}")
+    if render_l1_unfired:
+        _fail(
+            f"(l1) DETECTION: {len(render_l1_unfired)} case(s) did not "
+            f"fire when a real pre-contract historical wording was "
+            f"appended in memory: {render_l1_unfired!r}"
+        )
+
+    # (l2) NEGATIVE, contradiction — MESSAGE FORM, disclosed as such. For
+    #     each real record and each contradiction phrasing, build a NEW
+    #     `_RenderSurfaceRead` with the phrase appended and require a
+    #     problem naming that relpath and that phrase. This is NOT a
+    #     detection test — `_render_rule_report` tests `phrase in
+    #     read.text`, and `phrase in (text + phrase)` holds for every
+    #     string — it checks the reported problem's SHAPE (it names the
+    #     relpath and the phrase), which controls (i) and (k) match on.
+    #     Kept for that reason, not deleted; the real detection risk is
+    #     (l1)'s job.
     contradiction_cases_unfired: list[str] = []
     for read in render_reads:
         for phrase in _RENDER_CONTRADICTION_PHRASES:
@@ -8502,10 +8743,34 @@ def _selftest_render_contract() -> bool:
                 contradiction_cases_unfired.append(f"{read.relpath}/{phrase}")
     if contradiction_cases_unfired:
         _fail(
-            f"(l) NEGATIVE contradiction: "
+            f"(l2) MESSAGE FORM: "
             f"{len(contradiction_cases_unfired)} case(s) did not fire when "
             f"the phrase was appended in memory: "
             f"{contradiction_cases_unfired!r}"
+        )
+
+    # (l3) NEGATIVE-of-the-negative. Without this, a `_render_rule_report`
+    #     that reported a contradiction for EVERY input would satisfy
+    #     (l1) vacuously. Append a benign sentence that states R1
+    #     correctly — the R1 literal itself — and require NO contradiction
+    #     problem is reported.
+    render_l3_wrongly_fired: list[str] = []
+    for read in render_reads:
+        benign = _RenderSurfaceRead(
+            relpath=read.relpath,
+            text=read.text + "\n" + _RENDER_RULE_LITERALS["R1"],
+        )
+        benign_problems = _render_rule_report(benign)
+        if any(
+            read.relpath in p and "contradicts the no-wrap rule" in p
+            for p in benign_problems
+        ):
+            render_l3_wrongly_fired.append(read.relpath)
+    if render_l3_wrongly_fired:
+        _fail(
+            f"(l3) NEGATIVE-of-the-negative: appending R1's own correct "
+            f"literal wrongly triggered a contradiction problem for "
+            f"{render_l3_wrongly_fired!r}"
         )
 
     # (m) QUAL-01 doc-row honesty. STATE.md records that the rest of the
