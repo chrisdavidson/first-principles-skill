@@ -205,17 +205,26 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step — the intermediate is where the reasoning happens.
 
-**A chain too long for one line wraps with arrow-led continuation lines — never numbered steps.**
-Every line after the head begins with `→`:
+**A hop occupies exactly one physical line.** A hop occupies exactly one physical line. Every
+line after the head begins with `→` and carries exactly one complete hop; a hop is never broken
+across physical lines.
 
 ```text
-GT-1 + GT-6 → [intermediate claim]
+GT-1 ([brief fact label]) + GT-6 ([brief fact label])
+→ [intermediate claim]
 → [further intermediate]
 → [conclusion]
 ```
 
 Rendering the same hops as `1.` / `2.` / `3.` list items splits one chain into disconnected
 one-hop fragments and does not satisfy this format.
+
+**A hop states exactly ONE inference.** A hop states exactly ONE inference. If a hop joins two
+claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops
+— split it.
+
+TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then
+split — do not wrap it, and do not trim words to hit a number.
 
 **Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of what verification would raise it to HIGH.
 
