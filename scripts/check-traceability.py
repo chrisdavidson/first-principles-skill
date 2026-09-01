@@ -3126,90 +3126,121 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
         return _headline in text
 
-    # (a) Published-headline lock.
+    # (a) Published-headline lock. Scoped guard (WR-01): a missing artifact here skips only
+    # (b), which is the sole downstream consumer of `_trace` — every block from (c) onward
+    # is independent of this guard and must run whether or not it holds, so the guard never
+    # aborts the function.
     _trace_path = REPO_ROOT / "docs" / "requirements-traceability.md"
     if not _trace_path.is_file():
         print(f"  HEADLINE-LOCK FAIL: {_trace_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/requirements-traceability.md missing")
-        return
-    _trace = _trace_path.read_text(encoding="utf-8")
-    if _headline_matches(_trace):
-        print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
     else:
-        print(
-            f"  HEADLINE-LOCK FAIL: docs/requirements-traceability.md does not state "
-            f"{_expected!r} — build_matrix_rows() and the published headline disagree"
-        )
-        wrong_results.append(
-            f"HEADLINE-LOCK: published headline disagrees with build_matrix_rows() "
-            f"(expected {_expected!r})"
-        )
+        _trace = _trace_path.read_text(encoding="utf-8")
+        if _headline_matches(_trace):
+            print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: docs/requirements-traceability.md does not state "
+                f"{_expected!r} — build_matrix_rows() and the published headline disagree"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: published headline disagrees with build_matrix_rows() "
+                f"(expected {_expected!r})"
+            )
 
-    # (b) Non-vacuity control for (a): perturb the reproducible count, expect a mismatch.
-    _mutated_trace = _trace.replace(
-        _headline, f"**Coverage headline:** {_repro + 1} reproducible / {_audit} "
-        f"audit-only / {_gap} gap / {len(_rows)} total"
-    )
-    if _headline_matches(_mutated_trace):
-        print("  HEADLINE-LOCK FAIL: (a) passed a perturbed headline — assertion is vacuous")
-        wrong_results.append("HEADLINE-LOCK: (a) negative control did not fail")
-    else:
-        print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
+        # (b) Non-vacuity control for (a): perturb the reproducible count, expect a mismatch.
+        # Scoped inside (a)'s guard because it consumes `_trace` directly.
+        _mutated_trace = _trace.replace(
+            _headline, f"**Coverage headline:** {_repro + 1} reproducible / {_audit} "
+            f"audit-only / {_gap} gap / {len(_rows)} total"
+        )
+        if _headline_matches(_mutated_trace):
+            print("  HEADLINE-LOCK FAIL: (a) passed a perturbed headline — assertion is vacuous")
+            wrong_results.append("HEADLINE-LOCK: (a) negative control did not fail")
+        else:
+            print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
 
-    # (c) Markdown artifact freshness.
+    # (c) Markdown artifact freshness. Scoped guard (WR-01): a missing artifact here skips
+    # only the md half of (e), which is the sole downstream consumer of `_md_disk` — every
+    # block from (f) onward is independent of this guard and must run whether or not it
+    # holds, so the guard never aborts the function.
     _md_path = REPO_ROOT / "docs" / "requirements-matrix.md"
     _md_live = render_matrix_markdown(_rows)
-    if not _md_path.is_file():
+    _md_ok = _md_path.is_file()
+    if not _md_ok:
         print(f"  HEADLINE-LOCK FAIL: {_md_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/requirements-matrix.md missing")
-        return
-    _md_disk = _md_path.read_text(encoding="utf-8")
-    if _md_disk == _md_live:
-        print(
-            f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
-            f"render_matrix_markdown() ({len(_rows)} rows)"
-        )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
-            "re-run the emit subcommand"
-        )
-        wrong_results.append(
-            "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
-        )
+        _md_disk = _md_path.read_text(encoding="utf-8")
+        if _md_disk == _md_live:
+            print(
+                f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
+                f"render_matrix_markdown() ({len(_rows)} rows)"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
+                "re-run the emit subcommand"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
+            )
 
-    # (d) JSON artifact freshness — built exactly as emit_matrix writes it.
+    # (d) JSON artifact freshness — built exactly as emit_matrix writes it. Scoped guard
+    # (WR-01): a missing artifact here skips only the json half of (e), which is the sole
+    # downstream consumer of `_json_disk` — every block from (f) onward is independent of
+    # this guard and must run whether or not it holds, so the guard never aborts the
+    # function.
     _json_path = REPO_ROOT / "docs" / "data" / "matrix.json"
     _json_live = json.dumps([asdict(r) for r in _rows], indent=2)
-    if not _json_path.is_file():
+    _json_ok = _json_path.is_file()
+    if not _json_ok:
         print(f"  HEADLINE-LOCK FAIL: {_json_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/data/matrix.json missing")
-        return
-    _json_disk = _json_path.read_text(encoding="utf-8")
-    if _json_disk == _json_live:
-        print(
-            f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
-            f"({len(_rows)} rows)"
-        )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit subcommand"
-        )
-        wrong_results.append(
-            "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
-        )
+        _json_disk = _json_path.read_text(encoding="utf-8")
+        if _json_disk == _json_live:
+            print(
+                f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
+                f"({len(_rows)} rows)"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit "
+                "subcommand"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
+            )
 
-    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal.
-    _md_vacuous = (_md_disk + "\n") == _md_live
-    _json_vacuous = (_json_disk + "\n") == _json_live
-    if _md_vacuous or _json_vacuous:
+    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal. Scoped
+    # to run only when both artifacts it compares are present — a precondition failure here
+    # is named rather than an abort, and does not skip any block that follows.
+    if not (_md_ok and _json_ok):
+        _e_missing = [
+            _name
+            for _ok, _name in (
+                (_md_ok, "docs/requirements-matrix.md"),
+                (_json_ok, "docs/data/matrix.json"),
+            )
+            if not _ok
+        ]
         print(
-            f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
-            f"(md={_md_vacuous}, json={_json_vacuous})"
+            f"  HEADLINE-LOCK FAIL: (e) precondition violated — cannot run the non-vacuity "
+            f"control because {_e_missing} is missing"
         )
-        wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
+        wrong_results.append(f"HEADLINE-LOCK: (e) precondition violated (missing {_e_missing})")
     else:
-        print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+        _md_vacuous = (_md_disk + "\n") == _md_live
+        _json_vacuous = (_json_disk + "\n") == _json_live
+        if _md_vacuous or _json_vacuous:
+            print(
+                f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
+                f"(md={_md_vacuous}, json={_json_vacuous})"
+            )
+            wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
+        else:
+            print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
 
     # (f) Per-surface headline presence across every currently covered surface (sorted for
     # deterministic output), including docs/requirements-traceability.md again via the
@@ -3777,50 +3808,74 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         _unreg_finding, _unreg_msg = _unregistered_headline_finding(
             _synth_path, (1, _synth_line)
         )
-        # Direction 2: the SAME synthetic line attributed to a REGISTERED path is NOT
-        # reported — otherwise the decision function would simply flag everything and the
-        # scan's greenness on the live tree would be luck, not correctness.
-        _registered_path = sorted(COVERED_HEADLINE_SURFACES)[0]
-        _reg_finding, _ = _unregistered_headline_finding(_registered_path, (1, _synth_line))
-        # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03" clause):
-        # a genuinely delta-shaped line — a fixed superseded figure, an arrow, then the
-        # current slash rendering (built from the in-scope _slash local, never typed) — at
-        # the SAME unregistered synthetic path, is NOT reported. This proves the scan is
-        # gated behind the historical classifier and not merely a registered-surface
-        # membership test. The left-hand figure is a fixed non-current placeholder; it is
-        # not the headline and does not fall under the no-literal rule.
-        _superseded_figure = "0/0/0/1"
-        _delta_line = f"{_superseded_figure} → {_slash}"
-        if not _is_historical_headline_hit(_synth_path, _delta_line):
+        # Direction 2 precondition (WR-02): build the candidate list as the sorted
+        # difference of the two registered/exempt sets rather than indexing the bare
+        # sorted registered-surfaces set directly — an empty COVERED_HEADLINE_SURFACES
+        # must report a named precondition failure instead of raising IndexError, and if
+        # the alphabetically-first registered surface were ever also whole-file exempt,
+        # this direction would pass through the classifier gate rather than the
+        # registration gate and prove nothing about registration while still printing PASS.
+        _k_registered_candidates = sorted(COVERED_HEADLINE_SURFACES - HISTORICAL_EXEMPT_FILES)
+        if not _k_registered_candidates:
             print(
-                "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped line "
-                "is not classified historical, so direction 3 would prove nothing"
+                "  HEADLINE-LOCK FAIL: (k) precondition violated — no registered, "
+                "non-whole-file-exempt surface available for direction 2"
             )
-            wrong_results.append("HEADLINE-LOCK: (k) precondition violated (delta-shaped)")
+            wrong_results.append(
+                "HEADLINE-LOCK: (k) precondition violated (no registered path)"
+            )
         else:
-            _delta_finding, _ = _unregistered_headline_finding(_synth_path, (1, _delta_line))
-            if (
-                _unreg_finding
-                and _synth_path in _unreg_msg
-                and not _reg_finding
-                and not _delta_finding
-            ):
+            # Direction 2: the SAME synthetic line attributed to a REGISTERED path is NOT
+            # reported — otherwise the decision function would simply flag everything and
+            # the scan's greenness on the live tree would be luck, not correctness.
+            _registered_path = _k_registered_candidates[0]
+            _reg_finding, _ = _unregistered_headline_finding(
+                _registered_path, (1, _synth_line)
+            )
+            # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03"
+            # clause): a genuinely delta-shaped line — a fixed superseded figure, an arrow,
+            # then the current slash rendering (built from the in-scope _slash local, never
+            # typed) — at the SAME unregistered synthetic path, is NOT reported. This
+            # proves the scan is gated behind the historical classifier and not merely a
+            # registered-surface membership test. The left-hand figure is a fixed
+            # non-current placeholder; it is not the headline and does not fall under the
+            # no-literal rule.
+            _superseded_figure = "0/0/0/1"
+            _delta_line = f"{_superseded_figure} → {_slash}"
+            if not _is_historical_headline_hit(_synth_path, _delta_line):
                 print(
-                    f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} "
-                    f"is reported as a finding, the same line at a registered surface is "
-                    f"not, and a delta-shaped line at the same synthetic path is not — "
-                    f"non-vacuous and gated behind HEADLINE-03"
-                )
-            else:
-                print(
-                    f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan "
-                    f"did not behave as expected (unregistered finding={_unreg_finding}, "
-                    f"registered finding={_reg_finding}, delta-shaped finding="
-                    f"{_delta_finding})"
+                    "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped "
+                    "line is not classified historical, so direction 3 would prove nothing"
                 )
                 wrong_results.append(
-                    "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                    "HEADLINE-LOCK: (k) precondition violated (delta-shaped)"
                 )
+            else:
+                _delta_finding, _ = _unregistered_headline_finding(
+                    _synth_path, (1, _delta_line)
+                )
+                if (
+                    _unreg_finding
+                    and _synth_path in _unreg_msg
+                    and not _reg_finding
+                    and not _delta_finding
+                ):
+                    print(
+                        f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface "
+                        f"{_synth_path} is reported as a finding, the same line at a "
+                        f"registered surface is not, and a delta-shaped line at the same "
+                        f"synthetic path is not — non-vacuous and gated behind HEADLINE-03"
+                    )
+                else:
+                    print(
+                        f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide "
+                        f"scan did not behave as expected (unregistered finding="
+                        f"{_unreg_finding}, registered finding={_reg_finding}, "
+                        f"delta-shaped finding={_delta_finding})"
+                    )
+                    wrong_results.append(
+                        "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                    )
 
     # (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09).
     # Unlike (k), which exercises _unregistered_headline_finding() in isolation, arms 1 and 2
@@ -3849,25 +3904,38 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     # Arm 1: empty-globs (the CR-01 reproduction, permanently encoded). A control that only
     # asserted "non-empty" would pass against a floor that reported a generic message, so
-    # this requires the breach to name a specific registered surface.
+    # this requires the breach to name a specific registered surface. WR-02: the candidate
+    # surface is selected only after an explicit, named precondition confirms the
+    # registered-surfaces set is non-empty — indexing its sorted form directly would raise
+    # IndexError out of --self-test rather than reporting a finding.
     _l_empty_files = _headline_scan_files([])
     _l_empty_read = _headline_scan_read(_l_empty_files)
     _l_empty_breaches = _headline_scan_floor_breaches(
         _l_empty_read.read_relpaths, _l_empty_read.hits_by_surface
     )
-    _l_named_surface = sorted(COVERED_HEADLINE_SURFACES)[0]
-    if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
+    _l_registered_candidates = sorted(COVERED_HEADLINE_SURFACES)
+    if not _l_registered_candidates:
         print(
-            "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives the "
-            f"real collection and read helpers to a non-empty breach naming a registered "
-            f"surface ({_l_named_surface})"
+            "  HEADLINE-LOCK FAIL: (l) empty-globs arm precondition violated — "
+            "COVERED_HEADLINE_SURFACES is empty, arm 1 would prove nothing"
+        )
+        wrong_results.append(
+            "HEADLINE-LOCK: (l) empty-globs arm precondition violated (empty)"
         )
     else:
-        print(
-            "  HEADLINE-LOCK FAIL: (l) empty-globs arm — an emptied glob list did not "
-            "produce a breach naming a registered surface"
-        )
-        wrong_results.append("HEADLINE-LOCK: (l) empty-globs arm failed")
+        _l_named_surface = _l_registered_candidates[0]
+        if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
+            print(
+                "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives "
+                f"the real collection and read helpers to a non-empty breach naming a "
+                f"registered surface ({_l_named_surface})"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (l) empty-globs arm — an emptied glob list did not "
+                "produce a breach naming a registered surface"
+            )
+            wrong_results.append("HEADLINE-LOCK: (l) empty-globs arm failed")
 
     # Arm 2: narrowed-globs (the "narrowing typo" case, e.g. a well-meaning "temporarily
     # narrow the scan" edit). Proves the floor degrades proportionally rather than only
