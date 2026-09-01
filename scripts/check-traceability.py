@@ -106,6 +106,12 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 ]
 
 
+# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03). Neither
+# constant contains any digit from the coverage headline itself.
+_ARROW_TOKENS: tuple[str, str] = ("→", "->")
+_HTML_COMMENT_CLOSE: str = "-->"
+
+
 def _is_historical_headline_hit(relpath: str, line: str) -> bool:
     """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
     presence assertion, its positive controls, and the tree-wide unregistered-surface scan.
@@ -113,16 +119,35 @@ def _is_historical_headline_hit(relpath: str, line: str) -> bool:
     A hit (a line already known to contain the current headline literal, in either rendering)
     is historical if EITHER layer applies, checked in this order:
       1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
-      2. same-line arrow: the line itself contains "→" (U+2192) or the ASCII "->", marking it
-         as a delta/ledger row rather than a present-tense claim.
+      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) sits between two figures on the
+         line — a superseded slash-form reading joined to its replacement by an arrow, e.g. a
+         ledger row reading "<old slash reading> → <new slash reading>" — this is adjacency,
+         not line membership. A mermaid edge ("A --> B"), an HTML comment terminator ("-->"),
+         or an unrelated prose arrow elsewhere on the same line is NOT evidence that this
+         line's headline mention is historical; only an arrow delimiting two figures is. The
+         HTML comment terminator is stripped from the line before the arrow test runs, so it
+         can never itself supply the arrow (it would otherwise falsely satisfy the ASCII "->"
+         token, since "-->" contains "->" as a substring).
 
     Deliberately does not do any tense, marker-word, or surrounding-prose detection — this tree
     contains at least four distinct historical phrasings ("stayed X", "moved to X", "from X to
     Y", "the then-current X") and a marker list could never be proven exhaustive. The two
     structural layers above are what the live tree actually requires (see the
     <measured_classification_table> in this phase's plan) and nothing more.
+
+    This narrowing was measured against the live tree during planning (Phase 10 Plan 04's
+    <measured_live_baseline>): every one of the 11 headline-bearing lines in the current scan
+    scope keeps the identical classification under this adjacency test that it had under the
+    prior whole-line test — zero verdicts moved. The green self-test result after this change is
+    therefore a checked property, not a hope.
     """
-    return relpath in HISTORICAL_EXEMPT_FILES or "→" in line or "->" in line
+    if relpath in HISTORICAL_EXEMPT_FILES:
+        return True
+    _stripped = line.replace(_HTML_COMMENT_CLOSE, "")
+    return any(
+        re.search(rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped)
+        for _tok in _ARROW_TOKENS
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2633,6 +2658,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
+      (i2) Adjacency-specific controls (CR-03, T-10-04-01): a mermaid edge and an HTML
+          comment terminator sharing a line with the current headline must NOT exempt that
+          line from `_unregistered_headline_finding()` (the fail-unsafe case CR-03 names),
+          while a genuine delta line (a superseded figure, an arrow, then the current
+          figure) still must be exempt — proving the narrowing did not simply disable the
+          arrow layer. Every control drives through `_unregistered_headline_finding()`
+          itself, never a parallel copy.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): every file matched by
           HEADLINE_SCAN_GLOBS is read, its hits fed through `_unregistered_headline_finding()`
           (which itself calls `_is_historical_headline_hit()` — the identical function object
@@ -2869,21 +2901,22 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     def _headline_exempt_layer(relpath: str, line: str) -> str:
         """Which layer of _is_historical_headline_hit() classifies (relpath, line) as
-        historical, in the SAME order the real classifier checks them: "whole-file" if
-        relpath is a member of HISTORICAL_EXEMPT_FILES (checked first, regardless of arrow
-        presence on the line), "arrow" if not whole-file-exempt but the line itself carries
-        an arrow, or "" if neither layer applies. The positive controls below assert this
-        specific attribution rather than only the boolean _is_historical_headline_hit()
-        outcome, so a classifier that reordered or merged the two layers would still be
-        caught — per T-10-05, a classifier that (wrongly) whole-file-exempted
-        docs/requirements-traceability.md would make this return "whole-file" for its ledger
-        row instead of "arrow", failing the second positive control below.
+        historical: "whole-file" if relpath is a member of HISTORICAL_EXEMPT_FILES,
+        "arrow" if the classifier accepted the line for any other reason, or "" if the
+        classifier does not call it historical at all.
+
+        Delegates to _is_historical_headline_hit() rather than re-deriving the arrow test,
+        so this helper can never disagree with the classifier it attributes — a control
+        exercising a parallel copy would prove nothing (research Pitfall 4, the same rule
+        _unregistered_headline_finding() below already observes). If the classifier's arrow
+        layer is narrowed or a third layer is ever added, this helper picks up the change
+        automatically instead of silently keeping stale semantics while still printing PASS.
         """
-        if relpath in HISTORICAL_EXEMPT_FILES:
-            return "whole-file"
-        if "→" in line or "->" in line:
-            return "arrow"
-        return ""
+        if not _is_historical_headline_hit(relpath, line):
+            return ""
+        # Whole-file is checked first by the classifier, so a member relpath is attributed
+        # there regardless of the line; anything else the classifier accepted is arrow-layer.
+        return "whole-file" if relpath in HISTORICAL_EXEMPT_FILES else "arrow"
 
     # (h) Positive controls (ROADMAP criterion 3): the three named historical statements
     # classify as historical, with the exempting layer asserted specifically. Each statement
@@ -3043,6 +3076,80 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
         )
 
+    # (i2) Adjacency-specific controls (CR-03). A mermaid edge and an HTML comment
+    # terminator sharing a line with the current headline must NOT exempt that line from
+    # being reported as an unregistered-surface finding (the fail-unsafe case CR-03 names —
+    # docs/COMPONENT-DIAGRAM.md is live proof mermaid-heavy docs and headline statements
+    # coexist), while a genuine delta line still must be exempt, proving the narrowing did
+    # not simply disable the arrow layer. Every control drives through
+    # _unregistered_headline_finding(), the SAME decision function (j) and (k) call, never
+    # a parallel copy. Writes nothing to disk.
+    _i2_path = "docs/synthetic-adjacency-check.md"
+    if _i2_path in COVERED_HEADLINE_SURFACES or _i2_path in HISTORICAL_EXEMPT_FILES:
+        print(
+            "  HEADLINE-LOCK FAIL: (i2) precondition violated — synthetic path is "
+            "registered or whole-file exempt"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i2) precondition violated")
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (i2) precondition — {_i2_path} is absent from both "
+            "COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES"
+        )
+
+        # 1. Mermaid edge is NOT exempt.
+        _i2_mermaid_line = f"NODE_A --> NODE_B carrying {_prose}"
+        _i2_mermaid_finding, _i2_mermaid_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_mermaid_line)
+        )
+        if _i2_mermaid_finding and _i2_path in _i2_mermaid_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a mermaid edge sharing a line with the current "
+                "headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a mermaid edge sharing a line with the current "
+                "headline was NOT reported as a finding"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) mermaid edge non-exemption failed")
+
+        # 2. HTML comment terminator is NOT exempt — the exact CR-03 reproduction, promoted
+        # into a permanent control.
+        _i2_html_line = f"See -->  {_prose}"
+        _i2_html_finding, _i2_html_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_html_line)
+        )
+        if _i2_html_finding and _i2_path in _i2_html_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) an HTML comment terminator sharing a line with "
+                "the current headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) an HTML comment terminator sharing a line with "
+                "the current headline was NOT reported as a finding"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) HTML comment terminator non-exemption failed"
+            )
+
+        # 3. A genuine delta line IS exempt — without this arm, controls 1 and 2 would pass
+        # against a classifier that returns False unconditionally.
+        _i2_delta_line = f"0/0/0/1 → {_slash}"
+        _i2_delta_finding, _ = _unregistered_headline_finding(_i2_path, (1, _i2_delta_line))
+        if not _i2_delta_finding:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a genuine delta line (superseded figure → "
+                "current figure) is NOT reported as a finding — exempt as expected"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a genuine delta line was reported as a finding "
+                "— the narrowing over-disabled the arrow layer"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) delta-line exemption failed")
+
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files by expanding
     # HEADLINE_SCAN_GLOBS against REPO_ROOT, sorted and deduplicated by path (the
     # check-links.py _collect_files idiom, reimplemented inline here rather than imported —
@@ -3128,32 +3235,44 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         _registered_path = sorted(COVERED_HEADLINE_SURFACES)[0]
         _reg_finding, _ = _unregistered_headline_finding(_registered_path, (1, _synth_line))
         # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03" clause):
-        # the same synthetic line, still at the unregistered synthetic path, but with an
-        # arrow appended, is NOT reported — proving the scan is gated behind the historical
-        # classifier and not merely a registered-surface membership test.
-        _arrow_line = _synth_line + " →"
-        _arrow_finding, _ = _unregistered_headline_finding(_synth_path, (1, _arrow_line))
-        if (
-            _unreg_finding
-            and _synth_path in _unreg_msg
-            and not _reg_finding
-            and not _arrow_finding
-        ):
+        # a genuinely delta-shaped line — a fixed superseded figure, an arrow, then the
+        # current slash rendering (built from the in-scope _slash local, never typed) — at
+        # the SAME unregistered synthetic path, is NOT reported. This proves the scan is
+        # gated behind the historical classifier and not merely a registered-surface
+        # membership test. The left-hand figure is a fixed non-current placeholder; it is
+        # not the headline and does not fall under the no-literal rule.
+        _superseded_figure = "0/0/0/1"
+        _delta_line = f"{_superseded_figure} → {_slash}"
+        if not _is_historical_headline_hit(_synth_path, _delta_line):
             print(
-                f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} is "
-                f"reported as a finding, the same line at a registered surface is not, and "
-                f"the same synthetic path with an arrow appended is not — non-vacuous and "
-                f"gated behind HEADLINE-03"
+                "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped line "
+                "is not classified historical, so direction 3 would prove nothing"
             )
+            wrong_results.append("HEADLINE-LOCK: (k) precondition violated (delta-shaped)")
         else:
-            print(
-                f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan did "
-                f"not behave as expected (unregistered finding={_unreg_finding}, registered "
-                f"finding={_reg_finding}, arrow-adjacent finding={_arrow_finding})"
-            )
-            wrong_results.append(
-                "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
-            )
+            _delta_finding, _ = _unregistered_headline_finding(_synth_path, (1, _delta_line))
+            if (
+                _unreg_finding
+                and _synth_path in _unreg_msg
+                and not _reg_finding
+                and not _delta_finding
+            ):
+                print(
+                    f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} "
+                    f"is reported as a finding, the same line at a registered surface is "
+                    f"not, and a delta-shaped line at the same synthetic path is not — "
+                    f"non-vacuous and gated behind HEADLINE-03"
+                )
+            else:
+                print(
+                    f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan "
+                    f"did not behave as expected (unregistered finding={_unreg_finding}, "
+                    f"registered finding={_reg_finding}, delta-shaped finding="
+                    f"{_delta_finding})"
+                )
+                wrong_results.append(
+                    "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+                )
 
 
 def _run_self_test() -> None:
