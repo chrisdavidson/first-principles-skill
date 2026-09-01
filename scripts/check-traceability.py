@@ -2582,11 +2582,25 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           states the current headline in either rendering (prose or compact-slash),
           label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
           though it only ever states the bare slash form and never the
-          "**Coverage headline:**" label (a) is keyed to.
-      (g) Non-vacuity control for (f): for each surface independently, perturbing every
-          occurrence of both renderings in that surface's own in-memory copy — holding
-          every other surface's real text untouched — must make (f)'s identical scanner
-          find zero hits on the mutated copy. Each control's message names its own surface.
+          "**Coverage headline:**" label (a) is keyed to. Tightened in Phase 10 Plan 02
+          (HEADLINE-03) to require at least one hit that
+          `_is_historical_headline_hit()` does NOT call historical — a delta row or
+          historical statement elsewhere in the same file must not be able to satisfy this
+          on its own, so a surface whose only occurrence is a ledger delta (e.g. an arrow
+          row) correctly fails here rather than passing on a technicality.
+      (g) Non-vacuity control for (f): for each surface independently, perturbing its
+          in-memory copy so that (f)'s tightened, non-historical-only predicate finds zero
+          hits — holding every other surface's real text untouched. Sharpened in Phase 10
+          Plan 02 to perturb ONLY the lines `_is_historical_headline_hit()` does NOT call
+          historical, via `_perturb_non_historical_hits()`, leaving every historical/delta
+          line (e.g. an arrow-marked ledger row) byte-correct in the mutated copy — this is
+          a line-level, classifier-driven perturbation rather than a rendering-keyed guess
+          (perturb "the prose form") because docs/requirements-traceability.md carries two
+          non-historical hits in two different renderings (line 7 prose, line 99 slash
+          narrative) and one historical hit in the slash rendering (line 80, arrow); a
+          rendering guess cannot correctly single out just the historical line. For surfaces
+          with a single, non-historical occurrence this has the same effect as plan 10-01's
+          blanket perturbation. Each control's message names its own surface.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -2722,6 +2736,30 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     )
     _perturbed_slash = f"{_repro + 1}/{_audit}/{_gap}/{len(_rows)}"
 
+    def _perturb_non_historical_hits(text: str, relpath: str) -> str:
+        """Return a copy of text with the current headline literal replaced ONLY on lines
+        that _is_historical_headline_hit() does not call historical, leaving every
+        historical/delta line byte-unchanged. This is what makes (g) sharp: it perturbs
+        exactly the lines (f) counts as evidence, via the SAME classifier, rather than a
+        rendering-keyed guess at which occurrence is "the" current-fact line. A rendering
+        guess (perturb only the prose form, say) is not sound here —
+        docs/requirements-traceability.md carries two non-historical hits in two different
+        renderings (line 7 prose, line 99 slash narrative — see the measured classification
+        table, point 3) and one historical hit in the slash rendering (line 80, arrow), so
+        "perturb the prose rendering only" would leave line 99's non-historical slash hit
+        live in the mutated copy, silently defeating the control. Verified live against both
+        docs/README.md (line 20 non-historical vs. line 100 historical/arrow) and
+        docs/requirements-traceability.md (lines 7/99 non-historical vs. line 80
+        historical/arrow) before adopting this approach over the rendering-keyed one.
+        """
+        return "\n".join(
+            _line.replace(_prose, _perturbed_prose).replace(_slash, _perturbed_slash)
+            if (_prose in _line or _slash in _line)
+            and not _is_historical_headline_hit(relpath, _line)
+            else _line
+            for _line in text.splitlines()
+        )
+
     for _surface in sorted(COVERED_HEADLINE_SURFACES):
         _surface_path = REPO_ROOT / _surface
         if not _surface_path.is_file():
@@ -2730,39 +2768,47 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             continue
         _surface_text = _surface_path.read_text(encoding="utf-8")
         _hits = _headline_hits(_surface_text)
-        if _hits:
+        _current_hits = [
+            (_i, _line)
+            for _i, _line in _hits
+            if not _is_historical_headline_hit(_surface, _line)
+        ]
+        if _current_hits:
             _renderings = sorted(
-                {"prose" if _prose in _line else "slash" for _, _line in _hits}
+                {"prose" if _prose in _line else "slash" for _, _line in _current_hits}
             )
             print(
-                f"  HEADLINE-LOCK PASS: (f) {_surface} states the current headline "
-                f"(rendering(s): {', '.join(_renderings)})"
+                f"  HEADLINE-LOCK PASS: (f) {_surface} states the current, non-historical "
+                f"headline (rendering(s): {', '.join(_renderings)})"
             )
         else:
             print(
-                f"  HEADLINE-LOCK FAIL: (f) {_surface} does not state {_expected!r} in "
-                f"either rendering — build_matrix_rows() and {_surface} disagree"
+                f"  HEADLINE-LOCK FAIL: (f) {_surface} does not state {_expected!r} as a "
+                f"non-historical occurrence — build_matrix_rows() and {_surface} disagree, "
+                f"or the only occurrence present is historical/delta"
             )
             wrong_results.append(
                 f"HEADLINE-LOCK: (f) {_surface} does not state the current headline "
                 f"(expected {_expected!r})"
             )
 
-        # (g) Non-vacuity control for (f): perturb ONLY this surface's in-memory copy.
-        # docs/README.md and docs/requirements-traceability.md each carry a second
-        # occurrence of one rendering outside their current-fact line (README.md:100;
-        # ledger:80 and :99) — str.replace()'s default whole-string replacement covers
-        # every occurrence in this surface's copy, so the control stays non-vacuous even
-        # though it does not yet distinguish current-fact lines from historical ones (a
-        # later plan in this phase sharpens docs/README.md's control to perturb only its
-        # current-fact line once that discrimination exists).
-        _mutated_surface = _surface_text.replace(_prose, _perturbed_prose).replace(
-            _slash, _perturbed_slash
-        )
-        if _headline_hits(_mutated_surface):
+        # (g) Non-vacuity control for (f): perturb this surface's in-memory copy so that
+        # (f)'s tightened, non-historical-only predicate finds zero hits. Only lines the
+        # classifier does NOT call historical are perturbed — every historical/delta line
+        # (e.g. an arrow-marked ledger row) is left byte-correct in the mutated copy, so the
+        # control proves the classifier (not a blanket textual perturbation) is what does
+        # the rejecting. For surfaces with a single, non-historical occurrence this has the
+        # same effect as plan 10-01's blanket perturbation.
+        _mutated_surface = _perturb_non_historical_hits(_surface_text, _surface)
+        _mutated_current_hits = [
+            (_i, _line)
+            for _i, _line in _headline_hits(_mutated_surface)
+            if not _is_historical_headline_hit(_surface, _line)
+        ]
+        if _mutated_current_hits:
             print(
-                f"  HEADLINE-LOCK FAIL: (g) {_surface} still matches after every "
-                f"occurrence was perturbed — control is vacuous"
+                f"  HEADLINE-LOCK FAIL: (g) {_surface} still has a non-historical match "
+                f"after its current-fact occurrence was perturbed — control is vacuous"
             )
             wrong_results.append(f"HEADLINE-LOCK: (g) {_surface} negative control did not fail")
         else:
