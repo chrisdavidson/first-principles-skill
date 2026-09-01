@@ -8258,9 +8258,13 @@ def _selftest_render_contract() -> bool:
     `_render_registry_lock_problems` (the exact failure mode (h) had
     before this plan) is caught here rather than passing by omission. The
     `literals` field's two arms — a required-clause substring and a
-    `sha256:` digest pin — are each asserted exercised by name, so the
-    digest arm cannot be dropped while the clause arm keeps the field
-    "covered". DISCLOSED RESIDUAL: the lock proves the registries have not
+    `sha256:` digest pin — are each BOUND TO A CASE by the required
+    problem substring that case must see, not merely named in a case
+    title (WR-04, `11-REVIEW-gap-closure.md`): the digest is a hash over
+    the whole dict and therefore subsumes the clause arm, so while a case
+    only had to yield some problem containing "literals", the clause arm
+    could be deleted outright with both cases still green. Deleting
+    either arm now fails the case bound to it, by name. DISCLOSED RESIDUAL: the lock proves the registries have not
     shrunk, been reordered, or lost a required literal clause against a
     PINNED expectation; it does not prove the pinned expectations are
     themselves the right ones — that question is answered by the fixture
@@ -8627,15 +8631,26 @@ def _selftest_render_contract() -> bool:
     #     naming its field is a failure naming that field. The first case
     #     is CR-02's exact reproduction; the eleventh is WR-01's.
     render_live_snapshot = _RenderRegistrySnapshot.live()
-    render_lock_negative_cases: list[tuple[str, str, _RenderRegistrySnapshot]] = [
+    # (name, field, required_problem_substring, mutated snapshot). The third
+    # element is what makes a case bind to ONE ARM of its field rather than
+    # to the field name alone (WR-04, `11-REVIEW-gap-closure.md`): the
+    # `literals` field carries two arms, and the digest arm strictly
+    # subsumes the clause arm (a hash over the whole dict changes whenever a
+    # required clause is gutted), so a field-name-only assertion left the
+    # clause arm deletable with both cases still green.
+    render_lock_negative_cases: list[
+        tuple[str, str, str, _RenderRegistrySnapshot]
+    ] = [
         (
             "extraction_ids emptied (CR-02 reproduction)",
             "extraction_ids",
+            'sorted ids',
             replace(render_live_snapshot, extraction_ids=()),
         ),
         (
             "extraction_ids with one id dropped",
             "extraction_ids",
+            'sorted ids',
             replace(
                 render_live_snapshot,
                 extraction_ids=render_live_snapshot.extraction_ids[1:],
@@ -8645,6 +8660,7 @@ def _selftest_render_contract() -> bool:
             "fixture_shape with a chain needle tuple degraded to the "
             "undiscriminating pair (IN-04 reproduction)",
             "fixture_shape",
+            'expected discriminating shape',
             replace(
                 render_live_snapshot,
                 fixture_shape={
@@ -8656,11 +8672,13 @@ def _selftest_render_contract() -> bool:
         (
             "fixture_forbidden emptied",
             "fixture_forbidden",
+            '!= expected',
             replace(render_live_snapshot, fixture_forbidden={}),
         ),
         (
             "surfaces with the rubric entry dropped",
             "surfaces",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 surfaces=tuple(
@@ -8673,6 +8691,7 @@ def _selftest_render_contract() -> bool:
         (
             "surfaces reordered",
             "surfaces",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 surfaces=tuple(reversed(render_live_snapshot.surfaces)),
@@ -8681,6 +8700,7 @@ def _selftest_render_contract() -> bool:
         (
             "required_rules with the rubric key dropped",
             "required_rules",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 required_rules={
@@ -8693,11 +8713,13 @@ def _selftest_render_contract() -> bool:
         (
             "contradiction_phrases emptied",
             "contradiction_phrases",
+            '!= expected',
             replace(render_live_snapshot, contradiction_phrases=()),
         ),
         (
             "contradiction_phrases with the CR-01 live phrase dropped",
             "contradiction_phrases",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 contradiction_phrases=tuple(
@@ -8710,6 +8732,7 @@ def _selftest_render_contract() -> bool:
         (
             "qual01_doc_rows with one entry dropped",
             "qual01_doc_rows",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 qual01_doc_rows=render_live_snapshot.qual01_doc_rows[1:],
@@ -8718,6 +8741,7 @@ def _selftest_render_contract() -> bool:
         (
             "qual01_doc_row_tokens with one token dropped",
             "qual01_doc_row_tokens",
+            '!= expected',
             replace(
                 render_live_snapshot,
                 qual01_doc_row_tokens=render_live_snapshot.qual01_doc_row_tokens[1:],
@@ -8726,6 +8750,7 @@ def _selftest_render_contract() -> bool:
         (
             "literals clause arm: R1 gutted (WR-01 reproduction)",
             "literals",
+            'is missing its required clause',
             replace(
                 render_live_snapshot,
                 literals={
@@ -8737,6 +8762,7 @@ def _selftest_render_contract() -> bool:
         (
             "literals digest arm: R1 clause kept, benign sentence appended",
             "literals",
+            'digest',
             replace(
                 render_live_snapshot,
                 literals={
@@ -8749,13 +8775,24 @@ def _selftest_render_contract() -> bool:
     ]
 
     render_lock_negative_fields_exercised: set[str] = set()
-    for case_name, case_field, mutated_snapshot in render_lock_negative_cases:
+    render_lock_negative_arms_exercised: set[tuple[str, str]] = set()
+    for (
+        case_name,
+        case_field,
+        case_required_msg,
+        mutated_snapshot,
+    ) in render_lock_negative_cases:
         render_lock_negative_fields_exercised.add(case_field)
+        render_lock_negative_arms_exercised.add((case_field, case_required_msg))
         case_problems, _ = _render_registry_lock_problems(mutated_snapshot)
-        if not any(case_field in problem for problem in case_problems):
+        if not any(
+            case_field in problem and case_required_msg in problem
+            for problem in case_problems
+        ):
             _fail(
                 f"(h2) LOCK NEGATIVE: case {case_name!r} produced no "
-                f"problem naming field {case_field!r} — {case_problems!r}"
+                f"problem naming field {case_field!r} AND matching this "
+                f"case's arm {case_required_msg!r} — {case_problems!r}"
             )
 
     # (h2) ANTI-MASKING FLOOR, copying HARN-01's shape
@@ -8790,19 +8827,33 @@ def _selftest_render_contract() -> bool:
             f"compared {sorted(render_lock_checked)!r}, silently skipping "
             f"{sorted(render_skipped_fields)!r}"
         )
-    render_literals_case_names = {
-        case_name
-        for case_name, case_field, _ in render_lock_negative_cases
-        if case_field == "literals"
+    # ARM FLOOR (WR-04, `11-REVIEW-gap-closure.md`). The predecessor of
+    # this block matched on the case table's NAME strings (`"clause" in
+    # name`), which asserted only that somebody had typed the word — the
+    # clause arm itself could be deleted from
+    # `_render_registry_lock_problems` and both literals cases stayed green,
+    # because the digest arm subsumes it and each case only had to yield
+    # SOME problem containing "literals". The floor now ranges over the
+    # (field, required-substring) pairs the loop above actually bound, so
+    # each named arm has a case that fails when THAT arm is deleted.
+    render_literals_arms = {
+        required_msg
+        for field, required_msg in render_lock_negative_arms_exercised
+        if field == "literals"
     }
-    if not any(
-        "clause" in name for name in render_literals_case_names
-    ) or not any("digest" in name for name in render_literals_case_names):
+    render_required_literals_arms = {
+        "is missing its required clause",
+        "digest",
+    }
+    if not render_required_literals_arms <= render_literals_arms:
         _fail(
-            "(h2) ANTI-MASKING FLOOR: the literals field's two arms "
-            "(clause, digest) are not both exercised by name in the case "
-            "table — the digest arm could be dropped while the clause "
-            "arm keeps the field 'covered'"
+            f"(h2) ANTI-MASKING FLOOR: the literals field's two arms "
+            f"(clause, digest) are not both bound to a case by required "
+            f"message substring — bound arms {sorted(render_literals_arms)!r}, "
+            f"missing "
+            f"{sorted(render_required_literals_arms - render_literals_arms)!r} "
+            f"— an unbound arm can be deleted while the other keeps the "
+            f"field 'covered'"
         )
 
     # (r) ISOLATION, decode-error fail-closed (WR-08, `11-REVIEW.md`).
