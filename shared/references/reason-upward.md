@@ -31,6 +31,9 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as
 `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07.
+The one-line form is the degenerate case, used only when the whole chain fits on one
+physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is
+split rather than continued on a second line.
 Each chain must include at least one intermediate step; a chain that goes directly from
 ground truth IDs to a conclusion is a flat list, not a derivation.
 
