@@ -6778,6 +6778,7 @@ class _RenderRegistrySnapshot:
     wiring unexpressible, not merely asserted.
     """
 
+    extraction_rows: tuple[tuple[str, str, str, str], ...]
     extraction_ids: tuple[str, ...]
     fixture_shape: dict[str, tuple[str, ...]]
     fixture_forbidden: dict[str, tuple[str, ...]]
@@ -6793,6 +6794,7 @@ class _RenderRegistrySnapshot:
     def live(cls) -> "_RenderRegistrySnapshot":
         """The only producer that reads the real module constants."""
         return cls(
+            extraction_rows=_RENDER_CONTRACT_EXTRACTION_TABLE,
             extraction_ids=tuple(
                 row[0] for row in _RENDER_CONTRACT_EXTRACTION_TABLE
             ),
@@ -6814,6 +6816,7 @@ class _RenderRegistrySnapshot:
 # registry added to the lock without a matching negative case in (h2)'s
 # table also fails that floor. See `_render_registry_lock_problems`.
 _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
+    "extraction_rows",
     "extraction_ids",
     "fixture_shape",
     "fixture_forbidden",
@@ -6873,6 +6876,86 @@ def _render_registry_lock_problems(
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
+
+    # The AUTHORITATIVE extraction arm: all FOUR columns of every row, not
+    # the `row[0]` id projection the snapshot used to carry (WR-03,
+    # `11-REVIEW-gap-closure.md`). `source_file`, `habitat_mode` and
+    # `anchor` are what determine WHAT THE GATE ACTUALLY READS, and they
+    # sat outside the lock entirely: rebinding all eight rows'
+    # `source_file` to `first-principles/agents/references/` — the
+    # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
+    # doc rows told the reader the gate reads the canonical `shared/`
+    # source. The id-only arm below is kept for its narrower failure
+    # message and for its own (h2) cases, not as the authority.
+    expected_extraction_rows = (
+        (
+            'R-CHAIN-CONFORMING',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — head, then one hop per line:**',
+        ),
+        (
+            'R-CHAIN-WRAPPED',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — a hop broken across physical lines:**',
+        ),
+        (
+            'R-CHAIN-NUMBERED',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — the same hops rendered as a numbered list:**',
+        ),
+        (
+            'R-CITE-INLINE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — inline chain citation:**',
+        ),
+        (
+            'R-CITE-LEDGER',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — closure-ledger row:**',
+        ),
+        (
+            'R-CITE-NONE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — a claim naming no chain and quoted by no ledger row:**',
+        ),
+        (
+            'R-VERDICT-EXPIRY',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — a current constraint recording its expiry:**',
+        ),
+        (
+            'R-VERDICT-EXPIRY-BAD',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — the expiry hoisted into the token slot:**',
+        ),
+    )
+    if snapshot.extraction_rows != expected_extraction_rows:
+        if len(snapshot.extraction_rows) != len(expected_extraction_rows):
+            problems.append(
+                f"extraction_rows: {len(snapshot.extraction_rows)} row(s) "
+                f"!= expected {len(expected_extraction_rows)}"
+            )
+        for row_index, expected_row in enumerate(expected_extraction_rows):
+            actual_row = (
+                snapshot.extraction_rows[row_index]
+                if row_index < len(snapshot.extraction_rows)
+                else None
+            )
+            if actual_row != expected_row:
+                problems.append(
+                    f"extraction_rows: row {row_index} "
+                    f"({expected_row[0]}) {actual_row!r} != expected "
+                    f"{expected_row!r}"
+                )
+    checked.add("extraction_rows")
 
     if sorted(snapshot.extraction_ids) != expected_ids:
         problems.append(
@@ -8691,6 +8774,45 @@ def _selftest_render_contract() -> bool:
     render_lock_negative_cases: list[
         tuple[str, str, str, _RenderRegistrySnapshot]
     ] = [
+        (
+            "extraction_rows with every source_file repointed at the "
+            "generated tree (WR-03 reproduction)",
+            "extraction_rows",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                extraction_rows=tuple(
+                    (
+                        row[0],
+                        "first-principles/agents/references/"
+                        "output-template.md",
+                        row[2],
+                        row[3],
+                    )
+                    for row in render_live_snapshot.extraction_rows
+                ),
+            ),
+        ),
+        (
+            "extraction_rows with one anchor repointed at a sibling "
+            "block (WR-03 reproduction)",
+            "extraction_rows",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                extraction_rows=tuple(
+                    (
+                        row[0],
+                        row[1],
+                        row[2],
+                        "**Conforming — closure-ledger row:**",
+                    )
+                    if row[0] == "R-CITE-INLINE"
+                    else row
+                    for row in render_live_snapshot.extraction_rows
+                ),
+            ),
+        ),
         (
             "extraction_ids emptied (CR-02 reproduction)",
             "extraction_ids",
