@@ -247,9 +247,22 @@ def _headline_scan_files(globs: list[str]) -> list[Path]:
     return _files
 
 
-def _headline_scan_floor_breaches(
-    read_relpaths: set[str], hits_by_surface: dict[str, int]
-) -> list[str]:
+class _HeadlineScanRead(NamedTuple):
+    """The single source of truth for what the (j) tree-wide scan actually read.
+
+    Any caller recomputing reachability from a separate glob or `is_file()` sweep
+    instead of reading these fields reintroduces BL-02 — the shipped defect where the
+    PASS line's "reached" claim, and the accounted-hit floor, were derived from a
+    different, more permissive filter than the one the read loop actually applied.
+    """
+    read_relpaths: set[str]
+    hits_by_surface: dict[str, int]
+    findings: list[tuple[str, str]]
+    skipped: list[tuple[str, str]]
+    read_errors: list[tuple[str, str]]
+
+
+def _headline_scan_floor_breaches(read: _HeadlineScanRead) -> list[str]:
     """Derived coverage floor and accounted-hit floor for the tree-wide scan (CR-01 fix,
     BL-02 fix).
 
@@ -260,7 +273,16 @@ def _headline_scan_floor_breaches(
     total absence. Module level so block (j) and its non-vacuity controls, blocks (l) and
     (m), call the identical function object.
 
-    Reachability here means "was READ" — a member of `read_relpaths`, the set
+    The single parameter is the `_HeadlineScanRead` record itself, never a loose
+    `set[str]` plus a loose `dict` (CR-01, Phase 10 review). Both floors read
+    `read.read_relpaths` and `read.hits_by_surface` off that record, so the BL-02 wiring
+    defect — feeding the coverage floor a glob-derived sweep such as
+    `_scan_relpaths(_scan_files)` instead of what the read loop actually opened — is no
+    longer expressible at any call site: a bare set has no `.read_relpaths`, and the
+    attempt fails loudly instead of passing a green gate. Three (m) arms lock the helper's
+    own semantics; this signature is what locks block (j)'s WIRING to it.
+
+    Reachability here means "was READ" — a member of `read.read_relpaths`, the set
     `_headline_scan_read()` actually populated as it opened each candidate — deliberately
     NOT "was globbed" (that weaker question is `_scan_relpaths()`'s, over the raw
     glob-matched candidate list, which does not know whether the loop actually opened
@@ -269,14 +291,14 @@ def _headline_scan_floor_breaches(
     opened by the loop, so a surface the loop refused to read was still counted reached.
 
     The accounted-hit floor is PER SURFACE, never a running total compared against a
-    cardinality: `hits_by_surface.get(surface, 0)` is checked individually for every member
+    cardinality: `read.hits_by_surface.get(surface, 0)` is checked individually for every member
     of COVERED_HEADLINE_SURFACES. A running-total floor has slack whenever any surface
     contributes more than one hit — measured on the live tree, docs/requirements-
     traceability.md contributes two, so a running total leaves exactly one registered
     surface free to go entirely unread while the floor still reports satisfied.
     """
     _unreachable = sorted(
-        (COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES) - read_relpaths
+        (COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES) - read.read_relpaths
     )
     if _unreachable:
         return [
@@ -286,7 +308,7 @@ def _headline_scan_floor_breaches(
     _starved = sorted(
         _surface
         for _surface in COVERED_HEADLINE_SURFACES
-        if hits_by_surface.get(_surface, 0) < 1
+        if read.hits_by_surface.get(_surface, 0) < 1
     )
     if _starved:
         return [
@@ -358,21 +380,6 @@ def _scan_relpaths(files: list[Path]) -> set[str]:
     never this function.
     """
     return {_p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()}
-
-
-class _HeadlineScanRead(NamedTuple):
-    """The single source of truth for what the (j) tree-wide scan actually read.
-
-    Any caller recomputing reachability from a separate glob or `is_file()` sweep
-    instead of reading these fields reintroduces BL-02 — the shipped defect where the
-    PASS line's "reached" claim, and the accounted-hit floor, were derived from a
-    different, more permissive filter than the one the read loop actually applied.
-    """
-    read_relpaths: set[str]
-    hits_by_surface: dict[str, int]
-    findings: list[tuple[str, str]]
-    skipped: list[tuple[str, str]]
-    read_errors: list[tuple[str, str]]
 
 
 def _headline_scan_read(scan_files: list[Path]) -> _HeadlineScanRead:
@@ -3069,7 +3076,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           would also pass against a read loop that silently dropped everything, since both
           construct their inputs by hand rather than driving the loop itself. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
-          degrade into a tautology if a future edit changes a constant.
+          degrade into a tautology if a future edit changes a constant. What these arms lock
+          is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
+          it, so block (j)'s WIRING is locked structurally instead (CR-01, Phase 10 review):
+          `_headline_scan_floor_breaches()` takes the `_HeadlineScanRead` record itself, so
+          re-deriving the floor input from a glob-based sweep — `_scan_relpaths(_scan_files)`,
+          the literal BL-02 defect — is no longer expressible at the call site rather than
+          being merely asserted against by a fourth prose control.
       (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows in
           CLAUDE.md and docs/ARCHITECTURE.md transcribe HEADLINE_SCAN_GLOBS' live value by
           hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
@@ -3847,9 +3860,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # actually read — never a separate is_file() sweep — before the PASS branch, so the PASS
     # branch can never be reached vacuously.
     if _scan_ok:
-        for _breach in _headline_scan_floor_breaches(
-            _scan_result.read_relpaths, _scan_result.hits_by_surface
-        ):
+        for _breach in _headline_scan_floor_breaches(_scan_result):
             print(f"  HEADLINE-LOCK FAIL: {_breach}")
             wrong_results.append(f"HEADLINE-LOCK: {_breach}")
             _scan_ok = False
@@ -3999,9 +4010,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # IndexError out of --self-test rather than reporting a finding.
     _l_empty_files = _headline_scan_files([])
     _l_empty_read = _headline_scan_read(_l_empty_files)
-    _l_empty_breaches = _headline_scan_floor_breaches(
-        _l_empty_read.read_relpaths, _l_empty_read.hits_by_surface
-    )
+    _l_empty_breaches = _headline_scan_floor_breaches(_l_empty_read)
     _l_registered_candidates = sorted(COVERED_HEADLINE_SURFACES)
     if not _l_registered_candidates:
         print(
@@ -4043,9 +4052,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         )
         wrong_results.append("HEADLINE-LOCK: (l) narrowed-globs arm precondition violated")
     else:
-        _l_narrow_breaches = _headline_scan_floor_breaches(
-            _l_narrow_read.read_relpaths, _l_narrow_read.hits_by_surface
-        )
+        _l_narrow_breaches = _headline_scan_floor_breaches(_l_narrow_read)
         _l_missing = sorted(_l_reachable - _l_narrow_reached)
         _l_breach_text = " ".join(_l_narrow_breaches)
         if _l_narrow_breaches and all(_m in _l_breach_text for _m in _l_missing):
@@ -4063,16 +4070,20 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     # Arm 3: anti-tautology only (WR-09). Feeds the floor helper a synthetic input already
     # known to satisfy both floors — a read set equal to every registered-plus-exempt
-    # surface, and a hit map giving each registered surface exactly one hit — and requires
-    # an EMPTY breach list. Without this arm, arms 1 and 2 would also pass against a floor
+    # surface, and a hit map giving each registered surface exactly one hit, constructed as
+    # an explicit _HeadlineScanRead because that record is the only shape the helper accepts
+    # (CR-01) — and requires an EMPTY breach list. Without this arm, arms 1 and 2 would also pass against a floor
     # helper that returned a breach unconditionally. This arm deliberately does not re-run
     # the live glob path: (j-floor) above already owns that live verdict, and arms 1/2
     # above already genuinely exercise glob expansion and the real read path.
-    _l_synthetic_read_relpaths = set(_l_reachable)
-    _l_synthetic_hits_by_surface = {_surface: 1 for _surface in COVERED_HEADLINE_SURFACES}
-    _l_synthetic_breaches = _headline_scan_floor_breaches(
-        _l_synthetic_read_relpaths, _l_synthetic_hits_by_surface
+    _l_synthetic_read = _HeadlineScanRead(
+        read_relpaths=set(_l_reachable),
+        hits_by_surface={_surface: 1 for _surface in COVERED_HEADLINE_SURFACES},
+        findings=[],
+        skipped=[],
+        read_errors=[],
     )
+    _l_synthetic_breaches = _headline_scan_floor_breaches(_l_synthetic_read)
     if not _l_synthetic_breaches:
         print(
             "  HEADLINE-LOCK PASS: (l) anti-tautology arm — a synthetic read result "
@@ -4117,10 +4128,10 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             )
             wrong_results.append("HEADLINE-LOCK: (m) arm 1 precondition violated (absent)")
         else:
-            _m_arm1_read_relpaths = _scan_result.read_relpaths - {_m_removed_surface}
-            _m_arm1_breaches = _headline_scan_floor_breaches(
-                _m_arm1_read_relpaths, _scan_result.hits_by_surface
+            _m_arm1_read = _scan_result._replace(
+                read_relpaths=_scan_result.read_relpaths - {_m_removed_surface}
             )
+            _m_arm1_breaches = _headline_scan_floor_breaches(_m_arm1_read)
             if _m_arm1_breaches and any(
                 _m_removed_surface in _b for _b in _m_arm1_breaches
             ):
@@ -4172,7 +4183,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             wrong_results.append("HEADLINE-LOCK: (m) arm 2 precondition violated (total)")
         else:
             _m_arm2_breaches = _headline_scan_floor_breaches(
-                _scan_result.read_relpaths, _m_arm2_hits
+                _scan_result._replace(hits_by_surface=_m_arm2_hits)
             )
             if _m_arm2_breaches and any(
                 _m_starved_surface in _b for _b in _m_arm2_breaches
