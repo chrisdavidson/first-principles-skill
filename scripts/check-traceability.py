@@ -54,6 +54,20 @@ KNOWN_CLI_GATES: set[str] = {
 VALID_CAPABILITIES: set[str] = {"Methodology", "Test-Network"}
 VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 
+# Surfaces where the published coverage headline is asserted as a present-tense claim by
+# _self_test_headline_lock(). This set is allowed to under-count without being wrong: it
+# does not need to be exhaustive for correctness, only for the gate to stay green — a
+# surface stating the headline but missing from this set is left for a tree-wide scan to
+# catch loudly (a later phase's own mechanism), never silently accepted here. Treat this as
+# a "known covered" record, not a trusted exhaustive inventory.
+COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
+    "docs/requirements-traceability.md",  # line 7, prose form (already gated pre-Phase-10)
+    "CLAUDE.md",                          # line 220, prose form
+    "docs/README.md",                     # line 20, prose form
+    "docs/MEASUREMENT-MAP.md",            # line 52, prose form
+    "docs/COMPONENT-DIAGRAM.md",          # line 97, slash form ONLY — no prose form in this file
+})
+
 
 # ---------------------------------------------------------------------------
 # MatrixRow dataclass (D-12: single internal representation for dual output)
@@ -2536,6 +2550,28 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
     )
     _headline = f"**Coverage headline:** {_expected}"
+
+    # Label-agnostic literals: bare numbers, no "**Coverage headline:**" prefix and no bold
+    # wrapping, so a match works regardless of a surface's own label wording. Built from the
+    # same _repro/_audit/_gap/len(_rows) locals as _expected above — never a separate
+    # literal, so a future headline move updates every assertion that uses these
+    # automatically, including the ones added in this function below.
+    _prose = f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    _slash = f"{_repro}/{_audit}/{_gap}/{len(_rows)}"
+
+    def _headline_hits(text: str) -> list[tuple[int, str]]:
+        """Return every (1-based line number, line text) pair whose line contains either
+        the current headline's prose or compact-slash rendering as a substring.
+
+        Shared by every per-surface assertion below and its own non-vacuity control —
+        never re-implemented in parallel — so a control that calls this function proves the
+        real assertion's code path is non-vacuous, not a copy that could silently diverge.
+        """
+        return [
+            (_i, _line)
+            for _i, _line in enumerate(text.splitlines(), start=1)
+            if _prose in _line or _slash in _line
+        ]
 
     def _headline_matches(text: str) -> bool:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
