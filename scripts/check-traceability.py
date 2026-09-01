@@ -344,6 +344,28 @@ def _headline_hits(
     ]
 
 
+def _non_historical_headline_hits(
+    text: str, relpath: str
+) -> list[tuple[int, str]]:
+    """Block (f)'s tightened per-surface presence predicate (HEADLINE-03, Phase 10 Plan 02),
+    expressed exactly once at module level: every headline hit in `text` that
+    `_is_historical_headline_hit()` does NOT call historical, at `relpath`.
+
+    The tightening is what stops a surface whose only occurrence is a ledger delta or a
+    historical statement from satisfying (f) on a technicality. It lives here rather than
+    inline in (f)'s loop so that (f), its (g) perturbation control, and the (f2) synthetic
+    control all drive the IDENTICAL function object — the module's standing rule (research
+    Pitfall 4: a control exercising a parallel copy proves nothing). Reverting the tightening
+    (returning every hit) therefore fails (f2) rather than leaving the gate green, which is
+    what it did while this predicate was an inline comprehension (WR-01, Phase 10 review).
+    """
+    return [
+        (_lineno, _line)
+        for _lineno, _line in _headline_hits(text)
+        if not _is_historical_headline_hit(relpath, _line)
+    ]
+
+
 def _unregistered_headline_finding(
     relpath: str, hit: tuple[int, str]
 ) -> tuple[bool, str]:
@@ -2965,6 +2987,14 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           rendering guess cannot correctly single out just the historical line. For surfaces
           with a single, non-historical occurrence this has the same effect as plan 10-01's
           blanket perturbation. Each control's message names its own surface.
+      (f2) Synthetic control for (f)'s tightening itself (WR-01, Phase 10 review). (g) tests
+          the perturbation, not the tightening — reverting (f) to the untightened form left
+          --self-test green — so the tightened predicate is expressed once, module level, as
+          `_non_historical_headline_hits()` (the identical function object (f) and (g) call)
+          and driven here by two synthetic texts that depend on no live file's shape: a
+          delta-only text must yield ZERO hits, and the same text plus one present-tense line
+          must yield exactly that line (anti-tautology, so a predicate returning nothing
+          cannot pass the first arm).
       (h) Positive controls (HEADLINE-03, ROADMAP criterion 3, CR-02 fix): layer
           attribution is asserted on SYNTHETIC lines carrying the current literal at the
           REAL surface relpath — docs/v8.0-final-closure.md and CHANGELOG.md must attribute
@@ -3414,6 +3444,56 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             for _line in text.splitlines()
         )
 
+    # (f2) Synthetic control for (f)'s HEADLINE-03 tightening (WR-01, Phase 10 review).
+    # (g) is documented as (f)'s non-vacuity control, but it tests the PERTURBATION, not the
+    # tightening: reverting (f) to the untightened `list(_hits)` left --self-test at exit 0
+    # with zero FAIL lines, and reverting (f) AND (g) together was caught only incidentally,
+    # by the two surfaces that happen to carry a historical hit. These two arms depend on no
+    # live file's current shape, and both drive _non_historical_headline_hits() — the
+    # identical function object (f) and (g) call.
+    #   Arm 1 (the tightening): a text whose ONLY headline occurrence is a delta row must
+    #   yield zero hits, so a surface can never satisfy (f) on a ledger delta alone.
+    #   Arm 2 (anti-tautology): the same text with one present-tense line appended must yield
+    #   exactly that line, so a predicate rewritten to return nothing cannot pass arm 1.
+    _f2_path = "docs/synthetic-f-tightening-check.md"
+    if _f2_path in COVERED_HEADLINE_SURFACES or _f2_path in HISTORICAL_EXEMPT_FILES:
+        print(
+            "  HEADLINE-LOCK FAIL: (f2) precondition violated — synthetic path is "
+            "registered or whole-file exempt"
+        )
+        wrong_results.append("HEADLINE-LOCK: (f2) precondition violated")
+    else:
+        _f2_delta_only = (
+            f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_slash} | ... |"
+        )
+        _f2_delta_hits = _non_historical_headline_hits(_f2_delta_only, _f2_path)
+        if _f2_delta_hits:
+            print(
+                "  HEADLINE-LOCK FAIL: (f2) a delta-only text satisfies the per-surface "
+                f"presence predicate ({_f2_delta_hits}) — (f)'s HEADLINE-03 tightening has "
+                "been reverted"
+            )
+            wrong_results.append("HEADLINE-LOCK: (f2) tightening reverted (delta-only arm)")
+        else:
+            print(
+                "  HEADLINE-LOCK PASS: (f2) a text whose only headline occurrence is a delta "
+                "row yields zero non-historical hits — (f)'s tightening is in force"
+            )
+        _f2_mixed = f"{_f2_delta_only}\nThe coverage headline is now {_prose}."
+        _f2_mixed_hits = _non_historical_headline_hits(_f2_mixed, _f2_path)
+        if [_lineno for _lineno, _ in _f2_mixed_hits] == [2]:
+            print(
+                "  HEADLINE-LOCK PASS: (f2) anti-tautology arm — the same text plus one "
+                "present-tense line yields exactly that line (line 2), so the predicate is "
+                "not simply returning nothing"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (f2) anti-tautology arm — expected exactly the "
+                f"present-tense line (line 2), got {_f2_mixed_hits}"
+            )
+            wrong_results.append("HEADLINE-LOCK: (f2) anti-tautology arm failed")
+
     for _surface in sorted(COVERED_HEADLINE_SURFACES):
         _surface_path = REPO_ROOT / _surface
         if not _surface_path.is_file():
@@ -3421,12 +3501,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             wrong_results.append(f"HEADLINE-LOCK: (f) {_surface} missing")
             continue
         _surface_text = _surface_path.read_text(encoding="utf-8")
-        _hits = _headline_hits(_surface_text)
-        _current_hits = [
-            (_i, _line)
-            for _i, _line in _hits
-            if not _is_historical_headline_hit(_surface, _line)
-        ]
+        _current_hits = _non_historical_headline_hits(_surface_text, _surface)
         if _current_hits:
             _renderings = sorted(
                 {"prose" if _prose in _line else "slash" for _, _line in _current_hits}
@@ -3454,11 +3529,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # the rejecting. For surfaces with a single, non-historical occurrence this has the
         # same effect as plan 10-01's blanket perturbation.
         _mutated_surface = _perturb_non_historical_hits(_surface_text, _surface)
-        _mutated_current_hits = [
-            (_i, _line)
-            for _i, _line in _headline_hits(_mutated_surface)
-            if not _is_historical_headline_hit(_surface, _line)
-        ]
+        _mutated_current_hits = _non_historical_headline_hits(_mutated_surface, _surface)
         if _mutated_current_hits:
             print(
                 f"  HEADLINE-LOCK FAIL: (g) {_surface} still has a non-historical match "
