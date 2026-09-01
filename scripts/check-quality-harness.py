@@ -9812,6 +9812,24 @@ def self_test() -> int:
     else:
         print("self-test: persistence_write_guards sub-check PASSED")
 
+    # Item 24 (Phase 11, CONTRACT-01/02/04): the emission rendering
+    # contract's own worked examples in `output-template.md` §4 (chain
+    # form), §6 (citation form) and the Verdict Vocabulary
+    # (current-constraint expiry) are scored by the unmodified detectors
+    # with the expected verdicts. Its fixtures are extracted from
+    # `shared/spine/references/output-template.md` at self-test time, via
+    # the same `_extract_contract_example` dispatcher DETECT-06 uses, so
+    # the doc and the control cannot drift. `_chain_block_well_formed` is
+    # called and never modified (D-02). Eight lettered controls: chain
+    # verdicts, wrap-counter-example minimality, numbered-counter-example
+    # same-hops, verdict-cell pair, citation credit (both accepted forms),
+    # and a non-vacuity re-assertion of two long-standing base cases.
+    if not _selftest_render_contract():
+        all_passed = False
+        print("self-test: render_contract sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: render_contract sub-check PASSED")
+
     return 0 if all_passed else 1
 
 
