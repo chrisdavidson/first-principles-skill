@@ -2658,6 +2658,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
+      (i2) Adjacency-specific controls (CR-03, T-10-04-01): a mermaid edge and an HTML
+          comment terminator sharing a line with the current headline must NOT exempt that
+          line from `_unregistered_headline_finding()` (the fail-unsafe case CR-03 names),
+          while a genuine delta line (a superseded figure, an arrow, then the current
+          figure) still must be exempt — proving the narrowing did not simply disable the
+          arrow layer. Every control drives through `_unregistered_headline_finding()`
+          itself, never a parallel copy.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): every file matched by
           HEADLINE_SCAN_GLOBS is read, its hits fed through `_unregistered_headline_finding()`
           (which itself calls `_is_historical_headline_hit()` — the identical function object
@@ -3068,6 +3075,80 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"{relpath}:{_lineno} states the current headline as a non-historical "
             "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
         )
+
+    # (i2) Adjacency-specific controls (CR-03). A mermaid edge and an HTML comment
+    # terminator sharing a line with the current headline must NOT exempt that line from
+    # being reported as an unregistered-surface finding (the fail-unsafe case CR-03 names —
+    # docs/COMPONENT-DIAGRAM.md is live proof mermaid-heavy docs and headline statements
+    # coexist), while a genuine delta line still must be exempt, proving the narrowing did
+    # not simply disable the arrow layer. Every control drives through
+    # _unregistered_headline_finding(), the SAME decision function (j) and (k) call, never
+    # a parallel copy. Writes nothing to disk.
+    _i2_path = "docs/synthetic-adjacency-check.md"
+    if _i2_path in COVERED_HEADLINE_SURFACES or _i2_path in HISTORICAL_EXEMPT_FILES:
+        print(
+            "  HEADLINE-LOCK FAIL: (i2) precondition violated — synthetic path is "
+            "registered or whole-file exempt"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i2) precondition violated")
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (i2) precondition — {_i2_path} is absent from both "
+            "COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES"
+        )
+
+        # 1. Mermaid edge is NOT exempt.
+        _i2_mermaid_line = f"NODE_A --> NODE_B carrying {_prose}"
+        _i2_mermaid_finding, _i2_mermaid_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_mermaid_line)
+        )
+        if _i2_mermaid_finding and _i2_path in _i2_mermaid_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a mermaid edge sharing a line with the current "
+                "headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a mermaid edge sharing a line with the current "
+                "headline was NOT reported as a finding"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) mermaid edge non-exemption failed")
+
+        # 2. HTML comment terminator is NOT exempt — the exact CR-03 reproduction, promoted
+        # into a permanent control.
+        _i2_html_line = f"See -->  {_prose}"
+        _i2_html_finding, _i2_html_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_html_line)
+        )
+        if _i2_html_finding and _i2_path in _i2_html_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) an HTML comment terminator sharing a line with "
+                "the current headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) an HTML comment terminator sharing a line with "
+                "the current headline was NOT reported as a finding"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) HTML comment terminator non-exemption failed"
+            )
+
+        # 3. A genuine delta line IS exempt — without this arm, controls 1 and 2 would pass
+        # against a classifier that returns False unconditionally.
+        _i2_delta_line = f"0/0/0/1 → {_slash}"
+        _i2_delta_finding, _ = _unregistered_headline_finding(_i2_path, (1, _i2_delta_line))
+        if not _i2_delta_finding:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a genuine delta line (superseded figure → "
+                "current figure) is NOT reported as a finding — exempt as expected"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a genuine delta line was reported as a finding "
+                "— the narrowing over-disabled the arrow layer"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) delta-line exemption failed")
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files by expanding
     # HEADLINE_SCAN_GLOBS against REPO_ROOT, sorted and deduplicated by path (the
