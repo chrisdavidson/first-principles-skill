@@ -7952,6 +7952,58 @@ def _selftest_render_contract() -> bool:
             f"{contradiction_cases_unfired!r}"
         )
 
+    # (m) QUAL-01 doc-row honesty. STATE.md records that the rest of the
+    #     TRACE-03 doc rows' prose is asserted by nothing — a gate
+    #     description that over-claims what the gate covers is the same
+    #     defect class this milestone exists to close, one layer up.
+    #     DISCLOSED LIMITATION: this leg asserts the token's presence on a
+    #     QUAL-01 line only, not the rest of either row's prose.
+    expected_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
+    if _QUAL01_DOC_ROWS != expected_doc_rows:
+        _fail(
+            f"(m) MEMBERSHIP LOCK: _QUAL01_DOC_ROWS shrank or reordered — "
+            f"expected {expected_doc_rows!r}, got {_QUAL01_DOC_ROWS!r}"
+        )
+
+    def _qual01_row_problem(relpath: str, text: str) -> str | None:
+        for line in text.splitlines():
+            if "QUAL-01" in line and "emission rendering contract" in line:
+                return None
+        return (
+            f"{relpath}: no physical line carries both 'QUAL-01' and "
+            f"'emission rendering contract'"
+        )
+
+    for relpath in _QUAL01_DOC_ROWS:
+        doc_path = REPO_ROOT / relpath
+        try:
+            doc_text = doc_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            _fail(f"(m) could not read {relpath}: {exc!r}")
+            continue
+
+        problem = _qual01_row_problem(relpath, doc_text)
+        if problem is not None:
+            _fail(f"(m) POSITIVE: {problem}")
+
+        # Negative arm: strip the token from the QUAL-01 line in an
+        # in-memory copy — never the file on disk — and require the same
+        # checker to report the defect naming that file.
+        mutated_lines = [
+            line.replace("emission rendering contract", "")
+            if "QUAL-01" in line
+            else line
+            for line in doc_text.splitlines()
+        ]
+        mutated_text = "\n".join(mutated_lines)
+        mutated_problem = _qual01_row_problem(relpath, mutated_text)
+        if mutated_problem is None:
+            _fail(
+                f"(m) NEGATIVE: stripping 'emission rendering contract' "
+                f"from {relpath}'s QUAL-01 line did not produce a "
+                f"reported problem"
+            )
+
     return ok
 
 
