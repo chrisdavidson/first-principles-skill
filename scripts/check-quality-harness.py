@@ -6462,6 +6462,43 @@ _RENDER_FIXTURE_FORBIDDEN: dict[str, tuple[str, ...]] = {
 }
 
 
+def _render_fixture_id_token(fixture_id: str) -> str:
+    """The DELIMITER-SCOPED token identifying *fixture_id* inside a per-id
+    fixture problem: `] <id>: `.
+
+    Exists because bare containment does not discriminate one fixture id
+    from another (WR-07, `11-REVIEW-gap-closure.md`):
+    `"R-VERDICT-EXPIRY"` is a proper prefix of `"R-VERDICT-EXPIRY-BAD"`,
+    so a problem naming only the BAD fixture satisfied `fid in problem`
+    for the good one, and control (p)'s accounting arm treated a fixture
+    that was never scored and never reported as accounted for. The
+    trailing `": "` is what breaks the prefix relation — `"-BAD: "` does
+    not contain `": "` at that offset. This is the same loose-substring
+    idiom that made the old mode 3 membership check unreachable (WR-06,
+    `11-REVIEW.md`), so the token is defined ONCE and shared by the
+    emitter (`_render_fixture_problem`) and the matcher
+    (`_render_fixture_id_accounted`) rather than restated at either end.
+    """
+    return f"] {fixture_id}: "
+
+
+def _render_fixture_problem(mode: str, fixture_id: str, detail: str) -> str:
+    """Compose a per-id fixture problem: `[<mode>] <id>: <detail>`.
+
+    The ONE place that form is written, built on `_render_fixture_id_token`
+    so the accounting matcher cannot drift away from the emitter.
+    """
+    return f"[{mode}{_render_fixture_id_token(fixture_id)}{detail}"
+
+
+def _render_fixture_id_accounted(fixture_id: str, problems: list[str]) -> bool:
+    """True when *problems* carries a per-id problem naming *fixture_id*,
+    matched on `_render_fixture_id_token` rather than on containment.
+    """
+    token = _render_fixture_id_token(fixture_id)
+    return any(token in problem for problem in problems)
+
+
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
     """Read all eight Phase 11 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
@@ -6503,16 +6540,22 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
             extracted = _extract_contract_example(row)
         except _ContractAnchorError as exc:
             problems.append(
-                f"[mode 1: anchor unresolved] {fixture_id}: anchor "
-                f"{exc.anchor!r} in {exc.source_file} did not resolve "
-                f"({exc.detail}) — remedy: re-anchor the guard"
+                _render_fixture_problem(
+                    "mode 1: anchor unresolved",
+                    fixture_id,
+                    f"anchor {exc.anchor!r} in {exc.source_file} did not "
+                    f"resolve ({exc.detail}) — remedy: re-anchor the guard",
+                )
             )
             continue
 
         if not extracted:
             problems.append(
-                f"[mode 2: empty extraction] {fixture_id}: extracted text "
-                f"was empty"
+                _render_fixture_problem(
+                    "mode 2: empty extraction",
+                    fixture_id,
+                    "extracted text was empty",
+                )
             )
             continue
 
@@ -6523,8 +6566,12 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
         ]
         if missing:
             problems.append(
-                f"[mode 2: shape mismatch] {fixture_id}: extracted text is "
-                f"missing required substring(s) {missing!r}"
+                _render_fixture_problem(
+                    "mode 2: shape mismatch",
+                    fixture_id,
+                    f"extracted text is missing required substring(s) "
+                    f"{missing!r}",
+                )
             )
             continue
 
@@ -6535,8 +6582,12 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
         ]
         if present_forbidden:
             problems.append(
-                f"[mode 2: forbidden substring present] {fixture_id}: "
-                f"extracted text unexpectedly contains {present_forbidden!r}"
+                _render_fixture_problem(
+                    "mode 2: forbidden substring present",
+                    fixture_id,
+                    f"extracted text unexpectedly contains "
+                    f"{present_forbidden!r}",
+                )
             )
             continue
 
@@ -8709,10 +8760,19 @@ def _selftest_render_contract() -> bool:
             f"extraction table leaves both problems and fixtures empty, "
             f"which is precisely the condition nothing used to notice"
         )
+    # The accounting arm matches on `_render_fixture_id_token` — the
+    # delimiter-scoped `] <id>: ` form the emitter itself composes — not on
+    # bare containment (WR-07, `11-REVIEW-gap-closure.md`).
+    # `"R-VERDICT-EXPIRY"` is a proper prefix of `"R-VERDICT-EXPIRY-BAD"`,
+    # so under `fid in p` a problem naming only the BAD fixture accounted
+    # for the good one too: drop the good row while the BAD one reports a
+    # problem and this arm called the missing fixture accounted for, with
+    # arm 2 above skipped by its own `if not problems` guard.
     render_unaccounted_fixture_ids = sorted(
         fid
         for fid in render_locked_fixture_ids
-        if fid not in fixtures and not any(fid in p for p in problems)
+        if fid not in fixtures
+        and not _render_fixture_id_accounted(fid, problems)
     )
     if render_unaccounted_fixture_ids:
         _fail(
@@ -8720,6 +8780,38 @@ def _selftest_render_contract() -> bool:
             f"{render_unaccounted_fixture_ids!r} are neither in fixtures "
             f"nor named in a reported problem — never scored, never "
             f"reported"
+        )
+
+    # (p) ISOLATION, prefix discrimination. Drives the accounting
+    # predicate directly with a problem composed by the EMITTER's own
+    # `_render_fixture_problem`, never a hand-typed string, over the one
+    # id pair in the locked set where one id is a proper prefix of the
+    # other. Both arms are load-bearing: the first fails if the matcher
+    # reverts to containment, the second if the token form drifts apart
+    # from the emitter so that NO id is ever accounted for (which would
+    # make the arm above fail-closed but permanently unfalsifiable here).
+    render_prefix_probe = [
+        _render_fixture_problem(
+            "mode 2: shape mismatch",
+            "R-VERDICT-EXPIRY-BAD",
+            "extracted text is missing required substring(s) ['expires at']",
+        )
+    ]
+    if _render_fixture_id_accounted("R-VERDICT-EXPIRY", render_prefix_probe):
+        _fail(
+            f"(p) ISOLATION prefix discrimination: a problem naming only "
+            f"'R-VERDICT-EXPIRY-BAD' wrongly accounted for the proper "
+            f"prefix 'R-VERDICT-EXPIRY' — {render_prefix_probe!r}"
+        )
+    if not _render_fixture_id_accounted(
+        "R-VERDICT-EXPIRY-BAD", render_prefix_probe
+    ):
+        _fail(
+            f"(p) ISOLATION prefix discrimination: a problem naming "
+            f"'R-VERDICT-EXPIRY-BAD' did not account for it — the "
+            f"matcher's token has drifted from the emitter's form, so the "
+            f"accounting arm can never report an accounted fixture: "
+            f"{render_prefix_probe!r}"
         )
 
     # (q) ISOLATION, fixture accounting. Plan 11-09's replacement for the
