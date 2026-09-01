@@ -6774,6 +6774,7 @@ class _RenderRegistrySnapshot:
     contradiction_phrases: tuple[str, ...]
     qual01_doc_rows: tuple[str, ...]
     qual01_doc_row_tokens: tuple[str, ...]
+    pre_contract_wordings: tuple[str, ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -6790,6 +6791,7 @@ class _RenderRegistrySnapshot:
             contradiction_phrases=_RENDER_CONTRADICTION_PHRASES,
             qual01_doc_rows=_QUAL01_DOC_ROWS,
             qual01_doc_row_tokens=_QUAL01_DOC_ROW_TOKENS,
+            pre_contract_wordings=_RENDER_PRE_CONTRACT_WORDINGS,
         )
 
 
@@ -6808,6 +6810,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "contradiction_phrases",
     "qual01_doc_rows",
     "qual01_doc_row_tokens",
+    "pre_contract_wordings",
 )
 
 # A `sha256:<hex>` pin over `_RENDER_RULE_LITERALS`, recomputed as
@@ -6960,6 +6963,29 @@ def _render_registry_lock_problems(
             f"expected {expected_qual01_doc_row_tokens!r}"
         )
     checked.add("qual01_doc_row_tokens")
+
+    # `_RENDER_PRE_CONTRACT_WORDINGS` is the ONLY thing making control
+    # (l1) non-tautological — it detects the phrase list against wordings
+    # this tree really shipped. Until CR-01
+    # (`11-REVIEW-gap-closure.md`) it was the one rendering-contract
+    # registry outside this lock: emptying it, or replacing an entry with
+    # a bare `_RENDER_CONTRADICTION_PHRASES` member, left the self-test
+    # GREEN with (l1) running zero real cases. Locked by value here; the
+    # non-tautology and case-count floors live beside (l1) itself.
+    expected_pre_contract_wordings = (
+        "**A chain too long for one line wraps with arrow-led continuation "
+        "lines — never numbered steps.**",
+        "**Multi-hop chains wrap with arrow-led continuation lines — never "
+        "numbered steps.**",
+        "a chain too long for one line wraps with `→`-led continuation "
+        "lines, never as an ordered list",
+    )
+    if snapshot.pre_contract_wordings != expected_pre_contract_wordings:
+        problems.append(
+            f"pre_contract_wordings: {snapshot.pre_contract_wordings!r} != "
+            f"expected {expected_pre_contract_wordings!r}"
+        )
+    checked.add("pre_contract_wordings")
 
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
@@ -8748,6 +8774,25 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
+            "pre_contract_wordings emptied (CR-01 reproduction)",
+            "pre_contract_wordings",
+            "!= expected",
+            replace(render_live_snapshot, pre_contract_wordings=()),
+        ),
+        (
+            "pre_contract_wordings with an entry replaced by a bare "
+            "contradiction phrase (CR-01's tautology reproduction)",
+            "pre_contract_wordings",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                pre_contract_wordings=(
+                    "wraps with arrow-led continuation",
+                )
+                + render_live_snapshot.pre_contract_wordings[1:],
+            ),
+        ),
+        (
             "literals clause arm: R1 gutted (WR-01 reproduction)",
             "literals",
             'is missing its required clause',
@@ -9013,8 +9058,10 @@ def _selftest_render_contract() -> bool:
     #     risk: it goes RED if `_RENDER_CONTRADICTION_PHRASES` is narrowed
     #     past a wording that was actually shipped in this tree.
     render_l1_unfired: list[str] = []
+    render_l1_cases_run = 0
     for read in render_reads:
         for wording in _RENDER_PRE_CONTRACT_WORDINGS:
+            render_l1_cases_run += 1
             historical = _RenderSurfaceRead(
                 relpath=read.relpath, text=read.text + "\n" + wording
             )
@@ -9030,6 +9077,49 @@ def _selftest_render_contract() -> bool:
             f"fire when a real pre-contract historical wording was "
             f"appended in memory: {render_l1_unfired!r}"
         )
+
+    # (l1) CASE-COUNT FLOOR (CR-01, `11-REVIEW-gap-closure.md`). The loop
+    # above is driven by a registry, so emptying that registry ran it zero
+    # times and printed PASSED — byte for byte the degradation shape the
+    # verifier ruled blocking for `_RENDER_CONTRACT_EXTRACTION_TABLE`. The
+    # wording count is floored against an INLINE 3, and the case count is
+    # DERIVED from the records the read loop returned rather than restated,
+    # so a surface dropping out of (i)/(j) cannot quietly shrink this leg
+    # either.
+    if len(_RENDER_PRE_CONTRACT_WORDINGS) != 3:
+        _fail(
+            f"(l1) CASE-COUNT FLOOR: expected 3 pinned historical "
+            f"wordings, got {len(_RENDER_PRE_CONTRACT_WORDINGS)}"
+        )
+    render_l1_expected_cases = len(render_reads) * len(
+        _RENDER_PRE_CONTRACT_WORDINGS
+    )
+    if (
+        render_l1_cases_run != render_l1_expected_cases
+        or render_l1_cases_run == 0
+    ):
+        _fail(
+            f"(l1) CASE-COUNT FLOOR: ran {render_l1_cases_run} case(s), "
+            f"expected {render_l1_expected_cases} "
+            f"({len(render_reads)} surface(s) x "
+            f"{len(_RENDER_PRE_CONTRACT_WORDINGS)} wording(s)) and more "
+            f"than zero — an emptied registry runs this leg zero times "
+            f"and reports PASSED"
+        )
+
+    # (l1) NON-TAUTOLOGY FLOOR (CR-01). Nothing else requires a pinned
+    # wording to differ from the phrase literals it is supposed to
+    # independently confirm: with an entry set to a bare
+    # `_RENDER_CONTRADICTION_PHRASES` member, the detection arm degenerates
+    # to `x in (y + x)` — the exact tautology WR-07 (`11-REVIEW.md`)
+    # removed — inside the registry created to prevent it.
+    for wording in _RENDER_PRE_CONTRACT_WORDINGS:
+        if wording.strip() in _RENDER_CONTRADICTION_PHRASES:
+            _fail(
+                f"(l1) NON-TAUTOLOGY FLOOR: pinned wording {wording!r} is "
+                f"itself a contradiction phrase — appending it and "
+                f"finding it proves nothing about the phrase list"
+            )
 
     # (l2) NEGATIVE, contradiction — MESSAGE FORM, disclosed as such. For
     #     each real record and each contradiction phrasing, build a NEW
