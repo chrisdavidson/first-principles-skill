@@ -6349,6 +6349,187 @@ _CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 )
 
 
+# Phase 11 (CONTRACT-01, CONTRACT-02, CONTRACT-04) self-test-only fixtures
+# for the emission rendering contract's own worked examples in
+# `output-template.md` §4 (chain form), §6 (citation form) and the Verdict
+# Vocabulary (current-constraint expiry). These are DELIBERATELY NOT rows
+# of `_CONTRACT_EXTRACTION_TABLE` above: that table is the D-18 / DETECT-01
+# red-carry surface, paired one-to-one with `_CONTRACT_FIXTURES` and its
+# `expected`/`owner` semantics — Item 24's fixtures are new and are not
+# red-carry-tracked, so they get their own table rather than being folded
+# into that one. The anchors are the bold labels Plan 01 (11-01) authored;
+# every row reuses the same `_extract_contract_example` dispatcher above
+# (habitat mode `fenced-block`), read at self-test time, never restated as
+# a Python literal, so the doc and the control cannot drift (D-04).
+_RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
+    (
+        "R-CHAIN-CONFORMING",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — head, then one hop per line:**",
+    ),
+    (
+        "R-CHAIN-WRAPPED",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — a hop broken across physical lines:**",
+    ),
+    (
+        "R-CHAIN-NUMBERED",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — the same hops rendered as a numbered list:**",
+    ),
+    (
+        "R-CITE-INLINE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — inline chain citation:**",
+    ),
+    (
+        "R-CITE-LEDGER",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — closure-ledger row:**",
+    ),
+    (
+        "R-CITE-NONE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — a claim naming no chain and quoted by no ledger row:**",
+    ),
+    (
+        "R-VERDICT-EXPIRY",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — a current constraint recording its expiry:**",
+    ),
+    (
+        "R-VERDICT-EXPIRY-BAD",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — the expiry hoisted into the token slot:**",
+    ),
+)
+
+# Substrings the extracted text for each fixture id MUST contain before any
+# detector is consulted (a mode-2 shape guard, mirroring Guard A's split):
+# an extraction that silently returned a neighbouring block would otherwise
+# risk scoring `False` for the wrong reason and passing vacuously.
+_RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
+    "R-CHAIN-CONFORMING": ("GT-1", "GT-6"),
+    "R-CHAIN-WRAPPED": ("GT-1", "GT-6"),
+    "R-CHAIN-NUMBERED": ("GT-1", "GT-6"),
+    "R-CITE-INLINE": ("C1",),
+    "R-CITE-LEDGER": ("C1", '"'),
+    "R-CITE-NONE": ("Fargate",),
+    "R-VERDICT-EXPIRY": ("expires at",),
+    "R-VERDICT-EXPIRY-BAD": ("expires at",),
+}
+
+# Substrings the extracted text for a fixture id must NOT contain.
+# `R-CITE-NONE`'s entire point is that it names no chain; an extraction
+# that accidentally captured a neighbouring line carrying `C1` would
+# otherwise score `False` for the wrong reason.
+_RENDER_FIXTURE_FORBIDDEN: dict[str, tuple[str, ...]] = {
+    "R-CITE-NONE": ("C1",),
+}
+
+
+def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
+    """Read all eight Phase 11 rendering-contract fixtures from the shipped
+    `shared/` canonical bytes at call time, via the same
+    `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
+    uses above (D-04).
+
+    Returns `(fixtures_by_id, problems)`. `problems` is empty on a clean
+    read; every failure to read or shape-validate a fixture is a NAMED
+    problem string, never a silent skip or an empty fixture — a broken
+    anchor must not degrade into a fixture that satisfies a "must be
+    False" assertion for the wrong reason (T-11-08). Three named failure
+    modes, mirroring Guard A's mode split:
+
+      mode 1: `_ContractAnchorError` — the anchor did not resolve. Reports
+      the anchor, the source file and `exc.detail`, with the remedy
+      "re-anchor the guard".
+
+      mode 2: the extracted text is empty, is missing a
+      `_RENDER_FIXTURE_SHAPE` substring, or contains a
+      `_RENDER_FIXTURE_FORBIDDEN` substring. Reports which fixture and
+      which substring.
+
+      mode 3: the fixture ids actually extracted do not equal the ids in
+      `_RENDER_CONTRACT_EXTRACTION_TABLE` — a membership check guarding
+      against a row silently failing to contribute its id.
+    """
+    fixtures_by_id: dict[str, str] = {}
+    problems: list[str] = []
+
+    for row in _RENDER_CONTRACT_EXTRACTION_TABLE:
+        fixture_id = row[0]
+        try:
+            extracted = _extract_contract_example(row)
+        except _ContractAnchorError as exc:
+            problems.append(
+                f"[mode 1: anchor unresolved] {fixture_id}: anchor "
+                f"{exc.anchor!r} in {exc.source_file} did not resolve "
+                f"({exc.detail}) — remedy: re-anchor the guard"
+            )
+            continue
+
+        if not extracted:
+            problems.append(
+                f"[mode 2: empty extraction] {fixture_id}: extracted text "
+                f"was empty"
+            )
+            continue
+
+        missing = [
+            needle
+            for needle in _RENDER_FIXTURE_SHAPE.get(fixture_id, ())
+            if needle not in extracted
+        ]
+        if missing:
+            problems.append(
+                f"[mode 2: shape mismatch] {fixture_id}: extracted text is "
+                f"missing required substring(s) {missing!r}"
+            )
+            continue
+
+        present_forbidden = [
+            needle
+            for needle in _RENDER_FIXTURE_FORBIDDEN.get(fixture_id, ())
+            if needle in extracted
+        ]
+        if present_forbidden:
+            problems.append(
+                f"[mode 2: forbidden substring present] {fixture_id}: "
+                f"extracted text unexpectedly contains {present_forbidden!r}"
+            )
+            continue
+
+        fixtures_by_id[fixture_id] = extracted
+
+    # mode 3: membership check — every row's id must be accounted for
+    # either in `fixtures_by_id` (clean read) or already named in a
+    # reported problem above (a failed read still names its own id in the
+    # problem string, so this only catches a row silently contributing
+    # neither).
+    accounted_ids = set(fixtures_by_id)
+    for row in _RENDER_CONTRACT_EXTRACTION_TABLE:
+        fixture_id = row[0]
+        if fixture_id in accounted_ids:
+            continue
+        if not any(fixture_id in p for p in problems):
+            problems.append(
+                f"[mode 3: unaccounted fixture] {fixture_id}: row present "
+                f"in _RENDER_CONTRACT_EXTRACTION_TABLE but neither "
+                f"extracted nor named in a reported problem"
+            )
+
+    return fixtures_by_id, problems
+
+
 def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
     """Habitat mode `whole-physical-line`: return the anchor's own physical
     line, stripped — lead-in text and all, not a de-contextualised
