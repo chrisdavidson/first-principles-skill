@@ -127,9 +127,7 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
-**Multi-hop chains wrap with arrow-led continuation lines — never numbered steps.** A chain
-carrying more hops than fit on one line continues on further lines, each beginning with `→`.
-The head line carries the GT identifiers; every continuation line carries exactly one hop:
+**A hop occupies exactly one physical line.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line carries the GT identifiers and their brief fact labels; a chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
 
 ```text
 GT-1 ([brief fact label]) + GT-6 ([brief fact label])
@@ -138,11 +136,40 @@ GT-1 ([brief fact label]) + GT-6 ([brief fact label])
 → [conclusion]
 ```
 
-Do **not** render the hops as an ordered list (`1.` / `2.` / `3.`). A numbered list restates
-each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather
-than one complete one — the intermediate steps stop being connected to the conclusion they
-build toward. Inline annotations (`*[Assumes: A14 — …]*`) attach to the end of the hop line
-they qualify and do not break the wrap.
+**Conforming — head, then one hop per line:**
+
+```text
+GT-1 (Lambda $/GB-s, AWS pricing) + GT-6 (Fargate $/vCPU-hr, AWS pricing)
+→ Lambda costs 2.10× per unit of actual compute
+→ sustained workloads belong on Fargate
+```
+
+**Non-conforming — a hop broken across physical lines:**
+
+```text
+GT-1 (Lambda $/GB-s, AWS pricing) + GT-6 (Fargate $/vCPU-hr, AWS pricing)
+→ Lambda costs 2.10× per unit of actual compute
+  once idle-time billing is included
+→ sustained workloads belong on Fargate
+```
+
+The continuation line does not begin with `→`, so the chain terminates at the head's first hop and what remains reads as an incomplete chain.
+
+**Non-conforming — the same hops rendered as a numbered list:**
+
+```text
+1. GT-1 (Lambda $/GB-s, AWS pricing) + GT-6 (Fargate $/vCPU-hr, AWS pricing)
+2. Lambda costs 2.10× per unit of actual compute
+3. sustained workloads belong on Fargate
+```
+
+A numbered list restates each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather than one complete one — the intermediate steps stop being connected to the conclusion they build toward.
+
+**A hop states exactly ONE inference.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
+
+TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
+
+Inline annotations (`*[Assumes: A14 — …]*`) attach to the end of the hop line they qualify and do not start a new hop.
 
 ### Converting structured-technique outputs into chains
 
