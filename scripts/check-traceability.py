@@ -3038,7 +3038,16 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           classifier figure-aware, and this control's perturbed evaluation was rewired to
           supply the matching perturbed literals rather than the live ones. A second arm
           requires the two constructed lines to be non-byte-equal, so a future edit that made
-          the perturbation a no-op cannot leave this passing vacuously forever.
+          the perturbation a no-op cannot leave this passing vacuously forever. Every case
+          also carries the LAYER it is expected to land on, and misattribution is its own
+          named FAIL (WR-05, Phase 10 review): `_is_historical_headline_hit()` short-circuits
+          on whole-file membership before `literals` is resolved, so the two whole-file cases
+          compare "whole-file" against "whole-file" and cannot fail while the (0) membership
+          lock holds — they are invariant by MEMBERSHIP, not by the property under test. The
+          invariance property is carried by the ARROW arms, and a fourth case runs the same
+          delta-shaped line at a synthetic NON-exempt relpath so that property does not
+          depend on docs/requirements-traceability.md's membership staying as it is. The PASS
+          line says which arms carry what, rather than crediting all of them equally.
       (i) Non-vacuity control for the classifier (T-10-04): feeds
           `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
           containing the current literal with no arrow, and requires NOT historical.
@@ -3737,15 +3746,49 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_perturbed_slash} | ... |"
     )
     _perturbed_literals = (_perturbed_slash, _perturbed_prose)
+    # Each case carries the layer it is EXPECTED to be attributed to, and both are asserted:
+    # invariance (the two evaluations agree) and attribution (they agree on the right layer).
+    # Attribution is what stops two of these arms from being decorative (WR-05, Phase 10
+    # review): `_is_historical_headline_hit()` short-circuits on whole-file membership BEFORE
+    # `literals` is resolved, so for the two whole-file cases both evaluations return
+    # "whole-file" without the perturbed literals ever reaching the arrow layer — structurally
+    # incapable of failing while the (0) membership lock holds. Those two arms are still worth
+    # keeping (they assert the property the frozen documents rely on), but the invariance
+    # property itself is carried ONLY by an arm that goes through the arrow layer, so a fourth
+    # case runs the same delta-shaped line at a synthetic NON-exempt relpath — the only shape
+    # in which the perturbed-literals path can produce a different verdict, and one that does
+    # not depend on docs/requirements-traceability.md's membership staying as it is.
+    _h2_synthetic_path = "docs/does-not-exist-synthetic-h2-non-exempt.md"
     _h2_cases = (
-        ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
-        ("CHANGELOG.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
-        ("docs/requirements-traceability.md", _synthetic_delta_line, _perturbed_delta_line),
+        (
+            "docs/v8.0-final-closure.md",
+            _synthetic_no_arrow_line,
+            _perturbed_no_arrow_line,
+            "whole-file",
+        ),
+        ("CHANGELOG.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line, "whole-file"),
+        (
+            "docs/requirements-traceability.md",
+            _synthetic_delta_line,
+            _perturbed_delta_line,
+            "arrow",
+        ),
+        (_h2_synthetic_path, _synthetic_delta_line, _perturbed_delta_line, "arrow"),
     )
     _h2_precondition_failed = [
-        _relpath for _relpath, _orig_line, _pert_line in _h2_cases if _orig_line == _pert_line
+        _relpath
+        for _relpath, _orig_line, _pert_line, _want in _h2_cases
+        if _orig_line == _pert_line
     ]
-    if _h2_precondition_failed:
+    if _h2_synthetic_path in HISTORICAL_EXEMPT_FILES:
+        # Without this, the fourth case would be rescued by whole-file membership and would
+        # degenerate into a fourth copy of the two decorative arms.
+        print(
+            "  HEADLINE-LOCK FAIL: (h2) precondition violated — the non-exempt arm's "
+            "synthetic path is in HISTORICAL_EXEMPT_FILES"
+        )
+        wrong_results.append("HEADLINE-LOCK: (h2) non-exempt arm precondition violated")
+    elif _h2_precondition_failed:
         print(
             f"  HEADLINE-LOCK FAIL: (h2) precondition violated for "
             f"{_h2_precondition_failed} — synthetic and perturbed lines are byte-equal, "
@@ -3755,15 +3798,20 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"HEADLINE-LOCK: (h2) precondition violated for {_h2_precondition_failed}"
         )
     else:
-        _h2_mismatches = [
-            (_relpath, _headline_exempt_layer(_relpath, _orig_line),
+        _h2_verdicts = [
+            (_relpath, _want, _headline_exempt_layer(_relpath, _orig_line),
              _headline_exempt_layer(_relpath, _pert_line, literals=_perturbed_literals))
-            for _relpath, _orig_line, _pert_line in _h2_cases
+            for _relpath, _orig_line, _pert_line, _want in _h2_cases
         ]
         _h2_broken = [
             (_relpath, _layer_orig, _layer_pert)
-            for _relpath, _layer_orig, _layer_pert in _h2_mismatches
+            for _relpath, _want, _layer_orig, _layer_pert in _h2_verdicts
             if _layer_orig != _layer_pert
+        ]
+        _h2_misattributed = [
+            (_relpath, _want, _layer_orig)
+            for _relpath, _want, _layer_orig, _layer_pert in _h2_verdicts
+            if _layer_orig != _want
         ]
         if _h2_broken:
             print(
@@ -3775,11 +3823,26 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 f"HEADLINE-LOCK: (h2) invariance broken for "
                 f"{[r for r, _, _ in _h2_broken]}"
             )
-        else:
+        elif _h2_misattributed:
             print(
-                "  HEADLINE-LOCK PASS: (h2) all three (h) verdicts (docs/v8.0-final-"
-                "closure.md, CHANGELOG.md, docs/requirements-traceability.md) are "
-                "invariant under a perturbed figure"
+                f"  HEADLINE-LOCK FAIL: (h2) invariance holds but attribution is wrong: "
+                f"{_h2_misattributed} (relpath, wanted, got) — the arms that are supposed to "
+                "carry the property through the ARROW layer are not reaching it"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (h2) misattributed layers for "
+                f"{[r for r, _, _ in _h2_misattributed]}"
+            )
+        else:
+            _h2_arrow_arms = [
+                _relpath for _relpath, _want, _, _ in _h2_verdicts if _want == "arrow"
+            ]
+            print(
+                "  HEADLINE-LOCK PASS: (h2) all four verdicts are invariant under a "
+                "perturbed figure and land on the expected layer; the two whole-file arms "
+                "(docs/v8.0-final-closure.md, CHANGELOG.md) are invariant by MEMBERSHIP — "
+                "the perturbed literals never reach the arrow layer — and the invariance "
+                f"property itself is carried by the arrow arms {_h2_arrow_arms}"
             )
 
     # (i) Non-vacuity control for the classifier itself (T-10-04): prevents (h)'s positive
