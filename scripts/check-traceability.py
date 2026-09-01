@@ -2930,8 +2930,18 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           to render_matrix_markdown(rows). Deterministic — the renderer embeds no timestamp.
       (d) JSON artifact freshness: docs/data/matrix.json on disk is byte-identical to what
           emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
-      (e) Non-vacuity control for (c)/(d): perturbed copies of both artifacts must compare
-          unequal, proving the comparison is a real comparison and not a tautology.
+      (e) Non-vacuity control for (c)/(d): each artifact must compare UNEQUAL against a
+          rendering of a deliberately different row set (the same rows minus the last),
+          produced by the same renderer (c)/(d) use. Rewritten in the Phase 10 review's CR-02
+          fix, twice over: the perturbation moved from the DISK side to the LIVE side — the
+          old form asserted `disk + "\n" != live`, provably true whenever (c)/(d) pass and
+          therefore incapable of failing — and, more importantly, both verdicts are now read
+          out of ONE shared comparison expression evaluated over the two candidate renderings,
+          so a (c)/(d) comparison rewritten to be unconditionally true (`if disk is not
+          None:`, the exact defect this control names) makes the perturbed verdict true as
+          well and is reported here as a vacuous byte-comparison, instead of leaving the gate
+          green under a "non-vacuous" PASS line. Preconditions (missing artifact, fewer than
+          two rows) are named FAILs, never silent skips.
       (f) Per-surface headline presence: every surface named in COVERED_HEADLINE_SURFACES
           states the current headline in either rendering (prose or compact-slash),
           label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
@@ -3259,87 +3269,116 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         else:
             print("  HEADLINE-LOCK PASS: (a) rejects a perturbed headline — non-vacuous")
 
-    # (c) Markdown artifact freshness. Scoped guard (WR-01): a missing artifact here skips
-    # only the md half of (e), which is the sole downstream consumer of `_md_disk` — every
-    # block from (f) onward is independent of this guard and must run whether or not it
-    # holds, so the guard never aborts the function.
-    _md_path = REPO_ROOT / "docs" / "requirements-matrix.md"
-    _md_live = render_matrix_markdown(_rows)
-    _md_ok = _md_path.is_file()
-    if not _md_ok:
-        print(f"  HEADLINE-LOCK FAIL: {_md_path} not found")
-        wrong_results.append("HEADLINE-LOCK: docs/requirements-matrix.md missing")
-    else:
-        _md_disk = _md_path.read_text(encoding="utf-8")
-        if _md_disk == _md_live:
-            print(
-                f"  HEADLINE-LOCK PASS: docs/requirements-matrix.md byte-identical to "
-                f"render_matrix_markdown() ({len(_rows)} rows)"
-            )
-        else:
-            print(
-                "  HEADLINE-LOCK FAIL: docs/requirements-matrix.md is stale — "
-                "re-run the emit subcommand"
-            )
-            wrong_results.append(
-                "HEADLINE-LOCK: docs/requirements-matrix.md disagrees with build_matrix_rows()"
-            )
+    # (c)/(d) Artifact freshness, and (e) its non-vacuity control, evaluated through ONE
+    # shared comparison expression per artifact (CR-02, Phase 10 review). For each tracked
+    # artifact the on-disk bytes are compared against two candidate renderings produced by
+    # the same renderer — the live row set (that verdict is (c)/(d)) and a deliberately
+    # different row set (that verdict is (e)) — inside a single dict comprehension, so the
+    # freshness assertion and its own non-vacuity control cannot come from two independently
+    # editable expressions. That is what closes CR-02: the previous (e) appended a newline to
+    # the DISK side and asserted `_md_disk + "\n" != _md_live`, which is provably true
+    # whenever (c)/(d) pass — no string equals both X and X + "\n" — so it could not fail
+    # while (c)/(d) passed and never touched the comparison operator under test. Replacing
+    # (c)/(d)'s comparisons with `if _md_disk is not None:` — making both freshness
+    # assertions unconditionally true, the precise defect (e) claims to exclude — left
+    # --self-test green while (e) still printed "non-vacuous". Under the shared expression
+    # below the identical mutation makes the PERTURBED verdict true as well, which (e) reports
+    # as a vacuous byte-comparison.
+    #
+    # Scoped guard (WR-01): a missing artifact is a named FAIL for that artifact and removes
+    # only its own half of (e) — every block from (f) onward is independent of this guard and
+    # must run whether or not it holds, so the guard never aborts the function.
 
-    # (d) JSON artifact freshness — built exactly as emit_matrix writes it. Scoped guard
-    # (WR-01): a missing artifact here skips only the json half of (e), which is the sole
-    # downstream consumer of `_json_disk` — every block from (f) onward is independent of
-    # this guard and must run whether or not it holds, so the guard never aborts the
-    # function.
-    _json_path = REPO_ROOT / "docs" / "data" / "matrix.json"
-    _json_live = json.dumps([asdict(r) for r in _rows], indent=2)
-    _json_ok = _json_path.is_file()
-    if not _json_ok:
-        print(f"  HEADLINE-LOCK FAIL: {_json_path} not found")
-        wrong_results.append("HEADLINE-LOCK: docs/data/matrix.json missing")
-    else:
-        _json_disk = _json_path.read_text(encoding="utf-8")
-        if _json_disk == _json_live:
+    def _render_matrix_json(rows: list[MatrixRow]) -> str:
+        """The JSON artifact exactly as emit_matrix writes it — the same
+        json.dumps(..., indent=2) over asdict, in one place so (d) and (e) cannot drift.
+        """
+        return json.dumps([asdict(r) for r in rows], indent=2)
+
+    _artifact_cases = (
+        (
+            "docs/requirements-matrix.md",
+            REPO_ROOT / "docs" / "requirements-matrix.md",
+            render_matrix_markdown,
+            "render_matrix_markdown()",
+        ),
+        (
+            "docs/data/matrix.json",
+            REPO_ROOT / "docs" / "data" / "matrix.json",
+            _render_matrix_json,
+            "emit output",
+        ),
+    )
+    # (e)'s perturbation: the same rows minus the last one. Guarded by an explicit named
+    # precondition (the (k)/(l)/(m) idiom) — with fewer than two rows the perturbed set is
+    # not distinguishable from the real one and the control would prove nothing.
+    _e_rows_ok = len(_rows) >= 2
+    _e_perturbed_rows = _rows[:-1] if _e_rows_ok else _rows
+    _e_perturbed_verdicts: dict[str, bool] = {}
+    _e_missing: list[str] = []
+    for _artifact_rel, _artifact_path, _artifact_render, _artifact_oracle in _artifact_cases:
+        if not _artifact_path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: {_artifact_path} not found")
+            wrong_results.append(f"HEADLINE-LOCK: {_artifact_rel} missing")
+            _e_missing.append(_artifact_rel)
+            continue
+        _artifact_disk = _artifact_path.read_text(encoding="utf-8")
+        # ONE comparison expression, evaluated over both candidate renderings. (c)/(d) read
+        # the "live" verdict; (e) below reads the "perturbed" verdict. A rewrite that makes
+        # this expression unconditionally true therefore breaks (e) rather than passing it.
+        _artifact_verdicts = {
+            _which: _artifact_disk == _candidate
+            for _which, _candidate in (
+                ("live", _artifact_render(_rows)),
+                ("perturbed", _artifact_render(_e_perturbed_rows)),
+            )
+        }
+        _e_perturbed_verdicts[_artifact_rel] = _artifact_verdicts["perturbed"]
+        if _artifact_verdicts["live"]:
             print(
-                f"  HEADLINE-LOCK PASS: docs/data/matrix.json byte-identical to emit output "
-                f"({len(_rows)} rows)"
+                f"  HEADLINE-LOCK PASS: {_artifact_rel} byte-identical to "
+                f"{_artifact_oracle} ({len(_rows)} rows)"
             )
         else:
             print(
-                "  HEADLINE-LOCK FAIL: docs/data/matrix.json is stale — re-run the emit "
+                f"  HEADLINE-LOCK FAIL: {_artifact_rel} is stale — re-run the emit "
                 "subcommand"
             )
             wrong_results.append(
-                "HEADLINE-LOCK: docs/data/matrix.json disagrees with build_matrix_rows()"
+                f"HEADLINE-LOCK: {_artifact_rel} disagrees with build_matrix_rows()"
             )
 
-    # (e) Non-vacuity control for (c)/(d): perturbed artifacts must compare unequal. Scoped
-    # to run only when both artifacts it compares are present — a precondition failure here
-    # is named rather than an abort, and does not skip any block that follows.
-    if not (_md_ok and _json_ok):
-        _e_missing = [
-            _name
-            for _ok, _name in (
-                (_md_ok, "docs/requirements-matrix.md"),
-                (_json_ok, "docs/data/matrix.json"),
-            )
-            if not _ok
-        ]
+    # (e) Non-vacuity control for (c)/(d): every artifact present above must compare UNEQUAL
+    # against the perturbed rendering. A precondition failure here is named rather than an
+    # abort, and does not skip any block that follows.
+    if _e_missing:
         print(
             f"  HEADLINE-LOCK FAIL: (e) precondition violated — cannot run the non-vacuity "
             f"control because {_e_missing} is missing"
         )
         wrong_results.append(f"HEADLINE-LOCK: (e) precondition violated (missing {_e_missing})")
+    elif not _e_rows_ok:
+        print(
+            f"  HEADLINE-LOCK FAIL: (e) precondition violated — build_matrix_rows() returned "
+            f"{len(_rows)} row(s); at least two are needed to render a genuinely different "
+            "artifact to compare against"
+        )
+        wrong_results.append(f"HEADLINE-LOCK: (e) precondition violated ({len(_rows)} rows)")
     else:
-        _md_vacuous = (_md_disk + "\n") == _md_live
-        _json_vacuous = (_json_disk + "\n") == _json_live
-        if _md_vacuous or _json_vacuous:
+        _e_vacuous = sorted(_rel for _rel, _same in _e_perturbed_verdicts.items() if _same)
+        if _e_vacuous:
             print(
-                f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous "
-                f"(md={_md_vacuous}, json={_json_vacuous})"
+                f"  HEADLINE-LOCK FAIL: byte-comparison is vacuous — {_e_vacuous} compared "
+                f"EQUAL against an artifact rendered from a different row set "
+                f"({len(_e_perturbed_rows)} of {len(_rows)} rows)"
             )
             wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
         else:
-            print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+            print(
+                f"  HEADLINE-LOCK PASS: (c)/(d) reject both artifacts re-rendered from a "
+                f"different row set ({len(_e_perturbed_rows)} of {len(_rows)} rows) — the "
+                "shared byte comparison discriminates, non-vacuous"
+            )
 
     # (f) Per-surface headline presence across every currently covered surface (sorted for
     # deterministic output), including docs/requirements-traceability.md again via the
