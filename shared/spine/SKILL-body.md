@@ -205,9 +205,7 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 Each chain must contain at least one intermediate step — the intermediate is where the reasoning happens.
 
-**A hop occupies exactly one physical line.** A hop occupies exactly one physical line. Every
-line after the head begins with `→` and carries exactly one complete hop; a hop is never broken
-across physical lines.
+A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines.
 
 ```text
 GT-1 ([brief fact label]) + GT-6 ([brief fact label])
@@ -219,12 +217,9 @@ GT-1 ([brief fact label]) + GT-6 ([brief fact label])
 Rendering the same hops as `1.` / `2.` / `3.` list items splits one chain into disconnected
 one-hop fragments and does not satisfy this format.
 
-**A hop states exactly ONE inference.** A hop states exactly ONE inference. If a hop joins two
-claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops
-— split it.
+A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
-TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then
-split — do not wrap it, and do not trim words to hit a number.
+TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
 
 **Unverified input notation:** `GT-N?` marks a ground truth that is an untested belief elevated for use in a chain. Any conclusion depending on a `GT-N?` input inherits a MEDIUM or LOW confidence rating with an explicit explanation of what verification would raise it to HIGH.
 
@@ -239,9 +234,7 @@ in the Conclusion section (section 6). For each claim, confirm it names a specif
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
 claim from section 6 — no unbacked §6 claim survives to presentation.
 
-Every Conclusion-section claim either names the chain that established it inline — `(chain C1)`
-— or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A
-claim doing neither is cut, not softened.
+Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened.
 
 Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output before
 the presented analysis — the same precedent the rubric's Assumption Audit table already follows
