@@ -73,6 +73,11 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # even with no arrow on the line — each entry below is a deliberate editorial decision, not a
 # default, and every entry must carry its own justification.
 #
+# Two mechanical invariants are asserted by _self_test_headline_lock()'s (0) preamble
+# (WR-01, WARNING scope): this set is disjoint from COVERED_HEADLINE_SURFACES, and every
+# entry resolves to an existing file. The "every entry must carry its own justification"
+# requirement above remains a convention, not mechanically enforced.
+#
 # Safe-failure direction: because the search target used against this set is always the
 # *current* literal derived live from build_matrix_rows() (never a generic numeric pattern), a
 # value that is superseded stops matching the search the moment the headline moves — no entry
@@ -2653,6 +2658,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     the mechanism intact, so the next headline move would have reopened it identically.
 
     Asserts:
+      (0) Preamble (WR-01, WARNING scope): COVERED_HEADLINE_SURFACES and
+          HISTORICAL_EXEMPT_FILES are disjoint — the two sets carry contradictory meanings
+          ("must state the current fact" vs "never states a current fact") — and every entry
+          in HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
+          silently keep exempting a whole file's contents from both (f) and (j).
       (a) Published-headline lock: docs/requirements-traceability.md states exactly the
           headline build_matrix_rows() produces. Every one of the four figures is derived
           live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
@@ -2770,6 +2780,46 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
     no live claude session, no network, no writes.
     """
+    # (0) Preamble: two mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING
+    # scope — not one of the three established CRITICALs, and deliberately kept to exactly
+    # these two assertions). The "every entry must carry its own justification" convention
+    # in the constant's comment block remains unenforced; a comment-parsing check is out of
+    # scope here.
+    _disjoint_violation = sorted(COVERED_HEADLINE_SURFACES & HISTORICAL_EXEMPT_FILES)
+    if _disjoint_violation:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) {_disjoint_violation} are both registered in "
+            "COVERED_HEADLINE_SURFACES and whole-file exempt in HISTORICAL_EXEMPT_FILES — "
+            "the two sets carry contradictory meanings and a path in both makes (f) "
+            "unsatisfiable for that surface"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (0) contradictory membership for {_disjoint_violation}"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK PASS: (0) COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES "
+            "are disjoint"
+        )
+
+    _stale_exemptions = sorted(
+        _exempt
+        for _exempt in HISTORICAL_EXEMPT_FILES
+        if not (REPO_ROOT / _exempt).is_file()
+    )
+    if _stale_exemptions:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) {_stale_exemptions} in HISTORICAL_EXEMPT_FILES do "
+            "not resolve to an existing file — a stale entry is a silent whole-file escape "
+            "hatch pointed at nothing"
+        )
+        wrong_results.append(f"HEADLINE-LOCK: (0) stale exemption(s) {_stale_exemptions}")
+    else:
+        print(
+            "  HEADLINE-LOCK PASS: (0) every HISTORICAL_EXEMPT_FILES entry resolves to an "
+            "existing file"
+        )
+
     _rows = build_matrix_rows()
     _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
     _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
