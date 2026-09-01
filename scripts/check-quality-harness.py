@@ -6429,11 +6429,24 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # lands between them — `"\n→ "` alone was tried and rejected here because
 # WRAPPED's text ALSO contains two arrow-led lines and therefore also
 # contains `"\n→ "`, so it did not discriminate CONFORMING from WRAPPED.
+#
+# `R-CITE-INLINE` carries the same treatment for the citation pair
+# (WR-02, `11-REVIEW-gap-closure.md`): its only needle used to be `"C1"`,
+# which is also present in `R-CITE-LEDGER`'s block
+# (`- "Move sustained workloads to Fargate" → chain C1 ✓`), so repointing
+# its anchor at the ledger block left the self-test GREEN and control
+# (f)'s "both accepted forms are proven" proved the ledger form twice and
+# the inline form never. `"(chain C1)"` is the inline form's structural
+# signature — verified by extraction, not eyeballed (2026-09-01): present
+# in the inline block, absent from both the ledger block and the
+# no-citation block. The reverse direction was already caught by
+# `R-CITE-LEDGER`'s extra `'\"'` needle and `R-CITE-NONE`'s
+# `_RENDER_FIXTURE_FORBIDDEN` entry.
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
     "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
     "R-CHAIN-NUMBERED": ("GT-1", "GT-6", "\n2. "),
-    "R-CITE-INLINE": ("C1",),
+    "R-CITE-INLINE": ("(chain C1)",),
     "R-CITE-LEDGER": ("C1", '"'),
     "R-CITE-NONE": ("Fargate",),
     "R-VERDICT-EXPIRY": ("expires at",),
@@ -6888,7 +6901,7 @@ def _render_registry_lock_problems(
             "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
             "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
             "R-CHAIN-NUMBERED": ("GT-1", "GT-6", "\n2. "),
-            "R-CITE-INLINE": ("C1",),
+            "R-CITE-INLINE": ("(chain C1)",),
             "R-CITE-LEDGER": ("C1", '"'),
             "R-CITE-NONE": ("Fargate",),
             "R-VERDICT-EXPIRY": ("expires at",),
