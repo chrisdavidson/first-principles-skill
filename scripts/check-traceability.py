@@ -111,48 +111,105 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 ]
 
 
-# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03). Neither
-# constant contains any digit from the coverage headline itself.
-_ARROW_TOKENS: tuple[str, str] = ("→", "->")
+# Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03/WR-07).
+# Neither constant contains any digit from the coverage headline itself. _HTML_COMMENT_CLOSE is
+# defined FIRST and _ARROW_TOKENS references it by name (never retyped), because the same three
+# bytes play a dual role in this tree: they close an HTML comment AND are a plausible way a
+# Markdown author writes a delta arrow (the ASCII long arrow). That dual role is exactly why the
+# comment strip below must remove only COMPLETE comments, and must run before the arrow test —
+# treating every bare occurrence of "-->" as a comment terminator would silently delete a
+# genuine delta's arrow (WR-07).
 _HTML_COMMENT_CLOSE: str = "-->"
+_ARROW_TOKENS: tuple[str, ...] = ("→", "->", _HTML_COMMENT_CLOSE)
+
+# Non-greedy, single-pass match of a COMPLETE HTML comment (opening through closing marker),
+# substituted with a space rather than the empty string so removing a comment can never join
+# two previously separate tokens into a new false match.
+_HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 
-def _is_historical_headline_hit(relpath: str, line: str) -> bool:
+def _headline_literals() -> tuple[str, str]:
+    """Derive the current coverage headline's two renderings live from build_matrix_rows().
+
+    Returns (slash_rendering, prose_rendering) — slash first, so a caller unpacking both
+    names cannot silently swap them without a type error going unnoticed.
+
+    Deliberately NOT memoized — no caching decorator, no module-level cache variable. A cache
+    would survive a monkeypatched build_matrix_rows() and silently defeat the headline-move
+    simulation the verifier and block (h2) both depend on: both rely on calling this function
+    again, after replacing build_matrix_rows(), and seeing the new figures reflected. Measured
+    cost: 0.150 ms per call over 200 calls, which every call site in this module can afford
+    without caching.
+    """
+    _rows = build_matrix_rows()
+    _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
+    _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
+    _gap = sum(1 for r in _rows if r.coverage_tier == "gap")
+    _slash_rendering = f"{_repro}/{_audit}/{_gap}/{len(_rows)}"
+    _prose_rendering = (
+        f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    return _slash_rendering, _prose_rendering
+
+
+def _is_historical_headline_hit(
+    relpath: str, line: str, literals: tuple[str, str] | None = None
+) -> bool:
     """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
     presence assertion, its positive controls, and the tree-wide unregistered-surface scan.
 
     A hit (a line already known to contain the current headline literal, in either rendering)
     is historical if EITHER layer applies, checked in this order:
       1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
-      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) sits between two figures on the
-         line — a superseded slash-form reading joined to its replacement by an arrow, e.g. a
-         ledger row reading "<old slash reading> → <new slash reading>" — this is adjacency,
-         not line membership. A mermaid edge ("A --> B"), an HTML comment terminator ("-->"),
-         or an unrelated prose arrow elsewhere on the same line is NOT evidence that this
-         line's headline mention is historical; only an arrow delimiting two figures is. The
-         HTML comment terminator is stripped from the line before the arrow test runs, so it
-         can never itself supply the arrow (it would otherwise falsely satisfy the ASCII "->"
-         token, since "-->" contains "->" as a substring).
+      2. figure-adjacent arrow: an arrow token (_ARROW_TOKENS) must delimit THIS line's
+         headline mention from an adjacent figure, on one side or the other — a superseded
+         reading immediately followed by the arrow and the current literal, or the current
+         literal immediately followed by the arrow and a trailing digit run. An unrelated
+         numeric arrow elsewhere on the line (a battery-count delta, a K-of-5 vector) is not
+         evidence that THIS line's headline mention is historical; only an arrow anchored to
+         the headline literal itself is. The HTML comment terminator is removed only as part
+         of a COMPLETE comment before the arrow test runs (via _HTML_COMMENT_RE, substituting
+         a space), so an open-but-unclosed marker can never supply an arrow, while a genuine
+         delta written with the ASCII long arrow keeps it (WR-07).
 
     Deliberately does not do any tense, marker-word, or surrounding-prose detection — this tree
     contains at least four distinct historical phrasings ("stayed X", "moved to X", "from X to
     Y", "the then-current X") and a marker list could never be proven exhaustive. The two
     structural layers above are what the live tree actually requires (see the
-    <measured_classification_table> in this phase's plan) and nothing more.
+    <measured_baseline> in this phase's plan) and nothing more.
+
+    `literals`, when given, overrides the (slash, prose) pair the arrow layer anchors to
+    instead of calling `_headline_literals()`. It exists for exactly one caller — block (h2)'s
+    headline-move invariance control, which must evaluate a perturbed line against the SAME
+    perturbed figure rather than the live one — and no production call site passes it.
 
     This narrowing was measured against the live tree during planning (Phase 10 Plan 04's
-    <measured_live_baseline>): every one of the 11 headline-bearing lines in the current scan
-    scope keeps the identical classification under this adjacency test that it had under the
-    prior whole-line test — zero verdicts moved. The green self-test result after this change is
-    therefore a checked property, not a hope.
+    <measured_baseline>, re-measured for the figure-anchored form in Plan 08): every one of the
+    11 headline-bearing lines in the current scan scope keeps the identical classification
+    under this anchored test that it had before — zero verdicts moved. The green self-test
+    result after this change is therefore a checked property, not a hope.
+
+    Two residual detection limits are disclosed, not closed: (1) a headline hard-wrapped across
+    two physical lines is not detected — matching is line-scoped, as it always has been; (2) a
+    line of the form "<digits> --> <current literal>" is treated as a delta even when it is a
+    mermaid edge whose target label happens to begin with the headline text — measured as
+    unreachable in this tree today. The verdict IS invariant when the figure and the line move
+    TOGETHER (a real headline move does exactly that, and block (h2) asserts it); it is not,
+    and was never claimed to be, independent of the figure altogether.
     """
     if relpath in HISTORICAL_EXEMPT_FILES:
         return True
-    _stripped = line.replace(_HTML_COMMENT_CLOSE, "")
-    return any(
-        re.search(rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped)
-        for _tok in _ARROW_TOKENS
-    )
+    _slash_lit, _prose_lit = literals if literals is not None else _headline_literals()
+    _stripped = _HTML_COMMENT_RE.sub(" ", line)
+    for _tok in _ARROW_TOKENS:
+        for _lit in (_slash_lit, _prose_lit):
+            if re.search(
+                rf"\d[\d\s/]*\s*{re.escape(_tok)}\s*{re.escape(_lit)}", _stripped
+            ) or re.search(
+                rf"{re.escape(_lit)}\s*{re.escape(_tok)}\s*[\d\s/]*\d", _stripped
+            ):
+                return True
+    return False
 
 
 def _headline_scan_files(globs: list[str]) -> list[Path]:
@@ -2706,37 +2763,50 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           a no-arrow line to the WHOLE-FILE layer, and docs/requirements-traceability.md
           must attribute a delta-shaped line to the ARROW layer specifically, inside a file
           that is NOT whole-file exempt (T-10-05 — if it were, assertion (a) would be
-          defeated). None of the three needs the live file to still contain today's figure,
-          because `_is_historical_headline_hit()` does not depend on the figure at all — a
-          control bound to a live occurrence tested a strictly narrower, stronger
-          precondition than the historicity property it claimed to prove, and broke on
-          every legitimate headline move (CR-02). A discriminating arm (WR-06) evaluates the
+          defeated). None of the three needs the LIVE FILE to still contain today's figure,
+          because each synthetic line is built from the current literal at call time (via
+          `_headline_literals()`), not scanned out of the file's own text — a control bound to
+          a live occurrence tested a strictly narrower, stronger precondition than the
+          historicity property it claimed to prove, and broke on every legitimate headline
+          move (CR-02). The classifier itself IS figure-aware as of Plan 08's anchoring fix;
+          what survives is that its verdict is invariant when the figure and the line move
+          TOGETHER, which is what block (h2) asserts. A discriminating arm (WR-06) evaluates the
           identical no-arrow line at a relpath that is NOT whole-file exempt and requires
           `""`, proving whole-file MEMBERSHIP — not the line's content — is what rescues the
           two whole-file cases. The one genuinely live-file claim that survives —
           docs/v8.0-final-closure.md still containing a no-arrow current-literal line today
           — is reported as INFO, never asserted, because it legitimately stops being true
           the moment the headline moves.
-      (h2) Headline-move invariance control (T-10-05 continuation): for each (h) case,
-          asserts `_headline_exempt_layer()` returns the SAME layer for the identical line
-          built from `_prose`/`_slash` and from `_perturbed_prose`/`_perturbed_slash` — a
-          cheap, deterministic, in-process stand-in for manually simulating a headline move,
-          permanently asserting that the (h) controls stay figure-independent rather than
-          leaving that property incidental. A second arm requires the two constructed lines
-          to be non-byte-equal, so a future edit that made the perturbation a no-op cannot
-          leave this passing vacuously forever.
+      (h2) Headline-move invariance control (T-10-05/T-10-08): for each (h) case, asserts
+          `_headline_exempt_layer()` returns the SAME layer for the original line (evaluated
+          against the CURRENT literals) and the perturbed line (evaluated against the
+          PERTURBED literals, passed explicitly) — a cheap, deterministic, in-process stand-in
+          for manually simulating a headline move. The property is that layer attribution is
+          invariant when the figure AND the line move TOGETHER (what a real headline move
+          does), not that the classifier ignores the figure altogether — Plan 08 made the
+          classifier figure-aware, and this control's perturbed evaluation was rewired to
+          supply the matching perturbed literals rather than the live ones. A second arm
+          requires the two constructed lines to be non-byte-equal, so a future edit that made
+          the perturbation a no-op cannot leave this passing vacuously forever.
       (i) Non-vacuity control for the classifier (T-10-04): feeds
           `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
-      (i2) Adjacency-specific controls (CR-03, T-10-04-01): a mermaid edge and an HTML
-          comment terminator sharing a line with the current headline must NOT exempt that
-          line from `_unregistered_headline_finding()` (the fail-unsafe case CR-03 names),
-          while a genuine delta line (a superseded figure, an arrow, then the current
-          figure) still must be exempt — proving the narrowing did not simply disable the
-          arrow layer. Every control drives through `_unregistered_headline_finding()`
-          itself, never a parallel copy.
+      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08): six named arms, every
+          one driving through `_unregistered_headline_finding()` itself, never a parallel
+          copy. 1. mermaid edge and 2. bare HTML comment close must NOT exempt a line sharing
+          it with the current headline (the fail-unsafe case CR-03 names); 3. a genuine delta
+          line (a superseded figure, an arrow, then the current figure) still must be exempt,
+          proving the narrowing did not simply disable the arrow layer; 4. an unrelated
+          numeric arrow elsewhere on the line (a battery-count delta) must NOT exempt the
+          headline mention on that line (BL-01's reproduction, permanently encoded — not
+          contrived, 67 in-scope lines already carry this shape); 5. a genuine delta written
+          with the ASCII long arrow must stay exempt (WR-07's reproduction); 6. a complete
+          `<!-- ... -->` comment preceding the headline must NOT exempt it, proving the
+          narrowed strip does not donate its terminator to the arrow layer once removed —
+          without arm 6, arm 5 alone would also pass against a classifier that simply stopped
+          stripping comments.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): files are collected
           through the shared `_headline_scan_files()` helper (also driven directly by block
           (l)'s non-vacuity control), every matched file is read, its hits fed through
@@ -2830,12 +2900,29 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     _headline = f"**Coverage headline:** {_expected}"
 
     # Label-agnostic literals: bare numbers, no "**Coverage headline:**" prefix and no bold
-    # wrapping, so a match works regardless of a surface's own label wording. Built from the
-    # same _repro/_audit/_gap/len(_rows) locals as _expected above — never a separate
-    # literal, so a future headline move updates every assertion that uses these
-    # automatically, including the ones added in this function below.
-    _prose = f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
-    _slash = f"{_repro}/{_audit}/{_gap}/{len(_rows)}"
+    # wrapping, so a match works regardless of a surface's own label wording. Obtained from
+    # the shared _headline_literals() helper (IN-03 fix) rather than a second hand-derivation
+    # of the same _repro/_audit/_gap/len(_rows) locals — two independent derivations of one
+    # value invite an edit that changes one and not the other, at which point (a) and (f)
+    # would silently disagree about what the headline is.
+    _slash, _prose = _headline_literals()
+
+    # (0) continued: the sentinel's own _expected (built from this call's _rows) must equal
+    # _headline_literals()'s prose rendering (built from ITS OWN independent call to
+    # build_matrix_rows()). This turns "two call sites that happen to agree" into a checked
+    # invariant — the cheap mechanical enforcement that block (a) (keyed to _expected) and
+    # block (f) (keyed to _prose) are asserting against the same figure.
+    if _prose != _expected:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) _headline_literals() prose rendering {_prose!r} "
+            f"disagrees with this sentinel's own _expected {_expected!r} — two independent "
+            "calls to build_matrix_rows() produced different figures"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (0) _prose/_expected mismatch ({_prose!r} vs {_expected!r})"
+        )
+    else:
+        print("  HEADLINE-LOCK PASS: (0) _headline_literals()'s prose rendering matches _expected")
 
     def _headline_hits(text: str) -> list[tuple[int, str]]:
         """Return every (1-based line number, line text) pair whose line contains either
@@ -3031,7 +3118,9 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 f"non-vacuous"
             )
 
-    def _headline_exempt_layer(relpath: str, line: str) -> str:
+    def _headline_exempt_layer(
+        relpath: str, line: str, literals: tuple[str, str] | None = None
+    ) -> str:
         """Which layer of _is_historical_headline_hit() classifies (relpath, line) as
         historical: "whole-file" if relpath is a member of HISTORICAL_EXEMPT_FILES,
         "arrow" if the classifier accepted the line for any other reason, or "" if the
@@ -3043,8 +3132,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         _unregistered_headline_finding() below already observes). If the classifier's arrow
         layer is narrowed or a third layer is ever added, this helper picks up the change
         automatically instead of silently keeping stale semantics while still printing PASS.
+
+        `literals`, when given, is forwarded unchanged to _is_historical_headline_hit() — this
+        helper re-derives nothing of its own.
         """
-        if not _is_historical_headline_hit(relpath, line):
+        if not _is_historical_headline_hit(relpath, line, literals=literals):
             return ""
         # Whole-file is checked first by the classifier, so a member relpath is attributed
         # there regardless of the line; anything else the classifier accepted is arrow-layer.
@@ -3052,14 +3144,14 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
     # (h) Positive controls (ROADMAP criterion 3, CR-02 fix): layer attribution is asserted
     # on SYNTHETIC lines carrying the current literal at the REAL surface relpath, never on
-    # a line located by scanning the live file for today's figure. _is_historical_headline_
-    # hit() does not depend on the figure at all, so binding the control to a live
-    # occurrence of it made the precondition ("this line contains today's headline")
-    # strictly stronger than the property under test ("this line is historical") — the next
-    # legitimate headline move broke all three controls and could only be resolved by
-    # editing CHANGELOG.md or docs/v8.0-final-closure.md, two records this repo designates
-    # historical and frozen (CR-02). Every literal below is built from the in-scope
-    # _prose/_slash locals; the delta row's superseded left-hand figure is a fixed,
+    # a line located by scanning the live file for today's figure — the synthetic line is
+    # built from the current literal at call time, not scanned out of the live file's text,
+    # so binding the control to a live occurrence of it made the precondition ("this line
+    # contains today's headline") strictly stronger than the property under test ("this line
+    # is historical") — the next legitimate headline move broke all three controls and could
+    # only be resolved by editing CHANGELOG.md or docs/v8.0-final-closure.md, two records this
+    # repo designates historical and frozen (CR-02). Every literal below is built from the
+    # in-scope _prose/_slash locals; the delta row's superseded left-hand figure is a fixed,
     # non-current placeholder and is not the headline, so it may be typed.
     _synthetic_no_arrow_line = f"Superseded: the headline is now {_prose}."
     _synthetic_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_slash} | ... |"
@@ -3139,11 +3231,19 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         wrong_results.append("HEADLINE-LOCK: (h) docs/v8.0-final-closure.md missing")
     else:
         _v80_text = _v80_path.read_text(encoding="utf-8")
+        # Selector delegates to _headline_exempt_layer() rather than a parallel whole-line
+        # substring test (WR-04): a line the ARROW layer would not have rescued is any line
+        # NOT attributed to "arrow". docs/v8.0-final-closure.md is itself whole-file exempt,
+        # so _headline_exempt_layer() attributes every hit here to "whole-file" regardless of
+        # content — the selector therefore picks the first hit unconditionally, which is the
+        # correct behavior for this specific file: the arrow layer could never have been what
+        # rescued a hit here in the first place, so there is nothing left for the substring
+        # test to approximate.
         _v80_hit = next(
             (
                 (_i, _line)
                 for _i, _line in _headline_hits(_v80_text)
-                if "→" not in _line and "->" not in _line
+                if _headline_exempt_layer("docs/v8.0-final-closure.md", _line) != "arrow"
             ),
             None,
         )
@@ -3160,17 +3260,25 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 "reported only, not asserted"
             )
 
-    # (h2) Headline-move invariance control: Task 1's (h) rewrite makes the three controls
-    # figure-independent, but nothing yet ASSERTS that they are — a future edit could rebind
-    # one back to a live literal and every control would stay green, the defect one layer
-    # down. For each (h) case, build the identical synthetic line twice — once from
-    # _prose/_slash, once from _perturbed_prose/_perturbed_slash (already in scope for block
-    # (g), reused rather than re-derived) — and require _headline_exempt_layer() to return
-    # the SAME layer for both; it must, because the classifier never reads the figure. A
-    # second arm asserts the two constructed lines are NOT byte-equal, so a future edit that
-    # made the perturbation a no-op cannot leave this comparing a string to itself forever.
+    # (h2) Headline-move invariance control: for each (h) case, build the identical synthetic
+    # line twice — once from _prose/_slash, once from _perturbed_prose/_perturbed_slash
+    # (already in scope for block (g), reused rather than re-derived) — and require
+    # _headline_exempt_layer() to return the SAME layer for both. The property this asserts is
+    # NOT "the classifier never reads the figure" (it does, as of Plan 08's anchoring fix): it
+    # is that layer attribution is invariant when the FIGURE AND THE LINE MOVE TOGETHER, which
+    # is exactly what a real headline move does. The two evaluations are therefore deliberately
+    # asymmetric: the original line is evaluated against the CURRENT literals (the classifier's
+    # default), and the perturbed line is evaluated against the PERTURBED literals, passed
+    # explicitly as `literals=(_perturbed_slash, _perturbed_prose)` (slash first, matching
+    # _headline_literals()'s documented order). Evaluating the perturbed line against the
+    # CURRENT literals instead — the naive form — would now assert something FALSE rather than
+    # invariant: the anchored classifier no longer finds the current literal adjacent to an
+    # arrow on a line that was rewritten to state the perturbed one. A second arm asserts the
+    # two constructed lines are NOT byte-equal, so a future edit that made the perturbation a
+    # no-op cannot leave this comparing a string to itself forever.
     _perturbed_no_arrow_line = f"Superseded: the headline is now {_perturbed_prose}."
     _perturbed_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_perturbed_slash} | ... |"
+    _perturbed_literals = (_perturbed_slash, _perturbed_prose)
     _h2_cases = (
         ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
         ("CHANGELOG.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
@@ -3191,7 +3299,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     else:
         _h2_mismatches = [
             (_relpath, _headline_exempt_layer(_relpath, _orig_line),
-             _headline_exempt_layer(_relpath, _pert_line))
+             _headline_exempt_layer(_relpath, _pert_line, literals=_perturbed_literals))
             for _relpath, _orig_line, _pert_line in _h2_cases
         ]
         _h2_broken = [
@@ -3220,6 +3328,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # controls from passing off a classifier rewritten to always return "historical".
     # Preconditions are asserted explicitly so this control cannot silently degrade if a
     # future edit adds the synthetic path to HISTORICAL_EXEMPT_FILES.
+    # WR-04: the former separate "does this line contain an arrow" precondition was itself a
+    # parallel whole-line substring copy of the arrow semantics (research Pitfall 4 — a
+    # control exercising a parallel copy proves nothing). It is deleted rather than rewired,
+    # because the very next branch already calls _is_historical_headline_hit() directly on
+    # this exact (path, line) pair — rewiring the precondition to the identical call would
+    # only produce two branches testing the same condition, the second permanently
+    # unreachable. The remaining branch's FAIL message already names the classifier verdict.
     _synthetic_path = "docs/does-not-exist-synthetic-headline-check.md"
     _synthetic_line = f"This is a synthetic current-fact line: {_prose}"
     if _synthetic_path in HISTORICAL_EXEMPT_FILES:
@@ -3228,12 +3343,6 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "HISTORICAL_EXEMPT_FILES"
         )
         wrong_results.append("HEADLINE-LOCK: (i) precondition violated (whole-file)")
-    elif "→" in _synthetic_line or "->" in _synthetic_line:
-        print(
-            "  HEADLINE-LOCK FAIL: (i) precondition violated — synthetic line contains an "
-            "arrow"
-        )
-        wrong_results.append("HEADLINE-LOCK: (i) precondition violated (arrow)")
     elif _is_historical_headline_hit(_synthetic_path, _synthetic_line):
         print(
             "  HEADLINE-LOCK FAIL: (i) classifier called a non-exempt, no-arrow line "
@@ -3270,14 +3379,23 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
         )
 
-    # (i2) Adjacency-specific controls (CR-03). A mermaid edge and an HTML comment
-    # terminator sharing a line with the current headline must NOT exempt that line from
-    # being reported as an unregistered-surface finding (the fail-unsafe case CR-03 names —
-    # docs/COMPONENT-DIAGRAM.md is live proof mermaid-heavy docs and headline statements
-    # coexist), while a genuine delta line still must be exempt, proving the narrowing did
-    # not simply disable the arrow layer. Every control drives through
-    # _unregistered_headline_finding(), the SAME decision function (j) and (k) call, never
-    # a parallel copy. Writes nothing to disk.
+    # (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08). Six named arms, each
+    # driving through _unregistered_headline_finding() — the SAME decision function (j) and
+    # (k) call, never a parallel copy. Writes nothing to disk. One sentence per arm on what it
+    # guards, four fail-open (a defect that would let a stale current-fact statement escape
+    # detection) and two fail-closed (a defect that would falsely flag a genuine delta):
+    #   1. mermaid edge (fail-open)         — a diagram edge must not donate an arrow.
+    #   2. bare HTML comment close (fail-open) — an unclosed "-->" must not donate an arrow.
+    #   3. genuine delta (fail-closed)      — a real superseded->current reading stays exempt.
+    #   4. arrow-collision (fail-open, BL-01) — an unrelated numeric arrow sharing the line
+    #      with the current headline must not exempt it; not contrived — 67 in-scope lines
+    #      already carry an unrelated digit-arrow-digit pair.
+    #   5. ASCII-long-arrow delta (fail-closed, WR-07) — a genuine delta written "-->" must
+    #      stay exempt in the rendering the old unconditional comment strip used to destroy.
+    #   6. complete-comment counter-arm (fail-open, WR-07) — a real "<!-- ... -->" comment
+    #      must not donate its terminator to the arrow layer once removed; without this arm,
+    #      arm 5 alone would also pass against a classifier that simply stopped stripping
+    #      comments altogether.
     _i2_path = "docs/synthetic-adjacency-check.md"
     if _i2_path in COVERED_HEADLINE_SURFACES or _i2_path in HISTORICAL_EXEMPT_FILES:
         print(
@@ -3343,6 +3461,77 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 "— the narrowing over-disabled the arrow layer"
             )
             wrong_results.append("HEADLINE-LOCK: (i2) delta-line exemption failed")
+
+        # 4. Arrow-collision non-exemption (BL-01, permanently encoded). An unrelated
+        # battery-count delta sharing a line with a present-tense statement of the current
+        # headline must NOT exempt that line — the sentence shape is lifted from
+        # docs/README.md:187, with the headline half built from _prose and never typed. Not
+        # contrived: 67 in-scope lines already carry an unrelated digit-arrow-digit pair, and
+        # this is the escape that made SC5 fail before this plan.
+        _i2_unrelated_line = f"The offline battery moved 17 → 20 and coverage is now {_prose}."
+        _i2_unrelated_finding, _i2_unrelated_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_unrelated_line)
+        )
+        if _i2_unrelated_finding and _i2_path in _i2_unrelated_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) an unrelated numeric arrow sharing a line with "
+                "the current headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) an unrelated numeric arrow sharing a line with "
+                "the current headline was NOT reported as a finding"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) arrow-collision non-exemption failed")
+
+        # 5. ASCII-long-arrow delta exemption (WR-07 reproduction). A genuine delta written
+        # with the ASCII long arrow must stay exempt — the rendering the unconditional
+        # comment strip used to destroy. References _HTML_COMMENT_CLOSE for the arrow rather
+        # than retyping it, so the control and the classifier share the one literal.
+        _i2_long_arrow_delta_line = f"0/0/0/1 {_HTML_COMMENT_CLOSE} {_slash}"
+        _i2_long_arrow_finding, _ = _unregistered_headline_finding(
+            _i2_path, (1, _i2_long_arrow_delta_line)
+        )
+        if not _i2_long_arrow_finding:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a genuine delta line written with the ASCII "
+                "long arrow is NOT reported as a finding — exempt as expected"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a genuine delta line written with the ASCII long "
+                "arrow was reported as a finding — the comment strip destroyed its arrow"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) ASCII-long-arrow delta exemption failed")
+
+        # 6. Complete-comment strip counter-arm (WR-07). A line that opens AND closes an HTML
+        # comment before stating the headline as present-tense fact must still be reported —
+        # proving the narrowed strip removed the comment without donating its terminator to
+        # the arrow layer. Without this arm, arm 5 alone would also pass against a classifier
+        # that simply stopped stripping comments altogether. The superseded placeholder is
+        # placed INSIDE the comment, immediately before its own closing "-->", so an
+        # unstripped classifier would misread the comment's terminator as a genuine delta
+        # arrow between the placeholder and the current literal — a comment strip that merely
+        # stopped running (rather than one narrowed to complete comments) would let this line
+        # through undetected, which is exactly the risk this arm exists to catch.
+        _i2_complete_comment_line = f"<!-- 0/0/0/1 --> {_prose}"
+        _i2_complete_comment_finding, _i2_complete_comment_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_complete_comment_line)
+        )
+        if _i2_complete_comment_finding and _i2_path in _i2_complete_comment_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a complete HTML comment preceding the current "
+                "headline is reported as a finding — the removed comment did not donate an "
+                "arrow"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a complete HTML comment preceding the current "
+                "headline was NOT reported as a finding"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) complete-comment strip counter-arm failed"
+            )
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
@@ -3422,12 +3611,16 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "HISTORICAL_EXEMPT_FILES"
         )
         wrong_results.append("HEADLINE-LOCK: (k) precondition violated (whole-file)")
-    elif "→" in _synth_line or "->" in _synth_line:
+    elif _is_historical_headline_hit(_synth_path, _synth_line):
+        # WR-04: delegates to the classifier directly rather than a parallel whole-line
+        # substring test, so this precondition rejects exactly the lines the classifier
+        # would exempt and no others. Distinct from the "direction" assertions below, which
+        # exercise _unregistered_headline_finding() — never the same call twice.
         print(
-            "  HEADLINE-LOCK FAIL: (k) precondition violated — synthetic line contains an "
-            "arrow"
+            "  HEADLINE-LOCK FAIL: (k) precondition violated — the classifier already calls "
+            "the synthetic line historical, so direction 1 would prove nothing"
         )
-        wrong_results.append("HEADLINE-LOCK: (k) precondition violated (arrow)")
+        wrong_results.append("HEADLINE-LOCK: (k) precondition violated (already historical)")
     else:
         # Direction 1: the synthetic unregistered hit IS reported as a finding, naming the
         # synthetic path.
