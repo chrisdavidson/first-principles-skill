@@ -6538,9 +6538,20 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
 # lands in the exact defect class PROJECT.md's through-line names: a form
 # stated in more places than anything checks (D-04). D-02 is unaffected:
 # nothing here touches `_chain_block_well_formed`.
+#
+# Plan 11-07 (CR-01, gap 1 of 11-VERIFICATION.md) adds a third surface:
+# `shared/spine/references/validation-rubric.md` is the rubric the agent
+# scores its own emission against at Phase 5 Criterion 4, so a wrap-
+# permitting phrasing there grades the exact defect GAP-9 names as
+# Rigorous — the rubric is canonical for the same reason the two contract
+# surfaces are, and CR-01's fix note is what put it here. Each surface now
+# declares which rule literals it must carry via
+# `_RENDER_SURFACE_REQUIRED_RULES` below, rather than every surface being
+# required to state all five (later six) rules.
 _RENDER_RULE_SURFACES: tuple[str, ...] = (
     "shared/spine/references/output-template.md",
     "shared/spine/SKILL-body.md",
+    "shared/spine/references/validation-rubric.md",
 )
 
 # Each value is a SHARED VERBATIM LITERAL, present byte for byte in BOTH
@@ -6577,6 +6588,35 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     ),
     # R5: the reconciled multi-hop head form (CONTRACT-05).
     "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
+    # R6: the one-line-form-is-degenerate-case reconciliation (WR-03,
+    # authored by plan 11-06) — ties the one-line chain form to the
+    # head-plus-arrow-led multi-hop form so the two are not read as
+    # competing shapes.
+    "R6": (
+        "The one-line form is the degenerate case, used only when the "
+        "whole chain fits on one physical line; a chain that does not fit "
+        "uses the head-plus-arrow-led form, and a hop is split rather than "
+        "continued on a second line."
+    ),
+}
+
+# Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
+# carry. Registration in `_RENDER_RULE_SURFACES` no longer means "this
+# surface must state every rule" — the rubric is a scoring instrument, not a
+# spec, and has no business stating the citation rule (R4) or the brevity
+# TELL (R3). The contradiction scan below is deliberately NOT scoped by this
+# mapping: `_RENDER_CONTRADICTION_PHRASES` applies to every registered
+# surface regardless of which literals it must carry, because a wrap
+# permission is wrong everywhere it appears, not just on the two surfaces
+# that also state the positive rule.
+_RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
+    "shared/spine/references/output-template.md": (
+        "R1", "R2", "R3", "R4", "R5", "R6",
+    ),
+    "shared/spine/SKILL-body.md": (
+        "R1", "R2", "R3", "R4", "R5", "R6",
+    ),
+    "shared/spine/references/validation-rubric.md": ("R1", "R6"),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -6641,23 +6681,55 @@ def _read_render_surfaces() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
 
 
 def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
-    """Report every missing rule literal and every contradicting phrasing
-    found in *read*'s text.
+    """Report every missing REQUIRED rule literal and every contradicting
+    phrasing found in *read*'s text.
 
     Takes the `_RenderSurfaceRead` record itself, never a `str` or a `Path`
-    — see the record's docstring. One problem per missing
-    `_RENDER_RULE_LITERALS` entry, naming the relpath, the literal key and
-    that the rule was deleted from that surface; one problem per present
-    `_RENDER_CONTRADICTION_PHRASES` entry, naming the relpath and the
-    phrase.
+    — see the record's docstring. Which literals are required is looked up
+    per surface via `_RENDER_SURFACE_REQUIRED_RULES`, not every entry of
+    `_RENDER_RULE_LITERALS` — registering a surface means "it must state
+    these rules and contradict none", not "it must state all of them".
+
+    Fails CLOSED on two degenerate cases, each a NAMED problem carrying the
+    relpath, never a silent skip:
+      - *read*'s relpath has no entry in `_RENDER_SURFACE_REQUIRED_RULES` —
+        the surface is registered but its required rule set was never
+        declared.
+      - a declared required key has no entry in `_RENDER_RULE_LITERALS` —
+        the surface requires a rule that no longer has a literal.
+
+    One problem per missing required literal, naming the relpath, the
+    literal key and that the rule was deleted from that surface; one
+    problem per present `_RENDER_CONTRADICTION_PHRASES` entry, naming the
+    relpath and the phrase. The contradiction scan is UNSCOPED — it runs
+    the full phrase list against every surface regardless of that
+    surface's required-rule set.
     """
     problems: list[str] = []
-    for key, literal in _RENDER_RULE_LITERALS.items():
-        if literal not in read.text:
-            problems.append(
-                f"{read.relpath}: rule {key} is missing — deleted from "
-                f"this surface"
-            )
+
+    required_keys = _RENDER_SURFACE_REQUIRED_RULES.get(read.relpath)
+    if required_keys is None:
+        problems.append(
+            f"{read.relpath}: is registered in _RENDER_RULE_SURFACES but "
+            f"has no declared rule set — declare its required rules in "
+            f"_RENDER_SURFACE_REQUIRED_RULES"
+        )
+    else:
+        for key in required_keys:
+            literal = _RENDER_RULE_LITERALS.get(key)
+            if literal is None:
+                problems.append(
+                    f"{read.relpath}: requires rule {key}, which no "
+                    f"longer has a literal in _RENDER_RULE_LITERALS — the "
+                    f"surface requires a rule that no longer has a literal"
+                )
+                continue
+            if literal not in read.text:
+                problems.append(
+                    f"{read.relpath}: rule {key} is missing — deleted from "
+                    f"this surface"
+                )
+
     for phrase in _RENDER_CONTRADICTION_PHRASES:
         if phrase in read.text:
             problems.append(
