@@ -7997,17 +7997,50 @@ def _selftest_render_contract() -> bool:
     emission against at Phase 5 Criterion 4, and it shipped for one
     milestone stating one of this gate's own enumerated contradiction
     phrasings (`too long for one line wraps`) while sitting outside the
-    gate's scan scope — CR-01's fix note is what closes that gap. Control
-    (h) is a MEMBERSHIP LOCK, copying the `_TRACE03_DOC_ROWS` precedent
-    (Phase 10, commit `6d3c131`): dropping a surface or a rule from the
-    registered sets must not silently stop checking it. Control (i) is
-    POSITIVE — it goes RED if a rule is deleted from a shipped surface
-    today. Control (j) is the COVERAGE FLOOR, Phase 10 block (l)'s
-    corrected shape: derived from the records `_read_render_surfaces()`
-    actually returned, never a re-glob. Controls (k) and (l) are the
-    NEGATIVE legs — missing-rule and contradiction — each mutating an
-    in-memory copy of the real bytes, never the file on disk (Phase 10
-    block (m)'s shape, `scripts/check-agent.py:334`
+    gate's scan scope — CR-01's fix note is what closes that gap.
+
+    Plan 11-08 (CR-02/WR-01, `11-VERIFICATION.md` gap 2) widened control
+    (h) from a two-registry MEMBERSHIP LOCK to a by-value lock over all
+    EIGHT registries the rendering-contract mechanism depends on, and
+    added control (h2). The verifier reproduced, on a scratch copy, that
+    replacing `_RENDER_CONTRACT_EXTRACTION_TABLE` with an empty tuple made
+    the extraction loop run zero times — `problems` stayed empty, every
+    `_get(...)` returned `None`, controls (b)-(f) were skipped by their
+    `is not None` guards, and the sub-check still printed
+    `render_contract sub-check PASSED`, exit 0, with zero doc-derived
+    assertions executed. Separately, gutting `_RENDER_RULE_LITERALS["R1"]`
+    down to its harmless first sentence also left the sub-check PASSED — a
+    one-line edit silently disabling the mechanism that makes ROADMAP
+    success criteria 1 and 2 true. Control (h) now compares a LIVE
+    `_RenderRegistrySnapshot` (`.live()` is the only producer reading the
+    real module constants) against literals written inline inside
+    `_render_registry_lock_problems`, never against the module constant
+    each field mirrors; the CR-02 and WR-01 reproductions are both named
+    cases in control (h2)'s table. Control (h2) is the ANTI-MASKING floor,
+    copying HARN-01's shape (`scripts/check-act-limb.py`): every
+    `_RENDER_REGISTRY_FIELDS` entry has at least one `dataclasses.replace`
+    -derived negative case proving it load-bearing, the case table's field
+    coverage is asserted against `_RENDER_REGISTRY_FIELDS` itself, and the
+    `checked_fields` the positive call actually compared is asserted
+    against that same set — a field silently skipped by
+    `_render_registry_lock_problems` (the exact failure mode (h) had
+    before this plan) is caught here rather than passing by omission. The
+    `literals` field's two arms — a required-clause substring and a
+    `sha256:` digest pin — are each asserted exercised by name, so the
+    digest arm cannot be dropped while the clause arm keeps the field
+    "covered". DISCLOSED RESIDUAL: the lock proves the registries have not
+    shrunk, been reordered, or lost a required literal clause against a
+    PINNED expectation; it does not prove the pinned expectations are
+    themselves the right ones — that question is answered by the fixture
+    legs above and by plan 11-09's consumption floor, not here.
+
+    Control (i) is POSITIVE — it goes RED if a rule is deleted from a
+    shipped surface today. Control (j) is the COVERAGE FLOOR, Phase 10
+    block (l)'s corrected shape: derived from the records
+    `_read_render_surfaces()` actually returned, never a re-glob. Controls
+    (k) and (l) are the NEGATIVE legs — missing-rule and contradiction —
+    each mutating an in-memory copy of the real bytes, never the file on
+    disk (Phase 10 block (m)'s shape, `scripts/check-agent.py:334`
     `_assert_live_coverage`). Controls (n) and (o), added by plan 11-07,
     prove `_render_rule_report`'s two fail-closed branches — an
     unregistered surface and a required key with no literal — are
@@ -8191,6 +8224,185 @@ def _selftest_render_contract() -> bool:
     )
     for problem in render_lock_problems:
         _fail(f"(h) MEMBERSHIP LOCK: {problem}")
+
+    # (h2) LOCK NEGATIVES. Every case is a `dataclasses.replace` on
+    #     `_RenderRegistrySnapshot.live()` — a perturbation of the REAL
+    #     registries, never a synthetic snapshot — reproducing the
+    #     verifier's own degradation shapes named in
+    #     `11-VERIFICATION.md` gap 2: emptying a tuple, emptying a dict,
+    #     dropping one entry, or reordering. A case producing no problem
+    #     naming its field is a failure naming that field. The first case
+    #     is CR-02's exact reproduction; the eleventh is WR-01's.
+    render_live_snapshot = _RenderRegistrySnapshot.live()
+    render_lock_negative_cases: list[tuple[str, str, _RenderRegistrySnapshot]] = [
+        (
+            "extraction_ids emptied (CR-02 reproduction)",
+            "extraction_ids",
+            replace(render_live_snapshot, extraction_ids=()),
+        ),
+        (
+            "extraction_ids with one id dropped",
+            "extraction_ids",
+            replace(
+                render_live_snapshot,
+                extraction_ids=render_live_snapshot.extraction_ids[1:],
+            ),
+        ),
+        (
+            "fixture_shape with one key dropped",
+            "fixture_shape",
+            replace(
+                render_live_snapshot,
+                fixture_shape={
+                    k: v
+                    for k, v in render_live_snapshot.fixture_shape.items()
+                    if k != next(iter(render_live_snapshot.fixture_shape))
+                },
+            ),
+        ),
+        (
+            "fixture_forbidden emptied",
+            "fixture_forbidden",
+            replace(render_live_snapshot, fixture_forbidden={}),
+        ),
+        (
+            "surfaces with the rubric entry dropped",
+            "surfaces",
+            replace(
+                render_live_snapshot,
+                surfaces=tuple(
+                    s
+                    for s in render_live_snapshot.surfaces
+                    if s != "shared/spine/references/validation-rubric.md"
+                ),
+            ),
+        ),
+        (
+            "surfaces reordered",
+            "surfaces",
+            replace(
+                render_live_snapshot,
+                surfaces=tuple(reversed(render_live_snapshot.surfaces)),
+            ),
+        ),
+        (
+            "required_rules with the rubric key dropped",
+            "required_rules",
+            replace(
+                render_live_snapshot,
+                required_rules={
+                    k: v
+                    for k, v in render_live_snapshot.required_rules.items()
+                    if k != "shared/spine/references/validation-rubric.md"
+                },
+            ),
+        ),
+        (
+            "contradiction_phrases emptied",
+            "contradiction_phrases",
+            replace(render_live_snapshot, contradiction_phrases=()),
+        ),
+        (
+            "contradiction_phrases with the CR-01 live phrase dropped",
+            "contradiction_phrases",
+            replace(
+                render_live_snapshot,
+                contradiction_phrases=tuple(
+                    p
+                    for p in render_live_snapshot.contradiction_phrases
+                    if p != "too long for one line wraps"
+                ),
+            ),
+        ),
+        (
+            "qual01_doc_rows with one entry dropped",
+            "qual01_doc_rows",
+            replace(
+                render_live_snapshot,
+                qual01_doc_rows=render_live_snapshot.qual01_doc_rows[1:],
+            ),
+        ),
+        (
+            "literals clause arm: R1 gutted (WR-01 reproduction)",
+            "literals",
+            replace(
+                render_live_snapshot,
+                literals={
+                    **render_live_snapshot.literals,
+                    "R1": "A hop occupies exactly one physical line.",
+                },
+            ),
+        ),
+        (
+            "literals digest arm: R1 clause kept, benign sentence appended",
+            "literals",
+            replace(
+                render_live_snapshot,
+                literals={
+                    **render_live_snapshot.literals,
+                    "R1": render_live_snapshot.literals["R1"]
+                    + " A trailing continuation is permitted for readability.",
+                },
+            ),
+        ),
+    ]
+
+    render_lock_negative_fields_exercised: set[str] = set()
+    for case_name, case_field, mutated_snapshot in render_lock_negative_cases:
+        render_lock_negative_fields_exercised.add(case_field)
+        case_problems, _ = _render_registry_lock_problems(mutated_snapshot)
+        if not any(case_field in problem for problem in case_problems):
+            _fail(
+                f"(h2) LOCK NEGATIVE: case {case_name!r} produced no "
+                f"problem naming field {case_field!r} — {case_problems!r}"
+            )
+
+    # (h2) ANTI-MASKING FLOOR, copying HARN-01's shape
+    #     (`scripts/check-act-limb.py`): a case table failing to cover the
+    #     full field set, or the lock itself failing to check a field, is
+    #     caught here rather than leaving either uncovered.
+    render_snapshot_field_names = tuple(
+        f.name for f in fields(_RenderRegistrySnapshot)
+    )
+    if render_snapshot_field_names != _RENDER_REGISTRY_FIELDS:
+        _fail(
+            f"(h2) ANTI-MASKING FLOOR: _RenderRegistrySnapshot field names "
+            f"{render_snapshot_field_names!r} != _RENDER_REGISTRY_FIELDS "
+            f"{_RENDER_REGISTRY_FIELDS!r} — a field was added to the "
+            f"snapshot without being registered in _RENDER_REGISTRY_FIELDS"
+        )
+    if render_lock_negative_fields_exercised != set(_RENDER_REGISTRY_FIELDS):
+        render_missing_case_fields = (
+            set(_RENDER_REGISTRY_FIELDS) - render_lock_negative_fields_exercised
+        )
+        _fail(
+            f"(h2) ANTI-MASKING FLOOR: the case table exercises "
+            f"{sorted(render_lock_negative_fields_exercised)!r}, missing a "
+            f"negative case for {sorted(render_missing_case_fields)!r} — a "
+            f"registry added to the lock without a negative case is "
+            f"unfalsifiable"
+        )
+    if render_lock_checked != set(_RENDER_REGISTRY_FIELDS):
+        render_skipped_fields = set(_RENDER_REGISTRY_FIELDS) - render_lock_checked
+        _fail(
+            f"(h2) ANTI-MASKING FLOOR: the positive lock call at (h) only "
+            f"compared {sorted(render_lock_checked)!r}, silently skipping "
+            f"{sorted(render_skipped_fields)!r}"
+        )
+    render_literals_case_names = {
+        case_name
+        for case_name, case_field, _ in render_lock_negative_cases
+        if case_field == "literals"
+    }
+    if not any(
+        "clause" in name for name in render_literals_case_names
+    ) or not any("digest" in name for name in render_literals_case_names):
+        _fail(
+            "(h2) ANTI-MASKING FLOOR: the literals field's two arms "
+            "(clause, digest) are not both exercised by name in the case "
+            "table — the digest arm could be dropped while the clause "
+            "arm keeps the field 'covered'"
+        )
 
     # (i) POSITIVE. Reads the real shipped bytes; goes RED if a REQUIRED
     #     rule is deleted from any of the three canonical surfaces today,
