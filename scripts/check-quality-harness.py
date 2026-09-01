@@ -6538,9 +6538,20 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
 # lands in the exact defect class PROJECT.md's through-line names: a form
 # stated in more places than anything checks (D-04). D-02 is unaffected:
 # nothing here touches `_chain_block_well_formed`.
+#
+# Plan 11-07 (CR-01, gap 1 of 11-VERIFICATION.md) adds a third surface:
+# `shared/spine/references/validation-rubric.md` is the rubric the agent
+# scores its own emission against at Phase 5 Criterion 4, so a wrap-
+# permitting phrasing there grades the exact defect GAP-9 names as
+# Rigorous — the rubric is canonical for the same reason the two contract
+# surfaces are, and CR-01's fix note is what put it here. Each surface now
+# declares which rule literals it must carry via
+# `_RENDER_SURFACE_REQUIRED_RULES` below, rather than every surface being
+# required to state all five (later six) rules.
 _RENDER_RULE_SURFACES: tuple[str, ...] = (
     "shared/spine/references/output-template.md",
     "shared/spine/SKILL-body.md",
+    "shared/spine/references/validation-rubric.md",
 )
 
 # Each value is a SHARED VERBATIM LITERAL, present byte for byte in BOTH
@@ -6577,6 +6588,35 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     ),
     # R5: the reconciled multi-hop head form (CONTRACT-05).
     "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
+    # R6: the one-line-form-is-degenerate-case reconciliation (WR-03,
+    # authored by plan 11-06) — ties the one-line chain form to the
+    # head-plus-arrow-led multi-hop form so the two are not read as
+    # competing shapes.
+    "R6": (
+        "The one-line form is the degenerate case, used only when the "
+        "whole chain fits on one physical line; a chain that does not fit "
+        "uses the head-plus-arrow-led form, and a hop is split rather than "
+        "continued on a second line."
+    ),
+}
+
+# Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
+# carry. Registration in `_RENDER_RULE_SURFACES` no longer means "this
+# surface must state every rule" — the rubric is a scoring instrument, not a
+# spec, and has no business stating the citation rule (R4) or the brevity
+# TELL (R3). The contradiction scan below is deliberately NOT scoped by this
+# mapping: `_RENDER_CONTRADICTION_PHRASES` applies to every registered
+# surface regardless of which literals it must carry, because a wrap
+# permission is wrong everywhere it appears, not just on the two surfaces
+# that also state the positive rule.
+_RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
+    "shared/spine/references/output-template.md": (
+        "R1", "R2", "R3", "R4", "R5", "R6",
+    ),
+    "shared/spine/SKILL-body.md": (
+        "R1", "R2", "R3", "R4", "R5", "R6",
+    ),
+    "shared/spine/references/validation-rubric.md": ("R1", "R6"),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -6640,24 +6680,83 @@ def _read_render_surfaces() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
     return tuple(reads), problems
 
 
+def _render_required_rule_problems(
+    relpath: str,
+    text: str,
+    required_rules: dict[str, tuple[str, ...]] | None = None,
+    literals: dict[str, str] | None = None,
+) -> list[str]:
+    """Report every missing REQUIRED rule literal for *relpath*/*text*
+    against *required_rules* and *literals*.
+
+    Extracted from `_render_rule_report` so the two fail-closed branches
+    below are independently testable by passing a copied mapping — control
+    (o) drives the unknown-key branch this way, without mutating either
+    module constant in place. `_render_rule_report` calls this with both
+    defaults, so its own behavior is unchanged; the two module constants
+    remain the single source of truth for every real caller.
+
+    Fails CLOSED on two degenerate cases, each a NAMED problem carrying the
+    relpath, never a silent skip:
+      - *relpath* has no entry in *required_rules* — the surface is
+        registered but its required rule set was never declared.
+      - a declared required key has no entry in *literals* — the surface
+        requires a rule that no longer has a literal.
+    """
+    if required_rules is None:
+        required_rules = _RENDER_SURFACE_REQUIRED_RULES
+    if literals is None:
+        literals = _RENDER_RULE_LITERALS
+
+    problems: list[str] = []
+
+    required_keys = required_rules.get(relpath)
+    if required_keys is None:
+        problems.append(
+            f"{relpath}: is registered in _RENDER_RULE_SURFACES but "
+            f"has no declared rule set — declare its required rules in "
+            f"_RENDER_SURFACE_REQUIRED_RULES"
+        )
+    else:
+        for key in required_keys:
+            literal = literals.get(key)
+            if literal is None:
+                problems.append(
+                    f"{relpath}: requires rule {key}, which no "
+                    f"longer has a literal in _RENDER_RULE_LITERALS — the "
+                    f"surface requires a rule that no longer has a literal"
+                )
+                continue
+            if literal not in text:
+                problems.append(
+                    f"{relpath}: rule {key} is missing — deleted from "
+                    f"this surface"
+                )
+    return problems
+
+
 def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
-    """Report every missing rule literal and every contradicting phrasing
-    found in *read*'s text.
+    """Report every missing REQUIRED rule literal and every contradicting
+    phrasing found in *read*'s text.
 
     Takes the `_RenderSurfaceRead` record itself, never a `str` or a `Path`
-    — see the record's docstring. One problem per missing
-    `_RENDER_RULE_LITERALS` entry, naming the relpath, the literal key and
-    that the rule was deleted from that surface; one problem per present
-    `_RENDER_CONTRADICTION_PHRASES` entry, naming the relpath and the
-    phrase.
+    — see the record's docstring. Which literals are required is looked up
+    per surface via `_RENDER_SURFACE_REQUIRED_RULES`, not every entry of
+    `_RENDER_RULE_LITERALS` — registering a surface means "it must state
+    these rules and contradict none", not "it must state all of them".
+    Delegates to `_render_required_rule_problems` with both module
+    constants as defaults — see that function's docstring for the two
+    fail-closed branches.
+
+    One problem per missing required literal, naming the relpath, the
+    literal key and that the rule was deleted from that surface; one
+    problem per present `_RENDER_CONTRADICTION_PHRASES` entry, naming the
+    relpath and the phrase. The contradiction scan is UNSCOPED — it runs
+    the full phrase list against every surface regardless of that
+    surface's required-rule set.
     """
-    problems: list[str] = []
-    for key, literal in _RENDER_RULE_LITERALS.items():
-        if literal not in read.text:
-            problems.append(
-                f"{read.relpath}: rule {key} is missing — deleted from "
-                f"this surface"
-            )
+    problems = _render_required_rule_problems(read.relpath, read.text)
+
     for phrase in _RENDER_CONTRADICTION_PHRASES:
         if phrase in read.text:
             problems.append(
@@ -7678,20 +7777,31 @@ def _selftest_render_contract() -> bool:
     not pass (b)/(e) by accident.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
-    multi-hop head form (CONTRACT-05) across BOTH canonical surfaces, per
+    multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
     D-04: a rule shipped uncontrolled lands in the exact defect class
     PROJECT.md's through-line names — a form stated in more places than
-    anything checks. Control (h) is a MEMBERSHIP LOCK, copying the
-    `_TRACE03_DOC_ROWS` precedent (Phase 10, commit `6d3c131`): dropping a
-    surface or a rule from the registered sets must not silently stop
-    checking it. Control (i) is POSITIVE — it goes RED if a rule is
-    deleted from a shipped surface today. Control (j) is the COVERAGE
-    FLOOR, Phase 10 block (l)'s corrected shape: derived from the records
-    `_read_render_surfaces()` actually returned, never a re-glob. Controls
-    (k) and (l) are the NEGATIVE legs — missing-rule and contradiction —
-    each mutating an in-memory copy of the real bytes, never the file on
-    disk (Phase 10 block (m)'s shape, `scripts/check-agent.py:334`
-    `_assert_live_coverage`).
+    anything checks. Plan 11-07 (CR-01, `11-VERIFICATION.md` gap 1) added
+    the third surface, `shared/spine/references/validation-rubric.md`: it
+    is canonical because it is the rubric the agent scores its own
+    emission against at Phase 5 Criterion 4, and it shipped for one
+    milestone stating one of this gate's own enumerated contradiction
+    phrasings (`too long for one line wraps`) while sitting outside the
+    gate's scan scope — CR-01's fix note is what closes that gap. Control
+    (h) is a MEMBERSHIP LOCK, copying the `_TRACE03_DOC_ROWS` precedent
+    (Phase 10, commit `6d3c131`): dropping a surface or a rule from the
+    registered sets must not silently stop checking it. Control (i) is
+    POSITIVE — it goes RED if a rule is deleted from a shipped surface
+    today. Control (j) is the COVERAGE FLOOR, Phase 10 block (l)'s
+    corrected shape: derived from the records `_read_render_surfaces()`
+    actually returned, never a re-glob. Controls (k) and (l) are the
+    NEGATIVE legs — missing-rule and contradiction — each mutating an
+    in-memory copy of the real bytes, never the file on disk (Phase 10
+    block (m)'s shape, `scripts/check-agent.py:334`
+    `_assert_live_coverage`). Controls (n) and (o), added by plan 11-07,
+    prove `_render_rule_report`'s two fail-closed branches — an
+    unregistered surface and a required key with no literal — are
+    load-bearing by mutating an in-memory copy and requiring the specific
+    problem to fire.
 
     DISCLOSED LIMITATION: control (l)'s contradiction leg detects the
     ENUMERATED phrasings in `_RENDER_CONTRADICTION_PHRASES`, not arbitrary
@@ -7863,6 +7973,7 @@ def _selftest_render_contract() -> bool:
     expected_surfaces = (
         "shared/spine/references/output-template.md",
         "shared/spine/SKILL-body.md",
+        "shared/spine/references/validation-rubric.md",
     )
     if _RENDER_RULE_SURFACES != expected_surfaces:
         _fail(
@@ -7870,7 +7981,7 @@ def _selftest_render_contract() -> bool:
             f"reordered — expected {expected_surfaces!r}, got "
             f"{_RENDER_RULE_SURFACES!r}"
         )
-    expected_literal_keys = ["R1", "R2", "R3", "R4", "R5"]
+    expected_literal_keys = ["R1", "R2", "R3", "R4", "R5", "R6"]
     if sorted(_RENDER_RULE_LITERALS) != expected_literal_keys:
         _fail(
             f"(h) MEMBERSHIP LOCK: _RENDER_RULE_LITERALS key set shrank — "
@@ -7878,9 +7989,9 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_RENDER_RULE_LITERALS)!r}"
         )
 
-    # (i) POSITIVE. Reads the real shipped bytes; goes RED if a rule is
-    #     deleted from either canonical surface today, or if either surface
-    #     currently contradicts the no-wrap rule.
+    # (i) POSITIVE. Reads the real shipped bytes; goes RED if a REQUIRED
+    #     rule is deleted from any of the three canonical surfaces today,
+    #     or if any surface currently contradicts the no-wrap rule.
     render_reads, render_read_problems = _read_render_surfaces()
     for problem in render_read_problems:
         _fail(f"(i) POSITIVE: could not read a registered surface: {problem}")
@@ -7894,6 +8005,7 @@ def _selftest_render_contract() -> bool:
     #     open is named at (i) above rather than silently reducing
     #     coverage to whatever was read; this floor additionally proves no
     #     registered surface silently dropped out of the returned records.
+    #     Compares a three-element set as of plan 11-07's rubric surface.
     read_relpaths = {read.relpath for read in render_reads}
     if read_relpaths != set(_RENDER_RULE_SURFACES):
         _fail(
@@ -7902,15 +8014,29 @@ def _selftest_render_contract() -> bool:
             f"{set(_RENDER_RULE_SURFACES)!r}"
         )
 
-    # (k) NEGATIVE, missing. For each real record and each literal key,
-    #     build a NEW _RenderSurfaceRead from that record's real text with
-    #     every occurrence of the literal replaced by the empty string —
-    #     never mutating the file on disk — and require
-    #     _render_rule_report to report a problem naming that relpath and
-    #     that key. Ten cases (2 surfaces x 5 literals).
+    # (k) NEGATIVE, missing. For each real record and each of that
+    #     surface's REQUIRED literal keys (sourced from
+    #     _RENDER_SURFACE_REQUIRED_RULES[read.relpath], the same view
+    #     _render_rule_report itself uses — not every entry of
+    #     _RENDER_RULE_LITERALS), build a NEW _RenderSurfaceRead from that
+    #     record's real text with every occurrence of the literal replaced
+    #     by the empty string — never mutating the file on disk — and
+    #     require _render_rule_report to report a problem naming that
+    #     relpath and that key. The case count follows the mapping rather
+    #     than a restated number: a floor immediately below requires it to
+    #     equal sum(len(keys) for keys in
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 14 today
+    #     (6 + 6 + 2), so shrinking the mapping fails the floor rather
+    #     than silently reducing coverage.
     missing_cases_unfired: list[str] = []
+    missing_cases_run = 0
     for read in render_reads:
-        for key, literal in _RENDER_RULE_LITERALS.items():
+        required_keys = _RENDER_SURFACE_REQUIRED_RULES.get(read.relpath, ())
+        for key in required_keys:
+            literal = _RENDER_RULE_LITERALS.get(key)
+            if literal is None:
+                continue
+            missing_cases_run += 1
             stripped_text = read.text.replace(literal, "")
             stripped = _RenderSurfaceRead(relpath=read.relpath, text=stripped_text)
             stripped_problems = _render_rule_report(stripped)
@@ -7924,13 +8050,28 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
+    expected_missing_case_count = 14
+    derived_missing_case_count = sum(
+        len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
+    )
+    if (
+        missing_cases_run != derived_missing_case_count
+        or derived_missing_case_count != expected_missing_case_count
+    ):
+        _fail(
+            f"(k) CASE-COUNT FLOOR: expected {expected_missing_case_count} "
+            f"cases (derived sum {derived_missing_case_count}), ran "
+            f"{missing_cases_run}"
+        )
 
     # (l) NEGATIVE, contradiction. For each real record and each
     #     contradiction phrasing, build a NEW _RenderSurfaceRead from that
     #     record's real text with the phrase appended — never mutating the
     #     file on disk — and require _render_rule_report to report a
-    #     problem naming that relpath and that phrase. Ten cases (2
-    #     surfaces x 5 phrasings).
+    #     problem naming that relpath and that phrase. Fifteen cases (3
+    #     surfaces x 5 phrasings) — the contradiction scan is unscoped and
+    #     runs against every registered surface regardless of its
+    #     required-rule set.
     contradiction_cases_unfired: list[str] = []
     for read in render_reads:
         for phrase in _RENDER_CONTRADICTION_PHRASES:
@@ -8002,6 +8143,58 @@ def _selftest_render_contract() -> bool:
                 f"(m) NEGATIVE: stripping 'emission rendering contract' "
                 f"from {relpath}'s QUAL-01 line did not produce a "
                 f"reported problem"
+            )
+
+    # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
+    #     branch: a `_RenderSurfaceRead` whose relpath is a sentinel that
+    #     is NOT a key of `_RENDER_SURFACE_REQUIRED_RULES` (a real
+    #     registered surface's text is reused, only the relpath is fake)
+    #     must produce a problem naming that relpath and the "no declared
+    #     rule set" phrase. An empty result here means the branch is not
+    #     load-bearing.
+    sentinel_relpath = "shared/spine/references/NOT-A-REGISTERED-SURFACE.md"
+    if sentinel_relpath in _RENDER_SURFACE_REQUIRED_RULES:
+        _fail(
+            "(n) ISOLATION setup: sentinel relpath collides with a real "
+            "registered surface — pick a different sentinel"
+        )
+    elif render_reads:
+        unregistered_read = _RenderSurfaceRead(
+            relpath=sentinel_relpath, text=render_reads[0].text
+        )
+        unregistered_problems = _render_rule_report(unregistered_read)
+        if not any(
+            sentinel_relpath in p and "no declared rule set" in p
+            for p in unregistered_problems
+        ):
+            _fail(
+                "(n) ISOLATION unregistered-surface: the unregistered-"
+                "surface branch did not fire — "
+                f"{unregistered_problems!r}"
+            )
+
+    # (o) ISOLATION, unknown key. Plan 11-07's second fail-closed branch:
+    #     drive `_render_required_rule_problems` directly with a COPIED
+    #     required-rules mapping — never editing `_RENDER_RULE_LITERALS`
+    #     or `_RENDER_SURFACE_REQUIRED_RULES` in place — whose sole entry
+    #     for a real surface names a key that is not in
+    #     `_RENDER_RULE_LITERALS`. The public signature of
+    #     `_render_rule_report`, `(_RenderSurfaceRead) -> list[str]`, is
+    #     untouched; only the extracted helper takes the injected mapping.
+    if render_reads:
+        real_relpath = render_reads[0].relpath
+        unknown_key_rules = {real_relpath: ("R-DOES-NOT-EXIST",)}
+        unknown_key_problems = _render_required_rule_problems(
+            real_relpath, render_reads[0].text, required_rules=unknown_key_rules
+        )
+        if not any(
+            real_relpath in p and "R-DOES-NOT-EXIST" in p
+            for p in unknown_key_problems
+        ):
+            _fail(
+                "(o) ISOLATION unknown-key: the unknown-required-key "
+                "branch did not fire — "
+                f"{unknown_key_problems!r}"
             )
 
     return ok
