@@ -404,11 +404,23 @@ def _scan_relpaths(files: list[Path]) -> set[str]:
     return {_p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()}
 
 
-def _headline_scan_read(scan_files: list[Path]) -> _HeadlineScanRead:
+def _headline_scan_read(
+    scan_files: list[Path], root: Path | None = None
+) -> _HeadlineScanRead:
     """Open and classify every candidate in `scan_files`, returning a structured record
     of exactly what happened — the single source of truth for what the (j) tree-wide
     scan read. Module level so block (j) and block (m)'s permanent controls call the
     identical function object (research Pitfall 4).
+
+    `root` is the confinement boundary and the base for relpath derivation; it defaults to
+    REPO_ROOT and no production call site passes it. It exists so (m)'s confinement and
+    read-error arms can drive THIS function object over a throwaway tree — the only way to
+    exercise the "resolves outside the root" and "could not be decoded" branches without
+    writing anything inside the repository (WR-02/WR-03, Phase 10 review; before it, deleting
+    the confinement guard outright, or collapsing both read-error handlers into a fail-open
+    `except Exception: continue`, left --self-test green). Unlike `_headline_hits()`'s former
+    dead `literals` parameter, this one is genuinely driven by a control, which is the whole
+    reason it is here.
 
     `read_relpaths` and `hits_by_surface` are populated AS THE LOOP GOES, never
     recomputed afterwards from a separate glob or `is_file()` sweep — any caller that
@@ -431,14 +443,15 @@ def _headline_scan_read(scan_files: list[Path]) -> _HeadlineScanRead:
     _findings: list[tuple[str, str]] = []
     _skipped: list[tuple[str, str]] = []
     _read_errors: list[tuple[str, str]] = []
-    _repo_root_resolved = REPO_ROOT.resolve()
+    _scan_root = REPO_ROOT if root is None else root
+    _scan_root_resolved = _scan_root.resolve()
 
     for _scan_path in scan_files:
         if not _scan_path.is_file():
             _skipped.append((str(_scan_path), "not a regular file"))
             continue
         _resolved_scan_path = _scan_path.resolve()
-        if not _resolved_scan_path.is_relative_to(_repo_root_resolved):
+        if not _resolved_scan_path.is_relative_to(_scan_root_resolved):
             _skipped.append((str(_scan_path), "resolves outside REPO_ROOT"))
             continue  # never follow a symlink resolving outside the repository
         try:
@@ -452,7 +465,7 @@ def _headline_scan_read(scan_files: list[Path]) -> _HeadlineScanRead:
             _read_errors.append((str(_scan_path), f"could not be read: {_os_exc}"))
             continue
 
-        _scan_relpath = _scan_path.relative_to(REPO_ROOT).as_posix()
+        _scan_relpath = _scan_path.relative_to(_scan_root).as_posix()
         _read_relpaths.add(_scan_relpath)
         _hits_by_surface.setdefault(_scan_relpath, 0)
         for _hit in _headline_hits(_scan_text):
@@ -3099,9 +3112,10 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           labels, which is exactly what the shipped code did. Without the anti-tautology arm,
           the first two would also pass against a floor helper that returned a breach
           unconditionally.
-      (m) Permanent controls for both halves of the BL-02 escape (T-10-09): three arms, every
-          one driving `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the
-          identical function objects (j) calls, never a parallel copy. Arm 1 removes one
+      (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the read
+          loop's own two decline/error branches: four arms, every one driving
+          `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the identical
+          function objects (j) calls, never a parallel copy. Arm 1 removes one
           registered surface from a COPY of the live read result's `read_relpaths` and
           requires the coverage floor to breach naming it — the half of BL-02 where a
           surface the loop refused to read was still counted "reached" by a glob-based
@@ -3114,7 +3128,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           `_headline_scan_read()` with a non-regular-file candidate and requires it to be
           named in `skipped` and absent from `read_relpaths` — without this arm, arms 1 and 2
           would also pass against a read loop that silently dropped everything, since both
-          construct their inputs by hand rather than driving the loop itself. Each arm asserts
+          construct their inputs by hand rather than driving the loop itself. Arm 4 (WR-02,
+          Phase 10 review) drives the same function object over a throwaway tree passed as
+          `root`, and requires a symlink whose target resolves outside that root to be named
+          in `skipped` with the confinement reason and absent from `read_relpaths`, while a
+          plain in-root file in the SAME call is read — the module's only path-confinement
+          guard, whose outright deletion previously left the gate green because arm 3
+          exercises the other decline reason only. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
           degrade into a tautology if a future edit changes a constant. What these arms lock
           is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
@@ -4331,6 +4351,73 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "correctly recorded as skipped"
         )
         wrong_results.append("HEADLINE-LOCK: (m) arm 3 failed")
+
+    # Arm 4: symlink confinement, and the loop's positive counterpart (WR-02, Phase 10
+    # review). The `is_relative_to()` guard is this module's ONLY path-confinement check —
+    # the thing that stops a symlinked docs/*.md from making the scan read outside the
+    # repository — and deleting its four lines outright left --self-test at exit 0, because
+    # arm 3 above exercises only the OTHER decline reason ("not a regular file", via a
+    # directory). This arm drives the identical _headline_scan_read() function object over a
+    # throwaway tree, passing that tree as `root`, so the escape can be built without writing
+    # anything inside the repository: `inside.md` is a plain file under the root, `escape.md`
+    # is a symlink under the root whose target resolves OUTSIDE it. Asserting both in one
+    # call is what keeps the arm honest — the confinement half alone would also pass against
+    # a read loop that declined everything.
+    with tempfile.TemporaryDirectory() as _m_arm4_tmp:
+        _m_arm4_root = Path(_m_arm4_tmp) / "root"
+        _m_arm4_root.mkdir()
+        _m_arm4_inside = _m_arm4_root / "inside.md"
+        _m_arm4_inside.write_text("A plain in-root surface with no headline.\n", encoding="utf-8")
+        _m_arm4_outside = Path(_m_arm4_tmp) / "outside.md"
+        _m_arm4_outside.write_text("An out-of-root surface with no headline.\n", encoding="utf-8")
+        _m_arm4_link = _m_arm4_root / "escape.md"
+        try:
+            _m_arm4_link.symlink_to(_m_arm4_outside)
+        except OSError as _m_arm4_symlink_exc:
+            print(
+                "  HEADLINE-LOCK FAIL: (m) arm 4 precondition violated — this platform "
+                f"could not create a symlink ({_m_arm4_symlink_exc}), so the confinement "
+                "guard cannot be exercised"
+            )
+            wrong_results.append("HEADLINE-LOCK: (m) arm 4 precondition violated (symlink)")
+        else:
+            # Precondition: the escaping candidate must look like a regular file, or the
+            # loop would decline it for the OTHER reason and this arm would prove nothing.
+            if not _m_arm4_link.is_file():
+                print(
+                    "  HEADLINE-LOCK FAIL: (m) arm 4 precondition violated — the symlinked "
+                    "candidate does not report is_file(), so it would be declined as 'not a "
+                    "regular file' rather than by the confinement guard"
+                )
+                wrong_results.append("HEADLINE-LOCK: (m) arm 4 precondition violated (is_file)")
+            else:
+                _m_arm4_result = _headline_scan_read(
+                    [_m_arm4_inside, _m_arm4_link], root=_m_arm4_root
+                )
+                _m_arm4_skips = {
+                    _p: _reason for _p, _reason in _m_arm4_result.skipped
+                }
+                _m_arm4_confined = (
+                    _m_arm4_skips.get(str(_m_arm4_link)) == "resolves outside REPO_ROOT"
+                    and _m_arm4_result.read_relpaths == {"inside.md"}
+                    and not _m_arm4_result.read_errors
+                )
+                if _m_arm4_confined:
+                    print(
+                        "  HEADLINE-LOCK PASS: (m) arm 4 — a symlinked candidate resolving "
+                        "outside the scan root is named in skipped with the confinement "
+                        "reason and absent from read_relpaths, while a plain in-root file in "
+                        "the same call IS read — the confinement guard is load-bearing"
+                    )
+                else:
+                    print(
+                        "  HEADLINE-LOCK FAIL: (m) arm 4 — expected the symlinked candidate "
+                        "to be skipped as 'resolves outside REPO_ROOT' and only 'inside.md' "
+                        f"to be read; got skipped={_m_arm4_result.skipped}, "
+                        f"read_relpaths={sorted(_m_arm4_result.read_relpaths)}, "
+                        f"read_errors={_m_arm4_result.read_errors}"
+                    )
+                    wrong_results.append("HEADLINE-LOCK: (m) arm 4 failed")
 
     # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
     # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
