@@ -2793,13 +2793,20 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
-      (i2) Adjacency-specific controls (CR-03, T-10-04-01): a mermaid edge and an HTML
-          comment terminator sharing a line with the current headline must NOT exempt that
-          line from `_unregistered_headline_finding()` (the fail-unsafe case CR-03 names),
-          while a genuine delta line (a superseded figure, an arrow, then the current
-          figure) still must be exempt — proving the narrowing did not simply disable the
-          arrow layer. Every control drives through `_unregistered_headline_finding()`
-          itself, never a parallel copy.
+      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08): six named arms, every
+          one driving through `_unregistered_headline_finding()` itself, never a parallel
+          copy. 1. mermaid edge and 2. bare HTML comment close must NOT exempt a line sharing
+          it with the current headline (the fail-unsafe case CR-03 names); 3. a genuine delta
+          line (a superseded figure, an arrow, then the current figure) still must be exempt,
+          proving the narrowing did not simply disable the arrow layer; 4. an unrelated
+          numeric arrow elsewhere on the line (a battery-count delta) must NOT exempt the
+          headline mention on that line (BL-01's reproduction, permanently encoded — not
+          contrived, 67 in-scope lines already carry this shape); 5. a genuine delta written
+          with the ASCII long arrow must stay exempt (WR-07's reproduction); 6. a complete
+          `<!-- ... -->` comment preceding the headline must NOT exempt it, proving the
+          narrowed strip does not donate its terminator to the arrow layer once removed —
+          without arm 6, arm 5 alone would also pass against a classifier that simply stopped
+          stripping comments.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): files are collected
           through the shared `_headline_scan_files()` helper (also driven directly by block
           (l)'s non-vacuity control), every matched file is read, its hits fed through
@@ -3372,14 +3379,23 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
         )
 
-    # (i2) Adjacency-specific controls (CR-03). A mermaid edge and an HTML comment
-    # terminator sharing a line with the current headline must NOT exempt that line from
-    # being reported as an unregistered-surface finding (the fail-unsafe case CR-03 names —
-    # docs/COMPONENT-DIAGRAM.md is live proof mermaid-heavy docs and headline statements
-    # coexist), while a genuine delta line still must be exempt, proving the narrowing did
-    # not simply disable the arrow layer. Every control drives through
-    # _unregistered_headline_finding(), the SAME decision function (j) and (k) call, never
-    # a parallel copy. Writes nothing to disk.
+    # (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08). Six named arms, each
+    # driving through _unregistered_headline_finding() — the SAME decision function (j) and
+    # (k) call, never a parallel copy. Writes nothing to disk. One sentence per arm on what it
+    # guards, four fail-open (a defect that would let a stale current-fact statement escape
+    # detection) and two fail-closed (a defect that would falsely flag a genuine delta):
+    #   1. mermaid edge (fail-open)         — a diagram edge must not donate an arrow.
+    #   2. bare HTML comment close (fail-open) — an unclosed "-->" must not donate an arrow.
+    #   3. genuine delta (fail-closed)      — a real superseded->current reading stays exempt.
+    #   4. arrow-collision (fail-open, BL-01) — an unrelated numeric arrow sharing the line
+    #      with the current headline must not exempt it; not contrived — 67 in-scope lines
+    #      already carry an unrelated digit-arrow-digit pair.
+    #   5. ASCII-long-arrow delta (fail-closed, WR-07) — a genuine delta written "-->" must
+    #      stay exempt in the rendering the old unconditional comment strip used to destroy.
+    #   6. complete-comment counter-arm (fail-open, WR-07) — a real "<!-- ... -->" comment
+    #      must not donate its terminator to the arrow layer once removed; without this arm,
+    #      arm 5 alone would also pass against a classifier that simply stopped stripping
+    #      comments altogether.
     _i2_path = "docs/synthetic-adjacency-check.md"
     if _i2_path in COVERED_HEADLINE_SURFACES or _i2_path in HISTORICAL_EXEMPT_FILES:
         print(
@@ -3445,6 +3461,77 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 "— the narrowing over-disabled the arrow layer"
             )
             wrong_results.append("HEADLINE-LOCK: (i2) delta-line exemption failed")
+
+        # 4. Arrow-collision non-exemption (BL-01, permanently encoded). An unrelated
+        # battery-count delta sharing a line with a present-tense statement of the current
+        # headline must NOT exempt that line — the sentence shape is lifted from
+        # docs/README.md:187, with the headline half built from _prose and never typed. Not
+        # contrived: 67 in-scope lines already carry an unrelated digit-arrow-digit pair, and
+        # this is the escape that made SC5 fail before this plan.
+        _i2_unrelated_line = f"The offline battery moved 17 → 20 and coverage is now {_prose}."
+        _i2_unrelated_finding, _i2_unrelated_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_unrelated_line)
+        )
+        if _i2_unrelated_finding and _i2_path in _i2_unrelated_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) an unrelated numeric arrow sharing a line with "
+                "the current headline is reported as a finding — not exempt"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) an unrelated numeric arrow sharing a line with "
+                "the current headline was NOT reported as a finding"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) arrow-collision non-exemption failed")
+
+        # 5. ASCII-long-arrow delta exemption (WR-07 reproduction). A genuine delta written
+        # with the ASCII long arrow must stay exempt — the rendering the unconditional
+        # comment strip used to destroy. References _HTML_COMMENT_CLOSE for the arrow rather
+        # than retyping it, so the control and the classifier share the one literal.
+        _i2_long_arrow_delta_line = f"0/0/0/1 {_HTML_COMMENT_CLOSE} {_slash}"
+        _i2_long_arrow_finding, _ = _unregistered_headline_finding(
+            _i2_path, (1, _i2_long_arrow_delta_line)
+        )
+        if not _i2_long_arrow_finding:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a genuine delta line written with the ASCII "
+                "long arrow is NOT reported as a finding — exempt as expected"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a genuine delta line written with the ASCII long "
+                "arrow was reported as a finding — the comment strip destroyed its arrow"
+            )
+            wrong_results.append("HEADLINE-LOCK: (i2) ASCII-long-arrow delta exemption failed")
+
+        # 6. Complete-comment strip counter-arm (WR-07). A line that opens AND closes an HTML
+        # comment before stating the headline as present-tense fact must still be reported —
+        # proving the narrowed strip removed the comment without donating its terminator to
+        # the arrow layer. Without this arm, arm 5 alone would also pass against a classifier
+        # that simply stopped stripping comments altogether. The superseded placeholder is
+        # placed INSIDE the comment, immediately before its own closing "-->", so an
+        # unstripped classifier would misread the comment's terminator as a genuine delta
+        # arrow between the placeholder and the current literal — a comment strip that merely
+        # stopped running (rather than one narrowed to complete comments) would let this line
+        # through undetected, which is exactly the risk this arm exists to catch.
+        _i2_complete_comment_line = f"<!-- 0/0/0/1 --> {_prose}"
+        _i2_complete_comment_finding, _i2_complete_comment_msg = _unregistered_headline_finding(
+            _i2_path, (1, _i2_complete_comment_line)
+        )
+        if _i2_complete_comment_finding and _i2_path in _i2_complete_comment_msg:
+            print(
+                "  HEADLINE-LOCK PASS: (i2) a complete HTML comment preceding the current "
+                "headline is reported as a finding — the removed comment did not donate an "
+                "arrow"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (i2) a complete HTML comment preceding the current "
+                "headline was NOT reported as a finding"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (i2) complete-comment strip counter-arm failed"
+            )
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
