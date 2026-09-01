@@ -6530,6 +6530,143 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
     return fixtures_by_id, problems
 
 
+# Phase 11 (CONTRACT-03, CONTRACT-05, D-04) reconciliation controls. Case A's
+# no-wrap rule, the brevity rule and its TELL diagnostic, the citation rule,
+# and the reconciled multi-hop head form must each be stated, byte for byte,
+# on BOTH canonical surfaces below — not merely each surface's own worked
+# examples, which Item 24 above already scores. A rule shipped uncontrolled
+# lands in the exact defect class PROJECT.md's through-line names: a form
+# stated in more places than anything checks (D-04). D-02 is unaffected:
+# nothing here touches `_chain_block_well_formed`.
+_RENDER_RULE_SURFACES: tuple[str, ...] = (
+    "shared/spine/references/output-template.md",
+    "shared/spine/SKILL-body.md",
+)
+
+# Each value is a SHARED VERBATIM LITERAL, present byte for byte in BOTH
+# `_RENDER_RULE_SURFACES` entries. Reconciliation is implemented as identity
+# of this literal on both surfaces specifically so that contradicting one
+# surface without the other is unexpressible without deleting the literal
+# from it — copying the "shared bytes, not a restated paraphrase" discipline
+# that keeps CONTRACT-05's head form from drifting silently.
+_RENDER_RULE_LITERALS: dict[str, str] = {
+    # R1: the no-wrap rule (CONTRACT-03).
+    "R1": (
+        "A hop occupies exactly one physical line. Every line after the "
+        "head begins with `→` and carries exactly one complete hop; a hop "
+        "is never broken across physical lines."
+    ),
+    # R2: the brevity rule, structural half (D-03).
+    "R2": (
+        "A hop states exactly ONE inference. If a hop joins two claims "
+        "with \"and\", or carries a parenthetical that could stand as its "
+        "own claim, it is two hops — split it."
+    ),
+    # R3: the brevity rule's `TELL (not the rule):` diagnostic (D-03).
+    "R3": (
+        "TELL (not the rule): a hop past ~200 characters is almost always "
+        "two hops. Measure the hop, then split — do not wrap it, and do "
+        "not trim words to hit a number."
+    ),
+    # R4: the citation rule (CONTRACT-02 reconciliation).
+    "R4": (
+        "Every Conclusion-section claim either names the chain that "
+        "established it inline — `(chain C1)` — or is discharged by a "
+        "§6→§4 closure ledger row that quotes the claim and names its "
+        "chain. A claim doing neither is cut, not softened."
+    ),
+    # R5: the reconciled multi-hop head form (CONTRACT-05).
+    "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
+}
+
+# Phrasings that must appear on NEITHER canonical surface — the enumerated
+# ways the no-wrap rule (R1) can be contradicted. The first three are the
+# phrasings present in the tree before Phase 11 Plans 01/02 landed; the last
+# two are the natural ways a future edit would reintroduce the permission.
+# DISCLOSED LIMITATION: this leg detects these ENUMERATED phrasings, not
+# arbitrary contradiction of R1 — it is load-bearing rather than decorative
+# because the first three were live findings, not hypotheticals.
+_RENDER_CONTRADICTION_PHRASES: tuple[str, ...] = (
+    "wraps with arrow-led continuation",
+    "wrap with arrow-led continuation",
+    "too long for one line wraps",
+    "a hop may be broken",
+    "may wrap across physical lines",
+)
+
+# The two doc-side QUAL-01 gate-description rows that must state the new
+# coverage — see control (m) and Task 3.
+_QUAL01_DOC_ROWS: tuple[str, ...] = (
+    "CLAUDE.md",
+    "docs/ARCHITECTURE.md",
+)
+
+
+@dataclass(frozen=True)
+class _RenderSurfaceRead:
+    """One canonical surface's relpath and the text actually read from it.
+
+    Exists so `_render_rule_report` cannot be handed a synthetic string: its
+    sole parameter is this record type, produced only by
+    `_read_render_surfaces()`, which reads the file and carries both the
+    relpath and the text it actually read. A caller therefore cannot pass a
+    hand-built string or a glob-derived path set — the type refuses it.
+    Copies Phase 10 block (m)'s shape (`scripts/check-agent.py:334`,
+    `_assert_live_coverage`): make wrong wiring unexpressible, not merely
+    asserted.
+    """
+
+    relpath: str
+    text: str
+
+
+def _read_render_surfaces() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
+    """Read every `_RENDER_RULE_SURFACES` entry into a typed record.
+
+    Returns `(reads, problems)`. A path that cannot be opened is a NAMED
+    problem carrying the relpath and the `OSError` repr, never a silent
+    skip — mirroring `_render_contract_fixtures()`'s fail-closed shape above.
+    """
+    reads: list[_RenderSurfaceRead] = []
+    problems: list[str] = []
+    for relpath in _RENDER_RULE_SURFACES:
+        path = REPO_ROOT / relpath
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            problems.append(f"could not read {relpath}: {exc!r}")
+            continue
+        reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
+    return tuple(reads), problems
+
+
+def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
+    """Report every missing rule literal and every contradicting phrasing
+    found in *read*'s text.
+
+    Takes the `_RenderSurfaceRead` record itself, never a `str` or a `Path`
+    — see the record's docstring. One problem per missing
+    `_RENDER_RULE_LITERALS` entry, naming the relpath, the literal key and
+    that the rule was deleted from that surface; one problem per present
+    `_RENDER_CONTRADICTION_PHRASES` entry, naming the relpath and the
+    phrase.
+    """
+    problems: list[str] = []
+    for key, literal in _RENDER_RULE_LITERALS.items():
+        if literal not in read.text:
+            problems.append(
+                f"{read.relpath}: rule {key} is missing — deleted from "
+                f"this surface"
+            )
+    for phrase in _RENDER_CONTRADICTION_PHRASES:
+        if phrase in read.text:
+            problems.append(
+                f"{read.relpath}: contradicts the no-wrap rule with the "
+                f"phrase {phrase!r}"
+            )
+    return problems
+
+
 def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
     """Habitat mode `whole-physical-line`: return the anchor's own physical
     line, stripped — lead-in text and all, not a de-contextualised
@@ -7539,6 +7676,28 @@ def _selftest_render_contract() -> bool:
     long-standing base cases from outside this item, so a widened
     detector that scored everything `True` (or everything `False`) could
     not pass (b)/(e) by accident.
+
+    Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
+    multi-hop head form (CONTRACT-05) across BOTH canonical surfaces, per
+    D-04: a rule shipped uncontrolled lands in the exact defect class
+    PROJECT.md's through-line names — a form stated in more places than
+    anything checks. Control (h) is a MEMBERSHIP LOCK, copying the
+    `_TRACE03_DOC_ROWS` precedent (Phase 10, commit `6d3c131`): dropping a
+    surface or a rule from the registered sets must not silently stop
+    checking it. Control (i) is POSITIVE — it goes RED if a rule is
+    deleted from a shipped surface today. Control (j) is the COVERAGE
+    FLOOR, Phase 10 block (l)'s corrected shape: derived from the records
+    `_read_render_surfaces()` actually returned, never a re-glob. Controls
+    (k) and (l) are the NEGATIVE legs — missing-rule and contradiction —
+    each mutating an in-memory copy of the real bytes, never the file on
+    disk (Phase 10 block (m)'s shape, `scripts/check-agent.py:334`
+    `_assert_live_coverage`).
+
+    DISCLOSED LIMITATION: control (l)'s contradiction leg detects the
+    ENUMERATED phrasings in `_RENDER_CONTRADICTION_PHRASES`, not arbitrary
+    contradiction of R1. It is load-bearing rather than decorative because
+    three of those phrasings were in the tree before Phase 11 Plans 01/02
+    landed.
     """
     ok = True
 
@@ -7695,6 +7854,155 @@ def _selftest_render_contract() -> bool:
             "(g) NON-VACUITY: the bare-token base case 'Accept' (no "
             "em-dash, no justification) wrongly scored conforming"
         )
+
+    # (h) MEMBERSHIP LOCK. Copies the `_TRACE03_DOC_ROWS` precedent (Phase
+    #     10, commit `6d3c131`): dropping a surface or a rule from either
+    #     registered set must not silently stop checking it. Compared
+    #     against a literal written inline here, not against the module
+    #     constant it is meant to guard.
+    expected_surfaces = (
+        "shared/spine/references/output-template.md",
+        "shared/spine/SKILL-body.md",
+    )
+    if _RENDER_RULE_SURFACES != expected_surfaces:
+        _fail(
+            f"(h) MEMBERSHIP LOCK: _RENDER_RULE_SURFACES shrank or "
+            f"reordered — expected {expected_surfaces!r}, got "
+            f"{_RENDER_RULE_SURFACES!r}"
+        )
+    expected_literal_keys = ["R1", "R2", "R3", "R4", "R5"]
+    if sorted(_RENDER_RULE_LITERALS) != expected_literal_keys:
+        _fail(
+            f"(h) MEMBERSHIP LOCK: _RENDER_RULE_LITERALS key set shrank — "
+            f"expected {expected_literal_keys!r}, got "
+            f"{sorted(_RENDER_RULE_LITERALS)!r}"
+        )
+
+    # (i) POSITIVE. Reads the real shipped bytes; goes RED if a rule is
+    #     deleted from either canonical surface today, or if either surface
+    #     currently contradicts the no-wrap rule.
+    render_reads, render_read_problems = _read_render_surfaces()
+    for problem in render_read_problems:
+        _fail(f"(i) POSITIVE: could not read a registered surface: {problem}")
+    for read in render_reads:
+        for problem in _render_rule_report(read):
+            _fail(f"(i) POSITIVE: {problem}")
+
+    # (j) COVERAGE FLOOR. Phase 10 block (l)'s corrected shape: derived
+    #     from the relpaths the read loop actually RETURNED, never from a
+    #     re-glob or a restated list. A surface the read loop declined to
+    #     open is named at (i) above rather than silently reducing
+    #     coverage to whatever was read; this floor additionally proves no
+    #     registered surface silently dropped out of the returned records.
+    read_relpaths = {read.relpath for read in render_reads}
+    if read_relpaths != set(_RENDER_RULE_SURFACES):
+        _fail(
+            f"(j) COVERAGE FLOOR: relpaths actually read {read_relpaths!r} "
+            f"do not equal the registered surfaces "
+            f"{set(_RENDER_RULE_SURFACES)!r}"
+        )
+
+    # (k) NEGATIVE, missing. For each real record and each literal key,
+    #     build a NEW _RenderSurfaceRead from that record's real text with
+    #     every occurrence of the literal replaced by the empty string —
+    #     never mutating the file on disk — and require
+    #     _render_rule_report to report a problem naming that relpath and
+    #     that key. Ten cases (2 surfaces x 5 literals).
+    missing_cases_unfired: list[str] = []
+    for read in render_reads:
+        for key, literal in _RENDER_RULE_LITERALS.items():
+            stripped_text = read.text.replace(literal, "")
+            stripped = _RenderSurfaceRead(relpath=read.relpath, text=stripped_text)
+            stripped_problems = _render_rule_report(stripped)
+            if not any(
+                read.relpath in p and key in p for p in stripped_problems
+            ):
+                missing_cases_unfired.append(f"{read.relpath}/{key}")
+    if missing_cases_unfired:
+        _fail(
+            f"(k) NEGATIVE missing: {len(missing_cases_unfired)} case(s) "
+            f"did not fire when the literal was stripped in memory: "
+            f"{missing_cases_unfired!r}"
+        )
+
+    # (l) NEGATIVE, contradiction. For each real record and each
+    #     contradiction phrasing, build a NEW _RenderSurfaceRead from that
+    #     record's real text with the phrase appended — never mutating the
+    #     file on disk — and require _render_rule_report to report a
+    #     problem naming that relpath and that phrase. Ten cases (2
+    #     surfaces x 5 phrasings).
+    contradiction_cases_unfired: list[str] = []
+    for read in render_reads:
+        for phrase in _RENDER_CONTRADICTION_PHRASES:
+            contradicted_text = read.text + " " + phrase
+            contradicted = _RenderSurfaceRead(
+                relpath=read.relpath, text=contradicted_text
+            )
+            contradicted_problems = _render_rule_report(contradicted)
+            if not any(
+                read.relpath in p and phrase in p
+                for p in contradicted_problems
+            ):
+                contradiction_cases_unfired.append(f"{read.relpath}/{phrase}")
+    if contradiction_cases_unfired:
+        _fail(
+            f"(l) NEGATIVE contradiction: "
+            f"{len(contradiction_cases_unfired)} case(s) did not fire when "
+            f"the phrase was appended in memory: "
+            f"{contradiction_cases_unfired!r}"
+        )
+
+    # (m) QUAL-01 doc-row honesty. STATE.md records that the rest of the
+    #     TRACE-03 doc rows' prose is asserted by nothing — a gate
+    #     description that over-claims what the gate covers is the same
+    #     defect class this milestone exists to close, one layer up.
+    #     DISCLOSED LIMITATION: this leg asserts the token's presence on a
+    #     QUAL-01 line only, not the rest of either row's prose.
+    expected_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
+    if _QUAL01_DOC_ROWS != expected_doc_rows:
+        _fail(
+            f"(m) MEMBERSHIP LOCK: _QUAL01_DOC_ROWS shrank or reordered — "
+            f"expected {expected_doc_rows!r}, got {_QUAL01_DOC_ROWS!r}"
+        )
+
+    def _qual01_row_problem(relpath: str, text: str) -> str | None:
+        for line in text.splitlines():
+            if "QUAL-01" in line and "emission rendering contract" in line:
+                return None
+        return (
+            f"{relpath}: no physical line carries both 'QUAL-01' and "
+            f"'emission rendering contract'"
+        )
+
+    for relpath in _QUAL01_DOC_ROWS:
+        doc_path = REPO_ROOT / relpath
+        try:
+            doc_text = doc_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            _fail(f"(m) could not read {relpath}: {exc!r}")
+            continue
+
+        problem = _qual01_row_problem(relpath, doc_text)
+        if problem is not None:
+            _fail(f"(m) POSITIVE: {problem}")
+
+        # Negative arm: strip the token from the QUAL-01 line in an
+        # in-memory copy — never the file on disk — and require the same
+        # checker to report the defect naming that file.
+        mutated_lines = [
+            line.replace("emission rendering contract", "")
+            if "QUAL-01" in line
+            else line
+            for line in doc_text.splitlines()
+        ]
+        mutated_text = "\n".join(mutated_lines)
+        mutated_problem = _qual01_row_problem(relpath, mutated_text)
+        if mutated_problem is None:
+            _fail(
+                f"(m) NEGATIVE: stripping 'emission rendering contract' "
+                f"from {relpath}'s QUAL-01 line did not produce a "
+                f"reported problem"
+            )
 
     return ok
 
