@@ -362,7 +362,8 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   ("seemed unlikely," "ran out of time") rather than the specific structural reason
   (assumption false, contradicts a GT, circular, intermediate could not be established); OR
   one or more chains render their hops as an ordered list (`1.`, `2.`, `3.`) instead of the
-  prescribed arrow-led hop form, which splits one chain into disconnected one-hop
+  prescribed arrow-led hop form, OR break a single hop across physical lines rather than
+  splitting it into two hops, which splits one chain into disconnected
   fragments even where every hop is individually sound — **this clause is why the criterion
   cannot be scored on reasoning quality alone.** A chain that names its GT-IDs, carries a
   genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
