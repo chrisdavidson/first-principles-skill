@@ -6417,10 +6417,22 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # detector is consulted (a mode-2 shape guard, mirroring Guard A's split):
 # an extraction that silently returned a neighbouring block would otherwise
 # risk scoring `False` for the wrong reason and passing vacuously.
+#
+# The three R-CHAIN-* entries carry a discriminating third needle each
+# (IN-04, `11-REVIEW.md`): before this fix all three declared the same
+# undiscriminating pair (`"GT-1", "GT-6"`), so a mis-anchored extraction of
+# any one into any other still satisfied the guard. Each third needle is
+# verified, not eyeballed (extracted fixture text, self-test run 2026-09-01):
+# CONFORMING's own three lines join with no inserted line between the
+# second and third hop, so `"actual compute\n→ sustained"` spans that exact
+# transition and breaks the moment WRAPPED's inserted continuation line
+# lands between them — `"\n→ "` alone was tried and rejected here because
+# WRAPPED's text ALSO contains two arrow-led lines and therefore also
+# contains `"\n→ "`, so it did not discriminate CONFORMING from WRAPPED.
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
-    "R-CHAIN-CONFORMING": ("GT-1", "GT-6"),
-    "R-CHAIN-WRAPPED": ("GT-1", "GT-6"),
-    "R-CHAIN-NUMBERED": ("GT-1", "GT-6"),
+    "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
+    "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
+    "R-CHAIN-NUMBERED": ("GT-1", "GT-6", "\n2. "),
     "R-CITE-INLINE": ("C1",),
     "R-CITE-LEDGER": ("C1", '"'),
     "R-CITE-NONE": ("Fargate",),
@@ -6850,6 +6862,26 @@ def _render_registry_lock_problems(
             f"fixture_shape: sorted keys {sorted(snapshot.fixture_shape)!r} "
             f"!= expected {expected_ids!r}"
         )
+    else:
+        # The three R-CHAIN-* ids carry a FULL-VALUE lock, not just a
+        # key-set lock (IN-04, `11-REVIEW.md`): their needle tuples are
+        # what makes the guard discriminate one chain fixture's extracted
+        # text from another's, so a silent revert to the undiscriminating
+        # `("GT-1", "GT-6")` pair must itself fail the gate. The remaining
+        # five ids stay on the key-set arm above — their guards do not
+        # need to distinguish between sibling chain fixtures.
+        expected_chain_shapes = {
+            "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
+            "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
+            "R-CHAIN-NUMBERED": ("GT-1", "GT-6", "\n2. "),
+        }
+        for fixture_id, expected_shape in expected_chain_shapes.items():
+            actual_shape = snapshot.fixture_shape.get(fixture_id)
+            if actual_shape != expected_shape:
+                problems.append(
+                    f"fixture_shape: {fixture_id} shape {actual_shape!r} "
+                    f"!= expected discriminating shape {expected_shape!r}"
+                )
 
     checked.add("fixture_forbidden")
     expected_forbidden = {"R-CITE-NONE": ("C1",)}
@@ -6959,6 +6991,29 @@ def _render_registry_lock_problems(
     return problems, checked
 
 
+def _read_text_or_problem(path: Path, relpath: str) -> tuple[str | None, str | None]:
+    """Read *path* as UTF-8 text, returning `(text, None)` on success and
+    `(None, named_problem)` on failure — never an uncaught exception.
+
+    Catches `(OSError, ValueError)`: `UnicodeDecodeError` is a `ValueError`
+    subclass, not an `OSError`, so a readable-but-non-UTF-8 file used to
+    propagate out of `_selftest_render_contract` and out of `self_test()`
+    entirely — QUAL-01 died with a traceback and no finding, which is
+    strictly worse for triage than the named problem the surface readers'
+    docstrings promise (WR-08, `11-REVIEW.md`). The problem string carries
+    *relpath* and the exception `repr()`, matching the shape both readers
+    already reported for the narrower `OSError`-only case.
+
+    Takes a `Path` parameter deliberately: it is what makes the failure
+    path drivable by a control (isolation control (r)) with a tempdir
+    fixture, without touching the repo tree.
+    """
+    try:
+        return path.read_text(encoding="utf-8"), None
+    except (OSError, ValueError) as exc:
+        return None, f"could not read {relpath}: {exc!r}"
+
+
 @dataclass(frozen=True)
 class _RenderSurfaceRead:
     """One canonical surface's relpath and the text actually read from it.
@@ -6980,18 +7035,18 @@ class _RenderSurfaceRead:
 def _read_render_surfaces() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
     """Read every `_RENDER_RULE_SURFACES` entry into a typed record.
 
-    Returns `(reads, problems)`. A path that cannot be opened is a NAMED
-    problem carrying the relpath and the `OSError` repr, never a silent
-    skip — mirroring `_render_contract_fixtures()`'s fail-closed shape above.
+    Returns `(reads, problems)`. A path that cannot be opened OR decoded is
+    a NAMED problem carrying the relpath and the exception repr, never a
+    silent skip and never an uncaught traceback — routed through
+    `_read_text_or_problem`, which catches `(OSError, ValueError)` (WR-08),
+    mirroring `_render_contract_fixtures()`'s fail-closed shape above.
     """
     reads: list[_RenderSurfaceRead] = []
     problems: list[str] = []
     for relpath in _RENDER_RULE_SURFACES:
-        path = REPO_ROOT / relpath
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError as exc:
-            problems.append(f"could not read {relpath}: {exc!r}")
+        text, problem = _read_text_or_problem(REPO_ROOT / relpath, relpath)
+        if problem is not None:
+            problems.append(problem)
             continue
         reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
     return tuple(reads), problems
@@ -7115,18 +7170,17 @@ def _qual01_row_problem(read: _RenderSurfaceRead) -> list[str]:
 
 def _read_qual01_doc_rows() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
     """Read every `_QUAL01_DOC_ROWS` entry into a typed record, mirroring
-    `_read_render_surfaces()` exactly: a path that cannot be opened is a
-    NAMED problem carrying the relpath and the `OSError` repr, never a
-    silent skip.
+    `_read_render_surfaces()` exactly: a path that cannot be opened OR
+    decoded is a NAMED problem carrying the relpath and the exception
+    repr, never a silent skip and never an uncaught traceback — routed
+    through `_read_text_or_problem` (WR-08).
     """
     reads: list[_RenderSurfaceRead] = []
     problems: list[str] = []
     for relpath in _QUAL01_DOC_ROWS:
-        path = REPO_ROOT / relpath
-        try:
-            text = path.read_text(encoding="utf-8")
-        except OSError as exc:
-            problems.append(f"could not read {relpath}: {exc!r}")
+        text, problem = _read_text_or_problem(REPO_ROOT / relpath, relpath)
+        if problem is not None:
+            problems.append(problem)
             continue
         reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
     return tuple(reads), problems
@@ -8263,6 +8317,31 @@ def _selftest_render_contract() -> bool:
     still undetected. That is a stated limitation, not a bug — three of
     the enumerated phrasings were live findings in this tree, not
     hypotheticals.
+
+    Plan 11-11 (WR-08/IN-04, `11-REVIEW.md`) closed two remaining
+    convention-level findings. `_read_render_surfaces` and
+    `_read_qual01_doc_rows` previously caught `except OSError` only; a
+    readable-but-invalid-UTF-8 file raised `UnicodeDecodeError` (a
+    `ValueError` subclass) uncaught, killing `self_test()` with a
+    traceback instead of the named problem both docstrings promised. Both
+    readers now route through the module-level `_read_text_or_problem`,
+    which catches `(OSError, ValueError)`; control (r) proves both
+    branches fire, with the failure converted to a named `_fail` rather
+    than an uncaught exception even if the widened catch is reverted.
+    DISCLOSED RESIDUAL: `_extract_contract_example` (used by controls
+    (a)-(g) above) keeps its own narrower `except OSError` — it is shared
+    with the older D-18 red-carry extraction surface
+    (`_CONTRACT_EXTRACTION_TABLE`), so widening it is out of this plan's
+    scope; a non-UTF-8 `output-template.md` would still crash `self_test`
+    via that path. Separately, `_RENDER_FIXTURE_SHAPE`'s three
+    `R-CHAIN-*` entries previously declared the identical undiscriminating
+    pair `("GT-1", "GT-6")`, so a mis-anchored extraction of any one chain
+    fixture into another's slot passed the guard whose stated job was to
+    catch exactly that. Each now carries its own discriminating third
+    needle, and control (h)'s `fixture_shape` arm full-value-locks those
+    three ids (the remaining five stay key-set-locked), with an (h2) case
+    that degrades a needle tuple rather than only dropping a key, so the
+    new arm has its own load-bearing negative case.
     """
     ok = True
 
@@ -8554,14 +8633,14 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "fixture_shape with one key dropped",
+            "fixture_shape with a chain needle tuple degraded to the "
+            "undiscriminating pair (IN-04 reproduction)",
             "fixture_shape",
             replace(
                 render_live_snapshot,
                 fixture_shape={
-                    k: v
-                    for k, v in render_live_snapshot.fixture_shape.items()
-                    if k != next(iter(render_live_snapshot.fixture_shape))
+                    **render_live_snapshot.fixture_shape,
+                    "R-CHAIN-CONFORMING": ("GT-1", "GT-6"),
                 },
             ),
         ),
@@ -8716,6 +8795,77 @@ def _selftest_render_contract() -> bool:
             "table — the digest arm could be dropped while the clause "
             "arm keeps the field 'covered'"
         )
+
+    # (r) ISOLATION, decode-error fail-closed (WR-08, `11-REVIEW.md`).
+    #     `_read_text_or_problem` is the module-level reader both
+    #     `_read_render_surfaces` (control (i) below) and
+    #     `_read_qual01_doc_rows` (control (m)) route through as of plan
+    #     11-11 — neither keeps its own `try`/`except`. Drives it directly
+    #     against a `tempfile.TemporaryDirectory()` fixture, never a repo
+    #     path, so the battery's FROZEN-EVIDENCE and frozen-path write
+    #     guard stay unaffected. Two arms, both branches of the widened
+    #     `except (OSError, ValueError)`: a readable-but-invalid-UTF-8 file
+    #     (`UnicodeDecodeError` is a `ValueError`) and a nonexistent path
+    #     (`OSError`). The call is wrapped in `try`/`except Exception` at
+    #     THIS level so that neutralizing the widened catch back to
+    #     `except OSError` alone converts the escaped `UnicodeDecodeError`
+    #     into a named `_fail`, not an uncaught traceback — the same
+    #     graceful-red shape every other control here already has.
+    with tempfile.TemporaryDirectory() as render_tmp_dir:
+        render_bad_utf8_path = Path(render_tmp_dir) / "not-utf8.md"
+        render_bad_utf8_path.write_bytes(b"\xff\xfe\x00 not valid utf-8")
+        try:
+            render_bad_text, render_bad_problem = _read_text_or_problem(
+                render_bad_utf8_path, "not-utf8.md"
+            )
+        except Exception as exc:
+            _fail(
+                "(r) ISOLATION decode-error case: _read_text_or_problem "
+                f"raised {exc!r} instead of returning a named problem — a "
+                f"decode error must not escape as an uncaught exception"
+            )
+        else:
+            if render_bad_text is not None:
+                _fail(
+                    "(r) ISOLATION decode-error case: "
+                    f"_read_text_or_problem returned text "
+                    f"{render_bad_text!r} for an invalid-UTF-8 file "
+                    f"instead of a named problem"
+                )
+            if render_bad_problem is None or "not-utf8.md" not in render_bad_problem:
+                _fail(
+                    "(r) ISOLATION decode-error case: problem "
+                    f"{render_bad_problem!r} does not name the relpath "
+                    f"'not-utf8.md'"
+                )
+
+        render_missing_path = Path(render_tmp_dir) / "does-not-exist.md"
+        try:
+            render_missing_text, render_missing_problem = _read_text_or_problem(
+                render_missing_path, "does-not-exist.md"
+            )
+        except Exception as exc:
+            _fail(
+                "(r) ISOLATION missing-file case: _read_text_or_problem "
+                f"raised {exc!r} instead of returning a named problem"
+            )
+        else:
+            if render_missing_text is not None:
+                _fail(
+                    "(r) ISOLATION missing-file case: "
+                    f"_read_text_or_problem returned text "
+                    f"{render_missing_text!r} for a nonexistent path "
+                    f"instead of a named problem"
+                )
+            if (
+                render_missing_problem is None
+                or "does-not-exist.md" not in render_missing_problem
+            ):
+                _fail(
+                    "(r) ISOLATION missing-file case: problem "
+                    f"{render_missing_problem!r} does not name the "
+                    f"relpath 'does-not-exist.md'"
+                )
 
     # (i) POSITIVE. Reads the real shipped bytes; goes RED if a REQUIRED
     #     rule is deleted from any of the three canonical surfaces today,
@@ -11152,10 +11302,11 @@ def self_test() -> int:
     # `shared/spine/references/output-template.md` at self-test time, via
     # the same `_extract_contract_example` dispatcher DETECT-06 uses, so
     # the doc and the control cannot drift. `_chain_block_well_formed` is
-    # called and never modified (D-02). Eight lettered controls: chain
-    # verdicts, wrap-counter-example minimality, numbered-counter-example
-    # same-hops, verdict-cell pair, citation credit (both accepted forms),
-    # and a non-vacuity re-assertion of two long-standing base cases.
+    # called and never modified (D-02). See `_selftest_render_contract`'s
+    # own docstring for the full, current enumeration of its lettered
+    # controls — restating the count here a second time is stale by
+    # construction (IN-01, `11-REVIEW.md`; the same reasoning CLAUDE.md
+    # already applies to the gate inventory).
     if not _selftest_render_contract():
         all_passed = False
         print("self-test: render_contract sub-check FAILED", file=sys.stderr)
