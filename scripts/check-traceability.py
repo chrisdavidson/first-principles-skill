@@ -54,6 +54,20 @@ KNOWN_CLI_GATES: set[str] = {
 VALID_CAPABILITIES: set[str] = {"Methodology", "Test-Network"}
 VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 
+# Surfaces where the published coverage headline is asserted as a present-tense claim by
+# _self_test_headline_lock(). This set is allowed to under-count without being wrong: it
+# does not need to be exhaustive for correctness, only for the gate to stay green — a
+# surface stating the headline but missing from this set is left for a tree-wide scan to
+# catch loudly (a later phase's own mechanism), never silently accepted here. Treat this as
+# a "known covered" record, not a trusted exhaustive inventory.
+COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
+    "docs/requirements-traceability.md",  # line 7, prose form (already gated pre-Phase-10)
+    "CLAUDE.md",                          # line 220, prose form
+    "docs/README.md",                     # line 20, prose form
+    "docs/MEASUREMENT-MAP.md",            # line 52, prose form
+    "docs/COMPONENT-DIAGRAM.md",          # line 97, slash form ONLY — no prose form in this file
+})
+
 
 # ---------------------------------------------------------------------------
 # MatrixRow dataclass (D-12: single internal representation for dual output)
@@ -2523,6 +2537,15 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
       (e) Non-vacuity control for (c)/(d): perturbed copies of both artifacts must compare
           unequal, proving the comparison is a real comparison and not a tautology.
+      (f) Per-surface headline presence: every surface named in COVERED_HEADLINE_SURFACES
+          states the current headline in either rendering (prose or compact-slash),
+          label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
+          though it only ever states the bare slash form and never the
+          "**Coverage headline:**" label (a) is keyed to.
+      (g) Non-vacuity control for (f): for each surface independently, perturbing every
+          occurrence of both renderings in that surface's own in-memory copy — holding
+          every other surface's real text untouched — must make (f)'s identical scanner
+          find zero hits on the mutated copy. Each control's message names its own surface.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -2536,6 +2559,28 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
     )
     _headline = f"**Coverage headline:** {_expected}"
+
+    # Label-agnostic literals: bare numbers, no "**Coverage headline:**" prefix and no bold
+    # wrapping, so a match works regardless of a surface's own label wording. Built from the
+    # same _repro/_audit/_gap/len(_rows) locals as _expected above — never a separate
+    # literal, so a future headline move updates every assertion that uses these
+    # automatically, including the ones added in this function below.
+    _prose = f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    _slash = f"{_repro}/{_audit}/{_gap}/{len(_rows)}"
+
+    def _headline_hits(text: str) -> list[tuple[int, str]]:
+        """Return every (1-based line number, line text) pair whose line contains either
+        the current headline's prose or compact-slash rendering as a substring.
+
+        Shared by every per-surface assertion below and its own non-vacuity control —
+        never re-implemented in parallel — so a control that calls this function proves the
+        real assertion's code path is non-vacuous, not a copy that could silently diverge.
+        """
+        return [
+            (_i, _line)
+            for _i, _line in enumerate(text.splitlines(), start=1)
+            if _prose in _line or _slash in _line
+        ]
 
     def _headline_matches(text: str) -> bool:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
@@ -2625,6 +2670,65 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
     else:
         print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+
+    # (f) Per-surface headline presence across every currently covered surface (sorted for
+    # deterministic output), including docs/requirements-traceability.md again via the
+    # label-agnostic scanner — (a) above is specific to that file's own
+    # "**Coverage headline:**" label wording, so (f) additionally proves the bare-literal
+    # scanner every other surface relies on also covers it.
+    _perturbed_prose = (
+        f"{_repro + 1} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    _perturbed_slash = f"{_repro + 1}/{_audit}/{_gap}/{len(_rows)}"
+
+    for _surface in sorted(COVERED_HEADLINE_SURFACES):
+        _surface_path = REPO_ROOT / _surface
+        if not _surface_path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: (f) {_surface} not found")
+            wrong_results.append(f"HEADLINE-LOCK: (f) {_surface} missing")
+            continue
+        _surface_text = _surface_path.read_text(encoding="utf-8")
+        _hits = _headline_hits(_surface_text)
+        if _hits:
+            _renderings = sorted(
+                {"prose" if _prose in _line else "slash" for _, _line in _hits}
+            )
+            print(
+                f"  HEADLINE-LOCK PASS: (f) {_surface} states the current headline "
+                f"(rendering(s): {', '.join(_renderings)})"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (f) {_surface} does not state {_expected!r} in "
+                f"either rendering — build_matrix_rows() and {_surface} disagree"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (f) {_surface} does not state the current headline "
+                f"(expected {_expected!r})"
+            )
+
+        # (g) Non-vacuity control for (f): perturb ONLY this surface's in-memory copy.
+        # docs/README.md and docs/requirements-traceability.md each carry a second
+        # occurrence of one rendering outside their current-fact line (README.md:100;
+        # ledger:80 and :99) — str.replace()'s default whole-string replacement covers
+        # every occurrence in this surface's copy, so the control stays non-vacuous even
+        # though it does not yet distinguish current-fact lines from historical ones (a
+        # later plan in this phase sharpens docs/README.md's control to perturb only its
+        # current-fact line once that discrimination exists).
+        _mutated_surface = _surface_text.replace(_prose, _perturbed_prose).replace(
+            _slash, _perturbed_slash
+        )
+        if _headline_hits(_mutated_surface):
+            print(
+                f"  HEADLINE-LOCK FAIL: (g) {_surface} still matches after every "
+                f"occurrence was perturbed — control is vacuous"
+            )
+            wrong_results.append(f"HEADLINE-LOCK: (g) {_surface} negative control did not fail")
+        else:
+            print(
+                f"  HEADLINE-LOCK PASS: (g) {_surface} rejects a perturbed headline — "
+                f"non-vacuous"
+            )
 
 
 def _run_self_test() -> None:
