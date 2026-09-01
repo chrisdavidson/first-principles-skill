@@ -6530,6 +6530,143 @@ def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
     return fixtures_by_id, problems
 
 
+# Phase 11 (CONTRACT-03, CONTRACT-05, D-04) reconciliation controls. Case A's
+# no-wrap rule, the brevity rule and its TELL diagnostic, the citation rule,
+# and the reconciled multi-hop head form must each be stated, byte for byte,
+# on BOTH canonical surfaces below — not merely each surface's own worked
+# examples, which Item 24 above already scores. A rule shipped uncontrolled
+# lands in the exact defect class PROJECT.md's through-line names: a form
+# stated in more places than anything checks (D-04). D-02 is unaffected:
+# nothing here touches `_chain_block_well_formed`.
+_RENDER_RULE_SURFACES: tuple[str, ...] = (
+    "shared/spine/references/output-template.md",
+    "shared/spine/SKILL-body.md",
+)
+
+# Each value is a SHARED VERBATIM LITERAL, present byte for byte in BOTH
+# `_RENDER_RULE_SURFACES` entries. Reconciliation is implemented as identity
+# of this literal on both surfaces specifically so that contradicting one
+# surface without the other is unexpressible without deleting the literal
+# from it — copying the "shared bytes, not a restated paraphrase" discipline
+# that keeps CONTRACT-05's head form from drifting silently.
+_RENDER_RULE_LITERALS: dict[str, str] = {
+    # R1: the no-wrap rule (CONTRACT-03).
+    "R1": (
+        "A hop occupies exactly one physical line. Every line after the "
+        "head begins with `→` and carries exactly one complete hop; a hop "
+        "is never broken across physical lines."
+    ),
+    # R2: the brevity rule, structural half (D-03).
+    "R2": (
+        "A hop states exactly ONE inference. If a hop joins two claims "
+        "with \"and\", or carries a parenthetical that could stand as its "
+        "own claim, it is two hops — split it."
+    ),
+    # R3: the brevity rule's `TELL (not the rule):` diagnostic (D-03).
+    "R3": (
+        "TELL (not the rule): a hop past ~200 characters is almost always "
+        "two hops. Measure the hop, then split — do not wrap it, and do "
+        "not trim words to hit a number."
+    ),
+    # R4: the citation rule (CONTRACT-02 reconciliation).
+    "R4": (
+        "Every Conclusion-section claim either names the chain that "
+        "established it inline — `(chain C1)` — or is discharged by a "
+        "§6→§4 closure ledger row that quotes the claim and names its "
+        "chain. A claim doing neither is cut, not softened."
+    ),
+    # R5: the reconciled multi-hop head form (CONTRACT-05).
+    "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
+}
+
+# Phrasings that must appear on NEITHER canonical surface — the enumerated
+# ways the no-wrap rule (R1) can be contradicted. The first three are the
+# phrasings present in the tree before Phase 11 Plans 01/02 landed; the last
+# two are the natural ways a future edit would reintroduce the permission.
+# DISCLOSED LIMITATION: this leg detects these ENUMERATED phrasings, not
+# arbitrary contradiction of R1 — it is load-bearing rather than decorative
+# because the first three were live findings, not hypotheticals.
+_RENDER_CONTRADICTION_PHRASES: tuple[str, ...] = (
+    "wraps with arrow-led continuation",
+    "wrap with arrow-led continuation",
+    "too long for one line wraps",
+    "a hop may be broken",
+    "may wrap across physical lines",
+)
+
+# The two doc-side QUAL-01 gate-description rows that must state the new
+# coverage — see control (m) and Task 3.
+_QUAL01_DOC_ROWS: tuple[str, ...] = (
+    "CLAUDE.md",
+    "docs/ARCHITECTURE.md",
+)
+
+
+@dataclass(frozen=True)
+class _RenderSurfaceRead:
+    """One canonical surface's relpath and the text actually read from it.
+
+    Exists so `_render_rule_report` cannot be handed a synthetic string: its
+    sole parameter is this record type, produced only by
+    `_read_render_surfaces()`, which reads the file and carries both the
+    relpath and the text it actually read. A caller therefore cannot pass a
+    hand-built string or a glob-derived path set — the type refuses it.
+    Copies Phase 10 block (m)'s shape (`scripts/check-agent.py:334`,
+    `_assert_live_coverage`): make wrong wiring unexpressible, not merely
+    asserted.
+    """
+
+    relpath: str
+    text: str
+
+
+def _read_render_surfaces() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
+    """Read every `_RENDER_RULE_SURFACES` entry into a typed record.
+
+    Returns `(reads, problems)`. A path that cannot be opened is a NAMED
+    problem carrying the relpath and the `OSError` repr, never a silent
+    skip — mirroring `_render_contract_fixtures()`'s fail-closed shape above.
+    """
+    reads: list[_RenderSurfaceRead] = []
+    problems: list[str] = []
+    for relpath in _RENDER_RULE_SURFACES:
+        path = REPO_ROOT / relpath
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            problems.append(f"could not read {relpath}: {exc!r}")
+            continue
+        reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
+    return tuple(reads), problems
+
+
+def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
+    """Report every missing rule literal and every contradicting phrasing
+    found in *read*'s text.
+
+    Takes the `_RenderSurfaceRead` record itself, never a `str` or a `Path`
+    — see the record's docstring. One problem per missing
+    `_RENDER_RULE_LITERALS` entry, naming the relpath, the literal key and
+    that the rule was deleted from that surface; one problem per present
+    `_RENDER_CONTRADICTION_PHRASES` entry, naming the relpath and the
+    phrase.
+    """
+    problems: list[str] = []
+    for key, literal in _RENDER_RULE_LITERALS.items():
+        if literal not in read.text:
+            problems.append(
+                f"{read.relpath}: rule {key} is missing — deleted from "
+                f"this surface"
+            )
+    for phrase in _RENDER_CONTRADICTION_PHRASES:
+        if phrase in read.text:
+            problems.append(
+                f"{read.relpath}: contradicts the no-wrap rule with the "
+                f"phrase {phrase!r}"
+            )
+    return problems
+
+
 def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
     """Habitat mode `whole-physical-line`: return the anchor's own physical
     line, stripped — lead-in text and all, not a de-contextualised
