@@ -231,33 +231,52 @@ def _headline_scan_files(globs: list[str]) -> list[Path]:
 
 
 def _headline_scan_floor_breaches(
-    scan_files: list[Path], accounted_hits: int
+    read_relpaths: set[str], hits_by_surface: dict[str, int]
 ) -> list[str]:
-    """Derived coverage floor and accounted-hit floor for the tree-wide scan (CR-01 fix).
+    """Derived coverage floor and accounted-hit floor for the tree-wide scan (CR-01 fix,
+    BL-02 fix).
 
     Returns a list of breach descriptions (empty when both floors hold), evaluated in this
     order — coverage first, since an unreachable surface makes the accounted-hit count
-    meaningless. Both bounds are derived from COVERED_HEADLINE_SURFACES and
-    HISTORICAL_EXEMPT_FILES, never a magic number, so a narrowing typo or an emptied glob
-    list is caught proportionally rather than only on total absence. Module level so block
-    (j) and its non-vacuity control, block (l), call the identical function object.
+    meaningless. Both floors are derived from the constants, never a magic number, so a
+    narrowing typo or an emptied glob list is caught proportionally rather than only on
+    total absence. Module level so block (j) and its non-vacuity controls, blocks (l) and
+    (m), call the identical function object.
+
+    Reachability here means "was READ" — a member of `read_relpaths`, the set
+    `_headline_scan_read()` actually populated as it opened each candidate — deliberately
+    NOT "was globbed" (that weaker question is `_scan_relpaths()`'s, over the raw
+    glob-matched candidate list, which does not know whether the loop actually opened
+    anything). Conflating the two was BL-02: a symlink resolving outside REPO_ROOT is
+    "reached" by a bare glob-based `is_file()` sweep (which follows symlinks) but was never
+    opened by the loop, so a surface the loop refused to read was still counted reached.
+
+    The accounted-hit floor is PER SURFACE, never a running total compared against a
+    cardinality: `hits_by_surface.get(surface, 0)` is checked individually for every member
+    of COVERED_HEADLINE_SURFACES. A running-total floor has slack whenever any surface
+    contributes more than one hit — measured on the live tree, docs/requirements-
+    traceability.md contributes two, so a running total leaves exactly one registered
+    surface free to go entirely unread while the floor still reports satisfied.
     """
-    _scan_relpaths = {
-        _p.relative_to(REPO_ROOT).as_posix() for _p in scan_files if _p.is_file()
-    }
     _unreachable = sorted(
-        (COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES) - _scan_relpaths
+        (COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES) - read_relpaths
     )
     if _unreachable:
         return [
-            f"(j) coverage floor unmet: scan globs do not reach {_unreachable} — the "
-            "tree-wide scan cannot be load-bearing for surfaces it never reads"
+            f"(j) coverage floor unmet: the scan never READ {_unreachable} — the "
+            "tree-wide scan cannot be load-bearing for surfaces it never opened"
         ]
-    if accounted_hits < len(COVERED_HEADLINE_SURFACES):
+    _starved = sorted(
+        _surface
+        for _surface in COVERED_HEADLINE_SURFACES
+        if hits_by_surface.get(_surface, 0) < 1
+    )
+    if _starved:
         return [
-            f"(j) accounted-hit floor unmet: only {accounted_hits} non-historical hit(s) "
-            f"seen, fewer than the {len(COVERED_HEADLINE_SURFACES)} registered surfaces — "
-            "the scan is not reading what it claims to read"
+            f"(j) accounted-hit floor unmet: {_starved} registered surface(s) accounted "
+            "for zero non-historical hits — either the scan is not reading what it claims "
+            "to read, or that surface no longer states the current headline (check the "
+            "(f) results above first)"
         ]
     return []
 
@@ -2952,24 +2971,36 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           narrowed strip does not donate its terminator to the arrow layer once removed —
           without arm 6, arm 5 alone would also pass against a classifier that simply stopped
           stripping comments.
-      (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): files are collected
-          through the shared `_headline_scan_files()` helper (also driven directly by block
-          (l)'s non-vacuity control), every matched file is read, its hits fed through
-          `_unregistered_headline_finding()` (which itself calls
-          `_is_historical_headline_hit()` — the identical function object (h)/(i) exercise,
-          so HEADLINE-05's documented dependency on HEADLINE-03 already holding is enforced
-          by construction, not by convention), and any non-historical hit whose file is not
-          in COVERED_HEADLINE_SURFACES is a FAIL naming the file and line. Before the PASS
-          branch, `_headline_scan_floor_breaches()` (CR-01 fix) asserts a derived coverage
-          floor — every path in COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES must be
-          reachable by the configured globs — and, if that holds, a derived accounted-hit
-          floor — at least one non-historical hit per registered surface. Both are derived
-          from the constants, never a magic number, so an emptied or narrowed
-          HEADLINE_SCAN_GLOBS can no longer stay green while reading nothing; this is what
-          lets COVERED_HEADLINE_SURFACES under-count without being silently wrong: an
-          omission is caught loudly here rather than trusted. Never follows a symlink
-          resolving outside REPO_ROOT and never descends into the git-ignored, untracked
-          docs/history/ (the glob is non-recursive by construction).
+      (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07, BL-02 fix): files are
+          collected through the shared `_headline_scan_files()` helper, then actually opened
+          and classified through `_headline_scan_read()` (T-10-09) — the single source of
+          truth for what was read, its `read_relpaths`/`hits_by_surface` populated as the
+          loop goes, never re-derived afterwards from a separate glob or `is_file()` sweep
+          (BL-02's root cause). Each hit is decided by `_unregistered_headline_finding()`
+          (which itself calls `_is_historical_headline_hit()` — the identical function
+          object (h)/(i) exercise, so HEADLINE-05's documented dependency on HEADLINE-03
+          already holding is enforced by construction, not by convention): a non-historical
+          hit whose file is not in COVERED_HEADLINE_SURFACES is a FAIL naming the file and
+          line; a read error (UTF-8 decode failure or any other `OSError`) is a FAIL; a
+          candidate the loop declines to open (not a regular file, or a symlink resolving
+          outside REPO_ROOT) is a named INFO line — never a silent skip. Before the PASS
+          branch, `_headline_scan_floor_breaches()` (CR-01 fix, BL-02 fix) asserts a derived
+          coverage floor — every path in COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
+          must be a member of `read_relpaths`, i.e. was actually OPENED, never merely
+          glob-matched — and, if that holds, a derived accounted-hit floor evaluated PER
+          SURFACE: every member of COVERED_HEADLINE_SURFACES must individually account for
+          at least one non-historical hit, never a running total compared against a
+          cardinality (a running total has exactly as much slack as the surface contributing
+          the most hits beyond one — measured as one unit on the live tree). Both floors are
+          derived from the constants, never a magic number, so an emptied or narrowed
+          HEADLINE_SCAN_GLOBS, or a registered surface the loop silently declined to open,
+          can no longer stay green; this is what lets COVERED_HEADLINE_SURFACES under-count
+          without being silently wrong: an omission is caught loudly here rather than
+          trusted. The PASS line's reached count is derived from `read_relpaths` (never
+          recomputed from a separate sweep) and also reports the number of skipped
+          candidates. Never follows a symlink resolving outside REPO_ROOT and never descends
+          into the git-ignored, untracked docs/history/ (the glob is non-recursive by
+          construction).
       (k) Non-vacuity control for (j) (T-10-08): a synthetic path/line combination, driven
           through the SAME `_unregistered_headline_finding()` function object the real scan
           calls, proves three directions — the synthetic unregistered hit IS reported; the
@@ -2978,18 +3009,22 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           appended is NOT reported (proving the scan is gated behind HEADLINE-03's
           classifier, not merely a membership test). Preconditions are asserted explicitly so
           the control cannot silently degrade into a tautology.
-      (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, T-10-09): unlike
-          (k), which exercises `_unregistered_headline_finding()` in isolation, (l) drives
-          `_headline_scan_files()` and `_headline_scan_floor_breaches()` themselves — the
-          same functions (j) calls — with alternative glob lists, so glob expansion, file
-          collection and `relative_to()` path derivation are all genuinely exercised. Three
-          arms: an empty-globs arm (the CR-01 reproduction, permanently encoded) asserting a
-          non-empty breach list naming a registered surface; a narrowed-globs arm proving the
-          floor degrades proportionally on a "temporarily narrow the scan" typo, not only on
-          total absence; and a live-globs positive arm (anti-tautology) asserting the real
-          HEADLINE_SCAN_GLOBS constant reaches every registered-plus-exempt path and produces
-          zero breaches. Without the positive arm, the first two would also pass against a
-          floor helper that returned a breach unconditionally.
+      (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09):
+          unlike (k), which exercises `_unregistered_headline_finding()` in isolation, arms 1
+          and 2 drive `_headline_scan_files()` AND `_headline_scan_read()` themselves — the
+          same functions (j) calls — with alternative glob lists, so glob expansion, the
+          real read path and `relative_to()` path derivation are all genuinely exercised.
+          Three arms: an empty-globs arm (the CR-01 reproduction, permanently encoded)
+          asserting a non-empty breach list naming a registered surface; a narrowed-globs arm
+          proving the floor degrades proportionally on a "temporarily narrow the scan" typo,
+          not only on total absence; and an anti-tautology arm (WR-09) that feeds the floor
+          helper a synthetic read result already known to satisfy both floors and requires
+          zero breaches. The anti-tautology arm deliberately does NOT re-run the live glob
+          path a second time — (j-floor) above already owns that live verdict, and
+          duplicating it here would append one defect to wrong_results twice under two
+          labels, which is exactly what the shipped code did. Without the anti-tautology arm,
+          the first two would also pass against a floor helper that returned a breach
+          unconditionally.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -3662,31 +3697,33 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         print(f"  HEADLINE-LOCK INFO: (j) skipped {_skip_path} — {_skip_reason}")
 
     _scanned_count = len(_scan_result.read_relpaths)
-    _accounted_hits = sum(_scan_result.hits_by_surface.values())
+    _total_non_historical_hits = sum(_scan_result.hits_by_surface.values())
 
-    # (j-floor) Coverage floor and accounted-hit floor (CR-01 fix): the scan must have
-    # actually reached every registered-plus-exempt surface and accounted for at least one
+    # (j-floor) Coverage floor and accounted-hit floor (CR-01 fix, BL-02 fix): the scan must
+    # have actually READ every registered-plus-exempt surface and accounted for at least one
     # non-historical hit per registered surface, or the PASS line below is vacuous — a
-    # narrowed or emptied HEADLINE_SCAN_GLOBS must be caught here, not stay silently green.
-    # Evaluated through the shared _headline_scan_floor_breaches() helper, before the PASS
-    # branch, so the PASS line can never be reached vacuously.
+    # narrowed or emptied HEADLINE_SCAN_GLOBS, or a registered surface the loop silently
+    # declined to open, must be caught here, not stay silently green. Evaluated through the
+    # shared _headline_scan_floor_breaches() helper, driven by what _headline_scan_read()
+    # actually read — never a separate is_file() sweep — before the PASS branch, so the PASS
+    # branch can never be reached vacuously.
     if _scan_ok:
-        for _breach in _headline_scan_floor_breaches(_scan_files, _accounted_hits):
+        for _breach in _headline_scan_floor_breaches(
+            _scan_result.read_relpaths, _scan_result.hits_by_surface
+        ):
             print(f"  HEADLINE-LOCK FAIL: {_breach}")
             wrong_results.append(f"HEADLINE-LOCK: {_breach}")
             _scan_ok = False
 
     if _scan_ok:
         _reachable_surfaces = COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
-        _scan_relpaths = {
-            _p.relative_to(REPO_ROOT).as_posix() for _p in _scan_files if _p.is_file()
-        }
-        _reached_count = len(_reachable_surfaces & _scan_relpaths)
+        _reached_count = len(_reachable_surfaces & _scan_result.read_relpaths)
         print(
-            f"  HEADLINE-LOCK PASS: (j) tree-wide scan covered {_scanned_count} files, "
-            f"{_accounted_hits} non-historical occurrence(s) accounted for by registered "
+            f"  HEADLINE-LOCK PASS: (j) tree-wide scan read {_scanned_count} files, "
+            f"{_total_non_historical_hits} non-historical occurrence(s) accounted for by registered "
             f"surfaces, both floors evaluated, {_reached_count} of "
-            f"{len(_reachable_surfaces)} registered-plus-exempt paths reached"
+            f"{len(_reachable_surfaces)} registered-plus-exempt paths reached, "
+            f"{len(_scan_result.skipped)} skipped"
         )
 
     # (k) Non-vacuity control for (j) (T-10-08). Preconditions are asserted explicitly so
@@ -3767,34 +3804,45 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                     "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
                 )
 
-    # (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, T-10-09). Unlike
-    # (k), which exercises _unregistered_headline_finding() in isolation, (l) drives the REAL
-    # _headline_scan_files() and _headline_scan_floor_breaches() — the same function objects
-    # (j) calls — with alternative glob lists, so glob expansion, file collection and
-    # relative_to() path derivation are all genuinely exercised (not a hand-built simulation
-    # of the detection function, per the research's Pitfall 4 concern). Writes nothing to
-    # disk: Path.glob over the existing tree plus in-memory set arithmetic.
+    # (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09).
+    # Unlike (k), which exercises _unregistered_headline_finding() in isolation, arms 1 and 2
+    # drive the REAL _headline_scan_files() AND _headline_scan_read() — the same function
+    # objects (j) calls — with alternative glob lists, so glob expansion, the real read path
+    # and relative_to() path derivation are all genuinely exercised (not a hand-built
+    # simulation of the detection function, per the research's Pitfall 4 concern). Writes
+    # nothing to disk: Path.glob over the existing tree plus in-memory set arithmetic. Arm 3
+    # is anti-tautology only (WR-09) and does not re-run the live glob path — (j-floor)
+    # above already owns the live verdict, and re-deriving it here would append one defect
+    # to wrong_results twice under two labels.
     _l_reachable = COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
 
     def _l_reached_paths(files: list[Path]) -> set[str]:
-        return {
-            _p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()
-        } & _l_reachable
+        """GLOB-reach (which candidates the glob list matches), via the shared
+        _scan_relpaths() helper — a different, weaker question than READ-reach, which the
+        floor breaches below derive from _headline_scan_read() instead. Used only for these
+        arms' own "does narrowing reduce candidate reach" preconditions, never for a floor
+        input (IN-08: one relpath comprehension in the module, inside _scan_relpaths()).
+        """
+        return _scan_relpaths(files) & _l_reachable
 
-    _l_live_files = _headline_scan_files(HEADLINE_SCAN_GLOBS)
-    _l_live_reached = _l_reached_paths(_l_live_files)
+    # Reuses _scan_files (already collected by block (j)) rather than a second live call to
+    # _headline_scan_files() (IN-08).
+    _l_live_reached = _l_reached_paths(_scan_files)
 
     # Arm 1: empty-globs (the CR-01 reproduction, permanently encoded). A control that only
     # asserted "non-empty" would pass against a floor that reported a generic message, so
     # this requires the breach to name a specific registered surface.
     _l_empty_files = _headline_scan_files([])
-    _l_empty_breaches = _headline_scan_floor_breaches(_l_empty_files, 0)
+    _l_empty_read = _headline_scan_read(_l_empty_files)
+    _l_empty_breaches = _headline_scan_floor_breaches(
+        _l_empty_read.read_relpaths, _l_empty_read.hits_by_surface
+    )
     _l_named_surface = sorted(COVERED_HEADLINE_SURFACES)[0]
     if _l_empty_breaches and any(_l_named_surface in _b for _b in _l_empty_breaches):
         print(
             "  HEADLINE-LOCK PASS: (l) empty-globs arm — an emptied glob list drives the "
-            f"real collection helper to a non-empty breach naming a registered surface "
-            f"({_l_named_surface})"
+            f"real collection and read helpers to a non-empty breach naming a registered "
+            f"surface ({_l_named_surface})"
         )
     else:
         print(
@@ -3810,6 +3858,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # globs, or this arm would prove nothing.
     _l_narrow_globs = ["CHANGELOG.md"]
     _l_narrow_files = _headline_scan_files(_l_narrow_globs)
+    _l_narrow_read = _headline_scan_read(_l_narrow_files)
     _l_narrow_reached = _l_reached_paths(_l_narrow_files)
     if len(_l_narrow_reached) >= len(_l_live_reached):
         print(
@@ -3819,13 +3868,15 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         )
         wrong_results.append("HEADLINE-LOCK: (l) narrowed-globs arm precondition violated")
     else:
-        _l_narrow_breaches = _headline_scan_floor_breaches(_l_narrow_files, 0)
+        _l_narrow_breaches = _headline_scan_floor_breaches(
+            _l_narrow_read.read_relpaths, _l_narrow_read.hits_by_surface
+        )
         _l_missing = sorted(_l_reachable - _l_narrow_reached)
         _l_breach_text = " ".join(_l_narrow_breaches)
         if _l_narrow_breaches and all(_m in _l_breach_text for _m in _l_missing):
             print(
                 "  HEADLINE-LOCK PASS: (l) narrowed-globs arm — a single-pattern glob list "
-                f"drives the real collection helper to a breach naming every "
+                f"drives the real collection and read helpers to a breach naming every "
                 f"registered-or-exempt surface it cannot reach ({_l_missing})"
             )
         else:
@@ -3835,26 +3886,31 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             )
             wrong_results.append("HEADLINE-LOCK: (l) narrowed-globs arm failed")
 
-    # Arm 3: live-globs positive arm (anti-tautology). Without this arm, arms 1 and 2 would
-    # both pass against a floor helper that returned a breach unconditionally.
-    _l_live_breaches = _headline_scan_floor_breaches(_l_live_files, _accounted_hits)
-    if _l_live_reached == _l_reachable and not _l_live_breaches:
+    # Arm 3: anti-tautology only (WR-09). Feeds the floor helper a synthetic input already
+    # known to satisfy both floors — a read set equal to every registered-plus-exempt
+    # surface, and a hit map giving each registered surface exactly one hit — and requires
+    # an EMPTY breach list. Without this arm, arms 1 and 2 would also pass against a floor
+    # helper that returned a breach unconditionally. This arm deliberately does not re-run
+    # the live glob path: (j-floor) above already owns that live verdict, and arms 1/2
+    # above already genuinely exercise glob expansion and the real read path.
+    _l_synthetic_read_relpaths = set(_l_reachable)
+    _l_synthetic_hits_by_surface = {_surface: 1 for _surface in COVERED_HEADLINE_SURFACES}
+    _l_synthetic_breaches = _headline_scan_floor_breaches(
+        _l_synthetic_read_relpaths, _l_synthetic_hits_by_surface
+    )
+    if not _l_synthetic_breaches:
         print(
-            "  HEADLINE-LOCK PASS: (l) live-globs positive arm — the real "
-            f"HEADLINE_SCAN_GLOBS constant reaches all {len(_l_reachable)} "
-            "registered-plus-exempt paths and produces zero breaches"
+            "  HEADLINE-LOCK PASS: (l) anti-tautology arm — a synthetic read result "
+            f"already satisfying both floors ({len(_l_reachable)} registered-plus-exempt "
+            "paths, one hit per registered surface) produces zero breaches"
         )
     else:
-        _l_live_missing = sorted(_l_reachable - _l_live_reached)
         print(
-            "  HEADLINE-LOCK FAIL: (l) live-globs positive arm — the real glob list does "
-            f"not cleanly reach every registered-plus-exempt path with zero breaches "
-            f"(unreachable: {_l_live_missing}; breaches: {_l_live_breaches})"
+            "  HEADLINE-LOCK FAIL: (l) anti-tautology arm — a synthetic read result "
+            f"already satisfying both floors still produced breaches "
+            f"({_l_synthetic_breaches})"
         )
-        wrong_results.append(
-            f"HEADLINE-LOCK: (l) live-globs positive arm failed (unreachable: "
-            f"{_l_live_missing})"
-        )
+        wrong_results.append("HEADLINE-LOCK: (l) anti-tautology arm failed")
 
 
 def _run_self_test() -> None:
