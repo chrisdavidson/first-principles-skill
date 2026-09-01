@@ -343,9 +343,18 @@ def _headline_scan_floor_breaches(read: _HeadlineScanRead) -> list[str]:
 
 
 def _headline_hits(text: str) -> list[tuple[int, str]]:
-    """Return every (1-based line number, line text) pair whose line contains either
+    """Return every (1-based line number, line text) pair whose line states either
     the current headline's prose or compact-slash rendering, after complete HTML comments
     have been stripped from the whole text (see `_strip_complete_html_comments()`).
+
+    Both renderings are matched with a DIGIT BOUNDARY on each side, not as unbounded
+    substrings (WR-08, Phase 10 review): `_headline_hits("build 1161/91/0/2521 was fine")`
+    used to report a headline occurrence, so any docs/*.md line carrying a longer figure that
+    happens to embed the current slash rendering — a build number, a byte count, a future
+    4-tuple — would produce an unregistered-surface FAIL naming a line that does not state the
+    headline at all, an unactionable red gate. The boundary is expressed as a lookaround on
+    each side rather than \b, because the renderings begin and end with digits and \b would
+    also fire between a digit and a slash.
 
     Shared by every per-surface assertion in `_self_test_headline_lock()`, its own
     non-vacuity control, and the (j) tree-wide scan via `_headline_scan_read()` — never
@@ -363,12 +372,15 @@ def _headline_hits(text: str) -> list[tuple[int, str]]:
     control, in the same commit.
     """
     _slash_lit, _prose_lit = _headline_literals()
+    _bounded = tuple(
+        re.compile(rf"(?<!\d){re.escape(_lit)}(?!\d)") for _lit in (_slash_lit, _prose_lit)
+    )
     return [
         (_i, _line)
         for _i, _line in enumerate(
             _strip_complete_html_comments(text).splitlines(), start=1
         )
-        if _prose_lit in _line or _slash_lit in _line
+        if any(_pattern.search(_line) for _pattern in _bounded)
     ]
 
 
@@ -3095,7 +3107,8 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           narrowed strip does not donate its terminator to the arrow layer once removed —
           without arm 6, arm 5 alone would also pass against a classifier that simply stopped
           stripping comments.
-      (i3) Hit-detection controls (WR-06, Phase 10 review): two arms driving `_headline_hits()`
+      (i3) Hit-detection controls (WR-06/WR-08, Phase 10 review): four arms driving
+          `_headline_hits()`
           itself rather than the classifier. Complete HTML comments are stripped from WHOLE
           FILE TEXT before hits are collected — while that strip ran per line inside the
           classifier, an ordinary block comment stating the headline across three lines was
@@ -3105,7 +3118,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           real statement two lines later is still found AT ITS ORIGINAL LINE NUMBER (the strip
           substitutes one newline per newline removed, so findings stay citable); arm 2
           requires the same text with the markers replaced by plain words to produce both
-          hits, so arm 1 cannot pass against a scanner that stopped matching.
+          hits, so arm 1 cannot pass against a scanner that stopped matching. Arms 3 and 4
+          lock the digit boundary (WR-08): a longer digit run merely EMBEDDING the current
+          slash rendering ("build 1161/91/0/2521 was fine", a hit under the previous unbounded
+          substring test) must produce no hit, while the bare rendering on an otherwise
+          identical line still must.
       (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07, BL-02 fix): files are
           collected through the shared `_headline_scan_files()` helper, then actually opened
           and classified through `_headline_scan_read()` (T-10-09) — the single source of
@@ -4099,6 +4116,12 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"Current: {_prose}",
         )
     )
+    #   Arm 3 (digit boundary, WR-08): a longer digit run that merely EMBEDS the current
+    #   slash rendering is not a headline occurrence. Unbounded substring matching reported
+    #   `build 1161/91/0/2521 was fine` as a hit, which on any docs/*.md line would produce an
+    #   unregistered-surface FAIL naming a line that does not state the headline at all.
+    #   Arm 4 (anti-tautology for arm 3): the bare rendering on an otherwise similar line must
+    #   still be found, so arm 3 cannot pass against a matcher that stopped matching.
     _i3_commented_hits = [_lineno for _lineno, _ in _headline_hits(_i3_commented)]
     _i3_uncommented_hits = [_lineno for _lineno, _ in _headline_hits(_i3_uncommented)]
     if _i3_commented_hits == [4]:
@@ -4125,6 +4148,35 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"for the uncommented text; got {_i3_uncommented_hits}"
         )
         wrong_results.append("HEADLINE-LOCK: (i3) anti-tautology arm failed")
+
+    _i3_embedded = f"build 1{_slash}1 was fine"
+    _i3_bare = f"build {_slash} was fine"
+    _i3_embedded_hits = _headline_hits(_i3_embedded)
+    _i3_bare_hits = [_lineno for _lineno, _ in _headline_hits(_i3_bare)]
+    if not _i3_embedded_hits:
+        print(
+            "  HEADLINE-LOCK PASS: (i3) a longer digit run embedding the current slash "
+            "rendering is NOT reported as a headline occurrence — the literals are matched "
+            "with a digit boundary, not as unbounded substrings"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (i3) a longer digit run embedding the current slash "
+            f"rendering was reported as a headline occurrence: {_i3_embedded_hits}"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i3) digit-boundary arm failed")
+    if _i3_bare_hits == [1]:
+        print(
+            "  HEADLINE-LOCK PASS: (i3) anti-tautology arm — the bare slash rendering on an "
+            "otherwise identical line IS found, so the digit boundary did not simply disable "
+            "matching"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (i3) anti-tautology arm — expected the bare slash "
+            f"rendering to be found at line 1; got {_i3_bare_hits}"
+        )
+        wrong_results.append("HEADLINE-LOCK: (i3) digit-boundary anti-tautology arm failed")
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
