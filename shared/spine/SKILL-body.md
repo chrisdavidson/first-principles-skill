@@ -239,6 +239,10 @@ in the Conclusion section (section 6). For each claim, confirm it names a specif
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
 claim from section 6 — no unbacked §6 claim survives to presentation.
 
+Every Conclusion-section claim either names the chain that established it inline — `(chain C1)`
+— or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A
+claim doing neither is cut, not softened.
+
 Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output before
 the presented analysis — the same precedent the rubric's Assumption Audit table already follows
 (included in the response before the verdict blocks). The ledger is process output, **not** a seventh
