@@ -6874,19 +6874,27 @@ def _render_registry_lock_problems(
             f"!= expected {expected_ids!r}"
         )
     else:
-        # The three R-CHAIN-* ids carry a FULL-VALUE lock, not just a
-        # key-set lock (IN-04, `11-REVIEW.md`): their needle tuples are
-        # what makes the guard discriminate one chain fixture's extracted
-        # text from another's, so a silent revert to the undiscriminating
-        # `("GT-1", "GT-6")` pair must itself fail the gate. The remaining
-        # five ids stay on the key-set arm above — their guards do not
-        # need to distinguish between sibling chain fixtures.
-        expected_chain_shapes = {
+        # ALL EIGHT ids carry a FULL-VALUE lock, not just a key-set lock.
+        # The three R-CHAIN-* ids were promoted first (IN-04,
+        # `11-REVIEW.md`); the five others followed at WR-01
+        # (`11-REVIEW-gap-closure.md`), which reproduced setting each of
+        # their needle tuples to `()` with every key still present and the
+        # self-test still GREEN — that silently disables the mode-2 shape
+        # guard for five of the eight fixtures, so an extraction that
+        # returned a neighbouring block scores `False` for the wrong reason
+        # and passes vacuously. There is no reason to keep two tiers: a
+        # needle tuple is the whole content of the guard for its fixture.
+        expected_fixture_shape = {
             "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
             "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
             "R-CHAIN-NUMBERED": ("GT-1", "GT-6", "\n2. "),
+            "R-CITE-INLINE": ("C1",),
+            "R-CITE-LEDGER": ("C1", '"'),
+            "R-CITE-NONE": ("Fargate",),
+            "R-VERDICT-EXPIRY": ("expires at",),
+            "R-VERDICT-EXPIRY-BAD": ("expires at",),
         }
-        for fixture_id, expected_shape in expected_chain_shapes.items():
+        for fixture_id, expected_shape in expected_fixture_shape.items():
             actual_shape = snapshot.fixture_shape.get(fixture_id)
             if actual_shape != expected_shape:
                 problems.append(
@@ -8377,10 +8385,13 @@ def _selftest_render_contract() -> bool:
     pair `("GT-1", "GT-6")`, so a mis-anchored extraction of any one chain
     fixture into another's slot passed the guard whose stated job was to
     catch exactly that. Each now carries its own discriminating third
-    needle, and control (h)'s `fixture_shape` arm full-value-locks those
-    three ids (the remaining five stay key-set-locked), with an (h2) case
-    that degrades a needle tuple rather than only dropping a key, so the
-    new arm has its own load-bearing negative case.
+    needle, and control (h)'s `fixture_shape` arm full-value-locks ALL
+    EIGHT ids — the five non-chain ids were promoted off the key-set tier
+    at WR-01 (`11-REVIEW-gap-closure.md`), which reproduced emptying their
+    needle tuples with every key still present and the self-test still
+    GREEN — with two (h2) cases that degrade a needle tuple rather than
+    only dropping a key (one chain, one non-chain), so the arm has its own
+    load-bearing negative case on both tiers it replaced.
     """
     ok = True
 
@@ -8692,6 +8703,19 @@ def _selftest_render_contract() -> bool:
                 fixture_shape={
                     **render_live_snapshot.fixture_shape,
                     "R-CHAIN-CONFORMING": ("GT-1", "GT-6"),
+                },
+            ),
+        ),
+        (
+            "fixture_shape with a non-chain needle tuple emptied "
+            "(WR-01 reproduction)",
+            "fixture_shape",
+            "expected discriminating shape",
+            replace(
+                render_live_snapshot,
+                fixture_shape={
+                    **render_live_snapshot.fixture_shape,
+                    "R-CITE-NONE": (),
                 },
             ),
         ),
