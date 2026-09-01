@@ -3025,6 +3025,24 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           labels, which is exactly what the shipped code did. Without the anti-tautology arm,
           the first two would also pass against a floor helper that returned a breach
           unconditionally.
+      (m) Permanent controls for both halves of the BL-02 escape (T-10-09): three arms, every
+          one driving `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the
+          identical function objects (j) calls, never a parallel copy. Arm 1 removes one
+          registered surface from a COPY of the live read result's `read_relpaths` and
+          requires the coverage floor to breach naming it — the half of BL-02 where a
+          surface the loop refused to read was still counted "reached" by a glob-based
+          `is_file()` sweep that followed symlinks. Arm 2 builds a hit map giving one
+          registered surface zero hits while moving those hits onto a different registered
+          surface so the TOTAL is unchanged, and requires the per-surface floor to breach
+          naming the starved surface — the half of BL-02 where a running-total floor had
+          exactly one unit of slack (measured: docs/requirements-traceability.md alone
+          contributes two hits against five registered surfaces). Arm 3 calls
+          `_headline_scan_read()` with a non-regular-file candidate and requires it to be
+          named in `skipped` and absent from `read_relpaths` — without this arm, arms 1 and 2
+          would also pass against a read loop that silently dropped everything, since both
+          construct their inputs by hand rather than driving the loop itself. Each arm asserts
+          its own precondition explicitly before asserting the property, so none can silently
+          degrade into a tautology if a future edit changes a constant.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -3911,6 +3929,130 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"({_l_synthetic_breaches})"
         )
         wrong_results.append("HEADLINE-LOCK: (l) anti-tautology arm failed")
+
+    # (m) Permanent controls for both halves of the BL-02 escape (T-10-09). Every arm drives
+    # _headline_scan_read() or _headline_scan_floor_breaches() — the same function objects
+    # block (j) calls — and every arm is pure in-memory set/dict arithmetic. Writes nothing
+    # to disk, creates no tempfile.
+
+    # Arm 1: silently-skipped registered surface (BL-02 half one). The shipped code computed
+    # reachability from a glob-based is_file() sweep that followed symlinks, so a surface the
+    # loop refused to read was counted as "reached" and the PASS line printed a full-coverage
+    # claim it had not verified. Removes one registered surface from a COPY of the live read
+    # result's read_relpaths (leaving the real _scan_result untouched) and requires the floor
+    # helper to breach naming it. The precondition — the chosen surface must actually be
+    # present in the live read set — is asserted explicitly, and an empty
+    # COVERED_HEADLINE_SURFACES reports a named precondition failure rather than raising.
+    _m_arm1_candidates = sorted(COVERED_HEADLINE_SURFACES)
+    if not _m_arm1_candidates:
+        print(
+            "  HEADLINE-LOCK FAIL: (m) arm 1 precondition violated — "
+            "COVERED_HEADLINE_SURFACES is empty, arm 1 would prove nothing"
+        )
+        wrong_results.append("HEADLINE-LOCK: (m) arm 1 precondition violated (empty)")
+    else:
+        _m_removed_surface = _m_arm1_candidates[0]
+        if _m_removed_surface not in _scan_result.read_relpaths:
+            print(
+                f"  HEADLINE-LOCK FAIL: (m) arm 1 precondition violated — "
+                f"{_m_removed_surface!r} is absent from the live read_relpaths, arm 1 "
+                "would prove nothing"
+            )
+            wrong_results.append("HEADLINE-LOCK: (m) arm 1 precondition violated (absent)")
+        else:
+            _m_arm1_read_relpaths = _scan_result.read_relpaths - {_m_removed_surface}
+            _m_arm1_breaches = _headline_scan_floor_breaches(
+                _m_arm1_read_relpaths, _scan_result.hits_by_surface
+            )
+            if _m_arm1_breaches and any(
+                _m_removed_surface in _b for _b in _m_arm1_breaches
+            ):
+                print(
+                    "  HEADLINE-LOCK PASS: (m) arm 1 — a registered surface silently "
+                    f"absent from read_relpaths ({_m_removed_surface}) is caught by the "
+                    "coverage floor, naming that surface"
+                )
+            else:
+                print(
+                    "  HEADLINE-LOCK FAIL: (m) arm 1 — a registered surface silently "
+                    f"absent from read_relpaths ({_m_removed_surface}) was NOT caught by "
+                    "the coverage floor"
+                )
+                wrong_results.append("HEADLINE-LOCK: (m) arm 1 failed")
+
+    # Arm 2: starved surface masked by a spare hit (BL-02 half two). Measured fact: on the
+    # live tree, docs/requirements-traceability.md alone contributes two non-historical
+    # hits, so a running-total floor has exactly one unit of slack — any single registered
+    # surface can go entirely unread today and the running total still meets the old
+    # threshold. Builds a hit map giving one registered surface zero hits and moving those
+    # hits onto a DIFFERENT registered surface, so the TOTAL is unchanged and still meets or
+    # exceeds the old running-total threshold — asserted explicitly as a precondition, or the
+    # arm would prove nothing against a restored running-total floor.
+    _m_arm2_surfaces = sorted(COVERED_HEADLINE_SURFACES)
+    if len(_m_arm2_surfaces) < 2:
+        print(
+            "  HEADLINE-LOCK FAIL: (m) arm 2 precondition violated — fewer than two "
+            "registered surfaces, arm 2 would prove nothing"
+        )
+        wrong_results.append("HEADLINE-LOCK: (m) arm 2 precondition violated (too few)")
+    else:
+        _m_starved_surface = _m_arm2_surfaces[0]
+        _m_donor_surface = _m_arm2_surfaces[1]
+        _m_arm2_hits = dict(_scan_result.hits_by_surface)
+        _m_starved_amount = _m_arm2_hits.get(_m_starved_surface, 0)
+        _m_arm2_hits[_m_starved_surface] = 0
+        _m_arm2_hits[_m_donor_surface] = (
+            _m_arm2_hits.get(_m_donor_surface, 0) + _m_starved_amount
+        )
+        _m_arm2_total = sum(_m_arm2_hits.get(_s, 0) for _s in _m_arm2_surfaces)
+        if _m_arm2_total < len(COVERED_HEADLINE_SURFACES):
+            print(
+                "  HEADLINE-LOCK FAIL: (m) arm 2 precondition violated — the constructed "
+                f"total ({_m_arm2_total}) does not meet or exceed the old running-total "
+                f"threshold ({len(COVERED_HEADLINE_SURFACES)}), arm 2 would prove nothing "
+                "against a restored running-total floor"
+            )
+            wrong_results.append("HEADLINE-LOCK: (m) arm 2 precondition violated (total)")
+        else:
+            _m_arm2_breaches = _headline_scan_floor_breaches(
+                _scan_result.read_relpaths, _m_arm2_hits
+            )
+            if _m_arm2_breaches and any(
+                _m_starved_surface in _b for _b in _m_arm2_breaches
+            ):
+                print(
+                    "  HEADLINE-LOCK PASS: (m) arm 2 — a registered surface starved of "
+                    f"hits ({_m_starved_surface}) while the running total stays unchanged "
+                    f"(masked by {_m_donor_surface}'s spare hit) is caught by the "
+                    "per-surface accounted-hit floor"
+                )
+            else:
+                print(
+                    "  HEADLINE-LOCK FAIL: (m) arm 2 — a starved registered surface masked "
+                    f"by a spare hit ({_m_starved_surface}) was NOT caught by the "
+                    "accounted-hit floor"
+                )
+                wrong_results.append("HEADLINE-LOCK: (m) arm 2 failed")
+
+    # Arm 3: skip visibility (anti-tautology for arms 1 and 2, and the loop-side half of the
+    # property). Without this arm, arms 1 and 2 would also pass against a read loop that
+    # silently dropped everything, because both construct their inputs by hand rather than
+    # driving the loop itself.
+    _m_skip_candidate = REPO_ROOT / "docs"  # a directory, not a regular file
+    _m_arm3_result = _headline_scan_read([_m_skip_candidate])
+    _m_arm3_skip_paths = {_p for _p, _reason in _m_arm3_result.skipped}
+    if not _m_arm3_result.read_relpaths and str(_m_skip_candidate) in _m_arm3_skip_paths:
+        print(
+            "  HEADLINE-LOCK PASS: (m) arm 3 — a non-regular-file candidate is named in "
+            "skipped and absent from read_relpaths — the read loop cannot silently drop a "
+            "candidate"
+        )
+    else:
+        print(
+            "  HEADLINE-LOCK FAIL: (m) arm 3 — a non-regular-file candidate was not "
+            "correctly recorded as skipped"
+        )
+        wrong_results.append("HEADLINE-LOCK: (m) arm 3 failed")
 
 
 def _run_self_test() -> None:
