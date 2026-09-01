@@ -2537,6 +2537,15 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
       (e) Non-vacuity control for (c)/(d): perturbed copies of both artifacts must compare
           unequal, proving the comparison is a real comparison and not a tautology.
+      (f) Per-surface headline presence: every surface named in COVERED_HEADLINE_SURFACES
+          states the current headline in either rendering (prose or compact-slash),
+          label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
+          though it only ever states the bare slash form and never the
+          "**Coverage headline:**" label (a) is keyed to.
+      (g) Non-vacuity control for (f): for each surface independently, perturbing every
+          occurrence of both renderings in that surface's own in-memory copy — holding
+          every other surface's real text untouched — must make (f)'s identical scanner
+          find zero hits on the mutated copy. Each control's message names its own surface.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -2661,6 +2670,65 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         wrong_results.append("HEADLINE-LOCK: (c)/(d) negative control did not fail")
     else:
         print("  HEADLINE-LOCK PASS: (c)/(d) reject perturbed artifacts — non-vacuous")
+
+    # (f) Per-surface headline presence across every currently covered surface (sorted for
+    # deterministic output), including docs/requirements-traceability.md again via the
+    # label-agnostic scanner — (a) above is specific to that file's own
+    # "**Coverage headline:**" label wording, so (f) additionally proves the bare-literal
+    # scanner every other surface relies on also covers it.
+    _perturbed_prose = (
+        f"{_repro + 1} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    _perturbed_slash = f"{_repro + 1}/{_audit}/{_gap}/{len(_rows)}"
+
+    for _surface in sorted(COVERED_HEADLINE_SURFACES):
+        _surface_path = REPO_ROOT / _surface
+        if not _surface_path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: (f) {_surface} not found")
+            wrong_results.append(f"HEADLINE-LOCK: (f) {_surface} missing")
+            continue
+        _surface_text = _surface_path.read_text(encoding="utf-8")
+        _hits = _headline_hits(_surface_text)
+        if _hits:
+            _renderings = sorted(
+                {"prose" if _prose in _line else "slash" for _, _line in _hits}
+            )
+            print(
+                f"  HEADLINE-LOCK PASS: (f) {_surface} states the current headline "
+                f"(rendering(s): {', '.join(_renderings)})"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (f) {_surface} does not state {_expected!r} in "
+                f"either rendering — build_matrix_rows() and {_surface} disagree"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (f) {_surface} does not state the current headline "
+                f"(expected {_expected!r})"
+            )
+
+        # (g) Non-vacuity control for (f): perturb ONLY this surface's in-memory copy.
+        # docs/README.md and docs/requirements-traceability.md each carry a second
+        # occurrence of one rendering outside their current-fact line (README.md:100;
+        # ledger:80 and :99) — str.replace()'s default whole-string replacement covers
+        # every occurrence in this surface's copy, so the control stays non-vacuous even
+        # though it does not yet distinguish current-fact lines from historical ones (a
+        # later plan in this phase sharpens docs/README.md's control to perturb only its
+        # current-fact line once that discrimination exists).
+        _mutated_surface = _surface_text.replace(_prose, _perturbed_prose).replace(
+            _slash, _perturbed_slash
+        )
+        if _headline_hits(_mutated_surface):
+            print(
+                f"  HEADLINE-LOCK FAIL: (g) {_surface} still matches after every "
+                f"occurrence was perturbed — control is vacuous"
+            )
+            wrong_results.append(f"HEADLINE-LOCK: (g) {_surface} negative control did not fail")
+        else:
+            print(
+                f"  HEADLINE-LOCK PASS: (g) {_surface} rejects a perturbed headline — "
+                f"non-vacuous"
+            )
 
 
 def _run_self_test() -> None:
