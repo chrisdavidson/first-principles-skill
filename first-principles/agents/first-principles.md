@@ -248,6 +248,8 @@ The section heading must still appear. Writing `Nothing material here — [reaso
 GT-N + GT-M → [intermediate claim] → [conclusion]
 ```
 
+The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
+
 Each chain must contain at least one intermediate step — the intermediate is where the reasoning happens.
 
 A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines.

@@ -2,7 +2,7 @@
 
 > **Note:** This is the full annotated template with complete section guidance, type
 > definitions, and prescriptions. A condensed skeleton showing just the required section
-> names and chain format lives resident in `SKILL.md` for quick reference. Come here
+> names and chain format lives resident in the agent body (`SKILL.md` on the skill surface, `agents/first-principles.md` on the agent surface) for quick reference. Come here
 > for the complete instructions when authoring or reviewing an analysis.
 
 ## How to Use This Template
@@ -132,7 +132,7 @@ Show how the ground truths combine into conclusions. Every conclusion offered in
 
 **Chain numbering convention.** Number each `### Conclusion:` block in this section `C1`,
 `C2`, ... in document order (e.g., `### Conclusion C1: [Conclusion text]`). The §6→§4
-closure ledger (`SKILL.md`, "Before presenting conclusions") cites these IDs when mapping a
+closure ledger (the agent body — `SKILL.md` on the skill surface, `agents/first-principles.md` on the agent surface — "Before presenting conclusions") cites these IDs when mapping a
 Conclusion-section (section 6) claim back to the chain in this section that established it.
 
 **Chain format:**
@@ -141,9 +141,11 @@ Conclusion-section (section 6) claim back to the chain in this section that esta
 GT-N + GT-M → [intermediate claim] → [conclusion]
 ```
 
+The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
+
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
-**A hop occupies exactly one physical line.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line carries the GT identifiers and their brief fact labels; a chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
+**No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line carries the GT identifiers and their brief fact labels; a chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
 
 ```text
 GT-1 ([brief fact label]) + GT-6 ([brief fact label])
@@ -181,7 +183,7 @@ The continuation line does not begin with `→`, so the chain terminates at the 
 
 A numbered list restates each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather than one complete one — the intermediate steps stop being connected to the conclusion they build toward.
 
-**A hop states exactly ONE inference.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
+**One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
 
@@ -274,4 +276,4 @@ If Confidence is MEDIUM or LOW: name the specific `GT-N?` inputs from the Deriva
 **Recommended approach:** Move sustained workloads to Fargate.
 ```
 
-Both forms are accepted because both discharge the same obligation: the ledger is process output emitted before the analysis (see `SKILL.md`, "Before presenting conclusions"), not a seventh output section, and the chain IDs cited are the `C1`/`C2` IDs assigned by §4's chain-numbering convention.
+Both forms are accepted because both discharge the same obligation: the ledger is process output emitted before the analysis (see the agent body — `SKILL.md` on the skill surface, `agents/first-principles.md` on the agent surface — "Before presenting conclusions"), not a seventh output section, and the chain IDs cited are the `C1`/`C2` IDs assigned by §4's chain-numbering convention.
