@@ -90,6 +90,21 @@ HISTORICAL_EXEMPT_FILES: frozenset[str] = frozenset({
                                      # insufficient and the whole-file layer is load-bearing here
 })
 
+# Tree-wide scan scope for HEADLINE-05 (unregistered-surface detection): the same
+# non-recursive, hand-curated glob idiom as check-links.py's DOCS_CHECK_GLOBS — Path.glob()
+# only, with no tree-walking helper and no shell-out of any kind. Any tracked file matched
+# here that states the current headline as a non-historical occurrence must also be a member
+# of COVERED_HEADLINE_SURFACES, or the tree-wide scan in _self_test_headline_lock() fails,
+# naming the file and line.
+HEADLINE_SCAN_GLOBS: list[str] = [
+    "docs/*.md",    # deliberately non-recursive: can never descend into docs/history/, which
+                     # is git-ignored and untracked and must not be scanned
+    "CLAUDE.md",     # already a registered current-fact surface (COVERED_HEADLINE_SURFACES)
+    "CHANGELOG.md",  # whole-file historical exemption (HISTORICAL_EXEMPT_FILES)
+    "README.md",     # repo root; matches zero occurrences today, included as forward
+                     # protection against a future surface silently gaining a stale mention
+]
+
 
 def _is_historical_headline_hit(relpath: str, line: str) -> bool:
     """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
@@ -2618,6 +2633,24 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           containing the current literal with no arrow, and requires NOT historical.
           Prevents (h)'s positive controls from passing off a classifier rewritten to
           `return True` unconditionally.
+      (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07): every file matched by
+          HEADLINE_SCAN_GLOBS is read, its hits fed through `_unregistered_headline_finding()`
+          (which itself calls `_is_historical_headline_hit()` — the identical function object
+          (h)/(i) exercise, so HEADLINE-05's documented dependency on HEADLINE-03 already
+          holding is enforced by construction, not by convention), and any non-historical hit
+          whose file is not in COVERED_HEADLINE_SURFACES is a FAIL naming the file and line.
+          This is what lets COVERED_HEADLINE_SURFACES under-count without being silently
+          wrong: an omission is caught loudly here rather than trusted. Never follows a
+          symlink resolving outside REPO_ROOT and never descends into the git-ignored,
+          untracked docs/history/ (the glob is non-recursive by construction).
+      (k) Non-vacuity control for (j) (T-10-08): a synthetic path/line combination, driven
+          through the SAME `_unregistered_headline_finding()` function object the real scan
+          calls, proves three directions — the synthetic unregistered hit IS reported; the
+          identical line attributed to a registered surface is NOT reported (else the
+          function would simply flag everything); and the same synthetic path with an arrow
+          appended is NOT reported (proving the scan is gated behind HEADLINE-03's
+          classifier, not merely a membership test). Preconditions are asserted explicitly so
+          the control cannot silently degrade into a tautology.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -2985,6 +3018,142 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "  HEADLINE-LOCK PASS: (i) classifier correctly rejects a non-exempt, no-arrow "
             "line as historical — non-vacuous"
         )
+
+    def _unregistered_headline_finding(
+        relpath: str, hit: tuple[int, str]
+    ) -> tuple[bool, str]:
+        """The (j) scan's per-hit decision, shared by the real scan below and its (k)
+        non-vacuity control — a control exercising a parallel copy would prove nothing
+        (research Pitfall 4). Returns (is_finding, message-or-empty-string).
+
+        A hit is a finding only if BOTH of these hold: `_is_historical_headline_hit()`
+        classifies it non-historical, AND `relpath` is absent from
+        COVERED_HEADLINE_SURFACES. Gating the decision behind the classifier first is what
+        proves the scan cannot false-positive on a correctly historical or delta statement
+        (T-10-07) — HEADLINE-05's documented dependency on HEADLINE-03 is enforced by this
+        function calling the classifier directly, not by convention.
+        """
+        _lineno, _line = hit
+        if _is_historical_headline_hit(relpath, _line):
+            return False, ""
+        if relpath in COVERED_HEADLINE_SURFACES:
+            return False, ""
+        return True, (
+            f"{relpath}:{_lineno} states the current headline as a non-historical "
+            "occurrence but is not registered in COVERED_HEADLINE_SURFACES"
+        )
+
+    # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files by expanding
+    # HEADLINE_SCAN_GLOBS against REPO_ROOT, sorted and deduplicated by path (the
+    # check-links.py _collect_files idiom, reimplemented inline here rather than imported —
+    # this script stays a single self-contained file with no cross-script dependency).
+    _scan_seen: set[Path] = set()
+    _scan_files: list[Path] = []
+    for _glob_pattern in HEADLINE_SCAN_GLOBS:
+        for _candidate in sorted(REPO_ROOT.glob(_glob_pattern)):
+            if _candidate not in _scan_seen:
+                _scan_seen.add(_candidate)
+                _scan_files.append(_candidate)
+
+    _scanned_count = 0
+    _accounted_hits = 0
+    _scan_ok = True
+    _repo_root_resolved = REPO_ROOT.resolve()
+    for _scan_path in _scan_files:
+        if not _scan_path.is_file():
+            continue
+        _resolved_scan_path = _scan_path.resolve()
+        if not _resolved_scan_path.is_relative_to(_repo_root_resolved):
+            continue  # never follow a symlink resolving outside the repository
+        try:
+            _scan_text = _scan_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as _decode_exc:
+            print(
+                f"  HEADLINE-LOCK FAIL: (j) {_scan_path} could not be decoded as UTF-8: "
+                f"{_decode_exc}"
+            )
+            wrong_results.append(f"HEADLINE-LOCK: (j) {_scan_path} decode error")
+            _scan_ok = False
+            continue
+        _scanned_count += 1
+        _scan_relpath = _scan_path.relative_to(REPO_ROOT).as_posix()
+        for _hit in _headline_hits(_scan_text):
+            _is_finding, _finding_msg = _unregistered_headline_finding(_scan_relpath, _hit)
+            if _is_finding:
+                print(f"  HEADLINE-LOCK FAIL: (j) {_finding_msg}")
+                wrong_results.append(f"HEADLINE-LOCK: (j) {_finding_msg}")
+                _scan_ok = False
+            elif not _is_historical_headline_hit(_scan_relpath, _hit[1]):
+                _accounted_hits += 1
+
+    if _scan_ok:
+        print(
+            f"  HEADLINE-LOCK PASS: (j) tree-wide scan covered {_scanned_count} files, "
+            f"{_accounted_hits} non-historical occurrence(s) accounted for by registered "
+            f"surfaces"
+        )
+
+    # (k) Non-vacuity control for (j) (T-10-08). Preconditions are asserted explicitly so
+    # this control cannot silently degrade into a tautology if a future edit changes a
+    # constant. Writes nothing to disk — no tempfile, no fixture file, no touch of the tree.
+    _synth_path = "docs/synthetic-unregistered-surface.md"
+    _synth_line = f"This document states the coverage headline: {_prose}."
+    if _synth_path in COVERED_HEADLINE_SURFACES:
+        print(
+            "  HEADLINE-LOCK FAIL: (k) precondition violated — synthetic path is in "
+            "COVERED_HEADLINE_SURFACES"
+        )
+        wrong_results.append("HEADLINE-LOCK: (k) precondition violated (covered)")
+    elif _synth_path in HISTORICAL_EXEMPT_FILES:
+        print(
+            "  HEADLINE-LOCK FAIL: (k) precondition violated — synthetic path is in "
+            "HISTORICAL_EXEMPT_FILES"
+        )
+        wrong_results.append("HEADLINE-LOCK: (k) precondition violated (whole-file)")
+    elif "→" in _synth_line or "->" in _synth_line:
+        print(
+            "  HEADLINE-LOCK FAIL: (k) precondition violated — synthetic line contains an "
+            "arrow"
+        )
+        wrong_results.append("HEADLINE-LOCK: (k) precondition violated (arrow)")
+    else:
+        # Direction 1: the synthetic unregistered hit IS reported as a finding, naming the
+        # synthetic path.
+        _unreg_finding, _unreg_msg = _unregistered_headline_finding(
+            _synth_path, (1, _synth_line)
+        )
+        # Direction 2: the SAME synthetic line attributed to a REGISTERED path is NOT
+        # reported — otherwise the decision function would simply flag everything and the
+        # scan's greenness on the live tree would be luck, not correctness.
+        _registered_path = sorted(COVERED_HEADLINE_SURFACES)[0]
+        _reg_finding, _ = _unregistered_headline_finding(_registered_path, (1, _synth_line))
+        # Direction 3 (T-10-08 / ROADMAP criterion 5's "gated behind HEADLINE-03" clause):
+        # the same synthetic line, still at the unregistered synthetic path, but with an
+        # arrow appended, is NOT reported — proving the scan is gated behind the historical
+        # classifier and not merely a registered-surface membership test.
+        _arrow_line = _synth_line + " →"
+        _arrow_finding, _ = _unregistered_headline_finding(_synth_path, (1, _arrow_line))
+        if (
+            _unreg_finding
+            and _synth_path in _unreg_msg
+            and not _reg_finding
+            and not _arrow_finding
+        ):
+            print(
+                f"  HEADLINE-LOCK PASS: (k) synthetic unregistered surface {_synth_path} is "
+                f"reported as a finding, the same line at a registered surface is not, and "
+                f"the same synthetic path with an arrow appended is not — non-vacuous and "
+                f"gated behind HEADLINE-03"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (k) non-vacuity control for the tree-wide scan did "
+                f"not behave as expected (unregistered finding={_unreg_finding}, registered "
+                f"finding={_reg_finding}, arrow-adjacent finding={_arrow_finding})"
+            )
+            wrong_results.append(
+                "HEADLINE-LOCK: (k) non-vacuity control did not behave as expected"
+            )
 
 
 def _run_self_test() -> None:
