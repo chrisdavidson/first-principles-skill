@@ -70,6 +70,22 @@ token leads so it stays matchable, and the em-dash prose carries the reasoning:
 - **Challenge** — the assumption is questionable; probe further before use (e.g., "Challenge — vendor benchmark unverified, flagged GT-5?")
 - **Discard** — the assumption is false or irrelevant; remove from the reasoning chain (e.g., "Discard — contradicted by GT-2, no longer load-bearing")
 
+**A current-constraint verdict records its expiry at the point of use.** An assumption classified `current constraint` is accepted only until that constraint lapses; the verdict cell says when. The expiry belongs in the em-dash justification and never in the token slot — the token slot carries one of the three tokens above and nothing else.
+
+**Conforming — a current constraint recording its expiry:**
+
+```text
+Accept — expires at term end (1 or 3 years); until then the constraint is contractual, not physical
+```
+
+**Non-conforming — the expiry hoisted into the token slot:**
+
+```text
+Current constraint (expires at term end) — contractual, not physical
+```
+
+The vocabulary above is unchanged because run 3 rendered four current-constraint rows conformingly on the identical prompt by putting the expiry in the justification — this is a worked example, not a schema change.
+
 ---
 
 ## 3. Ground Truths
@@ -237,3 +253,25 @@ Summarize the analysis result. The Conclusion section synthesizes what the Deriv
 **Confidence:** [HIGH / MEDIUM / LOW]
 
 If Confidence is MEDIUM or LOW: name the specific `GT-N?` inputs from the Derivation Chains that caused the downgrade and state what verification would raise confidence to HIGH. A MEDIUM or LOW conclusion without this explanation does not satisfy D-07.
+
+**Citation form.** Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened.
+
+**Conforming — inline chain citation:**
+
+```text
+**Recommended approach:** Move sustained workloads to Fargate (chain C1).
+```
+
+**Conforming — closure-ledger row:**
+
+```text
+- "Move sustained workloads to Fargate" → chain C1 ✓
+```
+
+**Non-conforming — a claim naming no chain and quoted by no ledger row:**
+
+```text
+**Recommended approach:** Move sustained workloads to Fargate.
+```
+
+Both forms are accepted because both discharge the same obligation: the ledger is process output emitted before the analysis (see `SKILL.md`, "Before presenting conclusions"), not a seventh output section, and the chain IDs cited are the `C1`/`C2` IDs assigned by §4's chain-numbering convention.
