@@ -34,6 +34,8 @@ check: reads matrix.json, validates every row has a valid capability and
 """
 
 import argparse
+import contextlib
+import io
 import json
 import re
 import sys
@@ -481,6 +483,38 @@ def _scan_relpaths(files: list[Path]) -> set[str]:
     never this function.
     """
     return {_p.relative_to(REPO_ROOT).as_posix() for _p in files if _p.is_file()}
+
+
+def _headline_read_or_fail(
+    path: Path, label: str, wrong_results: list[str]
+) -> str | None:
+    """Read `path` as UTF-8 for a HEADLINE-LOCK assertion, or record a named FAIL and return
+    None (CN-03, Phase 10 review).
+
+    `_headline_scan_read()` catches `UnicodeDecodeError` and `OSError` on the tree-wide scan's
+    reads and converts them into named findings, with a docstring paragraph explaining why —
+    but the sentinel's own five live-file reads were unguarded, so a permission change, a
+    truncated checkout, or a non-UTF-8 byte in any one of them exited `--self-test` with a
+    traceback rather than a finding. This helper is that same policy in one place for those
+    reads. Every call site keeps its own `is_file()` guard and its own "not found" message:
+    absence and unreadability are different defects and stay differently worded.
+
+    Returns the file's text, or None once a FAIL has been printed and appended. A caller
+    receiving None must skip whatever it would have asserted — the finding is already
+    recorded, so a second one would double-count the same defect.
+    """
+    try:
+        return path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as _decode_exc:
+        print(
+            f"  HEADLINE-LOCK FAIL: {label} could not be decoded as UTF-8: {_decode_exc}"
+        )
+        wrong_results.append(f"HEADLINE-LOCK: {label} could not be decoded as UTF-8")
+        return None
+    except OSError as _os_exc:
+        print(f"  HEADLINE-LOCK FAIL: {label} could not be read: {_os_exc}")
+        wrong_results.append(f"HEADLINE-LOCK: {label} could not be read")
+        return None
 
 
 def _headline_scan_read(
@@ -3221,8 +3255,8 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           labels, which is exactly what the shipped code did. Without the anti-tautology arm,
           the first two would also pass against a floor helper that returned a breach
           unconditionally.
-      (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the read
-          loop's own decline and error branches: five arms, every one driving
+      (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the decline
+          and error branches of BOTH read paths: six arms, every one driving
           `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the identical
           function objects (j) calls, never a parallel copy. Arm 1 removes one
           registered surface from a COPY of the live read result's `read_relpaths` and
@@ -3248,7 +3282,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           undecodable one in `read_errors` — absent from both `read_relpaths` and `skipped` —
           while the valid one is read: collapsing the UnicodeDecodeError/OSError split into a
           fail-open `except Exception: continue` previously left the gate green for any
-          UNREGISTERED surface, which no floor covers. Each arm asserts
+          UNREGISTERED surface, which no floor covers. Arm 6 (CN-03, Phase 10 review) covers
+          the OTHER read path — `_headline_read_or_fail()`, the same policy applied to the
+          five live-file reads this sentinel makes directly, which were unguarded until this
+          review — requiring a readable file to come back verbatim with nothing appended and
+          an undecodable one to become exactly one named finding plus a printed FAIL line.
+          Both halves run against a throwaway findings list with stdout captured, so the
+          control can assert the FAIL line was emitted without emitting one itself. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
           degrade into a tautology if a future edit changes a constant. What these arms lock
           is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
@@ -3412,8 +3452,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     if not _trace_path.is_file():
         print(f"  HEADLINE-LOCK FAIL: {_trace_path} not found")
         wrong_results.append("HEADLINE-LOCK: docs/requirements-traceability.md missing")
+    elif (
+        _trace := _headline_read_or_fail(
+            _trace_path, "docs/requirements-traceability.md", wrong_results
+        )
+    ) is None:
+        pass  # unreadable: the FAIL is already recorded, and (b) consumes `_trace`
     else:
-        _trace = _trace_path.read_text(encoding="utf-8")
         if _headline_matches(_trace):
             print(f"  HEADLINE-LOCK PASS: published headline == {_expected}")
         else:
@@ -3491,7 +3536,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             wrong_results.append(f"HEADLINE-LOCK: {_artifact_rel} missing")
             _e_missing.append(_artifact_rel)
             continue
-        _artifact_disk = _artifact_path.read_text(encoding="utf-8")
+        _artifact_disk = _headline_read_or_fail(
+            _artifact_path, _artifact_rel, wrong_results
+        )
+        if _artifact_disk is None:
+            # Unreadable is as fatal to (e) as absent: it has no disk bytes to compare.
+            _e_missing.append(_artifact_rel)
+            continue
         # ONE comparison expression, evaluated over both candidate renderings. (c)/(d) read
         # the "live" verdict; (e) below reads the "perturbed" verdict. A rewrite that makes
         # this expression unconditionally true therefore breaks (e) rather than passing it.
@@ -3639,7 +3690,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             print(f"  HEADLINE-LOCK FAIL: (f) {_surface} not found")
             wrong_results.append(f"HEADLINE-LOCK: (f) {_surface} missing")
             continue
-        _surface_text = _surface_path.read_text(encoding="utf-8")
+        _surface_text = _headline_read_or_fail(
+            _surface_path, f"(f) {_surface}", wrong_results
+        )
+        if _surface_text is None:
+            continue  # this surface's (f) and (g) cannot run; the FAIL is already recorded
         _current_hits = _non_historical_headline_hits(_surface_text, _surface)
         if _current_hits:
             _renderings = sorted(
@@ -3794,8 +3849,13 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     if not _v80_path.is_file():
         print(f"  HEADLINE-LOCK FAIL: (h) {_v80_path} not found")
         wrong_results.append("HEADLINE-LOCK: (h) docs/v8.0-final-closure.md missing")
+    elif (
+        _v80_text := _headline_read_or_fail(
+            _v80_path, "(h) docs/v8.0-final-closure.md", wrong_results
+        )
+    ) is None:
+        pass  # unreadable: the FAIL is already recorded, the INFO line below is not reachable
     else:
-        _v80_text = _v80_path.read_text(encoding="utf-8")
         # Selector delegates to _headline_exempt_layer() rather than a parallel whole-line
         # substring test (WR-04): a line the ARROW layer would not have rescued is any line
         # NOT attributed to "arrow". docs/v8.0-final-closure.md is itself whole-file exempt,
@@ -4783,6 +4843,52 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             )
             wrong_results.append("HEADLINE-LOCK: (m) arm 5 failed")
 
+    # Arm 6: the sentinel's OWN read guard (CN-03, Phase 10 review). Arm 5 above covers the
+    # tree-wide scan's read loop; this arm covers `_headline_read_or_fail()`, the same policy
+    # applied to the five live-file reads the sentinel makes directly, which were unguarded
+    # until this review (a permission change or a non-UTF-8 byte in any of them exited
+    # --self-test with a traceback rather than a finding). Both halves are asserted against a
+    # THROWAWAY wrong_results list, so the control cannot contaminate the real one, and the
+    # helper's own FAIL line is captured rather than printed — a run in which every assertion
+    # passes must not emit a FAIL line, and capturing it lets the arm assert the line was
+    # emitted at all, not merely that the finding was appended.
+    with tempfile.TemporaryDirectory() as _m_arm6_tmp:
+        _m_arm6_valid = Path(_m_arm6_tmp) / "valid.md"
+        _m_arm6_valid.write_text("readable\n", encoding="utf-8")
+        _m_arm6_broken = Path(_m_arm6_tmp) / "broken.md"
+        _m_arm6_broken.write_bytes(b"\xff\xfe headline")
+        _m_arm6_findings: list[str] = []
+        _m_arm6_captured = io.StringIO()
+        with contextlib.redirect_stdout(_m_arm6_captured):
+            _m_arm6_good = _headline_read_or_fail(
+                _m_arm6_valid, "(m) arm 6 valid", _m_arm6_findings
+            )
+            _m_arm6_bad = _headline_read_or_fail(
+                _m_arm6_broken, "(m) arm 6 broken", _m_arm6_findings
+            )
+        _m_arm6_output = _m_arm6_captured.getvalue()
+        _m_arm6_ok = (
+            _m_arm6_good == "readable\n"
+            and _m_arm6_bad is None
+            and _m_arm6_findings == [
+                "HEADLINE-LOCK: (m) arm 6 broken could not be decoded as UTF-8"
+            ]
+            and "HEADLINE-LOCK FAIL: (m) arm 6 broken" in _m_arm6_output
+        )
+        if _m_arm6_ok:
+            print(
+                "  HEADLINE-LOCK PASS: (m) arm 6 — the sentinel's own read guard returns the "
+                "text of a readable file appending nothing, and converts an undecodable one "
+                "into exactly one named finding plus a printed FAIL line, never a traceback"
+            )
+        else:
+            print(
+                "  HEADLINE-LOCK FAIL: (m) arm 6 — the sentinel's own read guard did not "
+                f"behave as specified: returned {_m_arm6_good!r} / {_m_arm6_bad!r}, "
+                f"appended {_m_arm6_findings}, printed {_m_arm6_output!r}"
+            )
+            wrong_results.append("HEADLINE-LOCK: (m) arm 6 failed")
+
     # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
     # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
     # exact drift class HEADLINE-LOCK exists to catch, newly created by the fix for it, and
@@ -4812,10 +4918,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             print(f"  HEADLINE-LOCK FAIL: (n) {_path} not found")
             wrong_results.append(f"HEADLINE-LOCK: (n) {relpath} missing")
             return None
+        _text = _headline_read_or_fail(_path, f"(n) {relpath}", wrong_results)
+        if _text is None:
+            return None
         _rows = [
-            _line
-            for _line in _path.read_text(encoding="utf-8").splitlines()
-            if _line.startswith(_n_row_prefix)
+            _line for _line in _text.splitlines() if _line.startswith(_n_row_prefix)
         ]
         if len(_rows) != 1:
             print(
