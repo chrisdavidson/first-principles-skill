@@ -68,6 +68,47 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
     "docs/COMPONENT-DIAGRAM.md",          # line 97, slash form ONLY — no prose form in this file
 })
 
+# Whole-file historical exemption for HEADLINE-03: files whose entire purpose is recording a
+# frozen or dated coverage figure. A hit in one of these files is never "the current claim"
+# even with no arrow on the line — each entry below is a deliberate editorial decision, not a
+# default, and every entry must carry its own justification.
+#
+# Safe-failure direction: because the search target used against this set is always the
+# *current* literal derived live from build_matrix_rows() (never a generic numeric pattern), a
+# value that is superseded stops matching the search the moment the headline moves — no entry
+# here ever needs retiring on that account. This set only needs to grow (a new milestone-closure
+# doc), and a document that states the current literal without an arrow and is missing from this
+# set is not silently accepted: it is loudly caught as an unregistered surface by the tree-wide
+# scan (a later plan in this phase), never here.
+HISTORICAL_EXEMPT_FILES: frozenset[str] = frozenset({
+    "CHANGELOG.md",                 # dated log by definition; already covered by the arrow
+                                     # layer at its one live occurrence (line 45), kept here too
+                                     # because a dated log is definitionally historical narration
+    "docs/v8.0-final-closure.md",   # frozen v8.0 terminal record; its "Superseded" callout
+                                     # states both current renderings with NO arrow on that
+                                     # line — the live proof that the arrow layer alone is
+                                     # insufficient and the whole-file layer is load-bearing here
+})
+
+
+def _is_historical_headline_hit(relpath: str, line: str) -> bool:
+    """HEADLINE-03 two-layer historical classifier, shared by every consumer: the per-surface
+    presence assertion, its positive controls, and the tree-wide unregistered-surface scan.
+
+    A hit (a line already known to contain the current headline literal, in either rendering)
+    is historical if EITHER layer applies, checked in this order:
+      1. whole-file: relpath is a member of HISTORICAL_EXEMPT_FILES.
+      2. same-line arrow: the line itself contains "→" (U+2192) or the ASCII "->", marking it
+         as a delta/ledger row rather than a present-tense claim.
+
+    Deliberately does not do any tense, marker-word, or surrounding-prose detection — this tree
+    contains at least four distinct historical phrasings ("stayed X", "moved to X", "from X to
+    Y", "the then-current X") and a marker list could never be proven exhaustive. The two
+    structural layers above are what the live tree actually requires (see the
+    <measured_classification_table> in this phase's plan) and nothing more.
+    """
+    return relpath in HISTORICAL_EXEMPT_FILES or "→" in line or "->" in line
+
 
 # ---------------------------------------------------------------------------
 # MatrixRow dataclass (D-12: single internal representation for dual output)
