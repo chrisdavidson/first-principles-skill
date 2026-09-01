@@ -58,15 +58,18 @@ VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 # Surfaces where the published coverage headline is asserted as a present-tense claim by
 # _self_test_headline_lock(). This set is allowed to under-count without being wrong: it
 # does not need to be exhaustive for correctness, only for the gate to stay green — a
-# surface stating the headline but missing from this set is left for a tree-wide scan to
-# catch loudly (a later phase's own mechanism), never silently accepted here. Treat this as
-# a "known covered" record, not a trusted exhaustive inventory.
+# surface stating the headline but missing from this set is caught loudly by the
+# HEADLINE_SCAN_GLOBS tree-wide scan, block (j) of _self_test_headline_lock(), never
+# silently accepted here. Treat this as a "known covered" record, not a trusted exhaustive
+# inventory. Locate each entry's own statement by scanning the live file, never by a
+# hardcoded line number (IN-01) — this module's own stated rule, since any unrelated edit
+# to the file invalidates an unverified line-number comment.
 COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
-    "docs/requirements-traceability.md",  # line 7, prose form (already gated pre-Phase-10)
-    "CLAUDE.md",                          # line 220, prose form
-    "docs/README.md",                     # line 20, prose form
-    "docs/MEASUREMENT-MAP.md",            # line 52, prose form
-    "docs/COMPONENT-DIAGRAM.md",          # line 97, slash form ONLY — no prose form in this file
+    "docs/requirements-traceability.md",  # prose form (already gated pre-Phase-10)
+    "CLAUDE.md",                          # prose form
+    "docs/README.md",                     # prose form
+    "docs/MEASUREMENT-MAP.md",            # prose form
+    "docs/COMPONENT-DIAGRAM.md",          # slash form ONLY — no prose form in this file
 })
 
 # Whole-file historical exemption for HEADLINE-03: files whose entire purpose is recording a
@@ -3067,6 +3070,19 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
           construct their inputs by hand rather than driving the loop itself. Each arm asserts
           its own precondition explicitly before asserting the property, so none can silently
           degrade into a tautology if a future edit changes a constant.
+      (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows in
+          CLAUDE.md and docs/ARCHITECTURE.md transcribe HEADLINE_SCAN_GLOBS' live value by
+          hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
+          exists to catch, newly created by the fix for it, and the two copies had already
+          diverged once inside this phase (one stated the accounted-hit floor's union claim,
+          the other did not). Asserts the rendered glob list is present in both files, guards
+          both files for existence first (a named FAIL rather than a traceback), and carries
+          a non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from
+          both — without it, a lock whose comparison always succeeded would be
+          indistinguishable from a passing lock, the same anti-tautology rule (b), (e), (i),
+          (k), (l) and (m) already observe. This lock asserts the GLOB LIST's transcription
+          only; the rest of each row's prose remains unasserted, which is a real and
+          disclosed limit, not an oversight.
 
     Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
@@ -4194,6 +4210,63 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "correctly recorded as skipped"
         )
         wrong_results.append("HEADLINE-LOCK: (m) arm 3 failed")
+
+    # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
+    # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
+    # exact drift class HEADLINE-LOCK exists to catch, newly created by the fix for it, and
+    # the two copies had already diverged once inside this phase. Rendered the same way the
+    # rows already state it (a comma-joined sequence of backtick-quoted patterns) so the lock
+    # goes green on today's text without any doc edit — derived from the constant, never typed
+    # as a literal here, exactly as every other assertion in this sentinel derives from
+    # build_matrix_rows().
+    _n_glob_prose = ", ".join(f"`{_g}`" for _g in HEADLINE_SCAN_GLOBS)
+    for _n_row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md"):
+        _n_row_path = REPO_ROOT / _n_row_file
+        if not _n_row_path.is_file():
+            print(f"  HEADLINE-LOCK FAIL: (n) {_n_row_path} not found")
+            wrong_results.append(f"HEADLINE-LOCK: (n) {_n_row_file} missing")
+            continue
+        _n_row_text = _n_row_path.read_text(encoding="utf-8")
+        if _n_glob_prose in _n_row_text:
+            print(
+                f"  HEADLINE-LOCK PASS: (n) {_n_row_file} transcribes HEADLINE_SCAN_GLOBS "
+                f"correctly ({_n_glob_prose})"
+            )
+        else:
+            print(
+                f"  HEADLINE-LOCK FAIL: (n) {_n_row_file} does not transcribe "
+                f"HEADLINE_SCAN_GLOBS (expected {_n_glob_prose!r} to appear in its TRACE-03 "
+                "row)"
+            )
+            wrong_results.append(
+                f"HEADLINE-LOCK: (n) {_n_row_file} TRACE-03 row does not transcribe "
+                f"HEADLINE_SCAN_GLOBS ({_n_glob_prose})"
+            )
+
+    # Non-vacuity arm: a DELIBERATELY DIFFERENT glob list, rendered the identical way, must be
+    # ABSENT from both files. Without this, a lock whose comparison always succeeded (e.g. a
+    # containment test against an empty string) would be indistinguishable from a passing
+    # lock — the same anti-tautology rule (b), (e), (i), (k), (l) and (m) already observe.
+    _n_different_globs = ["docs/*.markdown", "CONTRIBUTING.md"]
+    _n_different_prose = ", ".join(f"`{_g}`" for _g in _n_different_globs)
+    _n_vacuity_violations = [
+        _row_file
+        for _row_file in ("CLAUDE.md", "docs/ARCHITECTURE.md")
+        if (REPO_ROOT / _row_file).is_file()
+        and _n_different_prose in (REPO_ROOT / _row_file).read_text(encoding="utf-8")
+    ]
+    if _n_vacuity_violations:
+        print(
+            f"  HEADLINE-LOCK FAIL: (n) non-vacuity arm — a deliberately different glob "
+            f"rendering ({_n_different_prose}) was found in {_n_vacuity_violations}, so the "
+            "containment test above cannot be trusted"
+        )
+        wrong_results.append("HEADLINE-LOCK: (n) non-vacuity arm did not fail")
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (n) non-vacuity arm — a deliberately different glob "
+            f"rendering ({_n_different_prose}) is absent from both TRACE-03 rows"
+        )
 
 
 def _run_self_test() -> None:
