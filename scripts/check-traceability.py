@@ -74,10 +74,15 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # even with no arrow on the line — each entry below is a deliberate editorial decision, not a
 # default, and every entry must carry its own justification.
 #
-# Two mechanical invariants are asserted by _self_test_headline_lock()'s (0) preamble
-# (WR-01, WARNING scope): this set is disjoint from COVERED_HEADLINE_SURFACES, and every
-# entry resolves to an existing file. The "every entry must carry its own justification"
-# requirement above remains a convention, not mechanically enforced.
+# Three mechanical invariants are asserted by _self_test_headline_lock()'s (0) preamble: this
+# set is disjoint from COVERED_HEADLINE_SURFACES; every entry resolves to an existing file
+# (WR-01, WARNING scope); and, as of WR-03, this set's MEMBERSHIP is locked by name against a
+# literal expectation — growth or shrinkage is a deliberate, reviewable edit in two places
+# rather than a one-line change, the way REG-GUARD pins QUAL-01 as its own named exemption. A
+# whole-file exemption disables both (f) and the tree-wide scan (j) for that file's entire
+# contents, permanently, which is exactly why an unreviewed addition or removal must fail the
+# gate rather than pass silently. The free-text "justification" prose in each entry's own
+# comment below remains unenforced — only set MEMBERSHIP is mechanically locked.
 #
 # Safe-failure direction: because the search target used against this set is always the
 # *current* literal derived live from build_matrix_rows() (never a generic numeric pattern), a
@@ -85,7 +90,7 @@ COVERED_HEADLINE_SURFACES: frozenset[str] = frozenset({
 # here ever needs retiring on that account. This set only needs to grow (a new milestone-closure
 # doc), and a document that states the current literal without an arrow and is missing from this
 # set is not silently accepted: it is loudly caught as an unregistered surface by the tree-wide
-# scan (a later plan in this phase), never here.
+# scan, block (j) of _self_test_headline_lock(), never here.
 HISTORICAL_EXEMPT_FILES: frozenset[str] = frozenset({
     "CHANGELOG.md",                 # dated log by definition; already covered by the arrow
                                      # layer at its one live occurrence (line 45), kept here too
@@ -122,6 +127,15 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 # genuine delta's arrow (WR-07).
 _HTML_COMMENT_CLOSE: str = "-->"
 _ARROW_TOKENS: tuple[str, ...] = ("→", "->", _HTML_COMMENT_CLOSE)
+
+# A fixed, non-current placeholder figure used to construct delta-shaped synthetic lines
+# (a superseded reading, an arrow, then the current figure) throughout _self_test_headline_lock().
+# It is not the headline and is therefore outside the no-literal rule that governs every other
+# headline-adjacent figure in this module — but it is typed in exactly ONE place (IN-09): every
+# consumer references this constant, never a retyped copy, so a future collision between this
+# placeholder and a live headline degenerates loudly in one spot rather than in three silently.
+# Block (0) asserts this constant differs from the live slash rendering.
+_SUPERSEDED_PLACEHOLDER: str = "0/0/0/1"
 
 # Non-greedy, single-pass match of a COMPLETE HTML comment (opening through closing marker),
 # substituted with a space rather than the empty string so removing a comment can never join
@@ -2879,11 +2893,21 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     the mechanism intact, so the next headline move would have reopened it identically.
 
     Asserts:
-      (0) Preamble (WR-01, WARNING scope): COVERED_HEADLINE_SURFACES and
-          HISTORICAL_EXEMPT_FILES are disjoint — the two sets carry contradictory meanings
-          ("must state the current fact" vs "never states a current fact") — and every entry
-          in HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
-          silently keep exempting a whole file's contents from both (f) and (j).
+      (0) Preamble: COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES are disjoint
+          (WR-01, WARNING scope) — the two sets carry contradictory meanings ("must state
+          the current fact" vs "never states a current fact") — and every entry in
+          HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
+          silently keep exempting a whole file's contents from both (f) and (j). As of
+          WR-03, HISTORICAL_EXEMPT_FILES' MEMBERSHIP is also locked by name against a
+          literal expectation set: growth or shrinkage now fails the gate naming the
+          symmetric difference, so a new whole-file escape hatch — which disables both (f)
+          and the tree-wide scan for that file's entire contents, permanently — requires a
+          second, reviewable edit rather than a one-line change. What remains unenforced is
+          the free-text justification each entry's own comment carries, not its membership.
+          A final (0) assertion (IN-09) requires _SUPERSEDED_PLACEHOLDER to differ from the
+          live slash rendering, so the day a real headline collides with the fixed
+          placeholder used throughout (h)/(h2)/(i2)/(k), the gate says so explicitly instead
+          of three controls degenerating simultaneously and silently.
       (a) Published-headline lock: docs/requirements-traceability.md states exactly the
           headline build_matrix_rows() produces. Every one of the four figures is derived
           live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
@@ -3048,11 +3072,11 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
     no live claude session, no network, no writes.
     """
-    # (0) Preamble: two mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING
-    # scope — not one of the three established CRITICALs, and deliberately kept to exactly
-    # these two assertions). The "every entry must carry its own justification" convention
-    # in the constant's comment block remains unenforced; a comment-parsing check is out of
-    # scope here.
+    # (0) Preamble: mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING scope
+    # for the first two — not one of the three established CRITICALs). The free-text "every
+    # entry must carry its own justification" convention in the constant's comment block
+    # remains unenforced; a comment-parsing check is out of scope here. What IS enforced, as
+    # of WR-03, is the set's own membership (below).
     _disjoint_violation = sorted(COVERED_HEADLINE_SURFACES & HISTORICAL_EXEMPT_FILES)
     if _disjoint_violation:
         print(
@@ -3088,6 +3112,34 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             "existing file"
         )
 
+    # Named-membership lock (WR-03): HISTORICAL_EXEMPT_FILES may only grow or shrink by an
+    # edit that also updates this literal, following the same pattern REG-GUARD uses to pin
+    # QUAL-01 as its own single named battery-only exemption. Without this, adding an
+    # arbitrary current-fact document to the set (e.g. docs/TESTING.md) produces zero
+    # findings and silently makes that file's entire contents invisible to both (f) and the
+    # tree-wide scan (j), forever — a whole-file exemption is exactly the shape of escape
+    # hatch that must be a deliberate, reviewable edit in two places, never a one-line
+    # change. The comparison is symmetric-difference based, so the lock catches shrinkage
+    # (a member silently removed, defeating whatever that entry's own comment justifies) as
+    # well as growth — a growth-only heuristic would not be a membership lock.
+    _expected_exempt = {"CHANGELOG.md", "docs/v8.0-final-closure.md"}
+    _exempt_drift = sorted(set(HISTORICAL_EXEMPT_FILES) ^ _expected_exempt)
+    if _exempt_drift:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) HISTORICAL_EXEMPT_FILES has changed "
+            f"({_exempt_drift}) — a whole-file exemption disables both (f) and the "
+            "tree-wide scan for that file's entire contents and must be justified here, "
+            "with this literal updated to match"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: (0) unreviewed whole-file exemption change {_exempt_drift}"
+        )
+    else:
+        print(
+            f"  HEADLINE-LOCK PASS: (0) HISTORICAL_EXEMPT_FILES membership locked "
+            f"({sorted(_expected_exempt)})"
+        )
+
     _rows = build_matrix_rows()
     _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
     _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
@@ -3121,6 +3173,24 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         )
     else:
         print("  HEADLINE-LOCK PASS: (0) _headline_literals()'s prose rendering matches _expected")
+
+    # Placeholder-collision assertion (IN-09): _SUPERSEDED_PLACEHOLDER must differ from the
+    # live slash rendering. Every (h)/(h2)/(i2)/(k) delta-shaped synthetic line is built by
+    # joining this fixed placeholder to the CURRENT figure with an arrow — if the placeholder
+    # ever equalled the live headline, that join would silently stop being a genuine delta
+    # and all four controls would degenerate into asserting nothing, together and silently.
+    if _SUPERSEDED_PLACEHOLDER == _slash:
+        print(
+            f"  HEADLINE-LOCK FAIL: (0) _SUPERSEDED_PLACEHOLDER {_SUPERSEDED_PLACEHOLDER!r} "
+            f"collides with the live slash rendering {_slash!r} — every delta-shaped "
+            "synthetic line built from it would silently stop being a genuine delta"
+        )
+        wrong_results.append("HEADLINE-LOCK: (0) placeholder/live-headline collision")
+    else:
+        print(
+            "  HEADLINE-LOCK PASS: (0) _SUPERSEDED_PLACEHOLDER does not collide with the "
+            "live headline"
+        )
 
     def _headline_matches(text: str) -> bool:
         """The (a) predicate, isolated so (b) can exercise the identical code path."""
@@ -3369,7 +3439,9 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # in-scope _prose/_slash locals; the delta row's superseded left-hand figure is a fixed,
     # non-current placeholder and is not the headline, so it may be typed.
     _synthetic_no_arrow_line = f"Superseded: the headline is now {_prose}."
-    _synthetic_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_slash} | ... |"
+    _synthetic_delta_line = (
+        f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_slash} | ... |"
+    )
     for _relpath, _line, _want in (
         ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, "whole-file"),
         ("CHANGELOG.md", _synthetic_no_arrow_line, "whole-file"),
@@ -3492,7 +3564,9 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
     # two constructed lines are NOT byte-equal, so a future edit that made the perturbation a
     # no-op cannot leave this comparing a string to itself forever.
     _perturbed_no_arrow_line = f"Superseded: the headline is now {_perturbed_prose}."
-    _perturbed_delta_line = f"| 9 | some milestone | 0/0/0/1 → {_perturbed_slash} | ... |"
+    _perturbed_delta_line = (
+        f"| 9 | some milestone | {_SUPERSEDED_PLACEHOLDER} → {_perturbed_slash} | ... |"
+    )
     _perturbed_literals = (_perturbed_slash, _perturbed_prose)
     _h2_cases = (
         ("docs/v8.0-final-closure.md", _synthetic_no_arrow_line, _perturbed_no_arrow_line),
@@ -3639,7 +3713,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
 
         # 3. A genuine delta line IS exempt — without this arm, controls 1 and 2 would pass
         # against a classifier that returns False unconditionally.
-        _i2_delta_line = f"0/0/0/1 → {_slash}"
+        _i2_delta_line = f"{_SUPERSEDED_PLACEHOLDER} → {_slash}"
         _i2_delta_finding, _ = _unregistered_headline_finding(_i2_path, (1, _i2_delta_line))
         if not _i2_delta_finding:
             print(
@@ -3679,7 +3753,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # with the ASCII long arrow must stay exempt — the rendering the unconditional
         # comment strip used to destroy. References _HTML_COMMENT_CLOSE for the arrow rather
         # than retyping it, so the control and the classifier share the one literal.
-        _i2_long_arrow_delta_line = f"0/0/0/1 {_HTML_COMMENT_CLOSE} {_slash}"
+        _i2_long_arrow_delta_line = f"{_SUPERSEDED_PLACEHOLDER} {_HTML_COMMENT_CLOSE} {_slash}"
         _i2_long_arrow_finding, _ = _unregistered_headline_finding(
             _i2_path, (1, _i2_long_arrow_delta_line)
         )
@@ -3705,7 +3779,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         # arrow between the placeholder and the current literal — a comment strip that merely
         # stopped running (rather than one narrowed to complete comments) would let this line
         # through undetected, which is exactly the risk this arm exists to catch.
-        _i2_complete_comment_line = f"<!-- 0/0/0/1 --> {_prose}"
+        _i2_complete_comment_line = f"<!-- {_SUPERSEDED_PLACEHOLDER} --> {_prose}"
         _i2_complete_comment_finding, _i2_complete_comment_msg = _unregistered_headline_finding(
             _i2_path, (1, _i2_complete_comment_line)
         )
@@ -3840,8 +3914,7 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             # registered-surface membership test. The left-hand figure is a fixed
             # non-current placeholder; it is not the headline and does not fall under the
             # no-literal rule.
-            _superseded_figure = "0/0/0/1"
-            _delta_line = f"{_superseded_figure} → {_slash}"
+            _delta_line = f"{_SUPERSEDED_PLACEHOLDER} → {_slash}"
             if not _is_historical_headline_hit(_synth_path, _delta_line):
                 print(
                     "  HEADLINE-LOCK FAIL: (k) precondition violated — the delta-shaped "
