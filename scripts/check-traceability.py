@@ -3036,289 +3036,67 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
 
-def _self_test_headline_lock(wrong_results: list[str]) -> None:
-    """HEADLINE-LOCK named sentinel (WR-08 / v8.18 Phase 4 review).
+class _HeadlineLockContext(NamedTuple):
+    """Everything the HEADLINE-LOCK stages derive from the oracle, in one place.
 
-    Ties the three published, hand-copied or generator-written coverage surfaces back to
-    build_matrix_rows(), which nothing previously did. The v8.18 review measured the gap:
-    no script anywhere contained the literal headline figure, and TRACE-03's --self-test
-    never re-rendered the matrix to compare it against the tracked artifacts, because the
-    `emit` subcommand is a manual regeneration step that CI does not run.
+    Derived by `_headline_lock_context()`, which every stage calls for itself. That is what
+    lets the four stages take `wrong_results` and nothing else, matching the dispatch shape
+    `_run_self_test()` already uses for its seven peer sentinels (CN-04, Phase 10 review) —
+    and it is safe precisely because `_headline_literals()` is deliberately un-memoized and
+    `build_matrix_rows()` is deterministic, so re-deriving per stage cannot disagree with
+    itself. Block (0) still asserts that `expected` and `prose`, which come from two
+    independent calls to `build_matrix_rows()`, agree.
+    """
+    rows: list["MatrixRow"]
+    repro: int
+    audit: int
+    gap: int
+    expected: str
+    headline: str
+    slash: str
+    prose: str
 
-    That gap is not hypothetical. The same review's CR-01 was exactly this drift: an
-    `88 audit-only` figure surviving in two places six and fifty lines from a headline the
-    same commit had moved to 90. It was corrected by hand, closing the instance and leaving
-    the mechanism intact, so the next headline move would have reopened it identically.
 
-    Asserts:
-      (0) Preamble: COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES are disjoint
-          (WR-01, WARNING scope) — the two sets carry contradictory meanings ("must state
-          the current fact" vs "never states a current fact") — and every entry in
-          HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
-          silently keep exempting a whole file's contents from both (f) and (j). As of
-          WR-03, HISTORICAL_EXEMPT_FILES' MEMBERSHIP is also locked by name against a
-          literal expectation set: growth or shrinkage now fails the gate naming the
-          symmetric difference, so a new whole-file escape hatch — which disables both (f)
-          and the tree-wide scan for that file's entire contents, permanently — requires a
-          second, reviewable edit rather than a one-line change. What remains unenforced is
-          the free-text justification each entry's own comment carries, not its membership.
-          A final (0) assertion (IN-09) requires _SUPERSEDED_PLACEHOLDER to differ from the
-          live slash rendering, so the day a real headline collides with the fixed
-          placeholder used throughout (h)/(h2)/(i2)/(k), the gate says so explicitly instead
-          of three controls degenerating simultaneously and silently.
-      (a) Published-headline lock: docs/requirements-traceability.md states exactly the
-          headline build_matrix_rows() produces. Every one of the four figures is derived
-          live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
-          mean that the first real gap row makes this sentinel fail while blaming the prose,
-          which would be a correct document losing to a stale assertion.
-      (b) Non-vacuity control for (a): the same predicate, run against a copy of the document
-          with the reproducible count perturbed, must report a mismatch. Without this, a
-          rewritten (a) that always passes is indistinguishable from a passing (a).
-      (c) Markdown artifact freshness: docs/requirements-matrix.md on disk is byte-identical
-          to render_matrix_markdown(rows). Deterministic — the renderer embeds no timestamp.
-      (d) JSON artifact freshness: docs/data/matrix.json on disk is byte-identical to what
-          emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
-      (e) Non-vacuity control for (c)/(d): each artifact must compare UNEQUAL against a
-          rendering of a deliberately different row set (the same rows minus the last),
-          produced by the same renderer (c)/(d) use. Rewritten in the Phase 10 review's CR-02
-          fix, twice over: the perturbation moved from the DISK side to the LIVE side — the
-          old form asserted `disk + "\n" != live`, provably true whenever (c)/(d) pass and
-          therefore incapable of failing — and, more importantly, both verdicts are now read
-          out of ONE shared comparison expression evaluated over the two candidate renderings,
-          so a (c)/(d) comparison rewritten to be unconditionally true (`if disk is not
-          None:`, the exact defect this control names) makes the perturbed verdict true as
-          well and is reported here as a vacuous byte-comparison, instead of leaving the gate
-          green under a "non-vacuous" PASS line. Preconditions (missing artifact, fewer than
-          two rows) are named FAILs, never silent skips.
-      (f) Per-surface headline presence: every surface named in COVERED_HEADLINE_SURFACES
-          states the current headline in either rendering (prose or compact-slash),
-          label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
-          though it only ever states the bare slash form and never the
-          "**Coverage headline:**" label (a) is keyed to. Tightened in Phase 10 Plan 02
-          (HEADLINE-03) to require at least one hit that
-          `_is_historical_headline_hit()` does NOT call historical — a delta row or
-          historical statement elsewhere in the same file must not be able to satisfy this
-          on its own, so a surface whose only occurrence is a ledger delta (e.g. an arrow
-          row) correctly fails here rather than passing on a technicality.
-      (g) Non-vacuity control for (f): for each surface independently, perturbing its
-          in-memory copy so that (f)'s tightened, non-historical-only predicate finds zero
-          hits — holding every other surface's real text untouched. Sharpened in Phase 10
-          Plan 02 to perturb ONLY the lines `_is_historical_headline_hit()` does NOT call
-          historical, via `_perturb_non_historical_hits()`, leaving every historical/delta
-          line (e.g. an arrow-marked ledger row) byte-correct in the mutated copy — this is
-          a line-level, classifier-driven perturbation rather than a rendering-keyed guess
-          (perturb "the prose form") because docs/requirements-traceability.md carries two
-          non-historical hits in two different renderings (line 7 prose, line 99 slash
-          narrative) and one historical hit in the slash rendering (line 80, arrow); a
-          rendering guess cannot correctly single out just the historical line. For surfaces
-          with a single, non-historical occurrence this has the same effect as plan 10-01's
-          blanket perturbation. Each control's message names its own surface.
-      (f2) Synthetic control for (f)'s tightening itself (WR-01, Phase 10 review). (g) tests
-          the perturbation, not the tightening — reverting (f) to the untightened form left
-          --self-test green — so the tightened predicate is expressed once, module level, as
-          `_non_historical_headline_hits()` (the identical function object (f) and (g) call)
-          and driven here by two synthetic texts that depend on no live file's shape: a
-          delta-only text must yield ZERO hits, and the same text plus one present-tense line
-          must yield exactly that line (anti-tautology, so a predicate returning nothing
-          cannot pass the first arm).
-      (h) Positive controls (HEADLINE-03, ROADMAP criterion 3, CR-02 fix): layer
-          attribution is asserted on SYNTHETIC lines carrying the current literal at the
-          REAL surface relpath — docs/v8.0-final-closure.md and CHANGELOG.md must attribute
-          a no-arrow line to the WHOLE-FILE layer, and docs/requirements-traceability.md
-          must attribute a delta-shaped line to the ARROW layer specifically, inside a file
-          that is NOT whole-file exempt (T-10-05 — if it were, assertion (a) would be
-          defeated). None of the three needs the LIVE FILE to still contain today's figure,
-          because each synthetic line is built from the current literal at call time (via
-          `_headline_literals()`), not scanned out of the file's own text — a control bound to
-          a live occurrence tested a strictly narrower, stronger precondition than the
-          historicity property it claimed to prove, and broke on every legitimate headline
-          move (CR-02). The classifier itself IS figure-aware as of Plan 08's anchoring fix;
-          what survives is that its verdict is invariant when the figure and the line move
-          TOGETHER, which is what block (h2) asserts. A discriminating arm (WR-06) evaluates the
-          identical no-arrow line at a relpath that is NOT whole-file exempt and requires
-          `""`, proving whole-file MEMBERSHIP — not the line's content — is what rescues the
-          two whole-file cases. The one genuinely live-file claim that survives —
-          docs/v8.0-final-closure.md still containing a no-arrow current-literal line today
-          — is reported as INFO, never asserted, because it legitimately stops being true
-          the moment the headline moves.
-      (h2) Headline-move invariance control (T-10-05/T-10-08): for each (h) case, asserts
-          `_headline_exempt_layer()` returns the SAME layer for the original line (evaluated
-          against the CURRENT literals) and the perturbed line (evaluated against the
-          PERTURBED literals, passed explicitly) — a cheap, deterministic, in-process stand-in
-          for manually simulating a headline move. The property is that layer attribution is
-          invariant when the figure AND the line move TOGETHER (what a real headline move
-          does), not that the classifier ignores the figure altogether — Plan 08 made the
-          classifier figure-aware, and this control's perturbed evaluation was rewired to
-          supply the matching perturbed literals rather than the live ones. A second arm
-          requires the two constructed lines to be non-byte-equal, so a future edit that made
-          the perturbation a no-op cannot leave this passing vacuously forever. Every case
-          also carries the LAYER it is expected to land on, and misattribution is its own
-          named FAIL (WR-05, Phase 10 review): `_is_historical_headline_hit()` short-circuits
-          on whole-file membership before `literals` is resolved, so the two whole-file cases
-          compare "whole-file" against "whole-file" and cannot fail while the (0) membership
-          lock holds — they are invariant by MEMBERSHIP, not by the property under test. The
-          invariance property is carried by the ARROW arms, and a fourth case runs the same
-          delta-shaped line at a synthetic NON-exempt relpath so that property does not
-          depend on docs/requirements-traceability.md's membership staying as it is. The PASS
-          line says which arms carry what, rather than crediting all of them equally.
-      (i) Non-vacuity control for the classifier (T-10-04): feeds
-          `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
-          containing the current literal with no arrow, and requires NOT historical.
-          Prevents (h)'s positive controls from passing off a classifier rewritten to
-          `return True` unconditionally.
-      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08, WR-09): eight named arms, every
-          one driving through `_unregistered_headline_finding()` itself, never a parallel
-          copy. 1. mermaid edge and 2. bare HTML comment close must NOT exempt a line sharing
-          it with the current headline (the fail-unsafe case CR-03 names); 3. a genuine delta
-          line (a superseded figure, an arrow, then the current figure) still must be exempt,
-          proving the narrowing did not simply disable the arrow layer; 4. an unrelated
-          numeric arrow elsewhere on the line (a battery-count delta) must NOT exempt the
-          headline mention on that line (BL-01's reproduction, permanently encoded — not
-          contrived, 67 in-scope lines already carry this shape); 5. a genuine delta written
-          with the ASCII long arrow must stay exempt (WR-07's reproduction); 6. a complete
-          `<!-- ... -->` comment preceding the headline must NOT exempt it, proving the
-          narrowed strip does not donate its terminator to the arrow layer once removed —
-          without arm 6, arm 5 alone would also pass against a classifier that simply stopped
-          stripping comments; 7. the current headline followed by an arrow and a BARE DIGIT RUN
-          must NOT be exempt (WR-09's fail-open: that orientation used to accept any digits, so
-          a mermaid edge whose SOURCE label is the headline, or a "current → projected" note,
-          silently hid a current-fact statement), while 8. the same shape with a
-          COVERAGE-SHAPED right-hand figure must stay exempt — without arm 8, arm 7 would also
-          pass against a classifier that deleted the orientation instead of narrowing it.
-      (i3) Hit-detection controls (WR-06/WR-08, Phase 10 review): four arms driving
-          `_headline_hits()`
-          itself rather than the classifier. Complete HTML comments are stripped from WHOLE
-          FILE TEXT before hits are collected — while that strip ran per line inside the
-          classifier, an ordinary block comment stating the headline across three lines was
-          reported by the tree-wide scan as a current-fact statement, breaking CI on a
-          legitimate edit with a message naming the wrong problem, and `re.DOTALL` on the
-          comment pattern was inert. Arm 1 requires such a comment to produce no hit while a
-          real statement two lines later is still found AT ITS ORIGINAL LINE NUMBER (the strip
-          substitutes one newline per newline removed, so findings stay citable); arm 2
-          requires the same text with the markers replaced by plain words to produce both
-          hits, so arm 1 cannot pass against a scanner that stopped matching. Arms 3 and 4
-          lock the digit boundary (WR-08): a longer digit run merely EMBEDDING the current
-          slash rendering ("build 1161/91/0/2521 was fine", a hit under the previous unbounded
-          substring test) must produce no hit, while the bare rendering on an otherwise
-          identical line still must.
-      (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07, BL-02 fix): files are
-          collected through the shared `_headline_scan_files()` helper, then actually opened
-          and classified through `_headline_scan_read()` (T-10-09) — the single source of
-          truth for what was read, its `read_relpaths`/`hits_by_surface` populated as the
-          loop goes, never re-derived afterwards from a separate glob or `is_file()` sweep
-          (BL-02's root cause). Each hit is decided by `_unregistered_headline_finding()`
-          (which itself calls `_is_historical_headline_hit()` — the identical function
-          object (h)/(i) exercise, so HEADLINE-05's documented dependency on HEADLINE-03
-          already holding is enforced by construction, not by convention): a non-historical
-          hit whose file is not in COVERED_HEADLINE_SURFACES is a FAIL naming the file and
-          line; a read error (UTF-8 decode failure or any other `OSError`) is a FAIL; a
-          candidate the loop declines to open (not a regular file, or a symlink resolving
-          outside REPO_ROOT) is a named INFO line — never a silent skip. Before the PASS
-          branch, `_headline_scan_floor_breaches()` (CR-01 fix, BL-02 fix) asserts a derived
-          coverage floor — every path in COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
-          must be a member of `read_relpaths`, i.e. was actually OPENED, never merely
-          glob-matched — and, if that holds, a derived accounted-hit floor evaluated PER
-          SURFACE: every member of COVERED_HEADLINE_SURFACES must individually account for
-          at least one non-historical hit, never a running total compared against a
-          cardinality (a running total has exactly as much slack as the surface contributing
-          the most hits beyond one — measured as one unit on the live tree). Both floors are
-          derived from the constants, never a magic number, so an emptied or narrowed
-          HEADLINE_SCAN_GLOBS, or a registered surface the loop silently declined to open,
-          can no longer stay green; this is what lets COVERED_HEADLINE_SURFACES under-count
-          without being silently wrong: an omission is caught loudly here rather than
-          trusted. The PASS line's reached count is derived from `read_relpaths` (never
-          recomputed from a separate sweep) and also reports the number of skipped
-          candidates. Never follows a symlink resolving outside REPO_ROOT and never descends
-          into the git-ignored, untracked docs/history/ (the glob is non-recursive by
-          construction).
-      (k) Non-vacuity control for (j) (T-10-08): a synthetic path/line combination, driven
-          through the SAME `_unregistered_headline_finding()` function object the real scan
-          calls, proves three directions — the synthetic unregistered hit IS reported; the
-          identical line attributed to a registered surface is NOT reported (else the
-          function would simply flag everything); and the same synthetic path with an arrow
-          appended is NOT reported (proving the scan is gated behind HEADLINE-03's
-          classifier, not merely a membership test). Preconditions are asserted explicitly so
-          the control cannot silently degrade into a tautology.
-      (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09):
-          unlike (k), which exercises `_unregistered_headline_finding()` in isolation, arms 1
-          and 2 drive `_headline_scan_files()` AND `_headline_scan_read()` themselves — the
-          same functions (j) calls — with alternative glob lists, so glob expansion, the
-          real read path and `relative_to()` path derivation are all genuinely exercised.
-          Three arms: an empty-globs arm (the CR-01 reproduction, permanently encoded)
-          asserting a non-empty breach list naming a registered surface; a narrowed-globs arm
-          proving the floor degrades proportionally on a "temporarily narrow the scan" typo,
-          not only on total absence; and an anti-tautology arm (WR-09) that feeds the floor
-          helper a synthetic read result already known to satisfy both floors and requires
-          zero breaches. The anti-tautology arm deliberately does NOT re-run the live glob
-          path a second time — (j-floor) above already owns that live verdict, and
-          duplicating it here would append one defect to wrong_results twice under two
-          labels, which is exactly what the shipped code did. Without the anti-tautology arm,
-          the first two would also pass against a floor helper that returned a breach
-          unconditionally.
-      (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the decline
-          and error branches of BOTH read paths: six arms, every one driving
-          `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the identical
-          function objects (j) calls, never a parallel copy. Arm 1 removes one
-          registered surface from a COPY of the live read result's `read_relpaths` and
-          requires the coverage floor to breach naming it — the half of BL-02 where a
-          surface the loop refused to read was still counted "reached" by a glob-based
-          `is_file()` sweep that followed symlinks. Arm 2 builds a hit map giving one
-          registered surface zero hits while moving those hits onto a different registered
-          surface so the TOTAL is unchanged, and requires the per-surface floor to breach
-          naming the starved surface — the half of BL-02 where a running-total floor had
-          exactly one unit of slack (measured: docs/requirements-traceability.md alone
-          contributes two hits against five registered surfaces). Arm 3 calls
-          `_headline_scan_read()` with a non-regular-file candidate and requires it to be
-          named in `skipped` and absent from `read_relpaths` — without this arm, arms 1 and 2
-          would also pass against a read loop that silently dropped everything, since both
-          construct their inputs by hand rather than driving the loop itself. Arm 4 (WR-02,
-          Phase 10 review) drives the same function object over a throwaway tree passed as
-          `root`, and requires a symlink whose target resolves outside that root to be named
-          in `skipped` with the confinement reason and absent from `read_relpaths`, while a
-          plain in-root file in the SAME call is read — the module's only path-confinement
-          guard, whose outright deletion previously left the gate green because arm 3
-          exercises the other decline reason only. Arm 5 (WR-03, Phase 10 review) drives it
-          over a throwaway tree holding one undecodable and one valid file, and requires the
-          undecodable one in `read_errors` — absent from both `read_relpaths` and `skipped` —
-          while the valid one is read: collapsing the UnicodeDecodeError/OSError split into a
-          fail-open `except Exception: continue` previously left the gate green for any
-          UNREGISTERED surface, which no floor covers. Arm 6 (CN-03, Phase 10 review) covers
-          the OTHER read path — `_headline_read_or_fail()`, the same policy applied to the
-          five live-file reads this sentinel makes directly, which were unguarded until this
-          review — requiring a readable file to come back verbatim with nothing appended and
-          an undecodable one to become exactly one named finding plus a printed FAIL line.
-          Both halves run against a throwaway findings list with stdout captured, so the
-          control can assert the FAIL line was emitted without emitting one itself. Each arm asserts
-          its own precondition explicitly before asserting the property, so none can silently
-          degrade into a tautology if a future edit changes a constant. What these arms lock
-          is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
-          it, so block (j)'s WIRING is locked structurally instead (CR-01, Phase 10 review):
-          `_headline_scan_floor_breaches()` takes the `_HeadlineScanRead` record itself, so
-          re-deriving the floor input from a glob-based sweep — `_scan_relpaths(_scan_files)`,
-          the literal BL-02 defect — is no longer expressible at the call site rather than
-          being merely asserted against by a fourth prose control.
-      (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows in
-          CLAUDE.md and docs/ARCHITECTURE.md transcribe HEADLINE_SCAN_GLOBS' live value by
-          hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
-          exists to catch, newly created by the fix for it, and the two copies had already
-          diverged once inside this phase (one stated the accounted-hit floor's union claim,
-          the other did not). Asserts the rendered glob list is present in each file's own
-          TRACE-03 ROW — the single line beginning "| TRACE-03 ", located by slicing the file
-          and FAILing when a file carries zero or several such lines (WR-04, Phase 10 review:
-          the previous whole-file containment test would have let the row's own transcription
-          drift to anything at all as soon as the glob list was mentioned anywhere else in
-          either file, the exact drift class this block exists to close). Guards both files
-          for existence first (a named FAIL rather than a traceback), and carries a
-          non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from both
-          rows, sliced the same way — without it, a lock whose comparison always succeeded would be
-          indistinguishable from a passing lock, the same anti-tautology rule (b), (e), (i),
-          (k), (l) and (m) already observe. This lock asserts the GLOB LIST's transcription
-          only; the rest of each row's prose remains unasserted, which is a real and
-          disclosed limit, not an oversight.
+def _headline_lock_context() -> _HeadlineLockContext:
+    """Derive the HEADLINE-LOCK stages' shared locals from build_matrix_rows(), live.
 
-    Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
-    it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
-    no live claude session, no network, no writes.
+    Hoisted out of the former single-function sentinel verbatim, so each stage names its
+    locals exactly as it did while they were one function's scope — the split changed which
+    function holds a line, never the line itself.
+    """
+    _rows = build_matrix_rows()
+    _repro = sum(1 for r in _rows if r.coverage_tier == "reproducible")
+    _audit = sum(1 for r in _rows if r.coverage_tier == "audit-only")
+    _gap = sum(1 for r in _rows if r.coverage_tier == "gap")
+    _expected = (
+        f"{_repro} reproducible / {_audit} audit-only / {_gap} gap / {len(_rows)} total"
+    )
+    # Label-agnostic literals: bare numbers, no "**Coverage headline:**" prefix and no bold
+    # wrapping, so a match works regardless of a surface's own label wording. Obtained from
+    # the shared _headline_literals() helper (IN-03 fix) rather than a second hand-derivation
+    # of the same _repro/_audit/_gap/len(_rows) locals — two independent derivations of one
+    # value invite an edit that changes one and not the other, at which point (a) and (f)
+    # would silently disagree about what the headline is.
+    _slash, _prose = _headline_literals()
+    return _HeadlineLockContext(
+        rows=_rows,
+        repro=_repro,
+        audit=_audit,
+        gap=_gap,
+        expected=_expected,
+        headline=f"**Coverage headline:** {_expected}",
+        slash=_slash,
+        prose=_prose,
+    )
+
+
+def _headline_lock_preamble(wrong_results: list[str]) -> tuple[str, ...]:
+    """HEADLINE-LOCK stage 1 — blocks (0) and (a)-(e): the exemption-set preamble, the
+    published-headline lock and its control, and artifact freshness with its control.
+
+    Returns the block labels it ran, which `_self_test_headline_lock()` reconciles against
+    the documented block list — a stage dropped from the dispatch tuple is a named FAIL
+    rather than a silently shorter run (CN-04, Phase 10 review).
     """
     # (0) Preamble: mechanical invariants on HISTORICAL_EXEMPT_FILES (WR-01, WARNING scope
     # for the first two — not one of the three established CRITICALs). The free-text "every
@@ -3599,6 +3377,19 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 f"different row set ({len(_e_perturbed_rows)} of {len(_rows)} rows) — the "
                 "shared byte comparison discriminates, non-vacuous"
             )
+    return ("0", "a", "b", "c", "d", "e")
+
+
+def _headline_lock_surfaces(wrong_results: list[str]) -> tuple[str, ...]:
+    """HEADLINE-LOCK stage 2 — blocks (f)-(i3): per-surface headline presence, its
+    tightening and perturbation controls, layer attribution and its invariance control, and
+    the classifier/adjacency/hit-detection controls.
+
+    Returns the block labels it ran; see `_headline_lock_preamble()` for why.
+    """
+    _ctx = _headline_lock_context()
+    _rows, _repro, _audit, _gap = _ctx.rows, _ctx.repro, _ctx.audit, _ctx.gap
+    _expected, _slash, _prose = _ctx.expected, _ctx.slash, _ctx.prose
 
     # (f) Per-surface headline presence across every currently covered surface (sorted for
     # deterministic output), including docs/requirements-traceability.md again via the
@@ -4332,6 +4123,17 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"rendering to be found at line 1; got {_i3_bare_hits}"
         )
         wrong_results.append("HEADLINE-LOCK: (i3) digit-boundary anti-tautology arm failed")
+    return ("f", "f2", "g", "h", "h2", "i", "i2", "i3")
+
+
+def _headline_lock_scan(wrong_results: list[str]) -> tuple[str, ...]:
+    """HEADLINE-LOCK stage 3 — blocks (j)-(m): the tree-wide unregistered-surface scan, its
+    two derived floors, and the non-vacuity and permanent controls behind them.
+
+    Returns the block labels it ran; see `_headline_lock_preamble()` for why.
+    """
+    _ctx = _headline_lock_context()
+    _slash, _prose = _ctx.slash, _ctx.prose
 
     # (j) Tree-wide unregistered-surface scan (HEADLINE-05). Collect files through the
     # shared _headline_scan_files() helper (also driven directly by block (l)'s
@@ -4888,7 +4690,15 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
                 f"appended {_m_arm6_findings}, printed {_m_arm6_output!r}"
             )
             wrong_results.append("HEADLINE-LOCK: (m) arm 6 failed")
+    return ("j", "k", "l", "m")
 
+
+def _headline_lock_doc_rows(wrong_results: list[str]) -> tuple[str, ...]:
+    """HEADLINE-LOCK stage 4 — block (n): the TRACE-03 doc-row transcription lock.
+
+    Depends on no context: it reads module constants and the two rows only. Returns the block
+    labels it ran; see `_headline_lock_preamble()` for why.
+    """
     # (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows transcribe
     # HEADLINE_SCAN_GLOBS' live value by hand. Nothing previously compared them — this is the
     # exact drift class HEADLINE-LOCK exists to catch, newly created by the fix for it, and
@@ -4982,6 +4792,349 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
             f"  HEADLINE-LOCK PASS: (n) non-vacuity arm — a deliberately different glob "
             f"rendering ({_n_different_prose}) is absent from both TRACE-03 rows "
             f"(row-scoped, not whole-file)"
+        )
+    return ("n",)
+
+
+_HEADLINE_LOCK_STAGES: tuple = (
+    _headline_lock_preamble,
+    _headline_lock_surfaces,
+    _headline_lock_scan,
+    _headline_lock_doc_rows,
+)
+
+# Every lettered block the four stages above are jointly responsible for running, in order.
+# Reconciled against what the stages report at the end of _self_test_headline_lock(): a stage
+# dropped from _HEADLINE_LOCK_STAGES, or one that stops running a block it owns, is a named
+# FAIL instead of a silently shorter green run (CN-04, Phase 10 review). The labels are
+# self-reported by each stage, so this reconciles the DISPATCH, not the block bodies — the
+# block bodies are what every other control in this sentinel already covers.
+_HEADLINE_LOCK_BLOCKS: tuple[str, ...] = (
+    "0", "a", "b", "c", "d", "e",
+    "f", "f2", "g", "h", "h2", "i", "i2", "i3",
+    "j", "k", "l", "m",
+    "n",
+)
+
+
+def _self_test_headline_lock(wrong_results: list[str]) -> None:
+    """HEADLINE-LOCK named sentinel (WR-08 / v8.18 Phase 4 review).
+
+    Ties the three published, hand-copied or generator-written coverage surfaces back to
+    build_matrix_rows(), which nothing previously did. The v8.18 review measured the gap:
+    no script anywhere contained the literal headline figure, and TRACE-03's --self-test
+    never re-rendered the matrix to compare it against the tracked artifacts, because the
+    `emit` subcommand is a manual regeneration step that CI does not run.
+
+    That gap is not hypothetical. The same review's CR-01 was exactly this drift: an
+    `88 audit-only` figure surviving in two places six and fifty lines from a headline the
+    same commit had moved to 90. It was corrected by hand, closing the instance and leaving
+    the mechanism intact, so the next headline move would have reopened it identically.
+
+    Asserts:
+      (0) Preamble: COVERED_HEADLINE_SURFACES and HISTORICAL_EXEMPT_FILES are disjoint
+          (WR-01, WARNING scope) — the two sets carry contradictory meanings ("must state
+          the current fact" vs "never states a current fact") — and every entry in
+          HISTORICAL_EXEMPT_FILES resolves to an existing file, so a stale entry cannot
+          silently keep exempting a whole file's contents from both (f) and (j). As of
+          WR-03, HISTORICAL_EXEMPT_FILES' MEMBERSHIP is also locked by name against a
+          literal expectation set: growth or shrinkage now fails the gate naming the
+          symmetric difference, so a new whole-file escape hatch — which disables both (f)
+          and the tree-wide scan for that file's entire contents, permanently — requires a
+          second, reviewable edit rather than a one-line change. What remains unenforced is
+          the free-text justification each entry's own comment carries, not its membership.
+          A final (0) assertion (IN-09) requires _SUPERSEDED_PLACEHOLDER to differ from the
+          live slash rendering, so the day a real headline collides with the fixed
+          placeholder used throughout (h)/(h2)/(i2)/(k), the gate says so explicitly instead
+          of three controls degenerating simultaneously and silently.
+      (a) Published-headline lock: docs/requirements-traceability.md states exactly the
+          headline build_matrix_rows() produces. Every one of the four figures is derived
+          live — including the gap count, which is NOT hardcoded to 0. Hardcoding it would
+          mean that the first real gap row makes this sentinel fail while blaming the prose,
+          which would be a correct document losing to a stale assertion.
+      (b) Non-vacuity control for (a): the same predicate, run against a copy of the document
+          with the reproducible count perturbed, must report a mismatch. Without this, a
+          rewritten (a) that always passes is indistinguishable from a passing (a).
+      (c) Markdown artifact freshness: docs/requirements-matrix.md on disk is byte-identical
+          to render_matrix_markdown(rows). Deterministic — the renderer embeds no timestamp.
+      (d) JSON artifact freshness: docs/data/matrix.json on disk is byte-identical to what
+          emit_matrix writes, built through the same json.dumps(..., indent=2) over asdict.
+      (e) Non-vacuity control for (c)/(d): each artifact must compare UNEQUAL against a
+          rendering of a deliberately different row set (the same rows minus the last),
+          produced by the same renderer (c)/(d) use. Rewritten in the Phase 10 review's CR-02
+          fix, twice over: the perturbation moved from the DISK side to the LIVE side — the
+          old form asserted `disk + "\n" != live`, provably true whenever (c)/(d) pass and
+          therefore incapable of failing — and, more importantly, both verdicts are now read
+          out of ONE shared comparison expression evaluated over the two candidate renderings,
+          so a (c)/(d) comparison rewritten to be unconditionally true (`if disk is not
+          None:`, the exact defect this control names) makes the perturbed verdict true as
+          well and is reported here as a vacuous byte-comparison, instead of leaving the gate
+          green under a "non-vacuous" PASS line. Preconditions (missing artifact, fewer than
+          two rows) are named FAILs, never silent skips.
+      (f) Per-surface headline presence: every surface named in COVERED_HEADLINE_SURFACES
+          states the current headline in either rendering (prose or compact-slash),
+          label-agnostic — this is what proves docs/COMPONENT-DIAGRAM.md is covered even
+          though it only ever states the bare slash form and never the
+          "**Coverage headline:**" label (a) is keyed to. Tightened in Phase 10 Plan 02
+          (HEADLINE-03) to require at least one hit that
+          `_is_historical_headline_hit()` does NOT call historical — a delta row or
+          historical statement elsewhere in the same file must not be able to satisfy this
+          on its own, so a surface whose only occurrence is a ledger delta (e.g. an arrow
+          row) correctly fails here rather than passing on a technicality.
+      (g) Non-vacuity control for (f): for each surface independently, perturbing its
+          in-memory copy so that (f)'s tightened, non-historical-only predicate finds zero
+          hits — holding every other surface's real text untouched. Sharpened in Phase 10
+          Plan 02 to perturb ONLY the lines `_is_historical_headline_hit()` does NOT call
+          historical, via `_perturb_non_historical_hits()`, leaving every historical/delta
+          line (e.g. an arrow-marked ledger row) byte-correct in the mutated copy — this is
+          a line-level, classifier-driven perturbation rather than a rendering-keyed guess
+          (perturb "the prose form") because docs/requirements-traceability.md carries two
+          non-historical hits in two different renderings (line 7 prose, line 99 slash
+          narrative) and one historical hit in the slash rendering (line 80, arrow); a
+          rendering guess cannot correctly single out just the historical line. For surfaces
+          with a single, non-historical occurrence this has the same effect as plan 10-01's
+          blanket perturbation. Each control's message names its own surface.
+      (f2) Synthetic control for (f)'s tightening itself (WR-01, Phase 10 review). (g) tests
+          the perturbation, not the tightening — reverting (f) to the untightened form left
+          --self-test green — so the tightened predicate is expressed once, module level, as
+          `_non_historical_headline_hits()` (the identical function object (f) and (g) call)
+          and driven here by two synthetic texts that depend on no live file's shape: a
+          delta-only text must yield ZERO hits, and the same text plus one present-tense line
+          must yield exactly that line (anti-tautology, so a predicate returning nothing
+          cannot pass the first arm).
+      (h) Positive controls (HEADLINE-03, ROADMAP criterion 3, CR-02 fix): layer
+          attribution is asserted on SYNTHETIC lines carrying the current literal at the
+          REAL surface relpath — docs/v8.0-final-closure.md and CHANGELOG.md must attribute
+          a no-arrow line to the WHOLE-FILE layer, and docs/requirements-traceability.md
+          must attribute a delta-shaped line to the ARROW layer specifically, inside a file
+          that is NOT whole-file exempt (T-10-05 — if it were, assertion (a) would be
+          defeated). None of the three needs the LIVE FILE to still contain today's figure,
+          because each synthetic line is built from the current literal at call time (via
+          `_headline_literals()`), not scanned out of the file's own text — a control bound to
+          a live occurrence tested a strictly narrower, stronger precondition than the
+          historicity property it claimed to prove, and broke on every legitimate headline
+          move (CR-02). The classifier itself IS figure-aware as of Plan 08's anchoring fix;
+          what survives is that its verdict is invariant when the figure and the line move
+          TOGETHER, which is what block (h2) asserts. A discriminating arm (WR-06) evaluates the
+          identical no-arrow line at a relpath that is NOT whole-file exempt and requires
+          `""`, proving whole-file MEMBERSHIP — not the line's content — is what rescues the
+          two whole-file cases. The one genuinely live-file claim that survives —
+          docs/v8.0-final-closure.md still containing a no-arrow current-literal line today
+          — is reported as INFO, never asserted, because it legitimately stops being true
+          the moment the headline moves.
+      (h2) Headline-move invariance control (T-10-05/T-10-08): for each (h) case, asserts
+          `_headline_exempt_layer()` returns the SAME layer for the original line (evaluated
+          against the CURRENT literals) and the perturbed line (evaluated against the
+          PERTURBED literals, passed explicitly) — a cheap, deterministic, in-process stand-in
+          for manually simulating a headline move. The property is that layer attribution is
+          invariant when the figure AND the line move TOGETHER (what a real headline move
+          does), not that the classifier ignores the figure altogether — Plan 08 made the
+          classifier figure-aware, and this control's perturbed evaluation was rewired to
+          supply the matching perturbed literals rather than the live ones. A second arm
+          requires the two constructed lines to be non-byte-equal, so a future edit that made
+          the perturbation a no-op cannot leave this passing vacuously forever. Every case
+          also carries the LAYER it is expected to land on, and misattribution is its own
+          named FAIL (WR-05, Phase 10 review): `_is_historical_headline_hit()` short-circuits
+          on whole-file membership before `literals` is resolved, so the two whole-file cases
+          compare "whole-file" against "whole-file" and cannot fail while the (0) membership
+          lock holds — they are invariant by MEMBERSHIP, not by the property under test. The
+          invariance property is carried by the ARROW arms, and a fourth case runs the same
+          delta-shaped line at a synthetic NON-exempt relpath so that property does not
+          depend on docs/requirements-traceability.md's membership staying as it is. The PASS
+          line says which arms carry what, rather than crediting all of them equally.
+      (i) Non-vacuity control for the classifier (T-10-04): feeds
+          `_is_historical_headline_hit()` a synthetic, non-exempt path and a synthetic line
+          containing the current literal with no arrow, and requires NOT historical.
+          Prevents (h)'s positive controls from passing off a classifier rewritten to
+          `return True` unconditionally.
+      (i2) Adjacency-specific controls (CR-03, WR-07, BL-01/T-10-08, WR-09): eight named arms, every
+          one driving through `_unregistered_headline_finding()` itself, never a parallel
+          copy. 1. mermaid edge and 2. bare HTML comment close must NOT exempt a line sharing
+          it with the current headline (the fail-unsafe case CR-03 names); 3. a genuine delta
+          line (a superseded figure, an arrow, then the current figure) still must be exempt,
+          proving the narrowing did not simply disable the arrow layer; 4. an unrelated
+          numeric arrow elsewhere on the line (a battery-count delta) must NOT exempt the
+          headline mention on that line (BL-01's reproduction, permanently encoded — not
+          contrived, 67 in-scope lines already carry this shape); 5. a genuine delta written
+          with the ASCII long arrow must stay exempt (WR-07's reproduction); 6. a complete
+          `<!-- ... -->` comment preceding the headline must NOT exempt it, proving the
+          narrowed strip does not donate its terminator to the arrow layer once removed —
+          without arm 6, arm 5 alone would also pass against a classifier that simply stopped
+          stripping comments; 7. the current headline followed by an arrow and a BARE DIGIT RUN
+          must NOT be exempt (WR-09's fail-open: that orientation used to accept any digits, so
+          a mermaid edge whose SOURCE label is the headline, or a "current → projected" note,
+          silently hid a current-fact statement), while 8. the same shape with a
+          COVERAGE-SHAPED right-hand figure must stay exempt — without arm 8, arm 7 would also
+          pass against a classifier that deleted the orientation instead of narrowing it.
+      (i3) Hit-detection controls (WR-06/WR-08, Phase 10 review): four arms driving
+          `_headline_hits()`
+          itself rather than the classifier. Complete HTML comments are stripped from WHOLE
+          FILE TEXT before hits are collected — while that strip ran per line inside the
+          classifier, an ordinary block comment stating the headline across three lines was
+          reported by the tree-wide scan as a current-fact statement, breaking CI on a
+          legitimate edit with a message naming the wrong problem, and `re.DOTALL` on the
+          comment pattern was inert. Arm 1 requires such a comment to produce no hit while a
+          real statement two lines later is still found AT ITS ORIGINAL LINE NUMBER (the strip
+          substitutes one newline per newline removed, so findings stay citable); arm 2
+          requires the same text with the markers replaced by plain words to produce both
+          hits, so arm 1 cannot pass against a scanner that stopped matching. Arms 3 and 4
+          lock the digit boundary (WR-08): a longer digit run merely EMBEDDING the current
+          slash rendering ("build 1161/91/0/2521 was fine", a hit under the previous unbounded
+          substring test) must produce no hit, while the bare rendering on an otherwise
+          identical line still must.
+      (j) Tree-wide unregistered-surface scan (HEADLINE-05, T-10-07, BL-02 fix): files are
+          collected through the shared `_headline_scan_files()` helper, then actually opened
+          and classified through `_headline_scan_read()` (T-10-09) — the single source of
+          truth for what was read, its `read_relpaths`/`hits_by_surface` populated as the
+          loop goes, never re-derived afterwards from a separate glob or `is_file()` sweep
+          (BL-02's root cause). Each hit is decided by `_unregistered_headline_finding()`
+          (which itself calls `_is_historical_headline_hit()` — the identical function
+          object (h)/(i) exercise, so HEADLINE-05's documented dependency on HEADLINE-03
+          already holding is enforced by construction, not by convention): a non-historical
+          hit whose file is not in COVERED_HEADLINE_SURFACES is a FAIL naming the file and
+          line; a read error (UTF-8 decode failure or any other `OSError`) is a FAIL; a
+          candidate the loop declines to open (not a regular file, or a symlink resolving
+          outside REPO_ROOT) is a named INFO line — never a silent skip. Before the PASS
+          branch, `_headline_scan_floor_breaches()` (CR-01 fix, BL-02 fix) asserts a derived
+          coverage floor — every path in COVERED_HEADLINE_SURFACES | HISTORICAL_EXEMPT_FILES
+          must be a member of `read_relpaths`, i.e. was actually OPENED, never merely
+          glob-matched — and, if that holds, a derived accounted-hit floor evaluated PER
+          SURFACE: every member of COVERED_HEADLINE_SURFACES must individually account for
+          at least one non-historical hit, never a running total compared against a
+          cardinality (a running total has exactly as much slack as the surface contributing
+          the most hits beyond one — measured as one unit on the live tree). Both floors are
+          derived from the constants, never a magic number, so an emptied or narrowed
+          HEADLINE_SCAN_GLOBS, or a registered surface the loop silently declined to open,
+          can no longer stay green; this is what lets COVERED_HEADLINE_SURFACES under-count
+          without being silently wrong: an omission is caught loudly here rather than
+          trusted. The PASS line's reached count is derived from `read_relpaths` (never
+          recomputed from a separate sweep) and also reports the number of skipped
+          candidates. Never follows a symlink resolving outside REPO_ROOT and never descends
+          into the git-ignored, untracked docs/history/ (the glob is non-recursive by
+          construction).
+      (k) Non-vacuity control for (j) (T-10-08): a synthetic path/line combination, driven
+          through the SAME `_unregistered_headline_finding()` function object the real scan
+          calls, proves three directions — the synthetic unregistered hit IS reported; the
+          identical line attributed to a registered surface is NOT reported (else the
+          function would simply flag everything); and the same synthetic path with an arrow
+          appended is NOT reported (proving the scan is gated behind HEADLINE-03's
+          classifier, not merely a membership test). Preconditions are asserted explicitly so
+          the control cannot silently degrade into a tautology.
+      (l) Non-vacuity control for the (j-floor) coverage/hit floors (CR-01, WR-09, T-10-09):
+          unlike (k), which exercises `_unregistered_headline_finding()` in isolation, arms 1
+          and 2 drive `_headline_scan_files()` AND `_headline_scan_read()` themselves — the
+          same functions (j) calls — with alternative glob lists, so glob expansion, the
+          real read path and `relative_to()` path derivation are all genuinely exercised.
+          Three arms: an empty-globs arm (the CR-01 reproduction, permanently encoded)
+          asserting a non-empty breach list naming a registered surface; a narrowed-globs arm
+          proving the floor degrades proportionally on a "temporarily narrow the scan" typo,
+          not only on total absence; and an anti-tautology arm (WR-09) that feeds the floor
+          helper a synthetic read result already known to satisfy both floors and requires
+          zero breaches. The anti-tautology arm deliberately does NOT re-run the live glob
+          path a second time — (j-floor) above already owns that live verdict, and
+          duplicating it here would append one defect to wrong_results twice under two
+          labels, which is exactly what the shipped code did. Without the anti-tautology arm,
+          the first two would also pass against a floor helper that returned a breach
+          unconditionally.
+      (m) Permanent controls for both halves of the BL-02 escape (T-10-09), plus the decline
+          and error branches of BOTH read paths: six arms, every one driving
+          `_headline_scan_read()` or `_headline_scan_floor_breaches()` — the identical
+          function objects (j) calls, never a parallel copy. Arm 1 removes one
+          registered surface from a COPY of the live read result's `read_relpaths` and
+          requires the coverage floor to breach naming it — the half of BL-02 where a
+          surface the loop refused to read was still counted "reached" by a glob-based
+          `is_file()` sweep that followed symlinks. Arm 2 builds a hit map giving one
+          registered surface zero hits while moving those hits onto a different registered
+          surface so the TOTAL is unchanged, and requires the per-surface floor to breach
+          naming the starved surface — the half of BL-02 where a running-total floor had
+          exactly one unit of slack (measured: docs/requirements-traceability.md alone
+          contributes two hits against five registered surfaces). Arm 3 calls
+          `_headline_scan_read()` with a non-regular-file candidate and requires it to be
+          named in `skipped` and absent from `read_relpaths` — without this arm, arms 1 and 2
+          would also pass against a read loop that silently dropped everything, since both
+          construct their inputs by hand rather than driving the loop itself. Arm 4 (WR-02,
+          Phase 10 review) drives the same function object over a throwaway tree passed as
+          `root`, and requires a symlink whose target resolves outside that root to be named
+          in `skipped` with the confinement reason and absent from `read_relpaths`, while a
+          plain in-root file in the SAME call is read — the module's only path-confinement
+          guard, whose outright deletion previously left the gate green because arm 3
+          exercises the other decline reason only. Arm 5 (WR-03, Phase 10 review) drives it
+          over a throwaway tree holding one undecodable and one valid file, and requires the
+          undecodable one in `read_errors` — absent from both `read_relpaths` and `skipped` —
+          while the valid one is read: collapsing the UnicodeDecodeError/OSError split into a
+          fail-open `except Exception: continue` previously left the gate green for any
+          UNREGISTERED surface, which no floor covers. Arm 6 (CN-03, Phase 10 review) covers
+          the OTHER read path — `_headline_read_or_fail()`, the same policy applied to the
+          five live-file reads this sentinel makes directly, which were unguarded until this
+          review — requiring a readable file to come back verbatim with nothing appended and
+          an undecodable one to become exactly one named finding plus a printed FAIL line.
+          Both halves run against a throwaway findings list with stdout captured, so the
+          control can assert the FAIL line was emitted without emitting one itself. Each arm asserts
+          its own precondition explicitly before asserting the property, so none can silently
+          degrade into a tautology if a future edit changes a constant. What these arms lock
+          is the floor helper's own SEMANTICS; none of them observes what block (j) passes to
+          it, so block (j)'s WIRING is locked structurally instead (CR-01, Phase 10 review):
+          `_headline_scan_floor_breaches()` takes the `_HeadlineScanRead` record itself, so
+          re-deriving the floor input from a glob-based sweep — `_scan_relpaths(_scan_files)`,
+          the literal BL-02 defect — is no longer expressible at the call site rather than
+          being merely asserted against by a fourth prose control.
+      (n) Doc-row transcription lock (WR-06): the two hand-maintained TRACE-03 rows in
+          CLAUDE.md and docs/ARCHITECTURE.md transcribe HEADLINE_SCAN_GLOBS' live value by
+          hand, and nothing previously compared them — the exact drift class HEADLINE-LOCK
+          exists to catch, newly created by the fix for it, and the two copies had already
+          diverged once inside this phase (one stated the accounted-hit floor's union claim,
+          the other did not). Asserts the rendered glob list is present in each file's own
+          TRACE-03 ROW — the single line beginning "| TRACE-03 ", located by slicing the file
+          and FAILing when a file carries zero or several such lines (WR-04, Phase 10 review:
+          the previous whole-file containment test would have let the row's own transcription
+          drift to anything at all as soon as the glob list was mentioned anywhere else in
+          either file, the exact drift class this block exists to close). Guards both files
+          for existence first (a named FAIL rather than a traceback), and carries a
+          non-vacuity arm requiring a DELIBERATELY DIFFERENT rendering to be absent from both
+          rows, sliced the same way — without it, a lock whose comparison always succeeded would be
+          indistinguishable from a passing lock, the same anti-tautology rule (b), (e), (i),
+          (k), (l) and (m) already observe. This lock asserts the GLOB LIST's transcription
+          only; the rest of each row's prose remains unasserted, which is a real and
+          disclosed limit, not an oversight.
+
+    Reads live files rather than fixtures (Pitfall 4 idiom, as V79-ROWS / V818-ROWS do), so
+    it locks the shipped surfaces themselves and not a copy of them. Offline and deterministic:
+    no live claude session, no network, no writes.
+
+    LAYOUT (CN-04, Phase 10 review). Everything above runs from this function, but the blocks
+    live in four stage functions, on the block seams the review named:
+
+      _headline_lock_preamble   (0), (a)-(e)   exemption sets, published headline, artifacts
+      _headline_lock_surfaces   (f)-(i3)       per-surface presence, layers, classifier, hits
+      _headline_lock_scan       (j)-(m)        tree-wide scan, floors, permanent controls
+      _headline_lock_doc_rows   (n)            TRACE-03 doc-row transcription lock
+
+    Each takes `wrong_results` and nothing else, matching the dispatch shape `_run_self_test()`
+    already uses for its seven peer sentinels; each derives the shared literals for itself from
+    `_headline_lock_context()`, which is sound because `_headline_literals()` is deliberately
+    un-memoized and `build_matrix_rows()` is deterministic (block (0) still checks the two
+    independent derivations agree). This function stayed the single entry point and kept this
+    docstring, so nothing outside the module sees the split.
+
+    The split was verified as a refactor, not a rewrite: --self-test stdout is byte-identical
+    to the pre-split run, in set AND order, and every mutant in this phase's suite still fails.
+    Each stage additionally reports the block labels it ran, reconciled below against
+    `_HEADLINE_LOCK_BLOCKS` — a stage dropped from `_HEADLINE_LOCK_STAGES` would otherwise be a
+    silently shorter green run, which is the specific hazard of splitting a non-vacuity gate.
+    Those labels are self-reported, so the reconciliation covers the DISPATCH, not the block
+    bodies; the bodies are what every other control here already covers.
+    """
+    _ran: list[str] = []
+    for _stage in _HEADLINE_LOCK_STAGES:
+        _ran.extend(_stage(wrong_results))
+    if tuple(_ran) != _HEADLINE_LOCK_BLOCKS:
+        print(
+            f"  HEADLINE-LOCK FAIL: stage dispatch ran {tuple(_ran)}, expected "
+            f"{_HEADLINE_LOCK_BLOCKS} — a stage was dropped, reordered, or stopped running "
+            "a block it owns"
+        )
+        wrong_results.append(
+            f"HEADLINE-LOCK: stage dispatch incomplete (ran {tuple(_ran)})"
         )
 
 
