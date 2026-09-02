@@ -6587,6 +6587,33 @@ def _render_fixture_id_accounted(fixture_id: str, problems: list[str]) -> bool:
     return any(token in problem for problem in problems)
 
 
+def _render_unscored_fixture_ids(
+    locked_ids: set[str], scored_ids: set[str], problems: list[str]
+) -> list[str]:
+    """Every id in *locked_ids* that is absent from *scored_ids* and not
+    accounted for by `_render_fixture_id_accounted(fid, problems)`, sorted.
+
+    Membership in `scored_ids` means a scoring wrapper actually called a
+    scorer on that fixture's text — strictly stronger than the extraction
+    test this helper replaces, which asked only whether the id was absent
+    from the extracted-fixtures mapping. A fixture that fails to extract
+    is still discharged, not through scoring but through the
+    `problems` accounting arm, matching `_render_fixture_id_accounted`'s
+    existing delimiter-scoped matching (never bare containment). Pure: it
+    takes all three inputs as parameters and reads no module constant, so a
+    self-test control can drive it with synthetic literals without
+    touching `_RENDER_CONTRACT_EXTRACTION_TABLE` — the same purity contract
+    `scripts/check-registration.py`'s `verify_ci_job_registration` states
+    for the REG-GUARD axis.
+    """
+    return sorted(
+        fid
+        for fid in locked_ids
+        if fid not in scored_ids
+        and not _render_fixture_id_accounted(fid, problems)
+    )
+
+
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
     """Read all eleven Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
@@ -8552,16 +8579,29 @@ def _selftest_render_contract() -> bool:
     is asked for, and the floor asserts that set against a locked
     eleven-id set written inline — plus that `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
-    reproduction left silent), plus that every locked id is either in
-    `fixtures` or named in a reported problem. A fixture that is
+    reproduction left silent), plus that every locked id is either
+    scored by a control or named in a reported problem. A fixture that is
     extracted but never requested, or requested but never scored or
     reported, now fails by name instead of being silently skipped by
-    controls (b)-(f)'s `is not None` guards. Control (q), also added by
-    plan 11-09, drives `_render_fixture_accounting_problems()` — the mode
-    3 replacement in `_render_contract_fixtures()` — directly with a
-    clean case, a duplicated-id case and a count-mismatch case, proving
-    WR-06's unreachable membership check has been replaced by something
-    that can actually fire.
+    controls (b)-(f)'s `is not None` guards. Plan 13-05 (CR-01,
+    `13-VERIFICATION.md`) replaced the third arm's extraction test —
+    absence from the extracted-fixtures mapping — with membership in a
+    `scored_ids` set written only by the `_score_chain` / `_score_verdict` /
+    `_score_traced` / `_score_ledger` wrappers controls (b), (e) and (f)
+    route through — the
+    reproduction that motivated this was deleting the three (b) chain-head
+    verdict-assertion blocks entirely: the fixtures still extracted
+    cleanly, so the old extraction-only floor stayed green with zero
+    scoring behaviour left. Control (s), added by the same plan, drives
+    the new floor's pure helper (`_render_unscored_fixture_ids`) directly
+    with synthetic locked/scored/problem inputs; control (t) locks the
+    wrapper/recorder site count so the new floor cannot be cheated by a
+    control that marks a fixture scored without scoring it. Control (q),
+    also added by plan 11-09, drives `_render_fixture_accounting_problems()`
+    — the mode 3 replacement in `_render_contract_fixtures()` — directly
+    with a clean case, a duplicated-id case and a count-mismatch case,
+    proving WR-06's unreachable membership check has been replaced by
+    something that can actually fire.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
     multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
@@ -8741,19 +8781,56 @@ def _selftest_render_contract() -> bool:
     head_chainref = _get("R-HEAD-CHAINREF")
     head_allchain = _get("R-HEAD-ALLCHAIN")
 
+    # `scored_ids` backs the (p) CONSUMPTION FLOOR's third arm below: every
+    # id one of the four wrappers records, because a scorer was actually
+    # called on that fixture's text. This is strictly stronger than
+    # `requested_ids` above, which only proves a lookup happened, not that
+    # anything scored the result — the gap CR-01 found (a fixture that
+    # extracts cleanly but whose scoring assertions were deleted still
+    # satisfied the old extraction-only floor).
+    scored_ids: set[str] = set()
+
+    def _score_chain(fixture_id: str, text: str) -> bool:
+        scored_ids.add(fixture_id)
+        return _chain_block_well_formed(text)
+
+    def _score_verdict(fixture_id: str, cell: str) -> bool:
+        scored_ids.add(fixture_id)
+        return _verdict_conforms(cell)
+
+    def _score_traced(
+        fixture_id: str,
+        claim: str,
+        chain_ids: list[str],
+        chains: list[str],
+        ledger_fragments: tuple[str, ...] | list[str] | None = None,
+    ) -> bool:
+        scored_ids.add(fixture_id)
+        if ledger_fragments is None:
+            return _claim_is_traced(claim, chain_ids, chains)
+        return _claim_is_traced(claim, chain_ids, chains, ledger_fragments)
+
+    def _score_ledger(
+        fixture_id: str, section6: str, chain_ids: list[str]
+    ) -> list[str]:
+        scored_ids.add(fixture_id)
+        return _closure_ledger_fragments(section6, chain_ids)
+
     # (b) Chain verdicts.
-    if conforming is not None and not _chain_block_well_formed(conforming):
+    if conforming is not None and not _score_chain(
+        "R-CHAIN-CONFORMING", conforming
+    ):
         _fail(
             "(b) R-CHAIN-CONFORMING (doc label 'Conforming — head, then "
             "one hop per line:') scored malformed, expected well-formed"
         )
-    if wrapped is not None and _chain_block_well_formed(wrapped):
+    if wrapped is not None and _score_chain("R-CHAIN-WRAPPED", wrapped):
         _fail(
             "(b) R-CHAIN-WRAPPED (doc label 'Non-conforming — a hop "
             "broken across physical lines:') scored well-formed, "
             "expected malformed"
         )
-    if numbered is not None and _chain_block_well_formed(numbered):
+    if numbered is not None and _score_chain("R-CHAIN-NUMBERED", numbered):
         _fail(
             "(b) R-CHAIN-NUMBERED (doc label 'Non-conforming — the same "
             "hops rendered as a numbered list:') scored well-formed, "
@@ -8772,19 +8849,25 @@ def _selftest_render_contract() -> bool:
     #     all-`Cn` shape GAP-6 widened `_CHAIN_REF_TOKEN` for; without it a
     #     future narrowing of that token breaks this shape with every
     #     other gate green.
-    if head_prose_bad is not None and _chain_block_well_formed(head_prose_bad):
+    if head_prose_bad is not None and _score_chain(
+        "R-HEAD-PROSE-BAD", head_prose_bad
+    ):
         _fail(
             "(b) R-HEAD-PROSE-BAD (doc label 'Non-conforming — an input "
             "carrying unparenthesized prose:') scored well-formed, "
             "expected malformed"
         )
-    if head_chainref is not None and not _chain_block_well_formed(head_chainref):
+    if head_chainref is not None and not _score_chain(
+        "R-HEAD-CHAINREF", head_chainref
+    ):
         _fail(
             "(b) R-HEAD-CHAINREF (doc label 'Conforming — the same head "
             "with the upstream chain as an input:') scored malformed, "
             "expected well-formed"
         )
-    if head_allchain is not None and not _chain_block_well_formed(head_allchain):
+    if head_allchain is not None and not _score_chain(
+        "R-HEAD-ALLCHAIN", head_allchain
+    ):
         _fail(
             "(b) R-HEAD-ALLCHAIN (doc label 'Conforming — a chain "
             "consuming only upstream conclusions:') scored malformed, "
@@ -8840,13 +8923,17 @@ def _selftest_render_contract() -> bool:
     # (e) Verdict cells. CONTRACT-04 needed no schema change: this pair is
     #     the evidence — `_VERDICT_VOCAB` and `_VERDICT_FORM_RE` are
     #     untouched.
-    if verdict_expiry is not None and not _verdict_conforms(verdict_expiry):
+    if verdict_expiry is not None and not _score_verdict(
+        "R-VERDICT-EXPIRY", verdict_expiry
+    ):
         _fail(
             "(e) R-VERDICT-EXPIRY (doc label 'Conforming — a current "
             "constraint recording its expiry:') scored non-conforming, "
             "expected conforming"
         )
-    if verdict_bad is not None and _verdict_conforms(verdict_bad):
+    if verdict_bad is not None and _score_verdict(
+        "R-VERDICT-EXPIRY-BAD", verdict_bad
+    ):
         _fail(
             "(e) R-VERDICT-EXPIRY-BAD (doc label 'Non-conforming — the "
             "expiry hoisted into the token slot:') scored conforming, "
@@ -8858,28 +8945,28 @@ def _selftest_render_contract() -> bool:
     #     the SAME otherwise-untraced claim (R-CITE-NONE) flips from
     #     untraced to traced purely because the ledger row is present.
     if conforming is not None and cite_inline is not None:
-        if not _claim_is_traced(cite_inline, ["C1"], [conforming]):
+        if not _score_traced("R-CITE-INLINE", cite_inline, ["C1"], [conforming]):
             _fail(
                 "(f) R-CITE-INLINE (doc label 'Conforming — inline chain "
                 "citation:') scored untraced, expected traced"
             )
     if conforming is not None and cite_none is not None:
-        if _claim_is_traced(cite_none, ["C1"], [conforming]):
+        if _score_traced("R-CITE-NONE", cite_none, ["C1"], [conforming]):
             _fail(
                 "(f) R-CITE-NONE (doc label 'Non-conforming — a claim "
                 "naming no chain and quoted by no ledger row:') scored "
                 "traced with no ledger fragments, expected untraced"
             )
     if cite_ledger is not None:
-        ledger_fragments = _closure_ledger_fragments(cite_ledger, ["C1"])
+        ledger_fragments = _score_ledger("R-CITE-LEDGER", cite_ledger, ["C1"])
         if not ledger_fragments:
             _fail(
                 "(f) R-CITE-LEDGER (doc label 'Conforming — closure-ledger "
                 "row:') yielded zero closure-ledger fragments"
             )
         elif conforming is not None and cite_none is not None:
-            if not _claim_is_traced(
-                cite_none, ["C1"], [conforming], ledger_fragments
+            if not _score_traced(
+                "R-CITE-NONE", cite_none, ["C1"], [conforming], ledger_fragments
             ):
                 _fail(
                     "(f) R-CITE-NONE with R-CITE-LEDGER's fragments still "
@@ -8890,7 +8977,11 @@ def _selftest_render_contract() -> bool:
     # (g) NON-VACUITY: the module's own long-standing base cases still
     #     hold from outside this item. A control that scored everything
     #     `True`, or everything `False`, would pass (b) and (e) only by
-    #     accident.
+    #     accident. These two calls stay RAW — string literals with no
+    #     fixture id — deliberately: routing them through a `_score_*`
+    #     wrapper would inject a non-fixture key into `scored_ids`. A
+    #     future reader sweeping "all raw scorer calls" onto the wrappers
+    #     would break the (p) floor below.
     if _chain_block_well_formed("GT-1 (a) + GT-2 (b) -> lone hop"):
         _fail(
             "(g) NON-VACUITY: the one-hop base case "
@@ -8917,6 +9008,20 @@ def _selftest_render_contract() -> bool:
     #     does NOT prove the verdict each control asserted is the right
     #     verdict — that is controls (b)-(f)'s job, and control (g)'s
     #     non-vacuity pair is what keeps those honest.
+    #
+    #     Plan 13-05 (CR-01, `13-VERIFICATION.md`) replaced this arm's
+    #     extraction test — absence from the extracted-fixtures mapping —
+    #     with membership in `scored_ids`, written only by the
+    #     `_score_chain` / `_score_verdict` / `_score_traced` /
+    #     `_score_ledger` wrappers above: deleting the
+    #     three (b) chain-head verdict-assertion blocks used to leave this
+    #     floor green because those fixtures still extracted cleanly even
+    #     though no control ever scored them. The residual bypass — a
+    #     control calling a raw detector instead of a wrapper — is
+    #     fail-CLOSED: the fixture never enters `scored_ids`, so this floor
+    #     goes red. The fail-OPEN shape, a control marking a fixture scored
+    #     without scoring it, has no guard here; control (t) below closes
+    #     exactly that by locking the wrapper/recorder site count.
     render_locked_fixture_ids = {
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
@@ -8944,19 +9049,18 @@ def _selftest_render_contract() -> bool:
     # so under `fid in p` a problem naming only the BAD fixture accounted
     # for the good one too: drop the good row while the BAD one reports a
     # problem and this arm called the missing fixture accounted for, with
-    # arm 2 above skipped by its own `if not problems` guard.
-    render_unaccounted_fixture_ids = sorted(
-        fid
-        for fid in render_locked_fixture_ids
-        if fid not in fixtures
-        and not _render_fixture_id_accounted(fid, problems)
+    # arm 2 above skipped by its own `if not problems` guard. As of plan
+    # 13-05 this arm floors on SCORING, not extraction — `_render_
+    # unscored_fixture_ids` returns a locked id only when it is absent
+    # from `scored_ids` AND not accounted for by a reported problem.
+    render_unscored_fixture_ids = _render_unscored_fixture_ids(
+        render_locked_fixture_ids, scored_ids, problems
     )
-    if render_unaccounted_fixture_ids:
+    if render_unscored_fixture_ids:
         _fail(
             f"(p) CONSUMPTION FLOOR: fixture id(s) "
-            f"{render_unaccounted_fixture_ids!r} are neither in fixtures "
-            f"nor named in a reported problem — never scored, never "
-            f"reported"
+            f"{render_unscored_fixture_ids!r} are never scored by any "
+            f"control and not named in a reported problem"
         )
 
     # (p) ISOLATION, prefix discrimination. Drives the accounting
