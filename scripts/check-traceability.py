@@ -1641,7 +1641,9 @@ def _rows_v824() -> list[MatrixRow]:
 
 
 def _rows_v825() -> list[MatrixRow]:
-    """v8.25 milestone rows — 14 requirements, 13 reproducible + 1 audit-only (Phase 12).
+    """v8.25 milestone rows — 14 requirements, originally 13 reproducible + 1 audit-only
+    (Phase 12); CONTRACT-06 re-tiered reproducible at v8.26 Phase 13 (CHAINHEAD-07), so all
+    14 rows are now reproducible.
 
     All rows carry milestone="v8.25". Keys use the milestone-qualified form
     "v8.25/<bare_id>".
@@ -1656,27 +1658,22 @@ def _rows_v825() -> list[MatrixRow]:
     Test-Network apparatus, matching the v8.18/v8.24 precedent. CONTRACT-06 is Test-Network
     because the claim is about detector code (check-quality-harness.py), not agent prose.
 
-    Tiering, decided per row against "does something re-run", not by block: 13 reproducible,
-    CONTRACT-06 audit-only. Two contested calls, both recorded rather than hidden, each
-    independently reversible without moving this row's total (266) — see
+    Tiering, decided per row against "does something re-run", not by block: all 14 rows are
+    reproducible. Two contested calls, both recorded rather than hidden, each independently
+    reversible without moving this row's total (266) — see
     .planning/phases/12-integration-ship/12-RESEARCH.md §A for the full argument:
-      - A1 — CONTRACT-06's tier. Nothing in the tree pins _chain_block_well_formed
-        byte-unchanged (the sha256 in .planning/PROJECT.md:41 is prose; the only real sha256
-        pin, check-quality-harness.py:7193, covers _RENDER_RULE_LITERALS, a different claim).
-        Tiered audit-only rather than backed by a new sha256-freeze control, matching the v8.18
-        SHIP-04/SHIP-05 precedent (no gate re-runs to check that a byte-freeze claim holds).
-        The alternative is filed as backlog 999.17, not implemented.
+      - A1 — CONTRACT-06's tier. Originally tiered audit-only because nothing in the tree
+        pinned _chain_block_well_formed byte-unchanged (the sha256 in .planning/PROJECT.md:41
+        was prose; the only real sha256 pin, check-quality-harness.py:7193, covers
+        _RENDER_RULE_LITERALS, a different claim), matching the v8.18 SHIP-04/SHIP-05
+        precedent. Reversed at v8.26 Phase 13 (CHAINHEAD-07) once
+        _selftest_chain_detector_pin (scripts/check-quality-harness.py) gave the byte-freeze
+        claim a gate that re-runs it; CONTRACT-06 is now reproducible with that check named as
+        its artifact_link.
       - A2 — SHIP-03's tier. _self_test_headline_lock predates this phase's rows (authored and
         mutation-tested in Phase 10), so this is a held-out oracle applied to new input, not a
         tautology. Tiered reproducible against it.
     """
-    audit_v825 = (
-        "Nothing in the tree pins _chain_block_well_formed byte-unchanged -- the sha256 in "
-        ".planning/PROJECT.md:41 is prose, and the only real sha256 pin in "
-        "scripts/check-quality-harness.py:7193 covers _RENDER_RULE_LITERALS, a different "
-        "claim; no gate re-runs to check that a byte-freeze holds (the v8.18 SHIP-04/SHIP-05 "
-        "precedent, D-07)."
-    )
     return [
         MatrixRow("v8.25/HEADLINE-01", "HEADLINE-01", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
@@ -1720,7 +1717,8 @@ def _rows_v825() -> list[MatrixRow]:
                   "scripts/check-quality-harness.py#_selftest_render_contract", ""),
         MatrixRow("v8.25/CONTRACT-06", "CONTRACT-06", "v8.25", "Test-Network",
                   "scripts/check-quality-harness.py",
-                  "audit-only", "", audit_v825),
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", ""),
         MatrixRow("v8.25/SHIP-01", "SHIP-01", "v8.25", "Test-Network",
                   "scripts/check-version-stamps.py",
                   "reproducible", "scripts/check-version-stamps.py", ""),
@@ -1764,13 +1762,15 @@ def build_matrix_rows() -> list[MatrixRow]:
         milestone's CAP-*/PROV-*/GATE-*/VAL-* requirements, all Test-Network apparatus except
         VAL-04 (Methodology, audit-only — a docs record, not a re-runnable gate). See
         `_rows_v824()` for the full per-row rationale.
-    (g) v8.25 milestone (14 rows, 13 reproducible + 1 audit-only) — Phase 12: the milestone's
-        HEADLINE-*/CONTRACT-*/SHIP-* requirements. CONTRACT-01..05 carry Methodology (agent
-        emission-contract prose), departing from (f)'s default-to-Test-Network choice because
-        none of that milestone's rows touched agent prose; HEADLINE-* and SHIP-* stay
-        Test-Network apparatus. CONTRACT-06 is audit-only (Test-Network) — no gate re-runs to
-        check that its byte-freeze claim holds. See `_rows_v825()` for the full per-row
-        rationale.
+    (g) v8.25 milestone (14 rows, all reproducible as of v8.26 Phase 13) — Phase 12: the
+        milestone's HEADLINE-*/CONTRACT-*/SHIP-* requirements. CONTRACT-01..05 carry
+        Methodology (agent emission-contract prose), departing from (f)'s
+        default-to-Test-Network choice because none of that milestone's rows touched agent
+        prose; HEADLINE-* and SHIP-* stay Test-Network apparatus. CONTRACT-06 (Test-Network)
+        was originally tiered audit-only — no gate re-ran its byte-freeze claim — and was
+        re-tiered reproducible at v8.26 Phase 13 (CHAINHEAD-07) once
+        `_selftest_chain_detector_pin` gave that claim a gate. See `_rows_v825()` for the full
+        per-row rationale.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1799,7 +1799,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v818())
     # --- v8.24 milestone (D-06 / Phase 6) — 14 reproducible + 1 audit-only ---
     rows.extend(_rows_v824())
-    # --- v8.25 milestone (Phase 12 / A1 / A2) — 13 reproducible + 1 audit-only ---
+    # --- v8.25 milestone (Phase 12 / A1 / A2) — all 14 reproducible as of Phase 13 ---
     rows.extend(_rows_v825())
     return rows
 
@@ -3140,18 +3140,20 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
 
 
 def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
-    """V825-ROWS named sentinel (Phase 12).
+    """V825-ROWS named sentinel (Phase 12; tier partition updated v8.26 Phase 13).
 
     Asserts the 14 v8.25 milestone rows registered in _rows_v825():
       (a) Exactly 14 rows (drift guard — not deleted, not duplicated).
       (b) bare_id set equals the canonical 14 IDs.
       (c) Tier partition pinned by ID, not by count: the audit-only bare_id set is exactly
-          {"CONTRACT-06"} AND the reproducible bare_id set is exactly the other 13, named. A
-          blanket 13/1 count assert is explicitly rejected — swapping CONTRACT-06's tier with
-          a reproducible row's would keep the counts right and pass silently.
-      (d) Deep-resolve artifact_link over the 13 reproducible rows only. Also asserts the
-          audit-only row carries artifact_link == "", so the skip cannot silently become a
-          skip-everything.
+          set() (CONTRACT-06 re-tiered reproducible at v8.26 Phase 13, CHAINHEAD-07) AND the
+          reproducible bare_id set is exactly all 14 IDs, named. A blanket count assert is
+          explicitly rejected — swapping a row's tier would keep the counts right and pass
+          silently.
+      (d) Deep-resolve artifact_link over all 14 reproducible rows. The audit-only set is
+          empty, so the "audit-only rows carry artifact_link == ''" check is vacuously true —
+          asserted anyway so the skip cannot silently become a skip-everything if a future
+          row is re-tiered audit-only.
       (e) Positive counter-check: HEADLINE-01 is present exactly once, reproducible, and
           carries a non-empty artifact_link (mirrors the V824-ROWS GATE-03 idiom).
       (f) milestone/key lock: every row has milestone == "v8.25" AND a key prefixed
@@ -3173,7 +3175,7 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         "CONTRACT-06",
         "SHIP-01", "SHIP-02", "SHIP-03",
     }
-    _EXPECTED_V825_AUDIT_ONLY_IDS = {"CONTRACT-06"}
+    _EXPECTED_V825_AUDIT_ONLY_IDS = set()
     _EXPECTED_V825_REPRODUCIBLE_IDS = _EXPECTED_V825_IDS - _EXPECTED_V825_AUDIT_ONLY_IDS
     if _v825_count != 14:
         print(
@@ -3215,7 +3217,7 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(
             f"  V825-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
-            f"13 reproducible IDs confirmed by name"
+            f"{len(_reproducible_ids)} reproducible IDs confirmed by name"
         )
 
     # (d) Deep-resolve artifact_link over the 13 reproducible rows only; the audit-only

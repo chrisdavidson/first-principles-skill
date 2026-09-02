@@ -2625,9 +2625,9 @@
     "milestone": "v8.25",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-quality-harness.py",
-    "coverage_tier": "audit-only",
-    "artifact_link": "",
-    "gap_rationale": "Nothing in the tree pins _chain_block_well_formed byte-unchanged -- the sha256 in .planning/PROJECT.md:41 is prose, and the only real sha256 pin in scripts/check-quality-harness.py:7193 covers _RENDER_RULE_LITERALS, a different claim; no gate re-runs to check that a byte-freeze holds (the v8.18 SHIP-04/SHIP-05 precedent, D-07)."
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_chain_detector_pin",
+    "gap_rationale": ""
   },
   {
     "key": "v8.25/SHIP-01",
