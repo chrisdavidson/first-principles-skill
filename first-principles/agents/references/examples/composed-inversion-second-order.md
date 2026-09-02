@@ -311,9 +311,10 @@ descriptor requires absent an unreachable-source exception; no such exception ap
 Band: **Rigorous**
 > A read-side cache placed in front of the dominant read contributor reduces the read-QPS
 
-Justification: The first-order chain names the GT-IDs it consumes, contains an intermediate
-claim statable from the combination but not from any single GT, and reaches a conclusion;
-the Abandoned Reasoning section documents a substantive dead end with a specific structural
+Justification: The first-order chain names the inputs it consumes — here, ground truths — in
+the prescribed head form, contains an intermediate claim statable from the combination but not
+from any single named input alone, and reaches a conclusion; the Abandoned Reasoning section
+documents a substantive dead end with a specific structural
 abandonment reason; no analogy is used as direct evidence.
 
 ---

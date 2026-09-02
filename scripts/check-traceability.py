@@ -1853,46 +1853,91 @@ def _resolve_confined_output(path: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 
+# Both self-test-anchor naming conventions this repository actually uses:
+# `check-quality-harness.py` writes `_selftest_*` / `def self_test(`, while
+# `check-traceability.py` writes `_self_test_*` / `def _run_self_test(` for its
+# OWN sub-checks (WR-01). Any anchor matching neither prefix still returns `[]`
+# immediately — see the docstring below.
+_SELFTEST_ANCHOR_PREFIXES = ("_selftest_", "_self_test_")
+_SELFTEST_DISPATCHER_NAMES = ("self_test", "_run_self_test")
+_SELFTEST_DISPATCHER_PAT = re.compile(
+    r"^(?:async\s+)?def\s+("
+    + "|".join(re.escape(_n) for _n in _SELFTEST_DISPATCHER_NAMES)
+    + r")\(",
+    re.MULTILINE,
+)
+
+
 def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> list[str]:
-    """Distinguish "defined" from "dispatched" for a `_selftest_*` anchor (CR-02 / criterion 5).
+    """Distinguish "defined" from "dispatched" for a self-test anchor (CR-02 / criterion 5).
 
     Pure: does no I/O — `content` is the artifact file's full text, passed in by the caller —
     so the self-test can drive this with in-memory literals, matching the purity contract
     `scripts/check-registration.py`'s `verify_ci_job_registration` states for the REG-GUARD
     CI-job axis this leg mirrors one level down.
 
-    Applies only to anchors that start with `_selftest_`: only a self-test sub-check has a
-    dispatch to lose, so widening this to every symbol (a module constant, a library helper)
-    would produce false positives that have nothing to do with the property being checked.
-    Any other anchor returns `[]` immediately.
+    Applies only to anchors starting with one of `_SELFTEST_ANCHOR_PREFIXES` —
+    `_selftest_` (this file's and `check-quality-harness.py`'s convention) or
+    `_self_test_` (`check-traceability.py`'s OWN convention for its own sub-checks,
+    e.g. `_self_test_headline_lock`). Only a self-test sub-check has a dispatch to
+    lose, so widening this to every symbol (a module constant, a library helper)
+    would produce false positives that have nothing to do with the property being
+    checked. Any other anchor returns `[]` immediately. WR-01: before this widening,
+    the single-prefix check made every `_self_test_*` anchor — including SHIP-03's
+    `_self_test_headline_lock`, a `reproducible` row — completely exempt from this
+    leg, so the exact CR-02 defect class (defined but never dispatched) remained open
+    for the file that hosts the checker itself.
+
+    The dispatcher search accepts either name in `_SELFTEST_DISPATCHER_NAMES` —
+    `self_test` or `_run_self_test` — and tolerates an `async def` prefix on either
+    (WR-03: the prior hardcoded `^def self_test\\(` pattern did not recognise
+    `async def self_test(`, reintroducing the exact bug `_resolve_artifact`'s own
+    `_def_class_pat` two functions up already carries an explicit `async\\s+def`
+    alternation to avoid — the two patterns must not disagree inside one file). If a
+    file defines MORE than one of the dispatcher names, the FIRST one found (by
+    position in the file, via `.search()`) is used and its body is what gets sliced —
+    a deliberate, disclosed choice. Verified live before this change: neither file in
+    this repository defines more than one of the two names today (`check-traceability.py`
+    has exactly one `def _run_self_test(`; `check-quality-harness.py` has exactly one
+    `def self_test(`).
 
     Fail-closed by design, in two ways:
-      - if the file defines no top-level `def self_test(` to dispatch the anchor from, that is
-        reported as a problem, not silently skipped — a renamed or deleted dispatcher must be a
-        loud failure;
-      - a dispatch that exists only inside a commented-out line does not count. Comments are
-        stripped from the sliced `self_test()` body (drop everything from the first `#` on each
-        line) before the anchor is searched for. This can over-strip a `#` that appears inside a
-        string literal, which can only produce a FALSE POSITIVE (a loud, fixable failure) —
-        never a false negative — so it is an accepted, disclosed tradeoff.
+      - if the file defines no top-level dispatcher (`self_test()` or
+        `_run_self_test()`, optionally `async`) to dispatch the anchor from, that is
+        reported as a problem, not silently skipped — a renamed or deleted dispatcher
+        must be a loud failure;
+      - a dispatch that exists only inside a commented-out line does not count. Comments
+        are stripped from the sliced dispatcher body (drop everything from the first `#`
+        on each line) before the anchor is searched for. This can over-strip a `#` that
+        appears inside a string literal, which can only produce a FALSE POSITIVE (a
+        loud, fixable failure) — never a false negative — so it is an accepted,
+        disclosed tradeoff.
 
     DISCLOSED LIMITATION: this proves the anchor's name appears in a call position
-    (`anchor + "("`) somewhere in `self_test()`'s own comment-stripped body. It does NOT prove
-    the call is reached at runtime, does NOT prove it sits outside a dead `if False:` branch,
-    and does NOT prove dispatch via a nested helper that `self_test()` itself calls. It is a
-    line-anchored substring check, matching `_resolve_artifact`'s own accepted D-03 limitation,
-    not a call-graph analysis.
+    (`anchor + "("`) somewhere in the matched dispatcher's own comment-stripped body.
+    It does NOT prove the call is reached at runtime, does NOT prove it sits outside a
+    dead `if False:` branch, and does NOT prove dispatch via a nested helper that the
+    dispatcher itself calls. It is a line-anchored substring check, matching
+    `_resolve_artifact`'s own accepted D-03 limitation, not a call-graph analysis. It
+    now additionally accepts two anchor prefixes and two dispatcher names (including
+    `async def`). WR-02, remaining open and tracked separately (not fixed by this
+    widening): a mention of the anchor inside a string literal or docstring counts as
+    a dispatch, and when the dispatcher is the LAST top-level construct in its file the
+    body slice extends to end of file, so trailing module-level code counts as
+    dispatcher body — both are latent (no such mention exists in either file today,
+    verified by grep) and are recorded as a deferred follow-on rather than fixed here.
     """
-    if not anchor.startswith("_selftest_"):
+    if not anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
         return []
 
-    _dispatcher_pat = re.compile(r"^def self_test\(", re.MULTILINE)
-    _match = _dispatcher_pat.search(content)
+    _match = _SELFTEST_DISPATCHER_PAT.search(content)
     if _match is None:
+        _names = " or ".join(f"{_n}()" for _n in _SELFTEST_DISPATCHER_NAMES)
         return [
             f"anchor {anchor!r} is defined in {file_part!r} but the file defines no "
-            f"top-level self_test() to dispatch it from — never called from self_test()"
+            f"top-level {_names} to dispatch it from — never called from any dispatcher"
         ]
+    _dispatcher_name = _match.group(1)
 
     _next_top_level_pat = re.compile(r"^(?:def |class |@)", re.MULTILINE)
     _next_match = _next_top_level_pat.search(content, _match.end())
@@ -1906,8 +1951,8 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     if (anchor + "(") not in _stripped_body:
         return [
             f"anchor {anchor!r} is defined in {file_part!r} but is never called from "
-            f"self_test() — a 'reproducible' tier pointing at a defined-but-never-dispatched "
-            f"sub-check is unenforced"
+            f"{_dispatcher_name}() — a 'reproducible' tier pointing at a "
+            f"defined-but-never-dispatched sub-check is unenforced"
         ]
     return []
 
@@ -3230,16 +3275,30 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
           "v8.25/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
       (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
           TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
-      (h) DISPATCH REACHABILITY (CR-02 / criterion 5): the `_selftest_dispatch_problems`
-          leg wired into `_resolve_artifact` distinguishes a `_selftest_*` anchor that is
-          merely DEFINED from one that is actually CALLED from `self_test()`. (h1) drives
-          the pure helper with four synthetic in-memory cases (called, defined-but-unused,
-          missing dispatcher, comment-only). (h2) is a live non-vacuity floor: the set of
-          `_selftest_*` anchors named by live artifact_links must equal exactly
-          `{_selftest_chain_detector_pin, _selftest_render_contract}`, so a rename cannot
-          silently empty the checked set. (h3) is a live positive: CONTRACT-06's live
-          artifact_link must resolve with no problems, i.e. as DISPATCHED, not merely
-          defined.
+      (h) DISPATCH REACHABILITY (CR-02 / criterion 5; widened WR-01/WR-03): the
+          `_selftest_dispatch_problems` leg wired into `_resolve_artifact` distinguishes
+          a self-test anchor that is merely DEFINED from one that is actually CALLED
+          from its dispatcher. It accepts BOTH anchor prefixes in this repository
+          (`_selftest_`, `_self_test_`) and BOTH dispatcher names
+          (`self_test()`, `_run_self_test()`), including an `async def` dispatcher.
+          (h1) drives the pure helper with seven synthetic in-memory cases: the
+          original four (`_selftest_`/`self_test()` called, defined-but-unused,
+          missing dispatcher, comment-only) plus three widened cases — a
+          `_self_test_*` anchor called from `_run_self_test()`, the same anchor
+          defined but uncalled from `_run_self_test()`, and an `async def self_test()`
+          dispatcher calling its `_selftest_*` anchor (WR-03). (h2) is a live
+          non-vacuity floor: the set of self-test anchors named by live artifact_links
+          must equal exactly `{_selftest_chain_detector_pin, _selftest_render_contract,
+          _self_test_headline_lock}`, so a rename cannot silently empty or narrow the
+          checked set — the third member proves the leg now reaches
+          `check-traceability.py`'s own `reproducible` row, SHIP-03, which WR-01 found
+          completely exempt. (h3) is two live positives: CONTRACT-06's and SHIP-03's
+          live artifact_links must each resolve with no problems, i.e. as DISPATCHED,
+          not merely defined. Remaining open (WR-02, deferred, not fixed by this
+          widening): a mention of the anchor inside a string literal or docstring
+          counts as a dispatch, and trailing module-level code after the LAST
+          top-level construct in a file counts as dispatcher body — both latent, no
+          such mention exists in either file today.
 
     Called from _rows_v825() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
@@ -3406,18 +3465,59 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         print(f"  V825-ROWS FAIL: (h1) commented-out-dispatch case produced {_h1_commented!r}")
         wrong_results.append("V825-ROWS: (h1) commented-out-dispatch case failed")
 
+    # (h1) WIDENED CASES (WR-01/WR-03): the three cases below exercise the second
+    # anchor prefix (`_self_test_`), the second dispatcher name (`_run_self_test`),
+    # and an `async def` dispatcher — none of which the four cases above reach.
+    _h1_selftest2_called_src = "def _run_self_test():\n    _self_test_x()\n"
+    _h1_selftest2_called = _selftest_dispatch_problems(
+        "_self_test_x", _h1_selftest2_called_src, "f.py"
+    )
+    if _h1_selftest2_called != []:
+        print(f"  V825-ROWS FAIL: (h1) _self_test_/_run_self_test() called-anchor case wrongly reported a problem: {_h1_selftest2_called!r}")
+        wrong_results.append("V825-ROWS: (h1) _self_test_ called-anchor case failed")
+    else:
+        print("  V825-ROWS PASS: (h1) a `_self_test_*` anchor called from `_run_self_test()` reports no problem")
+
+    _h1_selftest2_uncalled_src = "def _run_self_test():\n    pass\n"
+    _h1_selftest2_uncalled = _selftest_dispatch_problems(
+        "_self_test_x", _h1_selftest2_uncalled_src, "f.py"
+    )
+    if (
+        len(_h1_selftest2_uncalled) == 1
+        and "_self_test_x" in _h1_selftest2_uncalled[0]
+        and "never called from _run_self_test()" in _h1_selftest2_uncalled[0]
+    ):
+        print("  V825-ROWS PASS: (h1) a `_self_test_*` anchor defined but uncalled from `_run_self_test()` reports exactly one problem naming it")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) _self_test_/_run_self_test() uncalled case produced {_h1_selftest2_uncalled!r}")
+        wrong_results.append("V825-ROWS: (h1) _self_test_ uncalled case failed")
+
+    _h1_async_src = "async def self_test():\n    _selftest_x()\n"
+    _h1_async = _selftest_dispatch_problems("_selftest_x", _h1_async_src, "f.py")
+    if _h1_async != []:
+        print(f"  V825-ROWS FAIL: (h1) async-dispatcher case wrongly reported a problem: {_h1_async!r}")
+        wrong_results.append("V825-ROWS: (h1) async-dispatcher case failed (WR-03)")
+    else:
+        print("  V825-ROWS PASS: (h1) an `async def self_test()` dispatcher calling its anchor reports no problem — WR-03 closed")
+
     # (h2) LIVE NON-VACUITY FLOOR. Derive, from the live _rows_v825() rows, the set
-    # of anchors of the form scripts/…py#<anchor> where <anchor> starts with
-    # _selftest_, and assert that set equals exactly the two known ones. Without
-    # this floor a future rename would empty the checked set and the leg would
-    # report green while checking nothing — the exact shape of the defect this
-    # plan closes.
-    _EXPECTED_SELFTEST_ANCHORS = {"_selftest_chain_detector_pin", "_selftest_render_contract"}
+    # of anchors of the form scripts/…py#<anchor> where <anchor> starts with either
+    # `_selftest_` or `_self_test_`, and assert that set equals exactly the three
+    # known ones. The third member, `_self_test_headline_lock`, proves the leg now
+    # reaches `check-traceability.py`'s own `reproducible` row (SHIP-03) — the exact
+    # anchor WR-01 found exempt. Without this floor a future rename would empty (or
+    # narrow) the checked set and the leg would report green while checking nothing
+    # or checking less than it claims.
+    _EXPECTED_SELFTEST_ANCHORS = {
+        "_selftest_chain_detector_pin",
+        "_selftest_render_contract",
+        "_self_test_headline_lock",
+    }
     _observed_selftest_anchors: set[str] = set()
     for _row in _v825_rows:
         if "#" in _row.artifact_link:
             _anchor = _row.artifact_link.split("#", 1)[1]
-            if _anchor.startswith("_selftest_"):
+            if _anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
                 _observed_selftest_anchors.add(_anchor)
     if _observed_selftest_anchors != _EXPECTED_SELFTEST_ANCHORS:
         print(
@@ -3427,12 +3527,14 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         wrong_results.append("V825-ROWS: (h2) non-vacuity floor failed")
     else:
         print(
-            f"  V825-ROWS PASS: (h2) live _selftest_* anchor set = "
-            f"{sorted(_observed_selftest_anchors)!r} — non-vacuous"
+            f"  V825-ROWS PASS: (h2) live self-test anchor set = "
+            f"{sorted(_observed_selftest_anchors)!r} — non-vacuous, includes _self_test_headline_lock"
         )
 
-    # (h3) LIVE POSITIVE. CONTRACT-06's live artifact_link must resolve with no
-    # problems — i.e. as DISPATCHED, not merely defined.
+    # (h3) LIVE POSITIVES. Both CONTRACT-06's and SHIP-03's live artifact_links
+    # must resolve with no problems — i.e. as DISPATCHED, not merely defined.
+    # SHIP-03 is the (h3) addition this plan makes: it is the `reproducible` row
+    # WR-01 found completely exempt from the old single-prefix leg.
     _contract06_rows = [r for r in _v825_rows if r.bare_id == "CONTRACT-06"]
     _contract06_problems = (
         _resolve_artifact(_contract06_rows[0].artifact_link) if _contract06_rows else ["CONTRACT-06 row missing"]
@@ -3444,6 +3546,19 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         print(
             "  V825-ROWS PASS: (h3) CONTRACT-06's artifact_link resolved "
             "_selftest_chain_detector_pin as DISPATCHED, not merely defined"
+        )
+
+    _ship03_rows = [r for r in _v825_rows if r.bare_id == "SHIP-03"]
+    _ship03_problems = (
+        _resolve_artifact(_ship03_rows[0].artifact_link) if _ship03_rows else ["SHIP-03 row missing"]
+    )
+    if _ship03_problems:
+        print(f"  V825-ROWS FAIL: (h3) LIVE POSITIVE — SHIP-03 did not resolve cleanly: {_ship03_problems!r}")
+        wrong_results.append("V825-ROWS: (h3) SHIP-03 live positive failed")
+    else:
+        print(
+            "  V825-ROWS PASS: (h3) SHIP-03's artifact_link resolved "
+            "_self_test_headline_lock as DISPATCHED, not merely defined"
         )
 
 
