@@ -11,6 +11,38 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [8.25.0] — 2026-09-01
+
+Widens `HEADLINE-LOCK` from one current-fact surface to five — `CLAUDE.md`, `docs/README.md`,
+`docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`, plus the pre-existing
+`docs/requirements-traceability.md` — recognising both the prose and compact-slash renderings
+and distinguishing historical/delta statements from current-fact claims (Phase 10,
+HEADLINE-01..05); and makes the emission rendering contract in `output-template.md` §4/§6 and
+`SKILL-body.md` prescriptive enough to be mechanically checked — chain hop wrapping, citation
+form, and the verdict-expiry worked example (Phase 11, CONTRACT-01..06). The coverage headline
+moves `161/91/0/252 → 174/92/0/266`. No new gate was registered this milestone — the firewall
+battery tally stays **23/23**.
+
+### Added
+
+- **`HEADLINE-LOCK` widened to five `COVERED_HEADLINE_SURFACES` members.** `CLAUDE.md`,
+  `docs/README.md`, `docs/MEASUREMENT-MAP.md`, and `docs/COMPONENT-DIAGRAM.md` now carry the
+  same self-test-asserted, non-vacuity-controlled headline check that previously covered only
+  `docs/requirements-traceability.md`. Both the prose form
+  (`N reproducible / M audit-only / 0 gap / T total`) and the compact slash form (`N/M/0/T`) are
+  recognized as the same claim; a two-layer history classifier (whole-file membership plus a
+  figure-adjacent arrow layer) exempts genuine historical/delta statements — such as
+  `docs/v8.0-final-closure.md`'s frozen v8.0 count and the traceability ledger's move-history
+  rows — from tripping the gate, without exempting a stale current-fact line on the same surface.
+- **Emission rendering contract made mechanically checkable.** `output-template.md` §4 states
+  the chain-hop no-wrap and brevity rules with conforming and non-conforming worked examples;
+  §6 states the citation form to the same standard; the Verdict Vocabulary section carries a
+  worked `current constraint` expiry example. `SKILL-body.md` restates the identical no-wrap,
+  brevity, citation, and head-form rules as shared verbatim literals. QUAL-01 Item 24 extracts
+  all eight worked examples from the shipped canonical bytes and scores them with the unmodified
+  detectors (`_chain_block_well_formed`, `_verdict_conforms`, `_claim_is_traced`), plus
+  cross-surface literal reconciliation and a registry lock.
+
 ## [8.24.0] — 2026-08-31
 
 Ships capture-based provenance verification: the generation `.jsonl` capture is now retained
