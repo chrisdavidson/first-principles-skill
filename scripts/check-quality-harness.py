@@ -6840,15 +6840,21 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "uses the head-plus-arrow-led form, and a hop is split rather than "
         "continued on a second line."
     ),
-    # R7: the head-input rule and its negative in one literal
-    # (CHAINHEAD-01/CHAINHEAD-02, D-02).
+    # R7: the head-input rule, its negative, and its disclosed positional
+    # bound in one literal (CHAINHEAD-01/CHAINHEAD-02, D-02; the bound
+    # sentence added by plan 13-08, BL-01).
     "R7": (
         "The head line lists the inputs the chain consumes: each is a "
         "`GT-N` identifier (`GT-N?` when the ground truth is unverified) "
         "or a `Cn` identifier, optionally followed by a parenthesized "
         "gloss, joined to the next by `+`. The first `→` closes the head. "
         "An input carrying unparenthesized prose — `C2's threshold` — is "
-        "not an identifier and does not parse; write `C2 (threshold)`."
+        "not an identifier and does not parse; write `C2 (threshold)` in "
+        "every position. The mechanical form check detects that violation "
+        "only when the prose input is the last one before the first `→`; "
+        "in an earlier position the check matches the well-formed "
+        "remainder and scores the head conforming, so the rule binds in "
+        "positions the check does not reach."
     ),
     # R8: the rendered head form showing GT-N? and chain-as-input
     # (CHAINHEAD-01, D-03).
@@ -7327,7 +7333,12 @@ def _render_registry_lock_problems(
         "R4": "A claim doing neither is cut, not softened",
         "R5": "GT-1 ([brief fact label]) + GT-6",
         "R6": "a hop is split rather than continued on a second line",
-        "R7": "is not an identifier and does not parse",
+        # R7's clause pins the disclosed positional bound rather than the
+        # negative-rule half: the clause arm proves one substring per rule
+        # and the digest arm covers the rest, so the clause should pin the
+        # half a future edit is most likely to quietly drop — which is now
+        # the disclosure, not the negative rule (plan 13-08, BL-01).
+        "R7": "detects that violation only when the prose input is the last one before the first",
         "R8": "GT-1? ([brief fact label]) + C2",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
@@ -7361,7 +7372,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:4ccfd10ed7577c46dd8cd0ea9c76e666d84d3c193e15c6bcc485ea24df83f7a6"
+        "sha256:ce68aff83ff55e6286cf98cfbc60468c2f99ead880bdd8718a1826c233e206a7"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
