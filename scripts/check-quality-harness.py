@@ -122,6 +122,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, fields, replace
 from pathlib import Path
 
@@ -6638,12 +6639,12 @@ def _render_fixture_id_accounted(fixture_id: str, problems: list[str]) -> bool:
 
 
 def _render_unscored_fixture_ids(
-    locked_ids: set[str], scored_ids: set[str], problems: list[str]
+    locked_ids: set[str], scored_id_set: set[str], problems: list[str]
 ) -> list[str]:
-    """Every id in *locked_ids* that is absent from *scored_ids* and not
+    """Every id in *locked_ids* that is absent from *scored_id_set* and not
     accounted for by `_render_fixture_id_accounted(fid, problems)`, sorted.
 
-    Membership in `scored_ids` means a scoring wrapper actually called a
+    Membership in *scored_id_set* means a scoring wrapper actually called a
     scorer on that fixture's text — strictly stronger than the extraction
     test this helper replaces, which asked only whether the id was absent
     from the extracted-fixtures mapping. A fixture that fails to extract
@@ -6659,9 +6660,92 @@ def _render_unscored_fixture_ids(
     return sorted(
         fid
         for fid in locked_ids
-        if fid not in scored_ids
+        if fid not in scored_id_set
         and not _render_fixture_id_accounted(fid, problems)
     )
+
+
+def _render_verdict_floor_problems(
+    expected: dict[str, list[bool]],
+    scored_verdicts: dict[str, list[bool]],
+    problems: list[str],
+) -> list[str]:
+    """Every id in *expected* whose recorded verdict sequence in
+    *scored_verdicts* is absent or unequal to `expected[fid]`, skipping any
+    id already discharged by `_render_fixture_id_accounted(fid, problems)` —
+    matching `_render_unscored_fixture_ids`'s existing discharge semantics
+    exactly. Sorted.
+
+    This proves a scoring wrapper recorded the VERDICT `expected[fid]`
+    states for *fid* — and therefore that SOME code path actually wrote it,
+    strictly stronger than mere membership in a set. It does NOT prove the
+    fixture's text really scores that way; that is
+    `_render_chain_verdict_floor_problems` below's job, which re-derives
+    from the text itself and consults no recorder. Pure: takes all three
+    inputs as parameters and reads no module constant, matching
+    `_render_unscored_fixture_ids`'s purity contract.
+    """
+    problems_out: list[str] = []
+    for fid in sorted(expected):
+        if _render_fixture_id_accounted(fid, problems):
+            continue
+        recorded = scored_verdicts.get(fid)
+        if recorded != expected[fid]:
+            problems_out.append(
+                _render_fixture_problem(
+                    "EXPECTED-VERDICT MISMATCH",
+                    fid,
+                    f"recorded verdict sequence {recorded!r} != expected "
+                    f"sequence {expected[fid]!r}",
+                )
+            )
+    return sorted(problems_out)
+
+
+def _render_chain_verdict_floor_problems(
+    expected: dict[str, bool],
+    fixtures: dict[str, str],
+    scorer: Callable[[str], bool],
+    problems: list[str],
+) -> list[str]:
+    """Every id in *expected* whose text in *fixtures*, scored by *scorer*,
+    differs from `expected[fid]`, skipping any id discharged by
+    `_render_fixture_id_accounted(fid, problems)`, and REPORTING — never
+    silently skipping — an id that is expected but absent from *fixtures*.
+    Sorted.
+
+    Reads `fixtures` and calls `scorer` directly: it consults no recorder
+    of any shape, so it proves the fixture's text really scores as expected
+    under the scorer passed in, and holds regardless of what any recorder
+    contains. Taking the scorer as a PARAMETER, rather than hardcoding a
+    call to `_chain_block_well_formed`, is deliberate: it is what lets
+    control (w) drive this helper with a synthetic predicate without
+    monkeypatching the module, and it is why this arm cannot be made
+    tautological by comparing a constant with itself.
+    """
+    problems_out: list[str] = []
+    for fid in sorted(expected):
+        if _render_fixture_id_accounted(fid, problems):
+            continue
+        if fid not in fixtures:
+            problems_out.append(
+                _render_fixture_problem(
+                    "CHAIN VERDICT FLOOR",
+                    fid,
+                    "expected but absent from fixtures",
+                )
+            )
+            continue
+        actual = scorer(fixtures[fid])
+        if actual != expected[fid]:
+            problems_out.append(
+                _render_fixture_problem(
+                    "CHAIN VERDICT FLOOR",
+                    fid,
+                    f"scored {actual!r} != expected {expected[fid]!r}",
+                )
+            )
+    return sorted(problems_out)
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
@@ -8799,17 +8883,31 @@ def _selftest_render_contract() -> bool:
     controls (b)-(f)'s `is not None` guards. Plan 13-05 (CR-01,
     `13-VERIFICATION.md`) replaced the third arm's extraction test —
     absence from the extracted-fixtures mapping — with membership in a
-    `scored_ids` set written only by the `_score_chain` / `_score_verdict` /
-    `_score_traced` / `_score_ledger` wrappers controls (b), (e) and (f)
-    route through — the
-    reproduction that motivated this was deleting the three (b) chain-head
-    verdict-assertion blocks entirely: the fixtures still extracted
-    cleanly, so the old extraction-only floor stayed green with zero
-    scoring behaviour left. Control (s), added by the same plan, drives
-    the new floor's pure helper (`_render_unscored_fixture_ids`) directly
-    with synthetic locked/scored/problem inputs; control (t) locks the
-    wrapper/recorder site count so the new floor cannot be cheated by a
-    control that marks a fixture scored without scoring it. Control (q),
+    plain `set[str]` recorder written only by the `_score_chain` /
+    `_score_verdict` / `_score_traced` / `_score_ledger` wrappers controls
+    (b), (e) and (f) route through — the reproduction that motivated this
+    was deleting the three (b) chain-head verdict-assertion blocks
+    entirely: the fixtures still extracted cleanly, so the old
+    extraction-only floor stayed green with zero scoring behaviour left.
+    Control (s), added by the same plan, drives the new floor's pure helper
+    (`_render_unscored_fixture_ids`) directly with synthetic
+    locked/scored/problem inputs. Plan 13-10 (BL-03, `13-VERIFICATION.md`)
+    found that membership-set recorder itself forgeable two ways — a bare
+    `.update({...})` writing ids with no scorer ever called, and a wrapper
+    genuinely called but its verdict discarded — both left this sub-check
+    PASSED. The wrappers now record each scorer's boolean VERDICT into
+    `scored_verdicts: dict[str, list[bool]]`, a fourth arm
+    (`_render_verdict_floor_problems`) compares every locked id's recorded
+    sequence against an inline expected-verdict table, and a fifth arm
+    (`_render_chain_verdict_floor_problems`) independently re-scores the
+    nine chain-family fixtures from `fixtures` with the frozen detector,
+    consulting no recorder at all. Control (v) proves each wrapper's return
+    equals its raw scorer's return AND the recorder holds that same value,
+    so a fabricated verdict fails by name. Control (w) mirrors (s) for both
+    new helpers. Control (t) survives as a source-level diff-review
+    backstop over the recorder's write idioms — it is explicitly NOT what
+    closes the fail-OPEN shape; that is arms 4a/4b and control (v). Control
+    (q),
     also added by plan 11-09, drives `_render_fixture_accounting_problems()`
     — the mode 3 replacement in `_render_contract_fixtures()` — directly
     with a clean case, a duplicated-id case and a count-mismatch case,
@@ -9013,22 +9111,32 @@ def _selftest_render_contract() -> bool:
     head_gthop_bad = _get("R-HEAD-GTHOP-BAD")
     head_gthop_ok = _get("R-HEAD-GTHOP-OK")
 
-    # `scored_ids` backs the (p) CONSUMPTION FLOOR's third arm below: every
-    # id one of the four wrappers records, because a scorer was actually
-    # called on that fixture's text. This is strictly stronger than
-    # `requested_ids` above, which only proves a lookup happened, not that
-    # anything scored the result — the gap CR-01 found (a fixture that
-    # extracts cleanly but whose scoring assertions were deleted still
-    # satisfied the old extraction-only floor).
-    scored_ids: set[str] = set()
+    # `scored_verdicts` backs the (p) CONSUMPTION FLOOR's fourth arm below:
+    # for every id one of the four wrappers records, the boolean VERDICT
+    # summary of the scorer it actually called — not merely that the id was
+    # touched. Plan 13-10 (BL-03, `13-VERIFICATION.md`) replaced the prior
+    # `scored_ids: set[str]` membership recorder with this verdict-sequence
+    # dict because membership alone does not prove a scorer ran: both
+    # `scored_ids.update({...})` with no scorer called, and a wrapper called
+    # with its return value discarded, satisfied the old membership floor.
+    # There is no separately writable `scored_ids` name any more — bypass
+    # 1's write target no longer exists. Each wrapper records AFTER calling
+    # its scorer, never before, so a wrapper that records first and raises
+    # second cannot leave a verdict with no scorer behind it. A sequence,
+    # not a single value, is stored because `R-CITE-NONE` is scored TWICE
+    # by design (control (f)) and a last-write-wins dict would silently
+    # lose the first (untraced) call.
+    scored_verdicts: dict[str, list[bool]] = {}
 
     def _score_chain(fixture_id: str, text: str) -> bool:
-        scored_ids.add(fixture_id)
-        return _chain_block_well_formed(text)
+        verdict = _chain_block_well_formed(text)
+        scored_verdicts.setdefault(fixture_id, []).append(verdict)
+        return verdict
 
     def _score_verdict(fixture_id: str, cell: str) -> bool:
-        scored_ids.add(fixture_id)
-        return _verdict_conforms(cell)
+        verdict = _verdict_conforms(cell)
+        scored_verdicts.setdefault(fixture_id, []).append(verdict)
+        return verdict
 
     def _score_traced(
         fixture_id: str,
@@ -9037,16 +9145,19 @@ def _selftest_render_contract() -> bool:
         chains: list[str],
         ledger_fragments: tuple[str, ...] | list[str] | None = None,
     ) -> bool:
-        scored_ids.add(fixture_id)
         if ledger_fragments is None:
-            return _claim_is_traced(claim, chain_ids, chains)
-        return _claim_is_traced(claim, chain_ids, chains, ledger_fragments)
+            verdict = _claim_is_traced(claim, chain_ids, chains)
+        else:
+            verdict = _claim_is_traced(claim, chain_ids, chains, ledger_fragments)
+        scored_verdicts.setdefault(fixture_id, []).append(verdict)
+        return verdict
 
     def _score_ledger(
         fixture_id: str, section6: str, chain_ids: list[str]
     ) -> list[str]:
-        scored_ids.add(fixture_id)
-        return _closure_ledger_fragments(section6, chain_ids)
+        fragments = _closure_ledger_fragments(section6, chain_ids)
+        scored_verdicts.setdefault(fixture_id, []).append(bool(fragments))
+        return fragments
 
     # (b) Chain verdicts.
     if conforming is not None and not _score_chain(
@@ -9254,7 +9365,7 @@ def _selftest_render_contract() -> bool:
     #     `True`, or everything `False`, would pass (b) and (e) only by
     #     accident. These two calls stay RAW — string literals with no
     #     fixture id — deliberately: routing them through a `_score_*`
-    #     wrapper would inject a non-fixture key into `scored_ids`. A
+    #     wrapper would inject a non-fixture key into `scored_verdicts`. A
     #     future reader sweeping "all raw scorer calls" onto the wrappers
     #     would break the (p) floor below.
     if _chain_block_well_formed("GT-1 (a) + GT-2 (b) -> lone hop"):
@@ -9293,10 +9404,35 @@ def _selftest_render_contract() -> bool:
     #     floor green because those fixtures still extracted cleanly even
     #     though no control ever scored them. The residual bypass — a
     #     control calling a raw detector instead of a wrapper — is
-    #     fail-CLOSED: the fixture never enters `scored_ids`, so this floor
-    #     goes red. The fail-OPEN shape, a control marking a fixture scored
-    #     without scoring it, has no guard here; control (t) below closes
-    #     exactly that by locking the wrapper/recorder site count.
+    #     fail-CLOSED: the fixture never enters the recorder, so this floor
+    #     goes red.
+    #
+    #     Plan 13-10 (BL-03, `13-VERIFICATION.md`) found the ORIGINAL
+    #     in-code claim here false: it read "The fail-OPEN shape, a control
+    #     marking a fixture scored without scoring it, has no guard here;
+    #     control (t) below closes exactly that by locking the
+    #     wrapper/recorder site count." The verification independently
+    #     reproduced two bypasses that both satisfied or evaded that count
+    #     while leaving this sub-check green: (1) `scored_ids.update({...})`
+    #     writing the three chain-head ids directly, with no scorer ever
+    #     called (`.update(` is not `.add(`, so the old count was unmoved);
+    #     and (2) calling a `_score_*` wrapper genuinely (satisfying the old
+    #     count exactly) but discarding its boolean return, so no verdict
+    #     assertion existed anywhere. Control (t) alone never closed that
+    #     shape — it counted source text, not behaviour. The actual fix is
+    #     below, in arms 4a and 4b: arm 4b (`_render_verdict_floor_problems`)
+    #     compares every locked id's RECORDED VERDICT sequence in
+    #     `scored_verdicts` against an inline expected-verdict table, so a
+    #     fabricated or omitted verdict is caught by value, not by count;
+    #     arm 4a (`_render_chain_verdict_floor_problems`) additionally
+    #     re-scores the nine chain-family fixtures independently, by calling
+    #     the unmodified `_chain_block_well_formed` on `fixtures` itself,
+    #     reading no recorder at all — so no forgery of the recorder, of any
+    #     shape, can discharge those nine. Control (v) below proves each of
+    #     the four wrappers actually delegates to its scorer rather than
+    #     fabricating a verdict. Control (t) is retained as a diff-review
+    #     backstop over the recorder's write idioms; it is explicitly NOT
+    #     the thing that closes the fail-OPEN shape.
     render_locked_fixture_ids = {
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
@@ -9327,10 +9463,12 @@ def _selftest_render_contract() -> bool:
     # problem and this arm called the missing fixture accounted for, with
     # arm 2 above skipped by its own `if not problems` guard. As of plan
     # 13-05 this arm floors on SCORING, not extraction — `_render_
-    # unscored_fixture_ids` returns a locked id only when it is absent
-    # from `scored_ids` AND not accounted for by a reported problem.
+    # unscored_fixture_ids` returns a locked id only when it is absent from
+    # `scored_verdicts` (derived here as `set(scored_verdicts)`, never a
+    # separately writable name) AND not accounted for by a reported
+    # problem.
     render_unscored_fixture_ids = _render_unscored_fixture_ids(
-        render_locked_fixture_ids, scored_ids, problems
+        render_locked_fixture_ids, set(scored_verdicts), problems
     )
     if render_unscored_fixture_ids:
         _fail(
