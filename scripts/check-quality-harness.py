@@ -6411,6 +6411,24 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Non-conforming — the expiry hoisted into the token slot:**",
     ),
+    (
+        "R-HEAD-PROSE-BAD",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — an input carrying unparenthesized prose:**",
+    ),
+    (
+        "R-HEAD-CHAINREF",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — the same head with the upstream chain as an input:**",
+    ),
+    (
+        "R-HEAD-ALLCHAIN",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — a chain consuming only upstream conclusions:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6451,6 +6469,9 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CITE-NONE": ("Fargate",),
     "R-VERDICT-EXPIRY": ("expires at",),
     "R-VERDICT-EXPIRY-BAD": ("expires at",),
+    "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+    "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
+    "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
 }
 
 # Substrings the extracted text for a fixture id must NOT contain.
@@ -6725,6 +6746,19 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "uses the head-plus-arrow-led form, and a hop is split rather than "
         "continued on a second line."
     ),
+    # R7: the head-input rule and its negative in one literal
+    # (CHAINHEAD-01/CHAINHEAD-02, D-02).
+    "R7": (
+        "The head line lists the inputs the chain consumes: each is a "
+        "`GT-N` identifier (`GT-N?` when the ground truth is unverified) "
+        "or a `Cn` identifier, optionally followed by a parenthesized "
+        "gloss, joined to the next by `+`. The first `→` closes the head. "
+        "An input carrying unparenthesized prose — `C2's threshold` — is "
+        "not an identifier and does not parse; write `C2 (threshold)`."
+    ),
+    # R8: the rendered head form showing GT-N? and chain-as-input
+    # (CHAINHEAD-01, D-03).
+    "R8": "GT-1? ([brief fact label]) + C2 ([brief fact label])",
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -6738,12 +6772,12 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # that also state the positive rule.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
     ),
-    "shared/spine/references/validation-rubric.md": ("R1", "R6"),
+    "shared/spine/references/validation-rubric.md": ("R1", "R6", "R7", "R8"),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -6931,6 +6965,7 @@ def _render_registry_lock_problems(
     expected_ids = [
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
 
@@ -6993,6 +7028,24 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Non-conforming — the expiry hoisted into the token slot:**',
         ),
+        (
+            'R-HEAD-PROSE-BAD',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — an input carrying unparenthesized prose:**',
+        ),
+        (
+            'R-HEAD-CHAINREF',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — the same head with the upstream chain as an input:**',
+        ),
+        (
+            'R-HEAD-ALLCHAIN',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — a chain consuming only upstream conclusions:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -7046,6 +7099,9 @@ def _render_registry_lock_problems(
             "R-CITE-NONE": ("Fargate",),
             "R-VERDICT-EXPIRY": ("expires at",),
             "R-VERDICT-EXPIRY-BAD": ("expires at",),
+            "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+            "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
+            "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
             actual_shape = snapshot.fixture_shape.get(fixture_id)
@@ -7078,12 +7134,14 @@ def _render_registry_lock_problems(
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
         ),
-        "shared/spine/references/validation-rubric.md": ("R1", "R6"),
+        "shared/spine/references/validation-rubric.md": (
+            "R1", "R6", "R7", "R8",
+        ),
     }
     if snapshot.required_rules != expected_required_rules:
         problems.append(
@@ -7158,6 +7216,8 @@ def _render_registry_lock_problems(
         "R4": "A claim doing neither is cut, not softened",
         "R5": "GT-1 ([brief fact label]) + GT-6",
         "R6": "a hop is split rather than continued on a second line",
+        "R7": "is not an identifier and does not parse",
+        "R8": "GT-1? ([brief fact label]) + C2",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -7190,7 +7250,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:90093fc609847566fd55a60b861fe226315ede2c8365d15567e81fc3159275e3"
+        "sha256:4ccfd10ed7577c46dd8cd0ea9c76e666d84d3c193e15c6bcc485ea24df83f7a6"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
