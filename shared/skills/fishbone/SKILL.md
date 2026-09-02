@@ -3,7 +3,7 @@ name: fishbone
 description: Runs a focused fishbone only — breadth-first cause-category map. Invoke via /fishbone only.
 disable-model-invocation: true
 metadata:
-  version: "8.24.0"
+  version: "8.25.0"
 license: MIT
 ---
 # Focused Fishbone Mode

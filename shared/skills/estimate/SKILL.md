@@ -3,7 +3,7 @@ name: estimate
 description: Runs a focused estimate only — magnitude rebuild from units. Invoke via /estimate only.
 disable-model-invocation: true
 metadata:
-  version: "8.24.0"
+  version: "8.25.0"
 license: MIT
 ---
 # Focused Estimate Mode
