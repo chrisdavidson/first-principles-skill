@@ -7021,12 +7021,20 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # pins the positional-bound disclosure plan 13-08 added: without it
 # either row can revert to the unconditional "would fail the pair rather
 # than pass it" claim while the gate stays green, which is BL-01 exactly.
+# The sixth token, `R-HEAD-GTHOP-OK`, is deliberately the `-OK` id rather
+# than the `-BAD` one, added by plan 13-09 (BL-02): the remedy half is
+# the claim a future edit is likeliest to drop, because a row can state
+# a refusal without stating that the prescribed rewrite was ever
+# checked — without this token either row can state the GT-leading-hop
+# refusal alone while silently dropping the claim that the rewrite it
+# prescribes was ever verified to score well-formed.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
     "scored by a control, not merely extracted",
     "dispatch reachability",
     "R-HEAD-PROSE-MID",
+    "R-HEAD-GTHOP-OK",
 )
 
 
@@ -7397,6 +7405,7 @@ def _render_registry_lock_problems(
         "scored by a control, not merely extracted",
         "dispatch reachability",
         "R-HEAD-PROSE-MID",
+        "R-HEAD-GTHOP-OK",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -8903,8 +8912,10 @@ def _selftest_render_contract() -> bool:
     every doc row still carries it. Plan 13-05 (CR-01) added a third
     token pinning the corrected consumption-floor guarantee; plan 13-06
     (CR-02) added a fourth pinning the dispatch-reachability leg; plan
-    13-08 (BL-01) added a fifth pinning the disclosed positional bound.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 10 (2 doc rows x 5
+    13-08 (BL-01) added a fifth pinning the disclosed positional bound;
+    plan 13-09 (BL-02) added a sixth pinning the GT-leading-hop refusal's
+    remedy claim.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 12 (2 doc rows x 6
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -10234,19 +10245,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 5 required tokens = 10 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 6 required tokens = 12 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 10 — a doc row or a
+    # floored against an inline expected total of 12 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 10:
+    if qual01_negative_case_count != 12:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 10"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 12"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
