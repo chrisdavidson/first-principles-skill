@@ -225,6 +225,16 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold) + C4 (unc
 
 A head may consist entirely of `Cn` inputs with no `GT-N` term. The second hop's `C2's saving` is prose, not a head input — the head-only scope note is what permits it here.
 
+**Measured limitation — the same prose input in a non-final position:**
+
+```text
+GT-13? (bill composition unknown) + C2's threshold + GT-12? (duty cycle unknown)
+→ target quantity: fraction of total AWS bill removed by the migration
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+This head breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — with a well-formed input still to its right the check matches from `GT-12?` onward and never reaches `C2's threshold`. Write `C2 (threshold)` wherever the input sits; the rule is the contract, and the check is a partial instrument for it.
+
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.

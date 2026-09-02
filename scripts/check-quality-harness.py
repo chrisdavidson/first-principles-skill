@@ -6496,6 +6496,12 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Conforming — a chain consuming only upstream conclusions:**",
     ),
+    (
+        "R-HEAD-PROSE-MID",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Measured limitation — the same prose input in a non-final position:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6527,6 +6533,18 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # no-citation block. The reverse direction was already caught by
 # `R-CITE-LEDGER`'s extra `'\"'` needle and `R-CITE-NONE`'s
 # `_RENDER_FIXTURE_FORBIDDEN` entry.
+#
+# `R-HEAD-PROSE-BAD` and `R-HEAD-PROSE-MID` (plan 13-08, BL-01) are the
+# same violation in two head positions — trailing and middle — and need to
+# discriminate in BOTH directions: `R-HEAD-PROSE-MID`'s needle
+# `"+ C2's threshold + GT-12?"` is unique to the middle-position block
+# (`R-HEAD-PROSE-BAD` ends its head with `+ C2's threshold` and
+# `R-HEAD-CHAINREF` carries `C2 (threshold)`, neither of which contains
+# this substring), and `R-HEAD-PROSE-BAD`'s new third needle
+# `"+ C2's threshold\n→"` is unique to the trailing-position block — without
+# it a mis-anchored extraction returning the new middle-position block
+# still satisfies `R-HEAD-PROSE-BAD`'s shape guard, because that block also
+# contains the pair's first two needles.
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
     "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
@@ -6536,9 +6554,14 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CITE-NONE": ("Fargate",),
     "R-VERDICT-EXPIRY": ("expires at",),
     "R-VERDICT-EXPIRY-BAD": ("expires at",),
-    "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+    "R-HEAD-PROSE-BAD": (
+        "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
+    ),
     "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
     "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
+    "R-HEAD-PROSE-MID": (
+        "+ C2's threshold + GT-12?", "bill composition unknown",
+    ),
 }
 
 # Substrings the extracted text for a fixture id must NOT contain.
@@ -6615,7 +6638,7 @@ def _render_unscored_fixture_ids(
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all eleven Phase 11/13 rendering-contract fixtures from the shipped
+    """Read all twelve Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -7078,6 +7101,7 @@ def _render_registry_lock_problems(
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
+        "R-HEAD-PROSE-MID",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
 
@@ -7085,7 +7109,7 @@ def _render_registry_lock_problems(
     # the `row[0]` id projection the snapshot used to carry (WR-03,
     # `11-REVIEW-gap-closure.md`). `source_file`, `habitat_mode` and
     # `anchor` are what determine WHAT THE GATE ACTUALLY READS, and they
-    # sat outside the lock entirely: rebinding all eleven rows'
+    # sat outside the lock entirely: rebinding all eleven rows' (eleven was the table's size at Phase 11, when this was found; the table has grown since)
     # `source_file` to `first-principles/agents/references/` — the
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
@@ -7158,6 +7182,12 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Conforming — a chain consuming only upstream conclusions:**',
         ),
+        (
+            'R-HEAD-PROSE-MID',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Measured limitation — the same prose input in a non-final position:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -7192,15 +7222,15 @@ def _render_registry_lock_problems(
             f"!= expected {expected_ids!r}"
         )
     else:
-        # ALL ELEVEN ids carry a FULL-VALUE lock, not just a key-set lock.
+        # ALL TWELVE ids carry a FULL-VALUE lock, not just a key-set lock.
         # The three R-CHAIN-* ids were promoted first (IN-04,
         # `11-REVIEW.md`); the five others followed at WR-01
         # (`11-REVIEW-gap-closure.md`), which reproduced setting each of
         # their needle tuples to `()` with every key still present and the
         # self-test still GREEN — that silently disables the mode-2 shape
-        # guard for five of the eleven fixtures, so an extraction that
+        # guard for five of the twelve fixtures, so an extraction that
         # returned a neighbouring block scores `False` for the wrong reason
-        # and passes vacuously. The three R-HEAD-* ids added at Phase 13
+        # and passes vacuously. The four R-HEAD-* ids added at Phase 13
         # carry their discriminating needles from the start, the same
         # treatment the R-CHAIN-* ids received. There is no reason to keep
         # two tiers: a needle tuple is the whole content of the guard for
@@ -7214,9 +7244,14 @@ def _render_registry_lock_problems(
             "R-CITE-NONE": ("Fargate",),
             "R-VERDICT-EXPIRY": ("expires at",),
             "R-VERDICT-EXPIRY-BAD": ("expires at",),
-            "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+            "R-HEAD-PROSE-BAD": (
+                "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
+            ),
             "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
             "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
+            "R-HEAD-PROSE-MID": (
+                "+ C2's threshold + GT-12?", "bill composition unknown",
+            ),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
             actual_shape = snapshot.fixture_shape.get(fixture_id)
@@ -8639,7 +8674,7 @@ def _selftest_render_contract() -> bool:
     here calls it from outside; none of them, nor anything in this file,
     modifies it.
 
-    Controls (a)-(b) pin the eleven measured verdicts. Control (c) pins
+    Controls (a)-(b) pin the twelve measured verdicts. Control (c) pins
     minimality of the wrap counter-example: it must differ from the
     conforming example by exactly the inserted continuation line, so the
     counter-example demonstrably teaches the wrap rule and nothing else.
@@ -8659,10 +8694,16 @@ def _selftest_render_contract() -> bool:
     scored in opposite directions — a detector accepting both would fail
     this pair by design, which is why widening `_chain_block_well_formed`
     is the wrong fix; the third covers the all-`Cn` head shape GAP-6
-    widened `_CHAIN_REF_TOKEN` for. Control (p), added by plan 11-09 (gap
-    2's second half), is the CONSUMPTION FLOOR: `_get` records every id it
-    is asked for, and the floor asserts that set against a locked
-    eleven-id set written inline — plus that `fixtures` matches the same
+    widened `_CHAIN_REF_TOKEN` for. Plan 13-08 (BL-01) added a fourth,
+    `R-HEAD-PROSE-MID`: the same possessive-prose violation as
+    `R-HEAD-PROSE-BAD` but in a non-final head position, pinning the
+    measured bound R7 now discloses — the mechanical check reaches only
+    the last input before the first arrow, so this fixture is expected
+    WELL-FORMED even though R7 forbids the violation everywhere. Control
+    (p), added by plan 11-09 (gap 2's second half), is the CONSUMPTION
+    FLOOR: `_get` records every id it is asked for, and the floor asserts
+    that set against a locked twelve-id set written inline — plus that
+    `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
     reproduction left silent), plus that every locked id is either
     scored by a control or named in a reported problem. A fixture that is
@@ -8878,6 +8919,7 @@ def _selftest_render_contract() -> bool:
     head_prose_bad = _get("R-HEAD-PROSE-BAD")
     head_chainref = _get("R-HEAD-CHAINREF")
     head_allchain = _get("R-HEAD-ALLCHAIN")
+    head_prose_mid = _get("R-HEAD-PROSE-MID")
 
     # `scored_ids` backs the (p) CONSUMPTION FLOOR's third arm below: every
     # id one of the four wrappers records, because a scorer was actually
@@ -8970,6 +9012,26 @@ def _selftest_render_contract() -> bool:
             "(b) R-HEAD-ALLCHAIN (doc label 'Conforming — a chain "
             "consuming only upstream conclusions:') scored malformed, "
             "expected well-formed"
+        )
+
+    # (b) R-HEAD-PROSE-MID (plan 13-08, BL-01): this fixture and
+    #     R-HEAD-PROSE-BAD are the SAME violation in two head positions —
+    #     trailing and middle — scored in OPPOSITE directions by the
+    #     unmodified `_chain_block_well_formed`: with a well-formed input
+    #     still to its right the check matches from `GT-12?` onward and
+    #     never reaches `C2's threshold`, so this fixture is expected
+    #     WELL-FORMED even though R7 forbids the same input everywhere.
+    #     This pins the measured bound R7 now discloses, not an
+    #     endorsement of the head — so a future anchoring of
+    #     `_CHAIN_FORM_LINE_RE` fails this control rather than passing
+    #     silently, which is the point.
+    if head_prose_mid is not None and not _score_chain(
+        "R-HEAD-PROSE-MID", head_prose_mid
+    ):
+        _fail(
+            "(b) R-HEAD-PROSE-MID (doc label 'Measured limitation — the "
+            "same prose input in a non-final position:') scored "
+            "malformed, expected well-formed (measured bound)"
         )
 
     # (c) Minimality of the wrap counter-example: dropping the single line
@@ -9098,7 +9160,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked eleven-id set below is written INLINE,
+    #     printed PASSED. The locked twelve-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -9125,6 +9187,7 @@ def _selftest_render_contract() -> bool:
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
+        "R-HEAD-PROSE-MID",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
