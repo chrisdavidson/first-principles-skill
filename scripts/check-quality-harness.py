@@ -6958,7 +6958,8 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 
 # The tokens each registered `| QUAL-01 |` table row must carry (plan
 # 11-10, WR-04/IN-02/IN-03; third entry added by plan 13-05, CR-01;
-# fourth entry added by plan 13-06, CR-02). The second token is what
+# fourth entry added by plan 13-06, CR-02; fifth entry added by plan
+# 13-08, BL-01). The second token is what
 # makes the row's disclosure of the third scanned surface
 # (validation-rubric.md) load-bearing rather than decorative — a row
 # could name "emission rendering contract" while still describing only
@@ -6971,12 +6972,16 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # fourth token pins the dispatch-reachability leg plan 13-06 added:
 # without it, removing the new leg's mention from either doc row would
 # leave the gate green while the published claim silently narrowed back
-# to what CR-02 found unfalsifiable.
+# to what CR-02 found unfalsifiable. The fifth token, `R-HEAD-PROSE-MID`,
+# pins the positional-bound disclosure plan 13-08 added: without it
+# either row can revert to the unconditional "would fail the pair rather
+# than pass it" claim while the gate stays green, which is BL-01 exactly.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
     "scored by a control, not merely extracted",
     "dispatch reachability",
+    "R-HEAD-PROSE-MID",
 )
 
 
@@ -7327,6 +7332,7 @@ def _render_registry_lock_problems(
         "validation-rubric.md",
         "scored by a control, not merely extracted",
         "dispatch reachability",
+        "R-HEAD-PROSE-MID",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -8824,8 +8830,9 @@ def _selftest_render_contract() -> bool:
     from the tuple is caught by control (h2)'s anti-masking floor even if
     every doc row still carries it. Plan 13-05 (CR-01) added a third
     token pinning the corrected consumption-floor guarantee; plan 13-06
-    (CR-02) added a fourth pinning the dispatch-reachability leg. A
-    NEGATIVE-CASE COUNT FLOOR derives the expected 8 (2 doc rows x 4
+    (CR-02) added a fourth pinning the dispatch-reachability leg; plan
+    13-08 (BL-01) added a fifth pinning the disclosed positional bound.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 10 (2 doc rows x 5
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -10130,19 +10137,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 4 required tokens = 8 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 5 required tokens = 10 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 8 — a doc row or a
+    # floored against an inline expected total of 10 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 8:
+    if qual01_negative_case_count != 10:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 8"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 10"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
