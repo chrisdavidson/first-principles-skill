@@ -6928,14 +6928,21 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 )
 
 # The tokens each registered `| QUAL-01 |` table row must carry (plan
-# 11-10, WR-04/IN-02/IN-03). The second token is what makes the row's
-# disclosure of the third scanned surface (validation-rubric.md)
-# load-bearing rather than decorative — a row could name "emission
-# rendering contract" while still describing only the two-surface world
-# CR-01 closed.
+# 11-10, WR-04/IN-02/IN-03; third entry added by plan 13-05, CR-01). The
+# second token is what makes the row's disclosure of the third scanned
+# surface (validation-rubric.md) load-bearing rather than decorative — a
+# row could name "emission rendering contract" while still describing
+# only the two-surface world CR-01 closed. The third token pins the
+# corrected consumption-floor guarantee: before plan 13-05 both rows
+# stated that the floor fails if a fixture is not "scored or reported",
+# but the floor tested extraction, not scoring — the row was a true
+# statement about a wrong claim. Pinning the corrected phrase is what
+# stops the row drifting back to the weaker claim while the gate stays
+# green.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
+    "scored by a control, not merely extracted",
 )
 
 
@@ -7272,6 +7279,7 @@ def _render_registry_lock_problems(
     expected_qual01_doc_row_tokens = (
         "emission rendering contract",
         "validation-rubric.md",
+        "scored by a control, not merely extracted",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -8680,14 +8688,15 @@ def _selftest_render_contract() -> bool:
     with `| QUAL-01 |` rather than any line mentioning "QUAL-01" — IN-03,
     proven by a dedicated ANTI-MASKING arm that puts the token on a
     non-row line and requires the problem to still fire — and to require
-    both `_QUAL01_DOC_ROW_TOKENS` entries independently, reporting one
+    every `_QUAL01_DOC_ROW_TOKENS` entry independently, reporting one
     problem per missing token by name rather than a single all-or-nothing
     verdict. `_QUAL01_DOC_ROW_TOKENS` is itself a ninth locked
-    `_RenderRegistrySnapshot` field, so dropping either required token
+    `_RenderRegistrySnapshot` field, so dropping any required token
     from the tuple is caught by control (h2)'s anti-masking floor even if
-    every doc row still carries it. A NEGATIVE-CASE COUNT FLOOR derives
-    the expected 4 (2 doc rows x 2 tokens) from the two registries rather
-    than restating it.
+    every doc row still carries it. Plan 13-05 (CR-01) added a third
+    token pinning the corrected consumption-floor guarantee. A
+    NEGATIVE-CASE COUNT FLOOR derives the expected 6 (2 doc rows x 3
+    tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
     formerly a single control (l), into three explicitly-labelled arms
@@ -9906,19 +9915,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 2 required tokens = 4 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 3 required tokens = 6 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 4 — a doc row or a
+    # floored against an inline expected total of 6 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 4:
+    if qual01_negative_case_count != 6:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 4"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 6"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
