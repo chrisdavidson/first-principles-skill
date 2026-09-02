@@ -1853,6 +1853,65 @@ def _resolve_confined_output(path: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 
+def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> list[str]:
+    """Distinguish "defined" from "dispatched" for a `_selftest_*` anchor (CR-02 / criterion 5).
+
+    Pure: does no I/O — `content` is the artifact file's full text, passed in by the caller —
+    so the self-test can drive this with in-memory literals, matching the purity contract
+    `scripts/check-registration.py`'s `verify_ci_job_registration` states for the REG-GUARD
+    CI-job axis this leg mirrors one level down.
+
+    Applies only to anchors that start with `_selftest_`: only a self-test sub-check has a
+    dispatch to lose, so widening this to every symbol (a module constant, a library helper)
+    would produce false positives that have nothing to do with the property being checked.
+    Any other anchor returns `[]` immediately.
+
+    Fail-closed by design, in two ways:
+      - if the file defines no top-level `def self_test(` to dispatch the anchor from, that is
+        reported as a problem, not silently skipped — a renamed or deleted dispatcher must be a
+        loud failure;
+      - a dispatch that exists only inside a commented-out line does not count. Comments are
+        stripped from the sliced `self_test()` body (drop everything from the first `#` on each
+        line) before the anchor is searched for. This can over-strip a `#` that appears inside a
+        string literal, which can only produce a FALSE POSITIVE (a loud, fixable failure) —
+        never a false negative — so it is an accepted, disclosed tradeoff.
+
+    DISCLOSED LIMITATION: this proves the anchor's name appears in a call position
+    (`anchor + "("`) somewhere in `self_test()`'s own comment-stripped body. It does NOT prove
+    the call is reached at runtime, does NOT prove it sits outside a dead `if False:` branch,
+    and does NOT prove dispatch via a nested helper that `self_test()` itself calls. It is a
+    line-anchored substring check, matching `_resolve_artifact`'s own accepted D-03 limitation,
+    not a call-graph analysis.
+    """
+    if not anchor.startswith("_selftest_"):
+        return []
+
+    _dispatcher_pat = re.compile(r"^def self_test\(", re.MULTILINE)
+    _match = _dispatcher_pat.search(content)
+    if _match is None:
+        return [
+            f"anchor {anchor!r} is defined in {file_part!r} but the file defines no "
+            f"top-level self_test() to dispatch it from — never called from self_test()"
+        ]
+
+    _next_top_level_pat = re.compile(r"^(?:def |class |@)", re.MULTILINE)
+    _next_match = _next_top_level_pat.search(content, _match.end())
+    _body_end = _next_match.start() if _next_match else len(content)
+    _body = content[_match.start():_body_end]
+
+    # Strip comments line by line before matching (see docstring tradeoff above).
+    _stripped_lines = [line.split("#", 1)[0] for line in _body.splitlines()]
+    _stripped_body = "\n".join(_stripped_lines)
+
+    if (anchor + "(") not in _stripped_body:
+        return [
+            f"anchor {anchor!r} is defined in {file_part!r} but is never called from "
+            f"self_test() — a 'reproducible' tier pointing at a defined-but-never-dispatched "
+            f"sub-check is unenforced"
+        ]
+    return []
+
+
 def _resolve_artifact(artifact_link: str) -> list[str]:
     """Deep-resolve an artifact_link; return a list of issue descriptions.
 
@@ -1861,6 +1920,10 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
       - catalog-row anchor (path#ROW-ID) → file exists + row ID in file text
       - rubric anchor (path#anchor) → file exists + heading found in file
       - plain file path → file exists
+      - `.py` anchor starting with `_selftest_` → additionally must be CALLED from a
+        top-level `self_test()` in the same file, not merely defined (CR-02 / criterion 5;
+        see `_selftest_dispatch_problems`) — "defined" alone used to satisfy a
+        `reproducible` tier claim even when the dispatch calling it had been deleted.
 
     Returns empty list if the artifact resolves correctly.
     Empty artifact_link string is not dispatched here (callers check tier first).
@@ -1894,6 +1957,13 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
             # inside a triple-quoted string or docstring can therefore
             # false-positive. The self-test proves comment-only rejection +
             # substring non-vacuity; it does not claim string-literal rejection.
+            #
+            # CR-02 extension: proving the anchor is a def/class/module-level symbol
+            # only proves it is DEFINED. For a `_selftest_*` anchor this used to be the
+            # entire check, so a dead sub-check (defined, never called from
+            # self_test()) satisfied a `reproducible` tier claim. See
+            # `_selftest_dispatch_problems` for the added reachability leg and its own
+            # disclosed limitations.
             escaped = re.escape(anchor)
             # Arm 1 allows an optional `async ` prefix so `async def <anchor>`
             # resolves (WR-03 — a bare `(def|class)` alternation misses it
@@ -1908,7 +1978,7 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
                 return [
                     f"anchor {anchor!r} is not a def/class/module-level symbol in {file_part!r}"
                 ]
-            return []
+            return _selftest_dispatch_problems(anchor, content, file_part)
 
         # Non-.py files: catalog-row form (row ID like B-P12, S-P01, etc.) and
         # rubric anchors (heading slugs). Use plain substring membership
