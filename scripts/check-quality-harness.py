@@ -7111,7 +7111,15 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # a refusal without stating that the prescribed rewrite was ever
 # checked — without this token either row can state the GT-leading-hop
 # refusal alone while silently dropping the claim that the rewrite it
-# prescribes was ever verified to score well-formed.
+# prescribes was ever verified to score well-formed. The seventh token,
+# `expected-verdict floor`, added by plan 13-10 (BL-03): without it a row
+# reverts to plan 13-05's membership-based claim ("scored by a control,
+# not merely extracted"), which `13-VERIFICATION.md` independently showed
+# was a true statement about a wrong guarantee — a control could satisfy
+# it by calling a scorer and discarding the result, or by writing the
+# recorder directly, while scoring nothing. This token pins the
+# strengthened claim: the recorded verdict must equal an inline
+# expectation, not merely exist.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -7119,6 +7127,7 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "dispatch reachability",
     "R-HEAD-PROSE-MID",
     "R-HEAD-GTHOP-OK",
+    "expected-verdict floor",
 )
 
 
@@ -7490,6 +7499,7 @@ def _render_registry_lock_problems(
         "dispatch reachability",
         "R-HEAD-PROSE-MID",
         "R-HEAD-GTHOP-OK",
+        "expected-verdict floor",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -9012,8 +9022,9 @@ def _selftest_render_contract() -> bool:
     (CR-02) added a fourth pinning the dispatch-reachability leg; plan
     13-08 (BL-01) added a fifth pinning the disclosed positional bound;
     plan 13-09 (BL-02) added a sixth pinning the GT-leading-hop refusal's
-    remedy claim.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 12 (2 doc rows x 6
+    remedy claim; plan 13-10 (BL-03) added a seventh pinning the
+    strengthened expected-verdict consumption-floor claim.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 14 (2 doc rows x 7
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -9408,10 +9419,10 @@ def _selftest_render_contract() -> bool:
     #     goes red.
     #
     #     Plan 13-10 (BL-03, `13-VERIFICATION.md`) found the ORIGINAL
-    #     in-code claim here false: it read "The fail-OPEN shape, a control
-    #     marking a fixture scored without scoring it, has no guard here;
-    #     control (t) below closes exactly that by locking the
-    #     wrapper/recorder site count." The verification independently
+    #     in-code claim here false: it asserted that control (t) below,
+    #     by locking the wrapper/recorder site count, fully closed the
+    #     fail-OPEN shape — a control marking a fixture scored without
+    #     scoring it. The verification independently
     #     reproduced two bypasses that both satisfied or evaded that count
     #     while leaving this sub-check green: (1) `scored_ids.update({...})`
     #     writing the three chain-head ids directly, with no scorer ever
@@ -9649,9 +9660,9 @@ def _selftest_render_contract() -> bool:
     # backstop over the recorder's write idioms. Plan 13-10 (BL-03,
     # `13-VERIFICATION.md`) REWROTE it: the ORIGINAL version here counted
     # `scored_ids.add(` / `def _score_` sites and its own comment falsely
-    # claimed this control "closes exactly that" fail-OPEN shape — a
-    # control marking a fixture scored without actually scoring it. It did
-    # not: the verification independently reproduced two bypasses that
+    # claimed this control, by itself, fully closed the fail-OPEN shape —
+    # a control marking a fixture scored without actually scoring it. It
+    # did not: the verification independently reproduced two bypasses that
     # both left the old count satisfied or unmoved while the fail-OPEN
     # shape stayed wide open — (1) `scored_ids.update({...})` writing ids
     # directly with no scorer ever called (`.update(` is not `.add(`, so
@@ -10761,19 +10772,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 6 required tokens = 12 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 7 required tokens = 14 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 12 — a doc row or a
+    # floored against an inline expected total of 14 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 12:
+    if qual01_negative_case_count != 14:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 12"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 14"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
