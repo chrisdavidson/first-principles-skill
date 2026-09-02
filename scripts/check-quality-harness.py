@@ -6665,6 +6665,69 @@ def _render_unscored_fixture_ids(
     )
 
 
+def _render_chain_family_ids(
+    locked_ids: set[str], prefixes: tuple[str, ...]
+) -> set[str]:
+    """Every id in *locked_ids* starting with any entry of *prefixes*.
+
+    The chain family is a PROXY for "scored by the single-argument
+    `_chain_block_well_formed`" (see `_RENDER_CHAIN_FAMILY_PREFIXES`'s
+    own comment for the disclosure) — this helper is deliberately not a
+    membership test against a hand-written id list, so a fifteenth
+    `R-CHAIN-*`/`R-HEAD-*` fixture added to the locked set is picked up
+    the next time this runs rather than requiring a second edit here.
+    Pure: takes both inputs as parameters and reads no module constant
+    (`_RENDER_CHAIN_FAMILY_PREFIXES` is passed in by the caller, never
+    read directly), matching `_render_unscored_fixture_ids`'s purity
+    contract — this is what lets control (x)'s x5 arm drive it with
+    synthetic literals instead of the real locked set.
+    """
+    return {
+        fid for fid in locked_ids if fid.startswith(tuple(prefixes))
+    }
+
+
+def _render_coverage_floor_problems(
+    entries: tuple[tuple[str, frozenset[str], frozenset[str]], ...],
+) -> list[str]:
+    """For each `(arm_name, actual, required)` entry whose `actual !=
+    required`, emit one problem naming the arm and the sorted symmetric
+    difference (`required - actual` reported as MISSING, `actual -
+    required` reported as UNEXPECTED). Sorted.
+
+    This is an EQUALITY helper, deliberately, not a union or subset
+    helper (CR-03, WR-04, `13-REVIEW-plans-08-11.md`):
+
+    - A UNION over two sets is satisfied by whichever set is the
+      superset, so narrowing the OTHER set is invisible to it — this is
+      exactly how arm 4a's own coverage table could be shrunk from nine
+      entries to one while the battery stayed green: arm 4b's table is
+      a strict superset of arm 4a's, so the union check never noticed
+      arm 4a narrowing underneath it.
+    - A SUBSET test (`required - observed`) cannot see an observed set
+      that grew past its requirement, and — the shape that matters here
+      — when the REQUIREMENT itself is narrowed it cannot see that the
+      arm now checks less than it claims to.
+
+    Each entry is floored on its own, independently: a whole sibling
+    entry passing cannot discharge a narrowed one, which is what makes
+    this helper closed against the CR-03 shape rather than merely a
+    relocation of it. Pure: takes all inputs as one parameter and reads
+    no module constant.
+    """
+    problems_out: list[str] = []
+    for arm_name, actual, required in entries:
+        if actual != required:
+            missing = sorted(required - actual)
+            unexpected = sorted(actual - required)
+            problems_out.append(
+                f"{arm_name}: actual {sorted(actual)!r} != required "
+                f"{sorted(required)!r} — MISSING {missing!r}, "
+                f"UNEXPECTED {unexpected!r}"
+            )
+    return sorted(problems_out)
+
+
 def _render_verdict_floor_problems(
     expected: dict[str, list[bool]],
     scored_verdicts: dict[str, list[bool]],
@@ -7078,6 +7141,18 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
     "lines, never as an ordered list",
 )
 
+# The chain family is the subset of the locked fixture ids whose scorer
+# is the single-argument `_chain_block_well_formed` — every id whose
+# independent re-score (arm 4a) can call that scorer directly, rather
+# than one of the five `R-CITE-*` / `R-VERDICT-*` fixtures whose scorers
+# take extra arguments (chain ids, chain text, ledger fragments). The
+# prefix test below is a PROXY for that scorer-arity property, chosen
+# because the ids were named for it — the proxy relationship is
+# disclosed here rather than left implicit, and control (x)'s x5
+# DERIVATION arm proves the derivation discriminates rather than merely
+# echoing its input.
+_RENDER_CHAIN_FAMILY_PREFIXES: tuple[str, ...] = ("R-CHAIN-", "R-HEAD-")
+
 # The two doc-side QUAL-01 gate-description rows that must state the new
 # coverage — see control (m) and Task 3.
 _QUAL01_DOC_ROWS: tuple[str, ...] = (
@@ -7119,7 +7194,13 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # it by calling a scorer and discarding the result, or by writing the
 # recorder directly, while scoring nothing. This token pins the
 # strengthened claim: the recorded verdict must equal an inline
-# expectation, not merely exist.
+# expectation, not merely exist. The eighth token, `chain-family
+# coverage floor`, added by plan 13-12 (CR-03): without it a row can
+# keep stating that the nine chain-family fixtures are independently
+# re-scored while the arm deciding WHICH nine is narrowed to one,
+# because the only floor over that arm's own coverage table was a union
+# a sibling table already satisfied — CR-03 exactly, and the third time
+# in this phase a floor reported PASS while unable to fail.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -7128,6 +7209,7 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "R-HEAD-PROSE-MID",
     "R-HEAD-GTHOP-OK",
     "expected-verdict floor",
+    "chain-family coverage floor",
 )
 
 
@@ -7135,7 +7217,7 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
 class _RenderRegistrySnapshot:
     """A by-value snapshot of the registries the rendering-contract
     mechanism depends on — one field per entry of
-    `_RENDER_REGISTRY_FIELDS` (eleven today, ten registries: the
+    `_RENDER_REGISTRY_FIELDS` (twelve today, eleven registries: the
     extraction table contributes both `extraction_rows`, the
     authoritative all-four-column arm, and the derived `extraction_ids`).
 
@@ -7180,6 +7262,7 @@ class _RenderRegistrySnapshot:
     qual01_doc_rows: tuple[str, ...]
     qual01_doc_row_tokens: tuple[str, ...]
     pre_contract_wordings: tuple[str, ...]
+    chain_family_prefixes: tuple[str, ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -7198,6 +7281,7 @@ class _RenderRegistrySnapshot:
             qual01_doc_rows=_QUAL01_DOC_ROWS,
             qual01_doc_row_tokens=_QUAL01_DOC_ROW_TOKENS,
             pre_contract_wordings=_RENDER_PRE_CONTRACT_WORDINGS,
+            chain_family_prefixes=_RENDER_CHAIN_FAMILY_PREFIXES,
         )
 
 
@@ -7218,6 +7302,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "qual01_doc_rows",
     "qual01_doc_row_tokens",
     "pre_contract_wordings",
+    "chain_family_prefixes",
 )
 
 def _render_registry_lock_problems(
@@ -7500,6 +7585,7 @@ def _render_registry_lock_problems(
         "R-HEAD-PROSE-MID",
         "R-HEAD-GTHOP-OK",
         "expected-verdict floor",
+        "chain-family coverage floor",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -7530,6 +7616,17 @@ def _render_registry_lock_problems(
             f"expected {expected_pre_contract_wordings!r}"
         )
     checked.add("pre_contract_wordings")
+
+    # `chain_family_prefixes` (plan 13-12, CR-03): the prefix pair
+    # `_render_chain_family_ids` derives arm 4a's coverage from. Locked
+    # here by value, never against the module constant it mirrors.
+    expected_chain_family_prefixes = ("R-CHAIN-", "R-HEAD-")
+    if snapshot.chain_family_prefixes != expected_chain_family_prefixes:
+        problems.append(
+            f"chain_family_prefixes: {snapshot.chain_family_prefixes!r} != "
+            f"expected {expected_chain_family_prefixes!r}"
+        )
+    checked.add("chain_family_prefixes")
 
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
@@ -7796,22 +7893,34 @@ def _read_qual01_doc_rows() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
 
 
 _MATRIX_SELFTEST_ANCHOR_RE = re.compile(
-    r"scripts/check-quality-harness\.py#(_selftest_\w+)"
+    r"scripts/check-quality-harness\.py#(_self_?test_\w+)"
 )
 
 
 def _matrix_named_selftest_symbols() -> tuple[tuple[str, ...], list[str]]:
     """Read `scripts/check-traceability.py`'s source and return the sorted
-    tuple of `_selftest_*` anchors any `MatrixRow.artifact_link` names in
-    THIS file (`scripts/check-quality-harness.py`), plus a problems list
-    rather than raising (unreadable file, decode error — same
-    `_read_text_or_problem` discipline as `_read_qual01_doc_rows`).
+    tuple of `_selftest_*`/`_self_test_*` anchors any `MatrixRow.
+    artifact_link` names in THIS file (`scripts/check-quality-harness.py`),
+    plus a problems list rather than raising (unreadable file, decode
+    error — same `_read_text_or_problem` discipline as
+    `_read_qual01_doc_rows`).
 
     Derives the symbol set from the sibling script's source rather than
     restating a hand-typed list here: a new matrix row naming a new
     sub-check is picked up automatically the next time this runs, and a
     restated list would go stale silently the moment a row's anchor
     changed and this file's copy did not (WR-06 idiom).
+
+    Matches BOTH self-test-anchor naming conventions this repository
+    uses (`_selftest_*` and `_self_test_*`, WR-04, plan 13-12), mirroring
+    the widening `check-traceability.py`'s own dispatch-reachability leg
+    got at plan 13-11 for exactly the same reason. Measured against the
+    live tree at plan 13-12 (A-02): the derived set is unchanged today —
+    `('_selftest_analysis_persistence', '_selftest_capture_tool_reader',
+    '_selftest_chain_detector_pin', '_selftest_render_contract')` —
+    because no `scripts/check-quality-harness.py#...` matrix row names a
+    `_self_test_*` anchor. This widening is a future-narrowing guard, not
+    a present behaviour change.
     """
     text, problem = _read_text_or_problem(
         REPO_ROOT / "scripts/check-traceability.py",
@@ -9023,8 +9132,9 @@ def _selftest_render_contract() -> bool:
     13-08 (BL-01) added a fifth pinning the disclosed positional bound;
     plan 13-09 (BL-02) added a sixth pinning the GT-leading-hop refusal's
     remedy claim; plan 13-10 (BL-03) added a seventh pinning the
-    strengthened expected-verdict consumption-floor claim.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 14 (2 doc rows x 7
+    strengthened expected-verdict consumption-floor claim; plan 13-12
+    (CR-03) added an eighth pinning the chain-family coverage floor.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 16 (2 doc rows x 8
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -9549,20 +9659,18 @@ def _selftest_render_contract() -> bool:
     ):
         _fail(f"(p) EXPECTED-VERDICT FLOOR: {render_verdict_problem}")
 
-    # (p) ANTI-MASKING: the union of the two floor tables' key sets must
-    #     equal the locked fourteen-id set. Without this, a fifteenth
-    #     fixture added later — covered by neither table — would be
-    #     silently unfloored by both arm 4a and arm 4b while (p)'s first
-    #     two arms above still see it via `requested_ids`/`fixtures`.
-    render_verdict_floor_union = (
-        set(render_chain_verdict_expected) | set(render_verdict_expected)
-    )
-    if render_verdict_floor_union != render_locked_fixture_ids:
-        _fail(
-            f"(p) VERDICT FLOOR ANTI-MASKING: union of the two "
-            f"expected-verdict tables' keys {sorted(render_verdict_floor_union)!r} "
-            f"!= locked fixture ids {sorted(render_locked_fixture_ids)!r}"
-        )
+    # Coverage of BOTH expected-verdict tables above, plus control (u)'s
+    # dispatch-reachability symbol set below, is floored by EQUALITY in
+    # control (x) further down this function — not here, and not by a
+    # union. A prior version of this comment described a union check
+    # whose purpose was "a fifteenth fixture added later — covered by
+    # neither table — would be silently unfloored by both arm 4a and arm
+    # 4b." That case is subsumed by arm 4b's equality floor against
+    # `render_locked_fixture_ids` in control (x). The case the union
+    # could not see — arm 4a narrowing while arm 4b stays whole, so the
+    # union (arm 4b alone) stays satisfied regardless of what arm 4a
+    # contains — is CR-03, the gap control (x) exists to close
+    # (`13-REVIEW-plans-08-11.md`).
 
     # (p) ISOLATION, prefix discrimination. Drives the accounting
     # predicate directly with a problem composed by the EMITTER's own
@@ -9687,12 +9795,13 @@ def _selftest_render_contract() -> bool:
     # over that source TEXT — never behaviour: exactly four sites where the
     # recorder is mutated via its dict-of-lists append idiom, and exactly
     # four `_score_*` wrapper definitions; exactly six call sites for the
-    # recorded-verdict floor helper and exactly five call sites for the
+    # recorded-verdict floor helper and exactly six call sites for the
     # independent chain-rescoring helper (one real floor-arm call each,
-    # plus control (w)'s isolation-driving calls — so deleting either
-    # floor arm's real call, or any of control (w)'s isolation calls,
-    # moves the count and fails here by name, which is what MUTATION F
-    # below exercises); and ZERO occurrences of the two bypasses' forgery
+    # plus control (w)'s isolation-driving calls — five for the chain
+    # helper as of plan 13-12's IN-03 anti-masking arm, matching the
+    # verdict helper's own five — so deleting either floor arm's real
+    # call, or any of control (w)'s isolation calls, moves the count and
+    # fails here by name); and ZERO occurrences of the two bypasses' forgery
     # idioms — a bare dict `.update(` call on the recorder, and a
     # bare-subscript assignment into it (the recorder name immediately
     # followed by `[`, with `] = ` present on the SAME source line — this
@@ -9730,7 +9839,7 @@ def _selftest_render_contract() -> bool:
         render_t_setdefault_count != 4
         or render_t_def_count != 4
         or render_t_verdict_call_count != 6
-        or render_t_chain_call_count != 5
+        or render_t_chain_call_count != 6
         or render_t_update_count != 0
         or render_t_subscript_assign_count != 0
     ):
@@ -9742,7 +9851,7 @@ def _selftest_render_contract() -> bool:
             f"verdict-floor-helper call site(s) (expected 6), "
             f"{render_t_chain_call_count} "
             f"chain-verdict-floor-helper call site(s) "
-            f"(expected 5), {render_t_update_count} forbidden recorder "
+            f"(expected 6), {render_t_update_count} forbidden recorder "
             f"dict-update occurrence(s) (expected 0), and "
             f"{render_t_subscript_assign_count} forbidden bare-subscript "
             f"assignment occurrence(s) (expected 0)"
@@ -9760,16 +9869,24 @@ def _selftest_render_contract() -> bool:
     for render_u_problem in render_u_read_problems:
         _fail(f"(u) DISPATCH REACHABILITY READ: {render_u_problem}")
 
-    # 2. NON-VACUITY FLOOR: the derived symbol set must be non-empty and
-    #    must contain both known anchors. Without this, a regex that
-    #    stopped matching would silently check nothing.
-    render_u_required = {"_selftest_render_contract", "_selftest_chain_detector_pin"}
-    render_u_missing = render_u_required - set(render_u_symbols)
-    if not render_u_symbols or render_u_missing:
-        _fail(
-            f"(u) DISPATCH REACHABILITY NON-VACUITY FLOOR: derived symbol "
-            f"set {render_u_symbols!r} is missing {sorted(render_u_missing)!r}"
-        )
+    # 2. The locked anchor set this derived symbol set is floored
+    #    against. As of plan 13-12 (WR-04) the floor itself is EQUALITY,
+    #    not a subset test: a subset test (`required - observed`) cannot
+    #    see the derived set NARROWING past what it used to cover, only
+    #    an anchor going missing entirely — the same "narrowing is
+    #    invisible" shape CR-03 showed one level up. The equality
+    #    assertion for this set is control (x)'s registry (h) below, not
+    #    here: `render_u_required` is a restated locked set rather than a
+    #    derived one, by design, because there is no locked set upstream
+    #    of it to derive from — narrowing it is intended to be the loud
+    #    event, and the LIVE POSITIVE step below is what proves the four
+    #    anchors are really dispatched.
+    render_u_required = {
+        "_selftest_analysis_persistence",
+        "_selftest_capture_tool_reader",
+        "_selftest_chain_detector_pin",
+        "_selftest_render_contract",
+    }
 
     # 3. LIVE POSITIVE: this is the arm that goes red when Item 25's
     #    dispatch is deleted — and it runs from Item 24, which is still
@@ -9809,6 +9926,195 @@ def _selftest_render_contract() -> bool:
             f"(u) DISPATCH REACHABILITY SYNTHETIC NEGATIVE (commented): "
             f"expected one problem naming '_selftest_x', got "
             f"{render_u_neg_commented!r}"
+        )
+
+    # (x) COVERAGE FLOOR REGISTRY. Plan 13-12 (CR-03, WR-04,
+    #     `13-REVIEW-plans-08-11.md`): a coverage set that decides WHICH
+    #     locked fixtures an arm covers must be DERIVED from the locked
+    #     set and floored by EQUALITY — never by a union, a subset test,
+    #     or a membership test that a sibling set can satisfy. Round 1
+    #     found the original extraction-only floor forgeable (CR-01,
+    #     `13-VERIFICATION-plans-01-04.md`); round 2 found the
+    #     `scored_ids` floor forgeable two new ways (BL-03,
+    #     `13-VERIFICATION.md`); round 3 found the 13-10 rebuild
+    #     forgeable a third way (CR-03, this control's namesake). This is
+    #     the general property those three rounds are instances of.
+    #
+    #     Three sets floored here, all by equality against a locked or
+    #     derived set: arm 4a's chain re-score table (against the
+    #     DERIVED chain family, not the locked set itself — the whole
+    #     point is that arm 4a covers a proper SUBSET of the locked ids);
+    #     arm 4b's recorded-verdict table (against all fourteen locked
+    #     ids); and control (u)'s dispatch-reachability symbol set
+    #     (against the four locked anchors, replacing WR-04's subset
+    #     test, which could not see the required side itself narrowing).
+    #
+    #     DISCLOSED LIMITS: this registry is hand-registered, so a FOURTH
+    #     coverage set added later without an entry here is invisible to
+    #     this floor — the same limitation `_RenderRegistrySnapshot`'s
+    #     own SCOPE paragraph states for its roster. And
+    #     `render_u_required` is a restated locked set rather than a
+    #     derived one, by design: there is no locked set upstream of it
+    #     to derive from, so narrowing it is intended to be the loud
+    #     event, with control (u)'s LIVE POSITIVE step being what proves
+    #     the four anchors it names are really dispatched.
+    render_chain_family_ids = _render_chain_family_ids(
+        render_locked_fixture_ids, _RENDER_CHAIN_FAMILY_PREFIXES
+    )
+
+    # DERIVATION NON-VACUITY arm. Both halves are load-bearing: an EMPTY
+    # family would let arm 4a shrink to nothing while the equality floor
+    # below still passed (MUTATION D's first half — an empty required
+    # side is trivially satisfied by an empty actual side only if arm 4a
+    # were also emptied, which is exactly the unguarded state this arm
+    # exists to forbid); a family equal to the WHOLE locked set would
+    # mean the prefix predicate stopped discriminating and had silently
+    # promoted the five extra-argument `R-CITE-*`/`R-VERDICT-*` fixtures
+    # into an arm whose single-argument scorer cannot score them
+    # (MUTATION D's second half).
+    if not render_chain_family_ids or not (
+        render_chain_family_ids < render_locked_fixture_ids
+    ):
+        _fail(
+            f"(x) DERIVATION NON-VACUITY: chain family "
+            f"{sorted(render_chain_family_ids)!r} must be non-empty and a "
+            f"PROPER subset of locked fixture ids "
+            f"{sorted(render_locked_fixture_ids)!r}"
+        )
+
+    render_coverage_floor_entries: tuple[
+        tuple[str, frozenset[str], frozenset[str]], ...
+    ] = (
+        (
+            "arm 4a chain re-score table",
+            frozenset(render_chain_verdict_expected),
+            frozenset(render_chain_family_ids),
+        ),
+        (
+            "arm 4b recorded-verdict table",
+            frozenset(render_verdict_expected),
+            frozenset(render_locked_fixture_ids),
+        ),
+        (
+            "(u) dispatch-reachability symbol set",
+            frozenset(render_u_symbols),
+            frozenset(render_u_required),
+        ),
+    )
+
+    # REGISTRY MEMBERSHIP LOCK, copying control (m)'s `_QUAL01_DOC_ROWS`
+    # membership-lock shape: what makes deleting an entry from the
+    # registry above LOUD instead of silently shrinking coverage.
+    render_x_entry_names = tuple(
+        name for name, _, _ in render_coverage_floor_entries
+    )
+    render_x_expected_entry_names = (
+        "arm 4a chain re-score table",
+        "arm 4b recorded-verdict table",
+        "(u) dispatch-reachability symbol set",
+    )
+    if render_x_entry_names != render_x_expected_entry_names:
+        _fail(
+            f"(x) REGISTRY MEMBERSHIP LOCK: coverage-floor entry names "
+            f"{render_x_entry_names!r} != expected "
+            f"{render_x_expected_entry_names!r}"
+        )
+
+    # THE FLOOR ITSELF.
+    for render_x_problem in _render_coverage_floor_problems(
+        render_coverage_floor_entries
+    ):
+        _fail(f"(x) COVERAGE FLOOR: {render_x_problem}")
+
+    # (x) ISOLATION arms. Drive the two new pure helpers with SYNTHETIC
+    # literals only — never `render_locked_fixture_ids`, never
+    # `_RENDER_CHAIN_FAMILY_PREFIXES`, never either expected-verdict
+    # table — mirroring controls (p)/(s)'s existing discipline.
+    render_x1_problems = _render_coverage_floor_problems(
+        (("x1 CLEAN", frozenset({"A", "B"}), frozenset({"A", "B"})),)
+    )
+    if render_x1_problems != []:
+        _fail(
+            f"(x) ISOLATION x1 CLEAN: a matching entry wrongly reported a "
+            f"problem: {render_x1_problems!r}"
+        )
+
+    render_x2_problems = _render_coverage_floor_problems(
+        (("x2 NARROWED", frozenset({"A"}), frozenset({"A", "B"})),)
+    )
+    if (
+        len(render_x2_problems) != 1
+        or "x2 NARROWED" not in render_x2_problems[0]
+        or "B" not in render_x2_problems[0]
+    ):
+        _fail(
+            f"(x) ISOLATION x2 NARROWED: expected exactly one problem "
+            f"naming 'x2 NARROWED' and the missing id 'B', got "
+            f"{render_x2_problems!r}"
+        )
+
+    render_x3_problems = _render_coverage_floor_problems(
+        (("x3 UNEXPECTED", frozenset({"A", "C"}), frozenset({"A"})),)
+    )
+    if (
+        len(render_x3_problems) != 1
+        or "x3 UNEXPECTED" not in render_x3_problems[0]
+        or "C" not in render_x3_problems[0]
+    ):
+        _fail(
+            f"(x) ISOLATION x3 UNEXPECTED: expected exactly one problem "
+            f"naming 'x3 UNEXPECTED' and the unexpected id 'C', got "
+            f"{render_x3_problems!r}"
+        )
+
+    # x4 ANTI-MASKING — the CR-03 reproduction in miniature: this is the
+    # property the deleted union check did not have — a WHOLE sibling
+    # entry cannot discharge a NARROWED one. A third, independently
+    # narrowed entry is included (rather than the minimal two) so this
+    # arm also discriminates an accumulating loop from one that returns
+    # after the first problem it finds: with only two entries the
+    # single real problem always sits last, so a first-entry-wins helper
+    # is indistinguishable from a correct one — with two SEPARATE
+    # narrowed entries after the whole sibling, a first-entry-wins
+    # helper reports only one of them while the correct helper reports
+    # both.
+    render_x4_problems = _render_coverage_floor_problems(
+        (
+            ("x4 WHOLE SIBLING", frozenset({"A", "B"}), frozenset({"A", "B"})),
+            ("x4 NARROWED FIRST", frozenset({"A"}), frozenset({"A", "B"})),
+            ("x4 NARROWED SECOND", frozenset({"C"}), frozenset({"C", "D"})),
+        )
+    )
+    if (
+        len(render_x4_problems) != 2
+        or not any("x4 NARROWED FIRST" in p for p in render_x4_problems)
+        or not any("x4 NARROWED SECOND" in p for p in render_x4_problems)
+        or any("x4 WHOLE SIBLING" in p for p in render_x4_problems)
+    ):
+        _fail(
+            f"(x) ISOLATION x4 ANTI-MASKING: expected exactly two "
+            f"problems, naming 'x4 NARROWED FIRST' and 'x4 NARROWED "
+            f"SECOND', and none naming 'x4 WHOLE SIBLING', got "
+            f"{render_x4_problems!r}"
+        )
+
+    # x5 DERIVATION: `_render_chain_family_ids` proven to discriminate
+    # rather than to echo its input.
+    render_x5_chain_ids = _render_chain_family_ids(
+        {"P-ONE-A", "P-ONE-B", "Q-TWO-A", "Q-TWO-B"}, ("P-ONE-",)
+    )
+    if render_x5_chain_ids != {"P-ONE-A", "P-ONE-B"}:
+        _fail(
+            f"(x) ISOLATION x5 DERIVATION: expected "
+            f"{{'P-ONE-A', 'P-ONE-B'}}, got {render_x5_chain_ids!r}"
+        )
+    render_x5_chain_ids_none = _render_chain_family_ids(
+        {"P-ONE-A", "P-ONE-B", "Q-TWO-A", "Q-TWO-B"}, ("Z-NOSUCH-",)
+    )
+    if render_x5_chain_ids_none != set():
+        _fail(
+            f"(x) ISOLATION x5 DERIVATION (no match): expected empty set, "
+            f"got {render_x5_chain_ids_none!r}"
         )
 
     # (v) RECORDER DELEGATION PROBE. Plan 13-10 (BL-03, `13-VERIFICATION.md`):
@@ -10048,6 +10354,36 @@ def _selftest_render_contract() -> bool:
             f"(w) FLOOR HELPER ISOLATION chain ACCOUNTED: an absent-fixture "
             f"id accounted for by a reported problem wrongly stayed "
             f"unaccounted: {render_w_chain_accounted!r}"
+        )
+
+    # IN-03 (`13-REVIEW-plans-08-11.md`): the chain helper's own
+    # ANTI-MASKING arm, mirroring `render_w_verdict_antimask` above — the
+    # property is transitively covered by the shared
+    # `_render_fixture_id_accounted` prefix logic, but this proves it
+    # directly for the chain helper rather than leaving a reader to infer
+    # it from the verdict helper's twin.
+    render_w_chain_antimask_problems = [
+        _render_fixture_problem(
+            "mode 2: shape mismatch",
+            "X-BAD",
+            "extracted text is missing required substring(s) ['ok']",
+        )
+    ]
+    render_w_chain_antimask = _render_chain_verdict_floor_problems(
+        {"X": True, "X-BAD": True},
+        {},
+        render_w_chain_scorer,
+        render_w_chain_antimask_problems,
+    )
+    if len(render_w_chain_antimask) != 1 or _render_fixture_id_token(
+        "X"
+    ) not in render_w_chain_antimask[0]:
+        _fail(
+            f"(w) FLOOR HELPER ISOLATION chain ANTI-MASKING: expected "
+            f"exactly one problem naming the proper prefix 'X' (not "
+            f"'X-BAD'), got {render_w_chain_antimask!r} — a helper "
+            f"reverted to bare `in` containment would let the 'X-BAD' "
+            f"problem wrongly discharge 'X' too"
         )
 
     # (q) ISOLATION, fixture accounting. Plan 11-09's replacement for the
@@ -10327,6 +10663,12 @@ def _selftest_render_contract() -> bool:
                     + " A trailing continuation is permitted for readability.",
                 },
             ),
+        ),
+        (
+            "chain_family_prefixes emptied",
+            "chain_family_prefixes",
+            "!= expected",
+            replace(render_live_snapshot, chain_family_prefixes=()),
         ),
     ]
 
@@ -10772,19 +11114,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 7 required tokens = 14 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 8 required tokens = 16 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 14 — a doc row or a
+    # floored against an inline expected total of 16 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 14:
+    if qual01_negative_case_count != 16:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 14"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 16"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
