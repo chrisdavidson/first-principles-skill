@@ -154,15 +154,9 @@ unverified-but-load-bearing entry per the spine's Phase 3 discipline.
 
 ### Conclusion: The Redis cache plausibly defers the upgrade if and only if `GT-5?` resolves to a measured hit rate above the named threshold
 
-GT-1 (listings endpoint is the dominant Postgres read-QPS contributor at peak) +
-GT-2 (upgrade is driven by read-QPS, not writes, WAL, or storage) +
-GT-5? (steady-state hit rate above the named threshold — load-bearing, unverified)
-→ A read-side cache placed in front of the dominant read contributor reduces the read-QPS
-  the binding-constraint resource sees. Because the upgrade's binding constraint is read-QPS
-  on the same resource, the cache acts on the same axis the upgrade was scheduled to relieve.
-→ The defer-the-upgrade outcome therefore depends on whether the cache's steady-state hit
-  rate is large enough to cross the named QPS-reduction threshold — exactly the unverified
-  load-bearing input GT-5? names.
+GT-1 (listings endpoint is the dominant Postgres read-QPS contributor at peak) + GT-2 (upgrade is driven by read-QPS, not writes, WAL, or storage) + GT-5? (steady-state hit rate above the named threshold — load-bearing, unverified)
+→ A read-side cache placed in front of the dominant read contributor reduces the read-QPS the binding-constraint resource sees, because the upgrade's binding constraint is read-QPS on the same resource — the same axis the upgrade was scheduled to relieve
+→ The defer-the-upgrade outcome therefore depends on whether the cache's steady-state hit rate is large enough to cross the named QPS-reduction threshold — exactly the unverified load-bearing input GT-5? names.
 
 **Confidence:** MEDIUM — the chain consumes GT-5? as a load-bearing input. Raising to HIGH
 requires running the scoped shadow-read simulation against the recorded production trace and
@@ -312,8 +306,8 @@ Band: **Rigorous**
 Justification: The first-order chain names the inputs it consumes — here, ground truths — in
 the prescribed head form, contains an intermediate claim statable from the combination but not
 from any single named input alone, and reaches a conclusion; the Abandoned Reasoning section
-documents a substantive dead end with a specific structural
-abandonment reason; no analogy is used as direct evidence.
+documents a substantive dead end with a specific structural abandonment reason; no analogy is
+used as direct evidence.
 
 ---
 

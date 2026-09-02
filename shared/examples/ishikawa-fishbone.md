@@ -164,13 +164,9 @@ intervention set that addresses the verified ones?"
 
 ### Conclusion: The primary verified contributor to churn is the CSM coverage gap in the $18K–$25K tier
 
-GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 (CSM-to-account ratio
-1:67 vs. design threshold 1:40 in the uncovered tier)
-→ The "felt unsupported" signal maps onto the structurally uncovered account segment — the
-  specific tier where no dedicated CSM exists; the ratio drift quantifies the structural
-  cause, explaining why the signal concentrates in this tier rather than spreading uniformly.
-→ The CSM coverage gap is a verified contributor, supported by both qualitative exit data
-  and quantitative capacity data.
+GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 (CSM-to-account ratio 1:67 vs. design threshold 1:40 in the uncovered tier)
+→ The "felt unsupported" signal maps onto the structurally uncovered account segment — the specific tier where no dedicated CSM exists; the ratio drift quantifies the structural cause, explaining why the signal concentrates in this tier rather than spreading uniformly
+→ The CSM coverage gap is a verified contributor, supported by both qualitative exit data and quantitative capacity data.
 
 **Confidence:** HIGH
 
@@ -178,12 +174,9 @@ GT-2 (11 of 23 churned accounts cite "felt unsupported") + GT-3 (CSM-to-account 
 
 ### Conclusion: The structural root cause of the coverage gap is the absence of a recurring CS capacity-review process
 
-GT-3 (ratio drifted to 1:67, 68% above the 1:40 threshold) + GT-4 (ratios reviewed only at
-annual planning; no mid-year trigger exists)
-→ The ratio drifted 68% beyond its design threshold without correction — the predicted
-  outcome of a review cadence too infrequent for the company's growth rate.
-→ Adding headcount alone without a recurring capacity review will reproduce the same gap at
-  the next growth inflection; the structural fix is the review process, not a one-time hire.
+GT-3 (ratio drifted to 1:67, 68% above the 1:40 threshold) + GT-4 (ratios reviewed only at annual planning; no mid-year trigger exists)
+→ The ratio drifted 68% beyond its design threshold without correction — the predicted outcome of a review cadence too infrequent for the company's growth rate
+→ Adding headcount alone without a recurring capacity review will reproduce the same gap at the next growth inflection; the structural fix is the review process, not a one-time hire.
 
 **Confidence:** HIGH
 
@@ -191,13 +184,9 @@ annual planning; no mid-year trigger exists)
 
 ### Conclusion: Additional causal contributors likely exist but remain unverified hypotheses
 
-GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo benchmark,
-preliminary estimate from 4 accounts)
-→ The CSM coverage gap explains 11 of 23 churned accounts; 12 remain unaccounted for;
-  the productivity-outcome gap is a plausible additional contributor — customers not
-  achieving the promised outcome have a weaker economic case for renewal.
-→ The full causal picture is not yet established; remaining churned accounts likely represent
-  a second causal cluster requiring further evidence gathering.
+GT-1 (churn rose 124%) + GT-5? (productivity-outcome gap ~40% below demo benchmark, preliminary estimate from 4 accounts)
+→ The CSM coverage gap explains 11 of 23 churned accounts; 12 remain unaccounted for; the productivity-outcome gap is a plausible additional contributor — customers not achieving the promised outcome have a weaker economic case for renewal
+→ The full causal picture is not yet established; remaining churned accounts likely represent a second causal cluster requiring further evidence gathering.
 
 **Confidence:** MEDIUM — GT-5? is unverified (4 accounts). Raising to HIGH requires a
 statistically valid workflow-automation survey (minimum n=40 accounts).
