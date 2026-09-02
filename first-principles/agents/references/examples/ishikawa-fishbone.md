@@ -328,9 +328,10 @@ ratio 1:67 vs. design threshold 1:40 in the uncovered tier) → The 'felt unsupp
 maps onto the structurally uncovered account segment"
 Band: **Rigorous**
 Justification: All three Section 6 conclusions have exactly one corresponding chain in Section
-4; each chain names the GT-IDs consumed, contains at least one intermediate claim statable
-from the combination but not from either GT alone; Abandoned Reasoning documents two dead ends
-with GT-level or Phase-2-type abandonment reasons; no analogy is used as direct evidence.
+4; each chain names the inputs it consumes — here, ground truths — in the prescribed head form,
+contains at least one intermediate claim statable from the combination but not from any single
+named input alone; Abandoned Reasoning documents two dead ends with GT-level or Phase-2-type
+abandonment reasons; no analogy is used as direct evidence.
 
 ---
 
