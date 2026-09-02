@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 17 offline gate commands, captures each exit code, and prints a
+# Runs all 23 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -124,6 +124,31 @@
 # separate live invocation would assert nothing the self-test does not already assert.
 # Battery composition moved 20 -> 21. A gate that appears silently is
 # indistinguishable from a gate that was always there.
+#
+# Composition change (REG-GUARD, Phase 3, v8.21.0): the battery gained one gate,
+# REG-GUARD (scripts/check-registration.py). REG-GUARD asserts registration
+# completeness over two surfaces: (a) every skill directory and the main agent
+# carry a frontmatter `name:` matching their own basename; (b) every gate
+# registered in this file has a matching `name: <job> (<GATE-ID>)` job in
+# .github/workflows/validation.yml, QUAL-01 excepted as the one documented
+# battery-only gate. It registers as a `--self-test` + live `gate` call, for
+# the same reason VERSION-01 does: the self-test is fixture-isolated, so it
+# alone asserts nothing about the shipped tree.
+# REG-GUARD: Battery composition moved 21 -> 22. A gate that appears silently
+# is indistinguishable from a gate that was always there.
+#
+# Composition change (PROV-GUARD, Phase 6, v8.24.0): the battery gained one
+# gate, PROV-GUARD (scripts/check-provenance.py). PROV-GUARD joins every
+# *Provenance: read-at-source* ground truth in an analysis's section 3 to a
+# real WebFetch/Read of that source in the run's stored .jsonl capture, and
+# requires every literal it states to appear verbatim in that source's
+# retrieved text. It registers as `--self-test` + live, for the same reason
+# REG-GUARD does: the self-test's fixtures are tempdir/in-memory, so the
+# self-test alone asserts nothing about the committed capture at
+# tests/quality-provenance-v8.24/ — the live leg reads 7/7 sources matched,
+# 35/35 literals located.
+# PROV-GUARD: Battery composition moved 22 -> 23. A gate that appears
+# silently is indistinguishable from a gate that was always there.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
