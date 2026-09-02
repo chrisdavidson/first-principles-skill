@@ -4396,6 +4396,73 @@ def _chain_block_well_formed(block: str) -> bool:
     return False
 
 
+def _chain_detector_source() -> str:
+    """The single call site naming the frozen `_chain_block_well_formed`.
+
+    Exists so nothing else in this module — including the pin below and its
+    self-test controls — has to call `inspect.getsource()` against the
+    function directly; there is exactly one place that names it for hashing.
+    """
+    return inspect.getsource(_chain_block_well_formed)
+
+
+# A `sha256:<hex>` pin over `_chain_block_well_formed`'s own source bytes
+# (Phase 13, CHAINHEAD-07) — a DIFFERENT mechanism from the
+# `_RENDER_RULE_LITERALS` digest pin above: that pin hashes a dict of prose
+# strings, this one hashes a function's `inspect.getsource()`.
+#
+# `.rstrip("\n")` is applied because `inspect.getsource()` always returns
+# source text ending in exactly one trailing newline; hashing it un-stripped
+# yields a DIFFERENT digest than the one already recorded by hand in
+# `.planning/STATE.md` and `.planning/PROJECT.md` as this function's
+# v8.24.0-identical blob. A future reader who "simplifies" the strip away
+# silently changes the pinned value against three already-committed
+# documents — do not remove it.
+#
+# Recompute discipline: a diff to this literal must always accompany a
+# WRITTEN AMENDMENT to the milestone goal, landed FIRST, per STATE.md's
+# standing pre-commitment that changing `_chain_block_well_formed` requires
+# that amendment before any recompute. Never the reverse order.
+#
+# Phase 13's own rationale for adding this pin now, not earlier or later: R7
+# and R8 (`_RENDER_RULE_LITERALS`, above) now state on three canonical
+# surfaces the exact grammar this function has enforced since GAP-6 — this
+# pin freezes an implementation whose contract is, for the first time,
+# written down. That rationale lives HERE, in this comment, and never inside
+# the function's own docstring (D-09): the function stays byte-unchanged,
+# and the first thing its pin records must not be the phase that edited the
+# thing it froze.
+_CHAIN_DETECTOR_PINNED_DIGEST = (
+    "sha256:d7d42d7a0bd781bdb01f073d2929f7277c33c86c92f49bb63a48055ad15f13c3"
+)
+
+
+def _chain_detector_pin_problems(source: str) -> list[str]:
+    """Compare *source* against the pinned `_chain_block_well_formed` digest.
+
+    Takes the source text as a parameter rather than reading the function
+    itself, so a self-test control can drive it with perturbed bytes —
+    appended to, or stripped from, the real source in memory — without
+    monkeypatching the module or editing the frozen function on disk.
+    Returns a one-element problem list naming both digests and the standing
+    written-amendment pre-commitment on a mismatch, or an empty list when
+    *source* still hashes to the pinned value.
+    """
+    digest = "sha256:" + hashlib.sha256(
+        source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if digest == _CHAIN_DETECTOR_PINNED_DIGEST:
+        return []
+    return [
+        f"chain-detector: source digest {digest!r} != pinned "
+        f"{_CHAIN_DETECTOR_PINNED_DIGEST!r} — _chain_block_well_formed is "
+        "frozen under CONTRACT-06. If this change is intended, amend the "
+        "milestone goal in writing FIRST (STATE.md's standing "
+        "pre-commitment), then recompute. Do not recompute to make this "
+        "pass."
+    ]
+
+
 # Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
 # must sit immediately before the closing bold markers, distinguishing a
 # labelled claim from a bold phrase (e.g. "**Confidence: HIGH**") whose
@@ -9716,6 +9783,116 @@ def _selftest_render_contract() -> bool:
     return ok
 
 
+def _selftest_chain_detector_pin() -> bool:
+    """Phase 13 (CHAINHEAD-07): the sha256 pin over
+    `_chain_block_well_formed`'s source (`_chain_detector_pin_problems`,
+    defined beside the frozen function) re-runs on every QUAL-01 self-test
+    and fails on any byte change to that function, including whitespace.
+
+    Four controls:
+
+    (a) POSITIVE. The real, unmodified source hashes to the pinned value —
+        the arm that goes red the moment anyone edits the frozen function.
+
+    (b) NEGATIVE, anti-vacuity. The source the run actually read is
+        perturbed in memory two ways — a comment line appended, and a line
+        stripped from its middle — and each perturbation must produce
+        exactly one problem. A pin that reported green on perturbed bytes
+        would be vacuous; this is what proves it is not. Neither
+        perturbation is ever written to disk or monkeypatched onto the
+        module — the helper takes source as a parameter precisely so this
+        control needs neither.
+
+    (c) FORMULA CONTROL. The naive, un-stripped hash of the real source is
+        NOT the pinned value, while the `.rstrip("\\n")` form IS — the arm
+        that fails if a future reader "simplifies" the strip away, encoding
+        this phase's highest-risk finding as a standing assertion rather
+        than a comment.
+
+    (d) MESSAGE CONTROL. The problem text produced by (b) carries all four
+        load-bearing substrings D-10 specifies: the function name,
+        `CONTRACT-06`, the written-amendment instruction, and the
+        do-not-recompute instruction. A pin whose message degraded to a
+        bare digest diff would still pass (a)-(c); this arm is why it
+        cannot.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: chain_detector_pin {msg}", file=sys.stderr)
+        ok = False
+
+    real_source = _chain_detector_source()
+
+    # (a) POSITIVE.
+    positive_problems = _chain_detector_pin_problems(real_source)
+    if positive_problems:
+        _fail(
+            "(a) POSITIVE: unmodified source reported problems: "
+            f"{positive_problems!r}"
+        )
+
+    # (b) NEGATIVE, anti-vacuity: two independent perturbations, each must
+    # produce exactly one problem.
+    appended = real_source + "# perturbation appended by the self-test\n"
+    appended_problems = _chain_detector_pin_problems(appended)
+    if len(appended_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: appending a comment line did not "
+            f"produce exactly one problem: {appended_problems!r}"
+        )
+
+    real_lines = real_source.splitlines(keepends=True)
+    middle = len(real_lines) // 2
+    stripped_lines = real_lines[:middle] + real_lines[middle + 1 :]
+    stripped = "".join(stripped_lines)
+    stripped_problems = _chain_detector_pin_problems(stripped)
+    if len(stripped_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: stripping a middle line did not "
+            f"produce exactly one problem: {stripped_problems!r}"
+        )
+
+    # (c) FORMULA CONTROL.
+    naive_digest = "sha256:" + hashlib.sha256(
+        real_source.encode("utf-8")
+    ).hexdigest()
+    stripped_digest = "sha256:" + hashlib.sha256(
+        real_source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if naive_digest == _CHAIN_DETECTOR_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
+            "equals the pinned value — the trailing-newline strip is no "
+            "longer discriminating"
+        )
+    if stripped_digest != _CHAIN_DETECTOR_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the .rstrip('\\n') digest does not equal "
+            f"the pinned value: {stripped_digest!r} != "
+            f"{_CHAIN_DETECTOR_PINNED_DIGEST!r}"
+        )
+
+    # (d) MESSAGE CONTROL.
+    if appended_problems:
+        message = appended_problems[0]
+        required_substrings = (
+            "_chain_block_well_formed",
+            "CONTRACT-06",
+            "amend the milestone goal in writing",
+            "Do not recompute to make this pass",
+        )
+        missing = [s for s in required_substrings if s not in message]
+        if missing:
+            _fail(
+                "(d) MESSAGE CONTROL: problem text is missing required "
+                f"substring(s) {missing!r}: {message!r}"
+            )
+
+    return ok
+
+
 def _selftest_selfaudit_calibration() -> bool:
     """The Self-Audit Gate's claimed bands are reconciled against measurement.
 
@@ -11847,6 +12024,23 @@ def self_test() -> int:
         print("self-test: render_contract sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: render_contract sub-check PASSED")
+
+    # Item 25 (Phase 13, CHAINHEAD-07): a sha256 pin over
+    # `_chain_block_well_formed`'s source bytes, freezing the function under
+    # CONTRACT-06. The digest is computed over the `.rstrip("\n")` form of
+    # `inspect.getsource()`'s output, because that call always appends
+    # exactly one trailing newline and the pinned value already recorded by
+    # hand in `.planning/STATE.md`/`.planning/PROJECT.md` is only reproduced
+    # once that newline is stripped. This is the gate CONTRACT-06's
+    # `reproducible` tier points its `artifact_link` at — deleting this
+    # sub-check silently downgrades that coverage claim back to unenforced.
+    # See `_selftest_chain_detector_pin`'s own docstring for the full,
+    # current enumeration of its lettered controls.
+    if not _selftest_chain_detector_pin():
+        all_passed = False
+        print("self-test: chain_detector_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: chain_detector_pin sub-check PASSED")
 
     return 0 if all_passed else 1
 
