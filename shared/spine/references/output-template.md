@@ -143,7 +143,7 @@ GT-N + GT-M → [intermediate claim] → [conclusion]
 
 The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
 
-Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
+Each chain must contain at least one intermediate step. A chain that goes directly from its head inputs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from any single head input alone. If no intermediate can be stated, the conclusion is either a restatement of a head input (trivial) or a reasoning step is missing.
 
 **No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. A chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
 

@@ -340,8 +340,7 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
   has exactly one derivation chain in section 4; each chain names the inputs it consumes — ground truths, upstream conclusions, or both — in the prescribed head form (`GT-1? ([brief fact label]) + C2 ([brief fact label])`),
-  contains at least one intermediate claim (a claim that cannot be stated from either
-  named GT alone), and reaches a conclusion; each chain is rendered in the prescribed
+  contains at least one intermediate claim (a claim that cannot be stated from any single named input alone), and reaches a conclusion; each chain is rendered in the prescribed
   arrow-led form. A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)`. The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference. Hops rendered as an ordered list do not satisfy the prescribed form; the Abandoned Reasoning
   section either documents
   at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
@@ -354,8 +353,8 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   a reviewer applies this check by scanning each chain step for the `[Assumes:` token.
 
 - **Sound** — chains exist for all conclusions, but one or more chains lack a genuine
-  intermediate step (the chain goes directly from GT-IDs to conclusion, or the stated
-  intermediate is a restatement of one of the named GTs rather than a new inference); OR
+  intermediate step (the chain goes directly from its head inputs to conclusion, or the stated
+  intermediate is a restatement of one of its named inputs rather than a new inference); OR
   a conclusion has more than one derivation chain — redundant restatement rather than a
   missing chain — where the prescribed form is exactly one chain per conclusion; OR
   one dead end in Abandoned Reasoning is described with a vague abandonment reason
@@ -365,7 +364,7 @@ Reasoning (D-03). The one-line form is the degenerate case, used only when the w
   prescribed arrow-led hop form, OR break a single hop across physical lines rather than
   splitting it into two hops, which splits one chain into disconnected
   fragments even where every hop is individually sound — **this clause is why the criterion
-  cannot be scored on reasoning quality alone.** A chain that names its GT-IDs, carries a
+  cannot be scored on reasoning quality alone.** A chain that names its inputs, carries a
   genuine intermediate and reaches a conclusion satisfies every other Rigorous requirement
   while still failing the prescribed form; scoring only the semantics is what lets a
   Rigorous verdict coexist with a section of malformed chains.
