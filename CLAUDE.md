@@ -217,7 +217,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 
 - **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
   Active residuals, the current coverage headline
-  (**161 reproducible / 91 audit-only / 0 gap / 252 total**), compact historical ledger, and gap
+  (**174 reproducible / 92 audit-only / 0 gap / 266 total**), compact historical ledger, and gap
   findings. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
   reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
   v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,

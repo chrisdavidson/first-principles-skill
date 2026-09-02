@@ -17,7 +17,7 @@
 
 > **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
 > — the authoritative surface: active residuals, dispositions, and the **current** coverage
-> headline of **161 reproducible / 91 audit-only / 0 gap / 252 total**.
+> headline of **174 reproducible / 92 audit-only / 0 gap / 266 total**.
 >
 > **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
 > limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
