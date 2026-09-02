@@ -4396,6 +4396,73 @@ def _chain_block_well_formed(block: str) -> bool:
     return False
 
 
+def _chain_detector_source() -> str:
+    """The single call site naming the frozen `_chain_block_well_formed`.
+
+    Exists so nothing else in this module — including the pin below and its
+    self-test controls — has to call `inspect.getsource()` against the
+    function directly; there is exactly one place that names it for hashing.
+    """
+    return inspect.getsource(_chain_block_well_formed)
+
+
+# A `sha256:<hex>` pin over `_chain_block_well_formed`'s own source bytes
+# (Phase 13, CHAINHEAD-07) — a DIFFERENT mechanism from the
+# `_RENDER_RULE_LITERALS` digest pin above: that pin hashes a dict of prose
+# strings, this one hashes a function's `inspect.getsource()`.
+#
+# `.rstrip("\n")` is applied because `inspect.getsource()` always returns
+# source text ending in exactly one trailing newline; hashing it un-stripped
+# yields a DIFFERENT digest than the one already recorded by hand in
+# `.planning/STATE.md` and `.planning/PROJECT.md` as this function's
+# v8.24.0-identical blob. A future reader who "simplifies" the strip away
+# silently changes the pinned value against three already-committed
+# documents — do not remove it.
+#
+# Recompute discipline: a diff to this literal must always accompany a
+# WRITTEN AMENDMENT to the milestone goal, landed FIRST, per STATE.md's
+# standing pre-commitment that changing `_chain_block_well_formed` requires
+# that amendment before any recompute. Never the reverse order.
+#
+# Phase 13's own rationale for adding this pin now, not earlier or later: R7
+# and R8 (`_RENDER_RULE_LITERALS`, above) now state on three canonical
+# surfaces the exact grammar this function has enforced since GAP-6 — this
+# pin freezes an implementation whose contract is, for the first time,
+# written down. That rationale lives HERE, in this comment, and never inside
+# the function's own docstring (D-09): the function stays byte-unchanged,
+# and the first thing its pin records must not be the phase that edited the
+# thing it froze.
+_CHAIN_DETECTOR_PINNED_DIGEST = (
+    "sha256:d7d42d7a0bd781bdb01f073d2929f7277c33c86c92f49bb63a48055ad15f13c3"
+)
+
+
+def _chain_detector_pin_problems(source: str) -> list[str]:
+    """Compare *source* against the pinned `_chain_block_well_formed` digest.
+
+    Takes the source text as a parameter rather than reading the function
+    itself, so a self-test control can drive it with perturbed bytes —
+    appended to, or stripped from, the real source in memory — without
+    monkeypatching the module or editing the frozen function on disk.
+    Returns a one-element problem list naming both digests and the standing
+    written-amendment pre-commitment on a mismatch, or an empty list when
+    *source* still hashes to the pinned value.
+    """
+    digest = "sha256:" + hashlib.sha256(
+        source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if digest == _CHAIN_DETECTOR_PINNED_DIGEST:
+        return []
+    return [
+        f"chain-detector: source digest {digest!r} != pinned "
+        f"{_CHAIN_DETECTOR_PINNED_DIGEST!r} — _chain_block_well_formed is "
+        "frozen under CONTRACT-06. If this change is intended, amend the "
+        "milestone goal in writing FIRST (STATE.md's standing "
+        "pre-commitment), then recompute. Do not recompute to make this "
+        "pass."
+    ]
+
+
 # Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
 # must sit immediately before the closing bold markers, distinguishing a
 # labelled claim from a bold phrase (e.g. "**Confidence: HIGH**") whose
