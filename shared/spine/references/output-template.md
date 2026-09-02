@@ -145,7 +145,7 @@ The one-line form is the degenerate case, used only when the whole chain fits on
 
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
-**No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line carries the GT identifiers and their brief fact labels; a chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
+**No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. A chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
 
 ```text
 GT-1 ([brief fact label]) + GT-6 ([brief fact label])
@@ -153,6 +153,16 @@ GT-1 ([brief fact label]) + GT-6 ([brief fact label])
 → [further intermediate]
 → [conclusion]
 ```
+
+**Head-input rule.** The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)`.
+
+```text
+GT-1? ([brief fact label]) + C2 ([brief fact label])
+→ [intermediate claim]
+→ [conclusion]
+```
+
+The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference.
 
 **Conforming — head, then one hop per line:**
 
@@ -182,6 +192,36 @@ The continuation line does not begin with `→`, so the chain terminates at the 
 ```
 
 A numbered list restates each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather than one complete one — the intermediate steps stop being connected to the conclusion they build toward.
+
+**Non-conforming — an input carrying unparenthesized prose:**
+
+```text
+GT-13? (bill composition unknown) + GT-12? (duty cycle unknown) + C2's threshold
+→ target quantity: fraction of total AWS bill removed by the migration
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+`C2's threshold` is not an identifier — it is a possessive prose phrase — so the head does not parse; the third input must be written `C2 (threshold)`.
+
+**Conforming — the same head with the upstream chain as an input:**
+
+```text
+GT-13? (bill composition unknown) + GT-12? (duty cycle unknown) + C2 (threshold)
+→ target quantity: fraction of total AWS bill removed by the migration
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+Exactly one token differs from the block above: a `Cn` identifier with a parenthesized gloss is an admissible head input, on equal footing with a `GT-N` identifier.
+
+**Conforming — a chain consuming only upstream conclusions:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold) + C4 (unconditional, zero code change) + C5 (~73% ceiling, no execution-model change)
+→ C4 and C5 deliver verified savings that do not depend on any property of your workload
+→ C2's saving depends entirely on a duty-cycle figure nobody has measured
+```
+
+A head may consist entirely of `Cn` inputs with no `GT-N` term. The second hop's `C2's saving` is prose, not a head input — the head-only scope note is what permits it here.
 
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 

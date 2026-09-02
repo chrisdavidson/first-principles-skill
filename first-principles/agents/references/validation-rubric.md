@@ -339,10 +339,10 @@ and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing fo
 Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
 
 - **Rigorous** — every conclusion stated anywhere in the document (in section 4 or section 6)
-  has exactly one derivation chain in section 4; each chain names the GT-IDs it consumes,
+  has exactly one derivation chain in section 4; each chain names the inputs it consumes — ground truths, upstream conclusions, or both — in the prescribed head form (`GT-1? ([brief fact label]) + C2 ([brief fact label])`),
   contains at least one intermediate claim (a claim that cannot be stated from either
   named GT alone), and reaches a conclusion; each chain is rendered in the prescribed
-  arrow-led form. A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. Hops rendered as an ordered list do not satisfy the prescribed form; the Abandoned Reasoning
+  arrow-led form. A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)`. The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference. Hops rendered as an ordered list do not satisfy the prescribed form; the Abandoned Reasoning
   section either documents
   at least one dead end using the What-was-tried / Why-abandoned / What-it-ruled-out structure,
   OR uses the honest-depth escape valve with a reason that is specific to this analysis's
