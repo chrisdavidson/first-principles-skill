@@ -145,7 +145,7 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 |----------|----------------|
 | [v8.0-final-closure.md](v8.0-final-closure.md) | The v8.0 terminal ACCEPTED-FINAL dispositions and deferred-ledger summary. **Its counts are superseded** — see its Standing banner and the table above |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
-| [requirements-matrix.md](requirements-matrix.md) | Generated 252-row capability → requirement → test matrix |
+| [requirements-matrix.md](requirements-matrix.md) | Generated 266-row capability → requirement → test matrix |
 
 ## v8.5 — Context optimization (reference-file split)
 

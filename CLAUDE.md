@@ -229,7 +229,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
   wrap the project; work continued and that figure has been superseded four times — see the
   bullet above. Do not quote its headline as current.
-- **`docs/requirements-matrix.md`** — generated 252-row capability→requirement→test
+- **`docs/requirements-matrix.md`** — generated 266-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
   python3 scripts/check-traceability.py emit \
