@@ -6502,6 +6502,18 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Measured limitation — the same prose input in a non-final position:**",
     ),
+    (
+        "R-HEAD-GTHOP-BAD",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — a hop beginning with a GT-N identifier:**",
+    ),
+    (
+        "R-HEAD-GTHOP-OK",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — the same hop with the identifier moved off the front:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6545,6 +6557,12 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # it a mis-anchored extraction returning the new middle-position block
 # still satisfies `R-HEAD-PROSE-BAD`'s shape guard, because that block also
 # contains the pair's first two needles.
+#
+# `R-HEAD-GTHOP-BAD` and `R-HEAD-GTHOP-OK` (plan 13-09, BL-02) are the same
+# hop differing only in whether it leads with `GT-4`: `"→ GT-4's stated
+# duty cycle"` and `"→ the duty cycle stated in GT-4"` each discriminate
+# their own block from the other, because a mis-anchored extraction would
+# carry the wrong ordering of that clause.
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
     "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
@@ -6561,6 +6579,15 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
     "R-HEAD-PROSE-MID": (
         "+ C2's threshold + GT-12?", "bill composition unknown",
+    ),
+    # `R-HEAD-GTHOP-BAD` / `R-HEAD-GTHOP-OK` (plan 13-09, BL-02) are the
+    # same hop differing only in whether it leads with `GT-4`: each first
+    # needle is unique to its own block and absent from the other and from
+    # `R-HEAD-ALLCHAIN`; the shared second needle catches an extraction
+    # landing outside the C1/C2 family entirely.
+    "R-HEAD-GTHOP-BAD": ("→ GT-4's stated duty cycle", "2.20× at full duty"),
+    "R-HEAD-GTHOP-OK": (
+        "→ the duty cycle stated in GT-4", "2.20× at full duty",
     ),
 }
 
@@ -6638,7 +6665,7 @@ def _render_unscored_fixture_ids(
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all twelve Phase 11/13 rendering-contract fixtures from the shipped
+    """Read all fourteen Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -6882,6 +6909,22 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # R8: the rendered head form showing GT-N? and chain-as-input
     # (CHAINHEAD-01, D-03).
     "R8": "GT-1? ([brief fact label]) + C2 ([brief fact label])",
+    # R9: the head-only scope note and its GT-leading-hop refusal
+    # (CHAINHEAD-01/CHAINHEAD-03/CHAINHEAD-04/CHAINHEAD-05, BL-02). This
+    # literal was unregistered prose, byte-identical on three surfaces by
+    # discipline alone, until plan 13-09. The `One exception:` clause exists
+    # because `_ARROW_LED_GT_RE` refuses continuation for a hop that leads
+    # with a `GT-N` identifier — it reads that hop as the head of a new
+    # chain and ends the current one there.
+    "R9": (
+        "The head grammar governs the head line only. A hop is prose: "
+        "`C2's saving` is fine after the first `→`, and is not an input "
+        "reference. One exception: a hop must not begin with a `GT-N` "
+        "identifier, which the form check reads as the head of a new "
+        "chain and which therefore ends this one — write `→ the duty "
+        "cycle stated in GT-4 is the binding term`, not `→ GT-4's stated "
+        "duty cycle is the binding term`."
+    ),
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -6895,12 +6938,14 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # that also state the positive rule.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
     ),
-    "shared/spine/references/validation-rubric.md": ("R1", "R6", "R7", "R8"),
+    "shared/spine/references/validation-rubric.md": (
+        "R1", "R6", "R7", "R8", "R9",
+    ),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -6976,12 +7021,20 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # pins the positional-bound disclosure plan 13-08 added: without it
 # either row can revert to the unconditional "would fail the pair rather
 # than pass it" claim while the gate stays green, which is BL-01 exactly.
+# The sixth token, `R-HEAD-GTHOP-OK`, is deliberately the `-OK` id rather
+# than the `-BAD` one, added by plan 13-09 (BL-02): the remedy half is
+# the claim a future edit is likeliest to drop, because a row can state
+# a refusal without stating that the prescribed rewrite was ever
+# checked — without this token either row can state the GT-leading-hop
+# refusal alone while silently dropping the claim that the rewrite it
+# prescribes was ever verified to score well-formed.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
     "scored by a control, not merely extracted",
     "dispatch reachability",
     "R-HEAD-PROSE-MID",
+    "R-HEAD-GTHOP-OK",
 )
 
 
@@ -7105,7 +7158,8 @@ def _render_registry_lock_problems(
     expected_ids = [
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
-        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
+        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-GTHOP-BAD",
+        "R-HEAD-GTHOP-OK", "R-HEAD-PROSE-BAD",
         "R-HEAD-PROSE-MID",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
@@ -7193,6 +7247,18 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Measured limitation — the same prose input in a non-final position:**',
         ),
+        (
+            'R-HEAD-GTHOP-BAD',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — a hop beginning with a GT-N identifier:**',
+        ),
+        (
+            'R-HEAD-GTHOP-OK',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — the same hop with the identifier moved off the front:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -7233,7 +7299,7 @@ def _render_registry_lock_problems(
         # (`11-REVIEW-gap-closure.md`), which reproduced setting each of
         # their needle tuples to `()` with every key still present and the
         # self-test still GREEN — that silently disables the mode-2 shape
-        # guard for five of the twelve fixtures, so an extraction that
+        # guard for five of the fourteen fixtures, so an extraction that
         # returned a neighbouring block scores `False` for the wrong reason
         # and passes vacuously. The four R-HEAD-* ids added at Phase 13
         # carry their discriminating needles from the start, the same
@@ -7256,6 +7322,12 @@ def _render_registry_lock_problems(
             "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
             "R-HEAD-PROSE-MID": (
                 "+ C2's threshold + GT-12?", "bill composition unknown",
+            ),
+            "R-HEAD-GTHOP-BAD": (
+                "→ GT-4's stated duty cycle", "2.20× at full duty",
+            ),
+            "R-HEAD-GTHOP-OK": (
+                "→ the duty cycle stated in GT-4", "2.20× at full duty",
             ),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
@@ -7289,13 +7361,13 @@ def _render_registry_lock_problems(
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
         ),
         "shared/spine/references/validation-rubric.md": (
-            "R1", "R6", "R7", "R8",
+            "R1", "R6", "R7", "R8", "R9",
         ),
     }
     if snapshot.required_rules != expected_required_rules:
@@ -7333,6 +7405,7 @@ def _render_registry_lock_problems(
         "scored by a control, not merely extracted",
         "dispatch reachability",
         "R-HEAD-PROSE-MID",
+        "R-HEAD-GTHOP-OK",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -7381,6 +7454,9 @@ def _render_registry_lock_problems(
         # the disclosure, not the negative rule (plan 13-08, BL-01).
         "R7": "detects that violation only when the prose input is the last one before the first",
         "R8": "GT-1? ([brief fact label]) + C2",
+        # R9's clause pins the GT-leading-hop refusal — the exception a
+        # future edit is likeliest to quietly drop (plan 13-09, BL-02).
+        "R9": "a hop must not begin with a `GT-N` identifier",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -7413,7 +7489,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:ce68aff83ff55e6286cf98cfbc60468c2f99ead880bdd8718a1826c233e206a7"
+        "sha256:199469956b572956ff2b09cbd82e48389d989c6eecff5382d0b96ab34bd2894b"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -8680,7 +8756,7 @@ def _selftest_render_contract() -> bool:
     here calls it from outside; none of them, nor anything in this file,
     modifies it.
 
-    Controls (a)-(b) pin the twelve measured verdicts. Control (c) pins
+    Controls (a)-(b) pin the fourteen measured verdicts. Control (c) pins
     minimality of the wrap counter-example: it must differ from the
     conforming example by exactly the inserted continuation line, so the
     counter-example demonstrably teaches the wrap rule and nothing else.
@@ -8705,10 +8781,15 @@ def _selftest_render_contract() -> bool:
     `R-HEAD-PROSE-BAD` but in a non-final head position, pinning the
     measured bound R7 now discloses — the mechanical check reaches only
     the last input before the first arrow, so this fixture is expected
-    WELL-FORMED even though R7 forbids the violation everywhere. Control
+    WELL-FORMED even though R7 forbids the violation everywhere. Plan
+    13-09 (BL-02) added a fifth and sixth, `R-HEAD-GTHOP-BAD` and
+    `R-HEAD-GTHOP-OK`: the same hop differing only in whether it leads
+    with a `GT-N` identifier, scored in opposite directions — this pins
+    both halves of R9, the head-only scope note's GT-leading-hop refusal
+    and the rewrite it prescribes. Control
     (p), added by plan 11-09 (gap 2's second half), is the CONSUMPTION
     FLOOR: `_get` records every id it is asked for, and the floor asserts
-    that set against a locked twelve-id set written inline — plus that
+    that set against a locked fourteen-id set written inline — plus that
     `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
     reproduction left silent), plus that every locked id is either
@@ -8831,8 +8912,10 @@ def _selftest_render_contract() -> bool:
     every doc row still carries it. Plan 13-05 (CR-01) added a third
     token pinning the corrected consumption-floor guarantee; plan 13-06
     (CR-02) added a fourth pinning the dispatch-reachability leg; plan
-    13-08 (BL-01) added a fifth pinning the disclosed positional bound.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 10 (2 doc rows x 5
+    13-08 (BL-01) added a fifth pinning the disclosed positional bound;
+    plan 13-09 (BL-02) added a sixth pinning the GT-leading-hop refusal's
+    remedy claim.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 12 (2 doc rows x 6
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -8927,6 +9010,8 @@ def _selftest_render_contract() -> bool:
     head_chainref = _get("R-HEAD-CHAINREF")
     head_allchain = _get("R-HEAD-ALLCHAIN")
     head_prose_mid = _get("R-HEAD-PROSE-MID")
+    head_gthop_bad = _get("R-HEAD-GTHOP-BAD")
+    head_gthop_ok = _get("R-HEAD-GTHOP-OK")
 
     # `scored_ids` backs the (p) CONSUMPTION FLOOR's third arm below: every
     # id one of the four wrappers records, because a scorer was actually
@@ -9039,6 +9124,29 @@ def _selftest_render_contract() -> bool:
             "(b) R-HEAD-PROSE-MID (doc label 'Measured limitation — the "
             "same prose input in a non-final position:') scored "
             "malformed, expected well-formed (measured bound)"
+        )
+
+    # (b) R-HEAD-GTHOP-BAD / R-HEAD-GTHOP-OK (plan 13-09, BL-02): the same
+    #     two hops differing only in whether the hop leads with `GT-4`,
+    #     scored in opposite directions by the unmodified detector, so they
+    #     pin BOTH halves of R9 — the refusal and the rewrite it prescribes.
+    #     A relaxation of `_ARROW_LED_GT_RE` fails the first; a narrowing
+    #     that also rejected the rewrite fails the second.
+    if head_gthop_bad is not None and _score_chain(
+        "R-HEAD-GTHOP-BAD", head_gthop_bad
+    ):
+        _fail(
+            "(b) R-HEAD-GTHOP-BAD (doc label 'Non-conforming — a hop "
+            "beginning with a GT-N identifier:') scored well-formed, "
+            "expected malformed"
+        )
+    if head_gthop_ok is not None and not _score_chain(
+        "R-HEAD-GTHOP-OK", head_gthop_ok
+    ):
+        _fail(
+            "(b) R-HEAD-GTHOP-OK (doc label 'Conforming — the same hop "
+            "with the identifier moved off the front:') scored malformed, "
+            "expected well-formed"
         )
 
     # (c) Minimality of the wrap counter-example: dropping the single line
@@ -9167,7 +9275,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked twelve-id set below is written INLINE,
+    #     printed PASSED. The locked fourteen-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -9194,7 +9302,7 @@ def _selftest_render_contract() -> bool:
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
-        "R-HEAD-PROSE-MID",
+        "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -9884,8 +9992,8 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 20 today
-    #     (8 + 8 + 4), so shrinking the mapping fails the floor rather
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 23 today
+    #     (9 + 9 + 5), so shrinking the mapping fails the floor rather
     #     than silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
@@ -9909,7 +10017,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 20
+    expected_missing_case_count = 23
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
@@ -10137,19 +10245,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 5 required tokens = 10 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 6 required tokens = 12 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 10 — a doc row or a
+    # floored against an inline expected total of 12 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 10:
+    if qual01_negative_case_count != 12:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 10"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 12"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed

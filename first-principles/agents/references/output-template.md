@@ -164,7 +164,7 @@ GT-1? ([brief fact label]) + C2 ([brief fact label])
 → [conclusion]
 ```
 
-The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference.
+The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference. One exception: a hop must not begin with a `GT-N` identifier, which the form check reads as the head of a new chain and which therefore ends this one — write `→ the duty cycle stated in GT-4 is the binding term`, not `→ GT-4's stated duty cycle is the binding term`.
 
 **Conforming — head, then one hop per line:**
 
@@ -234,6 +234,26 @@ GT-13? (bill composition unknown) + C2's threshold + GT-12? (duty cycle unknown)
 ```
 
 This head breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — with a well-formed input still to its right the check matches from `GT-12?` onward and never reaches `C2's threshold`. Write `C2 (threshold)` wherever the input sits; the rule is the contract, and the check is a partial instrument for it.
+
+**Non-conforming — a hop beginning with a GT-N identifier:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ GT-4's stated duty cycle is the binding term in both estimates
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+The second line reads as the head of a new chain because it begins with a `GT-N` identifier, so this chain ends after its head and what remains is an incomplete chain — the possessive is not the problem, the leading identifier is.
+
+**Conforming — the same hop with the identifier moved off the front:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ the duty cycle stated in GT-4 is the binding term in both estimates
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+Exactly one clause is reordered and the chain is whole again; naming a ground truth inside a hop is fine, leading with its identifier is not.
 
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
