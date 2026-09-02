@@ -6928,21 +6928,26 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 )
 
 # The tokens each registered `| QUAL-01 |` table row must carry (plan
-# 11-10, WR-04/IN-02/IN-03; third entry added by plan 13-05, CR-01). The
-# second token is what makes the row's disclosure of the third scanned
-# surface (validation-rubric.md) load-bearing rather than decorative — a
-# row could name "emission rendering contract" while still describing
-# only the two-surface world CR-01 closed. The third token pins the
-# corrected consumption-floor guarantee: before plan 13-05 both rows
-# stated that the floor fails if a fixture is not "scored or reported",
-# but the floor tested extraction, not scoring — the row was a true
-# statement about a wrong claim. Pinning the corrected phrase is what
-# stops the row drifting back to the weaker claim while the gate stays
-# green.
+# 11-10, WR-04/IN-02/IN-03; third entry added by plan 13-05, CR-01;
+# fourth entry added by plan 13-06, CR-02). The second token is what
+# makes the row's disclosure of the third scanned surface
+# (validation-rubric.md) load-bearing rather than decorative — a row
+# could name "emission rendering contract" while still describing only
+# the two-surface world CR-01 closed. The third token pins the corrected
+# consumption-floor guarantee: before plan 13-05 both rows stated that
+# the floor fails if a fixture is not "scored or reported", but the
+# floor tested extraction, not scoring — the row was a true statement
+# about a wrong claim. Pinning the corrected phrase is what stops the
+# row drifting back to the weaker claim while the gate stays green. The
+# fourth token pins the dispatch-reachability leg plan 13-06 added:
+# without it, removing the new leg's mention from either doc row would
+# leave the gate green while the published claim silently narrowed back
+# to what CR-02 found unfalsifiable.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
     "scored by a control, not merely extracted",
+    "dispatch reachability",
 )
 
 
@@ -7280,6 +7285,7 @@ def _render_registry_lock_problems(
         "emission rendering contract",
         "validation-rubric.md",
         "scored by a control, not merely extracted",
+        "dispatch reachability",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -7565,6 +7571,66 @@ def _read_qual01_doc_rows() -> tuple[tuple[_RenderSurfaceRead, ...], list[str]]:
             continue
         reads.append(_RenderSurfaceRead(relpath=relpath, text=text))
     return tuple(reads), problems
+
+
+_MATRIX_SELFTEST_ANCHOR_RE = re.compile(
+    r"scripts/check-quality-harness\.py#(_selftest_\w+)"
+)
+
+
+def _matrix_named_selftest_symbols() -> tuple[tuple[str, ...], list[str]]:
+    """Read `scripts/check-traceability.py`'s source and return the sorted
+    tuple of `_selftest_*` anchors any `MatrixRow.artifact_link` names in
+    THIS file (`scripts/check-quality-harness.py`), plus a problems list
+    rather than raising (unreadable file, decode error — same
+    `_read_text_or_problem` discipline as `_read_qual01_doc_rows`).
+
+    Derives the symbol set from the sibling script's source rather than
+    restating a hand-typed list here: a new matrix row naming a new
+    sub-check is picked up automatically the next time this runs, and a
+    restated list would go stale silently the moment a row's anchor
+    changed and this file's copy did not (WR-06 idiom).
+    """
+    text, problem = _read_text_or_problem(
+        REPO_ROOT / "scripts/check-traceability.py",
+        "scripts/check-traceability.py",
+    )
+    if problem is not None:
+        return (), [problem]
+    symbols = sorted(set(_MATRIX_SELFTEST_ANCHOR_RE.findall(text)))
+    return tuple(symbols), []
+
+
+def _dispatch_reachability_problems(
+    symbols: tuple[str, ...], self_test_source: str
+) -> list[str]:
+    """For each *symbols* entry, report a problem naming it when it is
+    never called from *self_test_source* — an INDEPENDENT re-implementation
+    of the same property `scripts/check-traceability.py`'s
+    `_selftest_dispatch_problems` checks (CR-02 / criterion 5).
+
+    Pure: takes the dispatcher's already-extracted source as a parameter,
+    does no I/O and no `inspect` call itself. Comments are stripped line
+    by line (drop from the first `#`) before each symbol is searched for,
+    so a commented-out dispatch does not satisfy the check — matching the
+    sibling detector's own tradeoff (a `#` inside a string literal can
+    only over-strip, producing a false positive, never a false negative).
+
+    The duplication with `scripts/check-traceability.py` is deliberate,
+    not accidental: two independent detectors in two different scripts
+    mean that hiding a deleted dispatch requires editing both gates, not
+    one.
+    """
+    stripped_lines = [line.split("#", 1)[0] for line in self_test_source.splitlines()]
+    stripped_source = "\n".join(stripped_lines)
+    problems: list[str] = []
+    for symbol in symbols:
+        if (symbol + "(") not in stripped_source:
+            problems.append(
+                f"{symbol!r} is never dispatched from self_test() — a "
+                f"matrix artifact_link naming it is unenforced"
+            )
+    return problems
 
 
 def _extract_whole_physical_line(source_text: str, anchor: str, source_file: str) -> str:
@@ -8609,7 +8675,18 @@ def _selftest_render_contract() -> bool:
     — the mode 3 replacement in `_render_contract_fixtures()` — directly
     with a clean case, a duplicated-id case and a count-mismatch case,
     proving WR-06's unreachable membership check has been replaced by
-    something that can actually fire.
+    something that can actually fire. Control (u), added by plan 13-06
+    (CR-02, criterion 5), is an INDEPENDENT second detector of the same
+    dispatch-reachability property `scripts/check-traceability.py`'s
+    `_selftest_dispatch_problems` checks — every `_selftest_*` symbol a
+    matrix `artifact_link` names must be called from `self_test()`, not
+    merely defined. It derives the symbol set from the sibling script's
+    source (`_matrix_named_selftest_symbols`), asserts a non-vacuity floor
+    over that set, then checks `self_test()`'s own comment-stripped source
+    with `_dispatch_reachability_problems` — the arm that goes red when
+    Item 25's `_selftest_chain_detector_pin` dispatch is deleted, run from
+    Item 24 (still dispatched at that moment) precisely so the guard
+    cannot be defeated by the same mutation it guards.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
     multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
@@ -8694,8 +8771,9 @@ def _selftest_render_contract() -> bool:
     `_RenderRegistrySnapshot` field, so dropping any required token
     from the tuple is caught by control (h2)'s anti-masking floor even if
     every doc row still carries it. Plan 13-05 (CR-01) added a third
-    token pinning the corrected consumption-floor guarantee. A
-    NEGATIVE-CASE COUNT FLOOR derives the expected 6 (2 doc rows x 3
+    token pinning the corrected consumption-floor guarantee; plan 13-06
+    (CR-02) added a fourth pinning the dispatch-reachability leg. A
+    NEGATIVE-CASE COUNT FLOOR derives the expected 8 (2 doc rows x 4
     tokens) from the two registries rather than restating it.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
@@ -9191,6 +9269,69 @@ def _selftest_render_contract() -> bool:
             f"recorder-mutation site(s) (expected 4) and "
             f"{render_t_def_count} scoring-wrapper definition(s) "
             f"(expected 4)"
+        )
+
+    # (u) DISPATCH REACHABILITY. Plan 13-06 (CR-02 / criterion 5): an
+    # INDEPENDENT second detector of the same property
+    # `scripts/check-traceability.py`'s `_selftest_dispatch_problems`
+    # checks, living in a different script so hiding a deleted dispatch
+    # requires editing both gates, not one.
+    #
+    # 1. READ: derive the matrix-named `_selftest_*` symbol set from the
+    #    sibling script's source.
+    render_u_symbols, render_u_read_problems = _matrix_named_selftest_symbols()
+    for render_u_problem in render_u_read_problems:
+        _fail(f"(u) DISPATCH REACHABILITY READ: {render_u_problem}")
+
+    # 2. NON-VACUITY FLOOR: the derived symbol set must be non-empty and
+    #    must contain both known anchors. Without this, a regex that
+    #    stopped matching would silently check nothing.
+    render_u_required = {"_selftest_render_contract", "_selftest_chain_detector_pin"}
+    render_u_missing = render_u_required - set(render_u_symbols)
+    if not render_u_symbols or render_u_missing:
+        _fail(
+            f"(u) DISPATCH REACHABILITY NON-VACUITY FLOOR: derived symbol "
+            f"set {render_u_symbols!r} is missing {sorted(render_u_missing)!r}"
+        )
+
+    # 3. LIVE POSITIVE: this is the arm that goes red when Item 25's
+    #    dispatch is deleted — and it runs from Item 24, which is still
+    #    dispatched at that moment, which is why this control lives here
+    #    and not inside `_selftest_chain_detector_pin` (the mutation that
+    #    threatens it deletes the call to the sub-check that control would
+    #    have to live inside, so an arm placed there would never run).
+    #    This is the single most likely thing for a future reader to
+    #    "simplify" back into the callee — don't.
+    render_u_self_test_src = inspect.getsource(self_test)
+    render_u_live_problems = _dispatch_reachability_problems(
+        render_u_symbols, render_u_self_test_src
+    )
+    if render_u_live_problems:
+        _fail(
+            f"(u) DISPATCH REACHABILITY LIVE POSITIVE: "
+            f"{render_u_live_problems!r}"
+        )
+
+    # 4. SYNTHETIC NEGATIVES: drive `_dispatch_reachability_problems` with
+    #    two in-memory sources — never the live tree.
+    render_u_neg_uncalled = _dispatch_reachability_problems(
+        ("_selftest_x",), "def self_test():\n    pass\n"
+    )
+    if not (len(render_u_neg_uncalled) == 1 and "_selftest_x" in render_u_neg_uncalled[0]):
+        _fail(
+            f"(u) DISPATCH REACHABILITY SYNTHETIC NEGATIVE (uncalled): "
+            f"expected one problem naming '_selftest_x', got "
+            f"{render_u_neg_uncalled!r}"
+        )
+
+    render_u_neg_commented = _dispatch_reachability_problems(
+        ("_selftest_x",), "def self_test():\n    # _selftest_x()\n"
+    )
+    if not (len(render_u_neg_commented) == 1 and "_selftest_x" in render_u_neg_commented[0]):
+        _fail(
+            f"(u) DISPATCH REACHABILITY SYNTHETIC NEGATIVE (commented): "
+            f"expected one problem naming '_selftest_x', got "
+            f"{render_u_neg_commented!r}"
         )
 
     # (q) ISOLATION, fixture accounting. Plan 11-09's replacement for the
@@ -9915,19 +10056,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 3 required tokens = 6 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 4 required tokens = 8 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 6 — a doc row or a
+    # floored against an inline expected total of 8 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 6:
+    if qual01_negative_case_count != 8:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 6"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 8"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
