@@ -193,6 +193,36 @@ The continuation line does not begin with `→`, so the chain terminates at the 
 
 A numbered list restates each hop as its own GT-headed one-hop chain, which reads as several incomplete chains rather than one complete one — the intermediate steps stop being connected to the conclusion they build toward.
 
+**Non-conforming — an input carrying unparenthesized prose:**
+
+```text
+GT-13? (bill composition unknown) + GT-12? (duty cycle unknown) + C2's threshold
+→ target quantity: fraction of total AWS bill removed by the migration
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+`C2's threshold` is not an identifier — it is a possessive prose phrase — so the head does not parse; the third input must be written `C2 (threshold)`.
+
+**Conforming — the same head with the upstream chain as an input:**
+
+```text
+GT-13? (bill composition unknown) + GT-12? (duty cycle unknown) + C2 (threshold)
+→ target quantity: fraction of total AWS bill removed by the migration
+→ the bracket straddles zero, so its two ends recommend opposite actions
+```
+
+Exactly one token differs from the block above: a `Cn` identifier with a parenthesized gloss is an admissible head input, on equal footing with a `GT-N` identifier.
+
+**Conforming — a chain consuming only upstream conclusions:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold) + C4 (unconditional, zero code change) + C5 (~73% ceiling, no execution-model change)
+→ C4 and C5 deliver verified savings that do not depend on any property of your workload
+→ C2's saving depends entirely on a duty-cycle figure nobody has measured
+```
+
+A head may consist entirely of `Cn` inputs with no `GT-N` term. The second hop's `C2's saving` is prose, not a head input — the head-only scope note is what permits it here.
+
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.

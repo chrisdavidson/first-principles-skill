@@ -261,6 +261,16 @@ GT-1 ([brief fact label]) + GT-6 ([brief fact label])
 → [conclusion]
 ```
 
+The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)`.
+
+```text
+GT-1? ([brief fact label]) + C2 ([brief fact label])
+→ [intermediate claim]
+→ [conclusion]
+```
+
+The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference.
+
 Rendering the same hops as `1.` / `2.` / `3.` list items splits one chain into disconnected
 one-hop fragments and does not satisfy this format.
 
