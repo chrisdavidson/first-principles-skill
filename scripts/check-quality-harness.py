@@ -6411,6 +6411,24 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Non-conforming — the expiry hoisted into the token slot:**",
     ),
+    (
+        "R-HEAD-PROSE-BAD",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — an input carrying unparenthesized prose:**",
+    ),
+    (
+        "R-HEAD-CHAINREF",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — the same head with the upstream chain as an input:**",
+    ),
+    (
+        "R-HEAD-ALLCHAIN",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — a chain consuming only upstream conclusions:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6451,6 +6469,9 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CITE-NONE": ("Fargate",),
     "R-VERDICT-EXPIRY": ("expires at",),
     "R-VERDICT-EXPIRY-BAD": ("expires at",),
+    "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+    "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
+    "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
 }
 
 # Substrings the extracted text for a fixture id must NOT contain.
@@ -6500,7 +6521,7 @@ def _render_fixture_id_accounted(fixture_id: str, problems: list[str]) -> bool:
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all eight Phase 11 rendering-contract fixtures from the shipped
+    """Read all eleven Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -6725,6 +6746,19 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "uses the head-plus-arrow-led form, and a hop is split rather than "
         "continued on a second line."
     ),
+    # R7: the head-input rule and its negative in one literal
+    # (CHAINHEAD-01/CHAINHEAD-02, D-02).
+    "R7": (
+        "The head line lists the inputs the chain consumes: each is a "
+        "`GT-N` identifier (`GT-N?` when the ground truth is unverified) "
+        "or a `Cn` identifier, optionally followed by a parenthesized "
+        "gloss, joined to the next by `+`. The first `→` closes the head. "
+        "An input carrying unparenthesized prose — `C2's threshold` — is "
+        "not an identifier and does not parse; write `C2 (threshold)`."
+    ),
+    # R8: the rendered head form showing GT-N? and chain-as-input
+    # (CHAINHEAD-01, D-03).
+    "R8": "GT-1? ([brief fact label]) + C2 ([brief fact label])",
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -6738,12 +6772,12 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # that also state the positive rule.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
     ),
-    "shared/spine/references/validation-rubric.md": ("R1", "R6"),
+    "shared/spine/references/validation-rubric.md": ("R1", "R6", "R7", "R8"),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -6931,6 +6965,7 @@ def _render_registry_lock_problems(
     expected_ids = [
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
 
@@ -6938,7 +6973,7 @@ def _render_registry_lock_problems(
     # the `row[0]` id projection the snapshot used to carry (WR-03,
     # `11-REVIEW-gap-closure.md`). `source_file`, `habitat_mode` and
     # `anchor` are what determine WHAT THE GATE ACTUALLY READS, and they
-    # sat outside the lock entirely: rebinding all eight rows'
+    # sat outside the lock entirely: rebinding all eleven rows'
     # `source_file` to `first-principles/agents/references/` — the
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
@@ -6993,6 +7028,24 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Non-conforming — the expiry hoisted into the token slot:**',
         ),
+        (
+            'R-HEAD-PROSE-BAD',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — an input carrying unparenthesized prose:**',
+        ),
+        (
+            'R-HEAD-CHAINREF',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — the same head with the upstream chain as an input:**',
+        ),
+        (
+            'R-HEAD-ALLCHAIN',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conforming — a chain consuming only upstream conclusions:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -7027,16 +7080,19 @@ def _render_registry_lock_problems(
             f"!= expected {expected_ids!r}"
         )
     else:
-        # ALL EIGHT ids carry a FULL-VALUE lock, not just a key-set lock.
+        # ALL ELEVEN ids carry a FULL-VALUE lock, not just a key-set lock.
         # The three R-CHAIN-* ids were promoted first (IN-04,
         # `11-REVIEW.md`); the five others followed at WR-01
         # (`11-REVIEW-gap-closure.md`), which reproduced setting each of
         # their needle tuples to `()` with every key still present and the
         # self-test still GREEN — that silently disables the mode-2 shape
-        # guard for five of the eight fixtures, so an extraction that
+        # guard for five of the eleven fixtures, so an extraction that
         # returned a neighbouring block scores `False` for the wrong reason
-        # and passes vacuously. There is no reason to keep two tiers: a
-        # needle tuple is the whole content of the guard for its fixture.
+        # and passes vacuously. The three R-HEAD-* ids added at Phase 13
+        # carry their discriminating needles from the start, the same
+        # treatment the R-CHAIN-* ids received. There is no reason to keep
+        # two tiers: a needle tuple is the whole content of the guard for
+        # its fixture.
         expected_fixture_shape = {
             "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
             "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
@@ -7046,6 +7102,9 @@ def _render_registry_lock_problems(
             "R-CITE-NONE": ("Fargate",),
             "R-VERDICT-EXPIRY": ("expires at",),
             "R-VERDICT-EXPIRY-BAD": ("expires at",),
+            "R-HEAD-PROSE-BAD": ("C2's threshold", "bill composition unknown"),
+            "R-HEAD-CHAINREF": ("C2 (threshold)", "bill composition unknown"),
+            "R-HEAD-ALLCHAIN": ("C5 (~73% ceiling", "C2's saving"),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
             actual_shape = snapshot.fixture_shape.get(fixture_id)
@@ -7078,12 +7137,14 @@ def _render_registry_lock_problems(
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
         ),
-        "shared/spine/references/validation-rubric.md": ("R1", "R6"),
+        "shared/spine/references/validation-rubric.md": (
+            "R1", "R6", "R7", "R8",
+        ),
     }
     if snapshot.required_rules != expected_required_rules:
         problems.append(
@@ -7158,6 +7219,8 @@ def _render_registry_lock_problems(
         "R4": "A claim doing neither is cut, not softened",
         "R5": "GT-1 ([brief fact label]) + GT-6",
         "R6": "a hop is split rather than continued on a second line",
+        "R7": "is not an identifier and does not parse",
+        "R8": "GT-1? ([brief fact label]) + C2",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -7190,7 +7253,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:90093fc609847566fd55a60b861fe226315ede2c8365d15567e81fc3159275e3"
+        "sha256:4ccfd10ed7577c46dd8cd0ea9c76e666d84d3c193e15c6bcc485ea24df83f7a6"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -8397,7 +8460,7 @@ def _selftest_render_contract() -> bool:
     here calls it from outside; none of them, nor anything in this file,
     modifies it.
 
-    Controls (a)-(b) pin the eight measured verdicts. Control (c) pins
+    Controls (a)-(b) pin the eleven measured verdicts. Control (c) pins
     minimality of the wrap counter-example: it must differ from the
     conforming example by exactly the inserted continuation line, so the
     counter-example demonstrably teaches the wrap rule and nothing else.
@@ -8410,21 +8473,28 @@ def _selftest_render_contract() -> bool:
     is present. Control (g) is NON-VACUITY: it re-asserts two
     long-standing base cases from outside this item, so a widened
     detector that scored everything `True` (or everything `False`) could
-    not pass (b)/(e) by accident. Control (p), added by plan 11-09 (gap
+    not pass (b)/(e) by accident. Plan 13-02 (CHAINHEAD-05/CHAINHEAD-06)
+    added three more (b) controls scoring `R-HEAD-PROSE-BAD`,
+    `R-HEAD-CHAINREF` and `R-HEAD-ALLCHAIN`: the first two are the
+    same bytes but for one token (`C2's threshold` vs `C2 (threshold)`)
+    scored in opposite directions — a detector accepting both would fail
+    this pair by design, which is why widening `_chain_block_well_formed`
+    is the wrong fix; the third covers the all-`Cn` head shape GAP-6
+    widened `_CHAIN_REF_TOKEN` for. Control (p), added by plan 11-09 (gap
     2's second half), is the CONSUMPTION FLOOR: `_get` records every id it
-    is asked for, and the floor asserts that set against a locked eight-id
-    set written inline — plus that `fixtures` matches the same locked set
-    whenever `problems` is empty (the exact condition CR-02's reproduction
-    left silent), plus that every locked id is either in `fixtures` or
-    named in a reported problem. A fixture that is extracted but never
-    requested, or requested but never scored or reported, now fails by
-    name instead of being silently skipped by controls (b)-(f)'s
-    `is not None` guards. Control (q), also added by plan 11-09, drives
-    `_render_fixture_accounting_problems()` — the mode 3 replacement in
-    `_render_contract_fixtures()` — directly with a clean case, a
-    duplicated-id case and a count-mismatch case, proving WR-06's
-    unreachable membership check has been replaced by something that can
-    actually fire.
+    is asked for, and the floor asserts that set against a locked
+    eleven-id set written inline — plus that `fixtures` matches the same
+    locked set whenever `problems` is empty (the exact condition CR-02's
+    reproduction left silent), plus that every locked id is either in
+    `fixtures` or named in a reported problem. A fixture that is
+    extracted but never requested, or requested but never scored or
+    reported, now fails by name instead of being silently skipped by
+    controls (b)-(f)'s `is not None` guards. Control (q), also added by
+    plan 11-09, drives `_render_fixture_accounting_problems()` — the mode
+    3 replacement in `_render_contract_fixtures()` — directly with a
+    clean case, a duplicated-id case and a count-mismatch case, proving
+    WR-06's unreachable membership check has been replaced by something
+    that can actually fire.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
     multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
@@ -8600,6 +8670,9 @@ def _selftest_render_contract() -> bool:
     cite_none = _get("R-CITE-NONE")
     verdict_expiry = _get("R-VERDICT-EXPIRY")
     verdict_bad = _get("R-VERDICT-EXPIRY-BAD")
+    head_prose_bad = _get("R-HEAD-PROSE-BAD")
+    head_chainref = _get("R-HEAD-CHAINREF")
+    head_allchain = _get("R-HEAD-ALLCHAIN")
 
     # (b) Chain verdicts.
     if conforming is not None and not _chain_block_well_formed(conforming):
@@ -8618,6 +8691,37 @@ def _selftest_render_contract() -> bool:
             "(b) R-CHAIN-NUMBERED (doc label 'Non-conforming — the same "
             "hops rendered as a numbered list:') scored well-formed, "
             "expected malformed"
+        )
+
+    # (b) Chain-head grammar verdicts (CHAINHEAD-05/CHAINHEAD-06). These
+    #     two fixtures — R-HEAD-PROSE-BAD and R-HEAD-CHAINREF — are the
+    #     SAME BYTES except for one token (`C2's threshold` vs
+    #     `C2 (threshold)`, D-06), scored in both directions by the
+    #     unmodified `_chain_block_well_formed`: a detector widened to
+    #     accept the possessive form would fail this pair rather than pass
+    #     it, which is why widening the detector is the wrong fix (the
+    #     widening treadmill 999.3 Case A warns about) — the fix is the
+    #     stated contract (R7/R8), not the code. R-HEAD-ALLCHAIN covers the
+    #     all-`Cn` shape GAP-6 widened `_CHAIN_REF_TOKEN` for; without it a
+    #     future narrowing of that token breaks this shape with every
+    #     other gate green.
+    if head_prose_bad is not None and _chain_block_well_formed(head_prose_bad):
+        _fail(
+            "(b) R-HEAD-PROSE-BAD (doc label 'Non-conforming — an input "
+            "carrying unparenthesized prose:') scored well-formed, "
+            "expected malformed"
+        )
+    if head_chainref is not None and not _chain_block_well_formed(head_chainref):
+        _fail(
+            "(b) R-HEAD-CHAINREF (doc label 'Conforming — the same head "
+            "with the upstream chain as an input:') scored malformed, "
+            "expected well-formed"
+        )
+    if head_allchain is not None and not _chain_block_well_formed(head_allchain):
+        _fail(
+            "(b) R-HEAD-ALLCHAIN (doc label 'Conforming — a chain "
+            "consuming only upstream conclusions:') scored malformed, "
+            "expected well-formed"
         )
 
     # (c) Minimality of the wrap counter-example: dropping the single line
@@ -8738,7 +8842,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked eight-id set below is written INLINE,
+    #     printed PASSED. The locked eleven-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -8750,6 +8854,7 @@ def _selftest_render_contract() -> bool:
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
+        "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -9288,8 +9393,8 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 14 today
-    #     (6 + 6 + 2), so shrinking the mapping fails the floor rather
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 20 today
+    #     (8 + 8 + 4), so shrinking the mapping fails the floor rather
     #     than silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
@@ -9313,7 +9418,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 14
+    expected_missing_case_count = 20
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
