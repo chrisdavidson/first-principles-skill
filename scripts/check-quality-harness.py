@@ -9095,6 +9095,95 @@ def _selftest_render_contract() -> bool:
             f"{render_prefix_probe!r}"
         )
 
+    # (s) ISOLATION, scoring floor. Plan 13-05: drives
+    # `_render_unscored_fixture_ids` directly with synthetic literals —
+    # never `render_locked_fixture_ids`, never `scored_ids`, never
+    # `fixtures` — so the new floor's own predicate is proven falsifiable
+    # in-process, mirroring (p) ISOLATION's discipline one arm up.
+    render_s_clean = _render_unscored_fixture_ids({"A", "B"}, {"A", "B"}, [])
+    if render_s_clean != []:
+        _fail(
+            f"(s) ISOLATION CLEAN: a fully scored locked set wrongly "
+            f"reported a problem: {render_s_clean!r}"
+        )
+
+    render_s_unscored = _render_unscored_fixture_ids({"A", "B"}, {"A"}, [])
+    if render_s_unscored != ["B"]:
+        _fail(
+            f"(s) ISOLATION UNSCORED: expected ['B'], got "
+            f"{render_s_unscored!r} — this is the arm that would have "
+            f"caught CR-01"
+        )
+
+    render_s_accounted_problems = [
+        _render_fixture_problem(
+            "mode 2: shape mismatch",
+            "B",
+            "extracted text is missing required substring(s) ['x']",
+        )
+    ]
+    render_s_accounted = _render_unscored_fixture_ids(
+        {"A", "B"}, {"A"}, render_s_accounted_problems
+    )
+    if render_s_accounted != []:
+        _fail(
+            f"(s) ISOLATION ACCOUNTED: an unscored fixture accounted for "
+            f"by a reported problem wrongly stayed unaccounted: "
+            f"{render_s_accounted!r} — without this arm the helper could "
+            f"fail-closed on every unextractable fixture and nothing "
+            f"would notice"
+        )
+
+    render_s_antimask_problems = [
+        _render_fixture_problem(
+            "mode 2: shape mismatch",
+            "R-VERDICT-EXPIRY-BAD",
+            "extracted text is missing required substring(s) ['expires at']",
+        )
+    ]
+    render_s_antimask = _render_unscored_fixture_ids(
+        {"R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD"},
+        set(),
+        render_s_antimask_problems,
+    )
+    if render_s_antimask != ["R-VERDICT-EXPIRY"]:
+        _fail(
+            f"(s) ISOLATION ANTI-MASKING: expected only "
+            f"['R-VERDICT-EXPIRY'] unscored, got {render_s_antimask!r} — "
+            f"a helper reverted to bare `in` containment would let a "
+            f"problem naming only the BAD proper-prefix fixture wrongly "
+            f"discharge the good one too"
+        )
+
+    # (t) SCORING RECORDER LOCK. Plan 13-05: after (s) proves the floor's
+    # predicate is falsifiable, this closes the one fail-OPEN shape it
+    # cannot see — a control marking a fixture scored without actually
+    # scoring it. Reads `inspect.getsource(_selftest_render_contract)` and
+    # asserts two counts over that source, not over any behaviour: exactly
+    # four recorder-mutation call sites and exactly four scoring-wrapper
+    # definitions. The residual fail-CLOSED bypass (a raw detector call,
+    # which leaves the fixture unscored and reddens the (p) floor) needs
+    # no guard; this bare count is the cheapest thing that makes the
+    # fail-OPEN shape visible in diff review. DISCLOSED LIMITATION: this
+    # arm locks the NUMBER of recorder sites, not that each site sits
+    # inside a wrapper that actually delegates to a scorer — a recorder
+    # mutation moved from one wrapper into another wrapper is not
+    # detected. The two search patterns below are built by concatenation
+    # rather than as single literals, so this control's own source does
+    # not inflate the count it takes over the function it lives inside.
+    render_contract_src = inspect.getsource(_selftest_render_contract)
+    render_t_add_pattern = "scored_ids" + ".add("
+    render_t_def_pattern = "    def " + "_score_"
+    render_t_add_count = render_contract_src.count(render_t_add_pattern)
+    render_t_def_count = render_contract_src.count(render_t_def_pattern)
+    if render_t_add_count != 4 or render_t_def_count != 4:
+        _fail(
+            f"(t) SCORING RECORDER LOCK: observed {render_t_add_count} "
+            f"recorder-mutation site(s) (expected 4) and "
+            f"{render_t_def_count} scoring-wrapper definition(s) "
+            f"(expected 4)"
+        )
+
     # (q) ISOLATION, fixture accounting. Plan 11-09's replacement for the
     #     old unreachable mode 3 block (WR-06, `11-REVIEW.md`): drives
     #     `_render_fixture_accounting_problems` directly with three
