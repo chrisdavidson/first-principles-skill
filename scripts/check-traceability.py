@@ -1640,12 +1640,106 @@ def _rows_v824() -> list[MatrixRow]:
     ]
 
 
+def _rows_v825() -> list[MatrixRow]:
+    """v8.25 milestone rows — 14 requirements, 13 reproducible + 1 audit-only (Phase 12).
+
+    All rows carry milestone="v8.25". Keys use the milestone-qualified form
+    "v8.25/<bare_id>".
+
+    Capability assignment, and the departure it makes: v8.24's discriminator assigned all 14
+    reproducible rows Test-Network because none of that milestone's requirements touched agent
+    prose. CONTRACT-01..05 are different in kind: their deliverable is literally
+    output-template.md / SKILL-body.md prose (the emission contract), which the discriminator's
+    own stated rule ("changes the agent's methodology prose -> Methodology") puts in
+    Methodology, not Test-Network. This has zero severity effect while these rows stay
+    reproducible (_SEVERITY_LABEL only maps gap/audit-only tiers). HEADLINE-* and SHIP-* are
+    Test-Network apparatus, matching the v8.18/v8.24 precedent. CONTRACT-06 is Test-Network
+    because the claim is about detector code (check-quality-harness.py), not agent prose.
+
+    Tiering, decided per row against "does something re-run", not by block: 13 reproducible,
+    CONTRACT-06 audit-only. Two contested calls, both recorded rather than hidden, each
+    independently reversible without moving this row's total (266) — see
+    .planning/phases/12-integration-ship/12-RESEARCH.md §A for the full argument:
+      - A1 — CONTRACT-06's tier. Nothing in the tree pins _chain_block_well_formed
+        byte-unchanged (the sha256 in .planning/PROJECT.md:41 is prose; the only real sha256
+        pin, check-quality-harness.py:7193, covers _RENDER_RULE_LITERALS, a different claim).
+        Tiered audit-only rather than backed by a new sha256-freeze control, matching the v8.18
+        SHIP-04/SHIP-05 precedent (no gate re-runs to check that a byte-freeze claim holds).
+        The alternative is filed as backlog 999.17, not implemented.
+      - A2 — SHIP-03's tier. _self_test_headline_lock predates this phase's rows (authored and
+        mutation-tested in Phase 10), so this is a held-out oracle applied to new input, not a
+        tautology. Tiered reproducible against it.
+    """
+    audit_v825 = (
+        "Nothing in the tree pins _chain_block_well_formed byte-unchanged -- the sha256 in "
+        ".planning/PROJECT.md:41 is prose, and the only real sha256 pin in "
+        "scripts/check-quality-harness.py:7193 covers _RENDER_RULE_LITERALS, a different "
+        "claim; no gate re-runs to check that a byte-freeze holds (the v8.18 SHIP-04/SHIP-05 "
+        "precedent, D-07)."
+    )
+    return [
+        MatrixRow("v8.25/HEADLINE-01", "HEADLINE-01", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_headline_lock_surfaces", ""),
+        MatrixRow("v8.25/HEADLINE-02", "HEADLINE-02", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_headline_literals", ""),
+        MatrixRow("v8.25/HEADLINE-03", "HEADLINE-03", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_is_historical_headline_hit", ""),
+        MatrixRow("v8.25/HEADLINE-04", "HEADLINE-04", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_headline_lock_surfaces", ""),
+        MatrixRow("v8.25/HEADLINE-05", "HEADLINE-05", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_headline_lock_scan", ""),
+        MatrixRow("v8.25/CONTRACT-01", "CONTRACT-01", "v8.25", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.25/CONTRACT-02", "CONTRACT-02", "v8.25", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.25/CONTRACT-03", "CONTRACT-03", "v8.25", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.25/CONTRACT-04", "CONTRACT-04", "v8.25", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.25/CONTRACT-05", "CONTRACT-05", "v8.25", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.25/CONTRACT-06", "CONTRACT-06", "v8.25", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "audit-only", "", audit_v825),
+        MatrixRow("v8.25/SHIP-01", "SHIP-01", "v8.25", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", ""),
+        MatrixRow("v8.25/SHIP-02", "SHIP-02", "v8.25", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.25/SHIP-03", "SHIP-03", "v8.25", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Six inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Seven inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
-    at v8.18 Phase 4; (f) was added at v8.24 Phase 6.
+    at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -1670,6 +1764,13 @@ def build_matrix_rows() -> list[MatrixRow]:
         milestone's CAP-*/PROV-*/GATE-*/VAL-* requirements, all Test-Network apparatus except
         VAL-04 (Methodology, audit-only — a docs record, not a re-runnable gate). See
         `_rows_v824()` for the full per-row rationale.
+    (g) v8.25 milestone (14 rows, 13 reproducible + 1 audit-only) — Phase 12: the milestone's
+        HEADLINE-*/CONTRACT-*/SHIP-* requirements. CONTRACT-01..05 carry Methodology (agent
+        emission-contract prose), departing from (f)'s default-to-Test-Network choice because
+        none of that milestone's rows touched agent prose; HEADLINE-* and SHIP-* stay
+        Test-Network apparatus. CONTRACT-06 is audit-only (Test-Network) — no gate re-runs to
+        check that its byte-freeze claim holds. See `_rows_v825()` for the full per-row
+        rationale.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1698,6 +1799,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v818())
     # --- v8.24 milestone (D-06 / Phase 6) — 14 reproducible + 1 audit-only ---
     rows.extend(_rows_v824())
+    # --- v8.25 milestone (Phase 12 / A1 / A2) — 13 reproducible + 1 audit-only ---
+    rows.extend(_rows_v825())
     return rows
 
 
@@ -3032,6 +3135,150 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(
             f"  V824-ROWS PASS: all {_v824_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
+
+
+def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
+    """V825-ROWS named sentinel (Phase 12).
+
+    Asserts the 14 v8.25 milestone rows registered in _rows_v825():
+      (a) Exactly 14 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 14 IDs.
+      (c) Tier partition pinned by ID, not by count: the audit-only bare_id set is exactly
+          {"CONTRACT-06"} AND the reproducible bare_id set is exactly the other 13, named. A
+          blanket 13/1 count assert is explicitly rejected — swapping CONTRACT-06's tier with
+          a reproducible row's would keep the counts right and pass silently.
+      (d) Deep-resolve artifact_link over the 13 reproducible rows only. Also asserts the
+          audit-only row carries artifact_link == "", so the skip cannot silently become a
+          skip-everything.
+      (e) Positive counter-check: HEADLINE-01 is present exactly once, reproducible, and
+          carries a non-empty artifact_link (mirrors the V824-ROWS GATE-03 idiom).
+      (f) milestone/key lock: every row has milestone == "v8.25" AND a key prefixed
+          "v8.25/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES (the same
+          TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
+
+    Called from _rows_v825() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier swap, or dangling
+    artifact_link fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 14 rows.
+    _v825_rows = _rows_v825()
+    _v825_count = len(_v825_rows)
+    _EXPECTED_V825_IDS = {
+        "HEADLINE-01", "HEADLINE-02", "HEADLINE-03", "HEADLINE-04", "HEADLINE-05",
+        "CONTRACT-01", "CONTRACT-02", "CONTRACT-03", "CONTRACT-04", "CONTRACT-05",
+        "CONTRACT-06",
+        "SHIP-01", "SHIP-02", "SHIP-03",
+    }
+    _EXPECTED_V825_AUDIT_ONLY_IDS = {"CONTRACT-06"}
+    _EXPECTED_V825_REPRODUCIBLE_IDS = _EXPECTED_V825_IDS - _EXPECTED_V825_AUDIT_ONLY_IDS
+    if _v825_count != 14:
+        print(
+            f"  V825-ROWS FAIL: expected exactly 14 rows in _rows_v825(), "
+            f"got {_v825_count} — drift guard failed."
+        )
+        wrong_results.append("V825-ROWS: row count drift (expected 14)")
+    else:
+        print(f"  V825-ROWS PASS: row count == 14")
+
+    # (b) bare_id set assertion.
+    _v825_ids = {r.bare_id for r in _v825_rows}
+    if _v825_ids != _EXPECTED_V825_IDS:
+        _missing = _EXPECTED_V825_IDS - _v825_ids
+        _extra = _v825_ids - _EXPECTED_V825_IDS
+        print(
+            f"  V825-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V825-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V825-ROWS PASS: bare_id set = {sorted(_v825_ids)!r}")
+
+    # (c) Tier partition pinned by ID, not by count.
+    _audit_only_ids = {r.bare_id for r in _v825_rows if r.coverage_tier == "audit-only"}
+    _reproducible_ids = {r.bare_id for r in _v825_rows if r.coverage_tier == "reproducible"}
+    if _audit_only_ids != _EXPECTED_V825_AUDIT_ONLY_IDS:
+        print(
+            f"  V825-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V825_AUDIT_ONLY_IDS)!r}, got={sorted(_audit_only_ids)!r}"
+        )
+        wrong_results.append("V825-ROWS: audit-only bare_id set mismatch")
+    elif _reproducible_ids != _EXPECTED_V825_REPRODUCIBLE_IDS:
+        print(
+            f"  V825-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V825_REPRODUCIBLE_IDS)!r}, got={sorted(_reproducible_ids)!r}"
+        )
+        wrong_results.append("V825-ROWS: reproducible bare_id set mismatch")
+    else:
+        print(
+            f"  V825-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
+            f"13 reproducible IDs confirmed by name"
+        )
+
+    # (d) Deep-resolve artifact_link over the 13 reproducible rows only; the audit-only
+    #     row must carry artifact_link == "" (so the skip cannot become a skip-everything).
+    _v825_repro_rows = [r for r in _v825_rows if r.coverage_tier == "reproducible"]
+    _v825_audit_rows = [r for r in _v825_rows if r.coverage_tier == "audit-only"]
+    _link_issues: list[str] = []
+    for _row in _v825_repro_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    _nonempty_audit_links = [r.bare_id for r in _v825_audit_rows if r.artifact_link != ""]
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V825-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V825-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    elif _nonempty_audit_links:
+        print(
+            f"  V825-ROWS FAIL: audit-only row(s) with non-empty artifact_link — "
+            f"{_nonempty_audit_links!r}"
+        )
+        wrong_results.append("V825-ROWS: audit-only row(s) with non-empty artifact_link")
+    else:
+        print(
+            f"  V825-ROWS PASS: all {len(_v825_repro_rows)} reproducible artifact_links "
+            f"deep-resolve OK, audit-only row carries artifact_link=''"
+        )
+
+    # (e) Positive counter-check: HEADLINE-01 is present, reproducible, non-empty artifact_link.
+    _headline01_rows = [r for r in _v825_rows if r.bare_id == "HEADLINE-01"]
+    _headline01_present = len(_headline01_rows) == 1
+    _headline01_repro = _headline01_rows[0].coverage_tier == "reproducible" if _headline01_rows else False
+    _headline01_link = _headline01_rows[0].artifact_link if _headline01_rows else ""
+    if _headline01_present and _headline01_repro and _headline01_link:
+        print(
+            f"  V825-ROWS PASS: HEADLINE-01 present and reproducible "
+            f"(artifact_link={_headline01_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V825-ROWS FAIL: HEADLINE-01 positive counter-check failed "
+            f"(present={_headline01_present}, reproducible={_headline01_repro}, link={_headline01_link!r})"
+        )
+        wrong_results.append("V825-ROWS: HEADLINE-01 counter-check failed")
+
+    # (f) milestone/key lock.
+    _bad_ms = [
+        r.key for r in _v825_rows
+        if r.milestone != "v8.25" or not r.key.startswith("v8.25/")
+    ]
+    if _bad_ms:
+        print(f"  V825-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V825-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V825-ROWS PASS: all {_v825_count} rows carry milestone='v8.25' and 'v8.25/' key prefix")
+
+    # (g) capability lock.
+    _bad_cap = [r.bare_id for r in _v825_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V825-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V825-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V825-ROWS PASS: all {_v825_count} rows carry a valid capability "
             f"(in {sorted(VALID_CAPABILITIES)!r})"
         )
 
@@ -5207,6 +5454,12 @@ def _run_self_test() -> None:
                  milestone rows against silent drift, including a tier swap between two
                  named IDs that a blanket count assert would miss; no live claude session
                  required.
+      V825-ROWS: live row count + bare_id set + ID-pinned 13/1 tier partition + deep-resolve
+                 over reproducible rows only + HEADLINE-01 positive counter-check + milestone/key
+                 attribution lock + capability lock (Phase 12); locks all 14 v8.25
+                 milestone rows against silent drift, including a tier swap between two
+                 named IDs that a blanket count assert would miss; no live claude session
+                 required.
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
@@ -5223,6 +5476,7 @@ def _run_self_test() -> None:
     _self_test_v79_rows_sentinel(wrong_results)
     _self_test_v818_rows_sentinel(wrong_results)
     _self_test_v824_rows_sentinel(wrong_results)
+    _self_test_v825_rows_sentinel(wrong_results)
     _self_test_headline_lock(wrong_results)
     if wrong_results:
         sys.stderr.write(

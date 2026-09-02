@@ -2518,5 +2518,145 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this file's PROV-GUARD record -- not by a re-runnable offline gate. No gate re-runs to check that a docs record exists, and none is proposed (the v8.18 SHIP-04/SHIP-05 precedent, D-07)."
+  },
+  {
+    "key": "v8.25/HEADLINE-01",
+    "bare_id": "HEADLINE-01",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_headline_lock_surfaces",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/HEADLINE-02",
+    "bare_id": "HEADLINE-02",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_headline_literals",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/HEADLINE-03",
+    "bare_id": "HEADLINE-03",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_is_historical_headline_hit",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/HEADLINE-04",
+    "bare_id": "HEADLINE-04",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_headline_lock_surfaces",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/HEADLINE-05",
+    "bare_id": "HEADLINE-05",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_headline_lock_scan",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-01",
+    "bare_id": "CONTRACT-01",
+    "milestone": "v8.25",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-02",
+    "bare_id": "CONTRACT-02",
+    "milestone": "v8.25",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-03",
+    "bare_id": "CONTRACT-03",
+    "milestone": "v8.25",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-04",
+    "bare_id": "CONTRACT-04",
+    "milestone": "v8.25",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-05",
+    "bare_id": "CONTRACT-05",
+    "milestone": "v8.25",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/CONTRACT-06",
+    "bare_id": "CONTRACT-06",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Nothing in the tree pins _chain_block_well_formed byte-unchanged -- the sha256 in .planning/PROJECT.md:41 is prose, and the only real sha256 pin in scripts/check-quality-harness.py:7193 covers _RENDER_RULE_LITERALS, a different claim; no gate re-runs to check that a byte-freeze holds (the v8.18 SHIP-04/SHIP-05 precedent, D-07)."
+  },
+  {
+    "key": "v8.25/SHIP-01",
+    "bare_id": "SHIP-01",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/SHIP-02",
+    "bare_id": "SHIP-02",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.25/SHIP-03",
+    "bare_id": "SHIP-03",
+    "milestone": "v8.25",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
   }
 ]
