@@ -223,7 +223,7 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold) + C4 (unc
 
 A head may consist entirely of `Cn` inputs with no `GT-N` term. The second hop's `C2's saving` is prose, not a head input — the head-only scope note is what permits it here.
 
-**Measured limitation — the same prose input in a non-final position:**
+**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**
 
 ```text
 GT-13? (bill composition unknown) + C2's threshold + GT-12? (duty cycle unknown)

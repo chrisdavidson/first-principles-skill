@@ -6501,7 +6501,7 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "R-HEAD-PROSE-MID",
         "shared/spine/references/output-template.md",
         "fenced-block",
-        "**Measured limitation — the same prose input in a non-final position:**",
+        "**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**",
     ),
     (
         "R-HEAD-GTHOP-BAD",
@@ -7582,7 +7582,7 @@ def _render_registry_lock_problems(
             'R-HEAD-PROSE-MID',
             'shared/spine/references/output-template.md',
             'fenced-block',
-            '**Measured limitation — the same prose input in a non-final position:**',
+            '**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**',
         ),
         (
             'R-HEAD-GTHOP-BAD',
@@ -9546,8 +9546,8 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-PROSE-MID", head_prose_mid
     ):
         _fail(
-            "(b) R-HEAD-PROSE-MID (doc label 'Measured limitation — the "
-            "same prose input in a non-final position:') scored "
+            "(b) R-HEAD-PROSE-MID (doc label 'Non-conforming, and undetected by the form check "
+            "— the same prose input in a non-final position:') scored "
             "malformed, expected well-formed (measured bound)"
         )
 
