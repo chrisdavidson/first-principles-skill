@@ -6811,6 +6811,115 @@ def _render_chain_verdict_floor_problems(
     return sorted(problems_out)
 
 
+def _render_example_claiming_relpaths(
+    texts: dict[str, str], claim: str
+) -> tuple[str, ...]:
+    """Sorted relpaths in *texts* whose value, after whitespace
+    normalization (`" ".join(text.split())`), contains *claim*.
+
+    Pure: takes the already-read texts and the claim literal as
+    parameters and performs no I/O, so an isolation control can drive it
+    with synthetic literals without touching `_RENDER_EXAMPLE_GLOB` or the
+    real `shared/examples/` tree. Whitespace normalization is
+    load-bearing, not decorative (plan 13-14, CR-01
+    `13-VERIFICATION-round3.md`): the claim is hard-wrapped across two
+    physical lines in `composed-inversion-second-order.md`, so a
+    line-scoped containment test would silently exempt that file — the
+    same line-scoped blind spot `HEADLINE-LOCK` records for a headline
+    wrapped across two physical lines.
+    """
+    return tuple(
+        sorted(
+            relpath
+            for relpath, text in texts.items()
+            if claim in " ".join(text.split())
+        )
+    )
+
+
+_RENDER_EXAMPLE_HEADING_RE = re.compile(r"^### Conclusion", re.MULTILINE)
+_RENDER_EXAMPLE_BOUND_RE = re.compile(r"^(?:#{1,6} |---\s*$)", re.MULTILINE)
+
+
+def _render_example_chain_blocks(text: str) -> tuple[tuple[int, str], ...]:
+    """Every `### Conclusion`-headed chain block in *text*, bounded, as
+    `(1-based heading line number, block text)` pairs.
+
+    A block starts at a line matching `_RENDER_EXAMPLE_HEADING_RE` and ends
+    at the next line matching `_RENDER_EXAMPLE_BOUND_RE` after the heading,
+    or at end of text. The bound exists because `_chain_block_well_formed`
+    is an `any()` over candidates (its own docstring's deferred WR-03
+    note): an unbounded block running to end of text would let one
+    conforming chain anywhere later in the file mask a malformed one
+    earlier in the same block.
+    """
+    blocks: list[tuple[int, str]] = []
+    for heading in _RENDER_EXAMPLE_HEADING_RE.finditer(text):
+        bound = _RENDER_EXAMPLE_BOUND_RE.search(text, heading.end())
+        end = bound.start() if bound is not None else len(text)
+        line_number = text.count("\n", 0, heading.start()) + 1
+        blocks.append((line_number, text[heading.start() : end]))
+    return tuple(blocks)
+
+
+def _render_example_conformance_problems(
+    texts: dict[str, str],
+    claim: str,
+    scorer: Callable[[str], bool],
+) -> list[str]:
+    """For every relpath in *texts* whose whitespace-normalized text
+    contains *claim* (derived via `_render_example_claiming_relpaths`),
+    score every `### Conclusion` chain block
+    (`_render_example_chain_blocks`) with *scorer*, and emit one problem
+    per block scoring falsy, naming the relpath, the heading's 1-based
+    line number, and the first 60 characters of the block's head line. A
+    claiming file that yields ZERO blocks also emits one problem — a
+    claim with nothing to check is a defect, not a pass. Sorted.
+
+    Takes the scorer as a PARAMETER rather than hardcoding a call to
+    `_chain_block_well_formed`, copying the parameter-scorer design one
+    layer down in this same block: it is what lets an isolation control
+    drive this helper with a synthetic predicate without monkeypatching
+    the module.
+    """
+    problems_out: list[str] = []
+    for relpath in _render_example_claiming_relpaths(texts, claim):
+        blocks = _render_example_chain_blocks(texts[relpath])
+        if not blocks:
+            problems_out.append(
+                f"{relpath}: asserts {claim!r} but contains zero "
+                f"'### Conclusion' chain blocks to check"
+            )
+            continue
+        for line_number, block_text in blocks:
+            if not scorer(block_text):
+                head_line = block_text.splitlines()[0] if block_text else ""
+                problems_out.append(
+                    f"{relpath}:{line_number}: chain block scored "
+                    f"malformed under the frozen detector — head "
+                    f"{head_line[:60]!r}"
+                )
+    return sorted(problems_out)
+
+
+def _read_render_example_texts() -> tuple[dict[str, str], list[str]]:
+    """Read every `_RENDER_EXAMPLE_GLOB` match under `shared/examples/`
+    into a `relpath -> text` mapping, plus a problems list — never raise,
+    never silently skip, matching `_read_qual01_doc_rows`'s discipline
+    (`_read_text_or_problem`).
+    """
+    texts: dict[str, str] = {}
+    problems: list[str] = []
+    for path in sorted(REPO_ROOT.glob(_RENDER_EXAMPLE_GLOB)):
+        relpath = path.relative_to(REPO_ROOT).as_posix()
+        text, problem = _read_text_or_problem(path, relpath)
+        if problem is not None:
+            problems.append(problem)
+            continue
+        texts[relpath] = text
+    return texts, problems
+
+
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
     """Read all fourteen Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
@@ -7200,7 +7309,12 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # re-scored while the arm deciding WHICH nine is narrowed to one,
 # because the only floor over that arm's own coverage table was a union
 # a sibling table already satisfied — CR-03 exactly, and the third time
-# in this phase a floor reported PASS while unable to fail.
+# in this phase a floor reported PASS while unable to fail. The ninth
+# token, `worked-example conformance`, added by plan 13-14 (CR-01,
+# `13-VERIFICATION-round3.md`): without it a row can describe a
+# four-leg gate while the surface that shipped CR-01 — a false
+# conformance claim in a model-facing worked example, inside a GREEN
+# battery — goes back to being reachable by no gate at all.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -7210,14 +7324,50 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "R-HEAD-GTHOP-OK",
     "expected-verdict floor",
     "chain-family coverage floor",
+    "worked-example conformance",
 )
+
+# A shipped worked example may not assert a conformance property it does
+# not have (plan 13-14, CR-01, `13-VERIFICATION-round3.md`) — the
+# invariant QUAL-01 leg 5, control (y) below, enforces.
+
+_RENDER_EXAMPLE_CLAIM_LITERAL: str = "in the prescribed head form"
+# The assertion whose presence brings a `shared/examples/*.md` file into
+# leg 5's scope. Containment is tested against WHITESPACE-NORMALIZED file
+# text (`" ".join(text.split())`), never a per-line test: the literal is
+# hard-wrapped across two physical lines in
+# `composed-inversion-second-order.md` (measured), so a line-scoped test
+# would silently exempt that file from the leg entirely — the same
+# line-scoped blind spot `HEADLINE-LOCK` records ("detection is
+# line-scoped, so a headline hard-wrapped across two physical lines is
+# invisible to it", CLAUDE.md's TRACE-03 row), a defect class this
+# project has already paid for once.
+
+_RENDER_EXAMPLE_GLOB: str = "shared/examples/*.md"
+# The canonical surface leg 5 reads, never the generated
+# verbatim-copy mirror under the shipped plugin tree — the same
+# source-of-truth discipline the extraction table's own comment records
+# as a live past defect (rebinding `source_file` to the generated tree
+# left a self-test GREEN while both doc rows told the reader the gate
+# reads canonical bytes).
+
+_RENDER_EXAMPLE_CLAIMING_FILES: tuple[str, ...] = (
+    "shared/examples/composed-inversion-second-order.md",
+    "shared/examples/ishikawa-fishbone.md",
+)
+# The locked relpath set the DERIVED claiming-file set
+# (`_render_example_claiming_relpaths`) is floored against by EQUALITY.
+# This is not the list the leg iterates — the leg iterates what it
+# derives from the claim literal — it exists so a derivation returning
+# fewer (or more) files than this locked set is a loud failure rather
+# than a quiet narrowing of scope.
 
 
 @dataclass(frozen=True)
 class _RenderRegistrySnapshot:
     """A by-value snapshot of the registries the rendering-contract
     mechanism depends on — one field per entry of
-    `_RENDER_REGISTRY_FIELDS` (twelve today, eleven registries: the
+    `_RENDER_REGISTRY_FIELDS` (fifteen today, fourteen registries: the
     extraction table contributes both `extraction_rows`, the
     authoritative all-four-column arm, and the derived `extraction_ids`).
 
@@ -7263,6 +7413,9 @@ class _RenderRegistrySnapshot:
     qual01_doc_row_tokens: tuple[str, ...]
     pre_contract_wordings: tuple[str, ...]
     chain_family_prefixes: tuple[str, ...]
+    example_claim_literal: str
+    example_glob: str
+    example_claiming_files: tuple[str, ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -7282,6 +7435,9 @@ class _RenderRegistrySnapshot:
             qual01_doc_row_tokens=_QUAL01_DOC_ROW_TOKENS,
             pre_contract_wordings=_RENDER_PRE_CONTRACT_WORDINGS,
             chain_family_prefixes=_RENDER_CHAIN_FAMILY_PREFIXES,
+            example_claim_literal=_RENDER_EXAMPLE_CLAIM_LITERAL,
+            example_glob=_RENDER_EXAMPLE_GLOB,
+            example_claiming_files=_RENDER_EXAMPLE_CLAIMING_FILES,
         )
 
 
@@ -7303,6 +7459,9 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "qual01_doc_row_tokens",
     "pre_contract_wordings",
     "chain_family_prefixes",
+    "example_claim_literal",
+    "example_glob",
+    "example_claiming_files",
 )
 
 def _render_registry_lock_problems(
@@ -7586,6 +7745,7 @@ def _render_registry_lock_problems(
         "R-HEAD-GTHOP-OK",
         "expected-verdict floor",
         "chain-family coverage floor",
+        "worked-example conformance",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -7627,6 +7787,39 @@ def _render_registry_lock_problems(
             f"expected {expected_chain_family_prefixes!r}"
         )
     checked.add("chain_family_prefixes")
+
+    # `example_claim_literal`, `example_glob`, `example_claiming_files`
+    # (plan 13-14, CR-01, `13-VERIFICATION-round3.md`): the claim literal
+    # leg 5 (control (y)) derives its scope from, the canonical-only glob
+    # it reads, and the locked two-file set the derivation is floored
+    # against by equality. Locked here by value, never against the module
+    # constant each mirrors.
+    expected_example_claim_literal = "in the prescribed head form"
+    if snapshot.example_claim_literal != expected_example_claim_literal:
+        problems.append(
+            f"example_claim_literal: {snapshot.example_claim_literal!r} "
+            f"!= expected {expected_example_claim_literal!r}"
+        )
+    checked.add("example_claim_literal")
+
+    expected_example_glob = "shared/examples/*.md"
+    if snapshot.example_glob != expected_example_glob:
+        problems.append(
+            f"example_glob: {snapshot.example_glob!r} != expected "
+            f"{expected_example_glob!r}"
+        )
+    checked.add("example_glob")
+
+    expected_example_claiming_files = (
+        "shared/examples/composed-inversion-second-order.md",
+        "shared/examples/ishikawa-fishbone.md",
+    )
+    if snapshot.example_claiming_files != expected_example_claiming_files:
+        problems.append(
+            f"example_claiming_files: {snapshot.example_claiming_files!r} "
+            f"!= expected {expected_example_claiming_files!r}"
+        )
+    checked.add("example_claiming_files")
 
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
@@ -10117,6 +10310,280 @@ def _selftest_render_contract() -> bool:
             f"got {render_x5_chain_ids_none!r}"
         )
 
+    # (y) EXAMPLE CONFORMANCE. Plan 13-14 closes CR-01
+    #     (`13-VERIFICATION-round3.md`): a shipped worked example may not
+    #     ASSERT a conformance property it does not have. Scope is
+    #     DERIVED from the assertion itself — every `shared/examples/*.md`
+    #     file whose text, after whitespace normalization, contains
+    #     `_RENDER_EXAMPLE_CLAIM_LITERAL` — so a THIRD example adopting
+    #     the claim is covered the moment it does, with no gate edit. This
+    #     is the same derived-not-restated rule control (x) installed one
+    #     layer down, applied here to worked-example content.
+    #
+    #     DISCLOSED LIMITS: this leg checks only files that make the
+    #     claim, not all fourteen `shared/examples/*.md` files — a
+    #     whole-tree sweep was measured and rejected as out of this
+    #     plan's scope (see `13-14-SUMMARY.md`: the other twelve files'
+    #     section-4 slices are mostly not even in the shape this leg's
+    #     block extraction expects). It checks chain FORM via the frozen
+    #     detector, not whether the chain's reasoning is sound. Block
+    #     boundaries are a heading/rule heuristic, not a markdown parse.
+    #     And it detects a chain rendered in the already-malformed form;
+    #     it does not detect every re-wrap of an already-conforming head,
+    #     because the frozen detector's own deferred `any()`-over-
+    #     candidates masking (WR-03, stated in its own docstring) can let
+    #     a later, still-single-line candidate in the same block absorb a
+    #     re-wrapped head — measured directly against this plan's own
+    #     stated must-have mutation and recorded as a bound, not silently
+    #     dropped.
+    render_y_texts, render_y_read_problems = _read_render_example_texts()
+    for render_y_problem in render_y_read_problems:
+        _fail(f"(y) EXAMPLE CONFORMANCE READ: {render_y_problem}")
+
+    render_y_claiming_relpaths = _render_example_claiming_relpaths(
+        render_y_texts, _RENDER_EXAMPLE_CLAIM_LITERAL
+    )
+
+    # NON-VACUITY FLOOR, by EQUALITY, reusing control (x)'s own
+    # `_render_coverage_floor_problems` primitive rather than restating an
+    # ad hoc equality test. Deliberately NOT folded into control (x)'s own
+    # `render_coverage_floor_entries` registry above: that registry is
+    # built and locked before these example texts are read, and its own
+    # scope is the dispatch/chain-family mechanism, not worked-example
+    # content — mixing the two would blur what a REGISTRY MEMBERSHIP LOCK
+    # failure is actually reporting. The equality-floor HELPER is shared;
+    # the registry is not.
+    for render_y_problem in _render_coverage_floor_problems(
+        (
+            (
+                "(y) example claiming-file set",
+                frozenset(render_y_claiming_relpaths),
+                frozenset(_RENDER_EXAMPLE_CLAIMING_FILES),
+            ),
+        )
+    ):
+        _fail(f"(y) EXAMPLE CONFORMANCE NON-VACUITY: {render_y_problem}")
+    if not render_y_texts:
+        _fail(
+            f"(y) EXAMPLE CONFORMANCE NON-VACUITY: {_RENDER_EXAMPLE_GLOB!r} "
+            f"yielded an empty text mapping"
+        )
+
+    # BLOCK-COUNT FLOOR: the total blocks derived across the claiming
+    # files must be non-zero and equal a derived-and-floored count
+    # (measured: 1 + 3 = 4), following control (m)'s NEGATIVE-CASE COUNT
+    # FLOOR shape — the derived number is reported so a future change is
+    # diagnosed, not merely rejected.
+    render_y_block_count = sum(
+        len(_render_example_chain_blocks(render_y_texts[relpath]))
+        for relpath in render_y_claiming_relpaths
+    )
+    if render_y_block_count != 4:
+        _fail(
+            f"(y) EXAMPLE CONFORMANCE BLOCK-COUNT FLOOR: derived "
+            f"{render_y_block_count} chain block(s) across "
+            f"{len(render_y_claiming_relpaths)} claiming file(s) != "
+            f"expected 4"
+        )
+
+    # THE LEG ITSELF: every derived block, scored by the unmodified frozen
+    # detector.
+    for render_y_problem in _render_example_conformance_problems(
+        render_y_texts,
+        _RENDER_EXAMPLE_CLAIM_LITERAL,
+        _chain_block_well_formed,
+    ):
+        _fail(f"(y) EXAMPLE CONFORMANCE: {render_y_problem}")
+
+    # (z) ISOLATION, leg 5's own falsifiability. Every arm drives the
+    #     Task-1 helpers with SYNTHETIC literals and a local synthetic
+    #     scorer — never the real example texts, never
+    #     `_RENDER_EXAMPLE_CLAIM_LITERAL`, never the frozen detector.
+    render_z_claim = "in the synthetic head form"
+
+    def render_z_scorer(block_text: str) -> bool:
+        return "GOOD" in block_text
+
+    # z1 DERIVATION CLEAN.
+    render_z1_relpaths = _render_example_claiming_relpaths(
+        {
+            "synthetic/claims.md": f"Some prose. {render_z_claim} More prose.",
+            "synthetic/silent.md": "Some prose with no assertion at all.",
+        },
+        render_z_claim,
+    )
+    if render_z1_relpaths != ("synthetic/claims.md",):
+        _fail(
+            f"(z1) DERIVATION CLEAN: expected "
+            f"('synthetic/claims.md',), got {render_z1_relpaths!r}"
+        )
+
+    # z2 DERIVATION WRAPPED-CLAIM (the A-02 property, asserted in-process:
+    # a per-line implementation fails here).
+    render_z2_relpaths = _render_example_claiming_relpaths(
+        {
+            "synthetic/wrapped.md": (
+                "Some prose asserting the property in\n"
+                "the synthetic head form, more prose."
+            ),
+        },
+        render_z_claim,
+    )
+    if render_z2_relpaths != ("synthetic/wrapped.md",):
+        _fail(
+            f"(z2) DERIVATION WRAPPED-CLAIM: expected "
+            f"('synthetic/wrapped.md',), got {render_z2_relpaths!r}"
+        )
+
+    # z3 BLOCK BOUND: two headings separated by a `---` rule must yield
+    # exactly two blocks, and the first must not contain the second
+    # heading's content. A splitter that runs to end of text fails here.
+    render_z3_text = (
+        "intro\n"
+        "### Conclusion: first block heading\n"
+        "GT-1 (a) + GT-2 (b)\n"
+        "-> claim one\n"
+        "---\n"
+        "### Conclusion: second block heading\n"
+        "GT-3 (c) + GT-4 (d)\n"
+        "-> claim two\n"
+    )
+    render_z3_blocks = _render_example_chain_blocks(render_z3_text)
+    if len(render_z3_blocks) != 2:
+        _fail(
+            f"(z3) BLOCK BOUND: expected 2 blocks, got "
+            f"{len(render_z3_blocks)}"
+        )
+    elif "second block heading" in render_z3_blocks[0][1]:
+        _fail(
+            "(z3) BLOCK BOUND: the first block's text "
+            "contains the second heading's content — the bound is not "
+            "load-bearing"
+        )
+
+    # z4 BLOCK LINE NUMBERS: each reported line number must equal the
+    # 1-based line of its own heading in the synthetic text.
+    if len(render_z3_blocks) == 2 and (
+        render_z3_blocks[0][0] != 2 or render_z3_blocks[1][0] != 6
+    ):
+        _fail(
+            f"(z4) BLOCK LINE NUMBERS: expected (2, 6), got "
+            f"{(render_z3_blocks[0][0], render_z3_blocks[1][0])!r}"
+        )
+
+    # z5 CONFORMANCE CLEAN.
+    render_z5_problems = _render_example_conformance_problems(
+        {
+            "synthetic/clean.md": (
+                f"{render_z_claim} appears here.\n"
+                "### Conclusion: ok\nGOOD content\n"
+            ),
+        },
+        render_z_claim,
+        render_z_scorer,
+    )
+    if render_z5_problems != []:
+        _fail(
+            f"(z5) CONFORMANCE CLEAN: expected [], got "
+            f"{render_z5_problems!r}"
+        )
+
+    # z6 CONFORMANCE FAILING: exactly one problem naming the relpath and
+    # the block's heading line number.
+    render_z6_problems = _render_example_conformance_problems(
+        {
+            "synthetic/failing.md": (
+                f"{render_z_claim} appears here.\n"
+                "### Conclusion: bad\nBAD content\n"
+            ),
+        },
+        render_z_claim,
+        render_z_scorer,
+    )
+    if (
+        len(render_z6_problems) != 1
+        or "synthetic/failing.md" not in render_z6_problems[0]
+        or ":2:" not in render_z6_problems[0]
+    ):
+        _fail(
+            f"(z6) CONFORMANCE FAILING: expected exactly one "
+            f"problem naming 'synthetic/failing.md' and line 2, got "
+            f"{render_z6_problems!r}"
+        )
+
+    # z7 CLAIM WITHOUT BLOCKS: a claim with nothing to check is a defect,
+    # not a pass.
+    render_z7_problems = _render_example_conformance_problems(
+        {"synthetic/noblocks.md": f"{render_z_claim} but no chain heading anywhere."},
+        render_z_claim,
+        render_z_scorer,
+    )
+    if (
+        len(render_z7_problems) != 1
+        or "synthetic/noblocks.md" not in render_z7_problems[0]
+    ):
+        _fail(
+            f"(z7) CLAIM WITHOUT BLOCKS: expected exactly one "
+            f"problem naming 'synthetic/noblocks.md', got "
+            f"{render_z7_problems!r}"
+        )
+
+    # z8 NON-CLAIMING FILE IGNORED: proves the leg is scoped by the
+    # assertion and does not silently become a whole-tree sweep.
+    render_z8_problems = _render_example_conformance_problems(
+        {
+            "synthetic/unclaimed.md": (
+                "no assertion here.\n### Conclusion: bad\nBAD content\n"
+            ),
+        },
+        render_z_claim,
+        render_z_scorer,
+    )
+    if render_z8_problems != []:
+        _fail(
+            f"(z8) NON-CLAIMING FILE IGNORED: expected [], "
+            f"got {render_z8_problems!r}"
+        )
+
+    # z9 ANTI-MASKING, multi-file: the same property control (x)'s x4
+    # asserts one layer down — a whole clean sibling cannot discharge a
+    # narrowed (here, failing) one. Three entries, not the minimal two
+    # (mirroring x4's own plan-13-12 redesign after MUTATION H showed a
+    # two-entry case cannot discriminate an accumulating loop from one
+    # that returns after its first problem): with only ONE failing entry,
+    # a first-problem-wins helper produces the identical single-problem
+    # output a correct accumulating helper does, so it cannot be caught.
+    # With two INDEPENDENT failing entries after the clean sibling, an
+    # accumulating helper reports both and a first-problem-wins helper
+    # reports only one.
+    render_z9_problems = _render_example_conformance_problems(
+        {
+            "synthetic/a-clean.md": (
+                f"{render_z_claim}\n### Conclusion: ok\nGOOD stuff\n"
+            ),
+            "synthetic/b-failing.md": (
+                f"{render_z_claim}\n### Conclusion: bad one\nBAD stuff\n"
+            ),
+            "synthetic/c-failing.md": (
+                f"{render_z_claim}\n### Conclusion: bad two\nBAD stuff\n"
+            ),
+        },
+        render_z_claim,
+        render_z_scorer,
+    )
+    if (
+        len(render_z9_problems) != 2
+        or not any("synthetic/b-failing.md" in p for p in render_z9_problems)
+        or not any("synthetic/c-failing.md" in p for p in render_z9_problems)
+        or any("synthetic/a-clean.md" in p for p in render_z9_problems)
+    ):
+        _fail(
+            f"(z9) ANTI-MASKING: expected exactly two "
+            f"problems, naming 'synthetic/b-failing.md' and "
+            f"'synthetic/c-failing.md', and none naming "
+            f"'synthetic/a-clean.md', got {render_z9_problems!r}"
+        )
+
     # (v) RECORDER DELEGATION PROBE. Plan 13-10 (BL-03, `13-VERIFICATION.md`):
     #     proves each of the four wrappers actually delegates to its own
     #     scorer, rather than fabricating a verdict — the shape BL-03's
@@ -10670,6 +11137,33 @@ def _selftest_render_contract() -> bool:
             "!= expected",
             replace(render_live_snapshot, chain_family_prefixes=()),
         ),
+        (
+            "example_claim_literal replaced with a different string "
+            "(plan 13-14)",
+            "example_claim_literal",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                example_claim_literal="a different assertion entirely",
+            ),
+        ),
+        (
+            "example_glob emptied (plan 13-14)",
+            "example_glob",
+            "!= expected",
+            replace(render_live_snapshot, example_glob=""),
+        ),
+        (
+            "example_claiming_files with one entry dropped (plan 13-14)",
+            "example_claiming_files",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                example_claiming_files=render_live_snapshot.example_claiming_files[
+                    1:
+                ],
+            ),
+        ),
     ]
 
     render_lock_negative_fields_exercised: set[str] = set()
@@ -11114,19 +11608,19 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 8 required tokens = 16 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 9 required tokens = 18 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 16 — a doc row or a
+    # floored against an inline expected total of 18 — a doc row or a
     # required token silently dropped shrinks the derived count.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 16:
+    if qual01_negative_case_count != 18:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 16"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 18"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
