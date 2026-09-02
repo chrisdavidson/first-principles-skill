@@ -6882,6 +6882,22 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # R8: the rendered head form showing GT-N? and chain-as-input
     # (CHAINHEAD-01, D-03).
     "R8": "GT-1? ([brief fact label]) + C2 ([brief fact label])",
+    # R9: the head-only scope note and its GT-leading-hop refusal
+    # (CHAINHEAD-01/CHAINHEAD-03/CHAINHEAD-04/CHAINHEAD-05, BL-02). This
+    # literal was unregistered prose, byte-identical on three surfaces by
+    # discipline alone, until plan 13-09. The `One exception:` clause exists
+    # because `_ARROW_LED_GT_RE` refuses continuation for a hop that leads
+    # with a `GT-N` identifier — it reads that hop as the head of a new
+    # chain and ends the current one there.
+    "R9": (
+        "The head grammar governs the head line only. A hop is prose: "
+        "`C2's saving` is fine after the first `→`, and is not an input "
+        "reference. One exception: a hop must not begin with a `GT-N` "
+        "identifier, which the form check reads as the head of a new "
+        "chain and which therefore ends this one — write `→ the duty "
+        "cycle stated in GT-4 is the binding term`, not `→ GT-4's stated "
+        "duty cycle is the binding term`."
+    ),
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -6895,12 +6911,14 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # that also state the positive rule.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
     ),
-    "shared/spine/references/validation-rubric.md": ("R1", "R6", "R7", "R8"),
+    "shared/spine/references/validation-rubric.md": (
+        "R1", "R6", "R7", "R8", "R9",
+    ),
 }
 
 # Phrasings that must appear on NEITHER canonical surface — the enumerated
@@ -7289,13 +7307,13 @@ def _render_registry_lock_problems(
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
         ),
         "shared/spine/references/validation-rubric.md": (
-            "R1", "R6", "R7", "R8",
+            "R1", "R6", "R7", "R8", "R9",
         ),
     }
     if snapshot.required_rules != expected_required_rules:
@@ -7381,6 +7399,9 @@ def _render_registry_lock_problems(
         # the disclosure, not the negative rule (plan 13-08, BL-01).
         "R7": "detects that violation only when the prose input is the last one before the first",
         "R8": "GT-1? ([brief fact label]) + C2",
+        # R9's clause pins the GT-leading-hop refusal — the exception a
+        # future edit is likeliest to quietly drop (plan 13-09, BL-02).
+        "R9": "a hop must not begin with a `GT-N` identifier",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -7413,7 +7434,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:ce68aff83ff55e6286cf98cfbc60468c2f99ead880bdd8718a1826c233e206a7"
+        "sha256:199469956b572956ff2b09cbd82e48389d989c6eecff5382d0b96ab34bd2894b"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -9884,8 +9905,8 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 20 today
-    #     (8 + 8 + 4), so shrinking the mapping fails the floor rather
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 23 today
+    #     (9 + 9 + 5), so shrinking the mapping fails the floor rather
     #     than silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
@@ -9909,7 +9930,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 20
+    expected_missing_case_count = 23
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
