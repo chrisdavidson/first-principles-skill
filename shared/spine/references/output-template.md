@@ -145,7 +145,7 @@ The one-line form is the degenerate case, used only when the whole chain fits on
 
 Each chain must contain at least one intermediate step. A chain that goes directly from GT-IDs to conclusion is incomplete — the intermediate is where the reasoning happens. The intermediate must be a new claim that could not be stated from either ground truth alone. If no intermediate can be stated, the conclusion is either a restatement of a ground truth (trivial) or a reasoning step is missing.
 
-**No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. The head line carries the GT identifiers and their brief fact labels; a chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
+**No-wrap rule.** A hop occupies exactly one physical line. Every line after the head begins with `→` and carries exactly one complete hop; a hop is never broken across physical lines. A chain needing more hops continues on further arrow-led lines. A hop too long for comfort is SPLIT, not wrapped — the analysis renders as Markdown, so a long hop soft-wraps for the reader without breaking the form.
 
 ```text
 GT-1 ([brief fact label]) + GT-6 ([brief fact label])
@@ -153,6 +153,16 @@ GT-1 ([brief fact label]) + GT-6 ([brief fact label])
 → [further intermediate]
 → [conclusion]
 ```
+
+**Head-input rule.** The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)`.
+
+```text
+GT-1? ([brief fact label]) + C2 ([brief fact label])
+→ [intermediate claim]
+→ [conclusion]
+```
+
+The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference.
 
 **Conforming — head, then one hop per line:**
 
