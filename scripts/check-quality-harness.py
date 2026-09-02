@@ -9783,6 +9783,116 @@ def _selftest_render_contract() -> bool:
     return ok
 
 
+def _selftest_chain_detector_pin() -> bool:
+    """Phase 13 (CHAINHEAD-07): the sha256 pin over
+    `_chain_block_well_formed`'s source (`_chain_detector_pin_problems`,
+    defined beside the frozen function) re-runs on every QUAL-01 self-test
+    and fails on any byte change to that function, including whitespace.
+
+    Four controls:
+
+    (a) POSITIVE. The real, unmodified source hashes to the pinned value —
+        the arm that goes red the moment anyone edits the frozen function.
+
+    (b) NEGATIVE, anti-vacuity. The source the run actually read is
+        perturbed in memory two ways — a comment line appended, and a line
+        stripped from its middle — and each perturbation must produce
+        exactly one problem. A pin that reported green on perturbed bytes
+        would be vacuous; this is what proves it is not. Neither
+        perturbation is ever written to disk or monkeypatched onto the
+        module — the helper takes source as a parameter precisely so this
+        control needs neither.
+
+    (c) FORMULA CONTROL. The naive, un-stripped hash of the real source is
+        NOT the pinned value, while the `.rstrip("\\n")` form IS — the arm
+        that fails if a future reader "simplifies" the strip away, encoding
+        this phase's highest-risk finding as a standing assertion rather
+        than a comment.
+
+    (d) MESSAGE CONTROL. The problem text produced by (b) carries all four
+        load-bearing substrings D-10 specifies: the function name,
+        `CONTRACT-06`, the written-amendment instruction, and the
+        do-not-recompute instruction. A pin whose message degraded to a
+        bare digest diff would still pass (a)-(c); this arm is why it
+        cannot.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: chain_detector_pin {msg}", file=sys.stderr)
+        ok = False
+
+    real_source = _chain_detector_source()
+
+    # (a) POSITIVE.
+    positive_problems = _chain_detector_pin_problems(real_source)
+    if positive_problems:
+        _fail(
+            "(a) POSITIVE: unmodified source reported problems: "
+            f"{positive_problems!r}"
+        )
+
+    # (b) NEGATIVE, anti-vacuity: two independent perturbations, each must
+    # produce exactly one problem.
+    appended = real_source + "# perturbation appended by the self-test\n"
+    appended_problems = _chain_detector_pin_problems(appended)
+    if len(appended_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: appending a comment line did not "
+            f"produce exactly one problem: {appended_problems!r}"
+        )
+
+    real_lines = real_source.splitlines(keepends=True)
+    middle = len(real_lines) // 2
+    stripped_lines = real_lines[:middle] + real_lines[middle + 1 :]
+    stripped = "".join(stripped_lines)
+    stripped_problems = _chain_detector_pin_problems(stripped)
+    if len(stripped_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: stripping a middle line did not "
+            f"produce exactly one problem: {stripped_problems!r}"
+        )
+
+    # (c) FORMULA CONTROL.
+    naive_digest = "sha256:" + hashlib.sha256(
+        real_source.encode("utf-8")
+    ).hexdigest()
+    stripped_digest = "sha256:" + hashlib.sha256(
+        real_source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if naive_digest == _CHAIN_DETECTOR_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
+            "equals the pinned value — the trailing-newline strip is no "
+            "longer discriminating"
+        )
+    if stripped_digest != _CHAIN_DETECTOR_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the .rstrip('\\n') digest does not equal "
+            f"the pinned value: {stripped_digest!r} != "
+            f"{_CHAIN_DETECTOR_PINNED_DIGEST!r}"
+        )
+
+    # (d) MESSAGE CONTROL.
+    if appended_problems:
+        message = appended_problems[0]
+        required_substrings = (
+            "_chain_block_well_formed",
+            "CONTRACT-06",
+            "amend the milestone goal in writing",
+            "Do not recompute to make this pass",
+        )
+        missing = [s for s in required_substrings if s not in message]
+        if missing:
+            _fail(
+                "(d) MESSAGE CONTROL: problem text is missing required "
+                f"substring(s) {missing!r}: {message!r}"
+            )
+
+    return ok
+
+
 def _selftest_selfaudit_calibration() -> bool:
     """The Self-Audit Gate's claimed bands are reconciled against measurement.
 
@@ -11914,6 +12024,23 @@ def self_test() -> int:
         print("self-test: render_contract sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: render_contract sub-check PASSED")
+
+    # Item 25 (Phase 13, CHAINHEAD-07): a sha256 pin over
+    # `_chain_block_well_formed`'s source bytes, freezing the function under
+    # CONTRACT-06. The digest is computed over the `.rstrip("\n")` form of
+    # `inspect.getsource()`'s output, because that call always appends
+    # exactly one trailing newline and the pinned value already recorded by
+    # hand in `.planning/STATE.md`/`.planning/PROJECT.md` is only reproduced
+    # once that newline is stripped. This is the gate CONTRACT-06's
+    # `reproducible` tier points its `artifact_link` at — deleting this
+    # sub-check silently downgrades that coverage claim back to unenforced.
+    # See `_selftest_chain_detector_pin`'s own docstring for the full,
+    # current enumeration of its lettered controls.
+    if not _selftest_chain_detector_pin():
+        all_passed = False
+        print("self-test: chain_detector_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: chain_detector_pin sub-check PASSED")
 
     return 0 if all_passed else 1
 
