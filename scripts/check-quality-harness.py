@@ -10570,6 +10570,13 @@ def _selftest_render_contract() -> bool:
     #     isolation arms, 4). This plan's own fix is registered in the
     #     same census it extends, so it does not reproduce the defect it
     #     closes (MUTATION M9).
+    #   - the chain-form-surface-sweep helper (plan 13-24, CR-04,
+    #     `13-VERIFICATION-round6.md` gap 3, Q2): 6 call sites (1 real —
+    #     THE SWEEP ITSELF — plus the cf-iso i-v isolation arms, 5). This
+    #     plan's own leg is registered in the same census it extends, for
+    #     the identical reason the entry-source helper's own fix was: an
+    #     unregistered helper's call site is deletable with the battery
+    #     green (Q2's own reproduction target).
     #
     # Every search pattern below is built by concatenation rather than as
     # a single literal, and every pattern's NAME is referred to only in
@@ -10591,6 +10598,7 @@ def _selftest_render_contract() -> bool:
     render_t_coverage_call_pattern = "_render_coverage_floor_problems" + "("
     render_t_example_call_pattern = "_render_example_conformance_problems" + "("
     render_t_entry_source_call_pattern = "_render_entry_source_problems" + "("
+    render_t_chain_form_call_pattern = "_render_chain_form_surface_problems" + "("
     render_t_setdefault_count = render_contract_src.count(render_t_setdefault_pattern)
     render_t_def_count = render_contract_src.count(render_t_def_pattern)
     render_t_verdict_call_count = render_contract_src.count(
@@ -10609,6 +10617,9 @@ def _selftest_render_contract() -> bool:
     render_t_entry_source_call_count = render_contract_src.count(
         render_t_entry_source_call_pattern
     )
+    render_t_chain_form_call_count = render_contract_src.count(
+        render_t_chain_form_call_pattern
+    )
     render_t_subscript_pattern = "scored_verdicts" + "["
     render_t_subscript_assign_count = sum(
         1
@@ -10625,6 +10636,7 @@ def _selftest_render_contract() -> bool:
         or render_t_coverage_call_count != 7
         or render_t_example_call_count != 6
         or render_t_entry_source_call_count != 5
+        or render_t_chain_form_call_count != 6
     ):
         _fail(
             f"(t) SCORING RECORDER LOCK: observed {render_t_setdefault_count} "
@@ -10643,7 +10655,9 @@ def _selftest_render_contract() -> bool:
             f"{render_t_example_call_count} worked-example-conformance "
             f"helper call site(s) (expected 6), and "
             f"{render_t_entry_source_call_count} entry-source helper "
-            f"call site(s) (expected 5)"
+            f"call site(s) (expected 5), and "
+            f"{render_t_chain_form_call_count} chain-form-surface-sweep "
+            f"helper call site(s) (expected 6)"
         )
 
     # (u) DISPATCH REACHABILITY. Plan 13-06 (CR-02 / criterion 5): an
