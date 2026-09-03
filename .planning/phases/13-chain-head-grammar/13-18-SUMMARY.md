@@ -280,6 +280,20 @@ None - no external service configuration required.
 - This plan closes only the literal half of gap 1 (`13-VERIFICATION.md` criterion 1, CR-02). Per the plan's explicit scope note: the fixture pinning the non-detected position (R9's analogue of R7's `R-HEAD-PROSE-MID`) is plan 13-19's deliverable, not this plan's; both `| QUAL-01 |` doc-row corrections are plan 13-21's, deferred so they are corrected once against the final code state.
 - Gap 2 (`shared/references/reason-upward.md` unregistered as a fourth canonical surface, CR-03) and the CR-01 two-arrow-floor doc-row misattribution remain open, tracked by other plans in this wave — not addressed here per hard constraints 5 and 6.
 
+## Self-Check: PASSED
+
+- `scripts/check-quality-harness.py` — FOUND
+- `shared/spine/references/output-template.md` — FOUND
+- `shared/spine/SKILL-body.md` — FOUND
+- `shared/spine/references/validation-rubric.md` — FOUND
+- `first-principles/agents/first-principles.md` — FOUND
+- `first-principles/agents/references/output-template.md` — FOUND
+- `first-principles/agents/references/validation-rubric.md` — FOUND
+- `.planning/phases/13-chain-head-grammar/13-18-SUMMARY.md` — FOUND
+- Commit `d8cfccb` — FOUND in `git log --oneline --all`.
+- Commit `a9821df` — FOUND in `git log --oneline --all`.
+- Commit `08902c4` — FOUND in `git log --oneline --all`.
+
 ---
 *Phase: 13-chain-head-grammar*
 *Completed: 2026-09-03*
