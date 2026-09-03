@@ -6604,6 +6604,63 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Non-conforming, and undetected by the form check — the same period moved to a later hop:**",
     ),
+    # Phase 14 (LEDGER-03, LEDGER-04): R11's three claim-extraction bounds
+    # and R12's caveat-marker rule, pinned as nine worked-example blocks
+    # plan 14-02 rendered in output-template.md §6 after `**Caveats.**`.
+    (
+        "R-CLAIM-LABEL-BARE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Not a claim — a bold lead-in alone on its line, carrying no citation:**",
+    ),
+    (
+        "R-CLAIM-LABEL-INLINE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**A claim — the same lead-in carrying its assertion on the same line:**",
+    ),
+    (
+        "R-CLAIM-LABEL-CITED",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**A claim — the lead-in alone on its line, but carrying its own citation:**",
+    ),
+    (
+        "R-CLAIM-COLON-MID",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Not matched at all — a bold span whose colon sits inside it:**",
+    ),
+    (
+        "R-CLAIM-COLON-END",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**A claim — the same statement with the colon closing the bold span:**",
+    ),
+    (
+        "R-CLAIM-TERSE-DROP",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Not a claim — a short list item with no sentence-ending punctuation:**",
+    ),
+    (
+        "R-CLAIM-TERSE-KEEP",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**A claim — a short list item closing its own sentence:**",
+    ),
+    (
+        "R-CLAIM-CAVEAT-MARKED",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conformant but still untraced — a caveat carrying the flagged-assumption marker:**",
+    ),
+    (
+        "R-CLAIM-CAVEAT-CITED",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conformant and traced — the same caveat citing the chain it qualifies:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6746,14 +6803,51 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
         "does not rest on C1 alone", "2.20× at full duty",
         "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
     ),
+    # Phase 14 (LEDGER-03, LEDGER-04, Task 1's needle-uniqueness discipline,
+    # `14-PATTERNS.md` Pattern 3): each needle below is verified unique by
+    # a whole-file grep before being committed to. `R-CLAIM-COLON-MID` and
+    # `R-CLAIM-COLON-END` share the prefix `**Overall confidence:`, so each
+    # needle is anchored ACROSS the divergence point (the colon's position
+    # relative to the closing `**`) rather than on the shared head, which
+    # would discriminate neither block from the other.
+    # `R-CLAIM-CAVEAT-MARKED` and `R-CLAIM-CAVEAT-CITED` share a long
+    # common prefix and diverge only in their tails, which is exactly
+    # where both needles sit. `R-CLAIM-TERSE-DROP` and `R-CLAIM-TERSE-KEEP`
+    # are deliberately worded DIFFERENTLY, not a one-character minimal
+    # pair: a true minimal pair (the same list item with only its
+    # terminal period differing) would make one block's text a literal
+    # prefix of the other's, which no substring needle can discriminate
+    # (the `R-HEAD-PERIOD-*` lesson above) — Task 2's punctuation-toggle
+    # re-score is what recovers the minimal-pair property mechanically,
+    # in memory, rather than at the fixture-text level.
+    "R-CLAIM-LABEL-BARE": ("**Recommended approach — three steps, in this order:**",),
+    "R-CLAIM-LABEL-INLINE": (
+        "Move sustained workloads to Fargate before evaluating Lambda",
+    ),
+    "R-CLAIM-LABEL-CITED": (
+        "**Recommended approach, established in chain C1:**",
+    ),
+    "R-CLAIM-COLON-MID": ("confidence: HIGH.**",),
+    "R-CLAIM-COLON-END": ("confidence:** HIGH —",),
+    "R-CLAIM-TERSE-DROP": ("- Measure duty cycle first",),
+    "R-CLAIM-TERSE-KEEP": ("- Size the Savings Plan after cleanup.",),
+    "R-CLAIM-CAVEAT-MARKED": ("lower — no chain — flagged assumption only.",),
+    "R-CLAIM-CAVEAT-CITED": ("lower (chain C5).",),
 }
 
 # Substrings the extracted text for a fixture id must NOT contain.
 # `R-CITE-NONE`'s entire point is that it names no chain; an extraction
 # that accidentally captured a neighbouring line carrying `C1` would
-# otherwise score `False` for the wrong reason.
+# otherwise score `False` for the wrong reason. `R-CLAIM-LABEL-BARE`
+# (Phase 14) carries the same guard: an extraction that drifted onto
+# `R-CLAIM-LABEL-CITED`'s block would otherwise still score `False` for
+# the wrong reason, since both blocks are short bold-label lines.
+# `R-CLAIM-CAVEAT-MARKED` carries the mirror guard against `C5` for the
+# same reason — its whole point is that it names no chain.
 _RENDER_FIXTURE_FORBIDDEN: dict[str, tuple[str, ...]] = {
     "R-CITE-NONE": ("C1",),
+    "R-CLAIM-LABEL-BARE": ("C1",),
+    "R-CLAIM-CAVEAT-MARKED": ("C5",),
 }
 
 
@@ -7226,7 +7320,7 @@ def _read_render_example_texts() -> tuple[dict[str, str], list[str]]:
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all eighteen Phase 11/13 rendering-contract fixtures from the shipped
+    """Read all twenty-seven Phase 11/13/14 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -8099,6 +8193,10 @@ def _render_registry_lock_problems(
     expected_ids = [
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+        "R-CLAIM-CAVEAT-CITED", "R-CLAIM-CAVEAT-MARKED",
+        "R-CLAIM-COLON-END", "R-CLAIM-COLON-MID",
+        "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-CITED", "R-CLAIM-LABEL-INLINE",
+        "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-GTHOP-BAD",
         "R-HEAD-GTHOP-LATE", "R-HEAD-GTHOP-OK",
         "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-LATE", "R-HEAD-PERIOD-OK",
@@ -8115,7 +8213,7 @@ def _render_registry_lock_problems(
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
     # source. (Eleven was the table's size at Phase 11, when this was
-    # found; the table now carries eighteen rows.) The id-only arm below
+    # found; the table now carries twenty-seven rows.) The id-only arm below
     # is kept for its narrower failure message and for its own (h2)
     # cases, not as the authority.
     expected_extraction_rows = (
@@ -8227,6 +8325,60 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Non-conforming, and undetected by the form check — the same period moved to a later hop:**',
         ),
+        (
+            'R-CLAIM-LABEL-BARE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Not a claim — a bold lead-in alone on its line, carrying no citation:**',
+        ),
+        (
+            'R-CLAIM-LABEL-INLINE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**A claim — the same lead-in carrying its assertion on the same line:**',
+        ),
+        (
+            'R-CLAIM-LABEL-CITED',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**A claim — the lead-in alone on its line, but carrying its own citation:**',
+        ),
+        (
+            'R-CLAIM-COLON-MID',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Not matched at all — a bold span whose colon sits inside it:**',
+        ),
+        (
+            'R-CLAIM-COLON-END',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**A claim — the same statement with the colon closing the bold span:**',
+        ),
+        (
+            'R-CLAIM-TERSE-DROP',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Not a claim — a short list item with no sentence-ending punctuation:**',
+        ),
+        (
+            'R-CLAIM-TERSE-KEEP',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**A claim — a short list item closing its own sentence:**',
+        ),
+        (
+            'R-CLAIM-CAVEAT-MARKED',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conformant but still untraced — a caveat carrying the flagged-assumption marker:**',
+        ),
+        (
+            'R-CLAIM-CAVEAT-CITED',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Conformant and traced — the same caveat citing the chain it qualifies:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -8317,6 +8469,22 @@ def _render_registry_lock_problems(
                 "does not rest on C1 alone", "2.20× at full duty",
                 "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
             ),
+            # Phase 14 (LEDGER-03, LEDGER-04): the nine R-CLAIM-* ids carry
+            # their discriminating needles from the start, the same
+            # treatment every fixture added since WR-01 has received.
+            "R-CLAIM-LABEL-BARE": ("**Recommended approach — three steps, in this order:**",),
+            "R-CLAIM-LABEL-INLINE": (
+                "Move sustained workloads to Fargate before evaluating Lambda",
+            ),
+            "R-CLAIM-LABEL-CITED": (
+                "**Recommended approach, established in chain C1:**",
+            ),
+            "R-CLAIM-COLON-MID": ("confidence: HIGH.**",),
+            "R-CLAIM-COLON-END": ("confidence:** HIGH —",),
+            "R-CLAIM-TERSE-DROP": ("- Measure duty cycle first",),
+            "R-CLAIM-TERSE-KEEP": ("- Size the Savings Plan after cleanup.",),
+            "R-CLAIM-CAVEAT-MARKED": ("lower — no chain — flagged assumption only.",),
+            "R-CLAIM-CAVEAT-CITED": ("lower (chain C5).",),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
             actual_shape = snapshot.fixture_shape.get(fixture_id)
@@ -8327,7 +8495,11 @@ def _render_registry_lock_problems(
                 )
     checked.add("fixture_shape")
 
-    expected_forbidden = {"R-CITE-NONE": ("C1",)}
+    expected_forbidden = {
+        "R-CITE-NONE": ("C1",),
+        "R-CLAIM-LABEL-BARE": ("C1",),
+        "R-CLAIM-CAVEAT-MARKED": ("C5",),
+    }
     if snapshot.fixture_forbidden != expected_forbidden:
         problems.append(
             f"fixture_forbidden: {snapshot.fixture_forbidden!r} != "
