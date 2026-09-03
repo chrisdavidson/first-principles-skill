@@ -1895,17 +1895,27 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     `_def_class_pat` two functions up already carries an explicit `async\\s+def`
     alternation to avoid — the two patterns must not disagree inside one file).
     BOTH the dispatcher pattern above and the body-boundary pattern below now
-    recognise `async def`: 13-11 widened only the dispatcher half for WR-03, which
-    left the body-boundary pattern still matching `^(?:def |class |@)` only — an
-    `async def` construct immediately following the dispatcher was absorbed into
-    the dispatcher's own body slice instead of ending it, so a call inside that
-    construct silently counted as a dispatch (CR-02,
-    `13-REVIEW-plans-08-11.md`, independently reproduced in
-    `13-VERIFICATION-round3.md`). Closed here by widening the body-boundary
-    pattern to match. This closes CR-02 specifically — the two patterns disagreeing
-    on `async def` — and is a DIFFERENT residual from the DISCLOSED LIMITATION
-    below (the last-top-level-construct body overrun), which remains open by
-    decision. If a file defines MORE than one of the dispatcher names, the FIRST
+    SHARE THE SAME WHITESPACE VOCABULARY (`(?:async\\s+)?def\\s`), rather than
+    the boundary pattern restating it as a hand-written literal (13-17,
+    WR-01, `13-VERIFICATION-round4.md`): 13-11 widened only the dispatcher
+    half for WR-03, and 13-15 then widened the body-boundary pattern to
+    match the single canonical rendering (`async def`, exactly one space) —
+    but a multi-space `async  def`, a tab-separated `def`, or — sharpest —
+    a multi-space dispatcher whose body that literal-space pattern then
+    could not terminate, all still let an `async def`-shaped construct
+    immediately following the dispatcher be absorbed into the dispatcher's
+    own body slice instead of ending it, so a call inside that construct
+    silently counted as a dispatch (CR-02, `13-REVIEW-plans-08-11.md`,
+    independently reproduced in `13-VERIFICATION-round3.md`; the surviving
+    whitespace-rendering residual independently reproduced in
+    `13-VERIFICATION-round4.md`, WR-01). Closed here (13-17) by deriving
+    the body-boundary pattern from the SAME whitespace vocabulary the
+    dispatcher pattern uses, so the two patterns cannot disagree on
+    whitespace by construction. This closes CR-02 and WR-01 — the two
+    patterns disagreeing on `async def` and its whitespace variants — and
+    is a DIFFERENT residual from the DISCLOSED LIMITATION below (the
+    last-top-level-construct body overrun), which remains open by decision.
+    If a file defines MORE than one of the dispatcher names, the FIRST
     one found (by position in the file, via `.search()`) is used and its body is
     what gets sliced — a deliberate, disclosed choice. Verified live before this
     change: neither file in this repository defines more than one of the two
@@ -1950,7 +1960,18 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
         ]
     _dispatcher_name = _match.group(1)
 
-    _next_top_level_pat = re.compile(r"^(?:async def |def |class |@)", re.MULTILINE)
+    # Derived from `_SELFTEST_DISPATCHER_PAT`'s own whitespace vocabulary
+    # (`(?:async\s+)?def\s`) rather than a restated literal, so the two
+    # patterns cannot disagree on whitespace by construction (13-17, WR-01,
+    # `13-VERIFICATION-round4.md`): the prior literal `async def ` (exactly
+    # one space) accepted only the canonical single-space rendering, so a
+    # multi-space `async  def`, a tab-separated `def`, or — sharpest — a
+    # multi-space dispatcher whose body this pattern then could not
+    # terminate, all reproduced the identical CR-02 fail-open in a
+    # rendering the 13-15 fix did not reach.
+    _next_top_level_pat = re.compile(
+        r"^(?:(?:async\s+)?def\s|class\s|@)", re.MULTILINE
+    )
     _next_match = _next_top_level_pat.search(content, _match.end())
     _body_end = _next_match.start() if _next_match else len(content)
     _body = content[_match.start():_body_end]
@@ -3548,6 +3569,59 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(f"  V825-ROWS FAIL: (h1) plain-def body-boundary contrast case failed: {_h1_plain_boundary!r}")
         wrong_results.append("V825-ROWS: (h1) plain-def body-boundary contrast case failed")
+
+    # (h1) WHITESPACE-RENDERING arms (WR-01, `13-VERIFICATION-round4.md`,
+    # closed at 13-17): the async body-boundary and plain-`def` arms above
+    # cover only the canonical single-space rendering. These three arms
+    # cover the renderings that same fix did not reach — none emitted by
+    # any formatter in this tree today (latent, not live), which is why the
+    # doc rows this plan amends state the closure in terms of the whitespace
+    # vocabulary the dispatcher pattern accepts, not "this tree's shape".
+    # MULTI-SPACE BOUNDARY: a plain `def self_test():` dispatcher followed
+    # by `async  def other():` (two spaces) — the boundary pattern must
+    # still terminate the dispatcher's body at the multi-space construct.
+    _h1_multispace_boundary_src = "def self_test():\n    pass\n\nasync  def other():\n    _selftest_x()\n"
+    _h1_multispace_boundary = _selftest_dispatch_problems("_selftest_x", _h1_multispace_boundary_src, "f.py")
+    if (
+        len(_h1_multispace_boundary) == 1
+        and "_selftest_x" in _h1_multispace_boundary[0]
+        and "never called from self_test()" in _h1_multispace_boundary[0]
+    ):
+        print("  V825-ROWS PASS: (h1) multi-space async body-boundary case reports exactly one problem")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) multi-space async body-boundary case failed: {_h1_multispace_boundary!r}")
+        wrong_results.append("V825-ROWS: (h1) multi-space async body-boundary case failed")
+
+    # TAB BOUNDARY: the same shape with a tab between `def` and the
+    # following name.
+    _h1_tab_boundary_src = "def self_test():\n    pass\n\ndef\tother():\n    _selftest_x()\n"
+    _h1_tab_boundary = _selftest_dispatch_problems("_selftest_x", _h1_tab_boundary_src, "f.py")
+    if (
+        len(_h1_tab_boundary) == 1
+        and "_selftest_x" in _h1_tab_boundary[0]
+        and "never called from self_test()" in _h1_tab_boundary[0]
+    ):
+        print("  V825-ROWS PASS: (h1) tab body-boundary case reports exactly one problem")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) tab body-boundary case failed: {_h1_tab_boundary!r}")
+        wrong_results.append("V825-ROWS: (h1) tab body-boundary case failed")
+
+    # MULTI-SPACE DISPATCHER: `async  def self_test():` (two spaces) with a
+    # `pass` body, then `async  def other():` calling the anchor — the
+    # sharpest case, where the flexible dispatcher pattern matches but the
+    # pre-13-17 rigid boundary pattern could not terminate the body it
+    # itself found.
+    _h1_multispace_dispatcher_src = "async  def self_test():\n    pass\n\nasync  def other():\n    _selftest_x()\n"
+    _h1_multispace_dispatcher = _selftest_dispatch_problems("_selftest_x", _h1_multispace_dispatcher_src, "f.py")
+    if (
+        len(_h1_multispace_dispatcher) == 1
+        and "_selftest_x" in _h1_multispace_dispatcher[0]
+        and "never called from self_test()" in _h1_multispace_dispatcher[0]
+    ):
+        print("  V825-ROWS PASS: (h1) multi-space dispatcher body-boundary case reports exactly one problem")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) multi-space dispatcher body-boundary case failed: {_h1_multispace_dispatcher!r}")
+        wrong_results.append("V825-ROWS: (h1) multi-space dispatcher body-boundary case failed")
 
     # (h2) LIVE NON-VACUITY FLOOR. Derive, from the live _rows_v825() rows, the set
     # of anchors of the form scripts/…py#<anchor> where <anchor> starts with either
