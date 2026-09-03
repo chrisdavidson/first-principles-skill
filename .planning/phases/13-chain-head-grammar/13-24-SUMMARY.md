@@ -150,3 +150,14 @@ None - no external service configuration required.
 ---
 *Phase: 13-chain-head-grammar*
 *Completed: 2026-09-03*
+
+## Self-Check: PASSED
+
+- FOUND: .planning/phases/13-chain-head-grammar/13-24-SUMMARY.md
+- FOUND: shared/references/estimate-detail.md
+- FOUND: shared/references/theoretical-limit-detail.md
+- FOUND: scripts/check-quality-harness.py
+- FOUND commit: 48f6576 (Task 1)
+- FOUND commit: d264419 (Task 2)
+- FOUND commit: be0db88 (Task 3)
+- FOUND commit: ac00cb6 (SUMMARY)
