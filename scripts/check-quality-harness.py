@@ -6515,6 +6515,12 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Conforming — the same hop with the identifier moved off the front:**",
     ),
+    (
+        "R-HEAD-GTHOP-LATE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6564,6 +6570,19 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # duty cycle"` and `"→ the duty cycle stated in GT-4"` each discriminate
 # their own block from the other, because a mis-anchored extraction would
 # carry the wrong ordering of that clause.
+#
+# `R-HEAD-GTHOP-BAD` and `R-HEAD-GTHOP-LATE` (plan 13-19, CR-02 fixture
+# half) are the same offending hop in two positions — first and last —
+# and need to discriminate in BOTH directions, the same shape 13-08 gave
+# the PROSE pair: `R-HEAD-GTHOP-LATE`'s first needle, `"the second
+# reading is the binding one"`, is unique to the late-position block
+# (verified by grep across the whole file before shipping it), and
+# `R-HEAD-GTHOP-BAD`'s new third needle, `"threshold)\n→ GT-4's stated
+# duty cycle"`, is unique to the first-position block — without it a
+# mis-anchored extraction returning the new late-position block still
+# satisfies `R-HEAD-GTHOP-BAD`'s shape guard, because that block also
+# contains the pair's first two needles (both blocks share the same head
+# and the same offending hop text).
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
     "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
@@ -6586,9 +6605,15 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     # needle is unique to its own block and absent from the other and from
     # `R-HEAD-ALLCHAIN`; the shared second needle catches an extraction
     # landing outside the C1/C2 family entirely.
-    "R-HEAD-GTHOP-BAD": ("→ GT-4's stated duty cycle", "2.20× at full duty"),
+    "R-HEAD-GTHOP-BAD": (
+        "→ GT-4's stated duty cycle", "2.20× at full duty",
+        "threshold)\n→ GT-4's stated duty cycle",
+    ),
     "R-HEAD-GTHOP-OK": (
         "→ the duty cycle stated in GT-4", "2.20× at full duty",
+    ),
+    "R-HEAD-GTHOP-LATE": (
+        "the second reading is the binding one", "2.20× at full duty",
     ),
 }
 
@@ -6991,7 +7016,7 @@ def _read_render_example_texts() -> tuple[dict[str, str], list[str]]:
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all fourteen Phase 11/13 rendering-contract fixtures from the shipped
+    """Read all fifteen Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -7579,7 +7604,7 @@ def _render_registry_lock_problems(
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-GTHOP-BAD",
-        "R-HEAD-GTHOP-OK", "R-HEAD-PROSE-BAD",
+        "R-HEAD-GTHOP-LATE", "R-HEAD-GTHOP-OK", "R-HEAD-PROSE-BAD",
         "R-HEAD-PROSE-MID",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
@@ -7593,7 +7618,7 @@ def _render_registry_lock_problems(
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
     # source. (Eleven was the table's size at Phase 11, when this was
-    # found; the table now carries fourteen rows.) The id-only arm below
+    # found; the table now carries fifteen rows.) The id-only arm below
     # is kept for its narrower failure message and for its own (h2)
     # cases, not as the authority.
     expected_extraction_rows = (
@@ -7681,6 +7706,12 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Conforming — the same hop with the identifier moved off the front:**',
         ),
+        (
+            'R-HEAD-GTHOP-LATE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -7723,7 +7754,7 @@ def _render_registry_lock_problems(
         # which reproduced setting each of their needle tuples to `()`
         # with every key still present and the self-test still GREEN —
         # that silently disables the mode-2 shape guard for five of the
-        # fourteen fixtures, so an extraction that returned a
+        # fifteen fixtures, so an extraction that returned a
         # neighbouring block scores `False` for the wrong reason and
         # passes vacuously. The R-HEAD-* ids (ALLCHAIN, CHAINREF,
         # GTHOP-BAD, GTHOP-OK, PROSE-BAD, PROSE-MID) added at Phase 13
@@ -7750,9 +7781,13 @@ def _render_registry_lock_problems(
             ),
             "R-HEAD-GTHOP-BAD": (
                 "→ GT-4's stated duty cycle", "2.20× at full duty",
+                "threshold)\n→ GT-4's stated duty cycle",
             ),
             "R-HEAD-GTHOP-OK": (
                 "→ the duty cycle stated in GT-4", "2.20× at full duty",
+            ),
+            "R-HEAD-GTHOP-LATE": (
+                "the second reading is the binding one", "2.20× at full duty",
             ),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
@@ -9246,7 +9281,7 @@ def _selftest_render_contract() -> bool:
     here calls it from outside; none of them, nor anything in this file,
     modifies it.
 
-    Controls (a)-(b) pin the fourteen measured verdicts. Control (c) pins
+    Controls (a)-(b) pin the fifteen measured verdicts. Control (c) pins
     minimality of the wrap counter-example: it must differ from the
     conforming example by exactly the inserted continuation line, so the
     counter-example demonstrably teaches the wrap rule and nothing else.
@@ -9276,10 +9311,15 @@ def _selftest_render_contract() -> bool:
     `R-HEAD-GTHOP-OK`: the same hop differing only in whether it leads
     with a `GT-N` identifier, scored in opposite directions — this pins
     both halves of R9, the head-only scope note's GT-leading-hop refusal
-    and the rewrite it prescribes. Control
+    and the rewrite it prescribes. Plan 13-19 (CR-02 fixture half) added
+    a seventh, `R-HEAD-GTHOP-LATE`: the same offending hop as
+    `R-HEAD-GTHOP-BAD` moved from first position to last, scored
+    WELL-FORMED even though R9 forbids the violation everywhere — R9's
+    exact analogue of `R-HEAD-PROSE-MID`, pinning the position the check
+    does not reach rather than merely stating it. Control
     (p), added by plan 11-09 (gap 2's second half), is the CONSUMPTION
     FLOOR: `_get` records every id it is asked for, and the floor asserts
-    that set against a locked fourteen-id set written inline — plus that
+    that set against a locked fifteen-id set written inline — plus that
     `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
     reproduction left silent), plus that every locked id is either
@@ -9306,7 +9346,7 @@ def _selftest_render_contract() -> bool:
     (`_render_verdict_floor_problems`) compares every locked id's recorded
     sequence against an inline expected-verdict table, and a fifth arm
     (`_render_chain_verdict_floor_problems`) independently re-scores the
-    nine chain-family fixtures from `fixtures` with the frozen detector,
+    ten chain-family fixtures from `fixtures` with the frozen detector,
     consulting no recorder at all. Control (v) proves each wrapper's return
     equals its raw scorer's return AND the recorder holds that same value,
     so a fabricated verdict fails by name. Control (w) mirrors (s) for both
@@ -9533,6 +9573,7 @@ def _selftest_render_contract() -> bool:
     head_prose_mid = _get("R-HEAD-PROSE-MID")
     head_gthop_bad = _get("R-HEAD-GTHOP-BAD")
     head_gthop_ok = _get("R-HEAD-GTHOP-OK")
+    head_gthop_late = _get("R-HEAD-GTHOP-LATE")
 
     # `scored_verdicts` backs the (p) CONSUMPTION FLOOR's fourth arm below:
     # for every id one of the four wrappers records, the boolean VERDICT
@@ -9683,6 +9724,26 @@ def _selftest_render_contract() -> bool:
             "expected well-formed"
         )
 
+    # (b) R-HEAD-GTHOP-LATE (plan 13-19, CR-02 fixture half): the same
+    #     offending hop as R-HEAD-GTHOP-BAD, moved from first position to
+    #     last with two ordinary hops ahead of it, scored WELL-FORMED by
+    #     the unmodified detector — with two hops already matched before
+    #     it, the check has satisfied its arrow requirement and never
+    #     evaluates the leading identifier. This pins the measured bound
+    #     R9 now discloses — the check detects the violation only while
+    #     fewer than two hops precede it — not an endorsement of the hop,
+    #     so a future anchoring of `_CHAIN_FORM_LINE_RE` fails this
+    #     control rather than passing silently, which is the point.
+    if head_gthop_late is not None and not _score_chain(
+        "R-HEAD-GTHOP-LATE", head_gthop_late
+    ):
+        _fail(
+            "(b) R-HEAD-GTHOP-LATE (doc label 'Non-conforming, and "
+            "undetected by the form check — the GT-led hop in a later "
+            "position:') scored malformed, expected well-formed "
+            "(measured bound)"
+        )
+
     # (c) Minimality of the wrap counter-example: dropping the single line
     #     that is neither the first line nor begins (after .strip()) with
     #     `→` must reproduce R-CHAIN-CONFORMING byte for byte. This proves
@@ -9809,7 +9870,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked fourteen-id set below is written INLINE,
+    #     printed PASSED. The locked fifteen-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -9848,10 +9909,10 @@ def _selftest_render_contract() -> bool:
     #     `scored_verdicts` against an inline expected-verdict table, so a
     #     fabricated or omitted verdict is caught by value, not by count;
     #     arm 4a (`_render_chain_verdict_floor_problems`) additionally
-    #     re-scores the nine chain-family fixtures independently, by calling
+    #     re-scores the ten chain-family fixtures independently, by calling
     #     the unmodified `_chain_block_well_formed` on `fixtures` itself,
     #     reading no recorder at all — so no forgery of the recorder, of any
-    #     shape, can discharge those nine. Control (v) below proves each of
+    #     shape, can discharge those ten. Control (v) below proves each of
     #     the four wrappers actually delegates to its scorer rather than
     #     fabricating a verdict. Control (t) is retained as a diff-review
     #     backstop over the recorder's write idioms; it is explicitly NOT
@@ -9862,6 +9923,7 @@ def _selftest_render_contract() -> bool:
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
         "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
+        "R-HEAD-GTHOP-LATE",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -9902,11 +9964,11 @@ def _selftest_render_contract() -> bool:
 
     # (p) CHAIN VERDICT FLOOR — arm 4a. Plan 13-10 (BL-03,
     #     `13-VERIFICATION.md`): this arm reads `fixtures` and calls the
-    #     frozen `_chain_block_well_formed` directly on the nine
+    #     frozen `_chain_block_well_formed` directly on the ten
     #     chain-family fixtures' extracted text — it consults NO recorder
     #     of any shape, so no forgery of `scored_verdicts` (a `.update(`,
     #     a bare subscript write, a wrapper that fabricates its return)
-    #     can discharge these nine ids. This is the arm that makes
+    #     can discharge these ten ids. This is the arm that makes
     #     "the mutation removes the entire behavioural content while the
     #     gate stays green" false rather than merely harder — deleting the
     #     (b) verdict-assertion blocks above no longer matters because this
@@ -9921,6 +9983,7 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-PROSE-MID": True,
         "R-HEAD-GTHOP-BAD": False,
         "R-HEAD-GTHOP-OK": True,
+        "R-HEAD-GTHOP-LATE": True,
     }
     for render_chain_problem in _render_chain_verdict_floor_problems(
         render_chain_verdict_expected, fixtures, _chain_block_well_formed, problems
@@ -9950,6 +10013,7 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-PROSE-MID": [True],
         "R-HEAD-GTHOP-BAD": [False],
         "R-HEAD-GTHOP-OK": [True],
+        "R-HEAD-GTHOP-LATE": [True],
         "R-VERDICT-EXPIRY": [True],
         "R-VERDICT-EXPIRY-BAD": [False],
         "R-CITE-INLINE": [True],
@@ -10292,7 +10356,7 @@ def _selftest_render_contract() -> bool:
     #     derived set: arm 4a's chain re-score table (against the
     #     DERIVED chain family, not the locked set itself — the whole
     #     point is that arm 4a covers a proper SUBSET of the locked ids);
-    #     arm 4b's recorded-verdict table (against all fourteen locked
+    #     arm 4b's recorded-verdict table (against all fifteen locked
     #     ids); and control (u)'s dispatch-reachability symbol set
     #     (against the four locked anchors, replacing WR-04's subset
     #     test, which could not see the required side itself narrowing).
