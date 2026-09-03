@@ -4565,7 +4565,42 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
 # inline-citation instruction at all. A ledger discharges the same
 # obligation an inline parenthetical does. The detector was the defect,
 # not the verdict.
+#
+# Plan 14-01 / D-03 (2026-09-03): the mechanism above credited ANY line
+# that both quoted a span and cited a chain id, with no requirement that
+# the line take the ledger's own prescribed row shape
+# (`- "quote" -> chain Cn`). Measured across all six frozen v8.7 baseline
+# analyses: LOAD_BEARING = 0 — removing the ledger scanner entirely
+# changes no untraced count. Every fragment it has ever produced on
+# tracked bytes is an inert false positive: a bold-lead-in tail
+# (`:** involuntary churn is small (<0.5 pts)...`), a quoted customer
+# verbatim (`didn't feel I was getting enough for the price,`), and —
+# surviving D-02's slicer fix but not this narrowing — three capture
+# fragments all under the 4-token floor (`serverless is cheaper than
+# containers`, `serverless is the cheap option`, `fastest path`). The
+# fix: `_closure_ledger_fragments` now credits a line only when it
+# matches `_STRUCTURAL_LEDGER_ROW_RE` — the structural row shape
+# output-template.md already prescribes and shows as its conforming
+# example — before `_cites_chain` is even consulted. This is a
+# NARROWING, the safe direction (nothing load-bearing to lose); widening
+# to whole-document scope, the obvious alternative, is explicitly the
+# wrong fix (999.3 Case A's treadmill) because it would pull MORE
+# Self-Audit Gate quotes into ledger scope, not fewer.
 _FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+
+# The structural closure-ledger row shape output-template.md prescribes
+# and shows as its conforming example: optional leading whitespace, a `-`
+# or `*` list marker, a quoted span of at least 8 characters (straight or
+# curly quotes, matching `_LEDGER_QUOTE_RE`'s own quote-character set), an
+# arrow (Unicode `→` or ASCII `->` — the capture emits `→`, the existing
+# self-test fixture emits `->`), then an optional literal `chain `
+# followed by a `C<digits>` identifier. Anchored at the start of the
+# stripped line only (never at the end), so a trailing `✓` or trailing
+# prose does not prevent a match.
+_STRUCTURAL_LEDGER_ROW_RE = re.compile(
+    r'^[-*]\s*["“]([^"”\n]{8,})["”]\s*(?:→|->)\s*(?:chain\s+)?(C\d+)',
+    re.IGNORECASE,
+)
 
 # A ledger entry pairs a quoted claim fragment with a named chain on one
 # line:  - "Lambda is 2.10x more expensive per unit of compute"  -> chain C1
@@ -4616,17 +4651,24 @@ def _cites_chain(text: str, chain_ids: list[str]) -> bool:
 def _closure_ledger_fragments(section6: str, chain_ids: list[str]) -> list[str]:
     """Quoted claim fragments from closure-ledger lines in section 6.
 
-    A ledger line is any line that BOTH quotes a span and cites a real
-    chain id. Both halves are load-bearing: a quote citing nothing traces
-    nothing, and a chain citation with no quote names which chain but not
-    which claim. An id cited but absent from section 4 is not a chain id
-    and yields no fragment — so a ledger cannot invent its own authority.
+    A ledger line is now the structural row form output-template.md
+    prescribes (`- "quote" -> chain Cn`, accepting both `→` and `->`) —
+    not, as before plan 14-01 / D-03, any line that BOTH quotes a span and
+    cites a real chain id. `_cites_chain` still runs AFTER the structural
+    match: an id cited but absent from section 4 is not a chain id and
+    still yields no fragment, so a ledger still cannot invent its own
+    authority. Both halves remain load-bearing: a quote citing nothing
+    traces nothing, and a chain citation with no quote names which chain
+    but not which claim.
     """
     fragments: list[str] = []
     for line in section6.splitlines():
-        if not _cites_chain(line, chain_ids):
+        stripped = line.strip()
+        if not _STRUCTURAL_LEDGER_ROW_RE.match(stripped):
             continue
-        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(line))
+        if not _cites_chain(stripped, chain_ids):
+            continue
+        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(stripped))
     return fragments
 
 
