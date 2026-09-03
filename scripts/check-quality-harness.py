@@ -8548,7 +8548,16 @@ def _render_registry_lock_problems(
         "R1": "a hop is never broken across physical lines",
         "R2": "it is two hops — split it",
         "R3": "do not wrap it",
-        "R4": "A claim doing neither is cut, not softened",
+        # R4's clause pin is repointed by plan 14-03 (D-01), following
+        # R7/R9/R10's own stated rationale (plans 13-08, 13-18, 13-25):
+        # the clause arm proves one substring per rule and the digest arm
+        # covers the rest, so the clause should pin the half a future edit
+        # is most likely to quietly drop — which after plan 14-03 is the
+        # section-6-scope disclosure D-01 adds, not the "cut, not
+        # softened" rule half, which was already covered before the
+        # amendment and is in no more danger of quiet removal now than it
+        # was then.
+        "R4": "detected only when the row sits inside section 6",
         "R5": "GT-1 ([brief fact label]) + GT-6",
         "R6": "a hop is split rather than continued on a second line",
         # R7's clause pins the disclosed positional bound rather than the
@@ -8572,6 +8581,19 @@ def _render_registry_lock_problems(
         # the over-rejection bound does not reach hop 2 onward (plan
         # 13-25, gap 4 / CR-05).
         "R10": "from the second hop onward does not change the verdict",
+        # R11's clause pins bound 1 (the whole-line, uncited section-intro
+        # label) rather than the positive extraction rule: CONTEXT.md D-07
+        # names this bound "the hinge of detectable-from-the-emission-
+        # alone" and it is the bound an author can exploit to dodge
+        # extraction — the half a future edit is likeliest to quietly
+        # soften or drop.
+        "R11": "is the entire physical line and carries no citation of its own is a section-intro label",
+        # R12's clause pins D-09's non-discharge half rather than the
+        # marker's own bytes: an author who reads the marker as a
+        # discharge silences exactly the signal this phase preserves, so
+        # this is the sentence a future "helpful" edit would soften
+        # first.
+        "R12": "the marker discloses the gap, it does not discharge the claim",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -8604,7 +8626,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:301ef5ff8ebe97b8163800e9f9cc2b0daec1ac1b48a97a64ac1adc23ccf6e8f3"
+        "sha256:7834b5c5b51136e2403d41ad94bb126eaec785eddb2df4e0950f69654edbdd49"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -12601,9 +12623,9 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 31 today
-    #     (10 + 10 + 6 + 5, each surface gaining one entry for plan 13-25's
-    #     R10), so shrinking the mapping fails the floor rather than
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 37 today
+    #     (12 + 12 + 8 + 5, three surfaces gaining R11 and R12 at plan
+    #     14-03), so shrinking the mapping fails the floor rather than
     #     silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
@@ -12627,7 +12649,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 31
+    expected_missing_case_count = 37
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
