@@ -6967,15 +6967,30 @@ def _render_example_conformance_problems(
     score every `### Conclusion` chain block
     (`_render_example_chain_blocks`) with *scorer*, and emit one problem
     per block scoring falsy, naming the relpath, the heading's 1-based
-    line number, and the first 60 characters of the block's head line. A
-    claiming file that yields ZERO blocks also emits one problem — a
-    claim with nothing to check is a defect, not a pass. Sorted.
+    line number, the heading itself, and the first 60 characters of the
+    first line after it that looks like a chain-head candidate (an empty
+    string if none is found). A claiming file that yields ZERO blocks
+    also emits one problem — a claim with nothing to check is a defect,
+    not a pass. Sorted.
 
     Takes the scorer as a PARAMETER rather than hardcoding a call to
     `_chain_block_well_formed`, copying the parameter-scorer design one
     layer down in this same block: it is what lets an isolation control
     drive this helper with a synthetic predicate without monkeypatching
     the module.
+
+    WR-02 (`13-VERIFICATION-round5.md`): the malformed-block problem used
+    to call `block_text.splitlines()[0]` "the head", but `block_text`
+    always begins at the `### Conclusion` heading
+    (`_render_example_chain_blocks` bounds the block starting at
+    `heading.start()`), so that line is the heading, never the chain
+    head — `head` is R7/R8/R9's own load-bearing vocabulary, and a
+    message calling the heading the head sends a maintainer to the wrong
+    line. The heading is still reported (it is what locates the block)
+    but is now named as a heading; the first line after it that matches
+    `_CHAIN_HEAD_TOKEN_RE` is reported separately as the head candidate.
+    Only the message text changed — the signature, return shape, sort
+    order and problem count are unchanged.
     """
     problems_out: list[str] = []
     for relpath in _render_example_claiming_relpaths(texts, claim):
@@ -6988,11 +7003,19 @@ def _render_example_conformance_problems(
             continue
         for line_number, block_text in blocks:
             if not scorer(block_text):
-                head_line = block_text.splitlines()[0] if block_text else ""
+                block_lines = block_text.splitlines()
+                heading_line = block_lines[0] if block_lines else ""
+                head_candidate = ""
+                for candidate_line in block_lines[1:]:
+                    stripped_candidate = candidate_line.strip()
+                    if _CHAIN_HEAD_TOKEN_RE.search(stripped_candidate):
+                        head_candidate = stripped_candidate
+                        break
                 problems_out.append(
                     f"{relpath}:{line_number}: chain block scored "
-                    f"malformed under the frozen detector — head "
-                    f"{head_line[:60]!r}"
+                    f"malformed under the frozen detector — heading "
+                    f"{heading_line[:60]!r}, head candidate "
+                    f"{head_candidate[:60]!r}"
                 )
     return sorted(problems_out)
 
