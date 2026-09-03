@@ -7395,6 +7395,8 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "expected-verdict floor",
     "chain-family coverage floor",
     "worked-example conformance",
+    "call-site census",
+    "entry-source lock",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -7821,6 +7823,8 @@ def _render_registry_lock_problems(
         "expected-verdict floor",
         "chain-family coverage floor",
         "worked-example conformance",
+        "call-site census",
+        "entry-source lock",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -11838,19 +11842,22 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 9 required tokens = 18 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 11 required tokens = 22 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 18 — a doc row or a
-    # required token silently dropped shrinks the derived count.
+    # floored against an inline expected total of 22 — a doc row or a
+    # required token silently dropped shrinks the derived count. Plan
+    # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
+    # eleventh tokens (`call-site census`, `entry-source lock`), moving
+    # this floor from 18 (9 tokens) to 22 (11 tokens).
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 18:
+    if qual01_negative_case_count != 22:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 18"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 22"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
