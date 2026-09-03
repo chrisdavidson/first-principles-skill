@@ -3842,14 +3842,56 @@ _FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
 # not a space or tab.
 _APPENDIX_HEADING_RE = re.compile(r"^ {0,3}#{1,6}[ \t]+")
 
+# A CommonMark fenced-code-block delimiter: up to three leading spaces, then
+# three or more backticks or tildes, then the info string.
+_FENCE_DELIM_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>.*)$")
+
+
+def _fenced_code_flags(lines: list[str]) -> list[bool]:
+    """Per line: is it inside a fenced code block (delimiters included)?
+
+    Implements CommonMark's actual closing rule rather than a parity toggle,
+    because parity is wrong in three ways this file has already been bitten
+    by. A fence closes only on the SAME character (``` cannot close ~~~, so a
+    tilde block may quote an unclosed backtick example), at least as long as
+    the opener, and carrying no info string of its own. A backtick opener may
+    not have a backtick in its info string. An unterminated fence runs to end
+    of input, which is what CommonMark specifies and also the safe reading.
+
+    A parity toggle got this wrong on ordinary content — a ~~~ block quoting
+    a ``` example inverted the state for the rest of the document.
+    """
+    inside = [False] * len(lines)
+    open_char: str | None = None
+    open_len = 0
+    for i, raw in enumerate(lines):
+        m = _FENCE_DELIM_RE.match(raw.rstrip("\r"))
+        if open_char is None:
+            if m is not None:
+                char = m.group("fence")[0]
+                if not (char == "`" and "`" in m.group("info")):
+                    open_char, open_len = char, len(m.group("fence"))
+                    inside[i] = True
+            continue
+        inside[i] = True
+        if (
+            m is not None
+            and m.group("fence")[0] == open_char
+            and len(m.group("fence")) >= open_len
+            and not m.group("info").strip()
+        ):
+            open_char, open_len = None, 0
+    return inside
+
 
 def _slice_sections(text: str) -> dict[int, str]:
     """Locate the six numbered output-template sections; return num -> body text.
 
     Content before section 1 (preamble) is discarded. A section's body runs
     from its heading to the next resolved section heading, or — for section
-    6 — to the next heading of ANY depth (an appendix) that is not inside a
-    fenced block, or end of file.
+    6 — to the first ATX heading of any depth (an appendix) that is not
+    inside a fenced code block, capped independently at the Self-Audit
+    Gate, or end of file.
     Raises `SectionResolutionError` if the six section numbers do not
     resolve, in ascending order, with no gaps — exactly the six shapes
     required, never a partial or out-of-order read.
@@ -3926,70 +3968,69 @@ def _slice_sections(text: str) -> dict[int, str]:
             # to nothing and collapsed the whole inventory to 0 claims / 0
             # fragments / 0 untraced with no error raised anywhere — a
             # false-clean, and reachable through the very shape R4
-            # recommends (a heading-introduced closure ledger). The walk
-            # below mirrors `_conclusion_claims`' existing fence tracking
-            # rather than inventing a second convention.
-            # A fenced block hides a heading ONLY when it closes again
-            # before the next heading. Both halves of that rule are load-
-            # bearing, and each was learned from a measured defect:
+            # recommends (a heading-introduced closure ledger).
+            # `_conclusion_claims` now shares `_fenced_code_flags` with this
+            # walk, so the two cannot disagree about where a line starts or
+            # what counts as fenced — they did disagree while one used
+            # `splitlines()` and the other `re.MULTILINE`.
+            # Section 6 ends at the first ATX heading that is not inside
+            # a fenced code block — and, independently of any fence
+            # reasoning at all, never later than the Self-Audit Gate.
             #
-            #   * Without fence tracking at all, a `## ...` line rendered
-            #     inside a fenced closure ledger truncated section 6 to
-            #     nothing and collapsed the reading to 0/0/0 — a silent
-            #     false-clean (CR-02).
+            # The second condition is not redundant, and the history here is
+            # the argument for it. Three successive fence rules were tried
+            # and each was defeated by ordinary content:
             #
-            #   * With naive fence tracking, a fence opened in section 6
-            #     and closed only after `## Self-Audit Gate` swallowed BOTH
-            #     appendix headings. Section 6 then absorbed the Gate and
-            #     `**Residual disclosed:**` came back as an 8th claim —
-            #     the exact D-02 defect this block exists to close,
-            #     reintroduced by its own fix. Balancing is not the
-            #     discriminator: that fence is perfectly balanced.
+            #   * No fence tracking: a `## ...` line inside a fenced closure
+            #     ledger truncated section 6 to nothing, reading 0/0/0 —
+            #     a silent false-clean (CR-02).
+            #   * Parity toggle: a balanced fence opening in section 6 and
+            #     closing after the appendix headings hid both, so section 6
+            #     absorbed the Self-Audit Gate and `**Residual disclosed:**`
+            #     returned as an 8th claim — the D-02 defect, restored by
+            #     its own fix.
+            #   * "Hidden only if the fence closes before the next heading":
+            #     a fenced block containing TWO heading-shaped lines (a bash
+            #     snippet with two `# ` comments is enough) made the second
+            #     one the "next heading", so nothing was hidden and the
+            #     reading collapsed to 0/0/0 again.
             #
-            # Requiring the fence to close before the next heading
-            # separates the two: the ledger's fence closes first, the
-            # swallowing fence does not. An unterminated fence closes
-            # never, so it skips nothing — the failure direction is a
-            # section 6 that ends too EARLY (a fenced ledger misread as an
-            # appendix), never one that silently absorbs the Gate grading
-            # it.
+            # `fence / ## a / ## b / fence` is the same token shape whether
+            # it is a legitimate two-line fenced ledger or a fence swallowing
+            # two appendix headings, so NO rule reading fence and heading
+            # positions alone can separate them. The fence scan is therefore
+            # made correct (real CommonMark closing rules, not parity) and
+            # then backstopped by a signal that does not depend on fences:
+            # `_SELFAUDIT_CRITERION_RE` locates the Gate's own verdict blocks
+            # in the whole analysis text, exactly as
+            # `_selfaudit_calibration_defects` does. Whatever a fence does,
+            # section 6 stops at or before the Gate.
+            #
+            # DISCLOSED BOUND: the cap can only fire on an emission that
+            # actually renders `**Criterion N: ...**` blocks. An emission
+            # with no Self-Audit Gate at all has no Gate to absorb, so the
+            # fence scan alone governs, and an unterminated fence there
+            # leaves section 6 running to end of file.
             #
             # Lines are split on "\n" alone, matching the `re.MULTILINE`
-            # semantics this replaced. `str.splitlines()` also splits on
-            # `\x0b`, `\x0c`, `\x1c`-`\x1e`, `\x85`, `\u2028` and
-            # `\u2029`, so a bare form feed mid-paragraph created a
-            # phantom line whose tail could match as a heading. A CRLF line
-            # keeps its `\r`, which `.strip()` removes for the fence test
-            # and which cannot precede a `#` in any case.
+            # semantics of the `re.finditer` scan this replaced.
+            # `str.splitlines()` also splits on `\x0b`, `\x0c`, `\x1c`-`\x1e`,
+            # `\x85`, `\u2028` and `\u2029`, so a bare form feed created a
+            # phantom line whose tail could match as a heading.
             lines = text[body_start:].split("\n")
-            is_fence = [_FENCE_RE.match(ln.strip()) is not None for ln in lines]
-            is_heading = [
-                _APPENDIX_HEADING_RE.match(ln) is not None and not f
-                for ln, f in zip(lines, is_fence)
-            ]
-
-            def _next_index(flags: list[bool], after: int) -> int | None:
-                for k in range(after + 1, len(flags)):
-                    if flags[k]:
-                        return k
-                return None
+            fenced = _fenced_code_flags(lines)
 
             body_end = len(text)
-            in_fence = False
             offset = body_start
             for idx, raw_line in enumerate(lines):
-                if is_heading[idx]:
-                    closes_at = _next_index(is_fence, idx) if in_fence else None
-                    next_heading = _next_index(is_heading, idx)
-                    hidden = closes_at is not None and (
-                        next_heading is None or closes_at < next_heading
-                    )
-                    if not hidden:
-                        body_end = offset
-                        break
-                elif is_fence[idx]:
-                    in_fence = not in_fence
+                if not fenced[idx] and _APPENDIX_HEADING_RE.match(raw_line):
+                    body_end = offset
+                    break
                 offset += len(raw_line) + 1
+
+            gate = _SELFAUDIT_CRITERION_RE.search(text, body_start)
+            if gate is not None:
+                body_end = min(body_end, gate.start())
         sections[num] = text[body_start:body_end]
     return sections
 
@@ -4682,8 +4723,9 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
 # to whole-document scope, the obvious alternative, is explicitly the
 # wrong fix (999.3 Case A's treadmill) because it would pull MORE
 # Self-Audit Gate quotes into ledger scope, not fewer.
-# `_FENCE_RE` is defined above `_SECTION_HEADING_RE` — it is needed by
-# `_slice_sections`, which runs long before this point.
+# `_FENCE_RE` and the `_fenced_code_flags` scanner that uses it live beside
+# `_APPENDIX_HEADING_RE`, further up, where `_slice_sections` first needs
+# them. Placement is reading order only; module globals resolve at call time.
 
 # The structural closure-ledger row shape output-template.md prescribes
 # and shows as its conforming example: optional leading whitespace, a `-`
@@ -4858,17 +4900,26 @@ def _conclusion_claims(section6: str, chain_ids: list[str] | None = None) -> lis
     """
     chain_ids = chain_ids or []
     claims: list[str] = []
-    in_fence = False
-    for line in section6.splitlines():
-        stripped = line.strip()
-        # LEDGER-01: a fenced block is verbatim structural content — a
-        # closure ledger, a formula, a captured snippet — not section-6
-        # prose. Mining it for claims counted a ledger's own rows as ten
-        # additional claims on the live PR-P1 run.
-        if _FENCE_RE.match(stripped):
-            in_fence = not in_fence
+    # LEDGER-01: a fenced block is verbatim structural content — a closure
+    # ledger, a formula, a captured snippet — not section-6 prose. Mining
+    # it for claims counted a ledger's own rows as ten additional claims on
+    # the live PR-P1 run.
+    #
+    # Uses `_fenced_code_flags` (real CommonMark closing rules) rather than
+    # the parity toggle this line held until the phase-14 review. Parity
+    # inverted permanently on ordinary content — a ~~~ block quoting a ```
+    # example, or any unterminated fence — after which every remaining
+    # line read as fenced and the whole section returned ZERO claims. That
+    # is a silent false-clean, and it was reachable without touching
+    # `_slice_sections` at all. Splitting on "\n" (not `splitlines()`)
+    # keeps this walk's line boundaries identical to the slicer's.
+    lines = section6.split("\n")
+    fenced = _fenced_code_flags(lines)
+    for idx, line in enumerate(lines):
+        if fenced[idx]:
             continue
-        if in_fence or not stripped:
+        stripped = line.strip()
+        if not stripped:
             continue
         m_bold = _BOLD_LEADIN_COLON_RE.match(stripped)
         if m_bold:
@@ -8204,6 +8255,10 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "fenced pseudo-heading",
     "boundary regression",
     "silent false-clean",
+    "Gate cap",
+    "CommonMark closing rules",
+    "fence shape battery",
+    "direct boundary arms",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -8847,6 +8902,14 @@ def _render_registry_lock_problems(
         "fenced pseudo-heading",
         "boundary regression",
         "silent false-clean",
+        # The review of the CR-01/CR-02 fix found its replacement rule
+        # published on both rows with nothing checking it — "stated in more
+        # places than anything checks", one plan after closing that exact
+        # shape. These four cover the design the rows now describe.
+        "Gate cap",
+        "CommonMark closing rules",
+        "fence shape battery",
+        "direct boundary arms",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -10606,7 +10669,7 @@ def _selftest_render_contract() -> bool:
     R11's section-intro-label bound and its `R-CLAIM-LABEL-BARE` fixture,
     D-09's `R-CLAIM-CAVEAT-MARKED` non-discharge teeth, and the
     `quality-ledger-v8.26` fixture D-04's live leg reads.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 52 (2 doc rows x 26
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 60 (2 doc rows x 30
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
@@ -13429,9 +13492,9 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 26 required tokens = 52 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 30 required tokens = 60 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 52 — a doc row or a
+    # floored against an inline expected total of 60 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
     # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
     # eleventh tokens (`call-site census`, `entry-source lock`), moving
@@ -13453,12 +13516,12 @@ def _selftest_render_contract() -> bool:
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 52:
+    if qual01_negative_case_count != 60:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 52"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 60"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
@@ -14257,23 +14320,35 @@ def _selftest_ledger_traceability() -> bool:
         # Every depth 1-6, not just 4. Flooring depth 4 alone left
         # `#{1,4}`, `#{2,6}` and `#{2,4}` all passing while both doc rows
         # published "depth 1-6" — the arm was narrower than the claim it
-        # was supposed to back. Three leading spaces are covered too:
+        # was supposed to back.
+        #
+        # SCOPE, measured: with the Self-Audit Gate cap in `_slice_sections`
+        # in place, this arm no longer DISCRIMINATES the depth bound on this
+        # fixture — the cap rescues the reading, so narrowing the pattern
+        # leaves this arm silent. Arm 11 is what floors the depth bound, on
+        # synthetic documents carrying no Gate. What this arm still asserts
+        # is end-to-end invariance of the shipped reading, which is real but
+        # weaker than it looks. The distinction is stated here because a
+        # safety net that masks the defect it catches is exactly how a
+        # control becomes vacuous without anyone noticing. Three leading spaces are covered too:
         # CommonMark permits up to three before an ATX marker, and the
         # fence test one statement away strips whitespace while the
         # heading test does not, so the two disagreed until `{0,3}` was
         # added to `_APPENDIX_HEADING_RE`.
-        for depth in range(1, 7):
+        # The precondition is loop-invariant, so it is checked ONCE here
+        # rather than inside the sweep, where a `break` left the outer loop
+        # running and reported one structural failure six times.
+        if re.search(r"(?m)^##(?=[ \t]+\S)", ledger_fixture_text[section6_at:]) is None:
+            _fail("(j) arm 4 precondition: no `##` appendix heading found "
+                  "after section 6 to rewrite")
+        else:
+          for depth in range(1, 7):
             for indent in ("", "   "):
                 deepened, n_deepened = re.subn(
                     r"(?m)^##(?=[ \t]+\S)",
                     indent + "#" * depth,
                     ledger_fixture_text[section6_at:],
                 )
-                if n_deepened == 0:
-                    _fail(f"(j) arm 4 precondition: no `##` appendix heading "
-                          f"found after section 6 to rewrite (depth {depth}, "
-                          f"indent {len(indent)})")
-                    break
                 mutated_4 = ledger_fixture_text[:section6_at] + deepened
                 rec_4 = detect_defects(
                     mutated_4, f"PR-P1-ledger-v8.26-arm4-d{depth}i{len(indent)}"
@@ -14311,7 +14386,7 @@ def _selftest_ledger_traceability() -> bool:
             # No `mutated_5 == ledger_fixture_text` precondition here: a
             # pure insertion cannot equal the original, so that branch was
             # unreachable and its `_fail` could never fire.
-            if True:
+            if True:  # noqa: SIM103 - kept to preserve the block's indentation
                 rec_5 = detect_defects(mutated_5, "PR-P1-ledger-v8.26-arm5")
                 reading_5 = (
                     rec_5["conclusion_claims"],
@@ -14327,55 +14402,155 @@ def _selftest_ledger_traceability() -> bool:
                           f"(0, 0, 0) here is the false-clean this arm "
                           f"exists to catch.")
 
-    # Arm 6 (FENCE SPANNING A HEADING): a fence that opens in section 6 and
-    # closes only AFTER the appendix headings must not hide them. This arm
-    # exists because the first cut of arm 5's own fix regressed exactly
-    # here: naive fence tracking let such a fence swallow both headings,
-    # section 6 absorbed the Self-Audit Gate, and `**Residual disclosed:**`
-    # returned as an 8th claim — the D-02 defect, reintroduced by the fix
-    # for CR-02 and caught only by review. Balancing is not the
-    # discriminator (this fence is balanced); closing before the next
-    # heading is. Arm 5 alone cannot see this: its fence closes
-    # immediately, which is the case that must still be hidden.
-    if section6_at >= 0:
-        appendix_at = ledger_fixture_text.find("\n## ", section6_at)
-        last_heading_at = ledger_fixture_text.rfind("\n## ")
-        if appendix_at < 0 or last_heading_at <= appendix_at:
-            _fail("(j) arm 6 precondition: expected at least two `## ` "
-                  "appendix headings after section 6 to span")
-        else:
-            cut = ledger_fixture_text.find("\n", last_heading_at + 1)
-            if cut < 0:
-                _fail("(j) arm 6 precondition: last appendix heading is not "
-                      "newline-terminated")
-            else:
-                mutated_6 = (
-                    ledger_fixture_text[:appendix_at]
-                    + "\n\n```text\nfence opens before the appendix headings\n"
-                    + ledger_fixture_text[appendix_at:cut]
-                    + "\n```\n"
-                    + ledger_fixture_text[cut:]
-                )
-                rec_6 = detect_defects(mutated_6, "PR-P1-ledger-v8.26-arm6")
-                reading_6 = (
-                    rec_6["conclusion_claims"],
-                    len(rec_6["_closure_ledger_fragments"]),
-                    rec_6["untraced_claims"],
-                )
-                absorbed = [
-                    c for c in rec_6["_claims_text"]
-                    if c.startswith("**Residual disclosed:")
-                ]
-                if reading_6 != baseline_reading or absorbed:
-                    _fail(f"(j) arm 6 BOUNDARY REGRESSION: a fence opening "
-                          f"in section 6 and closing after the appendix "
-                          f"headings moved the reading to {reading_6} from "
-                          f"{baseline_reading}"
-                          + (f" and pulled {len(absorbed)} Self-Audit Gate "
-                             f"line(s) in as section-6 claim(s): "
-                             f"{absorbed!r}" if absorbed else "")
-                          + "; a fence may hide a heading only when it "
-                            "closes before the next heading")
+    # Arms 10-11 (DIRECT BOUNDARY ARMS). The Gate cap above is a safety
+    # net, and a safety net MASKS the thing it catches: with the cap in
+    # place, narrowing the heading-depth bound or breaking the CommonMark
+    # closing rules no longer changes the fixture's reading at all, because
+    # the cap rescues it. Measured — every such mutation left arms 4-9
+    # silent. Arms 4-9 therefore prove the pipeline's OUTCOME; these two
+    # prove the boundary logic itself, on synthetic documents that carry no
+    # Self-Audit Gate, so nothing can mask a defect.
+    def _synthetic(section6_body: str) -> str:
+        head = "".join(
+            f"# {n}. {name.title()}\n\nbody {n}\n\n"
+            for n, name in sorted(_SECTION_NAMES.items()) if n != 6
+        )
+        return head + "# 6. Conclusion\n\n" + section6_body
+
+    # Arm 10: `_fenced_code_flags` implements CommonMark's closing rules,
+    # not a parity toggle. Each case names the rule it pins.
+    flag_cases: tuple[tuple[str, str, tuple[bool, ...]], ...] = (
+        ("plain fence", "```\nx\n```\nout",
+         (True, True, True, False)),
+        ("``` cannot close ~~~", "~~~\n```\nstill inside\n~~~\nout",
+         (True, True, True, True, False)),
+        ("closer must be >= opener", "````\n```\ninside\n````\nout",
+         (True, True, True, True, False)),
+        ("closer carries no info string", "```\n``` js\ninside\n```\nout",
+         (True, True, True, True, False)),
+        ("backtick info bars the opener", "``` a`b\nnot a fence\n",
+         (False, False, False)),
+        ("unterminated runs to end", "```\na\nb",
+         (True, True, True)),
+    )
+    for label, body, expected_flags in flag_cases:
+        measured = tuple(_fenced_code_flags(body.split("\n")))
+        if measured != expected_flags:
+            _fail(f"(j) arm 10 FENCE SEMANTICS [{label}]: "
+                  f"_fenced_code_flags returned {measured}, expected "
+                  f"{expected_flags}; a parity toggle passes several of "
+                  f"these and is wrong on all of them")
+
+    # Arm 11: section 6's boundary on documents with NO Self-Audit Gate, so
+    # the cap cannot mask a wrong answer. `hidden` means the appendix
+    # heading must NOT end section 6; `boundary` means it must.
+    boundary_cases: tuple[tuple[str, str, bool], ...] = tuple(
+        [(f"depth {d} appendix heading", "keep\n\n" + "#" * d + " Appendix\n\nappendix\n", True)
+         for d in range(1, 7)]
+        + [("3-space indented heading", "keep\n\n   ## Appendix\n\nappendix\n", True),
+           ("4-space indent is code, not a heading", "keep\n\n    ## Appendix\n\nmore\n", False),
+           ("heading inside a fence", "keep\n\n```\n## Appendix\n```\n\nmore\n", False),
+           ("two headings inside one fence", "keep\n\n```\n## A\n## B\n```\n\nmore\n", False),
+           ("heading inside a ~~~ quoting ```", "keep\n\n~~~\n## A\n```\n~~~\n\nmore\n", False)]
+    )
+    for label, body, expect_boundary in boundary_cases:
+        try:
+            measured_s6 = _slice_sections(_synthetic(body))[6]
+        except SectionResolutionError as exc:  # pragma: no cover - guard
+            _fail(f"(j) arm 11 precondition [{label}]: synthetic document "
+                  f"did not resolve: {exc}")
+            continue
+        ended_early = "appendix" not in measured_s6 and "more" not in measured_s6
+        if ended_early != expect_boundary:
+            _fail(f"(j) arm 11 BOUNDARY [{label}]: section 6 "
+                  f"{'ended at' if ended_early else 'ran past'} the heading, "
+                  f"expected it to {'end at' if expect_boundary else 'run past'} "
+                  f"it. Sliced body: {measured_s6!r}")
+
+    # Arms 6-9 (FENCE SHAPE BATTERY). Every entry is a shape that a
+    # previous cut of this boundary logic got WRONG, each found by review
+    # rather than by any gate. They are table-driven so a newly discovered
+    # shape is one row, not another bespoke arm.
+    #
+    #   arm 6  a balanced fence opening in section 6 and closing after the
+    #          appendix headings. Parity tracking hid both headings, section
+    #          6 absorbed the Self-Audit Gate, and `**Residual disclosed:**`
+    #          came back as an 8th claim — the D-02 defect restored by its
+    #          own fix. The Gate cap is what closes it.
+    #   arm 7  a fenced block holding TWO heading-shaped lines — an ordinary
+    #          bash snippet with two `# ` comments is enough. The
+    #          "hidden only if the fence closes before the next heading"
+    #          rule made the second one the next heading, hid nothing, and
+    #          collapsed the reading to 0/0/0.
+    #   arm 8  a `~~~` block quoting an UNCLOSED ``` example. Legal
+    #          CommonMark; a parity toggle inverted on it and read the whole
+    #          remainder of the section as code, returning zero claims.
+    #   arm 9  the disclosed bound, pinned rather than left to be
+    #          rediscovered: an unterminated fence at the top of section 6
+    #          reads as code to end of document, so the section returns
+    #          nothing. Measured identical at 4d3b5ca, at e1459ac and here —
+    #          long-standing behaviour, not introduced by this phase, and
+    #          the conservative direction (too short, never absorbing the
+    #          Gate). It is asserted as 0/0/0 so that a change to it must be
+    #          deliberate.
+    s6_body_at = ledger_fixture_text.find("\n", section6_at) + 1 if section6_at >= 0 else -1
+    first_appendix = ledger_fixture_text.find("\n## ", section6_at) if section6_at >= 0 else -1
+    last_appendix = ledger_fixture_text.rfind("\n## ")
+    if s6_body_at <= 0 or first_appendix < 0 or last_appendix <= first_appendix:
+        _fail("(j) arms 6-9 precondition: could not locate section 6's body "
+              "and two following `## ` appendix headings in the fixture")
+    else:
+        heading_end = ledger_fixture_text.find("\n", last_appendix + 1)
+        spanning = (
+            ledger_fixture_text[:first_appendix]
+            + "\n\n```text\nfence opens before the appendix headings\n"
+            + ledger_fixture_text[first_appendix:heading_end]
+            + "\n```\n"
+            + ledger_fixture_text[heading_end:]
+        )
+        def _insert_into_s6(block: str) -> str:
+            return (
+                ledger_fixture_text[:s6_body_at] + block
+                + ledger_fixture_text[s6_body_at:]
+            )
+        fence_shapes: tuple[tuple[str, str, str, tuple[int, int, int]], ...] = (
+            ("arm 6", "fence spanning the appendix headings",
+             spanning, baseline_reading),
+            ("arm 7", "fenced block holding two heading-shaped lines",
+             _insert_into_s6("\n```bash\n# step one\n# step two\nls\n```\n"),
+             baseline_reading),
+            ("arm 8", "`~~~` block quoting an unclosed ``` example",
+             _insert_into_s6("\n~~~text\n## x\n```python\nnever closed\n~~~\n"),
+             baseline_reading),
+            ("arm 9", "unterminated fence at the top of section 6 "
+                      "(DISCLOSED BOUND: reads as code to end of document)",
+             _insert_into_s6("\n```text\nnever closed\n"),
+             (0, 0, 0)),
+        )
+        for arm, description, mutated, expected in fence_shapes:
+            if mutated == ledger_fixture_text:
+                _fail(f"(j) {arm} precondition: {description} produced no "
+                      f"change to the fixture text")
+                continue
+            rec_f = detect_defects(mutated, f"PR-P1-ledger-v8.26-{arm.replace(' ', '')}")
+            reading_f = (
+                rec_f["conclusion_claims"],
+                len(rec_f["_closure_ledger_fragments"]),
+                rec_f["untraced_claims"],
+            )
+            absorbed = [
+                c for c in rec_f["_claims_text"]
+                if c.startswith("**Residual disclosed:")
+            ]
+            if reading_f != expected or absorbed:
+                _fail(f"(j) {arm} FENCE SHAPE: {description} read "
+                      f"{reading_f}, expected {expected}"
+                      + (f"; and pulled {len(absorbed)} Self-Audit Gate "
+                         f"line(s) in as section-6 claim(s): {absorbed!r}"
+                         if absorbed else "")
+                      + ". Section 6 must never absorb the Gate that "
+                        "grades it, and a legitimate fenced block must "
+                        "never truncate it.")
 
     return ok
 
