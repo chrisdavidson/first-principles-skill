@@ -255,6 +255,17 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
 
 Exactly one clause is reordered and the chain is whole again; naming a ground truth inside a hop is fine, leading with its identifier is not.
 
+**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ the bracket straddles zero, so its two ends recommend opposite actions
+→ the second reading is the binding one
+→ GT-4's stated duty cycle is the binding term in both estimates
+```
+
+This hop breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — with two hops already matched before it, the check has satisfied its arrow requirement and never evaluates the leading identifier. Write `→ the duty cycle stated in GT-4 is the binding term in both estimates` wherever the hop sits; the rule is the contract, and the check is a partial instrument for it.
+
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
