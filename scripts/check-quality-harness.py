@@ -7236,6 +7236,29 @@ def _render_fixture_accounting_problems(
 # "every canonical surface that states the chain form" — registering this
 # surface, rather than deleting the chain form from it, is the same fork
 # plan 11-07 took for the rubric one gap earlier.
+#
+# This tuple is a hand-maintained list, not the enforcement mechanism for
+# "every canonical surface that states the chain form" — round 6
+# (`13-VERIFICATION-round6.md` gap 3, CR-04) found two more unregistered
+# surfaces (`shared/references/estimate-detail.md` and
+# `shared/references/theoretical-limit-detail.md`) the round after this
+# comment last presented the four-surface set as a completed closure, which
+# is exactly what a hand-maintained list cannot see happening to itself.
+# What makes the requirement checkable is
+# `_render_chain_form_surface_problems` (plan 13-24) — a sweep that derives
+# its candidate surface set from the tree via `_RENDER_CHAIN_FORM_SIGNATURE`
+# and compares it by equality against this tuple plus
+# `_RENDER_CHAIN_FORM_EXEMPT`, not the count of entries here. The two
+# CR-04 files were resolved by the point-back fork, not the register fork:
+# both Handoff paragraphs now name their technique-specific content in prose
+# and point back to `output-template.md`'s own "Converting
+# structured-technique outputs into chains" subsection, which already
+# declares itself the single source of truth for the conversion and
+# instructs per-technique Handoff sections to point back rather than
+# restate — registering them here would instead have propagated the four
+# `_RENDER_RULE_LITERALS` into every technique appendix that mentions a
+# chain, the duplication that produced this defect twice. See plan 13-24's
+# SUMMARY and `13-VERIFICATION-round6.md` gap 3 for the full rationale.
 _RENDER_RULE_SURFACES: tuple[str, ...] = (
     "shared/spine/references/output-template.md",
     "shared/spine/SKILL-body.md",

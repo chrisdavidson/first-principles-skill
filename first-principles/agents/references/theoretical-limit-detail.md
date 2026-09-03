@@ -76,15 +76,15 @@ The law-permitted ceiling and the bracketed gap produced by a theoretical-limit
 drill are the natural input to **Phase 4 (Reason Upward)**, which is
 theoretical-limit's primary destination in the 5-phase methodology.
 
-**Feeding Phase 4:** The governing law and the bracketed gap become the steps
-of a quantitative **Derivation Chain**: `GT-N → [governing law] →
-[law-permitted ceiling] → [gap to convention]`. Each step cites the ground
-truth that anchors it — a physical constant, a definition, or a measurement
-assigned a GT-N identifier in Phase 3. The gap is the key intermediate claim:
-a conclusion that depends on a figure being near its physical limit is sound
-only if the gap confirms that; a conclusion that depends on substantial
-remaining headroom is contingent only if the gap confirms there is headroom to
-capture.
+**Feeding Phase 4:** The governing law, the law-permitted ceiling and the
+bracketed gap to convention become the steps of a quantitative **Derivation
+Chain** — see output-template.md §4 ("Derivation Chains") for the chain form
+and its head grammar. Each step cites the ground truth that anchors it — a
+physical constant, a definition, or a measurement assigned a GT-N identifier
+in Phase 3. The gap is the key intermediate claim: a conclusion that depends
+on a figure being near its physical limit is sound only if the gap confirms
+that; a conclusion that depends on substantial remaining headroom is
+contingent only if the gap confirms there is headroom to capture.
 
 **Lighter Phase 1 anchor:** A theoretical-limit analysis often reframes the
 core question identified in **Phase 1 (Identify the Essence)**. Establishing
