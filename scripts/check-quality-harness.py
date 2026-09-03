@@ -3832,10 +3832,10 @@ def _slice_sections(text: str) -> dict[int, str]:
 
     Content before section 1 (preamble) is discarded. A section's body runs
     from its heading to the next resolved section heading, or — for section
-    6 — to the next heading at the same or shallower hash depth (an
-    appendix), or end of file. Raises `SectionResolutionError` if the six
-    section numbers do not resolve, in ascending order, with no gaps —
-    exactly the six shapes required, never a partial or out-of-order read.
+    6 — to the next heading of ANY depth (an appendix), or end of file.
+    Raises `SectionResolutionError` if the six section numbers do not
+    resolve, in ascending order, with no gaps — exactly the six shapes
+    required, never a partial or out-of-order read.
     """
     candidates: list[tuple[int, int, re.Match]] = []
     for m in _SECTION_HEADING_RE.finditer(text):
@@ -3864,13 +3864,36 @@ def _slice_sections(text: str) -> dict[int, str]:
         if idx + 1 < len(anchors):
             body_end = anchors[idx + 1][0]
         else:
-            # Section 6: stop at the next heading of depth <= this one
-            # (an appendix), else end of file.
+            # Section 6: stop at the next heading of ANY depth (an
+            # appendix), else end of file.
+            #
+            # Plan 14-01 / D-02: the prior guard (`if len(hm.group(1)) <=
+            # depth`) required the following heading to be at the same or
+            # shallower hash depth before it counted as an appendix
+            # boundary. Measured on the 2026-09-02 capture (`# 6.
+            # Conclusion` followed by `## Assumption Audit scan (process
+            # output)`): the `##` appendix heading is DEEPER than the `#`
+            # section-6 heading, so the guard never fired and section 6's
+            # body absorbed the Assumption Audit scan and the Self-Audit
+            # Gate that follow it. The Gate's own `Quoted span:` lines then
+            # became ledger rows discharging the claims the Gate was
+            # grading, and `**Residual disclosed:**` — a Gate line —
+            # became an 8th "section 6" claim. Removing the depth
+            # comparison entirely (break at the FIRST heading match,
+            # regardless of depth) fixes this: section 6 now means the
+            # Conclusion section on an emission that uses `#` for sections
+            # and `##` for process-output appendices. Measured cost
+            # against the frozen v8.7 corpus: zero — all six analyses
+            # carry no headings inside section 6, so their
+            # `conclusion_claims`/`untraced_claims` readings are
+            # byte-identical before and after (see control (i) in
+            # `_selftest_ledger_traceability`). `_slice_sections` carries
+            # no digest pin (only `_chain_block_well_formed` and
+            # `_RENDER_RULE_LITERALS` do), so CONTRACT-06 is untouched.
             body_end = len(text)
             for hm in re.finditer(r"^(#{1,3})[ \t]+", text[body_start:], re.MULTILINE):
-                if len(hm.group(1)) <= depth:
-                    body_end = body_start + hm.start()
-                    break
+                body_end = body_start + hm.start()
+                break
         sections[num] = text[body_start:body_end]
     return sections
 
