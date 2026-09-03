@@ -13753,6 +13753,27 @@ def _selftest_ledger_traceability() -> bool:
     Control (h) discriminates the fence rule from the claim filter, and
     (i) pins the frozen corpus against movement.
 
+    Plan 14-05 / D-04, D-10: (j) is QUAL-01's live leg over the committed
+    `tests/quality-ledger-v8.26/PR-P1.md` fixture (a leg of this existing
+    `--self-test`, never a new gate, CI job or CLI flag — the battery tally
+    stays 23). It reads that fixture unconditionally, exactly as (i) already
+    reads the frozen v8.7 corpus, and asserts its measured reading —
+    `conclusion_claims == 7`, zero `_closure_ledger_fragments`,
+    `untraced_claims == 1` — plus the IDENTITY of the single untraced claim
+    (the `**Trade-offs acknowledged:**` paragraph), not just its count: a
+    count catches a later loosening that silently discharges the claim
+    (LEDGER-04's own words); the identity survives if a count ever
+    legitimately moves. Three anti-vacuity mutation arms, one per pinned
+    number, each mutate the text the run actually read (never a re-read of
+    the file) and require the specific predicted change, so a leg that
+    reads the fixture but cannot fail on it does not ship (T-14-14).
+    DISCLOSED BOUNDS: (j) asserts a `detect_defects` reading over one
+    committed analysis; it does not assert the analysis is correct, does
+    not measure whether the agent complies with R11 or R12 at emission time
+    (that needs a live run — 999.12/999.13), and does not assert a
+    Criterion 6 band, which is assigned by a model and which no gate in
+    this tree checks (D-10).
+
     Plan 14-01 / D-11: (i) compares PER ANALYSIS, not just vector-to-vector
     — a mismatch names the analysis, the field and both values — behind a
     LENGTH FLOOR that fails rather than vacuously passing if any of the
@@ -13922,6 +13943,119 @@ def _selftest_ledger_traceability() -> bool:
             if m_untraced != p_untraced:
                 _fail(f"(i) {name}: untraced_claims moved: "
                       f"measured {m_untraced} != pinned {p_untraced}")
+
+    # (j) THE LIVE LEG (D-04, plan 14-05): a committed, tracked fixture the
+    #     v8.7 corpus cannot substitute for — see
+    #     tests/quality-ledger-v8.26/README.md — asserts its own measured
+    #     reading. `.planning/captures/` (the fixture's own source) is
+    #     gitignored and unreachable by any gate; this is why the fixture
+    #     was copied into `tests/` at all.
+    ledger_fixture_path = REPO_ROOT / "tests" / "quality-ledger-v8.26" / "PR-P1.md"
+    ledger_fixture_text = ledger_fixture_path.read_text(encoding="utf-8")
+    fixture_rec = detect_defects(ledger_fixture_text, "PR-P1-ledger-v8.26")
+
+    if fixture_rec["conclusion_claims"] != 7:
+        _fail(f"(j) conclusion_claims: measured "
+              f"{fixture_rec['conclusion_claims']} != pinned 7")
+    if len(fixture_rec["_closure_ledger_fragments"]) != 0:
+        _fail(f"(j) closure_ledger_fragments: measured "
+              f"{len(fixture_rec['_closure_ledger_fragments'])} != pinned 0")
+    if fixture_rec["untraced_claims"] != 1:
+        _fail(f"(j) untraced_claims: measured "
+              f"{fixture_rec['untraced_claims']} != pinned 1")
+
+    # IDENTITY, not just count (D-10): a count can move for an innocent
+    # reason (a legitimate emission change); the identity of the untraced
+    # claim is what proves it is still the SAME residual, not a different
+    # one that happens to share a count.
+    untraced_text = fixture_rec["_untraced_claims_text"]
+    expected_prefix = (
+        "**Trade-offs acknowledged:** step 2's ~73% is a ceiling requiring "
+        "a long-term, all-upfront commitment"
+    )
+    if len(untraced_text) != 1 or not untraced_text[0].startswith(expected_prefix):
+        _fail(f"(j) untraced claim identity moved: {untraced_text!r} does "
+              f"not start with {expected_prefix!r}")
+
+    # ANTI-VACUITY (T-14-14): one mutation arm per pinned number, each
+    # derived from `ledger_fixture_text` — the bytes this control actually
+    # read — and applied in memory only. A live leg that reads a fixture
+    # but cannot fail on it is worse than no leg at all.
+    if len(untraced_text) == 1:
+        trade_offs_line = untraced_text[0]
+
+        # Arm 1 (untraced axis): citing a real chain inline must discharge
+        # the claim.
+        mutated_1 = ledger_fixture_text.replace(
+            trade_offs_line, trade_offs_line + " (chain C5).", 1
+        )
+        if mutated_1 == ledger_fixture_text:
+            _fail("(j) arm 1 precondition: trade-offs line not found in "
+                  "the fixture text for mutation")
+        else:
+            rec_1 = detect_defects(mutated_1, "PR-P1-ledger-v8.26-arm1")
+            if rec_1["untraced_claims"] != 0:
+                _fail(f"(j) arm 1 ANTI-VACUITY: appending an inline chain "
+                      f"C5 citation to the trade-offs claim did not "
+                      f"discharge it — untraced_claims measured "
+                      f"{rec_1['untraced_claims']}, expected 0; the "
+                      f"untraced-axis assertion is passing vacuously")
+
+        # Arm 3 (ledger axis): a structural ledger row inside section 6,
+        # quoting a span of the trade-offs claim and naming a real chain id
+        # from section 4, must produce a fragment AND discharge the claim.
+        # Derived from the same `trade_offs_line` so the quoted span is
+        # guaranteed to be a real substring of the claim it discharges.
+        quoted_span = trade_offs_line[
+            len("**Trade-offs acknowledged:** "):
+        ].split(";", 1)[0]
+        ledger_row = f'```text\n- "{quoted_span}" -> chain C5\n```\n\n'
+        mutated_3 = ledger_fixture_text.replace(
+            trade_offs_line, ledger_row + trade_offs_line, 1
+        )
+        if mutated_3 == ledger_fixture_text:
+            _fail("(j) arm 3 precondition: trade-offs line not found in "
+                  "the fixture text for mutation")
+        else:
+            rec_3 = detect_defects(mutated_3, "PR-P1-ledger-v8.26-arm3")
+            if not rec_3["_closure_ledger_fragments"]:
+                _fail("(j) arm 3 ANTI-VACUITY: inserting a structural "
+                      "ledger row inside section 6 yielded zero "
+                      "closure-ledger fragments; the ledger-axis assertion "
+                      "is passing vacuously")
+            elif rec_3["untraced_claims"] != 0:
+                _fail(f"(j) arm 3 ANTI-VACUITY: the inserted ledger row's "
+                      f"fragment did not discharge the trade-offs claim — "
+                      f"untraced_claims measured {rec_3['untraced_claims']}, "
+                      f"expected 0; the ledger-axis assertion is passing "
+                      f"vacuously")
+    else:
+        _fail("(j) arm 1/3 precondition: expected exactly one untraced "
+              "claim to derive the mutation from")
+
+    # Arm 2 (claims axis): deleting the Key Insight claim must drop
+    # conclusion_claims by exactly one. Derived from `_claims_text` itself
+    # (never hand-transcribed) so the mutation is guaranteed to match the
+    # bytes the control actually read.
+    key_insight_claims = [
+        c for c in fixture_rec["_claims_text"] if c.startswith("**Key insight")
+    ]
+    if len(key_insight_claims) != 1:
+        _fail(f"(j) arm 2 precondition: expected exactly one Key Insight "
+              f"claim to mutate, found {len(key_insight_claims)}")
+    else:
+        key_insight_line = key_insight_claims[0]
+        mutated_2 = ledger_fixture_text.replace(key_insight_line + "\n\n", "", 1)
+        if mutated_2 == ledger_fixture_text:
+            _fail("(j) arm 2 precondition: Key Insight line deletion "
+                  "produced no change to the fixture text")
+        else:
+            rec_2 = detect_defects(mutated_2, "PR-P1-ledger-v8.26-arm2")
+            if rec_2["conclusion_claims"] != 6:
+                _fail(f"(j) arm 2 ANTI-VACUITY: deleting the Key Insight "
+                      f"claim did not drop conclusion_claims to 6 — "
+                      f"measured {rec_2['conclusion_claims']}; the "
+                      f"claims-axis assertion is passing vacuously")
 
     return ok
 
