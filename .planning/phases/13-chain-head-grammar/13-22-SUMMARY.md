@@ -121,3 +121,10 @@ None - no external service configuration required.
 ---
 *Phase: 13-chain-head-grammar*
 *Completed: 2026-09-03*
+
+## Self-Check: PASSED
+
+- FOUND: `scripts/check-quality-harness.py`
+- FOUND: `.planning/phases/13-chain-head-grammar/13-22-SUMMARY.md`
+- FOUND: commit `5aa0ffc` (Task 1)
+- FOUND: commit `76d401f` (SUMMARY)
