@@ -288,15 +288,16 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
 
 Exactly one character differs from the block above: the terminal period. Removing it, and nothing else, restores the two-arrow match the check requires.
 
-**Non-conforming, and undetected by the form check — the same period moved to the second hop:**
+**Non-conforming, and undetected by the form check — the same period moved to a later hop:**
 
 ```text
 C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
 → C1's saving is unconditional and does not depend on workload shape
+→ the migration case does not rest on C1 alone
 → C2's saving is real only above the duty-cycle threshold this estimate assumes.
 ```
 
-This block breaks the identical rule one hop later and is equally non-conforming, but the check tests whether a segment closes its own sentence only to decide if the arrow-led line that follows it continues the chain; by the time the second hop is reached, the head and the first hop have already built the two-arrow match, and no further hop remains for the second hop's own closed sentence to block. The check reaches only the head and the first hop — a sentence-closing period from the second hop onward finds nothing left to block, which is why intermediate hops carry no terminal punctuation in this project's worked examples.
+This block breaks the identical rule one hop later and is equally non-conforming, but the mechanical form check scores it conforming — with two hops already matched before the closing sentence is reached, the check has satisfied its two-arrow requirement and the sentence-closing period on the third hop has no following line left to block. Write the closing hop with no terminal punctuation wherever it sits; the rule is the contract, and the check is a partial instrument for it.
 
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
