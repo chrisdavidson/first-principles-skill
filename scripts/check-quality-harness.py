@@ -6728,6 +6728,76 @@ def _render_coverage_floor_problems(
     return sorted(problems_out)
 
 
+def _render_entry_source_problems(
+    entries: tuple[tuple[str, frozenset[str], frozenset[str]], ...],
+    expected_required_by_name: dict[str, frozenset[str]],
+) -> list[str]:
+    """For each `(arm_name, actual, required)` entry in *entries*, assert
+    that `required` is the value *expected_required_by_name* independently
+    names for that arm — never merely that some value is present under
+    that name (R4-CR-02, `13-VERIFICATION-round4.md`). Four problem
+    shapes, all sorted together:
+
+    - UNREGISTERED: an entry name absent from *expected_required_by_name*.
+    - WRONG SOURCE: an entry whose `required` side is not equal to its
+      registered expectation, reported as sorted MISSING / UNEXPECTED,
+      following `_render_coverage_floor_problems`'s own reporting shape.
+    - ALIASED: an entry whose `required` side `is` the SAME OBJECT as its
+      `actual` side. Kept separate from WRONG SOURCE on purpose: in the
+      passing state EVERY entry's two sides are EQUAL BY VALUE — that is
+      what passing means — so a value check alone can never discriminate
+      a required side rebound to its own actual side from a correctly
+      independent one. Only object identity can. MUTATION M3 exercises
+      this arm in isolation, on the arm-4a entry, with no narrowing
+      anywhere.
+    - MISSING ENTRY: a name registered in *expected_required_by_name* with
+      no matching entry in *entries* — so deleting an entry AND its
+      expectation together stays loud.
+
+    DISCLOSED LIMITATION: this helper compares `required` against the
+    expectation the CALLER supplies — it is the caller's re-derivation
+    from primary sources, not this helper, that carries the independence
+    property. A rebind of a registry entry's required side to an
+    expression of EQUAL value is harmless by construction and therefore
+    invisible to the WRONG SOURCE shape — only a rebind that changes what
+    the entry actually requires, or aliases it to its own actual side, is
+    caught. Pure: takes all inputs as parameters and reads no module
+    constant, which is what lets the isolation arms drive it with
+    synthetic literals.
+    """
+    problems_out: list[str] = []
+    entry_names = {name for name, _, _ in entries}
+    for name, actual, required in entries:
+        if name not in expected_required_by_name:
+            problems_out.append(
+                f"{name}: UNREGISTERED — no entry-source expectation is "
+                f"registered for this arm name"
+            )
+            continue
+        expected = expected_required_by_name[name]
+        if required is actual:
+            problems_out.append(
+                f"{name}: ALIASED — the required side is bound to the "
+                f"SAME OBJECT as the actual side, so this entry cannot "
+                f"report a coverage-floor problem"
+            )
+        if required != expected:
+            missing = sorted(expected - required)
+            unexpected = sorted(required - expected)
+            problems_out.append(
+                f"{name}: WRONG SOURCE — required {sorted(required)!r} != "
+                f"expected {sorted(expected)!r} — MISSING {missing!r}, "
+                f"UNEXPECTED {unexpected!r}"
+            )
+    for name in expected_required_by_name:
+        if name not in entry_names:
+            problems_out.append(
+                f"{name}: MISSING ENTRY — an entry-source expectation is "
+                f"registered but no matching coverage-floor entry exists"
+            )
+    return sorted(problems_out)
+
+
 def _render_verdict_floor_problems(
     expected: dict[str, list[bool]],
     scored_verdicts: dict[str, list[bool]],
@@ -10004,20 +10074,48 @@ def _selftest_render_contract() -> bool:
     # bare-subscript assignment into it (the recorder name immediately
     # followed by `[`, with `] = ` present on the SAME source line — this
     # is a textual heuristic over source lines, not a parse, and is stated
-    # as such). Every search pattern below is built by concatenation
-    # rather than as a single literal, and every pattern's NAME is
-    # referred to only in prose above (never spelled out here contiguous
-    # with its trailing punctuation), so this control's own comment and
-    # source do not inflate the counts it takes over the function it lives
-    # inside. DISCLOSED LIMITATION: this arm counts source text and
-    # observes no behaviour; it does not by itself prove a fixture's
-    # verdict is correct — arms 4a/4b and control (v) do that.
+    # as such).
+    #
+    # R4-CR-01 (`13-VERIFICATION-round4.md`): the two floors plans 13-12
+    # and 13-14 built specifically to make criterion 3's guarantee
+    # forgery-proof — the coverage-floor-registry helper (control (x)'s
+    # THE FLOOR ITSELF) and the worked-example-conformance helper (leg
+    # 5's THE LEG ITSELF) — were never registered here, so each floor's
+    # WHOLE enforcement rested on one real, source-text-uncounted call;
+    # deleting it restored the exact defect the floor exists to catch
+    # with the battery green. Three more counters below close that:
+    #
+    #   - the coverage-floor-registry helper: 6 call sites (1 real — THE
+    #     FLOOR ITSELF — plus the x1-x4 isolation arms, 4, plus leg 5's
+    #     own reuse of the same helper for its NON-VACUITY floor, 1);
+    #   - the worked-example-conformance helper: 6 call sites (1 real —
+    #     THE LEG ITSELF — plus the z5-z9 isolation arms, 5);
+    #   - the entry-source helper (this plan's own Task 1 fix): 5 call
+    #     sites (1 real — the ENTRY-SOURCE LOCK — plus the x6-x9
+    #     isolation arms, 4). This plan's own fix is registered in the
+    #     same census it extends, so it does not reproduce the defect it
+    #     closes (MUTATION M9).
+    #
+    # Every search pattern below is built by concatenation rather than as
+    # a single literal, and every pattern's NAME is referred to only in
+    # prose above (never spelled out here contiguous with its trailing
+    # punctuation), so this control's own comment and source do not
+    # inflate the counts it takes over the function it lives inside.
+    # DISCLOSED LIMITATION: this arm counts source text and observes no
+    # behaviour — a call whose returned problems are discarded rather
+    # than passed to `_fail` still counts, so it catches deletion of a
+    # call, not neutering of its consumption; it does not by itself prove
+    # a fixture's verdict is correct — arms 4a/4b and control (v) do
+    # that.
     render_contract_src = inspect.getsource(_selftest_render_contract)
     render_t_setdefault_pattern = "scored_verdicts" + ".setdefault("
     render_t_def_pattern = "    def " + "_score_"
     render_t_verdict_call_pattern = "_render_verdict_floor_problems" + "("
     render_t_chain_call_pattern = "_render_chain_verdict_floor_problems" + "("
     render_t_update_pattern = "scored_verdicts" + ".update("
+    render_t_coverage_call_pattern = "_render_coverage_floor_problems" + "("
+    render_t_example_call_pattern = "_render_example_conformance_problems" + "("
+    render_t_entry_source_call_pattern = "_render_entry_source_problems" + "("
     render_t_setdefault_count = render_contract_src.count(render_t_setdefault_pattern)
     render_t_def_count = render_contract_src.count(render_t_def_pattern)
     render_t_verdict_call_count = render_contract_src.count(
@@ -10027,6 +10125,15 @@ def _selftest_render_contract() -> bool:
         render_t_chain_call_pattern
     )
     render_t_update_count = render_contract_src.count(render_t_update_pattern)
+    render_t_coverage_call_count = render_contract_src.count(
+        render_t_coverage_call_pattern
+    )
+    render_t_example_call_count = render_contract_src.count(
+        render_t_example_call_pattern
+    )
+    render_t_entry_source_call_count = render_contract_src.count(
+        render_t_entry_source_call_pattern
+    )
     render_t_subscript_pattern = "scored_verdicts" + "["
     render_t_subscript_assign_count = sum(
         1
@@ -10040,6 +10147,9 @@ def _selftest_render_contract() -> bool:
         or render_t_chain_call_count != 6
         or render_t_update_count != 0
         or render_t_subscript_assign_count != 0
+        or render_t_coverage_call_count != 6
+        or render_t_example_call_count != 6
+        or render_t_entry_source_call_count != 5
     ):
         _fail(
             f"(t) SCORING RECORDER LOCK: observed {render_t_setdefault_count} "
@@ -10050,9 +10160,15 @@ def _selftest_render_contract() -> bool:
             f"{render_t_chain_call_count} "
             f"chain-verdict-floor-helper call site(s) "
             f"(expected 6), {render_t_update_count} forbidden recorder "
-            f"dict-update occurrence(s) (expected 0), and "
+            f"dict-update occurrence(s) (expected 0), "
             f"{render_t_subscript_assign_count} forbidden bare-subscript "
-            f"assignment occurrence(s) (expected 0)"
+            f"assignment occurrence(s) (expected 0), "
+            f"{render_t_coverage_call_count} coverage-floor-registry "
+            f"helper call site(s) (expected 6), "
+            f"{render_t_example_call_count} worked-example-conformance "
+            f"helper call site(s) (expected 6), and "
+            f"{render_t_entry_source_call_count} entry-source helper "
+            f"call site(s) (expected 5)"
         )
 
     # (u) DISPATCH REACHABILITY. Plan 13-06 (CR-02 / criterion 5): an
@@ -10218,6 +10334,55 @@ def _selftest_render_contract() -> bool:
             f"{render_x_expected_entry_names!r}"
         )
 
+    # (x) ENTRY-SOURCE LOCK. R4-CR-02 (`13-VERIFICATION-round4.md`): the
+    #     REGISTRY MEMBERSHIP LOCK above compares entry NAMES only —
+    #     nothing asserted that an entry's `required` side is the
+    #     independently-derived value it claims to be, so rebinding arm
+    #     4a's `required` binding above to its own `actual` side made
+    #     that entry `x != x`, structurally incapable of reporting a
+    #     problem, while every name and every isolation arm still passed.
+    #     This arm RE-DERIVES each entry's required side from PRIMARY
+    #     SOURCES at lock time — never by reading the registry's own
+    #     binding above and never by reusing the local variable the
+    #     registry was built from — and rejects an entry whose two sides
+    #     are bound to one object.
+    #
+    #     `render_x_entry_source_expected`'s arm-4a value is a FRESH call
+    #     to `_render_chain_family_ids`, not the `render_chain_family_ids`
+    #     local above: comparing against that local would be defeated by
+    #     rebinding the local itself before the registry is constructed
+    #     (MUTATION M2). `"(u) dispatch-reachability symbol set"`'s
+    #     expectation is a SECOND, independent transcription of control
+    #     (u)'s `render_u_required` anchor set — naming a fifth anchor is
+    #     deliberately a two-place edit, matching the reason control (u)
+    #     already gives for that set being restated rather than derived.
+    #
+    #     DISCLOSED LIMITATION: a rebind of a registry entry's required
+    #     side to an expression of EQUAL value is harmless by
+    #     construction and therefore invisible to this arm's WRONG SOURCE
+    #     shape — only a rebind that changes what the entry actually
+    #     requires, or aliases it to its own actual side, is caught.
+    render_x_entry_source_expected: dict[str, frozenset[str]] = {
+        "arm 4a chain re-score table": frozenset(
+            _render_chain_family_ids(
+                render_locked_fixture_ids, _RENDER_CHAIN_FAMILY_PREFIXES
+            )
+        ),
+        "arm 4b recorded-verdict table": frozenset(render_locked_fixture_ids),
+        "(u) dispatch-reachability symbol set": frozenset(
+            {
+                "_selftest_analysis_persistence",
+                "_selftest_capture_tool_reader",
+                "_selftest_chain_detector_pin",
+                "_selftest_render_contract",
+            }
+        ),
+    }
+    for render_x_entry_source_problem in _render_entry_source_problems(
+        render_coverage_floor_entries, render_x_entry_source_expected
+    ):
+        _fail(f"(x) ENTRY-SOURCE LOCK: {render_x_entry_source_problem}")
+
     # THE FLOOR ITSELF.
     for render_x_problem in _render_coverage_floor_problems(
         render_coverage_floor_entries
@@ -10313,6 +10478,66 @@ def _selftest_render_contract() -> bool:
         _fail(
             f"(x) ISOLATION x5 DERIVATION (no match): expected empty set, "
             f"got {render_x5_chain_ids_none!r}"
+        )
+
+    # x6-x9 ISOLATION: the ENTRY-SOURCE LOCK's own falsifiability. Every
+    # arm drives `_render_entry_source_problems` with SYNTHETIC literals
+    # only — never `render_locked_fixture_ids`, never
+    # `_RENDER_CHAIN_FAMILY_PREFIXES`, never either expected-verdict
+    # table, never the live registry — copying the x1-x5 arms' existing
+    # discipline exactly.
+    render_x6_problems = _render_entry_source_problems(
+        (("x6 CLEAN", frozenset({"A"}), frozenset({"B"})),),
+        {"x6 CLEAN": frozenset({"B"})},
+    )
+    if render_x6_problems != []:
+        _fail(
+            f"(x) ISOLATION x6 CLEAN: a matching entry wrongly reported a "
+            f"problem: {render_x6_problems!r}"
+        )
+
+    render_x7_problems = _render_entry_source_problems(
+        (("x7 WRONG SOURCE", frozenset({"A"}), frozenset({"A", "B"})),),
+        {"x7 WRONG SOURCE": frozenset({"A"})},
+    )
+    if (
+        len(render_x7_problems) != 1
+        or "x7 WRONG SOURCE" not in render_x7_problems[0]
+        or "B" not in render_x7_problems[0]
+    ):
+        _fail(
+            f"(x) ISOLATION x7 WRONG SOURCE: expected exactly one problem "
+            f"naming 'x7 WRONG SOURCE' and the differing id 'B', got "
+            f"{render_x7_problems!r}"
+        )
+
+    render_x8_problems = _render_entry_source_problems(
+        (("x8 UNREGISTERED", frozenset({"A"}), frozenset({"A"})),),
+        {},
+    )
+    if (
+        len(render_x8_problems) != 1
+        or "x8 UNREGISTERED" not in render_x8_problems[0]
+    ):
+        _fail(
+            f"(x) ISOLATION x8 UNREGISTERED: expected exactly one problem "
+            f"naming 'x8 UNREGISTERED', got {render_x8_problems!r}"
+        )
+
+    render_x9_shared = frozenset({"A"})
+    render_x9_problems = _render_entry_source_problems(
+        (("x9 ALIASED", render_x9_shared, render_x9_shared),),
+        {"x9 ALIASED": frozenset({"A"})},
+    )
+    if (
+        len(render_x9_problems) != 1
+        or "x9 ALIASED" not in render_x9_problems[0]
+        or "ALIASED" not in render_x9_problems[0]
+    ):
+        _fail(
+            f"(x) ISOLATION x9 ALIASED: expected exactly one problem "
+            f"naming 'x9 ALIASED' and identifying the aliasing, got "
+            f"{render_x9_problems!r}"
         )
 
     # (y) EXAMPLE CONFORMANCE. Plan 13-14 closes CR-01
