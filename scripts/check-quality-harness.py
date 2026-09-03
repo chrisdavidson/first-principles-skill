@@ -7472,12 +7472,31 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "two hops. Measure the hop, then split — do not wrap it, and do "
         "not trim words to hit a number."
     ),
-    # R4: the citation rule (CONTRACT-02 reconciliation).
+    # R4: the citation rule (CONTRACT-02 reconciliation). Amended by plan
+    # 14-03 (D-01, D-03): the ledger-discharge half now carries the
+    # structural-row residual D-03's narrowing of
+    # `_closure_ledger_fragments` leaves behind (a list marker, then the
+    # quoted claim, then an arrow, then the chain id — a prose sentence
+    # that only quotes and cites is not a ledger row) and the
+    # section-6-visibility bound D-01 discloses (a ledger row is detected
+    # only when it sits inside section 6; the pre-analysis process-output
+    # ledger `output-template.md` also describes is not visible to the
+    # check, so inline citation is the mechanically checkable form). Both
+    # additions follow R7/R9/R10's own shape: state the rule positively,
+    # then disclose the measured bound rather than widen the detector.
     "R4": (
         "Every Conclusion-section claim either names the chain that "
         "established it inline — `(chain C1)` — or is discharged by a "
         "§6→§4 closure ledger row that quotes the claim and names its "
-        "chain. A claim doing neither is cut, not softened."
+        "chain. A claim doing neither is cut, not softened. Ledger "
+        "discharge requires the structural row form the closure-ledger "
+        "example below shows — a list marker, then the quoted claim, "
+        "then an arrow, then the chain id — and a prose sentence that "
+        "merely quotes something and names a chain is not a ledger row. "
+        "This is detected only when the row sits inside section 6: the "
+        "ledger emitted as process output before the analysis is not "
+        "visible to the check, and inline citation is therefore the "
+        "mechanically checkable form."
     ),
     # R5: the reconciled multi-hop head form (CONTRACT-05).
     "R5": "GT-1 ([brief fact label]) + GT-6 ([brief fact label])",
@@ -7559,6 +7578,64 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "verdict — which is why intermediate hops carry no terminal "
         "punctuation in this project's worked examples."
     ),
+    # R11: the closure-ledger claim-extraction rule (LEDGER-01/LEDGER-02,
+    # D-05/D-07, plan 14-03). States positively what `_conclusion_claims`
+    # extracts — a bold lead-in whose colon closes the bold span, or a
+    # list item — names all three prescribed lead-ins (including
+    # `**Trade-offs acknowledged:**`, LEDGER-02's own instance) as always
+    # claims, and states the fenced-block and restatement/entailment
+    # exclusions as RULE (not disclosed bound), per D-07 — mining a fenced
+    # ledger's own rows as claims was the 2026-08-31 defect this rule
+    # exists to prevent. Three bounds are then disclosed as MEASURED,
+    # following R7/R9/R10's shape: (1) a whole-line, uncited bold lead-in
+    # is a section-intro label, not a claim itself — the hinge of
+    # "detectable from the emission alone" an author can exploit; (2) a
+    # bold span whose closing `**` is not immediately preceded by a colon
+    # is not matched at all; (3) a list item counts only past the
+    # assertiveness floor (`_is_assertive_claim`). Each bound is pinned by
+    # a worked-example fixture in section 6 below.
+    "R11": (
+        "A Conclusion-section claim is a bold lead-in whose colon closes "
+        "the bold span, or a numbered or bulleted list item, and the "
+        "three lead-ins this template prescribes — "
+        "`**Recommended approach:**`, `**Key insight:**`, "
+        "`**Trade-offs acknowledged:**` — are always claims and each "
+        "must cite a chain; nothing inside a fenced block is ever a "
+        "claim whatever its shape, a near-paraphrase restatement or "
+        "direct entailment of an already-cited claim earlier in the "
+        "same section is not a second claim, and prose carrying neither "
+        "a bold colon lead-in nor a list marker is not a claim at all. "
+        "Three bounds are measured, not assumed: a bold lead-in whose "
+        "colon-terminated span is the entire physical line and carries "
+        "no citation of its own is a section-intro label, and the "
+        "citation obligation then falls to the list items beneath it; a "
+        "bold span whose closing `**` is not immediately preceded by "
+        "the colon is not matched at all — write `**Label:** text` to "
+        "match, not `**Label: text**`; and a list item counts only "
+        "when it closes its own sentence or runs past forty characters. "
+        "Enumerate by this rule, not by recollection — the rule is the "
+        "contract and the extractor is a partial instrument for it."
+    ),
+    # R12: the caveat rule (LEDGER-03, D-05/D-08/D-09, plan 14-03). A
+    # marked caveat still scores untraced by design — the marker is a
+    # disclosure, not a discharge, and neither `_conclusion_claims` nor
+    # `_claim_is_traced` is taught the marker: LEDGER-03 forbids answering
+    # the caveat sub-question by loosening the extractor, and teaching the
+    # tracer would be the same loosening one function over. An author who
+    # reads the marker as a discharge silences exactly the signal this
+    # phase exists to preserve, so R12 must state the non-discharge in
+    # terms that cannot be misread.
+    "R12": (
+        "A caveat qualifying an existing Conclusion-section claim "
+        "either names the chain it qualifies inline or carries the "
+        "marker `no chain — flagged assumption only` (em dash, lower "
+        "case, no trailing punctuation inside the marker), and a "
+        "marked caveat still scores untraced: the marker discloses the "
+        "gap, it does not discharge the claim, because it is honest "
+        "labelling rather than a citation and the extractor is "
+        "deliberately not taught to recognise it. A caveat doing "
+        "neither is cut, not softened."
+    ),
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -7581,12 +7658,20 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
         "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
+        "R11", "R12",
     ),
     "shared/spine/SKILL-body.md": (
         "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
+        "R11", "R12",
     ),
+    # R4 is deliberately NOT added here — plan 14-02 declined that
+    # extension (D-06): the rubric is a scoring instrument, not the
+    # output spec, and has no business stating the citation rule. R11
+    # and R12 land here because D-06 registers the rubric as one of the
+    # three surfaces the claim-inventory and caveat rules must carry
+    # (it grades the construct these rules govern).
     "shared/spine/references/validation-rubric.md": (
-        "R1", "R6", "R7", "R8", "R9", "R10",
+        "R1", "R6", "R7", "R8", "R9", "R10", "R11", "R12",
     ),
     "shared/references/reason-upward.md": (
         "R6", "R7", "R8", "R9", "R10",
@@ -8266,12 +8351,14 @@ def _render_registry_lock_problems(
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
             "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
+            "R11", "R12",
         ),
         "shared/spine/SKILL-body.md": (
             "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
+            "R11", "R12",
         ),
         "shared/spine/references/validation-rubric.md": (
-            "R1", "R6", "R7", "R8", "R9", "R10",
+            "R1", "R6", "R7", "R8", "R9", "R10", "R11", "R12",
         ),
         "shared/references/reason-upward.md": (
             "R6", "R7", "R8", "R9", "R10",
