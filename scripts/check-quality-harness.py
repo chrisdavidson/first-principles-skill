@@ -7674,6 +7674,26 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # closure, CR-03's doc half): pins the fourth scanned surface exactly as the
 # second token pins the third — without it a row can describe the scan while
 # silently reverting to naming three surfaces instead of four.
+# The fourteenth token, `over-rejection bound`, added by plan 13-28 (round 6
+# closure, gap-4/WR-02 disclosure): without it a row can describe R7's and
+# R9's under-detection bounds while silently dropping R10's over-rejection
+# bound, leaving the published disclosure one-sided.
+# The fifteenth token, `R-HEAD-PERIOD-BAD`, added by plan 13-28: pins the
+# fixture triple (plan 13-26) that proves R10's bound in all three measured
+# directions — without it a row can state R10's bound in prose with no
+# fixture behind it, the same undischarged-claim shape BL-01/BL-02 closed
+# for R9.
+# The sixteenth token, `chain-form surface sweep`, added by plan 13-28:
+# pins the tree-derived sweep (plan 13-24) that replaced the registry's own
+# entry count as the "every canonical surface that states the chain form"
+# enforcement mechanism — without it a row can claim that guarantee while
+# silently reverting to the un-derived count the sweep replaced.
+# The seventeenth token, `rendered-example claim floor`, added by plan
+# 13-28: pins the leg (plan 13-23) that catches a registered surface
+# fabricating a claim that its examples follow the head form — without it
+# a row can describe four rendering-contract legs while the fifth, the one
+# that closed a real fabricated claim shipped for a full milestone, goes
+# unmentioned.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -7688,6 +7708,10 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "entry-source lock",
     "R-HEAD-GTHOP-LATE",
     "reason-upward.md",
+    "over-rejection bound",
+    "R-HEAD-PERIOD-BAD",
+    "chain-form surface sweep",
+    "rendered-example claim floor",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -8231,6 +8255,10 @@ def _render_registry_lock_problems(
         "entry-source lock",
         "R-HEAD-GTHOP-LATE",
         "reason-upward.md",
+        "over-rejection bound",
+        "R-HEAD-PERIOD-BAD",
+        "chain-form surface sweep",
+        "rendered-example claim floor",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -9957,8 +9985,12 @@ def _selftest_render_contract() -> bool:
     closure) added a twelfth and a thirteenth, pinning the GTHOP pair's
     positional coverage (`R-HEAD-GTHOP-LATE` pins the position the form
     check does not reach) and the fourth scanned surface
-    (`reason-upward.md`), respectively.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 26 (2 doc rows x 13
+    (`reason-upward.md`), respectively. Plan 13-28 (round 6 closure) added
+    a fourteenth through a seventeenth, pinning R10's over-rejection
+    bound, the `R-HEAD-PERIOD-BAD` fixture that proves it, the
+    tree-derived chain-form surface sweep, and the rendered-example claim
+    floor, respectively.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 34 (2 doc rows x 17
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
@@ -12671,26 +12703,29 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 13 required tokens = 26 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 17 required tokens = 34 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 26 — a doc row or a
+    # floored against an inline expected total of 34 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
     # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
     # eleventh tokens (`call-site census`, `entry-source lock`), moving
     # this floor from 18 (9 tokens) to 22 (11 tokens). Plan 13-21 (round 5
     # closure) added the twelfth and thirteenth tokens (`R-HEAD-GTHOP-LATE`,
     # `reason-upward.md`), moving this floor from 22 (11 tokens) to 26
-    # (13 tokens) — the first count move since 13-17 built this floor and
-    # the docstring lock below it.
+    # (13 tokens). Plan 13-28 (round 6 closure) added the fourteenth
+    # through seventeenth tokens (`over-rejection bound`,
+    # `R-HEAD-PERIOD-BAD`, `chain-form surface sweep`, `rendered-example
+    # claim floor`), moving this floor from 26 (13 tokens) to 34
+    # (17 tokens).
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 26:
+    if qual01_negative_case_count != 34:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 26"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 34"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,

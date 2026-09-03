@@ -264,7 +264,7 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
 → GT-4's stated duty cycle is the binding term in both estimates
 ```
 
-This hop breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — with two hops already matched before it, the check has satisfied its arrow requirement and never evaluates the leading identifier. Write `→ the duty cycle stated in GT-4 is the binding term in both estimates` wherever the hop sits; the rule is the contract, and the check is a partial instrument for it.
+This hop breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — the check has already satisfied its two-arrow requirement on the hops that precede it, so the leading identifier ends the chain there without changing the verdict. Write `→ the duty cycle stated in GT-4 is the binding term in both estimates` wherever the hop sits; the rule is the contract, and the check is a partial instrument for it.
 
 **Non-conforming — the first hop closing its own sentence:**
 
