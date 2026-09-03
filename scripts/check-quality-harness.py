@@ -10074,20 +10074,48 @@ def _selftest_render_contract() -> bool:
     # bare-subscript assignment into it (the recorder name immediately
     # followed by `[`, with `] = ` present on the SAME source line — this
     # is a textual heuristic over source lines, not a parse, and is stated
-    # as such). Every search pattern below is built by concatenation
-    # rather than as a single literal, and every pattern's NAME is
-    # referred to only in prose above (never spelled out here contiguous
-    # with its trailing punctuation), so this control's own comment and
-    # source do not inflate the counts it takes over the function it lives
-    # inside. DISCLOSED LIMITATION: this arm counts source text and
-    # observes no behaviour; it does not by itself prove a fixture's
-    # verdict is correct — arms 4a/4b and control (v) do that.
+    # as such).
+    #
+    # R4-CR-01 (`13-VERIFICATION-round4.md`): the two floors plans 13-12
+    # and 13-14 built specifically to make criterion 3's guarantee
+    # forgery-proof — the coverage-floor-registry helper (control (x)'s
+    # THE FLOOR ITSELF) and the worked-example-conformance helper (leg
+    # 5's THE LEG ITSELF) — were never registered here, so each floor's
+    # WHOLE enforcement rested on one real, source-text-uncounted call;
+    # deleting it restored the exact defect the floor exists to catch
+    # with the battery green. Three more counters below close that:
+    #
+    #   - the coverage-floor-registry helper: 6 call sites (1 real — THE
+    #     FLOOR ITSELF — plus the x1-x4 isolation arms, 4, plus leg 5's
+    #     own reuse of the same helper for its NON-VACUITY floor, 1);
+    #   - the worked-example-conformance helper: 6 call sites (1 real —
+    #     THE LEG ITSELF — plus the z5-z9 isolation arms, 5);
+    #   - the entry-source helper (this plan's own Task 1 fix): 5 call
+    #     sites (1 real — the ENTRY-SOURCE LOCK — plus the x6-x9
+    #     isolation arms, 4). This plan's own fix is registered in the
+    #     same census it extends, so it does not reproduce the defect it
+    #     closes (MUTATION M9).
+    #
+    # Every search pattern below is built by concatenation rather than as
+    # a single literal, and every pattern's NAME is referred to only in
+    # prose above (never spelled out here contiguous with its trailing
+    # punctuation), so this control's own comment and source do not
+    # inflate the counts it takes over the function it lives inside.
+    # DISCLOSED LIMITATION: this arm counts source text and observes no
+    # behaviour — a call whose returned problems are discarded rather
+    # than passed to `_fail` still counts, so it catches deletion of a
+    # call, not neutering of its consumption; it does not by itself prove
+    # a fixture's verdict is correct — arms 4a/4b and control (v) do
+    # that.
     render_contract_src = inspect.getsource(_selftest_render_contract)
     render_t_setdefault_pattern = "scored_verdicts" + ".setdefault("
     render_t_def_pattern = "    def " + "_score_"
     render_t_verdict_call_pattern = "_render_verdict_floor_problems" + "("
     render_t_chain_call_pattern = "_render_chain_verdict_floor_problems" + "("
     render_t_update_pattern = "scored_verdicts" + ".update("
+    render_t_coverage_call_pattern = "_render_coverage_floor_problems" + "("
+    render_t_example_call_pattern = "_render_example_conformance_problems" + "("
+    render_t_entry_source_call_pattern = "_render_entry_source_problems" + "("
     render_t_setdefault_count = render_contract_src.count(render_t_setdefault_pattern)
     render_t_def_count = render_contract_src.count(render_t_def_pattern)
     render_t_verdict_call_count = render_contract_src.count(
@@ -10097,6 +10125,15 @@ def _selftest_render_contract() -> bool:
         render_t_chain_call_pattern
     )
     render_t_update_count = render_contract_src.count(render_t_update_pattern)
+    render_t_coverage_call_count = render_contract_src.count(
+        render_t_coverage_call_pattern
+    )
+    render_t_example_call_count = render_contract_src.count(
+        render_t_example_call_pattern
+    )
+    render_t_entry_source_call_count = render_contract_src.count(
+        render_t_entry_source_call_pattern
+    )
     render_t_subscript_pattern = "scored_verdicts" + "["
     render_t_subscript_assign_count = sum(
         1
@@ -10110,6 +10147,9 @@ def _selftest_render_contract() -> bool:
         or render_t_chain_call_count != 6
         or render_t_update_count != 0
         or render_t_subscript_assign_count != 0
+        or render_t_coverage_call_count != 6
+        or render_t_example_call_count != 6
+        or render_t_entry_source_call_count != 5
     ):
         _fail(
             f"(t) SCORING RECORDER LOCK: observed {render_t_setdefault_count} "
@@ -10120,9 +10160,15 @@ def _selftest_render_contract() -> bool:
             f"{render_t_chain_call_count} "
             f"chain-verdict-floor-helper call site(s) "
             f"(expected 6), {render_t_update_count} forbidden recorder "
-            f"dict-update occurrence(s) (expected 0), and "
+            f"dict-update occurrence(s) (expected 0), "
             f"{render_t_subscript_assign_count} forbidden bare-subscript "
-            f"assignment occurrence(s) (expected 0)"
+            f"assignment occurrence(s) (expected 0), "
+            f"{render_t_coverage_call_count} coverage-floor-registry "
+            f"helper call site(s) (expected 6), "
+            f"{render_t_example_call_count} worked-example-conformance "
+            f"helper call site(s) (expected 6), and "
+            f"{render_t_entry_source_call_count} entry-source helper "
+            f"call site(s) (expected 5)"
         )
 
     # (u) DISPATCH REACHABILITY. Plan 13-06 (CR-02 / criterion 5): an
