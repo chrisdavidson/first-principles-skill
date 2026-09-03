@@ -3826,13 +3826,23 @@ _SECTION_HEADING_RE = re.compile(
     re.MULTILINE,
 )
 
+# Defined here, not beside its other consumer (`_conclusion_claims`),
+# because `_slice_sections` below needs it and runs first.
+_FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+
+# Any ATX heading, at any depth CommonMark recognises. Seven or more
+# hashes is not a heading, and the `[ \t]+` requirement is what rejects it:
+# `#{1,6}` can only match six of the seven, and the seventh is not a space.
+_APPENDIX_HEADING_RE = re.compile(r"^#{1,6}[ \t]+")
+
 
 def _slice_sections(text: str) -> dict[int, str]:
     """Locate the six numbered output-template sections; return num -> body text.
 
     Content before section 1 (preamble) is discarded. A section's body runs
     from its heading to the next resolved section heading, or — for section
-    6 — to the next heading of ANY depth (an appendix), or end of file.
+    6 — to the next heading of ANY depth (an appendix) that is not inside a
+    fenced block, or end of file.
     Raises `SectionResolutionError` if the six section numbers do not
     resolve, in ascending order, with no gaps — exactly the six shapes
     required, never a partial or out-of-order read.
@@ -3890,10 +3900,38 @@ def _slice_sections(text: str) -> dict[int, str]:
             # `_selftest_ledger_traceability`). `_slice_sections` carries
             # no digest pin (only `_chain_block_well_formed` and
             # `_RENDER_RULE_LITERALS` do), so CONTRACT-06 is untouched.
+            # Two corrections landed after the D-02 fix above, both
+            # live-reproduced against `tests/quality-ledger-v8.26/PR-P1.md`
+            # before being fixed (CR-01/CR-02, phase 14 review):
+            #
+            # CR-01: the scan used `#{1,3}`, so a depth-4-or-deeper heading
+            # did not stop section 6 at all — the fix claimed "ANY depth"
+            # while the pattern could not express it, and rewriting this
+            # fixture's two `##` appendix headings to `####` restored the
+            # exact pre-fix reading (7 claims -> 8, the 8th being
+            # `**Residual disclosed:**`, a Self-Audit Gate line).
+            # `_APPENDIX_HEADING_RE` spans the full 1-6 depth CommonMark
+            # recognises, so the claim and the pattern now agree.
+            #
+            # CR-02: the scan had no fence tracking, so every `#`-shaped
+            # line INSIDE a fenced block counted as an appendix boundary.
+            # A single fenced `## ...` line in section 6 truncated the body
+            # to nothing and collapsed the whole inventory to 0 claims / 0
+            # fragments / 0 untraced with no error raised anywhere — a
+            # false-clean, and reachable through the very shape R4
+            # recommends (a heading-introduced closure ledger). The walk
+            # below mirrors `_conclusion_claims`' existing fence tracking
+            # rather than inventing a second convention.
             body_end = len(text)
-            for hm in re.finditer(r"^(#{1,3})[ \t]+", text[body_start:], re.MULTILINE):
-                body_end = body_start + hm.start()
-                break
+            in_fence = False
+            offset = body_start
+            for raw_line in text[body_start:].splitlines(keepends=True):
+                if _FENCE_RE.match(raw_line.strip()):
+                    in_fence = not in_fence
+                elif not in_fence and _APPENDIX_HEADING_RE.match(raw_line):
+                    body_end = offset
+                    break
+                offset += len(raw_line)
         sections[num] = text[body_start:body_end]
     return sections
 
@@ -4586,7 +4624,8 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
 # to whole-document scope, the obvious alternative, is explicitly the
 # wrong fix (999.3 Case A's treadmill) because it would pull MORE
 # Self-Audit Gate quotes into ledger scope, not fewer.
-_FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+# `_FENCE_RE` is defined above `_SECTION_HEADING_RE` — it is needed by
+# `_slice_sections`, which runs long before this point.
 
 # The structural closure-ledger row shape output-template.md prescribes
 # and shows as its conforming example: optional leading whitespace, a `-`
@@ -8104,6 +8143,9 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "R-CLAIM-LABEL-BARE",
     "R-CLAIM-CAVEAT-MARKED",
     "quality-ledger-v8.26",
+    "fenced pseudo-heading",
+    "boundary regression",
+    "silent false-clean",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -8737,6 +8779,16 @@ def _render_registry_lock_problems(
         "R-CLAIM-LABEL-BARE",
         "R-CLAIM-CAVEAT-MARKED",
         "quality-ledger-v8.26",
+        # CR-01/CR-02 (phase-14 review): the two boundary defects in the
+        # D-02 fix as first shipped. Registered here for the same reason
+        # every token above is — the rows' prose about them is otherwise
+        # unchecked, and "stated in more places than anything checks" is
+        # the defect class this milestone exists to close. The rows made
+        # exactly that mistake once already: they published "ANY depth"
+        # against a pattern (`#{1,3}`) that could not express it.
+        "fenced pseudo-heading",
+        "boundary regression",
+        "silent false-clean",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -10496,7 +10548,7 @@ def _selftest_render_contract() -> bool:
     R11's section-intro-label bound and its `R-CLAIM-LABEL-BARE` fixture,
     D-09's `R-CLAIM-CAVEAT-MARKED` non-discharge teeth, and the
     `quality-ledger-v8.26` fixture D-04's live leg reads.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 46 (2 doc rows x 23
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 52 (2 doc rows x 26
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
@@ -13319,7 +13371,7 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 23 required tokens = 46 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 26 required tokens = 52 cases
     # above, derived from the two registries rather than restated, and
     # floored against an inline expected total of 46 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
@@ -13336,16 +13388,19 @@ def _selftest_render_contract() -> bool:
     # tokens (`closure-ledger claim inventory`, `structural ledger row`,
     # `section-intro label`, `R-CLAIM-LABEL-BARE`, `R-CLAIM-CAVEAT-MARKED`,
     # `quality-ledger-v8.26`), moving this floor from 34 (17 tokens) to 46
-    # (23 tokens).
+    # (23 tokens). The phase-14 review's CR-01/CR-02 fix added the
+    # twenty-fourth through twenty-sixth (`fenced pseudo-heading`,
+    # `boundary regression`, `silent false-clean`), moving it from 46
+    # (23 tokens) to 52 (26 tokens).
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 46:
+    if qual01_negative_case_count != 52:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 46"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 52"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
@@ -14110,6 +14165,94 @@ def _selftest_ledger_traceability() -> bool:
                       f"claim did not drop conclusion_claims to 6 — "
                       f"measured {rec_2['conclusion_claims']}; the "
                       f"claims-axis assertion is passing vacuously")
+
+
+    # Arms 4-5 (BOUNDARY REGRESSIONS, CR-01/CR-02): the two defects the
+    # phase-14 review found in the D-02 slicer fix. Both were live-
+    # reproduced against THIS fixture before being fixed, and both are
+    # invisible to arms 1-3 and to control (i) — the frozen v8.7 corpus
+    # carries no heading inside section 6 at all, so no analysis in it
+    # exercises either shape. They are pinned here, on the bytes the
+    # control actually read, because a boundary defect that only review can
+    # see is exactly the failure mode this gate exists to prevent.
+    #
+    # Both arms assert INVARIANCE, not a moved number: the reading must be
+    # the same 7/0/1 the fixture pins above. Pre-fix, arm 4 measured 8
+    # claims (the 8th being `**Residual disclosed:**`, a Self-Audit Gate
+    # line the deeper heading failed to fence off) and arm 5 measured
+    # 0/0/0 — a silent false-clean, worse than a wrong count.
+    baseline_reading = (
+        fixture_rec["conclusion_claims"],
+        len(fixture_rec["_closure_ledger_fragments"]),
+        fixture_rec["untraced_claims"],
+    )
+
+    # Arm 4 (CR-01, appendix depth): deepening the fixture's own appendix
+    # headings past `###` must not change what section 6 contains. The
+    # headings are located by pattern rather than transcribed, so the arm
+    # follows the fixture if its appendix is ever retitled.
+    section6_at = ledger_fixture_text.find("# 6. Conclusion")
+    if section6_at < 0:
+        _fail("(j) arm 4 precondition: section 6 heading not found in the "
+              "fixture text")
+    else:
+        deepened, n_deepened = re.subn(
+            r"(?m)^##(?=[ \t]+\S)",
+            "####",
+            ledger_fixture_text[section6_at:],
+        )
+        if n_deepened == 0:
+            _fail("(j) arm 4 precondition: no `##` appendix heading found "
+                  "after section 6 to deepen")
+        else:
+            mutated_4 = ledger_fixture_text[:section6_at] + deepened
+            rec_4 = detect_defects(mutated_4, "PR-P1-ledger-v8.26-arm4")
+            reading_4 = (
+                rec_4["conclusion_claims"],
+                len(rec_4["_closure_ledger_fragments"]),
+                rec_4["untraced_claims"],
+            )
+            if reading_4 != baseline_reading:
+                _fail(f"(j) arm 4 BOUNDARY REGRESSION (CR-01): deepening "
+                      f"{n_deepened} appendix heading(s) from `##` to "
+                      f"`####` moved the reading to {reading_4} from "
+                      f"{baseline_reading}; section 6 must stop at an "
+                      f"appendix heading of ANY depth, which is what both "
+                      f"`| QUAL-01 |` doc rows publish")
+
+    # Arm 5 (CR-02, fenced pseudo-heading): a `#`-shaped line inside a
+    # fenced block is verbatim content, not an appendix boundary. This is
+    # reachable through the shape R4 recommends — a heading-introduced
+    # closure ledger rendered inside a fence.
+    if section6_at >= 0:
+        s6_line_end = ledger_fixture_text.find("\n", section6_at)
+        if s6_line_end < 0:
+            _fail("(j) arm 5 precondition: section 6 heading is not "
+                  "newline-terminated")
+        else:
+            mutated_5 = (
+                ledger_fixture_text[: s6_line_end + 1]
+                + "\n```text\n## §6→§4 closure ledger\n```\n"
+                + ledger_fixture_text[s6_line_end + 1 :]
+            )
+            if mutated_5 == ledger_fixture_text:
+                _fail("(j) arm 5 precondition: fenced-heading insertion "
+                      "produced no change to the fixture text")
+            else:
+                rec_5 = detect_defects(mutated_5, "PR-P1-ledger-v8.26-arm5")
+                reading_5 = (
+                    rec_5["conclusion_claims"],
+                    len(rec_5["_closure_ledger_fragments"]),
+                    rec_5["untraced_claims"],
+                )
+                if reading_5 != baseline_reading:
+                    _fail(f"(j) arm 5 BOUNDARY REGRESSION (CR-02): a fenced "
+                          f"`## ...` line inside section 6 moved the reading "
+                          f"to {reading_5} from {baseline_reading}; a "
+                          f"pseudo-heading inside a fence is verbatim "
+                          f"content, never a section boundary. A reading of "
+                          f"(0, 0, 0) here is the false-clean this arm "
+                          f"exists to catch.")
 
     return ok
 
