@@ -1997,10 +1997,12 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
       - catalog-row anchor (path#ROW-ID) → file exists + row ID in file text
       - rubric anchor (path#anchor) → file exists + heading found in file
       - plain file path → file exists
-      - `.py` anchor starting with `_selftest_` → additionally must be CALLED from a
-        top-level `self_test()` in the same file, not merely defined (CR-02 / criterion 5;
-        see `_selftest_dispatch_problems`) — "defined" alone used to satisfy a
-        `reproducible` tier claim even when the dispatch calling it had been deleted.
+      - `.py` anchor starting with `_selftest_` OR `_self_test_` → additionally must be
+        CALLED from a top-level `self_test()` or `_run_self_test()` (either optionally
+        `async def`) in the same file, not merely defined (CR-02 / criterion 5, widened at
+        13-11/13-15/13-17; see `_selftest_dispatch_problems` for the disclosed resolution
+        boundaries) — "defined" alone used to satisfy a `reproducible` tier claim even when
+        the dispatch calling it had been deleted.
 
     Returns empty list if the artifact resolves correctly.
     Empty artifact_link string is not dispatched here (callers check tier first).

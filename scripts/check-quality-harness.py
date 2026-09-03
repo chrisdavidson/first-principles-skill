@@ -6967,15 +6967,30 @@ def _render_example_conformance_problems(
     score every `### Conclusion` chain block
     (`_render_example_chain_blocks`) with *scorer*, and emit one problem
     per block scoring falsy, naming the relpath, the heading's 1-based
-    line number, and the first 60 characters of the block's head line. A
-    claiming file that yields ZERO blocks also emits one problem — a
-    claim with nothing to check is a defect, not a pass. Sorted.
+    line number, the heading itself, and the first 60 characters of the
+    first line after it that looks like a chain-head candidate (an empty
+    string if none is found). A claiming file that yields ZERO blocks
+    also emits one problem — a claim with nothing to check is a defect,
+    not a pass. Sorted.
 
     Takes the scorer as a PARAMETER rather than hardcoding a call to
     `_chain_block_well_formed`, copying the parameter-scorer design one
     layer down in this same block: it is what lets an isolation control
     drive this helper with a synthetic predicate without monkeypatching
     the module.
+
+    WR-02 (`13-VERIFICATION-round5.md`): the malformed-block problem used
+    to call `block_text.splitlines()[0]` "the head", but `block_text`
+    always begins at the `### Conclusion` heading
+    (`_render_example_chain_blocks` bounds the block starting at
+    `heading.start()`), so that line is the heading, never the chain
+    head — `head` is R7/R8/R9's own load-bearing vocabulary, and a
+    message calling the heading the head sends a maintainer to the wrong
+    line. The heading is still reported (it is what locates the block)
+    but is now named as a heading; the first line after it that matches
+    `_CHAIN_HEAD_TOKEN_RE` is reported separately as the head candidate.
+    Only the message text changed — the signature, return shape, sort
+    order and problem count are unchanged.
     """
     problems_out: list[str] = []
     for relpath in _render_example_claiming_relpaths(texts, claim):
@@ -6988,11 +7003,19 @@ def _render_example_conformance_problems(
             continue
         for line_number, block_text in blocks:
             if not scorer(block_text):
-                head_line = block_text.splitlines()[0] if block_text else ""
+                block_lines = block_text.splitlines()
+                heading_line = block_lines[0] if block_lines else ""
+                head_candidate = ""
+                for candidate_line in block_lines[1:]:
+                    stripped_candidate = candidate_line.strip()
+                    if _CHAIN_HEAD_TOKEN_RE.search(stripped_candidate):
+                        head_candidate = stripped_candidate
+                        break
                 problems_out.append(
                     f"{relpath}:{line_number}: chain block scored "
-                    f"malformed under the frozen detector — head "
-                    f"{head_line[:60]!r}"
+                    f"malformed under the frozen detector — heading "
+                    f"{heading_line[:60]!r}, head candidate "
+                    f"{head_candidate[:60]!r}"
                 )
     return sorted(problems_out)
 
@@ -7449,6 +7472,22 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # four-leg gate while the surface that shipped CR-01 — a false
 # conformance claim in a model-facing worked example, inside a GREEN
 # battery — goes back to being reachable by no gate at all.
+# The tenth token, `call-site census`, added by plan 13-16 (R4-CR-01): without
+# it a row can keep describing three forgery-proof floors while the census that
+# makes deleting any floor's single real call site loud is silently dropped.
+# The eleventh token, `entry-source lock`, added by plan 13-17 (R4-CR-02):
+# without it a row can describe a coverage floor whose required side may be
+# rebound to its own actual side with the battery green.
+# The twelfth token, `R-HEAD-GTHOP-LATE`, added by plan 13-21 (round 5
+# closure, `13-VERIFICATION-round5.md`): the sixth token pins the
+# GT-leading-hop refusal's prescribed remedy, but neither token states that
+# the pair's coverage is positional — without this token a row can claim the
+# pair pins R9's refusal "as measured" while silently dropping the fixture
+# that pins the position the form check does not reach.
+# The thirteenth token, `reason-upward.md`, added by plan 13-21 (round 5
+# closure, CR-03's doc half): pins the fourth scanned surface exactly as the
+# second token pins the third — without it a row can describe the scan while
+# silently reverting to naming three surfaces instead of four.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -7461,6 +7500,8 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "worked-example conformance",
     "call-site census",
     "entry-source lock",
+    "R-HEAD-GTHOP-LATE",
+    "reason-upward.md",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -7903,6 +7944,8 @@ def _render_registry_lock_problems(
         "worked-example conformance",
         "call-site census",
         "entry-source lock",
+        "R-HEAD-GTHOP-LATE",
+        "reason-upward.md",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -9504,15 +9547,21 @@ def _selftest_render_contract() -> bool:
     and an eleventh, pinning the three-helper call-site census (covering
     `_render_coverage_floor_problems`, `_render_example_conformance_problems`
     and `_render_entry_source_problems`, the last landed by plan 13-16 for
-    R4-CR-02) and the entry-source lock, respectively.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 22 (2 doc rows x 11
+    R4-CR-02) and the entry-source lock, respectively. Plan 13-21 (round 5
+    closure) added a twelfth and a thirteenth, pinning the GTHOP pair's
+    positional coverage (`R-HEAD-GTHOP-LATE` pins the position the form
+    check does not reach) and the fourth scanned surface
+    (`reason-upward.md`), respectively.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 26 (2 doc rows x 13
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
     same derivation, closing the drift channel: the count has now drifted
     stale in two consecutive plans (round 3's WR-02 on the registry-lock
     comment counts; round 4's WR-02 on this docstring sentence) because
-    three surfaces restate one number and nothing compared them.
+    three surfaces restate one number and nothing compared them. Plan
+    13-21 is the first count move since 13-17 built this floor and its
+    docstring lock, exercised here rather than left theoretical.
     DISCLOSED LIMITATION: the lock checks this count sentence's
     transcription only, not the rest of this docstring's prose — the same
     bound control (m) states for the doc rows.
@@ -11977,22 +12026,26 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 11 required tokens = 22 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 13 required tokens = 26 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 22 — a doc row or a
+    # floored against an inline expected total of 26 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
     # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
     # eleventh tokens (`call-site census`, `entry-source lock`), moving
-    # this floor from 18 (9 tokens) to 22 (11 tokens).
+    # this floor from 18 (9 tokens) to 22 (11 tokens). Plan 13-21 (round 5
+    # closure) added the twelfth and thirteenth tokens (`R-HEAD-GTHOP-LATE`,
+    # `reason-upward.md`), moving this floor from 22 (11 tokens) to 26
+    # (13 tokens) — the first count move since 13-17 built this floor and
+    # the docstring lock below it.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 22:
+    if qual01_negative_case_count != 26:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 22"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 26"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
