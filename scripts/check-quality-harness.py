@@ -8049,6 +8049,37 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # a row can describe four rendering-contract legs while the fifth, the one
 # that closed a real fabricated claim shipped for a full milestone, goes
 # unmentioned.
+# The following six tokens were all added by plan 14-06 (D-12, the user's
+# explicit decision to register this phase's new mechanism rather than
+# leave it stated-nowhere): without them a doc row can describe five
+# rendering-contract legs while the sixth — the closure-ledger
+# claim-inventory leg this phase built across plans 14-01..14-05 — goes
+# unmentioned, the inverse of the defect this milestone exists to close.
+# The eighteenth token, `closure-ledger claim inventory`, names the leg
+# itself; without it a reader of either row cannot tell the leg exists at
+# all.
+# The nineteenth token, `structural ledger row`, pins D-03's narrowing of
+# `_closure_ledger_fragments` to the prescribed row shape — without it a
+# row can describe the leg while silently reverting to the pre-D-03
+# "any line that quotes and cites" description that made the mechanism's
+# only discharge path unconditionally false-positive.
+# The twentieth token, `section-intro label`, pins R11's bound-1 clause —
+# the hinge of detectable-from-the-emission-alone (CONTEXT.md D-07) —
+# without it a row can state R11 exists while dropping its one positional
+# bound.
+# The twenty-first token, `R-CLAIM-LABEL-BARE`, names the fixture that
+# pins that bound, the way the existing `R-HEAD-*` tokens name theirs —
+# without it the bound is stated in prose with no fixture behind it, the
+# undischarged-claim shape BL-01/BL-02 closed for R9.
+# The twenty-second token, `R-CLAIM-CAVEAT-MARKED`, pins D-09's teeth —
+# without it a future edit teaching the tracer the flagged-assumption
+# marker (making it a silent discharge rather than a disclosure) could
+# land while the row still describes the caveat rule's original,
+# stricter behaviour.
+# The twenty-third token, `quality-ledger-v8.26`, pins D-04's committed
+# fixture, following the PROV-GUARD row's own precedent of naming the
+# fixture directory a live leg reads — without it a row can claim a live
+# leg exists while never naming what it reads.
 _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "emission rendering contract",
     "validation-rubric.md",
@@ -8067,6 +8098,12 @@ _QUAL01_DOC_ROW_TOKENS: tuple[str, ...] = (
     "R-HEAD-PERIOD-BAD",
     "chain-form surface sweep",
     "rendered-example claim floor",
+    "closure-ledger claim inventory",
+    "structural ledger row",
+    "section-intro label",
+    "R-CLAIM-LABEL-BARE",
+    "R-CLAIM-CAVEAT-MARKED",
+    "quality-ledger-v8.26",
 )
 
 # A shipped worked example may not assert a conformance property it does
@@ -8694,6 +8731,12 @@ def _render_registry_lock_problems(
         "R-HEAD-PERIOD-BAD",
         "chain-form surface sweep",
         "rendered-example claim floor",
+        "closure-ledger claim inventory",
+        "structural ledger row",
+        "section-intro label",
+        "R-CLAIM-LABEL-BARE",
+        "R-CLAIM-CAVEAT-MARKED",
+        "quality-ledger-v8.26",
     )
     if snapshot.qual01_doc_row_tokens != expected_qual01_doc_row_tokens:
         problems.append(
@@ -10446,8 +10489,14 @@ def _selftest_render_contract() -> bool:
     a fourteenth through a seventeenth, pinning R10's over-rejection
     bound, the `R-HEAD-PERIOD-BAD` fixture that proves it, the
     tree-derived chain-form surface sweep, and the rendered-example claim
-    floor, respectively.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 34 (2 doc rows x 17
+    floor, respectively. Plan 14-06 (D-12, the user's explicit decision
+    to register this phase's mechanism rather than leave it unstated)
+    added an eighteenth through a twenty-third, pinning the closure-ledger
+    claim-inventory leg itself, D-03's structural-ledger-row narrowing,
+    R11's section-intro-label bound and its `R-CLAIM-LABEL-BARE` fixture,
+    D-09's `R-CLAIM-CAVEAT-MARKED` non-discharge teeth, and the
+    `quality-ledger-v8.26` fixture D-04's live leg reads.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 46 (2 doc rows x 23
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
@@ -10456,7 +10505,8 @@ def _selftest_render_contract() -> bool:
     comment counts; round 4's WR-02 on this docstring sentence) because
     three surfaces restate one number and nothing compared them. Plan
     13-21 is the first count move since 13-17 built this floor and its
-    docstring lock, exercised here rather than left theoretical.
+    docstring lock, exercised here rather than left theoretical; plan
+    14-06 is the second.
     DISCLOSED LIMITATION: the lock checks this count sentence's
     transcription only, not the rest of this docstring's prose — the same
     bound control (m) states for the doc rows.
@@ -13269,9 +13319,9 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 17 required tokens = 34 cases
+    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 23 required tokens = 46 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 34 — a doc row or a
+    # floored against an inline expected total of 46 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
     # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
     # eleventh tokens (`call-site census`, `entry-source lock`), moving
@@ -13282,16 +13332,20 @@ def _selftest_render_contract() -> bool:
     # through seventeenth tokens (`over-rejection bound`,
     # `R-HEAD-PERIOD-BAD`, `chain-form surface sweep`, `rendered-example
     # claim floor`), moving this floor from 26 (13 tokens) to 34
-    # (17 tokens).
+    # (17 tokens). Plan 14-06 added the eighteenth through twenty-third
+    # tokens (`closure-ledger claim inventory`, `structural ledger row`,
+    # `section-intro label`, `R-CLAIM-LABEL-BARE`, `R-CLAIM-CAVEAT-MARKED`,
+    # `quality-ledger-v8.26`), moving this floor from 34 (17 tokens) to 46
+    # (23 tokens).
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 34:
+    if qual01_negative_case_count != 46:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 34"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 46"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
