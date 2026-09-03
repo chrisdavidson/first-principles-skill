@@ -3832,10 +3832,10 @@ def _slice_sections(text: str) -> dict[int, str]:
 
     Content before section 1 (preamble) is discarded. A section's body runs
     from its heading to the next resolved section heading, or — for section
-    6 — to the next heading at the same or shallower hash depth (an
-    appendix), or end of file. Raises `SectionResolutionError` if the six
-    section numbers do not resolve, in ascending order, with no gaps —
-    exactly the six shapes required, never a partial or out-of-order read.
+    6 — to the next heading of ANY depth (an appendix), or end of file.
+    Raises `SectionResolutionError` if the six section numbers do not
+    resolve, in ascending order, with no gaps — exactly the six shapes
+    required, never a partial or out-of-order read.
     """
     candidates: list[tuple[int, int, re.Match]] = []
     for m in _SECTION_HEADING_RE.finditer(text):
@@ -3864,13 +3864,36 @@ def _slice_sections(text: str) -> dict[int, str]:
         if idx + 1 < len(anchors):
             body_end = anchors[idx + 1][0]
         else:
-            # Section 6: stop at the next heading of depth <= this one
-            # (an appendix), else end of file.
+            # Section 6: stop at the next heading of ANY depth (an
+            # appendix), else end of file.
+            #
+            # Plan 14-01 / D-02: the prior guard (`if len(hm.group(1)) <=
+            # depth`) required the following heading to be at the same or
+            # shallower hash depth before it counted as an appendix
+            # boundary. Measured on the 2026-09-02 capture (`# 6.
+            # Conclusion` followed by `## Assumption Audit scan (process
+            # output)`): the `##` appendix heading is DEEPER than the `#`
+            # section-6 heading, so the guard never fired and section 6's
+            # body absorbed the Assumption Audit scan and the Self-Audit
+            # Gate that follow it. The Gate's own `Quoted span:` lines then
+            # became ledger rows discharging the claims the Gate was
+            # grading, and `**Residual disclosed:**` — a Gate line —
+            # became an 8th "section 6" claim. Removing the depth
+            # comparison entirely (break at the FIRST heading match,
+            # regardless of depth) fixes this: section 6 now means the
+            # Conclusion section on an emission that uses `#` for sections
+            # and `##` for process-output appendices. Measured cost
+            # against the frozen v8.7 corpus: zero — all six analyses
+            # carry no headings inside section 6, so their
+            # `conclusion_claims`/`untraced_claims` readings are
+            # byte-identical before and after (see control (i) in
+            # `_selftest_ledger_traceability`). `_slice_sections` carries
+            # no digest pin (only `_chain_block_well_formed` and
+            # `_RENDER_RULE_LITERALS` do), so CONTRACT-06 is untouched.
             body_end = len(text)
             for hm in re.finditer(r"^(#{1,3})[ \t]+", text[body_start:], re.MULTILINE):
-                if len(hm.group(1)) <= depth:
-                    body_end = body_start + hm.start()
-                    break
+                body_end = body_start + hm.start()
+                break
         sections[num] = text[body_start:body_end]
     return sections
 
@@ -4542,7 +4565,42 @@ def _label_has_any_citation(text: str, chain_ids: list[str]) -> bool:
 # inline-citation instruction at all. A ledger discharges the same
 # obligation an inline parenthetical does. The detector was the defect,
 # not the verdict.
+#
+# Plan 14-01 / D-03 (2026-09-03): the mechanism above credited ANY line
+# that both quoted a span and cited a chain id, with no requirement that
+# the line take the ledger's own prescribed row shape
+# (`- "quote" -> chain Cn`). Measured across all six frozen v8.7 baseline
+# analyses: LOAD_BEARING = 0 — removing the ledger scanner entirely
+# changes no untraced count. Every fragment it has ever produced on
+# tracked bytes is an inert false positive: a bold-lead-in tail
+# (`:** involuntary churn is small (<0.5 pts)...`), a quoted customer
+# verbatim (`didn't feel I was getting enough for the price,`), and —
+# surviving D-02's slicer fix but not this narrowing — three capture
+# fragments all under the 4-token floor (`serverless is cheaper than
+# containers`, `serverless is the cheap option`, `fastest path`). The
+# fix: `_closure_ledger_fragments` now credits a line only when it
+# matches `_STRUCTURAL_LEDGER_ROW_RE` — the structural row shape
+# output-template.md already prescribes and shows as its conforming
+# example — before `_cites_chain` is even consulted. This is a
+# NARROWING, the safe direction (nothing load-bearing to lose); widening
+# to whole-document scope, the obvious alternative, is explicitly the
+# wrong fix (999.3 Case A's treadmill) because it would pull MORE
+# Self-Audit Gate quotes into ledger scope, not fewer.
 _FENCE_RE = re.compile(r"^\s*(?:```|~~~)")
+
+# The structural closure-ledger row shape output-template.md prescribes
+# and shows as its conforming example: optional leading whitespace, a `-`
+# or `*` list marker, a quoted span of at least 8 characters (straight or
+# curly quotes, matching `_LEDGER_QUOTE_RE`'s own quote-character set), an
+# arrow (Unicode `→` or ASCII `->` — the capture emits `→`, the existing
+# self-test fixture emits `->`), then an optional literal `chain `
+# followed by a `C<digits>` identifier. Anchored at the start of the
+# stripped line only (never at the end), so a trailing `✓` or trailing
+# prose does not prevent a match.
+_STRUCTURAL_LEDGER_ROW_RE = re.compile(
+    r'^[-*]\s*["“]([^"”\n]{8,})["”]\s*(?:→|->)\s*(?:chain\s+)?(C\d+)',
+    re.IGNORECASE,
+)
 
 # A ledger entry pairs a quoted claim fragment with a named chain on one
 # line:  - "Lambda is 2.10x more expensive per unit of compute"  -> chain C1
@@ -4593,17 +4651,24 @@ def _cites_chain(text: str, chain_ids: list[str]) -> bool:
 def _closure_ledger_fragments(section6: str, chain_ids: list[str]) -> list[str]:
     """Quoted claim fragments from closure-ledger lines in section 6.
 
-    A ledger line is any line that BOTH quotes a span and cites a real
-    chain id. Both halves are load-bearing: a quote citing nothing traces
-    nothing, and a chain citation with no quote names which chain but not
-    which claim. An id cited but absent from section 4 is not a chain id
-    and yields no fragment — so a ledger cannot invent its own authority.
+    A ledger line is now the structural row form output-template.md
+    prescribes (`- "quote" -> chain Cn`, accepting both `→` and `->`) —
+    not, as before plan 14-01 / D-03, any line that BOTH quotes a span and
+    cites a real chain id. `_cites_chain` still runs AFTER the structural
+    match: an id cited but absent from section 4 is not a chain id and
+    still yields no fragment, so a ledger still cannot invent its own
+    authority. Both halves remain load-bearing: a quote citing nothing
+    traces nothing, and a chain citation with no quote names which chain
+    but not which claim.
     """
     fragments: list[str] = []
     for line in section6.splitlines():
-        if not _cites_chain(line, chain_ids):
+        stripped = line.strip()
+        if not _STRUCTURAL_LEDGER_ROW_RE.match(stripped):
             continue
-        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(line))
+        if not _cites_chain(stripped, chain_ids):
+            continue
+        fragments.extend(m.group(1) for m in _LEDGER_QUOTE_RE.finditer(stripped))
     return fragments
 
 
@@ -13186,6 +13251,17 @@ def _selftest_ledger_traceability() -> bool:
     ledger-shaped line would pass the positives — honesty-not-score, D-01.
     Control (h) discriminates the fence rule from the claim filter, and
     (i) pins the frozen corpus against movement.
+
+    Plan 14-01 / D-11: (i) compares PER ANALYSIS, not just vector-to-vector
+    — a mismatch names the analysis, the field and both values — behind a
+    LENGTH FLOOR that fails rather than vacuously passing if any of the
+    three calibration vectors is emptied or resized. This is the mechanical
+    proof that D-02 (`_slice_sections`) and D-03
+    (`_closure_ledger_fragments`) left the v8.7 baseline (HARNESS-01)
+    unmoved. Disclosed bound: (i) pins `conclusion_claims` and
+    `untraced_claims` only, never `_closure_ledger_fragments` (D-03
+    deliberately drives this to zero across the corpus) or any other
+    `detect_defects` field.
     """
     ok = True
 
@@ -13286,18 +13362,65 @@ def _selftest_ledger_traceability() -> bool:
 
     # (i) The frozen calibration corpus does not move. The saturated
     #     `_CALIBRATION_UNTRACED_FLAGS` cannot see this axis at all.
+    #
+    #     Plan 14-01 / D-11 (2026-09-03): this control is the mechanical
+    #     assertion that D-02 (`_slice_sections`' section-6 boundary) and
+    #     D-03 (`_closure_ledger_fragments`' structural narrowing) did not
+    #     move the v8.7 baseline this detector protects (HARNESS-01,
+    #     docs/v8.7-quality-baseline-freeze.md). It was rewritten from a
+    #     whole-vector comparison to compare PER ANALYSIS, so a future
+    #     change to `_slice_sections`, `_closure_ledger_fragments`,
+    #     `_conclusion_claims` or `_claim_is_traced` that moves the record
+    #     fails naming the analysis, the field, the measured value and the
+    #     pinned value — not just "the vectors differ".
+    #
+    #     A LENGTH FLOOR runs first: without it, emptying
+    #     `_CALIBRATION_ANALYSIS_ORDER` makes the per-analysis loop below
+    #     run zero times and pass vacuously. The whole-vector comparison is
+    #     kept alongside the per-analysis loop — it is what catches a
+    #     length/order change that a per-element loop over a shortened list
+    #     would silently skip.
+    #
+    #     DISCLOSED BOUND: this control pins `conclusion_claims` and
+    #     `untraced_claims` only. It does not pin `_closure_ledger_fragments`
+    #     (D-03 deliberately drives this to zero across the corpus — see
+    #     the LEDGER-01 comment block above `_closure_ledger_fragments`),
+    #     and it does not observe any other `detect_defects` field.
     base = REPO_ROOT / "tests" / "quality-baseline-v8.7" / "analyses"
-    measured_claims, measured_untraced = [], []
-    for name in _CALIBRATION_ANALYSIS_ORDER:
-        rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
-        measured_claims.append(rec["conclusion_claims"])
-        measured_untraced.append(rec["untraced_claims"])
-    if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
-        _fail(f"(i) conclusion_claims moved: {measured_claims} != "
-              f"{_CALIBRATION_CONCLUSION_CLAIMS}")
-    if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
-        _fail(f"(i) untraced_claims moved: {measured_untraced} != "
-              f"{_CALIBRATION_UNTRACED_CLAIMS}")
+
+    lengths = {
+        "_CALIBRATION_ANALYSIS_ORDER": len(_CALIBRATION_ANALYSIS_ORDER),
+        "_CALIBRATION_CONCLUSION_CLAIMS": len(_CALIBRATION_CONCLUSION_CLAIMS),
+        "_CALIBRATION_UNTRACED_CLAIMS": len(_CALIBRATION_UNTRACED_CLAIMS),
+    }
+    if len(set(lengths.values())) != 1 or lengths["_CALIBRATION_ANALYSIS_ORDER"] != 6:
+        _fail(f"(i) LENGTH FLOOR: calibration vectors are not all length 6: "
+              f"{lengths!r}")
+    else:
+        measured_claims, measured_untraced = [], []
+        for name in _CALIBRATION_ANALYSIS_ORDER:
+            rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
+            measured_claims.append(rec["conclusion_claims"])
+            measured_untraced.append(rec["untraced_claims"])
+
+        if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
+            _fail(f"(i) conclusion_claims moved: {measured_claims} != "
+                  f"{_CALIBRATION_CONCLUSION_CLAIMS}")
+        if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
+            _fail(f"(i) untraced_claims moved: {measured_untraced} != "
+                  f"{_CALIBRATION_UNTRACED_CLAIMS}")
+
+        for name, m_claims, p_claims, m_untraced, p_untraced in zip(
+            _CALIBRATION_ANALYSIS_ORDER, measured_claims,
+            _CALIBRATION_CONCLUSION_CLAIMS, measured_untraced,
+            _CALIBRATION_UNTRACED_CLAIMS,
+        ):
+            if m_claims != p_claims:
+                _fail(f"(i) {name}: conclusion_claims moved: "
+                      f"measured {m_claims} != pinned {p_claims}")
+            if m_untraced != p_untraced:
+                _fail(f"(i) {name}: untraced_claims moved: "
+                      f"measured {m_untraced} != pinned {p_untraced}")
 
     return ok
 
