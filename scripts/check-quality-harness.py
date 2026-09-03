@@ -6501,7 +6501,7 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "R-HEAD-PROSE-MID",
         "shared/spine/references/output-template.md",
         "fenced-block",
-        "**Measured limitation — the same prose input in a non-final position:**",
+        "**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**",
     ),
     (
         "R-HEAD-GTHOP-BAD",
@@ -7505,12 +7505,14 @@ def _render_registry_lock_problems(
     # the `row[0]` id projection the snapshot used to carry (WR-03,
     # `11-REVIEW-gap-closure.md`). `source_file`, `habitat_mode` and
     # `anchor` are what determine WHAT THE GATE ACTUALLY READS, and they
-    # sat outside the lock entirely: rebinding all eleven rows' (eleven was the table's size at Phase 11, when this was found; the table has grown since)
+    # sat outside the lock entirely: rebinding all eleven rows'
     # `source_file` to `first-principles/agents/references/` — the
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
-    # source. The id-only arm below is kept for its narrower failure
-    # message and for its own (h2) cases, not as the authority.
+    # source. (Eleven was the table's size at Phase 11, when this was
+    # found; the table now carries fourteen rows.) The id-only arm below
+    # is kept for its narrower failure message and for its own (h2)
+    # cases, not as the authority.
     expected_extraction_rows = (
         (
             'R-CHAIN-CONFORMING',
@@ -7582,7 +7584,7 @@ def _render_registry_lock_problems(
             'R-HEAD-PROSE-MID',
             'shared/spine/references/output-template.md',
             'fenced-block',
-            '**Measured limitation — the same prose input in a non-final position:**',
+            '**Non-conforming, and undetected by the form check — the same prose input in a non-final position:**',
         ),
         (
             'R-HEAD-GTHOP-BAD',
@@ -7630,15 +7632,18 @@ def _render_registry_lock_problems(
             f"!= expected {expected_ids!r}"
         )
     else:
-        # ALL TWELVE ids carry a FULL-VALUE lock, not just a key-set lock.
-        # The three R-CHAIN-* ids were promoted first (IN-04,
-        # `11-REVIEW.md`); the five others followed at WR-01
-        # (`11-REVIEW-gap-closure.md`), which reproduced setting each of
-        # their needle tuples to `()` with every key still present and the
-        # self-test still GREEN — that silently disables the mode-2 shape
-        # guard for five of the fourteen fixtures, so an extraction that
-        # returned a neighbouring block scores `False` for the wrong reason
-        # and passes vacuously. The four R-HEAD-* ids added at Phase 13
+        # ALL ids carry a FULL-VALUE lock, not just a key-set lock (the
+        # equality check above already pins the id count against
+        # `expected_ids`, so the count is not restated here). The three
+        # R-CHAIN-* ids were promoted first (IN-04, `11-REVIEW.md`); the
+        # five others followed at WR-01 (`11-REVIEW-gap-closure.md`),
+        # which reproduced setting each of their needle tuples to `()`
+        # with every key still present and the self-test still GREEN —
+        # that silently disables the mode-2 shape guard for five of the
+        # fourteen fixtures, so an extraction that returned a
+        # neighbouring block scores `False` for the wrong reason and
+        # passes vacuously. The R-HEAD-* ids (ALLCHAIN, CHAINREF,
+        # GTHOP-BAD, GTHOP-OK, PROSE-BAD, PROSE-MID) added at Phase 13
         # carry their discriminating needles from the start, the same
         # treatment the R-CHAIN-* ids received. There is no reason to keep
         # two tiers: a needle tuple is the whole content of the guard for
@@ -9546,8 +9551,8 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-PROSE-MID", head_prose_mid
     ):
         _fail(
-            "(b) R-HEAD-PROSE-MID (doc label 'Measured limitation — the "
-            "same prose input in a non-final position:') scored "
+            "(b) R-HEAD-PROSE-MID (doc label 'Non-conforming, and undetected by the form check "
+            "— the same prose input in a non-final position:') scored "
             "malformed, expected well-formed (measured bound)"
         )
 
@@ -9899,7 +9904,7 @@ def _selftest_render_contract() -> bool:
 
     # (s) ISOLATION, scoring floor. Plan 13-05: drives
     # `_render_unscored_fixture_ids` directly with synthetic literals —
-    # never `render_locked_fixture_ids`, never `scored_ids`, never
+    # never `render_locked_fixture_ids`, never `scored_verdicts`, never
     # `fixtures` — so the new floor's own predicate is proven falsifiable
     # in-process, mirroring (p) ISOLATION's discipline one arm up.
     render_s_clean = _render_unscored_fixture_ids({"A", "B"}, {"A", "B"}, [])

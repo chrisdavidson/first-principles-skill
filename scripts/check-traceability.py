@@ -1893,13 +1893,24 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     (WR-03: the prior hardcoded `^def self_test\\(` pattern did not recognise
     `async def self_test(`, reintroducing the exact bug `_resolve_artifact`'s own
     `_def_class_pat` two functions up already carries an explicit `async\\s+def`
-    alternation to avoid — the two patterns must not disagree inside one file). If a
-    file defines MORE than one of the dispatcher names, the FIRST one found (by
-    position in the file, via `.search()`) is used and its body is what gets sliced —
-    a deliberate, disclosed choice. Verified live before this change: neither file in
-    this repository defines more than one of the two names today (`check-traceability.py`
-    has exactly one `def _run_self_test(`; `check-quality-harness.py` has exactly one
-    `def self_test(`).
+    alternation to avoid — the two patterns must not disagree inside one file).
+    BOTH the dispatcher pattern above and the body-boundary pattern below now
+    recognise `async def`: 13-11 widened only the dispatcher half for WR-03, which
+    left the body-boundary pattern still matching `^(?:def |class |@)` only — an
+    `async def` construct immediately following the dispatcher was absorbed into
+    the dispatcher's own body slice instead of ending it, so a call inside that
+    construct silently counted as a dispatch (CR-02,
+    `13-REVIEW-plans-08-11.md`, independently reproduced in
+    `13-VERIFICATION-round3.md`). Closed here by widening the body-boundary
+    pattern to match. This closes CR-02 specifically — the two patterns disagreeing
+    on `async def` — and is a DIFFERENT residual from the DISCLOSED LIMITATION
+    below (the last-top-level-construct body overrun), which remains open by
+    decision. If a file defines MORE than one of the dispatcher names, the FIRST
+    one found (by position in the file, via `.search()`) is used and its body is
+    what gets sliced — a deliberate, disclosed choice. Verified live before this
+    change: neither file in this repository defines more than one of the two
+    names today (`check-traceability.py` has exactly one `def _run_self_test(`;
+    `check-quality-harness.py` has exactly one `def self_test(`).
 
     Fail-closed by design, in two ways:
       - if the file defines no top-level dispatcher (`self_test()` or
@@ -1939,7 +1950,7 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
         ]
     _dispatcher_name = _match.group(1)
 
-    _next_top_level_pat = re.compile(r"^(?:def |class |@)", re.MULTILINE)
+    _next_top_level_pat = re.compile(r"^(?:async def |def |class |@)", re.MULTILINE)
     _next_match = _next_top_level_pat.search(content, _match.end())
     _body_end = _next_match.start() if _next_match else len(content)
     _body = content[_match.start():_body_end]
@@ -3499,6 +3510,44 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         wrong_results.append("V825-ROWS: (h1) async-dispatcher case failed (WR-03)")
     else:
         print("  V825-ROWS PASS: (h1) an `async def self_test()` dispatcher calling its anchor reports no problem — WR-03 closed")
+
+    # (h1) ASYNC BODY-BOUNDARY case (CR-02, `13-REVIEW-plans-08-11.md`, closed at
+    # 13-15): a plain `def self_test():` dispatcher with a `pass` body, followed
+    # by an `async def other():` that calls the anchor. Before this fix,
+    # `_next_top_level_pat` did not recognise `async def` as a body-boundary
+    # marker, so the `async def other():` construct was absorbed into
+    # `self_test()`'s own body slice and the call inside it counted as a
+    # dispatch — a fail-OPEN: a `reproducible`-tier row whose sub-check is
+    # defined but never dispatched resolved cleanly, the same class as the
+    # CR-02 finding round 1 raised against Item 25's unguarded dispatch.
+    _h1_async_boundary_src = "def self_test():\n    pass\n\nasync def other():\n    _selftest_x()\n"
+    _h1_async_boundary = _selftest_dispatch_problems("_selftest_x", _h1_async_boundary_src, "f.py")
+    if (
+        len(_h1_async_boundary) == 1
+        and "_selftest_x" in _h1_async_boundary[0]
+        and "never called from self_test()" in _h1_async_boundary[0]
+    ):
+        print("  V825-ROWS PASS: (h1) async body-boundary leak case reports exactly one problem — CR-02 closed")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) async body-boundary leak case failed: {_h1_async_boundary!r}")
+        wrong_results.append("V825-ROWS: (h1) async body-boundary leak case failed")
+
+    # (h1) PLAIN-`def` CONTRAST case (CR-02): identical source except `def other():`
+    # instead of `async def other():`. This is the arm that keeps the async case
+    # honest — if both cases were written against the async form only, a
+    # regression that broke both paths at once would still produce one failing
+    # case and might be misread as a single defect.
+    _h1_plain_boundary_src = "def self_test():\n    pass\n\ndef other():\n    _selftest_x()\n"
+    _h1_plain_boundary = _selftest_dispatch_problems("_selftest_x", _h1_plain_boundary_src, "f.py")
+    if (
+        len(_h1_plain_boundary) == 1
+        and "_selftest_x" in _h1_plain_boundary[0]
+        and "never called from self_test()" in _h1_plain_boundary[0]
+    ):
+        print("  V825-ROWS PASS: (h1) plain-`def` body-boundary contrast case reports exactly one problem")
+    else:
+        print(f"  V825-ROWS FAIL: (h1) plain-def body-boundary contrast case failed: {_h1_plain_boundary!r}")
+        wrong_results.append("V825-ROWS: (h1) plain-def body-boundary contrast case failed")
 
     # (h2) LIVE NON-VACUITY FLOOR. Derive, from the live _rows_v825() rows, the set
     # of anchors of the form scripts/…py#<anchor> where <anchor> starts with either
