@@ -9405,9 +9405,24 @@ def _selftest_render_contract() -> bool:
     plan 13-09 (BL-02) added a sixth pinning the GT-leading-hop refusal's
     remedy claim; plan 13-10 (BL-03) added a seventh pinning the
     strengthened expected-verdict consumption-floor claim; plan 13-12
-    (CR-03) added an eighth pinning the chain-family coverage floor.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 16 (2 doc rows x 8
-    tokens) from the two registries rather than restating it.
+    (CR-03) added an eighth pinning the chain-family coverage floor; plan
+    13-14 (CR-01) added a ninth pinning the worked-example conformance
+    leg. Plan 13-17 (WR-02, `13-VERIFICATION-round4.md`) added a tenth
+    and an eleventh, pinning the three-helper call-site census (covering
+    `_render_coverage_floor_problems`, `_render_example_conformance_problems`
+    and `_render_entry_source_problems`, the last landed by plan 13-16 for
+    R4-CR-02) and the entry-source lock, respectively.
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 22 (2 doc rows x 11
+    tokens) from the two registries rather than restating it, and a
+    DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
+    transcribed total — both factors, not only the product — against that
+    same derivation, closing the drift channel: the count has now drifted
+    stale in two consecutive plans (round 3's WR-02 on the registry-lock
+    comment counts; round 4's WR-02 on this docstring sentence) because
+    three surfaces restate one number and nothing compared them.
+    DISCLOSED LIMITATION: the lock checks this count sentence's
+    transcription only, not the rest of this docstring's prose — the same
+    bound control (m) states for the doc rows.
 
     Plan 11-09 (WR-07, `11-REVIEW.md`) rebuilt the contradiction leg,
     formerly a single control (l), into three explicitly-labelled arms
@@ -11858,6 +11873,45 @@ def _selftest_render_contract() -> bool:
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
             f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 22"
+        )
+
+    # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
+    # closed at 13-17): the count above has now drifted stale in two
+    # consecutive plans — round 3's WR-02 (the registry-lock comment
+    # counts) and round 4's WR-02 (this function's OWN docstring, which
+    # still said 16 (2 doc rows x 8 tokens) while the code above said 18)
+    # — because three surfaces restate one number and nothing ever
+    # compared them. This closes the drift CHANNEL, not just the stale
+    # instance: it reads this function's own docstring at runtime, via
+    # the same `inspect` API already imported for control (t)'s
+    # source-text census, and derives the expected total from the SAME
+    # two live registries the floor above uses — never from a restated
+    # literal — asserting BOTH factors (the doc-row count and the token
+    # count), not only their product, are present together in the
+    # docstring's own sentence shape, so a partial update that fixes one
+    # number and not the other is still caught. Compared with whitespace
+    # normalized on both sides (the docstring's own sentence wraps across
+    # a line break at this exact point), matching the same idiom
+    # `_RENDER_EXAMPLE_CLAIM_LITERAL`'s leg 5 containment check uses for a
+    # hard-wrapped claim, rather than a line-scoped test that a wrap could
+    # silently defeat.
+    # DISCLOSED LIMITATION: this locks the count sentence's transcription
+    # only, not the rest of this docstring's prose — the same bound
+    # control (m) states for the doc rows themselves.
+    render_m2_doc = inspect.getdoc(_selftest_render_contract) or ""
+    render_m2_doc_normalized = " ".join(render_m2_doc.split())
+    render_m2_expected_sentence = (
+        f"derives the expected {qual01_negative_case_count} "
+        f"({len(_QUAL01_DOC_ROWS)} doc rows x "
+        f"{len(_QUAL01_DOC_ROW_TOKENS)} tokens)"
+    )
+    if render_m2_expected_sentence not in render_m2_doc_normalized:
+        _fail(
+            f"(m2) DOCSTRING COUNT LOCK: expected the docstring to state "
+            f"{render_m2_expected_sentence!r} (derived from the live "
+            f"registries); not found in the docstring's transcription — "
+            f"the NEGATIVE-CASE COUNT FLOOR sentence has drifted from the "
+            f"value the code actually derives"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
