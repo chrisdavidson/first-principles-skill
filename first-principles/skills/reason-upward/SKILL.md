@@ -42,12 +42,23 @@ contradicts a Ground Truth, the conclusion returns to Phase 2 for re-challenging
 
 **Named artifact:** Derivation Chains — one chain per conclusion, formatted as
 `GT-N + GT-M → [intermediate claim] → [conclusion]`, with confidence levels per D-07.
+
+**Chain form:**
+
 The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
+
 The head line lists the inputs the chain consumes: each is a `GT-N` identifier (`GT-N?` when the ground truth is unverified) or a `Cn` identifier, optionally followed by a parenthesized gloss, joined to the next by `+`. The first `→` closes the head. An input carrying unparenthesized prose — `C2's threshold` — is not an identifier and does not parse; write `C2 (threshold)` in every position. The mechanical form check detects that violation only when the prose input is the last one before the first `→`; in an earlier position the check matches the well-formed remainder and scores the head conforming, so the rule binds in positions the check does not reach.
-Rendered examples follow the prescribed head form (`GT-1? ([brief fact label]) + C2 ([brief fact label])`).
+
+```text
+GT-1? ([brief fact label]) + C2 ([brief fact label])
+→ [intermediate claim]
+→ [conclusion]
+```
+
 The head grammar governs the head line only. A hop is prose: `C2's saving` is fine after the first `→`, and is not an input reference. One exception: a hop must not begin with a `GT-N` identifier, which the form check reads as the head of a new chain and which therefore ends this one — write `→ the duty cycle stated in GT-4 is the binding term`, not `→ GT-4's stated duty cycle is the binding term`. The form check detects that violation only while fewer than two hops precede it; in a later position the check matches the preceding hops and scores the chain conforming, so the rule binds in positions the check does not reach.
+
 Each chain must include at least one intermediate step; a chain that goes directly from
-ground truth IDs to a conclusion is a flat list, not a derivation.
+its head inputs to a conclusion is a flat list, not a derivation.
 
 **Exit criterion:** ALL THREE conditions must hold: (1) the problem's core question as
 stated in the Essence Statement is answered, AND (2) every conclusion offered has a
