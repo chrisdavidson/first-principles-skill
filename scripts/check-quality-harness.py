@@ -4426,7 +4426,7 @@ def _chain_detector_source() -> str:
 # that amendment before any recompute. Never the reverse order.
 #
 # Phase 13's own rationale for adding this pin now, not earlier or later: R7
-# and R8 (`_RENDER_RULE_LITERALS`, above) now state on three canonical
+# and R8 (`_RENDER_RULE_LITERALS`, above) now state on four canonical
 # surfaces the exact grammar this function has enforced since GAP-6 — this
 # pin freezes an implementation whose contract is, for the first time,
 # written down. That rationale lives HERE, in this comment, and never inside
@@ -7191,18 +7191,35 @@ def _render_fixture_accounting_problems(
 # declares which rule literals it must carry via
 # `_RENDER_SURFACE_REQUIRED_RULES` below, rather than every surface being
 # required to state all five (later six) rules.
+#
+# Plan 13-20 (CR-03, `13-VERIFICATION.md` gap 2) adds a fourth surface:
+# `shared/references/reason-upward.md` states the chain form
+# (`GT-N + GT-M → [intermediate claim] → [conclusion]`) and is the SOLE
+# source of the shipped, slash-invocable `first-principles/skills/reason-
+# upward/SKILL.md` via the `{{PROCEDURE:reason-upward}}` substitution in
+# `sync-content.py` — model-facing at slash-invoke time with no companion
+# surface beside it to carry the head-input rule for it. Before this plan
+# it carried none of R6-R9 and its own R6 restatement was hard-wrapped
+# across three physical lines, so it was not even a substring of the
+# registered literal. CR-03's own text is that the requirement reads
+# "every canonical surface that states the chain form" — registering this
+# surface, rather than deleting the chain form from it, is the same fork
+# plan 11-07 took for the rubric one gap earlier.
 _RENDER_RULE_SURFACES: tuple[str, ...] = (
     "shared/spine/references/output-template.md",
     "shared/spine/SKILL-body.md",
     "shared/spine/references/validation-rubric.md",
+    "shared/references/reason-upward.md",
 )
 
-# Each value is a SHARED VERBATIM LITERAL, present byte for byte in BOTH
-# `_RENDER_RULE_SURFACES` entries. Reconciliation is implemented as identity
-# of this literal on both surfaces specifically so that contradicting one
-# surface without the other is unexpressible without deleting the literal
-# from it — copying the "shared bytes, not a restated paraphrase" discipline
-# that keeps CONTRACT-05's head form from drifting silently.
+# Each value is a SHARED VERBATIM LITERAL, present byte for byte on every
+# `_RENDER_RULE_SURFACES` entry that requires it (per
+# `_RENDER_SURFACE_REQUIRED_RULES` below — not every surface is required to
+# carry every key). Reconciliation is implemented as identity of this
+# literal across every surface that requires it, so that contradicting one
+# required surface without another is unexpressible without deleting the
+# literal from it — copying the "shared bytes, not a restated paraphrase"
+# discipline that keeps CONTRACT-05's head form from drifting silently.
 _RENDER_RULE_LITERALS: dict[str, str] = {
     # R1: the no-wrap rule (CONTRACT-03).
     "R1": (
@@ -7298,6 +7315,14 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # surface regardless of which literals it must carry, because a wrap
 # permission is wrong everywhere it appears, not just on the two surfaces
 # that also state the positive rule.
+#
+# `shared/references/reason-upward.md` (plan 13-20, CR-03) gets the same
+# four keys as the rubric and for the same reason: this surface states the
+# chain form and the head grammar, not the citation rule (R4), the brevity
+# TELL (R3) or the reconciled multi-hop head form's R5 rendering — it is a
+# focused-mode procedure reference, not the output spec. It still gets the
+# unscoped contradiction scan below regardless of this narrower required
+# set, which is half the point of registering it.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
         "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
@@ -7307,6 +7332,9 @@ _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     ),
     "shared/spine/references/validation-rubric.md": (
         "R1", "R6", "R7", "R8", "R9",
+    ),
+    "shared/references/reason-upward.md": (
+        "R6", "R7", "R8", "R9",
     ),
 }
 
@@ -7811,6 +7839,7 @@ def _render_registry_lock_problems(
         "shared/spine/references/output-template.md",
         "shared/spine/SKILL-body.md",
         "shared/spine/references/validation-rubric.md",
+        "shared/references/reason-upward.md",
     )
     if snapshot.surfaces != expected_surfaces:
         problems.append(
@@ -7828,6 +7857,9 @@ def _render_registry_lock_problems(
         ),
         "shared/spine/references/validation-rubric.md": (
             "R1", "R6", "R7", "R8", "R9",
+        ),
+        "shared/references/reason-upward.md": (
+            "R6", "R7", "R8", "R9",
         ),
     }
     if snapshot.required_rules != expected_required_rules:
@@ -9372,7 +9404,7 @@ def _selftest_render_contract() -> bool:
     cannot be defeated by the same mutation it guards.
 
     Controls (h)-(l) close Case A (CONTRACT-03) and pin the reconciled
-    multi-hop head form (CONTRACT-05) across THREE canonical surfaces, per
+    multi-hop head form (CONTRACT-05) across FOUR canonical surfaces, per
     D-04: a rule shipped uncontrolled lands in the exact defect class
     PROJECT.md's through-line names — a form stated in more places than
     anything checks. Plan 11-07 (CR-01, `11-VERIFICATION.md` gap 1) added
@@ -9381,7 +9413,13 @@ def _selftest_render_contract() -> bool:
     emission against at Phase 5 Criterion 4, and it shipped for one
     milestone stating one of this gate's own enumerated contradiction
     phrasings (`too long for one line wraps`) while sitting outside the
-    gate's scan scope — CR-01's fix note is what closes that gap.
+    gate's scan scope — CR-01's fix note is what closes that gap. Plan
+    13-20 (CR-03, `13-VERIFICATION.md` gap 2) added the fourth surface,
+    `shared/references/reason-upward.md`: it is canonical because it is
+    the sole source of the shipped, slash-invocable `first-principles/
+    skills/reason-upward/SKILL.md`, and it shipped stating the chain form
+    with none of R6-R9 present, invisible to this gate's contradiction
+    scan — CR-03's fix note is what closes that gap.
 
     Plan 11-08 (CR-02/WR-01, `11-VERIFICATION.md` gap 2) widened control
     (h) from a two-registry MEMBERSHIP LOCK to a by-value lock over every
@@ -11648,7 +11686,7 @@ def _selftest_render_contract() -> bool:
                 )
 
     # (i) POSITIVE. Reads the real shipped bytes; goes RED if a REQUIRED
-    #     rule is deleted from any of the three canonical surfaces today,
+    #     rule is deleted from any of the four canonical surfaces today,
     #     or if any surface currently contradicts the no-wrap rule.
     render_reads, render_read_problems = _read_render_surfaces()
     for problem in render_read_problems:
@@ -11663,7 +11701,9 @@ def _selftest_render_contract() -> bool:
     #     open is named at (i) above rather than silently reducing
     #     coverage to whatever was read; this floor additionally proves no
     #     registered surface silently dropped out of the returned records.
-    #     Compares a three-element set as of plan 11-07's rubric surface.
+    #     Compares a four-element set as of plan 13-20's reason-upward
+    #     surface (previously a three-element set as of plan 11-07's
+    #     rubric surface).
     read_relpaths = {read.relpath for read in render_reads}
     if read_relpaths != set(_RENDER_RULE_SURFACES):
         _fail(
@@ -11683,9 +11723,10 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 23 today
-    #     (9 + 9 + 5), so shrinking the mapping fails the floor rather
-    #     than silently reducing coverage.
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 27 today
+    #     (9 + 9 + 5 + 4, the last four being plan 13-20's reason-upward
+    #     entry), so shrinking the mapping fails the floor rather than
+    #     silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
     for read in render_reads:
@@ -11708,7 +11749,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 23
+    expected_missing_case_count = 27
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
