@@ -15,6 +15,20 @@ The full 266-row capability-to-requirement-to-test mapping is in the generated m
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
 
+> **v8.26 CHAINHEAD deferred-registration note, dated 2026-09-03 (Phase 13 plan 13-28):** this is a
+> separate note beside D-02 above, not an extension of it — D-02 is written for v7.12/v7.13/v8.0
+> specifically and must not be silently widened. `CHAINHEAD-01..07` (Phase 13's own requirements)
+> and the milestone's remaining twelve requirements (Phase 14's LEDGER-01..04, Phase 15's
+> SCAN-01..04, Phase 16's SHIP-01..04) are deliberately row-less as of this note: v8.26.0's
+> nineteen requirements are registered as matrix rows in one lockstep batch at Phase 16, per
+> ROADMAP's Phase 16 success criterion 3 ("This milestone's 19 requirements are registered as
+> matrix rows; the resulting coverage-headline move … is produced by `HEADLINE-LOCK`'s sweep
+> rather than a hand edit, and the sentinel confirms it."). Registering seven of the nineteen here
+> would move the headline twice, by hand the second time, and split a lockstep registration Phase
+> 16 exists to perform in one sweep. The published `175 reproducible / 91 audit-only / 0 gap / 266
+> total` headline's scope excludes all nineteen by this design, not by omission — `13-REVIEW.md`
+> WR-05 called the absence undisclosed, not wrong, and this note is the disclosure.
+
 > **Departure from the note above, dated 2026-08-29 (v8.18 Phase 4 / D-05, D-08):** the note above
 > is left byte-intact as the record of what Phase 142 decided; this addendum states where v8.18
 > departs from it and why. The v8.18 milestone's 23 requirements (ACT-01..05, LOOP-01..05,
