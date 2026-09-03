@@ -82,8 +82,10 @@ The bracketed magnitude produced by an estimate drill is the natural input to
 5-phase methodology.
 
 **Feeding Phase 4:** The unit-factors and their sourced values become the steps of
-a quantitative **Derivation Chain**: `GT-N + GT-M → [unit-factor product] →
-[bracketed magnitude]`. Each factor value cites the ground truth that anchors it
+a quantitative **Derivation Chain**, with the unit-factor product as the chain's
+intermediate claim and the bracketed magnitude as its conclusion — see
+output-template.md §4 ("Derivation Chains") for the chain form and its head
+grammar. Each factor value cites the ground truth that anchors it
 (a physical constant, a definition, or a measurement assigned a GT-N identifier in
 Phase 3). The bracket — lower bound, central estimate, upper bound — travels as a
 single claim in the chain, carrying its uncertainty forward. A conclusion that

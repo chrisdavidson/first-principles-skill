@@ -6761,6 +6761,62 @@ def _render_coverage_floor_problems(
     return sorted(problems_out)
 
 
+def _render_chain_form_surface_problems(
+    texts: dict[str, str],
+    signature: "re.Pattern[str]",
+    registered: frozenset[str],
+    exempt: tuple[tuple[str, str], ...],
+) -> list[str]:
+    """Every relpath in *texts* whose whitespace-normalized text
+    (`" ".join(text.split())`, matching `_render_example_claiming_relpaths`'s
+    own normalization discipline) matches *signature* and is neither in
+    *registered* nor named by *exempt*, one problem per relpath, sorted;
+    plus one REASONLESS EXEMPTION problem per *exempt* entry whose written
+    reason is blank (an exemption without a written reason is the same
+    undisclosed-scoping-decision defect an unregistered surface is, one
+    register over); plus one NON-VACUITY problem if *signature* matches
+    zero relpaths in *texts* at all — a signature that matches nothing is
+    a broken sweep, not a clean tree.
+
+    Pure: takes all four inputs as parameters and reads no module
+    constant, matching the purity contract `_render_unscored_fixture_ids`
+    and `_render_chain_family_ids` state in their own docstrings — what
+    lets an isolation control drive this helper with synthetic `texts`
+    and a synthetic *signature* without touching `shared/` or
+    `_RENDER_CHAIN_FORM_GLOB`.
+    """
+    problems_out: list[str] = []
+
+    for relpath, reason in exempt:
+        if not reason.strip():
+            problems_out.append(
+                f"{relpath}: REASONLESS EXEMPTION — exempted from the "
+                f"chain-form surface sweep with no written reason"
+            )
+
+    exempt_relpaths = {relpath for relpath, _reason in exempt}
+    candidates = {
+        relpath
+        for relpath, text in texts.items()
+        if signature.search(" ".join(text.split()))
+    }
+    for relpath in sorted(candidates - registered - exempt_relpaths):
+        problems_out.append(
+            f"{relpath}: states the chain form as a template rendering "
+            f"(matches the chain-form signature) but is registered in "
+            f"neither _RENDER_RULE_SURFACES nor _RENDER_CHAIN_FORM_EXEMPT"
+        )
+
+    if not candidates:
+        problems_out.append(
+            "NON-VACUITY: the chain-form signature matched zero relpaths "
+            "— a signature that matches nothing is a broken sweep, not a "
+            "clean tree"
+        )
+
+    return sorted(problems_out)
+
+
 def _render_entry_source_problems(
     entries: tuple[tuple[str, frozenset[str], frozenset[str]], ...],
     expected_required_by_name: dict[str, frozenset[str]],
@@ -7236,6 +7292,29 @@ def _render_fixture_accounting_problems(
 # "every canonical surface that states the chain form" — registering this
 # surface, rather than deleting the chain form from it, is the same fork
 # plan 11-07 took for the rubric one gap earlier.
+#
+# This tuple is a hand-maintained list, not the enforcement mechanism for
+# "every canonical surface that states the chain form" — round 6
+# (`13-VERIFICATION-round6.md` gap 3, CR-04) found two more unregistered
+# surfaces (`shared/references/estimate-detail.md` and
+# `shared/references/theoretical-limit-detail.md`) the round after this
+# comment last presented the four-surface set as a completed closure, which
+# is exactly what a hand-maintained list cannot see happening to itself.
+# What makes the requirement checkable is
+# `_render_chain_form_surface_problems` (plan 13-24) — a sweep that derives
+# its candidate surface set from the tree via `_RENDER_CHAIN_FORM_SIGNATURE`
+# and compares it by equality against this tuple plus
+# `_RENDER_CHAIN_FORM_EXEMPT`, not the count of entries here. The two
+# CR-04 files were resolved by the point-back fork, not the register fork:
+# both Handoff paragraphs now name their technique-specific content in prose
+# and point back to `output-template.md`'s own "Converting
+# structured-technique outputs into chains" subsection, which already
+# declares itself the single source of truth for the conversion and
+# instructs per-technique Handoff sections to point back rather than
+# restate — registering them here would instead have propagated the four
+# `_RENDER_RULE_LITERALS` into every technique appendix that mentions a
+# chain, the duplication that produced this defect twice. See plan 13-24's
+# SUMMARY and `13-VERIFICATION-round6.md` gap 3 for the full rationale.
 _RENDER_RULE_SURFACES: tuple[str, ...] = (
     "shared/spine/references/output-template.md",
     "shared/spine/SKILL-body.md",
@@ -7566,12 +7645,67 @@ _RENDER_EXAMPLE_CLAIMING_FILES: tuple[str, ...] = (
 # fewer (or more) files than this locked set is a loud failure rather
 # than a quiet narrowing of scope.
 
+_RENDER_CHAIN_FORM_SIGNATURE: "re.Pattern[str]" = re.compile(
+    _CHAIN_HEAD_TOKEN + r".*?" + _ARROW + r"[ \t]*\[[a-z]"
+)
+# Matches a chain-form TEMPLATE rendering: a GT-N/GT-1/Cn/C1-shaped head
+# token (`_CHAIN_HEAD_TOKEN`, the same token `_CHAIN_HEAD_TOKEN_RE` tests
+# candidacy with) followed, within the same rendering, by an arrow
+# immediately preceding a bracketed PLACEHOLDER (`→ [intermediate claim]`,
+# never a filled-in value) — the trailing `[a-z]` requires the bracket's
+# first character to be lowercase, which is what a generic placeholder
+# noun phrase (`[intermediate claim]`, `[conclusion]`, `[unit-factor
+# product]`, `[bracketed magnitude]`, `[governing law]`,
+# `[law-permitted ceiling]`, `[gap to convention]`) always is and a
+# rendered value never is. Matched against WHITESPACE-NORMALIZED text
+# (`" ".join(text.split())`, the same normalization
+# `_render_example_claiming_relpaths` applies), never raw text with
+# newlines — both CR-04 files hard-wrap the template across two physical
+# lines, so a line-scoped pattern would silently exempt them
+# (`13-VERIFICATION-round6.md` gap 3).
+#
+# The `[a-z]` narrowing is load-bearing, not decorative — measured, not
+# assumed. Without it, this signature also matches two GENUINE worked
+# examples that were live in the tree throughout this plan:
+# `shared/examples/estimate-fermi.md` (`→ installed-capital bracket:
+# [Lower: ~$15/kWh | Central: ~$30/kWh | Upper: ~$42/kWh]`) and
+# `shared/examples/theoretical-limit-carnot.md` (`→ [Conclusion:
+# Molten-salt TES is cost-competitive...]`) — both render a real,
+# filled-in value inside the bracket, and both happen to start that
+# bracket with an uppercase letter. Measured against the live tree with
+# `[a-z]` in place: matches exactly the four `_RENDER_RULE_SURFACES`
+# entries — zero worked examples, zero other false positives — and
+# against the pre-task-1 CR-04 text, on both `estimate-detail.md` and
+# `theoretical-limit-detail.md`, proving the narrowing does not cost the
+# defect this sweep exists to catch. DISCLOSED LIMITATION: a future
+# template rendering whose placeholder noun phrase happens to start with
+# an uppercase letter (`[Conclusion]` rather than `[conclusion]`) would
+# not match this signature — the same class of bound this file's other
+# frozen-detector signatures already disclose (R7, R9) rather than
+# silently carry.
+
+_RENDER_CHAIN_FORM_GLOB: str = "shared/**/*.md"
+# Recursive, tree-wide — deliberately wider than `_RENDER_EXAMPLE_GLOB`
+# (`shared/examples/*.md`, non-recursive): this sweep's whole purpose is
+# to derive its candidate surface set from the TREE rather than trust a
+# hand-maintained list, so it must reach every file under `shared/`, not
+# just the examples directory.
+
+_RENDER_CHAIN_FORM_EXEMPT: tuple[tuple[str, str], ...] = ()
+# `(relpath, written reason)` pairs exempted from the sweep without being
+# added to `_RENDER_RULE_SURFACES` — empty after plan 13-24, and REQUIRED
+# to stay empty unless a future edit writes a reason:
+# `_render_chain_form_surface_problems` fails the self-test on any entry
+# whose reason is blank, because an unreasoned exemption is the same
+# undisclosed-scoping-decision defect round 6's gap 3 named for an
+# unregistered surface, one register over.
+
 
 @dataclass(frozen=True)
 class _RenderRegistrySnapshot:
     """A by-value snapshot of the registries the rendering-contract
     mechanism depends on — one field per entry of
-    `_RENDER_REGISTRY_FIELDS` (sixteen today, fifteen registries: the
+    `_RENDER_REGISTRY_FIELDS` (nineteen today, eighteen registries: the
     extraction table contributes both `extraction_rows`, the
     authoritative all-four-column arm, and the derived `extraction_ids`).
 
@@ -7621,6 +7755,9 @@ class _RenderRegistrySnapshot:
     example_glob: str
     example_claiming_files: tuple[str, ...]
     fabricated_example_wordings: tuple[str, ...]
+    chain_form_signature: str
+    chain_form_glob: str
+    chain_form_exempt: tuple[tuple[str, str], ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -7644,6 +7781,9 @@ class _RenderRegistrySnapshot:
             example_glob=_RENDER_EXAMPLE_GLOB,
             example_claiming_files=_RENDER_EXAMPLE_CLAIMING_FILES,
             fabricated_example_wordings=_RENDER_FABRICATED_EXAMPLE_WORDINGS,
+            chain_form_signature=_RENDER_CHAIN_FORM_SIGNATURE.pattern,
+            chain_form_glob=_RENDER_CHAIN_FORM_GLOB,
+            chain_form_exempt=_RENDER_CHAIN_FORM_EXEMPT,
         )
 
 
@@ -7669,6 +7809,9 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "example_glob",
     "example_claiming_files",
     "fabricated_example_wordings",
+    "chain_form_signature",
+    "chain_form_glob",
+    "chain_form_exempt",
 )
 
 def _render_registry_lock_problems(
@@ -8073,6 +8216,39 @@ def _render_registry_lock_problems(
             f"{expected_fabricated_example_wordings!r}"
         )
     checked.add("fabricated_example_wordings")
+
+    # `chain_form_signature`, `chain_form_glob`, `chain_form_exempt`
+    # (plan 13-24, CR-04, `13-VERIFICATION-round6.md` gap 3): the
+    # tree-derived chain-form-surface sweep's own registries — the
+    # signature pattern the sweep matches candidate relpaths against, the
+    # recursive glob it reads the tree through, and the locked
+    # (relpath, reason) exemption set. Locked here by value, never against
+    # the module constant each mirrors.
+    expected_chain_form_signature = (
+        r"(?:GT-[A-Za-z0-9]+\??|C\d+).*?(?:→|->)[ \t]*\[[a-z]"
+    )
+    if snapshot.chain_form_signature != expected_chain_form_signature:
+        problems.append(
+            f"chain_form_signature: {snapshot.chain_form_signature!r} != "
+            f"expected {expected_chain_form_signature!r}"
+        )
+    checked.add("chain_form_signature")
+
+    expected_chain_form_glob = "shared/**/*.md"
+    if snapshot.chain_form_glob != expected_chain_form_glob:
+        problems.append(
+            f"chain_form_glob: {snapshot.chain_form_glob!r} != expected "
+            f"{expected_chain_form_glob!r}"
+        )
+    checked.add("chain_form_glob")
+
+    expected_chain_form_exempt: tuple[tuple[str, str], ...] = ()
+    if snapshot.chain_form_exempt != expected_chain_form_exempt:
+        problems.append(
+            f"chain_form_exempt: {snapshot.chain_form_exempt!r} != "
+            f"expected {expected_chain_form_exempt!r}"
+        )
+    checked.add("chain_form_exempt")
 
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
@@ -10382,9 +10558,11 @@ def _selftest_render_contract() -> bool:
     # deleting it restored the exact defect the floor exists to catch
     # with the battery green. Three more counters below close that:
     #
-    #   - the coverage-floor-registry helper: 6 call sites (1 real — THE
+    #   - the coverage-floor-registry helper: 7 call sites (1 real — THE
     #     FLOOR ITSELF — plus the x1-x4 isolation arms, 4, plus leg 5's
-    #     own reuse of the same helper for its NON-VACUITY floor, 1);
+    #     own reuse of the same helper for its NON-VACUITY floor, 1, plus
+    #     plan 13-24's chain-form surface sweep's own reuse for its
+    #     EQUALITY floor, 1);
     #   - the worked-example-conformance helper: 6 call sites (1 real —
     #     THE LEG ITSELF — plus the z5-z9 isolation arms, 5);
     #   - the entry-source helper (this plan's own Task 1 fix): 5 call
@@ -10392,6 +10570,13 @@ def _selftest_render_contract() -> bool:
     #     isolation arms, 4). This plan's own fix is registered in the
     #     same census it extends, so it does not reproduce the defect it
     #     closes (MUTATION M9).
+    #   - the chain-form-surface-sweep helper (plan 13-24, CR-04,
+    #     `13-VERIFICATION-round6.md` gap 3, Q2): 6 call sites (1 real —
+    #     THE SWEEP ITSELF — plus the cf-iso i-v isolation arms, 5). This
+    #     plan's own leg is registered in the same census it extends, for
+    #     the identical reason the entry-source helper's own fix was: an
+    #     unregistered helper's call site is deletable with the battery
+    #     green (Q2's own reproduction target).
     #
     # Every search pattern below is built by concatenation rather than as
     # a single literal, and every pattern's NAME is referred to only in
@@ -10413,6 +10598,7 @@ def _selftest_render_contract() -> bool:
     render_t_coverage_call_pattern = "_render_coverage_floor_problems" + "("
     render_t_example_call_pattern = "_render_example_conformance_problems" + "("
     render_t_entry_source_call_pattern = "_render_entry_source_problems" + "("
+    render_t_chain_form_call_pattern = "_render_chain_form_surface_problems" + "("
     render_t_setdefault_count = render_contract_src.count(render_t_setdefault_pattern)
     render_t_def_count = render_contract_src.count(render_t_def_pattern)
     render_t_verdict_call_count = render_contract_src.count(
@@ -10431,6 +10617,9 @@ def _selftest_render_contract() -> bool:
     render_t_entry_source_call_count = render_contract_src.count(
         render_t_entry_source_call_pattern
     )
+    render_t_chain_form_call_count = render_contract_src.count(
+        render_t_chain_form_call_pattern
+    )
     render_t_subscript_pattern = "scored_verdicts" + "["
     render_t_subscript_assign_count = sum(
         1
@@ -10444,9 +10633,10 @@ def _selftest_render_contract() -> bool:
         or render_t_chain_call_count != 6
         or render_t_update_count != 0
         or render_t_subscript_assign_count != 0
-        or render_t_coverage_call_count != 6
+        or render_t_coverage_call_count != 7
         or render_t_example_call_count != 6
         or render_t_entry_source_call_count != 5
+        or render_t_chain_form_call_count != 6
     ):
         _fail(
             f"(t) SCORING RECORDER LOCK: observed {render_t_setdefault_count} "
@@ -10461,11 +10651,13 @@ def _selftest_render_contract() -> bool:
             f"{render_t_subscript_assign_count} forbidden bare-subscript "
             f"assignment occurrence(s) (expected 0), "
             f"{render_t_coverage_call_count} coverage-floor-registry "
-            f"helper call site(s) (expected 6), "
+            f"helper call site(s) (expected 7), "
             f"{render_t_example_call_count} worked-example-conformance "
             f"helper call site(s) (expected 6), and "
             f"{render_t_entry_source_call_count} entry-source helper "
-            f"call site(s) (expected 5)"
+            f"call site(s) (expected 5), and "
+            f"{render_t_chain_form_call_count} chain-form-surface-sweep "
+            f"helper call site(s) (expected 6)"
         )
 
     # (u) DISPATCH REACHABILITY. Plan 13-06 (CR-02 / criterion 5): an
@@ -11698,6 +11890,31 @@ def _selftest_render_contract() -> bool:
             "!= expected",
             replace(render_live_snapshot, fabricated_example_wordings=()),
         ),
+        (
+            "chain_form_signature replaced with a different pattern "
+            "(plan 13-24)",
+            "chain_form_signature",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                chain_form_signature="a different pattern entirely",
+            ),
+        ),
+        (
+            "chain_form_glob emptied (plan 13-24)",
+            "chain_form_glob",
+            "!= expected",
+            replace(render_live_snapshot, chain_form_glob=""),
+        ),
+        (
+            "chain_form_exempt with an entry added (plan 13-24)",
+            "chain_form_exempt",
+            "!= expected",
+            replace(
+                render_live_snapshot,
+                chain_form_exempt=(("shared/some-file.md", "a reason"),),
+            ),
+        ),
     ]
 
     render_lock_negative_fields_exercised: set[str] = set()
@@ -12381,6 +12598,149 @@ def _selftest_render_contract() -> bool:
                 "branch did not fire — "
                 f"{unknown_key_problems!r}"
             )
+
+    # (cf) CHAIN-FORM SURFACE SWEEP (plan 13-24, CR-04
+    #     `13-VERIFICATION-round6.md` gap 3): reads the live tree through
+    #     `_RENDER_CHAIN_FORM_GLOB` and derives its candidate surface set
+    #     from what the tree actually states, rather than trusting
+    #     `_RENDER_RULE_SURFACES` — the hand-maintained list that failed
+    #     to catch `estimate-detail.md` and `theoretical-limit-detail.md`
+    #     stating the chain form as a template one round after
+    #     `reason-upward.md` was fixed for the identical defect (CR-03,
+    #     plan 13-20). Reads canonical `shared/` bytes only, matching
+    #     `_RENDER_EXAMPLE_GLOB`'s source-of-truth discipline.
+    render_cf_texts: dict[str, str] = {}
+    render_cf_read_problems: list[str] = []
+    for render_cf_path in sorted(REPO_ROOT.glob(_RENDER_CHAIN_FORM_GLOB)):
+        render_cf_relpath = render_cf_path.relative_to(REPO_ROOT).as_posix()
+        render_cf_text, render_cf_read_problem = _read_text_or_problem(
+            render_cf_path, render_cf_relpath
+        )
+        if render_cf_read_problem is not None:
+            render_cf_read_problems.append(render_cf_read_problem)
+            continue
+        render_cf_texts[render_cf_relpath] = render_cf_text  # type: ignore[assignment]
+    for render_cf_read_problem in render_cf_read_problems:
+        _fail(f"(cf) CHAIN-FORM SURFACE SWEEP READ: {render_cf_read_problem}")
+
+    # EQUALITY FLOOR (CR-03/WR-04 shape via `_render_coverage_floor_problems`):
+    # the derived candidate set must equal the registered surfaces plus
+    # every written exemption — equality, not subset, so a signature
+    # narrowed until it matches only the registered surfaces fails by
+    # name rather than passing silently (the same shape the chain-family
+    # coverage floor and the dispatch-reachability floor already pay for
+    # above).
+    render_cf_candidates = frozenset(
+        relpath
+        for relpath, text in render_cf_texts.items()
+        if _RENDER_CHAIN_FORM_SIGNATURE.search(" ".join(text.split()))
+    )
+    render_cf_required = frozenset(_RENDER_RULE_SURFACES) | {
+        relpath for relpath, _reason in _RENDER_CHAIN_FORM_EXEMPT
+    }
+    for render_cf_problem in _render_coverage_floor_problems(
+        (
+            (
+                "(cf) chain-form candidate set",
+                render_cf_candidates,
+                render_cf_required,
+            ),
+        )
+    ):
+        _fail(f"(cf) CHAIN-FORM SURFACE SWEEP EQUALITY: {render_cf_problem}")
+
+    # THE SWEEP ITSELF — the unmodified helper, called on the live tree.
+    for render_cf_problem in _render_chain_form_surface_problems(
+        render_cf_texts,
+        _RENDER_CHAIN_FORM_SIGNATURE,
+        frozenset(_RENDER_RULE_SURFACES),
+        _RENDER_CHAIN_FORM_EXEMPT,
+    ):
+        _fail(f"(cf) CHAIN-FORM SURFACE SWEEP: {render_cf_problem}")
+
+    # (cf-iso) ISOLATION, `_render_chain_form_surface_problems`'s own
+    #     falsifiability. Every arm drives the helper with a SYNTHETIC
+    #     signature and synthetic `texts` — never the real tree, never
+    #     `_RENDER_CHAIN_FORM_SIGNATURE`. Each arm is neutralizable:
+    #     reverting the helper's own fix makes exactly that arm fail.
+    render_cf_synth_sig = re.compile(r"XSIG")
+
+    # (i) a matching unregistered relpath yields exactly one problem
+    #     naming it.
+    render_cf_i = _render_chain_form_surface_problems(
+        {"synthetic/unregistered.md": "before XSIG after"},
+        render_cf_synth_sig,
+        frozenset(),
+        (),
+    )
+    if not (
+        len(render_cf_i) == 1
+        and "synthetic/unregistered.md" in render_cf_i[0]
+    ):
+        _fail(
+            f"(cf-iso i) UNREGISTERED MATCH: expected exactly one problem "
+            f"naming synthetic/unregistered.md, got {render_cf_i!r}"
+        )
+
+    # (ii) the same relpath in `registered` yields zero.
+    render_cf_ii = _render_chain_form_surface_problems(
+        {"synthetic/registered.md": "before XSIG after"},
+        render_cf_synth_sig,
+        frozenset({"synthetic/registered.md"}),
+        (),
+    )
+    if render_cf_ii:
+        _fail(
+            f"(cf-iso ii) REGISTERED: expected zero problems, got "
+            f"{render_cf_ii!r}"
+        )
+
+    # (iii) the same relpath in `exempt`, with a written reason, yields
+    #     zero.
+    render_cf_iii = _render_chain_form_surface_problems(
+        {"synthetic/exempt.md": "before XSIG after"},
+        render_cf_synth_sig,
+        frozenset(),
+        (("synthetic/exempt.md", "a written reason"),),
+    )
+    if render_cf_iii:
+        _fail(
+            f"(cf-iso iii) EXEMPT: expected zero problems, got "
+            f"{render_cf_iii!r}"
+        )
+
+    # (iv) an empty candidate set yields the NON-VACUITY problem.
+    render_cf_iv = _render_chain_form_surface_problems(
+        {"synthetic/clean.md": "no signature here"},
+        render_cf_synth_sig,
+        frozenset(),
+        (),
+    )
+    if not any("NON-VACUITY" in p for p in render_cf_iv):
+        _fail(
+            f"(cf-iso iv) NON-VACUITY: expected a NON-VACUITY problem, "
+            f"got {render_cf_iv!r}"
+        )
+
+    # (v) an exempt entry with an EMPTY written reason yields a
+    #     REASONLESS EXEMPTION problem naming it (Q3, `13-24-PLAN.md`
+    #     task 3) — an exemption without a written reason must be caught
+    #     regardless of whether the exempted relpath matches the
+    #     signature at all.
+    render_cf_v = _render_chain_form_surface_problems(
+        {},
+        render_cf_synth_sig,
+        frozenset(),
+        (("synthetic/reasonless.md", ""),),
+    )
+    if not any(
+        "REASONLESS EXEMPTION" in p and "synthetic/reasonless.md" in p
+        for p in render_cf_v
+    ):
+        _fail(
+            f"(cf-iso v) REASONLESS EXEMPTION: expected a problem naming "
+            f"synthetic/reasonless.md, got {render_cf_v!r}"
+        )
 
     return ok
 
