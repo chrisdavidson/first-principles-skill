@@ -6574,15 +6574,22 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
 # `R-HEAD-GTHOP-BAD` and `R-HEAD-GTHOP-LATE` (plan 13-19, CR-02 fixture
 # half) are the same offending hop in two positions — first and last —
 # and need to discriminate in BOTH directions, the same shape 13-08 gave
-# the PROSE pair: `R-HEAD-GTHOP-LATE`'s first needle, `"the second
-# reading is the binding one"`, is unique to the late-position block
-# (verified by grep across the whole file before shipping it), and
-# `R-HEAD-GTHOP-BAD`'s new third needle, `"threshold)\n→ GT-4's stated
-# duty cycle"`, is unique to the first-position block — without it a
-# mis-anchored extraction returning the new late-position block still
-# satisfies `R-HEAD-GTHOP-BAD`'s shape guard, because that block also
-# contains the pair's first two needles (both blocks share the same head
-# and the same offending hop text).
+# the PROSE pair. 13-19's original two-needle tuple named neither the hop
+# nor its position: round 6 (`13-VERIFICATION-round6.md`, CR-01)
+# reproduced its vacuity by deleting the GT-led hop from the fixture
+# block entirely, leaving a plainly conforming chain, and `--self-test`
+# stayed GREEN — the fixture demonstrated nothing and R9's published
+# positional disclosure lost its only evidence. Plan 13-22 (CR-01) is the
+# fix: `R-HEAD-GTHOP-LATE`'s new third needle, `"binding one\n→ GT-4's
+# stated duty cycle"`, pins the offending hop by the hop that must
+# PRECEDE it — the whole measured bound R9 discloses, that two arrow-led
+# hops must already have matched before the identifier appears — and is
+# unique to the late-position block, and `R-HEAD-GTHOP-BAD`'s third
+# needle, `"threshold)\n→ GT-4's stated duty cycle"`, is unique to the
+# first-position block. The pair now discriminates in both directions:
+# without either needle a mis-anchored extraction returning the wrong
+# block would still satisfy the other's shape guard, because both blocks
+# share the same head and the same offending hop text.
 _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CHAIN-CONFORMING": ("GT-1", "GT-6", "actual compute\n→ sustained"),
     "R-CHAIN-WRAPPED": ("GT-1", "GT-6", "\n  once idle-time billing"),
@@ -6614,6 +6621,7 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     ),
     "R-HEAD-GTHOP-LATE": (
         "the second reading is the binding one", "2.20× at full duty",
+        "binding one\n→ GT-4's stated duty cycle",
     ),
 }
 
@@ -7857,6 +7865,7 @@ def _render_registry_lock_problems(
             ),
             "R-HEAD-GTHOP-LATE": (
                 "the second reading is the binding one", "2.20× at full duty",
+                "binding one\n→ GT-4's stated duty cycle",
             ),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
