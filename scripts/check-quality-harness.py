@@ -13251,6 +13251,17 @@ def _selftest_ledger_traceability() -> bool:
     ledger-shaped line would pass the positives — honesty-not-score, D-01.
     Control (h) discriminates the fence rule from the claim filter, and
     (i) pins the frozen corpus against movement.
+
+    Plan 14-01 / D-11: (i) compares PER ANALYSIS, not just vector-to-vector
+    — a mismatch names the analysis, the field and both values — behind a
+    LENGTH FLOOR that fails rather than vacuously passing if any of the
+    three calibration vectors is emptied or resized. This is the mechanical
+    proof that D-02 (`_slice_sections`) and D-03
+    (`_closure_ledger_fragments`) left the v8.7 baseline (HARNESS-01)
+    unmoved. Disclosed bound: (i) pins `conclusion_claims` and
+    `untraced_claims` only, never `_closure_ledger_fragments` (D-03
+    deliberately drives this to zero across the corpus) or any other
+    `detect_defects` field.
     """
     ok = True
 
@@ -13351,18 +13362,65 @@ def _selftest_ledger_traceability() -> bool:
 
     # (i) The frozen calibration corpus does not move. The saturated
     #     `_CALIBRATION_UNTRACED_FLAGS` cannot see this axis at all.
+    #
+    #     Plan 14-01 / D-11 (2026-09-03): this control is the mechanical
+    #     assertion that D-02 (`_slice_sections`' section-6 boundary) and
+    #     D-03 (`_closure_ledger_fragments`' structural narrowing) did not
+    #     move the v8.7 baseline this detector protects (HARNESS-01,
+    #     docs/v8.7-quality-baseline-freeze.md). It was rewritten from a
+    #     whole-vector comparison to compare PER ANALYSIS, so a future
+    #     change to `_slice_sections`, `_closure_ledger_fragments`,
+    #     `_conclusion_claims` or `_claim_is_traced` that moves the record
+    #     fails naming the analysis, the field, the measured value and the
+    #     pinned value — not just "the vectors differ".
+    #
+    #     A LENGTH FLOOR runs first: without it, emptying
+    #     `_CALIBRATION_ANALYSIS_ORDER` makes the per-analysis loop below
+    #     run zero times and pass vacuously. The whole-vector comparison is
+    #     kept alongside the per-analysis loop — it is what catches a
+    #     length/order change that a per-element loop over a shortened list
+    #     would silently skip.
+    #
+    #     DISCLOSED BOUND: this control pins `conclusion_claims` and
+    #     `untraced_claims` only. It does not pin `_closure_ledger_fragments`
+    #     (D-03 deliberately drives this to zero across the corpus — see
+    #     the LEDGER-01 comment block above `_closure_ledger_fragments`),
+    #     and it does not observe any other `detect_defects` field.
     base = REPO_ROOT / "tests" / "quality-baseline-v8.7" / "analyses"
-    measured_claims, measured_untraced = [], []
-    for name in _CALIBRATION_ANALYSIS_ORDER:
-        rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
-        measured_claims.append(rec["conclusion_claims"])
-        measured_untraced.append(rec["untraced_claims"])
-    if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
-        _fail(f"(i) conclusion_claims moved: {measured_claims} != "
-              f"{_CALIBRATION_CONCLUSION_CLAIMS}")
-    if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
-        _fail(f"(i) untraced_claims moved: {measured_untraced} != "
-              f"{_CALIBRATION_UNTRACED_CLAIMS}")
+
+    lengths = {
+        "_CALIBRATION_ANALYSIS_ORDER": len(_CALIBRATION_ANALYSIS_ORDER),
+        "_CALIBRATION_CONCLUSION_CLAIMS": len(_CALIBRATION_CONCLUSION_CLAIMS),
+        "_CALIBRATION_UNTRACED_CLAIMS": len(_CALIBRATION_UNTRACED_CLAIMS),
+    }
+    if len(set(lengths.values())) != 1 or lengths["_CALIBRATION_ANALYSIS_ORDER"] != 6:
+        _fail(f"(i) LENGTH FLOOR: calibration vectors are not all length 6: "
+              f"{lengths!r}")
+    else:
+        measured_claims, measured_untraced = [], []
+        for name in _CALIBRATION_ANALYSIS_ORDER:
+            rec = detect_defects((base / f"{name}.md").read_text(encoding="utf-8"), name)
+            measured_claims.append(rec["conclusion_claims"])
+            measured_untraced.append(rec["untraced_claims"])
+
+        if measured_claims != _CALIBRATION_CONCLUSION_CLAIMS:
+            _fail(f"(i) conclusion_claims moved: {measured_claims} != "
+                  f"{_CALIBRATION_CONCLUSION_CLAIMS}")
+        if measured_untraced != _CALIBRATION_UNTRACED_CLAIMS:
+            _fail(f"(i) untraced_claims moved: {measured_untraced} != "
+                  f"{_CALIBRATION_UNTRACED_CLAIMS}")
+
+        for name, m_claims, p_claims, m_untraced, p_untraced in zip(
+            _CALIBRATION_ANALYSIS_ORDER, measured_claims,
+            _CALIBRATION_CONCLUSION_CLAIMS, measured_untraced,
+            _CALIBRATION_UNTRACED_CLAIMS,
+        ):
+            if m_claims != p_claims:
+                _fail(f"(i) {name}: conclusion_claims moved: "
+                      f"measured {m_claims} != pinned {p_claims}")
+            if m_untraced != p_untraced:
+                _fail(f"(i) {name}: untraced_claims moved: "
+                      f"measured {m_untraced} != pinned {p_untraced}")
 
     return ok
 
