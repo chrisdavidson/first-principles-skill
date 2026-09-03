@@ -6521,6 +6521,24 @@ _RENDER_CONTRACT_EXTRACTION_TABLE: tuple[tuple[str, str, str, str], ...] = (
         "fenced-block",
         "**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**",
     ),
+    (
+        "R-HEAD-PERIOD-BAD",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming — the first hop closing its own sentence:**",
+    ),
+    (
+        "R-HEAD-PERIOD-OK",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Conforming — the same chain with the first hop's terminal period removed:**",
+    ),
+    (
+        "R-HEAD-PERIOD-LATE",
+        "shared/spine/references/output-template.md",
+        "fenced-block",
+        "**Non-conforming, and undetected by the form check — the same period moved to a later hop:**",
+    ),
 )
 
 # Substrings the extracted text for each fixture id MUST contain before any
@@ -6623,6 +6641,39 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
         "the second reading is the binding one", "2.20× at full duty",
         "binding one\n→ GT-4's stated duty cycle",
     ),
+    # `R-HEAD-PERIOD-BAD` / `R-HEAD-PERIOD-OK` / `R-HEAD-PERIOD-LATE`
+    # (plan 13-26, CR-05 fixture half) pin R10's disclosed over-rejection
+    # bound in all three measured directions, applying the GTHOP triple's
+    # lesson from the start rather than repeating the two-needle mistake
+    # 13-19 originally shipped: BAD's third needle,
+    # `"workload shape.\n→ C2's saving"`, pins the terminal period IN
+    # POSITION — the first hop's tail, the newline, and the opening of the
+    # hop it wrongly closes the chain before — and is absent from both OK
+    # (no period there) and LATE (the period sits three hops later).
+    # OK's needle, `"workload shape\n→ C2's saving"`, is the same
+    # transition with the period removed and is absent from BAD (whose
+    # period breaks the match) and from LATE (whose second hop is a
+    # different sentence, not `"C2's saving"` — a third hop was inserted
+    # for exactly this reason: PERIOD-OK's full text would otherwise be a
+    # literal prefix of PERIOD-LATE's, and no substring needle can
+    # discriminate a text from its own prefix). LATE's third needle,
+    # `"alone\n→ C2's saving is real only above the duty-cycle threshold
+    # this estimate assumes."`, pins the period at its late position the
+    # same way BAD's pins the early one — the inserted second hop's tail,
+    # the newline, and the closing hop the check never re-tests once its
+    # two-arrow requirement is already satisfied.
+    "R-HEAD-PERIOD-BAD": (
+        "C1's saving is unconditional", "2.20× at full duty",
+        "workload shape.\n→ C2's saving",
+    ),
+    "R-HEAD-PERIOD-OK": (
+        "C1's saving is unconditional", "2.20× at full duty",
+        "workload shape\n→ C2's saving",
+    ),
+    "R-HEAD-PERIOD-LATE": (
+        "does not rest on C1 alone", "2.20× at full duty",
+        "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
+    ),
 }
 
 # Substrings the extracted text for a fixture id must NOT contain.
@@ -6706,7 +6757,7 @@ def _render_chain_family_ids(
     The chain family is a PROXY for "scored by the single-argument
     `_chain_block_well_formed`" (see `_RENDER_CHAIN_FAMILY_PREFIXES`'s
     own comment for the disclosure) — this helper is deliberately not a
-    membership test against a hand-written id list, so a fifteenth
+    membership test against a hand-written id list, so a sixteenth
     `R-CHAIN-*`/`R-HEAD-*` fixture added to the locked set is picked up
     the next time this runs rather than requiring a second edit here.
     Pure: takes both inputs as parameters and reads no module constant
@@ -7868,8 +7919,9 @@ def _render_registry_lock_problems(
         "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
         "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-GTHOP-BAD",
-        "R-HEAD-GTHOP-LATE", "R-HEAD-GTHOP-OK", "R-HEAD-PROSE-BAD",
-        "R-HEAD-PROSE-MID",
+        "R-HEAD-GTHOP-LATE", "R-HEAD-GTHOP-OK",
+        "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-LATE", "R-HEAD-PERIOD-OK",
+        "R-HEAD-PROSE-BAD", "R-HEAD-PROSE-MID",
         "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
     ]
 
@@ -7976,6 +8028,24 @@ def _render_registry_lock_problems(
             'fenced-block',
             '**Non-conforming, and undetected by the form check — the GT-led hop in a later position:**',
         ),
+        (
+            'R-HEAD-PERIOD-BAD',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming — the first hop closing its own sentence:**',
+        ),
+        (
+            'R-HEAD-PERIOD-OK',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            "**Conforming — the same chain with the first hop's terminal period removed:**",
+        ),
+        (
+            'R-HEAD-PERIOD-LATE',
+            'shared/spine/references/output-template.md',
+            'fenced-block',
+            '**Non-conforming, and undetected by the form check — the same period moved to a later hop:**',
+        ),
     )
     if snapshot.extraction_rows != expected_extraction_rows:
         if len(snapshot.extraction_rows) != len(expected_extraction_rows):
@@ -8053,6 +8123,18 @@ def _render_registry_lock_problems(
             "R-HEAD-GTHOP-LATE": (
                 "the second reading is the binding one", "2.20× at full duty",
                 "binding one\n→ GT-4's stated duty cycle",
+            ),
+            "R-HEAD-PERIOD-BAD": (
+                "C1's saving is unconditional", "2.20× at full duty",
+                "workload shape.\n→ C2's saving",
+            ),
+            "R-HEAD-PERIOD-OK": (
+                "C1's saving is unconditional", "2.20× at full duty",
+                "workload shape\n→ C2's saving",
+            ),
+            "R-HEAD-PERIOD-LATE": (
+                "does not rest on C1 alone", "2.20× at full duty",
+                "alone\n→ C2's saving is real only above the duty-cycle threshold this estimate assumes.",
             ),
         }
         for fixture_id, expected_shape in expected_fixture_shape.items():
@@ -9978,6 +10060,9 @@ def _selftest_render_contract() -> bool:
     head_gthop_bad = _get("R-HEAD-GTHOP-BAD")
     head_gthop_ok = _get("R-HEAD-GTHOP-OK")
     head_gthop_late = _get("R-HEAD-GTHOP-LATE")
+    head_period_bad = _get("R-HEAD-PERIOD-BAD")
+    head_period_ok = _get("R-HEAD-PERIOD-OK")
+    head_period_late = _get("R-HEAD-PERIOD-LATE")
 
     # `scored_verdicts` backs the (p) CONSUMPTION FLOOR's fourth arm below:
     # for every id one of the four wrappers records, the boolean VERDICT
@@ -10145,6 +10230,46 @@ def _selftest_render_contract() -> bool:
             "(b) R-HEAD-GTHOP-LATE (doc label 'Non-conforming, and "
             "undetected by the form check — the GT-led hop in a later "
             "position:') scored malformed, expected well-formed "
+            "(measured bound)"
+        )
+
+    # (b) R-HEAD-PERIOD-BAD / R-HEAD-PERIOD-OK / R-HEAD-PERIOD-LATE
+    #     (plan 13-26, CR-05 fixture half): pin R10's disclosed
+    #     over-rejection bound in all three measured directions. BAD and
+    #     OK are a minimal pair differing by exactly one character (the
+    #     first hop's terminal period) and are scored in opposite
+    #     directions by the unmodified detector — the check ends the
+    #     chain at the sentence-closing first hop before its two-arrow
+    #     requirement is satisfied, so BAD is malformed even though it
+    #     violates none of R1-R9, and removing the period restores the
+    #     match. LATE moves the identical period past the point where the
+    #     check's two-arrow requirement is already satisfied — the check
+    #     never re-tests a closed sentence for a line that does not
+    #     follow it — and is scored WELL-FORMED, pinning the bound's
+    #     undetected half.
+    if head_period_bad is not None and _score_chain(
+        "R-HEAD-PERIOD-BAD", head_period_bad
+    ):
+        _fail(
+            "(b) R-HEAD-PERIOD-BAD (doc label 'Non-conforming — the "
+            "first hop closing its own sentence:') scored well-formed, "
+            "expected malformed"
+        )
+    if head_period_ok is not None and not _score_chain(
+        "R-HEAD-PERIOD-OK", head_period_ok
+    ):
+        _fail(
+            "(b) R-HEAD-PERIOD-OK (doc label 'Conforming — the same "
+            "chain with the first hop's terminal period removed:') "
+            "scored malformed, expected well-formed"
+        )
+    if head_period_late is not None and not _score_chain(
+        "R-HEAD-PERIOD-LATE", head_period_late
+    ):
+        _fail(
+            "(b) R-HEAD-PERIOD-LATE (doc label 'Non-conforming, and "
+            "undetected by the form check — the same period moved to a "
+            "later hop:') scored malformed, expected well-formed "
             "(measured bound)"
         )
 
@@ -10328,6 +10453,7 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
         "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
         "R-HEAD-GTHOP-LATE",
+        "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -10368,7 +10494,7 @@ def _selftest_render_contract() -> bool:
 
     # (p) CHAIN VERDICT FLOOR — arm 4a. Plan 13-10 (BL-03,
     #     `13-VERIFICATION.md`): this arm reads `fixtures` and calls the
-    #     frozen `_chain_block_well_formed` directly on the ten
+    #     frozen `_chain_block_well_formed` directly on the thirteen
     #     chain-family fixtures' extracted text — it consults NO recorder
     #     of any shape, so no forgery of `scored_verdicts` (a `.update(`,
     #     a bare subscript write, a wrapper that fabricates its return)
@@ -10388,6 +10514,9 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-GTHOP-BAD": False,
         "R-HEAD-GTHOP-OK": True,
         "R-HEAD-GTHOP-LATE": True,
+        "R-HEAD-PERIOD-BAD": False,
+        "R-HEAD-PERIOD-OK": True,
+        "R-HEAD-PERIOD-LATE": True,
     }
     for render_chain_problem in _render_chain_verdict_floor_problems(
         render_chain_verdict_expected, fixtures, _chain_block_well_formed, problems
@@ -10418,6 +10547,9 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-GTHOP-BAD": [False],
         "R-HEAD-GTHOP-OK": [True],
         "R-HEAD-GTHOP-LATE": [True],
+        "R-HEAD-PERIOD-BAD": [False],
+        "R-HEAD-PERIOD-OK": [True],
+        "R-HEAD-PERIOD-LATE": [True],
         "R-VERDICT-EXPIRY": [True],
         "R-VERDICT-EXPIRY-BAD": [False],
         "R-CITE-INLINE": [True],

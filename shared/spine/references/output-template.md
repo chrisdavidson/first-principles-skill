@@ -266,6 +266,37 @@ C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
 
 This hop breaks the same rule as the non-conforming block above and is equally non-conforming, but the mechanical form check scores it conforming — with two hops already matched before it, the check has satisfied its arrow requirement and never evaluates the leading identifier. Write `→ the duty cycle stated in GT-4 is the binding term in both estimates` wherever the hop sits; the rule is the contract, and the check is a partial instrument for it.
 
+**Non-conforming — the first hop closing its own sentence:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ C1's saving is unconditional and does not depend on workload shape.
+→ C2's saving is real only above the duty-cycle threshold this estimate assumes
+```
+
+This chain violates none of R1-R9 — every input parses, every hop states one inference, no hop leads with a `GT-N` identifier — and is scored malformed anyway, because the mechanical form check ends the chain the moment the first hop closes its own sentence, before its two-arrow requirement is satisfied, and never reaches the well-formed hop that follows.
+
+**Conforming — the same chain with the first hop's terminal period removed:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ C1's saving is unconditional and does not depend on workload shape
+→ C2's saving is real only above the duty-cycle threshold this estimate assumes
+```
+
+Exactly one character differs from the block above: the terminal period. Removing it, and nothing else, restores the two-arrow match the check requires.
+
+**Non-conforming, and undetected by the form check — the same period moved to a later hop:**
+
+```text
+C1 (2.20× at full duty) + C2 (conditional on an unmeasured threshold)
+→ C1's saving is unconditional and does not depend on workload shape
+→ the migration case does not rest on C1 alone
+→ C2's saving is real only above the duty-cycle threshold this estimate assumes.
+```
+
+This block breaks the identical rule one hop later and is equally non-conforming, but the mechanical form check scores it conforming — with two hops already matched before the closing sentence is reached, the check has satisfied its two-arrow requirement and the sentence-closing period on the third hop has no following line left to block. Write the closing hop with no terminal punctuation wherever it sits; the rule is the contract, and the check is a partial instrument for it.
+
 **One-inference rule.** A hop states exactly ONE inference. If a hop joins two claims with "and", or carries a parenthetical that could stand as its own claim, it is two hops — split it.
 
 TELL (not the rule): a hop past ~200 characters is almost always two hops. Measure the hop, then split — do not wrap it, and do not trim words to hit a number.
