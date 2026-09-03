@@ -11906,12 +11906,21 @@ def _selftest_render_contract() -> bool:
         f"{len(_QUAL01_DOC_ROW_TOKENS)} tokens)"
     )
     if render_m2_expected_sentence not in render_m2_doc_normalized:
+        render_m2_found_match = re.search(
+            r"derives the expected \d+ \(\d+ doc rows x \d+ tokens\)",
+            render_m2_doc_normalized,
+        )
+        render_m2_found = (
+            render_m2_found_match.group(0)
+            if render_m2_found_match
+            else "<no matching sentence found in the docstring at all>"
+        )
         _fail(
-            f"(m2) DOCSTRING COUNT LOCK: expected the docstring to state "
-            f"{render_m2_expected_sentence!r} (derived from the live "
-            f"registries); not found in the docstring's transcription — "
-            f"the NEGATIVE-CASE COUNT FLOOR sentence has drifted from the "
-            f"value the code actually derives"
+            f"(m2) DOCSTRING COUNT LOCK: the docstring's transcription "
+            f"reads {render_m2_found!r} but the live registries derive "
+            f"{render_m2_expected_sentence!r} — the NEGATIVE-CASE COUNT "
+            f"FLOOR sentence has drifted from the value the code actually "
+            f"derives"
         )
 
     # (n) ISOLATION, unregistered surface. Plan 11-07's first fail-closed
