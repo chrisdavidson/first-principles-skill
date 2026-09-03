@@ -370,7 +370,9 @@ Summarize the analysis result. The Conclusion section synthesizes what the Deriv
 
 If Confidence is MEDIUM or LOW: name the specific `GT-N?` inputs from the Derivation Chains that caused the downgrade and state what verification would raise confidence to HIGH. A MEDIUM or LOW conclusion without this explanation does not satisfy D-07.
 
-**Citation form.** Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened.
+**Claim inventory.** A Conclusion-section claim is a bold lead-in whose colon closes the bold span, or a numbered or bulleted list item, and the three lead-ins this template prescribes — `**Recommended approach:**`, `**Key insight:**`, `**Trade-offs acknowledged:**` — are always claims and each must cite a chain; nothing inside a fenced block is ever a claim whatever its shape, a near-paraphrase restatement or direct entailment of an already-cited claim earlier in the same section is not a second claim, and prose carrying neither a bold colon lead-in nor a list marker is not a claim at all. Three bounds are measured, not assumed: a bold lead-in whose colon-terminated span is the entire physical line and carries no citation of its own is a section-intro label, and the citation obligation then falls to the list items beneath it; a bold span whose closing `**` is not immediately preceded by the colon is not matched at all — write `**Label:** text` to match, not `**Label: text**`; and a list item counts only when it closes its own sentence or runs past forty characters. Enumerate by this rule, not by recollection — the rule is the contract and the extractor is a partial instrument for it.
+
+**Citation form.** Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened. Ledger discharge requires the structural row form the closure-ledger example below shows — a list marker, then the quoted claim, then an arrow, then the chain id — and a prose sentence that merely quotes something and names a chain is not a ledger row. This is detected only when the row sits inside section 6: the ledger emitted as process output before the analysis is not visible to the check, and inline citation is therefore the mechanically checkable form.
 
 **Conforming — inline chain citation:**
 
@@ -391,3 +393,77 @@ If Confidence is MEDIUM or LOW: name the specific `GT-N?` inputs from the Deriva
 ```
 
 Both forms are accepted because both discharge the same obligation: the ledger is process output emitted before the analysis (see the agent body — `SKILL.md` on the skill surface, `agents/first-principles.md` on the agent surface — "Before presenting conclusions"), not a seventh output section, and the chain IDs cited are the `C1`/`C2` IDs assigned by §4's chain-numbering convention.
+
+**Caveats.** A caveat qualifying an existing Conclusion-section claim either names the chain it qualifies inline or carries the marker `no chain — flagged assumption only` (em dash, lower case, no trailing punctuation inside the marker), and a marked caveat still scores untraced: the marker discloses the gap, it does not discharge the claim, because it is honest labelling rather than a citation and the extractor is deliberately not taught to recognise it. A caveat doing neither is cut, not softened.
+
+**Not a claim — a bold lead-in alone on its line, carrying no citation:**
+
+```text
+**Recommended approach — three steps, in this order:**
+```
+
+This is the hinge of "detectable from the emission alone" — an author can dodge extraction by putting the lead-in on its own line, and the claim obligation then falls to the numbered items beneath it.
+
+**A claim — the same lead-in carrying its assertion on the same line:**
+
+```text
+**Recommended approach:** Move sustained workloads to Fargate before evaluating Lambda (chain C1).
+```
+
+Nothing follows the closing `**` in the block above and something does here, which is the whole difference.
+
+**A claim — the lead-in alone on its line, but carrying its own citation:**
+
+```text
+**Recommended approach, established in chain C1:**
+```
+
+The section-intro-label exclusion is conditional on carrying no citation; naming the chain inside the label keeps it a claim.
+
+**Not matched at all — a bold span whose colon sits inside it:**
+
+```text
+**Overall confidence: HIGH.**
+```
+
+The extractor requires the colon to close the bold span, so this line is not a claim and not a non-claim — it is never looked at.
+
+**A claim — the same statement with the colon closing the bold span:**
+
+```text
+**Overall confidence:** HIGH — seven of eight chains rest on figures read at source (chain C1).
+```
+
+One character moved, and the statement enters the inventory.
+
+**Not a claim — a short list item with no sentence-ending punctuation:**
+
+```text
+- Measure duty cycle first
+```
+
+Twenty-four characters and no terminal punctuation, so it falls under the assertiveness floor.
+
+**A claim — a short list item closing its own sentence:**
+
+```text
+- Size the Savings Plan after cleanup.
+```
+
+Also under forty characters, so the terminal punctuation is the only thing carrying it over the floor. The two items above are worded differently only so each block is uniquely locatable by the fixture-extraction guard — a true one-character minimal pair would make one block's text a literal prefix of the other's, which no substring needle can discriminate (the `R-HEAD-PERIOD-*` lesson) — and a later control proves the axis is punctuation by re-scoring each block with its punctuation toggled.
+
+**Conformant but still untraced — a caveat carrying the flagged-assumption marker:**
+
+```text
+**Trade-offs acknowledged:** the ~73% figure is a ceiling requiring an all-upfront commitment; the realized figure on a no-upfront plan is materially lower — no chain — flagged assumption only.
+```
+
+The marker satisfies the Caveats rule above and the claim still scores untraced; that is honesty-not-score, not a defect, and it is why the extractor is not taught to recognise the marker.
+
+**Conformant and traced — the same caveat citing the chain it qualifies:**
+
+```text
+**Trade-offs acknowledged:** the ~73% figure is a ceiling requiring an all-upfront commitment; the realized figure on a no-upfront plan is materially lower (chain C5).
+```
+
+Naming C5 discharges the claim; the marker discloses it. The two rewrites land on different Criterion 6 bands, and that band is assigned by a model — no gate in this tree checks it.

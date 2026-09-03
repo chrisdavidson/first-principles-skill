@@ -293,12 +293,16 @@ in the Conclusion section (section 6). For each claim, confirm it names a specif
 from section 4. If it does, keep the claim. If it does not, either add the missing chain or cut the
 claim from section 6 — no unbacked §6 claim survives to presentation.
 
-Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened.
+A Conclusion-section claim is a bold lead-in whose colon closes the bold span, or a numbered or bulleted list item, and the three lead-ins this template prescribes — `**Recommended approach:**`, `**Key insight:**`, `**Trade-offs acknowledged:**` — are always claims and each must cite a chain; nothing inside a fenced block is ever a claim whatever its shape, a near-paraphrase restatement or direct entailment of an already-cited claim earlier in the same section is not a second claim, and prose carrying neither a bold colon lead-in nor a list marker is not a claim at all. Three bounds are measured, not assumed: a bold lead-in whose colon-terminated span is the entire physical line and carries no citation of its own is a section-intro label, and the citation obligation then falls to the list items beneath it; a bold span whose closing `**` is not immediately preceded by the colon is not matched at all — write `**Label:** text` to match, not `**Label: text**`; and a list item counts only when it closes its own sentence or runs past forty characters. Enumerate by this rule, not by recollection — the rule is the contract and the extractor is a partial instrument for it.
+
+Every Conclusion-section claim either names the chain that established it inline — `(chain C1)` — or is discharged by a §6→§4 closure ledger row that quotes the claim and names its chain. A claim doing neither is cut, not softened. Ledger discharge requires the structural row form the closure-ledger example below shows — a list marker, then the quoted claim, then an arrow, then the chain id — and a prose sentence that merely quotes something and names a chain is not a ledger row. This is detected only when the row sits inside section 6: the ledger emitted as process output before the analysis is not visible to the check, and inline citation is therefore the mechanically checkable form.
 
 Emit the result as a visible add-or-cut ledger, one row per §6 claim, shown as process output before
 the presented analysis — the same precedent the rubric's Assumption Audit table already follows
 (included in the response before the verdict blocks). The ledger is process output, **not** a seventh
 output section; the fixed six-section template shape defined above under Output format is unchanged.
+
+A caveat qualifying an existing Conclusion-section claim either names the chain it qualifies inline or carries the marker `no chain — flagged assumption only` (em dash, lower case, no trailing punctuation inside the marker), and a marked caveat still scores untraced: the marker discloses the gap, it does not discharge the claim, because it is honest labelling rather than a citation and the extractor is deliberately not taught to recognise it. A caveat doing neither is cut, not softened.
 
 Ledger form (cite the chain's assigned ID from output-template.md §4's numbering
 convention — `C1`, `C2`, ... in document order):
