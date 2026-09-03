@@ -532,6 +532,16 @@ fi
 # scratchpad and not reproducible without a paid live run. Nothing else in
 # this battery enforces its byte-freeze.
 #
+# Coverage change (Phase 14 Plan 06, D-04): one path added,
+# tests/quality-ledger-v8.26 — the 2026-09-02 PR-P1 analysis (v8.25.0)
+# control (j) in check-quality-harness.py reads as its closure-ledger
+# claim-inventory live leg (7 claims / 0 ledger fragments / 1 untraced).
+# Irreplaceable for the same reason as quality-provenance-v8.24: the run is
+# not reproducible by any command, and `.planning/` is gitignored, so this
+# tracked copy is the only reachable one. The disclosed gap above (a
+# committed `git rm` deletion is invisible to either leg) applies here too —
+# restated, not newly introduced, by this addition.
+#
 # Strengthened (v8.24.0 Phase 4 Plan 04-04, WR-01): this was one leg —
 # `git diff --quiet -- <paths>` with no commit argument, which compares
 # worktree to INDEX, not to HEAD. Measured in an isolated repo before this
@@ -571,6 +581,7 @@ _FROZEN_PATHS=(
     'tests/quality-baseline-v8.10-oos'
     'tests/defrobust-v8.11'
     'tests/quality-provenance-v8.24'
+    'tests/quality-ledger-v8.26'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
