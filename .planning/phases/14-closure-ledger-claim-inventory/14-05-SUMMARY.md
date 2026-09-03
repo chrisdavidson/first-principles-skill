@@ -171,3 +171,15 @@ None — no external service configuration required.
 ---
 *Phase: 14-closure-ledger-claim-inventory*
 *Completed: 2026-09-03*
+
+## Self-Check: PASSED
+
+- FOUND: tests/quality-ledger-v8.26/PR-P1.md
+- FOUND: tests/quality-ledger-v8.26/PR-P1.jsonl
+- FOUND: tests/quality-ledger-v8.26/README.md
+- FOUND: scripts/check-quality-harness.py
+- FOUND commit: 0014330 (Task 1)
+- FOUND commit: e5b214b (Task 2)
+- CONFIRMED: `python3 scripts/check-quality-harness.py --self-test` exit 0
+- CONFIRMED: `bash scripts/check-firewall-battery.sh` — FIREWALL: GREEN (23/23)
+- CONFIRMED: `python3 scripts/sync-content.py --check` exit 0
