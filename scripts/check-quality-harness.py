@@ -7414,6 +7414,28 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "chain conforming, so the rule binds in positions the check does "
         "not reach."
     ),
+    # R10: the detector's over-rejection bound, the mirror image of R7's and
+    # R9's under-detection bounds (CHAINHEAD-01, `13-VERIFICATION-round6.md`
+    # gap 4 / CR-05, plan 13-25). Measured directly against the live,
+    # unmutated `_chain_block_well_formed`: closing the head's or the first
+    # hop's own sentence rejects the chain at every hop count tested
+    # (2/3/4 hops), while the identical closure from the second hop onward
+    # leaves the verdict unchanged at every hop count tested — positional,
+    # exactly like R7's and R9's bounds. This is why plan 13-13 stripped
+    # terminal periods from intermediate hops in the shipped worked
+    # examples: naming the practice and its reason here discloses that
+    # choice without editing the example files themselves.
+    "R10": (
+        "The mechanical form check additionally rejects a chain whose "
+        "head or first hop closes its own sentence before the next "
+        "`→`: it reads the following arrow-led line as a new statement "
+        "and ends the chain there, so a chain satisfying every rule "
+        "above is scored malformed for that reason alone. The check "
+        "reaches only that position — a hop that closes its own "
+        "sentence from the second hop onward does not change the "
+        "verdict — which is why intermediate hops carry no terminal "
+        "punctuation in this project's worked examples."
+    ),
 }
 
 # Which `_RENDER_RULE_LITERALS` keys each `_RENDER_RULE_SURFACES` entry must
@@ -7435,16 +7457,16 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
 # set, which is half the point of registering it.
 _RENDER_SURFACE_REQUIRED_RULES: dict[str, tuple[str, ...]] = {
     "shared/spine/references/output-template.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
     ),
     "shared/spine/SKILL-body.md": (
-        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
+        "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
     ),
     "shared/spine/references/validation-rubric.md": (
-        "R1", "R6", "R7", "R8", "R9",
+        "R1", "R6", "R7", "R8", "R9", "R10",
     ),
     "shared/references/reason-upward.md": (
-        "R6", "R7", "R8", "R9",
+        "R6", "R7", "R8", "R9", "R10",
     ),
 }
 
@@ -8065,16 +8087,16 @@ def _render_registry_lock_problems(
 
     expected_required_rules = {
         "shared/spine/references/output-template.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
         ),
         "shared/spine/SKILL-body.md": (
-            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9",
+            "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
         ),
         "shared/spine/references/validation-rubric.md": (
-            "R1", "R6", "R7", "R8", "R9",
+            "R1", "R6", "R7", "R8", "R9", "R10",
         ),
         "shared/references/reason-upward.md": (
-            "R6", "R7", "R8", "R9",
+            "R6", "R7", "R8", "R9", "R10",
         ),
     }
     if snapshot.required_rules != expected_required_rules:
@@ -8274,6 +8296,13 @@ def _render_registry_lock_problems(
         # the disclosure, not the refusal (plan 13-18, mirroring plan
         # 13-08's identical re-point for R7).
         "R9": "detects that violation only while fewer than two hops precede it",
+        # R10's clause pins the POSITIONAL half rather than the rejection
+        # half, following R7's and R9's own rationale: the clause arm
+        # proves one substring per rule, so it must pin the half a future
+        # edit is likeliest to quietly drop, which is the disclosure that
+        # the over-rejection bound does not reach hop 2 onward (plan
+        # 13-25, gap 4 / CR-05).
+        "R10": "from the second hop onward does not change the verdict",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -8306,7 +8335,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:1990944390d22d07dcace92290262159bdfa8c09a2686534c6e300f621aebe00"
+        "sha256:301ef5ff8ebe97b8163800e9f9cc2b0daec1ac1b48a97a64ac1adc23ccf6e8f3"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
@@ -12223,9 +12252,9 @@ def _selftest_render_contract() -> bool:
     #     relpath and that key. The case count follows the mapping rather
     #     than a restated number: a floor immediately below requires it to
     #     equal sum(len(keys) for keys in
-    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 27 today
-    #     (9 + 9 + 5 + 4, the last four being plan 13-20's reason-upward
-    #     entry), so shrinking the mapping fails the floor rather than
+    #     _RENDER_SURFACE_REQUIRED_RULES.values()), 31 today
+    #     (10 + 10 + 6 + 5, each surface gaining one entry for plan 13-25's
+    #     R10), so shrinking the mapping fails the floor rather than
     #     silently reducing coverage.
     missing_cases_unfired: list[str] = []
     missing_cases_run = 0
@@ -12249,7 +12278,7 @@ def _selftest_render_contract() -> bool:
             f"did not fire when the literal was stripped in memory: "
             f"{missing_cases_unfired!r}"
         )
-    expected_missing_case_count = 27
+    expected_missing_case_count = 31
     derived_missing_case_count = sum(
         len(keys) for keys in _RENDER_SURFACE_REQUIRED_RULES.values()
     )
