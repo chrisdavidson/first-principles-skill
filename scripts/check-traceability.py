@@ -1860,8 +1860,18 @@ def _resolve_confined_output(path: Path) -> Path:
 # immediately — see the docstring below.
 _SELFTEST_ANCHOR_PREFIXES = ("_selftest_", "_self_test_")
 _SELFTEST_DISPATCHER_NAMES = ("self_test", "_run_self_test")
+
+# The single whitespace-vocabulary constant BOTH `_SELFTEST_DISPATCHER_PAT`
+# below and `_next_top_level_pat` (inside `_selftest_dispatch_problems`)
+# consume, so the two patterns cannot disagree on whitespace by construction
+# (13-27, CR-03 / `13-REVIEW.md`). Before this constant existed, the two
+# patterns were independently hand-written literals (`def\s+` vs `def\s`) —
+# compatible in practice but not derived from one source, so the "cannot
+# disagree by construction" claim published in CLAUDE.md's and
+# docs/ARCHITECTURE.md's TRACE-03 rows was asserted, not true of the code.
+_DEF_CONSTRUCT_PREFIX = r"(?:async\s+)?def\s"
 _SELFTEST_DISPATCHER_PAT = re.compile(
-    r"^(?:async\s+)?def\s+("
+    r"^" + _DEF_CONSTRUCT_PREFIX + r"+("
     + "|".join(re.escape(_n) for _n in _SELFTEST_DISPATCHER_NAMES)
     + r")\(",
     re.MULTILINE,
@@ -1894,27 +1904,32 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     `async def self_test(`, reintroducing the exact bug `_resolve_artifact`'s own
     `_def_class_pat` two functions up already carries an explicit `async\\s+def`
     alternation to avoid — the two patterns must not disagree inside one file).
-    BOTH the dispatcher pattern above and the body-boundary pattern below now
-    SHARE THE SAME WHITESPACE VOCABULARY (`(?:async\\s+)?def\\s`), rather than
-    the boundary pattern restating it as a hand-written literal (13-17,
-    WR-01, `13-VERIFICATION-round4.md`): 13-11 widened only the dispatcher
-    half for WR-03, and 13-15 then widened the body-boundary pattern to
-    match the single canonical rendering (`async def`, exactly one space) —
-    but a multi-space `async  def`, a tab-separated `def`, or — sharpest —
-    a multi-space dispatcher whose body that literal-space pattern then
-    could not terminate, all still let an `async def`-shaped construct
-    immediately following the dispatcher be absorbed into the dispatcher's
-    own body slice instead of ending it, so a call inside that construct
-    silently counted as a dispatch (CR-02, `13-REVIEW-plans-08-11.md`,
+    BOTH the dispatcher pattern above and the body-boundary pattern below are
+    BUILT FROM `_DEF_CONSTRUCT_PREFIX`, the single module-level constant
+    holding the shared whitespace vocabulary (`(?:async\\s+)?def\\s`), rather
+    than each restating it as its own hand-written literal (13-17, WR-01,
+    `13-VERIFICATION-round4.md`; made a real derivation rather than an
+    asserted one at 13-27, CR-03, `13-REVIEW.md`): 13-11 widened only the
+    dispatcher half for WR-03, and 13-15 then widened the body-boundary
+    pattern to match the single canonical rendering (`async def`, exactly
+    one space) — but a multi-space `async  def`, a tab-separated `def`, or
+    — sharpest — a multi-space dispatcher whose body that literal-space
+    pattern then could not terminate, all still let an `async def`-shaped
+    construct immediately following the dispatcher be absorbed into the
+    dispatcher's own body slice instead of ending it, so a call inside that
+    construct silently counted as a dispatch (CR-02, `13-REVIEW-plans-08-11.md`,
     independently reproduced in `13-VERIFICATION-round3.md`; the surviving
     whitespace-rendering residual independently reproduced in
-    `13-VERIFICATION-round4.md`, WR-01). Closed here (13-17) by deriving
-    the body-boundary pattern from the SAME whitespace vocabulary the
-    dispatcher pattern uses, so the two patterns cannot disagree on
-    whitespace by construction. This closes CR-02 and WR-01 — the two
-    patterns disagreeing on `async def` and its whitespace variants — and
-    is a DIFFERENT residual from the DISCLOSED LIMITATION below (the
-    last-top-level-construct body overrun), which remains open by decision.
+    `13-VERIFICATION-round4.md`, WR-01). Closed at 13-17 by writing the
+    body-boundary pattern against the SAME whitespace vocabulary the
+    dispatcher pattern uses, so the two patterns could not practically
+    disagree; made a structural guarantee at 13-27 by sourcing both patterns
+    from `_DEF_CONSTRUCT_PREFIX` itself, so they cannot disagree on
+    whitespace BY CONSTRUCTION, as published. This closes CR-02 and WR-01 —
+    the two patterns disagreeing on `async def` and its whitespace variants —
+    and is a DIFFERENT residual from the DISCLOSED LIMITATIONS below (the
+    last-top-level-construct body overrun, and the between-construct body
+    overrun), both of which remain open by decision.
     If a file defines MORE than one of the dispatcher names, the FIRST
     one found (by position in the file, via `.search()`) is used and its body is
     what gets sliced — a deliberate, disclosed choice. Verified live before this
@@ -1947,6 +1962,17 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
     body slice extends to end of file, so trailing module-level code counts as
     dispatcher body — both are latent (no such mention exists in either file today,
     verified by grep) and are recorded as a deferred follow-on rather than fixed here.
+    A third, distinct case (round-6 WR-01, `13-VERIFICATION-round6.md`): the
+    boundary pattern terminates only at `def`/`async def`/`class`/`@` — a
+    top-level statement (an assignment, a bare expression, an `if`/`for`/`try`)
+    sitting BETWEEN the dispatcher and the next such construct is not itself a
+    boundary and is absorbed into the dispatcher's body slice too, the same
+    absorption WR-02 discloses for trailing-after-last code, here mid-file
+    rather than end-of-file. Also latent (no such statement sits between either
+    file's dispatcher and its neighboring construct today, verified by
+    inspection) and deliberately left open rather than widening the boundary
+    alternation to recognise arbitrary top-level statements, which would need
+    its own dedicated (h1) coverage this plan does not add.
     """
     if not anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
         return []
@@ -1960,17 +1986,19 @@ def _selftest_dispatch_problems(anchor: str, content: str, file_part: str) -> li
         ]
     _dispatcher_name = _match.group(1)
 
-    # Derived from `_SELFTEST_DISPATCHER_PAT`'s own whitespace vocabulary
-    # (`(?:async\s+)?def\s`) rather than a restated literal, so the two
-    # patterns cannot disagree on whitespace by construction (13-17, WR-01,
-    # `13-VERIFICATION-round4.md`): the prior literal `async def ` (exactly
-    # one space) accepted only the canonical single-space rendering, so a
-    # multi-space `async  def`, a tab-separated `def`, or — sharpest — a
-    # multi-space dispatcher whose body this pattern then could not
-    # terminate, all reproduced the identical CR-02 fail-open in a
-    # rendering the 13-15 fix did not reach.
+    # Built from `_DEF_CONSTRUCT_PREFIX` — the same module-level constant
+    # `_SELFTEST_DISPATCHER_PAT` above is built from — rather than a second,
+    # independently hand-written literal, so the two patterns cannot disagree
+    # on whitespace BY CONSTRUCTION (13-17, WR-01, `13-VERIFICATION-round4.md`;
+    # made a real derivation rather than an asserted one at 13-27, CR-03,
+    # `13-REVIEW.md`): the prior literal `async def ` (exactly one space)
+    # accepted only the canonical single-space rendering, so a multi-space
+    # `async  def`, a tab-separated `def`, or — sharpest — a multi-space
+    # dispatcher whose body this pattern then could not terminate, all
+    # reproduced the identical CR-02 fail-open in a rendering the 13-15 fix
+    # did not reach.
     _next_top_level_pat = re.compile(
-        r"^(?:(?:async\s+)?def\s|class\s|@)", re.MULTILINE
+        r"^(?:" + _DEF_CONSTRUCT_PREFIX + r"|class\s|@)", re.MULTILINE
     )
     _next_match = _next_top_level_pat.search(content, _match.end())
     _body_end = _next_match.start() if _next_match else len(content)
@@ -3332,7 +3360,11 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
           widening): a mention of the anchor inside a string literal or docstring
           counts as a dispatch, and trailing module-level code after the LAST
           top-level construct in a file counts as dispatcher body — both latent, no
-          such mention exists in either file today.
+          such mention exists in either file today. A third case (round-6 WR-01):
+          a top-level statement BETWEEN the dispatcher and the next construct is
+          absorbed the same way, mid-file rather than end-of-file — also latent,
+          also left open by decision (see `_selftest_dispatch_problems`'s own
+          DISCLOSED LIMITATION paragraph for the full statement).
 
     Called from _rows_v825() live — never hardcodes a MatrixRow literal (Pitfall 4).
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only

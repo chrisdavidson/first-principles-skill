@@ -6615,8 +6615,15 @@ _RENDER_FIXTURE_SHAPE: dict[str, tuple[str, ...]] = {
     "R-CITE-INLINE": ("(chain C1)",),
     "R-CITE-LEDGER": ("C1", '"'),
     "R-CITE-NONE": ("Fargate",),
-    "R-VERDICT-EXPIRY": ("expires at",),
-    "R-VERDICT-EXPIRY-BAD": ("expires at",),
+    # Discriminating needles (13-27, IN-03, `13-REVIEW.md`): before this,
+    # both declared the identical single-element shape `("expires at",)`,
+    # a substring both blocks share, so a mis-anchored extraction of
+    # either into the other's slot satisfied both guards — only the
+    # opposed verdicts (`True` vs `False`) happened to catch it. Each
+    # needle below is a substring unique to its own block, verified
+    # unique by grep across the whole template file.
+    "R-VERDICT-EXPIRY": ("Accept — expires at",),
+    "R-VERDICT-EXPIRY-BAD": ("Current constraint (expires",),
     "R-HEAD-PROSE-BAD": (
         "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
     ),
@@ -6757,7 +6764,7 @@ def _render_chain_family_ids(
     The chain family is a PROXY for "scored by the single-argument
     `_chain_block_well_formed`" (see `_RENDER_CHAIN_FAMILY_PREFIXES`'s
     own comment for the disclosure) — this helper is deliberately not a
-    membership test against a hand-written id list, so a sixteenth
+    membership test against a hand-written id list, so a fourteenth
     `R-CHAIN-*`/`R-HEAD-*` fixture added to the locked set is picked up
     the next time this runs rather than requiring a second edit here.
     Pure: takes both inputs as parameters and reads no module constant
@@ -7154,7 +7161,7 @@ def _read_render_example_texts() -> tuple[dict[str, str], list[str]]:
 
 
 def _render_contract_fixtures() -> tuple[dict[str, str], list[str]]:
-    """Read all fifteen Phase 11/13 rendering-contract fixtures from the shipped
+    """Read all eighteen Phase 11/13 rendering-contract fixtures from the shipped
     `shared/` canonical bytes at call time, via the same
     `_extract_contract_example` dispatcher `_CONTRACT_EXTRACTION_TABLE`
     uses above (D-04).
@@ -7641,8 +7648,8 @@ _QUAL01_DOC_ROWS: tuple[str, ...] = (
 # strengthened claim: the recorded verdict must equal an inline
 # expectation, not merely exist. The eighth token, `chain-family
 # coverage floor`, added by plan 13-12 (CR-03): without it a row can
-# keep stating that the nine chain-family fixtures are independently
-# re-scored while the arm deciding WHICH nine is narrowed to one,
+# keep stating that the thirteen chain-family fixtures are independently
+# re-scored while the arm deciding WHICH thirteen is narrowed to one,
 # because the only floor over that arm's own coverage table was a union
 # a sibling table already satisfied — CR-03 exactly, and the third time
 # in this phase a floor reported PASS while unable to fail. The ninth
@@ -7934,7 +7941,7 @@ def _render_registry_lock_problems(
     # GENERATED copy — left the self-test GREEN while both `| QUAL-01 |`
     # doc rows told the reader the gate reads the canonical `shared/`
     # source. (Eleven was the table's size at Phase 11, when this was
-    # found; the table now carries fifteen rows.) The id-only arm below
+    # found; the table now carries eighteen rows.) The id-only arm below
     # is kept for its narrower failure message and for its own (h2)
     # cases, not as the authority.
     expected_extraction_rows = (
@@ -8088,7 +8095,7 @@ def _render_registry_lock_problems(
         # which reproduced setting each of their needle tuples to `()`
         # with every key still present and the self-test still GREEN —
         # that silently disables the mode-2 shape guard for five of the
-        # fifteen fixtures, so an extraction that returned a
+        # eighteen fixtures, so an extraction that returned a
         # neighbouring block scores `False` for the wrong reason and
         # passes vacuously. The R-HEAD-* ids (ALLCHAIN, CHAINREF,
         # GTHOP-BAD, GTHOP-OK, PROSE-BAD, PROSE-MID) added at Phase 13
@@ -8103,8 +8110,8 @@ def _render_registry_lock_problems(
             "R-CITE-INLINE": ("(chain C1)",),
             "R-CITE-LEDGER": ("C1", '"'),
             "R-CITE-NONE": ("Fargate",),
-            "R-VERDICT-EXPIRY": ("expires at",),
-            "R-VERDICT-EXPIRY-BAD": ("expires at",),
+            "R-VERDICT-EXPIRY": ("Accept — expires at",),
+            "R-VERDICT-EXPIRY-BAD": ("Current constraint (expires",),
             "R-HEAD-PROSE-BAD": (
                 "C2's threshold", "bill composition unknown", "+ C2's threshold\n→",
             ),
@@ -9755,7 +9762,7 @@ def _selftest_render_contract() -> bool:
     here calls it from outside; none of them, nor anything in this file,
     modifies it.
 
-    Controls (a)-(b) pin the fifteen measured verdicts. Control (c) pins
+    Controls (a)-(b) pin the eighteen measured verdicts. Control (c) pins
     minimality of the wrap counter-example: it must differ from the
     conforming example by exactly the inserted continuation line, so the
     counter-example demonstrably teaches the wrap rule and nothing else.
@@ -9793,7 +9800,7 @@ def _selftest_render_contract() -> bool:
     does not reach rather than merely stating it. Control
     (p), added by plan 11-09 (gap 2's second half), is the CONSUMPTION
     FLOOR: `_get` records every id it is asked for, and the floor asserts
-    that set against a locked fifteen-id set written inline — plus that
+    that set against a locked eighteen-id set written inline — plus that
     `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
     reproduction left silent), plus that every locked id is either
@@ -9820,7 +9827,7 @@ def _selftest_render_contract() -> bool:
     (`_render_verdict_floor_problems`) compares every locked id's recorded
     sequence against an inline expected-verdict table, and a fifth arm
     (`_render_chain_verdict_floor_problems`) independently re-scores the
-    ten chain-family fixtures from `fixtures` with the frozen detector,
+    thirteen chain-family fixtures from `fixtures` with the frozen detector,
     consulting no recorder at all. Control (v) proves each wrapper's return
     equals its raw scorer's return AND the recorder holds that same value,
     so a fabricated verdict fails by name. Control (w) mirrors (s) for both
@@ -10399,7 +10406,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked fifteen-id set below is written INLINE,
+    #     printed PASSED. The locked eighteen-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -10438,12 +10445,13 @@ def _selftest_render_contract() -> bool:
     #     `scored_verdicts` against an inline expected-verdict table, so a
     #     fabricated or omitted verdict is caught by value, not by count;
     #     arm 4a (`_render_chain_verdict_floor_problems`) additionally
-    #     re-scores the ten chain-family fixtures independently, by calling
-    #     the unmodified `_chain_block_well_formed` on `fixtures` itself,
-    #     reading no recorder at all — so no forgery of the recorder, of any
-    #     shape, can discharge those ten. Control (v) below proves each of
-    #     the four wrappers actually delegates to its scorer rather than
-    #     fabricating a verdict. Control (t) is retained as a diff-review
+    #     re-scores the thirteen chain-family fixtures independently, by
+    #     calling the unmodified `_chain_block_well_formed` on `fixtures`
+    #     itself, reading no recorder at all — so no forgery of the
+    #     recorder, of any shape, can discharge those thirteen. Control (v)
+    #     below proves each of the four wrappers actually delegates to its
+    #     scorer rather than fabricating a verdict. Control (t) is retained
+    #     as a diff-review
     #     backstop over the recorder's write idioms; it is explicitly NOT
     #     the thing that closes the fail-OPEN shape.
     render_locked_fixture_ids = {
@@ -10498,7 +10506,7 @@ def _selftest_render_contract() -> bool:
     #     chain-family fixtures' extracted text — it consults NO recorder
     #     of any shape, so no forgery of `scored_verdicts` (a `.update(`,
     #     a bare subscript write, a wrapper that fabricates its return)
-    #     can discharge these ten ids. This is the arm that makes
+    #     can discharge these thirteen ids. This is the arm that makes
     #     "the mutation removes the entire behavioural content while the
     #     gate stays green" false rather than merely harder — deleting the
     #     (b) verdict-assertion blocks above no longer matters because this
@@ -10524,7 +10532,7 @@ def _selftest_render_contract() -> bool:
         _fail(f"(p) CHAIN VERDICT FLOOR: {render_chain_problem}")
 
     # (p) EXPECTED-VERDICT FLOOR — arm 4b. Plan 13-10 (BL-03): covers all
-    #     FOURTEEN locked ids, including the five `R-CITE-*` / `R-VERDICT-*`
+    #     EIGHTEEN locked ids, including the five `R-CITE-*` / `R-VERDICT-*`
     #     fixtures whose scorers take extra arguments (chain ids, chain
     #     text, ledger fragments) that arm 4a's single-argument shape
     #     cannot restate without duplicating control (f)'s wiring — for
@@ -10908,7 +10916,7 @@ def _selftest_render_contract() -> bool:
     #     derived set: arm 4a's chain re-score table (against the
     #     DERIVED chain family, not the locked set itself — the whole
     #     point is that arm 4a covers a proper SUBSET of the locked ids);
-    #     arm 4b's recorded-verdict table (against all fifteen locked
+    #     arm 4b's recorded-verdict table (against all eighteen locked
     #     ids); and control (u)'s dispatch-reachability symbol set
     #     (against the four locked anchors, replacing WR-04's subset
     #     test, which could not see the required side itself narrowing).
@@ -11001,11 +11009,23 @@ def _selftest_render_contract() -> bool:
     #     to `_render_chain_family_ids`, not the `render_chain_family_ids`
     #     local above: comparing against that local would be defeated by
     #     rebinding the local itself before the registry is constructed
-    #     (MUTATION M2). `"(u) dispatch-reachability symbol set"`'s
-    #     expectation is a SECOND, independent transcription of control
-    #     (u)'s `render_u_required` anchor set — naming a fifth anchor is
-    #     deliberately a two-place edit, matching the reason control (u)
-    #     already gives for that set being restated rather than derived.
+    #     (MUTATION M2). Arm 4b's expectation (13-27, WR-03, `13-REVIEW.md`)
+    #     is a SECOND, independent transcription of the eighteen locked
+    #     fixture ids, matching what `"(u) dispatch-reachability symbol
+    #     set"`'s expectation already does with its four anchors below —
+    #     before this transcription, arm 4b's entry here read
+    #     `frozenset(render_locked_fixture_ids)`, the SAME local the
+    #     registry entry above was built from, which is exactly the
+    #     "never by reusing the local variable the registry was built
+    #     from" violation this arm's own docstring paragraph forbids: a
+    #     rebind of that one local — narrowing it together with both
+    #     expected-verdict tables in the same edit — would have been
+    #     invisible to this lock. `"(u) dispatch-reachability symbol
+    #     set"`'s expectation is a SECOND, independent transcription of
+    #     control (u)'s `render_u_required` anchor set — naming a fifth
+    #     anchor is deliberately a two-place edit, matching the reason
+    #     control (u) already gives for that set being restated rather
+    #     than derived.
     #
     #     DISCLOSED LIMITATION: a rebind of a registry entry's required
     #     side to an expression of EQUAL value is harmless by
@@ -11018,7 +11038,17 @@ def _selftest_render_contract() -> bool:
                 render_locked_fixture_ids, _RENDER_CHAIN_FAMILY_PREFIXES
             )
         ),
-        "arm 4b recorded-verdict table": frozenset(render_locked_fixture_ids),
+        "arm 4b recorded-verdict table": frozenset(
+            {
+                "R-CHAIN-CONFORMING", "R-CHAIN-NUMBERED", "R-CHAIN-WRAPPED",
+                "R-CITE-INLINE", "R-CITE-LEDGER", "R-CITE-NONE",
+                "R-VERDICT-EXPIRY", "R-VERDICT-EXPIRY-BAD",
+                "R-HEAD-ALLCHAIN", "R-HEAD-CHAINREF", "R-HEAD-PROSE-BAD",
+                "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
+                "R-HEAD-GTHOP-LATE",
+                "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
+            }
+        ),
         "(u) dispatch-reachability symbol set": frozenset(
             {
                 "_selftest_analysis_persistence",
@@ -11210,12 +11240,15 @@ def _selftest_render_contract() -> bool:
     #     boundaries are a heading/rule heuristic, not a markdown parse.
     #     And it detects a chain rendered in the already-malformed form;
     #     it does not detect every re-wrap of an already-conforming head,
-    #     because the frozen detector's own deferred `any()`-over-
-    #     candidates masking (WR-03, stated in its own docstring) can let
-    #     a later, still-single-line candidate in the same block absorb a
-    #     re-wrapped head — measured directly against this plan's own
-    #     stated must-have mutation and recorded as a bound, not silently
-    #     dropped.
+    #     because the form check requires only two arrows in the truncated
+    #     candidate, so a wrap or a GT-led hop after the second arrow is
+    #     scored conforming, and a head split across two physical lines is
+    #     scored conforming with its first input dropped — a property of
+    #     the detector frozen under CONTRACT-06 and therefore an accepted
+    #     limitation, not a defect this plan closed (13-21's measured
+    #     attribution, matching both `| QUAL-01 |` doc rows; the prior
+    #     `any()`-over-candidates masking attribution this comment carried
+    #     was retracted there — WR-01, `13-REVIEW.md`).
     render_y_texts, render_y_read_problems = _read_render_example_texts()
     for render_y_problem in render_y_read_problems:
         _fail(f"(y) EXAMPLE CONFORMANCE READ: {render_y_problem}")
