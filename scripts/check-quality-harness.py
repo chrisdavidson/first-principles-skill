@@ -7477,6 +7477,117 @@ def _render_fixture_accounting_problems(
     return accounting_problems
 
 
+def _render_claim_bound_problems(
+    expected: dict[str, list[bool]],
+    fixtures: dict[str, str],
+    claim_scorer: Callable[[str, list[str]], list[str]],
+    traced_scorer: Callable[[str, list[str], list[str]], bool],
+) -> tuple[list[str], dict[str, list[bool]]]:
+    """Phase 14 (LEDGER-03, LEDGER-04, D-07, D-09): score every fixture id
+    in *expected* against *claim_scorer* (R11's three claim-extraction
+    bounds) or *traced_scorer* (R12's caveat-marker rule), and compare
+    each recorded verdict sequence to *expected*.
+
+    Copies `_render_fixture_accounting_problems`'s purity discipline:
+    *expected*, *fixtures* and both scorer callables are the ONLY inputs
+    — nothing here reads `_RENDER_FIXTURE_SHAPE`, `_conclusion_claims`,
+    `_claim_is_traced` or any other module-level name, so a call site
+    that wires the wrong table or the wrong scorer becomes unexpressible
+    rather than merely untested.
+
+    Two fixed per-id groups, matching the two distinct questions R11 and
+    R12 ask of a fixture's text:
+
+      - the two caveat ids (R12) — *claim_scorer* first extracts the
+        caveat's own claim text (against chain id `"C5"`), then
+        *traced_scorer* decides whether that extracted claim is traced.
+        A caveat fixture yielding no claim to trace is a NAMED problem,
+        not a silent `False`.
+      - every other id (R11) — *claim_scorer* decides, against chain id
+        `"C1"`, whether the fixture's text yields any claim at all. An id
+        whose *expected* verdict list has length 2 is scored TWICE: once
+        on its extracted text, once with its own trailing period toggled
+        in memory (stripped if present, appended if absent). This is the
+        mechanical proof that the assertiveness bound's axis is
+        punctuation, not the wording difference Task 1's needle-
+        uniqueness discipline forced `R-CLAIM-TERSE-DROP`/`R-CLAIM-TERSE-
+        KEEP` to give up at the text level (a true one-character minimal
+        pair would make one block's text a literal prefix of the
+        other's, which no substring needle can discriminate — the
+        `R-HEAD-PERIOD-*` lesson). `R-CITE-NONE`'s existing `[False,
+        True]` is the precedent for a fixture scored more than once with
+        different inputs.
+
+    Returns `(problems, verdicts)`. `verdicts` maps every fixture id in
+    *expected* to the ordered list of booleans this call produced, so the
+    caller can merge it into `scored_verdicts` and the consumption floor
+    picks every id up automatically. A fixture id named in *expected* but
+    absent from *fixtures*, a caveat fixture yielding no claim to trace, a
+    verdict-sequence mismatch against *expected*, and an EMPTY *expected*
+    table are each a NAMED problem — never a silent skip and never a
+    vacuous pass.
+    """
+    problems: list[str] = []
+    verdicts: dict[str, list[bool]] = {}
+
+    if not expected:
+        problems.append(
+            "NON-VACUITY: the claim-bound expectation table is empty — "
+            "an empty table cannot pin anything and must not pass"
+        )
+        return problems, verdicts
+
+    traced_ids = {"R-CLAIM-CAVEAT-MARKED", "R-CLAIM-CAVEAT-CITED"}
+
+    for fixture_id, expected_verdicts in expected.items():
+        text = fixtures.get(fixture_id)
+        if text is None:
+            problems.append(
+                _render_fixture_problem(
+                    "claim-bound: fixture missing",
+                    fixture_id,
+                    "expected but absent from the extracted fixtures mapping",
+                )
+            )
+            continue
+
+        chain_ids = ["C5"] if fixture_id in traced_ids else ["C1"]
+
+        if fixture_id in traced_ids:
+            claims = claim_scorer(text, chain_ids)
+            if not claims:
+                problems.append(
+                    _render_fixture_problem(
+                        "claim-bound: no claim to trace",
+                        fixture_id,
+                        "expected exactly one extracted claim to trace, got none",
+                    )
+                )
+                verdicts[fixture_id] = []
+                continue
+            recorded = [traced_scorer(claims[0], chain_ids, [])]
+        elif len(expected_verdicts) == 2:
+            toggled = text[:-1] if text.endswith(".") else text + "."
+            recorded = [
+                bool(claim_scorer(text, chain_ids)),
+                bool(claim_scorer(toggled, chain_ids)),
+            ]
+        else:
+            recorded = [bool(claim_scorer(text, chain_ids))]
+
+        verdicts[fixture_id] = recorded
+        if recorded != expected_verdicts:
+            problems.append(
+                _render_fixture_problem(
+                    "claim-bound: verdict mismatch",
+                    fixture_id,
+                    f"got {recorded!r}, expected {expected_verdicts!r}",
+                )
+            )
+
+    return problems, verdicts
+
+
 # Phase 11 (CONTRACT-03, CONTRACT-05, D-04) reconciliation controls. Case A's
 # no-wrap rule, the brevity rule and its TELL diagnostic, the citation rule,
 # and the reconciled multi-hop head form must each be stated, byte for byte,
@@ -10174,7 +10285,7 @@ def _selftest_render_contract() -> bool:
     does not reach rather than merely stating it. Control
     (p), added by plan 11-09 (gap 2's second half), is the CONSUMPTION
     FLOOR: `_get` records every id it is asked for, and the floor asserts
-    that set against a locked eighteen-id set written inline — plus that
+    that set against a locked twenty-seven-id set written inline — plus that
     `fixtures` matches the same
     locked set whenever `problems` is empty (the exact condition CR-02's
     reproduction left silent), plus that every locked id is either
@@ -10448,6 +10559,15 @@ def _selftest_render_contract() -> bool:
     head_period_bad = _get("R-HEAD-PERIOD-BAD")
     head_period_ok = _get("R-HEAD-PERIOD-OK")
     head_period_late = _get("R-HEAD-PERIOD-LATE")
+    claim_label_bare = _get("R-CLAIM-LABEL-BARE")
+    claim_label_inline = _get("R-CLAIM-LABEL-INLINE")
+    claim_label_cited = _get("R-CLAIM-LABEL-CITED")
+    claim_colon_mid = _get("R-CLAIM-COLON-MID")
+    claim_colon_end = _get("R-CLAIM-COLON-END")
+    claim_terse_drop = _get("R-CLAIM-TERSE-DROP")
+    claim_terse_keep = _get("R-CLAIM-TERSE-KEEP")
+    claim_caveat_marked = _get("R-CLAIM-CAVEAT-MARKED")
+    claim_caveat_cited = _get("R-CLAIM-CAVEAT-CITED")
 
     # `scored_verdicts` backs the (p) CONSUMPTION FLOOR's fourth arm below:
     # for every id one of the four wrappers records, the boolean VERDICT
@@ -10777,6 +10897,81 @@ def _selftest_render_contract() -> bool:
             "em-dash, no justification) wrongly scored conforming"
         )
 
+    # (aa) CLAIM-BOUND VERDICTS. Plan 14-04 (D-07, D-09, LEDGER-04): R11's
+    #      three disclosed bounds and R12's caveat-marker rule, scored by
+    #      the unmodified `_conclusion_claims` and `_claim_is_traced`
+    #      through `_render_claim_bound_problems` — a parameterised helper
+    #      copying `_render_fixture_accounting_problems`'s purity
+    #      discipline, so a call site wiring the wrong table or the wrong
+    #      scorer becomes unexpressible rather than merely untested.
+    #      `R-CLAIM-TERSE-DROP`/`R-CLAIM-TERSE-KEEP` are each scored TWICE
+    #      by the helper — once as extracted, once with the terminal
+    #      period toggled in memory — proving the axis Task 1's needle-
+    #      uniqueness discipline forced the pair to give up at the text
+    #      level (a true minimal pair would make one block's text a
+    #      literal prefix of the other's, which no substring needle can
+    #      discriminate) is punctuation, not wording. `R-CLAIM-CAVEAT-
+    #      MARKED`/`R-CLAIM-CAVEAT-CITED` are scored by `_claim_is_traced`,
+    #      proving the flagged-assumption marker really does not discharge
+    #      the claim — a future edit teaching the tracer the marker fails
+    #      this the moment it starts recognising it.
+    render_claim_doc_labels = {
+        "R-CLAIM-LABEL-BARE": "Not a claim — a bold lead-in alone on its line, carrying no citation:",
+        "R-CLAIM-LABEL-INLINE": "A claim — the same lead-in carrying its assertion on the same line:",
+        "R-CLAIM-LABEL-CITED": "A claim — the lead-in alone on its line, but carrying its own citation:",
+        "R-CLAIM-COLON-MID": "Not matched at all — a bold span whose colon sits inside it:",
+        "R-CLAIM-COLON-END": "A claim — the same statement with the colon closing the bold span:",
+        "R-CLAIM-TERSE-DROP": "Not a claim — a short list item with no sentence-ending punctuation:",
+        "R-CLAIM-TERSE-KEEP": "A claim — a short list item closing its own sentence:",
+        "R-CLAIM-CAVEAT-MARKED": "Conformant but still untraced — a caveat carrying the flagged-assumption marker:",
+        "R-CLAIM-CAVEAT-CITED": "Conformant and traced — the same caveat citing the chain it qualifies:",
+    }
+    render_claim_expected: dict[str, list[bool]] = {
+        "R-CLAIM-LABEL-BARE": [False],
+        "R-CLAIM-LABEL-INLINE": [True],
+        "R-CLAIM-LABEL-CITED": [True],
+        "R-CLAIM-COLON-MID": [False],
+        "R-CLAIM-COLON-END": [True],
+        "R-CLAIM-TERSE-DROP": [False, True],
+        "R-CLAIM-TERSE-KEEP": [True, False],
+        "R-CLAIM-CAVEAT-MARKED": [False],
+        "R-CLAIM-CAVEAT-CITED": [True],
+    }
+    render_claim_fixtures = {
+        fid: text
+        for fid, text in (
+            ("R-CLAIM-LABEL-BARE", claim_label_bare),
+            ("R-CLAIM-LABEL-INLINE", claim_label_inline),
+            ("R-CLAIM-LABEL-CITED", claim_label_cited),
+            ("R-CLAIM-COLON-MID", claim_colon_mid),
+            ("R-CLAIM-COLON-END", claim_colon_end),
+            ("R-CLAIM-TERSE-DROP", claim_terse_drop),
+            ("R-CLAIM-TERSE-KEEP", claim_terse_keep),
+            ("R-CLAIM-CAVEAT-MARKED", claim_caveat_marked),
+            ("R-CLAIM-CAVEAT-CITED", claim_caveat_cited),
+        )
+        if text is not None
+    }
+    render_claim_problems, render_claim_verdicts = _render_claim_bound_problems(
+        render_claim_expected,
+        render_claim_fixtures,
+        _conclusion_claims,
+        _claim_is_traced,
+    )
+    for render_claim_fid, render_claim_vlist in render_claim_verdicts.items():
+        scored_verdicts.setdefault(render_claim_fid, []).extend(render_claim_vlist)
+    for render_claim_problem in render_claim_problems:
+        render_claim_problem_fid = next(
+            (
+                fid
+                for fid in render_claim_expected
+                if _render_fixture_id_token(fid) in render_claim_problem
+            ),
+            None,
+        )
+        render_claim_label = render_claim_doc_labels.get(render_claim_problem_fid, "?")
+        _fail(f"(aa) {render_claim_problem} (doc label {render_claim_label!r})")
+
     # (p) CONSUMPTION FLOOR. Plan 11-09, gap 2's second half
     #     (`11-VERIFICATION.md`): controls (b)-(f) above are all guarded by
     #     `is not None`, so a fixture id absent from `fixtures` is silently
@@ -10784,7 +10979,7 @@ def _selftest_render_contract() -> bool:
     #     verifier's CR-02 reproduction relied on once
     #     `_RENDER_CONTRACT_EXTRACTION_TABLE` was emptied: `problems` stayed
     #     empty, every `_get(...)` returned `None`, and the sub-check still
-    #     printed PASSED. The locked eighteen-id set below is written INLINE,
+    #     printed PASSED. The locked twenty-seven-id set below is written INLINE,
     #     matching plan 11-08's (h) lock literal, never read off a module
     #     constant, so this floor cannot be made tautologically green by
     #     comparing a constant against itself. This control proves every
@@ -10840,6 +11035,10 @@ def _selftest_render_contract() -> bool:
         "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
         "R-HEAD-GTHOP-LATE",
         "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
+        "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-INLINE", "R-CLAIM-LABEL-CITED",
+        "R-CLAIM-COLON-MID", "R-CLAIM-COLON-END",
+        "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
+        "R-CLAIM-CAVEAT-MARKED", "R-CLAIM-CAVEAT-CITED",
     }
     if requested_ids != render_locked_fixture_ids:
         _fail(
@@ -10910,18 +11109,21 @@ def _selftest_render_contract() -> bool:
         _fail(f"(p) CHAIN VERDICT FLOOR: {render_chain_problem}")
 
     # (p) EXPECTED-VERDICT FLOOR — arm 4b. Plan 13-10 (BL-03): covers all
-    #     EIGHTEEN locked ids, including the five `R-CITE-*` / `R-VERDICT-*`
-    #     fixtures whose scorers take extra arguments (chain ids, chain
-    #     text, ledger fragments) that arm 4a's single-argument shape
-    #     cannot restate without duplicating control (f)'s wiring — for
-    #     those five the guarantee is the recorded verdict plus control
+    #     TWENTY-SEVEN locked ids, including the five `R-CITE-*` /
+    #     `R-VERDICT-*` fixtures whose scorers take extra arguments (chain
+    #     ids, chain text, ledger fragments) that arm 4a's single-argument
+    #     shape cannot restate without duplicating control (f)'s wiring —
+    #     for those five the guarantee is the recorded verdict plus control
     #     (v)'s delegation probe plus control (t)'s source-level lock, not
     #     an independent re-score (A-02, disclosed in both `| QUAL-01 |`
     #     doc rows). This arm also pins `R-CITE-NONE`'s two-call flip
     #     (`[False, True]`): scored once without ledger fragments
     #     (untraced) and once with them (traced) — a last-write-wins
     #     single-value recorder would lose the first call and silently
-    #     record only `True`.
+    #     record only `True`. Plan 14-04 (LEDGER-04) adds the nine
+    #     `R-CLAIM-*` ids, scored by `_render_claim_bound_problems` (a
+    #     separate re-score, not a recorder-only guarantee like the five
+    #     `R-CITE-*`/`R-VERDICT-*` fixtures above).
     render_verdict_expected: dict[str, list[bool]] = {
         "R-CHAIN-CONFORMING": [True],
         "R-CHAIN-WRAPPED": [False],
@@ -10941,6 +11143,15 @@ def _selftest_render_contract() -> bool:
         "R-CITE-INLINE": [True],
         "R-CITE-LEDGER": [True],
         "R-CITE-NONE": [False, True],
+        "R-CLAIM-LABEL-BARE": [False],
+        "R-CLAIM-LABEL-INLINE": [True],
+        "R-CLAIM-LABEL-CITED": [True],
+        "R-CLAIM-COLON-MID": [False],
+        "R-CLAIM-COLON-END": [True],
+        "R-CLAIM-TERSE-DROP": [False, True],
+        "R-CLAIM-TERSE-KEEP": [True, False],
+        "R-CLAIM-CAVEAT-MARKED": [False],
+        "R-CLAIM-CAVEAT-CITED": [True],
     }
     for render_verdict_problem in _render_verdict_floor_problems(
         render_verdict_expected, scored_verdicts, problems
@@ -11080,9 +11291,14 @@ def _selftest_render_contract() -> bool:
     # residual risk.
     #
     # Reads `inspect.getsource(_selftest_render_contract)` and asserts,
-    # over that source TEXT — never behaviour: exactly four sites where the
-    # recorder is mutated via its dict-of-lists append idiom, and exactly
-    # four `_score_*` wrapper definitions; exactly six call sites for the
+    # over that source TEXT — never behaviour: exactly five sites where the
+    # recorder is mutated via its dict-of-lists append idiom (the four
+    # `_score_*` wrappers' own `.setdefault(...).append(...)` calls, plus
+    # plan 14-04's own control (aa) merging `_render_claim_bound_problems`'s
+    # returned verdicts in via `.setdefault(...).extend(...)` — a fifth,
+    # deliberately different call shape, so this census cannot be satisfied
+    # by four wrapper-shaped calls alone if the merge step were ever
+    # deleted), and exactly four `_score_*` wrapper definitions; exactly six call sites for the
     # recorded-verdict floor helper and exactly six call sites for the
     # independent chain-rescoring helper (one real floor-arm call each,
     # plus control (w)'s isolation-driving calls — five for the chain
@@ -11174,7 +11390,7 @@ def _selftest_render_contract() -> bool:
         if render_t_subscript_pattern in render_t_line and "] = " in render_t_line
     )
     if (
-        render_t_setdefault_count != 4
+        render_t_setdefault_count != 5
         or render_t_def_count != 4
         or render_t_verdict_call_count != 6
         or render_t_chain_call_count != 6
@@ -11187,7 +11403,7 @@ def _selftest_render_contract() -> bool:
     ):
         _fail(
             f"(t) SCORING RECORDER LOCK: observed {render_t_setdefault_count} "
-            f"recorder-mutation site(s) (expected 4), "
+            f"recorder-mutation site(s) (expected 5), "
             f"{render_t_def_count} scoring-wrapper definition(s) "
             f"(expected 4), {render_t_verdict_call_count} "
             f"verdict-floor-helper call site(s) (expected 6), "
@@ -11294,7 +11510,7 @@ def _selftest_render_contract() -> bool:
     #     derived set: arm 4a's chain re-score table (against the
     #     DERIVED chain family, not the locked set itself — the whole
     #     point is that arm 4a covers a proper SUBSET of the locked ids);
-    #     arm 4b's recorded-verdict table (against all eighteen locked
+    #     arm 4b's recorded-verdict table (against all twenty-seven locked
     #     ids); and control (u)'s dispatch-reachability symbol set
     #     (against the four locked anchors, replacing WR-04's subset
     #     test, which could not see the required side itself narrowing).
@@ -11388,7 +11604,7 @@ def _selftest_render_contract() -> bool:
     #     local above: comparing against that local would be defeated by
     #     rebinding the local itself before the registry is constructed
     #     (MUTATION M2). Arm 4b's expectation (13-27, WR-03, `13-REVIEW.md`)
-    #     is a SECOND, independent transcription of the eighteen locked
+    #     is a SECOND, independent transcription of the twenty-seven locked
     #     fixture ids, matching what `"(u) dispatch-reachability symbol
     #     set"`'s expectation already does with its four anchors below —
     #     before this transcription, arm 4b's entry here read
@@ -11425,6 +11641,10 @@ def _selftest_render_contract() -> bool:
                 "R-HEAD-PROSE-MID", "R-HEAD-GTHOP-BAD", "R-HEAD-GTHOP-OK",
                 "R-HEAD-GTHOP-LATE",
                 "R-HEAD-PERIOD-BAD", "R-HEAD-PERIOD-OK", "R-HEAD-PERIOD-LATE",
+                "R-CLAIM-LABEL-BARE", "R-CLAIM-LABEL-INLINE",
+                "R-CLAIM-LABEL-CITED", "R-CLAIM-COLON-MID", "R-CLAIM-COLON-END",
+                "R-CLAIM-TERSE-DROP", "R-CLAIM-TERSE-KEEP",
+                "R-CLAIM-CAVEAT-MARKED", "R-CLAIM-CAVEAT-CITED",
             }
         ),
         "(u) dispatch-reachability symbol set": frozenset(
