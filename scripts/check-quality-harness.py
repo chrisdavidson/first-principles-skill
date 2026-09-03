@@ -7415,6 +7415,25 @@ _RENDER_PRE_CONTRACT_WORDINGS: tuple[str, ...] = (
     "lines, never as an ordered list",
 )
 
+# Real fabricated-example wordings this tree actually shipped — the
+# rendered-example claim floor's own non-vacuity registry, copying
+# `_RENDER_PRE_CONTRACT_WORDINGS`'s byte-recovered-not-retyped discipline
+# (plan 13-23, `13-VERIFICATION-round6.md` gap 2 / CR-02). The first entry
+# is the exact sentence plan 13-20 shipped on `shared/references/
+# reason-upward.md`, byte-recovered via `git show
+# 8289490:shared/references/reason-upward.md` rather than retyped, where
+# it claimed a rendered example the file contained zero of, on a live,
+# slash-invocable, model-facing surface. The remaining two are the
+# natural re-introduction frames a future paraphrase would use.
+# DISCLOSED LIMITATION: this leg detects an ENUMERATED frame set pinned
+# against a wording this tree really shipped, not arbitrary fabrication.
+_RENDER_FABRICATED_EXAMPLE_WORDINGS: tuple[str, ...] = (
+    "Rendered examples follow the prescribed head form (`GT-1? "
+    "([brief fact label]) + C2 ([brief fact label])`).",
+    "Rendered examples follow",
+    "examples follow the prescribed head form",
+)
+
 # The chain family is the subset of the locked fixture ids whose scorer
 # is the single-argument `_chain_block_well_formed` — every id whose
 # independent re-score (arm 4a) can call that scorer directly, rather
@@ -7552,7 +7571,7 @@ _RENDER_EXAMPLE_CLAIMING_FILES: tuple[str, ...] = (
 class _RenderRegistrySnapshot:
     """A by-value snapshot of the registries the rendering-contract
     mechanism depends on — one field per entry of
-    `_RENDER_REGISTRY_FIELDS` (fifteen today, fourteen registries: the
+    `_RENDER_REGISTRY_FIELDS` (sixteen today, fifteen registries: the
     extraction table contributes both `extraction_rows`, the
     authoritative all-four-column arm, and the derived `extraction_ids`).
 
@@ -7601,6 +7620,7 @@ class _RenderRegistrySnapshot:
     example_claim_literal: str
     example_glob: str
     example_claiming_files: tuple[str, ...]
+    fabricated_example_wordings: tuple[str, ...]
 
     @classmethod
     def live(cls) -> "_RenderRegistrySnapshot":
@@ -7623,6 +7643,7 @@ class _RenderRegistrySnapshot:
             example_claim_literal=_RENDER_EXAMPLE_CLAIM_LITERAL,
             example_glob=_RENDER_EXAMPLE_GLOB,
             example_claiming_files=_RENDER_EXAMPLE_CLAIMING_FILES,
+            fabricated_example_wordings=_RENDER_FABRICATED_EXAMPLE_WORDINGS,
         )
 
 
@@ -7647,6 +7668,7 @@ _RENDER_REGISTRY_FIELDS: tuple[str, ...] = (
     "example_claim_literal",
     "example_glob",
     "example_claiming_files",
+    "fabricated_example_wordings",
 )
 
 def _render_registry_lock_problems(
@@ -8030,6 +8052,28 @@ def _render_registry_lock_problems(
         )
     checked.add("example_claiming_files")
 
+    # `fabricated_example_wordings` (plan 13-23, CR-02
+    # `13-VERIFICATION-round6.md` gap 2): the byte-recovered-not-retyped
+    # wordings the rendered-example claim floor scans every registered
+    # surface for. Locked here by value, never against the module
+    # constant it mirrors.
+    expected_fabricated_example_wordings = (
+        "Rendered examples follow the prescribed head form (`GT-1? "
+        "([brief fact label]) + C2 ([brief fact label])`).",
+        "Rendered examples follow",
+        "examples follow the prescribed head form",
+    )
+    if (
+        snapshot.fabricated_example_wordings
+        != expected_fabricated_example_wordings
+    ):
+        problems.append(
+            f"fabricated_example_wordings: "
+            f"{snapshot.fabricated_example_wordings!r} != expected "
+            f"{expected_fabricated_example_wordings!r}"
+        )
+    checked.add("fabricated_example_wordings")
+
     # `literals` carries TWO arms under the single field name — both
     # required, both counted under "literals" so neither can be dropped
     # while the field still reads as covered.
@@ -8248,6 +8292,65 @@ def _render_rule_report(read: _RenderSurfaceRead) -> list[str]:
                 f"phrase {phrase!r}"
             )
     return problems
+
+
+# Matches a ` ``` `-delimited span on WHITESPACE-NORMALIZED text (no
+# newlines survive normalization, so this is deliberately not `re.DOTALL`
+# and deliberately not anchored to a language tag — a claiming surface may
+# fence with ` ```text ` or bare ` ``` `). Non-greedy so back-to-back
+# fenced blocks are read as separate spans, not one span swallowing the
+# prose between them.
+_RENDER_CLAIM_FLOOR_FENCE_RE = re.compile(r"```.*?```")
+
+
+def _render_example_claim_floor_problems(
+    texts: dict[str, str],
+    wordings: tuple[str, ...],
+    head_literal: str,
+) -> list[str]:
+    """Report one sorted problem per relpath in *texts* that CLAIMS its
+    examples follow the head form while not actually rendering that form.
+
+    For each `(relpath, text)` in *texts* whose WHITESPACE-NORMALIZED text
+    (`" ".join(text.split())`) contains any entry of *wordings*, requires
+    that same normalized text to also contain *head_literal* inside a
+    fenced block (a ` ``` `-delimited span) — i.e. the file must actually
+    render the head it claims its examples follow, the way `output-
+    template.md` and `SKILL-body.md` do. A claiming file whose fenced span
+    contains the literal is left alone: the claim is true of it. A
+    claiming file with no such span, or whose fenced spans do not contain
+    the literal, gets exactly one problem naming the relpath and the
+    matched frame.
+
+    Pure: takes all three inputs as parameters and reads no module
+    constant — matching the purity contract `_render_unscored_fixture_ids`
+    and `_render_chain_family_ids` state in their own docstrings — so a
+    control can drive it with synthetic literals without touching the
+    real registered surfaces (plan 13-23, CR-02 `13-VERIFICATION-round6.md`
+    gap 2).
+
+    Whitespace normalization is load-bearing, not decorative, for the SAME
+    reason `_render_example_claiming_relpaths` states it is: a claim or a
+    rendered head hard-wrapped across physical lines must not be silently
+    exempted by a line-scoped test.
+    """
+    problems: list[str] = []
+    for relpath in sorted(texts):
+        normalized = " ".join(texts[relpath].split())
+        matched_wording = next(
+            (wording for wording in wordings if wording in normalized), None
+        )
+        if matched_wording is None:
+            continue
+        fenced_spans = _RENDER_CLAIM_FLOOR_FENCE_RE.findall(normalized)
+        if any(head_literal in span for span in fenced_spans):
+            continue
+        problems.append(
+            f"{relpath}: claims its examples follow the head form "
+            f"({matched_wording!r}) but does not render {head_literal!r} "
+            f"inside a fenced block"
+        )
+    return sorted(problems)
 
 
 def _qual01_row_problem(read: _RenderSurfaceRead) -> list[str]:
@@ -11588,6 +11691,13 @@ def _selftest_render_contract() -> bool:
                 ],
             ),
         ),
+        (
+            "fabricated_example_wordings emptied (plan 13-23, CR-02 "
+            "reproduction)",
+            "fabricated_example_wordings",
+            "!= expected",
+            replace(render_live_snapshot, fabricated_example_wordings=()),
+        ),
     ]
 
     render_lock_negative_fields_exercised: set[str] = set()
@@ -11752,6 +11862,121 @@ def _selftest_render_contract() -> bool:
     for read in render_reads:
         for problem in _render_rule_report(read):
             _fail(f"(i) POSITIVE: {problem}")
+
+    # (i2) POSITIVE, rendered-example claim floor (plan 13-23, CR-02
+    #     `13-VERIFICATION-round6.md` gap 2). Reads the same per-surface
+    #     reads the unscoped contradiction scan above already consumes and
+    #     runs `_render_example_claim_floor_problems` over ALL of them at
+    #     once — UNSCOPED like the contradiction scan, applying to EVERY
+    #     entry of `_RENDER_RULE_SURFACES` regardless of that surface's
+    #     required-rule set, because a fabricated claim is wrong wherever
+    #     it appears. Goes RED if a registered surface currently claims
+    #     its examples follow the head form without actually rendering
+    #     that form in a fenced block.
+    render_claim_texts = {read.relpath: read.text for read in render_reads}
+    for problem in _render_example_claim_floor_problems(
+        render_claim_texts,
+        _RENDER_FABRICATED_EXAMPLE_WORDINGS,
+        _RENDER_RULE_LITERALS["R8"],
+    ):
+        _fail(f"(i2) POSITIVE: {problem}")
+
+    # (i3) NEGATIVE, fabricated-example wording — DETECTION, falsifiable
+    #     (plan 13-23, copying control (l1)'s shape). `shared/spine/
+    #     references/validation-rubric.md` discharges R8 with an INLINE
+    #     backtick span, not a fenced block (the read_first pointer at
+    #     that file's line 340) — it is the one registered surface whose
+    #     real text does NOT already render R8's head literal inside a
+    #     fence, so appending a fabricated wording to ITS real text is a
+    #     genuine fabrication, unlike appending one to `output-
+    #     template.md` or `SKILL-body.md`, which already carry a real
+    #     fenced head and would make the appended sentence TRUE of them —
+    #     exactly the property task 3's P2 mutation proves on the real
+    #     tree. For each wording, appends it to the rubric's real read
+    #     text — never mutating the file on disk — and requires
+    #     `_render_example_claim_floor_problems` to report that relpath.
+    render_i3_base_relpath = "shared/spine/references/validation-rubric.md"
+    render_i3_base_read = next(
+        (r for r in render_reads if r.relpath == render_i3_base_relpath), None
+    )
+    if render_i3_base_read is None:
+        _fail(
+            f"(i3) NEGATIVE setup: {render_i3_base_relpath!r} was not "
+            f"among the surfaces read at (i) — cannot drive the "
+            f"non-vacuity control"
+        )
+    else:
+        render_i3_unfired: list[str] = []
+        for wording in _RENDER_FABRICATED_EXAMPLE_WORDINGS:
+            mutated_texts = {
+                render_i3_base_relpath: render_i3_base_read.text + "\n" + wording
+            }
+            mutated_problems = _render_example_claim_floor_problems(
+                mutated_texts,
+                _RENDER_FABRICATED_EXAMPLE_WORDINGS,
+                _RENDER_RULE_LITERALS["R8"],
+            )
+            if not any(render_i3_base_relpath in p for p in mutated_problems):
+                render_i3_unfired.append(wording[:40])
+        if render_i3_unfired:
+            _fail(
+                f"(i3) NEGATIVE: {len(render_i3_unfired)} wording(s) did "
+                f"not fire when appended in memory to "
+                f"{render_i3_base_relpath!r}: {render_i3_unfired!r}"
+            )
+
+    # (i3) CASE-COUNT FLOOR. Floors the wording count so emptying
+    #     `_RENDER_FABRICATED_EXAMPLE_WORDINGS` fails by name rather than
+    #     degenerating to zero cases — the CR-01
+    #     (`11-REVIEW-gap-closure.md`) shape applied to this registry.
+    if len(_RENDER_FABRICATED_EXAMPLE_WORDINGS) != 3:
+        _fail(
+            f"(i3) CASE-COUNT FLOOR: expected 3 pinned fabricated-example "
+            f"wordings, got {len(_RENDER_FABRICATED_EXAMPLE_WORDINGS)}"
+        )
+
+    # (i4) ISOLATION. Drives `_render_example_claim_floor_problems` with a
+    #     synthetic `texts` map, never a real surface — proves the helper
+    #     itself discriminates a claiming file WITH a fenced head from one
+    #     WITHOUT, independent of any registered surface's real content.
+    render_i4_head_literal = _RENDER_RULE_LITERALS["R8"]
+    render_i4_with_fence = (
+        "Rendered examples follow the prescribed head form "
+        "(`GT-1? ([brief fact label]) + C2 ([brief fact label])`).\n\n"
+        "```text\n"
+        f"{render_i4_head_literal}\n"
+        "→ [intermediate claim]\n"
+        "→ [conclusion]\n"
+        "```\n"
+    )
+    render_i4_without_fence = (
+        "Rendered examples follow the prescribed head form "
+        "(`GT-1? ([brief fact label]) + C2 ([brief fact label])`).\n"
+    )
+    render_i4_texts = {
+        "synthetic/with-fence.md": render_i4_with_fence,
+        "synthetic/without-fence.md": render_i4_without_fence,
+    }
+    render_i4_problems = _render_example_claim_floor_problems(
+        render_i4_texts,
+        _RENDER_FABRICATED_EXAMPLE_WORDINGS,
+        render_i4_head_literal,
+    )
+    if any("synthetic/with-fence.md" in p for p in render_i4_problems):
+        _fail(
+            "(i4) ISOLATION: the claiming file WITH a fenced head "
+            f"produced a problem: {render_i4_problems!r}"
+        )
+    if not any("synthetic/without-fence.md" in p for p in render_i4_problems):
+        _fail(
+            "(i4) ISOLATION: the claiming file WITHOUT a fenced head "
+            f"produced no problem: {render_i4_problems!r}"
+        )
+    if len(render_i4_problems) != 1:
+        _fail(
+            f"(i4) ISOLATION: expected exactly one problem, got "
+            f"{len(render_i4_problems)}: {render_i4_problems!r}"
+        )
 
     # (j) COVERAGE FLOOR. Phase 10 block (l)'s corrected shape: derived
     #     from the relpaths the read loop actually RETURNED, never from a
