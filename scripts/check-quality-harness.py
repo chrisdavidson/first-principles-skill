@@ -7241,7 +7241,14 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
     # discipline alone, until plan 13-09. The `One exception:` clause exists
     # because `_ARROW_LED_GT_RE` refuses continuation for a hop that leads
     # with a `GT-N` identifier — it reads that hop as the head of a new
-    # chain and ends the current one there.
+    # chain and ends the current one there. The trailing disclosure
+    # sentence was added by plan 13-18 (13-VERIFICATION.md gap 1, CR-02):
+    # R9 shipped as an unconditional refusal one plan after R7 was fixed
+    # for the identical defect class (plan 13-08, BL-01) — the form check
+    # detects the GT-led-hop violation only while fewer than two hops
+    # precede it, measured directly against the live, unmutated
+    # `_chain_block_well_formed` (False/False/True/True at 0/1/2/3
+    # preceding hops).
     "R9": (
         "The head grammar governs the head line only. A hop is prose: "
         "`C2's saving` is fine after the first `→`, and is not an input "
@@ -7249,7 +7256,11 @@ _RENDER_RULE_LITERALS: dict[str, str] = {
         "identifier, which the form check reads as the head of a new "
         "chain and which therefore ends this one — write `→ the duty "
         "cycle stated in GT-4 is the binding term`, not `→ GT-4's stated "
-        "duty cycle is the binding term`."
+        "duty cycle is the binding term`. The form check detects that "
+        "violation only while fewer than two hops precede it; in a later "
+        "position the check matches the preceding hops and scores the "
+        "chain conforming, so the rule binds in positions the check does "
+        "not reach."
     ),
 }
 
@@ -7917,9 +7928,13 @@ def _render_registry_lock_problems(
         # the disclosure, not the negative rule (plan 13-08, BL-01).
         "R7": "detects that violation only when the prose input is the last one before the first",
         "R8": "GT-1? ([brief fact label]) + C2",
-        # R9's clause pins the GT-leading-hop refusal — the exception a
-        # future edit is likeliest to quietly drop (plan 13-09, BL-02).
-        "R9": "a hop must not begin with a `GT-N` identifier",
+        # R9's clause pins the disclosed positional bound rather than the
+        # negative-rule half: the clause arm proves one substring per rule
+        # and the digest arm covers the rest, so the clause should pin the
+        # half a future edit is most likely to quietly drop — which is now
+        # the disclosure, not the refusal (plan 13-18, mirroring plan
+        # 13-08's identical re-point for R7).
+        "R9": "detects that violation only while fewer than two hops precede it",
     }
     if sorted(snapshot.literals) != sorted(expected_literal_clauses):
         problems.append(
@@ -7952,7 +7967,7 @@ def _render_registry_lock_problems(
     # `| QUAL-01 |` rows' "locked by value against inline expectations"
     # was not literally true of every arm.
     expected_literal_digest = (
-        "sha256:199469956b572956ff2b09cbd82e48389d989c6eecff5382d0b96ab34bd2894b"
+        "sha256:1990944390d22d07dcace92290262159bdfa8c09a2686534c6e300f621aebe00"
     )
     literal_digest = "sha256:" + hashlib.sha256(
         "\x00".join(
