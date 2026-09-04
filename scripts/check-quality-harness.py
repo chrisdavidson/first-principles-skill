@@ -9526,13 +9526,18 @@ def _matrix_named_selftest_symbols() -> tuple[tuple[str, ...], list[str]]:
     Matches BOTH self-test-anchor naming conventions this repository
     uses (`_selftest_*` and `_self_test_*`, WR-04, plan 13-12), mirroring
     the widening `check-traceability.py`'s own dispatch-reachability leg
-    got at plan 13-11 for exactly the same reason. Measured against the
-    live tree at plan 13-12 (A-02): the derived set is unchanged today —
+    got at plan 13-11 for exactly the same reason. Re-measured against the
+    live tree at v8.26 (phase 16): the derived set is now five —
     `('_selftest_analysis_persistence', '_selftest_capture_tool_reader',
-    '_selftest_chain_detector_pin', '_selftest_render_contract')` —
-    because no `scripts/check-quality-harness.py#...` matrix row names a
-    `_self_test_*` anchor. This widening is a future-narrowing guard, not
-    a present behaviour change.
+    '_selftest_chain_detector_pin', '_selftest_ledger_traceability',
+    '_selftest_render_contract')`. It was four when plan 13-12 (A-02)
+    measured it; the fifth arrived with phase 16's `LEDGER-04` matrix row,
+    which is legitimate GROWTH of the derived set, not the narrowing the
+    EQUALITY floor below exists to catch. The `_self_test_*` half of this
+    widening remains LATENT — every anchor above is `_selftest_*`, and no
+    `scripts/check-quality-harness.py#...` matrix row names a
+    `_self_test_*` anchor yet, so that half is still a future-narrowing
+    guard rather than a present behaviour change.
     """
     text, problem = _read_text_or_problem(
         REPO_ROOT / "scripts/check-traceability.py",

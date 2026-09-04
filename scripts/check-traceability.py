@@ -4104,7 +4104,30 @@ def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
         if _row.artifact_link.startswith("scripts/check-selfaudit-scan.py#")
     })
     _scan_source_path = REPO_ROOT / "scripts" / "check-selfaudit-scan.py"
-    _scan_source_text = _scan_source_path.read_text(encoding="utf-8")
+    # Fail CLOSED rather than raise (WR-02, phase 16 review): a self-test that dies on
+    # an unreadable sibling reports nothing at all, which is indistinguishable from a
+    # vacuous pass in CI output. An unreadable source is a census FAILURE.
+    #
+    # DISCLOSED BOUND — this does NOT give the sentinel an end-to-end no-traceback
+    # property, and the review finding that prompted it was wrong on that premise.
+    # `_resolve_artifact` (a pre-existing helper, unchanged by this milestone) reads the
+    # SAME file earlier in this function via its own unguarded `.read_text()`, so a
+    # genuinely unreadable check-selfaudit-scan.py still raises there before reaching
+    # this block — measured 2026-09-04 by chmod 000 against the live tree, which
+    # tracebacks at _resolve_artifact, not here. This guard hardens the census against
+    # the file becoming unreadable between the two reads, and against a future caller
+    # that reaches (h4) without going through _resolve_artifact. Closing the earlier
+    # path means touching shared pre-existing machinery and is deliberately out of this
+    # ship phase's scope.
+    try:
+        _scan_source_text = _scan_source_path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as _exc:
+        print(
+            f"  V826-ROWS FAIL: (h4) CALL-SITE CENSUS — cannot read "
+            f"scripts/check-selfaudit-scan.py: {_exc}"
+        )
+        wrong_results.append("V826-ROWS: (h4) SCAN source unreadable")
+        _scan_source_text = ""
 
     def _slice_top_level_function_body(text: str, func_name: str) -> str:
         """Slice `func_name`'s own body out of `text`, from its `def` line to the next
