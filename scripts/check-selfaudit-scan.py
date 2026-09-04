@@ -500,6 +500,24 @@ _BAND_SOUND = "- **Sound**"
 _BAND_HANDWAVY = "- **Hand-wavy**"
 _BAND_ABSENT = "- **Absent**"
 _BAND_BULLETS = (_BAND_RIGOROUS, _BAND_SOUND, _BAND_HANDWAVY, _BAND_ABSENT)
+# Paired 1:1 with `_BAND_BULLETS` by position — used only to name the
+# per-literal Rubric-11 controls below (plan 15-12, closing WR-01): driving
+# the control loop from `zip(_BAND_BULLETS, _BAND_NAMES)` rather than a
+# hand-written four-control list is what makes narrowing `_BAND_BULLETS`
+# itself leave a registered branch id uncovered. Deliberately NOT
+# `strict=True`: the plan's own suggested implementation used it, but
+# `strict=True` turns the exact mutation this control exists to catch
+# (narrowing `_BAND_BULLETS`) into an uncaught `ValueError` traceback
+# instead of the clean, named ANTI-MASKING GATE failure the acceptance
+# criteria requires — observed live (Rule 1 fix). Plain `zip` truncates to
+# the shorter sequence, so narrowing `_BAND_BULLETS` produces fewer
+# controls and the anti-masking floor reports the resulting uncovered ids
+# by name, which is the behaviour under test. DISCLOSED BOUND: this makes
+# the LENGTHENING direction fail-open — a fifth literal appended to
+# `_BAND_BULLETS` with no matching fifth name appended to `_BAND_NAMES`
+# would silently zip only four pairs, the same procedural (not mechanical)
+# guard shape the file's other future-edit bounds already carry.
+_BAND_NAMES = ("rigorous", "sound", "handwavy", "absent")
 
 _WS = re.compile(r"\s+")
 _H2_RE = re.compile(r"^## ", re.MULTILINE)
@@ -1481,8 +1499,14 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-10-crit6-order",
         "R-10-crit6-direct-missing",
         "R-10-crit6-direct-dup",
-        "R-11-bands-crit4",
-        "R-11-bands-crit6",
+        "R-11-bands-crit4-rigorous",
+        "R-11-bands-crit4-sound",
+        "R-11-bands-crit4-handwavy",
+        "R-11-bands-crit4-absent",
+        "R-11-bands-crit6-rigorous",
+        "R-11-bands-crit6-sound",
+        "R-11-bands-crit6-handwavy",
+        "R-11-bands-crit6-absent",
         "R-12-halt-missing",
         "R-12-halt-dup",
         "R-13-format-amended-missing",
@@ -1566,7 +1590,10 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "R-09-crit4-direct-missing", "R-09-crit4-direct-dup",
         "R-10-crit6-count-missing", "R-10-crit6-count-dup", "R-10-crit6-order",
         "R-10-crit6-direct-missing", "R-10-crit6-direct-dup",
-        "R-11-bands-crit4", "R-11-bands-crit6",
+        "R-11-bands-crit4-rigorous", "R-11-bands-crit4-sound",
+        "R-11-bands-crit4-handwavy", "R-11-bands-crit4-absent",
+        "R-11-bands-crit6-rigorous", "R-11-bands-crit6-sound",
+        "R-11-bands-crit6-handwavy", "R-11-bands-crit6-absent",
         "R-12-halt-missing", "R-12-halt-dup",
         "R-13-format-amended-missing", "R-13-format-amended-dup",
         "R-13-format-admission-missing", "R-13-format-admission-dup",
@@ -2469,33 +2496,48 @@ def _run_self_test() -> int:
         "R-10-crit6-direct-dup",
     )
 
-    # R-11-bands-crit4: strip one band bullet from the Criterion 4 slice.
-    rubric_r11a = _mutate_within_range(
-        real_rubric, _CRIT4_START, _CRIT5_START, _BAND_SOUND, "REMOVED"
-    )
-    _check_negative(
-        "R-11a",
-        _check_rubric_text(rubric_r11a),
-        "Rubric-11",
-        "in Criterion 4 slice",
-        "R-11-bands-crit4",
-    )
+    # R-11-bands-crit4-<band>/R-11-bands-crit6-<band> (plan 15-12, closing
+    # `15-VERIFICATION.md`'s WR-01 gap): one strip-arm and one dup-arm per
+    # `_BAND_BULLETS` literal, driven from the tuple ITSELF via `zip(...,
+    # strict=True)` rather than a hand-written four-literal list — the
+    # verifier reproduced live that narrowing `_BAND_BULLETS` from four
+    # literals to one (`(_BAND_SOUND,)`) left `--self-test` at rc=0
+    # reporting "All 94 branches covered", because the prior R-11a/R-11b
+    # controls this loop replaces exercised `_BAND_SOUND` only — the other
+    # three literals had no arm in either criterion slice. Each of the
+    # eight controls below carries an `expected_detail` naming its own
+    # bullet's `repr()` and slice, so the eight are mutually discriminating
+    # (no one control's failure message can satisfy a sibling's
+    # expectation) rather than all satisfiable by any single `Rubric-11`
+    # message. Mirrors R-11a's strip idiom for the Criterion 4 arms and
+    # R-11b's duplicate idiom for the Criterion 6 arms, so both mutation
+    # directions stay represented per literal.
+    for _band_bullet, _band_name in zip(_BAND_BULLETS, _BAND_NAMES):
+        rubric_r11_crit4 = _mutate_within_range(
+            real_rubric, _CRIT4_START, _CRIT5_START, _band_bullet, "REMOVED"
+        )
+        _check_negative(
+            f"R-11-{_band_name}-crit4",
+            _check_rubric_text(rubric_r11_crit4),
+            "Rubric-11",
+            f"{_band_bullet!r} occurs 0 time(s) in Criterion 4 slice",
+            f"R-11-bands-crit4-{_band_name}",
+        )
 
-    # R-11-bands-crit6: duplicate one band bullet in the Criterion 6 slice.
-    rubric_r11b = _mutate_within_range(
-        real_rubric,
-        _CRIT6_START,
-        _USAGE_NOTE,
-        _BAND_SOUND,
-        _BAND_SOUND + "\n" + _BAND_SOUND,
-    )
-    _check_negative(
-        "R-11b",
-        _check_rubric_text(rubric_r11b),
-        "Rubric-11",
-        "in Criterion 6 slice",
-        "R-11-bands-crit6",
-    )
+        rubric_r11_crit6 = _mutate_within_range(
+            real_rubric,
+            _CRIT6_START,
+            _USAGE_NOTE,
+            _band_bullet,
+            _band_bullet + "\n" + _band_bullet,
+        )
+        _check_negative(
+            f"R-11-{_band_name}-crit6",
+            _check_rubric_text(rubric_r11_crit6),
+            "Rubric-11",
+            f"{_band_bullet!r} occurs 2 time(s) in Criterion 6 slice",
+            f"R-11-bands-crit6-{_band_name}",
+        )
 
     # R-12-halt-missing: strip the halt sentence from inside the scan slice
     # only, leaving the Assumption Audit block's identical copy in place —
