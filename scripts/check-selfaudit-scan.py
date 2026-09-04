@@ -20,8 +20,10 @@ asserts both edits against the **emitted** tree —
 `DUAL-04` (`sync-content.py --check`) already guarantees `shared/` and the emitted
 tree agree, so asserting on the emitted tree transitively covers the source.
 
-This gate is not yet registered in `scripts/check-firewall-battery.sh` — plan
-15-04 owns registration and the battery tally bump.
+This gate is registered as `SCAN-GUARD` in `scripts/check-firewall-battery.sh`
+and as the CI job `check-selfaudit-scan (SCAN-GUARD)` in
+`.github/workflows/validation.yml`; the battery tally moved 23 -> 24 when it
+landed (plan 15-04).
 
 Usage:
     python3 scripts/check-selfaudit-scan.py [--self-test]
@@ -119,6 +121,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import inspect
 import io
 import re
 import sys
@@ -293,6 +296,21 @@ def _count_flat(haystack: str, needle: str) -> int:
     return _flat(haystack).count(_flat(needle))
 
 
+def _find_flat(haystack: str, needle: str) -> int:
+    """Return the index of `_flat(needle)` inside `_flat(haystack)`, or -1.
+
+    The returned index is an offset into the NORMALIZED text and is
+    therefore comparable only against other `_find_flat` results computed
+    against the same haystack — never mixed with a raw `str.find` offset.
+    Exists to prevent CR-01 (`15-REVIEW.md`): an ordering arm that counted
+    a literal with `_count_flat` but then located it with a raw
+    `str.find` silently stopped asserting anything about placement the
+    moment the literal was hard-wrapped, because `_count_flat` still
+    returned 1 while `find` returned -1.
+    """
+    return _flat(haystack).find(_flat(needle))
+
+
 def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
     """Return the text strictly between *start_heading* and *end_heading*.
 
@@ -400,6 +418,48 @@ def _hardwrap_reinstate_in_range(
     return head + new_region + tail
 
 
+def _hardwrap_relocate_in_range(
+    text: str, start_anchor: str, end_anchor: str, literal: str, new_anchor: str
+) -> str:
+    """Strip *literal* from inside the [start_anchor, end_anchor) range, wrap
+    it at `_WRAP_WIDTH`, and reinsert the wrapped rendering immediately AFTER
+    *new_anchor* within that same range.
+
+    Combines `_relocate`'s move with `_hardwrap_reinstate_in_range`'s wrap —
+    this is CR-01's exact malformation (`15-REVIEW.md`): a sentence that is
+    BOTH hard-wrapped AND moved out of order, which a strip-only control
+    cannot see. Carries the wrap helper's two self-assertions (the
+    constructed text must NOT contain *literal* contiguously, and MUST
+    contain it once whitespace is normalized) plus a third: the reinsertion
+    point must land inside the range, so a fixture that silently no-ops
+    raises instead of producing a vacuous control.
+    """
+    start = text.find(start_anchor)
+    assert start != -1, f"start anchor {start_anchor!r} not found"
+    end = text.find(end_anchor, start)
+    assert end != -1, f"end anchor {end_anchor!r} not found after start anchor"
+    head, region, tail = text[:start], text[start:end], text[end:]
+    count = region.count(literal)
+    assert count == 1, (
+        f"expected exactly one occurrence of {literal!r} within range, found {count}"
+    )
+    stripped_region = region.replace(literal, "", 1)
+    anchor_idx = stripped_region.find(new_anchor)
+    assert anchor_idx != -1, (
+        f"relocation anchor {new_anchor!r} not found within range after strip"
+    )
+    wrapped = "\n".join(textwrap.wrap(literal, width=_WRAP_WIDTH))
+    if literal in wrapped:
+        raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
+    if not _contains(wrapped, literal):
+        raise ValueError(f"wrapped fixture no longer whitespace-normalizes to {literal!r}")
+    insert_idx = anchor_idx + len(new_anchor)
+    new_region = (
+        stripped_region[:insert_idx] + "\n\n" + wrapped + "\n\n" + stripped_region[insert_idx:]
+    )
+    return head + new_region + tail
+
+
 # ---------------------------------------------------------------------------
 # Body (agent) checks
 # ---------------------------------------------------------------------------
@@ -441,9 +501,9 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-3: placement — the scan lead sits strictly between the ledger-form
     # fenced block's tail line and the ledger-clean handoff sentence.
-    lead_idx = text.find(_BODY_SCAN_LEAD)
-    tail_idx = text.find(_BODY_LEDGER_FENCE_TAIL)
-    clean_idx = text.find(_BODY_LEDGER_CLEAN)
+    lead_idx = _find_flat(text, _BODY_SCAN_LEAD)
+    tail_idx = _find_flat(text, _BODY_LEDGER_FENCE_TAIL)
+    clean_idx = _find_flat(text, _BODY_LEDGER_CLEAN)
     if lead_idx == -1:
         failures.append(f"Body-3: scan lead {_BODY_SCAN_LEAD!r} not found in whole file")
     if tail_idx == -1:
@@ -583,14 +643,16 @@ def _check_rubric_text(text: str) -> list[str]:
 
     # Rubric-2: placement — the scan block sits strictly between the
     # Assumption Audit block and the Precedence rule paragraph.
-    aa_idx = text.find(_RUBRIC_AA_BLOCK)
-    scan_idx = text.find(_RUBRIC_SCAN_BLOCK)
-    precedence_idx = text.find(_RUBRIC_PRECEDENCE)
+    aa_idx = _find_flat(text, _RUBRIC_AA_BLOCK)
+    scan_idx = _find_flat(text, _RUBRIC_SCAN_BLOCK)
+    precedence_idx = _find_flat(text, _RUBRIC_PRECEDENCE)
     if aa_idx == -1:
         failures.append(f"Rubric-2: {_RUBRIC_AA_BLOCK!r} not found in whole file")
+    if scan_idx == -1:
+        failures.append(f"Rubric-2: {_RUBRIC_SCAN_BLOCK!r} not found in whole file")
     if precedence_idx == -1:
         failures.append(f"Rubric-2: {_RUBRIC_PRECEDENCE!r} not found in whole file")
-    if aa_idx != -1 and precedence_idx != -1:
+    if aa_idx != -1 and scan_idx != -1 and precedence_idx != -1:
         if not (aa_idx < scan_idx < precedence_idx):
             failures.append(
                 "Rubric-2: scan block is not placed strictly between the "
@@ -667,9 +729,10 @@ def _check_rubric_text(text: str) -> list[str]:
                 "time(s) in Criterion 4 slice, expected exactly 1"
             )
         else:
-            span_idx = crit4_slice.find(_RUBRIC_QUOTED_SPAN_C4)
-            rigorous_idx = crit4_slice.find(_BAND_RIGOROUS)
-            if rigorous_idx == -1 or not (span_idx < rigorous_idx):
+            # locate on the SAME normalized text the count arm uses (CR-01)
+            span_idx = _find_flat(crit4_slice, _RUBRIC_QUOTED_SPAN_C4)
+            rigorous_idx = _find_flat(crit4_slice, _BAND_RIGOROUS)
+            if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
                     "Rubric-9: quoted-span sentence does not precede the "
                     "Rigorous band bullet in Criterion 4"
@@ -690,9 +753,10 @@ def _check_rubric_text(text: str) -> list[str]:
                 "time(s) in Criterion 6 slice, expected exactly 1"
             )
         else:
-            span_idx = crit6_slice.find(_RUBRIC_QUOTED_SPAN_C6)
-            rigorous_idx = crit6_slice.find(_BAND_RIGOROUS)
-            if rigorous_idx == -1 or not (span_idx < rigorous_idx):
+            # locate on the SAME normalized text the count arm uses (CR-01)
+            span_idx = _find_flat(crit6_slice, _RUBRIC_QUOTED_SPAN_C6)
+            rigorous_idx = _find_flat(crit6_slice, _BAND_RIGOROUS)
+            if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
                     "Rubric-10: quoted-span sentence does not precede the "
                     "Rigorous band bullet in Criterion 6"
@@ -803,14 +867,71 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-06-ledger",
         "R-07-missing",
         "R-08-bound",
-        "R-09-crit4",
-        "R-10-crit6",
+        "R-09-crit4-count",
+        "R-09-crit4-order",
+        "R-10-crit6-count",
+        "R-10-crit6-order",
         "R-11-bands",
         "R-12-halt",
         "X-01-cols",
         "X-02-heading",
     }
 )
+
+# Anti-vacuity floor for REQUIRED_BRANCHES itself (WR-02, `15-REVIEW.md`): the
+# anti-masking assertion below is computed FROM `REQUIRED_BRANCHES`
+# (`REQUIRED_BRANCHES - covered_branches`), so it cannot see that set itself
+# being silently narrowed — the verifier measured exactly this, deleting two
+# entries and leaving `--self-test` green with a message
+# ("All 27 branches covered") that reads identical in kind to the honest one.
+# `_BRANCH_ROSTER_LOCK` is a SECOND, independently typed transcription of
+# every branch id; `_roster_problems` compares it against `REQUIRED_BRANCHES`
+# by equality before the anti-masking assertion runs, so adding or removing a
+# branch is deliberately a two-place edit. DISCLOSED LIMITATION, the same
+# bound `check-quality-harness.py`'s ENTRY-SOURCE LOCK states for its own
+# required sides: a transcription of EQUAL value written a different way is
+# harmless by construction and therefore invisible to this floor — only a
+# set that actually differs is caught.
+_BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
+    {
+        "B-01-slice", "B-02-lead", "B-03-placement", "B-04-heading",
+        "B-05-cols-chain", "B-06-cols-claim", "B-07-rowrule", "B-08-rejected",
+        "B-09-cleanpass", "B-10-ledger-indep", "B-11-recon",
+        "B-12-placement-sentence", "B-13-refix", "B-14-bound",
+        "B-15-donotpresent",
+        "R-01-block", "R-02-placement", "R-03-divlabour",
+        "R-04-two-criteria", "R-05-cols", "R-06-ledger", "R-07-missing",
+        "R-08-bound", "R-09-crit4-count", "R-09-crit4-order",
+        "R-10-crit6-count", "R-10-crit6-order", "R-11-bands", "R-12-halt",
+        "X-01-cols", "X-02-heading",
+    }
+)
+
+
+def _roster_problems(
+    required: frozenset[str], lock: frozenset[str], covered: frozenset[str]
+) -> list[str]:
+    """Pure comparison the roster-equality and coverage-subset floors share.
+
+    Never called with anything but `REQUIRED_BRANCHES`, `_BRANCH_ROSTER_LOCK`
+    and `covered_branches` at the real call site — the isolation arms in
+    `_run_self_test` drive this same function with SYNTHETIC id sets so the
+    comparison logic itself is proven correct independently of whether the
+    two real registries happen to agree today.
+    """
+    problems: list[str] = []
+    if required != lock:
+        problems.append(
+            "ROSTER LOCK: REQUIRED_BRANCHES drifted from _BRANCH_ROSTER_LOCK: "
+            f"missing={sorted(lock - required)}, extra={sorted(required - lock)}"
+        )
+    surplus = covered - required
+    if surplus:
+        problems.append(
+            "ROSTER LOCK: control claims unregistered branch id(s) "
+            f"(typo'd branch_id?): {sorted(surplus)}"
+        )
+    return problems
 
 
 def _run_self_test() -> int:
@@ -1153,20 +1274,58 @@ def _run_self_test() -> int:
         "R-08-bound",
     )
 
-    # R-09-crit4: strip the Criterion 4 quoted-span sentence.
+    # R-09-crit4-count: strip the Criterion 4 quoted-span sentence. Proves
+    # the count arm, not the ordering arm.
     rubric_r09 = _mutate_within_range(
         real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, ""
     )
     _check_negative(
-        "R-09", _check_rubric_text(rubric_r09), "Rubric-9", "occurs 0 time(s)", "R-09-crit4"
+        "R-09",
+        _check_rubric_text(rubric_r09),
+        "Rubric-9",
+        "occurs 0 time(s)",
+        "R-09-crit4-count",
     )
 
-    # R-10-crit6: strip the Criterion 6 quoted-span sentence.
+    # R-09-crit4-order: wrap AND relocate the Criterion 4 quoted-span
+    # sentence after the Rigorous band bullet — CR-01's exact malformation
+    # (`15-REVIEW.md`), which a strip-only control cannot see.
+    rubric_r09c = _hardwrap_relocate_in_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, _BAND_RIGOROUS
+    )
+    _check_negative(
+        "R-09c",
+        _check_rubric_text(rubric_r09c),
+        "Rubric-9",
+        "does not precede the Rigorous band bullet",
+        "R-09-crit4-order",
+    )
+
+    # R-10-crit6-count: strip the Criterion 6 quoted-span sentence. Proves
+    # the count arm, not the ordering arm.
     rubric_r10 = _mutate_within_range(
         real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, ""
     )
     _check_negative(
-        "R-10", _check_rubric_text(rubric_r10), "Rubric-10", "occurs 0 time(s)", "R-10-crit6"
+        "R-10",
+        _check_rubric_text(rubric_r10),
+        "Rubric-10",
+        "occurs 0 time(s)",
+        "R-10-crit6-count",
+    )
+
+    # R-10-crit6-order: wrap AND relocate the Criterion 6 quoted-span
+    # sentence after the Rigorous band bullet — CR-01's exact malformation
+    # (`15-REVIEW.md`), which a strip-only control cannot see.
+    rubric_r10c = _hardwrap_relocate_in_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, _BAND_RIGOROUS
+    )
+    _check_negative(
+        "R-10c",
+        _check_rubric_text(rubric_r10c),
+        "Rubric-10",
+        "does not precede the Rigorous band bullet",
+        "R-10-crit6-order",
     )
 
     # R-11-bands, arm 1: strip one band bullet from the Criterion 4 slice.
@@ -1266,6 +1425,70 @@ def _run_self_test() -> int:
         "X-02-heading",
     )
 
+    # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus
+    # coverage-subset, routed through `_roster_problems` so the isolation
+    # arms below drive the exact code path this real call uses.
+    roster_real_problems = _roster_problems(
+        REQUIRED_BRANCHES, _BRANCH_ROSTER_LOCK, frozenset(covered_branches)
+    )
+    if roster_real_problems:
+        for roster_msg in roster_real_problems:
+            print(f"(roster-lock) {roster_msg}")
+        problems.extend(roster_real_problems)
+    else:
+        print(
+            "(roster-lock) ROSTER LOCK: PASS — REQUIRED_BRANCHES == "
+            "_BRANCH_ROSTER_LOCK and covered_branches has no unregistered "
+            "branch id(s)"
+        )
+
+    # ISOLATION arms for `_roster_problems` itself, mirroring
+    # `check-quality-harness.py`'s (x) ISOLATION shape: drive the pure
+    # helper with SYNTHETIC id sets only — never `REQUIRED_BRANCHES`, never
+    # `_BRANCH_ROSTER_LOCK` — so the comparison logic is proven correct
+    # independently of whether the two real registries happen to agree today.
+    roster_x1 = _roster_problems(frozenset({"A", "B"}), frozenset({"A", "B"}), frozenset({"A"}))
+    if roster_x1 != []:
+        print(f"(roster-x1) ISOLATION CLEAN: WRONGLY reported problem(s): {roster_x1}")
+        problems.append(f"(roster-x1): clean case wrongly reported {roster_x1}")
+    else:
+        print("(roster-x1) ISOLATION CLEAN: PASS")
+
+    roster_x2 = _roster_problems(frozenset({"A"}), frozenset({"A", "B"}), frozenset({"A"}))
+    if not (len(roster_x2) == 1 and "B" in roster_x2[0] and "ROSTER LOCK:" in roster_x2[0]):
+        print(f"(roster-x2) ISOLATION NARROWED: expected one problem naming 'B', got {roster_x2}")
+        problems.append(f"(roster-x2): narrowed case did not name missing id 'B': {roster_x2}")
+    else:
+        print(f"(roster-x2) ISOLATION NARROWED: PASS ({roster_x2[0]})")
+
+    roster_x3 = _roster_problems(
+        frozenset({"A", "B"}), frozenset({"A", "B"}), frozenset({"A", "B", "C"})
+    )
+    if not (len(roster_x3) == 1 and "C" in roster_x3[0] and "unregistered" in roster_x3[0]):
+        print(f"(roster-x3) ISOLATION EXTRA: expected one problem naming 'C', got {roster_x3}")
+        problems.append(f"(roster-x3): extra case did not name surplus id 'C': {roster_x3}")
+    else:
+        print(f"(roster-x3) ISOLATION EXTRA: PASS ({roster_x3[0]})")
+
+    # CALL-SITE CENSUS (R4-CR-01 lesson, CLAUDE.md's QUAL-01 row): a floor
+    # whose only real call is deleted must fail the gate by name, not merely
+    # pass because the isolation arms above still exercise the helper in
+    # isolation. Counts THE FLOOR ITSELF plus the three isolation arms.
+    roster_call_pattern = "_roster_problems" + "("
+    roster_call_count = inspect.getsource(_run_self_test).count(roster_call_pattern)
+    if roster_call_count != 4:
+        print(
+            f"(roster-census) CALL-SITE CENSUS: observed {roster_call_count} "
+            "call site(s) to _roster_problems (expected 4: 1 real + 3 "
+            "isolation arms)"
+        )
+        problems.append(
+            f"(roster-census): observed {roster_call_count} _roster_problems "
+            "call site(s), expected 4"
+        )
+    else:
+        print(f"(roster-census) CALL-SITE CENSUS: PASS ({roster_call_count} call sites)")
+
     # Anti-masking assertion: every required branch must have coverage from
     # the fixture battery above.
     uncovered = REQUIRED_BRANCHES - covered_branches
@@ -1285,7 +1508,6 @@ def _run_self_test() -> int:
     # to prove the CLI layer reaches this block, not merely that
     # _run_self_test() is correct when called directly.
     this_module = sys.modules[__name__]
-    global _SCANGUARD_DISPATCH_REENTRANT
     if not this_module._SCANGUARD_DISPATCH_REENTRANT:
         this_module._SCANGUARD_DISPATCH_REENTRANT = True
         try:
