@@ -67,6 +67,52 @@ Exit codes:
     exactly. No skill-stub-surface assertion is invented to satisfy the literal
     wording, and the clause is not silently dropped. Whether focused-mode surfaces
     belong in rendering-contract scope is backlog 999.16 and is not settled here.
+
+## Measured emission cost (SCAN-04)
+
+Measured against the committed, FROZEN fixture `tests/quality-ledger-v8.26/PR-P1.md`
+(recovered 2026-09-02, never regenerated or hand-edited — see the fixture's own
+`README.md`). Both measurements below are in-memory only; the frozen file itself
+was never written to.
+
+**Assumption Audit scan's existing block** (from `## Assumption Audit scan (process
+output)` to `## Self-Audit Gate`, exclusive): **3,408 characters, 52 lines, 44 table
+data rows.**
+
+**New self-audit scan block**, built with the real SCAN-01 prescribed shape (a
+`## Self-audit scan (process output)` heading, an 8-row chain-form table — one row
+per section-4 chain block this fixture actually contains — a 9-row claim-inventory
+table — one row per section-6 construct this fixture actually contains, 7 claims
+under R11 plus 2 excluded section-intro labels — and a `Scan complete: ...`
+reconciliation line with real counts substituted, `P`/`Q` drawn from this fixture's
+own measured `malformed_chain_blocks`/`untraced_claims` = 1/1), inserted immediately
+before `## Self-Audit Gate` (the same D-04 slot RESEARCH.md §5 measured): **2,288
+characters, 27 lines, 17 table data rows.**
+
+In plain words: the new scan is smaller than the Assumption Audit scan on every unit
+measured here — roughly two-thirds its size in characters (2,288 / 3,408), about
+half its size in lines (27 / 52), and about two-fifths its size in table rows
+(17 / 44). Measured 2026-09-04.
+
+**Structural-invariance result** (re-running RESEARCH.md §5's procedure against this
+real block shape, not its minimal placeholder): running `detect_defects` on the
+original fixture text and on the fixture with the block above inserted at the D-04
+slot produces identical values for every field (`conclusion_claims`,
+`untraced_claims`, `chain_blocks`, `malformed_chain_blocks`, `dependency_cycles`,
+`ungrounded_chains`, `selfaudit_disagreements`, `verdict_cells`,
+`nonconforming_verdict_cells`, `closure_ledger_fragments`), and `_slice_sections`'
+section-6 slice is byte-for-byte identical (3,097 characters) between the two —
+confirming the D-04 insertion moves zero readings against the real, not merely a
+placeholder, block shape.
+
+These are the block's size on one committed capture, not a prediction of any other
+analysis's size — a different chain count or claim count in a different analysis
+renders a differently sized block. No live turn-count measurement exists or is in
+scope (999.12/999.13); `maxTurns: 60` (`shared/spine/SKILL.meta.yml`) is unedited by
+this phase, and the new scan is prose emitted once in the same process-output slot
+the Assumption Audit scan already occupies — it adds no re-entry edge and no
+re-perception pass, so it is a structural claim about placement, not a turn-count
+measurement.
 """
 
 from __future__ import annotations
