@@ -462,20 +462,29 @@ gate "HARN-03" \
 #              4/6 quote-source sentences), and the Criterion-2-widened
 #              Verdict Block Format admission (plan 15-08) are present,
 #              correctly placed and internally coherent in the emitted tree;
-#              87 clause-level named branches (72 at plan 15-07; 72->86 at
+#              100 clause-level named branches (72 at plan 15-07; 72->86 at
 #              plan 15-08 widening the admission to Criterion 2; 86->87 at
 #              plan 15-09 splitting Rubric-2's placement predicate into
-#              independently falsifiable halves) each with their own
-#              per-source negative control, an anti-masking assertion, and a
-#              roster floored by an independent transcription
-#              (_BRANCH_ROSTER_LOCK) so narrowing the registry fails the gate.
-#              Runs --self-test plus the bare live leg (plan 15-09), matching
-#              PROV-GUARD/REG-GUARD. Coverage claim narrowed per 15-REVIEW.md
-#              WR-03 — clause-level ids cover every count guard, every
-#              multi-literal tuple and every cross-surface arm, not one id
-#              per arm. See the gate's own docstring for the full residual
-#              ledger (WR-01, WR-04, IN-04, IN-05, the SCAN-04 character
-#              figure).
+#              independently falsifiable halves; 87->94 at plan 15-11
+#              region-splitting the quoted-span TEMPLATE and the admission
+#              paragraph so each independently states both admitted-artifact
+#              clauses, closing a gate-locked contradiction where the
+#              pre-15-11 template rejected the correct fix; 94->100 at plan
+#              15-12 replacing Rubric-11's two hand-written ids with eight
+#              parameterized over every _BAND_BULLETS literal) each with
+#              their own per-source negative control, an anti-masking
+#              assertion, and a roster floored by an independent
+#              transcription (_BRANCH_ROSTER_LOCK) so narrowing the registry
+#              fails the gate. Runs --self-test plus the bare live leg (plan
+#              15-09), matching PROV-GUARD/REG-GUARD. Coverage claim narrowed
+#              per 15-REVIEW.md WR-03 — clause-level ids cover every count
+#              guard, every multi-literal tuple (measured TRUE file-wide, no
+#              named exceptions, plan 15-12) and every cross-surface arm, not
+#              one id per arm; eight not-found reporting arms carry no id of
+#              their own (net of the one R-02-placement-aa closed). See the
+#              gate's own docstring for the full residual ledger (WR-01,
+#              IN-04, IN-05, the SCAN-04 character figure; WR-04 is closed by
+#              plan 15-12's ENTRY-SOURCE LOCK).
 gate "SCAN-GUARD" \
     "check-selfaudit-scan.py --self-test + live" \
     "python3 scripts/check-selfaudit-scan.py --self-test" \
