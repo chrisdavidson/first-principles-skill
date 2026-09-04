@@ -455,9 +455,11 @@ gate "HARN-03" \
 # SCAN-GUARD — self-audit scan structural gate: the Phase 15 self-audit scan
 #              prescription (agent body) and its rubric verify block (Criterion
 #              4/6 quote-source sentences) are present, correctly placed and
-#              internally coherent in the emitted tree; 31 named branches each
-#              with a per-source negative control, an anti-masking assertion,
-#              and a roster floored by an independent transcription
+#              internally coherent in the emitted tree; 58 clause-level named
+#              branches each with their own per-source negative control (plan
+#              15-06 split every check-level branch into one id per
+#              independently neutralizable assertion arm), an anti-masking
+#              assertion, and a roster floored by an independent transcription
 #              (_BRANCH_ROSTER_LOCK) so narrowing the registry fails the gate
 gate "SCAN-GUARD" \
     "check-selfaudit-scan.py --self-test" \
