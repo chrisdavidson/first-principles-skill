@@ -4,13 +4,13 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 175 reproducible / 91 audit-only / 0 gap / 266 total
+**Coverage headline:** 192 reproducible / 94 audit-only / 0 gap / 286 total
 
-The full 266-row capability-to-requirement-to-test mapping is in the generated matrix:
+The full 286-row capability-to-requirement-to-test mapping is in the generated matrix:
 [`requirements-matrix.md`](requirements-matrix.md)
 
 > **Honesty note (D-07):** A non-zero audit-only count is the expected honest success state.
-> 91 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
+> 94 requirements are validated by milestone audit or inspection without a re-runnable gate (audit-only);
 > No current open gaps — GEN-01 → reproducible (Phase 93; artifact bumped to the committed v7.13 residual-delta live re-baseline Phase 137; latest artifact `tests/step0-baseline-v7.13.md`; reproducible = measured, not passing — v7.13 S-P02 1/5, S-P10 0/5, S-P14 0/5 all CARRIED; v7.8 remains the canonical full 8-technique baseline) and GEN-02 → reproducible (runbook + wrapper; artifact `docs/live-monitoring-runbook.md`);
 > 3 further requirements are confirmed by offline gates but remain honest live carry-forwards (RR-80-01, RR-114-01 (supersedes RR-108-01, supersedes RR-95-01, supersedes RR-92-01, supersedes RR-79-02), RR-77-08); RR-108-02 is CLOSED at 4/5 ≥ min-pass (Phase 114 v7.6 re-baseline — ID retained, sentinel present as regression guard); RR-79-01 is CLOSED at 3/5 ≥ min-pass (Phase 117 v7.7 CONF-01; CLOSE SUSTAINED 3/5 at Phase 119 v7.8 CONF-03 — ID retained, sentinel present as regression guard); RR-117-01 (S-P03 fishbone) CLOSED 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at Phase 119 CONF-03; RR-117-02 (S-N03 precision) minted Phase 117 CONF-02, re-pointed to v7.8 Phase 119 CONF-04; RR-119-01/RR-119-02 (S-N01/S-N02 resolved-over-bar) minted Phase 119 CONF-04.
 > **v8.0 audit-validated-reqs note (D-02):** v7.12, v7.13, and v8.0 requirements are validated by their milestone audits rather than matrix rows (honest-state framing of the zero-drift headline; the 9 v8.0 requirements are not registered as matrix rows per Phase 142 D-01). All three Step 0 residuals (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) are v8.0 ACCEPTED-FINAL — see the v8.0 Terminal State block below.
@@ -18,16 +18,24 @@ The full 266-row capability-to-requirement-to-test mapping is in the generated m
 > **v8.26 CHAINHEAD deferred-registration note, dated 2026-09-03 (Phase 13 plan 13-28):** this is a
 > separate note beside D-02 above, not an extension of it — D-02 is written for v7.12/v7.13/v8.0
 > specifically and must not be silently widened. `CHAINHEAD-01..07` (Phase 13's own requirements)
-> and the milestone's remaining twelve requirements (Phase 14's LEDGER-01..04, Phase 15's
-> SCAN-01..04, Phase 16's SHIP-01..04) are deliberately row-less as of this note: v8.26.0's
-> nineteen requirements are registered as matrix rows in one lockstep batch at Phase 16, per
-> ROADMAP's Phase 16 success criterion 3 ("This milestone's 19 requirements are registered as
-> matrix rows; the resulting coverage-headline move … is produced by `HEADLINE-LOCK`'s sweep
-> rather than a hand edit, and the sentinel confirms it."). Registering seven of the nineteen here
-> would move the headline twice, by hand the second time, and split a lockstep registration Phase
-> 16 exists to perform in one sweep. The published `175 reproducible / 91 audit-only / 0 gap / 266
-> total` headline's scope excludes all nineteen by this design, not by omission — `13-REVIEW.md`
-> WR-05 called the absence undisclosed, not wrong, and this note is the disclosure.
+> and the milestone's remaining requirements (Phase 14's LEDGER-01..04, Phase 15's
+> SCAN-01..04, Phase 16's SHIP-01..05) were deliberately row-less as of this note: v8.26.0's
+> twenty requirements were to be registered as matrix rows in one lockstep batch at Phase 16, per
+> ROADMAP's Phase 16 success criterion 3
+> ("This milestone's 20 requirements are registered as matrix rows; the resulting
+> coverage-headline move … is produced by `HEADLINE-LOCK`'s sweep rather than a hand edit, and
+> the sentinel confirms it."). Registering seven of the twenty here
+> would have moved the headline twice, by hand the second time, and split a lockstep registration
+> Phase 16 exists to perform in one sweep.
+>
+> **Deferral discharged, dated 2026-09-04 (Phase 16 plan 16-02, SHIP-03):** this deferral is now
+> closed. All twenty requirements (SHIP-05 was added 2026-09-04, raising the milestone's total by
+> one — see `.planning/REQUIREMENTS.md`'s closing footer) were registered as matrix rows in one
+> lockstep batch (`_rows_v826()`), moving the coverage headline
+> `175/91/0/266` → `192/94/0/286` (headline-history row 12 below), produced by
+> `HEADLINE-LOCK`'s sweep rather than a
+> hand edit, per the ROADMAP criterion quoted above. `13-REVIEW.md` WR-05 called the pre-discharge
+> absence undisclosed, not wrong; this note was, and remains, the disclosure.
 
 > **Departure from the note above, dated 2026-08-29 (v8.18 Phase 4 / D-05, D-08):** the note above
 > is left byte-intact as the record of what Phase 142 decided; this addendum states where v8.18
@@ -94,6 +102,7 @@ below is already discharged — no row is a currently-open action item.
 | 9 | v8.24 Phase 6 (D-06/D-07) | 147/90/0/237 → 161/91/0/252 | **+14 reproducible / +1 audit-only.** The 15 v8.24 milestone requirements (CAP-01..03, PROV-01..05, GATE-01..03, VAL-01..04) were registered as matrix rows for the first time (`_rows_v824()`, `scripts/check-traceability.py`). 14 are reproducible, each backed by a deterministic offline gate (`scripts/check-provenance.py`, `scripts/check-quality-harness.py`, `scripts/check-registration.py`, `scripts/check-firewall-battery.sh`, `scripts/check-version-stamps.py`, `scripts/sync-content.py`); VAL-04 is audit-only because no gate re-runs to check that a docs record exists — the v8.18 SHIP-04/SHIP-05 precedent. The gate list here is the corrected one: the v8.24 code review found CAP-01/CAP-03 pointed at `check-provenance.py`, which verifies neither, and GATE-02 pointed at `check-firewall-battery.sh`, which never read its deliverable — all three were re-pointed at assertions that actually re-run them (CR-02, WR-02), leaving this row's tier partition unchanged. |
 | 10 | v8.25 Phase 12 (A1/A2) | 161/91/0/252 → 174/92/0/266 | **+13 reproducible / +1 audit-only.** The 14 v8.25.0 milestone requirements (HEADLINE-01..05, CONTRACT-01..06, SHIP-01..03) were registered as matrix rows for the first time (`_rows_v825()`, `scripts/check-traceability.py`). 13 are reproducible, each backed by a deterministic offline gate (`scripts/check-traceability.py`'s HEADLINE-LOCK for HEADLINE-01..05 and SHIP-03, `scripts/check-quality-harness.py`'s QUAL-01 for CONTRACT-01..05, `scripts/check-version-stamps.py` for SHIP-01, `scripts/check-firewall-battery.sh` for SHIP-02); CONTRACT-06 is audit-only because nothing in the tree pins `_chain_block_well_formed` byte-unchanged — no gate re-runs to check that a byte-freeze claim holds (the v8.18 SHIP-04/SHIP-05 precedent). Two tiering calls were judgment calls, recorded rather than hidden: CONTRACT-06's tier (A1) and SHIP-03's tier (A2), both in `.planning/phases/12-integration-ship/12-RESEARCH.md` §A — each independently reversible without moving this row's total (266). |
 | 11 | v8.26 Phase 13 (CHAINHEAD-07 / D-11) | 174/92/0/266 → 175/91/0/266 | **+1 reproducible / −1 audit-only, total unchanged at 266.** CONTRACT-06 was re-tiered `audit-only` → `reproducible` in `scripts/check-traceability.py` because `_selftest_chain_detector_pin` (`scripts/check-quality-harness.py`, added plan 13-03) now re-runs the byte-freeze claim that previously had no gate — closing the gap A1 (row 10 above) explicitly recorded as independently reversible. This reverses only the A1 judgment call; SHIP-03's tier (A2) is untouched. |
+| 12 | v8.26 Phase 16 (SHIP-03) | 175/91/0/266 → 192/94/0/286 | **+17 reproducible / +3 audit-only.** The 20 v8.26 milestone requirements (CHAINHEAD-01..07, LEDGER-01..04, SCAN-01..04, SHIP-01..05) were registered as matrix rows for the first time (`_rows_v826()`, `scripts/check-traceability.py`). 17 are reproducible, each backed by a deterministic offline gate (`scripts/check-quality-harness.py`'s QUAL-01 for CHAINHEAD-01..06 and LEDGER-01..04, `scripts/check-quality-harness.py`'s CONTRACT-06 pin for CHAINHEAD-07, `scripts/check-selfaudit-scan.py`'s SCAN-GUARD for SCAN-01..03, `scripts/check-version-stamps.py` for SHIP-01, `scripts/check-firewall-battery.sh` for SHIP-02, and `scripts/check-traceability.py`'s own HEADLINE-LOCK sentinel for SHIP-03); SCAN-04, SHIP-04 and SHIP-05 are audit-only because no gate re-runs to check a validation-audit finding, a CHANGELOG entry, or a docs record (the v8.18 SHIP-04/SHIP-05 precedent). One tiering call was a judgment call, recorded rather than hidden: CHAINHEAD-07 is registered as its own v8.26 row distinct from the existing `v8.25/CONTRACT-06` row (A3) — independently reversible without moving this row's total (286). `_rows_v826()`'s docstring also discloses a boundary on SCAN-01..03's three anchors (`_check_body_text`, `_check_rubric_text`, `_check_cross_surface`): they are not dispatch-checked by `_resolve_artifact()`, which recognises only the `_selftest_*`/`_self_test_*` naming convention — the call-site census in `_self_test_v826_rows_sentinel()`'s block (h4) is what actually confirms those three are wired in, not `_resolve_artifact()`. |
 
 > **Honesty note (v8.8 D-01 — RESOLVED):** the prior "known-stale / vacuously-green" flag on
 > META-Q4 (TRACE-03 reporting coverage that no longer existed — "green because nothing checks it")
@@ -118,6 +127,8 @@ below is already discharged — no row is a currently-open action item.
 > and the audit-only-rows heading moved with it; both now read 92.
 > The headline moved again at v8.26 Phase 13 to `175/91/0/266` (headline-history row 11 above),
 > and the audit-only-rows heading moved with it; both now read 91.
+> The headline moved again at v8.26 Phase 16 (SHIP-03) to `192/94/0/286` (headline-history
+> row 12 above), and the audit-only-rows heading moved with it; both now read 94.
 
 ## v8.0 Terminal State (2026-07-06)
 
@@ -268,7 +279,7 @@ Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](req
 - **RR-119-01** [MEDIUM] — S-N01 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,2,1,1,3]; under-count caveat; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 - **RR-119-02** [MEDIUM] — S-N02 over-routing, **RESOLVED-OVER-BAR** at Phase 119 v7.8 CONF-03 (3/5 PASS; v7.8 vector [0,3,3,1,1]; under-count caveat documented — runs 2,3 are detector under-counts where agent still ran a pre-mortem; NOT a reclassification, D-4). Minted Phase 119 CONF-04. Confirmed by BATT-06. Artifact: `scripts/_battery_core.py#self_test_boundary`.
 
-**91 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
+**94 audit-only rows** — validated by milestone audit; no re-runnable gate exists. These represent genuine coverage but cannot be re-verified programmatically without new confirming tests.
 
 ### GAP-02: Candidate work list
 
@@ -317,7 +328,7 @@ Milestones with no audit file did not produce one at the time of shipping.
 
 ## Cross-links
 
-- **Generated matrix (266 rows):** [`requirements-matrix.md`](requirements-matrix.md)
+- **Generated matrix (286 rows):** [`requirements-matrix.md`](requirements-matrix.md)
 - **Frozen milestone history:** `docs/history/` — local-only, git-ignored; not present in a fresh clone
 - **Project overview and active milestone context:** `.planning/PROJECT.md` — local-only,
   git-ignored; not present in a fresh clone, so deliberately not a link (same treatment as the

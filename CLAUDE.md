@@ -224,22 +224,23 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 
 - **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
   Active residuals, the current coverage headline
-  (**175 reproducible / 91 audit-only / 0 gap / 266 total**), compact historical ledger, and gap
+  (**192 reproducible / 94 audit-only / 0 gap / 286 total**), compact historical ledger, and gap
   findings. (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
   reproducible→audit-only in the v8.8 post-close TEARDOWN-01 cleanup, 133/96 → 132/97; 15
   v4.0/v4.1 builder requirements retired at quick task `260728-vxn`, 132/97 → 126/88,
   229 → 214 rows; the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05,
   126/88 → 147/90, 214 → 237 rows; the 15 v8.24 milestone requirements registered as matrix rows
   at Phase 6 / D-06, 147/90 → 161/91, 237 → 252 rows; the 14 v8.25 milestone requirements
-  registered as matrix rows at Phase 12 / 12-01, 161/91 → 174/92, 252 → 266 rows; CONTRACT-06
-  re-tiered reproducible at Phase 13 / CHAINHEAD-07, 174/92 → 175/91, row count unchanged at
-  266.)
+  registered as matrix rows at Phase 12 / 12-01, 161/91 → 174/92 (row count 252 → 266);
+  CONTRACT-06 re-tiered reproducible at Phase 13 / CHAINHEAD-07, 174/92 → 175/91, row count
+  unchanged at 266; the 20 v8.26 milestone requirements registered as matrix rows at Phase 16 /
+  SHIP-03, 175/91 → 192/94, row count 266 → 286.)
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
   wrap the project; work continued and that figure has been superseded six times — see the
   bullet above. Do not quote its headline as current.
-- **`docs/requirements-matrix.md`** — generated 266-row capability→requirement→test
+- **`docs/requirements-matrix.md`** — generated 286-row capability→requirement→test
   matrix. Regenerate with:
   ```sh
   python3 scripts/check-traceability.py emit \
