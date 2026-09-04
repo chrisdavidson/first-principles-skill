@@ -12,6 +12,12 @@ admission paragraph it governs, with a region-split mechanical agreement
 check and a superseded-wording pin on both prescriptive surfaces (plan
 15-11, closing `15-VERIFICATION.md`'s SCAN-02 gap) are present, correctly
 placed and internally coherent in the emitted first-principles tree.
+Plan 15-12 (closing `15-VERIFICATION.md` gap 2's two remaining `missing:`
+items) strengthens the anti-masking floor that certifies all of the
+above: `Rubric-11`'s controls are now parameterized over every
+`_BAND_BULLETS` literal rather than exercising one of four, and the
+roster floor's `covered` argument is now protected by a falsifiable
+ENTRY-SOURCE LOCK against a one-token aliasing rebind.
 
 Phase 15 plan 01 added a `## Self-audit scan (process output)` prescription to
 `shared/spine/SKILL-body.md`'s "Before presenting conclusions" section — two tables
@@ -172,7 +178,11 @@ Exit codes:
     (the anti-masking gate, the dispatch-reachability control, positive
     control (a), `_check_negative`'s check-ID and `expected_detail` matches)
     have no meta-guard beyond the branch and call-site censuses already in
-    place. IN-05: two residual raw-`str.find`/`.count` sites — `_slice`'s
+    place — plan 15-12 adds exactly one more such meta-guard, the
+    `(roster-es-census)` call-site census over the ENTRY-SOURCE LOCK's own
+    real call (bound (12)), narrowing this residual by one instance rather
+    than closing it: the four assertions named above are still unguarded.
+    IN-05: two residual raw-`str.find`/`.count` sites — `_slice`'s
     heading lookup and Rubric-11's band-bullet count — deviate from the
     file's stated one-discipline (`_find_flat`/`_count_flat`) rule.
 (9) **What plan 15-09's live-leg registration and censuses do and do not
@@ -197,6 +207,53 @@ Exit codes:
     clause literals themselves — two statements could carry both clauses,
     verbatim, and still differ in every other word, and this gate would not
     notice.
+(11) **What plan 15-12's per-literal `Rubric-11` controls make true, closing
+    `15-VERIFICATION.md` gap 2's first `missing:` item**: every literal in
+    `_BAND_BULLETS` now carries its own controlled arm in each criterion
+    slice (eight ids total, `R-11-bands-crit4/crit6-{rigorous,sound,
+    handwavy,absent}`), driven from `zip(_BAND_BULLETS, _BAND_NAMES)` rather
+    than a hand-written four-control list, so narrowing the tuple to any
+    proper subset leaves the corresponding branch ids uncovered and fails
+    the anti-masking floor by name — reproduced live: `_BAND_BULLETS =
+    (_BAND_SOUND,)` moved `--self-test` from rc 0 ("All 94 branches
+    covered") to rc 1, naming the six now-uncovered ids. A full census of
+    every construct in this file where a check iterates over more than one
+    literal (nine found in total: `_BAND_BULLETS` plus eight inline
+    `for … in (…)` tuples across the body, rubric and cross-surface checks)
+    found `_BAND_BULLETS` was the file's ONLY exception before this plan;
+    the other eight already carried one hand-written arm per literal. The
+    published "every multi-literal tuple has one arm per literal" claim is
+    therefore now TRUE of the whole file, with no named exceptions —
+    narrower and more precise than an aspiration, per the plan 15-12
+    SUMMARY's census table. Deliberately NOT `strict=True` in the `zip`
+    call: a length-mismatched `_BAND_BULLETS`/`_BAND_NAMES` pair fails
+    LOUDLY (an uncaught `ValueError`, itself a nonzero exit) rather than
+    silently, but this makes the LENGTHENING direction fail-open — a fifth
+    literal appended to `_BAND_BULLETS` with no matching name appended to
+    `_BAND_NAMES` would silently zip only four pairs. Guarded procedurally,
+    matching bound (5)'s shape one level up, not mechanically.
+(12) **What plan 15-12's ENTRY-SOURCE LOCK does and does not prove, closing
+    `15-VERIFICATION.md` gap 2's second `missing:` item**: it proves the
+    real `_roster_problems(...)` call's own argument-triple text, read from
+    `inspect.getsource(_run_self_test)`, matches the expected
+    `REQUIRED_BRANCHES, _BRANCH_ROSTER_LOCK, frozenset(covered_branches)`
+    literal whitespace-normalized — reproduced live: aliasing the third
+    argument to `frozenset(REQUIRED_BRANCHES)` left `--self-test` at rc 0
+    with `ROSTER LOCK: PASS` before this plan (the roster-x1/x2/x3
+    isolation arms and the `(roster-census)` call-site census both stayed
+    green, because neither ever reads argument text); the same mutation now
+    fails naming `(roster-entry-source)`. It does NOT observe behaviour —
+    it catches an argument triple that was REWRITTEN (aliased, or the call
+    site deleted), not a floor whose returned problems are computed
+    correctly and then discarded before reaching `problems`; and an
+    argument rebound to an expression of EQUAL VALUE to the one expected is
+    harmless by construction and therefore invisible to this check, the
+    same DISCLOSED LIMITATION `check-quality-harness.py`'s own
+    ENTRY-SOURCE LOCK states for itself. It locks the roster floor's call
+    specifically, not every argument of every floor in this file. Adds no
+    new `REQUIRED_BRANCHES` ids — it is a named control, not a registered
+    branch id, matching the `(roster-census)`/`(validate-census)`/
+    `(live-census)` censuses' own status; the branch count stays at 100.
 
 ## Measured emission cost (SCAN-04)
 
