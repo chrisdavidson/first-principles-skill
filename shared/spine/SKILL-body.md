@@ -267,6 +267,28 @@ convention — `C1`, `C2`, ... in document order):
 - "[claim text]" → CUT (no chain; claim removed)
 ```
 
+**Self-audit scan (emit after the ledger is clean, before the verdict blocks):** Once the ledger above is clean, and before the Self-Audit Gate's verdict blocks, emit `` `## Self-audit scan (process output)` `` as one top-level heading holding two tables, chain form first, claim inventory second.
+
+Table 1 covers section 4 with the column list `` `Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean?` ``, one row per section-4 chain block, in order. `Form conforming?` is `yes` or `no`; `Rule applied` names the rule the block violated (R7, R8, R9 or R10 by name plus a short clause, e.g. a hop beginning with a `GT-N` identifier) and is `n/a` on a conforming block; `Dependency clean?` is `yes`, or names the dependency defect — a cycle among chain ids, or an input the chain names that resolves to no ground truth or upstream chain. The dependency column exists because Criterion 4 is reconciled against BOTH the per-block form check and chain dependency, so a table covering form alone leaves half of Criterion 4 unscanned.
+
+Table 2 covers section 6 with the column list `` `§6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited` ``, one row per section-6 construct, in order. `Construct` is `bold lead-in`, `list item` or `prose`; `Claim under R11?` is `yes` or `no`; `R11 clause applied` names the clause of the claim-inventory rule that included or excluded that span (for example: a bold lead-in whose colon closes the bold span; a section-intro label whose colon-terminated span is the whole line and which carries no citation of its own; a bold span whose closing marker is not immediately preceded by the colon; a list item under the forty-character floor that closes no sentence; content inside a fenced block; a near-paraphrase or direct entailment of an already-cited claim earlier in the same section); `Chain cited` is the chain id, or `none — untraced`, or `n/a` for an excluded construct. Every section-6 construct gets a row, non-claims included, each naming the R11 clause that included or excluded it.
+
+A chain that conforms and a construct that is not a claim each still get a row — a clean pass, not a suppressed row.
+
+Both tables are independent of the ledger above: derive both tables from the emitted text of sections 4 and 6 without consulting the §6→§4 closure ledger, and the closure ledger is not admissible as Criterion 4 or Criterion 6 evidence — Criteria 4 and 6 quote this scan, never the ledger. The ledger runs before the Fix/Repeat loop and describes claims that may have been cut, so it describes a document other than the one being scored.
+
+Then close the block with a single reconciliation line a reader can recount against sections 4 and 6:
+
+```text
+Scan complete: N chain rows, one per section-4 chain block in order; M section-6 rows, one per construct in order — K claims under R11, J excluded. P chains malformed, Q claims untraced.
+```
+
+This scan is included in the response as process output before the Phase 5 verdict blocks, immediately after the Assumption Audit scan and before the Self-Audit Gate's verdict blocks, under its own top-level heading. This scan is the artifact the Phase-5 rubric's Self-audit scan check verifies is present, and the source Criteria 4 and 6 draw their quoted span from.
+
+If any Fix step adds, removes, renames or re-renders a §4 chain, or edits a §6 span, re-run the affected rows of this scan against the current text before re-scoring.
+
+This prescription binds the emission; no gate in this tree checks that a given run complied with it — a gate can assert the prescription is present and well-formed, never that a run obeyed it.
+
 Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the
 Self-Audit Gate begin. Score the completed analysis against the criteria in the
 [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a feedback loop:
@@ -303,7 +325,7 @@ If any Fix step adds, removes, or renames a §4 chain that the ledger references
 the ledger's affected rows against the current state of §4 before re-scoring — a chain rename
 or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
-Do not present conclusions until the closure ledger is clean AND the Self-Audit Gate is cleared.
+Do not present conclusions until the closure ledger is clean, the self-audit scan has been emitted, AND the Self-Audit Gate is cleared.
 If either could not be completed — turns exhausted, reference file unavailable — **say so
 explicitly at the top of the response**, naming which one did not run. A stated omission is
 recoverable; a silent one is not.
