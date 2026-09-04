@@ -1643,6 +1643,50 @@ def _roster_problems(
     return problems
 
 
+def _entry_source_problems(source_text: str, expected_call_args: str) -> list[str]:
+    """Pure comparison behind the roster floor's ENTRY-SOURCE LOCK (plan
+    15-12, WR-04 `15-REVIEW.md`) — mirrors `check-quality-harness.py`'s (x)
+    ENTRY-SOURCE LOCK (R4-CR-02), applied to a call site's own argument text
+    rather than to a floor-registry entry's required/actual pair.
+
+    THE FLOOR ITSELF (`_roster_problems`'s surplus arm, `covered - required`)
+    is only as trustworthy as the real call's own `covered` argument — a
+    one-token rebind of that argument to `frozenset(REQUIRED_BRANCHES)`
+    makes the surplus computation `x != x`, structurally incapable of
+    reporting a problem, while the roster-x1/x2/x3 isolation arms and the
+    (roster-census) call-site census both still pass, because they only
+    ever drive `_roster_problems` with SYNTHETIC id sets and count
+    OCCURRENCES of the call pattern, never its argument text — reproduced
+    live (see the plan 15-12 SUMMARY's Step A re-reproduction).
+
+    Asserts *expected_call_args* — the real call site's own argument-triple
+    text — appears, whitespace-normalized (`_contains`, wrap-proof), inside
+    *source_text*. Never called with anything but
+    `inspect.getsource(_run_self_test)` and the real call's own argument
+    text at the real call site; the roster-es-x1/x2/x3 isolation arms in
+    `_run_self_test` drive this same function with SYNTHETIC source strings
+    only, so the comparison logic is proven correct independently of
+    whether the real call site happens to carry the correct triple today.
+
+    DISCLOSED LIMITATION, in the same voice as `check-quality-harness.py`'s
+    own ENTRY-SOURCE LOCK disclosure: this compares SOURCE TEXT and
+    observes no behaviour — it catches an argument triple that was
+    REWRITTEN (aliased to another name, or the call site deleted), not a
+    floor whose returned problems are computed correctly and then
+    discarded before reaching `problems`; and an argument rebound to an
+    expression of EQUAL VALUE to the one expected is harmless by
+    construction and therefore invisible to this check. It locks the
+    roster floor's call specifically, not every argument of every floor in
+    this file.
+    """
+    if _contains(source_text, expected_call_args):
+        return []
+    return [
+        f"real call's argument-triple text {expected_call_args!r} not "
+        "found in source (rewritten, aliased, or missing call site)"
+    ]
+
+
 def _run_self_test() -> int:
     """Run the offline control battery. Returns 0 on all-pass, 1 on any failure."""
     if not AGENT_FILE.exists() or not RUBRIC_FILE.exists():
@@ -3105,6 +3149,118 @@ def _run_self_test() -> int:
         )
     else:
         print(f"(roster-census) CALL-SITE CENSUS: PASS ({roster_call_count} call sites)")
+
+    # (roster-entry-source) ENTRY-SOURCE LOCK (T-15-31, WR-04
+    # `15-REVIEW.md`, plan 15-12 — mirrors `check-quality-harness.py`'s (x)
+    # ENTRY-SOURCE LOCK, R4-CR-02): THE FLOOR ITSELF above is only as
+    # trustworthy as the real call's own `covered` argument — a one-token
+    # rebind to `frozenset(REQUIRED_BRANCHES)` makes `surplus = covered -
+    # required` empty by construction (`x != x`, structurally incapable of
+    # reporting a problem) while every isolation arm and the call-site
+    # census above still pass, because both only ever drive the pure
+    # helper with SYNTHETIC sets and count OCCURRENCES of the call
+    # pattern, never its argument text — reproduced live, see the plan
+    # 15-12 SUMMARY's Step A re-reproduction. This lock reads the real
+    # call's own argument-triple text from
+    # `inspect.getsource(_run_self_test)` and asserts it, whitespace-
+    # normalized, against the expected literal below — a rewrite of the
+    # third argument (or of the whole call site) fails here by name.
+    #
+    # DISCLOSED LIMITATION (mirroring `check-quality-harness.py`'s own
+    # ENTRY-SOURCE LOCK disclosure): this compares SOURCE TEXT and
+    # observes no behaviour — it catches an argument triple that was
+    # REWRITTEN, not a floor whose returned problems are computed
+    # correctly and then discarded before reaching `problems`; and an
+    # argument rebound to an expression of EQUAL VALUE to the one expected
+    # is harmless by construction and therefore invisible to this check.
+    # This is a named control, not a registered branch id — matching the
+    # (roster-census)/(validate-census)/(live-census) censuses' own
+    # status — and is not counted toward `REQUIRED_BRANCHES`.
+    # Built by concatenation, matching (roster-census)'s own convention
+    # above (`roster_call_pattern = "_roster_problems" + "("`) — NOT
+    # written out as one contiguous literal. This function's own
+    # source is part of what `inspect.getsource(_run_self_test)` returns,
+    # so a contiguous literal here would make the check below find its
+    # OWN declaration and pass vacuously regardless of what the real call
+    # site three lines above actually reads — observed live while
+    # developing this control, fixed before landing.
+    roster_entry_source_expected = (
+        "REQUIRED_BRANCHES" + ", " + "_BRANCH_ROSTER_LOCK" + ", "
+        + "frozenset(covered_branches)"
+    )
+    roster_entry_source_problems = _entry_source_problems(
+        inspect.getsource(_run_self_test), roster_entry_source_expected
+    )
+    if roster_entry_source_problems:
+        for roster_es_msg in roster_entry_source_problems:
+            print(f"(roster-entry-source) {roster_es_msg}")
+        problems.extend(
+            f"(roster-entry-source): {msg}" for msg in roster_entry_source_problems
+        )
+    else:
+        print("(roster-entry-source) ENTRY-SOURCE LOCK: PASS")
+
+    # roster-es-x1/x2/x3 ISOLATION: the ENTRY-SOURCE LOCK's own
+    # falsifiability. Every arm drives `_entry_source_problems` with a
+    # SYNTHETIC source string only — never
+    # `inspect.getsource(_run_self_test)` — mirroring the roster-x1/x2/x3
+    # arms' existing discipline.
+    roster_es_x1 = _entry_source_problems(
+        "call(\n        A, B, frozenset(C)\n    )", "A, B, frozenset(C)"
+    )
+    if roster_es_x1 != []:
+        print(f"(roster-es-x1) ISOLATION CLEAN: WRONGLY reported problem(s): {roster_es_x1}")
+        problems.append(f"(roster-es-x1): clean case wrongly reported {roster_es_x1}")
+    else:
+        print("(roster-es-x1) ISOLATION CLEAN: PASS")
+
+    # roster-es-x2: the third argument aliased to A (the WR-04 shape).
+    roster_es_x2 = _entry_source_problems(
+        "call(\n        A, B, frozenset(A)\n    )", "A, B, frozenset(C)"
+    )
+    if len(roster_es_x2) != 1 or "not found" not in roster_es_x2[0]:
+        print(
+            "(roster-es-x2) ISOLATION ALIASED: expected one problem naming "
+            f"the missing expected text, got {roster_es_x2}"
+        )
+        problems.append(
+            f"(roster-es-x2): aliased case did not report as expected: {roster_es_x2}"
+        )
+    else:
+        print(f"(roster-es-x2) ISOLATION ALIASED: PASS ({roster_es_x2[0]})")
+
+    # roster-es-x3: no matching call at all (the call site itself deleted).
+    roster_es_x3 = _entry_source_problems("def _other():\n    pass\n", "A, B, frozenset(C)")
+    if len(roster_es_x3) != 1 or "not found" not in roster_es_x3[0]:
+        print(
+            "(roster-es-x3) ISOLATION MISSING: expected one problem naming "
+            f"the missing call site, got {roster_es_x3}"
+        )
+        problems.append(
+            f"(roster-es-x3): missing-call case did not report as expected: {roster_es_x3}"
+        )
+    else:
+        print(f"(roster-es-x3) ISOLATION MISSING: PASS ({roster_es_x3[0]})")
+
+    # CALL-SITE CENSUS for `_entry_source_problems` itself (R4-CR-01 lesson,
+    # applied to this task's own new floor): counts THE LOCK ITSELF plus
+    # the three isolation arms above, so deleting the real call leaves this
+    # census red rather than the battery silently staying green with the
+    # exact defect the lock exists to catch restored.
+    roster_es_call_pattern = "_entry_source_problems" + "("
+    roster_es_call_count = inspect.getsource(_run_self_test).count(roster_es_call_pattern)
+    if roster_es_call_count != 4:
+        print(
+            f"(roster-es-census) CALL-SITE CENSUS: observed "
+            f"{roster_es_call_count} call site(s) to _entry_source_problems "
+            "(expected 4: 1 real + 3 isolation arms)"
+        )
+        problems.append(
+            f"(roster-es-census): observed {roster_es_call_count} "
+            "_entry_source_problems call site(s), expected 4"
+        )
+    else:
+        print(f"(roster-es-census) CALL-SITE CENSUS: PASS ({roster_es_call_count} call sites)")
 
     # ISOLATION arms for `_live_exit_code` (T-15-18, `15-VERIFICATION.md` gap
     # 2): the failure-to-exit-code decision `_validate_files` makes is
