@@ -41,6 +41,11 @@ _NAME_KEY_RE = re.compile(r"^name:.*$\n", re.MULTILINE)
 # Expected locked values
 _EXPECTED_NAME = "first-principles"
 _MAX_DESCRIPTION_LEN = 1024
+# Phase 5's Self-Audit Gate runs last and depends on this exact turn budget for
+# its headroom (SCAN-04, first-principles.md:84). Checking only that the key
+# exists (as Check 5 did before) lets the value silently drift — a `60 -> 20`
+# edit passed every gate in the battery undetected.
+_EXPECTED_MAX_TURNS = 60
 _REQUIRED_PHRASES = [
     "first principles",
     "challenge assumptions",
@@ -152,6 +157,25 @@ metadata:
 disallowedTools:
   - Write
   - Edit
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content.
+"""
+
+# Self-test fixture: `maxTurns` present but not the locked value (60)
+_FIXTURE_WRONG_MAXTURNS_VALUE = """\
+---
+name: first-principles
+description: A test agent for first-principles analysis.
+license: MIT
+metadata:
+  version: "3.0.0"
+disallowedTools:
+  - Write
+  - Edit
+maxTurns: 20
 AskUserQuestion: permitted
 ---
 ## Body
@@ -303,9 +327,20 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     if "disallowedTools" not in frontmatter:
         failures.append("frontmatter missing required key 'disallowedTools'")
 
-    # Check 5: maxTurns key present
+    # Check 5: maxTurns key present, and — for the canonical first-principles
+    # identity only — carries the locked value. The value clause is scoped to
+    # skip_name_check like Checks 2/8: it is an identity-specific invariant
+    # (the shipped agent's Self-Audit Gate budget headroom), not a generic
+    # structural schema requirement every builder-generated candidate must
+    # share, so a candidate agent under a different turn budget is not
+    # penalized for it.
     if "maxTurns" not in frontmatter:
         failures.append("frontmatter missing required key 'maxTurns'")
+    elif not skip_name_check and frontmatter.get("maxTurns") != _EXPECTED_MAX_TURNS:
+        failures.append(
+            f"'maxTurns' must be {_EXPECTED_MAX_TURNS} (Phase 5 Self-Audit Gate "
+            f"budget headroom), got {frontmatter.get('maxTurns')!r}"
+        )
 
     # Check 6: body non-empty after strip
     if not body.strip():
@@ -410,6 +445,8 @@ def _run_self_test() -> None:
          "exceeds max"),
         ("fixture-f (missing maxTurns)", _FIXTURE_MISSING_MAXTURNS,
          "missing required key 'maxTurns'"),
+        ("fixture-j (wrong maxTurns value)", _FIXTURE_WRONG_MAXTURNS_VALUE,
+         f"'maxTurns' must be {_EXPECTED_MAX_TURNS}"),
         ("fixture-g (missing disallowedTools)", _FIXTURE_MISSING_DISALLOWED_TOOLS,
          "missing required key 'disallowedTools'"),
         ("fixture-h (missing trigger phrase)", _FIXTURE_MISSING_TRIGGER_PHRASE,
