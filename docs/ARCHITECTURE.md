@@ -162,12 +162,10 @@ under Phase 3 (REG-03) — it has a CI job plus a battery `gate` call that runs 
 the live scan, matching VERSION-01, GATE-01 and COLLIDE-01, and is counted in the battery total above.
 PROV-GUARD was registered at v8.24.0 under Phase 6 (GATE-02/GATE-03) — a CI job plus a battery `gate`
 call running both `--self-test` **and** the live leg, matching VERSION-01, GATE-01, COLLIDE-01 and
-REG-GUARD — and is counted in the battery total above. SCAN-GUARD was registered under Phase 15
-(unreleased at time of writing — `.claude-plugin/marketplace.json` still reads 8.25.0, and
-VERSION-01 moves all 17 stamps in lockstep at release) — a CI job plus a battery `gate` call
-running both `--self-test` **and** the live leg (plan 15-09, closing `15-VERIFICATION.md` gap 2's
-WR-05 finding), matching PROV-GUARD's and REG-GUARD's shape rather than HARN-01/02/03's and
-HC-BOUND's `--self-test`-only shape.
+REG-GUARD — and is counted in the battery total above. SCAN-GUARD was registered at v8.26.0 under
+Phase 15 — a CI job plus a battery `gate` call running both `--self-test` **and** the live leg
+(plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05 finding), matching PROV-GUARD's and
+REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's `--self-test`-only shape.
 SCAN-GUARD is counted in the battery total above.
 
 **Two gates are called GATE-02 and they are not the same gate.** `VAL-04 / GATE-02` is the v3.0
