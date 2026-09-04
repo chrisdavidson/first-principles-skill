@@ -2,9 +2,12 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""SCAN-GUARD gate: assert the self-audit scan's prescription (plan 15-01) and its
-verify block and quote-source sentences (plan 15-02) are present, correctly placed
-and internally coherent in the emitted first-principles tree.
+"""SCAN-GUARD gate: assert the self-audit scan's prescription (plan 15-01), its
+verify block and quote-source sentences (plan 15-02), the widened Verdict Block
+Format admission covering Criterion 2's Assumption Audit artifact alongside
+Criteria 4/6 (plan 15-08), and the independently falsifiable Assumption-Audit
+half of the scan block's placement predicate (plan 15-09) are present, correctly
+placed and internally coherent in the emitted first-principles tree.
 
 Phase 15 plan 01 added a `## Self-audit scan (process output)` prescription to
 `shared/spine/SKILL-body.md`'s "Before presenting conclusions" section — two tables
@@ -22,8 +25,17 @@ tree agree, so asserting on the emitted tree transitively covers the source.
 
 This gate is registered as `SCAN-GUARD` in `scripts/check-firewall-battery.sh`
 and as the CI job `check-selfaudit-scan (SCAN-GUARD)` in
-`.github/workflows/validation.yml`; the battery tally moved 23 -> 24 when it
-landed (plan 15-04).
+`.github/workflows/validation.yml`. Both surfaces run TWO legs — `--self-test`
+plus the bare live invocation against the shipped `AGENT_FILE`/`RUBRIC_FILE` —
+matching the PROV-GUARD and REG-GUARD registration shape (plan 15-09, closing
+`15-VERIFICATION.md` gap 2's WR-05 finding). The battery tally is unchanged by
+the second leg: `gate()` increments its total once per gate id regardless of
+how many commands run under it. The battery first gained this gate id at plan
+15-04, under Phase 15 — unreleased at time of writing, so this paragraph
+carries no version stamp: the shipped version is whatever
+`.claude-plugin/marketplace.json` says, and VERSION-01 moves all 17 stamps in
+lockstep at release (the same framing CLAUDE.md's TRACE-03 row uses for its
+own unreleased work).
 
 Usage:
     python3 scripts/check-selfaudit-scan.py [--self-test]
@@ -46,13 +58,25 @@ Exit codes:
     prose *means* what they imply.
 (2) It does not assert a scan row's CONTENT is correct — that a chain really is
     malformed, that a chain really does or does not participate in a dependency
-    cycle or name an ungrounded input (`_chain_dependency_defects`,
-    `scripts/check-quality-harness.py:5058`), or that a claim really is untraced —
-    only that the prescription and the verify block exist, are placed correctly
-    and are internally coherent; content reconciliation is what
-    `_selfaudit_calibration_defects` (`scripts/check-quality-harness.py:5193`)
-    already performs after the fact on a real run's text, and this gate does not
-    duplicate it.
+    cycle or name an ungrounded input
+    (`scripts/check-quality-harness.py#_chain_dependency_defects`), or that a
+    claim really is untraced — only that the prescription and the verify block
+    exist, are placed correctly and are internally coherent. Content
+    reconciliation is a narrower, open gap than an earlier version of this
+    paragraph implied (`15-REVIEW.md` WR-07, confirmed by reading the function
+    body rather than taking the review's word):
+    `scripts/check-quality-harness.py#_selfaudit_calibration_defects`
+    reconciles a CLAIMED Rigorous band against the measured defect record — it
+    never reads the scan itself, since its inputs are
+    `_selfaudit_bands(analysis_text)` and the measured `record`; it
+    short-circuits entirely on any non-Rigorous band
+    (`if bands.get(num) != "Rigorous": continue`); and no check anywhere in
+    this tree compares the scan's own `Scan complete: … P chains malformed, Q
+    claims untraced` reconciliation line against
+    `record["malformed_chain_blocks"]` / `record["untraced_claims"]`, even
+    though both are already computed by that point. That three-part gap is an
+    open residual this gate does not close, not a duplicate it deliberately
+    skips.
 (3) It does not assert that a live run COMPLIED with the prescription — a gate can
     assert a prescription is present and well-formed, never that a run obeyed it;
     that layer is 999.12/999.13 and this repo deliberately does not gate on it,
@@ -90,6 +114,55 @@ Exit codes:
     limb must land in the same plan as an enumeration edit to the direct-half
     sentence and the coverage-bound sentence on both surfaces, which this
     disclosed bound exists to make explicit rather than silently assumed.
+(6) **The widened Verdict Block Format admission's enumeration is a census, not
+    a mechanical guarantee** (plan 15-08): the admission names the artifacts
+    outside the six-section analysis a verdict block may quote — the
+    self-audit scan for Criteria 4 and 6, the Assumption Audit scan for
+    Criterion 2. That three-artifact enumeration was verified by an
+    authoring-time census over the whole `## Criteria` section (searching for
+    `process output`, `before scoring`, `Assumption Audit`, `self-audit scan`,
+    `closure ledger`, `artifact produced`) and is verified by NO mechanical
+    check in this file: a future descriptor edit that bands a further
+    criterion on a process-output artifact leaves this gate green and the
+    admission stale. `Rubric-14` narrows this by pinning the Criterion 2
+    descriptor sentence the C2 admission clause depends on, so that one pair
+    cannot drift apart in the direction measured to matter; it does not make
+    the enumeration complete against every future descriptor edit. The guard
+    against the rest is procedural, matching bound (5)'s shape one level up.
+(7) **`15-REVIEW.md` WR-01 remains open**: the shared table-coverage-bound
+    sentence's enumeration of band-determining limbs neither scan table
+    reaches is incomplete against the descriptors as they stand today, not
+    merely at risk of future drift. The review named three further limbs a
+    Criterion 4 or 6 verdict can band on with no column in either table and no
+    quoting rule under either half of the instruction: a chain lacking a
+    genuine intermediate step, and a conclusion carrying more than one
+    derivation chain (both Criterion 4 Sound); and a Conclusion claim
+    inconsistent with its section-4 chains (Criterion 6 Hand-wavy). This was
+    not named in either `15-VERIFICATION.md` gap's `missing:` list and is not
+    closed by this plan.
+(8) **`15-REVIEW.md`'s remaining findings, named rather than fixed here**:
+    WR-03's not-found reporting arms carry no branch id of their own (net of
+    the two `R-02-placement-aa` closed) — Body-3's scan-lead,
+    ledger-fence-tail and ledger-clean not-found reports, and Rubric-13's
+    admission-sentence and Criterion-4-index not-found guards, are asserted
+    only through their sibling count checks. WR-04: `_find_flat`'s
+    normalization is not independently load-bearing in any ordering arm,
+    because the fail-closed `-1` guard masks its absence — a raw-`find`
+    reversion still fails on a hard-wrapped literal via the `-1` guard alone,
+    so the two halves of that fix mask each other's absence and neither is
+    falsifiable in isolation. IN-04: the self-test's own top-level assertions
+    (the anti-masking gate, the dispatch-reachability control, positive
+    control (a), `_check_negative`'s check-ID and `expected_detail` matches)
+    have no meta-guard beyond the branch and call-site censuses already in
+    place. IN-05: two residual raw-`str.find`/`.count` sites — `_slice`'s
+    heading lookup and Rubric-11's band-bullet count — deviate from the
+    file's stated one-discipline (`_find_flat`/`_count_flat`) rule.
+(9) **What plan 15-09's live-leg registration and censuses do and do not
+    prove**: `validate-census`, `live-census` and `live-dispatch-census` count
+    source text and observe no behaviour — each catches DELETION of a real
+    call, not a call whose returned result is discarded instead of being
+    passed to the failure reporter. This is the same bound
+    `check-quality-harness.py`'s own call-site census states about itself.
 
 ## Measured emission cost (SCAN-04)
 
@@ -109,13 +182,29 @@ table — one row per section-6 construct this fixture actually contains, 7 clai
 under R11 plus 2 excluded section-intro labels — and a `Scan complete: ...`
 reconciliation line with real counts substituted, `P`/`Q` drawn from this fixture's
 own measured `malformed_chain_blocks`/`untraced_claims` = 1/1), inserted immediately
-before `## Self-Audit Gate` (the same D-04 slot RESEARCH.md §5 measured): **2,288
-characters, 27 lines, 17 table data rows.**
+before `## Self-Audit Gate` (the same D-04 slot RESEARCH.md §5 measured): **27
+lines, 17 table data rows** — both independently reproduced by the
+`15-REVIEW.md` reviewer against the same fixture and the same prescribed shape.
 
-In plain words: the new scan is smaller than the Assumption Audit scan on every unit
-measured here — roughly two-thirds its size in characters (2,288 / 3,408), about
-half its size in lines (27 / 52), and about two-fifths its size in table rows
-(17 / 44). Measured 2026-09-04.
+**The character-count figure does NOT reproduce, and is disclosed rather than
+asserted as settled fact.** This gate's own construction of the block above
+measured **2,288 characters**; the `15-REVIEW.md` reviewer's independent
+reconstruction of the same prescribed shape from the same fixture measured
+**1,381 characters** — a ~40% discrepancy on an uncommitted, hand-constructed
+block. Neither figure is backed by a fixture, script or test that emits it, so
+neither is mechanically falsifiable as shipped, and no check in this tree
+would notice either one regressing. What survives this disclosure regardless
+of which count is correct: the new block is smaller than the Assumption Audit
+scan's existing block on every OTHER unit measured here — about half its size
+in lines (27 / 52) and about two-fifths its size in table rows (17 / 44) — and
+the structural-invariance result below, independently reproduced by the
+`15-REVIEW.md` reviewer against the same fixture, is unaffected by which
+character count is correct. Measured 2026-09-04. The open route to closing
+this residual, per the review's suggested fix (`15-REVIEW.md` WR-08): commit
+the constructed block as a fixture (e.g.
+`tests/quality-ledger-v8.26/PR-P1-with-scan.md`) and add a self-test arm that
+recomputes the size figures and the field-by-field invariance from it — the
+same shape `check-provenance.py`'s live leg already uses.
 
 **Structural-invariance result** (re-running RESEARCH.md §5's procedure against this
 real block shape, not its minimal placeholder): running `detect_defects` on the

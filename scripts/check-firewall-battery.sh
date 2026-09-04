@@ -150,12 +150,17 @@
 # PROV-GUARD: Battery composition moved 22 -> 23. A gate that appears
 # silently is indistinguishable from a gate that was always there.
 #
-# Composition change (SCAN-GUARD, Phase 15, v8.26.0): the battery gained one
-# gate, SCAN-GUARD (scripts/check-selfaudit-scan.py). SCAN-GUARD guards the
-# Phase 15 self-audit scan prescription (shared/spine/SKILL-body.md's chain-form
-# and claim-inventory tables) and its rubric verify block (Criterion 4/6
-# quote-source sentences in shared/spine/references/validation-rubric.md) as
-# emitted in the tree.
+# Composition change (SCAN-GUARD, Phase 15, unreleased at time of writing —
+# .claude-plugin/marketplace.json still reads 8.25.0, and VERSION-01 moves all
+# 17 stamps in lockstep at release): the battery gained one gate, SCAN-GUARD
+# (scripts/check-selfaudit-scan.py). SCAN-GUARD guards the Phase 15 self-audit
+# scan prescription (shared/spine/SKILL-body.md's chain-form and
+# claim-inventory tables), its rubric verify block (Criterion 4/6 quote-source
+# sentences in shared/spine/references/validation-rubric.md), and the
+# Criterion-2-widened Verdict Block Format admission (plan 15-08), as emitted
+# in the tree. It runs `--self-test` plus the bare live leg (plan 15-09,
+# matching PROV-GUARD/REG-GUARD); the tally below is unchanged because gate()
+# counts once per gate id regardless of how many commands run under it.
 # SCAN-GUARD: Battery composition moved 23 -> 24.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
@@ -453,17 +458,24 @@ gate "HARN-03" \
     "python3 scripts/check-focused-parity.py --self-test"
 
 # SCAN-GUARD — self-audit scan structural gate: the Phase 15 self-audit scan
-#              prescription (agent body) and its rubric verify block (Criterion
-#              4/6 quote-source sentences) are present, correctly placed and
-#              internally coherent in the emitted tree; 72 clause-level named
-#              branches each with their own per-source negative control (plan
-#              15-06 split every check-level branch into one id per
-#              independently neutralizable assertion arm; plan 15-07 added 14
-#              more, pinning the Verdict Block Format amendment and both
-#              halves of each Criterion 4/6 quoted-span instruction), an
-#              anti-masking assertion, and a roster floored by an independent
-#              transcription (_BRANCH_ROSTER_LOCK) so narrowing the registry
-#              fails the gate
+#              prescription (agent body), its rubric verify block (Criterion
+#              4/6 quote-source sentences), and the Criterion-2-widened
+#              Verdict Block Format admission (plan 15-08) are present,
+#              correctly placed and internally coherent in the emitted tree;
+#              87 clause-level named branches (72 at plan 15-07; 72->86 at
+#              plan 15-08 widening the admission to Criterion 2; 86->87 at
+#              plan 15-09 splitting Rubric-2's placement predicate into
+#              independently falsifiable halves) each with their own
+#              per-source negative control, an anti-masking assertion, and a
+#              roster floored by an independent transcription
+#              (_BRANCH_ROSTER_LOCK) so narrowing the registry fails the gate.
+#              Runs --self-test plus the bare live leg (plan 15-09), matching
+#              PROV-GUARD/REG-GUARD. Coverage claim narrowed per 15-REVIEW.md
+#              WR-03 — clause-level ids cover every count guard, every
+#              multi-literal tuple and every cross-surface arm, not one id
+#              per arm. See the gate's own docstring for the full residual
+#              ledger (WR-01, WR-04, IN-04, IN-05, the SCAN-04 character
+#              figure).
 gate "SCAN-GUARD" \
     "check-selfaudit-scan.py --self-test + live" \
     "python3 scripts/check-selfaudit-scan.py --self-test" \
