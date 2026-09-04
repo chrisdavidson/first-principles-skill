@@ -211,6 +211,8 @@ _BODY_DONOTPRESENT_PREAMENDMENT = (
 _RUBRIC_AA_BLOCK = "**Assumption Audit (verify before scoring)**"
 _RUBRIC_SCAN_BLOCK = "**Self-audit scan (verify before scoring)**"
 _RUBRIC_PRECEDENCE = "**Precedence rule (no double-counting):**"
+_RUBRIC_FORMAT_START = "## Verdict Block Format"
+_RUBRIC_CRITERIA_START = "## Criteria"
 _CRIT4_START = "### Criterion 4: Reason Upward"
 _CRIT5_START = "### Criterion 5: Validate"
 _CRIT6_START = "### Criterion 6: Conclusion-to-Ground-Truth Traceability"
@@ -250,14 +252,57 @@ _RUBRIC_DISCLOSED_BOUND = (
     "compliance."
 )
 _RUBRIC_QUOTED_SPAN_C4 = (
-    "Quoted span: must be drawn from the self-audit scan's chain-form table "
-    "row or rows that determine the band, not from the Derivation Chains "
-    "prose directly."
+    "Quoted span: where the band is determined by chain form or chain "
+    "dependency, it must be drawn from the self-audit scan's chain-form "
+    "table row or rows that determine the band, not from the Derivation "
+    "Chains prose directly."
+)
+_RUBRIC_QUOTED_SPAN_C4_DIRECT = (
+    "Where the band is determined by the Abandoned Reasoning section, the "
+    "no-analogies-as-direct-evidence ban, or a missing `[Assumes: X]` "
+    "declaration — none of which the chain-form table carries a column for "
+    "— quote the analysis text directly."
 )
 _RUBRIC_QUOTED_SPAN_C6 = (
-    "Quoted span: must be drawn from the self-audit scan's claim-inventory "
-    "table row or rows that determine the band, not from the Conclusion "
-    "prose directly."
+    "Quoted span: where the band is determined by whether a section-6 "
+    "claim traces to a named section-4 chain, it must be drawn from the "
+    "self-audit scan's claim-inventory table row or rows that determine "
+    "the band, not from the Conclusion prose directly."
+)
+_RUBRIC_QUOTED_SPAN_C6_DIRECT = (
+    "Where the band is determined by the Key Insight being a restatement "
+    "of the recommended approach rather than a non-obvious finding — a "
+    "semantic property the claim-inventory table carries no column for — "
+    "quote the analysis text directly."
+)
+_RUBRIC_FORMAT_QUOTED_SPAN = (
+    'Quoted span: "[Direct quote of the specific text that most directly '
+    "determines the band assigned — from the analysis being scored, or, "
+    "for Criteria 4 and 6 only, from the self-audit scan emitted as "
+    'process output for this analysis.]"'
+)
+_RUBRIC_FORMAT_PREAMENDMENT = (
+    'Quoted span: "[Direct quote of the specific text in the analysis '
+    "being scored — the span\nthat most directly determines the band "
+    'assigned.]"'
+)
+_RUBRIC_FORMAT_ADMISSION = (
+    "The self-audit scan is not an output section, and this is the sole "
+    "place a verdict block may quote something outside the six-section "
+    "analysis: the admission covers Criteria 4 and 6 and the self-audit "
+    "scan only. Every other criterion quotes the analysis text itself, "
+    "and the §6→§4 closure ledger is admitted nowhere — it is a drafting "
+    "artifact that describes a document other than the one being scored."
+)
+_TABLE_COVERAGE_BOUND = (
+    "Neither table's columns reach every limb its criterion bands on: "
+    "Criterion 4 also bands on the Abandoned Reasoning section, the "
+    "no-analogies-as-direct-evidence ban and a missing `[Assumes: X]` "
+    "declaration, and Criterion 6 also bands on whether the Key Insight "
+    "is a restatement of the recommended approach — none of which either "
+    "table carries a column for. For those limbs the criterion quotes the "
+    "analysis text directly; the scan is quoted only where the band is "
+    "determined by what its columns cover."
 )
 _RUBRIC_HALT_SENTENCE = "Do not proceed to verdict blocks until this is confirmed."
 _BAND_RIGOROUS = "- **Rigorous**"
@@ -652,6 +697,15 @@ def _check_body_text(text: str) -> list[str]:
             f"({preamendment_count} occurrence(s)), expected 0"
         )
 
+    # Body-16: the shared table-coverage-bound sentence (plan 15-07) occurs
+    # exactly once in the section slice.
+    coverage_bound_count = _count_flat(section, _TABLE_COVERAGE_BOUND)
+    if coverage_bound_count != 1:
+        failures.append(
+            f"Body-16: coverage-bound sentence occurs {coverage_bound_count} "
+            "time(s) in the section slice, expected exactly 1"
+        )
+
     return failures
 
 
@@ -755,8 +809,11 @@ def _check_rubric_text(text: str) -> list[str]:
         if not _contains(scan_slice, _RUBRIC_DISCLOSED_BOUND):
             failures.append("Rubric-8: missing disclosed-bound sentence")
 
-    # Rubric-9: inside Criterion 4's slice, the chain-form quoted-span
-    # sentence occurs exactly once and precedes the first Rigorous bullet.
+    # Rubric-9: inside Criterion 4's slice, the chain-form (scan-half)
+    # quoted-span sentence occurs exactly once and precedes the first
+    # Rigorous bullet; the direct-quotation half — for the limbs the
+    # chain-form table carries no column for (plan 15-07, closing CR-03) —
+    # occurs exactly once in the same slice.
     crit4_slice = _slice(text, _CRIT4_START, _CRIT5_START)
     if crit4_slice is None:
         failures.append(
@@ -767,8 +824,9 @@ def _check_rubric_text(text: str) -> list[str]:
         c4_span_count = _count_flat(crit4_slice, _RUBRIC_QUOTED_SPAN_C4)
         if c4_span_count != 1:
             failures.append(
-                f"Rubric-9: quoted-span sentence occurs {c4_span_count} "
-                "time(s) in Criterion 4 slice, expected exactly 1"
+                f"Rubric-9: scan-half quoted-span sentence occurs "
+                f"{c4_span_count} time(s) in Criterion 4 slice, expected "
+                "exactly 1"
             )
         else:
             # locate on the SAME normalized text the count arm uses (CR-01)
@@ -776,11 +834,19 @@ def _check_rubric_text(text: str) -> list[str]:
             rigorous_idx = _find_flat(crit4_slice, _BAND_RIGOROUS)
             if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
-                    "Rubric-9: quoted-span sentence does not precede the "
-                    "Rigorous band bullet in Criterion 4"
+                    "Rubric-9: scan-half quoted-span sentence does not "
+                    "precede the Rigorous band bullet in Criterion 4"
                 )
 
-    # Rubric-10: same, for Criterion 6's claim-inventory quoted-span sentence.
+        c4_direct_count = _count_flat(crit4_slice, _RUBRIC_QUOTED_SPAN_C4_DIRECT)
+        if c4_direct_count != 1:
+            failures.append(
+                f"Rubric-9: direct-quotation half occurs {c4_direct_count} "
+                "time(s) in Criterion 4 slice, expected exactly 1"
+            )
+
+    # Rubric-10: same, for Criterion 6's claim-inventory quoted-span
+    # sentence and its direct-quotation half.
     crit6_slice = _slice(text, _CRIT6_START, _USAGE_NOTE)
     if crit6_slice is None:
         failures.append(
@@ -791,8 +857,9 @@ def _check_rubric_text(text: str) -> list[str]:
         c6_span_count = _count_flat(crit6_slice, _RUBRIC_QUOTED_SPAN_C6)
         if c6_span_count != 1:
             failures.append(
-                f"Rubric-10: quoted-span sentence occurs {c6_span_count} "
-                "time(s) in Criterion 6 slice, expected exactly 1"
+                f"Rubric-10: scan-half quoted-span sentence occurs "
+                f"{c6_span_count} time(s) in Criterion 6 slice, expected "
+                "exactly 1"
             )
         else:
             # locate on the SAME normalized text the count arm uses (CR-01)
@@ -800,9 +867,16 @@ def _check_rubric_text(text: str) -> list[str]:
             rigorous_idx = _find_flat(crit6_slice, _BAND_RIGOROUS)
             if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
-                    "Rubric-10: quoted-span sentence does not precede the "
-                    "Rigorous band bullet in Criterion 6"
+                    "Rubric-10: scan-half quoted-span sentence does not "
+                    "precede the Rigorous band bullet in Criterion 6"
                 )
+
+        c6_direct_count = _count_flat(crit6_slice, _RUBRIC_QUOTED_SPAN_C6_DIRECT)
+        if c6_direct_count != 1:
+            failures.append(
+                f"Rubric-10: direct-quotation half occurs {c6_direct_count} "
+                "time(s) in Criterion 6 slice, expected exactly 1"
+            )
 
     # Rubric-11: band-descriptor integrity in both criteria's slices.
     if crit4_slice is not None:
@@ -833,12 +907,58 @@ def _check_rubric_text(text: str) -> list[str]:
                 "inside the scan slice, expected exactly 1"
             )
 
+    # Rubric-13: the Verdict Block Format amendment (plan 15-07, closing
+    # CR-02) — the amended quoted-span template and the admission-sentence
+    # pair are present exactly once inside the Verdict Block Format
+    # section, the pre-amendment template is gone from the whole file, and
+    # the admission sentence precedes the Criterion 4 heading.
+    format_slice = _slice(text, _RUBRIC_FORMAT_START, _RUBRIC_CRITERIA_START)
+    if format_slice is None:
+        failures.append(
+            "Rubric-13: Verdict Block Format slice not found — missing or "
+            f"out-of-order heading {_RUBRIC_FORMAT_START!r} / "
+            f"{_RUBRIC_CRITERIA_START!r}"
+        )
+    else:
+        amended_count = _count_flat(format_slice, _RUBRIC_FORMAT_QUOTED_SPAN)
+        if amended_count != 1:
+            failures.append(
+                f"Rubric-13: amended quoted-span template occurs "
+                f"{amended_count} time(s) in the Verdict Block Format "
+                "section, expected exactly 1"
+            )
+
+        admission_count = _count_flat(format_slice, _RUBRIC_FORMAT_ADMISSION)
+        if admission_count != 1:
+            failures.append(
+                f"Rubric-13: admission sentence occurs {admission_count} "
+                "time(s) in the Verdict Block Format section, expected "
+                "exactly 1"
+            )
+
+    preamendment_count = _count_flat(text, _RUBRIC_FORMAT_PREAMENDMENT)
+    if preamendment_count != 0:
+        failures.append(
+            "Rubric-13: pre-amendment quoted-span template still present "
+            f"({preamendment_count} occurrence(s)) in the whole file, "
+            "expected 0"
+        )
+
+    admission_idx = _find_flat(text, _RUBRIC_FORMAT_ADMISSION)
+    crit4_idx = _find_flat(text, _CRIT4_START)
+    if admission_idx == -1 or crit4_idx == -1 or not (admission_idx < crit4_idx):
+        failures.append(
+            "Rubric-13: admission sentence does not precede the Criterion "
+            "4 heading (placement violated)"
+        )
+
     return failures
 
 
 def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
-    """Assert the shared column lists and the scan heading appear on BOTH
-    surfaces. Returns failure strings (empty == valid)."""
+    """Assert the shared column lists, the scan heading and the table-
+    coverage-bound sentence appear on BOTH surfaces. Returns failure
+    strings (empty == valid)."""
     failures: list[str] = []
     for col_name, col_literal in (("chain-form column list", _COLS_CHAIN), ("claim-inventory column list", _COLS_CLAIM)):
         if not _contains(body_text, col_literal):
@@ -849,6 +969,10 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
         failures.append("Cross-2: scan heading missing from agent-body surface")
     if not _contains(rubric_text, _SCAN_HEADING):
         failures.append("Cross-2: scan heading missing from rubric surface")
+    if not _contains(body_text, _TABLE_COVERAGE_BOUND):
+        failures.append("Cross-3: coverage-bound sentence missing from agent-body surface")
+    if not _contains(rubric_text, _TABLE_COVERAGE_BOUND):
+        failures.append("Cross-3: coverage-bound sentence missing from rubric surface")
     return failures
 
 
@@ -914,6 +1038,8 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "B-15-donotpresent-amended",
         "B-15-donotpresent-preamendment",
         "B-15-donotpresent-dup",
+        "B-16-coverage-bound-missing",
+        "B-16-coverage-bound-dup",
         "R-01-block-missing",
         "R-01-block-dup",
         "R-01-no-mask",
@@ -931,19 +1057,31 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-09-crit4-count-missing",
         "R-09-crit4-count-dup",
         "R-09-crit4-order",
+        "R-09-crit4-direct-missing",
+        "R-09-crit4-direct-dup",
         "R-10-crit6-count-missing",
         "R-10-crit6-count-dup",
         "R-10-crit6-order",
+        "R-10-crit6-direct-missing",
+        "R-10-crit6-direct-dup",
         "R-11-bands-crit4",
         "R-11-bands-crit6",
         "R-12-halt-missing",
         "R-12-halt-dup",
+        "R-13-format-amended-missing",
+        "R-13-format-amended-dup",
+        "R-13-format-admission-missing",
+        "R-13-format-admission-dup",
+        "R-13-format-preamendment",
+        "R-13-format-order",
         "X-01-cols-chain-body",
         "X-01-cols-chain-rubric",
         "X-01-cols-claim-body",
         "X-01-cols-claim-rubric",
         "X-02-heading-body",
         "X-02-heading-rubric",
+        "X-03-bound-body",
+        "X-03-bound-rubric",
     }
 )
 
@@ -977,6 +1115,7 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "B-13-refix", "B-14-bound",
         "B-15-donotpresent-amended", "B-15-donotpresent-preamendment",
         "B-15-donotpresent-dup",
+        "B-16-coverage-bound-missing", "B-16-coverage-bound-dup",
         "R-01-block-missing", "R-01-block-dup", "R-01-no-mask",
         "R-02-placement-order", "R-02-placement-anchor",
         "R-03-divlabour-1", "R-03-divlabour-2",
@@ -986,12 +1125,18 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "R-07-missing-absent", "R-07-missing-neartwin",
         "R-08-bound",
         "R-09-crit4-count-missing", "R-09-crit4-count-dup", "R-09-crit4-order",
+        "R-09-crit4-direct-missing", "R-09-crit4-direct-dup",
         "R-10-crit6-count-missing", "R-10-crit6-count-dup", "R-10-crit6-order",
+        "R-10-crit6-direct-missing", "R-10-crit6-direct-dup",
         "R-11-bands-crit4", "R-11-bands-crit6",
         "R-12-halt-missing", "R-12-halt-dup",
+        "R-13-format-amended-missing", "R-13-format-amended-dup",
+        "R-13-format-admission-missing", "R-13-format-admission-dup",
+        "R-13-format-preamendment", "R-13-format-order",
         "X-01-cols-chain-body", "X-01-cols-chain-rubric",
         "X-01-cols-claim-body", "X-01-cols-claim-rubric",
         "X-02-heading-body", "X-02-heading-rubric",
+        "X-03-bound-body", "X-03-bound-rubric",
     }
 )
 
@@ -1443,6 +1588,30 @@ def _run_self_test() -> int:
         "B-15-donotpresent-dup",
     )
 
+    # B-16-coverage-bound-missing: strip the shared table-coverage-bound
+    # sentence (plan 15-07) from the section slice.
+    body_b16a = _strip_everywhere(real_body, _TABLE_COVERAGE_BOUND)
+    _check_negative(
+        "B-16a",
+        _check_body_text(body_b16a),
+        "Body-16",
+        "occurs 0 time(s)",
+        "B-16-coverage-bound-missing",
+    )
+
+    # B-16-coverage-bound-dup: duplicate the coverage-bound sentence inside
+    # the section slice.
+    body_b16b = _duplicate_within_range(
+        real_body, _BODY_SECTION_START, _BODY_LEDGER_CLEAN, _TABLE_COVERAGE_BOUND
+    )
+    _check_negative(
+        "B-16b",
+        _check_body_text(body_b16b),
+        "Body-16",
+        "occurs 2 time(s)",
+        "B-16-coverage-bound-dup",
+    )
+
     # Hard-wrap arm 1 (body): reinstate a ledger-independence literal
     # hard-wrapped at ~95 columns, inside the section slice, and assert
     # Body-10 still passes (proves `_flat`/`_contains` are load-bearing).
@@ -1693,6 +1862,34 @@ def _run_self_test() -> int:
         "R-09-crit4-order",
     )
 
+    # R-09-crit4-direct-missing: strip the Criterion 4 direct-quotation half
+    # (plan 15-07, closing CR-03) from the Criterion 4 slice.
+    rubric_r09d = _mutate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4_DIRECT, ""
+    )
+    _check_negative(
+        "R-09d",
+        _check_rubric_text(rubric_r09d),
+        "Rubric-9",
+        "direct-quotation half occurs 0 time(s)",
+        "R-09-crit4-direct-missing",
+    )
+
+    # R-09-crit4-direct-dup: duplicate the Criterion 4 direct-quotation half
+    # inside the Criterion 4 slice — the `!= 1` guard's other direction,
+    # provably not a re-run of the strip control above (different
+    # expected_detail: "occurs 2" versus "occurs 0").
+    rubric_r09e = _duplicate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4_DIRECT
+    )
+    _check_negative(
+        "R-09e",
+        _check_rubric_text(rubric_r09e),
+        "Rubric-9",
+        "direct-quotation half occurs 2 time(s)",
+        "R-09-crit4-direct-dup",
+    )
+
     # R-10-crit6-count-missing: strip the Criterion 6 quoted-span sentence.
     rubric_r10a = _mutate_within_range(
         real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, ""
@@ -1730,6 +1927,32 @@ def _run_self_test() -> int:
         "Rubric-10",
         "does not precede the Rigorous band bullet",
         "R-10-crit6-order",
+    )
+
+    # R-10-crit6-direct-missing: strip the Criterion 6 direct-quotation half
+    # (plan 15-07, closing CR-03) from the Criterion 6 slice.
+    rubric_r10d = _mutate_within_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6_DIRECT, ""
+    )
+    _check_negative(
+        "R-10d",
+        _check_rubric_text(rubric_r10d),
+        "Rubric-10",
+        "direct-quotation half occurs 0 time(s)",
+        "R-10-crit6-direct-missing",
+    )
+
+    # R-10-crit6-direct-dup: duplicate the Criterion 6 direct-quotation half
+    # inside the Criterion 6 slice.
+    rubric_r10e = _duplicate_within_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6_DIRECT
+    )
+    _check_negative(
+        "R-10e",
+        _check_rubric_text(rubric_r10e),
+        "Rubric-10",
+        "direct-quotation half occurs 2 time(s)",
+        "R-10-crit6-direct-dup",
     )
 
     # R-11-bands-crit4: strip one band bullet from the Criterion 4 slice.
@@ -1788,6 +2011,100 @@ def _run_self_test() -> int:
         "Rubric-12",
         "occurs 2 time(s)",
         "R-12-halt-dup",
+    )
+
+    # --- Rubric-13 branch negative controls (plan 15-07, closing CR-02) ----
+    # The Verdict Block Format amendment: the amended quoted-span template
+    # and the admission-sentence pair, each split missing/dup, plus the
+    # count-0 pre-amendment-reinstatement arm and the ordering arm.
+
+    # R-13-format-amended-missing: strip the amended quoted-span template
+    # from the Verdict Block Format section.
+    rubric_r13a = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _RUBRIC_FORMAT_QUOTED_SPAN,
+        "",
+    )
+    _check_negative(
+        "R-13a",
+        _check_rubric_text(rubric_r13a),
+        "Rubric-13",
+        "amended quoted-span template occurs 0 time(s)",
+        "R-13-format-amended-missing",
+    )
+
+    # R-13-format-amended-dup: duplicate the amended quoted-span template
+    # inside the same section.
+    rubric_r13b = _duplicate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _RUBRIC_FORMAT_QUOTED_SPAN,
+    )
+    _check_negative(
+        "R-13b",
+        _check_rubric_text(rubric_r13b),
+        "Rubric-13",
+        "amended quoted-span template occurs 2 time(s)",
+        "R-13-format-amended-dup",
+    )
+
+    # R-13-format-admission-missing: strip the admission sentence.
+    rubric_r13c = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _RUBRIC_FORMAT_ADMISSION,
+        "",
+    )
+    _check_negative(
+        "R-13c",
+        _check_rubric_text(rubric_r13c),
+        "Rubric-13",
+        "admission sentence occurs 0 time(s)",
+        "R-13-format-admission-missing",
+    )
+
+    # R-13-format-admission-dup: duplicate the admission sentence inside the
+    # same section.
+    rubric_r13d = _duplicate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _RUBRIC_FORMAT_ADMISSION,
+    )
+    _check_negative(
+        "R-13d",
+        _check_rubric_text(rubric_r13d),
+        "Rubric-13",
+        "admission sentence occurs 2 time(s)",
+        "R-13-format-admission-dup",
+    )
+
+    # R-13-format-preamendment: reinstate the pre-amendment quoted-span
+    # template ALONGSIDE the amended one (both present) — the amendment
+    # cannot be silently reverted by addition, mirroring Body-15's shape.
+    rubric_r13e = real_rubric + "\n\n" + _RUBRIC_FORMAT_PREAMENDMENT
+    _check_negative(
+        "R-13e",
+        _check_rubric_text(rubric_r13e),
+        "Rubric-13",
+        "pre-amendment quoted-span template still present",
+        "R-13-format-preamendment",
+    )
+
+    # R-13-format-order: relocate the admission sentence to immediately
+    # after the Criterion 4 heading — the literal remains present but out
+    # of order relative to it.
+    rubric_r13f = _relocate(real_rubric, _RUBRIC_FORMAT_ADMISSION, _CRIT4_START)
+    _check_negative(
+        "R-13f",
+        _check_rubric_text(rubric_r13f),
+        "Rubric-13",
+        "does not precede the Criterion 4 heading",
+        "R-13-format-order",
     )
 
     # Hard-wrap arm 2 (rubric): reinstate the ledger non-admissibility
@@ -1877,6 +2194,28 @@ def _run_self_test() -> int:
         "Cross-2",
         "missing from rubric surface",
         "X-02-heading-rubric",
+    )
+
+    # X-03-bound-body: strip the shared table-coverage-bound sentence
+    # (plan 15-07) from the body ONLY, leaving the rubric intact.
+    body_x03a = _strip_everywhere(real_body, _TABLE_COVERAGE_BOUND)
+    _check_negative(
+        "X-03a",
+        _check_cross_surface(body_x03a, real_rubric),
+        "Cross-3",
+        "missing from agent-body surface",
+        "X-03-bound-body",
+    )
+
+    # X-03-bound-rubric: strip the coverage-bound sentence from the rubric
+    # ONLY, leaving the body intact.
+    rubric_x03b = _strip_everywhere(real_rubric, _TABLE_COVERAGE_BOUND)
+    _check_negative(
+        "X-03b",
+        _check_cross_surface(real_body, rubric_x03b),
+        "Cross-3",
+        "missing from rubric surface",
+        "X-03-bound-rubric",
     )
 
     # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus

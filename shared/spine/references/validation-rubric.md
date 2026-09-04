@@ -174,19 +174,13 @@ analysis section exists and contains scoreable content:
 
 ```text
 **Criterion N: [Criterion Name]**
-Quoted span: "[Direct quote of the specific text that most directly determines the band
-assigned — from the analysis being scored, or, for Criteria 4 and 6 only, from the
-self-audit scan emitted as process output for this analysis.]"
+Quoted span: "[Direct quote of the specific text that most directly determines the band assigned — from the analysis being scored, or, for Criteria 4 and 6 only, from the self-audit scan emitted as process output for this analysis.]"
 Band: [**Rigorous** / **Sound** / **Hand-wavy** / **Absent**]
 Justification: [One sentence tying the quoted span to the observable descriptor for
 that band — name the specific structural property present or absent.]
 ```
 
-The self-audit scan is not an output section, and this is the sole place a verdict block may
-quote something outside the six-section analysis: the admission covers Criteria 4 and 6 and
-the self-audit scan only. Every other criterion quotes the analysis text itself, and the
-§6→§4 closure ledger is admitted nowhere — it is a drafting artifact that describes a
-document other than the one being scored.
+The self-audit scan is not an output section, and this is the sole place a verdict block may quote something outside the six-section analysis: the admission covers Criteria 4 and 6 and the self-audit scan only. Every other criterion quotes the analysis text itself, and the §6→§4 closure ledger is admitted nowhere — it is a drafting artifact that describes a document other than the one being scored.
 
 Use the gap-citation form when the criterion scores Absent because the section or named
 artifact is missing or empty — in that case there is no span to quote, and the documented
