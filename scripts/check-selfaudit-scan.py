@@ -293,6 +293,21 @@ def _count_flat(haystack: str, needle: str) -> int:
     return _flat(haystack).count(_flat(needle))
 
 
+def _find_flat(haystack: str, needle: str) -> int:
+    """Return the index of `_flat(needle)` inside `_flat(haystack)`, or -1.
+
+    The returned index is an offset into the NORMALIZED text and is
+    therefore comparable only against other `_find_flat` results computed
+    against the same haystack — never mixed with a raw `str.find` offset.
+    Exists to prevent CR-01 (`15-REVIEW.md`): an ordering arm that counted
+    a literal with `_count_flat` but then located it with a raw
+    `str.find` silently stopped asserting anything about placement the
+    moment the literal was hard-wrapped, because `_count_flat` still
+    returned 1 while `find` returned -1.
+    """
+    return _flat(haystack).find(_flat(needle))
+
+
 def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
     """Return the text strictly between *start_heading* and *end_heading*.
 
@@ -400,6 +415,48 @@ def _hardwrap_reinstate_in_range(
     return head + new_region + tail
 
 
+def _hardwrap_relocate_in_range(
+    text: str, start_anchor: str, end_anchor: str, literal: str, new_anchor: str
+) -> str:
+    """Strip *literal* from inside the [start_anchor, end_anchor) range, wrap
+    it at `_WRAP_WIDTH`, and reinsert the wrapped rendering immediately AFTER
+    *new_anchor* within that same range.
+
+    Combines `_relocate`'s move with `_hardwrap_reinstate_in_range`'s wrap —
+    this is CR-01's exact malformation (`15-REVIEW.md`): a sentence that is
+    BOTH hard-wrapped AND moved out of order, which a strip-only control
+    cannot see. Carries the wrap helper's two self-assertions (the
+    constructed text must NOT contain *literal* contiguously, and MUST
+    contain it once whitespace is normalized) plus a third: the reinsertion
+    point must land inside the range, so a fixture that silently no-ops
+    raises instead of producing a vacuous control.
+    """
+    start = text.find(start_anchor)
+    assert start != -1, f"start anchor {start_anchor!r} not found"
+    end = text.find(end_anchor, start)
+    assert end != -1, f"end anchor {end_anchor!r} not found after start anchor"
+    head, region, tail = text[:start], text[start:end], text[end:]
+    count = region.count(literal)
+    assert count == 1, (
+        f"expected exactly one occurrence of {literal!r} within range, found {count}"
+    )
+    stripped_region = region.replace(literal, "", 1)
+    anchor_idx = stripped_region.find(new_anchor)
+    assert anchor_idx != -1, (
+        f"relocation anchor {new_anchor!r} not found within range after strip"
+    )
+    wrapped = "\n".join(textwrap.wrap(literal, width=_WRAP_WIDTH))
+    if literal in wrapped:
+        raise ValueError(f"fixture did not break the literal across lines: {literal!r}")
+    if not _contains(wrapped, literal):
+        raise ValueError(f"wrapped fixture no longer whitespace-normalizes to {literal!r}")
+    insert_idx = anchor_idx + len(new_anchor)
+    new_region = (
+        stripped_region[:insert_idx] + "\n\n" + wrapped + "\n\n" + stripped_region[insert_idx:]
+    )
+    return head + new_region + tail
+
+
 # ---------------------------------------------------------------------------
 # Body (agent) checks
 # ---------------------------------------------------------------------------
@@ -441,9 +498,9 @@ def _check_body_text(text: str) -> list[str]:
 
     # Body-3: placement — the scan lead sits strictly between the ledger-form
     # fenced block's tail line and the ledger-clean handoff sentence.
-    lead_idx = text.find(_BODY_SCAN_LEAD)
-    tail_idx = text.find(_BODY_LEDGER_FENCE_TAIL)
-    clean_idx = text.find(_BODY_LEDGER_CLEAN)
+    lead_idx = _find_flat(text, _BODY_SCAN_LEAD)
+    tail_idx = _find_flat(text, _BODY_LEDGER_FENCE_TAIL)
+    clean_idx = _find_flat(text, _BODY_LEDGER_CLEAN)
     if lead_idx == -1:
         failures.append(f"Body-3: scan lead {_BODY_SCAN_LEAD!r} not found in whole file")
     if tail_idx == -1:
@@ -583,14 +640,16 @@ def _check_rubric_text(text: str) -> list[str]:
 
     # Rubric-2: placement — the scan block sits strictly between the
     # Assumption Audit block and the Precedence rule paragraph.
-    aa_idx = text.find(_RUBRIC_AA_BLOCK)
-    scan_idx = text.find(_RUBRIC_SCAN_BLOCK)
-    precedence_idx = text.find(_RUBRIC_PRECEDENCE)
+    aa_idx = _find_flat(text, _RUBRIC_AA_BLOCK)
+    scan_idx = _find_flat(text, _RUBRIC_SCAN_BLOCK)
+    precedence_idx = _find_flat(text, _RUBRIC_PRECEDENCE)
     if aa_idx == -1:
         failures.append(f"Rubric-2: {_RUBRIC_AA_BLOCK!r} not found in whole file")
+    if scan_idx == -1:
+        failures.append(f"Rubric-2: {_RUBRIC_SCAN_BLOCK!r} not found in whole file")
     if precedence_idx == -1:
         failures.append(f"Rubric-2: {_RUBRIC_PRECEDENCE!r} not found in whole file")
-    if aa_idx != -1 and precedence_idx != -1:
+    if aa_idx != -1 and scan_idx != -1 and precedence_idx != -1:
         if not (aa_idx < scan_idx < precedence_idx):
             failures.append(
                 "Rubric-2: scan block is not placed strictly between the "
@@ -667,9 +726,10 @@ def _check_rubric_text(text: str) -> list[str]:
                 "time(s) in Criterion 4 slice, expected exactly 1"
             )
         else:
-            span_idx = crit4_slice.find(_RUBRIC_QUOTED_SPAN_C4)
-            rigorous_idx = crit4_slice.find(_BAND_RIGOROUS)
-            if rigorous_idx == -1 or not (span_idx < rigorous_idx):
+            # locate on the SAME normalized text the count arm uses (CR-01)
+            span_idx = _find_flat(crit4_slice, _RUBRIC_QUOTED_SPAN_C4)
+            rigorous_idx = _find_flat(crit4_slice, _BAND_RIGOROUS)
+            if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
                     "Rubric-9: quoted-span sentence does not precede the "
                     "Rigorous band bullet in Criterion 4"
@@ -690,9 +750,10 @@ def _check_rubric_text(text: str) -> list[str]:
                 "time(s) in Criterion 6 slice, expected exactly 1"
             )
         else:
-            span_idx = crit6_slice.find(_RUBRIC_QUOTED_SPAN_C6)
-            rigorous_idx = crit6_slice.find(_BAND_RIGOROUS)
-            if rigorous_idx == -1 or not (span_idx < rigorous_idx):
+            # locate on the SAME normalized text the count arm uses (CR-01)
+            span_idx = _find_flat(crit6_slice, _RUBRIC_QUOTED_SPAN_C6)
+            rigorous_idx = _find_flat(crit6_slice, _BAND_RIGOROUS)
+            if span_idx == -1 or rigorous_idx == -1 or not (span_idx < rigorous_idx):
                 failures.append(
                     "Rubric-10: quoted-span sentence does not precede the "
                     "Rigorous band bullet in Criterion 6"
@@ -803,8 +864,10 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-06-ledger",
         "R-07-missing",
         "R-08-bound",
-        "R-09-crit4",
-        "R-10-crit6",
+        "R-09-crit4-count",
+        "R-09-crit4-order",
+        "R-10-crit6-count",
+        "R-10-crit6-order",
         "R-11-bands",
         "R-12-halt",
         "X-01-cols",
@@ -1153,20 +1216,58 @@ def _run_self_test() -> int:
         "R-08-bound",
     )
 
-    # R-09-crit4: strip the Criterion 4 quoted-span sentence.
+    # R-09-crit4-count: strip the Criterion 4 quoted-span sentence. Proves
+    # the count arm, not the ordering arm.
     rubric_r09 = _mutate_within_range(
         real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, ""
     )
     _check_negative(
-        "R-09", _check_rubric_text(rubric_r09), "Rubric-9", "occurs 0 time(s)", "R-09-crit4"
+        "R-09",
+        _check_rubric_text(rubric_r09),
+        "Rubric-9",
+        "occurs 0 time(s)",
+        "R-09-crit4-count",
     )
 
-    # R-10-crit6: strip the Criterion 6 quoted-span sentence.
+    # R-09-crit4-order: wrap AND relocate the Criterion 4 quoted-span
+    # sentence after the Rigorous band bullet — CR-01's exact malformation
+    # (`15-REVIEW.md`), which a strip-only control cannot see.
+    rubric_r09c = _hardwrap_relocate_in_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, _BAND_RIGOROUS
+    )
+    _check_negative(
+        "R-09c",
+        _check_rubric_text(rubric_r09c),
+        "Rubric-9",
+        "does not precede the Rigorous band bullet",
+        "R-09-crit4-order",
+    )
+
+    # R-10-crit6-count: strip the Criterion 6 quoted-span sentence. Proves
+    # the count arm, not the ordering arm.
     rubric_r10 = _mutate_within_range(
         real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, ""
     )
     _check_negative(
-        "R-10", _check_rubric_text(rubric_r10), "Rubric-10", "occurs 0 time(s)", "R-10-crit6"
+        "R-10",
+        _check_rubric_text(rubric_r10),
+        "Rubric-10",
+        "occurs 0 time(s)",
+        "R-10-crit6-count",
+    )
+
+    # R-10-crit6-order: wrap AND relocate the Criterion 6 quoted-span
+    # sentence after the Rigorous band bullet — CR-01's exact malformation
+    # (`15-REVIEW.md`), which a strip-only control cannot see.
+    rubric_r10c = _hardwrap_relocate_in_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, _BAND_RIGOROUS
+    )
+    _check_negative(
+        "R-10c",
+        _check_rubric_text(rubric_r10c),
+        "Rubric-10",
+        "does not precede the Rigorous band bullet",
+        "R-10-crit6-order",
     )
 
     # R-11-bands, arm 1: strip one band bullet from the Criterion 4 slice.
