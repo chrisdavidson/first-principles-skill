@@ -3863,6 +3863,298 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
 
+def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
+    """V826-ROWS named sentinel (Phase 16).
+
+    Asserts the 20 v8.26 milestone rows registered in _rows_v826():
+      (a) Exactly 20 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 20 IDs, named in _EXPECTED_V826_IDS.
+      (c) Tier partition pinned BY ID, never by count (Pitfall 2, 16-RESEARCH.md):
+          _EXPECTED_V826_AUDIT_ONLY_IDS is exactly {"SCAN-04", "SHIP-04", "SHIP-05"};
+          _EXPECTED_V826_REPRODUCIBLE_IDS is the set difference. A blanket
+          len(audit_only) == 3 assert is explicitly rejected — swapping SCAN-04's tier
+          with a reproducible row's keeps the counts right and would pass silently.
+      (d) Deep-resolve artifact_link over the 17 reproducible rows via _resolve_artifact(),
+          and assert every audit-only row carries artifact_link == "". Counts printed are
+          derived from len(...), never restated as literals (the WR-08 idiom).
+      (e) Positive counter-check: SHIP-03 is present exactly once, is reproducible, and
+          carries a non-empty artifact_link — the anti-vacuity control, mirroring
+          V825-ROWS' HEADLINE-01 and V824-ROWS' GATE-03 idiom.
+      (f) milestone/key lock: every row has milestone == "v8.26" AND a key prefixed
+          "v8.26/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES.
+      (h) LIVE ANCHOR FLOOR, modelled on V825-ROWS' (h2). Derives, from the live rows, the
+          set of anchors of the form "…py#<anchor>" whose <anchor> starts with
+          _SELFTEST_ANCHOR_PREFIXES, and asserts EQUALITY against exactly
+          {"_selftest_render_contract", "_selftest_chain_detector_pin",
+          "_selftest_ledger_traceability", "_self_test_headline_lock"} — equality, not
+          membership, so a rename cannot silently narrow or empty the dispatch-checked
+          set. Followed by a live positive: CHAINHEAD-07's and SHIP-03's live
+          artifact_links must each resolve to [], i.e. as DISPATCHED, not merely defined.
+      (h4) CALL-SITE CENSUS for the three non-prefixed SCAN anchors, which (h) cannot
+          reach: _check_body_text, _check_rubric_text and _check_cross_surface in
+          scripts/check-selfaudit-scan.py do NOT start with _selftest_/_self_test_, so
+          _resolve_artifact()'s dispatch-reachability leg only proves them DEFINED, not
+          CALLED (see _rows_v826()'s own DISCLOSED BOUNDARY). The three symbol names are
+          derived from the live _rows_v826() rows' own artifact_link anchors, never
+          restated, so a re-point of a SCAN row moves the census with it. For each
+          symbol, this counts occurrences of "<symbol>(" in check-selfaudit-scan.py's
+          source text, excluding the symbol's own "def" line, and requires at least 2 —
+          one inside _validate_files (the live CLI leg) and one inside _run_self_test
+          (the offline control battery). DISCLOSED BOUND, in the voice of control (t) in
+          check-quality-harness.py: this counts SOURCE TEXT and observes no behaviour. It
+          catches DELETION of a real call site; it does not catch a call whose returned
+          failures are discarded before reaching the reporter, and a mention inside a
+          string literal or comment counts as a call site.
+
+    Called from _rows_v826() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier swap, or dangling
+    artifact_link fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 20 rows.
+    _v826_rows = _rows_v826()
+    _v826_count = len(_v826_rows)
+    _EXPECTED_V826_IDS = {
+        "CHAINHEAD-01", "CHAINHEAD-02", "CHAINHEAD-03", "CHAINHEAD-04", "CHAINHEAD-05",
+        "CHAINHEAD-06", "CHAINHEAD-07",
+        "LEDGER-01", "LEDGER-02", "LEDGER-03", "LEDGER-04",
+        "SCAN-01", "SCAN-02", "SCAN-03", "SCAN-04",
+        "SHIP-01", "SHIP-02", "SHIP-03", "SHIP-04", "SHIP-05",
+    }
+    _EXPECTED_V826_AUDIT_ONLY_IDS = {"SCAN-04", "SHIP-04", "SHIP-05"}
+    _EXPECTED_V826_REPRODUCIBLE_IDS = _EXPECTED_V826_IDS - _EXPECTED_V826_AUDIT_ONLY_IDS
+    if _v826_count != 20:
+        print(
+            f"  V826-ROWS FAIL: expected exactly 20 rows in _rows_v826(), "
+            f"got {_v826_count} — drift guard failed."
+        )
+        wrong_results.append("V826-ROWS: row count drift (expected 20)")
+    else:
+        print(f"  V826-ROWS PASS: row count == 20")
+
+    # (b) bare_id set assertion.
+    _v826_ids = {r.bare_id for r in _v826_rows}
+    if _v826_ids != _EXPECTED_V826_IDS:
+        _missing = _EXPECTED_V826_IDS - _v826_ids
+        _extra = _v826_ids - _EXPECTED_V826_IDS
+        print(
+            f"  V826-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V826-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V826-ROWS PASS: bare_id set = {sorted(_v826_ids)!r}")
+
+    # (c) Tier partition pinned by ID, not by count.
+    _audit_only_ids = {r.bare_id for r in _v826_rows if r.coverage_tier == "audit-only"}
+    _reproducible_ids = {r.bare_id for r in _v826_rows if r.coverage_tier == "reproducible"}
+    if _audit_only_ids != _EXPECTED_V826_AUDIT_ONLY_IDS:
+        print(
+            f"  V826-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V826_AUDIT_ONLY_IDS)!r}, got={sorted(_audit_only_ids)!r}"
+        )
+        wrong_results.append("V826-ROWS: audit-only bare_id set mismatch")
+    elif _reproducible_ids != _EXPECTED_V826_REPRODUCIBLE_IDS:
+        print(
+            f"  V826-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V826_REPRODUCIBLE_IDS)!r}, got={sorted(_reproducible_ids)!r}"
+        )
+        wrong_results.append("V826-ROWS: reproducible bare_id set mismatch")
+    else:
+        print(
+            f"  V826-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
+            f"{len(_reproducible_ids)} reproducible IDs confirmed by name"
+        )
+
+    # (d) Deep-resolve artifact_link over the reproducible rows only; every audit-only
+    #     row must carry artifact_link == "" (so the skip cannot become a skip-everything).
+    _v826_repro_rows = [r for r in _v826_rows if r.coverage_tier == "reproducible"]
+    _v826_audit_rows = [r for r in _v826_rows if r.coverage_tier == "audit-only"]
+    _link_issues: list[str] = []
+    for _row in _v826_repro_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    _nonempty_audit_links = [r.bare_id for r in _v826_audit_rows if r.artifact_link != ""]
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V826-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V826-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    elif _nonempty_audit_links:
+        print(
+            f"  V826-ROWS FAIL: audit-only row(s) with non-empty artifact_link — "
+            f"{_nonempty_audit_links!r}"
+        )
+        wrong_results.append("V826-ROWS: audit-only row(s) with non-empty artifact_link")
+    else:
+        print(
+            f"  V826-ROWS PASS: all {len(_v826_repro_rows)} reproducible artifact_links "
+            f"deep-resolve OK, {len(_v826_audit_rows)} audit-only row(s) carry artifact_link=''"
+        )
+
+    # (e) Positive counter-check: SHIP-03 is present, reproducible, non-empty artifact_link.
+    _ship03_v826_rows = [r for r in _v826_rows if r.bare_id == "SHIP-03"]
+    _ship03_v826_present = len(_ship03_v826_rows) == 1
+    _ship03_v826_repro = (
+        _ship03_v826_rows[0].coverage_tier == "reproducible" if _ship03_v826_rows else False
+    )
+    _ship03_v826_link = _ship03_v826_rows[0].artifact_link if _ship03_v826_rows else ""
+    if _ship03_v826_present and _ship03_v826_repro and _ship03_v826_link:
+        print(
+            f"  V826-ROWS PASS: SHIP-03 present and reproducible "
+            f"(artifact_link={_ship03_v826_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V826-ROWS FAIL: SHIP-03 positive counter-check failed "
+            f"(present={_ship03_v826_present}, reproducible={_ship03_v826_repro}, "
+            f"link={_ship03_v826_link!r})"
+        )
+        wrong_results.append("V826-ROWS: SHIP-03 counter-check failed")
+
+    # (f) milestone/key lock.
+    _bad_ms = [
+        r.key for r in _v826_rows
+        if r.milestone != "v8.26" or not r.key.startswith("v8.26/")
+    ]
+    if _bad_ms:
+        print(f"  V826-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V826-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V826-ROWS PASS: all {_v826_count} rows carry milestone='v8.26' and 'v8.26/' key prefix")
+
+    # (g) capability lock.
+    _bad_cap = [r.bare_id for r in _v826_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V826-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V826-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V826-ROWS PASS: all {_v826_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
+
+    # (h) LIVE ANCHOR FLOOR, modelled on V825-ROWS' (h2).
+    _EXPECTED_V826_SELFTEST_ANCHORS = {
+        "_selftest_render_contract",
+        "_selftest_chain_detector_pin",
+        "_selftest_ledger_traceability",
+        "_self_test_headline_lock",
+    }
+    _observed_v826_selftest_anchors: set[str] = set()
+    for _row in _v826_rows:
+        if "#" in _row.artifact_link:
+            _anchor = _row.artifact_link.split("#", 1)[1]
+            if _anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
+                _observed_v826_selftest_anchors.add(_anchor)
+    if _observed_v826_selftest_anchors != _EXPECTED_V826_SELFTEST_ANCHORS:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE ANCHOR FLOOR — expected anchor set "
+            f"{sorted(_EXPECTED_V826_SELFTEST_ANCHORS)!r}, "
+            f"observed {sorted(_observed_v826_selftest_anchors)!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) live anchor floor failed")
+    else:
+        print(
+            f"  V826-ROWS PASS: (h) live self-test anchor set = "
+            f"{sorted(_observed_v826_selftest_anchors)!r} — non-vacuous"
+        )
+
+    # (h) live positives: CHAINHEAD-07's and SHIP-03's artifact_links must resolve to []
+    # — i.e. as DISPATCHED, not merely defined.
+    _chainhead07_rows = [r for r in _v826_rows if r.bare_id == "CHAINHEAD-07"]
+    _chainhead07_problems = (
+        _resolve_artifact(_chainhead07_rows[0].artifact_link)
+        if _chainhead07_rows else ["CHAINHEAD-07 row missing"]
+    )
+    if _chainhead07_problems:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE POSITIVE — CHAINHEAD-07 did not resolve cleanly: "
+            f"{_chainhead07_problems!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) CHAINHEAD-07 live positive failed")
+    else:
+        print(
+            "  V826-ROWS PASS: (h) CHAINHEAD-07's artifact_link resolved "
+            "_selftest_chain_detector_pin as DISPATCHED, not merely defined"
+        )
+
+    _ship03_v826_problems = (
+        _resolve_artifact(_ship03_v826_rows[0].artifact_link)
+        if _ship03_v826_rows else ["SHIP-03 row missing"]
+    )
+    if _ship03_v826_problems:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE POSITIVE — SHIP-03 did not resolve cleanly: "
+            f"{_ship03_v826_problems!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) SHIP-03 live positive failed")
+    else:
+        print(
+            "  V826-ROWS PASS: (h) SHIP-03's artifact_link resolved "
+            "_self_test_headline_lock as DISPATCHED, not merely defined"
+        )
+
+    # (h4) CALL-SITE CENSUS for the three non-prefixed SCAN anchors, which (h) cannot
+    # reach. Symbol names are derived from the live rows' own artifact_link anchors
+    # rather than restated, so a re-point of a SCAN row moves the census with it.
+    _scan_symbols = sorted({
+        _row.artifact_link.split("#", 1)[1]
+        for _row in _v826_rows
+        if _row.artifact_link.startswith("scripts/check-selfaudit-scan.py#")
+    })
+    _scan_source_path = REPO_ROOT / "scripts" / "check-selfaudit-scan.py"
+    _scan_source_text = _scan_source_path.read_text(encoding="utf-8")
+
+    def _slice_top_level_function_body(text: str, func_name: str) -> str:
+        """Slice `func_name`'s own body out of `text`, from its `def` line to the next
+        top-level construct — the same body-boundary idiom `_selftest_dispatch_problems`
+        uses for a dispatcher, applied here to a plain named function instead."""
+        _start_pat = re.compile(
+            r"^" + _DEF_CONSTRUCT_PREFIX + re.escape(func_name) + r"\(", re.MULTILINE
+        )
+        _start_match = _start_pat.search(text)
+        if _start_match is None:
+            return ""
+        _next_pat = re.compile(r"^(?:" + _DEF_CONSTRUCT_PREFIX + r"|class\s|@)", re.MULTILINE)
+        _next_match = _next_pat.search(text, _start_match.end())
+        _end = _next_match.start() if _next_match else len(text)
+        return text[_start_match.start():_end]
+
+    _validate_files_body = _slice_top_level_function_body(_scan_source_text, "_validate_files")
+    _run_self_test_body = _slice_top_level_function_body(_scan_source_text, "_run_self_test")
+
+    if len(_scan_symbols) != 3:
+        print(
+            f"  V826-ROWS FAIL: (h4) CALL-SITE CENSUS — expected exactly 3 SCAN anchors "
+            f"derived from live rows, got {len(_scan_symbols)}: {_scan_symbols!r}"
+        )
+        wrong_results.append("V826-ROWS: (h4) SCAN anchor derivation failed")
+    else:
+        _h4_ok = True
+        for _sym in _scan_symbols:
+            _call_pat = _sym + "("
+            _def_line_pat = re.compile(r"^def " + re.escape(_sym) + r"\(", re.MULTILINE)
+            _def_line_hit = 1 if _def_line_pat.search(_scan_source_text) else 0
+            _total = _scan_source_text.count(_call_pat) - _def_line_hit
+            _in_validate = _validate_files_body.count(_call_pat)
+            _in_run_self_test = _run_self_test_body.count(_call_pat)
+            if _total < 2 or _in_validate < 1 or _in_run_self_test < 1:
+                _h4_ok = False
+                print(
+                    f"  V826-ROWS FAIL: (h4) CALL-SITE CENSUS — {_sym} has {_total} call "
+                    f"site(s) (in _validate_files={_in_validate}, in _run_self_test="
+                    f"{_in_run_self_test}), expected >=2 with >=1 in each"
+                )
+                wrong_results.append(f"V826-ROWS: (h4) call-site census failed for {_sym}")
+        if _h4_ok:
+            print(
+                f"  V826-ROWS PASS: (h4) call-site census — all {len(_scan_symbols)} SCAN "
+                f"anchors ({', '.join(_scan_symbols)}) called from both _validate_files "
+                f"and _run_self_test"
+            )
+
+
 class _HeadlineLockContext(NamedTuple):
     """Everything the HEADLINE-LOCK stages derive from the oracle, in one place.
 
@@ -6040,6 +6332,13 @@ def _run_self_test() -> None:
                  milestone rows against silent drift, including a tier swap between two
                  named IDs that a blanket count assert would miss; no live claude session
                  required.
+      V826-ROWS: live row count + bare_id set + ID-pinned 17/3 tier partition + deep-resolve
+                 over reproducible rows only + SHIP-03 positive counter-check + milestone/key
+                 attribution lock + capability lock + live anchor floor + call-site census
+                 over the three non-`_selftest_*` SCAN anchors (Phase 16); locks all 20
+                 v8.26 milestone rows against silent drift, including a tier swap between
+                 two named IDs that a blanket count assert would miss; no live claude
+                 session required.
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
@@ -6057,6 +6356,7 @@ def _run_self_test() -> None:
     _self_test_v818_rows_sentinel(wrong_results)
     _self_test_v824_rows_sentinel(wrong_results)
     _self_test_v825_rows_sentinel(wrong_results)
+    _self_test_v826_rows_sentinel(wrong_results)
     _self_test_headline_lock(wrong_results)
     if wrong_results:
         sys.stderr.write(
