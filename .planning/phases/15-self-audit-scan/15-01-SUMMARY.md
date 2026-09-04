@@ -161,3 +161,12 @@ None - no external service configuration required.
 ---
 *Phase: 15-self-audit-scan*
 *Completed: 2026-09-04*
+
+## Self-Check: PASSED
+
+- FOUND: `shared/spine/SKILL-body.md`
+- FOUND: `first-principles/agents/first-principles.md`
+- FOUND: `.planning/phases/15-self-audit-scan/15-01-SUMMARY.md`
+- FOUND commit: `67746ec` (Task 1)
+- FOUND commit: `2ae6ad5` (Task 2)
+- FOUND commit: `127c3b2` (this SUMMARY.md)
