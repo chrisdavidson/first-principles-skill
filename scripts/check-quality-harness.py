@@ -4624,6 +4624,114 @@ def _chain_detector_pin_problems(source: str) -> list[str]:
     ]
 
 
+def _conclusion_claims_source() -> str:
+    """The single call site naming the frozen `_conclusion_claims`.
+
+    Mirrors `_chain_detector_source()` exactly, for the same reason: nothing
+    else in this module — including the pin below and its self-test
+    controls — calls `inspect.getsource()` against `_conclusion_claims`
+    directly; there is exactly one place that names it for hashing.
+    """
+    return inspect.getsource(_conclusion_claims)
+
+
+# A `sha256:<hex>` pin over `_conclusion_claims`'s own source bytes (SCAN-04
+# gap-fill, adversarial audit of Phase 15), extending the CONTRACT-06
+# mechanism `_CHAIN_DETECTOR_PINNED_DIGEST` established for
+# `_chain_block_well_formed` to a second function `15-04-SUMMARY.md`
+# recorded as proved byte-identical across Phase 15 by hand (`inspect.
+# getsource().rstrip("\n")` + sha256) but never re-asserted by a standing
+# gate — the exact "proved once, never re-run" gap SCAN-04's own validation
+# left uncovered. `.rstrip("\n")` for the identical reason: `inspect.
+# getsource()` always returns source ending in exactly one trailing
+# newline, and hashing it un-stripped yields a different digest than the
+# one this pin freezes.
+#
+# Recompute discipline: the same standing pre-commitment as
+# `_CHAIN_DETECTOR_PINNED_DIGEST` — a diff to this literal must accompany a
+# WRITTEN AMENDMENT to the milestone goal, landed FIRST, never recomputed to
+# make a failing self-test pass.
+_CONCLUSION_CLAIMS_PINNED_DIGEST = (
+    "sha256:8b0cc1f1d2d32215e284f0276afbdbd63e761bcef573ec3723f6e6205405d394"
+)
+
+
+def _conclusion_claims_pin_problems(source: str) -> list[str]:
+    """Compare *source* against the pinned `_conclusion_claims` digest.
+
+    Takes the source text as a parameter, exactly like
+    `_chain_detector_pin_problems`, so a self-test control can drive it with
+    perturbed bytes in memory without monkeypatching the module or editing
+    the frozen function on disk. Returns a one-element problem list naming
+    both digests on a mismatch, or an empty list when *source* still hashes
+    to the pinned value.
+    """
+    digest = "sha256:" + hashlib.sha256(
+        source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if digest == _CONCLUSION_CLAIMS_PINNED_DIGEST:
+        return []
+    return [
+        f"conclusion-claims-detector: source digest {digest!r} != pinned "
+        f"{_CONCLUSION_CLAIMS_PINNED_DIGEST!r} — _conclusion_claims is "
+        "frozen under CONTRACT-06. If this change is intended, amend the "
+        "milestone goal in writing FIRST (STATE.md's standing "
+        "pre-commitment), then recompute. Do not recompute to make this "
+        "pass."
+    ]
+
+
+def _slice_sections_source() -> str:
+    """The single call site naming the frozen `_slice_sections`.
+
+    Mirrors `_chain_detector_source()` exactly, for the same reason: nothing
+    else in this module — including the pin below and its self-test
+    controls — calls `inspect.getsource()` against `_slice_sections`
+    directly; there is exactly one place that names it for hashing.
+    """
+    return inspect.getsource(_slice_sections)
+
+
+# A `sha256:<hex>` pin over `_slice_sections`'s own source bytes (SCAN-04
+# gap-fill, adversarial audit of Phase 15) — see `_CONCLUSION_CLAIMS_PINNED_
+# DIGEST`'s comment immediately above for the shared rationale and the same
+# recompute discipline. `_slice_sections`'s own body still carries a stale
+# in-source note ("`_slice_sections` carries no digest pin ... so
+# CONTRACT-06 is untouched") dated to Phase 14 — true when written, false
+# now that this pin exists. That comment lives inside the frozen function
+# body itself and is therefore out of reach here: touching it would edit
+# the very bytes this pin exists to freeze. Recorded as a known, harmless
+# staleness rather than silently left unexplained.
+_SLICE_SECTIONS_PINNED_DIGEST = (
+    "sha256:485ffe356a6782657709bc55ffaa1b474b1af2024398bcc00d2c799eb41c848e"
+)
+
+
+def _slice_sections_pin_problems(source: str) -> list[str]:
+    """Compare *source* against the pinned `_slice_sections` digest.
+
+    Takes the source text as a parameter, exactly like
+    `_chain_detector_pin_problems`, so a self-test control can drive it with
+    perturbed bytes in memory without monkeypatching the module or editing
+    the frozen function on disk. Returns a one-element problem list naming
+    both digests on a mismatch, or an empty list when *source* still hashes
+    to the pinned value.
+    """
+    digest = "sha256:" + hashlib.sha256(
+        source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if digest == _SLICE_SECTIONS_PINNED_DIGEST:
+        return []
+    return [
+        f"slice-sections-detector: source digest {digest!r} != pinned "
+        f"{_SLICE_SECTIONS_PINNED_DIGEST!r} — _slice_sections is frozen "
+        "under CONTRACT-06. If this change is intended, amend the "
+        "milestone goal in writing FIRST (STATE.md's standing "
+        "pre-commitment), then recompute. Do not recompute to make this "
+        "pass."
+    ]
+
+
 # Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
 # must sit immediately before the closing bold markers, distinguishing a
 # labelled claim from a bold phrase (e.g. "**Confidence: HIGH**") whose
@@ -13880,6 +13988,198 @@ def _selftest_chain_detector_pin() -> bool:
     return ok
 
 
+def _selftest_conclusion_claims_pin() -> bool:
+    """SCAN-04 gap-fill (adversarial audit of Phase 15): the sha256 pin over
+    `_conclusion_claims`'s source (`_conclusion_claims_pin_problems`,
+    defined beside the frozen function) re-runs on every QUAL-01 self-test
+    and fails on any byte change to that function, including whitespace.
+
+    `15-04-SUMMARY.md` recorded this function byte-identical to the Phase 15
+    base by a one-off hand-run hash comparison; nothing re-ran that proof
+    until this pin. Mirrors `_selftest_chain_detector_pin`'s four controls
+    exactly, substituting `_conclusion_claims` for `_chain_block_well_formed`:
+
+    (a) POSITIVE — the real, unmodified source hashes to the pinned value.
+    (b) NEGATIVE, anti-vacuity — an appended comment line and a stripped
+        middle line each must produce exactly one problem.
+    (c) FORMULA CONTROL — the naive un-stripped hash is NOT the pinned
+        value, while the `.rstrip("\\n")` form IS.
+    (d) MESSAGE CONTROL — the problem text carries the function name,
+        `CONTRACT-06`, and both the written-amendment and
+        do-not-recompute instructions.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: conclusion_claims_pin {msg}", file=sys.stderr)
+        ok = False
+
+    real_source = _conclusion_claims_source()
+
+    # (a) POSITIVE.
+    positive_problems = _conclusion_claims_pin_problems(real_source)
+    if positive_problems:
+        _fail(
+            "(a) POSITIVE: unmodified source reported problems: "
+            f"{positive_problems!r}"
+        )
+
+    # (b) NEGATIVE, anti-vacuity.
+    appended = real_source + "# perturbation appended by the self-test\n"
+    appended_problems = _conclusion_claims_pin_problems(appended)
+    if len(appended_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: appending a comment line did not "
+            f"produce exactly one problem: {appended_problems!r}"
+        )
+
+    real_lines = real_source.splitlines(keepends=True)
+    middle = len(real_lines) // 2
+    stripped_lines = real_lines[:middle] + real_lines[middle + 1 :]
+    stripped = "".join(stripped_lines)
+    stripped_problems = _conclusion_claims_pin_problems(stripped)
+    if len(stripped_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: stripping a middle line did not "
+            f"produce exactly one problem: {stripped_problems!r}"
+        )
+
+    # (c) FORMULA CONTROL.
+    naive_digest = "sha256:" + hashlib.sha256(
+        real_source.encode("utf-8")
+    ).hexdigest()
+    stripped_digest = "sha256:" + hashlib.sha256(
+        real_source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if naive_digest == _CONCLUSION_CLAIMS_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
+            "equals the pinned value — the trailing-newline strip is no "
+            "longer discriminating"
+        )
+    if stripped_digest != _CONCLUSION_CLAIMS_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the .rstrip('\\n') digest does not equal "
+            f"the pinned value: {stripped_digest!r} != "
+            f"{_CONCLUSION_CLAIMS_PINNED_DIGEST!r}"
+        )
+
+    # (d) MESSAGE CONTROL.
+    if appended_problems:
+        message = appended_problems[0]
+        required_substrings = (
+            "_conclusion_claims",
+            "CONTRACT-06",
+            "amend the milestone goal in writing",
+            "Do not recompute to make this pass",
+        )
+        missing = [s for s in required_substrings if s not in message]
+        if missing:
+            _fail(
+                "(d) MESSAGE CONTROL: problem text is missing required "
+                f"substring(s) {missing!r}: {message!r}"
+            )
+
+    return ok
+
+
+def _selftest_slice_sections_pin() -> bool:
+    """SCAN-04 gap-fill (adversarial audit of Phase 15): the sha256 pin over
+    `_slice_sections`'s source (`_slice_sections_pin_problems`, defined
+    beside the frozen function) re-runs on every QUAL-01 self-test and
+    fails on any byte change to that function, including whitespace.
+
+    `15-04-SUMMARY.md` recorded this function byte-identical to the Phase 15
+    base by a one-off hand-run hash comparison; nothing re-ran that proof
+    until this pin. Mirrors `_selftest_chain_detector_pin`'s four controls
+    exactly, substituting `_slice_sections` for `_chain_block_well_formed`:
+
+    (a) POSITIVE — the real, unmodified source hashes to the pinned value.
+    (b) NEGATIVE, anti-vacuity — an appended comment line and a stripped
+        middle line each must produce exactly one problem.
+    (c) FORMULA CONTROL — the naive un-stripped hash is NOT the pinned
+        value, while the `.rstrip("\\n")` form IS.
+    (d) MESSAGE CONTROL — the problem text carries the function name,
+        `CONTRACT-06`, and both the written-amendment and
+        do-not-recompute instructions.
+    """
+    ok = True
+
+    def _fail(msg: str) -> None:
+        nonlocal ok
+        print(f"self-test FAIL: slice_sections_pin {msg}", file=sys.stderr)
+        ok = False
+
+    real_source = _slice_sections_source()
+
+    # (a) POSITIVE.
+    positive_problems = _slice_sections_pin_problems(real_source)
+    if positive_problems:
+        _fail(
+            "(a) POSITIVE: unmodified source reported problems: "
+            f"{positive_problems!r}"
+        )
+
+    # (b) NEGATIVE, anti-vacuity.
+    appended = real_source + "# perturbation appended by the self-test\n"
+    appended_problems = _slice_sections_pin_problems(appended)
+    if len(appended_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: appending a comment line did not "
+            f"produce exactly one problem: {appended_problems!r}"
+        )
+
+    real_lines = real_source.splitlines(keepends=True)
+    middle = len(real_lines) // 2
+    stripped_lines = real_lines[:middle] + real_lines[middle + 1 :]
+    stripped = "".join(stripped_lines)
+    stripped_problems = _slice_sections_pin_problems(stripped)
+    if len(stripped_problems) != 1:
+        _fail(
+            "(b) NEGATIVE anti-vacuity: stripping a middle line did not "
+            f"produce exactly one problem: {stripped_problems!r}"
+        )
+
+    # (c) FORMULA CONTROL.
+    naive_digest = "sha256:" + hashlib.sha256(
+        real_source.encode("utf-8")
+    ).hexdigest()
+    stripped_digest = "sha256:" + hashlib.sha256(
+        real_source.rstrip("\n").encode("utf-8")
+    ).hexdigest()
+    if naive_digest == _SLICE_SECTIONS_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the naive un-stripped digest unexpectedly "
+            "equals the pinned value — the trailing-newline strip is no "
+            "longer discriminating"
+        )
+    if stripped_digest != _SLICE_SECTIONS_PINNED_DIGEST:
+        _fail(
+            "(c) FORMULA CONTROL: the .rstrip('\\n') digest does not equal "
+            f"the pinned value: {stripped_digest!r} != "
+            f"{_SLICE_SECTIONS_PINNED_DIGEST!r}"
+        )
+
+    # (d) MESSAGE CONTROL.
+    if appended_problems:
+        message = appended_problems[0]
+        required_substrings = (
+            "_slice_sections",
+            "CONTRACT-06",
+            "amend the milestone goal in writing",
+            "Do not recompute to make this pass",
+        )
+        missing = [s for s in required_substrings if s not in message]
+        if missing:
+            _fail(
+                "(d) MESSAGE CONTROL: problem text is missing required "
+                f"substring(s) {missing!r}: {message!r}"
+            )
+
+    return ok
+
+
 def _selftest_selfaudit_calibration() -> bool:
     """The Self-Audit Gate's claimed bands are reconciled against measurement.
 
@@ -16485,6 +16785,26 @@ def self_test() -> int:
         print("self-test: chain_detector_pin sub-check FAILED", file=sys.stderr)
     else:
         print("self-test: chain_detector_pin sub-check PASSED")
+
+    # SCAN-04 gap-fill (adversarial audit of Phase 15): the same sha256-pin
+    # mechanism extended to `_conclusion_claims` and `_slice_sections` —
+    # `15-04-SUMMARY.md` proved both byte-identical to the Phase 15 base by
+    # a one-off hand-run `inspect.getsource().rstrip("\n")` + sha256
+    # comparison, but only `_chain_block_well_formed` carried a standing
+    # gate re-asserting that proof on every run. These two sub-checks close
+    # that gap. See each self-test's own docstring for its four lettered
+    # controls.
+    if not _selftest_conclusion_claims_pin():
+        all_passed = False
+        print("self-test: conclusion_claims_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: conclusion_claims_pin sub-check PASSED")
+
+    if not _selftest_slice_sections_pin():
+        all_passed = False
+        print("self-test: slice_sections_pin sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: slice_sections_pin sub-check PASSED")
 
     return 0 if all_passed else 1
 
