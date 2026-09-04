@@ -2658,5 +2658,205 @@
     "coverage_tier": "reproducible",
     "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
     "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-01",
+    "bare_id": "CHAINHEAD-01",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-02",
+    "bare_id": "CHAINHEAD-02",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-03",
+    "bare_id": "CHAINHEAD-03",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-04",
+    "bare_id": "CHAINHEAD-04",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-05",
+    "bare_id": "CHAINHEAD-05",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-06",
+    "bare_id": "CHAINHEAD-06",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/CHAINHEAD-07",
+    "bare_id": "CHAINHEAD-07",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_chain_detector_pin",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/LEDGER-01",
+    "bare_id": "LEDGER-01",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/LEDGER-02",
+    "bare_id": "LEDGER-02",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/output-template.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/LEDGER-03",
+    "bare_id": "LEDGER-03",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_render_contract",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/LEDGER-04",
+    "bare_id": "LEDGER-04",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-quality-harness.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_ledger_traceability",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SCAN-01",
+    "bare_id": "SCAN-01",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py#_check_body_text",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SCAN-02",
+    "bare_id": "SCAN-02",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py#_check_rubric_text",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SCAN-03",
+    "bare_id": "SCAN-03",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-selfaudit-scan.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-selfaudit-scan.py#_check_cross_surface",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SCAN-04",
+    "bare_id": "SCAN-04",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-selfaudit-scan.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as 'unfalsifiable rather than settled' -- no gate re-runs it."
+  },
+  {
+    "key": "v8.26/SHIP-01",
+    "bare_id": "SHIP-01",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SHIP-02",
+    "bare_id": "SHIP-02",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SHIP-03",
+    "bare_id": "SHIP-03",
+    "milestone": "v8.26",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v8.26/SHIP-04",
+    "bare_id": "SHIP-04",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04)."
+  },
+  {
+    "key": "v8.26/SHIP-05",
+    "bare_id": "SHIP-05",
+    "milestone": "v8.26",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04)."
   }
 ]
