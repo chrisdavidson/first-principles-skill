@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 23 offline gate commands, captures each exit code, and prints a
+# Runs all 24 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,20 +15,20 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (23):
+# Gates (24):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
 #   HARN-01   HARN-02       HARN-03   HC-BOUND     REG-GUARD
-#   PROV-GUARD  INVARIANT-CHECK  FROZEN-EVIDENCE
+#   PROV-GUARD  SCAN-GUARD  INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# 20 of the 21 non-inline gates are registered through the `gate` helper
+# 21 of the 22 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 21 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 22 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 23.
+# than going through `gate`, for a reported total of 24.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -149,6 +149,14 @@
 # 35/35 literals located.
 # PROV-GUARD: Battery composition moved 22 -> 23. A gate that appears
 # silently is indistinguishable from a gate that was always there.
+#
+# Composition change (SCAN-GUARD, Phase 15, v8.26.0): the battery gained one
+# gate, SCAN-GUARD (scripts/check-selfaudit-scan.py). SCAN-GUARD guards the
+# Phase 15 self-audit scan prescription (shared/spine/SKILL-body.md's chain-form
+# and claim-inventory tables) and its rubric verify block (Criterion 4/6
+# quote-source sentences in shared/spine/references/validation-rubric.md) as
+# emitted in the tree.
+# SCAN-GUARD: Battery composition moved 23 -> 24.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
@@ -443,6 +451,15 @@ gate "HARN-02" \
 gate "HARN-03" \
     "check-focused-parity.py --self-test" \
     "python3 scripts/check-focused-parity.py --self-test"
+
+# SCAN-GUARD — self-audit scan structural gate: the Phase 15 self-audit scan
+#              prescription (agent body) and its rubric verify block (Criterion
+#              4/6 quote-source sentences) are present, correctly placed and
+#              internally coherent in the emitted tree; 29 named branches each
+#              with a per-source negative control and an anti-masking assertion
+gate "SCAN-GUARD" \
+    "check-selfaudit-scan.py --self-test" \
+    "python3 scripts/check-selfaudit-scan.py --self-test"
 
 # HC-BOUND — HIGH-confidence bound: Phase 5 tightening of Criterion 3 (Evidence)
 #            and Criterion 5 (Conclusion) is present and well-formed in the
