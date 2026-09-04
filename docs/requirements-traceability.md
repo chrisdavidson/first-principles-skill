@@ -18,16 +18,24 @@ The full 286-row capability-to-requirement-to-test mapping is in the generated m
 > **v8.26 CHAINHEAD deferred-registration note, dated 2026-09-03 (Phase 13 plan 13-28):** this is a
 > separate note beside D-02 above, not an extension of it — D-02 is written for v7.12/v7.13/v8.0
 > specifically and must not be silently widened. `CHAINHEAD-01..07` (Phase 13's own requirements)
-> and the milestone's remaining twelve requirements (Phase 14's LEDGER-01..04, Phase 15's
-> SCAN-01..04, Phase 16's SHIP-01..04) are deliberately row-less as of this note: v8.26.0's
-> nineteen requirements are registered as matrix rows in one lockstep batch at Phase 16, per
-> ROADMAP's Phase 16 success criterion 3 ("This milestone's 19 requirements are registered as
-> matrix rows; the resulting coverage-headline move … is produced by `HEADLINE-LOCK`'s sweep
-> rather than a hand edit, and the sentinel confirms it."). Registering seven of the nineteen here
-> would move the headline twice, by hand the second time, and split a lockstep registration Phase
-> 16 exists to perform in one sweep. The published `175 reproducible / 91 audit-only / 0 gap / 266
-> total` headline's scope excludes all nineteen by this design, not by omission — `13-REVIEW.md`
-> WR-05 called the absence undisclosed, not wrong, and this note is the disclosure.
+> and the milestone's remaining requirements (Phase 14's LEDGER-01..04, Phase 15's
+> SCAN-01..04, Phase 16's SHIP-01..05) were deliberately row-less as of this note: v8.26.0's
+> twenty requirements were to be registered as matrix rows in one lockstep batch at Phase 16, per
+> ROADMAP's Phase 16 success criterion 3
+> ("This milestone's 20 requirements are registered as matrix rows; the resulting
+> coverage-headline move … is produced by `HEADLINE-LOCK`'s sweep rather than a hand edit, and
+> the sentinel confirms it."). Registering seven of the twenty here
+> would have moved the headline twice, by hand the second time, and split a lockstep registration
+> Phase 16 exists to perform in one sweep.
+>
+> **Deferral discharged, dated 2026-09-04 (Phase 16 plan 16-02, SHIP-03):** this deferral is now
+> closed. All twenty requirements (SHIP-05 was added 2026-09-04, raising the milestone's total by
+> one — see `.planning/REQUIREMENTS.md`'s closing footer) were registered as matrix rows in one
+> lockstep batch (`_rows_v826()`), moving the coverage headline
+> `175/91/0/266` → `192/94/0/286` (headline-history row 12 below), produced by
+> `HEADLINE-LOCK`'s sweep rather than a
+> hand edit, per the ROADMAP criterion quoted above. `13-REVIEW.md` WR-05 called the pre-discharge
+> absence undisclosed, not wrong; this note was, and remains, the disclosure.
 
 > **Departure from the note above, dated 2026-08-29 (v8.18 Phase 4 / D-05, D-08):** the note above
 > is left byte-intact as the record of what Phase 142 decided; this addendum states where v8.18
