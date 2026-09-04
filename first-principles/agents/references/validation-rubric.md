@@ -70,6 +70,8 @@ Before scoring either criterion, confirm the block `## Self-audit scan (process 
 | [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
 | [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
 
+Neither table's columns reach every limb its criterion bands on: Criterion 4 also bands on the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban and a missing `[Assumes: X]` declaration, and Criterion 6 also bands on whether the Key Insight is a restatement of the recommended approach — none of which either table carries a column for. For those limbs the criterion quotes the analysis text directly; the scan is quoted only where the band is determined by what its columns cover.
+
 The §6→§4 closure ledger is not admissible as Criterion 4 or Criterion 6 evidence: it is a drafting artifact that ran before the Fix/Repeat loop, and the scan derives its rows from the emitted text of sections 4 and 6 without consulting it.
 
 If the scan block is missing, or a section-4 chain block or a section-6 construct has no corresponding row, the scan did not run exhaustively — say so as an unresolved gap in the affected criterion's verdict block. Do not re-perform the scan to fill a missing table; a missing or incomplete scan is itself the evidence to score against.
@@ -174,12 +176,13 @@ analysis section exists and contains scoreable content:
 
 ```text
 **Criterion N: [Criterion Name]**
-Quoted span: "[Direct quote of the specific text in the analysis being scored — the span
-that most directly determines the band assigned.]"
+Quoted span: "[Direct quote of the specific text that most directly determines the band assigned — from the analysis being scored, or, for Criteria 4 and 6 only, from the self-audit scan emitted as process output for this analysis.]"
 Band: [**Rigorous** / **Sound** / **Hand-wavy** / **Absent**]
 Justification: [One sentence tying the quoted span to the observable descriptor for
 that band — name the specific structural property present or absent.]
 ```
+
+The self-audit scan is not an output section, and this is the sole place a verdict block may quote something outside the six-section analysis: the admission covers Criteria 4 and 6 and the self-audit scan only. Every other criterion quotes the analysis text itself, and the §6→§4 closure ledger is admitted nowhere — it is a drafting artifact that describes a document other than the one being scored.
 
 Use the gap-citation form when the criterion scores Absent because the section or named
 artifact is missing or empty — in that case there is no span to quote, and the documented
@@ -357,7 +360,7 @@ what the analysis did, not against how well-formed the citation looks.
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
 intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
-Both sections are in scope for this criterion. Quoted span: must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Folds in:
+Both sections are in scope for this criterion. Quoted span: where the band is determined by chain form or chain dependency, it must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Where the band is determined by the Abandoned Reasoning section, the no-analogies-as-direct-evidence ban, or a missing `[Assumes: X]` declaration — none of which the chain-form table carries a column for — quote the analysis text directly. Folds in:
 dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
 Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
@@ -456,7 +459,7 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 Scores the relationship between the **Conclusion section** (section 6) claims and the
 **Derivation Chains** (section 4) that produced them — a cross-section structural property
-of the signed-off analysis as a whole. Quoted span: must be drawn from the self-audit scan's claim-inventory table row or rows that determine the band, not from the Conclusion prose directly.
+of the signed-off analysis as a whole. Quoted span: where the band is determined by whether a section-6 claim traces to a named section-4 chain, it must be drawn from the self-audit scan's claim-inventory table row or rows that determine the band, not from the Conclusion prose directly. Where the band is determined by the Key Insight being a restatement of the recommended approach rather than a non-obvious finding — a semantic property the claim-inventory table carries no column for — quote the analysis text directly.
 
 - **Rigorous** — every claim in the Conclusion section (recommended approach, key insight,
   trade-offs acknowledged) traces to a specific named derivation chain in section 4; the
