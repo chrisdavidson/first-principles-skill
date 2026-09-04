@@ -863,11 +863,25 @@ def _check_rubric_text(text: str) -> list[str]:
         failures.append(f"Rubric-2: {_RUBRIC_SCAN_BLOCK!r} not found in whole file")
     if precedence_idx == -1:
         failures.append(f"Rubric-2: {_RUBRIC_PRECEDENCE!r} not found in whole file")
-    if aa_idx != -1 and scan_idx != -1 and precedence_idx != -1:
-        if not (aa_idx < scan_idx < precedence_idx):
+    # Split into two independently falsifiable halves (15-VERIFICATION.md
+    # gap 2, SCAN-03): the combined predicate previously narrowed to
+    # `scan_idx < precedence_idx` left `--self-test` at rc=0 reporting all
+    # branches covered when a scan block was relocated BEFORE the Assumption
+    # Audit block — the malformation class this split closes. Each half is
+    # evaluated only when both indices it compares are `!= -1`, and each
+    # emits its own detail so narrowing either half alone fails a distinct
+    # named control rather than being covered by the other half's fixture.
+    if aa_idx != -1 and scan_idx != -1:
+        if not (aa_idx < scan_idx):
             failures.append(
-                "Rubric-2: scan block is not placed strictly between the "
-                "Assumption Audit block and the Precedence rule (placement violated)"
+                "Rubric-2: scan block does not follow the Assumption Audit "
+                "block (placement violated, Assumption Audit half)"
+            )
+    if scan_idx != -1 and precedence_idx != -1:
+        if not (scan_idx < precedence_idx):
+            failures.append(
+                "Rubric-2: scan block does not precede the Precedence rule "
+                "(placement violated, Precedence half)"
             )
 
     scan_slice = _slice(text, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
@@ -1226,6 +1240,7 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-01-no-mask",
         "R-02-placement-order",
         "R-02-placement-anchor",
+        "R-02-placement-aa",
         "R-03-divlabour-1",
         "R-03-divlabour-2",
         "R-04-two-criteria",
@@ -1312,7 +1327,7 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "B-15-donotpresent-dup",
         "B-16-coverage-bound-missing", "B-16-coverage-bound-dup",
         "R-01-block-missing", "R-01-block-dup", "R-01-no-mask",
-        "R-02-placement-order", "R-02-placement-anchor",
+        "R-02-placement-order", "R-02-placement-anchor", "R-02-placement-aa",
         "R-03-divlabour-1", "R-03-divlabour-2",
         "R-04-two-criteria",
         "R-05-cols-chain", "R-05-cols-claim",
@@ -1917,13 +1932,17 @@ def _run_self_test() -> int:
         problems.append("R-01-no-mask: early-return masking not closed")
 
     # R-02-placement-order: relocate the scan block past the Precedence rule
-    # — the literal remains present but out of order.
+    # — the literal remains present but out of order. Violates only the
+    # Precedence half (`scan_idx < precedence_idx`); the Assumption Audit
+    # half still holds (`aa_idx < scan_idx`), so `expected_detail` targets
+    # the Precedence half's own token to keep this arm from being satisfied
+    # by the Assumption Audit half's distinct message.
     rubric_r02a = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
     _check_negative(
         "R-02a",
         _check_rubric_text(rubric_r02a),
         "Rubric-2",
-        "placement violated",
+        "Precedence half",
         "R-02-placement-order",
     )
 
@@ -1936,6 +1955,31 @@ def _run_self_test() -> int:
         "Rubric-2",
         repr(_RUBRIC_AA_BLOCK) + " not found",
         "R-02-placement-anchor",
+    )
+
+    # R-02-placement-aa (15-VERIFICATION.md gap 2, SCAN-03, reproduced live):
+    # relocate the scan block heading to BEFORE the Assumption Audit block
+    # — the scan block heading remains PRESENT but now sits before the
+    # Assumption Audit block, which is what proves this arm is a placement
+    # check and not a disguised presence check. Narrowing the combined
+    # predicate to `scan_idx < precedence_idx` previously left `--self-test`
+    # at rc=0 reporting all branches covered against exactly this
+    # malformation. Violates only the Assumption Audit half.
+    rubric_r02c = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, "## How to Apply This Gate")
+    _r02c_failures = _check_rubric_text(rubric_r02c)
+    _r02c_ids = sorted({f.split(" ", 1)[0].rstrip(":") for f in _r02c_failures})
+    print(f"(R-02c) failure list check IDs: {_r02c_ids}")
+    if _r02c_ids != ["Rubric-2"]:
+        print(
+            "(R-02c) co-firing detected — sibling check(s) fired alongside "
+            f"Rubric-2 in the widened scan slice: {_r02c_ids}"
+        )
+    _check_negative(
+        "R-02c",
+        _r02c_failures,
+        "Rubric-2",
+        "Assumption Audit half",
+        "R-02-placement-aa",
     )
 
     # R-03-divlabour-1: strip the first division-of-labour sentence.
