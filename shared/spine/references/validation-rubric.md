@@ -50,6 +50,30 @@ row, the audit did not run exhaustively — this is a Criterion 2 defect (see Cr
 descriptors below), not a separate gate. Do not re-perform the scan to fill a missing table;
 a missing or incomplete table is itself the evidence to score against.
 
+**Self-audit scan (verify before scoring)**
+
+The scan itself is not performed here — the agent already performed it at Phase 5 emission time (`SKILL.md`, "Before presenting conclusions") before the verdict blocks are written. This gate's job is narrower: verify the scan ran and quote its rows, not repeat the scan and not re-derive its rows.
+
+This one scan backs two non-adjacent criteria: Criterion 4 quotes the chain-form table, Criterion 6 quotes the claim-inventory table.
+
+Before scoring either criterion, confirm the block `## Self-audit scan (process output)` is present in the analysis; that its chain-form table carries one row per section-4 chain block in order with no block skipped; that its claim-inventory table carries one row per section-6 construct in order with no construct skipped, non-claims included; and that its reconciliation line's counts recount against sections 4 and 6. Do not proceed to verdict blocks until this is confirmed.
+
+| Chain | Chain Head (brief) | Form conforming? | Rule applied | Dependency clean? |
+|-------|---------------------|-------------------|---------------|--------------------|
+| [chain id] | [head, brief] | [yes / no] | [rule or "n/a"] | [yes / dependency defect] |
+| [chain id] | [head, brief] | [yes / no] | [rule or "n/a"] | [yes / dependency defect] |
+
+| §6 Span (brief) | Construct | Claim under R11? | R11 clause applied | Chain cited |
+|-------------------|-----------|-------------------|----------------------|---------------|
+| [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
+| [span, brief] | [bold lead-in / list item / prose] | [yes / no] | [clause applied] | [chain id or "none — untraced" or "n/a"] |
+
+The §6→§4 closure ledger is not admissible as Criterion 4 or Criterion 6 evidence: it is a drafting artifact that ran before the Fix/Repeat loop, and the scan derives its rows from the emitted text of sections 4 and 6 without consulting it.
+
+If the scan block is missing, or a section-4 chain block or a section-6 construct has no corresponding row, the scan did not run exhaustively — say so as an unresolved gap in the affected criterion's verdict block. Do not re-perform the scan to fill a missing table; a missing or incomplete scan is itself the evidence to score against.
+
+Verifying the scan is present and internally coherent is not verifying its rows are correct — a row's finding is checked against the analysis text by a reader, and no gate in this tree scores a live run's compliance.
+
 **Precedence rule (no double-counting):** A single observable defect can match the
 descriptor of more than one criterion — for example, an unverified ground truth used in a
 chain without the `?` suffix is named by Criteria 2, 3, and 5. When this happens, band the
@@ -331,7 +355,7 @@ what the analysis did, not against how well-formed the citation looks.
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
 intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
-Both sections are in scope for this criterion. Folds in:
+Both sections are in scope for this criterion. Quoted span: must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Folds in:
 dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
 Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
@@ -430,7 +454,7 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 Scores the relationship between the **Conclusion section** (section 6) claims and the
 **Derivation Chains** (section 4) that produced them — a cross-section structural property
-of the signed-off analysis as a whole.
+of the signed-off analysis as a whole. Quoted span: must be drawn from the self-audit scan's claim-inventory table row or rows that determine the band, not from the Conclusion prose directly.
 
 - **Rigorous** — every claim in the Conclusion section (recommended approach, key insight,
   trade-offs acknowledged) traces to a specific named derivation chain in section 4; the
