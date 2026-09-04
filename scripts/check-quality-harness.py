@@ -11782,6 +11782,7 @@ def _selftest_render_contract() -> bool:
         "_selftest_analysis_persistence",
         "_selftest_capture_tool_reader",
         "_selftest_chain_detector_pin",
+        "_selftest_ledger_traceability",
         "_selftest_render_contract",
     }
 
@@ -11843,7 +11844,7 @@ def _selftest_render_contract() -> bool:
     #     point is that arm 4a covers a proper SUBSET of the locked ids);
     #     arm 4b's recorded-verdict table (against all twenty-seven locked
     #     ids); and control (u)'s dispatch-reachability symbol set
-    #     (against the four locked anchors, replacing WR-04's subset
+    #     (against the five locked anchors, replacing WR-04's subset
     #     test, which could not see the required side itself narrowing).
     #
     #     DISCLOSED LIMITS: this registry is hand-registered, so a FOURTH
@@ -11854,7 +11855,7 @@ def _selftest_render_contract() -> bool:
     #     derived one, by design: there is no locked set upstream of it
     #     to derive from, so narrowing it is intended to be the loud
     #     event, with control (u)'s LIVE POSITIVE step being what proves
-    #     the four anchors it names are really dispatched.
+    #     the five anchors it names are really dispatched.
     render_chain_family_ids = _render_chain_family_ids(
         render_locked_fixture_ids, _RENDER_CHAIN_FAMILY_PREFIXES
     )
@@ -11937,7 +11938,7 @@ def _selftest_render_contract() -> bool:
     #     (MUTATION M2). Arm 4b's expectation (13-27, WR-03, `13-REVIEW.md`)
     #     is a SECOND, independent transcription of the twenty-seven locked
     #     fixture ids, matching what `"(u) dispatch-reachability symbol
-    #     set"`'s expectation already does with its four anchors below —
+    #     set"`'s expectation already does with its five anchors below —
     #     before this transcription, arm 4b's entry here read
     #     `frozenset(render_locked_fixture_ids)`, the SAME local the
     #     registry entry above was built from, which is exactly the
@@ -11983,6 +11984,7 @@ def _selftest_render_contract() -> bool:
                 "_selftest_analysis_persistence",
                 "_selftest_capture_tool_reader",
                 "_selftest_chain_detector_pin",
+                "_selftest_ledger_traceability",
                 "_selftest_render_contract",
             }
         ),
