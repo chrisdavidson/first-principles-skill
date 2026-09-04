@@ -355,7 +355,7 @@ what the analysis did, not against how well-formed the citation looks.
 Scores **both** the **Derivation Chains** (output section 4) — one chain per conclusion,
 formatted as `GT-N + GT-M → [intermediate claim] → [conclusion]` with at least one
 intermediate step — **and** the **Abandoned Reasoning** section (output section 5).
-Both sections are in scope for this criterion. Folds in:
+Both sections are in scope for this criterion. Quoted span: must be drawn from the self-audit scan's chain-form table row or rows that determine the band, not from the Derivation Chains prose directly. Folds in:
 dead-end honesty
 and the no-analogies-as-direct-evidence ban (D-07), and escape-valve policing for Abandoned
 Reasoning (D-03). The one-line form is the degenerate case, used only when the whole chain fits on one physical line; a chain that does not fit uses the head-plus-arrow-led form, and a hop is split rather than continued on a second line.
@@ -454,7 +454,7 @@ focusing on the confidence caveats attached to the Derivation Chains (output sec
 
 Scores the relationship between the **Conclusion section** (section 6) claims and the
 **Derivation Chains** (section 4) that produced them — a cross-section structural property
-of the signed-off analysis as a whole.
+of the signed-off analysis as a whole. Quoted span: must be drawn from the self-audit scan's claim-inventory table row or rows that determine the band, not from the Conclusion prose directly.
 
 - **Rigorous** — every claim in the Conclusion section (recommended approach, key insight,
   trade-offs acknowledged) traces to a specific named derivation chain in section 4; the
