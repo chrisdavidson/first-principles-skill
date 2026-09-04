@@ -424,6 +424,20 @@ _RUBRIC_FORMAT_ADMISSION = (
     "§6→§4 closure ledger is admitted nowhere — it is a drafting "
     "artifact that describes a document other than the one being scored."
 )
+# The admission sentence's lead clause, up to and including the colon —
+# stable because it precedes BOTH admitted-artifact clauses. Used (plan
+# 15-11) to locate the TEMPLATE/ADMISSION region boundary instead of the
+# full `_RUBRIC_FORMAT_ADMISSION` literal: a clause dropped or duplicated
+# from later in the same sentence corrupts the FULL-sentence match (the
+# `admission_count` guard correctly fires on that), but must not also
+# prevent the per-clause region split from resolving — that would mask the
+# specific `R-13-format-admission-*` arm behind a generic "not found"
+# failure instead of naming the dropped clause and its region.
+_RUBRIC_FORMAT_ADMISSION_LEAD = (
+    "The self-audit scan and the Assumption Audit scan are not output "
+    "sections, and they are the only artifacts outside the six-section "
+    "analysis a verdict block may quote:"
+)
 _RUBRIC_FORMAT_ADMISSION_SUPERSEDED = (
     "this is the sole place a verdict block may quote something outside "
     "the six-section analysis"
@@ -1165,27 +1179,61 @@ def _check_rubric_text(text: str) -> list[str]:
                 "exactly 1"
             )
 
-        # Rubric-13 (plan 15-08, closing CR-01): the admission's two clauses
-        # — the self-audit scan for Criteria 4/6, and the Assumption Audit
-        # scan for Criterion 2 — each occur exactly once inside the same
-        # section slice. Split so a later edit that drops one clause while
-        # keeping the whole-sentence count intact (e.g. via the OTHER
-        # clause's text) is still caught.
-        c46_count = _count_flat(format_slice, _ADMISSION_SCOPE_C46)
-        if c46_count != 1:
+        # Rubric-13 (plan 15-08, closing CR-01; region-split at plan 15-11,
+        # closing SCAN-02): the admission's two clauses — the self-audit
+        # scan for Criteria 4/6, and the Assumption Audit scan for
+        # Criterion 2 — must each occur exactly once in the TEMPLATE region
+        # (the quoted-span instruction itself, widened at plan 15-11) AND
+        # exactly once in the ADMISSION region (the sentence governing it),
+        # asserted independently per region rather than as one union-scoped
+        # count over the whole section — a clause dropped from one
+        # statement while the other still states it now fails by name,
+        # which is the exact failure mode rounds 1 and 2 shipped (the fix
+        # applied to one prescriptive statement and not its twin).
+        #
+        # NOTE: `split_idx` is scoped to `format_slice` (the Verdict Block
+        # Format section only) — NOT the same haystack as `admission_idx`
+        # below, which is `_find_flat(text, ...)` over the WHOLE FILE for
+        # the "admission precedes Criterion 4" ordering check. `_find_flat`
+        # docstrings its own offsets as comparable only within the same
+        # haystack; reusing one name for both would invite a cross-haystack
+        # comparison that is silently wrong, so the two are kept distinct.
+        #
+        # Located via `_RUBRIC_FORMAT_ADMISSION_LEAD`, not the full
+        # `_RUBRIC_FORMAT_ADMISSION` sentence: the lead precedes both
+        # admitted-artifact clauses, so a clause dropped or duplicated
+        # later in the same sentence (exactly what the per-clause arms
+        # below mutate) leaves the lead intact and the split still
+        # resolves — the per-clause counts below are what catches that
+        # mutation, not the split itself.
+        split_idx = _find_flat(format_slice, _RUBRIC_FORMAT_ADMISSION_LEAD)
+        if split_idx == -1:
             failures.append(
-                f"Rubric-13: admission's Criteria-4/6 clause occurs "
-                f"{c46_count} time(s) in the Verdict Block Format "
-                "section, expected exactly 1"
+                "Rubric-13: admission sentence not found inside the "
+                "Verdict Block Format section — cannot region-split the "
+                "clause guards"
             )
+        else:
+            flat_format_slice = _flat(format_slice)
+            template_region = flat_format_slice[:split_idx]
+            admission_region = flat_format_slice[split_idx:]
 
-        c2_count = _count_flat(format_slice, _ADMISSION_SCOPE_C2)
-        if c2_count != 1:
-            failures.append(
-                f"Rubric-13: admission's Criterion-2 clause occurs "
-                f"{c2_count} time(s) in the Verdict Block Format "
-                "section, expected exactly 1"
-            )
+            for region_name, region_text, detail_prefix in (
+                ("TEMPLATE", template_region, ""),
+                ("ADMISSION", admission_region, "admission's "),
+            ):
+                for clause_name, clause_literal in (
+                    ("Criteria-4/6", _ADMISSION_SCOPE_C46),
+                    ("Criterion-2", _ADMISSION_SCOPE_C2),
+                ):
+                    clause_count = region_text.count(_flat(clause_literal))
+                    if clause_count != 1:
+                        failures.append(
+                            f"Rubric-13: {detail_prefix}{clause_name} "
+                            f"clause occurs {clause_count} time(s) in the "
+                            f"Verdict Block Format {region_name} region, "
+                            "expected exactly 1"
+                        )
 
     preamendment_count = _count_flat(text, _RUBRIC_FORMAT_PREAMENDMENT)
     if preamendment_count != 0:
@@ -1213,6 +1261,21 @@ def _check_rubric_text(text: str) -> list[str]:
             "Rubric-13: superseded 'sole place' clause still present "
             f"({superseded_count} occurrence(s)) in the whole file, "
             "expected 0"
+        )
+
+    # Rubric-13 (plan 15-11): the pre-15-11 narrow quoted-span template
+    # wording ("for Criteria 4 and 6 only, from the self-audit scan") is
+    # gone from the whole file — pinned at count 0 so only reinstatement
+    # fires it, mirroring the two count-0 guards immediately above with a
+    # distinct detail string so all three stay unconfusable.
+    quoted_span_superseded_count = _count_flat(
+        text, _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED
+    )
+    if quoted_span_superseded_count != 0:
+        failures.append(
+            "Rubric-13: superseded narrow quoted-span wording still "
+            f"present ({quoted_span_superseded_count} occurrence(s)) in "
+            "the whole file, expected 0"
         )
 
     # Rubric-14 (plan 15-08): Criterion 2's Rigorous descriptor still names
@@ -1264,6 +1327,17 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
         failures.append("Cross-4: Criterion-2 admission clause missing from agent-body surface")
     if not _contains(rubric_text, _ADMISSION_SCOPE_C2):
         failures.append("Cross-4: Criterion-2 admission clause missing from rubric surface")
+    # Cross-5 (plan 15-11): the superseded narrow quoted-span wording is
+    # absent from BOTH prescriptive surfaces — the rubric arm deliberately
+    # overlaps Rubric-13's whole-file count-0 guard (the same overlap
+    # Cross-1 already has with Body-05/Rubric-05); the body arm is new
+    # coverage, since the agent body's Validate step is the other
+    # prescriptive statement of the quoting rule and nothing else stops it
+    # regressing to the narrow form.
+    if _contains(body_text, _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED):
+        failures.append("Cross-5: superseded narrow quoted-span wording present in agent-body surface")
+    if _contains(rubric_text, _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED):
+        failures.append("Cross-5: superseded narrow quoted-span wording present in rubric surface")
     return failures
 
 
@@ -1388,6 +1462,11 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-13-format-admission-c2-missing",
         "R-13-format-admission-c2-dup",
         "R-13-format-admission-superseded",
+        "R-13-format-template-c46-missing",
+        "R-13-format-template-c46-dup",
+        "R-13-format-template-c2-missing",
+        "R-13-format-template-c2-dup",
+        "R-13-format-quoted-span-superseded",
         "R-14-c2-descriptor-missing",
         "R-14-c2-descriptor-dup",
         "B-17-validate-missing",
@@ -1405,6 +1484,8 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "X-04-admission-c46-rubric",
         "X-04-admission-c2-body",
         "X-04-admission-c2-rubric",
+        "X-05-superseded-body",
+        "X-05-superseded-rubric",
     }
 )
 
@@ -1459,6 +1540,9 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "R-13-format-admission-c46-missing", "R-13-format-admission-c46-dup",
         "R-13-format-admission-c2-missing", "R-13-format-admission-c2-dup",
         "R-13-format-admission-superseded",
+        "R-13-format-template-c46-missing", "R-13-format-template-c46-dup",
+        "R-13-format-template-c2-missing", "R-13-format-template-c2-dup",
+        "R-13-format-quoted-span-superseded",
         "R-14-c2-descriptor-missing", "R-14-c2-descriptor-dup",
         "B-17-validate-missing", "B-17-validate-dup", "B-17-validate-preamendment",
         "X-01-cols-chain-body", "X-01-cols-chain-rubric",
@@ -1467,6 +1551,7 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "X-03-bound-body", "X-03-bound-rubric",
         "X-04-admission-c46-body", "X-04-admission-c46-rubric",
         "X-04-admission-c2-body", "X-04-admission-c2-rubric",
+        "X-05-superseded-body", "X-05-superseded-rubric",
     }
 )
 
@@ -2506,12 +2591,22 @@ def _run_self_test() -> int:
     # The widened admission's two clauses, split missing/dup, the superseded
     # 15-07 clause's count-0 guard, and the Criterion 2 descriptor pin the
     # admission's C2 clause depends on.
+    #
+    # Re-pointed at plan 15-11 (SCAN-02, region split): these four arms now
+    # mutate the ADMISSION region only — [_RUBRIC_FORMAT_ADMISSION,
+    # _RUBRIC_CRITERIA_START) — rather than the whole Verdict Block Format
+    # section, because the TEMPLATE now also states both clauses (task 1
+    # widened it), so the whole-section count is 2 and a mutation scoped to
+    # the whole section would trip `_mutate_within_range`'s own `count == 1`
+    # assertion. Scoping to the admission sentence's own span leaves the
+    # TEMPLATE-region arms below (R-13-format-template-*) untouched, which is
+    # the split's whole point: each region is independently falsifiable.
 
     # R-13-format-admission-c46-missing: strip the Criteria-4/6 clause from
-    # inside the Verdict Block Format section only.
+    # inside the ADMISSION region only.
     rubric_r13g = _mutate_within_range(
         real_rubric,
-        _RUBRIC_FORMAT_START,
+        _RUBRIC_FORMAT_ADMISSION,
         _RUBRIC_CRITERIA_START,
         _ADMISSION_SCOPE_C46,
         "",
@@ -2520,28 +2615,28 @@ def _run_self_test() -> int:
         "R-13g",
         _check_rubric_text(rubric_r13g),
         "Rubric-13",
-        "Criteria-4/6 clause occurs 0 time(s)",
+        "Criteria-4/6 clause occurs 0 time(s) in the Verdict Block Format ADMISSION region",
         "R-13-format-admission-c46-missing",
     )
 
     # R-13-format-admission-c46-dup: duplicate the Criteria-4/6 clause
-    # inside the same section.
+    # inside the same ADMISSION region.
     rubric_r13h = _duplicate_within_range(
-        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C46
+        real_rubric, _RUBRIC_FORMAT_ADMISSION, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C46
     )
     _check_negative(
         "R-13h",
         _check_rubric_text(rubric_r13h),
         "Rubric-13",
-        "Criteria-4/6 clause occurs 2 time(s)",
+        "Criteria-4/6 clause occurs 2 time(s) in the Verdict Block Format ADMISSION region",
         "R-13-format-admission-c46-dup",
     )
 
     # R-13-format-admission-c2-missing: strip the Criterion-2 clause from
-    # inside the Verdict Block Format section only.
+    # inside the ADMISSION region only.
     rubric_r13i = _mutate_within_range(
         real_rubric,
-        _RUBRIC_FORMAT_START,
+        _RUBRIC_FORMAT_ADMISSION,
         _RUBRIC_CRITERIA_START,
         _ADMISSION_SCOPE_C2,
         "",
@@ -2550,20 +2645,20 @@ def _run_self_test() -> int:
         "R-13i",
         _check_rubric_text(rubric_r13i),
         "Rubric-13",
-        "Criterion-2 clause occurs 0 time(s)",
+        "Criterion-2 clause occurs 0 time(s) in the Verdict Block Format ADMISSION region",
         "R-13-format-admission-c2-missing",
     )
 
     # R-13-format-admission-c2-dup: duplicate the Criterion-2 clause inside
-    # the same section — the `!= 1` guard's OTHER direction.
+    # the same ADMISSION region — the `!= 1` guard's OTHER direction.
     rubric_r13j = _duplicate_within_range(
-        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C2
+        real_rubric, _RUBRIC_FORMAT_ADMISSION, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C2
     )
     _check_negative(
         "R-13j",
         _check_rubric_text(rubric_r13j),
         "Rubric-13",
-        "Criterion-2 clause occurs 2 time(s)",
+        "Criterion-2 clause occurs 2 time(s) in the Verdict Block Format ADMISSION region",
         "R-13-format-admission-c2-dup",
     )
 
@@ -2577,6 +2672,88 @@ def _run_self_test() -> int:
         "Rubric-13",
         "superseded 'sole place' clause still present",
         "R-13-format-admission-superseded",
+    )
+
+    # --- Rubric-13 TEMPLATE-region branch negative controls (plan 15-11,
+    # closing SCAN-02) --------------------------------------------------
+    # The region split's other half: the same two clauses, now asserted
+    # independently inside the TEMPLATE region — [_RUBRIC_FORMAT_START,
+    # _RUBRIC_FORMAT_ADMISSION) — which task 1 widened to state both
+    # clauses. A mutation here must leave the ADMISSION-region arms above
+    # silent, and vice versa; that mutual silence is the proof the split is
+    # real rather than one guard renamed twice.
+
+    # R-13-format-template-c46-missing: strip the Criteria-4/6 clause from
+    # inside the TEMPLATE region only.
+    rubric_r13l = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_FORMAT_ADMISSION,
+        _ADMISSION_SCOPE_C46,
+        "",
+    )
+    _check_negative(
+        "R-13l",
+        _check_rubric_text(rubric_r13l),
+        "Rubric-13",
+        "Criteria-4/6 clause occurs 0 time(s) in the Verdict Block Format TEMPLATE region",
+        "R-13-format-template-c46-missing",
+    )
+
+    # R-13-format-template-c46-dup: duplicate the Criteria-4/6 clause inside
+    # the same TEMPLATE region.
+    rubric_r13m = _duplicate_within_range(
+        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_FORMAT_ADMISSION, _ADMISSION_SCOPE_C46
+    )
+    _check_negative(
+        "R-13m",
+        _check_rubric_text(rubric_r13m),
+        "Rubric-13",
+        "Criteria-4/6 clause occurs 2 time(s) in the Verdict Block Format TEMPLATE region",
+        "R-13-format-template-c46-dup",
+    )
+
+    # R-13-format-template-c2-missing: strip the Criterion-2 clause from
+    # inside the TEMPLATE region only.
+    rubric_r13n = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_FORMAT_ADMISSION,
+        _ADMISSION_SCOPE_C2,
+        "",
+    )
+    _check_negative(
+        "R-13n",
+        _check_rubric_text(rubric_r13n),
+        "Rubric-13",
+        "Criterion-2 clause occurs 0 time(s) in the Verdict Block Format TEMPLATE region",
+        "R-13-format-template-c2-missing",
+    )
+
+    # R-13-format-template-c2-dup: duplicate the Criterion-2 clause inside
+    # the same TEMPLATE region — the `!= 1` guard's OTHER direction.
+    rubric_r13o = _duplicate_within_range(
+        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_FORMAT_ADMISSION, _ADMISSION_SCOPE_C2
+    )
+    _check_negative(
+        "R-13o",
+        _check_rubric_text(rubric_r13o),
+        "Rubric-13",
+        "Criterion-2 clause occurs 2 time(s) in the Verdict Block Format TEMPLATE region",
+        "R-13-format-template-c2-dup",
+    )
+
+    # R-13-format-quoted-span-superseded: reinstate the pre-15-11 narrow
+    # quoted-span wording verbatim somewhere in the rubric text, so the
+    # whole-file count-0 guard fires — mirrors R-13-format-admission-
+    # superseded's shape for the template's own superseded literal.
+    rubric_r13p = real_rubric + "\n\n" + _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED
+    _check_negative(
+        "R-13p",
+        _check_rubric_text(rubric_r13p),
+        "Rubric-13",
+        "superseded narrow quoted-span wording still present",
+        "R-13-format-quoted-span-superseded",
     )
 
     # R-14-c2-descriptor-missing: strip the Assumption Audit artifact
@@ -2763,6 +2940,30 @@ def _run_self_test() -> int:
         "Cross-4",
         "Criterion-2 admission clause missing from rubric surface",
         "X-04-admission-c2-rubric",
+    )
+
+    # X-05-superseded-body: reinstate the pre-15-11 narrow quoted-span
+    # wording in the body ONLY, leaving the rubric intact — the mirror
+    # image of X-04's missing-clause arms, since Cross-5 is a PRESENCE
+    # guard rather than an absence guard.
+    body_x05a = real_body + "\n\n" + _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED
+    _check_negative(
+        "X-05a",
+        _check_cross_surface(body_x05a, real_rubric),
+        "Cross-5",
+        "superseded narrow quoted-span wording present in agent-body surface",
+        "X-05-superseded-body",
+    )
+
+    # X-05-superseded-rubric: reinstate the pre-15-11 narrow quoted-span
+    # wording in the rubric ONLY, leaving the body intact.
+    rubric_x05b = real_rubric + "\n\n" + _RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED
+    _check_negative(
+        "X-05b",
+        _check_cross_surface(real_body, rubric_x05b),
+        "Cross-5",
+        "superseded narrow quoted-span wording present in rubric surface",
+        "X-05-superseded-rubric",
     )
 
     # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus
