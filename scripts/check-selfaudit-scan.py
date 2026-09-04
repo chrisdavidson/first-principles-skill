@@ -1171,6 +1171,24 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
     return failures
 
 
+def _live_exit_code(failures: list[str]) -> int:
+    """Turn a concatenated failure list into a process exit code, in
+    `_roster_problems`' voice: never called with anything but the real
+    concatenated failure list from `_validate_files` at the real call site
+    — the isolation arms in `_run_self_test` drive this same function with
+    SYNTHETIC lists, so the failure-to-exit-code decision is proven correct
+    independently of whether the shipped tree happens to be clean today.
+
+    Writes one `check-selfaudit-scan: FAIL — <msg>` line to stderr per
+    failure and returns 1 when *failures* is non-empty, 0 when it is empty.
+    """
+    if failures:
+        for msg in failures:
+            sys.stderr.write(f"check-selfaudit-scan: FAIL — {msg}\n")
+        return 1
+    return 0
+
+
 def _validate_files() -> int:
     """Validate the live AGENT_FILE and RUBRIC_FILE. Returns a process exit code."""
     if not AGENT_FILE.exists():
@@ -1189,10 +1207,9 @@ def _validate_files() -> int:
         + _check_cross_surface(body_text, rubric_text)
     )
 
-    if failures:
-        for msg in failures:
-            sys.stderr.write(f"check-selfaudit-scan: FAIL — {msg}\n")
-        return 1
+    exit_code = _live_exit_code(failures)
+    if exit_code != 0:
+        return exit_code
 
     print(f"check-selfaudit-scan: COVERAGE — {AGENT_FILE}, {RUBRIC_FILE}")
     print("check-selfaudit-scan: PASS")
@@ -2716,6 +2733,92 @@ def _run_self_test() -> int:
     else:
         print(f"(roster-census) CALL-SITE CENSUS: PASS ({roster_call_count} call sites)")
 
+    # ISOLATION arms for `_live_exit_code` (T-15-18, `15-VERIFICATION.md` gap
+    # 2): the failure-to-exit-code decision `_validate_files` makes is
+    # driven here with SYNTHETIC lists — never the real, live failure list —
+    # so the decision is proven correct independently of whether the
+    # shipped tree happens to be clean today.
+    _live_x1_err = io.StringIO()
+    with contextlib.redirect_stderr(_live_x1_err):
+        live_x1 = _live_exit_code([])
+    if live_x1 != 0 or _live_x1_err.getvalue() != "":
+        print(
+            "(live-x1) ISOLATION CLEAN: expected rc=0 / no stderr, got "
+            f"rc={live_x1}, stderr={_live_x1_err.getvalue()!r}"
+        )
+        problems.append(f"(live-x1): clean case wrongly reported rc={live_x1}")
+    else:
+        print("(live-x1) ISOLATION CLEAN: PASS (rc=0, no stderr)")
+
+    _live_x2_err = io.StringIO()
+    with contextlib.redirect_stderr(_live_x2_err):
+        live_x2 = _live_exit_code(["Rubric-1: synthetic"])
+    _live_x2_text = _live_x2_err.getvalue()
+    if live_x2 != 1 or "Rubric-1: synthetic" not in _live_x2_text:
+        print(
+            "(live-x2) ISOLATION FAIL: expected rc=1 / stderr containing "
+            f"'Rubric-1: synthetic', got rc={live_x2}, stderr={_live_x2_text!r}"
+        )
+        problems.append(f"(live-x2): fail case wrongly reported rc={live_x2}")
+    else:
+        print("(live-x2) ISOLATION FAIL: PASS (rc=1, stderr contains message)")
+
+    # _validate_files CALL-SITE CENSUS: every leg of `_validate_files` — the
+    # body check, the rubric check, the cross-surface check and the
+    # failure-to-exit-code decision — must have exactly one call site
+    # inside `_validate_files`' own source, so deleting a leg (or replacing
+    # one with `[]`) fails this census by name instead of leaving
+    # `--self-test` silently green (T-15-18). Each search pattern is built
+    # by concatenating the symbol name with `"("`, matching the roster
+    # census's own convention.
+    _validate_files_src = inspect.getsource(_validate_files)
+    _validate_leg_symbols = (
+        "_check_body_text",
+        "_check_rubric_text",
+        "_check_cross_surface",
+        "_live_exit_code",
+    )
+    _validate_census_ok = True
+    for _leg_symbol in _validate_leg_symbols:
+        _leg_pattern = _leg_symbol + "("
+        _leg_count = _validate_files_src.count(_leg_pattern)
+        if _leg_count != 1:
+            _validate_census_ok = False
+            print(
+                f"(validate-census) CALL-SITE CENSUS: {_leg_symbol} occurs "
+                f"{_leg_count} time(s) in _validate_files' source, expected "
+                "exactly 1"
+            )
+            problems.append(
+                f"(validate-census): {_leg_symbol} occurs {_leg_count} "
+                "time(s) in _validate_files, expected 1"
+            )
+    if _validate_census_ok:
+        print(
+            "(validate-census) CALL-SITE CENSUS: PASS (all four legs — "
+            "body, rubric, cross-surface, exit-code decision — present "
+            "exactly once)"
+        )
+
+    # `_live_exit_code` ISOLATION-ARM CENSUS: count `_live_exit_code` call
+    # sites in `_run_self_test`'s OWN source against the number of isolation
+    # arms added above (2), in the same shape as the roster census, so
+    # deleting an isolation arm fails by name.
+    _live_call_pattern = "_live_exit_code" + "("
+    _live_call_count = inspect.getsource(_run_self_test).count(_live_call_pattern)
+    if _live_call_count != 2:
+        print(
+            f"(live-census) CALL-SITE CENSUS: observed {_live_call_count} "
+            "call site(s) to _live_exit_code inside _run_self_test "
+            "(expected 2: (live-x1) + (live-x2))"
+        )
+        problems.append(
+            f"(live-census): observed {_live_call_count} _live_exit_code "
+            "call site(s) inside _run_self_test, expected 2"
+        )
+    else:
+        print(f"(live-census) CALL-SITE CENSUS: PASS ({_live_call_count} call sites)")
+
     # Anti-masking assertion: every required branch must have coverage from
     # the fixture battery above.
     uncovered = REQUIRED_BRANCHES - covered_branches
@@ -2770,6 +2873,78 @@ def _run_self_test() -> int:
             this_module._SCANGUARD_DISPATCH_REENTRANT = False
     else:
         print("(dispatch) dispatch control: skipped (nested self-test run)")
+
+    # Live-leg dispatch control (T-15-19, `15-VERIFICATION.md` gap 2): drive
+    # main([]) in-process — the documented CLI's `python3
+    # scripts/check-selfaudit-scan.py` form with no flags — to prove the
+    # live validate path is reachable from the CLI dispatch, not merely
+    # that `_validate_files()` is correct when called directly. This gives
+    # the documented CLI, its `COVERAGE —` line included, its first
+    # coverage from any control. Unlike the `--self-test` dispatch control
+    # above, `main([])` calls `_validate_files()`, not `_run_self_test()`,
+    # so it never re-enters this function and needs no reentrancy sentinel.
+    live_dispatch_out, live_dispatch_err = io.StringIO(), io.StringIO()
+    try:
+        with contextlib.redirect_stdout(live_dispatch_out), contextlib.redirect_stderr(
+            live_dispatch_err
+        ):
+            live_dispatch_rc = main([])
+        live_dispatch_text = live_dispatch_out.getvalue()
+        if live_dispatch_rc != 0:
+            print(
+                "(live-dispatch) dispatch control: WRONGLY FAILED — "
+                f"main([]) returned {live_dispatch_rc}, expected 0"
+            )
+            problems.append(
+                f"(live-dispatch): main([]) returned {live_dispatch_rc}, expected 0"
+            )
+        elif "check-selfaudit-scan: COVERAGE —" not in live_dispatch_text:
+            print(
+                "(live-dispatch) dispatch control: WRONGLY FAILED — captured "
+                f"stdout missing the COVERAGE marker: {live_dispatch_text!r}"
+            )
+            problems.append("(live-dispatch): captured stdout missing COVERAGE marker")
+        elif "check-selfaudit-scan: PASS" not in live_dispatch_text:
+            print(
+                "(live-dispatch) dispatch control: WRONGLY FAILED — captured "
+                f"stdout missing the PASS line: {live_dispatch_text!r}"
+            )
+            problems.append("(live-dispatch): captured stdout missing PASS line")
+        else:
+            print(
+                "(live-dispatch) dispatch control: PASS — main([]) reaches "
+                "_validate_files end-to-end"
+            )
+    except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
+        print(f"(live-dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+        problems.append(f"(live-dispatch): unexpected exception: {exc!r}")
+
+    # Live-dispatch-control CALL-SITE CENSUS: count the live-dispatch
+    # control's own real call site in `_run_self_test`'s source, so
+    # deleting the entire control fails this census by name rather than
+    # leaving `--self-test` silently green (T-15-19) — the census above
+    # this one floors what the control asserts; this one floors that the
+    # control itself still exists. Pattern built from two concatenated
+    # halves so this line's own source never self-matches.
+    _live_dispatch_call_pattern = "live_dispatch_rc = main(" + "[])"
+    _live_dispatch_call_count = inspect.getsource(_run_self_test).count(
+        _live_dispatch_call_pattern
+    )
+    if _live_dispatch_call_count != 1:
+        print(
+            f"(live-dispatch-census) CALL-SITE CENSUS: observed "
+            f"{_live_dispatch_call_count} call site(s) to the live-dispatch "
+            "control's main([]) invocation (expected 1)"
+        )
+        problems.append(
+            f"(live-dispatch-census): observed {_live_dispatch_call_count} "
+            "live-dispatch call site(s), expected 1"
+        )
+    else:
+        print(
+            "(live-dispatch-census) CALL-SITE CENSUS: PASS "
+            f"({_live_dispatch_call_count} call site)"
+        )
 
     if problems:
         sys.stderr.write("check-selfaudit-scan --self-test: FAIL — " + "; ".join(problems) + "\n")

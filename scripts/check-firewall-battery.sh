@@ -465,8 +465,9 @@ gate "HARN-03" \
 #              transcription (_BRANCH_ROSTER_LOCK) so narrowing the registry
 #              fails the gate
 gate "SCAN-GUARD" \
-    "check-selfaudit-scan.py --self-test" \
-    "python3 scripts/check-selfaudit-scan.py --self-test"
+    "check-selfaudit-scan.py --self-test + live" \
+    "python3 scripts/check-selfaudit-scan.py --self-test" \
+    "python3 scripts/check-selfaudit-scan.py"
 
 # HC-BOUND — HIGH-confidence bound: Phase 5 tightening of Criterion 3 (Evidence)
 #            and Criterion 5 (Conclusion) is present and well-formed in the
