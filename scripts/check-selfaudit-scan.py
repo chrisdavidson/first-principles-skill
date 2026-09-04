@@ -227,6 +227,16 @@ _BODY_DONOTPRESENT_PREAMENDMENT = (
     "Do not present conclusions until the closure ledger is clean AND the "
     "Self-Audit Gate is cleared."
 )
+_BODY_VALIDATE_STEP = (
+    "**Validate** — apply each gate criterion; quote the specific span that "
+    "satisfies or fails each criterion — from the analysis text, or, per "
+    "the Verdict Block Format's admission, from the self-audit scan for "
+    "Criteria 4 and 6, and the Assumption Audit scan for Criterion 2."
+)
+_BODY_VALIDATE_PREAMENDMENT = (
+    "quote the specific span of your analysis that satisfies or fails "
+    "each criterion"
+)
 
 # --- Rubric anchors -------------------------------------------------------------
 _RUBRIC_AA_BLOCK = "**Assumption Audit (verify before scoring)**"
@@ -234,6 +244,8 @@ _RUBRIC_SCAN_BLOCK = "**Self-audit scan (verify before scoring)**"
 _RUBRIC_PRECEDENCE = "**Precedence rule (no double-counting):**"
 _RUBRIC_FORMAT_START = "## Verdict Block Format"
 _RUBRIC_CRITERIA_START = "## Criteria"
+_CRIT2_START = "### Criterion 2: Challenge Assumptions"
+_CRIT3_START = "### Criterion 3: Establish Ground Truths"
 _CRIT4_START = "### Criterion 4: Reason Upward"
 _CRIT5_START = "### Criterion 5: Validate"
 _CRIT6_START = "### Criterion 6: Conclusion-to-Ground-Truth Traceability"
@@ -308,12 +320,25 @@ _RUBRIC_FORMAT_PREAMENDMENT = (
     'assigned.]"'
 )
 _RUBRIC_FORMAT_ADMISSION = (
-    "The self-audit scan is not an output section, and this is the sole "
-    "place a verdict block may quote something outside the six-section "
-    "analysis: the admission covers Criteria 4 and 6 and the self-audit "
-    "scan only. Every other criterion quotes the analysis text itself, "
-    "and the §6→§4 closure ledger is admitted nowhere — it is a drafting "
+    "The self-audit scan and the Assumption Audit scan are not output "
+    "sections, and they are the only artifacts outside the six-section "
+    "analysis a verdict block may quote: the self-audit scan for "
+    "Criteria 4 and 6, and the Assumption Audit scan for Criterion 2. "
+    "Every other criterion quotes the analysis text itself, and the "
+    "§6→§4 closure ledger is admitted nowhere — it is a drafting "
     "artifact that describes a document other than the one being scored."
+)
+_RUBRIC_FORMAT_ADMISSION_SUPERSEDED = (
+    "this is the sole place a verdict block may quote something outside "
+    "the six-section analysis"
+)
+_ADMISSION_SCOPE_C46 = "the self-audit scan for Criteria 4 and 6"
+_ADMISSION_SCOPE_C2 = "the Assumption Audit scan for Criterion 2"
+_RUBRIC_C2_AA_ARTIFACT = (
+    "Assumption Audit artifact produced before scoring (per \"How to "
+    "Apply This Rubric\") confirms this scan was exhaustive over named "
+    "derivation chain steps, not an open-ended survey of the universe "
+    "of conceivable assumptions."
 )
 _TABLE_COVERAGE_BOUND = (
     "Neither table's columns reach every limb its criterion bands on: "
@@ -559,6 +584,60 @@ def _duplicate_within_range(
     return head + new_region + tail
 
 
+def _flat_pattern(literal: str) -> re.Pattern[str]:
+    """Build a whitespace-tolerant regex matching *literal* against RAW
+    (non-normalized) text: escape it, then collapse every literal
+    single-space token boundary to `\\s+` so the pattern matches whether
+    *literal* sits on one physical line or is hard-wrapped across several
+    with leading indent — the older-prose shape Criterion 2's Rigorous
+    descriptor still carries (binding constraint: that descriptor is not
+    unwrapped, unlike this file's plan-15-07/15-08 sentences)."""
+    return re.compile(r"\s+".join(re.escape(word) for word in literal.split(" ")))
+
+
+def _mutate_within_range_flat(
+    text: str, start_anchor: str, end_anchor: str, target: str, replacement: str
+) -> str:
+    """Like `_mutate_within_range`, but locates the single occurrence of
+    *target* inside the range via `_flat_pattern` rather than an exact raw
+    substring, so a hard-wrapped target is still found. Replaces the
+    matched (possibly multi-line) span with *replacement*."""
+    start = text.find(start_anchor)
+    assert start != -1, f"start anchor {start_anchor!r} not found"
+    end = text.find(end_anchor, start)
+    assert end != -1, f"end anchor {end_anchor!r} not found after start anchor"
+    head, region, tail = text[:start], text[start:end], text[end:]
+    matches = list(_flat_pattern(target).finditer(region))
+    assert len(matches) == 1, (
+        f"expected exactly one whitespace-tolerant match of {target!r} "
+        f"within range [{start_anchor!r}, {end_anchor!r}), found {len(matches)}"
+    )
+    m = matches[0]
+    mutated = region[: m.start()] + replacement + region[m.end() :]
+    return head + mutated + tail
+
+
+def _duplicate_within_range_flat(text: str, start_anchor: str, end_anchor: str, target: str) -> str:
+    """Like `_duplicate_within_range`, but locates *target* inside the
+    range via `_flat_pattern`, for a hard-wrapped target. Inserts a second,
+    UNWRAPPED copy of *target* immediately after the matched (possibly
+    multi-line) span — the range's flat-normalized count of *target*
+    doubles."""
+    start = text.find(start_anchor)
+    assert start != -1, f"start anchor {start_anchor!r} not found"
+    end = text.find(end_anchor, start)
+    assert end != -1, f"end anchor {end_anchor!r} not found after start anchor"
+    head, region, tail = text[:start], text[start:end], text[end:]
+    matches = list(_flat_pattern(target).finditer(region))
+    assert len(matches) == 1, (
+        f"expected exactly one whitespace-tolerant match of {target!r} "
+        f"within range [{start_anchor!r}, {end_anchor!r}), found {len(matches)}"
+    )
+    m = matches[0]
+    new_region = region[: m.end()] + "\n\n" + target + "\n\n" + region[m.end() :]
+    return head + new_region + tail
+
+
 # ---------------------------------------------------------------------------
 # Body (agent) checks
 # ---------------------------------------------------------------------------
@@ -725,6 +804,25 @@ def _check_body_text(text: str) -> list[str]:
         failures.append(
             f"Body-16: coverage-bound sentence occurs {coverage_bound_count} "
             "time(s) in the section slice, expected exactly 1"
+        )
+
+    # Body-17 (plan 15-08, closing WR-06): the amended Validate step occurs
+    # exactly once in the section slice, and the pre-amendment restriction
+    # ("quote the specific span of your analysis") is gone from the whole
+    # file — the same amended/preamendment shape Body-15 uses.
+    validate_count = _count_flat(section, _BODY_VALIDATE_STEP)
+    if validate_count != 1:
+        failures.append(
+            f"Body-17: amended Validate step occurs {validate_count} "
+            "time(s) in the section slice, expected exactly 1"
+        )
+
+    validate_preamendment_count = _count_flat(text, _BODY_VALIDATE_PREAMENDMENT)
+    if validate_preamendment_count != 0:
+        failures.append(
+            "Body-17: pre-amendment Validate step still present "
+            f"({validate_preamendment_count} occurrence(s)) in the whole "
+            "file, expected 0"
         )
 
     return failures
@@ -957,6 +1055,28 @@ def _check_rubric_text(text: str) -> list[str]:
                 "exactly 1"
             )
 
+        # Rubric-13 (plan 15-08, closing CR-01): the admission's two clauses
+        # — the self-audit scan for Criteria 4/6, and the Assumption Audit
+        # scan for Criterion 2 — each occur exactly once inside the same
+        # section slice. Split so a later edit that drops one clause while
+        # keeping the whole-sentence count intact (e.g. via the OTHER
+        # clause's text) is still caught.
+        c46_count = _count_flat(format_slice, _ADMISSION_SCOPE_C46)
+        if c46_count != 1:
+            failures.append(
+                f"Rubric-13: admission's Criteria-4/6 clause occurs "
+                f"{c46_count} time(s) in the Verdict Block Format "
+                "section, expected exactly 1"
+            )
+
+        c2_count = _count_flat(format_slice, _ADMISSION_SCOPE_C2)
+        if c2_count != 1:
+            failures.append(
+                f"Rubric-13: admission's Criterion-2 clause occurs "
+                f"{c2_count} time(s) in the Verdict Block Format "
+                "section, expected exactly 1"
+            )
+
     preamendment_count = _count_flat(text, _RUBRIC_FORMAT_PREAMENDMENT)
     if preamendment_count != 0:
         failures.append(
@@ -972,6 +1092,38 @@ def _check_rubric_text(text: str) -> list[str]:
             "Rubric-13: admission sentence does not precede the Criterion "
             "4 heading (placement violated)"
         )
+
+    # Rubric-13 (plan 15-08): the superseded 15-07 absolute clause is gone
+    # from the whole file — pinned at count 0 so only reinstatement fires
+    # it, mirroring the existing _RUBRIC_FORMAT_PREAMENDMENT guard above
+    # with a distinct detail string so the two are not confusable.
+    superseded_count = _count_flat(text, _RUBRIC_FORMAT_ADMISSION_SUPERSEDED)
+    if superseded_count != 0:
+        failures.append(
+            "Rubric-13: superseded 'sole place' clause still present "
+            f"({superseded_count} occurrence(s)) in the whole file, "
+            "expected 0"
+        )
+
+    # Rubric-14 (plan 15-08): Criterion 2's Rigorous descriptor still names
+    # the Assumption Audit artifact the admission's C2 clause exists for —
+    # the two must move together, and deleting the descriptor clause to
+    # make the admission's earlier absolute form true again is exactly the
+    # regression this arm catches.
+    crit2_slice = _slice(text, _CRIT2_START, _CRIT3_START)
+    if crit2_slice is None:
+        failures.append(
+            "Rubric-14: Criterion 2 slice not found — missing or "
+            f"out-of-order heading {_CRIT2_START!r} / {_CRIT3_START!r}"
+        )
+    else:
+        c2_descriptor_count = _count_flat(crit2_slice, _RUBRIC_C2_AA_ARTIFACT)
+        if c2_descriptor_count != 1:
+            failures.append(
+                "Rubric-14: Assumption Audit artifact descriptor sentence "
+                f"occurs {c2_descriptor_count} time(s) in Criterion 2 "
+                "slice, expected exactly 1"
+            )
 
     return failures
 
@@ -994,6 +1146,14 @@ def _check_cross_surface(body_text: str, rubric_text: str) -> list[str]:
         failures.append("Cross-3: coverage-bound sentence missing from agent-body surface")
     if not _contains(rubric_text, _TABLE_COVERAGE_BOUND):
         failures.append("Cross-3: coverage-bound sentence missing from rubric surface")
+    if not _contains(body_text, _ADMISSION_SCOPE_C46):
+        failures.append("Cross-4: Criteria-4/6 admission clause missing from agent-body surface")
+    if not _contains(rubric_text, _ADMISSION_SCOPE_C46):
+        failures.append("Cross-4: Criteria-4/6 admission clause missing from rubric surface")
+    if not _contains(body_text, _ADMISSION_SCOPE_C2):
+        failures.append("Cross-4: Criterion-2 admission clause missing from agent-body surface")
+    if not _contains(rubric_text, _ADMISSION_SCOPE_C2):
+        failures.append("Cross-4: Criterion-2 admission clause missing from rubric surface")
     return failures
 
 
@@ -1095,6 +1255,16 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "R-13-format-admission-dup",
         "R-13-format-preamendment",
         "R-13-format-order",
+        "R-13-format-admission-c46-missing",
+        "R-13-format-admission-c46-dup",
+        "R-13-format-admission-c2-missing",
+        "R-13-format-admission-c2-dup",
+        "R-13-format-admission-superseded",
+        "R-14-c2-descriptor-missing",
+        "R-14-c2-descriptor-dup",
+        "B-17-validate-missing",
+        "B-17-validate-dup",
+        "B-17-validate-preamendment",
         "X-01-cols-chain-body",
         "X-01-cols-chain-rubric",
         "X-01-cols-claim-body",
@@ -1103,6 +1273,10 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
         "X-02-heading-rubric",
         "X-03-bound-body",
         "X-03-bound-rubric",
+        "X-04-admission-c46-body",
+        "X-04-admission-c46-rubric",
+        "X-04-admission-c2-body",
+        "X-04-admission-c2-rubric",
     }
 )
 
@@ -1154,10 +1328,17 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "R-13-format-amended-missing", "R-13-format-amended-dup",
         "R-13-format-admission-missing", "R-13-format-admission-dup",
         "R-13-format-preamendment", "R-13-format-order",
+        "R-13-format-admission-c46-missing", "R-13-format-admission-c46-dup",
+        "R-13-format-admission-c2-missing", "R-13-format-admission-c2-dup",
+        "R-13-format-admission-superseded",
+        "R-14-c2-descriptor-missing", "R-14-c2-descriptor-dup",
+        "B-17-validate-missing", "B-17-validate-dup", "B-17-validate-preamendment",
         "X-01-cols-chain-body", "X-01-cols-chain-rubric",
         "X-01-cols-claim-body", "X-01-cols-claim-rubric",
         "X-02-heading-body", "X-02-heading-rubric",
         "X-03-bound-body", "X-03-bound-rubric",
+        "X-04-admission-c46-body", "X-04-admission-c46-rubric",
+        "X-04-admission-c2-body", "X-04-admission-c2-rubric",
     }
 )
 
@@ -1631,6 +1812,42 @@ def _run_self_test() -> int:
         "Body-16",
         "occurs 2 time(s)",
         "B-16-coverage-bound-dup",
+    )
+
+    # B-17-validate-missing: strip the amended Validate step from the
+    # whole file (it occurs exactly once, inside the section slice).
+    body_b17a = _strip_everywhere(real_body, _BODY_VALIDATE_STEP)
+    _check_negative(
+        "B-17a",
+        _check_body_text(body_b17a),
+        "Body-17",
+        "occurs 0 time(s)",
+        "B-17-validate-missing",
+    )
+
+    # B-17-validate-dup: duplicate the amended Validate step inside the
+    # section slice — the range extends past `_BODY_LEDGER_CLEAN` because
+    # the Validate step sits in the numbered list AFTER that anchor.
+    body_b17b = _duplicate_within_range(
+        real_body, _BODY_SECTION_START, _BODY_DONOTPRESENT_AMENDED, _BODY_VALIDATE_STEP
+    )
+    _check_negative(
+        "B-17b",
+        _check_body_text(body_b17b),
+        "Body-17",
+        "occurs 2 time(s)",
+        "B-17-validate-dup",
+    )
+
+    # B-17-validate-preamendment: reinstate the pre-amendment Validate
+    # restriction ALONGSIDE the amended one — mirrors Body-15's shape.
+    body_b17c = real_body + "\n\n" + _BODY_VALIDATE_PREAMENDMENT
+    _check_negative(
+        "B-17c",
+        _check_body_text(body_b17c),
+        "Body-17",
+        "pre-amendment Validate step still present",
+        "B-17-validate-preamendment",
     )
 
     # Hard-wrap arm 1 (body): reinstate a ledger-independence literal
@@ -2128,6 +2345,114 @@ def _run_self_test() -> int:
         "R-13-format-order",
     )
 
+    # --- Rubric-13/14 branch negative controls (plan 15-08, closing CR-01) -
+    # The widened admission's two clauses, split missing/dup, the superseded
+    # 15-07 clause's count-0 guard, and the Criterion 2 descriptor pin the
+    # admission's C2 clause depends on.
+
+    # R-13-format-admission-c46-missing: strip the Criteria-4/6 clause from
+    # inside the Verdict Block Format section only.
+    rubric_r13g = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _ADMISSION_SCOPE_C46,
+        "",
+    )
+    _check_negative(
+        "R-13g",
+        _check_rubric_text(rubric_r13g),
+        "Rubric-13",
+        "Criteria-4/6 clause occurs 0 time(s)",
+        "R-13-format-admission-c46-missing",
+    )
+
+    # R-13-format-admission-c46-dup: duplicate the Criteria-4/6 clause
+    # inside the same section.
+    rubric_r13h = _duplicate_within_range(
+        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C46
+    )
+    _check_negative(
+        "R-13h",
+        _check_rubric_text(rubric_r13h),
+        "Rubric-13",
+        "Criteria-4/6 clause occurs 2 time(s)",
+        "R-13-format-admission-c46-dup",
+    )
+
+    # R-13-format-admission-c2-missing: strip the Criterion-2 clause from
+    # inside the Verdict Block Format section only.
+    rubric_r13i = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_FORMAT_START,
+        _RUBRIC_CRITERIA_START,
+        _ADMISSION_SCOPE_C2,
+        "",
+    )
+    _check_negative(
+        "R-13i",
+        _check_rubric_text(rubric_r13i),
+        "Rubric-13",
+        "Criterion-2 clause occurs 0 time(s)",
+        "R-13-format-admission-c2-missing",
+    )
+
+    # R-13-format-admission-c2-dup: duplicate the Criterion-2 clause inside
+    # the same section — the `!= 1` guard's OTHER direction.
+    rubric_r13j = _duplicate_within_range(
+        real_rubric, _RUBRIC_FORMAT_START, _RUBRIC_CRITERIA_START, _ADMISSION_SCOPE_C2
+    )
+    _check_negative(
+        "R-13j",
+        _check_rubric_text(rubric_r13j),
+        "Rubric-13",
+        "Criterion-2 clause occurs 2 time(s)",
+        "R-13-format-admission-c2-dup",
+    )
+
+    # R-13-format-admission-superseded: reinstate the 15-07 absolute clause
+    # verbatim somewhere in the rubric text, so the whole-file count-0
+    # guard fires — mirrors R-13-format-preamendment's shape.
+    rubric_r13k = real_rubric + "\n\n" + _RUBRIC_FORMAT_ADMISSION_SUPERSEDED
+    _check_negative(
+        "R-13k",
+        _check_rubric_text(rubric_r13k),
+        "Rubric-13",
+        "superseded 'sole place' clause still present",
+        "R-13-format-admission-superseded",
+    )
+
+    # R-14-c2-descriptor-missing: strip the Assumption Audit artifact
+    # descriptor sentence from Criterion 2's slice. Uses the `_flat`
+    # helper, not `_mutate_within_range` — the descriptor is hard-wrapped
+    # in the shipped source (it is NOT unwrapped, per the binding
+    # constraint that Criterion 2's Rigorous descriptor stays exactly as
+    # it is), so a raw-substring fixture would find zero occurrences.
+    rubric_r14a = _mutate_within_range_flat(
+        real_rubric, _CRIT2_START, _CRIT3_START, _RUBRIC_C2_AA_ARTIFACT, ""
+    )
+    _check_negative(
+        "R-14a",
+        _check_rubric_text(rubric_r14a),
+        "Rubric-14",
+        "occurs 0 time(s)",
+        "R-14-c2-descriptor-missing",
+    )
+
+    # R-14-c2-descriptor-dup: duplicate the descriptor sentence inside the
+    # same slice — inserts an UNWRAPPED second copy after the wrapped one,
+    # so the slice's flat-normalized count goes to 2.
+    rubric_r14b = _duplicate_within_range_flat(
+        real_rubric, _CRIT2_START, _CRIT3_START, _RUBRIC_C2_AA_ARTIFACT
+    )
+    _check_negative(
+        "R-14b",
+        _check_rubric_text(rubric_r14b),
+        "Rubric-14",
+        "occurs 2 time(s)",
+        "R-14-c2-descriptor-dup",
+    )
+
     # Hard-wrap arm 2 (rubric): reinstate the ledger non-admissibility
     # sentence hard-wrapped at ~95 columns, inside the scan slice, and assert
     # Rubric-6 still passes.
@@ -2237,6 +2562,50 @@ def _run_self_test() -> int:
         "Cross-3",
         "missing from rubric surface",
         "X-03-bound-rubric",
+    )
+
+    # X-04-admission-c46-body: strip the Criteria-4/6 admission clause from
+    # the body ONLY, leaving the rubric intact.
+    body_x04a = _strip_everywhere(real_body, _ADMISSION_SCOPE_C46)
+    _check_negative(
+        "X-04a",
+        _check_cross_surface(body_x04a, real_rubric),
+        "Cross-4",
+        "Criteria-4/6 admission clause missing from agent-body surface",
+        "X-04-admission-c46-body",
+    )
+
+    # X-04-admission-c46-rubric: strip the Criteria-4/6 admission clause
+    # from the rubric ONLY, leaving the body intact.
+    rubric_x04b = _strip_everywhere(real_rubric, _ADMISSION_SCOPE_C46)
+    _check_negative(
+        "X-04b",
+        _check_cross_surface(real_body, rubric_x04b),
+        "Cross-4",
+        "Criteria-4/6 admission clause missing from rubric surface",
+        "X-04-admission-c46-rubric",
+    )
+
+    # X-04-admission-c2-body: strip the Criterion-2 admission clause from
+    # the body ONLY, leaving the rubric intact.
+    body_x04c = _strip_everywhere(real_body, _ADMISSION_SCOPE_C2)
+    _check_negative(
+        "X-04c",
+        _check_cross_surface(body_x04c, real_rubric),
+        "Cross-4",
+        "Criterion-2 admission clause missing from agent-body surface",
+        "X-04-admission-c2-body",
+    )
+
+    # X-04-admission-c2-rubric: strip the Criterion-2 admission clause from
+    # the rubric ONLY, leaving the body intact.
+    rubric_x04d = _strip_everywhere(real_rubric, _ADMISSION_SCOPE_C2)
+    _check_negative(
+        "X-04d",
+        _check_cross_surface(real_body, rubric_x04d),
+        "Cross-4",
+        "Criterion-2 admission clause missing from rubric surface",
+        "X-04-admission-c2-rubric",
     )
 
     # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus

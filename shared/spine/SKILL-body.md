@@ -295,7 +295,7 @@ Only once the ledger is clean — every surviving §6 claim carries a chain refe
 Self-Audit Gate begin. Score the completed analysis against the criteria in the
 [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a feedback loop:
 
-1. **Validate** — apply each gate criterion; quote the specific span of your analysis that satisfies or fails each criterion.
+1. **Validate** — apply each gate criterion; quote the specific span that satisfies or fails each criterion — from the analysis text, or, per the Verdict Block Format's admission, from the self-audit scan for Criteria 4 and 6, and the Assumption Audit scan for Criterion 2.
 2. **Fix** — revise every criterion that does not pass.
 3. **Repeat** — re-score once after fixing. If a criterion still fails after that single
    re-perception pass, report it as an unresolved gap with a confidence caveat instead of
