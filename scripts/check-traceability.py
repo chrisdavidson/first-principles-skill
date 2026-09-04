@@ -1732,12 +1732,146 @@ def _rows_v825() -> list[MatrixRow]:
     ]
 
 
+def _rows_v826() -> list[MatrixRow]:
+    """v8.26 milestone rows — 20 requirements, 17 reproducible + 3 audit-only (Phase 16).
+
+    All rows carry milestone="v8.26". Keys use the milestone-qualified form
+    "v8.26/<bare_id>".
+
+    Capability assignment, following _rows_v825()'s own discriminator ("changes the agent's
+    methodology prose -> Methodology; harness and release apparatus -> Test-Network"):
+    CHAINHEAD-01/02/03/05 and LEDGER-01/02/03 and SCAN-01/02 are Methodology because their
+    deliverable is literally agent emission-contract or rubric prose -- output-template.md,
+    SKILL-body.md, validation-rubric.md -- the same discriminator _rows_v825() applied to
+    CONTRACT-01..05. CHAINHEAD-04/06/07, LEDGER-04 and SCAN-03/04 are Test-Network because
+    their deliverable is detector or gate code (check-quality-harness.py,
+    check-selfaudit-scan.py). SHIP-01..03 are Test-Network apparatus, matching the
+    v8.18/v8.24/v8.25 precedent. SHIP-04/05 are Methodology, matching _rows_v818()'s
+    explicit reasoning that a missing CHANGELOG entry is not a verification-system gap and
+    should score MEDIUM rather than HIGH under _SEVERITY_LABEL if ever downgraded.
+
+    Tiering, decided per row against "does something re-run", never by block (Pitfall 2,
+    16-RESEARCH.md -- a blanket count check is explicitly rejected because swapping one
+    row's tier with another's while holding the counts constant would pass silently).
+    Three rows are audit-only, each named and reasoned individually:
+      - SCAN-04: CLAUDE.md's own SCAN-GUARD row discloses the emission-cost figure as
+        "unfalsifiable rather than settled" -- no gate re-runs it.
+      - SHIP-04, SHIP-05: no gate re-runs to check a CHANGELOG entry's prose content, the
+        twice-used v8.18/v8.24 precedent for this exact requirement class.
+    The remaining 17 are reproducible.
+
+    Judgment call A3 (16-RESEARCH.md Assumptions Log), recorded as independently reversible
+    in the 12-RESEARCH.md §A idiom: CHAINHEAD-07 gets its OWN v8.26/CHAINHEAD-07 row
+    pointing at _selftest_chain_detector_pin, distinct from the existing v8.25/CONTRACT-06
+    row whose tier Phase 13 already flipped to reproducible against the same pin.
+    Justification: they are different requirement IDs under different milestone prefixes,
+    and two rows over one underlying mechanism is established practice here (GATE-02/GATE-03
+    in _rows_v824()). Reversing this would remove one row and move the total; that is the
+    disclosed cost.
+
+    DISCLOSED BOUNDARY for SCAN-01/02/03. Their anchors (_check_body_text, _check_rubric_text,
+    _check_cross_surface) do NOT start with _selftest_ or _self_test_, so
+    _resolve_artifact()'s dispatch-reachability leg does not apply to them: it proves each
+    anchor is DEFINED, not that it is CALLED. check-selfaudit-scan.py has no _selftest_*-
+    prefixed symbol at all, so there is no conforming anchor to point at. The dispatch
+    guarantee for these three is supplied instead by SCAN-GUARD's own validate-census
+    (plan 15-09) and by the (h4) call-site census _self_test_v826_rows_sentinel() adds.
+    State this rather than letting the reader assume the (h) guarantee extends here.
+    """
+    _audit_scan04 = (
+        "CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as "
+        "'unfalsifiable rather than settled' -- no gate re-runs it."
+    )
+    _audit_ship_changelog = (
+        "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 "
+        "SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04)."
+    )
+    return [
+        MatrixRow("v8.26/CHAINHEAD-01", "CHAINHEAD-01", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-02", "CHAINHEAD-02", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-03", "CHAINHEAD-03", "v8.26", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-04", "CHAINHEAD-04", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-05", "CHAINHEAD-05", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-06", "CHAINHEAD-06", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-07", "CHAINHEAD-07", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", ""),
+        MatrixRow("v8.26/LEDGER-01", "LEDGER-01", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-02", "LEDGER-02", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-03", "LEDGER-03", "v8.26", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-04", "LEDGER-04", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_ledger_traceability", ""),
+        MatrixRow("v8.26/SCAN-01", "SCAN-01", "v8.26", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_body_text", ""),
+        MatrixRow("v8.26/SCAN-02", "SCAN-02", "v8.26", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_rubric_text", ""),
+        MatrixRow("v8.26/SCAN-03", "SCAN-03", "v8.26", "Test-Network",
+                  "scripts/check-selfaudit-scan.py",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_cross_surface", ""),
+        MatrixRow("v8.26/SCAN-04", "SCAN-04", "v8.26", "Test-Network",
+                  "scripts/check-selfaudit-scan.py",
+                  "audit-only", "", _audit_scan04),
+        MatrixRow("v8.26/SHIP-01", "SHIP-01", "v8.26", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", ""),
+        MatrixRow("v8.26/SHIP-02", "SHIP-02", "v8.26", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.26/SHIP-03", "SHIP-03", "v8.26", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+        MatrixRow("v8.26/SHIP-04", "SHIP-04", "v8.26", "Methodology",
+                  "CHANGELOG.md",
+                  "audit-only", "", _audit_ship_changelog),
+        MatrixRow("v8.26/SHIP-05", "SHIP-05", "v8.26", "Methodology",
+                  "CHANGELOG.md",
+                  "audit-only", "", _audit_ship_changelog),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Seven inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Eight inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
-    at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12.
+    at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12; (h) was
+    added at v8.26 Phase 16.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -1771,6 +1905,14 @@ def build_matrix_rows() -> list[MatrixRow]:
         re-tiered reproducible at v8.26 Phase 13 (CHAINHEAD-07) once
         `_selftest_chain_detector_pin` gave that claim a gate. See `_rows_v825()` for the full
         per-row rationale.
+    (h) v8.26 milestone (20 rows, 17 reproducible + 3 audit-only) — Phase 16: the
+        milestone's CHAINHEAD-*/LEDGER-*/SCAN-*/SHIP-* requirements. CHAINHEAD-01/02/03/05,
+        LEDGER-01/02/03 and SCAN-01/02 carry Methodology (agent emission-contract or rubric
+        prose); CHAINHEAD-04/06/07, LEDGER-04 and SCAN-03/04 carry Test-Network
+        (detector/gate code); SHIP-01..03 are Test-Network apparatus; SHIP-04/05 are
+        Methodology (CHANGELOG record). SCAN-04, SHIP-04 and SHIP-05 are audit-only — named
+        individually, never by count. See `_rows_v826()` for the full per-row rationale and
+        its DISCLOSED BOUNDARY for SCAN-01/02/03's non-`_selftest_*` anchors.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1801,6 +1943,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v824())
     # --- v8.25 milestone (Phase 12 / A1 / A2) — all 14 reproducible as of Phase 13 ---
     rows.extend(_rows_v825())
+    # --- v8.26 milestone (Phase 16) — 17 reproducible + 3 audit-only ---
+    rows.extend(_rows_v826())
     return rows
 
 
@@ -3717,6 +3861,298 @@ def _self_test_v825_rows_sentinel(wrong_results: list[str]) -> None:
             "  V825-ROWS PASS: (h3) SHIP-03's artifact_link resolved "
             "_self_test_headline_lock as DISPATCHED, not merely defined"
         )
+
+
+def _self_test_v826_rows_sentinel(wrong_results: list[str]) -> None:
+    """V826-ROWS named sentinel (Phase 16).
+
+    Asserts the 20 v8.26 milestone rows registered in _rows_v826():
+      (a) Exactly 20 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 20 IDs, named in _EXPECTED_V826_IDS.
+      (c) Tier partition pinned BY ID, never by count (Pitfall 2, 16-RESEARCH.md):
+          _EXPECTED_V826_AUDIT_ONLY_IDS is exactly {"SCAN-04", "SHIP-04", "SHIP-05"};
+          _EXPECTED_V826_REPRODUCIBLE_IDS is the set difference. A blanket
+          len(audit_only) == 3 assert is explicitly rejected — swapping SCAN-04's tier
+          with a reproducible row's keeps the counts right and would pass silently.
+      (d) Deep-resolve artifact_link over the 17 reproducible rows via _resolve_artifact(),
+          and assert every audit-only row carries artifact_link == "". Counts printed are
+          derived from len(...), never restated as literals (the WR-08 idiom).
+      (e) Positive counter-check: SHIP-03 is present exactly once, is reproducible, and
+          carries a non-empty artifact_link — the anti-vacuity control, mirroring
+          V825-ROWS' HEADLINE-01 and V824-ROWS' GATE-03 idiom.
+      (f) milestone/key lock: every row has milestone == "v8.26" AND a key prefixed
+          "v8.26/" (attribution guard — a mis-attributed row passes (a)-(e) silently).
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES.
+      (h) LIVE ANCHOR FLOOR, modelled on V825-ROWS' (h2). Derives, from the live rows, the
+          set of anchors of the form "…py#<anchor>" whose <anchor> starts with
+          _SELFTEST_ANCHOR_PREFIXES, and asserts EQUALITY against exactly
+          {"_selftest_render_contract", "_selftest_chain_detector_pin",
+          "_selftest_ledger_traceability", "_self_test_headline_lock"} — equality, not
+          membership, so a rename cannot silently narrow or empty the dispatch-checked
+          set. Followed by a live positive: CHAINHEAD-07's and SHIP-03's live
+          artifact_links must each resolve to [], i.e. as DISPATCHED, not merely defined.
+      (h4) CALL-SITE CENSUS for the three non-prefixed SCAN anchors, which (h) cannot
+          reach: _check_body_text, _check_rubric_text and _check_cross_surface in
+          scripts/check-selfaudit-scan.py do NOT start with _selftest_/_self_test_, so
+          _resolve_artifact()'s dispatch-reachability leg only proves them DEFINED, not
+          CALLED (see _rows_v826()'s own DISCLOSED BOUNDARY). The three symbol names are
+          derived from the live _rows_v826() rows' own artifact_link anchors, never
+          restated, so a re-point of a SCAN row moves the census with it. For each
+          symbol, this counts occurrences of "<symbol>(" in check-selfaudit-scan.py's
+          source text, excluding the symbol's own "def" line, and requires at least 2 —
+          one inside _validate_files (the live CLI leg) and one inside _run_self_test
+          (the offline control battery). DISCLOSED BOUND, in the voice of control (t) in
+          check-quality-harness.py: this counts SOURCE TEXT and observes no behaviour. It
+          catches DELETION of a real call site; it does not catch a call whose returned
+          failures are discarded before reaching the reporter, and a mention inside a
+          string literal or comment counts as a call site.
+
+    Called from _rows_v826() live — never hardcodes a MatrixRow literal (Pitfall 4).
+    Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier swap, or dangling
+    artifact_link fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 20 rows.
+    _v826_rows = _rows_v826()
+    _v826_count = len(_v826_rows)
+    _EXPECTED_V826_IDS = {
+        "CHAINHEAD-01", "CHAINHEAD-02", "CHAINHEAD-03", "CHAINHEAD-04", "CHAINHEAD-05",
+        "CHAINHEAD-06", "CHAINHEAD-07",
+        "LEDGER-01", "LEDGER-02", "LEDGER-03", "LEDGER-04",
+        "SCAN-01", "SCAN-02", "SCAN-03", "SCAN-04",
+        "SHIP-01", "SHIP-02", "SHIP-03", "SHIP-04", "SHIP-05",
+    }
+    _EXPECTED_V826_AUDIT_ONLY_IDS = {"SCAN-04", "SHIP-04", "SHIP-05"}
+    _EXPECTED_V826_REPRODUCIBLE_IDS = _EXPECTED_V826_IDS - _EXPECTED_V826_AUDIT_ONLY_IDS
+    if _v826_count != 20:
+        print(
+            f"  V826-ROWS FAIL: expected exactly 20 rows in _rows_v826(), "
+            f"got {_v826_count} — drift guard failed."
+        )
+        wrong_results.append("V826-ROWS: row count drift (expected 20)")
+    else:
+        print(f"  V826-ROWS PASS: row count == 20")
+
+    # (b) bare_id set assertion.
+    _v826_ids = {r.bare_id for r in _v826_rows}
+    if _v826_ids != _EXPECTED_V826_IDS:
+        _missing = _EXPECTED_V826_IDS - _v826_ids
+        _extra = _v826_ids - _EXPECTED_V826_IDS
+        print(
+            f"  V826-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V826-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V826-ROWS PASS: bare_id set = {sorted(_v826_ids)!r}")
+
+    # (c) Tier partition pinned by ID, not by count.
+    _audit_only_ids = {r.bare_id for r in _v826_rows if r.coverage_tier == "audit-only"}
+    _reproducible_ids = {r.bare_id for r in _v826_rows if r.coverage_tier == "reproducible"}
+    if _audit_only_ids != _EXPECTED_V826_AUDIT_ONLY_IDS:
+        print(
+            f"  V826-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V826_AUDIT_ONLY_IDS)!r}, got={sorted(_audit_only_ids)!r}"
+        )
+        wrong_results.append("V826-ROWS: audit-only bare_id set mismatch")
+    elif _reproducible_ids != _EXPECTED_V826_REPRODUCIBLE_IDS:
+        print(
+            f"  V826-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V826_REPRODUCIBLE_IDS)!r}, got={sorted(_reproducible_ids)!r}"
+        )
+        wrong_results.append("V826-ROWS: reproducible bare_id set mismatch")
+    else:
+        print(
+            f"  V826-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
+            f"{len(_reproducible_ids)} reproducible IDs confirmed by name"
+        )
+
+    # (d) Deep-resolve artifact_link over the reproducible rows only; every audit-only
+    #     row must carry artifact_link == "" (so the skip cannot become a skip-everything).
+    _v826_repro_rows = [r for r in _v826_rows if r.coverage_tier == "reproducible"]
+    _v826_audit_rows = [r for r in _v826_rows if r.coverage_tier == "audit-only"]
+    _link_issues: list[str] = []
+    for _row in _v826_repro_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    _nonempty_audit_links = [r.bare_id for r in _v826_audit_rows if r.artifact_link != ""]
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V826-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V826-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    elif _nonempty_audit_links:
+        print(
+            f"  V826-ROWS FAIL: audit-only row(s) with non-empty artifact_link — "
+            f"{_nonempty_audit_links!r}"
+        )
+        wrong_results.append("V826-ROWS: audit-only row(s) with non-empty artifact_link")
+    else:
+        print(
+            f"  V826-ROWS PASS: all {len(_v826_repro_rows)} reproducible artifact_links "
+            f"deep-resolve OK, {len(_v826_audit_rows)} audit-only row(s) carry artifact_link=''"
+        )
+
+    # (e) Positive counter-check: SHIP-03 is present, reproducible, non-empty artifact_link.
+    _ship03_v826_rows = [r for r in _v826_rows if r.bare_id == "SHIP-03"]
+    _ship03_v826_present = len(_ship03_v826_rows) == 1
+    _ship03_v826_repro = (
+        _ship03_v826_rows[0].coverage_tier == "reproducible" if _ship03_v826_rows else False
+    )
+    _ship03_v826_link = _ship03_v826_rows[0].artifact_link if _ship03_v826_rows else ""
+    if _ship03_v826_present and _ship03_v826_repro and _ship03_v826_link:
+        print(
+            f"  V826-ROWS PASS: SHIP-03 present and reproducible "
+            f"(artifact_link={_ship03_v826_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V826-ROWS FAIL: SHIP-03 positive counter-check failed "
+            f"(present={_ship03_v826_present}, reproducible={_ship03_v826_repro}, "
+            f"link={_ship03_v826_link!r})"
+        )
+        wrong_results.append("V826-ROWS: SHIP-03 counter-check failed")
+
+    # (f) milestone/key lock.
+    _bad_ms = [
+        r.key for r in _v826_rows
+        if r.milestone != "v8.26" or not r.key.startswith("v8.26/")
+    ]
+    if _bad_ms:
+        print(f"  V826-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V826-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V826-ROWS PASS: all {_v826_count} rows carry milestone='v8.26' and 'v8.26/' key prefix")
+
+    # (g) capability lock.
+    _bad_cap = [r.bare_id for r in _v826_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V826-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V826-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V826-ROWS PASS: all {_v826_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
+
+    # (h) LIVE ANCHOR FLOOR, modelled on V825-ROWS' (h2).
+    _EXPECTED_V826_SELFTEST_ANCHORS = {
+        "_selftest_render_contract",
+        "_selftest_chain_detector_pin",
+        "_selftest_ledger_traceability",
+        "_self_test_headline_lock",
+    }
+    _observed_v826_selftest_anchors: set[str] = set()
+    for _row in _v826_rows:
+        if "#" in _row.artifact_link:
+            _anchor = _row.artifact_link.split("#", 1)[1]
+            if _anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
+                _observed_v826_selftest_anchors.add(_anchor)
+    if _observed_v826_selftest_anchors != _EXPECTED_V826_SELFTEST_ANCHORS:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE ANCHOR FLOOR — expected anchor set "
+            f"{sorted(_EXPECTED_V826_SELFTEST_ANCHORS)!r}, "
+            f"observed {sorted(_observed_v826_selftest_anchors)!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) live anchor floor failed")
+    else:
+        print(
+            f"  V826-ROWS PASS: (h) live self-test anchor set = "
+            f"{sorted(_observed_v826_selftest_anchors)!r} — non-vacuous"
+        )
+
+    # (h) live positives: CHAINHEAD-07's and SHIP-03's artifact_links must resolve to []
+    # — i.e. as DISPATCHED, not merely defined.
+    _chainhead07_rows = [r for r in _v826_rows if r.bare_id == "CHAINHEAD-07"]
+    _chainhead07_problems = (
+        _resolve_artifact(_chainhead07_rows[0].artifact_link)
+        if _chainhead07_rows else ["CHAINHEAD-07 row missing"]
+    )
+    if _chainhead07_problems:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE POSITIVE — CHAINHEAD-07 did not resolve cleanly: "
+            f"{_chainhead07_problems!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) CHAINHEAD-07 live positive failed")
+    else:
+        print(
+            "  V826-ROWS PASS: (h) CHAINHEAD-07's artifact_link resolved "
+            "_selftest_chain_detector_pin as DISPATCHED, not merely defined"
+        )
+
+    _ship03_v826_problems = (
+        _resolve_artifact(_ship03_v826_rows[0].artifact_link)
+        if _ship03_v826_rows else ["SHIP-03 row missing"]
+    )
+    if _ship03_v826_problems:
+        print(
+            f"  V826-ROWS FAIL: (h) LIVE POSITIVE — SHIP-03 did not resolve cleanly: "
+            f"{_ship03_v826_problems!r}"
+        )
+        wrong_results.append("V826-ROWS: (h) SHIP-03 live positive failed")
+    else:
+        print(
+            "  V826-ROWS PASS: (h) SHIP-03's artifact_link resolved "
+            "_self_test_headline_lock as DISPATCHED, not merely defined"
+        )
+
+    # (h4) CALL-SITE CENSUS for the three non-prefixed SCAN anchors, which (h) cannot
+    # reach. Symbol names are derived from the live rows' own artifact_link anchors
+    # rather than restated, so a re-point of a SCAN row moves the census with it.
+    _scan_symbols = sorted({
+        _row.artifact_link.split("#", 1)[1]
+        for _row in _v826_rows
+        if _row.artifact_link.startswith("scripts/check-selfaudit-scan.py#")
+    })
+    _scan_source_path = REPO_ROOT / "scripts" / "check-selfaudit-scan.py"
+    _scan_source_text = _scan_source_path.read_text(encoding="utf-8")
+
+    def _slice_top_level_function_body(text: str, func_name: str) -> str:
+        """Slice `func_name`'s own body out of `text`, from its `def` line to the next
+        top-level construct — the same body-boundary idiom `_selftest_dispatch_problems`
+        uses for a dispatcher, applied here to a plain named function instead."""
+        _start_pat = re.compile(
+            r"^" + _DEF_CONSTRUCT_PREFIX + re.escape(func_name) + r"\(", re.MULTILINE
+        )
+        _start_match = _start_pat.search(text)
+        if _start_match is None:
+            return ""
+        _next_pat = re.compile(r"^(?:" + _DEF_CONSTRUCT_PREFIX + r"|class\s|@)", re.MULTILINE)
+        _next_match = _next_pat.search(text, _start_match.end())
+        _end = _next_match.start() if _next_match else len(text)
+        return text[_start_match.start():_end]
+
+    _validate_files_body = _slice_top_level_function_body(_scan_source_text, "_validate_files")
+    _run_self_test_body = _slice_top_level_function_body(_scan_source_text, "_run_self_test")
+
+    if len(_scan_symbols) != 3:
+        print(
+            f"  V826-ROWS FAIL: (h4) CALL-SITE CENSUS — expected exactly 3 SCAN anchors "
+            f"derived from live rows, got {len(_scan_symbols)}: {_scan_symbols!r}"
+        )
+        wrong_results.append("V826-ROWS: (h4) SCAN anchor derivation failed")
+    else:
+        _h4_ok = True
+        for _sym in _scan_symbols:
+            _call_pat = _sym + "("
+            _def_line_pat = re.compile(r"^def " + re.escape(_sym) + r"\(", re.MULTILINE)
+            _def_line_hit = 1 if _def_line_pat.search(_scan_source_text) else 0
+            _total = _scan_source_text.count(_call_pat) - _def_line_hit
+            _in_validate = _validate_files_body.count(_call_pat)
+            _in_run_self_test = _run_self_test_body.count(_call_pat)
+            if _total < 2 or _in_validate < 1 or _in_run_self_test < 1:
+                _h4_ok = False
+                print(
+                    f"  V826-ROWS FAIL: (h4) CALL-SITE CENSUS — {_sym} has {_total} call "
+                    f"site(s) (in _validate_files={_in_validate}, in _run_self_test="
+                    f"{_in_run_self_test}), expected >=2 with >=1 in each"
+                )
+                wrong_results.append(f"V826-ROWS: (h4) call-site census failed for {_sym}")
+        if _h4_ok:
+            print(
+                f"  V826-ROWS PASS: (h4) call-site census — all {len(_scan_symbols)} SCAN "
+                f"anchors ({', '.join(_scan_symbols)}) called from both _validate_files "
+                f"and _run_self_test"
+            )
 
 
 class _HeadlineLockContext(NamedTuple):
@@ -5896,6 +6332,13 @@ def _run_self_test() -> None:
                  milestone rows against silent drift, including a tier swap between two
                  named IDs that a blanket count assert would miss; no live claude session
                  required.
+      V826-ROWS: live row count + bare_id set + ID-pinned 17/3 tier partition + deep-resolve
+                 over reproducible rows only + SHIP-03 positive counter-check + milestone/key
+                 attribution lock + capability lock + live anchor floor + call-site census
+                 over the three non-`_selftest_*` SCAN anchors (Phase 16); locks all 20
+                 v8.26 milestone rows against silent drift, including a tier swap between
+                 two named IDs that a blanket count assert would miss; no live claude
+                 session required.
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
@@ -5913,6 +6356,7 @@ def _run_self_test() -> None:
     _self_test_v818_rows_sentinel(wrong_results)
     _self_test_v824_rows_sentinel(wrong_results)
     _self_test_v825_rows_sentinel(wrong_results)
+    _self_test_v826_rows_sentinel(wrong_results)
     _self_test_headline_lock(wrong_results)
     if wrong_results:
         sys.stderr.write(
