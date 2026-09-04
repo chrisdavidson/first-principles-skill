@@ -1732,12 +1732,146 @@ def _rows_v825() -> list[MatrixRow]:
     ]
 
 
+def _rows_v826() -> list[MatrixRow]:
+    """v8.26 milestone rows — 20 requirements, 17 reproducible + 3 audit-only (Phase 16).
+
+    All rows carry milestone="v8.26". Keys use the milestone-qualified form
+    "v8.26/<bare_id>".
+
+    Capability assignment, following _rows_v825()'s own discriminator ("changes the agent's
+    methodology prose -> Methodology; harness and release apparatus -> Test-Network"):
+    CHAINHEAD-01/02/03/05 and LEDGER-01/02/03 and SCAN-01/02 are Methodology because their
+    deliverable is literally agent emission-contract or rubric prose -- output-template.md,
+    SKILL-body.md, validation-rubric.md -- the same discriminator _rows_v825() applied to
+    CONTRACT-01..05. CHAINHEAD-04/06/07, LEDGER-04 and SCAN-03/04 are Test-Network because
+    their deliverable is detector or gate code (check-quality-harness.py,
+    check-selfaudit-scan.py). SHIP-01..03 are Test-Network apparatus, matching the
+    v8.18/v8.24/v8.25 precedent. SHIP-04/05 are Methodology, matching _rows_v818()'s
+    explicit reasoning that a missing CHANGELOG entry is not a verification-system gap and
+    should score MEDIUM rather than HIGH under _SEVERITY_LABEL if ever downgraded.
+
+    Tiering, decided per row against "does something re-run", never by block (Pitfall 2,
+    16-RESEARCH.md -- a blanket count check is explicitly rejected because swapping one
+    row's tier with another's while holding the counts constant would pass silently).
+    Three rows are audit-only, each named and reasoned individually:
+      - SCAN-04: CLAUDE.md's own SCAN-GUARD row discloses the emission-cost figure as
+        "unfalsifiable rather than settled" -- no gate re-runs it.
+      - SHIP-04, SHIP-05: no gate re-runs to check a CHANGELOG entry's prose content, the
+        twice-used v8.18/v8.24 precedent for this exact requirement class.
+    The remaining 17 are reproducible.
+
+    Judgment call A3 (16-RESEARCH.md Assumptions Log), recorded as independently reversible
+    in the 12-RESEARCH.md §A idiom: CHAINHEAD-07 gets its OWN v8.26/CHAINHEAD-07 row
+    pointing at _selftest_chain_detector_pin, distinct from the existing v8.25/CONTRACT-06
+    row whose tier Phase 13 already flipped to reproducible against the same pin.
+    Justification: they are different requirement IDs under different milestone prefixes,
+    and two rows over one underlying mechanism is established practice here (GATE-02/GATE-03
+    in _rows_v824()). Reversing this would remove one row and move the total; that is the
+    disclosed cost.
+
+    DISCLOSED BOUNDARY for SCAN-01/02/03. Their anchors (_check_body_text, _check_rubric_text,
+    _check_cross_surface) do NOT start with _selftest_ or _self_test_, so
+    _resolve_artifact()'s dispatch-reachability leg does not apply to them: it proves each
+    anchor is DEFINED, not that it is CALLED. check-selfaudit-scan.py has no _selftest_*-
+    prefixed symbol at all, so there is no conforming anchor to point at. The dispatch
+    guarantee for these three is supplied instead by SCAN-GUARD's own validate-census
+    (plan 15-09) and by the (h4) call-site census _self_test_v826_rows_sentinel() adds.
+    State this rather than letting the reader assume the (h) guarantee extends here.
+    """
+    _audit_scan04 = (
+        "CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as "
+        "'unfalsifiable rather than settled' -- no gate re-runs it."
+    )
+    _audit_ship_changelog = (
+        "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 "
+        "SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04)."
+    )
+    return [
+        MatrixRow("v8.26/CHAINHEAD-01", "CHAINHEAD-01", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-02", "CHAINHEAD-02", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-03", "CHAINHEAD-03", "v8.26", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-04", "CHAINHEAD-04", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-05", "CHAINHEAD-05", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-06", "CHAINHEAD-06", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/CHAINHEAD-07", "CHAINHEAD-07", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", ""),
+        MatrixRow("v8.26/LEDGER-01", "LEDGER-01", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-02", "LEDGER-02", "v8.26", "Methodology",
+                  "shared/spine/references/output-template.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-03", "LEDGER-03", "v8.26", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+        MatrixRow("v8.26/LEDGER-04", "LEDGER-04", "v8.26", "Test-Network",
+                  "scripts/check-quality-harness.py",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_ledger_traceability", ""),
+        MatrixRow("v8.26/SCAN-01", "SCAN-01", "v8.26", "Methodology",
+                  "shared/spine/SKILL-body.md",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_body_text", ""),
+        MatrixRow("v8.26/SCAN-02", "SCAN-02", "v8.26", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_rubric_text", ""),
+        MatrixRow("v8.26/SCAN-03", "SCAN-03", "v8.26", "Test-Network",
+                  "scripts/check-selfaudit-scan.py",
+                  "reproducible",
+                  "scripts/check-selfaudit-scan.py#_check_cross_surface", ""),
+        MatrixRow("v8.26/SCAN-04", "SCAN-04", "v8.26", "Test-Network",
+                  "scripts/check-selfaudit-scan.py",
+                  "audit-only", "", _audit_scan04),
+        MatrixRow("v8.26/SHIP-01", "SHIP-01", "v8.26", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", ""),
+        MatrixRow("v8.26/SHIP-02", "SHIP-02", "v8.26", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v8.26/SHIP-03", "SHIP-03", "v8.26", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+        MatrixRow("v8.26/SHIP-04", "SHIP-04", "v8.26", "Methodology",
+                  "CHANGELOG.md",
+                  "audit-only", "", _audit_ship_changelog),
+        MatrixRow("v8.26/SHIP-05", "SHIP-05", "v8.26", "Methodology",
+                  "CHANGELOG.md",
+                  "audit-only", "", _audit_ship_changelog),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Seven inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Eight inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
-    at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12.
+    at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12; (h) was
+    added at v8.26 Phase 16.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -1771,6 +1905,14 @@ def build_matrix_rows() -> list[MatrixRow]:
         re-tiered reproducible at v8.26 Phase 13 (CHAINHEAD-07) once
         `_selftest_chain_detector_pin` gave that claim a gate. See `_rows_v825()` for the full
         per-row rationale.
+    (h) v8.26 milestone (20 rows, 17 reproducible + 3 audit-only) — Phase 16: the
+        milestone's CHAINHEAD-*/LEDGER-*/SCAN-*/SHIP-* requirements. CHAINHEAD-01/02/03/05,
+        LEDGER-01/02/03 and SCAN-01/02 carry Methodology (agent emission-contract or rubric
+        prose); CHAINHEAD-04/06/07, LEDGER-04 and SCAN-03/04 carry Test-Network
+        (detector/gate code); SHIP-01..03 are Test-Network apparatus; SHIP-04/05 are
+        Methodology (CHANGELOG record). SCAN-04, SHIP-04 and SHIP-05 are audit-only — named
+        individually, never by count. See `_rows_v826()` for the full per-row rationale and
+        its DISCLOSED BOUNDARY for SCAN-01/02/03's non-`_selftest_*` anchors.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -1801,6 +1943,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v824())
     # --- v8.25 milestone (Phase 12 / A1 / A2) — all 14 reproducible as of Phase 13 ---
     rows.extend(_rows_v825())
+    # --- v8.26 milestone (Phase 16) — 17 reproducible + 3 audit-only ---
+    rows.extend(_rows_v826())
     return rows
 
 
