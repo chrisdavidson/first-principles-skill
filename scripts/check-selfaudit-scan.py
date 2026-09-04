@@ -166,9 +166,16 @@ Exit codes:
     closed by this plan.
 (8) **`15-REVIEW.md`'s remaining findings, named rather than fixed here**:
     WR-03's not-found reporting arms carry no branch id of their own (net of
-    the two `R-02-placement-aa` closed) — Body-3's scan-lead,
-    ledger-fence-tail and ledger-clean not-found reports, and Rubric-13's
-    admission-sentence and Criterion-4-index not-found guards, are asserted
+    the one `R-02-placement-aa` closed) — Body-3's scan-lead,
+    ledger-fence-tail and ledger-clean not-found reports; Rubric-2's
+    scan-block and Precedence not-found reports; Rubric-13's
+    admission-sentence and Criterion-4-index not-found guards; and
+    Rubric-13's region-split anchor not-found guard (`split_idx`, the arm
+    plan 15-11 added) — eight arms total, re-measured by per-arm
+    neutralization against the tree plans 15-11 and 15-12 leave behind
+    (`15-13-SUMMARY.md` Measurement 2; the pre-15-08 review measured seven
+    and named five, omitting Rubric-2's two — an omission this plan closes
+    by re-deriving the set rather than transcribing it) — are asserted
     only through their sibling count checks. WR-04: `_find_flat`'s
     normalization is not independently load-bearing in any ordering arm,
     because the fail-closed `-1` guard masks its absence — a raw-`find`
