@@ -5,8 +5,12 @@
 """SCAN-GUARD gate: assert the self-audit scan's prescription (plan 15-01), its
 verify block and quote-source sentences (plan 15-02), the widened Verdict Block
 Format admission covering Criterion 2's Assumption Audit artifact alongside
-Criteria 4/6 (plan 15-08), and the independently falsifiable Assumption-Audit
-half of the scan block's placement predicate (plan 15-09) are present, correctly
+Criteria 4/6 (plan 15-08), the independently falsifiable Assumption-Audit
+half of the scan block's placement predicate (plan 15-09), and the quoted-span
+TEMPLATE widened to state the same two admitted-artifact clauses as the
+admission paragraph it governs, with a region-split mechanical agreement
+check and a superseded-wording pin on both prescriptive surfaces (plan
+15-11, closing `15-VERIFICATION.md`'s SCAN-02 gap) are present, correctly
 placed and internally coherent in the emitted first-principles tree.
 
 Phase 15 plan 01 added a `## Self-audit scan (process output)` prescription to
@@ -94,8 +98,14 @@ Exit codes:
     wording, and the clause is not silently dropped. Whether focused-mode surfaces
     belong in rendering-contract scope is backlog 999.16 and is not settled here.
 (5) **The disclosed residual after plan 15-07's format-amendment and quoted-span
-    pins**: the gate pins that the Verdict Block Format admits the self-audit
-    scan for Criteria 4 and 6 only, that each of those two criteria's quoted-span
+    pins, corrected at plan 15-11**: the gate pins that the Verdict Block
+    Format admits the self-audit scan for Criteria 4 and 6 AND the Assumption
+    Audit scan for Criterion 2 — stated in BOTH the quoted-span template and
+    the admission paragraph two lines below it, with each of the two clauses
+    asserted exactly once per statement (`Rubric-13`'s region split) rather
+    than as one union-scoped count over the whole section, so the template
+    and the admission cannot drift apart the way rounds 1 and 2 shipped. The
+    gate also pins that each of Criteria 4 and 6's quoted-span
     instruction carries both a scan half (scoped to the limbs a scan table
     covers) and a direct-quotation half (for the limbs it does not), and that
     both surfaces state the same table-coverage-bound sentence. It does NOT
@@ -129,6 +139,14 @@ Exit codes:
     cannot drift apart in the direction measured to matter; it does not make
     the enumeration complete against every future descriptor edit. The guard
     against the rest is procedural, matching bound (5)'s shape one level up.
+    Plan 15-11 made the quoted-span TEMPLATE state this same three-artifact
+    enumeration in the admission's own words, and `Rubric-13`'s region-split
+    clause guards now assert the two statements agree mechanically — a fix
+    applied to one prescriptive statement and not the other (the specific
+    drift that shipped in rounds 1 and 2) is no longer possible. This does
+    NOT extend to the enumeration's COMPLETENESS against a future descriptor
+    edit, which remains a census, not a mechanical guarantee, exactly as
+    stated above.
 (7) **`15-REVIEW.md` WR-01 remains open**: the shared table-coverage-bound
     sentence's enumeration of band-determining limbs neither scan table
     reaches is incomplete against the descriptors as they stand today, not
@@ -163,6 +181,22 @@ Exit codes:
     call, not a call whose returned result is discarded instead of being
     passed to the failure reporter. This is the same bound
     `check-quality-harness.py`'s own call-site census states about itself.
+(10) **What `Rubric-13`'s region split (plan 15-11) does and does not prove**,
+    in the same disclosed-bound voice as R7/R9/R10 in `check-quality-harness.py`:
+    it proves the two prescriptive statements inside the `## Verdict Block
+    Format` section — the fenced quoted-span TEMPLATE and the admission
+    paragraph two lines below it — each carry both admitted-artifact clauses,
+    independently, so a fix landed on one and not the other fails by name. It
+    does NOT reach the agent body's Validate step (`shared/spine/
+    SKILL-body.md:298`): that surface's agreement with the rubric's two
+    statements is asserted separately, by `Body-17` and `Cross-4`, as literal
+    presence rather than as a derived region-split equality — a Validate step
+    that dropped a clause would still be caught, just by a different
+    mechanism than the one this bound describes. It does NOT assert that the
+    template and the admission say the same thing in any sense beyond the two
+    clause literals themselves — two statements could carry both clauses,
+    verbatim, and still differ in every other word, and this gate would not
+    notice.
 
 ## Measured emission cost (SCAN-04)
 
