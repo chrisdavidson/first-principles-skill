@@ -69,6 +69,27 @@ Exit codes:
     exactly. No skill-stub-surface assertion is invented to satisfy the literal
     wording, and the clause is not silently dropped. Whether focused-mode surfaces
     belong in rendering-contract scope is backlog 999.16 and is not settled here.
+(5) **The disclosed residual after plan 15-07's format-amendment and quoted-span
+    pins**: the gate pins that the Verdict Block Format admits the self-audit
+    scan for Criteria 4 and 6 only, that each of those two criteria's quoted-span
+    instruction carries both a scan half (scoped to the limbs a scan table
+    covers) and a direct-quotation half (for the limbs it does not), and that
+    both surfaces state the same table-coverage-bound sentence. It does NOT
+    assert that the limbs each direct-quotation half and the coverage-bound
+    sentence enumerate — the Abandoned Reasoning section, the
+    no-analogies-as-direct-evidence ban, a missing `[Assumes: X]` declaration,
+    and Key-Insight non-obviousness — are the COMPLETE set of limbs the two scan
+    tables fail to reach, because that completeness is a semantic property of
+    the criterion descriptor prose (the Rigorous/Sound/Hand-wavy/Absent bullets
+    under Criterion 4 and Criterion 6) and no mechanical check in this tree
+    reads descriptor prose. If a future descriptor edit adds a new
+    band-determining limb without a column in either scan table, the gate stays
+    green and the enumeration goes stale — the same disclosed-bound shape R7/R9/
+    R10 carry in `check-quality-harness.py`'s QUAL-01 row. The guard against
+    that drift is procedural, not mechanical: a descriptor edit that adds such a
+    limb must land in the same plan as an enumeration edit to the direct-half
+    sentence and the coverage-bound sentence on both surfaces, which this
+    disclosed bound exists to make explicit rather than silently assumed.
 
 ## Measured emission cost (SCAN-04)
 
