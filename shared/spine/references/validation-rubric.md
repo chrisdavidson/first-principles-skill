@@ -174,7 +174,7 @@ analysis section exists and contains scoreable content:
 
 ```text
 **Criterion N: [Criterion Name]**
-Quoted span: "[Direct quote of the specific text that most directly determines the band assigned — from the analysis being scored, or, for Criteria 4 and 6 only, from the self-audit scan emitted as process output for this analysis.]"
+Quoted span: "[Direct quote of the specific text that most directly determines the band assigned — from the analysis being scored, or, per the admission below, from the self-audit scan for Criteria 4 and 6 or the Assumption Audit scan for Criterion 2, each emitted as process output for this analysis.]"
 Band: [**Rigorous** / **Sound** / **Hand-wavy** / **Absent**]
 Justification: [One sentence tying the quoted span to the observable descriptor for
 that band — name the specific structural property present or absent.]

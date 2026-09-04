@@ -400,8 +400,15 @@ _RUBRIC_QUOTED_SPAN_C6_DIRECT = (
 _RUBRIC_FORMAT_QUOTED_SPAN = (
     'Quoted span: "[Direct quote of the specific text that most directly '
     "determines the band assigned — from the analysis being scored, or, "
-    "for Criteria 4 and 6 only, from the self-audit scan emitted as "
-    'process output for this analysis.]"'
+    "per the admission below, from the self-audit scan for Criteria 4 "
+    "and 6 or the Assumption Audit scan for Criterion 2, each emitted "
+    'as process output for this analysis.]"'
+)
+# Pre-15-11 narrow template wording, pinned at count 0 so only reinstatement
+# fires it — mirrors _RUBRIC_FORMAT_ADMISSION_SUPERSEDED's role and comment
+# shape for plan 15-08's superseded admission clause.
+_RUBRIC_FORMAT_QUOTED_SPAN_SUPERSEDED = (
+    "for Criteria 4 and 6 only, from the self-audit scan"
 )
 _RUBRIC_FORMAT_PREAMENDMENT = (
     'Quoted span: "[Direct quote of the specific text in the analysis '
