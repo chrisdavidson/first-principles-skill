@@ -11,6 +11,74 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [8.26.0] — 2026-09-04
+
+Ships three deliverables that make the emission rendering contract's own claims checkable: the
+**chain-head grammar** (Phase 13, CHAINHEAD-01..07), the **closure-ledger claim inventory**
+(Phase 14, LEDGER-01..04), and the **self-audit scan** (Phase 15, SCAN-01..04). `output-template.md`
+section 4 now states the head-line grammar prescriptively — consumed inputs are `GT-N` or `Cn`
+identifiers, each optionally glossed in parentheses, joined by `+`, with the first arrow closing
+the head — byte-identical across four canonical surfaces, with a conforming and a non-conforming
+worked example scored by the unmodified `_chain_block_well_formed` and a sha256 pin freezing it.
+The section 6 → section 4 closure ledger's claim-extraction rule (R11) and caveat rule (R12) are
+stated on all three contract surfaces, with the 2026-09-02 PR-P1 analysis committed as
+`tests/quality-ledger-v8.26/` and pinned at its measured reading. Phase 5 now emits a chain-form
+and claim-inventory scan as process output; Criteria 4 and 6 quote that scan as their evidence
+rather than asserting a band, and SCAN-GUARD asserts the scan's presence, placement and coherence
+in the emitted tree. The coverage headline moves `175 reproducible / 91 audit-only / 0 gap / 266
+total` to `192 reproducible / 94 audit-only / 0 gap / 286 total` (20 requirements registered as
+matrix rows via a new `_rows_v826()`), and the firewall battery tally stays **24/24** — SCAN-GUARD
+was registered at Phase 15 and already moved it 23 to 24; this milestone registers no new gate.
+
+### Added
+
+- **Chain-head grammar** (`output-template.md` §4, CHAINHEAD-01..07). The head-line grammar is
+  stated prescriptively with a conforming and a non-conforming worked example (including the
+  possessive/prose form, `C2's threshold`, that the 2026-09-02 run actually emitted), registered
+  byte-identical across four canonical surfaces in QUAL-01's cross-surface literal set, and frozen
+  under a sha256 digest pin (`_selftest_chain_detector_pin`) over `_chain_block_well_formed`'s own
+  source. **Disclosed limits — POSITIONAL, not universal:** R7's, R9's and R10's bounds are
+  measured properties of the frozen form check, not of the grammar itself. R7/R9 bind the rule in
+  every input position, but the mechanical check reaches only the head and the first hop, so it
+  under-detects the same violation later in a chain; R10 discloses the mirror-image bound — a head
+  or first hop that closes its own sentence before the next arrow is scored malformed even though
+  it violates none of R1-R9, and that over-rejection is itself positional.
+- **Closure-ledger claim inventory** (LEDGER-01..04). R11 (claim extraction) and R12 (caveat) are
+  now stated on all three contract surfaces, matching what `_conclusion_claims` extracts; the
+  2026-09-02 analysis is registered as a fixture asserting its measured reading (one untraced
+  claim, the trade-offs paragraph). **Disclosed limits:** a bare bold lead-in alone on its line is
+  a section-intro label and escapes the claim obligation; a bold span whose closing `**` does not
+  immediately follow a colon is never matched; a short unpunctuated list item is under the
+  assertiveness floor; and a caveat carrying the `no chain — flagged assumption only` marker still
+  scores untraced BY DESIGN — the marker discloses the gap, it does not discharge the claim.
+  `_slice_sections`' section 6 now stops at the first ATX heading not inside a fenced code block,
+  and never later than the Self-Audit Gate (the Gate cap); an unterminated fence in section 6
+  returns nothing, per CommonMark.
+- **Self-audit scan** (SCAN-01..04). Phase 5 emits a chain-form and claim-inventory scan as
+  process output, one row per chain block and one per section-6 claim; Criteria 4 and 6 quote that
+  scan as their evidence rather than asserting a band; SCAN-GUARD asserts the scan's presence,
+  placement and internal coherence on both the agent and skill-stub surfaces. **Disclosed limits:**
+  SCAN-GUARD does not assert that a scan row's content is correct, and does not assert that a live
+  run complied with the prescription (that needs 999.12/999.13). No focused-mode skill stub carries
+  Criterion 4 or 6 at all (backlog 999.16 remains open), and the SCAN-04 emission-cost comparison
+  (2,288 vs. an independent 1,381-character reconstruction) is disclosed as unfalsifiable rather
+  than settled.
+- **20 new traceability-matrix rows** (17 reproducible + 3 audit-only) via a new `_rows_v826()`,
+  moving the coverage headline `175/91/0/266` → `192/94/0/286`. The SCAN-01..03 anchor entries are
+  not dispatch-checked by `_resolve_artifact()` — `check-selfaudit-scan.py` has no
+  `_selftest_*`-prefixed symbol — so a call-site census in `V826-ROWS` covers them instead; that
+  census counts source text without observing behaviour.
+
+**Exemplar-conformance disclosure (SHIP-05).** Re-derived at execution time (2026-09-04) with the
+unmodified frozen detectors (`_slice_sections`, `_verdict_conforms`, `_conclusion_claims`,
+`_chain_block_well_formed`) over the 14 shipped worked examples in `shared/examples/`: **4 of 14**
+are unreadable by `_slice_sections`; **69/69** section-2 verdict cells are non-conforming; **56/58**
+section-6 claims are untraced, with **0** carrying the `no chain — flagged assumption only` marker;
+**19/28** chain blocks are malformed. This release adds R7 through R12 while shipping exemplars
+that violate R1 through R12 at 68-100%. Publishing the rules while omitting that number is the one
+option inconsistent with this project's own disclosure discipline. **v9.0.0** is the milestone
+that closes this gap.
+
 ## [8.25.0] — 2026-09-01
 
 Widens `HEADLINE-LOCK` from one current-fact surface to five — `CLAUDE.md`, `docs/README.md`,
