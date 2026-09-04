@@ -460,6 +460,39 @@ def _hardwrap_relocate_in_range(
     return head + new_region + tail
 
 
+def _duplicate_after(text: str, literal: str, anchor: str) -> str:
+    """Insert a second copy of *literal* immediately after *anchor*, leaving
+    every existing occurrence of *literal* in *text* untouched.
+
+    *anchor* may equal *literal* itself, in which case the duplicate lands
+    right after the literal's own first occurrence. The mirror image of
+    `_strip_everywhere`: proves the "duplicated" direction of a `!= 1` count
+    guard, not just the "missing" direction.
+    """
+    anchor_idx = text.find(anchor)
+    assert anchor_idx != -1, f"anchor {anchor!r} not found"
+    idx = anchor_idx + len(anchor)
+    return text[:idx] + "\n\n" + literal + "\n\n" + text[idx:]
+
+
+def _duplicate_within_range(
+    text: str, start_anchor: str, end_anchor: str, literal: str
+) -> str:
+    """Insert a second copy of *literal* immediately after its own first
+    occurrence, scoped inside [start_anchor, end_anchor) — the range's own
+    count of *literal* doubles, everything outside the range is untouched."""
+    start = text.find(start_anchor)
+    assert start != -1, f"start anchor {start_anchor!r} not found"
+    end = text.find(end_anchor, start)
+    assert end != -1, f"end anchor {end_anchor!r} not found after start anchor"
+    head, region, tail = text[:start], text[start:end], text[end:]
+    lit_idx = region.find(literal)
+    assert lit_idx != -1, f"literal {literal!r} not found within range"
+    insert_idx = lit_idx + len(literal)
+    new_region = region[:insert_idx] + "\n\n" + literal + "\n\n" + region[insert_idx:]
+    return head + new_region + tail
+
+
 # ---------------------------------------------------------------------------
 # Body (agent) checks
 # ---------------------------------------------------------------------------
@@ -633,13 +666,18 @@ def _check_rubric_text(text: str) -> list[str]:
     failures: list[str] = []
 
     # Rubric-1: the scan block heading occurs exactly once in the whole file.
+    # No early return here (WR-10, `15-REVIEW.md`): Rubric-9, Rubric-10 and
+    # Rubric-11 assert on the Criterion 4/6 slices, which are structurally
+    # independent of the scan-block heading, so a heading defect must not
+    # suppress them — Body-1's early return stays because everything after
+    # IT genuinely depends on the section slice it resolves; this asymmetry
+    # is deliberate, not an oversight to "fix" by symmetry.
     block_count = _count_flat(text, _RUBRIC_SCAN_BLOCK)
     if block_count != 1:
         failures.append(
             f"Rubric-1: scan block heading occurs {block_count} time(s) in "
             "the whole file, expected exactly 1"
         )
-        return failures
 
     # Rubric-2: placement — the scan block sits strictly between the
     # Assumption Audit block and the Precedence rule paragraph.
@@ -678,12 +716,16 @@ def _check_rubric_text(text: str) -> list[str]:
                 + "; ".join(repr(m) for m in missing_divlabour)
             )
 
-        # Rubric-4: the two-criteria pointer sentence, naming both criteria.
+        # Rubric-4: the two-criteria pointer sentence. WR-09 (`15-REVIEW.md`):
+        # this check used to also loop over ("Criterion 4", "Criterion 6")
+        # asserting each name appears somewhere in `scan_slice` — that loop
+        # carried no information, because three OTHER sentences in the same
+        # slice already name both criteria (confirmed: neutralizing the loop
+        # left it undetected, WR-01's m6), so it never independently failed.
+        # Deleted rather than kept as coverage theatre; the presence check
+        # below is the real, falsifiable assertion.
         if not _contains(scan_slice, _RUBRIC_TWO_CRIT_SENTENCE):
             failures.append("Rubric-4: missing two-criteria pointer sentence")
-        for crit_name in ("Criterion 4", "Criterion 6"):
-            if not _contains(scan_slice, crit_name):
-                failures.append(f"Rubric-4: scan slice does not name {crit_name!r}")
 
         # Rubric-5: both column lists.
         missing_cols = [
@@ -844,37 +886,64 @@ def _validate_files() -> int:
 
 REQUIRED_BRANCHES: frozenset[str] = frozenset(
     {
-        "B-01-slice",
-        "B-02-lead",
-        "B-03-placement",
-        "B-04-heading",
-        "B-05-cols-chain",
-        "B-06-cols-claim",
-        "B-07-rowrule",
+        "B-01-slice-count",
+        "B-01-slice-noheading",
+        "B-02-lead-slice",
+        "B-02-lead-whole",
+        "B-02-lead-dup",
+        "B-03-placement-tail",
+        "B-03-placement-clean",
+        "B-04-heading-missing",
+        "B-04-heading-dup",
+        "B-05-cols-chain-missing",
+        "B-05-cols-chain-dup",
+        "B-06-cols-claim-missing",
+        "B-06-cols-claim-dup",
+        "B-07-rowrule-chain",
+        "B-07-rowrule-claim",
         "B-08-rejected",
         "B-09-cleanpass",
-        "B-10-ledger-indep",
-        "B-11-recon",
-        "B-12-placement-sentence",
+        "B-10-ledger-indep-1",
+        "B-10-ledger-indep-2",
+        "B-11-recon-lead",
+        "B-11-recon-template",
+        "B-12-placement-1",
+        "B-12-placement-2",
         "B-13-refix",
         "B-14-bound",
-        "B-15-donotpresent",
-        "R-01-block",
-        "R-02-placement",
-        "R-03-divlabour",
+        "B-15-donotpresent-amended",
+        "B-15-donotpresent-preamendment",
+        "B-15-donotpresent-dup",
+        "R-01-block-missing",
+        "R-01-block-dup",
+        "R-01-no-mask",
+        "R-02-placement-order",
+        "R-02-placement-anchor",
+        "R-03-divlabour-1",
+        "R-03-divlabour-2",
         "R-04-two-criteria",
-        "R-05-cols",
+        "R-05-cols-chain",
+        "R-05-cols-claim",
         "R-06-ledger",
-        "R-07-missing",
+        "R-07-missing-absent",
+        "R-07-missing-neartwin",
         "R-08-bound",
-        "R-09-crit4-count",
+        "R-09-crit4-count-missing",
+        "R-09-crit4-count-dup",
         "R-09-crit4-order",
-        "R-10-crit6-count",
+        "R-10-crit6-count-missing",
+        "R-10-crit6-count-dup",
         "R-10-crit6-order",
-        "R-11-bands",
-        "R-12-halt",
-        "X-01-cols",
-        "X-02-heading",
+        "R-11-bands-crit4",
+        "R-11-bands-crit6",
+        "R-12-halt-missing",
+        "R-12-halt-dup",
+        "X-01-cols-chain-body",
+        "X-01-cols-chain-rubric",
+        "X-01-cols-claim-body",
+        "X-01-cols-claim-rubric",
+        "X-02-heading-body",
+        "X-02-heading-rubric",
     }
 )
 
@@ -894,16 +963,35 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset(
 # set that actually differs is caught.
 _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
     {
-        "B-01-slice", "B-02-lead", "B-03-placement", "B-04-heading",
-        "B-05-cols-chain", "B-06-cols-claim", "B-07-rowrule", "B-08-rejected",
-        "B-09-cleanpass", "B-10-ledger-indep", "B-11-recon",
-        "B-12-placement-sentence", "B-13-refix", "B-14-bound",
-        "B-15-donotpresent",
-        "R-01-block", "R-02-placement", "R-03-divlabour",
-        "R-04-two-criteria", "R-05-cols", "R-06-ledger", "R-07-missing",
-        "R-08-bound", "R-09-crit4-count", "R-09-crit4-order",
-        "R-10-crit6-count", "R-10-crit6-order", "R-11-bands", "R-12-halt",
-        "X-01-cols", "X-02-heading",
+        "B-01-slice-count", "B-01-slice-noheading",
+        "B-02-lead-slice", "B-02-lead-whole", "B-02-lead-dup",
+        "B-03-placement-tail", "B-03-placement-clean",
+        "B-04-heading-missing", "B-04-heading-dup",
+        "B-05-cols-chain-missing", "B-05-cols-chain-dup",
+        "B-06-cols-claim-missing", "B-06-cols-claim-dup",
+        "B-07-rowrule-chain", "B-07-rowrule-claim",
+        "B-08-rejected", "B-09-cleanpass",
+        "B-10-ledger-indep-1", "B-10-ledger-indep-2",
+        "B-11-recon-lead", "B-11-recon-template",
+        "B-12-placement-1", "B-12-placement-2",
+        "B-13-refix", "B-14-bound",
+        "B-15-donotpresent-amended", "B-15-donotpresent-preamendment",
+        "B-15-donotpresent-dup",
+        "R-01-block-missing", "R-01-block-dup", "R-01-no-mask",
+        "R-02-placement-order", "R-02-placement-anchor",
+        "R-03-divlabour-1", "R-03-divlabour-2",
+        "R-04-two-criteria",
+        "R-05-cols-chain", "R-05-cols-claim",
+        "R-06-ledger",
+        "R-07-missing-absent", "R-07-missing-neartwin",
+        "R-08-bound",
+        "R-09-crit4-count-missing", "R-09-crit4-count-dup", "R-09-crit4-order",
+        "R-10-crit6-count-missing", "R-10-crit6-count-dup", "R-10-crit6-order",
+        "R-11-bands-crit4", "R-11-bands-crit6",
+        "R-12-halt-missing", "R-12-halt-dup",
+        "X-01-cols-chain-body", "X-01-cols-chain-rubric",
+        "X-01-cols-claim-body", "X-01-cols-claim-rubric",
+        "X-02-heading-body", "X-02-heading-rubric",
     }
 )
 
@@ -1024,52 +1112,208 @@ def _run_self_test() -> int:
         print("(c) positive control — cross-surface: PASS (0 failures)")
 
     # --- Body branch negative controls -------------------------------------
+    # Clause-level split (plan 15-06, closing WR-01's body-surface rows m5,
+    # m7, m8, m9, m10, m19, m21): every `!= 1` count guard gets a MISSING
+    # (0) arm and, where the guard is genuinely `!= 1` rather than `< 1`, a
+    # DUPLICATE (2) arm; every combined placement predicate gets one arm per
+    # half; every multi-literal tuple gets one arm per literal.
 
-    # B-01-slice: strip the section-start heading so the slice does not resolve.
-    body_b01 = _strip_everywhere(real_body, _BODY_SECTION_START)
+    # B-01-slice-count: strip the section-start heading (occurs 0 times) —
+    # the count guard fires before the slice is even attempted.
+    body_b01a = _strip_everywhere(real_body, _BODY_SECTION_START)
     _check_negative(
-        "B-01", _check_body_text(body_b01), "Body-1", "occurs 0 time(s)", "B-01-slice"
+        "B-01a",
+        _check_body_text(body_b01a),
+        "Body-1",
+        "occurs 0 time(s)",
+        "B-01-slice-count",
     )
 
-    # B-02-lead: strip the scan lead.
-    body_b02 = _strip_everywhere(real_body, _BODY_SCAN_LEAD)
+    # B-01-slice-noheading: the section-start heading occurs exactly once,
+    # but nothing that looks like a following '## ' heading exists — the
+    # count guard passes, `_slice_to_next_h2` still cannot resolve the slice.
+    _b01b_start = real_body.find(_BODY_SECTION_START)
+    assert _b01b_start != -1, "section start heading not found in real body"
+    body_b01b = (
+        real_body[: _b01b_start + len(_BODY_SECTION_START)]
+        + "\n\nNo further heading follows this line.\n"
+    )
     _check_negative(
-        "B-02", _check_body_text(body_b02), "Body-2", "occurs 0 time(s)", "B-02-lead"
+        "B-01b",
+        _check_body_text(body_b01b),
+        "Body-1",
+        "no '## ' heading found",
+        "B-01-slice-noheading",
     )
 
-    # B-03-placement: relocate the scan lead past the ledger-clean handoff —
-    # the literal remains PRESENT (Body-2 still passes) but out of order.
-    body_b03 = _relocate(real_body, _BODY_SCAN_LEAD, _BODY_LEDGER_CLEAN)
+    # B-02-lead-slice / B-02-lead-whole (missing direction): the scan lead
+    # has exactly one occurrence in the real body, so stripping it fires
+    # BOTH the slice-scoped and whole-file count guards in one fixture —
+    # each `_check_negative` call below targets its own guard's distinct
+    # message text inside that same failures list.
+    body_b02_strip = _strip_everywhere(real_body, _BODY_SCAN_LEAD)
+    _b02_strip_failures = _check_body_text(body_b02_strip)
     _check_negative(
-        "B-03",
-        _check_body_text(body_b03),
+        "B-02-slice",
+        _b02_strip_failures,
+        "Body-2",
+        "in the section slice, expected exactly 1",
+        "B-02-lead-slice",
+    )
+    _check_negative(
+        "B-02-whole-missing",
+        _b02_strip_failures,
+        "Body-2",
+        "in the whole file, expected exactly 1",
+        "B-02-lead-whole",
+    )
+
+    # B-02-lead-dup: duplicate the scan lead INSIDE the section slice — the
+    # slice-scoped count guard now fires in the "occurs 2 time(s)" direction,
+    # which the missing-direction fixture above cannot exercise.
+    body_b02_dup = _duplicate_within_range(
+        real_body, _BODY_SECTION_START, _BODY_LEDGER_CLEAN, _BODY_SCAN_LEAD
+    )
+    _check_negative(
+        "B-02-dup",
+        _check_body_text(body_b02_dup),
+        "Body-2",
+        "in the section slice",
+        "B-02-lead-dup",
+    )
+
+    # B-03-placement-clean: relocate the scan lead PAST the ledger-clean
+    # handoff — violates the `lead_idx < clean_idx` half of the placement
+    # predicate while `tail_idx < lead_idx` still holds.
+    body_b03_clean = _relocate(real_body, _BODY_SCAN_LEAD, _BODY_LEDGER_CLEAN)
+    _check_negative(
+        "B-03-clean",
+        _check_body_text(body_b03_clean),
         "Body-3",
         "placement violated",
-        "B-03-placement",
+        "B-03-placement-clean",
     )
 
-    # B-04-heading: strip the scan heading.
-    body_b04 = _strip_everywhere(real_body, _SCAN_HEADING)
+    # B-03-placement-tail: relocate the scan lead BEFORE the ledger fence
+    # tail — violates the `tail_idx < lead_idx` half while `lead_idx <
+    # clean_idx` still holds. This is WR-01's m19: a predicate narrowed to
+    # only the "clean" half leaves this fixture undetected.
+    body_b03_tail = _relocate(real_body, _BODY_SCAN_LEAD, _BODY_SECTION_START)
     _check_negative(
-        "B-04", _check_body_text(body_b04), "Body-4", "occurs 0 time(s)", "B-04-heading"
+        "B-03-tail",
+        _check_body_text(body_b03_tail),
+        "Body-3",
+        "placement violated",
+        "B-03-placement-tail",
     )
 
-    # B-05-cols-chain: strip the chain-form column list.
-    body_b05 = _strip_everywhere(real_body, _COLS_CHAIN)
+    # B-04-heading-missing: strip the scan heading.
+    body_b04a = _strip_everywhere(real_body, _SCAN_HEADING)
     _check_negative(
-        "B-05", _check_body_text(body_b05), "Body-5", "occurs 0 time(s)", "B-05-cols-chain"
+        "B-04a",
+        _check_body_text(body_b04a),
+        "Body-4",
+        "occurs 0 time(s)",
+        "B-04-heading-missing",
     )
 
-    # B-06-cols-claim: strip the claim-inventory column list.
-    body_b06 = _strip_everywhere(real_body, _COLS_CLAIM)
+    # B-04-heading-dup: duplicate the scan heading inside the section slice
+    # — WR-01's m21, a `!= 1` guard narrowed to `< 1` leaves this undetected.
+    # Inserted INLINE (same line, no leading blank line) rather than through
+    # `_duplicate_within_range`'s blank-line-separated form: `_SCAN_HEADING`
+    # itself starts with "## ", and a bare standalone copy would match
+    # `_H2_RE` and get read as the section's own closing heading, truncating
+    # the slice before Body-5 onward and producing a wrong-reason failure.
+    _b04b_start = real_body.find(_BODY_SECTION_START)
+    _b04b_end = real_body.find(_BODY_LEDGER_CLEAN, _b04b_start)
+    assert _b04b_start != -1 and _b04b_end != -1
+    _b04b_head, _b04b_region, _b04b_tail = (
+        real_body[:_b04b_start],
+        real_body[_b04b_start:_b04b_end],
+        real_body[_b04b_end:],
+    )
+    _b04b_lit_idx = _b04b_region.find(_SCAN_HEADING)
+    assert _b04b_lit_idx != -1
+    _b04b_insert_at = _b04b_lit_idx + len(_SCAN_HEADING)
+    body_b04b = (
+        _b04b_head
+        + _b04b_region[:_b04b_insert_at]
+        + " "
+        + _SCAN_HEADING
+        + _b04b_region[_b04b_insert_at:]
+        + _b04b_tail
+    )
     _check_negative(
-        "B-06", _check_body_text(body_b06), "Body-6", "occurs 0 time(s)", "B-06-cols-claim"
+        "B-04b",
+        _check_body_text(body_b04b),
+        "Body-4",
+        "occurs 2 time(s)",
+        "B-04-heading-dup",
     )
 
-    # B-07-rowrule: strip one of the two row-population rules.
-    body_b07 = _strip_everywhere(real_body, _BODY_ROWRULE_CHAIN)
+    # B-05-cols-chain-missing: strip the chain-form column list.
+    body_b05a = _strip_everywhere(real_body, _COLS_CHAIN)
     _check_negative(
-        "B-07", _check_body_text(body_b07), "Body-7", repr(_BODY_ROWRULE_CHAIN), "B-07-rowrule"
+        "B-05a",
+        _check_body_text(body_b05a),
+        "Body-5",
+        "occurs 0 time(s)",
+        "B-05-cols-chain-missing",
+    )
+
+    # B-05-cols-chain-dup: duplicate the chain-form column list in the slice.
+    body_b05b = _duplicate_within_range(
+        real_body, _BODY_SECTION_START, _BODY_LEDGER_CLEAN, _COLS_CHAIN
+    )
+    _check_negative(
+        "B-05b",
+        _check_body_text(body_b05b),
+        "Body-5",
+        "occurs 2 time(s)",
+        "B-05-cols-chain-dup",
+    )
+
+    # B-06-cols-claim-missing: strip the claim-inventory column list.
+    body_b06a = _strip_everywhere(real_body, _COLS_CLAIM)
+    _check_negative(
+        "B-06a",
+        _check_body_text(body_b06a),
+        "Body-6",
+        "occurs 0 time(s)",
+        "B-06-cols-claim-missing",
+    )
+
+    # B-06-cols-claim-dup: duplicate the claim-inventory column list in the slice.
+    body_b06b = _duplicate_within_range(
+        real_body, _BODY_SECTION_START, _BODY_LEDGER_CLEAN, _COLS_CLAIM
+    )
+    _check_negative(
+        "B-06b",
+        _check_body_text(body_b06b),
+        "Body-6",
+        "occurs 2 time(s)",
+        "B-06-cols-claim-dup",
+    )
+
+    # B-07-rowrule-chain: strip the section-4 row-population rule.
+    body_b07a = _strip_everywhere(real_body, _BODY_ROWRULE_CHAIN)
+    _check_negative(
+        "B-07a",
+        _check_body_text(body_b07a),
+        "Body-7",
+        repr(_BODY_ROWRULE_CHAIN),
+        "B-07-rowrule-chain",
+    )
+
+    # B-07-rowrule-claim: strip the section-6 row-population rule — WR-01's
+    # m7, unasserted before this split.
+    body_b07b = _strip_everywhere(real_body, _BODY_ROWRULE_CLAIM)
+    _check_negative(
+        "B-07b",
+        _check_body_text(body_b07b),
+        "Body-7",
+        repr(_BODY_ROWRULE_CLAIM),
+        "B-07-rowrule-claim",
     )
 
     # B-08-rejected: strip the non-claim-rows-populated sentence.
@@ -1084,30 +1328,67 @@ def _run_self_test() -> int:
         "B-09", _check_body_text(body_b09), "Body-9", "missing sentence", "B-09-cleanpass"
     )
 
-    # B-10-ledger-indep: strip one of the two ledger-independence sentences.
-    body_b10 = _strip_everywhere(real_body, _BODY_LEDGER_INDEP_1)
+    # B-10-ledger-indep-1: strip the "derive independently" half.
+    body_b10a = _strip_everywhere(real_body, _BODY_LEDGER_INDEP_1)
     _check_negative(
-        "B-10",
-        _check_body_text(body_b10),
+        "B-10a",
+        _check_body_text(body_b10a),
         "Body-10",
         repr(_BODY_LEDGER_INDEP_1),
-        "B-10-ledger-indep",
+        "B-10-ledger-indep-1",
     )
 
-    # B-11-recon: strip the reconciliation lead sentence.
-    body_b11 = _strip_everywhere(real_body, _BODY_RECON_LEAD)
+    # B-10-ledger-indep-2: strip the "ledger not admissible" half — WR-01's
+    # m9, unasserted before this split.
+    body_b10b = _strip_everywhere(real_body, _BODY_LEDGER_INDEP_2)
     _check_negative(
-        "B-11", _check_body_text(body_b11), "Body-11", repr(_BODY_RECON_LEAD), "B-11-recon"
+        "B-10b",
+        _check_body_text(body_b10b),
+        "Body-10",
+        repr(_BODY_LEDGER_INDEP_2),
+        "B-10-ledger-indep-2",
     )
 
-    # B-12-placement-sentence: strip one of the two placement/provenance sentences.
-    body_b12 = _strip_everywhere(real_body, _BODY_PLACEMENT_1)
+    # B-11-recon-lead: strip the reconciliation lead sentence.
+    body_b11a = _strip_everywhere(real_body, _BODY_RECON_LEAD)
     _check_negative(
-        "B-12",
-        _check_body_text(body_b12),
+        "B-11a",
+        _check_body_text(body_b11a),
+        "Body-11",
+        repr(_BODY_RECON_LEAD),
+        "B-11-recon-lead",
+    )
+
+    # B-11-recon-template: strip the reconciliation line's own template —
+    # WR-01's m10, unasserted before this split.
+    body_b11b = _strip_everywhere(real_body, _BODY_RECON_TEMPLATE)
+    _check_negative(
+        "B-11b",
+        _check_body_text(body_b11b),
+        "Body-11",
+        repr(_BODY_RECON_TEMPLATE),
+        "B-11-recon-template",
+    )
+
+    # B-12-placement-1: strip the first placement/provenance sentence.
+    body_b12a = _strip_everywhere(real_body, _BODY_PLACEMENT_1)
+    _check_negative(
+        "B-12a",
+        _check_body_text(body_b12a),
         "Body-12",
         repr(_BODY_PLACEMENT_1),
-        "B-12-placement-sentence",
+        "B-12-placement-1",
+    )
+
+    # B-12-placement-2: strip the second placement/provenance sentence —
+    # WR-01's m8, unasserted before this split.
+    body_b12b = _strip_everywhere(real_body, _BODY_PLACEMENT_2)
+    _check_negative(
+        "B-12b",
+        _check_body_text(body_b12b),
+        "Body-12",
+        repr(_BODY_PLACEMENT_2),
+        "B-12-placement-2",
     )
 
     # B-13-refix: strip the re-run-on-Fix sentence.
@@ -1126,25 +1407,40 @@ def _run_self_test() -> int:
         "B-14-bound",
     )
 
-    # B-15-donotpresent, arm 1: strip the amended handoff sentence.
+    # B-15-donotpresent-amended: strip the amended handoff sentence.
     body_b15a = _strip_everywhere(real_body, _BODY_DONOTPRESENT_AMENDED)
     _check_negative(
         "B-15a",
         _check_body_text(body_b15a),
         "Body-15",
         "occurs 0 time(s)",
-        "B-15-donotpresent",
+        "B-15-donotpresent-amended",
     )
 
-    # B-15-donotpresent, arm 2: reinstate the pre-amendment form ALONGSIDE the
-    # amended one (both present) — both halves of Body-15 are live.
+    # B-15-donotpresent-preamendment: reinstate the pre-amendment form
+    # ALONGSIDE the amended one (both present) — both halves of Body-15
+    # are live.
     body_b15b = real_body + "\n\n" + _BODY_DONOTPRESENT_PREAMENDMENT
     _check_negative(
         "B-15b",
         _check_body_text(body_b15b),
         "Body-15",
         "pre-amendment handoff sentence still present",
-        "B-15-donotpresent",
+        "B-15-donotpresent-preamendment",
+    )
+
+    # B-15-donotpresent-dup: duplicate the amended handoff sentence — the
+    # `!= 1` count guard's OTHER direction, which the missing-direction
+    # fixture above cannot exercise.
+    body_b15c = _duplicate_after(
+        real_body, _BODY_DONOTPRESENT_AMENDED, _BODY_DONOTPRESENT_AMENDED
+    )
+    _check_negative(
+        "B-15c",
+        _check_body_text(body_b15c),
+        "Body-15",
+        "occurs 2 time(s)",
+        "B-15-donotpresent-dup",
     )
 
     # Hard-wrap arm 1 (body): reinstate a ledger-independence literal
@@ -1167,37 +1463,103 @@ def _run_self_test() -> int:
         print("(hw-body) hard-wrap arm: PASS — Body-10 tolerates a hard-wrapped literal")
 
     # --- Rubric branch negative controls ------------------------------------
+    # Clause-level split (plan 15-06, closing WR-01's rubric-surface rows m6,
+    # m11, m12 and m20, and WR-10's early-return masking).
 
-    # R-01-block: strip the scan block heading.
-    rubric_r01 = _strip_everywhere(real_rubric, _RUBRIC_SCAN_BLOCK)
+    # R-01-block-missing: strip the scan block heading.
+    rubric_r01a = _strip_everywhere(real_rubric, _RUBRIC_SCAN_BLOCK)
     _check_negative(
-        "R-01", _check_rubric_text(rubric_r01), "Rubric-1", "occurs 0 time(s)", "R-01-block"
+        "R-01a",
+        _check_rubric_text(rubric_r01a),
+        "Rubric-1",
+        "occurs 0 time(s)",
+        "R-01-block-missing",
     )
 
-    # R-02-placement: relocate the scan block past the Precedence rule.
-    rubric_r02 = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
+    # R-01-block-dup: duplicate the scan block heading right after its own
+    # first occurrence — the `!= 1` guard's other direction.
+    rubric_r01b = _duplicate_after(real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_SCAN_BLOCK)
     _check_negative(
-        "R-02",
-        _check_rubric_text(rubric_r02),
+        "R-01b",
+        _check_rubric_text(rubric_r01b),
+        "Rubric-1",
+        "occurs 2 time(s)",
+        "R-01-block-dup",
+    )
+
+    # R-01-no-mask (WR-10): duplicate the scan block heading (Rubric-1 fires)
+    # AND strip the Criterion 4 quoted-span sentence (Rubric-9 would fire)
+    # in the SAME fixture. Before WR-10's fix, Rubric-1's early return
+    # suppressed Rubric-9 here; both must now be present in one run.
+    rubric_r01c = _mutate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, ""
+    )
+    rubric_r01c = _duplicate_after(rubric_r01c, _RUBRIC_SCAN_BLOCK, _RUBRIC_SCAN_BLOCK)
+    _r01c_failures = _check_rubric_text(rubric_r01c)
+    _r01c_has_rubric1 = any(f.startswith("Rubric-1:") for f in _r01c_failures)
+    _r01c_has_rubric9 = any(f.startswith("Rubric-9:") for f in _r01c_failures)
+    if _r01c_has_rubric1 and _r01c_has_rubric9:
+        print("(R-01c) correctly failed with BOTH Rubric-1 and Rubric-9 present")
+        covered_branches.add("R-01-no-mask")
+    else:
+        print(
+            "(R-01c) WRONGLY FAILED — expected BOTH Rubric-1 and Rubric-9: "
+            f"rubric1={_r01c_has_rubric1}, rubric9={_r01c_has_rubric9}; "
+            f"failures={_r01c_failures}"
+        )
+        problems.append("R-01-no-mask: early-return masking not closed")
+
+    # R-02-placement-order: relocate the scan block past the Precedence rule
+    # — the literal remains present but out of order.
+    rubric_r02a = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
+    _check_negative(
+        "R-02a",
+        _check_rubric_text(rubric_r02a),
         "Rubric-2",
         "placement violated",
-        "R-02-placement",
+        "R-02-placement-order",
     )
 
-    # R-03-divlabour: strip one of the two division-of-labour sentences,
-    # scoped to the scan slice (this text is unique in the whole file too).
-    rubric_r03 = _mutate_within_range(
+    # R-02-placement-anchor: strip the Assumption Audit block, so the
+    # not-found guard (`aa_idx == -1`) fires instead of the placement check.
+    rubric_r02b = _strip_everywhere(real_rubric, _RUBRIC_AA_BLOCK)
+    _check_negative(
+        "R-02b",
+        _check_rubric_text(rubric_r02b),
+        "Rubric-2",
+        repr(_RUBRIC_AA_BLOCK) + " not found",
+        "R-02-placement-anchor",
+    )
+
+    # R-03-divlabour-1: strip the first division-of-labour sentence.
+    rubric_r03a = _mutate_within_range(
         real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_DIVLABOUR_1, ""
     )
     _check_negative(
-        "R-03",
-        _check_rubric_text(rubric_r03),
+        "R-03a",
+        _check_rubric_text(rubric_r03a),
         "Rubric-3",
         repr(_RUBRIC_DIVLABOUR_1),
-        "R-03-divlabour",
+        "R-03-divlabour-1",
     )
 
-    # R-04-two-criteria: strip the two-criteria pointer sentence.
+    # R-03-divlabour-2: strip the second division-of-labour sentence —
+    # WR-01's m11, unasserted before this split.
+    rubric_r03b = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_DIVLABOUR_2, ""
+    )
+    _check_negative(
+        "R-03b",
+        _check_rubric_text(rubric_r03b),
+        "Rubric-3",
+        repr(_RUBRIC_DIVLABOUR_2),
+        "R-03-divlabour-2",
+    )
+
+    # R-04-two-criteria: strip the two-criteria pointer sentence. WR-09's
+    # information-free name loop was deleted from `_check_rubric_text`
+    # rather than kept as an unfalsifiable arm — see the comment at its
+    # former call site. This presence check is the real, falsifiable one.
     rubric_r04 = _mutate_within_range(
         real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_TWO_CRIT_SENTENCE, ""
     )
@@ -1209,12 +1571,29 @@ def _run_self_test() -> int:
         "R-04-two-criteria",
     )
 
-    # R-05-cols: strip the chain-form column list from the scan slice.
-    rubric_r05 = _mutate_within_range(
+    # R-05-cols-chain: strip the chain-form column list from the scan slice.
+    rubric_r05a = _mutate_within_range(
         real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _COLS_CHAIN, ""
     )
     _check_negative(
-        "R-05", _check_rubric_text(rubric_r05), "Rubric-5", repr(_COLS_CHAIN), "R-05-cols"
+        "R-05a",
+        _check_rubric_text(rubric_r05a),
+        "Rubric-5",
+        repr(_COLS_CHAIN),
+        "R-05-cols-chain",
+    )
+
+    # R-05-cols-claim: strip the claim-inventory column list from the scan
+    # slice — WR-01's m12, unasserted before this split.
+    rubric_r05b = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _COLS_CLAIM, ""
+    )
+    _check_negative(
+        "R-05b",
+        _check_rubric_text(rubric_r05b),
+        "Rubric-5",
+        repr(_COLS_CLAIM),
+        "R-05-cols-claim",
     )
 
     # R-06-ledger: strip the ledger non-admissibility sentence.
@@ -1233,7 +1612,7 @@ def _run_self_test() -> int:
         "R-06-ledger",
     )
 
-    # R-07-missing, arm 1: strip the missing-scan sentence from the scan slice.
+    # R-07-missing-absent: strip the missing-scan sentence from the scan slice.
     rubric_r07a = _mutate_within_range(
         real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_MISSING_SCAN, ""
     )
@@ -1242,11 +1621,11 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r07a),
         "Rubric-7",
         "missing-scan sentence absent",
-        "R-07-missing",
+        "R-07-missing-absent",
     )
 
-    # R-07-missing, arm 2: inject the Assumption-Audit near-twin into the scan
-    # slice, proving the check discriminates the two.
+    # R-07-missing-neartwin: inject the Assumption-Audit near-twin into the
+    # scan slice, proving the check discriminates the two.
     rubric_r07b = _mutate_within_range(
         real_rubric,
         _RUBRIC_SCAN_BLOCK,
@@ -1259,7 +1638,7 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r07b),
         "Rubric-7",
         "near-twin sentence found inside scan slice",
-        "R-07-missing",
+        "R-07-missing-neartwin",
     )
 
     # R-08-bound: strip the disclosed-bound sentence.
@@ -1274,17 +1653,30 @@ def _run_self_test() -> int:
         "R-08-bound",
     )
 
-    # R-09-crit4-count: strip the Criterion 4 quoted-span sentence. Proves
-    # the count arm, not the ordering arm.
-    rubric_r09 = _mutate_within_range(
+    # R-09-crit4-count-missing: strip the Criterion 4 quoted-span sentence.
+    rubric_r09a = _mutate_within_range(
         real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, ""
     )
     _check_negative(
-        "R-09",
-        _check_rubric_text(rubric_r09),
+        "R-09a",
+        _check_rubric_text(rubric_r09a),
         "Rubric-9",
         "occurs 0 time(s)",
-        "R-09-crit4-count",
+        "R-09-crit4-count-missing",
+    )
+
+    # R-09-crit4-count-dup: duplicate the Criterion 4 quoted-span sentence
+    # inside the Criterion 4 slice — WR-01's m20 (`!= 1` narrowed to `< 1`
+    # leaves this undetected).
+    rubric_r09b = _duplicate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4
+    )
+    _check_negative(
+        "R-09b",
+        _check_rubric_text(rubric_r09b),
+        "Rubric-9",
+        "occurs 2 time(s)",
+        "R-09-crit4-count-dup",
     )
 
     # R-09-crit4-order: wrap AND relocate the Criterion 4 quoted-span
@@ -1301,17 +1693,29 @@ def _run_self_test() -> int:
         "R-09-crit4-order",
     )
 
-    # R-10-crit6-count: strip the Criterion 6 quoted-span sentence. Proves
-    # the count arm, not the ordering arm.
-    rubric_r10 = _mutate_within_range(
+    # R-10-crit6-count-missing: strip the Criterion 6 quoted-span sentence.
+    rubric_r10a = _mutate_within_range(
         real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, ""
     )
     _check_negative(
-        "R-10",
-        _check_rubric_text(rubric_r10),
+        "R-10a",
+        _check_rubric_text(rubric_r10a),
         "Rubric-10",
         "occurs 0 time(s)",
-        "R-10-crit6-count",
+        "R-10-crit6-count-missing",
+    )
+
+    # R-10-crit6-count-dup: duplicate the Criterion 6 quoted-span sentence
+    # inside the Criterion 6 slice.
+    rubric_r10b = _duplicate_within_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6
+    )
+    _check_negative(
+        "R-10b",
+        _check_rubric_text(rubric_r10b),
+        "Rubric-10",
+        "occurs 2 time(s)",
+        "R-10-crit6-count-dup",
     )
 
     # R-10-crit6-order: wrap AND relocate the Criterion 6 quoted-span
@@ -1328,7 +1732,7 @@ def _run_self_test() -> int:
         "R-10-crit6-order",
     )
 
-    # R-11-bands, arm 1: strip one band bullet from the Criterion 4 slice.
+    # R-11-bands-crit4: strip one band bullet from the Criterion 4 slice.
     rubric_r11a = _mutate_within_range(
         real_rubric, _CRIT4_START, _CRIT5_START, _BAND_SOUND, "REMOVED"
     )
@@ -1337,10 +1741,10 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r11a),
         "Rubric-11",
         "in Criterion 4 slice",
-        "R-11-bands",
+        "R-11-bands-crit4",
     )
 
-    # R-11-bands, arm 2: duplicate one band bullet in the Criterion 6 slice.
+    # R-11-bands-crit6: duplicate one band bullet in the Criterion 6 slice.
     rubric_r11b = _mutate_within_range(
         real_rubric,
         _CRIT6_START,
@@ -1353,10 +1757,10 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r11b),
         "Rubric-11",
         "in Criterion 6 slice",
-        "R-11-bands",
+        "R-11-bands-crit6",
     )
 
-    # R-12-halt, arm 1: strip the halt sentence from inside the scan slice
+    # R-12-halt-missing: strip the halt sentence from inside the scan slice
     # only, leaving the Assumption Audit block's identical copy in place —
     # whole-file count drops 2 -> 1, only a slice-scoped check sees it.
     rubric_r12a = _mutate_within_range(
@@ -1367,10 +1771,10 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r12a),
         "Rubric-12",
         "occurs 0 time(s)",
-        "R-12-halt",
+        "R-12-halt-missing",
     )
 
-    # R-12-halt, arm 2: duplicate the halt sentence inside the scan slice.
+    # R-12-halt-dup: duplicate the halt sentence inside the scan slice.
     rubric_r12b = _mutate_within_range(
         real_rubric,
         _RUBRIC_SCAN_BLOCK,
@@ -1383,7 +1787,7 @@ def _run_self_test() -> int:
         _check_rubric_text(rubric_r12b),
         "Rubric-12",
         "occurs 2 time(s)",
-        "R-12-halt",
+        "R-12-halt-dup",
     )
 
     # Hard-wrap arm 2 (rubric): reinstate the ledger non-admissibility
@@ -1404,25 +1808,75 @@ def _run_self_test() -> int:
 
     # --- Cross-surface branch negative controls -----------------------------
 
-    # X-01-cols: strip a column list from the body ONLY, leaving the rubric intact.
-    body_x01 = _strip_everywhere(real_body, _COLS_CHAIN)
+    # Clause-level split (plan 15-06, closing WR-01's cross-surface rows m3,
+    # m4 and m17): `_check_cross_surface` carries four arms inside its
+    # column-list loop (chain/claim x body/rubric) plus two heading arms
+    # (body/rubric) — each gets its own id and its own single-surface strip.
+
+    # X-01-cols-chain-body: strip the chain-form column list from the body
+    # ONLY, leaving the rubric intact.
+    body_x01a = _strip_everywhere(real_body, _COLS_CHAIN)
     _check_negative(
-        "X-01",
-        _check_cross_surface(body_x01, real_rubric),
+        "X-01a",
+        _check_cross_surface(body_x01a, real_rubric),
         "Cross-1",
-        "missing from agent-body surface",
-        "X-01-cols",
+        "chain-form column list missing from agent-body surface",
+        "X-01-cols-chain-body",
     )
 
-    # X-02-heading: strip the scan heading from the rubric ONLY, leaving the
-    # body intact.
-    rubric_x02 = _strip_everywhere(real_rubric, _SCAN_HEADING)
+    # X-01-cols-chain-rubric: strip the chain-form column list from the
+    # rubric ONLY, leaving the body intact — WR-01's m3.
+    rubric_x01b = _strip_everywhere(real_rubric, _COLS_CHAIN)
     _check_negative(
-        "X-02",
-        _check_cross_surface(real_body, rubric_x02),
+        "X-01b",
+        _check_cross_surface(real_body, rubric_x01b),
+        "Cross-1",
+        "chain-form column list missing from rubric surface",
+        "X-01-cols-chain-rubric",
+    )
+
+    # X-01-cols-claim-body: strip the claim-inventory column list from the
+    # body ONLY — WR-01's m17.
+    body_x01c = _strip_everywhere(real_body, _COLS_CLAIM)
+    _check_negative(
+        "X-01c",
+        _check_cross_surface(body_x01c, real_rubric),
+        "Cross-1",
+        "claim-inventory column list missing from agent-body surface",
+        "X-01-cols-claim-body",
+    )
+
+    # X-01-cols-claim-rubric: strip the claim-inventory column list from the
+    # rubric ONLY.
+    rubric_x01d = _strip_everywhere(real_rubric, _COLS_CLAIM)
+    _check_negative(
+        "X-01d",
+        _check_cross_surface(real_body, rubric_x01d),
+        "Cross-1",
+        "claim-inventory column list missing from rubric surface",
+        "X-01-cols-claim-rubric",
+    )
+
+    # X-02-heading-body: strip the scan heading from the body ONLY, leaving
+    # the rubric intact — WR-01's m4.
+    body_x02a = _strip_everywhere(real_body, _SCAN_HEADING)
+    _check_negative(
+        "X-02a",
+        _check_cross_surface(body_x02a, real_rubric),
+        "Cross-2",
+        "missing from agent-body surface",
+        "X-02-heading-body",
+    )
+
+    # X-02-heading-rubric: strip the scan heading from the rubric ONLY,
+    # leaving the body intact.
+    rubric_x02b = _strip_everywhere(real_rubric, _SCAN_HEADING)
+    _check_negative(
+        "X-02b",
+        _check_cross_surface(real_body, rubric_x02b),
         "Cross-2",
         "missing from rubric surface",
-        "X-02-heading",
+        "X-02-heading-rubric",
     )
 
     # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus
