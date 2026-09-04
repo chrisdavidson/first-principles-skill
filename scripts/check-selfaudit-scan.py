@@ -727,9 +727,44 @@ def _validate_files() -> int:
     print("check-selfaudit-scan: PASS")
     return 0
 
+
 # ---------------------------------------------------------------------------
 # Self-test
 # ---------------------------------------------------------------------------
+
+REQUIRED_BRANCHES: frozenset[str] = frozenset(
+    {
+        "B-01-slice",
+        "B-02-lead",
+        "B-03-placement",
+        "B-04-heading",
+        "B-05-cols-chain",
+        "B-06-cols-claim",
+        "B-07-rowrule",
+        "B-08-rejected",
+        "B-09-cleanpass",
+        "B-10-ledger-indep",
+        "B-11-recon",
+        "B-12-placement-sentence",
+        "B-13-refix",
+        "B-14-bound",
+        "B-15-donotpresent",
+        "R-01-block",
+        "R-02-placement",
+        "R-03-divlabour",
+        "R-04-two-criteria",
+        "R-05-cols",
+        "R-06-ledger",
+        "R-07-missing",
+        "R-08-bound",
+        "R-09-crit4",
+        "R-10-crit6",
+        "R-11-bands",
+        "R-12-halt",
+        "X-01-cols",
+        "X-02-heading",
+    }
+)
 
 
 def _run_self_test() -> int:
@@ -820,6 +855,426 @@ def _run_self_test() -> int:
         problems.append("(c): unexpected failures against real cross-surface check")
     else:
         print("(c) positive control — cross-surface: PASS (0 failures)")
+
+    # --- Body branch negative controls -------------------------------------
+
+    # B-01-slice: strip the section-start heading so the slice does not resolve.
+    body_b01 = _strip_everywhere(real_body, _BODY_SECTION_START)
+    _check_negative(
+        "B-01", _check_body_text(body_b01), "Body-1", "occurs 0 time(s)", "B-01-slice"
+    )
+
+    # B-02-lead: strip the scan lead.
+    body_b02 = _strip_everywhere(real_body, _BODY_SCAN_LEAD)
+    _check_negative(
+        "B-02", _check_body_text(body_b02), "Body-2", "occurs 0 time(s)", "B-02-lead"
+    )
+
+    # B-03-placement: relocate the scan lead past the ledger-clean handoff —
+    # the literal remains PRESENT (Body-2 still passes) but out of order.
+    body_b03 = _relocate(real_body, _BODY_SCAN_LEAD, _BODY_LEDGER_CLEAN)
+    _check_negative(
+        "B-03",
+        _check_body_text(body_b03),
+        "Body-3",
+        "placement violated",
+        "B-03-placement",
+    )
+
+    # B-04-heading: strip the scan heading.
+    body_b04 = _strip_everywhere(real_body, _SCAN_HEADING)
+    _check_negative(
+        "B-04", _check_body_text(body_b04), "Body-4", "occurs 0 time(s)", "B-04-heading"
+    )
+
+    # B-05-cols-chain: strip the chain-form column list.
+    body_b05 = _strip_everywhere(real_body, _COLS_CHAIN)
+    _check_negative(
+        "B-05", _check_body_text(body_b05), "Body-5", "occurs 0 time(s)", "B-05-cols-chain"
+    )
+
+    # B-06-cols-claim: strip the claim-inventory column list.
+    body_b06 = _strip_everywhere(real_body, _COLS_CLAIM)
+    _check_negative(
+        "B-06", _check_body_text(body_b06), "Body-6", "occurs 0 time(s)", "B-06-cols-claim"
+    )
+
+    # B-07-rowrule: strip one of the two row-population rules.
+    body_b07 = _strip_everywhere(real_body, _BODY_ROWRULE_CHAIN)
+    _check_negative(
+        "B-07", _check_body_text(body_b07), "Body-7", repr(_BODY_ROWRULE_CHAIN), "B-07-rowrule"
+    )
+
+    # B-08-rejected: strip the non-claim-rows-populated sentence.
+    body_b08 = _strip_everywhere(real_body, _BODY_REJECTED_ROW)
+    _check_negative(
+        "B-08", _check_body_text(body_b08), "Body-8", "missing sentence", "B-08-rejected"
+    )
+
+    # B-09-cleanpass: strip the clean-pass sentence.
+    body_b09 = _strip_everywhere(real_body, _BODY_CLEANPASS)
+    _check_negative(
+        "B-09", _check_body_text(body_b09), "Body-9", "missing sentence", "B-09-cleanpass"
+    )
+
+    # B-10-ledger-indep: strip one of the two ledger-independence sentences.
+    body_b10 = _strip_everywhere(real_body, _BODY_LEDGER_INDEP_1)
+    _check_negative(
+        "B-10",
+        _check_body_text(body_b10),
+        "Body-10",
+        repr(_BODY_LEDGER_INDEP_1),
+        "B-10-ledger-indep",
+    )
+
+    # B-11-recon: strip the reconciliation lead sentence.
+    body_b11 = _strip_everywhere(real_body, _BODY_RECON_LEAD)
+    _check_negative(
+        "B-11", _check_body_text(body_b11), "Body-11", repr(_BODY_RECON_LEAD), "B-11-recon"
+    )
+
+    # B-12-placement-sentence: strip one of the two placement/provenance sentences.
+    body_b12 = _strip_everywhere(real_body, _BODY_PLACEMENT_1)
+    _check_negative(
+        "B-12",
+        _check_body_text(body_b12),
+        "Body-12",
+        repr(_BODY_PLACEMENT_1),
+        "B-12-placement-sentence",
+    )
+
+    # B-13-refix: strip the re-run-on-Fix sentence.
+    body_b13 = _strip_everywhere(real_body, _BODY_REFIX)
+    _check_negative(
+        "B-13", _check_body_text(body_b13), "Body-13", "missing re-fix sentence", "B-13-refix"
+    )
+
+    # B-14-bound: strip the disclosed enforcement bound.
+    body_b14 = _strip_everywhere(real_body, _BODY_DISCLOSED_BOUND)
+    _check_negative(
+        "B-14",
+        _check_body_text(body_b14),
+        "Body-14",
+        "missing disclosed-bound sentence",
+        "B-14-bound",
+    )
+
+    # B-15-donotpresent, arm 1: strip the amended handoff sentence.
+    body_b15a = _strip_everywhere(real_body, _BODY_DONOTPRESENT_AMENDED)
+    _check_negative(
+        "B-15a",
+        _check_body_text(body_b15a),
+        "Body-15",
+        "occurs 0 time(s)",
+        "B-15-donotpresent",
+    )
+
+    # B-15-donotpresent, arm 2: reinstate the pre-amendment form ALONGSIDE the
+    # amended one (both present) — both halves of Body-15 are live.
+    body_b15b = real_body + "\n\n" + _BODY_DONOTPRESENT_PREAMENDMENT
+    _check_negative(
+        "B-15b",
+        _check_body_text(body_b15b),
+        "Body-15",
+        "pre-amendment handoff sentence still present",
+        "B-15-donotpresent",
+    )
+
+    # Hard-wrap arm 1 (body): reinstate a ledger-independence literal
+    # hard-wrapped at ~95 columns, inside the section slice, and assert
+    # Body-10 still passes (proves `_flat`/`_contains` are load-bearing).
+    body_hw = _hardwrap_reinstate_in_range(
+        real_body,
+        _BODY_SECTION_START,
+        _BODY_LEDGER_CLEAN,
+        _BODY_LEDGER_INDEP_1,
+    )
+    hw_body_failures = [f for f in _check_body_text(body_hw) if f.startswith("Body-10")]
+    if hw_body_failures:
+        print(
+            "(hw-body) hard-wrap arm: WRONGLY FAILED — Body-10 fired against a "
+            f"hard-wrapped (but present) literal: {'; '.join(hw_body_failures)}"
+        )
+        problems.append("(hw-body): hard-wrap normalization not load-bearing")
+    else:
+        print("(hw-body) hard-wrap arm: PASS — Body-10 tolerates a hard-wrapped literal")
+
+    # --- Rubric branch negative controls ------------------------------------
+
+    # R-01-block: strip the scan block heading.
+    rubric_r01 = _strip_everywhere(real_rubric, _RUBRIC_SCAN_BLOCK)
+    _check_negative(
+        "R-01", _check_rubric_text(rubric_r01), "Rubric-1", "occurs 0 time(s)", "R-01-block"
+    )
+
+    # R-02-placement: relocate the scan block past the Precedence rule.
+    rubric_r02 = _relocate(real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE)
+    _check_negative(
+        "R-02",
+        _check_rubric_text(rubric_r02),
+        "Rubric-2",
+        "placement violated",
+        "R-02-placement",
+    )
+
+    # R-03-divlabour: strip one of the two division-of-labour sentences,
+    # scoped to the scan slice (this text is unique in the whole file too).
+    rubric_r03 = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_DIVLABOUR_1, ""
+    )
+    _check_negative(
+        "R-03",
+        _check_rubric_text(rubric_r03),
+        "Rubric-3",
+        repr(_RUBRIC_DIVLABOUR_1),
+        "R-03-divlabour",
+    )
+
+    # R-04-two-criteria: strip the two-criteria pointer sentence.
+    rubric_r04 = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_TWO_CRIT_SENTENCE, ""
+    )
+    _check_negative(
+        "R-04",
+        _check_rubric_text(rubric_r04),
+        "Rubric-4",
+        "missing two-criteria pointer sentence",
+        "R-04-two-criteria",
+    )
+
+    # R-05-cols: strip the chain-form column list from the scan slice.
+    rubric_r05 = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _COLS_CHAIN, ""
+    )
+    _check_negative(
+        "R-05", _check_rubric_text(rubric_r05), "Rubric-5", repr(_COLS_CHAIN), "R-05-cols"
+    )
+
+    # R-06-ledger: strip the ledger non-admissibility sentence.
+    rubric_r06 = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_SCAN_BLOCK,
+        _RUBRIC_PRECEDENCE,
+        _RUBRIC_LEDGER_INADMISSIBLE,
+        "",
+    )
+    _check_negative(
+        "R-06",
+        _check_rubric_text(rubric_r06),
+        "Rubric-6",
+        "missing ledger non-admissibility sentence",
+        "R-06-ledger",
+    )
+
+    # R-07-missing, arm 1: strip the missing-scan sentence from the scan slice.
+    rubric_r07a = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_MISSING_SCAN, ""
+    )
+    _check_negative(
+        "R-07a",
+        _check_rubric_text(rubric_r07a),
+        "Rubric-7",
+        "missing-scan sentence absent",
+        "R-07-missing",
+    )
+
+    # R-07-missing, arm 2: inject the Assumption-Audit near-twin into the scan
+    # slice, proving the check discriminates the two.
+    rubric_r07b = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_SCAN_BLOCK,
+        _RUBRIC_PRECEDENCE,
+        _RUBRIC_MISSING_SCAN,
+        _RUBRIC_MISSING_SCAN + " " + _RUBRIC_MISSING_SCAN_NEARTWIN,
+    )
+    _check_negative(
+        "R-07b",
+        _check_rubric_text(rubric_r07b),
+        "Rubric-7",
+        "near-twin sentence found inside scan slice",
+        "R-07-missing",
+    )
+
+    # R-08-bound: strip the disclosed-bound sentence.
+    rubric_r08 = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_DISCLOSED_BOUND, ""
+    )
+    _check_negative(
+        "R-08",
+        _check_rubric_text(rubric_r08),
+        "Rubric-8",
+        "missing disclosed-bound sentence",
+        "R-08-bound",
+    )
+
+    # R-09-crit4: strip the Criterion 4 quoted-span sentence.
+    rubric_r09 = _mutate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _RUBRIC_QUOTED_SPAN_C4, ""
+    )
+    _check_negative(
+        "R-09", _check_rubric_text(rubric_r09), "Rubric-9", "occurs 0 time(s)", "R-09-crit4"
+    )
+
+    # R-10-crit6: strip the Criterion 6 quoted-span sentence.
+    rubric_r10 = _mutate_within_range(
+        real_rubric, _CRIT6_START, _USAGE_NOTE, _RUBRIC_QUOTED_SPAN_C6, ""
+    )
+    _check_negative(
+        "R-10", _check_rubric_text(rubric_r10), "Rubric-10", "occurs 0 time(s)", "R-10-crit6"
+    )
+
+    # R-11-bands, arm 1: strip one band bullet from the Criterion 4 slice.
+    rubric_r11a = _mutate_within_range(
+        real_rubric, _CRIT4_START, _CRIT5_START, _BAND_SOUND, "REMOVED"
+    )
+    _check_negative(
+        "R-11a",
+        _check_rubric_text(rubric_r11a),
+        "Rubric-11",
+        "in Criterion 4 slice",
+        "R-11-bands",
+    )
+
+    # R-11-bands, arm 2: duplicate one band bullet in the Criterion 6 slice.
+    rubric_r11b = _mutate_within_range(
+        real_rubric,
+        _CRIT6_START,
+        _USAGE_NOTE,
+        _BAND_SOUND,
+        _BAND_SOUND + "\n" + _BAND_SOUND,
+    )
+    _check_negative(
+        "R-11b",
+        _check_rubric_text(rubric_r11b),
+        "Rubric-11",
+        "in Criterion 6 slice",
+        "R-11-bands",
+    )
+
+    # R-12-halt, arm 1: strip the halt sentence from inside the scan slice
+    # only, leaving the Assumption Audit block's identical copy in place —
+    # whole-file count drops 2 -> 1, only a slice-scoped check sees it.
+    rubric_r12a = _mutate_within_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_HALT_SENTENCE, ""
+    )
+    _check_negative(
+        "R-12a",
+        _check_rubric_text(rubric_r12a),
+        "Rubric-12",
+        "occurs 0 time(s)",
+        "R-12-halt",
+    )
+
+    # R-12-halt, arm 2: duplicate the halt sentence inside the scan slice.
+    rubric_r12b = _mutate_within_range(
+        real_rubric,
+        _RUBRIC_SCAN_BLOCK,
+        _RUBRIC_PRECEDENCE,
+        _RUBRIC_HALT_SENTENCE,
+        _RUBRIC_HALT_SENTENCE + " " + _RUBRIC_HALT_SENTENCE,
+    )
+    _check_negative(
+        "R-12b",
+        _check_rubric_text(rubric_r12b),
+        "Rubric-12",
+        "occurs 2 time(s)",
+        "R-12-halt",
+    )
+
+    # Hard-wrap arm 2 (rubric): reinstate the ledger non-admissibility
+    # sentence hard-wrapped at ~95 columns, inside the scan slice, and assert
+    # Rubric-6 still passes.
+    rubric_hw = _hardwrap_reinstate_in_range(
+        real_rubric, _RUBRIC_SCAN_BLOCK, _RUBRIC_PRECEDENCE, _RUBRIC_LEDGER_INADMISSIBLE
+    )
+    hw_rubric_failures = [f for f in _check_rubric_text(rubric_hw) if f.startswith("Rubric-6")]
+    if hw_rubric_failures:
+        print(
+            "(hw-rubric) hard-wrap arm: WRONGLY FAILED — Rubric-6 fired against a "
+            f"hard-wrapped (but present) literal: {'; '.join(hw_rubric_failures)}"
+        )
+        problems.append("(hw-rubric): hard-wrap normalization not load-bearing")
+    else:
+        print("(hw-rubric) hard-wrap arm: PASS — Rubric-6 tolerates a hard-wrapped literal")
+
+    # --- Cross-surface branch negative controls -----------------------------
+
+    # X-01-cols: strip a column list from the body ONLY, leaving the rubric intact.
+    body_x01 = _strip_everywhere(real_body, _COLS_CHAIN)
+    _check_negative(
+        "X-01",
+        _check_cross_surface(body_x01, real_rubric),
+        "Cross-1",
+        "missing from agent-body surface",
+        "X-01-cols",
+    )
+
+    # X-02-heading: strip the scan heading from the rubric ONLY, leaving the
+    # body intact.
+    rubric_x02 = _strip_everywhere(real_rubric, _SCAN_HEADING)
+    _check_negative(
+        "X-02",
+        _check_cross_surface(real_body, rubric_x02),
+        "Cross-2",
+        "missing from rubric surface",
+        "X-02-heading",
+    )
+
+    # Anti-masking assertion: every required branch must have coverage from
+    # the fixture battery above.
+    uncovered = REQUIRED_BRANCHES - covered_branches
+    if uncovered:
+        print(
+            f"ANTI-MASKING GATE FAILURE: {len(uncovered)} branch(es) not "
+            f"covered: {sorted(uncovered)}"
+        )
+        problems.append(f"Anti-masking: {len(uncovered)} branches uncovered")
+    else:
+        print(
+            f"ANTI-MASKING GATE: All {len(REQUIRED_BRANCHES)} branches covered: "
+            f"{sorted(covered_branches)}"
+        )
+
+    # Dispatch-reachability control: re-enter main(["--self-test"]) in-process
+    # to prove the CLI layer reaches this block, not merely that
+    # _run_self_test() is correct when called directly.
+    this_module = sys.modules[__name__]
+    global _SCANGUARD_DISPATCH_REENTRANT
+    if not this_module._SCANGUARD_DISPATCH_REENTRANT:
+        this_module._SCANGUARD_DISPATCH_REENTRANT = True
+        try:
+            dispatch_out, dispatch_err = io.StringIO(), io.StringIO()
+            with contextlib.redirect_stdout(dispatch_out), contextlib.redirect_stderr(
+                dispatch_err
+            ):
+                dispatch_rc = main(["--self-test"])
+            dispatch_text = dispatch_out.getvalue()
+            if dispatch_rc != 0:
+                print(
+                    "(dispatch) dispatch control: WRONGLY FAILED — "
+                    f"main(['--self-test']) returned {dispatch_rc}, expected 0"
+                )
+                problems.append(
+                    f"(dispatch): main(['--self-test']) returned {dispatch_rc}, expected 0"
+                )
+            elif "(a) positive control — body: PASS" not in dispatch_text:
+                print(
+                    "(dispatch) dispatch control: WRONGLY FAILED — captured "
+                    f"stdout did not contain control (a)'s PASS text: {dispatch_text!r}"
+                )
+                problems.append("(dispatch): captured stdout missing control (a) PASS text")
+            else:
+                print(
+                    "(dispatch) dispatch control: PASS — main(['--self-test']) "
+                    "reaches this block end-to-end"
+                )
+        except Exception as exc:  # noqa: BLE001 - self-test must report, not crash
+            print(f"(dispatch) dispatch control: WRONGLY FAILED — unexpected exception: {exc!r}")
+            problems.append(f"(dispatch): unexpected exception: {exc!r}")
+        finally:
+            this_module._SCANGUARD_DISPATCH_REENTRANT = False
+    else:
+        print("(dispatch) dispatch control: skipped (nested self-test run)")
 
     if problems:
         sys.stderr.write("check-selfaudit-scan --self-test: FAIL — " + "; ".join(problems) + "\n")
