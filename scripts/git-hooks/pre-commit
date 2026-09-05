@@ -1,13 +1,21 @@
 #!/bin/sh
-# Sync-drift gate for shared/ <-> generated trees.
+# Two gates for shared/ <-> generated trees and the conformance baseline.
 # Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
 #
-# This hook runs one check: sync drift between the shared/ source-of-truth
-# tree and the generated first-principles/ tree (scripts/sync-content.py
-# --check). The body-budget gate that used to run alongside it was retired
-# under TEARDOWN-01 (docs/v8.7-constraint-teardown.md) -- the reporting
-# script (scripts/check-body-budget.py) now always exits 0, so gating a
-# commit on it here would be dead weight.
+# Gate 1 -- sync-drift gate: blocks if shared/ and the generated tree have
+# diverged (scripts/sync-content.py --check). The body-budget gate that used
+# to run alongside it was retired under TEARDOWN-01
+# (docs/v8.7-constraint-teardown.md) -- the reporting script
+# (scripts/check-body-budget.py) now always exits 0, so gating a commit on it
+# here would be dead weight.
+# Gate 2 -- conformance-baseline drift gate: blocks if
+# docs/conformance-baseline.md / docs/data/conformance.json no longer match a
+# fresh run (scripts/report-conformance.py --check). This fails on STALENESS
+# of the committed baseline relative to a fresh measurement, never on a
+# conformance count being too high -- no count in that baseline gates
+# anything. By decision D-06 this second check is deliberately NOT registered
+# in scripts/check-firewall-battery.sh and NOT added to
+# .github/workflows/validation.yml, so the offline battery stays at 24.
 #
 # POSIX sh only -- no bashisms. Quote all expansions.
 
@@ -15,14 +23,27 @@ set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
-# --- Sync-drift gate (compositional preservation) ----------------------------
+# --- Interpreter resolution --------------------------------------------------
 
 if command -v uv >/dev/null 2>&1; then
-    exec uv run scripts/sync-content.py --check
+    PY="uv run"
 elif command -v python3 >/dev/null 2>&1; then
-    exec python3 scripts/sync-content.py --check
+    PY="python3"
 else
     printf "pre-commit: neither 'uv' nor 'python3' on PATH.\n" >&2
     printf "  Install one of them, or bypass this hook with 'git commit --no-verify'.\n" >&2
     exit 2
 fi
+
+# --- Gate 1: sync-drift gate (compositional preservation) --------------------
+# Not exec'd -- a second gate follows, so its exit status is propagated
+# explicitly with "|| exit $?" rather than replacing the shell process with
+# it. A failing sync check must not be silently replaced by a passing
+# conformance check, or the reverse.
+
+$PY scripts/sync-content.py --check || exit $?
+
+# --- Gate 2: conformance-baseline drift gate ---------------------------------
+# Terminal check -- only this one may use exec, because nothing follows it.
+
+exec $PY scripts/report-conformance.py --check
