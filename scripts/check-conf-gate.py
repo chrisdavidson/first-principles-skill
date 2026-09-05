@@ -42,7 +42,11 @@ Exit codes:
     0  live leg clean / --self-test clean
     1  a target was exceeded, a claim floor or population floor was breached, the D-07 roster
        drifted, the D-03 rule fired, the ratchet rose, a D-08 mutation did not produce its
-       expected defect, or a discovery floor failed
+       expected defect, or a discovery floor failed. As of WR-06/BL-04, the D-08 arm
+       (`_run_d08_arm`/`_run_d08_arm_on`) never calls `sys.exit()` internally: it returns its
+       problems, which `run_live()` reports through the same `check-conf-gate: FAIL — ` path
+       every other comparator uses, and a D-08 mutation site that cannot be located is reported
+       by name alongside the other two arms rather than silently skipped or killing the process.
     2  environment error (module import failure)
 
 `--self-test` additionally floors the seven enforcement symbols named by `_LIVE_CALL_SITES` /
@@ -60,6 +64,7 @@ import argparse
 import importlib.util
 import inspect
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -294,7 +299,7 @@ _LIVE_CALL_SITES: dict[str, int] = {
 # The whitespace-normalized call-form fragment each symbol above must appear
 # in, transcribed from run_live()'s current source. Five carry the
 # `problems += <symbol>(...)` form; `_run_d08_arm` carries
-# `mutation_lines = _run_d08_arm(rows)`. Every fragment is built BY
+# `d08_problems, mutation_lines = _run_d08_arm(rows)`. Every fragment is built BY
 # CONCATENATION of short string pieces, never as one contiguous literal —
 # the `(roster-entry-source)` convention `check-selfaudit-scan.py` uses for
 # the same reason it exists there: a contiguous literal is a self-match
@@ -314,7 +319,7 @@ _LIVE_CALL_FORMS: dict[str, str] = {
         + '_d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])'
     ),
     "_ratchet_problems": "problems += " + "_ratchet_problems(rows)",
-    "_run_d08_arm": "mutation_lines = " + "_run_d08_arm(rows)",
+    "_run_d08_arm": "d08_problems, mutation_lines = " + "_run_d08_arm(rows)",
 }
 
 # BL-02 (18-VERIFICATION.md blocking gap): a SECOND, independently
@@ -565,10 +570,128 @@ def _ratchet_problems(rows: list[dict]) -> list[str]:
 # first-principles/ are never written. This is the one thing a tempdir
 # fixture structurally cannot prove: that the live leg is wired to the
 # shipped artifacts, not to nothing.
+#
+# WR-06/BL-04 (18-REVIEW.md): `_run_d08_arm_on` is a path-taking, non-exiting
+# core — no `sys.exit()` anywhere in this section — so a `--self-test`
+# control can drive it directly against a tempdir fixture. `_run_d08_arm` is
+# a thin wrapper that resolves the target row and delegates; REPO_ROOT never
+# appears inside the core, which is what keeps it controllable. Both return
+# `(problems, lines)`; `run_live()` reports `problems` through the same
+# `check-conf-gate: FAIL — ` path every other comparator in this file uses,
+# and all three arms run to completion in one pass rather than stopping at
+# the first failing predicate — a mutation site that cannot be located is
+# REPORTED, never silently skipped.
 # ---------------------------------------------------------------------------
 
 
-def _run_d08_arm(rows: list[dict]) -> list[str]:
+def _display_relpath(path: Path) -> str:
+    """Render *path* relative to REPO_ROOT when possible (matching the
+    original arm's `relpath` value byte-for-byte on the live leg), falling
+    back to the absolute path for tempdir fixtures that sit entirely outside
+    REPO_ROOT.
+    """
+    try:
+        return str(path.relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _run_d08_arm_on(path: Path, analysis_id: str) -> tuple[list[str], list[str]]:
+    """The D-08 core: three in-memory mutations of the document at *path*,
+    each required to produce its specific defect. Never exits the process —
+    every failing predicate is appended to the returned `problems` list, and
+    a mutation site that cannot be located is reported alongside the other
+    two arms rather than stopping the run. Called from `_run_d08_arm` with
+    the real shipped path, and directly from `--self-test` controls with a
+    `tempfile.TemporaryDirectory()` path — never `REPO_ROOT`.
+    """
+    relpath = _display_relpath(path)
+    text = path.read_text(encoding="utf-8")
+    baseline = detect_defects(text, analysis_id)
+    baseline_blocks = _rc._render_example_chain_blocks(text)
+    baseline_malformed = sum(
+        1 for _, b in baseline_blocks if not _rc._chain_block_well_formed(b)
+    )
+    baseline_marked = sum(1 for t in baseline["_untraced_claims_text"] if CAVEAT_MARKER in t)
+    baseline_silent = baseline["untraced_claims"] - baseline_marked
+
+    problems: list[str] = []
+    lines: list[str] = []
+
+    # (a) re-wrap one hop across two physical lines: remove the leading arrow
+    # from a continuation line and indent it instead, so the line no longer
+    # starts with an arrow and is not absorbed as a chain continuation.
+    if _D08_HOP_NEEDLE not in text or text.count(_D08_HOP_NEEDLE) != 1:
+        problems.append(f"D-08(a) mutation site not found (or not unique) in {relpath}")
+    else:
+        mutated_a = text.replace(_D08_HOP_NEEDLE, _D08_HOP_REPLACEMENT, 1)
+        blocks_a = _rc._render_example_chain_blocks(mutated_a)
+        malformed_a = sum(1 for _, b in blocks_a if not _rc._chain_block_well_formed(b))
+        if malformed_a != baseline_malformed + 1:
+            problems.append(
+                f"D-08(a) hop re-wrap mutation on {relpath} "
+                f"did not increment heading_malformed_blocks by exactly 1 "
+                f"(baseline {baseline_malformed}, mutated {malformed_a})"
+            )
+        else:
+            lines.append(
+                f"check-conf-gate: D-08(a) hop re-wrap on {relpath} — "
+                f"heading_malformed_blocks {baseline_malformed} -> {malformed_a}"
+            )
+
+    # (b) strip the em dash and its justification from a repaired Verdict
+    # cell, leaving the bare vocabulary token.
+    if _D08_CELL_NEEDLE not in text or text.count(_D08_CELL_NEEDLE) != 1:
+        problems.append(f"D-08(b) mutation site not found (or not unique) in {relpath}")
+    else:
+        mutated_b = text.replace(_D08_CELL_NEEDLE, _D08_CELL_REPLACEMENT, 1)
+        record_b = detect_defects(mutated_b, analysis_id)
+        if (
+            record_b["nonconforming_verdict_cells"]
+            != baseline["nonconforming_verdict_cells"] + 1
+        ):
+            problems.append(
+                f"D-08(b) verdict-cell strip on {relpath} "
+                f"did not increment nonconforming_verdict_cells by exactly 1 "
+                f"(baseline {baseline['nonconforming_verdict_cells']}, "
+                f"mutated {record_b['nonconforming_verdict_cells']})"
+            )
+        else:
+            lines.append(
+                f"check-conf-gate: D-08(b) verdict-cell strip on {relpath} — "
+                f"nonconforming_verdict_cells {baseline['nonconforming_verdict_cells']} -> "
+                f"{record_b['nonconforming_verdict_cells']}"
+            )
+
+    # (c) remove one (chain Cn) citation from an otherwise-traced claim.
+    if _D08_CITE_NEEDLE not in text or text.count(_D08_CITE_NEEDLE) != 1:
+        problems.append(f"D-08(c) mutation site not found (or not unique) in {relpath}")
+    else:
+        mutated_c = text.replace(_D08_CITE_NEEDLE, _D08_CITE_REPLACEMENT, 1)
+        record_c = detect_defects(mutated_c, analysis_id)
+        marked_c = sum(1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t)
+        silent_c = record_c["untraced_claims"] - marked_c
+        if silent_c != baseline_silent + 1:
+            problems.append(
+                f"D-08(c) citation removal on {relpath} "
+                f"did not increment silent_untraced_claims by exactly 1 "
+                f"(baseline {baseline_silent}, mutated {silent_c})"
+            )
+        else:
+            lines.append(
+                f"check-conf-gate: D-08(c) citation removal on {relpath} — "
+                f"silent_untraced_claims {baseline_silent} -> {silent_c}"
+            )
+
+    return problems, lines
+
+
+def _run_d08_arm(rows: list[dict]) -> tuple[list[str], list[str]]:
+    """Resolve the D-08 target row (`_D08_TARGET_SURFACE`/`_D08_TARGET_ID`)
+    and delegate to `_run_d08_arm_on`. Returns `([...], [])` — never exits —
+    when the target row itself cannot be found, matching the shape every
+    other predicate failure inside the core now takes.
+    """
     target_row = next(
         (
             r
@@ -578,97 +701,15 @@ def _run_d08_arm(rows: list[dict]) -> list[str]:
         None,
     )
     if target_row is None:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08 target {_D08_TARGET_ID!r} not found "
-            f"on surface {_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run\n"
+        return (
+            [
+                f"D-08 target {_D08_TARGET_ID!r} not found on surface "
+                f"{_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run"
+            ],
+            [],
         )
-        sys.exit(1)
-
-    relpath = target_row["relpath"]
-    path = REPO_ROOT / relpath
-    text = path.read_text(encoding="utf-8")
-    baseline = detect_defects(text, target_row["analysis_id"])
-    baseline_blocks = _rc._render_example_chain_blocks(text)
-    baseline_malformed = sum(
-        1 for _, b in baseline_blocks if not _rc._chain_block_well_formed(b)
-    )
-    baseline_marked = sum(1 for t in baseline["_untraced_claims_text"] if CAVEAT_MARKER in t)
-    baseline_silent = baseline["untraced_claims"] - baseline_marked
-
-    lines: list[str] = []
-
-    # (a) re-wrap one hop across two physical lines: remove the leading arrow
-    # from a continuation line and indent it instead, so the line no longer
-    # starts with an arrow and is not absorbed as a chain continuation.
-    if _D08_HOP_NEEDLE not in text or text.count(_D08_HOP_NEEDLE) != 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(a) mutation site not found "
-            f"(or not unique) in {relpath}\n"
-        )
-        sys.exit(1)
-    mutated_a = text.replace(_D08_HOP_NEEDLE, _D08_HOP_REPLACEMENT, 1)
-    blocks_a = _rc._render_example_chain_blocks(mutated_a)
-    malformed_a = sum(1 for _, b in blocks_a if not _rc._chain_block_well_formed(b))
-    if malformed_a != baseline_malformed + 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(a) hop re-wrap mutation on {relpath} "
-            f"did not increment heading_malformed_blocks by exactly 1 "
-            f"(baseline {baseline_malformed}, mutated {malformed_a})\n"
-        )
-        sys.exit(1)
-    lines.append(
-        f"check-conf-gate: D-08(a) hop re-wrap on {relpath} — "
-        f"heading_malformed_blocks {baseline_malformed} -> {malformed_a}"
-    )
-
-    # (b) strip the em dash and its justification from a repaired Verdict
-    # cell, leaving the bare vocabulary token.
-    if _D08_CELL_NEEDLE not in text or text.count(_D08_CELL_NEEDLE) != 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(b) mutation site not found "
-            f"(or not unique) in {relpath}\n"
-        )
-        sys.exit(1)
-    mutated_b = text.replace(_D08_CELL_NEEDLE, _D08_CELL_REPLACEMENT, 1)
-    record_b = detect_defects(mutated_b, target_row["analysis_id"])
-    if record_b["nonconforming_verdict_cells"] != baseline["nonconforming_verdict_cells"] + 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(b) verdict-cell strip on {relpath} "
-            f"did not increment nonconforming_verdict_cells by exactly 1 "
-            f"(baseline {baseline['nonconforming_verdict_cells']}, "
-            f"mutated {record_b['nonconforming_verdict_cells']})\n"
-        )
-        sys.exit(1)
-    lines.append(
-        f"check-conf-gate: D-08(b) verdict-cell strip on {relpath} — "
-        f"nonconforming_verdict_cells {baseline['nonconforming_verdict_cells']} -> "
-        f"{record_b['nonconforming_verdict_cells']}"
-    )
-
-    # (c) remove one (chain Cn) citation from an otherwise-traced claim.
-    if _D08_CITE_NEEDLE not in text or text.count(_D08_CITE_NEEDLE) != 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(c) mutation site not found "
-            f"(or not unique) in {relpath}\n"
-        )
-        sys.exit(1)
-    mutated_c = text.replace(_D08_CITE_NEEDLE, _D08_CITE_REPLACEMENT, 1)
-    record_c = detect_defects(mutated_c, target_row["analysis_id"])
-    marked_c = sum(1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t)
-    silent_c = record_c["untraced_claims"] - marked_c
-    if silent_c != baseline_silent + 1:
-        sys.stderr.write(
-            f"check-conf-gate: COVERAGE FAIL — D-08(c) citation removal on {relpath} "
-            f"did not increment silent_untraced_claims by exactly 1 "
-            f"(baseline {baseline_silent}, mutated {silent_c})\n"
-        )
-        sys.exit(1)
-    lines.append(
-        f"check-conf-gate: D-08(c) citation removal on {relpath} — "
-        f"silent_untraced_claims {baseline_silent} -> {silent_c}"
-    )
-
-    return lines
+    path = REPO_ROOT / target_row["relpath"]
+    return _run_d08_arm_on(path, target_row["analysis_id"])
 
 
 # ---------------------------------------------------------------------------
@@ -705,7 +746,11 @@ def run_live() -> int:
             sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
         return 1
 
-    mutation_lines = _run_d08_arm(rows)
+    d08_problems, mutation_lines = _run_d08_arm(rows)
+    if d08_problems:
+        for p in d08_problems:
+            sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
+        return 1
 
     gated_count = sum(1 for r in rows if r["surface"] in _GATED_SURFACES)
     print(
@@ -756,6 +801,50 @@ _D03_PASS_TEXT = (
 # claim with a prescribed lead-in is a violation") would flag every such
 # example, and no control noticed.
 _D03_UNMARKED_TEXT = _D03_FIRE_TEXT.replace(CAVEAT_MARKER + ", ", "", 1)
+
+# BL-04/WR-06 (18-REVIEW.md): tempdir-driven D-08 control fixtures.
+#
+# _D08_FIXTURE_NO_NEEDLES is _D03_PASS_TEXT itself: a six-section document
+# _slice_sections already resolves cleanly, carrying none of the three D-08
+# needle strings.
+#
+# _D08_FIXTURE_INERT_NEEDLES embeds all three needles ONCE each in ordinary
+# section-1 prose, built by REFERENCING _D08_HOP_NEEDLE / _D08_CELL_NEEDLE /
+# _D08_CITE_NEEDLE rather than retyping their text — the property under
+# control here is the arm's REPORTING behaviour, not the needles' values;
+# those are pinned by the live leg, which fails on its own if they no longer
+# locate uniquely in the real shipped file. Do not "fix" this into
+# hand-copied literals; that would silently decouple the fixture from the
+# constants it exists to exercise. All three needles land where mutating
+# them changes nothing measurable: no "### Conclusion" heading anywhere (the
+# (a) chain-block sweep reads 0 blocks before and after), no data row in the
+# section-2 table (so (b)'s verdict-cell count is unmoved), and the
+# section-6 claim neither cites nor is built from the (c) needle (so (c)'s
+# silent-untraced count is unmoved) — exactly the "increment not produced"
+# shape M17/M18/M19 exercise.
+#
+# _D08_FIXTURE_DUPLICATE_HOP is the inert fixture with _D08_HOP_NEEDLE
+# present TWICE, derived by `.replace(needle, needle + needle, 1)` rather
+# than hand-duplicated, so the two fixtures cannot silently drift apart (the
+# _D03_UNMARKED_TEXT convention already used above) — the "not found (or
+# not unique)" shape M20 exercises.
+_D08_FIXTURE_NO_NEEDLES = _D03_PASS_TEXT
+
+_D08_FIXTURE_INERT_NEEDLES = _D08_FIXTURE_NO_NEEDLES.replace(
+    "## 1. Problem Essence\nSome essence text that is long enough.\n\n",
+    "## 1. Problem Essence\nSome essence text that is long enough. "
+    + _D08_HOP_NEEDLE
+    + " "
+    + _D08_CELL_NEEDLE
+    + " "
+    + _D08_CITE_NEEDLE
+    + "\n\n",
+    1,
+)
+
+_D08_FIXTURE_DUPLICATE_HOP = _D08_FIXTURE_INERT_NEEDLES.replace(
+    _D08_HOP_NEEDLE, _D08_HOP_NEEDLE + " " + _D08_HOP_NEEDLE, 1
+)
 
 
 def _control_target_unreadable_fires() -> None:
@@ -1077,7 +1166,7 @@ _CENSUS_X1_CLEAN_SOURCE = (
     "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
-    "    mutation_lines = _run_d08_arm(rows)\n"
+    "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
 )
 
 _CENSUS_X2_MISSING_SOURCE = (
@@ -1088,7 +1177,7 @@ _CENSUS_X2_MISSING_SOURCE = (
     "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
-    "    mutation_lines = _run_d08_arm(rows)\n"
+    "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
 )
 
 _CENSUS_X3_DUPLICATED_SOURCE = (
@@ -1101,7 +1190,7 @@ _CENSUS_X3_DUPLICATED_SOURCE = (
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
     "    problems += _ratchet_problems(rows)\n"
-    "    mutation_lines = _run_d08_arm(rows)\n"
+    "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
 )
 
 _FORM_LOCK_X2_REWRITTEN_SOURCE = (
@@ -1113,7 +1202,7 @@ _FORM_LOCK_X2_REWRITTEN_SOURCE = (
     "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
-    "    mutation_lines = _run_d08_arm(rows)\n"
+    "    d08_problems, mutation_lines = _run_d08_arm(rows)\n"
 )
 
 # BL-01 (18-VERIFICATION.md): derived from _CENSUS_X1_CLEAN_SOURCE by
@@ -1206,6 +1295,73 @@ def _control_live_call_site_roster_locked() -> None:
     assert not wrong_counts, f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
 
 
+# BL-04/WR-06 (18-REVIEW.md): four controls driving the D-08 arm's four
+# internal predicates offline, over `tempfile.TemporaryDirectory()` fixtures
+# only. `shared/`, `first-principles/` and `docs/` are never read or written
+# by any of them, and none references REPO_ROOT.
+#
+# DISCLOSED BOUND, in the same voice as the sibling comparator controls in
+# this file: these four prove the arm REPORTS rather than skips or exits,
+# and that each of its four predicates is reachable and independently
+# falsifiable. They do NOT prove that the three real mutations (a)/(b)/(c)
+# are meaningful against the shipped corpus — that remains the live leg's
+# own job, and it is the property the D-08 arm exists for in the first
+# place; these controls only prove the MECHANISM that carries that job can
+# no longer be hollowed out with the battery green.
+
+
+def _control_d08_missing_target_row_reported() -> None:
+    """`self_test()` catches `AssertionError`/`Exception`, never `SystemExit`
+    (a `BaseException`) — so if `_run_d08_arm` ever regresses to exiting from
+    inside the target-row lookup, a bare call here would kill the whole
+    `--self-test` run without naming a control. Guard against that
+    regression explicitly (N26): catch `SystemExit` and re-raise as a named
+    `AssertionError` so the regression is reported, not an unnamed crash.
+    """
+    try:
+        problems, lines = _run_d08_arm([])
+    except SystemExit:
+        raise AssertionError("D-08 arm exited instead of returning") from None
+    assert lines == [], lines
+    assert any(_D08_TARGET_ID in p for p in problems), problems
+
+
+def _control_d08_missing_sites_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_NO_NEEDLES, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert lines == [], lines
+    assert len(problems) == 3, problems
+    assert all("mutation site not found" in p for p in problems), problems
+    assert any("D-08(a)" in p for p in problems), problems
+    assert any("D-08(b)" in p for p in problems), problems
+    assert any("D-08(c)" in p for p in problems), problems
+
+
+def _control_d08_increments_not_produced_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_INERT_NEEDLES, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert lines == [], lines
+    assert len(problems) == 3, problems
+    assert all("did not increment" in p for p in problems), problems
+    assert any("heading_malformed_blocks" in p for p in problems), problems
+    assert any("nonconforming_verdict_cells" in p for p in problems), problems
+    assert any("silent_untraced_claims" in p for p in problems), problems
+
+
+def _control_d08_needle_not_unique_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_DUPLICATE_HOP, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert any(
+        "D-08(a)" in p and "not found (or not unique)" in p for p in problems
+    ), problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -1249,6 +1405,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
     ("census-x4-commented", _control_census_x4_commented),
     ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
+    ("d08-missing-target-row-reported", _control_d08_missing_target_row_reported),
+    ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
+    ("d08-increments-not-produced-reported", _control_d08_increments_not_produced_reported),
+    ("d08-needle-not-unique-reported", _control_d08_needle_not_unique_reported),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -1294,6 +1454,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "form-lock-x2-rewritten",
     "census-x4-commented",
     "live-call-site-roster-locked",
+    "d08-missing-target-row-reported",
+    "d08-missing-sites-reported",
+    "d08-increments-not-produced-reported",
+    "d08-needle-not-unique-reported",
 )
 
 
