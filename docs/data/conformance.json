@@ -1,5 +1,5 @@
 {
-  "measurement_date": "2026-09-04",
+  "measurement_date": "2026-09-05",
   "generator": "scripts/report-conformance.py",
   "artifact_count": 29,
   "surface_counts": {
@@ -25,6 +25,20 @@
       "contract-surface": {
         "total": 3,
         "untraced": 3
+      }
+    },
+    "untraced_breakdown": {
+      "shared-examples": {
+        "marked": 0,
+        "silent": 56
+      },
+      "generated-twin": {
+        "marked": 0,
+        "silent": 56
+      },
+      "contract-surface": {
+        "marked": 0,
+        "silent": 3
       }
     },
     "verdict_cells": {
@@ -103,7 +117,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "shared-examples",
@@ -132,7 +148,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "shared-examples",
@@ -161,7 +179,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "shared-examples",
@@ -190,7 +210,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "shared-examples",
@@ -219,7 +241,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 7
     },
     {
       "surface": "shared-examples",
@@ -248,7 +272,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 7
     },
     {
       "surface": "shared-examples",
@@ -277,7 +303,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 4
     },
     {
       "surface": "shared-examples",
@@ -306,7 +334,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 2
     },
     {
       "surface": "shared-examples",
@@ -335,7 +365,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "shared-examples",
@@ -364,7 +396,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "shared-examples",
@@ -393,7 +427,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 9
     },
     {
       "surface": "shared-examples",
@@ -422,7 +458,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 10
     },
     {
       "surface": "shared-examples",
@@ -451,7 +489,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 8
     },
     {
       "surface": "shared-examples",
@@ -480,7 +520,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "generated-twin",
@@ -509,7 +551,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "generated-twin",
@@ -538,7 +582,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "generated-twin",
@@ -567,7 +613,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "generated-twin",
@@ -596,7 +644,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "generated-twin",
@@ -625,7 +675,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 7
     },
     {
       "surface": "generated-twin",
@@ -654,7 +706,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 7
     },
     {
       "surface": "generated-twin",
@@ -683,7 +737,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 4
     },
     {
       "surface": "generated-twin",
@@ -712,7 +768,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 2
     },
     {
       "surface": "generated-twin",
@@ -741,7 +799,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "generated-twin",
@@ -770,7 +830,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     },
     {
       "surface": "generated-twin",
@@ -799,7 +861,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 9
     },
     {
       "surface": "generated-twin",
@@ -828,7 +892,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 10
     },
     {
       "surface": "generated-twin",
@@ -857,7 +923,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 8
     },
     {
       "surface": "generated-twin",
@@ -886,7 +954,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": "unreadable",
+      "silent_untraced_claims": "unreadable"
     },
     {
       "surface": "contract-surface",
@@ -915,7 +985,9 @@
       "misattributed_literals": "n/a",
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
-      "provenance_flag": "n/a"
+      "provenance_flag": "n/a",
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 3
     }
   ]
 }

@@ -4,7 +4,7 @@
 
 # Conformance Baseline
 
-Measurement date: 2026-09-04
+Measurement date: 2026-09-05
 
 This file is a measurement, not a contract: no figure below defines what the codebase is required to become, and no count in it gates a conformance check. Regenerating this file only ever fails on staleness -- committed bytes that no longer match a fresh run of `scripts/report-conformance.py` -- never on a count read here being high.
 
@@ -14,6 +14,7 @@ This file is a measurement, not a contract: no figure below defines what the cod
 |---|---|---|---|
 | Files unreadable by `_slice_sections` | 4 of 14 | 4 of 14 | 0 of 1 |
 | §6 conclusion claims (untraced) | 58 (56 untraced) | 58 (56 untraced) | 3 (3 untraced) |
+| §6 untraced claims (marked / silent) | 56 untraced (0 marked, 56 silent) | 56 untraced (0 marked, 56 silent) | 3 untraced (0 marked, 3 silent) |
 | §2 verdict cells (non-conforming) | 69 (69 non-conforming) | 69 (69 non-conforming) | 1 (1 non-conforming) |
 | §4 `chain_blocks` (malformed) | 10 (7 malformed) | 10 (7 malformed) | 3 (1 malformed) |
 | `### Conclusion` heading-swept blocks (malformed) | 28 (19 malformed) | 28 (19 malformed) | 1 (0 malformed) |
@@ -29,51 +30,51 @@ Three kinds of value appear in the per-artifact tables below. A number means the
 
 ## shared-examples
 
-| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| shared/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | ishikawa-fishbone | 4 | 3 | 1 | 8 | 8 | 1 | 1 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/personal-general-2.md | OK | 3 | 3 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/personal-general.md | OK | 2 | 0 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/product-business-2.md | OK | 3 | 3 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/product-business.md | OK | 3 | 0 | product-business | 3 | 2 | 1 | 7 | 7 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/science-engineering-2.md | OK | 2 | 2 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/science-engineering.md | OK | 2 | 2 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/self-application.md | OK | 3 | 3 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/software-systems-2.md | OK | 3 | 3 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/software-systems.md | OK | 3 | 3 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shared/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | unreadable | unreadable | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 3 | ishikawa-fishbone | 4 | 3 | 1 | 8 | 8 | 1 | 1 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/personal-general.md | OK | 2 | 0 | 0 | 7 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/product-business-2.md | OK | 3 | 3 | 0 | 4 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/product-business.md | OK | 3 | 0 | 0 | 2 | product-business | 3 | 2 | 1 | 7 | 7 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/self-application.md | OK | 3 | 3 | 0 | 9 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/software-systems.md | OK | 3 | 3 | 0 | 8 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ## generated-twin
 
-| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| first-principles/agents/references/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | ishikawa-fishbone | 4 | 3 | 1 | 8 | 8 | 1 | 1 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 3 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/product-business-2.md | OK | 3 | 3 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/product-business.md | OK | 3 | 0 | product-business | 3 | 2 | 1 | 7 | 7 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/science-engineering-2.md | OK | 2 | 2 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/science-engineering.md | OK | 2 | 2 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/self-application.md | OK | 3 | 3 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/software-systems-2.md | OK | 3 | 3 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/software-systems.md | OK | 3 | 3 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| first-principles/agents/references/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | unreadable | unreadable | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 3 | ishikawa-fishbone | 4 | 3 | 1 | 8 | 8 | 1 | 1 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | 0 | 7 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/product-business-2.md | OK | 3 | 3 | 0 | 4 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/product-business.md | OK | 3 | 0 | 0 | 2 | product-business | 3 | 2 | 1 | 7 | 7 | 1 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/self-application.md | OK | 3 | 3 | 0 | 9 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/software-systems.md | OK | 3 | 3 | 0 | 8 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ## contract-surface
 
-| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| shared/spine/references/output-template.md | OK | 1 | 0 | output-template | 3 | 3 | 1 | 1 | 1 | 1 | 3 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| shared/spine/references/output-template.md | OK | 1 | 0 | 0 | 3 | output-template | 3 | 3 | 1 | 1 | 1 | 1 | 3 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ## Source-vs-twin agreement (D-04)
 
-Compared fields (fifteen): `conclusion_claims`, `untraced_claims`, `untraced_flag`, `verdict_cells`, `nonconforming_verdict_cells`, `verdict_flag`, `chain_blocks`, `malformed_chain_blocks`, `chain_flag`, `dependency_cycles`, `ungrounded_chains`, `selfaudit_disagreements`, `section_resolution`, `heading_chain_blocks`, `heading_malformed_blocks`.
+Compared fields (17): `conclusion_claims`, `untraced_claims`, `untraced_flag`, `verdict_cells`, `nonconforming_verdict_cells`, `verdict_flag`, `chain_blocks`, `malformed_chain_blocks`, `chain_flag`, `dependency_cycles`, `ungrounded_chains`, `selfaudit_disagreements`, `section_resolution`, `heading_chain_blocks`, `heading_malformed_blocks`, `marked_untraced_claims`, `silent_untraced_claims`.
 
 Excluded (ten, foreordained equal on both surfaces): `analysis_id`, `provenance_labels`, `unmatched_sources`, `unreadable_sources`, `literals_checked`, `unlocated_literals`, `misattributed_literals`, `zero_literal_gts`, `orphan_fetches`, `provenance_flag`.
 
