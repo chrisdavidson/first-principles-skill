@@ -16,11 +16,11 @@
     "conclusion_claims": {
       "shared-examples": {
         "total": 77,
-        "untraced": 15
+        "untraced": 2
       },
       "generated-twin": {
         "total": 77,
-        "untraced": 15
+        "untraced": 2
       },
       "contract-surface": {
         "total": 3,
@@ -30,11 +30,11 @@
     "untraced_breakdown": {
       "shared-examples": {
         "marked": 2,
-        "silent": 13
+        "silent": 0
       },
       "generated-twin": {
         "marked": 2,
-        "silent": 13
+        "silent": 0
       },
       "contract-surface": {
         "marked": 0,
@@ -44,11 +44,11 @@
     "verdict_cells": {
       "shared-examples": {
         "total": 77,
-        "nonconforming": 31
+        "nonconforming": 0
       },
       "generated-twin": {
         "total": 77,
-        "nonconforming": 31
+        "nonconforming": 0
       },
       "contract-surface": {
         "total": 1,
@@ -58,11 +58,11 @@
     "section4_chain_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 4
+        "malformed": 0
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 4
+        "malformed": 0
       },
       "contract-surface": {
         "total": 3,
@@ -72,11 +72,11 @@
     "heading_swept_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 4
+        "malformed": 0
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 4
+        "malformed": 0
       },
       "contract-surface": {
         "total": 1,
@@ -191,17 +191,17 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "ishikawa-fishbone",
       "conclusion_claims": 4,
-      "untraced_claims": 4,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
-      "selfaudit_disagreements": 2,
+      "selfaudit_disagreements": 0,
       "provenance_labels": "n/a",
       "unmatched_sources": "n/a",
       "unreadable_sources": "n/a",
@@ -212,7 +212,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 4
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -315,11 +315,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "product-business",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 7,
-      "nonconforming_verdict_cells": 7,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -336,24 +336,24 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
       "relpath": "shared/examples/science-engineering-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
-      "heading_malformed_blocks": 2,
+      "heading_malformed_blocks": 0,
       "analysis_id": "science-engineering-2",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
-      "malformed_chain_blocks": 2,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -367,24 +367,24 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
       "relpath": "shared/examples/science-engineering.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
-      "heading_malformed_blocks": 2,
+      "heading_malformed_blocks": 0,
       "analysis_id": "science-engineering",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
-      "malformed_chain_blocks": 2,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -398,7 +398,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -625,17 +625,17 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "ishikawa-fishbone",
       "conclusion_claims": 4,
-      "untraced_claims": 4,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
-      "selfaudit_disagreements": 2,
+      "selfaudit_disagreements": 0,
       "provenance_labels": "n/a",
       "unmatched_sources": "n/a",
       "unreadable_sources": "n/a",
@@ -646,7 +646,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 4
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
@@ -749,11 +749,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "product-business",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 7,
-      "nonconforming_verdict_cells": 7,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -770,24 +770,24 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
       "relpath": "first-principles/agents/references/examples/science-engineering-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
-      "heading_malformed_blocks": 2,
+      "heading_malformed_blocks": 0,
       "analysis_id": "science-engineering-2",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
-      "malformed_chain_blocks": 2,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -801,24 +801,24 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
       "relpath": "first-principles/agents/references/examples/science-engineering.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 2,
-      "heading_malformed_blocks": 2,
+      "heading_malformed_blocks": 0,
       "analysis_id": "science-engineering",
       "conclusion_claims": 3,
-      "untraced_claims": 3,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
-      "malformed_chain_blocks": 2,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -832,7 +832,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 3
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
