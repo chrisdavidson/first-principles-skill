@@ -498,6 +498,20 @@ gate "HC-BOUND" \
     "check-high-confidence-bound.py --self-test" \
     "python3 scripts/check-high-confidence-bound.py --self-test"
 
+# CONF-GATE — standing exemplar-conformance comparator: the four conformance
+#             counts (unreadable, heading_malformed_blocks,
+#             nonconforming_verdict_cells, silent_untraced_claims) on both
+#             gated example surfaces (shared-examples, generated-twin) against
+#             source-literal zero targets, the 14-entry claim floor locked by
+#             equality to the live-discovered shared-examples ids, the D-03
+#             prescribed-lead-in rule, and the marked-claim ratchet. Runs
+#             --self-test plus the bare live leg (plan 18-08), matching
+#             PROV-GUARD/SCAN-GUARD.
+gate "CONF-GATE" \
+    "check-conf-gate.py --self-test + live" \
+    "python3 scripts/check-conf-gate.py --self-test" \
+    "python3 scripts/check-conf-gate.py"
+
 # body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
 # Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
 # reports rather than passes/fails. Its exit status does not influence PASS/FAIL/TOTAL.
