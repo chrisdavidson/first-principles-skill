@@ -45,11 +45,13 @@ Exit codes:
        discovery floor failed
     2  environment error (module import failure)
 
-`--self-test` additionally floors `run_live()`'s own six enforcement call sites via a
-source-text census over `inspect.getsource(run_live)` (CR-01): this counts and matches
-SOURCE TEXT only, so it catches a call site that was deleted or rewritten, never one whose
-returned problems are computed correctly and then silently discarded before reaching the
-failure report.
+`--self-test` additionally floors the six enforcement symbols named by `_LIVE_CALL_SITES` /
+`_LIVE_CALL_FORMS` by a set-equality lock (`_LIVE_CALL_SITES_LOCK`, BL-02) over both tables,
+and each is counted and form-matched in `run_live()`'s comment-stripped source (CR-01, BL-01)
+via `_strip_line_comments(inspect.getsource(run_live))`: this counts and matches SOURCE TEXT
+only, so it catches a call site that was deleted, rewritten, or commented out — never one
+whose returned problems are computed correctly and then silently discarded before reaching
+the failure report.
 """
 
 from __future__ import annotations
@@ -286,6 +288,44 @@ _LIVE_CALL_FORMS: dict[str, str] = {
     "_run_d08_arm": "mutation_lines = " + "_run_d08_arm(rows)",
 }
 
+# BL-02 (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed roster of the same six enforcement symbol names — deliberately
+# NOT derived from _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any expression,
+# the same discipline _CLAIM_FLOORS_LOCK already applies to _CLAIM_FLOORS.
+# Before this lock, four of the six symbols (_run_d08_arm,
+# _claim_floor_problems, _d03_rule_problems_from_text,
+# _claim_floor_roster_problems) could be deleted from both census tables
+# plus their call site in run_live(), and `--self-test` still reported
+# `SELF-TEST PASS — 32 controls run` at rc 0. Adding or removing an
+# enforcement call is therefore a two-place reviewable edit by design.
+_LIVE_CALL_SITES_LOCK: tuple[str, ...] = (
+    "_targets_problems",
+    "_claim_floor_roster_problems",
+    "_claim_floor_problems",
+    "_d03_rule_problems_from_text",
+    "_ratchet_problems",
+    "_run_d08_arm",
+)
+
+
+def _strip_line_comments(source: str) -> str:
+    """BL-01 (18-VERIFICATION.md): strip everything from the first `#` on each
+    line before the census counts or the form lock matches, the same idiom
+    `scripts/check-traceability.py` uses at its own comment-stripping site
+    (`line.split("#", 1)[0]`, ~line 2152, backed by control `(h1)`,
+    "comment stripping is load-bearing"). Without this, a `# ` prefix on an
+    enforcement call line leaves the text present and unchanged in raw source,
+    so `_call_site_census_problems` still counts it and the form lock still
+    finds it — a commented-out call satisfies both checks.
+
+    DISCLOSED BOUND, same conservative direction as the sibling site: this
+    over-strips a `#` that appears inside a string literal, which can only
+    make the census see LESS text, never more. It cannot manufacture a false
+    PASS by hiding a real call site behind an in-string `#` — the worst case
+    is an unrelated false positive from a call site that never existed.
+    """
+    return "\n".join(line.split("#", 1)[0] for line in source.splitlines())
+
 
 def _call_site_census_problems(
     source: str,
@@ -312,13 +352,19 @@ def _call_site_census_problems(
 
     DISCLOSED LIMITATION, in the same voice as `check-selfaudit-scan.py`'s
     ENTRY-SOURCE LOCK: this counts and matches SOURCE TEXT and observes no
-    behaviour. It catches a call site that was DELETED or REWRITTEN, not a
-    call whose returned problems are computed correctly and then discarded
-    before reaching the failure report; and a call form rebound to an
-    expression of EQUAL VALUE is harmless by construction and therefore
-    invisible to it. Closes CR-01 and the blocking gap 18-VERIFICATION.md
-    records against `run_live()`'s six enforcement call sites.
+    behaviour. (i) It catches a call site that was DELETED, REWRITTEN, or
+    COMMENTED OUT — closing BL-01 (18-VERIFICATION.md) via the
+    `_strip_line_comments` call below and the `census-x4-commented` control.
+    (ii) It still does NOT catch a call whose returned problems are computed
+    correctly and then discarded before reaching the failure report — the
+    same residual `check-quality-harness.py` control `(t)` and
+    `check-selfaudit-scan.py`'s `validate-census` state for themselves.
+    (iii) A call form rebound to an expression of EQUAL VALUE remains
+    invisible to it by construction. Closes CR-01 and the blocking gap
+    18-VERIFICATION.md records against `run_live()`'s six enforcement call
+    sites.
     """
+    source = _strip_line_comments(source)
     problems: list[str] = []
     for symbol, expected in expected_counts.items():
         pattern = symbol + "("
@@ -938,6 +984,16 @@ _FORM_LOCK_X2_REWRITTEN_SOURCE = (
     "    mutation_lines = _run_d08_arm(rows)\n"
 )
 
+# BL-01 (18-VERIFICATION.md): derived from _CENSUS_X1_CLEAN_SOURCE by
+# commenting out a single enforcement call line — never hand-duplicated —
+# so the two fixtures cannot drift apart (the _D03_UNMARKED_TEXT convention
+# already in this file). Proves the census catches a COMMENTED-OUT call,
+# not merely a deleted or rewritten one.
+_CENSUS_X4_COMMENTED_SOURCE = _CENSUS_X1_CLEAN_SOURCE.replace(
+    "    problems += _targets_problems(rows)\n",
+    "    # problems += _targets_problems(rows)\n",
+)
+
 
 def _control_live_call_site_census() -> None:
     source = inspect.getsource(run_live)
@@ -986,6 +1042,38 @@ def _control_form_lock_x2_rewritten() -> None:
     assert "_targets_problems" in problems[0], problems
 
 
+def _control_census_x4_commented() -> None:
+    problems = _call_site_census_problems(_CENSUS_X4_COMMENTED_SOURCE, _LIVE_CALL_SITES)
+    assert len(problems) == 1, problems
+    assert "_targets_problems" in problems[0], problems
+    assert "occurs 0 time" in problems[0], problems
+
+
+def _control_live_call_site_roster_locked() -> None:
+    """BL-02: `_LIVE_CALL_SITES` and `_LIVE_CALL_FORMS` must each agree, by
+    set equality, with the independently transcribed `_LIVE_CALL_SITES_LOCK`
+    — never with each other, since a coordinated deletion from both tables
+    (BL-02's measured defect) would satisfy a cross-table comparison. Also
+    asserts the tables' own "one call site, called exactly once" contract:
+    every `_LIVE_CALL_SITES` value must equal 1.
+
+    DISCLOSED BOUND, in the same voice as `check-selfaudit-scan.py`'s
+    ENTRY-SOURCE LOCK: this floors the roster's MEMBERSHIP and per-symbol
+    expected count, not the behaviour of the calls themselves. A coordinated
+    three-place edit (both tables, the lock, and the call site) remains
+    possible and is by design a reviewable source diff, exactly as a sha256
+    pin move is.
+    """
+    counts_diff = set(_LIVE_CALL_SITES) ^ set(_LIVE_CALL_SITES_LOCK)
+    assert not counts_diff, f"CALL-SITE ROSTER DRIFT: {sorted(counts_diff)}"
+
+    forms_diff = set(_LIVE_CALL_FORMS) ^ set(_LIVE_CALL_SITES_LOCK)
+    assert not forms_diff, f"CALL-SITE ROSTER DRIFT: {sorted(forms_diff)}"
+
+    wrong_counts = sorted(k for k, v in _LIVE_CALL_SITES.items() if v != 1)
+    assert not wrong_counts, f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -1020,6 +1108,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("census-x3-duplicated", _control_census_x3_duplicated),
     ("form-lock-x1-clean", _control_form_lock_x1_clean),
     ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
+    ("census-x4-commented", _control_census_x4_commented),
+    ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -1059,6 +1149,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "census-x3-duplicated",
     "form-lock-x1-clean",
     "form-lock-x2-rewritten",
+    "census-x4-commented",
+    "live-call-site-roster-locked",
 )
 
 
