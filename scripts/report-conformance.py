@@ -55,10 +55,22 @@ JSON_PATH: Path = REPO_ROOT / "docs" / "data" / "conformance.json"
 SHARED_EXAMPLES_GLOB: str = "shared/examples/*.md"
 TWIN_EXAMPLES_GLOB: str = "first-principles/agents/references/examples/*.md"
 CONTRACT_SURFACE_RELPATH: str = "shared/spine/references/output-template.md"
+ADVERSARIAL_CORPUS_GLOB: str = "tests/adversarial-corpus-v9.0/*.md"
+ADVERSARIAL_CORPUS_CATALOG: str = "tests/adversarial-corpus-v9.0/catalog.md"
+ADVERSARIAL_CORPUS_README: str = "tests/adversarial-corpus-v9.0/README.md"
 
 MIN_SHARED_EXAMPLES: int = 14
 MIN_TWIN_EXAMPLES: int = 14
 MIN_CONTRACT_SURFACES: int = 1
+# CONF-07's floor (Phase 19): fewer than this many corpus items and
+# discover_artifacts raises DiscoveryFloorError rather than returning a short
+# list -- D-02's "never return a short list silently" idiom, reused verbatim
+# from the three surfaces above. Raising this blocks EVERY commit in the
+# repository through the pre-commit conformance-drift gate (`--check` on
+# every commit, not just commits touching this surface), which is exactly
+# why the thirteen-item corpus is authored and committed BEFORE this
+# constant goes live, never after.
+MIN_CORPUS_ITEMS: int = 12
 
 
 # ---------------------------------------------------------------------------
@@ -120,16 +132,19 @@ class DiscoveryFloorError(RuntimeError):
 
 @dataclass(frozen=True)
 class Artifact:
-    surface: Literal["shared-examples", "generated-twin", "contract-surface"]
+    surface: Literal[
+        "shared-examples", "generated-twin", "contract-surface", "adversarial-corpus"
+    ]
     relpath: str
     path: Path
     analysis_id: str
 
 
 def discover_artifacts(repo_root: Path) -> list[Artifact]:
-    """Glob the two example directories and resolve the contract surface by explicit path,
-    then enforce three named count floors (D-02). `repo_root` is a parameter (not a module-
-    level read) so --self-test can drive this against a tempdir fixture.
+    """Glob the two example directories, resolve the contract surface by explicit path,
+    and glob the adversarial corpus, then enforce four named count floors (D-02).
+    `repo_root` is a parameter (not a module-level read) so --self-test can drive this
+    against a tempdir fixture.
 
     `sorted()` is mandatory on every glob result: Path.glob order is not stable across
     platforms, and byte-for-byte --check reproduction depends on it.
@@ -161,6 +176,24 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
             f"to exist at {contract_path}, found missing"
         )
 
+    # The two sidecar files (catalog.md, README.md) are excluded by name -- they are
+    # metadata about the corpus, never a corpus item to measure.
+    corpus_excluded = {
+        (repo_root / ADVERSARIAL_CORPUS_CATALOG).resolve(),
+        (repo_root / ADVERSARIAL_CORPUS_README).resolve(),
+    }
+    corpus_paths = [
+        p
+        for p in sorted(repo_root.glob(ADVERSARIAL_CORPUS_GLOB))
+        if p.resolve() not in corpus_excluded
+    ]
+    if len(corpus_paths) < MIN_CORPUS_ITEMS:
+        messages.append(
+            f"report-conformance: COUNT FLOOR FAIL — expected >= {MIN_CORPUS_ITEMS} "
+            f"files matching {ADVERSARIAL_CORPUS_GLOB} (excluding catalog.md and "
+            f"README.md), found {len(corpus_paths)}"
+        )
+
     if messages:
         raise DiscoveryFloorError("\n".join(messages))
 
@@ -177,7 +210,98 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
         artifacts.append(
             Artifact("contract-surface", p.relative_to(repo_root).as_posix(), p, p.stem)
         )
+    for p in corpus_paths:
+        artifacts.append(
+            Artifact("adversarial-corpus", p.relative_to(repo_root).as_posix(), p, p.stem)
+        )
     return artifacts
+
+
+_CORPUS_CATALOG_COLUMNS: dict[str, str] = {
+    "ID": "id",
+    "File": "file",
+    "Stratum": "stratum",
+    "Source": "source",
+    "What is false": "what_is_false",
+    "Rule that ought to catch it": "ought_to_catch",
+    "Disposition": "disposition",
+}
+_VALID_STRATA: frozenset[str] = frozenset({"A", "B1", "B2"})
+
+
+def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
+    """Parse `ADVERSARIAL_CORPUS_CATALOG`'s `## Catalog` table into
+    `{stem: {"stratum": ..., "source": ..., "what_is_false": ..., "ought_to_catch": ...,
+    "disposition": ...}}`, keyed by the `File` column (the artifact stem, matching
+    `Artifact.analysis_id`).
+
+    Parses by locating the header row containing all seven column names, then reading the
+    `|`-delimited data rows beneath it, mapping BY HEADER NAME, never by position -- a
+    future column insertion must not silently shift the parse. Never silently drops a
+    malformed row: a row whose `File` cell is empty, or whose `Stratum` cell is not one of
+    A/B1/B2, is returned as a parse problem in the second tuple element instead, so a
+    floor built on this function's output can report parse failures by name rather than
+    seeing a shorter dict than expected.
+    """
+    text = (repo_root / ADVERSARIAL_CORPUS_CATALOG).read_text(encoding="utf-8")
+    lines = text.splitlines()
+
+    header_idx: int | None = None
+    header_cols: list[str] = []
+    for i, line in enumerate(lines):
+        if not line.strip().startswith("|"):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if all(name in cells for name in _CORPUS_CATALOG_COLUMNS):
+            header_idx = i
+            header_cols = cells
+            break
+
+    entries: dict[str, dict] = {}
+    problems: list[str] = []
+
+    if header_idx is None:
+        problems.append(
+            f"CATALOG PARSE FAIL — header row naming all of "
+            f"{sorted(_CORPUS_CATALOG_COLUMNS)} not found in {ADVERSARIAL_CORPUS_CATALOG}"
+        )
+        return entries, problems
+
+    col_index = {name: header_cols.index(name) for name in _CORPUS_CATALOG_COLUMNS}
+
+    # The row immediately after the header is the `|---|---|...` separator; skip it.
+    for line in lines[header_idx + 2 :]:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            # The table has ended (blank line, prose, or next heading).
+            break
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if len(cells) <= max(col_index.values()):
+            problems.append(f"CATALOG PARSE FAIL — short row, cannot map columns: {stripped!r}")
+            continue
+
+        file_cell = cells[col_index["File"]]
+        stratum_cell = cells[col_index["Stratum"]]
+
+        if not file_cell:
+            problems.append(f"CATALOG PARSE FAIL — empty File cell: {stripped!r}")
+            continue
+        if stratum_cell not in _VALID_STRATA:
+            problems.append(
+                f"CATALOG PARSE FAIL — {file_cell}: Stratum {stratum_cell!r} not one of "
+                f"{sorted(_VALID_STRATA)}"
+            )
+            continue
+
+        entries[file_cell] = {
+            "stratum": stratum_cell,
+            "source": cells[col_index["Source"]],
+            "what_is_false": cells[col_index["What is false"]],
+            "ought_to_catch": cells[col_index["Rule that ought to catch it"]],
+            "disposition": cells[col_index["Disposition"]],
+        }
+
+    return entries, problems
 
 
 def build_row(artifact: Artifact) -> dict:
@@ -240,10 +364,84 @@ def build_row(artifact: Artifact) -> dict:
     return row
 
 
+# Phase 19 (CONF-07/CONF-08): the two derived-field tuples that define a corpus item's
+# "fully clean" predicate. Form fields are the same three columns CONF-07's precondition
+# pins to zero corpus-wide; substantive fields are the three columns with genuine
+# detector reach (dependency_cycles, ungrounded_chains, selfaudit_disagreements) -- NOT
+# form checks, and the only columns this corpus's stratum-A positive controls are built
+# to fire on.
+_CORPUS_FORM_FIELDS: tuple[str, ...] = (
+    "untraced_claims",
+    "nonconforming_verdict_cells",
+    "malformed_chain_blocks",
+)
+_CORPUS_SUBSTANTIVE_FIELDS: tuple[str, ...] = (
+    "dependency_cycles",
+    "ungrounded_chains",
+    "selfaudit_disagreements",
+)
+
+
+def build_corpus_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
+    """A thin wrapper over `build_row` -- never a second `detect_defects` call and never a
+    reimplementation. Calls `build_row(artifact)` verbatim, then merges in the joined
+    catalog fields (`stratum`, `source`, `disposition`) plus two computed fields:
+
+    `fully_clean` is True iff `section_resolution == "OK"` and every field in both
+    `_CORPUS_FORM_FIELDS` and `_CORPUS_SUBSTANTIVE_FIELDS` reads the integer 0. An
+    "unreadable" row is never fully_clean -- a document the detector could not read was
+    not missed, and counting it as a false negative would be wrong (19-CONTEXT.md
+    `<specifics>`).
+
+    `form_defects` is the summed `_CORPUS_FORM_FIELDS` when readable, and the literal
+    "unreadable" otherwise -- preserving `build_row`'s three-way column vocabulary rather
+    than coercing an unreadable row's absence of a count into 0.
+
+    If *catalog_entry* is None (the artifact has no catalog row), `stratum`/`source`/
+    `disposition` are populated with the literal "MISSING" rather than omitted, so the row
+    still renders and a later floor has something to name. The row is never dropped.
+    """
+    row = build_row(artifact)
+
+    if catalog_entry is None:
+        row["stratum"] = "MISSING"
+        row["source"] = "MISSING"
+        row["disposition"] = "MISSING"
+    else:
+        row["stratum"] = catalog_entry["stratum"]
+        row["source"] = catalog_entry["source"]
+        row["disposition"] = catalog_entry["disposition"]
+
+    readable = row["section_resolution"] == "OK"
+    if readable:
+        row["form_defects"] = sum(row[f] for f in _CORPUS_FORM_FIELDS)
+        row["fully_clean"] = all(row[f] == 0 for f in _CORPUS_FORM_FIELDS) and all(
+            row[f] == 0 for f in _CORPUS_SUBSTANTIVE_FIELDS
+        )
+    else:
+        row["form_defects"] = "unreadable"
+        row["fully_clean"] = False
+
+    return row
+
+
 def build_rows(repo_root: Path) -> list[dict]:
     """One row per discovered artifact, in discovery order (shared-examples, then
-    generated-twin, then contract-surface; each group sorted by discover_artifacts)."""
-    return [build_row(a) for a in discover_artifacts(repo_root)]
+    generated-twin, then contract-surface, then adversarial-corpus; each group sorted by
+    discover_artifacts). Corpus artifacts are routed through `build_corpus_row`, joined
+    against a catalog parsed exactly once per call; the other three surfaces go through
+    the unwrapped `build_row`. A catalog parse problem is not raised here -- reporting it
+    is a later floor's job (plan 19-06); an artifact whose stem has no clean catalog
+    entry simply reads `stratum`/`source`/`disposition` as "MISSING", never dropped."""
+    catalog_entries, _catalog_problems = parse_corpus_catalog(repo_root)
+
+    rows: list[dict] = []
+    for artifact in discover_artifacts(repo_root):
+        if artifact.surface == "adversarial-corpus":
+            rows.append(build_corpus_row(artifact, catalog_entries.get(artifact.analysis_id)))
+        else:
+            rows.append(build_row(artifact))
+    return rows
 
 
 def pair_agreement(
@@ -362,8 +560,47 @@ def compute_headline(rows: list[dict]) -> dict:
     }
 
 
+def compute_corpus_headline(corpus_rows: list[dict]) -> dict:
+    """Phase 19's false-negative-rate headline. A sibling of `compute_headline`, not an
+    extra entry inside it: a corpus headline counts fully-clean ITEMS, while
+    `compute_headline`'s `per_surface`/`_sum_measured` helpers sum a numeric field across
+    a surface -- a different shape of aggregation. Every value here is derived from
+    `corpus_rows` at call time; nothing is hardcoded.
+    """
+    total = len(corpus_rows)
+    clean = sum(1 for r in corpus_rows if r["fully_clean"] is True)
+    unreadable = sum(1 for r in corpus_rows if r["section_resolution"] != "OK")
+    form_defects = sum(
+        r["form_defects"] for r in corpus_rows if r["section_resolution"] == "OK"
+    )
+
+    by_stratum: dict[str, dict[str, int]] = {}
+    for r in corpus_rows:
+        stratum = r["stratum"]
+        bucket = by_stratum.setdefault(stratum, {"clean": 0, "total": 0})
+        bucket["total"] += 1
+        if r["fully_clean"] is True:
+            bucket["clean"] += 1
+
+    clean_without_disposition = sum(
+        1
+        for r in corpus_rows
+        if r["fully_clean"] is True and (not r["disposition"] or r["disposition"] == "MISSING")
+    )
+
+    return {
+        "total": total,
+        "clean": clean,
+        "unreadable": unreadable,
+        "form_defects": form_defects,
+        "by_stratum": by_stratum,
+        "clean_without_disposition": clean_without_disposition,
+    }
+
+
 def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
     agreeing, total, divergences = agreement
+    corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
     obj = {
         "measurement_date": MEASUREMENT_DATE,
         "generator": "scripts/report-conformance.py",
@@ -372,6 +609,7 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
             "shared-examples": sum(1 for r in rows if r["surface"] == "shared-examples"),
             "generated-twin": sum(1 for r in rows if r["surface"] == "generated-twin"),
             "contract-surface": sum(1 for r in rows if r["surface"] == "contract-surface"),
+            "adversarial-corpus": len(corpus_rows),
         },
         "headline": compute_headline(rows),
         "pair_agreement": {
@@ -383,8 +621,105 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
             ],
         },
         "rows": rows,
+        # Phase 19 (CONF-08): a NEW top-level key, never folded into the flat `rows` list
+        # above or into `pair_agreement` -- the corpus has no generated twin, so widening
+        # either would inflate the agreement headline with rows that cannot pair.
+        "adversarial_corpus": {
+            "headline": compute_corpus_headline(corpus_rows),
+            "rows": corpus_rows,
+        },
     }
     return json.dumps(obj, indent=2) + "\n"
+
+
+_CORPUS_TABLE_FIELDS: tuple[str, ...] = (
+    "relpath",
+    "stratum",
+    "section_resolution",
+    "form_defects",
+    "dependency_cycles",
+    "ungrounded_chains",
+    "selfaudit_disagreements",
+    "fully_clean",
+    "disposition",
+)
+
+# Fixed rendering order for the per-stratum breakdown -- A, B1, B2 in the corpus's own
+# vocabulary order, then MISSING last (visible, never silently dropped) if any row's
+# stratum is uncatalogued.
+_STRATUM_ORDER: tuple[str, ...] = ("A", "B1", "B2", "MISSING")
+
+
+def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) -> list[str]:
+    """Phase 19 (CONF-07/CONF-08): the ## adversarial-corpus section. Reads every figure
+    from `headline` (itself computed from `corpus_rows` by `compute_corpus_headline`) --
+    nothing here is a hardcoded literal."""
+    lines: list[str] = []
+    lines.append("## adversarial-corpus")
+    lines.append("")
+    lines.append(
+        "**False-negative rate:** "
+        f"{headline['clean']} of {headline['total']} corpus items score fully clean "
+        "under the unmodified, CONTRACT-06-frozen `detect_defects` -- despite every item "
+        "being a stated, catalogued falsehood. Each of those "
+        f"{headline['clean']} is a false negative: a substantively wrong analysis this "
+        "instrument cannot distinguish from a sound one."
+    )
+    lines.append("")
+    for stratum in _STRATUM_ORDER:
+        if stratum not in headline["by_stratum"]:
+            continue
+        bucket = headline["by_stratum"][stratum]
+        lines.append(f"- Stratum {stratum}: {bucket['clean']} of {bucket['total']} clean")
+    lines.append("")
+    b2 = headline["by_stratum"].get("B2", {"clean": 0, "total": 0})
+    lines.append(
+        "**Backlog 999.4 gate input.** Stratum B2 -- reachable by nothing this project "
+        f"ships -- reads {b2['clean']} of {b2['total']} clean. Per "
+        "`.planning/ROADMAP.md` Phase 999.4 (CONDITIONAL, gated on this measurement): a "
+        "low B2 rate closes 999.4 unrun, with this measurement recorded as the reason; a "
+        "high B2 rate promotes 999.4, with this corpus as its validation set."
+    )
+    lines.append("")
+    lines.append(
+        "**Stratum vocabulary.** Stratum A: a named `detect_defects` column "
+        "(`dependency_cycles`, `ungrounded_chains` or `selfaudit_disagreements`) "
+        "plausibly has reach over the item's wrongness. Stratum B1: out of "
+        "`detect_defects`'s reach but reachable by another shipped instrument -- closed "
+        "at PROV-GUARD only (`scripts/check-provenance.py`'s read-at-source join), since "
+        "no other shipped instrument has a code path over an arbitrary analysis. Stratum "
+        "B2: reachable by nothing this project ships."
+    )
+    lines.append("")
+    lines.append(
+        "**Fixtures, not artifacts.** This section measures deliberately wrong test "
+        "fixtures, never shipped artifacts. A probe reading clean is never the same "
+        "claim as an artifact conforming. A stratum-A item scoring non-clean (`t03`, "
+        "`t04`, `t05` in this corpus) is a positive control proving the run genuinely "
+        "reaches that column on shipped corpus bytes, not a defect in the corpus. The "
+        "false-negative rate above is a measurement no phase may target (D-06): the only "
+        "lever that would move it is widening a frozen detector, which CONTRACT-06 "
+        "forbids."
+    )
+    lines.append("")
+    lines.append(
+        "**No generated twin.** The corpus is a test fixture, not a shipped artifact: "
+        "nothing under `shared/` produces it and `sync-content.py` never emits it, so it "
+        "has no twin and carries no pair-agreement row."
+    )
+    lines.append("")
+    lines.append("| " + " | ".join(_CORPUS_TABLE_FIELDS) + " |")
+    lines.append("|" + "---|" * len(_CORPUS_TABLE_FIELDS))
+    for r in corpus_rows:
+        lines.append("| " + " | ".join(str(r[f]) for f in _CORPUS_TABLE_FIELDS) + " |")
+    lines.append("")
+    lines.append(
+        "All thirteen form columns and all nine always-`n/a` provenance columns for "
+        "these items are carried in full in `docs/data/conformance.json` under "
+        "`adversarial_corpus.rows`, and are omitted here for readability."
+    )
+    lines.append("")
+    return lines
 
 
 def render_markdown(
@@ -562,6 +897,17 @@ def render_markdown(
         "of any depth."
     )
     lines.append("")
+    lines.append(
+        "**5. The pre-commit conformance-drift gate fails on staleness, not on a lost "
+        "catch (D-07).** `scripts/report-conformance.py --check` fails when the committed "
+        "bytes of this file or `docs/data/conformance.json` no longer match a fresh run -- "
+        "never when a count read here, including the adversarial-corpus false-negative "
+        "rate below, is high. A detector change that moves a corpus reading fails `--check` "
+        "as drift; regenerating the two artifacts makes it pass again. Nothing here raises "
+        "an alarm that the *meaning* of a reading changed -- only that the committed bytes "
+        "are out of date."
+    )
+    lines.append("")
 
     header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
     for surface_name, group in (
@@ -576,6 +922,10 @@ def render_markdown(
         for r in group:
             lines.append("| " + " | ".join(str(r[f]) for f in header_fields) + " |")
         lines.append("")
+
+    corpus = [r for r in rows if r["surface"] == "adversarial-corpus"]
+    corpus_headline = compute_corpus_headline(corpus)
+    lines.extend(_render_adversarial_corpus_section(corpus, corpus_headline))
 
     lines.append("## Source-vs-twin agreement (D-04)")
     lines.append("")
@@ -767,7 +1117,8 @@ None.
 
 
 def _make_minimum_tree(root: Path) -> None:
-    """Populate *root* with exactly the 14/14/1 floor minimum discover_artifacts requires."""
+    """Populate *root* with exactly the 14/14/1/12 floor minimum discover_artifacts
+    requires."""
     shared_dir = root / "shared" / "examples"
     shared_dir.mkdir(parents=True, exist_ok=True)
     for i in range(MIN_SHARED_EXAMPLES):
@@ -779,6 +1130,12 @@ def _make_minimum_tree(root: Path) -> None:
     contract_dir = root / "shared" / "spine" / "references"
     contract_dir.mkdir(parents=True, exist_ok=True)
     (contract_dir / "output-template.md").write_text("x", encoding="utf-8")
+    corpus_dir = root / "tests" / "adversarial-corpus-v9.0"
+    corpus_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(MIN_CORPUS_ITEMS):
+        (corpus_dir / f"t{i:02d}-item.md").write_text("x", encoding="utf-8")
+    (corpus_dir / "catalog.md").write_text("x", encoding="utf-8")
+    (corpus_dir / "README.md").write_text("x", encoding="utf-8")
 
 
 def _control_floor_shared_short() -> None:
@@ -846,7 +1203,9 @@ def _control_floor_passes_at_minimum() -> None:
         root = Path(td)
         _make_minimum_tree(root)
         artifacts = discover_artifacts(root)
-        expected = MIN_SHARED_EXAMPLES + MIN_TWIN_EXAMPLES + MIN_CONTRACT_SURFACES
+        expected = (
+            MIN_SHARED_EXAMPLES + MIN_TWIN_EXAMPLES + MIN_CONTRACT_SURFACES + MIN_CORPUS_ITEMS
+        )
         assert len(artifacts) == expected, (len(artifacts), expected)
 
 
@@ -1085,6 +1444,43 @@ def _control_render_marked_silent_parsed_from_output() -> None:
         raise AssertionError("a rendering that coerced marked/silent to 0 was not caught")
 
 
+def _control_corpus_clean_without_disposition() -> None:
+    """Phase 19 (CONF-08): a synthetic corpus row set with one clean row carrying a real
+    disposition and one clean row whose disposition is the literal "MISSING" reads
+    clean_without_disposition == 1. Perturbing the "MISSING" row's disposition to a
+    non-empty string moves the count to 0 -- the same fixture, re-scored, proving the
+    predicate reads the disposition field rather than being permanently pinned at 1."""
+    clean_with_disposition = _synthetic_row(
+        "adversarial-corpus",
+        "with-disposition.md",
+        "with-disposition",
+        stratum="B2",
+        source="derived:x",
+        disposition="accept-with-reason: some reason.",
+        form_defects=0,
+        fully_clean=True,
+    )
+    clean_without_disposition = _synthetic_row(
+        "adversarial-corpus",
+        "missing-disposition.md",
+        "missing-disposition",
+        stratum="B2",
+        source="derived:x",
+        disposition="MISSING",
+        form_defects=0,
+        fully_clean=True,
+    )
+    headline = compute_corpus_headline([clean_with_disposition, clean_without_disposition])
+    assert headline["clean_without_disposition"] == 1, headline["clean_without_disposition"]
+
+    perturbed = dict(clean_without_disposition)
+    perturbed["disposition"] = "accept-with-reason: now has one."
+    perturbed_headline = compute_corpus_headline([clean_with_disposition, perturbed])
+    assert perturbed_headline["clean_without_disposition"] == 0, perturbed_headline[
+        "clean_without_disposition"
+    ]
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -1106,6 +1502,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "render-marked-silent-parsed-from-output",
         _control_render_marked_silent_parsed_from_output,
     ),
+    ("corpus-clean-without-disposition", _control_corpus_clean_without_disposition),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -1130,6 +1527,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "marked-untraced-claim-counted",
     "unreadable-columns-are-literal",
     "render-marked-silent-parsed-from-output",
+    "corpus-clean-without-disposition",
 )
 
 
