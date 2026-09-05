@@ -40,12 +40,12 @@ Usage:
 
 Exit codes:
     0  live leg clean / --self-test clean
-    1  a target was exceeded, a floor was breached, the D-07 roster drifted, the D-03 rule
-       fired, the ratchet rose, a D-08 mutation did not produce its expected defect, or a
-       discovery floor failed
+    1  a target was exceeded, a claim floor or population floor was breached, the D-07 roster
+       drifted, the D-03 rule fired, the ratchet rose, a D-08 mutation did not produce its
+       expected defect, or a discovery floor failed
     2  environment error (module import failure)
 
-`--self-test` additionally floors the six enforcement symbols named by `_LIVE_CALL_SITES` /
+`--self-test` additionally floors the seven enforcement symbols named by `_LIVE_CALL_SITES` /
 `_LIVE_CALL_FORMS` by a set-equality lock (`_LIVE_CALL_SITES_LOCK`, BL-02) over both tables,
 and each is counted and form-matched in `run_live()`'s comment-stripped source (CR-01, BL-01)
 via `_strip_line_comments(inspect.getsource(run_live))`: this counts and matches SOURCE TEXT
@@ -167,6 +167,32 @@ _CLAIM_FLOORS_LOCK: dict[str, int] = {
     "theoretical-limit-carnot": 5,
 }
 
+# BL-03 (18-VERIFICATION.md blocking gap): two of _TARGETS' four zero counts
+# — nonconforming_verdict_cells and heading_malformed_blocks — are
+# NUMERATOR-only. Neither had a denominator floor, so zero-by-conformance and
+# zero-by-deletion were indistinguishable: deleting all six §2 Assumptions-
+# Table data rows from shared/examples/software-systems.md and its
+# byte-identical generated twin left `--self-test` at 34 controls and the
+# live leg at PASS, rc 0 (measured 2026-09-05). These are DENOMINATOR
+# floors, not targets — a zero numerator is meaningful only against a
+# population that has not itself been deleted. Values are source literals
+# under D-05, re-derived live from `docs/data/conformance.json`'s
+# `headline.verdict_cells` / `headline.heading_swept_blocks` blocks at
+# authoring time and never read back from that regenerated artifact. Each
+# floor applies PER GATED SURFACE, not as a corpus-wide sum, matching
+# _targets_problems' own per-surface shape.
+#
+# DISCLOSED BOUND: a floor detects population SHRINKAGE below the pinned
+# figure, not substitution — deleting one artifact's rows while another
+# grows by the same count would not fire it. Legitimate corpus growth never
+# fires this floor; a legitimate reduction is a deliberate two-place edit —
+# this constant and `population-floor-values-locked`'s inline literal both
+# move together, the same discipline `_CLAIM_FLOORS_LOCK` already applies.
+_POPULATION_FLOORS: dict[str, int] = {
+    "verdict_cells": 77,
+    "heading_chain_blocks": 31,
+}
+
 # The marked_untraced_claims sum over BOTH gated surfaces (_GATED_SURFACES):
 # shared-examples 2 + generated-twin 2 = 4, measured by plan 18-06 and
 # unchanged since — the two shared-examples instances live in
@@ -249,15 +275,17 @@ _D08_CELL_REPLACEMENT = "Discard"
 _D08_CITE_NEEDLE = "3. (chain C1) Use the effective compensation figure"
 _D08_CITE_REPLACEMENT = "3. Use the effective compensation figure"
 
-# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s six `problems +=`
-# enforcement call sites are floored by a source-text census, in the same
-# shape `check-selfaudit-scan.py`'s `(validate-census)` and
-# `(roster-entry-source)` blocks already use for themselves. Every entry maps
-# to expected count 1 — one call site, called exactly once.
+# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s seven `problems +=`
+# enforcement call sites (widened from six by plan 18-12's BL-03 floor) are
+# floored by a source-text census, in the same shape
+# `check-selfaudit-scan.py`'s `(validate-census)` and `(roster-entry-source)`
+# blocks already use for themselves. Every entry maps to expected count 1 —
+# one call site, called exactly once.
 _LIVE_CALL_SITES: dict[str, int] = {
     "_targets_problems": 1,
     "_claim_floor_roster_problems": 1,
     "_claim_floor_problems": 1,
+    "_population_floor_problems": 1,
     "_d03_rule_problems_from_text": 1,
     "_ratchet_problems": 1,
     "_run_d08_arm": 1,
@@ -280,6 +308,7 @@ _LIVE_CALL_FORMS: dict[str, str] = {
         + "_claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)"
     ),
     "_claim_floor_problems": "problems += " + "_claim_floor_problems(rows)",
+    "_population_floor_problems": "problems += " + "_population_floor_problems(rows)",
     "_d03_rule_problems_from_text": (
         "problems += "
         + '_d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])'
@@ -289,19 +318,21 @@ _LIVE_CALL_FORMS: dict[str, str] = {
 }
 
 # BL-02 (18-VERIFICATION.md blocking gap): a SECOND, independently
-# transcribed roster of the same six enforcement symbol names — deliberately
-# NOT derived from _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any expression,
-# the same discipline _CLAIM_FLOORS_LOCK already applies to _CLAIM_FLOORS.
-# Before this lock, four of the six symbols (_run_d08_arm,
-# _claim_floor_problems, _d03_rule_problems_from_text,
-# _claim_floor_roster_problems) could be deleted from both census tables
-# plus their call site in run_live(), and `--self-test` still reported
-# `SELF-TEST PASS — 32 controls run` at rc 0. Adding or removing an
-# enforcement call is therefore a two-place reviewable edit by design.
+# transcribed roster of the same seven enforcement symbol names (widened from
+# six by plan 18-12's BL-03 floor) — deliberately NOT derived from
+# _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any expression, the same discipline
+# _CLAIM_FLOORS_LOCK already applies to _CLAIM_FLOORS. Before this lock, four
+# of the original six symbols (_run_d08_arm, _claim_floor_problems,
+# _d03_rule_problems_from_text, _claim_floor_roster_problems) could be
+# deleted from both census tables plus their call site in run_live(), and
+# `--self-test` still reported `SELF-TEST PASS — 32 controls run` at rc 0.
+# Adding or removing an enforcement call is therefore a two-place reviewable
+# edit by design.
 _LIVE_CALL_SITES_LOCK: tuple[str, ...] = (
     "_targets_problems",
     "_claim_floor_roster_problems",
     "_claim_floor_problems",
+    "_population_floor_problems",
     "_d03_rule_problems_from_text",
     "_ratchet_problems",
     "_run_d08_arm",
@@ -459,6 +490,37 @@ def _claim_floor_problems(rows: list[dict]) -> list[str]:
                 f"D-04 CLAIM FLOOR BREACH [{analysis_id}]: conclusion_claims "
                 f"{actual} < floor {floor}"
             )
+    return problems
+
+
+def _population_floor_problems(rows: list[dict]) -> list[str]:
+    """BL-03: per-surface denominator floors over `verdict_cells` (summed
+    over READABLE rows, mirroring `_targets_problems`' `nonconforming_
+    verdict_cells` scope) and `heading_chain_blocks` (summed over EVERY row
+    of the surface, mirroring `_targets_problems`' `heading_malformed_blocks`
+    scope — the heading sweep runs unconditionally in `build_row`, so an
+    unreadable artifact still contributes a real reading, and scoping it to
+    readable rows would let an artifact become unreadable and drop out of
+    the denominator undetected). Iterates `_GATED_SURFACES` then
+    `_POPULATION_FLOORS` in declaration order so failure output is
+    deterministic.
+    """
+    problems: list[str] = []
+    for surface in _GATED_SURFACES:
+        surf_rows = [r for r in rows if r["surface"] == surface]
+        readable = [r for r in surf_rows if r["section_resolution"] == "OK"]
+        readings = {
+            "verdict_cells": sum(r["verdict_cells"] for r in readable),
+            "heading_chain_blocks": sum(r["heading_chain_blocks"] for r in surf_rows),
+        }
+        for key, floor in _POPULATION_FLOORS.items():
+            actual = readings[key]
+            if actual < floor:
+                problems.append(
+                    f"POPULATION FLOOR BREACH [{surface}] {key}: {actual} < floor "
+                    f"{floor} — a zero defect count against a shrunken population "
+                    "is not conformance"
+                )
     return problems
 
 
@@ -628,6 +690,7 @@ def run_live() -> int:
     discovered_ids = {r["analysis_id"] for r in rows if r["surface"] == "shared-examples"}
     problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)
     problems += _claim_floor_problems(rows)
+    problems += _population_floor_problems(rows)
 
     for r in rows:
         if r["surface"] not in _GATED_SURFACES or r["section_resolution"] != "OK":
@@ -946,6 +1009,7 @@ _CENSUS_X1_CLEAN_SOURCE = (
     "    problems += _targets_problems(rows)\n"
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
+    "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
     "    mutation_lines = _run_d08_arm(rows)\n"
@@ -956,6 +1020,7 @@ _CENSUS_X2_MISSING_SOURCE = (
     "    problems: list[str] = []\n"
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
+    "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
     "    mutation_lines = _run_d08_arm(rows)\n"
@@ -967,6 +1032,7 @@ _CENSUS_X3_DUPLICATED_SOURCE = (
     "    problems += _targets_problems(rows)\n"
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
+    "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
     "    problems += _ratchet_problems(rows)\n"
@@ -979,6 +1045,7 @@ _FORM_LOCK_X2_REWRITTEN_SOURCE = (
     "    _targets_problems(rows)\n"
     "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
     "    problems += _claim_floor_problems(rows)\n"
+    "    problems += _population_floor_problems(rows)\n"
     '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
     "    problems += _ratchet_problems(rows)\n"
     "    mutation_lines = _run_d08_arm(rows)\n"
