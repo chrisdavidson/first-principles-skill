@@ -505,6 +505,7 @@ None — no external service configuration required.
 - FOUND: `docs/v8.0-final-closure.md` states `25/25` at both present-tense locations
 - FOUND commit: `99bb95d` (Task 1)
 - FOUND commit: `fc9b1dd` (Task 2)
+- FOUND commit: `84f923f` (Task 3 / SUMMARY.md)
 - CONFIRMED: `bash scripts/check-firewall-battery.sh` → `FIREWALL: GREEN (25/25)`
 - CONFIRMED: `git status --porcelain` empty; no `/tmp/conf-mutation-*` survives
 - CONFIRMED: `scripts/check-quality-harness.py` byte-identical to phase-start base
