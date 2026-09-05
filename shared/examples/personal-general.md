@@ -50,7 +50,7 @@ A complete first-principles analysis of the question "Should I take a higher-pay
 
 ## 4. Derivation Chains
 
-### Conclusion: The effective compensation gain is approximately $54,000, not $70,000
+### Conclusion C1: The effective compensation gain is approximately $54,000, not $70,000
 
 GT-1 (nominal compensation increase: $70,000/year) + GT-2 (SF cost-of-living premium: ~$15,600/year in rent alone) + GT-3 (California vs Oregon marginal tax rate differential: roughly 0 to −0.6 percentage points on this income band — effectively negligible)
 → The state tax differential on the incremental $70,000 is effectively zero: at the ~9.3% California vs ~9.9% Oregon marginal rates that actually apply to this income band, the additional California state tax burden is approximately $0/year (and could be slightly negative — a small Oregon disadvantage). The cost-of-living premium in rent is approximately $15,600/year. Combined, these reduce the effective purchasing-power gain by roughly $15,600/year before accounting for other SF cost differences (transportation, food, services)
@@ -60,7 +60,7 @@ GT-1 (nominal compensation increase: $70,000/year) + GT-2 (SF cost-of-living pre
 
 ---
 
-### Conclusion: The offer is worth accepting only if the role demonstrably advances the real goal and the partner situation has a verified resolution path
+### Conclusion C2: The offer is worth accepting only if the role demonstrably advances the real goal and the partner situation has a verified resolution path
 
 GT-5 (stated real goal: distributed systems expertise to principal level within 3 years; stable living arrangement that does not sacrifice the partner's career) + GT-4 (partner's Portland career has no remote option; relocation requires the partner to leave their current employer)
 → The offer's career value hinges on two conditions that cannot be read off the offer letter: first, whether the specific team, manager, and role scope at the prospective company provide a credible and specific path to distributed systems depth at principal-level scope within the stated three-year window — not just nominal association with a prestigious company, but verifiable evidence from reference conversations and direct discussion with the hiring manager; second, whether a viable path exists for the partner before the decision is made, not after — the options are a negotiated remote arrangement at the partner's employer, a transfer to a San Francisco office, the partner finding a new role in SF, or the engineer accepting the real cost of a long-distance arrangement with a concrete timeline

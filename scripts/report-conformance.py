@@ -48,7 +48,7 @@ from pathlib import Path
 from typing import Literal
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
-MEASUREMENT_DATE: str = "2026-09-04"
+MEASUREMENT_DATE: str = "2026-09-05"
 MD_PATH: Path = REPO_ROOT / "docs" / "conformance-baseline.md"
 JSON_PATH: Path = REPO_ROOT / "docs" / "data" / "conformance.json"
 
@@ -89,14 +89,25 @@ REPORT_FIELDS: tuple[str, ...] = (
     "section_resolution",
     "heading_chain_blocks",
     "heading_malformed_blocks",
+    "marked_untraced_claims",
+    "silent_untraced_claims",
 )
-# D-04 (settled decision, sharpening RESEARCH.md A3): fifteen fields compared for source-vs-
-# twin agreement -- the twelve measured schema fields plus the three report-added heading-
-# census columns. Excluded: analysis_id (foreordained equal, same filename stem on both
-# surfaces) and the nine always-"n/a" provenance columns (foreordained equal, no capture
+# D-04 (settled decision, sharpening RESEARCH.md A3), widened by D-06a: seventeen fields
+# compared for source-vs-twin agreement -- the twelve measured schema fields plus the five
+# report-added columns (three heading-census columns plus the two D-06a marked/silent
+# untraced-claim columns). Excluded: analysis_id (foreordained equal, same filename stem on
+# both surfaces) and the nine always-"n/a" provenance columns (foreordained equal, no capture
 # exists for any of the 29 artifacts). Including either would inflate the agreement headline
 # with matches that cannot fail.
 AGREEMENT_FIELDS: tuple[str, ...] = MEASURED_SCHEMA_FIELDS + REPORT_FIELDS
+
+# D-06a: the exact marker literal `output-template.md`, `validation-rubric.md` and
+# `SKILL-body.md` all prescribe for a legitimately-untraced but honestly-flagged claim (U+2014
+# EM DASH, lower case, no trailing punctuation inside the marker itself -- a claim's own
+# sentence-ending period after the marker is not part of it). Defined once here and
+# referenced wherever the marked/silent split is computed -- never inlined at a second call
+# site.
+CAVEAT_MARKER: str = "no chain — flagged assumption only"
 
 
 class DiscoveryFloorError(RuntimeError):
@@ -200,6 +211,15 @@ def build_row(artifact: Artifact) -> dict:
         row["section_resolution"] = "OK"
         for field in _DEFECT_RECORD_FIELDS:
             row[field] = record[field]
+        # D-06a: derived from the SAME detect_defects record's audit-only
+        # `_untraced_claims_text` -- never a second markdown parse. A marked caveat still
+        # scores untraced (R-CLAIM-CAVEAT-MARKED); this only splits that existing count into
+        # "disclosed the gap" vs. "silently untraced".
+        marked_untraced = sum(
+            1 for claim_text in record["_untraced_claims_text"] if CAVEAT_MARKER in claim_text
+        )
+        row["marked_untraced_claims"] = marked_untraced
+        row["silent_untraced_claims"] = row["untraced_claims"] - marked_untraced
     except SectionResolutionError as exc:
         row["section_resolution"] = f"SectionResolutionError: {exc}"
         for field in _DEFECT_RECORD_FIELDS:
@@ -211,6 +231,11 @@ def build_row(artifact: Artifact) -> dict:
                 row[field] = "n/a"
             else:
                 row[field] = "unreadable"
+        # D-06a: `_slice_sections` never ran, so there is no `_untraced_claims_text` to
+        # scan. This must read the literal "unreadable", never "0" -- the module's own
+        # three-way vocabulary (a number counted, "n/a" no capture, "unreadable" unparsed).
+        row["marked_untraced_claims"] = "unreadable"
+        row["silent_untraced_claims"] = "unreadable"
 
     return row
 
@@ -300,6 +325,16 @@ def compute_headline(rows: list[dict]) -> dict:
             surface: {
                 "total": _sum_measured(group, "conclusion_claims"),
                 "untraced": _sum_measured(group, "untraced_claims"),
+            }
+            for surface, group in by_surface.items()
+        },
+        # D-06a: the marked/silent split of the untraced count above, per surface. Both
+        # summed via _sum_measured, which already excludes unreadable rows -- their
+        # "unreadable" string value never reaches a sum.
+        "untraced_breakdown": {
+            surface: {
+                "marked": _sum_measured(group, "marked_untraced_claims"),
+                "silent": _sum_measured(group, "silent_untraced_claims"),
             }
             for surface, group in by_surface.items()
         },
@@ -398,6 +433,16 @@ def render_markdown(
         + " |"
     )
     lines.append(
+        "| §6 untraced claims (marked / silent) | "
+        + " | ".join(
+            f"{headline['conclusion_claims'][s]['untraced']} untraced "
+            f"({headline['untraced_breakdown'][s]['marked']} marked, "
+            f"{headline['untraced_breakdown'][s]['silent']} silent)"
+            for s in ("shared-examples", "generated-twin", "contract-surface")
+        )
+        + " |"
+    )
+    lines.append(
         "| §2 verdict cells (non-conforming) | "
         + " | ".join(
             f"{headline['verdict_cells'][s]['total']} "
@@ -457,6 +502,65 @@ def render_markdown(
     )
     lines.append("")
 
+    lines.append("## Disclosed bounds")
+    lines.append("")
+    lines.append(
+        "This phase publishes four disclosures in the same voice R7/R9/R10 use on the "
+        "agent surface to state their own measured bounds, rather than leaving them to be "
+        "discovered."
+    )
+    lines.append("")
+    lines.append(
+        "**1. Chain-form reach.** `heading_malformed_blocks == 0` means every scanned "
+        "block conforms under `_chain_block_well_formed`'s measured reach -- the head and "
+        "first hop, up to the second arrow of the first matching candidate. This is NOT "
+        "the same claim as \"no R7 violations remain in `shared/examples/`\": a wrap or a "
+        "GT-led hop after the second arrow is not detected. This phase fixes to the "
+        "detector's bound, which is what CONF-04 states; fixing to R7 as published is a "
+        "strictly larger job and is recorded as backlog, not as done."
+    )
+    lines.append("")
+    marked_total = sum(
+        headline["untraced_breakdown"][s]["marked"]
+        for s in ("shared-examples", "generated-twin")
+        if isinstance(headline["untraced_breakdown"][s]["marked"], int)
+    )
+    lines.append(
+        "**2. Marked-claim residual (derived).** "
+        f"{marked_total} claim(s) across shared-examples and generated-twin carry the "
+        "`no chain — flagged assumption only` marker "
+        f"(shared-examples: {headline['untraced_breakdown']['shared-examples']['marked']}, "
+        f"generated-twin: {headline['untraced_breakdown']['generated-twin']['marked']}), "
+        "computed from `rows` at render time, never hardcoded. A marked caveat still "
+        "scores untraced BY DESIGN (`R-CLAIM-CAVEAT-MARKED`): the marker discloses the "
+        "gap, it does not discharge the claim. Driving the `untraced_claims` reading "
+        "itself to zero would mean inventing citations, which is the failure mode the "
+        "bound exists to prevent."
+    )
+    lines.append("")
+    lines.append(
+        "**3. `shared/spine/references/output-template.md` is measured but not gated.** "
+        "It is the specification document whose §4 worked examples deliberately include "
+        "non-conforming forms as labelled teaching contrasts, so a detector-conformance "
+        "fix would require either mislabelling a deliberately-broken example or "
+        "restructuring the document's own pedagogy. CONF-03..06 name the fourteen shipped "
+        "analyses only. Phase 17 measured this surface and handed the scope question to "
+        "Phase 18; Phase 18 declines it by this stated reason -- an accepted, disclosed "
+        "exclusion, never a silent omission."
+    )
+    lines.append("")
+    lines.append(
+        "**4. The closure-ledger route has zero shipped exemplars.** "
+        "`output-template.md` §6 blesses two citation routes; the exemplars use one -- "
+        "the inline `(chain Cn)` form the template itself calls \"the mechanically "
+        "checkable form\" (decision D-01). After this phase no shipped worked example "
+        "demonstrates the `- \"quoted claim\" → chain Cn` closure-ledger row, because of "
+        "backlog 999.24 (an unfenced in-section-6 ledger row counts itself as a claim) "
+        "and `_slice_sections`'s section-6 rule, which ends §6 at the first ATX heading "
+        "of any depth."
+    )
+    lines.append("")
+
     header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
     for surface_name, group in (
         ("shared-examples", shared),
@@ -474,7 +578,9 @@ def render_markdown(
     lines.append("## Source-vs-twin agreement (D-04)")
     lines.append("")
     lines.append(
-        "Compared fields (fifteen): " + ", ".join(f"`{f}`" for f in AGREEMENT_FIELDS) + "."
+        f"Compared fields ({len(AGREEMENT_FIELDS)}): "
+        + ", ".join(f"`{f}`" for f in AGREEMENT_FIELDS)
+        + "."
     )
     lines.append("")
     lines.append(
@@ -585,6 +691,9 @@ def _synthetic_row(surface: str, relpath: str, analysis_id: str, **overrides) ->
         "section_resolution": "OK",
         "heading_chain_blocks": 0,
         "heading_malformed_blocks": 0,
+        # D-06a: measured fields, same default-to-0 rule as every other measured column.
+        "marked_untraced_claims": 0,
+        "silent_untraced_claims": 0,
     }
     for field in _DEFECT_RECORD_FIELDS:
         if field == "analysis_id":
@@ -626,6 +735,33 @@ GT-1 -> some conclusion.
 _UNREADABLE_FIXTURE_TEXT = (
     "# Some Doc\n\n### Conclusion\nThis is just prose with no chain arrows at all.\n"
 )
+
+# D-06a control (a) fixture: a resolvable six-section document whose section 6 carries
+# three assertive, uncited list-item claims (each over the forty-character floor
+# _is_assertive_claim enforces), one of which carries CAVEAT_MARKER. Section 4 has no
+# `### Conclusion Cn:` heading, so chain_ids is empty and none of the three claims can
+# trace by any route -- all three are untraced, and the split must read marked=1, silent=2.
+_MARKED_CLAIM_FIXTURE_TEXT = """## 1. Problem Essence
+Some essence text.
+
+## 2. Assumptions Table
+| Assumption | Confidence |
+|---|---|
+
+## 3. Ground Truths
+- GT-1: some ground truth.
+
+## 4. Derivation Chains
+GT-1 -> some conclusion, with no numbered chain heading anywhere in this section.
+
+## 5. Abandoned Reasoning
+None.
+
+## 6. Conclusion
+- This is the first assertive claim and it is long enough on its own to clear the floor
+- This is the second assertive claim and it is also long enough to clear the same floor
+- This third claim carries the marker no chain — flagged assumption only and clears the floor too
+"""
 
 
 def _make_minimum_tree(root: Path) -> None:
@@ -742,12 +878,17 @@ def _control_partial_row_not_dropped() -> None:
 
 
 def _control_agreement_field_scope() -> None:
-    assert len(AGREEMENT_FIELDS) == 15, len(AGREEMENT_FIELDS)
+    # D-06a widened this from 15 to 17: confirming (not assuming) that appending the two
+    # new report columns to REPORT_FIELDS widens AGREEMENT_FIELDS automatically, since it
+    # is derived (MEASURED_SCHEMA_FIELDS + REPORT_FIELDS), never restated.
+    assert len(AGREEMENT_FIELDS) == 17, len(AGREEMENT_FIELDS)
     assert "analysis_id" not in AGREEMENT_FIELDS
     for field in PROVENANCE_FIELDS:
         assert field not in AGREEMENT_FIELDS, field
     assert "untraced_claims" in AGREEMENT_FIELDS
     assert "heading_malformed_blocks" in AGREEMENT_FIELDS
+    assert "marked_untraced_claims" in AGREEMENT_FIELDS
+    assert "silent_untraced_claims" in AGREEMENT_FIELDS
 
 
 def _control_agreement_detects_measured_divergence() -> None:
@@ -826,6 +967,122 @@ def _control_check_detects_drift() -> None:
         assert _diff_against_disk(generated) == [target]
 
 
+# ---------------------------------------------------------------------------
+# D-06a controls: the marked/silent untraced-claim split.
+# ---------------------------------------------------------------------------
+
+
+def _control_marked_untraced_claim_counted() -> None:
+    """(a) A synthetic readable row whose claim text carries CAVEAT_MARKER reads
+    marked=1, silent=N-1 (here N=3), computed through the real build_row() -> detect_defects
+    path, never hand-assembled."""
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "marked.md"
+        path.write_text(_MARKED_CLAIM_FIXTURE_TEXT, encoding="utf-8")
+        artifact = Artifact("shared-examples", "marked.md", path, "marked")
+        row = build_row(artifact)
+        assert row["section_resolution"] == "OK", row["section_resolution"]
+        assert row["untraced_claims"] == 3, row["untraced_claims"]
+        assert row["marked_untraced_claims"] == 1, row["marked_untraced_claims"]
+        assert row["silent_untraced_claims"] == 2, row["silent_untraced_claims"]
+
+
+def _control_unreadable_columns_are_literal() -> None:
+    """(b) A synthetic unreadable row reads the literal "unreadable" for both new
+    columns, and a negative arm asserts a row coerced to 0 is REJECTED by that same
+    assertion shape -- "unreadable" and 0 must never compare equal."""
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "bad.md"
+        path.write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
+        artifact = Artifact("shared-examples", "bad.md", path, "bad")
+        row = build_row(artifact)
+        assert row["marked_untraced_claims"] == "unreadable", row["marked_untraced_claims"]
+        assert row["silent_untraced_claims"] == "unreadable", row["silent_untraced_claims"]
+
+        coerced = dict(row)
+        coerced["marked_untraced_claims"] = 0
+        coerced["silent_untraced_claims"] = 0
+        try:
+            assert coerced["marked_untraced_claims"] == "unreadable", coerced[
+                "marked_untraced_claims"
+            ]
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError(
+                "a row coerced to 0 for the unreadable columns was not rejected"
+            )
+
+
+def _control_render_marked_silent_parsed_from_output() -> None:
+    """(c) Parses BOTH new columns back out of the string render_markdown() actually
+    produced and asserts on the PARSED CELL -- never on the input fixture. Carries a
+    negative arm proving a renderer that coerced the cells to 0 before rendering is
+    caught. This control exists specifically because Phase 17's
+    `_control_render_provenance_sentinel` asserted on the input row dict instead of the
+    rendered string and was proved vacuous by monkeypatch (17-VERIFICATION gap 1, CR-01)."""
+    header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
+    marked_idx = header_fields.index("marked_untraced_claims")
+    silent_idx = header_fields.index("silent_untraced_claims")
+
+    def _parsed_cells(md: str) -> list[str]:
+        lines = md.splitlines()
+        section_start = lines.index("## shared-examples")
+        data_line = next(
+            line
+            for line in lines[section_start:]
+            if line.startswith("| ") and "synth.md" in line
+        )
+        return [c.strip() for c in data_line.strip("|").split("|")]
+
+    rows = [
+        _synthetic_row(
+            "shared-examples",
+            "synth.md",
+            "synth",
+            untraced_claims=3,
+            marked_untraced_claims=1,
+            silent_untraced_claims=2,
+        ),
+        _synthetic_row(
+            "generated-twin",
+            "synth.md",
+            "synth",
+            untraced_claims=3,
+            marked_untraced_claims=1,
+            silent_untraced_claims=2,
+        ),
+        _synthetic_row("contract-surface", "contract.md", "contract"),
+    ]
+    md = render_markdown(rows, pair_agreement(rows))
+    cells = _parsed_cells(md)
+    assert cells[marked_idx] == "1", cells
+    assert cells[silent_idx] == "2", cells
+
+    # Negative arm: a renderer that coerced these two columns to 0 before rendering must
+    # be caught by the identical parse-and-assert shape, not silently pass.
+    coerced_rows = [
+        _synthetic_row(
+            "shared-examples",
+            "synth.md",
+            "synth",
+            untraced_claims=3,
+            marked_untraced_claims=0,
+            silent_untraced_claims=0,
+        ),
+        rows[1],
+        rows[2],
+    ]
+    coerced_md = render_markdown(coerced_rows, pair_agreement(coerced_rows))
+    coerced_cells = _parsed_cells(coerced_md)
+    try:
+        assert coerced_cells[marked_idx] == "1", coerced_cells
+    except AssertionError:
+        pass
+    else:
+        raise AssertionError("a rendering that coerced marked/silent to 0 was not caught")
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -841,6 +1098,12 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("render-determinism", _control_render_determinism),
     ("render-provenance-sentinel", _control_render_provenance_sentinel),
     ("check-detects-drift", _control_check_detects_drift),
+    ("marked-untraced-claim-counted", _control_marked_untraced_claim_counted),
+    ("unreadable-columns-are-literal", _control_unreadable_columns_are_literal),
+    (
+        "render-marked-silent-parsed-from-output",
+        _control_render_marked_silent_parsed_from_output,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -862,6 +1125,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "render-determinism",
     "render-provenance-sentinel",
     "check-detects-drift",
+    "marked-untraced-claim-counted",
+    "unreadable-columns-are-literal",
+    "render-marked-silent-parsed-from-output",
 )
 
 

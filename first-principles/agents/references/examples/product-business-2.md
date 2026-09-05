@@ -86,7 +86,7 @@ against?
 
 ## 4. Derivation Chains
 
-### Conclusion: The reporting-rewrite candidate has a verified expansion-revenue case that the Slack candidate does not
+### Conclusion C1: The reporting-rewrite candidate has a verified expansion-revenue case that the Slack candidate does not
 
 GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3
 (signed LOI commits $180K/year contingent on the rewrite shipping this quarter)
@@ -109,7 +109,7 @@ exists today.
 
 ---
 
-### Conclusion: The opportunity cost of not building the Slack integration this quarter is bounded and recoverable; the opportunity cost of not shipping the reporting rewrite is not
+### Conclusion C2: The opportunity cost of not building the Slack integration this quarter is bounded and recoverable; the opportunity cost of not shipping the reporting rewrite is not
 
 GT-1 (Slack requests are inbound but no churn signal attributes departure to
 the gap) + GT-3 (the reporting LOI's exit clause permits non-renewal at the
@@ -129,7 +129,7 @@ contractual trigger on the Slack side.
 
 ---
 
-### Conclusion: The recommendation flips only if the Slack-side evidence picture changes materially before planning lock
+### Conclusion C3: The recommendation flips only if the Slack-side evidence picture changes materially before planning lock
 
 GT-5? (Slack-side retention and acquisition effects unmeasured) + GT-4
 (capacity is binary this quarter — no partial-scope path)

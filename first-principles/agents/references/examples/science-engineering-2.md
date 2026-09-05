@@ -110,7 +110,7 @@ prescribe a counter-intervention different from the operator's first hypothesis
 
 ## 4. Derivation Chains
 
-### Conclusion: The failure is subsurface-initiated rolling-contact damage, not a surface-origin wear mechanism
+### Conclusion C1: The failure is subsurface-initiated rolling-contact damage, not a surface-origin wear mechanism
 
 GT-1 (crack origin ~0.4 mm subsurface) + GT-2 (Hertz subsurface-stress maximum
 ~0.35-0.45 mm at rated load)
@@ -129,7 +129,7 @@ sources (metallographic measurement; classical contact-mechanics calculation).
 
 ---
 
-### Conclusion: The subsurface mechanism is electrically-induced bearing damage (EIBD) producing WEC, not classical rolling-contact fatigue
+### Conclusion C2: The subsurface mechanism is electrically-induced bearing damage (EIBD) producing WEC, not classical rolling-contact fatigue
 
 GT-3 (WEC + butterfly microstructure in the subsurface shear-stress band) + GT-4
 (9× life shortfall vs ISO 281 L10) + GT-5 (bonding ring conductance ~100× below the

@@ -55,7 +55,7 @@ A complete first-principles analysis of the question "I have surplus cash and a 
 
 ## 4. Derivation Chains
 
-### Conclusion: Under a central-estimate market profile, broad-market index investment narrowly beats accelerated mortgage paydown on after-tax expected terminal wealth at the 10-year horizon — by a margin that is small relative to the variance of the input
+### Conclusion C1: Under a central-estimate market profile, broad-market index investment narrowly beats accelerated mortgage paydown on after-tax expected terminal wealth at the 10-year horizon — by a margin that is small relative to the variance of the input
 
 GT-1 + GT-2 (after-tax mortgage cost is approximately the full 6.25% because the tax shield is currently ~0%) + GT-3? (central-estimate real index return ~6.5% real, which at ~2.5% expected inflation is ~9% nominal) + GT-4 (effective annual tax drag in a taxable account ~0.5 percentage points, plus deferred long-term cap-gains tax of ~18% on realised gains at horizon)
 → The relevant comparison is: paydown returns a guaranteed 6.25% nominal (the avoided mortgage interest, since the tax shield is ~0%), while taxable index investment returns approximately 9% nominal − 0.5 percentage points effective annual tax drag = ~8.5% nominal expected return during the holding period, with a further ~18% long-term cap-gains tax on the realised appreciation at the 10-year horizon. The after-tax-at-horizon nominal expected return of the index branch is approximately 9% × (1 − 0.5/9) compounding annually, with terminal gains taxed once at 18%; for a $60,000 deployment held 10 years, the expected after-tax terminal value is approximately $60,000 × (1.085)^10 × (1 − 0.18 × (1 − (1/(1.085)^10))) ≈ $113,000–$120,000. The paydown branch's recoverable 10-year benefit is approximately $60,000 × (1.0625)^10 ≈ $110,000 in mortgage-balance-equivalent terms.
@@ -65,7 +65,7 @@ GT-1 + GT-2 (after-tax mortgage cost is approximately the full 6.25% because the
 
 ---
 
-### Conclusion: Under a worst-decile market profile, the recommendation inverts — accelerated mortgage paydown produces a higher terminal outcome than taxable index investment
+### Conclusion C2: Under a worst-decile market profile, the recommendation inverts — accelerated mortgage paydown produces a higher terminal outcome than taxable index investment
 
 GT-1 + GT-2 (after-tax mortgage cost ~6.25%, guaranteed) + GT-3? (worst-decile 10-year real return is approximately 0–2% real; allowing for ~2.5% expected inflation, that is approximately 2.5–4.5% nominal annualised over a 10-year window) + GT-4 (tax drag still applies; in a flat or down market, the drag is larger relative to the gain)
 → Under a 3% nominal annualised return assumption, the index branch's after-tax-at-horizon expected terminal value for a $60,000 deployment held 10 years is approximately $60,000 × (1.025)^10 × (1 − 0.18 × small fraction) ≈ $76,000–$78,000. The paydown branch, unchanged at a guaranteed 6.25% mortgage-balance-equivalent rate, produces approximately $110,000.
@@ -75,7 +75,7 @@ GT-1 + GT-2 (after-tax mortgage cost ~6.25%, guaranteed) + GT-3? (worst-decile 1
 
 ---
 
-### Conclusion: When the central-estimate quantitative gap is small relative to the variance, the load-bearing tie-breaker is the household's drawdown tolerance and the cash-flow consequences of the worst-decile branch — not the central-estimate expected value
+### Conclusion C3: When the central-estimate quantitative gap is small relative to the variance, the load-bearing tie-breaker is the household's drawdown tolerance and the cash-flow consequences of the worst-decile branch — not the central-estimate expected value
 
 GT-5 (six-month emergency reserve is held separately, so the index branch's worst-decile outcome does not force a sale to cover living expenses) + the diagnostic-flagged drawdown-tolerance assumption (the stated tolerance is verified to the extent the household has lived through a real prior drawdown) + the convention-challenged expected-utility assumption (expected terminal net worth approximates utility only if the worst-case branch does not cross a hard floor)
 → If the household has lived through a prior 30–50% drawdown without forced selling or destabilising behaviour, and the worst-decile index outcome (≈ $76,000–$78,000 terminal after a 10-year flat-real-return period) does not cross any hard floor — because GT-5 holds and the mortgage continues to be paid from current income, not from the $60,000 — then expected terminal net worth is an adequate utility proxy and the central-estimate chain (Chain 1) governs: a small expected-value advantage to indexing, with the household accepting the variance as a real cost paid in volatility tolerance for a small expected gain.

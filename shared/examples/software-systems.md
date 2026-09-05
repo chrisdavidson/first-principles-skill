@@ -85,7 +85,7 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ## 4. Derivation Chains
 
-### Conclusion: Architecture is not demonstrably the primary bottleneck
+### Conclusion C1: Architecture is not demonstrably the primary bottleneck
 
 GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass
 including a complete test suite run) + GT-3 (2 deploys/day measured ceiling imposed by the
@@ -107,7 +107,7 @@ sequential pipeline)
 
 ---
 
-### Conclusion: The shared database coupling problem is separable from a microservices migration
+### Conclusion C2: The shared database coupling problem is separable from a microservices migration
 
 GT-5 (single shared relational database schema with no service-boundary ownership) + GT-4
 (microservices require per-service independent deployment pipelines and inter-service contracts)
@@ -128,7 +128,7 @@ GT-5 (single shared relational database schema with no service-boundary ownershi
 
 ---
 
-### Conclusion: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
+### Conclusion C3: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
 GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequential pipeline)
 + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
