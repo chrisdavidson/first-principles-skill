@@ -44,12 +44,19 @@ Exit codes:
        fired, the ratchet rose, a D-08 mutation did not produce its expected defect, or a
        discovery floor failed
     2  environment error (module import failure)
+
+`--self-test` additionally floors `run_live()`'s own six enforcement call sites via a
+source-text census over `inspect.getsource(run_live)` (CR-01): this counts and matches
+SOURCE TEXT only, so it catches a call site that was deleted or rewritten, never one whose
+returned problems are computed correctly and then silently discarded before reaching the
+failure report.
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib.util
+import inspect
 import sys
 from pathlib import Path
 
@@ -130,6 +137,34 @@ _CLAIM_FLOORS: dict[str, int] = {
     "theoretical-limit-carnot": 5,
 }
 
+# CR-02(a) (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed copy of _CLAIM_FLOORS' fourteen entries — deliberately NOT
+# derived from _CLAIM_FLOORS in any way. Before this lock, every fixture
+# consuming _CLAIM_FLOORS built its expected value FROM the constant under
+# test (e.g. `conclusion_claims=_CLAIM_FLOORS["personal-general"] - 1`),
+# which is invariant to the constant's own value — CONTRACT-06's ENTRY-
+# SOURCE LOCK names this shape explicitly as "a required side rebound to
+# its own actual side". Setting every _CLAIM_FLOORS value to 0 (CR-02(a)'s
+# measured defect) left both self-test and the live leg green. Moving a
+# floor is therefore a two-place reviewable edit by design, the same
+# discipline the sha256 pins already apply.
+_CLAIM_FLOORS_LOCK: dict[str, int] = {
+    "composed-inversion-second-order": 2,
+    "decompose-irreducibility": 7,
+    "estimate-fermi": 5,
+    "ishikawa-fishbone": 4,
+    "personal-general": 7,
+    "personal-general-2": 7,
+    "product-business": 3,
+    "product-business-2": 4,
+    "science-engineering": 3,
+    "science-engineering-2": 3,
+    "self-application": 9,
+    "software-systems": 8,
+    "software-systems-2": 10,
+    "theoretical-limit-carnot": 5,
+}
+
 # The corpus-wide marked_untraced_claims sum over shared-examples, measured
 # by plan 18-06 and unchanged since: both instances live in
 # decompose-irreducibility.md. Pinned as a RATCHET — the live reading may
@@ -137,6 +172,12 @@ _CLAIM_FLOORS: dict[str, int] = {
 # instead of cited, which is the drift this ratchet exists to catch. Task 3
 # reconciles this literal against the derived reading published in
 # docs/conformance-baseline.md.
+#
+# CR-02(b): the `ratchet-value-locked` control below asserts this value
+# against an INLINE integer literal written at the control site, never read
+# from this constant — setting _MARKED_RATCHET to 99 previously left both
+# self-test and the live leg green. Plan 18-10 moves both this constant and
+# that lock to 4 together, as one two-place edit; this plan leaves both at 2.
 _MARKED_RATCHET: int = 2
 
 # The three prescribed section-6 lead-ins output-template.md names. A claim
@@ -150,6 +191,31 @@ _PRESCRIBED_LEAD_INS: tuple[str, ...] = (
     "**Key insight:**",
     "**Trade-offs acknowledged:**",
 )
+
+# CR-02(c) (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed copy of _PRESCRIBED_LEAD_INS — narrowing the tuple to one
+# literal previously left both self-test and the live leg green, because
+# only "**Recommended approach:**" was ever exercised by a control. Control
+# `d03-leadin-set-locked` asserts equality against this tuple, and the
+# `d03-fires-on-leadin-<slug>` controls generated below (one per member of
+# _PRESCRIBED_LEAD_INS) are additionally floored by the existing
+# `coverage-floor` in self_test(), since narrowing the source tuple
+# generates fewer entries while _CONTROL_IDS' hand-transcribed roster stays
+# whole — the SCAN-GUARD plan-15-12 property, not a new mechanism.
+_PRESCRIBED_LEAD_INS_LOCK: tuple[str, ...] = (
+    "**Recommended approach:**",
+    "**Key insight:**",
+    "**Trade-offs acknowledged:**",
+)
+
+# One control-id slug per _PRESCRIBED_LEAD_INS member. The generated
+# `d03-fires-on-leadin-<slug>` control ids are hand-transcribed into
+# _CONTROL_IDS as plain literals below.
+_D03_LEADIN_SLUGS: dict[str, str] = {
+    "**Recommended approach:**": "recommended-approach",
+    "**Key insight:**": "key-insight",
+    "**Trade-offs acknowledged:**": "trade-offs-acknowledged",
+}
 
 # The one repaired example the D-08 live arm mutates in memory. personal-
 # general.md is the tree's exemplar of conforming chain form — two chains,
@@ -172,6 +238,98 @@ _D08_CELL_NEEDLE = (
 _D08_CELL_REPLACEMENT = "Discard"
 _D08_CITE_NEEDLE = "3. (chain C1) Use the effective compensation figure"
 _D08_CITE_REPLACEMENT = "3. Use the effective compensation figure"
+
+# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s six `problems +=`
+# enforcement call sites are floored by a source-text census, in the same
+# shape `check-selfaudit-scan.py`'s `(validate-census)` and
+# `(roster-entry-source)` blocks already use for themselves. Every entry maps
+# to expected count 1 — one call site, called exactly once.
+_LIVE_CALL_SITES: dict[str, int] = {
+    "_targets_problems": 1,
+    "_claim_floor_roster_problems": 1,
+    "_claim_floor_problems": 1,
+    "_d03_rule_problems_from_text": 1,
+    "_ratchet_problems": 1,
+    "_run_d08_arm": 1,
+}
+
+# The whitespace-normalized call-form fragment each symbol above must appear
+# in, transcribed from run_live()'s current source. Five carry the
+# `problems += <symbol>(...)` form; `_run_d08_arm` carries
+# `mutation_lines = _run_d08_arm(rows)`. Every fragment is built BY
+# CONCATENATION of short string pieces, never as one contiguous literal —
+# the `(roster-entry-source)` convention `check-selfaudit-scan.py` uses for
+# the same reason it exists there: a contiguous literal is a self-match
+# hazard the moment anyone widens the census's search scope from run_live to
+# the module (this table's own source text would then contain the exact
+# string it is searching for).
+_LIVE_CALL_FORMS: dict[str, str] = {
+    "_targets_problems": "problems += " + "_targets_problems(rows)",
+    "_claim_floor_roster_problems": (
+        "problems += "
+        + "_claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)"
+    ),
+    "_claim_floor_problems": "problems += " + "_claim_floor_problems(rows)",
+    "_d03_rule_problems_from_text": (
+        "problems += "
+        + '_d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])'
+    ),
+    "_ratchet_problems": "problems += " + "_ratchet_problems(rows)",
+    "_run_d08_arm": "mutation_lines = " + "_run_d08_arm(rows)",
+}
+
+
+def _call_site_census_problems(
+    source: str,
+    expected_counts: dict[str, int],
+    expected_forms: dict[str, str] | None = None,
+) -> list[str]:
+    """CR-01: a PURE source-text census over `run_live()`'s enforcement call
+    sites. Takes source text as a parameter — never `inspect.getsource
+    (run_live)` directly — so the `census-x*`/`form-lock-x*` isolation arms
+    below can drive it with synthetic strings and never with the real
+    function's source. That discipline is what keeps the arms falsifiable
+    when the real source changes.
+
+    For each symbol in *expected_counts* this counts occurrences of
+    ``symbol + "("`` in *source* and reports
+    ``CALL-SITE CENSUS: <symbol> occurs <n> time(s) in run_live's source,
+    expected <k>`` when the count differs. When *expected_forms* is supplied,
+    *source* is additionally whitespace-normalized (every run of whitespace
+    collapsed to a single space) and each symbol's expected call-form
+    fragment is checked for containment, reporting
+    ``CALL-FORM LOCK: <symbol>'s expected call form not found in run_live's
+    source: <fragment>`` when absent. Problems are returned in the tables'
+    own declaration order, so failure output is stable across runs.
+
+    DISCLOSED LIMITATION, in the same voice as `check-selfaudit-scan.py`'s
+    ENTRY-SOURCE LOCK: this counts and matches SOURCE TEXT and observes no
+    behaviour. It catches a call site that was DELETED or REWRITTEN, not a
+    call whose returned problems are computed correctly and then discarded
+    before reaching the failure report; and a call form rebound to an
+    expression of EQUAL VALUE is harmless by construction and therefore
+    invisible to it. Closes CR-01 and the blocking gap 18-VERIFICATION.md
+    records against `run_live()`'s six enforcement call sites.
+    """
+    problems: list[str] = []
+    for symbol, expected in expected_counts.items():
+        pattern = symbol + "("
+        actual = source.count(pattern)
+        if actual != expected:
+            problems.append(
+                f"CALL-SITE CENSUS: {symbol} occurs {actual} time(s) in "
+                f"run_live's source, expected {expected}"
+            )
+    if expected_forms is not None:
+        normalized = " ".join(source.split())
+        for symbol, fragment in expected_forms.items():
+            normalized_fragment = " ".join(fragment.split())
+            if normalized_fragment not in normalized:
+                problems.append(
+                    f"CALL-FORM LOCK: {symbol}'s expected call form not "
+                    f"found in run_live's source: {fragment!r}"
+                )
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -470,6 +628,16 @@ _D03_PASS_TEXT = (
     "enough to clear the assertiveness floor on its own merits.\n"
 )
 
+# CR-02(d): a claim that DOES open with a prescribed lead-in and does NOT
+# carry the caveat marker — derived from _D03_FIRE_TEXT by removing the
+# marker, never hand-duplicated, so the two fixtures cannot silently drift
+# apart. Dropping the `CAVEAT_MARKER in claim_text` conjunct from
+# _d03_rule_problems_from_text previously left this shape entirely
+# unguarded: with no marker, the predicate's remaining half ("any untraced
+# claim with a prescribed lead-in is a violation") would flag every such
+# example, and no control noticed.
+_D03_UNMARKED_TEXT = _D03_FIRE_TEXT.replace(CAVEAT_MARKER + ", ", "", 1)
+
 
 def _control_target_unreadable_fires() -> None:
     bad = _rc._synthetic_row(
@@ -531,26 +699,37 @@ def _control_d07_equal_passes() -> None:
 
 
 def _control_d04_floor_fires() -> None:
-    floor = _CLAIM_FLOORS["personal-general"]
+    # CR-02(a): INLINE by design (6 is one below personal-general's pinned
+    # floor of 7) — never `_CLAIM_FLOORS["personal-general"] - 1`, which is
+    # invariant to the floor's own value and cannot fail when the floor is
+    # loosened. See _CLAIM_FLOORS_LOCK's comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor - 1
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=6
     )
     problems = _claim_floor_problems([row])
     assert any("personal-general" in p for p in problems), problems
 
 
 def _control_d04_floor_passes_at_floor() -> None:
-    floor = _CLAIM_FLOORS["personal-general"]
+    # CR-02(a): INLINE by design (7 is exactly personal-general's pinned
+    # floor) — see _control_d04_floor_fires' comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=7
     )
     assert _claim_floor_problems([row]) == []
 
 
-def _control_d03_fires_on_prescribed_leadin() -> None:
-    problems = _d03_rule_problems_from_text(_D03_FIRE_TEXT, "fire", "synthetic/fire.md")
-    assert problems, problems
-    assert "D-03 RULE VIOLATION" in problems[0], problems
+# CR-02(c)/(d) (18-VERIFICATION.md blocking gap): the D-03 predicate's
+# coverage was narrowed on two independent axes. (c) Only one of the three
+# _PRESCRIBED_LEAD_INS literals was ever exercised by a control, so
+# narrowing the tuple to that one literal left both self-test and the live
+# leg green; `d03-leadin-set-locked` plus the per-literal
+# `d03-fires-on-leadin-<slug>` controls below close it — the ids are
+# GENERATED from _PRESCRIBED_LEAD_INS and hand-transcribed as plain
+# literals into _CONTROL_IDS, so narrowing the tuple fails the existing
+# `coverage-floor` by naming the missing ids. (d) The
+# `CAVEAT_MARKER in claim_text` conjunct at the D-03 predicate had no
+# negative control; `d03-passes-on-unmarked-prescribed-leadin` closes it.
 
 
 def _control_d03_passes_on_nonprescribed_leadin() -> None:
@@ -558,25 +737,103 @@ def _control_d03_passes_on_nonprescribed_leadin() -> None:
     assert problems == [], problems
 
 
-def _control_ratchet_fires_above() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r.md", "r", marked_untraced_claims=_MARKED_RATCHET + 1
+def _make_d03_fires_on_leadin_control(lead_in: str):
+    """Build a control closure for one _PRESCRIBED_LEAD_INS member, used
+    only to GENERATE the `d03-fires-on-leadin-<slug>` entries below —
+    never called with anything but a member of _PRESCRIBED_LEAD_INS.
+    """
+
+    def _control() -> None:
+        fixture = _D03_FIRE_TEXT.replace("**Recommended approach:**", lead_in, 1)
+        problems = _d03_rule_problems_from_text(fixture, "fire", "synthetic/fire.md")
+        assert problems, (lead_in, problems)
+        assert any("D-03 RULE VIOLATION" in p for p in problems), (lead_in, problems)
+
+    return _control
+
+
+# GENERATED: one control entry per member of _PRESCRIBED_LEAD_INS. The
+# retired `d03-fires-on-prescribed-leadin` control is this table's
+# "**Recommended approach:**" entry — its exact superset.
+_D03_LEADIN_FIRES_CONTROLS: tuple[tuple[str, object], ...] = tuple(
+    (
+        f"d03-fires-on-leadin-{_D03_LEADIN_SLUGS[lead_in]}",
+        _make_d03_fires_on_leadin_control(lead_in),
     )
+    for lead_in in _PRESCRIBED_LEAD_INS
+)
+
+
+def _control_d03_leadin_set_locked() -> None:
+    """CR-02(c): _PRESCRIBED_LEAD_INS and its second, independent
+    transcription _PRESCRIBED_LEAD_INS_LOCK must agree, reporting the
+    symmetric difference by literal on failure.
+    """
+    diff = set(_PRESCRIBED_LEAD_INS) ^ set(_PRESCRIBED_LEAD_INS_LOCK)
+    assert not diff, f"D-03 LEAD-IN LOCK MISMATCH: {sorted(diff)}"
+
+
+def _control_d03_passes_on_unmarked_prescribed_leadin() -> None:
+    """CR-02(d): a claim opening with a prescribed lead-in and NOT carrying
+    the caveat marker must pass — the `CAVEAT_MARKER in claim_text` half of
+    the D-03 conjunct is what exempts it. Carries its own inline
+    NON-VACUITY assertion before the main assertion (18-REVIEW.md's own
+    vacuity probe on the sibling control): a fixture that silently stopped
+    yielding any claim would pass this control for the wrong reason.
+    """
+    record = detect_defects(_D03_UNMARKED_TEXT, "u")
+    assert record["untraced_claims"] >= 1, record
+    assert any(
+        t.startswith("**Recommended approach:**") for t in record["_untraced_claims_text"]
+    ), record["_untraced_claims_text"]
+    assert (
+        _d03_rule_problems_from_text(_D03_UNMARKED_TEXT, "u", "synthetic/u.md") == []
+    )
+
+
+def _control_ratchet_fires_above() -> None:
+    # CR-02(b): INLINE by design (3 is one above the pinned ratchet of 2) —
+    # never `_MARKED_RATCHET + 1`, which is invariant to the ratchet's own
+    # value and cannot fail when the ratchet is loosened.
+    row = _rc._synthetic_row("shared-examples", "r.md", "r", marked_untraced_claims=3)
     assert _ratchet_problems([row]) != []
 
 
 def _control_ratchet_passes_at_pin() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r2.md", "r2", marked_untraced_claims=_MARKED_RATCHET
-    )
+    # CR-02(b): INLINE by design (2 is exactly the pinned ratchet) — see
+    # _control_ratchet_fires_above's comment.
+    row = _rc._synthetic_row("shared-examples", "r2.md", "r2", marked_untraced_claims=2)
     assert _ratchet_problems([row]) == []
 
 
 def _control_ratchet_passes_below() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r3.md", "r3", marked_untraced_claims=max(_MARKED_RATCHET - 1, 0)
-    )
+    # CR-02(b): INLINE by design (1 is one below the pinned ratchet) — see
+    # _control_ratchet_fires_above's comment.
+    row = _rc._synthetic_row("shared-examples", "r3.md", "r3", marked_untraced_claims=1)
     assert _ratchet_problems([row]) == []
+
+
+def _control_claim_floor_values_locked() -> None:
+    """CR-02(a): _CLAIM_FLOORS and its second, independent transcription
+    _CLAIM_FLOORS_LOCK must agree by name. Reports the sorted list of keys
+    whose values differ, or which are present in only one table — never a
+    bare count, so a narrowing shows up by name.
+    """
+    differing = sorted(
+        k
+        for k in set(_CLAIM_FLOORS) | set(_CLAIM_FLOORS_LOCK)
+        if _CLAIM_FLOORS.get(k) != _CLAIM_FLOORS_LOCK.get(k)
+    )
+    assert not differing, f"D-04 LOCK MISMATCH: {differing}"
+
+
+def _control_ratchet_value_locked() -> None:
+    """CR-02(b): _MARKED_RATCHET must equal an INLINE integer literal
+    written at this control site, never read from the constant itself —
+    the shape that makes loosening _MARKED_RATCHET a reviewable, falsifiable
+    edit rather than an invisible one.
+    """
+    assert _MARKED_RATCHET == 2, _MARKED_RATCHET
 
 
 def _control_contract_surface_excluded() -> None:
@@ -601,6 +858,104 @@ def _control_contract_surface_excluded() -> None:
     assert _claim_floor_problems([bad]) == []
 
 
+# CR-01 census/form-lock controls (18-VERIFICATION.md blocking gap). Every
+# `census-x*`/`form-lock-x*` isolation arm below drives `_call_site_census_
+# problems` with one of these SYNTHETIC source strings — never with
+# `inspect.getsource(run_live)` — so the arms stay falsifiable independently
+# of whatever `run_live`'s real source happens to read today.
+
+_CENSUS_X1_CLEAN_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_CENSUS_X2_MISSING_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_CENSUS_X3_DUPLICATED_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_FORM_LOCK_X2_REWRITTEN_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+
+def _control_live_call_site_census() -> None:
+    source = inspect.getsource(run_live)
+    problems = _call_site_census_problems(source, _LIVE_CALL_SITES)
+    assert problems == [], problems
+
+
+def _control_live_call_form_lock() -> None:
+    source = inspect.getsource(run_live)
+    problems = _call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    assert problems == [], problems
+
+
+def _control_census_x1_clean() -> None:
+    problems = _call_site_census_problems(_CENSUS_X1_CLEAN_SOURCE, _LIVE_CALL_SITES)
+    assert problems == [], problems
+
+
+def _control_census_x2_missing() -> None:
+    problems = _call_site_census_problems(_CENSUS_X2_MISSING_SOURCE, _LIVE_CALL_SITES)
+    assert len(problems) == 1, problems
+    assert "_targets_problems" in problems[0], problems
+    assert "occurs 0 time" in problems[0], problems
+
+
+def _control_census_x3_duplicated() -> None:
+    problems = _call_site_census_problems(_CENSUS_X3_DUPLICATED_SOURCE, _LIVE_CALL_SITES)
+    assert len(problems) == 1, problems
+    assert "_ratchet_problems" in problems[0], problems
+    assert "occurs 2 time" in problems[0], problems
+
+
+def _control_form_lock_x1_clean() -> None:
+    problems = _call_site_census_problems(
+        _CENSUS_X1_CLEAN_SOURCE, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
+    assert problems == [], problems
+
+
+def _control_form_lock_x2_rewritten() -> None:
+    problems = _call_site_census_problems(
+        _FORM_LOCK_X2_REWRITTEN_SOURCE, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
+    assert len(problems) == 1, problems
+    assert "CALL-FORM LOCK" in problems[0], problems
+    assert "_targets_problems" in problems[0], problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -614,12 +969,26 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d07-equal-passes", _control_d07_equal_passes),
     ("d04-floor-fires", _control_d04_floor_fires),
     ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
-    ("d03-fires-on-prescribed-leadin", _control_d03_fires_on_prescribed_leadin),
+    ("claim-floor-values-locked", _control_claim_floor_values_locked),
+    ("d03-leadin-set-locked", _control_d03_leadin_set_locked),
+    *_D03_LEADIN_FIRES_CONTROLS,
     ("d03-passes-on-nonprescribed-leadin", _control_d03_passes_on_nonprescribed_leadin),
+    (
+        "d03-passes-on-unmarked-prescribed-leadin",
+        _control_d03_passes_on_unmarked_prescribed_leadin,
+    ),
     ("ratchet-fires-above", _control_ratchet_fires_above),
     ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
     ("ratchet-passes-below", _control_ratchet_passes_below),
+    ("ratchet-value-locked", _control_ratchet_value_locked),
     ("contract-surface-excluded", _control_contract_surface_excluded),
+    ("live-call-site-census", _control_live_call_site_census),
+    ("live-call-form-lock", _control_live_call_form_lock),
+    ("census-x1-clean", _control_census_x1_clean),
+    ("census-x2-missing", _control_census_x2_missing),
+    ("census-x3-duplicated", _control_census_x3_duplicated),
+    ("form-lock-x1-clean", _control_form_lock_x1_clean),
+    ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -639,12 +1008,25 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d07-equal-passes",
     "d04-floor-fires",
     "d04-floor-passes-at-floor",
-    "d03-fires-on-prescribed-leadin",
+    "claim-floor-values-locked",
+    "d03-leadin-set-locked",
+    "d03-fires-on-leadin-recommended-approach",
+    "d03-fires-on-leadin-key-insight",
+    "d03-fires-on-leadin-trade-offs-acknowledged",
     "d03-passes-on-nonprescribed-leadin",
+    "d03-passes-on-unmarked-prescribed-leadin",
     "ratchet-fires-above",
     "ratchet-passes-at-pin",
     "ratchet-passes-below",
+    "ratchet-value-locked",
     "contract-surface-excluded",
+    "live-call-site-census",
+    "live-call-form-lock",
+    "census-x1-clean",
+    "census-x2-missing",
+    "census-x3-duplicated",
+    "form-lock-x1-clean",
+    "form-lock-x2-rewritten",
 )
 
 
