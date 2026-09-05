@@ -12,12 +12,12 @@ This file is a measurement, not a contract: no figure below defines what the cod
 
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
-| Files unreadable by `_slice_sections` | 4 of 14 | 4 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 58 (58 untraced) | 58 (58 untraced) | 3 (3 untraced) |
+| Files unreadable by `_slice_sections` | 1 of 14 | 1 of 14 | 0 of 1 |
+| §6 conclusion claims (untraced) | 70 (58 untraced) | 70 (58 untraced) | 3 (3 untraced) |
 | §6 untraced claims (marked / silent) | 58 untraced (0 marked, 58 silent) | 58 untraced (0 marked, 58 silent) | 3 untraced (0 marked, 3 silent) |
-| §2 verdict cells (non-conforming) | 69 (69 non-conforming) | 69 (69 non-conforming) | 1 (1 non-conforming) |
-| §4 `chain_blocks` (malformed) | 27 (19 malformed) | 27 (19 malformed) | 3 (1 malformed) |
-| `### Conclusion` heading-swept blocks (malformed) | 28 (19 malformed) | 28 (19 malformed) | 1 (0 malformed) |
+| §2 verdict cells (non-conforming) | 77 (69 non-conforming) | 77 (69 non-conforming) | 1 (1 non-conforming) |
+| §4 `chain_blocks` (malformed) | 30 (19 malformed) | 30 (19 malformed) | 3 (1 malformed) |
+| `### Conclusion` heading-swept blocks (malformed) | 30 (19 malformed) | 30 (19 malformed) | 1 (0 malformed) |
 | Source-vs-twin agreement (D-04) | 14 of 14 pairs agree | | |
 
 ## Two chain-block censuses (D-05)
@@ -44,9 +44,9 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| shared/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | unreadable | unreadable | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/personal-general.md | OK | 2 | 0 | 0 | 7 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -57,15 +57,15 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | shared/examples/self-application.md | OK | 3 | 3 | 0 | 9 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/software-systems.md | OK | 3 | 3 | 0 | 8 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/theoretical-limit-carnot.md | OK | 1 | 0 | 0 | 0 | theoretical-limit-carnot | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ## generated-twin
 
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| first-principles/agents/references/examples/composed-inversion-second-order.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 1 | 0 | unreadable | unreadable | composed-inversion-second-order | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/estimate-fermi.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | estimate-fermi | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | 0 | 7 | personal-general | 7 | 7 | 1 | 5 | 5 | 1 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -76,7 +76,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | first-principles/agents/references/examples/self-application.md | OK | 3 | 3 | 0 | 9 | self-application | 9 | 9 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/software-systems.md | OK | 3 | 3 | 0 | 8 | software-systems | 8 | 8 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/theoretical-limit-carnot.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | theoretical-limit-carnot | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/theoretical-limit-carnot.md | OK | 1 | 0 | 0 | 0 | theoretical-limit-carnot | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
 ## contract-surface
 

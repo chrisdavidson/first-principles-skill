@@ -120,41 +120,78 @@ the theoretical limit) approaches 33%.
 
 ---
 
-## Phase 4 Handoff — Physical-Bound Derivation Chain
+## 1. Problem Essence
 
-The law-permitted ceiling and the bracketed gap enter **Phase 4 (Reason Upward)** as a
-physical-bound step in a **Derivation Chain**, citing the Phase 3 ground truths that
-anchor the governing law and the reservoir temperatures:
+**Target:** the thermal-to-electric conversion efficiency of the Rankine-cycle heat engine
+operating across the molten-salt reservoir temperature pair — the same 290–565 °C window
+established in the five-whys (reduce-to-primitives) example as GT-4. The question: how far
+below the law-permitted ceiling is current practice?
 
-**Chain: Molten-Salt TES Heat-Engine Efficiency Bound**
+Given the reservoir temperatures the five-whys reduce-to-primitives pass established as
+ground truths, what does the Second Law permit for the heat engine operating between them?
+The ceiling-vs-convention bracket reveals whether the efficiency headroom is real or
+illusory.
 
-    GT-4  (Solar Salt stable 290–565 °C; T_cold ≈ 563 K, T_hot ≈ 838 K — direct measurement,
-           five-whys (reduce-to-primitives) example Phase 3 ground truth)
-      +
-      Second Law of Thermodynamics: Carnot bound η = 1 − T_cold/T_hot
-      →
-      Law-permitted ceiling: η_Carnot = 1 − 563/838 ≈ 33%
-      →
-      Conventional figure (real Rankine at these conditions): ~20–25%
-      →
-      Bracketed gap: ~8–13 percentage points of engineering headroom
-      →
-      [Conclusion: ~8–13 percentage points of thermal-to-electric conversion efficiency
-       are available as engineering headroom above current practice at these reservoir
-       temperatures. The headroom is governed by engineering conventions (turbine
-       isentropic losses, heat-exchanger ΔT, parasitics), not by a physical barrier.
-       Confidence: HIGH — the Carnot ceiling is irreducible; the conventional figure
-       is anchored in published turbine operating data for this temperature range.]
+---
 
-**Cross-technique continuity.** The five-whys reduce-to-primitives drill (Phase 3) established GT-4 — the
-Solar Salt temperature window. The estimate drill (Phase 4) consumed GT-4 to rebuild the
-cost magnitude from unit-factors. This theoretical-limit drill (Phase 4) consumes GT-4
-to derive the physical ceiling the Second Law imposes on the heat engine operating across
-those same reservoir temperatures. The three techniques form a traceable chain:
-five-whys reduce-to-primitives → estimate → theoretical-limit, all anchored to GT-4.
+## 2. Assumptions Table
 
-**Phase 1 reframe.** The theoretical-limit result invites a Phase 1 (Identify Essence)
-reframe: the core question is no longer "is 20–25% acceptable?" but "is the ~8–13 point
-gap a recoverable engineering opportunity or a permanently foregone constraint?" The
-Carnot ceiling reveals the real question — are we limited by physics, or by a convention
-we have not yet challenged?
+Nothing material here — this is a single-technique physical-bound derivation consuming a
+ground truth already classified and verified in the five-whys (reduce-to-primitives)
+example (GT-4, Step 2 above); it introduces no new untested belief of its own to classify.
+
+---
+
+## 3. Ground Truths
+
+- **GT-4** Solar Salt (60% NaNO₃ / 40% KNO₃) is stable across the 290–565 °C commercial
+  operating window, giving reservoir temperatures T_cold ≈ 563 K and T_hot ≈ 838 K — source:
+  published material data for Solar Salt (direct measurement), established in the five-whys
+  (reduce-to-primitives) example this drill hands off from.
+
+---
+
+## 4. Derivation Chains
+
+### Conclusion C1: The conventional 20–25% Rankine efficiency is engineering headroom, not a physical ceiling
+
+GT-4 (Solar Salt stable 290–565 °C; T_cold ≈ 563 K, T_hot ≈ 838 K — direct measurement, established in the five-whys reduce-to-primitives example)
+→ The Second Law of Thermodynamics' Carnot bound (η = 1 − T_cold/T_hot) applied to the GT-4 reservoir temperatures yields a law-permitted ceiling of η_Carnot = 1 − 563/838 ≈ 33% — the highest thermal-to-electric conversion efficiency any heat engine operating between these reservoirs can achieve, independent of working fluid, cycle design, or engineering refinement
+→ The conventional figure for a real Rankine cycle at these reservoir conditions is ~20–25%, so the bracketed gap between the law-permitted ceiling and current practice is ~8–13 percentage points
+→ The ~8–13 point gap is engineering headroom, not a physical barrier — it is governed by turbine isentropic losses (~4–5 points), heat-exchanger ΔT losses (~2–3 points), and parasitic loads (~1–2 points), none of which the Carnot bound itself forbids closing.
+
+**Confidence:** HIGH — the Carnot ceiling is irreducible; the conventional figure is anchored
+in published turbine operating data for this temperature range.
+
+---
+
+## 5. Abandoned Reasoning
+
+Nothing material here — the Carnot bound is the only governing law applicable to a heat
+engine operating between two fixed thermal reservoirs; no competing physical-bound
+derivation was tried and discarded.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** Treat the ~8–13 percentage-point gap (chain C1) as recoverable
+engineering headroom rather than an acceptable ceiling — prioritise turbine isentropic
+efficiency, heat-exchanger ΔT reduction, and parasitic-load reduction, in that order of
+gap-share, before treating 20–25% as the practical limit for this reservoir pair.
+
+**Key insight:** The Carnot bound (chain C1) reveals that the conventional 20–25% figure is
+not near a physical ceiling — the laws permit ~33% for these reservoir temperatures, so the
+real question is whether the gap is a recoverable engineering opportunity or a permanently
+foregone constraint, not whether 20–25% is "good enough."
+
+- Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill
+  established GT-4 — the Solar Salt temperature window — which chain C1's Carnot-bound
+  derivation consumes directly, the same ground truth the estimate drill's chain also
+  anchors to.
+- The irreducible fraction of the gap is zero (chain C1): the Carnot bound is a ceiling, not
+  a floor, and no physical law prevents approaching it, though a finite-power machine never
+  reaches it in finite time.
+
+**Confidence:** HIGH — matches chain C1. The Carnot ceiling is irreducible; the conventional
+figure is anchored in published turbine operating data for this temperature range.

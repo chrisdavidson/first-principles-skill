@@ -179,43 +179,91 @@ cost-competitive under all combinations of factor uncertainty. The estimate is d
 
 ---
 
-## Phase 4 Handoff — Quantitative Derivation Chain
+## 1. Problem Essence
 
-The unit-factor rebuild and bracketed result enter **Phase 4 (Reason Upward)** as a
-quantitative **Derivation Chain**, citing the Phase 3 ground truths (GT-1 through GT-8
-established in the five-whys (reduce-to-primitives) example) that anchor each factor:
+**Target quantity.** Installed capital cost of a 5 MWh molten-salt thermal energy storage
+(TES) system, in $/kWh of storage capacity, rebuilt from constituent first-principles
+unit-factors — then amortised over cycle life to a levelised cost per kWh delivered.
 
-**Chain: Molten-Salt TES Cost-Competitiveness**
+The unit-factor rebuild (Steps 2–5 above) makes explicit *why* the GT-5/GT-6 installed-cost
+figures hold, rather than treating them as an unexplained given, and the amortisation
+(Step 6) converts the one-time installed-capital bracket into the levelised figure the
+cost-competitiveness question actually turns on.
 
-```text
-GT-4  (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/kg·°C — direct measurement)
-GT-5  (Molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement)
-GT-6  (Lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
-  +
-  unit-factor rebuild (installed capital):
-    material_mass [8.6 kg/kWh] × cost_per_kg [$0.40–0.80/kg] × system_factor [3.5–5×]
-  →
-  installed-capital bracket: [Lower: ~$15/kWh | Central: ~$30/kWh | Upper: ~$42/kWh]
-  →  amortise over cycle_life [8,000–12,000 cycles]
-  →  levelised cost: [~$0.0013 | ~$0.0030 | ~$0.0053  /kWh delivered]
-  →
-  [Conclusion: Molten-salt TES is cost-competitive with lithium-ion under all bracket
-   scenarios. Confidence: HIGH — installed upper bound ($42/kWh) is still ~3.5× below the
-   lithium-ion installed lower bound ($150/kWh), and the levelised gap is larger still.]
-```
+---
 
-**Cross-technique continuity.** The five-whys reduce-to-primitives drill (Phase 3) produced GT-4, which
-anchored the Solar Salt specific heat and operating window. The estimate drill (Phase 4)
-consumed GT-4 to derive `material_mass`, converting a verified primitive into a
-quantitative unit-factor. The Phase 3 → Phase 4 handoff is complete: verified
-primitives (five-whys reduce-to-primitives output) become the anchored per-unit values the estimate rebuilds
-the magnitude from. The derivation chain cites GT-N ids so the connection is traceable.
+## 2. Assumptions Table
 
-**Uncertainty carried forward.** The installed bracket width [$15–$42/kWh] reflects the
-uncertainty in salt-procurement cost and the system multiple; cycle life additionally drives
-the levelised spread (Step 6). The conclusion (cost-competitive) is rated **HIGH confidence**
-because even the installed upper bound is well below the lithium-ion installed lower bound. If
-a future lithium-ion installed quote reached ~$40/kWh (emerging cost trajectory), the installed
-brackets would straddle the threshold and confidence would drop to MEDIUM — at that point,
-tighten `cost_per_kg` and the `system_factor` with current procurement and engineering quotes
-before drawing the conclusion.
+Nothing material here — this is a single-technique Fermi-estimation drill rebuilding an
+installed-cost figure from unit-factors; it consumes ground truths already classified and
+verified in the five-whys (reduce-to-primitives) example it hands off from (Step 3 above)
+and introduces no new untested belief of its own to classify.
+
+---
+
+## 3. Ground Truths
+
+- **GT-4** Solar Salt (60% NaNO₃ / 40% KNO₃) has a specific heat capacity of ~1.52 kJ/(kg·°C)
+  and is stable across the 290–565 °C commercial operating window — source: published
+  material data for Solar Salt (direct measurement), established in the five-whys
+  (reduce-to-primitives) example this drill hands off from.
+
+- **GT-5** Molten-salt TES installed capital cost is ≈ $20–50/kWh installed — source: NREL
+  direct measurement, established in the five-whys (reduce-to-primitives) example.
+
+- **GT-6** Utility-scale lithium-ion storage installed capital cost is ≈ $150–300/kWh
+  installed — source: BloombergNEF direct measurement, established in the five-whys
+  (reduce-to-primitives) example.
+
+---
+
+## 4. Derivation Chains
+
+### Conclusion C1: Molten-salt TES is cost-competitive with lithium-ion under all bracket scenarios
+
+GT-4 (Solar Salt stable 290–565 °C; c_p ≈ 1.52 kJ/(kg·°C) — direct measurement) + GT-5 (molten-salt TES installed capital ≈ $20–50/kWh — NREL direct measurement) + GT-6 (lithium-ion storage ≈ $150–300/kWh installed — BloombergNEF direct measurement)
+→ The unit-factor rebuild (material_mass 8.6 kg/kWh × cost_per_kg $0.40–0.80/kg × system_factor 3.5–5×, GT-4-anchored) reconstructs the installed-capital bracket from first principles — Lower ~$15/kWh, Central ~$30/kWh, Upper ~$42/kWh — consistent with the GT-5 range this rebuild explains rather than merely assumes
+→ Amortising the installed-capital bracket over cycle life (8,000–12,000 cycles) converts one-time capital into levelised cost per kWh delivered — Lower ~$0.0013/kWh, Central ~$0.0030/kWh, Upper ~$0.0053/kWh
+→ Molten-salt TES is cost-competitive with lithium-ion (GT-6) under every combination of factor uncertainty in the bracket — even the installed upper bound ($42/kWh) is still ~3.5× below the lithium-ion installed lower bound ($150/kWh), and the levelised gap is larger still.
+
+**Confidence:** HIGH — the installed upper bound is well below the lithium-ion installed
+lower bound across the full width of the estimate bracket. If a future lithium-ion installed
+quote reached ~$40/kWh (emerging cost trajectory), the installed brackets would straddle the
+threshold and confidence would drop to MEDIUM — at that point, tighten `cost_per_kg` and the
+`system_factor` with current procurement and engineering quotes before drawing the conclusion.
+
+---
+
+## 5. Abandoned Reasoning
+
+Nothing material here — the unit-factor decomposition (Step 2) was the only rebuild path
+considered; the factor set (material_mass, cost_per_kg, system_factor) is the standard
+installed-cost decomposition for tank-based thermal storage and no competing decomposition
+was tried and discarded.
+
+---
+
+## 6. Conclusion
+
+**Recommended approach:** Treat the molten-salt TES installed-cost figure (chain C1) as
+decision-grade for the cost-competitiveness question — the rebuilt bracket [$15–$42/kWh]
+holds under every combination of factor uncertainty, so no further estimate refinement is
+required before comparing against lithium-ion.
+
+**Key insight:** The unit-factor rebuild (chain C1) explains *why* the GT-5 installed-cost
+range holds rather than treating it as an unexplained given, and the amortisation over cycle
+life (8,000–12,000 cycles) shows that molten-salt's long cycle life widens the
+cost-competitiveness gap further at the levelised-cost level than at the installed-capital
+level alone.
+
+- The installed bracket width [$15–$42/kWh] (chain C1) reflects the uncertainty in
+  salt-procurement cost and the system multiple; cycle life additionally drives the
+  levelised spread.
+- Cross-technique continuity (chain C1): the five-whys reduce-to-primitives drill produced
+  GT-4, which anchored the Solar Salt specific heat and operating window that chain C1's
+  `material_mass` factor derives from.
+
+**Confidence:** HIGH — matches chain C1. Raising the bracket's precision further would
+require tightening `cost_per_kg` and the `system_factor` with current procurement and
+engineering quotes, but the cost-competitiveness conclusion itself does not depend on that
+tightening.
