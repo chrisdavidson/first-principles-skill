@@ -33,9 +33,11 @@ Exit codes:
     0  success (write / --check clean / --self-test clean)
     1  --check found drift, or discovery floor failed, or --self-test found a failing
        control, or (Phase 19) a corpus floor was breached (catalog<->discovery roster
-       drift, a fully-clean corpus item with no recorded disposition, a corpus
-       population floor breach, or a D-03 perturbation mutation that did not move the
-       expected reading)
+       drift, a corpus item whose catalogued target was missed or on which no column
+       fired carrying no recorded disposition, the catalogued-target join reading
+       vacuous or self-contradicting a row's stratum, the pinned caught-set drifting in
+       either direction, a corpus population floor breach, or a D-03 perturbation
+       mutation that did not move the expected reading)
     2  --check found the pass1/pass2 in-memory generation itself non-deterministic
 """
 
@@ -676,22 +678,32 @@ _VALID_DISPOSITION_PREFIXES: tuple[str, ...] = ("fix", "accept-with-reason", "de
 
 def _corpus_disposition_problems(corpus_rows: list[dict]) -> list[str]:
     """CONF-08's zero-silent-passes clause, made mechanical rather than a
-    prose promise. Phase 19 (CONF-08, D-19-08-A/B): checks every row whose
-    `target_missed` is True OR whose `no_column_fired` is True -- the UNION
-    of the two predicates, never `no_column_fired` alone. This is the fix
-    for the 19-VERIFICATION.md gap: under the old single-predicate scope,
-    `t13-grounded-alongside-cyclic-ref` escaped this floor entirely (an
-    unrelated column fired on it, so it was never "clean"), even though its
-    own catalogued falsehood was silently missed -- exactly the silent pass
-    CONF-08 exists to catch. The union can only ever be a superset of the
-    old scope, never narrower, so this widening cannot let a
-    previously-checked row escape.
+    prose promise. Phase 19 (CONF-08, D-19-08-A/B, widened again at D-19-09-A):
+    checks every row whose `target_missed` is True OR whose `no_column_fired`
+    is True -- the UNION of the two predicates, never `no_column_fired`
+    alone. This is the fix for the 19-VERIFICATION.md gap: under the old
+    single-predicate scope, `t13-grounded-alongside-cyclic-ref` escaped this
+    floor entirely (an unrelated column fired on it, so it was never
+    "clean"), even though its own catalogued falsehood was silently missed
+    -- exactly the silent pass CONF-08 exists to catch. The union is chosen
+    over a clean switch to `target_missed` alone specifically so this floor
+    can never be narrower than the set it covered before: the union can only
+    ever be a superset of the old `no_column_fired`-alone scope, never
+    narrower, so widening it cannot let a previously-checked row escape, and
+    it stays a superset of `target_missed`-alone too, so a future item whose
+    target hits while some other column fires is still checked.
 
     Requires a `disposition` that is non-empty, is not the literal
     "MISSING", and begins with one of `fix` / `accept-with-reason` /
     `defer-with-owner`. A row where NEITHER predicate is True is never
     checked here -- a genuine catch, with no diagnostic column firing
     either, needs no disclosed disposition.
+
+    The reported message states WHICH condition put the row inside the
+    floor, so a reader is never left guessing: a `target_missed=True` row
+    (the t13 shape, whatever else fired on it) names the catalogued target
+    that was missed; a row that merely had no column fire (and whose target
+    was in fact caught, or carries no target) keeps the original wording.
     """
     problems: list[str] = []
     for r in corpus_rows:
@@ -699,16 +711,121 @@ def _corpus_disposition_problems(corpus_rows: list[dict]) -> list[str]:
             continue
         disposition = r.get("disposition")
         if not disposition or disposition == "MISSING":
-            problems.append(
-                f"SILENT PASS [{r['analysis_id']}]: catalogued target missed or no "
-                "column fired, no disposition recorded"
-            )
+            if r["target_missed"] is True:
+                problems.append(
+                    f"SILENT PASS [{r['analysis_id']}]: catalogued target missed "
+                    f"(target={r.get('target')}), no disposition recorded"
+                )
+            else:
+                problems.append(
+                    f"SILENT PASS [{r['analysis_id']}]: no column fired, no "
+                    "disposition recorded"
+                )
             continue
         if not any(disposition.startswith(p) for p in _VALID_DISPOSITION_PREFIXES):
             problems.append(
                 f"DISPOSITION FORM [{r['analysis_id']}]: {disposition!r} does not "
                 "begin with fix / accept-with-reason / defer-with-owner"
             )
+    return problems
+
+
+# Phase 19 (CONF-08, D-19-09-B): the pinned set of `analysis_id`s whose catalogued
+# target is CAUGHT (`target_missed is False`) -- re-derived at execution time from the
+# live corpus and pinned here as a source literal, never read back from
+# docs/data/conformance.json (the regenerated artifact this script itself produces).
+# Compared by EQUALITY, never subset/superset: this fails on movement in EITHER
+# direction, a catch gained as loudly as a catch lost. That symmetry is deliberate and
+# is NOT the ratchet gate 19-CONTEXT.md D-07 declined -- a ratchet permits movement in
+# one direction and creates pressure toward a number; this lock makes any movement a
+# deliberate two-place edit (this constant and its inline-literal
+# `corpus-target-caught-lock-values-locked` control move together) instead of a silent
+# shift in a regenerated artifact. Closes D-07's disclosed residual at zero gate cost:
+# "the drift gate fails on staleness of the committed bytes, not on 'a catch was
+# lost'; regenerating makes it pass." DISCLOSED BOUND: this detects a change in WHICH
+# items are caught, never whether the catalogued target is the RIGHT target for that
+# item's wrongness -- a semantic judgment no mechanical check here makes.
+#
+# Derivation command (verbatim output quoted in 19-09-SUMMARY.md):
+#   python3 -c "
+#   import json
+#   data = json.load(open('docs/data/conformance.json'))
+#   rows = data['adversarial_corpus']['rows']
+#   print(sorted(r['analysis_id'] for r in rows if r['target_missed'] is False))
+#   "
+_CORPUS_TARGET_CAUGHT_LOCK: frozenset[str] = frozenset(
+    {
+        "t03-composition-cycle",
+        "t04-chain-only-head-ungrounded",
+        "t05-selfaudit-overclaim-under-cycle",
+    }
+)
+
+
+def _corpus_target_problems(
+    corpus_rows: list[dict],
+    caught_lock: frozenset[str] = _CORPUS_TARGET_CAUGHT_LOCK,
+) -> list[str]:
+    """Phase 19 (CONF-08, D-19-09): three independent layers over the catalogued-target
+    join, closing 19-VERIFICATION.md's third `missing` item. *caught_lock* defaults to
+    the real module constant but is a parameter so a `--self-test` control can drive
+    this with an alternate lock without mutating global state.
+
+    Vacuity layer. If EVERY corpus row reads `target_missed is True`, the
+    catalogued-target join is not reaching the detector's audit fields at all -- a
+    parser degraded so every target reads as `none`, or a hit function that never
+    matches, would otherwise report the maximum possible false-negative rate and look
+    like the most honest measurement this corpus could produce while measuring nothing.
+    `TARGET JOIN VACUOUS` fires by name rather than silently passing as a clean run.
+
+    Stratum-consistency layer. Stratum A's own definition is "a named `detect_defects`
+    column plausibly has reach" -- a stratum-A row whose `target` is the literal `none`
+    contradicts that definition. B1/B2's definition is "out of `detect_defects`'s
+    reach" -- a non-A row whose `target` names a `detect_defects` column contradicts
+    THAT. Either shape fires `TARGET/STRATUM CONTRADICTION`. A `MISSING` stratum or
+    target (no catalog entry at all) is reported by name as `TARGET FORM` rather than
+    silently skipped or folded into the contradiction check.
+
+    Caught-set lock layer (D-19-09-B). The live set of `target_missed is False`
+    `analysis_id`s must equal *caught_lock* exactly. Divergence in either direction --
+    `gained=` (caught now, not in the lock) or `lost=` (in the lock, not caught now) --
+    fires `TARGET CAUGHT-SET DRIFT`.
+    """
+    problems: list[str] = []
+
+    if not any(r["target_missed"] is False for r in corpus_rows):
+        problems.append(
+            "TARGET JOIN VACUOUS: no corpus item reads target_missed=False — the "
+            "catalogued-target join is not reaching the detector's audit fields"
+        )
+
+    for r in corpus_rows:
+        stratum = r["stratum"]
+        target = r["target"]
+        if stratum == "MISSING" or target == "MISSING":
+            problems.append(
+                f"TARGET FORM [{r['analysis_id']}]: stratum={stratum!r} target={target!r}"
+            )
+            continue
+        if stratum == "A" and target == "none":
+            problems.append(
+                f"TARGET/STRATUM CONTRADICTION [{r['analysis_id']}]: stratum {stratum} "
+                f"with target {target}"
+            )
+        elif stratum != "A" and target != "none":
+            problems.append(
+                f"TARGET/STRATUM CONTRADICTION [{r['analysis_id']}]: stratum {stratum} "
+                f"with target {target}"
+            )
+
+    live_caught = frozenset(
+        r["analysis_id"] for r in corpus_rows if r["target_missed"] is False
+    )
+    if live_caught != caught_lock:
+        gained = sorted(live_caught - caught_lock)
+        lost = sorted(caught_lock - live_caught)
+        problems.append(f"TARGET CAUGHT-SET DRIFT: gained={gained} lost={lost}")
+
     return problems
 
 
@@ -1068,7 +1185,7 @@ def _corpus_perturbation_problems(rows: list[dict], repo_root: Path) -> list[str
 
 # CR-01/BL-01/BL-02 shape (check-conf-gate.py `_LIVE_CALL_SITES`/
 # `_LIVE_CALL_FORMS`/`_LIVE_CALL_SITES_LOCK`, copied verbatim): a source-text
-# census over cmd_check()'s four Phase-19 enforcement call sites, floored by
+# census over cmd_check()'s five Phase-19 enforcement call sites, floored by
 # set equality against a second, independently transcribed roster, so
 # narrowing either table -- or deleting, commenting out, or rewriting a call
 # -- fails `--self-test` by name. DISCLOSED BOUND, same voice as the
@@ -1079,6 +1196,7 @@ def _corpus_perturbation_problems(rows: list[dict], repo_root: Path) -> list[str
 _CORPUS_CALL_SITES: dict[str, int] = {
     "_corpus_roster_problems": 1,
     "_corpus_disposition_problems": 1,
+    "_corpus_target_problems": 1,
     "_corpus_population_problems": 1,
     "_corpus_perturbation_problems": 1,
 }
@@ -1096,6 +1214,9 @@ _CORPUS_CALL_FORMS: dict[str, str] = {
     "_corpus_disposition_problems": (
         "problems += " + "_corpus_disposition_problems(corpus_rows)"
     ),
+    "_corpus_target_problems": (
+        "problems += " + "_corpus_target_problems(corpus_rows)"
+    ),
     "_corpus_population_problems": (
         "problems += " + "_corpus_population_problems(corpus_rows)"
     ),
@@ -1104,13 +1225,14 @@ _CORPUS_CALL_FORMS: dict[str, str] = {
     ),
 }
 
-# BL-02: a SECOND, independently transcribed roster of the same four
+# BL-02: a SECOND, independently transcribed roster of the same five
 # enforcement symbol names -- deliberately NOT derived from
 # _CORPUS_CALL_SITES or _CORPUS_CALL_FORMS by any expression. Narrowing
 # either census table while this stays whole fails `--self-test` by name.
 _CORPUS_CALL_SITES_LOCK: tuple[str, ...] = (
     "_corpus_roster_problems",
     "_corpus_disposition_problems",
+    "_corpus_target_problems",
     "_corpus_population_problems",
     "_corpus_perturbation_problems",
 )
@@ -1848,6 +1970,7 @@ def cmd_check() -> int:
 
     problems += _corpus_roster_problems(catalog_entries, catalog_problems, corpus_rows)
     problems += _corpus_disposition_problems(corpus_rows)
+    problems += _corpus_target_problems(corpus_rows)
     problems += _corpus_population_problems(corpus_rows)
     problems += _corpus_perturbation_problems(rows, REPO_ROOT)
 
@@ -2535,6 +2658,71 @@ def _control_corpus_disposition_nonclean_skipped() -> None:
     assert _corpus_disposition_problems([row]) == []
 
 
+def _control_corpus_disposition_target_missed_covered() -> None:
+    """Phase 19 (CONF-08, D-19-09-A) -- THE control for the whole gap-closure. A
+    synthetic row shaped exactly like t13-grounded-alongside-cyclic-ref
+    (`no_column_fired=False`, an unrelated column fired; `target_missed=True`, the
+    item's own catalogued target was never flagged; `disposition="MISSING"`) must
+    produce a `SILENT PASS` problem naming it and stating that the catalogued target was
+    missed -- proving the exact 19-VERIFICATION.md Truth-3 gap (an item whose catalogued
+    falsehood was silently missed, structurally invisible to CONF-08's zero-silent-passes
+    mechanism because an unrelated column happened to fire on it) is closed."""
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "t13-like.md",
+        "t13-like",
+        stratum="A",
+        source="hand-authored",
+        disposition="MISSING",
+        target="ungrounded_chains:c1",
+        no_column_fired=False,
+        target_missed=True,
+        form_defects=0,
+    )
+    problems = _corpus_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "SILENT PASS [t13-like]" in problems[0], problems
+    assert "catalogued target missed" in problems[0], problems
+
+
+def _control_corpus_disposition_union_not_narrower() -> None:
+    """A row with `no_column_fired=True` and `target_missed=False` and no disposition
+    still produces a problem, proving the union did not silently replace the old
+    `no_column_fired`-alone condition with `target_missed`-alone."""
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="derived:x",
+        disposition="MISSING",
+        no_column_fired=True,
+        target_missed=False,
+        form_defects=0,
+    )
+    problems = _corpus_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "SILENT PASS [a]" in problems[0], problems
+
+
+def _control_corpus_disposition_caught_and_fired_skipped() -> None:
+    """A row with target_missed=False (caught) AND no_column_fired=False (a substantive
+    column fired) and a MISSING disposition produces NO problem -- the floor's scope is
+    still the misses, not every row."""
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="A",
+        source="derived:x",
+        disposition="MISSING",
+        no_column_fired=False,
+        target_missed=False,
+        form_defects=1,
+    )
+    assert _corpus_disposition_problems([row]) == []
+
+
 # ---------------------------------------------------------------------------
 # Phase 19 (CONF-08, D-19-08-B) controls: the Target column grammar, the
 # chain-scoped join, and the two "always missed" shapes.
@@ -2624,6 +2812,174 @@ def _control_corpus_target_missing_entry_is_missed() -> None:
         row = build_corpus_row(artifact, None)
     assert row["target"] == "MISSING", row["target"]
     assert row["target_missed"] is True, row
+
+
+def _control_corpus_target_vacuity_detected() -> None:
+    """Phase 19 (CONF-08, D-19-09): a synthetic corpus where EVERY row reads
+    `target_missed=True` triggers `TARGET JOIN VACUOUS` -- a parser degraded to
+    'everything is none', or a hit function that never matches, would otherwise report
+    the maximum possible false-negative rate while measuring nothing. A corpus with one
+    caught row does not fire it."""
+    all_missed = [
+        _synthetic_row(
+            "adversarial-corpus",
+            "a.md",
+            "a",
+            stratum="B2",
+            source="derived:x",
+            target="none",
+            target_missed=True,
+            no_column_fired=True,
+            form_defects=0,
+        ),
+        _synthetic_row(
+            "adversarial-corpus",
+            "b.md",
+            "b",
+            stratum="B2",
+            source="derived:x",
+            target="none",
+            target_missed=True,
+            no_column_fired=True,
+            form_defects=0,
+        ),
+    ]
+    problems = _corpus_target_problems(all_missed, caught_lock=frozenset())
+    assert any("TARGET JOIN VACUOUS" in p for p in problems), problems
+
+    one_caught = all_missed + [
+        _synthetic_row(
+            "adversarial-corpus",
+            "c.md",
+            "c",
+            stratum="A",
+            source="hand-authored",
+            target="dependency_cycles:c1",
+            target_missed=False,
+            no_column_fired=False,
+            form_defects=0,
+        ),
+    ]
+    problems2 = _corpus_target_problems(one_caught, caught_lock=frozenset({"c"}))
+    assert not any("TARGET JOIN VACUOUS" in p for p in problems2), problems2
+
+
+def _control_corpus_target_stratum_contradiction_detected() -> None:
+    """Stratum A with target `none` contradicts A's own definition (a named
+    `detect_defects` column plausibly has reach); stratum B2 with a target naming a
+    `detect_defects` column contradicts B1/B2's definition (out of `detect_defects`'s
+    reach). The legal combinations (A + a named column, B2 + `none`) do not fire."""
+    bad_a = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="A",
+        source="hand-authored",
+        target="none",
+        target_missed=True,
+        no_column_fired=True,
+        form_defects=0,
+    )
+    bad_b2 = _synthetic_row(
+        "adversarial-corpus",
+        "b.md",
+        "b",
+        stratum="B2",
+        source="derived:x",
+        target="ungrounded_chains:c1",
+        target_missed=False,
+        no_column_fired=False,
+        form_defects=0,
+    )
+    problems = _corpus_target_problems([bad_a, bad_b2], caught_lock=frozenset({"b"}))
+    assert any("TARGET/STRATUM CONTRADICTION [a]" in p for p in problems), problems
+    assert any("TARGET/STRATUM CONTRADICTION [b]" in p for p in problems), problems
+
+    legal_a = _synthetic_row(
+        "adversarial-corpus",
+        "c.md",
+        "c",
+        stratum="A",
+        source="hand-authored",
+        target="dependency_cycles:c1",
+        target_missed=False,
+        no_column_fired=False,
+        form_defects=0,
+    )
+    legal_b2 = _synthetic_row(
+        "adversarial-corpus",
+        "d.md",
+        "d",
+        stratum="B2",
+        source="derived:x",
+        target="none",
+        target_missed=True,
+        no_column_fired=True,
+        form_defects=0,
+    )
+    problems2 = _corpus_target_problems([legal_a, legal_b2], caught_lock=frozenset({"c"}))
+    assert not any("TARGET/STRATUM CONTRADICTION" in p for p in problems2), problems2
+
+
+def _control_corpus_target_caught_set_drift_detected() -> None:
+    """Driving `_corpus_target_problems` with an alternate lock -- passed as a
+    parameter, never by mutating the module constant -- that names one extra stem
+    reports `lost=`; one missing stem reports `gained=`."""
+    caught_row = _synthetic_row(
+        "adversarial-corpus",
+        "c.md",
+        "c",
+        stratum="A",
+        source="hand-authored",
+        target="dependency_cycles:c1",
+        target_missed=False,
+        no_column_fired=False,
+        form_defects=0,
+    )
+    missed_row = _synthetic_row(
+        "adversarial-corpus",
+        "m.md",
+        "m",
+        stratum="B2",
+        source="derived:x",
+        target="none",
+        target_missed=True,
+        no_column_fired=True,
+        form_defects=0,
+    )
+    rows = [caught_row, missed_row]
+
+    extra_lock = frozenset({"c", "extra-stem"})
+    problems_extra = _corpus_target_problems(rows, caught_lock=extra_lock)
+    assert any(
+        "TARGET CAUGHT-SET DRIFT" in p and "lost=['extra-stem']" in p
+        for p in problems_extra
+    ), problems_extra
+
+    missing_lock: frozenset[str] = frozenset()
+    problems_missing = _corpus_target_problems(rows, caught_lock=missing_lock)
+    assert any(
+        "TARGET CAUGHT-SET DRIFT" in p and "gained=['c']" in p
+        for p in problems_missing
+    ), problems_missing
+
+
+def _control_corpus_target_caught_lock_values_locked() -> None:
+    """D-19-09-B: an inline SECOND transcription of the pinned caught `analysis_id`s,
+    asserted equal to `_CORPUS_TARGET_CAUGHT_LOCK` -- the same shape
+    `corpus-population-floor-values-locked` already uses, so narrowing the constant is a
+    two-place edit."""
+    expected = frozenset(
+        {
+            "t03-composition-cycle",
+            "t04-chain-only-head-ungrounded",
+            "t05-selfaudit-overclaim-under-cycle",
+        }
+    )
+    assert _CORPUS_TARGET_CAUGHT_LOCK == expected, (
+        "CORPUS TARGET CAUGHT-SET LOCK VALUE MISMATCH: "
+        f"{_CORPUS_TARGET_CAUGHT_LOCK} != {expected}"
+    )
 
 
 def _control_corpus_headline_keys_on_target_missed() -> None:
@@ -3032,6 +3388,18 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ),
     ("corpus-disposition-valid-passes", _control_corpus_disposition_valid_passes),
     ("corpus-disposition-nonclean-skipped", _control_corpus_disposition_nonclean_skipped),
+    (
+        "corpus-disposition-target-missed-covered",
+        _control_corpus_disposition_target_missed_covered,
+    ),
+    (
+        "corpus-disposition-union-not-narrower",
+        _control_corpus_disposition_union_not_narrower,
+    ),
+    (
+        "corpus-disposition-caught-and-fired-skipped",
+        _control_corpus_disposition_caught_and_fired_skipped,
+    ),
     ("corpus-target-parse-vocabulary", _control_corpus_target_parse_vocabulary),
     ("corpus-target-hits-chain-scoped", _control_corpus_target_hits_chain_scoped),
     (
@@ -3042,6 +3410,19 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     (
         "corpus-target-missing-entry-is-missed",
         _control_corpus_target_missing_entry_is_missed,
+    ),
+    ("corpus-target-vacuity-detected", _control_corpus_target_vacuity_detected),
+    (
+        "corpus-target-stratum-contradiction-detected",
+        _control_corpus_target_stratum_contradiction_detected,
+    ),
+    (
+        "corpus-target-caught-set-drift-detected",
+        _control_corpus_target_caught_set_drift_detected,
+    ),
+    (
+        "corpus-target-caught-lock-values-locked",
+        _control_corpus_target_caught_lock_values_locked,
     ),
     (
         "corpus-headline-keys-on-target-missed",
@@ -3123,11 +3504,18 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-disposition-form-bad-detected",
     "corpus-disposition-valid-passes",
     "corpus-disposition-nonclean-skipped",
+    "corpus-disposition-target-missed-covered",
+    "corpus-disposition-union-not-narrower",
+    "corpus-disposition-caught-and-fired-skipped",
     "corpus-target-parse-vocabulary",
     "corpus-target-hits-chain-scoped",
     "corpus-target-hits-selfaudit-criterion",
     "corpus-target-none-is-missed",
     "corpus-target-missing-entry-is-missed",
+    "corpus-target-vacuity-detected",
+    "corpus-target-stratum-contradiction-detected",
+    "corpus-target-caught-set-drift-detected",
+    "corpus-target-caught-lock-values-locked",
     "corpus-headline-keys-on-target-missed",
     "corpus-population-per-item-zero-detected",
     "corpus-population-per-item-unreadable-detected",
