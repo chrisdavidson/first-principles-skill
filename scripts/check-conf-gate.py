@@ -838,6 +838,71 @@ def _control_d04_floor_passes_at_floor() -> None:
     assert _claim_floor_problems([row]) == []
 
 
+# BL-03 (18-VERIFICATION.md blocking gap): the three population-floor
+# controls below use INLINE literals at every fixture and assertion site —
+# never a value read from `_POPULATION_FLOORS` itself. That is the CR-02(a)
+# lesson this file already records: a fixture derived from the constant it
+# protects is invariant to that constant's value and cannot fail when the
+# constant is loosened. Do not "simplify" these back into constant-derived
+# fixtures.
+
+
+def _control_population_floor_passes_at_floor() -> None:
+    shared_row = _rc._synthetic_row(
+        "shared-examples", "s.md", "s", verdict_cells=77, heading_chain_blocks=31
+    )
+    twin_row = _rc._synthetic_row(
+        "generated-twin", "t.md", "t", verdict_cells=77, heading_chain_blocks=31
+    )
+    assert _population_floor_problems([shared_row, twin_row]) == []
+
+
+def _control_population_floor_fires() -> None:
+    shared_row = _rc._synthetic_row(
+        "shared-examples", "s.md", "s", verdict_cells=76, heading_chain_blocks=30
+    )
+    twin_row = _rc._synthetic_row(
+        "generated-twin", "t.md", "t", verdict_cells=76, heading_chain_blocks=30
+    )
+    problems = _population_floor_problems([shared_row, twin_row])
+    assert len(problems) == 4, problems
+    assert any("[shared-examples] verdict_cells" in p for p in problems), problems
+    assert any("[shared-examples] heading_chain_blocks" in p for p in problems), problems
+    assert any("[generated-twin] verdict_cells" in p for p in problems), problems
+    assert any("[generated-twin] heading_chain_blocks" in p for p in problems), problems
+
+
+def _control_population_floor_values_locked() -> None:
+    """BL-03: `_POPULATION_FLOORS` must equal an INLINE dict literal written
+    at this control site, reporting the differing keys by name — the
+    `ratchet-value-locked` shape, making moving a floor a two-place
+    reviewable edit.
+    """
+    expected = {"verdict_cells": 77, "heading_chain_blocks": 31}
+    assert _POPULATION_FLOORS == expected, (
+        f"POPULATION FLOOR VALUE MISMATCH: {_POPULATION_FLOORS} != {expected}"
+    )
+
+
+def _control_target_heading_malformed_counted_when_unreadable() -> None:
+    """WR-07 (18-REVIEW.md): `_targets_problems`' `heading_malformed_blocks`
+    sum is scoped over ALL rows, readable or not — the heading sweep runs
+    unconditionally in `build_row`. This row shape (unreadable AND carrying
+    a nonzero heading_malformed_blocks) is the one thing that discriminates
+    `surf_rows` from `readable` at that sum; without it, narrowing the sum
+    to readable rows leaves both legs green (18-REVIEW.md M12).
+    """
+    bad = _rc._synthetic_row(
+        "shared-examples",
+        "u.md",
+        "u",
+        heading_malformed_blocks=1,
+        section_resolution="SectionResolutionError: boom",
+    )
+    problems = _targets_problems([bad])
+    assert any("heading_malformed_blocks" in p for p in problems), problems
+
+
 # CR-02(c)/(d) (18-VERIFICATION.md blocking gap): the D-03 predicate's
 # coverage was narrowed on two independent axes. (c) Only one of the three
 # _PRESCRIBED_LEAD_INS literals was ever exercised by a control, so
@@ -1154,6 +1219,13 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d07-equal-passes", _control_d07_equal_passes),
     ("d04-floor-fires", _control_d04_floor_fires),
     ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
+    ("population-floor-passes-at-floor", _control_population_floor_passes_at_floor),
+    ("population-floor-fires", _control_population_floor_fires),
+    ("population-floor-values-locked", _control_population_floor_values_locked),
+    (
+        "target-heading-malformed-counted-when-unreadable",
+        _control_target_heading_malformed_counted_when_unreadable,
+    ),
     ("claim-floor-values-locked", _control_claim_floor_values_locked),
     ("d03-leadin-set-locked", _control_d03_leadin_set_locked),
     *_D03_LEADIN_FIRES_CONTROLS,
@@ -1196,6 +1268,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d07-equal-passes",
     "d04-floor-fires",
     "d04-floor-passes-at-floor",
+    "population-floor-passes-at-floor",
+    "population-floor-fires",
+    "population-floor-values-locked",
+    "target-heading-malformed-counted-when-unreadable",
     "claim-floor-values-locked",
     "d03-leadin-set-locked",
     "d03-fires-on-leadin-recommended-approach",
