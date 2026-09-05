@@ -16,11 +16,11 @@
     "conclusion_claims": {
       "shared-examples": {
         "total": 77,
-        "untraced": 36
+        "untraced": 15
       },
       "generated-twin": {
         "total": 77,
-        "untraced": 36
+        "untraced": 15
       },
       "contract-surface": {
         "total": 3,
@@ -30,11 +30,11 @@
     "untraced_breakdown": {
       "shared-examples": {
         "marked": 2,
-        "silent": 34
+        "silent": 13
       },
       "generated-twin": {
         "marked": 2,
-        "silent": 34
+        "silent": 13
       },
       "contract-surface": {
         "marked": 0,
@@ -44,11 +44,11 @@
     "verdict_cells": {
       "shared-examples": {
         "total": 77,
-        "nonconforming": 52
+        "nonconforming": 31
       },
       "generated-twin": {
         "total": 77,
-        "nonconforming": 52
+        "nonconforming": 31
       },
       "contract-surface": {
         "total": 1,
@@ -58,11 +58,11 @@
     "section4_chain_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 13
+        "malformed": 4
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 13
+        "malformed": 4
       },
       "contract-surface": {
         "total": 3,
@@ -72,11 +72,11 @@
     "heading_swept_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 13
+        "malformed": 4
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 13
+        "malformed": 4
       },
       "contract-surface": {
         "total": 1,
@@ -219,17 +219,17 @@
       "relpath": "shared/examples/personal-general-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "personal-general-2",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -243,7 +243,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -281,17 +281,17 @@
       "relpath": "shared/examples/product-business-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "product-business-2",
       "conclusion_claims": 4,
-      "untraced_claims": 4,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 7,
-      "nonconforming_verdict_cells": 7,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -305,7 +305,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 4
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -436,17 +436,17 @@
       "relpath": "shared/examples/software-systems-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "software-systems-2",
       "conclusion_claims": 10,
-      "untraced_claims": 10,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -460,7 +460,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 10
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -653,17 +653,17 @@
       "relpath": "first-principles/agents/references/examples/personal-general-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "personal-general-2",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 8,
-      "nonconforming_verdict_cells": 8,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -677,7 +677,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
@@ -715,17 +715,17 @@
       "relpath": "first-principles/agents/references/examples/product-business-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "product-business-2",
       "conclusion_claims": 4,
-      "untraced_claims": 4,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 7,
-      "nonconforming_verdict_cells": 7,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -739,7 +739,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 4
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
@@ -870,17 +870,17 @@
       "relpath": "first-principles/agents/references/examples/software-systems-2.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "software-systems-2",
       "conclusion_claims": 10,
-      "untraced_claims": 10,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -894,7 +894,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 10
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
