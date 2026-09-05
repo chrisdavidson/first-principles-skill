@@ -184,8 +184,15 @@ finding), matching PROV-GUARD's and REG-GUARD's shape rather than HARN-01/02/03'
 
 ### Pre-commit gates
 
-One gate fires on `git commit` (whichever hook mechanism is active): the **sync-drift gate** —
-blocks if `shared/` and the generated tree have diverged.
+Two gates fire on `git commit` (whichever hook mechanism is active):
+
+1. The **sync-drift gate** — blocks if `shared/` and the generated tree have diverged.
+2. The **conformance-baseline drift gate** — `scripts/report-conformance.py --check` — blocks if
+   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run.
+   This check is deliberately NOT registered in `scripts/check-firewall-battery.sh` (the battery
+   stays at 24) and adds no CI job (REG-GUARD's CI-job axis is unaffected) — it fails on
+   staleness of the committed baseline only, never on a conformance count being too high (D-06,
+   `.planning/phases/17-conformance-baseline/17-CONTEXT.md`).
 
 The agent body's line count (`first-principles/agents/first-principles.md`) is still reported by
 `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate

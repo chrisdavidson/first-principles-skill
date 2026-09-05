@@ -145,10 +145,15 @@ both mechanisms simultaneously.
 
 ### What the pre-commit hook gates
 
-Both hook paths run one gate:
+Both hook paths run two gates:
 
 1. **Sync-drift gate** — always runs; invokes `scripts/sync-content.py --check`.
    Blocks the commit if `shared/` and the generated tree have diverged.
+2. **Conformance-baseline drift gate** — always runs, after gate 1; invokes
+   `scripts/report-conformance.py --check`. Blocks the commit if
+   `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh
+   run. It fails on staleness of the committed baseline only, never on a conformance count
+   being too high, and is deliberately not registered in the offline battery or in CI (D-06).
 
 A body-budget gate used to run alongside this one, blocking a commit that grew the
 generated agent body past 644 lines. It was retired under TEARDOWN-01
