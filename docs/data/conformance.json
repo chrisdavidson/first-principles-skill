@@ -16,11 +16,11 @@
     "conclusion_claims": {
       "shared-examples": {
         "total": 77,
-        "untraced": 60
+        "untraced": 53
       },
       "generated-twin": {
         "total": 77,
-        "untraced": 60
+        "untraced": 53
       },
       "contract-surface": {
         "total": 3,
@@ -30,11 +30,11 @@
     "untraced_breakdown": {
       "shared-examples": {
         "marked": 2,
-        "silent": 58
+        "silent": 51
       },
       "generated-twin": {
         "marked": 2,
-        "silent": 58
+        "silent": 51
       },
       "contract-surface": {
         "marked": 0,
@@ -44,11 +44,11 @@
     "verdict_cells": {
       "shared-examples": {
         "total": 77,
-        "nonconforming": 69
+        "nonconforming": 64
       },
       "generated-twin": {
         "total": 77,
-        "nonconforming": 69
+        "nonconforming": 64
       },
       "contract-surface": {
         "total": 1,
@@ -253,11 +253,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "personal-general",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 5,
-      "nonconforming_verdict_cells": 5,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -274,7 +274,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -687,11 +687,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "personal-general",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 5,
-      "nonconforming_verdict_cells": 5,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -708,7 +708,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
