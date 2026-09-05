@@ -39,13 +39,13 @@ against?
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| The Slack integration is in high customer demand | untested belief (economic-hinge) | The demand claim is load-bearing for the Slack-side value chain; if the demand signal collapses on inspection, the Slack candidate has no remaining value case. Verify by sourcing it to instrumentation (in-product feature requests, churn-survey reason codes), not aggregated sales anecdote. | Challenge | unverified — flagged. The "high demand" claim is sourced to sales-call notes, an inbound channel with strong selection bias (the prospects loud enough to ask are the prospects loud enough to reach sales). No churn-survey reason code or in-product request signal has been pulled to confirm. |
-| The reporting rewrite is required to close the named enterprise contract expansion | current constraint (external-actor) | The constraint binds because a specific customer's procurement decision is contingent on it. Name the external party, the specific decision (sign the expansion order form by quarter-end), and the realistic timeline. Expiry is a negotiation move, not a measurement. | Accept | Verified against the signed letter-of-intent from the enterprise account (GT-3); the expansion ARR is contingent on the rewrite shipping within the quarter and is documented in the LOI's exit clause. |
-| Both candidates fit inside one engineering quarter | untested belief (methodology) | The cost estimates are produced by the engineering manager's top-down judgement, not by decomposition. Verification is constructing an alternative bottom-up estimate (ticket-level breakdown × historical per-ticket cycle time) and comparing. | Challenge | unverified — flagged. Only top-down estimates exist. The Slack integration's "one quarter" estimate has not been decomposed; the reporting rewrite's estimate has a partial decomposition through the schema-migration step but no estimate beyond it. |
-| The team is the B2B-integrations-first kind of company, so integrations come first when in doubt | convention (default-response) | Challenge by asking whether the default response addresses the highest-frequency observed signal versus the cognitively-available response. If the observed signal is contract-expansion risk on a named account, the integrations-first default is reaching past the actual signal. | Discard | The integrations-first heuristic is a cultural default with no named ground truth tying it to current quarter's revenue or retention outcomes. Discard as standalone justification; revisit if a Slack-side GT later emerges. |
-| Competitors with Slack integrations are winning deals against us because of the integration | convention (analogy-as-evidence) | Discard as standalone justification. An analogy may be revived only if re-expressed as a named ground truth about the analogue — here, a measured win/loss-reason analysis where Slack-integration absence is the named loss driver. | Discard | No win/loss analysis exists that isolates Slack-integration presence as a deal-deciding factor. The claim is sales-team conjecture about competitor advantage, not measured evidence. The methodology forbids analogy as direct evidence (cross-ref `validation-rubric.md` Criterion 4). |
-| Capacity is genuinely binary this quarter (one candidate, not both) | current constraint (quantifiable-cost) | Quantify before recording expiry. Confirm via the engineering manager's actual headcount × historical ship velocity (GT-4) that the budget does not stretch to a partial scope of the other candidate. Expiry condition should reference the measured value. | Accept | Verified: GT-4 establishes 3.2 engineer-quarters of build capacity for the upcoming quarter; either candidate's top-down estimate consumes ≥ 3 of those quarters. A partial scope of the second candidate would not be shippable as a customer-facing increment. |
-| Post-ship retention/expansion effects materialize on a timeline that lets us learn before the next quarter's planning | untested belief | Verify by stating the falsification trigger and the data source up front. If the effect would not be observable within one quarter, the recommendation must be downgraded to a pilot whose stated purpose is to measure the effect. | Challenge | unverified — flagged. The Slack-side retention hypothesis has no pre-specified falsification trigger; the reporting-rewrite-side expansion has a contractual trigger (signed expansion order or not) that is observable within the quarter. |
+| The Slack integration is in high customer demand | untested belief (economic-hinge) | The demand claim is load-bearing for the Slack-side value chain; if the demand signal collapses on inspection, the Slack candidate has no remaining value case. Verify by sourcing it to instrumentation (in-product feature requests, churn-survey reason codes), not aggregated sales anecdote. | Challenge — sourced to a selection-biased sales channel; no churn-survey or in-product signal confirms it | unverified — flagged. The "high demand" claim is sourced to sales-call notes, an inbound channel with strong selection bias (the prospects loud enough to ask are the prospects loud enough to reach sales). No churn-survey reason code or in-product request signal has been pulled to confirm. |
+| The reporting rewrite is required to close the named enterprise contract expansion | current constraint (external-actor) | The constraint binds because a specific customer's procurement decision is contingent on it. Name the external party, the specific decision (sign the expansion order form by quarter-end), and the realistic timeline. Expiry is a negotiation move, not a measurement. | Accept — verified against the signed LOI's exit clause (GT-3) | Verified against the signed letter-of-intent from the enterprise account (GT-3); the expansion ARR is contingent on the rewrite shipping within the quarter and is documented in the LOI's exit clause. |
+| Both candidates fit inside one engineering quarter | untested belief (methodology) | The cost estimates are produced by the engineering manager's top-down judgement, not by decomposition. Verification is constructing an alternative bottom-up estimate (ticket-level breakdown × historical per-ticket cycle time) and comparing. | Challenge — only top-down estimates exist; neither candidate has a full bottom-up decomposition | unverified — flagged. Only top-down estimates exist. The Slack integration's "one quarter" estimate has not been decomposed; the reporting rewrite's estimate has a partial decomposition through the schema-migration step but no estimate beyond it. |
+| The team is the B2B-integrations-first kind of company, so integrations come first when in doubt | convention (default-response) | Challenge by asking whether the default response addresses the highest-frequency observed signal versus the cognitively-available response. If the observed signal is contract-expansion risk on a named account, the integrations-first default is reaching past the actual signal. | Discard — a cultural default with no named ground truth tying it to this quarter's outcomes | The integrations-first heuristic is a cultural default with no named ground truth tying it to current quarter's revenue or retention outcomes. Discard as standalone justification; revisit if a Slack-side GT later emerges. |
+| Competitors with Slack integrations are winning deals against us because of the integration | convention (analogy-as-evidence) | Discard as standalone justification. An analogy may be revived only if re-expressed as a named ground truth about the analogue — here, a measured win/loss-reason analysis where Slack-integration absence is the named loss driver. | Discard — no win/loss analysis isolates the integration as a deal-deciding factor | No win/loss analysis exists that isolates Slack-integration presence as a deal-deciding factor. The claim is sales-team conjecture about competitor advantage, not measured evidence. The methodology forbids analogy as direct evidence (cross-ref `validation-rubric.md` Criterion 4). |
+| Capacity is genuinely binary this quarter (one candidate, not both) | current constraint (quantifiable-cost) | Quantify before recording expiry. Confirm via the engineering manager's actual headcount × historical ship velocity (GT-4) that the budget does not stretch to a partial scope of the other candidate. Expiry condition should reference the measured value. | Accept — verified against GT-4's 3.2 engineer-quarter capacity figure | Verified: GT-4 establishes 3.2 engineer-quarters of build capacity for the upcoming quarter; either candidate's top-down estimate consumes ≥ 3 of those quarters. A partial scope of the second candidate would not be shippable as a customer-facing increment. |
+| Post-ship retention/expansion effects materialize on a timeline that lets us learn before the next quarter's planning | untested belief | Verify by stating the falsification trigger and the data source up front. If the effect would not be observable within one quarter, the recommendation must be downgraded to a pilot whose stated purpose is to measure the effect. | Challenge — the Slack side has no pre-specified falsification trigger, unlike the contractually-observable reporting side | unverified — flagged. The Slack-side retention hypothesis has no pre-specified falsification trigger; the reporting-rewrite-side expansion has a contractual trigger (signed expansion order or not) that is observable within the quarter. |
 
 ---
 
@@ -88,17 +88,9 @@ against?
 
 ### Conclusion C1: The reporting-rewrite candidate has a verified expansion-revenue case that the Slack candidate does not
 
-GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3
-(signed LOI commits $180K/year contingent on the rewrite shipping this quarter)
-→ The reporting-rewrite value chain rests on a named, signed, quantified
-customer commitment with a contractually-observable falsification trigger
-(expansion order signed or not by quarter-end); the Slack-side value chain
-rests on GT-1's inbound request volume plus GT-5?'s unmeasured retention
-hypothesis, neither of which is contractually anchored
-→ At equivalent engineering cost (GT-4), the reporting rewrite returns a
-defined, verifiable $180K expansion ARR plus reduced renewal risk on two
-other named top-ten accounts; the Slack integration returns a hypothesized
-retention and acquisition uplift with no instrumented anchor
+GT-2 (three top-ten accounts cite reporting limitations as renewal risk) + GT-3 (signed LOI commits $180K/year contingent on the rewrite shipping this quarter)
+→ The reporting-rewrite value chain rests on a named, signed, quantified customer commitment with a contractually-observable falsification trigger (expansion order signed or not by quarter-end); the Slack-side value chain rests on GT-1's inbound request volume plus GT-5?'s unmeasured retention hypothesis, neither of which is contractually anchored
+→ At equivalent engineering cost (GT-4), the reporting rewrite returns a defined, verifiable $180K expansion ARR plus reduced renewal risk on two other named top-ten accounts; the Slack integration returns a hypothesized retention and acquisition uplift with no instrumented anchor
 
 **Confidence:** MEDIUM. The downgrade is driven by GT-5? (Slack-side retention
 and acquisition magnitudes are unmeasured). Raising the Slack-side case to a
@@ -111,17 +103,9 @@ exists today.
 
 ### Conclusion C2: The opportunity cost of not building the Slack integration this quarter is bounded and recoverable; the opportunity cost of not shipping the reporting rewrite is not
 
-GT-1 (Slack requests are inbound but no churn signal attributes departure to
-the gap) + GT-3 (the reporting LOI's exit clause permits non-renewal at the
-contract anniversary if the rewrite slips)
-→ A one-quarter delay to the Slack integration costs the team a quarter of
-hypothesized retention/acquisition uplift on an unmeasured base; a one-quarter
-slip on the reporting rewrite triggers a contractual non-renewal right on a
-$180K+ account and signals to the two adjacent at-risk accounts that the
-reporting gap remains unaddressed
-→ The two opportunity-cost profiles are asymmetric: the Slack delay is
-revisitable next quarter without contractually irreversible consequences; the
-reporting slip permits a contractually-irreversible customer loss
+GT-1 (Slack requests are inbound but no churn signal attributes departure to the gap) + GT-3 (the reporting LOI's exit clause permits non-renewal at the contract anniversary if the rewrite slips)
+→ A one-quarter delay to the Slack integration costs the team a quarter of hypothesized retention/acquisition uplift on an unmeasured base; a one-quarter slip on the reporting rewrite triggers a contractual non-renewal right on a $180K+ account and signals to the two adjacent at-risk accounts that the reporting gap remains unaddressed
+→ The two opportunity-cost profiles are asymmetric: the Slack delay is revisitable next quarter without contractually irreversible consequences; the reporting slip permits a contractually-irreversible customer loss
 
 **Confidence:** HIGH. Both inputs are verified ground truths; the asymmetry
 follows from contract language (GT-3) and the absence of a counterpart
@@ -131,17 +115,9 @@ contractual trigger on the Slack side.
 
 ### Conclusion C3: The recommendation flips only if the Slack-side evidence picture changes materially before planning lock
 
-GT-5? (Slack-side retention and acquisition effects unmeasured) + GT-4
-(capacity is binary this quarter — no partial-scope path)
-→ The decision is contingent on the Slack-side evidence story remaining
-anecdotal; if before planning lock the churn-survey instrument is re-coded
-and surfaces a Slack-attributed reason code on a material fraction of
-exits, or if a win/loss audit isolates Slack-integration absence as a
-deal-deciding factor on multiple lost deals, the Slack candidate gains the
-kind of contractual-equivalent evidence the reporting candidate has
-→ Until that evidence appears, the reporting rewrite dominates on
-verified-value-per-engineer-quarter; if it appears, the analysis must be
-re-run with the new GT promoted from GT-5? to a verified GT
+GT-5? (Slack-side retention and acquisition effects unmeasured) + GT-4 (capacity is binary this quarter — no partial-scope path)
+→ The decision is contingent on the Slack-side evidence story remaining anecdotal; if before planning lock the churn-survey instrument is re-coded and surfaces a Slack-attributed reason code on a material fraction of exits, or if a win/loss audit isolates Slack-integration absence as a deal-deciding factor on multiple lost deals, the Slack candidate gains the kind of contractual-equivalent evidence the reporting candidate has
+→ Until that evidence appears, the reporting rewrite dominates on verified-value-per-engineer-quarter; if it appears, the analysis must be re-run with the new GT promoted from GT-5? to a verified GT
 
 **Confidence:** MEDIUM. The downgrade is again driven by GT-5?; the chain's
 own conclusion is that the recommendation is conditional on GT-5?'s
@@ -191,7 +167,7 @@ evidence.
 
 ## 6. Conclusion
 
-**Recommended approach:** Build the reporting rewrite this quarter and
+**Recommended approach:** (chains C1 and C3) Build the reporting rewrite this quarter and
 defer the Slack integration to the next planning cycle. Before planning
 lock for the next quarter, instrument the churn-survey reason codes and
 run a win/loss audit specifically isolating Slack-integration presence, so
@@ -201,7 +177,7 @@ Slack-attributed signal, the next-quarter decision is reconsidered with
 that GT in hand; if it does not, the deferral becomes permanent rather
 than rolling.
 
-**Key insight:** A high inbound-request count and a signed contract
+**Key insight:** (chain C1) A high inbound-request count and a signed contract
 contingency are not the same kind of evidence and cannot be compared on
 volume. One is a stated-preference signal with strong selection bias;
 the other is a revealed-behavior commitment with a contractual
@@ -216,7 +192,7 @@ company" is a `convention (default-response)` that reaches past the
 highest-frequency observed signal (the contract-expansion risk on a
 named account) toward the cognitively-available answer.
 
-**Trade-offs acknowledged:** The deferral incurs real cost: prospects
+**Trade-offs acknowledged:** (chains C1 and C3) The deferral incurs real cost: prospects
 asking sales for Slack continue to hear "on the roadmap"; some fraction
 of the 41 requesting accounts may quietly disengage during the deferral
 window; a competitor closing a deal during the quarter on integration
@@ -226,7 +202,7 @@ instrumentation work named above; if that work slips, the Slack
 candidate stays in the same evidence position next planning cycle and
 the deferral compounds.
 
-**Confidence:** MEDIUM. The downgrade is driven by GT-5? (Slack-side
+**Confidence:** (chains C1 and C3) MEDIUM. The downgrade is driven by GT-5? (Slack-side
 retention and acquisition magnitudes are unmeasured) and by the
 challenged methodology assumption on cost estimation (top-down estimates
 not bottom-up-validated for either candidate). Raising to HIGH requires

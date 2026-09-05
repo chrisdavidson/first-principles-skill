@@ -13,11 +13,11 @@ This file is a measurement, not a contract: no figure below defines what the cod
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
 | Files unreadable by `_slice_sections` | 0 of 14 | 0 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 77 (29 untraced) | 77 (29 untraced) | 3 (3 untraced) |
-| §6 untraced claims (marked / silent) | 29 untraced (2 marked, 27 silent) | 29 untraced (2 marked, 27 silent) | 3 untraced (0 marked, 3 silent) |
-| §2 verdict cells (non-conforming) | 77 (44 non-conforming) | 77 (44 non-conforming) | 1 (1 non-conforming) |
-| §4 `chain_blocks` (malformed) | 31 (10 malformed) | 31 (10 malformed) | 3 (1 malformed) |
-| `### Conclusion` heading-swept blocks (malformed) | 31 (10 malformed) | 31 (10 malformed) | 1 (0 malformed) |
+| §6 conclusion claims (untraced) | 77 (25 untraced) | 77 (25 untraced) | 3 (3 untraced) |
+| §6 untraced claims (marked / silent) | 25 untraced (2 marked, 23 silent) | 25 untraced (2 marked, 23 silent) | 3 untraced (0 marked, 3 silent) |
+| §2 verdict cells (non-conforming) | 77 (37 non-conforming) | 77 (37 non-conforming) | 1 (1 non-conforming) |
+| §4 `chain_blocks` (malformed) | 31 (7 malformed) | 31 (7 malformed) | 3 (1 malformed) |
+| `### Conclusion` heading-swept blocks (malformed) | 31 (7 malformed) | 31 (7 malformed) | 1 (0 malformed) |
 | Source-vs-twin agreement (D-04) | 14 of 14 pairs agree | | |
 
 ## Two chain-block censuses (D-05)
@@ -50,7 +50,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/product-business-2.md | OK | 3 | 3 | 0 | 4 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/product-business-2.md | OK | 3 | 0 | 0 | 0 | product-business-2 | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/product-business.md | OK | 3 | 0 | 0 | 3 | product-business | 3 | 3 | 1 | 7 | 7 | 1 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -69,7 +69,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 0 | 0 | 0 | personal-general-2 | 7 | 0 | 0 | 8 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/personal-general.md | OK | 2 | 0 | 0 | 0 | personal-general | 7 | 0 | 0 | 5 | 0 | 0 | 2 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/product-business-2.md | OK | 3 | 3 | 0 | 4 | product-business-2 | 4 | 4 | 1 | 7 | 7 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/product-business-2.md | OK | 3 | 0 | 0 | 0 | product-business-2 | 4 | 0 | 0 | 7 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/product-business.md | OK | 3 | 0 | 0 | 3 | product-business | 3 | 3 | 1 | 7 | 7 | 1 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
