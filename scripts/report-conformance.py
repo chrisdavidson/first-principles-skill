@@ -612,6 +612,402 @@ def _corpus_population_problems(corpus_rows: list[dict]) -> list[str]:
     return problems
 
 
+# ---------------------------------------------------------------------------
+# Phase 19 (CONF-07/CONF-08, D-03): the per-item in-memory perturbation
+# floor -- this phase's anti-vacuity backbone, the one arm a tempdir/
+# synthetic self-test structurally cannot provide. Reuses check-conf-gate.py
+# `_run_d08_arm_on`'s shape (read baseline, mutate one occurrence, re-
+# measure, assert the specific field moved by the expected amount, never
+# exit) generalized from ONE hardcoded (surface, id) target to EVERY corpus
+# row. CONF-GATE's exact-string-count-== 1 "site is unique" test does not
+# scale here: a corpus item's own inline citations legitimately repeat
+# ("(chain C2)" 2-3 times in one item is normal prose, not a defect), so
+# string-literal uniqueness cannot be the "site found" signal the way it is
+# for CONF-GATE's one long, naturally-unique needle. Sites are instead
+# located by ABSOLUTE POSITION: the structural locator returns a
+# (start, end) character span inside the document, computed from the
+# frozen detector's own section-slicing and cell/chain/citation vocabulary,
+# and the mutation is a precise slice replacement at that span -- there is
+# no string-count ambiguity to lose, because the span IS the site.
+# ---------------------------------------------------------------------------
+
+_HOP_ARROW: str = "→"  # U+2192 RIGHTWARDS ARROW
+
+# The inline section-6 citation form every corpus item that carries one
+# uses: "(chain C2)" or "(chains C1 and C2)" (also accepting a comma-joined
+# form for robustness). Matched case-insensitively, matching _cites_chain's
+# own case-folded loose-match half.
+_INLINE_CHAIN_CITE_RE = re.compile(
+    r"\(chains?\s+C\d+(?:\s*(?:,|and)\s*C\d+)*\)", re.IGNORECASE
+)
+
+
+def _corpus_section_offsets(
+    text: str, section2: str, section4: str, section6: str
+) -> tuple[int, int, int] | None:
+    """Absolute character offsets of sections 2, 4 and 6 within *text*,
+    located in DOCUMENT ORDER -- each search starts immediately after the
+    previous section's own start, so a byte-identical section body
+    occurring twice (never observed in this corpus, guarded against
+    anyway) resolves to its real in-order position rather than an earlier
+    false match. Returns None if any section cannot be located -- this
+    should never happen for text `_slice_sections` itself just sliced
+    *text* from, but the caller treats a None here as a not-found
+    mutation site rather than raising.
+    """
+    sec2 = text.find(section2)
+    if sec2 == -1:
+        return None
+    sec4 = text.find(section4, sec2 + len(section2))
+    if sec4 == -1:
+        return None
+    sec6 = text.find(section6, sec4 + len(section4))
+    if sec6 == -1:
+        return None
+    return sec2, sec4, sec6
+
+
+def _corpus_verdict_mutation_site(
+    text: str, section2: str, sec2_start: int
+) -> tuple[int, int] | None:
+    """(a) verdict-cell separator: the absolute [start, end) span of the
+    U+2014 EM DASH inside the first `_verdict_cells` entry `_verdict_
+    conforms` accepts. Cells are tried in document order; a cell whose own
+    text cannot be relocated inside section2 (a whitespace-normalization
+    edge case) is skipped in favour of the next one rather than aborting
+    the whole search -- CONF-07's own precondition guarantees every corpus
+    item carries at least one conforming cell, so exhausting the list
+    without a hit is treated as a genuine "not found" by the caller.
+    """
+    search_from = 0
+    for cell in _verdict_cells(section2):
+        local = section2.find(cell, search_from)
+        if local == -1:
+            continue
+        search_from = local + len(cell)
+        if not _verdict_conforms(cell):
+            continue
+        dash_local = cell.find("—")
+        if dash_local == -1:
+            continue
+        abs_start = sec2_start + local + dash_local
+        return abs_start, abs_start + 1
+    return None
+
+
+def _corpus_hop_mutation_site(
+    text: str, section4: str, sec4_start: int
+) -> tuple[int, int] | None:
+    """(b) chain-hop re-wrap: the absolute [start, end) span of the leading
+    U+2192 on the first chain-block line that begins with it, scanning
+    `_chain_blocks(section4)` in document order. Genuinely absent for a
+    single-line chain whose two arrows sit on the SAME physical line as the
+    GT head (`GT-1 -> intermediate -> conclusion`, no separate continuation
+    line) -- five of this corpus's thirteen items use exactly that shape.
+    The caller treats a (b) absence as an EXPECTED CONDITION, never a
+    reported problem on its own (see `_corpus_perturbation_problems`).
+    """
+    for block in _chain_blocks(section4):
+        block_local = section4.find(block)
+        if block_local == -1:
+            continue
+        cursor = block_local
+        for line in block.splitlines(keepends=True):
+            if line.strip().startswith(_HOP_ARROW):
+                arrow_local = cursor + line.index(_HOP_ARROW)
+                abs_start = sec4_start + arrow_local
+                return abs_start, abs_start + 1
+            cursor += len(line)
+    return None
+
+
+def _corpus_citation_mutation_site(
+    section6: str, sec6_start: int, chain_ids: list[str]
+) -> tuple[int, int] | None:
+    """(c) citation removal: the absolute [start, end) span of the first
+    section-6 citation -- an inline `(chain Cn)`/`(chains Cn and Cm)`
+    parenthetical, tried first, or a structural closure-ledger row's
+    arrow-to-chain-id tail, tried as a fallback. Every item in this corpus
+    carries an inline citation (verified live, 19-06-SUMMARY.md); the
+    ledger fallback exists for a future item that uses the ledger form
+    exclusively -- none does today (0 structural ledger rows across all
+    13 items, measured), so this branch is untested against real corpus
+    bytes and is documented as such rather than silently assumed correct.
+    """
+    m = _INLINE_CHAIN_CITE_RE.search(section6)
+    if m is not None:
+        return sec6_start + m.start(), sec6_start + m.end()
+
+    cursor = 0
+    for line in section6.splitlines(keepends=True):
+        stripped = line.strip()
+        leading_ws = len(line) - len(line.lstrip())
+        ledger_m = _STRUCTURAL_LEDGER_ROW_RE.match(stripped)
+        if ledger_m is not None and _cites_chain(stripped, chain_ids):
+            arrow_char = "→" if "→" in stripped else "->"
+            tail_start_in_stripped = stripped.index(arrow_char)
+            tail_end_in_stripped = ledger_m.end(2)
+            abs_start = sec6_start + cursor + leading_ws + tail_start_in_stripped
+            abs_end = sec6_start + cursor + leading_ws + tail_end_in_stripped
+            return abs_start, abs_end
+        cursor += len(line)
+    return None
+
+
+def _corpus_perturbation_problems(rows: list[dict], repo_root: Path) -> list[str]:
+    """D-03: for EVERY corpus row (never one hardcoded target), read the
+    item's shipped bytes fresh from *repo_root*, take
+    `baseline = detect_defects(text, analysis_id)`, then run the three
+    structurally-located mutation families above and assert each one that
+    fires moves its target field by exactly the expected amount. Mutations
+    are IN-MEMORY ONLY: `tests/adversarial-corpus-v9.0/` is never written
+    by this function (it is about to be registered in `_FROZEN_PATHS`, and
+    `check-quality-harness.py` already refuses writes into a frozen path).
+    Every family runs for every item regardless of whether an earlier
+    family or item failed -- nothing short-circuits.
+
+    Per-family absence disposition, decided here rather than left implicit
+    (RESEARCH.md Q4's own framing: "not every item will admit every
+    family"): families (a) and (c) are EXPECTED to find a site on every
+    corpus item -- CONF-07's population floor above already requires every
+    item to carry verdict cells and traced §6 claims, so a missing (a) or
+    (c) site is reported as `D-03(<family>) mutation site not found`.
+    Family (b) requires a chain block whose continuation sits on its own
+    arrow-led line, which five of this corpus's thirteen items structurally
+    lack (a single-line chain form); that absence is an EXPECTED CONDITION,
+    never reported as its own problem. Every item must still admit AT LEAST
+    ONE family, so `D-03 NO MUTATION APPLIED [<analysis_id>]` fires for an
+    item that admits zero -- verified live to never fire on the shipped
+    corpus (every item has (a) and (c) available; see 19-06-SUMMARY.md).
+
+    DISCLOSED BOUND: a mutation site is located structurally, not by a
+    hardcoded byte literal, so this loses the exact-string-uniqueness
+    precision CONF-GATE's D-08 arm gets from its single long needle
+    (RESEARCH.md Q4) -- a deliberate, documented trade for scaling from one
+    target to thirteen without a thirteen-entry needle table to maintain.
+    """
+    problems: list[str] = []
+    for r in rows:
+        if r["surface"] != "adversarial-corpus":
+            continue
+        if r["section_resolution"] != "OK":
+            # An unreadable item is already reported by the CORPUS
+            # POPULATION floor above; D-03 has nothing to perturb.
+            continue
+
+        relpath = r["relpath"]
+        analysis_id = r["analysis_id"]
+        text = (repo_root / relpath).read_text(encoding="utf-8")
+        baseline = detect_defects(text, analysis_id)
+
+        try:
+            sections = _slice_sections(text)
+        except SectionResolutionError:
+            problems.append(
+                f"D-03 [{analysis_id}] item could not be re-sliced for perturbation"
+            )
+            continue
+        section2, section4, section6 = sections[2], sections[4], sections[6]
+        offsets = _corpus_section_offsets(text, section2, section4, section6)
+        if offsets is None:
+            problems.append(
+                f"D-03 [{analysis_id}] sections could not be relocated inside the "
+                "document for perturbation"
+            )
+            continue
+        sec2_start, sec4_start, sec6_start = offsets
+        chain_ids = _chain_ids(section4)
+
+        applied = 0
+
+        site_a = _corpus_verdict_mutation_site(text, section2, sec2_start)
+        if site_a is None:
+            problems.append(f"D-03(a) mutation site not found (or not unique) in {relpath}")
+        else:
+            a_start, a_end = site_a
+            mutated_text = text[:a_start] + "-" + text[a_end:]
+            mutated = detect_defects(mutated_text, analysis_id)
+            expected = baseline["nonconforming_verdict_cells"] + 1
+            if mutated["nonconforming_verdict_cells"] != expected:
+                problems.append(
+                    f"D-03(a) verdict-cell separator mutation on {relpath} did not "
+                    "increment nonconforming_verdict_cells by exactly 1 (baseline "
+                    f"{baseline['nonconforming_verdict_cells']}, mutated "
+                    f"{mutated['nonconforming_verdict_cells']})"
+                )
+            else:
+                applied += 1
+
+        site_b = _corpus_hop_mutation_site(text, section4, sec4_start)
+        if site_b is not None:
+            b_start, b_end = site_b
+            mutated_text = text[:b_start] + "  " + text[b_end:]
+            mutated = detect_defects(mutated_text, analysis_id)
+            expected = baseline["malformed_chain_blocks"] + 1
+            if mutated["malformed_chain_blocks"] != expected:
+                problems.append(
+                    f"D-03(b) chain-hop re-wrap mutation on {relpath} did not "
+                    "increment malformed_chain_blocks by exactly 1 (baseline "
+                    f"{baseline['malformed_chain_blocks']}, mutated "
+                    f"{mutated['malformed_chain_blocks']})"
+                )
+            else:
+                applied += 1
+        # (b) absence is an expected condition (see docstring) -- no problem
+        # appended when site_b is None.
+
+        site_c = _corpus_citation_mutation_site(section6, sec6_start, chain_ids)
+        if site_c is None:
+            problems.append(f"D-03(c) mutation site not found (or not unique) in {relpath}")
+        else:
+            c_start, c_end = site_c
+            mutated_text = text[:c_start] + text[c_end:]
+            mutated = detect_defects(mutated_text, analysis_id)
+            if mutated["untraced_claims"] < baseline["untraced_claims"] + 1:
+                problems.append(
+                    f"D-03(c) citation removal mutation on {relpath} did not "
+                    "increment untraced_claims by at least 1 (baseline "
+                    f"{baseline['untraced_claims']}, mutated "
+                    f"{mutated['untraced_claims']})"
+                )
+            else:
+                applied += 1
+
+        if applied == 0:
+            problems.append(f"D-03 NO MUTATION APPLIED [{analysis_id}]")
+
+    return problems
+
+
+# CR-01/BL-01/BL-02 shape (check-conf-gate.py `_LIVE_CALL_SITES`/
+# `_LIVE_CALL_FORMS`/`_LIVE_CALL_SITES_LOCK`, copied verbatim): a source-text
+# census over cmd_check()'s four Phase-19 enforcement call sites, floored by
+# set equality against a second, independently transcribed roster, so
+# narrowing either table -- or deleting, commenting out, or rewriting a call
+# -- fails `--self-test` by name. DISCLOSED BOUND, same voice as the
+# original: this counts and matches SOURCE TEXT and observes no behaviour --
+# it catches a call site that was DELETED, REWRITTEN, or COMMENTED OUT, not
+# a call whose returned problems are computed correctly and then discarded
+# before reaching the failure report.
+_CORPUS_CALL_SITES: dict[str, int] = {
+    "_corpus_roster_problems": 1,
+    "_corpus_disposition_problems": 1,
+    "_corpus_population_problems": 1,
+    "_corpus_perturbation_problems": 1,
+}
+
+# The whitespace-normalized call-form fragment each symbol above must
+# appear in, transcribed from cmd_check()'s current source. Built BY
+# CONCATENATION of short string pieces, never as one contiguous literal --
+# the same self-match-hazard discipline check-conf-gate.py's own
+# `_LIVE_CALL_FORMS` states for itself.
+_CORPUS_CALL_FORMS: dict[str, str] = {
+    "_corpus_roster_problems": (
+        "problems += "
+        + "_corpus_roster_problems(catalog_entries, catalog_problems, corpus_rows)"
+    ),
+    "_corpus_disposition_problems": (
+        "problems += " + "_corpus_disposition_problems(corpus_rows)"
+    ),
+    "_corpus_population_problems": (
+        "problems += " + "_corpus_population_problems(corpus_rows)"
+    ),
+    "_corpus_perturbation_problems": (
+        "problems += " + "_corpus_perturbation_problems(rows, REPO_ROOT)"
+    ),
+}
+
+# BL-02: a SECOND, independently transcribed roster of the same four
+# enforcement symbol names -- deliberately NOT derived from
+# _CORPUS_CALL_SITES or _CORPUS_CALL_FORMS by any expression. Narrowing
+# either census table while this stays whole fails `--self-test` by name.
+_CORPUS_CALL_SITES_LOCK: tuple[str, ...] = (
+    "_corpus_roster_problems",
+    "_corpus_disposition_problems",
+    "_corpus_population_problems",
+    "_corpus_perturbation_problems",
+)
+
+
+def _strip_line_comments(source: str) -> str:
+    """BL-01 (check-conf-gate.py, copied verbatim): strip everything from
+    the first `#` on each line before the census counts or the form lock
+    matches, so a `# ` prefix on an enforcement call line -- which leaves
+    the text present and unchanged in raw source -- can no longer satisfy
+    either check. DISCLOSED BOUND, same conservative direction as the
+    original: this over-strips a `#` inside a string literal, which can
+    only make the census see LESS text, never more; it cannot manufacture
+    a false PASS by hiding a real call site behind an in-string `#`.
+    """
+    return "\n".join(line.split("#", 1)[0] for line in source.splitlines())
+
+
+def _corpus_call_site_census_problems(
+    source: str,
+    expected_counts: dict[str, int],
+    expected_forms: dict[str, str] | None = None,
+) -> list[str]:
+    """A PURE source-text census over `cmd_check()`'s Phase-19 enforcement
+    call sites, copying `check-conf-gate.py`'s `_call_site_census_problems`
+    shape verbatim. Takes source text as a parameter -- never
+    `inspect.getsource(cmd_check)` directly -- so the isolation-arm
+    controls below can drive it with synthetic strings, never the real
+    function's source, which is what keeps the arms falsifiable when the
+    real source changes.
+    """
+    source = _strip_line_comments(source)
+    problems: list[str] = []
+    for symbol, expected in expected_counts.items():
+        actual = source.count(symbol + "(")
+        if actual != expected:
+            problems.append(
+                f"CALL-SITE CENSUS: {symbol} occurs {actual} time(s) in "
+                f"cmd_check's source, expected {expected}"
+            )
+    if expected_forms is not None:
+        normalized = " ".join(source.split())
+        for symbol, fragment in expected_forms.items():
+            normalized_fragment = " ".join(fragment.split())
+            if normalized_fragment not in normalized:
+                problems.append(
+                    f"CALL-FORM LOCK: {symbol}'s expected call form not found in "
+                    f"cmd_check's source: {fragment!r}"
+                )
+    return problems
+
+
+def _corpus_call_sites_roster_problems(
+    call_sites: dict[str, int] = _CORPUS_CALL_SITES,
+    call_forms: dict[str, str] = _CORPUS_CALL_FORMS,
+    lock: tuple[str, ...] = _CORPUS_CALL_SITES_LOCK,
+) -> list[str]:
+    """BL-02: *call_sites* and *call_forms* must each agree, by set
+    equality, with the independently transcribed *lock* -- and every
+    *call_sites* value must equal 1 (each enforcement symbol is called
+    exactly once). Takes the three tables as parameters, defaulting to the
+    real module constants, so a `--self-test` control can drive this with
+    an alternate table without mutating global state.
+    """
+    problems: list[str] = []
+    lock_set = set(lock)
+    counts_diff = set(call_sites) ^ lock_set
+    if counts_diff:
+        problems.append(
+            f"ROSTER LOCK: _CORPUS_CALL_SITES diverges from lock: {sorted(counts_diff)}"
+        )
+    forms_diff = set(call_forms) ^ lock_set
+    if forms_diff:
+        problems.append(
+            f"ROSTER LOCK: _CORPUS_CALL_FORMS diverges from lock: {sorted(forms_diff)}"
+        )
+    wrong_counts = sorted(k for k, v in call_sites.items() if v != 1)
+    if wrong_counts:
+        problems.append(
+            f"ROSTER LOCK: _CORPUS_CALL_SITES has non-1 expected count for: {wrong_counts}"
+        )
+    return problems
+
+
 def pair_agreement(
     rows: list[dict],
 ) -> tuple[int, int, list[tuple[str, list[str]]]]:
@@ -1212,6 +1608,7 @@ def cmd_check() -> int:
     problems += _corpus_roster_problems(catalog_entries, catalog_problems, corpus_rows)
     problems += _corpus_disposition_problems(corpus_rows)
     problems += _corpus_population_problems(corpus_rows)
+    problems += _corpus_perturbation_problems(rows, REPO_ROOT)
 
     if problems:
         for p in problems:
@@ -1858,6 +2255,256 @@ def _control_corpus_population_floor_values_locked() -> None:
     )
 
 
+# A resolvable six-section document whose §2 has one em-dash-separated
+# conforming verdict cell, whose §4 carries one `### Conclusion C1:` block
+# with a GT head and TWO separate arrow-led continuation lines (the second
+# ending in a period so it closes the segment -- the first is deliberately
+# left OPEN, matching personal-general.md's own shape, verified live
+# against report-conformance.py before being pinned here), and whose §6
+# carries one inline `(chain C1)` citation. All three D-03 mutation
+# families fire with delta exactly 1 against this fixture (verified via
+# scratch script during 19-06's authoring; see 19-06-SUMMARY.md).
+_D03_FIXTURE_TEXT = """## 1. Problem Essence
+Some essence text long enough.
+
+## 2. Assumptions Table
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Some assumption | untested belief | Verify it. | Accept — because the evidence directly supports it. | Some verification text. |
+
+## 3. Ground Truths
+- GT-1: some ground truth fact with enough detail to be real.
+
+## 4. Derivation Chains
+
+### Conclusion C1: Some conclusion label goes here
+GT-1 (some observation about the ground truth)
+→ An intermediate claim that is long enough to look like real chain content and stays open
+→ The final conclusion text that is also long enough to be a real chain conclusion.
+
+## 5. Abandoned Reasoning
+None.
+
+## 6. Conclusion
+
+**Recommended approach:** (chain C1) Do the thing that the chain concludes should be done here.
+"""
+
+# (a) absent: the only verdict cell uses an ASCII hyphen, never U+2014, so
+# _verdict_conforms rejects it and no conforming cell exists to locate.
+_D03_FIXTURE_NO_A_SITE_TEXT = _D03_FIXTURE_TEXT.replace(
+    "Accept — because the evidence directly supports it.",
+    "Accept - because the evidence directly supports it.",
+)
+
+# (b) absent: the same chain, rewritten onto ONE physical line -- both
+# arrows sit on the head line itself, so no separate arrow-led continuation
+# line exists to locate. This is the real shape five of the thirteen
+# shipped corpus items use.
+_D03_FIXTURE_NO_B_SITE_TEXT = _D03_FIXTURE_TEXT.replace(
+    "GT-1 (some observation about the ground truth)\n"
+    "→ An intermediate claim that is long enough to look like real chain content and stays open\n"
+    "→ The final conclusion text that is also long enough to be a real chain conclusion.",
+    "GT-1 (some observation about the ground truth) → An intermediate claim that is long "
+    "enough to look like real chain content → The final conclusion text that is also long "
+    "enough to be a real chain conclusion.",
+)
+
+# (c) absent: the §6 claim names no chain at all -- no inline parenthetical,
+# no structural ledger row.
+_D03_FIXTURE_NO_C_SITE_TEXT = _D03_FIXTURE_TEXT.replace(
+    "**Recommended approach:** (chain C1) Do the thing that the chain concludes should be "
+    "done here.",
+    "**Recommended approach:** Do the thing that this analysis concludes should be done, "
+    "stated without naming any chain at all here.",
+)
+
+# All three families absent at once: (a), (b) and (c) all removed, so the
+# item admits zero mutations.
+_D03_FIXTURE_NO_SITES_TEXT = (
+    _D03_FIXTURE_NO_A_SITE_TEXT.replace(
+        "GT-1 (some observation about the ground truth)\n"
+        "→ An intermediate claim that is long enough to look like real chain content and stays open\n"
+        "→ The final conclusion text that is also long enough to be a real chain conclusion.",
+        "GT-1 (some observation about the ground truth) → An intermediate claim that is "
+        "long enough to look like real chain content → The final conclusion text that is "
+        "also long enough to be a real chain conclusion.",
+    ).replace(
+        "**Recommended approach:** (chain C1) Do the thing that the chain concludes should be "
+        "done here.",
+        "**Recommended approach:** Do the thing that this analysis concludes should be done, "
+        "stated without naming any chain at all here.",
+    )
+)
+
+# The WR-03 masking shape `_chain_block_well_formed`'s own docstring
+# discloses: a SECOND independent GT-headed candidate in the same block,
+# also well-formed on its own, masks the mutation applied to the first
+# candidate -- baseline and mutated malformed_chain_blocks both read 0,
+# so the (b) delta-mismatch problem must fire (verified via scratch script;
+# see 19-06-SUMMARY.md).
+_D03_FIXTURE_MASKED_HOP_TEXT = """## 1. Problem Essence
+Some essence text long enough.
+
+## 2. Assumptions Table
+| Assumption | Type | Treatment | Verdict | Verification |
+|---|---|---|---|---|
+| Some assumption | untested belief | Verify it. | Accept — because the evidence directly supports it. | Some verification text. |
+
+## 3. Ground Truths
+- GT-1: some ground truth fact with enough detail to be real.
+- GT-2: a second ground truth fact with enough detail to also be real.
+
+## 4. Derivation Chains
+
+### Conclusion C1: Some conclusion label goes here
+GT-1 (some observation about the ground truth)
+→ An intermediate claim that is long enough to look like real chain content and stays open
+→ The first candidate final conclusion text that is long enough to close this segment.
+GT-2 (a second observation about the ground truth)
+→ A second intermediate claim that is long enough to look like real chain content too
+→ The second candidate final conclusion text that is also long enough to close.
+
+## 5. Abandoned Reasoning
+None.
+
+## 6. Conclusion
+
+**Recommended approach:** (chain C1) Do the thing that the chain concludes should be done here.
+"""
+
+
+def _corpus_perturbation_row(analysis_id: str, relpath: str = "item.md") -> dict:
+    return {
+        "surface": "adversarial-corpus",
+        "relpath": relpath,
+        "analysis_id": analysis_id,
+        "section_resolution": "OK",
+    }
+
+
+def _control_corpus_d03_positive_all_families() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert problems == [], problems
+
+
+def _control_corpus_d03_family_a_not_found() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_NO_A_SITE_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert any("D-03(a) mutation site not found" in p for p in problems), problems
+
+
+def _control_corpus_d03_family_b_absence_not_reported() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_NO_B_SITE_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert not any("D-03(b)" in p for p in problems), problems
+        assert not any("NO MUTATION APPLIED" in p for p in problems), problems
+        assert problems == [], problems
+
+
+def _control_corpus_d03_family_c_not_found() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_NO_C_SITE_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert any("D-03(c) mutation site not found" in p for p in problems), problems
+
+
+def _control_corpus_d03_no_mutation_applied() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_NO_SITES_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert any("D-03(a) mutation site not found" in p for p in problems), problems
+        assert any("D-03(c) mutation site not found" in p for p in problems), problems
+        assert any("D-03 NO MUTATION APPLIED [item]" in p for p in problems), problems
+
+
+def _control_corpus_d03_delta_mismatch_detected() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "item.md").write_text(_D03_FIXTURE_MASKED_HOP_TEXT, encoding="utf-8")
+        problems = _corpus_perturbation_problems([_corpus_perturbation_row("item")], root)
+        assert any(
+            "D-03(b) chain-hop re-wrap mutation" in p and "did not increment" in p
+            for p in problems
+        ), problems
+
+
+def _control_corpus_d03_unreadable_skipped() -> None:
+    row = _corpus_perturbation_row("nope")
+    row["section_resolution"] = "SectionResolutionError: x"
+    problems = _corpus_perturbation_problems([row], Path("/nonexistent-repo-root"))
+    assert problems == [], problems
+
+
+def _control_corpus_call_site_census_positive() -> None:
+    source = inspect.getsource(cmd_check)
+    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS)
+    assert problems == [], problems
+
+
+def _control_corpus_call_site_census_missing() -> None:
+    source = "def cmd_check():\n    problems = []\n    return 0\n"
+    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES)
+    assert len(problems) == len(_CORPUS_CALL_SITES), problems
+    assert all("occurs 0 time" in p for p in problems), problems
+
+
+def _control_corpus_call_site_census_commented() -> None:
+    source = (
+        "def cmd_check():\n"
+        "    problems = []\n"
+        "    # problems += "
+        + "_corpus_roster_problems(catalog_entries, catalog_problems, corpus_rows)\n"
+        "    problems += " + "_corpus_disposition_problems(corpus_rows)\n"
+        "    problems += " + "_corpus_population_problems(corpus_rows)\n"
+        "    problems += " + "_corpus_perturbation_problems(rows, REPO_ROOT)\n"
+        "    return 0\n"
+    )
+    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES)
+    assert any("_corpus_roster_problems occurs 0" in p for p in problems), problems
+
+
+def _control_corpus_call_form_lock_rewritten() -> None:
+    source = (
+        "def cmd_check():\n"
+        "    problems = []\n"
+        "    problems += " + "_corpus_roster_problems(catalog_entries)\n"
+        "    problems += " + "_corpus_disposition_problems(corpus_rows)\n"
+        "    problems += " + "_corpus_population_problems(corpus_rows)\n"
+        "    problems += " + "_corpus_perturbation_problems(rows, REPO_ROOT)\n"
+        "    return 0\n"
+    )
+    problems = _corpus_call_site_census_problems(source, _CORPUS_CALL_SITES, _CORPUS_CALL_FORMS)
+    assert any("CALL-FORM LOCK: _corpus_roster_problems" in p for p in problems), problems
+
+
+def _control_corpus_call_sites_roster_lock_positive() -> None:
+    assert _corpus_call_sites_roster_problems() == []
+
+
+def _control_corpus_call_sites_roster_lock_narrowed() -> None:
+    narrowed_sites = dict(_CORPUS_CALL_SITES)
+    del narrowed_sites["_corpus_perturbation_problems"]
+    problems = _corpus_call_sites_roster_problems(call_sites=narrowed_sites)
+    assert any("_CORPUS_CALL_SITES diverges" in p for p in problems), problems
+
+
+def _control_corpus_call_sites_roster_lock_wrong_count() -> None:
+    wrong_sites = dict(_CORPUS_CALL_SITES)
+    wrong_sites["_corpus_roster_problems"] = 2
+    problems = _corpus_call_sites_roster_problems(call_sites=wrong_sites)
+    assert any("non-1 expected count" in p for p in problems), problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -1912,6 +2559,32 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "corpus-population-floor-values-locked",
         _control_corpus_population_floor_values_locked,
     ),
+    ("corpus-d03-positive-all-families", _control_corpus_d03_positive_all_families),
+    ("corpus-d03-family-a-not-found", _control_corpus_d03_family_a_not_found),
+    (
+        "corpus-d03-family-b-absence-not-reported",
+        _control_corpus_d03_family_b_absence_not_reported,
+    ),
+    ("corpus-d03-family-c-not-found", _control_corpus_d03_family_c_not_found),
+    ("corpus-d03-no-mutation-applied", _control_corpus_d03_no_mutation_applied),
+    ("corpus-d03-delta-mismatch-detected", _control_corpus_d03_delta_mismatch_detected),
+    ("corpus-d03-unreadable-skipped", _control_corpus_d03_unreadable_skipped),
+    ("corpus-call-site-census-positive", _control_corpus_call_site_census_positive),
+    ("corpus-call-site-census-missing", _control_corpus_call_site_census_missing),
+    ("corpus-call-site-census-commented", _control_corpus_call_site_census_commented),
+    ("corpus-call-form-lock-rewritten", _control_corpus_call_form_lock_rewritten),
+    (
+        "corpus-call-sites-roster-lock-positive",
+        _control_corpus_call_sites_roster_lock_positive,
+    ),
+    (
+        "corpus-call-sites-roster-lock-narrowed",
+        _control_corpus_call_sites_roster_lock_narrowed,
+    ),
+    (
+        "corpus-call-sites-roster-lock-wrong-count",
+        _control_corpus_call_sites_roster_lock_wrong_count,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -1948,6 +2621,20 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-population-per-item-unreadable-detected",
     "corpus-population-corpuswide-breach-detected",
     "corpus-population-floor-values-locked",
+    "corpus-d03-positive-all-families",
+    "corpus-d03-family-a-not-found",
+    "corpus-d03-family-b-absence-not-reported",
+    "corpus-d03-family-c-not-found",
+    "corpus-d03-no-mutation-applied",
+    "corpus-d03-delta-mismatch-detected",
+    "corpus-d03-unreadable-skipped",
+    "corpus-call-site-census-positive",
+    "corpus-call-site-census-missing",
+    "corpus-call-site-census-commented",
+    "corpus-call-form-lock-rewritten",
+    "corpus-call-sites-roster-lock-positive",
+    "corpus-call-sites-roster-lock-narrowed",
+    "corpus-call-sites-roster-lock-wrong-count",
 )
 
 
