@@ -137,6 +137,34 @@ _CLAIM_FLOORS: dict[str, int] = {
     "theoretical-limit-carnot": 5,
 }
 
+# CR-02(a) (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed copy of _CLAIM_FLOORS' fourteen entries — deliberately NOT
+# derived from _CLAIM_FLOORS in any way. Before this lock, every fixture
+# consuming _CLAIM_FLOORS built its expected value FROM the constant under
+# test (e.g. `conclusion_claims=_CLAIM_FLOORS["personal-general"] - 1`),
+# which is invariant to the constant's own value — CONTRACT-06's ENTRY-
+# SOURCE LOCK names this shape explicitly as "a required side rebound to
+# its own actual side". Setting every _CLAIM_FLOORS value to 0 (CR-02(a)'s
+# measured defect) left both self-test and the live leg green. Moving a
+# floor is therefore a two-place reviewable edit by design, the same
+# discipline the sha256 pins already apply.
+_CLAIM_FLOORS_LOCK: dict[str, int] = {
+    "composed-inversion-second-order": 2,
+    "decompose-irreducibility": 7,
+    "estimate-fermi": 5,
+    "ishikawa-fishbone": 4,
+    "personal-general": 7,
+    "personal-general-2": 7,
+    "product-business": 3,
+    "product-business-2": 4,
+    "science-engineering": 3,
+    "science-engineering-2": 3,
+    "self-application": 9,
+    "software-systems": 8,
+    "software-systems-2": 10,
+    "theoretical-limit-carnot": 5,
+}
+
 # The corpus-wide marked_untraced_claims sum over shared-examples, measured
 # by plan 18-06 and unchanged since: both instances live in
 # decompose-irreducibility.md. Pinned as a RATCHET — the live reading may
@@ -144,6 +172,12 @@ _CLAIM_FLOORS: dict[str, int] = {
 # instead of cited, which is the drift this ratchet exists to catch. Task 3
 # reconciles this literal against the derived reading published in
 # docs/conformance-baseline.md.
+#
+# CR-02(b): the `ratchet-value-locked` control below asserts this value
+# against an INLINE integer literal written at the control site, never read
+# from this constant — setting _MARKED_RATCHET to 99 previously left both
+# self-test and the live leg green. Plan 18-10 moves both this constant and
+# that lock to 4 together, as one two-place edit; this plan leaves both at 2.
 _MARKED_RATCHET: int = 2
 
 # The three prescribed section-6 lead-ins output-template.md names. A claim
@@ -630,18 +664,22 @@ def _control_d07_equal_passes() -> None:
 
 
 def _control_d04_floor_fires() -> None:
-    floor = _CLAIM_FLOORS["personal-general"]
+    # CR-02(a): INLINE by design (6 is one below personal-general's pinned
+    # floor of 7) — never `_CLAIM_FLOORS["personal-general"] - 1`, which is
+    # invariant to the floor's own value and cannot fail when the floor is
+    # loosened. See _CLAIM_FLOORS_LOCK's comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor - 1
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=6
     )
     problems = _claim_floor_problems([row])
     assert any("personal-general" in p for p in problems), problems
 
 
 def _control_d04_floor_passes_at_floor() -> None:
-    floor = _CLAIM_FLOORS["personal-general"]
+    # CR-02(a): INLINE by design (7 is exactly personal-general's pinned
+    # floor) — see _control_d04_floor_fires' comment.
     row = _rc._synthetic_row(
-        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=7
     )
     assert _claim_floor_problems([row]) == []
 
@@ -658,24 +696,48 @@ def _control_d03_passes_on_nonprescribed_leadin() -> None:
 
 
 def _control_ratchet_fires_above() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r.md", "r", marked_untraced_claims=_MARKED_RATCHET + 1
-    )
+    # CR-02(b): INLINE by design (3 is one above the pinned ratchet of 2) —
+    # never `_MARKED_RATCHET + 1`, which is invariant to the ratchet's own
+    # value and cannot fail when the ratchet is loosened.
+    row = _rc._synthetic_row("shared-examples", "r.md", "r", marked_untraced_claims=3)
     assert _ratchet_problems([row]) != []
 
 
 def _control_ratchet_passes_at_pin() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r2.md", "r2", marked_untraced_claims=_MARKED_RATCHET
-    )
+    # CR-02(b): INLINE by design (2 is exactly the pinned ratchet) — see
+    # _control_ratchet_fires_above's comment.
+    row = _rc._synthetic_row("shared-examples", "r2.md", "r2", marked_untraced_claims=2)
     assert _ratchet_problems([row]) == []
 
 
 def _control_ratchet_passes_below() -> None:
-    row = _rc._synthetic_row(
-        "shared-examples", "r3.md", "r3", marked_untraced_claims=max(_MARKED_RATCHET - 1, 0)
-    )
+    # CR-02(b): INLINE by design (1 is one below the pinned ratchet) — see
+    # _control_ratchet_fires_above's comment.
+    row = _rc._synthetic_row("shared-examples", "r3.md", "r3", marked_untraced_claims=1)
     assert _ratchet_problems([row]) == []
+
+
+def _control_claim_floor_values_locked() -> None:
+    """CR-02(a): _CLAIM_FLOORS and its second, independent transcription
+    _CLAIM_FLOORS_LOCK must agree by name. Reports the sorted list of keys
+    whose values differ, or which are present in only one table — never a
+    bare count, so a narrowing shows up by name.
+    """
+    differing = sorted(
+        k
+        for k in set(_CLAIM_FLOORS) | set(_CLAIM_FLOORS_LOCK)
+        if _CLAIM_FLOORS.get(k) != _CLAIM_FLOORS_LOCK.get(k)
+    )
+    assert not differing, f"D-04 LOCK MISMATCH: {differing}"
+
+
+def _control_ratchet_value_locked() -> None:
+    """CR-02(b): _MARKED_RATCHET must equal an INLINE integer literal
+    written at this control site, never read from the constant itself —
+    the shape that makes loosening _MARKED_RATCHET a reviewable, falsifiable
+    edit rather than an invisible one.
+    """
+    assert _MARKED_RATCHET == 2, _MARKED_RATCHET
 
 
 def _control_contract_surface_excluded() -> None:
@@ -811,11 +873,13 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d07-equal-passes", _control_d07_equal_passes),
     ("d04-floor-fires", _control_d04_floor_fires),
     ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
+    ("claim-floor-values-locked", _control_claim_floor_values_locked),
     ("d03-fires-on-prescribed-leadin", _control_d03_fires_on_prescribed_leadin),
     ("d03-passes-on-nonprescribed-leadin", _control_d03_passes_on_nonprescribed_leadin),
     ("ratchet-fires-above", _control_ratchet_fires_above),
     ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
     ("ratchet-passes-below", _control_ratchet_passes_below),
+    ("ratchet-value-locked", _control_ratchet_value_locked),
     ("contract-surface-excluded", _control_contract_surface_excluded),
     ("live-call-site-census", _control_live_call_site_census),
     ("live-call-form-lock", _control_live_call_form_lock),
@@ -843,11 +907,13 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d07-equal-passes",
     "d04-floor-fires",
     "d04-floor-passes-at-floor",
+    "claim-floor-values-locked",
     "d03-fires-on-prescribed-leadin",
     "d03-passes-on-nonprescribed-leadin",
     "ratchet-fires-above",
     "ratchet-passes-at-pin",
     "ratchet-passes-below",
+    "ratchet-value-locked",
     "contract-surface-excluded",
     "live-call-site-census",
     "live-call-form-lock",
