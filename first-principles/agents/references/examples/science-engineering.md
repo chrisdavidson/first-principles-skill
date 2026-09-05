@@ -32,14 +32,14 @@ required to meet the cabin's daily electrical load reliably?
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| Energy conservation: energy out equals energy in divided by system efficiency | physical law | Accept as ground-truth candidate; promote to GT | Accept | Conservation of energy — physics; no verification needed |
-| A panel array's daily output equals rated wattage × Peak Sun Hours × system derating factor | physical law | Accept as ground-truth candidate; promote to GT | Accept | Derived directly from energy conservation and the definition of PSH |
-| Annual-average Peak Sun Hours at this site are approximately 5.5 h/day | convention | Challenge before use: PSH is site-specific; verify against NREL PVWatts data for the coordinates; treat as illustrative | Accept | Source: NREL solar radiation maps (illustrative; verifiable via PVWatts for 35° N high-desert NM) |
-| A system derating factor of 0.80 accounts for all losses in the energy path from panels to delivered load (temperature, wiring, MPPT, inverter, and battery charge/discharge round-trip) | convention | Challenge before use: 0.80 is a conservative design-practice figure; verify against site-specific equipment specs; confirm the factor bundles battery round-trip loss since this is a battery-mediated off-grid system | Accept | Standard conservative design-practice value for off-grid systems; source: NREL and NABCEP off-grid design guidelines; LiFePO4 round-trip efficiency (~92–95%) is reflected in the conservative 0.80 factor alongside wiring (~5%), MPPT (~3%), and inverter (~4%) losses |
-| LiFePO4 batteries can be discharged to 80% depth-of-discharge (DoD) safely | physical law | Accept as ground-truth candidate; promote to GT | Accept | Battery chemistry fact; source: manufacturer specifications and electrochemical design literature |
-| 3 days of autonomy is the correct design target | current constraint | Record expiry condition: if occupants can accept load-shedding in multi-day overcast periods, fewer days of autonomy are acceptable; if the site has more severe winter weather, more days may be needed | Accept | Current design decision; expiry: site-specific weather analysis or owner preference change |
-| The daily energy load is approximately 1.5 kWh/day | untested belief | Flag as unverified; may be used in chains but must carry GT-5? notation; any conclusion depending on it inherits MEDIUM confidence and a stated verification path | Accept | unverified — flagged |
-| Sizing the battery to sustain peak instantaneous load continuously is the correct approach | untested belief | Challenge: peak load (250 W from the water pump) runs only 30 min/day; sizing for continuous 250 W is not the correct method for battery/panel capacity | Discard | Ruled out — see Abandoned Reasoning, Section 5 |
+| Energy conservation: energy out equals energy in divided by system efficiency | physical law | Accept as ground-truth candidate; promote to GT | Accept — conservation of energy; a physical law requiring no verification | Conservation of energy — physics; no verification needed |
+| A panel array's daily output equals rated wattage × Peak Sun Hours × system derating factor | physical law | Accept as ground-truth candidate; promote to GT | Accept — derived directly from energy conservation and the PSH definition | Derived directly from energy conservation and the definition of PSH |
+| Annual-average Peak Sun Hours at this site are approximately 5.5 h/day | convention | Challenge before use: PSH is site-specific; verify against NREL PVWatts data for the coordinates; treat as illustrative | Accept — NREL solar radiation maps; illustrative, verifiable via PVWatts for this site | Source: NREL solar radiation maps (illustrative; verifiable via PVWatts for 35° N high-desert NM) |
+| A system derating factor of 0.80 accounts for all losses in the energy path from panels to delivered load (temperature, wiring, MPPT, inverter, and battery charge/discharge round-trip) | convention | Challenge before use: 0.80 is a conservative design-practice figure; verify against site-specific equipment specs; confirm the factor bundles battery round-trip loss since this is a battery-mediated off-grid system | Accept — standard NREL/NABCEP off-grid design value; bundles LiFePO4 round-trip loss with wiring/MPPT/inverter losses | Standard conservative design-practice value for off-grid systems; source: NREL and NABCEP off-grid design guidelines; LiFePO4 round-trip efficiency (~92–95%) is reflected in the conservative 0.80 factor alongside wiring (~5%), MPPT (~3%), and inverter (~4%) losses |
+| LiFePO4 batteries can be discharged to 80% depth-of-discharge (DoD) safely | physical law | Accept as ground-truth candidate; promote to GT | Accept — battery chemistry fact per manufacturer and electrochemical design literature | Battery chemistry fact; source: manufacturer specifications and electrochemical design literature |
+| 3 days of autonomy is the correct design target | current constraint | Record expiry condition: if occupants can accept load-shedding in multi-day overcast periods, fewer days of autonomy are acceptable; if the site has more severe winter weather, more days may be needed | Accept — current design decision; expires on site-specific weather analysis or owner preference change | Current design decision; expiry: site-specific weather analysis or owner preference change |
+| The daily energy load is approximately 1.5 kWh/day | untested belief | Flag as unverified; may be used in chains but must carry GT-5? notation; any conclusion depending on it inherits MEDIUM confidence and a stated verification path | Accept — unverified; flagged and carried as GT-5? through the derivation chains | unverified — flagged |
+| Sizing the battery to sustain peak instantaneous load continuously is the correct approach | untested belief | Challenge: peak load (250 W from the water pump) runs only 30 min/day; sizing for continuous 250 W is not the correct method for battery/panel capacity | Discard — ruled out; see Abandoned Reasoning, Section 5 | Ruled out — see Abandoned Reasoning, Section 5 |
 
 ---
 
@@ -101,21 +101,10 @@ required to meet the cabin's daily electrical load reliably?
 
 ### Conclusion C1: A 400 W panel array is required to meet the estimated daily load
 
-GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery
-round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day
-estimated load) + GT-1 (5.5 PSH)
-→ Required gross daily panel output = 1.5 kWh ÷ 0.80 = 1,875 Wh/day
-  (Neither GT-2 nor GT-5? alone specifies how many watt-hours the panels must generate;
-  combining them via the energy-conservation relationship yields the gross generation target.
-  The 0.80 factor is the complete loss model — it accounts for every loss between panel
-  output and delivered load, including battery round-trip loss, so no further derating is
-  needed for battery inefficiency.)
-→ GT-1 (5.5 PSH annual average) applied to 1,875 Wh/day: panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
-→ Recommendation: 400 W array (e.g., 2 × 200 W panels), providing a 17% margin above
-  the minimum 341 W to buffer winter PSH variability (winter minimum ~4.5 PSH at this
-  site would require ~417 W; the 400 W array is slightly undersized for worst-case winter
-  but acceptable given the conservative derating and the option to reduce non-essential
-  loads during extended low-sun periods).
+GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day estimated load) + GT-1 (5.5 PSH)
+→ Required gross daily panel output = 1.5 kWh ÷ 0.80 = 1,875 Wh/day (Neither GT-2 nor GT-5? alone specifies how many watt-hours the panels must generate; combining them via the energy-conservation relationship yields the gross generation target. The 0.80 factor is the complete loss model — it accounts for every loss between panel output and delivered load, including battery round-trip loss, so no further derating is needed for battery inefficiency.)
+→ Applying GT-1 (5.5 PSH annual average) to 1,875 Wh/day yields panel capacity = 1,875 Wh ÷ 5.5 PSH ≈ 341 W
+→ Recommendation: 400 W array (e.g., 2 × 200 W panels), providing a 17% margin above the minimum 341 W to buffer winter PSH variability (winter minimum ~4.5 PSH at this site would require ~417 W; the 400 W array is slightly undersized for worst-case winter but acceptable given the conservative derating and the option to reduce non-essential loads during extended low-sun periods).
 
 **Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified.
 If measured load consistently exceeds 1.8 kWh/day, the required panel capacity exceeds
@@ -127,12 +116,9 @@ energy monitor for 30 days; confirm measured load before finalizing the array sp
 ### Conclusion C2: A 6 kWh LiFePO4 battery bank is required for 3 days of autonomy
 
 GT-5? (1.5 kWh/day estimated load) + GT-4 (3 days of autonomy)
-→ Total usable energy to store = 1.5 kWh/day × 3 days = 4.5 kWh of usable capacity
-  (Neither GT-5? nor GT-4 alone specifies how much energy the bank must deliver;
-  combining them yields the usable-capacity requirement.)
-→ GT-3 (80% DoD): required rated battery capacity = 4.5 kWh ÷ 0.80 = 5.625 kWh
-→ Recommendation: 6 kWh LiFePO4 bank (practical sizing rounds up to the next available
-  configuration above 5.625 kWh; a 6 kWh bank satisfies the requirement with a small margin).
+→ Total usable energy to store = 1.5 kWh/day × 3 days = 4.5 kWh of usable capacity (Neither GT-5? nor GT-4 alone specifies how much energy the bank must deliver; combining them yields the usable-capacity requirement.)
+→ Applying GT-3 (80% DoD) yields required rated battery capacity = 4.5 kWh ÷ 0.80 = 5.625 kWh
+→ Recommendation: 6 kWh LiFePO4 bank (practical sizing rounds up to the next available configuration above 5.625 kWh; a 6 kWh bank satisfies the requirement with a small margin).
 
 **Confidence: MEDIUM** — GT-5? (daily energy load estimate of 1.5 kWh/day) is unverified.
 If measured load is significantly higher (e.g., 2.0 kWh/day), the required rated capacity
@@ -170,7 +156,7 @@ energy throughput requirement.
 
 ## 6. Conclusion
 
-**Recommended approach:** Install a 400 W panel array (2 × 200 W panels) and a 6 kWh
+**Recommended approach:** (chains C1 and C2) Install a 400 W panel array (2 × 200 W panels) and a 6 kWh
 LiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual average
 (GT-1), the 0.80 system derating factor (GT-2), the 80% DoD limit of LiFePO4 chemistry
 (GT-3), the 3-day autonomy target (GT-4), and the estimated 1.5 kWh/day daily load
@@ -178,7 +164,7 @@ LiFePO4 battery bank. These sizes are derived from the site's 5.5 PSH annual ave
 measured daily load consistently exceeds 1.8 kWh/day, upsize to a 600 W array and a
 7.5–8 kWh battery bank.
 
-**Key insight:** The binding sizing constraint is daily energy throughput (Wh/day), not
+**Key insight:** (chains C1 and C2) The binding sizing constraint is daily energy throughput (Wh/day), not
 peak instantaneous power (W). The water pump's 250 W draw appears to dominate the load,
 but because it runs only 30 minutes per day it contributes only 125 Wh to the daily
 total — less than the refrigerator (540 Wh) or the laptop (390 Wh). A peak-power framing
@@ -188,7 +174,7 @@ is not the physics (PSH, derating factor, and DoD are well-characterized) but th
 estimate: occupant behavior and seasonal variation can shift the daily load by 30–50%
 without any change in the appliance list.
 
-**Trade-offs acknowledged:** The 400 W array is slightly undersized for worst-case winter
+**Trade-offs acknowledged:** (chains C1 and C2) The 400 W array is slightly undersized for worst-case winter
 PSH (~4.5 h vs 5.5 h annual average), which means multi-day low-sun periods in winter may
 require reducing non-essential loads or accepting partial battery state-of-charge going
 into night. The 3-day autonomy target is a design decision, not a physical minimum; a
