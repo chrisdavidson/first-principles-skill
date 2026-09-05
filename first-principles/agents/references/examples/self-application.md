@@ -57,12 +57,12 @@ question is whether the budget tracks anything the agent actually depends on.
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| The ~500-line budget is load-bearing for some observable property of the agent | untested belief | Verify before use — locate the artifact that records the budget and the property it protects; if the property is not specified, the budget is a convention, not a constraint | Challenge | Recorded in `.planning/REQUIREMENTS.md` line 53 as META-Q4; the protected property is named as "stays under the ~500-line / ~5,000-token budget" with rationale "New content lives in references/" — i.e., the budget is itself the property, with no independent measurable consequence stated; flagged for further classification |
-| The agent body is too long because the methodology procedure is too long | untested belief — diagnostic | Verify by ruling out alternative segments — multiple structural sections could individually account for the overage; collecting confirming evidence for "the methodology is bloated" is not the same as ruling out the appendices, the companion-tool procedures, or accumulated cross-references | Challenge | Unverified — flagged; line-range measurement of the body's structural segments (Section 3, GT-2 through GT-4) is required before any segment can be named as the dominant contributor |
-| Aggressive Layer-3 extraction of Phase 1–5 procedural blocks would bring the body under 500 lines | untested belief — methodology | Verify by constructing the alternative — measure the procedural-block line range and compute the resulting body size if the extraction were performed | Discard | Phase 1–5 procedural blocks span lines 45–141 of `first-principles/agents/first-principles.md` (~96 lines). Extracting them yields a body of approximately 782 lines, still 282 lines over budget — the proposed method does not produce the claimed outcome (Chain 2 in Section 4) |
-| Extracting content into `references/` always reduces the agent's reasoning quality | convention — context-dependent technical | Challenge specifically by naming the contextual variables — what kind of content, when read by the agent, with what frequency, under what continuation properties | Challenge | The agent body already delegates the Subtype Catalog to `references/assumption-taxonomy.md` (line 92 cross-reference) without an observed reasoning regression. The convention holds only for content the agent must inspect on every single analysis; content the agent looks up conditionally does not appear bound by it |
-| The v3.0 inlining decision must be preserved as-shipped | convention — default-response | Challenge by asking whether "preserve the shipped surface" addresses the highest-frequency observed signal versus the cognitively-available response. The v3.0 inlining was justified for *the methodology and companion tools*; the inlining of the Output Template and Validation Rubric appendices is a separate decision that has not been independently scrutinized | Challenge | The PROJECT.md v3.0 rationale (`shared/spine/references` → "absorb their methodology, companion-tool references, and worked examples into the agent's reachable context") names methodology + companion tools + examples; it does not separately justify inlining the Layer-3 appendices that were already authored as Layer-3 reference files |
-| A full rewrite or large body restructure is required to bring the budget into compliance | untested belief — false-dichotomy | Challenge the binary framing — enumerate intermediate options (extract one block, extract two appendices, revise the budget, do nothing) and check whether any dominates the poles on cost and reversibility | Discard | At least one intermediate option (de-inline the Output Template and Validation Rubric appendices, leaving methodology and companion tools intact) is testable for body-size impact in Chain 3 and dominates the rewrite on reversibility |
+| The ~500-line budget is load-bearing for some observable property of the agent | untested belief | Verify before use — locate the artifact that records the budget and the property it protects; if the property is not specified, the budget is a convention, not a constraint | Challenge — the protected property is unnamed; META-Q4 records only the number, with no independent measurable consequence | Recorded in `.planning/REQUIREMENTS.md` line 53 as META-Q4; the protected property is named as "stays under the ~500-line / ~5,000-token budget" with rationale "New content lives in references/" — i.e., the budget is itself the property, with no independent measurable consequence stated; flagged for further classification |
+| The agent body is too long because the methodology procedure is too long | untested belief — diagnostic | Verify by ruling out alternative segments — multiple structural sections could individually account for the overage; collecting confirming evidence for "the methodology is bloated" is not the same as ruling out the appendices, the companion-tool procedures, or accumulated cross-references | Challenge — unverified; requires line-range measurement of the body's segments before naming the dominant contributor | Unverified — flagged; line-range measurement of the body's structural segments (Section 3, GT-2 through GT-4) is required before any segment can be named as the dominant contributor |
+| Aggressive Layer-3 extraction of Phase 1–5 procedural blocks would bring the body under 500 lines | untested belief — methodology | Verify by constructing the alternative — measure the procedural-block line range and compute the resulting body size if the extraction were performed | Discard — extraction saves only ~96 lines, leaving the body 282 lines over budget (chain C2) | Phase 1–5 procedural blocks span lines 45–141 of `first-principles/agents/first-principles.md` (~96 lines). Extracting them yields a body of approximately 782 lines, still 282 lines over budget — the proposed method does not produce the claimed outcome (Chain 2 in Section 4) |
+| Extracting content into `references/` always reduces the agent's reasoning quality | convention — context-dependent technical | Challenge specifically by naming the contextual variables — what kind of content, when read by the agent, with what frequency, under what continuation properties | Challenge — no observed regression from the one existing external reference; the convention holds only for unconditionally-inspected content | The agent body already delegates the Subtype Catalog to `references/assumption-taxonomy.md` (line 92 cross-reference) without an observed reasoning regression. The convention holds only for content the agent must inspect on every single analysis; content the agent looks up conditionally does not appear bound by it |
+| The v3.0 inlining decision must be preserved as-shipped | convention — default-response | Challenge by asking whether "preserve the shipped surface" addresses the highest-frequency observed signal versus the cognitively-available response. The v3.0 inlining was justified for *the methodology and companion tools*; the inlining of the Output Template and Validation Rubric appendices is a separate decision that has not been independently scrutinized | Challenge — the v3.0 rationale names methodology and companion tools, not the appendix re-inlining | The PROJECT.md v3.0 rationale (`shared/spine/references` → "absorb their methodology, companion-tool references, and worked examples into the agent's reachable context") names methodology + companion tools + examples; it does not separately justify inlining the Layer-3 appendices that were already authored as Layer-3 reference files |
+| A full rewrite or large body restructure is required to bring the budget into compliance | untested belief — false-dichotomy | Challenge the binary framing — enumerate intermediate options (extract one block, extract two appendices, revise the budget, do nothing) and check whether any dominates the poles on cost and reversibility | Discard — a de-inlining intermediate exists and dominates the rewrite on reversibility (chain C3) | At least one intermediate option (de-inline the Output Template and Validation Rubric appendices, leaving methodology and companion tools intact) is testable for body-size impact in Chain 3 and dominates the rewrite on reversibility |
 
 ---
 
@@ -154,26 +154,9 @@ question is whether the budget tracks anything the agent actually depends on.
 
 ### Conclusion C1: The budget is a convention without a named protected property
 
-GT-7 (META-Q4 records the budget as "stays under ~500 lines" with no independent
-observable consequence) + GT-8 (the regression gates that actually run on every
-change measure self-test correctness, trigger-phrase preservation, and shared/↔
-agent lockstep — they do not measure line count or token cost) + GT-9? (no
-measurement in the repository ties body line count to reasoning quality)
-
-→ The budget exists in the requirements register and is treated as a constraint
-by the project workflow, but the consequence it is sized to prevent is not
-recorded. A skeptic reading META-Q4 cannot tell whether 878 lines breaks
-something measurable or merely exceeds a number authored from general
-intuition. The shipped regression gates encode the *real* properties the
-project depends on (self-test correctness, trigger-phrase preservation, sync
-lockstep, routing PASS verdict) and none of them references line count.
-
-→ The ~500-line budget is best classified as a convention — a defensible
-heuristic adopted from the wider Claude Code skill-authoring literature
-(SKILL.md guidance recommends <500 lines for optimal performance) — not as a
-verified constraint binding this specific agent. Treating it as binding when
-its underlying property has not been measured is treating a heuristic as a
-ground truth.
+GT-7 (META-Q4 records the budget as "stays under ~500 lines" with no independent observable consequence) + GT-8 (the regression gates that actually run on every change measure self-test correctness, trigger-phrase preservation, and shared/↔agent lockstep — they do not measure line count or token cost) + GT-9? (no measurement in the repository ties body line count to reasoning quality)
+→ The budget exists in the requirements register and is treated as a constraint by the project workflow, but the consequence it is sized to prevent is not recorded; a skeptic reading META-Q4 cannot tell whether 878 lines breaks something measurable or merely exceeds a number authored from general intuition; the shipped regression gates encode the *real* properties the project depends on (self-test correctness, trigger-phrase preservation, sync lockstep, routing PASS verdict) and none of them references line count
+→ The ~500-line budget is best classified as a convention — a defensible heuristic adopted from the wider Claude Code skill-authoring literature (SKILL.md guidance recommends <500 lines for optimal performance) — not as a verified constraint binding this specific agent. Treating it as binding when its underlying property has not been measured is treating a heuristic as a ground truth.
 
 **Confidence:** MEDIUM — GT-9? is the unverified input. The chain establishes
 that the budget is *currently* a convention as recorded; it does not establish
@@ -187,25 +170,9 @@ of per-turn context cost.
 
 ### Conclusion C2: The methodology procedural block is not the segment consuming the budget
 
-GT-1 (current body: 878 lines) + GT-2 (Phase 1–5 procedural blocks: ~96 lines)
-+ GT-3 (six inlined companion-tool procedures: ~175 lines) + GT-5 (inlined
-Output Template + Validation Rubric appendices: ~464 lines)
-
-→ The 878 lines decompose into roughly four structural segments: front-matter +
-input contract (~44 lines), methodology procedure (~96 lines), interstitial
-content + companion-tool prefaces + reference-doc nav (~99 lines), companion-tool
-procedures (~175 lines), and appendices (~464 lines). Each of these would
-have to be extracted independently to drop the body under 500 lines from
-where it stands, *unless* the largest segment is removed — in which case the
-body lands near or below the target without further extractions.
-
-→ The 464 lines of inlined appendix content (53% of the body) is the segment
-that drives the budget overage. Extracting only the Phase 1–5 procedural
-blocks (the path D-04 sketched in Phase 32 CONTEXT as the anchor candidate
-for Abandoned Reasoning) saves ~96 lines and leaves the body at approximately
-782 lines — still 282 lines over the recorded target. Any extraction that
-targets methodology before appendices is targeting a segment that cannot, by
-arithmetic, deliver the claimed outcome.
+GT-1 (current body: 878 lines) + GT-2 (Phase 1–5 procedural blocks: ~96 lines) + GT-3 (six inlined companion-tool procedures: ~175 lines) + GT-5 (inlined Output Template + Validation Rubric appendices: ~464 lines)
+→ The 878 lines decompose into roughly four structural segments: front-matter + input contract (~44 lines), methodology procedure (~96 lines), interstitial content + companion-tool prefaces + reference-doc nav (~99 lines), companion-tool procedures (~175 lines), and appendices (~464 lines); each of these would have to be extracted independently to drop the body under 500 lines from where it stands, *unless* the largest segment is removed — in which case the body lands near or below the target without further extractions
+→ The 464 lines of inlined appendix content (53% of the body) is the segment that drives the budget overage. Extracting only the Phase 1–5 procedural blocks (the path D-04 sketched in Phase 32 CONTEXT as the anchor candidate for Abandoned Reasoning) saves ~96 lines and leaves the body at approximately 782 lines — still 282 lines over the recorded target. Any extraction that targets methodology before appendices is targeting a segment that cannot, by arithmetic, deliver the claimed outcome.
 
 **Confidence:** HIGH — GT-2 and GT-5 are direct line-range measurements of the
 shipped artifact. The arithmetic does not depend on any unverified input.
@@ -214,35 +181,9 @@ shipped artifact. The arithmetic does not depend on any unverified input.
 
 ### Conclusion C3: De-inlining the appendices is the minimum-cost intervention that restores the budget property, *if* the budget is treated as binding
 
-GT-4 (Output Template and Validation Rubric already exist as separate files
-under `shared/spine/references/`, 470 lines combined) + GT-5 (the agent body
-re-inlines those same files verbatim as ~464 lines of appendix content) + GT-6
-(the agent body already uses an external Layer-3 reference at line 92 with no
-observed regression) + GT-8 (the regression gates `check-agent.py --self-test`
-and `sync-content.py --check` do not depend on the appendix content being
-inlined; Check 7 verifies no unresolved sync markers, Check 8 verifies the
-four trigger phrases — neither check inspects appendix prose)
-
-→ The appendix inlining is a content duplication: the same Layer-3 reference
-material exists in two places in the source tree (`shared/spine/references/*`
-and the inlined appendix region of the agent body). Removing the appendix
-region from the agent body and replacing it with the same one-level-deep
-reference link the agent already uses at line 92 ("For the full annotated
-template, see `references/output-template.md`. For the scoring rubric, see
-`references/validation-rubric.md`.") drops the body from 878 lines to
-approximately 414 lines — under the META-Q4 budget by a wide margin — and
-preserves the agent's access to the appendix content via the same delegation
-pattern Phase 31 proved out.
-
-→ The intervention is configuration-level, not architectural: the body's
-`#first-principles-analysis-output-template` and `#validation-rubric` anchors
-get replaced with relative-path links to the existing reference files; the
-sync pipeline (`scripts/sync-content.py`) already propagates
-`shared/spine/references/*` to `first-principles/agents/references/`; no new
-content is authored and no shipped artifact is deleted. Reversibility: the
-inlining can be restored by reverting the body edit if reasoning-quality
-measurement (the GT-9? verification step) shows the de-inlining harmed agent
-performance.
+GT-4 (Output Template and Validation Rubric already exist as separate files under `shared/spine/references/`, 470 lines combined) + GT-5 (the agent body re-inlines those same files verbatim as ~464 lines of appendix content) + GT-6 (the agent body already uses an external Layer-3 reference at line 92 with no observed regression) + GT-8 (the regression gates `check-agent.py --self-test` and `sync-content.py --check` do not depend on the appendix content being inlined; Check 7 verifies no unresolved sync markers, Check 8 verifies the four trigger phrases — neither check inspects appendix prose)
+→ The appendix inlining is a content duplication: the same Layer-3 reference material exists in two places in the source tree (`shared/spine/references/*` and the inlined appendix region of the agent body); removing the appendix region from the agent body and replacing it with the same one-level-deep reference link the agent already uses at line 92 drops the body from 878 lines to approximately 414 lines — under the META-Q4 budget by a wide margin — and preserves the agent's access to the appendix content via the same delegation pattern Phase 31 proved out
+→ The intervention is configuration-level, not architectural: the body's `#first-principles-analysis-output-template` and `#validation-rubric` anchors get replaced with relative-path links to the existing reference files; the sync pipeline (`scripts/sync-content.py`) already propagates `shared/spine/references/*` to `first-principles/agents/references/`; no new content is authored and no shipped artifact is deleted. Reversibility: the inlining can be restored by reverting the body edit if reasoning-quality measurement (the GT-9? verification step) shows the de-inlining harmed agent performance.
 
 **Confidence:** MEDIUM — the chain's structure is HIGH; the *recommendation to
 act* inherits the MEDIUM rating from Chain 1's GT-9? dependency. If the budget
@@ -369,10 +310,10 @@ budget's load-bearingness.
 
 ## 6. Conclusion
 
-**Recommended approach:** Execute one configuration-level intervention and
+**Recommended approach:** (chains C1, C2 and C3) Execute one configuration-level intervention and
 commission one measurement, in parallel.
 
-1. **De-inline the Output Template and Validation Rubric appendices** from
+1. **De-inline the Output Template and Validation Rubric appendices** (chain C3) from
    `first-principles/agents/first-principles.md`. Replace the appendix region
    (currently lines 415–878) with two one-line external references in the
    `### Reference docs` block that already exists at line 226: a link to
@@ -384,7 +325,7 @@ commission one measurement, in parallel.
    414 lines, comfortably under the META-Q4 budget of ~500. The intervention is
    fully reversible by reverting the body edit.
 
-2. **Commission the GT-9? measurement** that would settle whether body-size
+2. **Commission the GT-9? measurement** (chain C1) that would settle whether body-size
    reduction *matters* for agent reasoning quality. The minimum form is a
    small A/B: run the EVAL-01 climbing-gym fixture (or an equivalent rigor
    probe) against both the pre-intervention 878-line body and the
@@ -403,7 +344,7 @@ measurement is justified independently of the intervention because META-Q4
 will continue to fire on every future content addition and the gate's
 binding force should be settled rather than inherited from convention.
 
-**Key insight:** The cognitively-available response to "the agent body is
+**Key insight:** (chains C1 and C2) The cognitively-available response to "the agent body is
 878 lines vs. a ~500-line budget" is to extract the most procedural-looking
 content — the Phase 1–5 methodology blocks. That response is wrong on
 arithmetic before any reasoning-quality argument is made: the methodology
@@ -421,7 +362,7 @@ extraction problem.
 
 **Trade-offs acknowledged:**
 
-- The de-inlining intervention costs the agent one additional read hop for
+- (chain C3) The de-inlining intervention costs the agent one additional read hop for
   Output Template and Validation Rubric content. The Phase 31 delegation
   precedent (GT-6) shows the hop is workable for catalog-style reference
   content; the appendices are also Layer-3 reference content (they exist
@@ -429,30 +370,30 @@ extraction problem.
   thus structurally analogous to the precedent. The trade-off is real but
   small and reversible.
 
-- The intervention does not touch the inlined companion-tool procedures
+- (chains C2 and C3) The intervention does not touch the inlined companion-tool procedures
   (~175 lines, GT-3) or the Phase 1–5 methodology blocks (~96 lines, GT-2).
   Both remain inline. The v3.0 inlining rationale named methodology and
   companion tools specifically; this intervention respects that rationale
   while interrogating the part of v3.0 that was not separately justified —
   the appendix re-inlining of files that already existed as references.
 
-- The MEDIUM confidence on Chain 1 carries into the recommendation: if the
+- (chain C1) The MEDIUM confidence on chain C1 carries into the recommendation: if the
   GT-9? measurement shows the budget tracks nothing measurable, the
   intervention is still defensible on deduplication grounds but no longer
   has an analytical-rigor justification. The measurement is what
   distinguishes a deduplication win from a rigor win; it should not be
   deferred indefinitely.
 
-- The recommendation does not perform the more ambitious restructure
+- (chains C2 and C3) The recommendation does not perform the more ambitious restructure
   candidates that were considered and abandoned (Phase 1–5 extraction,
   full rewrite). Those remain available as future moves if measurement
   later identifies them as warranted; the false-dichotomy assumption in
   Section 2 is discharged by the existence of the de-inlining
   intermediate.
 
-**Confidence:** MEDIUM — Chain 2 (where the budget overage actually lives)
-is HIGH confidence; Chain 3 (the intervention removes it) is HIGH
-confidence on arithmetic and configuration; Chain 1 (the budget's
+**Confidence:** MEDIUM — chain C2 (where the budget overage actually lives)
+is HIGH confidence; chain C3 (the intervention removes it) is HIGH
+confidence on arithmetic and configuration; chain C1 (the budget's
 underlying property) inherits MEDIUM from GT-9?. The recommendation
 proceeds at MEDIUM because the GT-9? verification step is named, scoped,
 and executable rather than open-ended. Confidence rises to HIGH once the
