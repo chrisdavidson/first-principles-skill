@@ -904,12 +904,22 @@ def _corpus_citation_mutation_site(
     """(c) citation removal: the absolute [start, end) span of the first
     section-6 citation -- an inline `(chain Cn)`/`(chains Cn and Cm)`
     parenthetical, tried first, or a structural closure-ledger row's
-    arrow-to-chain-id tail, tried as a fallback. Every item in this corpus
-    carries an inline citation (verified live, 19-06-SUMMARY.md); the
-    ledger fallback exists for a future item that uses the ledger form
-    exclusively -- none does today (0 structural ledger rows across all
-    13 items, measured), so this branch is untested against real corpus
-    bytes and is documented as such rather than silently assumed correct.
+    arrow-to-chain-id tail, tried as a fallback.
+
+    Re-measured (Phase 19, plan 19-08 Task 3) rather than transcribed: exactly ONE
+    structural ledger row exists across all thirteen corpus items --
+    `t01-ledger-arbitrary-chain`'s own 999.2-seed-case ledger row (measured via
+    `_closure_ledger_fragments`, command and verbatim output in 19-08-SUMMARY.md). The
+    prior claim of zero was false. Despite that one row existing, the ledger fallback
+    branch below is STILL never exercised against real corpus bytes: `t01` ALSO carries
+    inline `(chain Cn)` citations earlier in the same section-6 body, and
+    `_INLINE_CHAIN_CITE_RE.search` matches on the FIRST inline occurrence anywhere in
+    `section6` regardless of where the ledger row sits, so this function always returns
+    from the inline branch before ever reaching the fallback below. The branch remains
+    genuinely untested against real corpus bytes -- for a different, now-measured
+    reason ("an inline citation always wins the search when both forms coexist in one
+    document") rather than the previous false one ("no ledger row exists to test
+    against").
     """
     m = _INLINE_CHAIN_CITE_RE.search(section6)
     if m is not None:
@@ -1466,12 +1476,32 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
         "B2: reachable by nothing this project ships."
     )
     lines.append("")
+    caught_stems = sorted(r["analysis_id"] for r in corpus_rows if r["target_missed"] is False)
+    diverging_stems = sorted(
+        r["analysis_id"]
+        for r in corpus_rows
+        if r["no_column_fired"] is False and r["target_missed"] is True
+    )
+    nothing_fired_stems = sorted(
+        r["analysis_id"] for r in corpus_rows if r["no_column_fired"] is True
+    )
+
+    def _fmt_stems(stems: list[str]) -> str:
+        return ", ".join(f"`{s}`" for s in stems) if stems else "none"
+
     lines.append(
         "**Fixtures, not artifacts.** This section measures deliberately wrong test "
         "fixtures, never shipped artifacts. A probe reading clean is never the same "
-        "claim as an artifact conforming. A stratum-A item scoring non-clean (`t03`, "
-        "`t04`, `t05` in this corpus) is a positive control proving the run genuinely "
-        "reaches that column on shipped corpus bytes, not a defect in the corpus. The "
+        "claim as an artifact conforming. A stratum-A item is a positive control ONLY "
+        "when the column that fired is its own catalogued target -- proving the run "
+        f"genuinely reaches that column on shipped corpus bytes: {_fmt_stems(caught_stems)}. "
+        "An item on which a substantive column fired for an UNRELATED reason "
+        f"({_fmt_stems(diverging_stems)}) had its own catalogued target missed regardless "
+        "-- it is a false negative, never a positive control, no matter which column "
+        f"fired. An item on which no substantive column fired at all "
+        f"({_fmt_stems(nothing_fired_stems)}) is a false negative under the same figure. "
+        "Which item sits in which set is answered by the `target` / `target_hits` / "
+        "`target_missed` columns of the table below, never by this prose. The "
         "false-negative rate above is a measurement no phase may target (D-06): the only "
         "lever that would move it is widening a frozen detector, which CONTRACT-06 "
         "forbids."
@@ -2248,6 +2278,80 @@ def _control_render_marked_silent_parsed_from_output() -> None:
         raise AssertionError("a rendering that coerced marked/silent to 0 was not caught")
 
 
+def _control_corpus_render_no_hardcoded_stems() -> None:
+    """Phase 19 (plan 19-08 Task 3): `_render_adversarial_corpus_section`'s docstring
+    claims "nothing here is a hardcoded literal" -- this is the check that makes that
+    claim falsifiable. Renders the section from a synthetic corpus whose stems are
+    deliberately NOT `t01`..`t14` (`x01`, `x02`, `x03`, one per set: caught, diverging,
+    nothing-fired) and asserts (a) no `t0`/`t1`-prefixed stem literal appears anywhere in
+    the rendered output, and (b) the synthetic stems DO appear in the enumerations. A
+    renderer that reintroduces any hardcoded stem list fails this by finding a `t0x`
+    literal that this synthetic corpus never supplied."""
+    caught = _synthetic_row(
+        "adversarial-corpus",
+        "x01.md",
+        "x01",
+        stratum="A",
+        source="hand-authored",
+        disposition="accept-with-reason: positive control.",
+        target="dependency_cycles:c1,c2",
+        target_hits=["dependency_cycles:c1,c2"],
+        target_missed=False,
+        no_column_fired=False,
+        form_defects=0,
+    )
+    diverges = _synthetic_row(
+        "adversarial-corpus",
+        "x02.md",
+        "x02",
+        stratum="A",
+        source="hand-authored",
+        disposition="accept-with-reason: disclosed bound.",
+        target="ungrounded_chains:c1",
+        target_hits=[],
+        target_missed=True,
+        no_column_fired=False,
+        form_defects=0,
+    )
+    nothing_fired = _synthetic_row(
+        "adversarial-corpus",
+        "x03.md",
+        "x03",
+        stratum="B2",
+        source="derived:x",
+        disposition="accept-with-reason: no shipped rule reaches this.",
+        target="none",
+        target_hits=[],
+        target_missed=True,
+        no_column_fired=True,
+        form_defects=0,
+    )
+    corpus_rows = [caught, diverges, nothing_fired]
+    headline = compute_corpus_headline(corpus_rows)
+    rendered = "\n".join(_render_adversarial_corpus_section(corpus_rows, headline))
+
+    for bad in (
+        "t01",
+        "t02",
+        "t03",
+        "t04",
+        "t05",
+        "t06",
+        "t07",
+        "t08",
+        "t09",
+        "t10",
+        "t11",
+        "t12",
+        "t13",
+        "t14",
+    ):
+        assert bad not in rendered, f"hardcoded stem literal {bad!r} found in rendered output"
+
+    for good in ("x01", "x02", "x03"):
+        assert good in rendered, f"synthetic stem {good!r} missing from rendered output"
+
+
 def _control_corpus_missed_without_disposition() -> None:
     """Phase 19 (CONF-08, D-19-08-A): a synthetic corpus row set with one missed row
     carrying a real disposition and one missed row whose disposition is the literal
@@ -2906,6 +3010,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "render-marked-silent-parsed-from-output",
         _control_render_marked_silent_parsed_from_output,
     ),
+    ("corpus-render-no-hardcoded-stems", _control_corpus_render_no_hardcoded_stems),
     ("corpus-missed-without-disposition", _control_corpus_missed_without_disposition),
     ("corpus-roster-drift-detected", _control_corpus_roster_drift_detected),
     ("corpus-roster-equal-passes", _control_corpus_roster_equal_passes),
@@ -3008,6 +3113,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "marked-untraced-claim-counted",
     "unreadable-columns-are-literal",
     "render-marked-silent-parsed-from-output",
+    "corpus-render-no-hardcoded-stems",
     "corpus-missed-without-disposition",
     "corpus-roster-drift-detected",
     "corpus-roster-equal-passes",
