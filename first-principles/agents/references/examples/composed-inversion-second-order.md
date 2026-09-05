@@ -22,7 +22,7 @@ upgrade conditional on a documented staleness budget."
 
 ---
 
-## Problem Statement
+## 1. Problem Essence
 
 **The claim.** "Adding a Redis read-through cache in front of our Postgres-backed
 product-listings API will cut p95 latency and reduce database load enough to defer the
@@ -95,7 +95,7 @@ each precondition as a row attributed to the inversion pass.
 
 ---
 
-## Classified Assumptions Table
+## 2. Assumptions Table
 
 Each row carries a Type drawn from the four-type scheme (factual / definitional / inferential
 / value, with the spine's `untested belief` class folded under inferential per the Phase 2
@@ -107,11 +107,11 @@ above).
 |------------|------|--------|-----------|---------|
 | The listings endpoint is the dominant contributor to Postgres read-QPS at peak | factual | direct | Verify against the existing query-log sample. | Accept — confirmed against the Q3 query-log sample; the listings endpoint is the highest read-QPS contributor at peak |
 | Redis-in-front-of-Postgres is a viable read-through pattern at our scale | convention | direct | Explicitly challenge — convention is correct in general but says nothing about whether our specific read shape benefits. | Challenge — pattern viability is not pattern fit |
-| Cache hit rate at steady state is high enough to cross the read-QPS upgrade-threshold | untested belief | inversion pass | Verify — run a shadow-read simulation against a recorded production trace, measure simulated hit rate, compare against the named QPS threshold. | unverified — flagged |
-| The cached working set fits in the Redis memory budget at the cached-payload size | untested belief | inversion pass | Verify — measure unique listing-keys seen per hour and multiply by mean cached payload size; compare against the proposed Redis instance memory. | unverified — flagged |
-| A correct invalidation path exists from listing-write to cache-invalidate with a known maximum staleness window | untested belief | inversion pass | Verify — name the invalidation mechanism (event-bus, write-through wrapper, or TTL-only) and the staleness window it guarantees. | unverified — flagged |
-| Listing reads are predominantly non-personalised at the key-cardinality level | untested belief | inversion pass | Verify — segment the recorded trace by request shape; compute the share of reads that are cacheable at the listing-id key alone. | unverified — flagged |
-| The scheduled Postgres upgrade is driven by read-side QPS and not by writes, WAL, or storage | untested belief | inversion pass | Verify — read the upgrade-justification document and confirm the binding constraint is read-side. | unverified — flagged |
+| Cache hit rate at steady state is high enough to cross the read-QPS upgrade-threshold | untested belief | inversion pass | Verify — run a shadow-read simulation against a recorded production trace, measure simulated hit rate, compare against the named QPS threshold. | Challenge — unverified; requires the scoped shadow-read simulation before this precondition can be accepted |
+| The cached working set fits in the Redis memory budget at the cached-payload size | untested belief | inversion pass | Verify — measure unique listing-keys seen per hour and multiply by mean cached payload size; compare against the proposed Redis instance memory. | Challenge — unverified; requires the working-set-size measurement against the proposed instance memory |
+| A correct invalidation path exists from listing-write to cache-invalidate with a known maximum staleness window | untested belief | inversion pass | Verify — name the invalidation mechanism (event-bus, write-through wrapper, or TTL-only) and the staleness window it guarantees. | Challenge — unverified; requires naming the invalidation mechanism and confirming its staleness window |
+| Listing reads are predominantly non-personalised at the key-cardinality level | untested belief | inversion pass | Verify — segment the recorded trace by request shape; compute the share of reads that are cacheable at the listing-id key alone. | Challenge — unverified; requires the request-shape segmentation of the recorded trace |
+| The scheduled Postgres upgrade is driven by read-side QPS and not by writes, WAL, or storage | untested belief | inversion pass | Verify — read the upgrade-justification document and confirm the binding constraint is read-side. | Challenge — unverified; requires confirming the binding constraint against the upgrade-justification document |
 | A two-engineer-week cache rollout is the lowest-cost intervention to defer the upgrade | value | direct | Explicitly challenge — challenge the framing that "defer the upgrade" is the right outcome to optimise for if the upgrade addresses a different constraint. | Challenge — outcome-framing dependent on the upgrade-driver row above |
 
 The inversion pass contributes five rows of type `untested belief`, attributed in the
@@ -120,7 +120,7 @@ verification step that would lift it.
 
 ---
 
-## Ground Truths
+## 3. Ground Truths
 
 Verified facts available at the point of analysis. Stable GT-IDs; `GT-N?` marks an
 unverified-but-load-bearing entry per the spine's Phase 3 discipline.
@@ -152,9 +152,9 @@ unverified-but-load-bearing entry per the spine's Phase 3 discipline.
 
 ---
 
-## Derivation Chain (first-order)
+## 4. Derivation Chains
 
-### Conclusion: The Redis cache plausibly defers the upgrade if and only if `GT-5?` resolves to a measured hit rate above the named threshold
+### Conclusion C1: The Redis cache plausibly defers the upgrade if and only if `GT-5?` resolves to a measured hit rate above the named threshold
 
 GT-1 (listings endpoint is the dominant Postgres read-QPS contributor at peak) + GT-2 (upgrade is driven by read-QPS, not writes, WAL, or storage) + GT-5? (steady-state hit rate above the named threshold — load-bearing, unverified)
 → A read-side cache placed in front of the dominant read contributor reduces the read-QPS the binding-constraint resource sees, because the upgrade's binding constraint is read-QPS on the same resource — the same axis the upgrade was scheduled to relieve
@@ -221,7 +221,7 @@ than back to Phase 2 — the conclusion stands, conditional on a new acceptance 
 
 ---
 
-## Abandoned Reasoning
+## 5. Abandoned Reasoning
 
 ### Dead End: Skip inversion and accept the surface claim because Redis-in-front-of-Postgres is a textbook pattern
 
@@ -242,7 +242,7 @@ pass before the deferral question is even on the table.
 
 ---
 
-## Conclusion
+## 6. Conclusion
 
 **The second-order pass revised the first-order conclusion.** The first-order conclusion
 ("defer the upgrade if and only if GT-5? resolves above the threshold") is necessary but
@@ -250,17 +250,17 @@ not sufficient. Second-order surfaced a customer-facing staleness consequence th
 appear in the original claim and that the first-order chain did not name. The revised
 conclusion adds a documented staleness budget as a second acceptance criterion.
 
-**Recommended approach.** Approve the two-engineer-week cache rollout conditional on
-(a) running the scoped shadow-read simulation to resolve GT-5? and confirming the measured
-steady-state hit rate clears the named threshold, and (b) committing to event-driven
-invalidation against the existing event bus (GT-4) with a documented staleness budget — not
-TTL-only — before the cache is taken as load-bearing for the upgrade-deferral decision. If
-either acceptance criterion fails, execute the scheduled Postgres upgrade as originally
-planned.
+**Recommended approach:** Approve the two-engineer-week cache rollout (chain C1) conditional
+on (a) running the scoped shadow-read simulation to resolve GT-5? and confirming the
+measured steady-state hit rate clears the named threshold, and (b) committing to
+event-driven invalidation against the existing event bus (GT-4) with a documented staleness
+budget — not TTL-only — before the cache is taken as load-bearing for the upgrade-deferral
+decision. If either acceptance criterion fails, execute the scheduled Postgres upgrade as
+originally planned.
 
-**Confidence:** MEDIUM — matches the weakest chain (the first-order chain consumes GT-5?).
-Raising to HIGH requires GT-5? resolved and the staleness-budget acceptance criterion
-documented and signed off by the team owning downstream consumers.
+**Confidence:** MEDIUM — matches the weakest link, chain C1, which consumes GT-5? as a
+load-bearing input. Raising to HIGH requires GT-5? resolved and the staleness-budget
+acceptance criterion documented and signed off by the team owning downstream consumers.
 
 ---
 

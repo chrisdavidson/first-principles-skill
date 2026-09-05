@@ -9,17 +9,17 @@
   },
   "headline": {
     "unreadable": {
-      "shared-examples": 4,
-      "generated-twin": 4,
+      "shared-examples": 3,
+      "generated-twin": 3,
       "contract-surface": 0
     },
     "conclusion_claims": {
       "shared-examples": {
-        "total": 58,
+        "total": 60,
         "untraced": 58
       },
       "generated-twin": {
-        "total": 58,
+        "total": 60,
         "untraced": 58
       },
       "contract-surface": {
@@ -43,11 +43,11 @@
     },
     "verdict_cells": {
       "shared-examples": {
-        "total": 69,
+        "total": 77,
         "nonconforming": 69
       },
       "generated-twin": {
-        "total": 69,
+        "total": 77,
         "nonconforming": 69
       },
       "contract-surface": {
@@ -57,11 +57,11 @@
     },
     "section4_chain_blocks": {
       "shared-examples": {
-        "total": 27,
+        "total": 28,
         "malformed": 19
       },
       "generated-twin": {
-        "total": 27,
+        "total": 28,
         "malformed": 19
       },
       "contract-surface": {
@@ -93,22 +93,22 @@
     {
       "surface": "shared-examples",
       "relpath": "shared/examples/composed-inversion-second-order.md",
-      "section_resolution": "SectionResolutionError: expected sections 1-6 to resolve in order, resolved []",
+      "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,
       "analysis_id": "composed-inversion-second-order",
-      "conclusion_claims": "unreadable",
-      "untraced_claims": "unreadable",
-      "untraced_flag": "unreadable",
-      "verdict_cells": "unreadable",
-      "nonconforming_verdict_cells": "unreadable",
-      "verdict_flag": "unreadable",
-      "chain_blocks": "unreadable",
-      "malformed_chain_blocks": "unreadable",
-      "chain_flag": "unreadable",
-      "dependency_cycles": "unreadable",
-      "ungrounded_chains": "unreadable",
-      "selfaudit_disagreements": "unreadable",
+      "conclusion_claims": 2,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
+      "verdict_cells": 8,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
+      "chain_blocks": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
+      "dependency_cycles": 0,
+      "ungrounded_chains": 0,
+      "selfaudit_disagreements": 0,
       "provenance_labels": "n/a",
       "unmatched_sources": "n/a",
       "unreadable_sources": "n/a",
@@ -118,8 +118,8 @@
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
-      "marked_untraced_claims": "unreadable",
-      "silent_untraced_claims": "unreadable"
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -527,22 +527,22 @@
     {
       "surface": "generated-twin",
       "relpath": "first-principles/agents/references/examples/composed-inversion-second-order.md",
-      "section_resolution": "SectionResolutionError: expected sections 1-6 to resolve in order, resolved []",
+      "section_resolution": "OK",
       "heading_chain_blocks": 1,
       "heading_malformed_blocks": 0,
       "analysis_id": "composed-inversion-second-order",
-      "conclusion_claims": "unreadable",
-      "untraced_claims": "unreadable",
-      "untraced_flag": "unreadable",
-      "verdict_cells": "unreadable",
-      "nonconforming_verdict_cells": "unreadable",
-      "verdict_flag": "unreadable",
-      "chain_blocks": "unreadable",
-      "malformed_chain_blocks": "unreadable",
-      "chain_flag": "unreadable",
-      "dependency_cycles": "unreadable",
-      "ungrounded_chains": "unreadable",
-      "selfaudit_disagreements": "unreadable",
+      "conclusion_claims": 2,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
+      "verdict_cells": 8,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
+      "chain_blocks": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
+      "dependency_cycles": 0,
+      "ungrounded_chains": 0,
+      "selfaudit_disagreements": 0,
       "provenance_labels": "n/a",
       "unmatched_sources": "n/a",
       "unreadable_sources": "n/a",
@@ -552,8 +552,8 @@
       "zero_literal_gts": "n/a",
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
-      "marked_untraced_claims": "unreadable",
-      "silent_untraced_claims": "unreadable"
+      "marked_untraced_claims": 0,
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
