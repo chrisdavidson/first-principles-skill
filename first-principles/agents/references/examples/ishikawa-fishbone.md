@@ -125,14 +125,14 @@ intervention set that addresses the verified ones?"
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| Feature gaps versus competitors are causing churn | untested belief | Verify — establish whether churned accounts requested specific missing features available from competitors they switched to. | Challenge | unverified — flagged; exit interviews mention feature gaps in 7 of 23 churned accounts but do not specify which features; requires win/loss analysis |
-| Competitor pricing is undercutting Northbrook's renewals | untested belief | Verify — benchmark competitor pricing against Northbrook's average contract value before treating this as a confirmed contributor. | Challenge | unverified — flagged; two new entrants have launched but their pricing has not been benchmarked against Northbrook's contract structure |
-| Onboarding failure leaves customers under-activated | untested belief | Verify — compare feature-adoption scores and time-to-first-insight between churned and retained cohorts. | Challenge | unverified — flagged; adoption scores are collected but not segmented by churn outcome; requires a data pull |
-| Accounts without a dedicated CSM churn at a higher rate | untested belief | Verify — segment churn rate by CSM coverage status; if the $18K–$25K tier has a materially higher rate than covered tiers, the coverage gap is a confirmed contributor. | Challenge | unverified — flagged; exit-interview signal is present (11 of 23 churned accounts) but cohort-level comparison has not been run |
-| The absence of a recurring CS capacity-review process is the structural root cause of the coverage gap | untested belief | Verify — confirm that no capacity-review process exists and that the ratio has drifted beyond the design threshold; confirmed via CS Director debrief. | Accept | Confirmed: CS Director confirmed ratios are reviewed only at annual planning; CSM-to-account ratio in the $18K–$25K tier is currently 1:67 vs. a design threshold of 1:40 |
-| New feature value is not communicated to existing customers | untested belief | Verify — measure open and click-through rates on in-app changelog and renewal-cycle emails. | Challenge | unverified — flagged; CS team reports low feature-awareness anecdotally but engagement data has not been pulled |
-| Customers are not achieving the productivity outcome promised at sale | untested belief | Verify — compare workflow-automation rate across a statistically valid sample of active accounts against the sales-demo benchmark. | Challenge | unverified — flagged; ~40% shortfall is a preliminary estimate from 4 accounts only |
-| A full product overhaul is required to halt churn | convention | Explicitly challenge — the instinct to "fix the product" when churn rises is a common convention; the highest-frequency exit-interview signal is "felt unsupported," not a product-feature complaint. | Challenge | Not supported by available evidence; product-overhaul framing is premature |
+| Feature gaps versus competitors are causing churn | untested belief | Verify — establish whether churned accounts requested specific missing features available from competitors they switched to. | Challenge — unverified; feature gaps cited by 7 of 23 churned accounts but unspecified; needs win/loss analysis | unverified — flagged; exit interviews mention feature gaps in 7 of 23 churned accounts but do not specify which features; requires win/loss analysis |
+| Competitor pricing is undercutting Northbrook's renewals | untested belief | Verify — benchmark competitor pricing against Northbrook's average contract value before treating this as a confirmed contributor. | Challenge — unverified; two entrants launched but pricing not benchmarked against Northbrook's contracts | unverified — flagged; two new entrants have launched but their pricing has not been benchmarked against Northbrook's contract structure |
+| Onboarding failure leaves customers under-activated | untested belief | Verify — compare feature-adoption scores and time-to-first-insight between churned and retained cohorts. | Challenge — unverified; adoption scores exist but not segmented by churn outcome; needs a data pull | unverified — flagged; adoption scores are collected but not segmented by churn outcome; requires a data pull |
+| Accounts without a dedicated CSM churn at a higher rate | untested belief | Verify — segment churn rate by CSM coverage status; if the $18K–$25K tier has a materially higher rate than covered tiers, the coverage gap is a confirmed contributor. | Challenge — unverified; signal present in 11 of 23 churned accounts but cohort comparison not run | unverified — flagged; exit-interview signal is present (11 of 23 churned accounts) but cohort-level comparison has not been run |
+| The absence of a recurring CS capacity-review process is the structural root cause of the coverage gap | untested belief | Verify — confirm that no capacity-review process exists and that the ratio has drifted beyond the design threshold; confirmed via CS Director debrief. | Accept — confirmed: reviewed only annually; ratio 1:67 vs. 1:40 design threshold in the $18K–$25K tier | Confirmed: CS Director confirmed ratios are reviewed only at annual planning; CSM-to-account ratio in the $18K–$25K tier is currently 1:67 vs. a design threshold of 1:40 |
+| New feature value is not communicated to existing customers | untested belief | Verify — measure open and click-through rates on in-app changelog and renewal-cycle emails. | Challenge — unverified; low feature-awareness reported anecdotally but engagement data not pulled | unverified — flagged; CS team reports low feature-awareness anecdotally but engagement data has not been pulled |
+| Customers are not achieving the productivity outcome promised at sale | untested belief | Verify — compare workflow-automation rate across a statistically valid sample of active accounts against the sales-demo benchmark. | Challenge — unverified; ~40% shortfall is a preliminary estimate from only 4 accounts | unverified — flagged; ~40% shortfall is a preliminary estimate from 4 accounts only |
+| A full product overhaul is required to halt churn | convention | Explicitly challenge — the instinct to "fix the product" when churn rises is a common convention; the highest-frequency exit-interview signal is "felt unsupported," not a product-feature complaint. | Challenge — not supported by evidence; product-overhaul framing is premature | Not supported by available evidence; product-overhaul framing is premature |
 
 ---
 
@@ -239,7 +239,7 @@ would address more cheaply.
 
 ## 6. Conclusion
 
-**Recommended approach:** Execute in two ordered stages.
+**Recommended approach:** (chains C1, C2 and C3) Execute in two ordered stages.
 
 Stage 1 — fix the verified structural cause (4–8 weeks): establish a quarterly CS capacity
 review with a ratio trigger (CSM-to-account ratio exceeds 1:45 → coverage model reviewed
@@ -253,21 +253,21 @@ decisions are made 90–120 days before expiry; segment adoption scores by churn
 
 Do not commit to a product overhaul, UI refresh, or all-8P programme until Stage 2 is done.
 
-**Key insight:** A fishbone brainstorm generates a well-organised list of hypotheses — it
+**Key insight:** (chains C1 and C2) A fishbone brainstorm generates a well-organised list of hypotheses — it
 does not generate verified causes. After Phase 2 classification, the eight 8P cause-map
 branches and their sub-causes collapsed to a narrow verified set; the highest-confidence
 intervention set is narrow, cheap, and fast relative to the 14-sprint programme the brainstorm
 appeared to demand. The Phase 2 challenge step is the mechanism that separates the two
 outcomes.
 
-**Trade-offs acknowledged:** Stage 1 addresses the verified cause of ~48% of the churn
+**Trade-offs acknowledged:** (chains C1 and C3) Stage 1 addresses the verified cause of ~48% of the churn
 signal; the remaining ~52% represent an unresolved causal cluster Stage 2 is designed to
 illuminate. Adding CSM coverage has an immediate cost and may require trade-offs in
 higher-value-tier coverage; the quarterly capacity review makes that trade-off governed.
 Deferring the UI refresh accepts the risk that a second verified contributor emerges
 requiring longer-lead-time product investment.
 
-**Confidence:** MEDIUM — Stage 1 is HIGH confidence (GT-1 through GT-4, all verified).
+**Confidence:** MEDIUM — Stage 1 is HIGH confidence (GT-1 through GT-4, all verified; chains C1 and C2).
 Overall is MEDIUM because the full causal picture depends on GT-5? (unverified). Raising
 to HIGH requires the Stage 2 productivity-outcome survey with a statistically valid sample.
 
