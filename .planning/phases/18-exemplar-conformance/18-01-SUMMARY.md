@@ -167,6 +167,17 @@ None - no external service configuration required.
 - No blockers. `scripts/check-quality-harness.py` remains untouched and all three sha256
   CONTRACT-06 pins are intact.
 
+## Self-Check: PASSED
+
+- FOUND: `scripts/report-conformance.py`
+- FOUND: `docs/conformance-baseline.md`
+- FOUND: `docs/data/conformance.json`
+- FOUND: `.planning/phases/18-exemplar-conformance/18-01-SUMMARY.md`
+- FOUND commit: `9584f18` (Task 1)
+- FOUND commit: `767a4ad` (Task 2)
+- FOUND commit: `cf77128` (Task 3)
+- FOUND commit: `94e2682` (this summary)
+
 ---
 *Phase: 18-exemplar-conformance*
 *Completed: 2026-09-05*
