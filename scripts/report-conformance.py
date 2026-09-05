@@ -526,16 +526,18 @@ def render_markdown(
         if isinstance(headline["untraced_breakdown"][s]["marked"], int)
     )
     lines.append(
-        "**2. Marked-claim residual (derived).** "
+        "**2. Marked-claim residual (derived) — a ratchet as of Phase 18 (CONF-GATE).** "
         f"{marked_total} claim(s) across shared-examples and generated-twin carry the "
         "`no chain — flagged assumption only` marker "
         f"(shared-examples: {headline['untraced_breakdown']['shared-examples']['marked']}, "
         f"generated-twin: {headline['untraced_breakdown']['generated-twin']['marked']}), "
-        "computed from `rows` at render time, never hardcoded. A marked caveat still "
-        "scores untraced BY DESIGN (`R-CLAIM-CAVEAT-MARKED`): the marker discloses the "
-        "gap, it does not discharge the claim. Driving the `untraced_claims` reading "
-        "itself to zero would mean inventing citations, which is the failure mode the "
-        "bound exists to prevent."
+        "computed from `rows` at render time, never hardcoded. This figure was "
+        "established by Phase 18's exemplar-conformance pass rather than pre-declared, "
+        "and it is now pinned by `scripts/check-conf-gate.py`'s `_MARKED_RATCHET`: the "
+        "reading may fall, never rise. A marked caveat still scores untraced BY DESIGN "
+        "(`R-CLAIM-CAVEAT-MARKED`): the marker discloses the gap, it does not discharge "
+        "the claim. Driving the `untraced_claims` reading itself to zero would mean "
+        "inventing citations, which is the failure mode the bound exists to prevent."
     )
     lines.append("")
     lines.append(
