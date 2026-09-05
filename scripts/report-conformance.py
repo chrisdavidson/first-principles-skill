@@ -243,23 +243,105 @@ _CORPUS_CATALOG_COLUMNS: dict[str, str] = {
     "What is false": "what_is_false",
     "Rule that ought to catch it": "ought_to_catch",
     "Disposition": "disposition",
+    "Target": "target",
 }
 _VALID_STRATA: frozenset[str] = frozenset({"A", "B1", "B2"})
+
+# Phase 19 (CONF-08, D-19-08-B): the closed vocabulary the catalog's `Target`
+# column is validated against -- the three `detect_defects` columns with
+# genuine substantive reach. `Target` is deliberately scoped to these three:
+# a stratum-B1 item reachable only by PROV-GUARD reads the literal `none`
+# here, which does not mean "nothing reaches it" -- the `Stratum` column and
+# `Rule that ought to catch it` prose carry that distinction instead.
+_CORPUS_TARGET_COLUMNS: frozenset[str] = frozenset(
+    {"dependency_cycles", "ungrounded_chains", "selfaudit_disagreements"}
+)
+
+
+def _parse_corpus_target(cell: str) -> tuple[list[tuple[str, list[str]]], list[str]]:
+    """Parse one `Target` cell into `(pairs, problems)`.
+
+    Grammar (closed; an unrecognised shape is reported by name, never
+    silently accepted or silently dropped): the literal `none` (a stratum-B1
+    or B2 item with no `detect_defects` target), or one or more `;`-joined
+    `<column>:<selector>` terms, `<column>` one of `_CORPUS_TARGET_COLUMNS`,
+    `<selector>` a comma-joined list (chain ids for `dependency_cycles`/
+    `ungrounded_chains`, integer criterion numbers for
+    `selfaudit_disagreements`).
+
+    On ANY problem anywhere in the cell, the returned pair list is EMPTY --
+    a cell that is partly well-formed and partly malformed is not partially
+    trusted; every problem found is still reported by name in the second
+    return value, so a floor built on this has something to name. This
+    mirrors `parse_corpus_catalog`'s own "never silently drop, report as a
+    problem instead" discipline for the row as a whole.
+    """
+    problems: list[str] = []
+    stripped = cell.strip()
+
+    if not stripped:
+        return [], ["empty Target cell"]
+    if stripped == "none":
+        return [], []
+
+    pairs: list[tuple[str, list[str]]] = []
+    for term in stripped.split(";"):
+        term = term.strip()
+        if ":" not in term:
+            problems.append(f"term has no ':': {term!r}")
+            continue
+        column, _, selector_str = term.partition(":")
+        column = column.strip()
+        selector_str = selector_str.strip()
+        if column not in _CORPUS_TARGET_COLUMNS:
+            problems.append(
+                f"unknown column {column!r} (expected one of "
+                f"{sorted(_CORPUS_TARGET_COLUMNS)})"
+            )
+            continue
+        if not selector_str:
+            problems.append(f"empty selector for column {column!r}")
+            continue
+        selectors = [s.strip() for s in selector_str.split(",")]
+        if any(not s for s in selectors):
+            problems.append(f"empty selector element in {term!r}")
+            continue
+        if column == "selfaudit_disagreements":
+            non_integers = [s for s in selectors if not s.isdigit()]
+            if non_integers:
+                problems.append(
+                    f"selfaudit_disagreements selector not an integer: {non_integers!r}"
+                )
+                continue
+        pairs.append((column, selectors))
+
+    if problems:
+        return [], problems
+    return pairs, []
 
 
 def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
     """Parse `ADVERSARIAL_CORPUS_CATALOG`'s `## Catalog` table into
     `{stem: {"stratum": ..., "source": ..., "what_is_false": ..., "ought_to_catch": ...,
-    "disposition": ...}}`, keyed by the `File` column (the artifact stem, matching
-    `Artifact.analysis_id`).
+    "disposition": ..., "target": ..., "parsed_target": ...}}`, keyed by the `File` column
+    (the artifact stem, matching `Artifact.analysis_id`).
 
-    Parses by locating the header row containing all seven column names, then reading the
+    Parses by locating the header row containing all eight column names, then reading the
     `|`-delimited data rows beneath it, mapping BY HEADER NAME, never by position -- a
     future column insertion must not silently shift the parse. Never silently drops a
     malformed row: a row whose `File` cell is empty, or whose `Stratum` cell is not one of
     A/B1/B2, is returned as a parse problem in the second tuple element instead, so a
     floor built on this function's output can report parse failures by name rather than
     seeing a shorter dict than expected.
+
+    Phase 19 (CONF-08, D-19-08-B): the `Target` cell is additionally run through
+    `_parse_corpus_target`. A `Target` that fails to parse does NOT drop the row -- the
+    entry is still returned, with `target` set to the raw cell text and `parsed_target`
+    empty, so a later floor (the roster/disposition floors this feeds) has something to
+    name -- and every problem `_parse_corpus_target` reports is folded into this
+    function's own *problems* list, prefixed `CATALOG TARGET PARSE FAIL — <file>: <reason>`
+    so `_corpus_roster_problems` reports it alongside the existing `CATALOG PARSE FAIL`
+    strings, never as a second, separately-consumed channel.
     """
     text = (repo_root / ADVERSARIAL_CORPUS_CATALOG).read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -311,18 +393,25 @@ def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
             )
             continue
 
+        target_cell = cells[col_index["Target"]]
+        parsed_target, target_problems = _parse_corpus_target(target_cell)
+        for reason in target_problems:
+            problems.append(f"CATALOG TARGET PARSE FAIL — {file_cell}: {reason}")
+
         entries[file_cell] = {
             "stratum": stratum_cell,
             "source": cells[col_index["Source"]],
             "what_is_false": cells[col_index["What is false"]],
             "ought_to_catch": cells[col_index["Rule that ought to catch it"]],
             "disposition": cells[col_index["Disposition"]],
+            "target": target_cell,
+            "parsed_target": parsed_target,
         }
 
     return entries, problems
 
 
-def build_row(artifact: Artifact) -> dict:
+def build_row(artifact: Artifact, _audit_record_out: dict | None = None) -> dict:
     """D-03's partial row: the heading census runs FIRST and unconditionally, so a
     document `_slice_sections` rejects still carries a real heading-sweep reading rather
     than losing that datum along with everything `detect_defects` would have produced.
@@ -333,6 +422,15 @@ def build_row(artifact: Artifact) -> dict:
     detect_defects never running changes nothing about capture availability); the literal
     "unreadable" means `_slice_sections` rejected the document, so the twelve measured
     schema fields were never computed.
+
+    Phase 19 (CONF-08): *_audit_record_out*, when given a dict, is populated IN PLACE with
+    the raw `detect_defects` return record (including its underscore-prefixed audit-only
+    fields, e.g. `_dependency_cycles`) whenever the document is readable -- a private
+    channel `build_corpus_row` uses to reach those fields without a second `detect_defects`
+    call and without widening this function's own return schema for the other three
+    surfaces (shared-examples, generated-twin, contract-surface never pass this argument).
+    Left empty (never populated) when the document is unreadable, matching `row`'s own
+    "no `detect_defects` record exists" state for that case.
     """
     text = artifact.path.read_text(encoding="utf-8")
 
@@ -362,6 +460,8 @@ def build_row(artifact: Artifact) -> dict:
         )
         row["marked_untraced_claims"] = marked_untraced
         row["silent_untraced_claims"] = row["untraced_claims"] - marked_untraced
+        if _audit_record_out is not None:
+            _audit_record_out.update(record)
     except SectionResolutionError as exc:
         row["section_resolution"] = f"SectionResolutionError: {exc}"
         for field in _DEFECT_RECORD_FIELDS:
@@ -400,45 +500,112 @@ _CORPUS_SUBSTANTIVE_FIELDS: tuple[str, ...] = (
 )
 
 
+def _corpus_target_hits(
+    record: dict, parsed_targets: list[tuple[str, list[str]]]
+) -> list[str]:
+    """Phase 19 (CONF-08, D-19-08-B): given a raw `detect_defects` return *record* (its
+    underscore-prefixed audit fields specifically) and a `_parse_corpus_target`-parsed
+    pair list, return the sorted list of `<column>:<selector>` target terms that HIT --
+    using the record's own audit fields and nothing else.
+
+    Chain-SCOPED, never column-scoped -- this is the load-bearing reason this join has
+    this shape rather than a simpler one. `t13`'s catalogued target is chain C1
+    specifically; its measured `_ungrounded_chains` names c2 and c3. A column-level join
+    ("did `ungrounded_chains` fire at all?") would score `t13` CAUGHT -- the exact wrong
+    answer the 19-VERIFICATION.md gap named, reached by a different route. Comparing chain
+    ids case-insensitively (the audit lists are already lowercased; catalog values are
+    written lowercase) is what lets this distinguish "the catalogued chain was flagged"
+    from "a different chain was flagged".
+
+    `dependency_cycles:<ids>` / `ungrounded_chains:<ids>` hit iff any named id appears in
+    `record["_dependency_cycles"]` / `record["_ungrounded_chains"]`.
+    `selfaudit_disagreements:<n>` hits iff any entry in `record["_selfaudit_disagreements"]`
+    has `criterion` equal to `int(n)`.
+    """
+    hits: list[str] = []
+    for column, selectors in parsed_targets:
+        if column in ("dependency_cycles", "ungrounded_chains"):
+            audit_ids = {str(i).lower() for i in record.get(f"_{column}", [])}
+            if any(s.lower() in audit_ids for s in selectors):
+                hits.append(f"{column}:{','.join(selectors)}")
+        elif column == "selfaudit_disagreements":
+            wanted_criteria = {int(s) for s in selectors}
+            disagreement_criteria = {
+                d.get("criterion") for d in record.get("_selfaudit_disagreements", [])
+            }
+            if wanted_criteria & disagreement_criteria:
+                hits.append(f"{column}:{','.join(selectors)}")
+    return sorted(hits)
+
+
 def build_corpus_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
     """A thin wrapper over `build_row` -- never a second `detect_defects` call and never a
-    reimplementation. Calls `build_row(artifact)` verbatim, then merges in the joined
-    catalog fields (`stratum`, `source`, `disposition`) plus two computed fields:
+    reimplementation. Calls `build_row(artifact, _audit_record_out)` exactly once (the
+    `_audit_record_out` private channel surfaces the raw `detect_defects` record's
+    underscore-prefixed audit fields without widening `build_row`'s own return schema for
+    the other three surfaces), then merges in the joined catalog fields (`stratum`,
+    `source`, `disposition`, `target`) plus four computed fields:
 
-    `fully_clean` is True iff `section_resolution == "OK"` and every field in both
-    `_CORPUS_FORM_FIELDS` and `_CORPUS_SUBSTANTIVE_FIELDS` reads the integer 0. An
-    "unreadable" row is never fully_clean -- a document the detector could not read was
-    not missed, and counting it as a false negative would be wrong (19-CONTEXT.md
-    `<specifics>`).
+    `no_column_fired` (Phase 19, CONF-08 -- the renamed identifier this predicate used to
+    carry conflated two distinct concepts under one clean-sounding name) is True iff
+    `section_resolution == "OK"` and every field in both `_CORPUS_FORM_FIELDS` and
+    `_CORPUS_SUBSTANTIVE_FIELDS` reads the integer 0. It means exactly what its name
+    says -- no `detect_defects` column fired on this document -- and NEVER means "the
+    item's catalogued falsehood was caught"; `t13-grounded-alongside-cyclic-ref` is live
+    proof the two diverge (its `no_column_fired` reads False because an unrelated column
+    fires, while its own catalogued target is never flagged). This field is a per-row
+    DIAGNOSTIC, demoted from the published headline it used to drive.
+
+    `target_hits` is the sorted list `_corpus_target_hits` returns for this item's parsed
+    catalog `Target` against its own `detect_defects` audit fields.
+
+    `target_missed` -- **the field the published false-negative figure keys on** -- is
+    True iff `target_hits` is empty. A `Target` of `none` is therefore ALWAYS
+    `target_missed=True`: no `detect_defects` column is this item's catalogued target, so
+    `detect_defects` cannot have caught it. A row with no catalog entry at all (`target`
+    the literal "MISSING") is likewise always `target_missed=True`. An **unreadable** row
+    is `target_missed=True` and `no_column_fired=False` -- unchanged from how an
+    unreadable row was always scored non-clean under the predicate this replaces.
 
     `form_defects` is the summed `_CORPUS_FORM_FIELDS` when readable, and the literal
     "unreadable" otherwise -- preserving `build_row`'s three-way column vocabulary rather
     than coercing an unreadable row's absence of a count into 0.
 
     If *catalog_entry* is None (the artifact has no catalog row), `stratum`/`source`/
-    `disposition` are populated with the literal "MISSING" rather than omitted, so the row
-    still renders and a later floor has something to name. The row is never dropped.
+    `disposition`/`target` are populated with the literal "MISSING" rather than omitted,
+    so the row still renders and a later floor has something to name. The row is never
+    dropped.
     """
-    row = build_row(artifact)
+    audit_record: dict = {}
+    row = build_row(artifact, audit_record)
 
     if catalog_entry is None:
         row["stratum"] = "MISSING"
         row["source"] = "MISSING"
         row["disposition"] = "MISSING"
+        row["target"] = "MISSING"
+        parsed_target: list[tuple[str, list[str]]] = []
     else:
         row["stratum"] = catalog_entry["stratum"]
         row["source"] = catalog_entry["source"]
         row["disposition"] = catalog_entry["disposition"]
+        row["target"] = catalog_entry["target"]
+        parsed_target = catalog_entry["parsed_target"]
 
     readable = row["section_resolution"] == "OK"
     if readable:
         row["form_defects"] = sum(row[f] for f in _CORPUS_FORM_FIELDS)
-        row["fully_clean"] = all(row[f] == 0 for f in _CORPUS_FORM_FIELDS) and all(
+        row["no_column_fired"] = all(row[f] == 0 for f in _CORPUS_FORM_FIELDS) and all(
             row[f] == 0 for f in _CORPUS_SUBSTANTIVE_FIELDS
         )
+        target_hits = _corpus_target_hits(audit_record, parsed_target)
+        row["target_hits"] = target_hits
+        row["target_missed"] = len(target_hits) == 0
     else:
         row["form_defects"] = "unreadable"
-        row["fully_clean"] = False
+        row["no_column_fired"] = False
+        row["target_hits"] = []
+        row["target_missed"] = True
 
     return row
 
@@ -509,22 +676,32 @@ _VALID_DISPOSITION_PREFIXES: tuple[str, ...] = ("fix", "accept-with-reason", "de
 
 def _corpus_disposition_problems(corpus_rows: list[dict]) -> list[str]:
     """CONF-08's zero-silent-passes clause, made mechanical rather than a
-    prose promise. For every row whose `fully_clean` is True, requires a
-    `disposition` that is non-empty, is not the literal "MISSING", and
-    begins with one of `fix` / `accept-with-reason` / `defer-with-owner`.
-    A non-clean row is never checked here -- a genuine miss is expected to
-    carry whatever disposition the catalog author gave it, and the point
-    of this floor is specifically the clean-but-undisclosed case.
+    prose promise. Phase 19 (CONF-08, D-19-08-A/B): checks every row whose
+    `target_missed` is True OR whose `no_column_fired` is True -- the UNION
+    of the two predicates, never `no_column_fired` alone. This is the fix
+    for the 19-VERIFICATION.md gap: under the old single-predicate scope,
+    `t13-grounded-alongside-cyclic-ref` escaped this floor entirely (an
+    unrelated column fired on it, so it was never "clean"), even though its
+    own catalogued falsehood was silently missed -- exactly the silent pass
+    CONF-08 exists to catch. The union can only ever be a superset of the
+    old scope, never narrower, so this widening cannot let a
+    previously-checked row escape.
+
+    Requires a `disposition` that is non-empty, is not the literal
+    "MISSING", and begins with one of `fix` / `accept-with-reason` /
+    `defer-with-owner`. A row where NEITHER predicate is True is never
+    checked here -- a genuine catch, with no diagnostic column firing
+    either, needs no disclosed disposition.
     """
     problems: list[str] = []
     for r in corpus_rows:
-        if r["fully_clean"] is not True:
+        if r["target_missed"] is not True and r["no_column_fired"] is not True:
             continue
         disposition = r.get("disposition")
         if not disposition or disposition == "MISSING":
             problems.append(
-                f"SILENT PASS [{r['analysis_id']}]: scores fully clean, no "
-                "disposition recorded"
+                f"SILENT PASS [{r['analysis_id']}]: catalogued target missed or no "
+                "column fired, no disposition recorded"
             )
             continue
         if not any(disposition.startswith(p) for p in _VALID_DISPOSITION_PREFIXES):
@@ -1126,13 +1303,23 @@ def compute_headline(rows: list[dict]) -> dict:
 
 def compute_corpus_headline(corpus_rows: list[dict]) -> dict:
     """Phase 19's false-negative-rate headline. A sibling of `compute_headline`, not an
-    extra entry inside it: a corpus headline counts fully-clean ITEMS, while
+    extra entry inside it: a corpus headline counts ITEMS by predicate, while
     `compute_headline`'s `per_surface`/`_sum_measured` helpers sum a numeric field across
     a surface -- a different shape of aggregation. Every value here is derived from
     `corpus_rows` at call time; nothing is hardcoded.
+
+    Phase 19 (CONF-08, D-19-08-A): TWO keys replace the old single `clean` key.
+    `target_missed` is **the published false-negative count** -- items whose catalogued
+    falsehood `detect_defects` did not catch. `no_column_fired` is the per-row DIAGNOSTIC
+    -- items on which no substantive `detect_defects` column fired at all. The two can
+    diverge (`t13-grounded-alongside-cyclic-ref` does, by exactly one item): a column can
+    fire on an unrelated chain while the catalogued target is still missed. Exactly ONE of
+    these two is ever published as "the" rate (CONF-08's own "single figure" clause);
+    `target_missed` is that one.
     """
     total = len(corpus_rows)
-    clean = sum(1 for r in corpus_rows if r["fully_clean"] is True)
+    target_missed = sum(1 for r in corpus_rows if r["target_missed"] is True)
+    no_column_fired = sum(1 for r in corpus_rows if r["no_column_fired"] is True)
     unreadable = sum(1 for r in corpus_rows if r["section_resolution"] != "OK")
     form_defects = sum(
         r["form_defects"] for r in corpus_rows if r["section_resolution"] == "OK"
@@ -1141,24 +1328,34 @@ def compute_corpus_headline(corpus_rows: list[dict]) -> dict:
     by_stratum: dict[str, dict[str, int]] = {}
     for r in corpus_rows:
         stratum = r["stratum"]
-        bucket = by_stratum.setdefault(stratum, {"clean": 0, "total": 0})
+        bucket = by_stratum.setdefault(
+            stratum, {"target_missed": 0, "no_column_fired": 0, "total": 0}
+        )
         bucket["total"] += 1
-        if r["fully_clean"] is True:
-            bucket["clean"] += 1
+        if r["target_missed"] is True:
+            bucket["target_missed"] += 1
+        if r["no_column_fired"] is True:
+            bucket["no_column_fired"] += 1
 
-    clean_without_disposition = sum(
+    # Phase 19 (CONF-08, D-19-08-A): renamed from `clean_without_disposition`, and
+    # widened from the single predicate it used to read to the UNION
+    # `target_missed is True or no_column_fired is True` -- so this count can never be
+    # narrower than what it reported before this rename, only equal or wider.
+    missed_without_disposition = sum(
         1
         for r in corpus_rows
-        if r["fully_clean"] is True and (not r["disposition"] or r["disposition"] == "MISSING")
+        if (r["target_missed"] is True or r["no_column_fired"] is True)
+        and (not r["disposition"] or r["disposition"] == "MISSING")
     )
 
     return {
         "total": total,
-        "clean": clean,
+        "target_missed": target_missed,
+        "no_column_fired": no_column_fired,
         "unreadable": unreadable,
         "form_defects": form_defects,
         "by_stratum": by_stratum,
-        "clean_without_disposition": clean_without_disposition,
+        "missed_without_disposition": missed_without_disposition,
     }
 
 
@@ -1204,7 +1401,10 @@ _CORPUS_TABLE_FIELDS: tuple[str, ...] = (
     "dependency_cycles",
     "ungrounded_chains",
     "selfaudit_disagreements",
-    "fully_clean",
+    "target",
+    "target_hits",
+    "target_missed",
+    "no_column_fired",
     "disposition",
 )
 
@@ -1223,26 +1423,37 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
     lines.append("")
     lines.append(
         "**False-negative rate:** "
-        f"{headline['clean']} of {headline['total']} corpus items score fully clean "
-        "under the unmodified, CONTRACT-06-frozen `detect_defects` -- despite every item "
-        "being a stated, catalogued falsehood. Each of those "
-        f"{headline['clean']} is a false negative: a substantively wrong analysis this "
-        "instrument cannot distinguish from a sound one."
+        f"{headline['target_missed']} of {headline['total']} corpus items' catalogued "
+        "falsehood the unmodified, CONTRACT-06-frozen `detect_defects` did not catch -- "
+        "despite every item being a stated, catalogued falsehood. Each of those "
+        f"{headline['target_missed']} is a false negative: a substantively wrong "
+        "analysis this instrument cannot distinguish from a sound one. Diagnostic: "
+        f"{headline['no_column_fired']} of {headline['total']} items had no substantive "
+        "`detect_defects` column fire on them at all; the difference between the two "
+        "figures is exactly the items on which an unrelated column fired for a reason "
+        "having nothing to do with the item's own catalogued falsehood."
     )
     lines.append("")
     for stratum in _STRATUM_ORDER:
         if stratum not in headline["by_stratum"]:
             continue
         bucket = headline["by_stratum"][stratum]
-        lines.append(f"- Stratum {stratum}: {bucket['clean']} of {bucket['total']} clean")
+        lines.append(
+            f"- Stratum {stratum}: {bucket['target_missed']} of {bucket['total']} "
+            f"catalogued target missed ({bucket['no_column_fired']} of {bucket['total']} "
+            "no column fired)"
+        )
     lines.append("")
-    b2 = headline["by_stratum"].get("B2", {"clean": 0, "total": 0})
+    b2 = headline["by_stratum"].get(
+        "B2", {"target_missed": 0, "no_column_fired": 0, "total": 0}
+    )
     lines.append(
         "**Backlog 999.4 gate input.** Stratum B2 -- reachable by nothing this project "
-        f"ships -- reads {b2['clean']} of {b2['total']} clean. Per "
-        "`.planning/ROADMAP.md` Phase 999.4 (CONDITIONAL, gated on this measurement): a "
-        "low B2 rate closes 999.4 unrun, with this measurement recorded as the reason; a "
-        "high B2 rate promotes 999.4, with this corpus as its validation set."
+        f"ships -- reads {b2['target_missed']} of {b2['total']} catalogued target "
+        "missed. Per `.planning/ROADMAP.md` Phase 999.4 (CONDITIONAL, gated on this "
+        "measurement): a low B2 rate closes 999.4 unrun, with this measurement recorded "
+        "as the reason; a high B2 rate promotes 999.4, with this corpus as its "
+        "validation set."
     )
     lines.append("")
     lines.append(
@@ -2037,13 +2248,14 @@ def _control_render_marked_silent_parsed_from_output() -> None:
         raise AssertionError("a rendering that coerced marked/silent to 0 was not caught")
 
 
-def _control_corpus_clean_without_disposition() -> None:
-    """Phase 19 (CONF-08): a synthetic corpus row set with one clean row carrying a real
-    disposition and one clean row whose disposition is the literal "MISSING" reads
-    clean_without_disposition == 1. Perturbing the "MISSING" row's disposition to a
-    non-empty string moves the count to 0 -- the same fixture, re-scored, proving the
-    predicate reads the disposition field rather than being permanently pinned at 1."""
-    clean_with_disposition = _synthetic_row(
+def _control_corpus_missed_without_disposition() -> None:
+    """Phase 19 (CONF-08, D-19-08-A): a synthetic corpus row set with one missed row
+    carrying a real disposition and one missed row whose disposition is the literal
+    "MISSING" reads missed_without_disposition == 1. Perturbing the "MISSING" row's
+    disposition to a non-empty string moves the count to 0 -- the same fixture, re-scored,
+    proving the predicate reads the disposition field rather than being permanently
+    pinned at 1."""
+    missed_with_disposition = _synthetic_row(
         "adversarial-corpus",
         "with-disposition.md",
         "with-disposition",
@@ -2051,9 +2263,10 @@ def _control_corpus_clean_without_disposition() -> None:
         source="derived:x",
         disposition="accept-with-reason: some reason.",
         form_defects=0,
-        fully_clean=True,
+        no_column_fired=True,
+        target_missed=True,
     )
-    clean_without_disposition = _synthetic_row(
+    missed_without_disposition = _synthetic_row(
         "adversarial-corpus",
         "missing-disposition.md",
         "missing-disposition",
@@ -2061,16 +2274,17 @@ def _control_corpus_clean_without_disposition() -> None:
         source="derived:x",
         disposition="MISSING",
         form_defects=0,
-        fully_clean=True,
+        no_column_fired=True,
+        target_missed=True,
     )
-    headline = compute_corpus_headline([clean_with_disposition, clean_without_disposition])
-    assert headline["clean_without_disposition"] == 1, headline["clean_without_disposition"]
+    headline = compute_corpus_headline([missed_with_disposition, missed_without_disposition])
+    assert headline["missed_without_disposition"] == 1, headline["missed_without_disposition"]
 
-    perturbed = dict(clean_without_disposition)
+    perturbed = dict(missed_without_disposition)
     perturbed["disposition"] = "accept-with-reason: now has one."
-    perturbed_headline = compute_corpus_headline([clean_with_disposition, perturbed])
-    assert perturbed_headline["clean_without_disposition"] == 0, perturbed_headline[
-        "clean_without_disposition"
+    perturbed_headline = compute_corpus_headline([missed_with_disposition, perturbed])
+    assert perturbed_headline["missed_without_disposition"] == 0, perturbed_headline[
+        "missed_without_disposition"
     ]
 
 
@@ -2135,7 +2349,31 @@ def _control_corpus_disposition_silent_pass_detected() -> None:
         stratum="B2",
         source="derived:x",
         disposition="MISSING",
-        fully_clean=True,
+        no_column_fired=True,
+        target_missed=True,
+        form_defects=0,
+    )
+    problems = _corpus_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "SILENT PASS [a]" in problems[0], problems
+
+
+def _control_corpus_disposition_target_missed_only_checked() -> None:
+    """Phase 19 (CONF-08, D-19-08-A): the t13 shape -- `no_column_fired` False (an
+    unrelated column fired) but `target_missed` True (the catalogued target itself was
+    never flagged) -- is CHECKED by the union floor even though the old single-predicate
+    scope would have skipped it entirely. This is the exact fix for the
+    19-VERIFICATION.md gap: a missing disposition on a row shaped exactly like this used
+    to escape CONF-08's zero-silent-passes mechanism."""
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="A",
+        source="hand-authored",
+        disposition="MISSING",
+        no_column_fired=False,
+        target_missed=True,
         form_defects=0,
     )
     problems = _corpus_disposition_problems([row])
@@ -2151,7 +2389,8 @@ def _control_corpus_disposition_form_bad_detected() -> None:
         stratum="B2",
         source="derived:x",
         disposition="looks fine",
-        fully_clean=True,
+        no_column_fired=True,
+        target_missed=True,
         form_defects=0,
     )
     problems = _corpus_disposition_problems([row])
@@ -2167,13 +2406,17 @@ def _control_corpus_disposition_valid_passes() -> None:
         stratum="B2",
         source="derived:x",
         disposition="accept-with-reason: fine.",
-        fully_clean=True,
+        no_column_fired=True,
+        target_missed=True,
         form_defects=0,
     )
     assert _corpus_disposition_problems([row]) == []
 
 
 def _control_corpus_disposition_nonclean_skipped() -> None:
+    """Both predicates False -- a genuine catch, target hit AND a substantive column
+    fired -- is skipped by the union floor exactly as the old single-predicate scope
+    skipped it."""
     row = _synthetic_row(
         "adversarial-corpus",
         "a.md",
@@ -2181,10 +2424,150 @@ def _control_corpus_disposition_nonclean_skipped() -> None:
         stratum="A",
         source="derived:x",
         disposition="MISSING",
-        fully_clean=False,
+        no_column_fired=False,
+        target_missed=False,
         form_defects=1,
     )
     assert _corpus_disposition_problems([row]) == []
+
+
+# ---------------------------------------------------------------------------
+# Phase 19 (CONF-08, D-19-08-B) controls: the Target column grammar, the
+# chain-scoped join, and the two "always missed" shapes.
+# ---------------------------------------------------------------------------
+
+
+def _control_corpus_target_parse_vocabulary() -> None:
+    assert _parse_corpus_target("none") == ([], [])
+    assert _parse_corpus_target("dependency_cycles:c1") == (
+        [("dependency_cycles", ["c1"])],
+        [],
+    )
+    assert _parse_corpus_target("dependency_cycles:c1,c2") == (
+        [("dependency_cycles", ["c1", "c2"])],
+        [],
+    )
+    assert _parse_corpus_target("dependency_cycles:c1;ungrounded_chains:c2") == (
+        [("dependency_cycles", ["c1"]), ("ungrounded_chains", ["c2"])],
+        [],
+    )
+
+    pairs, problems = _parse_corpus_target("foo:c1")
+    assert pairs == [], pairs
+    assert any("unknown column" in p for p in problems), problems
+
+    pairs, problems = _parse_corpus_target("dependency_cycles")
+    assert pairs == [], pairs
+    assert any("no ':'" in p for p in problems), problems
+
+    pairs, problems = _parse_corpus_target("dependency_cycles:")
+    assert pairs == [], pairs
+    assert any("empty selector" in p for p in problems), problems
+
+    pairs, problems = _parse_corpus_target("selfaudit_disagreements:x")
+    assert pairs == [], pairs
+    assert any("not an integer" in p for p in problems), problems
+
+    pairs, problems = _parse_corpus_target("")
+    assert pairs == [], pairs
+    assert any("empty" in p for p in problems), problems
+
+
+def _control_corpus_target_hits_chain_scoped() -> None:
+    """The t13 control: `_ungrounded_chains=['c2','c3']` against target
+    `ungrounded_chains:c1` (t13's actual catalogued target) yields NO hit -- the
+    catalogued chain was never flagged, even though the column fired on OTHER chains.
+    The same record against `ungrounded_chains:c2` DOES hit -- proving the join reads
+    chain identity, not merely "did this column fire"."""
+    record = {"_ungrounded_chains": ["c2", "c3"], "_dependency_cycles": ["c2", "c3"]}
+    no_hit = _corpus_target_hits(record, [("ungrounded_chains", ["c1"])])
+    assert no_hit == [], no_hit
+
+    hit = _corpus_target_hits(record, [("ungrounded_chains", ["c2"])])
+    assert hit == ["ungrounded_chains:c2"], hit
+
+
+def _control_corpus_target_hits_selfaudit_criterion() -> None:
+    record = {"_selfaudit_disagreements": [{"criterion": 4}]}
+    hit = _corpus_target_hits(record, [("selfaudit_disagreements", ["4"])])
+    assert hit == ["selfaudit_disagreements:4"], hit
+
+    no_hit = _corpus_target_hits(record, [("selfaudit_disagreements", ["6"])])
+    assert no_hit == [], no_hit
+
+
+def _control_corpus_target_none_is_missed() -> None:
+    """A `Target` of `none` parses to an empty pair list, so `_corpus_target_hits` returns
+    no hits regardless of what the record measures -- proving `target_missed` is True by
+    construction for a `none` target, even against a record showing real audit-field
+    activity on an unrelated column."""
+    parsed, problems = _parse_corpus_target("none")
+    assert problems == [], problems
+    record_with_activity = {
+        "_dependency_cycles": ["c1", "c2"],
+        "_ungrounded_chains": [],
+        "_selfaudit_disagreements": [],
+    }
+    hits = _corpus_target_hits(record_with_activity, parsed)
+    assert hits == [], hits
+
+
+def _control_corpus_target_missing_entry_is_missed() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        (root / "z.md").write_text(_READABLE_FIXTURE_TEXT, encoding="utf-8")
+        artifact = Artifact("adversarial-corpus", "z.md", root / "z.md", "z")
+        row = build_corpus_row(artifact, None)
+    assert row["target"] == "MISSING", row["target"]
+    assert row["target_missed"] is True, row
+
+
+def _control_corpus_headline_keys_on_target_missed() -> None:
+    """Phase 19 (CONF-08, D-19-08-A) -- the ANTI-VACUITY ARM for the whole rename: a
+    synthetic three-row corpus with one row whose `no_column_fired` is False but whose
+    `target_missed` is True (the exact t13 shape) must produce a headline whose
+    `target_missed` count differs from its `no_column_fired` count. A headline
+    computation that merely renamed the old `clean` key -- reading `no_column_fired` for
+    both -- would report the same number for both keys here and FAIL this control."""
+    caught_by_both = _synthetic_row(
+        "adversarial-corpus",
+        "caught.md",
+        "caught",
+        stratum="A",
+        source="hand-authored",
+        disposition="accept-with-reason: positive control.",
+        form_defects=0,
+        no_column_fired=False,
+        target_missed=False,
+    )
+    missed_by_both = _synthetic_row(
+        "adversarial-corpus",
+        "missed.md",
+        "missed",
+        stratum="B2",
+        source="derived:x",
+        disposition="accept-with-reason: no shipped rule reaches this.",
+        form_defects=0,
+        no_column_fired=True,
+        target_missed=True,
+    )
+    # The t13 shape: an unrelated column fired (no_column_fired=False) while the item's
+    # own catalogued target was never flagged (target_missed=True).
+    diverges = _synthetic_row(
+        "adversarial-corpus",
+        "diverges.md",
+        "diverges",
+        stratum="A",
+        source="hand-authored",
+        disposition="accept-with-reason: disclosed bound.",
+        form_defects=0,
+        no_column_fired=False,
+        target_missed=True,
+    )
+    headline = compute_corpus_headline([caught_by_both, missed_by_both, diverges])
+    assert headline["target_missed"] == 2, headline
+    assert headline["no_column_fired"] == 1, headline
+    assert headline["target_missed"] != headline["no_column_fired"], headline
 
 
 def _control_corpus_population_per_item_zero_detected() -> None:
@@ -2195,7 +2578,6 @@ def _control_corpus_population_per_item_zero_detected() -> None:
         stratum="B2",
         source="x",
         disposition="accept-with-reason: x.",
-        fully_clean=False,
         form_defects=0,
         conclusion_claims=0,
         chain_blocks=1,
@@ -2213,7 +2595,6 @@ def _control_corpus_population_per_item_unreadable_detected() -> None:
         stratum="MISSING",
         source="MISSING",
         disposition="MISSING",
-        fully_clean=False,
         form_defects="unreadable",
         section_resolution="SectionResolutionError: x",
     )
@@ -2231,7 +2612,6 @@ def _control_corpus_population_corpuswide_breach_detected() -> None:
         stratum="B2",
         source="x",
         disposition="accept-with-reason: x.",
-        fully_clean=True,
         form_defects=0,
         conclusion_claims=1,
         chain_blocks=1,
@@ -2526,7 +2906,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "render-marked-silent-parsed-from-output",
         _control_render_marked_silent_parsed_from_output,
     ),
-    ("corpus-clean-without-disposition", _control_corpus_clean_without_disposition),
+    ("corpus-missed-without-disposition", _control_corpus_missed_without_disposition),
     ("corpus-roster-drift-detected", _control_corpus_roster_drift_detected),
     ("corpus-roster-equal-passes", _control_corpus_roster_equal_passes),
     (
@@ -2538,11 +2918,30 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_corpus_disposition_silent_pass_detected,
     ),
     (
+        "corpus-disposition-target-missed-only-checked",
+        _control_corpus_disposition_target_missed_only_checked,
+    ),
+    (
         "corpus-disposition-form-bad-detected",
         _control_corpus_disposition_form_bad_detected,
     ),
     ("corpus-disposition-valid-passes", _control_corpus_disposition_valid_passes),
     ("corpus-disposition-nonclean-skipped", _control_corpus_disposition_nonclean_skipped),
+    ("corpus-target-parse-vocabulary", _control_corpus_target_parse_vocabulary),
+    ("corpus-target-hits-chain-scoped", _control_corpus_target_hits_chain_scoped),
+    (
+        "corpus-target-hits-selfaudit-criterion",
+        _control_corpus_target_hits_selfaudit_criterion,
+    ),
+    ("corpus-target-none-is-missed", _control_corpus_target_none_is_missed),
+    (
+        "corpus-target-missing-entry-is-missed",
+        _control_corpus_target_missing_entry_is_missed,
+    ),
+    (
+        "corpus-headline-keys-on-target-missed",
+        _control_corpus_headline_keys_on_target_missed,
+    ),
     (
         "corpus-population-per-item-zero-detected",
         _control_corpus_population_per_item_zero_detected,
@@ -2609,14 +3008,21 @@ _CONTROL_IDS: tuple[str, ...] = (
     "marked-untraced-claim-counted",
     "unreadable-columns-are-literal",
     "render-marked-silent-parsed-from-output",
-    "corpus-clean-without-disposition",
+    "corpus-missed-without-disposition",
     "corpus-roster-drift-detected",
     "corpus-roster-equal-passes",
     "corpus-roster-catalog-problems-folded",
     "corpus-disposition-silent-pass-detected",
+    "corpus-disposition-target-missed-only-checked",
     "corpus-disposition-form-bad-detected",
     "corpus-disposition-valid-passes",
     "corpus-disposition-nonclean-skipped",
+    "corpus-target-parse-vocabulary",
+    "corpus-target-hits-chain-scoped",
+    "corpus-target-hits-selfaudit-criterion",
+    "corpus-target-none-is-missed",
+    "corpus-target-missing-entry-is-missed",
+    "corpus-headline-keys-on-target-missed",
     "corpus-population-per-item-zero-detected",
     "corpus-population-per-item-unreadable-detected",
     "corpus-population-corpuswide-breach-detected",
