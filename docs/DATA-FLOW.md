@@ -50,9 +50,10 @@ For the plugin registration details and the full companion skill slug list, see 
 
 ## Stage 4 — Gates (CI + pre-commit)
 
-Every `git commit` fires one pre-commit gate locally before the commit lands:
+Every `git commit` fires two pre-commit gates locally before the commit lands:
 
 - **Sync-drift gate** — runs `scripts/sync-content.py --check` and blocks if `shared/` and the generated tree have diverged.
+- **Conformance-baseline drift gate** — runs `scripts/report-conformance.py --check` and blocks if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run. It fails on staleness of the committed baseline, never on a conformance count being too high, and is deliberately absent from the battery and from CI (D-06).
 
 A body-budget gate used to run alongside it, blocking a commit that grew the agent body
 (`first-principles/agents/first-principles.md`) past 644 lines. It was retired under

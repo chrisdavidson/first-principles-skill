@@ -168,9 +168,12 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 
 ## Pre-commit hooks
 
-One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
-generated tree have diverged. Install it with either mechanism — **never both**, they are
-mutually exclusive at the Git level:
+Two gates fire on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
+generated tree have diverged, and the **conformance-baseline drift gate**
+(`scripts/report-conformance.py --check`), which blocks if `docs/conformance-baseline.md` or
+`docs/data/conformance.json` no longer match a fresh run. The second gate fails on staleness only
+and is deliberately absent from the battery and from CI (D-06). Install either hook mechanism
+— **never both**, they are mutually exclusive at the Git level:
 
 ```sh
 ./scripts/install-hooks.sh          # Option A (recommended)

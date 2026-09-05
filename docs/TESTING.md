@@ -184,7 +184,7 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-One gate fires on every `git commit` when a hook mechanism is installed — the sync-drift gate. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
+Two gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate and the conformance-baseline drift gate. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Body-size report (not a gate — TEARDOWN-01)
 
@@ -208,6 +208,17 @@ Blocks the commit if `shared/` and the generated `first-principles/` tree have d
 ```sh
 python3 scripts/sync-content.py --check    # detect drift
 python3 scripts/sync-content.py --write    # fix drift (regenerate)
+```
+
+### Conformance-baseline drift gate
+
+**Owning script:** `scripts/report-conformance.py --check`
+
+Blocks the commit if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh `report-conformance.py` run. Unlike the sync-drift gate above, this gate has **no CI counterpart and no battery id** — by decision D-06 it is deliberately absent from both `scripts/check-firewall-battery.sh` and `.github/workflows/validation.yml`, so it fires only at commit time. It fails on staleness of the committed baseline, never on a conformance count being too high — no count in that baseline gates anything.
+
+```sh
+python3 scripts/report-conformance.py --check    # detect drift
+python3 scripts/report-conformance.py            # fix drift (regenerate)
 ```
 
 **Bypass** for intentional in-progress work:

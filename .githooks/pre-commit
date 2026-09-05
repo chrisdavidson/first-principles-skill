@@ -1,5 +1,5 @@
 #!/bin/sh
-# Sync-drift gate for shared/ <-> generated trees.
+# Two gates for shared/ <-> generated trees and the conformance baseline.
 # Opt in:  git config core.hooksPath .githooks
 #
 # Mirrors scripts/git-hooks/pre-commit verbatim (module logic; header prose
@@ -7,19 +7,43 @@
 # pre-existing asymmetry). The body-budget gate that used to run here was
 # retired under TEARDOWN-01 (docs/v8.7-constraint-teardown.md) -- see
 # scripts/check-body-budget.py, which now always exits 0.
+#
+# Gate 1 -- sync-drift gate: blocks if shared/ and the generated tree have
+# diverged (scripts/sync-content.py --check).
+# Gate 2 -- conformance-baseline drift gate: blocks if
+# docs/conformance-baseline.md / docs/data/conformance.json no longer match a
+# fresh run (scripts/report-conformance.py --check). This fails on STALENESS
+# of the committed baseline relative to a fresh measurement, never on a
+# conformance count being too high -- no count in that baseline gates
+# anything. By decision D-06 this second check is deliberately NOT registered
+# in scripts/check-firewall-battery.sh and NOT added to
+# .github/workflows/validation.yml, so the offline battery stays at 24.
 
 set -eu
 
 cd "$(git rev-parse --show-toplevel)"
 
-# --- Sync-drift gate (preserved verbatim from prior version) ----------------
+# --- Interpreter resolution --------------------------------------------------
 
 if command -v uv >/dev/null 2>&1; then
-    exec uv run scripts/sync-content.py --check
+    PY="uv run"
 elif command -v python3 >/dev/null 2>&1; then
-    exec python3 scripts/sync-content.py --check
+    PY="python3"
 else
     echo "pre-commit: neither 'uv' nor 'python3' on PATH." >&2
     echo "  Install one of them, or bypass this hook with 'git commit --no-verify'." >&2
     exit 2
 fi
+
+# --- Gate 1: sync-drift gate (preserved verbatim from prior version) --------
+# Not exec'd -- a second gate follows, so its exit status is propagated
+# explicitly with "|| exit $?" rather than replacing the shell process with
+# it. A failing sync check must not be silently replaced by a passing
+# conformance check, or the reverse.
+
+$PY scripts/sync-content.py --check || exit $?
+
+# --- Gate 2: conformance-baseline drift gate ---------------------------------
+# Terminal check -- only this one may use exec, because nothing follows it.
+
+exec $PY scripts/report-conformance.py --check

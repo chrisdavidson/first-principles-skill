@@ -120,7 +120,7 @@ design, because a working session must be able to see the gate list without open
 
 Gates run on three surfaces, and the distinction matters: **21 in CI**
 (`.github/workflows/validation.yml`, on push/PR to master), **24 tallied in the offline battery**
-(`bash scripts/check-firewall-battery.sh`), and **1 pre-commit** hook. The battery is a
+(`bash scripts/check-firewall-battery.sh`), and **2 pre-commit** hooks. The battery is a
 strict superset of CI: all 21 CI gates — VAL-01 included, so it runs on both surfaces and
 needs the `claude` CLI in both — plus QUAL-01, which is battery-only by design and is the
 one registered gate with no CI job, plus the two inline checks INVARIANT-CHECK and
@@ -153,6 +153,7 @@ FROZEN-EVIDENCE. That is 21 + 1 + 2 = 24.
 | INVARIANT-CHECK | battery only (inline) | — | Anti-masking constants still hold: `pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2` |
 | FROZEN-EVIDENCE | battery only (inline) | `git diff --quiet` | Frozen baselines and captures are unmodified |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and generated tree are in sync (same check as DUAL-04, fires before commit) |
+| — | conformance-baseline drift gate (pre-commit) | `scripts/report-conformance.py --check` | `docs/conformance-baseline.md` + `docs/data/conformance.json` reproduce byte-for-byte a fresh `report-conformance.py` run (D-06, fires before commit; deliberately not registered in the battery or in CI) |
 
 HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each has a CI job plus a
 single `--self-test`-only battery `gate` call, and each is counted in the battery total above. HC-BOUND
