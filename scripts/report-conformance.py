@@ -42,6 +42,7 @@ import difflib
 import importlib.util
 import json
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
@@ -521,6 +522,35 @@ def cmd_write() -> int:
     return 0
 
 
+def _diff_against_disk(generated: dict[Path, str]) -> list[Path]:
+    """Compare each generated text against its on-disk bytes (empty string if absent);
+    write a DRIFT: line plus a unified diff to stderr for every path that differs, and
+    return the list of drifted paths.
+
+    Takes an arbitrary path->text mapping so --self-test can drive it against a tempdir
+    fixture (mutation 6) without ever writing into the real docs/ tree -- cmd_check()
+    itself stays hardcoded to REPO_ROOT/MD_PATH/JSON_PATH per settled decision (d).
+    """
+    drifted: list[Path] = []
+    for path, text in generated.items():
+        on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
+        if on_disk != text:
+            drifted.append(path)
+            rel = path.relative_to(REPO_ROOT) if path.is_relative_to(REPO_ROOT) else path
+            sys.stderr.write(f"DRIFT: {rel}\n")
+            sys.stderr.writelines(
+                difflib.unified_diff(
+                    on_disk.splitlines(keepends=True),
+                    text.splitlines(keepends=True),
+                    fromfile=f"a/{rel}",
+                    tofile=f"b/{rel}",
+                    n=3,
+                )
+            )
+            sys.stderr.write("\n")
+    return drifted
+
+
 def cmd_check() -> int:
     # Idempotency self-test: two in-memory generations must be equal, or an unsorted glob
     # or a leaked wall-clock value would otherwise become a mystery --check failure.
@@ -530,28 +560,343 @@ def cmd_check() -> int:
         sys.stderr.write("NON-DETERMINISTIC: pass-1 != pass-2\n")
         return 2
 
-    drifted: list[Path] = []
-    for path, generated in pass1.items():
-        on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
-        if on_disk != generated:
-            drifted.append(path)
-            rel = path.relative_to(REPO_ROOT)
-            sys.stderr.write(f"DRIFT: {rel}\n")
-            sys.stderr.writelines(
-                difflib.unified_diff(
-                    on_disk.splitlines(keepends=True),
-                    generated.splitlines(keepends=True),
-                    fromfile=f"a/{rel}",
-                    tofile=f"b/{rel}",
-                    n=3,
-                )
-            )
-            sys.stderr.write("\n")
+    drifted = _diff_against_disk(pass1)
 
     if drifted:
         sys.stderr.write("Run: python3 scripts/report-conformance.py && git add -u\n")
         return 1
     print("report-conformance: PASS — no drift")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# --self-test: offline control battery, entirely tempdir/in-memory. Never
+# touches the real tree, never writes under tests/. Each control has a stable
+# id string; every failure names its id and states expected vs. actual.
+# ---------------------------------------------------------------------------
+
+# A synthetic row shaped exactly like a real build_row() output: measured
+# fields default to 0, provenance fields default to "n/a" (never 0), matching
+# what detect_defects itself would produce for a clean, readable artifact.
+def _synthetic_row(surface: str, relpath: str, analysis_id: str, **overrides) -> dict:
+    row: dict = {
+        "surface": surface,
+        "relpath": relpath,
+        "section_resolution": "OK",
+        "heading_chain_blocks": 0,
+        "heading_malformed_blocks": 0,
+    }
+    for field in _DEFECT_RECORD_FIELDS:
+        if field == "analysis_id":
+            row[field] = analysis_id
+        elif field in PROVENANCE_FIELDS:
+            row[field] = "n/a"
+        else:
+            row[field] = 0
+    row.update(overrides)
+    return row
+
+
+# A minimal document _slice_sections resolves cleanly -- six numbered sections,
+# each with just enough body to be non-empty. Reused by every control that
+# needs a "readable" counterpart to an unreadable one.
+_READABLE_FIXTURE_TEXT = """## 1. Problem Essence
+Some essence text.
+
+## 2. Assumptions Table
+| Assumption | Confidence |
+|---|---|
+
+## 3. Ground Truths
+- GT-1: some ground truth.
+
+## 4. Derivation Chains
+GT-1 -> some conclusion.
+
+## 5. Abandoned Reasoning
+None.
+
+## 6. Conclusion
+### Conclusion
+GT-1 -> some conclusion.
+"""
+
+# A document with one heading-swept ### Conclusion block but no resolvable
+# six-section structure -- _slice_sections raises, the heading sweep does not.
+_UNREADABLE_FIXTURE_TEXT = (
+    "# Some Doc\n\n### Conclusion\nThis is just prose with no chain arrows at all.\n"
+)
+
+
+def _make_minimum_tree(root: Path) -> None:
+    """Populate *root* with exactly the 14/14/1 floor minimum discover_artifacts requires."""
+    shared_dir = root / "shared" / "examples"
+    shared_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(MIN_SHARED_EXAMPLES):
+        (shared_dir / f"ex{i}.md").write_text("x", encoding="utf-8")
+    twin_dir = root / "first-principles" / "agents" / "references" / "examples"
+    twin_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(MIN_TWIN_EXAMPLES):
+        (twin_dir / f"ex{i}.md").write_text("x", encoding="utf-8")
+    contract_dir = root / "shared" / "spine" / "references"
+    contract_dir.mkdir(parents=True, exist_ok=True)
+    (contract_dir / "output-template.md").write_text("x", encoding="utf-8")
+
+
+def _control_floor_shared_short() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        # Remove one shared-examples file so the glob yields 13, not 14.
+        (root / "shared" / "examples" / "ex0.md").unlink()
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert SHARED_EXAMPLES_GLOB in msg, msg
+            assert "expected >= 14" in msg, msg
+            assert "found 13" in msg, msg
+        else:
+            raise AssertionError("discover_artifacts did not raise on a 13-file shared glob")
+
+
+def _control_floor_twin_short() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        (root / "first-principles" / "agents" / "references" / "examples" / "ex0.md").unlink()
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert TWIN_EXAMPLES_GLOB in msg, msg
+            assert "found 13" in msg, msg
+        else:
+            raise AssertionError("discover_artifacts did not raise on a 13-file twin glob")
+
+
+def _control_floor_contract_missing() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        (root / "shared" / "spine" / "references" / "output-template.md").unlink()
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert CONTRACT_SURFACE_RELPATH in msg, msg
+            assert "found 0" not in msg, msg
+        else:
+            raise AssertionError("discover_artifacts did not raise when the contract surface is missing")
+
+
+def _control_floor_glob_empty() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert SHARED_EXAMPLES_GLOB in msg, msg
+            assert TWIN_EXAMPLES_GLOB in msg, msg
+        else:
+            raise AssertionError("discover_artifacts did not raise on a completely empty root")
+
+
+def _control_floor_passes_at_minimum() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        artifacts = discover_artifacts(root)
+        expected = MIN_SHARED_EXAMPLES + MIN_TWIN_EXAMPLES + MIN_CONTRACT_SURFACES
+        assert len(artifacts) == expected, (len(artifacts), expected)
+
+
+def _control_partial_row_records_heading_census() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "synth.md"
+        path.write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
+        artifact = Artifact("shared-examples", "synth.md", path, "synth")
+        row = build_row(artifact)
+        assert row["section_resolution"].startswith("SectionResolutionError:"), row[
+            "section_resolution"
+        ]
+        assert row["conclusion_claims"] == "unreadable", row["conclusion_claims"]
+        assert row["heading_chain_blocks"] == 1, row["heading_chain_blocks"]
+        assert row["heading_malformed_blocks"] == 1, row["heading_malformed_blocks"]
+
+
+def _control_partial_row_not_dropped() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        bad_path = root / "bad.md"
+        good_path = root / "good.md"
+        bad_path.write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
+        good_path.write_text(_READABLE_FIXTURE_TEXT, encoding="utf-8")
+        artifacts = [
+            Artifact("shared-examples", "bad.md", bad_path, "bad"),
+            Artifact("shared-examples", "good.md", good_path, "good"),
+        ]
+        rows = [build_row(a) for a in artifacts]
+        assert len(rows) == 2, len(rows)
+
+
+def _control_agreement_field_scope() -> None:
+    assert len(AGREEMENT_FIELDS) == 15, len(AGREEMENT_FIELDS)
+    assert "analysis_id" not in AGREEMENT_FIELDS
+    for field in PROVENANCE_FIELDS:
+        assert field not in AGREEMENT_FIELDS, field
+    assert "untraced_claims" in AGREEMENT_FIELDS
+    assert "heading_malformed_blocks" in AGREEMENT_FIELDS
+
+
+def _control_agreement_detects_measured_divergence() -> None:
+    source_row = _synthetic_row("shared-examples", "synth.md", "synth")
+    twin_row = _synthetic_row("generated-twin", "synth.md", "synth", untraced_claims=1)
+    agreeing, total, divergences = pair_agreement([source_row, twin_row])
+    assert agreeing == 0, agreeing
+    assert total == 1, total
+    assert len(divergences) == 1, divergences
+    analysis_id, fields = divergences[0]
+    assert analysis_id == "synth", analysis_id
+    assert "untraced_claims" in fields, fields
+
+
+def _control_agreement_vacuity_guard() -> None:
+    provenance_field = _DEFECT_RECORD_FIELDS[13]
+    source_row = _synthetic_row("shared-examples", "synth.md", "synth")
+    twin_row = _synthetic_row(
+        "generated-twin", "synth.md", "synth", **{provenance_field: "different"}
+    )
+    agreeing, total, divergences = pair_agreement([source_row, twin_row])
+    assert agreeing == 1, (agreeing, divergences)
+    assert total == 1, total
+    assert divergences == [], divergences
+
+
+def _control_agreement_unpaired_is_divergence() -> None:
+    source_row = _synthetic_row("shared-examples", "lonely.md", "lonely")
+    agreeing, total, divergences = pair_agreement([source_row])
+    assert agreeing == 0, agreeing
+    assert total == 1, total
+    assert len(divergences) == 1, divergences
+    analysis_id, _fields = divergences[0]
+    assert analysis_id == "lonely", analysis_id
+
+
+def _synthetic_rows_for_render() -> list[dict]:
+    return [
+        _synthetic_row("shared-examples", "synth.md", "synth"),
+        _synthetic_row("generated-twin", "synth.md", "synth"),
+        _synthetic_row("contract-surface", "contract.md", "contract"),
+    ]
+
+
+def _control_render_determinism() -> None:
+    rows = _synthetic_rows_for_render()
+    agreement = pair_agreement(rows)
+    md1, md2 = render_markdown(rows, agreement), render_markdown(rows, agreement)
+    json1, json2 = render_json(rows, agreement), render_json(rows, agreement)
+    assert md1 == md2
+    assert json1 == json2
+    for text in (md1, json1):
+        assert text.endswith("\n") and not text.endswith("\n\n"), text[-5:]
+
+
+def _control_render_provenance_sentinel() -> None:
+    rows = _synthetic_rows_for_render()
+    agreement = pair_agreement(rows)
+    md = render_markdown(rows, agreement)
+    assert "n/a" in md
+    # Every provenance field on every synthetic row is "n/a" by construction
+    # (_synthetic_row); this asserts the invariant survives rendering rather
+    # than being silently coerced to a bare "0" string along the way.
+    for row in rows:
+        for field in PROVENANCE_FIELDS:
+            assert row[field] == "n/a", (field, row[field])
+
+
+def _control_check_detects_drift() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        target = Path(td) / "artifact.md"
+        target.write_text("original content\n", encoding="utf-8")
+        generated = {target: "original content\n"}
+        assert _diff_against_disk(generated) == []
+        target.write_text("mutated content\n", encoding="utf-8")
+        assert _diff_against_disk(generated) == [target]
+
+
+_CONTROLS: tuple[tuple[str, object], ...] = (
+    ("floor-shared-short", _control_floor_shared_short),
+    ("floor-twin-short", _control_floor_twin_short),
+    ("floor-contract-missing", _control_floor_contract_missing),
+    ("floor-glob-empty", _control_floor_glob_empty),
+    ("floor-passes-at-minimum", _control_floor_passes_at_minimum),
+    ("partial-row-records-heading-census", _control_partial_row_records_heading_census),
+    ("partial-row-not-dropped", _control_partial_row_not_dropped),
+    ("agreement-field-scope", _control_agreement_field_scope),
+    ("agreement-detects-measured-divergence", _control_agreement_detects_measured_divergence),
+    ("agreement-vacuity-guard", _control_agreement_vacuity_guard),
+    ("agreement-unpaired-is-divergence", _control_agreement_unpaired_is_divergence),
+    ("render-determinism", _control_render_determinism),
+    ("render-provenance-sentinel", _control_render_provenance_sentinel),
+    ("check-detects-drift", _control_check_detects_drift),
+)
+
+# Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
+# independently-typed transcription of every control id this self-test must run. A control
+# added to _CONTROLS but missing here, or vice versa, fails self_test() by name rather than
+# silently narrowing coverage.
+_CONTROL_IDS: tuple[str, ...] = (
+    "floor-shared-short",
+    "floor-twin-short",
+    "floor-contract-missing",
+    "floor-glob-empty",
+    "floor-passes-at-minimum",
+    "partial-row-records-heading-census",
+    "partial-row-not-dropped",
+    "agreement-field-scope",
+    "agreement-detects-measured-divergence",
+    "agreement-vacuity-guard",
+    "agreement-unpaired-is-divergence",
+    "render-determinism",
+    "render-provenance-sentinel",
+    "check-detects-drift",
+)
+
+
+def self_test() -> int:
+    executed: list[str] = []
+    failures: list[tuple[str, str]] = []
+
+    for control_id, control_fn in _CONTROLS:
+        executed.append(control_id)
+        try:
+            control_fn()
+        except AssertionError as exc:
+            failures.append((control_id, str(exc)))
+        except Exception as exc:  # noqa: BLE001 -- a control that crashes is a failure too
+            failures.append((control_id, f"{type(exc).__name__}: {exc}"))
+
+    registered = set(_CONTROL_IDS)
+    ran = set(executed)
+    missing = registered - ran
+    extra = ran - registered
+    if missing or extra:
+        failures.append(
+            (
+                "coverage-floor",
+                f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}",
+            )
+        )
+
+    if failures:
+        for control_id, message in failures:
+            sys.stderr.write(f"report-conformance: SELF-TEST FAIL [{control_id}] — {message}\n")
+        return 1
+
+    print(f"report-conformance: SELF-TEST PASS — {len(executed)} controls run")
     return 0
 
 
