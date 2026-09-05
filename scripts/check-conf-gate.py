@@ -64,6 +64,7 @@ import argparse
 import importlib.util
 import inspect
 import sys
+import tempfile
 from pathlib import Path
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
@@ -801,6 +802,50 @@ _D03_PASS_TEXT = (
 # example, and no control noticed.
 _D03_UNMARKED_TEXT = _D03_FIRE_TEXT.replace(CAVEAT_MARKER + ", ", "", 1)
 
+# BL-04/WR-06 (18-REVIEW.md): tempdir-driven D-08 control fixtures.
+#
+# _D08_FIXTURE_NO_NEEDLES is _D03_PASS_TEXT itself: a six-section document
+# _slice_sections already resolves cleanly, carrying none of the three D-08
+# needle strings.
+#
+# _D08_FIXTURE_INERT_NEEDLES embeds all three needles ONCE each in ordinary
+# section-1 prose, built by REFERENCING _D08_HOP_NEEDLE / _D08_CELL_NEEDLE /
+# _D08_CITE_NEEDLE rather than retyping their text — the property under
+# control here is the arm's REPORTING behaviour, not the needles' values;
+# those are pinned by the live leg, which fails on its own if they no longer
+# locate uniquely in the real shipped file. Do not "fix" this into
+# hand-copied literals; that would silently decouple the fixture from the
+# constants it exists to exercise. All three needles land where mutating
+# them changes nothing measurable: no "### Conclusion" heading anywhere (the
+# (a) chain-block sweep reads 0 blocks before and after), no data row in the
+# section-2 table (so (b)'s verdict-cell count is unmoved), and the
+# section-6 claim neither cites nor is built from the (c) needle (so (c)'s
+# silent-untraced count is unmoved) — exactly the "increment not produced"
+# shape M17/M18/M19 exercise.
+#
+# _D08_FIXTURE_DUPLICATE_HOP is the inert fixture with _D08_HOP_NEEDLE
+# present TWICE, derived by `.replace(needle, needle + needle, 1)` rather
+# than hand-duplicated, so the two fixtures cannot silently drift apart (the
+# _D03_UNMARKED_TEXT convention already used above) — the "not found (or
+# not unique)" shape M20 exercises.
+_D08_FIXTURE_NO_NEEDLES = _D03_PASS_TEXT
+
+_D08_FIXTURE_INERT_NEEDLES = _D08_FIXTURE_NO_NEEDLES.replace(
+    "## 1. Problem Essence\nSome essence text that is long enough.\n\n",
+    "## 1. Problem Essence\nSome essence text that is long enough. "
+    + _D08_HOP_NEEDLE
+    + " "
+    + _D08_CELL_NEEDLE
+    + " "
+    + _D08_CITE_NEEDLE
+    + "\n\n",
+    1,
+)
+
+_D08_FIXTURE_DUPLICATE_HOP = _D08_FIXTURE_INERT_NEEDLES.replace(
+    _D08_HOP_NEEDLE, _D08_HOP_NEEDLE + " " + _D08_HOP_NEEDLE, 1
+)
+
 
 def _control_target_unreadable_fires() -> None:
     bad = _rc._synthetic_row(
@@ -1250,6 +1295,73 @@ def _control_live_call_site_roster_locked() -> None:
     assert not wrong_counts, f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
 
 
+# BL-04/WR-06 (18-REVIEW.md): four controls driving the D-08 arm's four
+# internal predicates offline, over `tempfile.TemporaryDirectory()` fixtures
+# only. `shared/`, `first-principles/` and `docs/` are never read or written
+# by any of them, and none references REPO_ROOT.
+#
+# DISCLOSED BOUND, in the same voice as the sibling comparator controls in
+# this file: these four prove the arm REPORTS rather than skips or exits,
+# and that each of its four predicates is reachable and independently
+# falsifiable. They do NOT prove that the three real mutations (a)/(b)/(c)
+# are meaningful against the shipped corpus — that remains the live leg's
+# own job, and it is the property the D-08 arm exists for in the first
+# place; these controls only prove the MECHANISM that carries that job can
+# no longer be hollowed out with the battery green.
+
+
+def _control_d08_missing_target_row_reported() -> None:
+    """`self_test()` catches `AssertionError`/`Exception`, never `SystemExit`
+    (a `BaseException`) — so if `_run_d08_arm` ever regresses to exiting from
+    inside the target-row lookup, a bare call here would kill the whole
+    `--self-test` run without naming a control. Guard against that
+    regression explicitly (N26): catch `SystemExit` and re-raise as a named
+    `AssertionError` so the regression is reported, not an unnamed crash.
+    """
+    try:
+        problems, lines = _run_d08_arm([])
+    except SystemExit:
+        raise AssertionError("D-08 arm exited instead of returning") from None
+    assert lines == [], lines
+    assert any(_D08_TARGET_ID in p for p in problems), problems
+
+
+def _control_d08_missing_sites_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_NO_NEEDLES, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert lines == [], lines
+    assert len(problems) == 3, problems
+    assert all("mutation site not found" in p for p in problems), problems
+    assert any("D-08(a)" in p for p in problems), problems
+    assert any("D-08(b)" in p for p in problems), problems
+    assert any("D-08(c)" in p for p in problems), problems
+
+
+def _control_d08_increments_not_produced_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_INERT_NEEDLES, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert lines == [], lines
+    assert len(problems) == 3, problems
+    assert all("did not increment" in p for p in problems), problems
+    assert any("heading_malformed_blocks" in p for p in problems), problems
+    assert any("nonconforming_verdict_cells" in p for p in problems), problems
+    assert any("silent_untraced_claims" in p for p in problems), problems
+
+
+def _control_d08_needle_not_unique_reported() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "fixture.md"
+        path.write_text(_D08_FIXTURE_DUPLICATE_HOP, encoding="utf-8")
+        problems, lines = _run_d08_arm_on(path, "personal-general")
+    assert any(
+        "D-08(a)" in p and "not found (or not unique)" in p for p in problems
+    ), problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -1293,6 +1405,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
     ("census-x4-commented", _control_census_x4_commented),
     ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
+    ("d08-missing-target-row-reported", _control_d08_missing_target_row_reported),
+    ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
+    ("d08-increments-not-produced-reported", _control_d08_increments_not_produced_reported),
+    ("d08-needle-not-unique-reported", _control_d08_needle_not_unique_reported),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -1338,6 +1454,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "form-lock-x2-rewritten",
     "census-x4-commented",
     "live-call-site-roster-locked",
+    "d08-missing-target-row-reported",
+    "d08-missing-sites-reported",
+    "d08-increments-not-produced-reported",
+    "d08-needle-not-unique-reported",
 )
 
 
