@@ -192,6 +192,31 @@ _PRESCRIBED_LEAD_INS: tuple[str, ...] = (
     "**Trade-offs acknowledged:**",
 )
 
+# CR-02(c) (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed copy of _PRESCRIBED_LEAD_INS — narrowing the tuple to one
+# literal previously left both self-test and the live leg green, because
+# only "**Recommended approach:**" was ever exercised by a control. Control
+# `d03-leadin-set-locked` asserts equality against this tuple, and the
+# `d03-fires-on-leadin-<slug>` controls generated below (one per member of
+# _PRESCRIBED_LEAD_INS) are additionally floored by the existing
+# `coverage-floor` in self_test(), since narrowing the source tuple
+# generates fewer entries while _CONTROL_IDS' hand-transcribed roster stays
+# whole — the SCAN-GUARD plan-15-12 property, not a new mechanism.
+_PRESCRIBED_LEAD_INS_LOCK: tuple[str, ...] = (
+    "**Recommended approach:**",
+    "**Key insight:**",
+    "**Trade-offs acknowledged:**",
+)
+
+# One control-id slug per _PRESCRIBED_LEAD_INS member. The generated
+# `d03-fires-on-leadin-<slug>` control ids are hand-transcribed into
+# _CONTROL_IDS as plain literals below.
+_D03_LEADIN_SLUGS: dict[str, str] = {
+    "**Recommended approach:**": "recommended-approach",
+    "**Key insight:**": "key-insight",
+    "**Trade-offs acknowledged:**": "trade-offs-acknowledged",
+}
+
 # The one repaired example the D-08 live arm mutates in memory. personal-
 # general.md is the tree's exemplar of conforming chain form — two chains,
 # no drill-preamble scaffolding, straightforward verdict cells and citations
@@ -603,6 +628,16 @@ _D03_PASS_TEXT = (
     "enough to clear the assertiveness floor on its own merits.\n"
 )
 
+# CR-02(d): a claim that DOES open with a prescribed lead-in and does NOT
+# carry the caveat marker — derived from _D03_FIRE_TEXT by removing the
+# marker, never hand-duplicated, so the two fixtures cannot silently drift
+# apart. Dropping the `CAVEAT_MARKER in claim_text` conjunct from
+# _d03_rule_problems_from_text previously left this shape entirely
+# unguarded: with no marker, the predicate's remaining half ("any untraced
+# claim with a prescribed lead-in is a violation") would flag every such
+# example, and no control noticed.
+_D03_UNMARKED_TEXT = _D03_FIRE_TEXT.replace(CAVEAT_MARKER + ", ", "", 1)
+
 
 def _control_target_unreadable_fires() -> None:
     bad = _rc._synthetic_row(
@@ -684,15 +719,76 @@ def _control_d04_floor_passes_at_floor() -> None:
     assert _claim_floor_problems([row]) == []
 
 
-def _control_d03_fires_on_prescribed_leadin() -> None:
-    problems = _d03_rule_problems_from_text(_D03_FIRE_TEXT, "fire", "synthetic/fire.md")
-    assert problems, problems
-    assert "D-03 RULE VIOLATION" in problems[0], problems
+# CR-02(c)/(d) (18-VERIFICATION.md blocking gap): the D-03 predicate's
+# coverage was narrowed on two independent axes. (c) Only one of the three
+# _PRESCRIBED_LEAD_INS literals was ever exercised by a control, so
+# narrowing the tuple to that one literal left both self-test and the live
+# leg green; `d03-leadin-set-locked` plus the per-literal
+# `d03-fires-on-leadin-<slug>` controls below close it — the ids are
+# GENERATED from _PRESCRIBED_LEAD_INS and hand-transcribed as plain
+# literals into _CONTROL_IDS, so narrowing the tuple fails the existing
+# `coverage-floor` by naming the missing ids. (d) The
+# `CAVEAT_MARKER in claim_text` conjunct at the D-03 predicate had no
+# negative control; `d03-passes-on-unmarked-prescribed-leadin` closes it.
 
 
 def _control_d03_passes_on_nonprescribed_leadin() -> None:
     problems = _d03_rule_problems_from_text(_D03_PASS_TEXT, "pass", "synthetic/pass.md")
     assert problems == [], problems
+
+
+def _make_d03_fires_on_leadin_control(lead_in: str):
+    """Build a control closure for one _PRESCRIBED_LEAD_INS member, used
+    only to GENERATE the `d03-fires-on-leadin-<slug>` entries below —
+    never called with anything but a member of _PRESCRIBED_LEAD_INS.
+    """
+
+    def _control() -> None:
+        fixture = _D03_FIRE_TEXT.replace("**Recommended approach:**", lead_in, 1)
+        problems = _d03_rule_problems_from_text(fixture, "fire", "synthetic/fire.md")
+        assert problems, (lead_in, problems)
+        assert any("D-03 RULE VIOLATION" in p for p in problems), (lead_in, problems)
+
+    return _control
+
+
+# GENERATED: one control entry per member of _PRESCRIBED_LEAD_INS. The
+# retired `d03-fires-on-prescribed-leadin` control is this table's
+# "**Recommended approach:**" entry — its exact superset.
+_D03_LEADIN_FIRES_CONTROLS: tuple[tuple[str, object], ...] = tuple(
+    (
+        f"d03-fires-on-leadin-{_D03_LEADIN_SLUGS[lead_in]}",
+        _make_d03_fires_on_leadin_control(lead_in),
+    )
+    for lead_in in _PRESCRIBED_LEAD_INS
+)
+
+
+def _control_d03_leadin_set_locked() -> None:
+    """CR-02(c): _PRESCRIBED_LEAD_INS and its second, independent
+    transcription _PRESCRIBED_LEAD_INS_LOCK must agree, reporting the
+    symmetric difference by literal on failure.
+    """
+    diff = set(_PRESCRIBED_LEAD_INS) ^ set(_PRESCRIBED_LEAD_INS_LOCK)
+    assert not diff, f"D-03 LEAD-IN LOCK MISMATCH: {sorted(diff)}"
+
+
+def _control_d03_passes_on_unmarked_prescribed_leadin() -> None:
+    """CR-02(d): a claim opening with a prescribed lead-in and NOT carrying
+    the caveat marker must pass — the `CAVEAT_MARKER in claim_text` half of
+    the D-03 conjunct is what exempts it. Carries its own inline
+    NON-VACUITY assertion before the main assertion (18-REVIEW.md's own
+    vacuity probe on the sibling control): a fixture that silently stopped
+    yielding any claim would pass this control for the wrong reason.
+    """
+    record = detect_defects(_D03_UNMARKED_TEXT, "u")
+    assert record["untraced_claims"] >= 1, record
+    assert any(
+        t.startswith("**Recommended approach:**") for t in record["_untraced_claims_text"]
+    ), record["_untraced_claims_text"]
+    assert (
+        _d03_rule_problems_from_text(_D03_UNMARKED_TEXT, "u", "synthetic/u.md") == []
+    )
 
 
 def _control_ratchet_fires_above() -> None:
@@ -874,8 +970,13 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d04-floor-fires", _control_d04_floor_fires),
     ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
     ("claim-floor-values-locked", _control_claim_floor_values_locked),
-    ("d03-fires-on-prescribed-leadin", _control_d03_fires_on_prescribed_leadin),
+    ("d03-leadin-set-locked", _control_d03_leadin_set_locked),
+    *_D03_LEADIN_FIRES_CONTROLS,
     ("d03-passes-on-nonprescribed-leadin", _control_d03_passes_on_nonprescribed_leadin),
+    (
+        "d03-passes-on-unmarked-prescribed-leadin",
+        _control_d03_passes_on_unmarked_prescribed_leadin,
+    ),
     ("ratchet-fires-above", _control_ratchet_fires_above),
     ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
     ("ratchet-passes-below", _control_ratchet_passes_below),
@@ -908,8 +1009,12 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d04-floor-fires",
     "d04-floor-passes-at-floor",
     "claim-floor-values-locked",
-    "d03-fires-on-prescribed-leadin",
+    "d03-leadin-set-locked",
+    "d03-fires-on-leadin-recommended-approach",
+    "d03-fires-on-leadin-key-insight",
+    "d03-fires-on-leadin-trade-offs-acknowledged",
     "d03-passes-on-nonprescribed-leadin",
+    "d03-passes-on-unmarked-prescribed-leadin",
     "ratchet-fires-above",
     "ratchet-passes-at-pin",
     "ratchet-passes-below",
