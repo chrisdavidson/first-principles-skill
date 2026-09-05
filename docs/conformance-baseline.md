@@ -12,12 +12,12 @@ This file is a measurement, not a contract: no figure below defines what the cod
 
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
-| Files unreadable by `_slice_sections` | 1 of 14 | 1 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 70 (58 untraced) | 70 (58 untraced) | 3 (3 untraced) |
-| §6 untraced claims (marked / silent) | 58 untraced (0 marked, 58 silent) | 58 untraced (0 marked, 58 silent) | 3 untraced (0 marked, 3 silent) |
+| Files unreadable by `_slice_sections` | 0 of 14 | 0 of 14 | 0 of 1 |
+| §6 conclusion claims (untraced) | 77 (60 untraced) | 77 (60 untraced) | 3 (3 untraced) |
+| §6 untraced claims (marked / silent) | 60 untraced (2 marked, 58 silent) | 60 untraced (2 marked, 58 silent) | 3 untraced (0 marked, 3 silent) |
 | §2 verdict cells (non-conforming) | 77 (69 non-conforming) | 77 (69 non-conforming) | 1 (1 non-conforming) |
-| §4 `chain_blocks` (malformed) | 30 (19 malformed) | 30 (19 malformed) | 3 (1 malformed) |
-| `### Conclusion` heading-swept blocks (malformed) | 30 (19 malformed) | 30 (19 malformed) | 1 (0 malformed) |
+| §4 `chain_blocks` (malformed) | 31 (19 malformed) | 31 (19 malformed) | 3 (1 malformed) |
+| `### Conclusion` heading-swept blocks (malformed) | 31 (19 malformed) | 31 (19 malformed) | 1 (0 malformed) |
 | Source-vs-twin agreement (D-04) | 14 of 14 pairs agree | | |
 
 ## Two chain-block censuses (D-05)
@@ -34,7 +34,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 
 **1. Chain-form reach.** `heading_malformed_blocks == 0` means every scanned block conforms under `_chain_block_well_formed`'s measured reach -- the head and first hop, up to the second arrow of the first matching candidate. This is NOT the same claim as "no R7 violations remain in `shared/examples/`": a wrap or a GT-led hop after the second arrow is not detected. This phase fixes to the detector's bound, which is what CONF-04 states; fixing to R7 as published is a strictly larger job and is recorded as backlog, not as done.
 
-**2. Marked-claim residual (derived).** 0 claim(s) across shared-examples and generated-twin carry the `no chain — flagged assumption only` marker (shared-examples: 0, generated-twin: 0), computed from `rows` at render time, never hardcoded. A marked caveat still scores untraced BY DESIGN (`R-CLAIM-CAVEAT-MARKED`): the marker discloses the gap, it does not discharge the claim. Driving the `untraced_claims` reading itself to zero would mean inventing citations, which is the failure mode the bound exists to prevent.
+**2. Marked-claim residual (derived).** 4 claim(s) across shared-examples and generated-twin carry the `no chain — flagged assumption only` marker (shared-examples: 2, generated-twin: 2), computed from `rows` at render time, never hardcoded. A marked caveat still scores untraced BY DESIGN (`R-CLAIM-CAVEAT-MARKED`): the marker discloses the gap, it does not discharge the claim. Driving the `untraced_claims` reading itself to zero would mean inventing citations, which is the failure mode the bound exists to prevent.
 
 **3. `shared/spine/references/output-template.md` is measured but not gated.** It is the specification document whose §4 worked examples deliberately include non-conforming forms as labelled teaching contrasts, so a detector-conformance fix would require either mislabelling a deliberately-broken example or restructuring the document's own pedagogy. CONF-03..06 name the fourteen shipped analyses only. Phase 17 measured this surface and handed the scope question to Phase 18; Phase 18 declines it by this stated reason -- an accepted, disclosed exclusion, never a silent omission.
 
@@ -45,7 +45,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | shared/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/decompose-irreducibility.md | OK | 1 | 0 | 2 | 0 | decompose-irreducibility | 7 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
@@ -64,7 +64,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | first-principles/agents/references/examples/composed-inversion-second-order.md | OK | 1 | 0 | 0 | 0 | composed-inversion-second-order | 2 | 0 | 0 | 8 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/decompose-irreducibility.md | SectionResolutionError: expected sections 1-6 to resolve in order, resolved [] | 0 | 0 | unreadable | unreadable | decompose-irreducibility | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | unreadable | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/decompose-irreducibility.md | OK | 1 | 0 | 2 | 0 | decompose-irreducibility | 7 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/estimate-fermi.md | OK | 1 | 0 | 0 | 0 | estimate-fermi | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/ishikawa-fishbone.md | OK | 3 | 0 | 0 | 4 | ishikawa-fishbone | 4 | 4 | 1 | 8 | 8 | 1 | 3 | 0 | 0 | 0 | 0 | 2 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/personal-general-2.md | OK | 3 | 3 | 0 | 7 | personal-general-2 | 7 | 7 | 1 | 8 | 8 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
