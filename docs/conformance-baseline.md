@@ -13,11 +13,11 @@ This file is a measurement, not a contract: no figure below defines what the cod
 | Reading | shared-examples | generated-twin | contract-surface |
 |---|---|---|---|
 | Files unreadable by `_slice_sections` | 0 of 14 | 0 of 14 | 0 of 1 |
-| §6 conclusion claims (untraced) | 77 (25 untraced) | 77 (25 untraced) | 3 (3 untraced) |
-| §6 untraced claims (marked / silent) | 25 untraced (2 marked, 23 silent) | 25 untraced (2 marked, 23 silent) | 3 untraced (0 marked, 3 silent) |
-| §2 verdict cells (non-conforming) | 77 (37 non-conforming) | 77 (37 non-conforming) | 1 (1 non-conforming) |
-| §4 `chain_blocks` (malformed) | 31 (7 malformed) | 31 (7 malformed) | 3 (1 malformed) |
-| `### Conclusion` heading-swept blocks (malformed) | 31 (7 malformed) | 31 (7 malformed) | 1 (0 malformed) |
+| §6 conclusion claims (untraced) | 77 (15 untraced) | 77 (15 untraced) | 3 (3 untraced) |
+| §6 untraced claims (marked / silent) | 15 untraced (2 marked, 13 silent) | 15 untraced (2 marked, 13 silent) | 3 untraced (0 marked, 3 silent) |
+| §2 verdict cells (non-conforming) | 77 (31 non-conforming) | 77 (31 non-conforming) | 1 (1 non-conforming) |
+| §4 `chain_blocks` (malformed) | 31 (4 malformed) | 31 (4 malformed) | 3 (1 malformed) |
+| `### Conclusion` heading-swept blocks (malformed) | 31 (4 malformed) | 31 (4 malformed) | 1 (0 malformed) |
 | Source-vs-twin agreement (D-04) | 14 of 14 pairs agree | | |
 
 ## Two chain-block censuses (D-05)
@@ -55,7 +55,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | shared/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/self-application.md | OK | 3 | 0 | 0 | 0 | self-application | 9 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| shared/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| shared/examples/software-systems-2.md | OK | 3 | 0 | 0 | 0 | software-systems-2 | 10 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/software-systems.md | OK | 3 | 0 | 0 | 0 | software-systems | 8 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | shared/examples/theoretical-limit-carnot.md | OK | 1 | 0 | 0 | 0 | theoretical-limit-carnot | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
@@ -74,7 +74,7 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | first-principles/agents/references/examples/science-engineering-2.md | OK | 2 | 2 | 0 | 3 | science-engineering-2 | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/science-engineering.md | OK | 2 | 2 | 0 | 3 | science-engineering | 3 | 3 | 1 | 8 | 8 | 1 | 2 | 2 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/self-application.md | OK | 3 | 0 | 0 | 0 | self-application | 9 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
-| first-principles/agents/references/examples/software-systems-2.md | OK | 3 | 3 | 0 | 10 | software-systems-2 | 10 | 10 | 1 | 6 | 6 | 1 | 3 | 3 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+| first-principles/agents/references/examples/software-systems-2.md | OK | 3 | 0 | 0 | 0 | software-systems-2 | 10 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/software-systems.md | OK | 3 | 0 | 0 | 0 | software-systems | 8 | 0 | 0 | 6 | 0 | 0 | 3 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | first-principles/agents/references/examples/theoretical-limit-carnot.md | OK | 1 | 0 | 0 | 0 | theoretical-limit-carnot | 5 | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 
