@@ -31,7 +31,11 @@ Usage:
 
 Exit codes:
     0  success (write / --check clean / --self-test clean)
-    1  --check found drift, or discovery floor failed, or --self-test found a failing control
+    1  --check found drift, or discovery floor failed, or --self-test found a failing
+       control, or (Phase 19) a corpus floor was breached (catalog<->discovery roster
+       drift, a fully-clean corpus item with no recorded disposition, a corpus
+       population floor breach, or a D-03 perturbation mutation that did not move the
+       expected reading)
     2  --check found the pass1/pass2 in-memory generation itself non-deterministic
 """
 
@@ -40,7 +44,9 @@ from __future__ import annotations
 import argparse
 import difflib
 import importlib.util
+import inspect
 import json
+import re
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -91,6 +97,18 @@ SectionResolutionError = _mod.SectionResolutionError
 _render_example_chain_blocks = _mod._render_example_chain_blocks
 _chain_block_well_formed = _mod._chain_block_well_formed
 _DEFECT_RECORD_FIELDS = _mod._DEFECT_RECORD_FIELDS
+# Phase 19 (CONF-07/CONF-08): read-only bindings the D-03 perturbation floor
+# uses to locate mutation sites STRUCTURALLY, through the same section-
+# slicing and cell/chain/citation vocabulary the frozen detector itself
+# uses -- never a hand-transcribed byte literal per item. Calling these is
+# unrestricted; CONTRACT-06 forbids editing them, not reading them.
+_slice_sections = _mod._slice_sections
+_verdict_cells = _mod._verdict_cells
+_verdict_conforms = _mod._verdict_conforms
+_chain_ids = _mod._chain_ids
+_chain_blocks = _mod._chain_blocks
+_STRUCTURAL_LEDGER_ROW_RE = _mod._STRUCTURAL_LEDGER_ROW_RE
+_cites_chain = _mod._cites_chain
 
 # Derived, never restated: slices of the frozen schema tuple, so widening
 # _DEFECT_RECORD_FIELDS upstream cannot silently narrow what this script excludes from
@@ -442,6 +460,156 @@ def build_rows(repo_root: Path) -> list[dict]:
         else:
             rows.append(build_row(artifact))
     return rows
+
+
+# ---------------------------------------------------------------------------
+# Phase 19 (CONF-07/CONF-08): the three corpus floors that make the
+# false-negative-rate reading falsifiable. Each mirrors a shape already
+# proven in scripts/check-conf-gate.py -- copied here because the corpus
+# floors read report-conformance.py's own build_rows/parse_corpus_catalog
+# output and check-conf-gate.py is scoped to the 14 shipped exemplars only
+# (RESEARCH.md D-03 / <interfaces>). Neither check-quality-harness.py nor
+# check-conf-gate.py is imported for write access anywhere in this section.
+# ---------------------------------------------------------------------------
+
+
+def _corpus_roster_problems(
+    catalog_entries: dict[str, dict],
+    catalog_problems: list[str],
+    corpus_rows: list[dict],
+) -> list[str]:
+    """D-04: EQUALITY, never subset, between the corpus catalog's `File`
+    column stem set and the discovered adversarial-corpus stem set -- the
+    18-D-07 pattern (`_claim_floor_roster_problems`'s shape, copied
+    verbatim) adopted after a subset test proved unable to see its own
+    table narrowing. Reports both `missing` (a discovered item with no
+    catalog row) and `extra` (a catalog row naming no discovered file) by
+    name in one `D-04 CORPUS ROSTER DRIFT` problem.
+
+    Also folds in `parse_corpus_catalog`'s own *catalog_problems* -- a
+    malformed catalog row (empty `File` cell, invalid `Stratum`) is
+    reported by name here rather than silently shrinking the entries dict
+    the roster comparison itself reads.
+    """
+    problems: list[str] = list(catalog_problems)
+    catalog_stems = set(catalog_entries)
+    discovered_stems = {r["analysis_id"] for r in corpus_rows}
+    missing = sorted(discovered_stems - catalog_stems)
+    extra = sorted(catalog_stems - discovered_stems)
+    if missing or extra:
+        problems.append(f"D-04 CORPUS ROSTER DRIFT: missing={missing} extra={extra}")
+    return problems
+
+
+# The three disposition prefixes D-04/CONTEXT.md's stratum table names as
+# honest dispositions. A fourth value ("MISSING", or an empty cell) is
+# exactly the silent pass CONF-08 forbids.
+_VALID_DISPOSITION_PREFIXES: tuple[str, ...] = ("fix", "accept-with-reason", "defer-with-owner")
+
+
+def _corpus_disposition_problems(corpus_rows: list[dict]) -> list[str]:
+    """CONF-08's zero-silent-passes clause, made mechanical rather than a
+    prose promise. For every row whose `fully_clean` is True, requires a
+    `disposition` that is non-empty, is not the literal "MISSING", and
+    begins with one of `fix` / `accept-with-reason` / `defer-with-owner`.
+    A non-clean row is never checked here -- a genuine miss is expected to
+    carry whatever disposition the catalog author gave it, and the point
+    of this floor is specifically the clean-but-undisclosed case.
+    """
+    problems: list[str] = []
+    for r in corpus_rows:
+        if r["fully_clean"] is not True:
+            continue
+        disposition = r.get("disposition")
+        if not disposition or disposition == "MISSING":
+            problems.append(
+                f"SILENT PASS [{r['analysis_id']}]: scores fully clean, no "
+                "disposition recorded"
+            )
+            continue
+        if not any(disposition.startswith(p) for p in _VALID_DISPOSITION_PREFIXES):
+            problems.append(
+                f"DISPOSITION FORM [{r['analysis_id']}]: {disposition!r} does not "
+                "begin with fix / accept-with-reason / defer-with-owner"
+            )
+    return problems
+
+
+# CONF-07/CONF-08 (Phase 19, D-05 source-literal discipline, the 18-12
+# "re-derive, never transcribe" convention): three corpus-wide DENOMINATOR
+# floors, each the sum of the named field over every READABLE corpus row,
+# re-derived at authoring time from docs/data/conformance.json's
+# adversarial_corpus.rows and pinned here as source literals -- never read
+# back from that regenerated artifact. Derivation command (19-06-SUMMARY.md
+# quotes its verbatim output):
+#
+#   python3 -c "
+#   import json
+#   data = json.load(open('docs/data/conformance.json'))
+#   rows = data['adversarial_corpus']['rows']
+#   for f in ('conclusion_claims', 'verdict_cells', 'chain_blocks'):
+#       print(f, sum(r[f] for r in rows if r['section_resolution'] == 'OK'))
+#   "
+#
+# These are DENOMINATOR floors, not targets: a zero numerator
+# (untraced_claims == 0, etc.) is meaningful only against a population that
+# has not itself been deleted. DISCLOSED BOUND: a floor here detects
+# population SHRINKAGE below the pinned figure, never substitution --
+# deleting one item's rows while another item's grows by the same count
+# would not fire it. Legitimate corpus growth never fires this floor; a
+# legitimate reduction is a deliberate two-place edit -- this constant and
+# its neutralization-tested control both move together, the same
+# discipline check-conf-gate.py's `_POPULATION_FLOORS` already applies.
+_CORPUS_POPULATION_FLOORS: dict[str, int] = {
+    "conclusion_claims": 49,
+    "verdict_cells": 66,
+    "chain_blocks": 32,
+}
+
+
+def _corpus_population_problems(corpus_rows: list[dict]) -> list[str]:
+    """CONF-07's population precondition, two layers.
+
+    Per item: every READABLE corpus row must read `conclusion_claims >= 1`
+    and `chain_blocks >= 1` -- a form-clean reading over an empty
+    population is not a probe. An unreadable row is reported by name too,
+    never silently skipped (it is also caught by Task 1's roster/build
+    machinery upstream, but this floor names it independently so a reader
+    scanning only D-03/D-05's output still sees it).
+
+    Corpus-wide: the three `_CORPUS_POPULATION_FLOORS` denominators, summed
+    over readable rows, must not fall below their pinned floor -- so a zero
+    numerator achieved by deleting the measured population, rather than by
+    genuine detector clarity, is caught.
+    """
+    problems: list[str] = []
+    totals: dict[str, int] = {field: 0 for field in _CORPUS_POPULATION_FLOORS}
+    for r in corpus_rows:
+        if r["section_resolution"] != "OK":
+            problems.append(
+                f"CORPUS POPULATION [{r['analysis_id']}] section_resolution: "
+                "unreadable — a form-clean reading over an empty population is "
+                "not a probe"
+            )
+            continue
+        for field in ("conclusion_claims", "chain_blocks"):
+            if r[field] == 0:
+                problems.append(
+                    f"CORPUS POPULATION [{r['analysis_id']}] {field}: 0 — a "
+                    "form-clean reading over an empty population is not a probe"
+                )
+        for field in _CORPUS_POPULATION_FLOORS:
+            totals[field] += r[field]
+
+    for field, floor in _CORPUS_POPULATION_FLOORS.items():
+        actual = totals[field]
+        if actual < floor:
+            problems.append(
+                f"CORPUS POPULATION FLOOR BREACH {field}: {actual} < floor "
+                f"{floor} — a zero defect count against a shrunken population "
+                "is not conformance"
+            )
+    return problems
 
 
 def pair_agreement(
@@ -1018,10 +1186,38 @@ def cmd_check() -> int:
         sys.stderr.write("NON-DETERMINISTIC: pass-1 != pass-2\n")
         return 2
 
-    drifted = _diff_against_disk(pass1)
+    # Collect-then-report (check-conf-gate.py run_live()'s shape): every
+    # predicate below runs regardless of whether an earlier one already
+    # found a problem, so a stale baseline and a Phase 19 corpus floor
+    # breach are both reported in the same run rather than the first
+    # masking the second.
+    problems: list[str] = []
 
+    drifted = _diff_against_disk(pass1)
     if drifted:
-        sys.stderr.write("Run: python3 scripts/report-conformance.py && git add -u\n")
+        rels = [
+            str(p.relative_to(REPO_ROOT) if p.is_relative_to(REPO_ROOT) else p)
+            for p in drifted
+        ]
+        problems.append("DRIFT: " + ", ".join(rels))
+
+    # Phase 19 (CONF-07/CONF-08): the corpus floors. A fresh build_rows()
+    # call, independent of pass1/pass2 above (generate_all does not expose
+    # its intermediate rows), matching the shape check-conf-gate.py's own
+    # run_live() already uses for the same reason.
+    rows = build_rows(REPO_ROOT)
+    corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
+    catalog_entries, catalog_problems = parse_corpus_catalog(REPO_ROOT)
+
+    problems += _corpus_roster_problems(catalog_entries, catalog_problems, corpus_rows)
+    problems += _corpus_disposition_problems(corpus_rows)
+    problems += _corpus_population_problems(corpus_rows)
+
+    if problems:
+        for p in problems:
+            sys.stderr.write(f"report-conformance: FAIL — {p}\n")
+        if drifted:
+            sys.stderr.write("Run: python3 scripts/report-conformance.py && git add -u\n")
         return 1
     print("report-conformance: PASS — no drift")
     return 0
@@ -1481,6 +1677,187 @@ def _control_corpus_clean_without_disposition() -> None:
     ]
 
 
+# ---------------------------------------------------------------------------
+# Phase 19 (CONF-07/CONF-08) controls: the three Task-1 floors, plus the
+# D-03 perturbation floor and its call-site census, all offline and
+# tempdir/in-memory -- none of these touches tests/adversarial-corpus-v9.0/.
+# ---------------------------------------------------------------------------
+
+
+def _control_corpus_roster_drift_detected() -> None:
+    corpus_rows = [
+        _synthetic_row("adversarial-corpus", "a.md", "a"),
+        _synthetic_row("adversarial-corpus", "b.md", "b"),
+    ]
+    catalog_entries = {
+        "a": {
+            "stratum": "B2",
+            "source": "x",
+            "what_is_false": "x",
+            "ought_to_catch": "x",
+            "disposition": "accept-with-reason: x.",
+        },
+        "c": {
+            "stratum": "B2",
+            "source": "x",
+            "what_is_false": "x",
+            "ought_to_catch": "x",
+            "disposition": "accept-with-reason: x.",
+        },
+    }
+    problems = _corpus_roster_problems(catalog_entries, [], corpus_rows)
+    assert len(problems) == 1, problems
+    assert "missing=['b']" in problems[0], problems
+    assert "extra=['c']" in problems[0], problems
+
+
+def _control_corpus_roster_equal_passes() -> None:
+    corpus_rows = [_synthetic_row("adversarial-corpus", "a.md", "a")]
+    catalog_entries = {
+        "a": {
+            "stratum": "B2",
+            "source": "x",
+            "what_is_false": "x",
+            "ought_to_catch": "x",
+            "disposition": "accept-with-reason: x.",
+        }
+    }
+    assert _corpus_roster_problems(catalog_entries, [], corpus_rows) == []
+
+
+def _control_corpus_roster_catalog_problems_folded() -> None:
+    problems = _corpus_roster_problems({}, ["CATALOG PARSE FAIL — x"], [])
+    assert problems == ["CATALOG PARSE FAIL — x"], problems
+
+
+def _control_corpus_disposition_silent_pass_detected() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="derived:x",
+        disposition="MISSING",
+        fully_clean=True,
+        form_defects=0,
+    )
+    problems = _corpus_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "SILENT PASS [a]" in problems[0], problems
+
+
+def _control_corpus_disposition_form_bad_detected() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="derived:x",
+        disposition="looks fine",
+        fully_clean=True,
+        form_defects=0,
+    )
+    problems = _corpus_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "DISPOSITION FORM [a]" in problems[0], problems
+
+
+def _control_corpus_disposition_valid_passes() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="derived:x",
+        disposition="accept-with-reason: fine.",
+        fully_clean=True,
+        form_defects=0,
+    )
+    assert _corpus_disposition_problems([row]) == []
+
+
+def _control_corpus_disposition_nonclean_skipped() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="A",
+        source="derived:x",
+        disposition="MISSING",
+        fully_clean=False,
+        form_defects=1,
+    )
+    assert _corpus_disposition_problems([row]) == []
+
+
+def _control_corpus_population_per_item_zero_detected() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="x",
+        disposition="accept-with-reason: x.",
+        fully_clean=False,
+        form_defects=0,
+        conclusion_claims=0,
+        chain_blocks=1,
+        verdict_cells=1,
+    )
+    problems = _corpus_population_problems([row])
+    assert any("CORPUS POPULATION [a] conclusion_claims: 0" in p for p in problems), problems
+
+
+def _control_corpus_population_per_item_unreadable_detected() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="MISSING",
+        source="MISSING",
+        disposition="MISSING",
+        fully_clean=False,
+        form_defects="unreadable",
+        section_resolution="SectionResolutionError: x",
+    )
+    problems = _corpus_population_problems([row])
+    assert any(
+        "CORPUS POPULATION [a] section_resolution: unreadable" in p for p in problems
+    ), problems
+
+
+def _control_corpus_population_corpuswide_breach_detected() -> None:
+    row = _synthetic_row(
+        "adversarial-corpus",
+        "a.md",
+        "a",
+        stratum="B2",
+        source="x",
+        disposition="accept-with-reason: x.",
+        fully_clean=True,
+        form_defects=0,
+        conclusion_claims=1,
+        chain_blocks=1,
+        verdict_cells=1,
+    )
+    problems = _corpus_population_problems([row])
+    assert any("CORPUS POPULATION FLOOR BREACH conclusion_claims" in p for p in problems), problems
+    assert any("CORPUS POPULATION FLOOR BREACH verdict_cells" in p for p in problems), problems
+    assert any("CORPUS POPULATION FLOOR BREACH chain_blocks" in p for p in problems), problems
+
+
+def _control_corpus_population_floor_values_locked() -> None:
+    """BL-03 (18-12's convention): the pinned floors must equal an INLINE
+    dict literal written at the control site, never read from
+    `_CORPUS_POPULATION_FLOORS` itself -- a fixture derived from the
+    constant it protects is invariant to that constant's value.
+    """
+    expected = {"conclusion_claims": 49, "verdict_cells": 66, "chain_blocks": 32}
+    assert _CORPUS_POPULATION_FLOORS == expected, (
+        f"CORPUS POPULATION FLOOR VALUE MISMATCH: {_CORPUS_POPULATION_FLOORS} != {expected}"
+    )
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -1503,6 +1880,38 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_render_marked_silent_parsed_from_output,
     ),
     ("corpus-clean-without-disposition", _control_corpus_clean_without_disposition),
+    ("corpus-roster-drift-detected", _control_corpus_roster_drift_detected),
+    ("corpus-roster-equal-passes", _control_corpus_roster_equal_passes),
+    (
+        "corpus-roster-catalog-problems-folded",
+        _control_corpus_roster_catalog_problems_folded,
+    ),
+    (
+        "corpus-disposition-silent-pass-detected",
+        _control_corpus_disposition_silent_pass_detected,
+    ),
+    (
+        "corpus-disposition-form-bad-detected",
+        _control_corpus_disposition_form_bad_detected,
+    ),
+    ("corpus-disposition-valid-passes", _control_corpus_disposition_valid_passes),
+    ("corpus-disposition-nonclean-skipped", _control_corpus_disposition_nonclean_skipped),
+    (
+        "corpus-population-per-item-zero-detected",
+        _control_corpus_population_per_item_zero_detected,
+    ),
+    (
+        "corpus-population-per-item-unreadable-detected",
+        _control_corpus_population_per_item_unreadable_detected,
+    ),
+    (
+        "corpus-population-corpuswide-breach-detected",
+        _control_corpus_population_corpuswide_breach_detected,
+    ),
+    (
+        "corpus-population-floor-values-locked",
+        _control_corpus_population_floor_values_locked,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -1528,6 +1937,17 @@ _CONTROL_IDS: tuple[str, ...] = (
     "unreadable-columns-are-literal",
     "render-marked-silent-parsed-from-output",
     "corpus-clean-without-disposition",
+    "corpus-roster-drift-detected",
+    "corpus-roster-equal-passes",
+    "corpus-roster-catalog-problems-folded",
+    "corpus-disposition-silent-pass-detected",
+    "corpus-disposition-form-bad-detected",
+    "corpus-disposition-valid-passes",
+    "corpus-disposition-nonclean-skipped",
+    "corpus-population-per-item-zero-detected",
+    "corpus-population-per-item-unreadable-detected",
+    "corpus-population-corpuswide-breach-detected",
+    "corpus-population-floor-values-locked",
 )
 
 
