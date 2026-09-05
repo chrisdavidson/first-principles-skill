@@ -193,3 +193,13 @@ None - no external service configuration required.
 ---
 *Phase: 19-false-negative-rate*
 *Completed: 2026-09-05*
+
+## Self-Check: PASSED
+
+- FOUND: tests/adversarial-corpus-v9.0/t01-ledger-arbitrary-chain.md
+- FOUND: tests/adversarial-corpus-v9.0/t07-non-sequitur-between-hops.md
+- FOUND: tests/adversarial-corpus-v9.0/t09-arithmetic-does-not-follow.md
+- FOUND: tests/adversarial-corpus-v9.0/t12-inline-citation-wrong-chain.md
+- FOUND: commit 3420117 (Task 1)
+- FOUND: commit a227ee1 (Task 2)
+- FOUND: commit fdace20 (this SUMMARY)
