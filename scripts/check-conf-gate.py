@@ -44,12 +44,19 @@ Exit codes:
        fired, the ratchet rose, a D-08 mutation did not produce its expected defect, or a
        discovery floor failed
     2  environment error (module import failure)
+
+`--self-test` additionally floors `run_live()`'s own six enforcement call sites via a
+source-text census over `inspect.getsource(run_live)` (CR-01): this counts and matches
+SOURCE TEXT only, so it catches a call site that was deleted or rewritten, never one whose
+returned problems are computed correctly and then silently discarded before reaching the
+failure report.
 """
 
 from __future__ import annotations
 
 import argparse
 import importlib.util
+import inspect
 import sys
 from pathlib import Path
 
@@ -172,6 +179,98 @@ _D08_CELL_NEEDLE = (
 _D08_CELL_REPLACEMENT = "Discard"
 _D08_CITE_NEEDLE = "3. (chain C1) Use the effective compensation figure"
 _D08_CITE_REPLACEMENT = "3. Use the effective compensation figure"
+
+# CR-01 (18-VERIFICATION.md blocking gap): `run_live()`'s six `problems +=`
+# enforcement call sites are floored by a source-text census, in the same
+# shape `check-selfaudit-scan.py`'s `(validate-census)` and
+# `(roster-entry-source)` blocks already use for themselves. Every entry maps
+# to expected count 1 — one call site, called exactly once.
+_LIVE_CALL_SITES: dict[str, int] = {
+    "_targets_problems": 1,
+    "_claim_floor_roster_problems": 1,
+    "_claim_floor_problems": 1,
+    "_d03_rule_problems_from_text": 1,
+    "_ratchet_problems": 1,
+    "_run_d08_arm": 1,
+}
+
+# The whitespace-normalized call-form fragment each symbol above must appear
+# in, transcribed from run_live()'s current source. Five carry the
+# `problems += <symbol>(...)` form; `_run_d08_arm` carries
+# `mutation_lines = _run_d08_arm(rows)`. Every fragment is built BY
+# CONCATENATION of short string pieces, never as one contiguous literal —
+# the `(roster-entry-source)` convention `check-selfaudit-scan.py` uses for
+# the same reason it exists there: a contiguous literal is a self-match
+# hazard the moment anyone widens the census's search scope from run_live to
+# the module (this table's own source text would then contain the exact
+# string it is searching for).
+_LIVE_CALL_FORMS: dict[str, str] = {
+    "_targets_problems": "problems += " + "_targets_problems(rows)",
+    "_claim_floor_roster_problems": (
+        "problems += "
+        + "_claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)"
+    ),
+    "_claim_floor_problems": "problems += " + "_claim_floor_problems(rows)",
+    "_d03_rule_problems_from_text": (
+        "problems += "
+        + '_d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])'
+    ),
+    "_ratchet_problems": "problems += " + "_ratchet_problems(rows)",
+    "_run_d08_arm": "mutation_lines = " + "_run_d08_arm(rows)",
+}
+
+
+def _call_site_census_problems(
+    source: str,
+    expected_counts: dict[str, int],
+    expected_forms: dict[str, str] | None = None,
+) -> list[str]:
+    """CR-01: a PURE source-text census over `run_live()`'s enforcement call
+    sites. Takes source text as a parameter — never `inspect.getsource
+    (run_live)` directly — so the `census-x*`/`form-lock-x*` isolation arms
+    below can drive it with synthetic strings and never with the real
+    function's source. That discipline is what keeps the arms falsifiable
+    when the real source changes.
+
+    For each symbol in *expected_counts* this counts occurrences of
+    ``symbol + "("`` in *source* and reports
+    ``CALL-SITE CENSUS: <symbol> occurs <n> time(s) in run_live's source,
+    expected <k>`` when the count differs. When *expected_forms* is supplied,
+    *source* is additionally whitespace-normalized (every run of whitespace
+    collapsed to a single space) and each symbol's expected call-form
+    fragment is checked for containment, reporting
+    ``CALL-FORM LOCK: <symbol>'s expected call form not found in run_live's
+    source: <fragment>`` when absent. Problems are returned in the tables'
+    own declaration order, so failure output is stable across runs.
+
+    DISCLOSED LIMITATION, in the same voice as `check-selfaudit-scan.py`'s
+    ENTRY-SOURCE LOCK: this counts and matches SOURCE TEXT and observes no
+    behaviour. It catches a call site that was DELETED or REWRITTEN, not a
+    call whose returned problems are computed correctly and then discarded
+    before reaching the failure report; and a call form rebound to an
+    expression of EQUAL VALUE is harmless by construction and therefore
+    invisible to it. Closes CR-01 and the blocking gap 18-VERIFICATION.md
+    records against `run_live()`'s six enforcement call sites.
+    """
+    problems: list[str] = []
+    for symbol, expected in expected_counts.items():
+        pattern = symbol + "("
+        actual = source.count(pattern)
+        if actual != expected:
+            problems.append(
+                f"CALL-SITE CENSUS: {symbol} occurs {actual} time(s) in "
+                f"run_live's source, expected {expected}"
+            )
+    if expected_forms is not None:
+        normalized = " ".join(source.split())
+        for symbol, fragment in expected_forms.items():
+            normalized_fragment = " ".join(fragment.split())
+            if normalized_fragment not in normalized:
+                problems.append(
+                    f"CALL-FORM LOCK: {symbol}'s expected call form not "
+                    f"found in run_live's source: {fragment!r}"
+                )
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -601,6 +700,104 @@ def _control_contract_surface_excluded() -> None:
     assert _claim_floor_problems([bad]) == []
 
 
+# CR-01 census/form-lock controls (18-VERIFICATION.md blocking gap). Every
+# `census-x*`/`form-lock-x*` isolation arm below drives `_call_site_census_
+# problems` with one of these SYNTHETIC source strings — never with
+# `inspect.getsource(run_live)` — so the arms stay falsifiable independently
+# of whatever `run_live`'s real source happens to read today.
+
+_CENSUS_X1_CLEAN_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_CENSUS_X2_MISSING_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_CENSUS_X3_DUPLICATED_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    problems += _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+_FORM_LOCK_X2_REWRITTEN_SOURCE = (
+    "def run_live():\n"
+    "    problems: list[str] = []\n"
+    "    _targets_problems(rows)\n"
+    "    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)\n"
+    "    problems += _claim_floor_problems(rows)\n"
+    '    problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])\n'
+    "    problems += _ratchet_problems(rows)\n"
+    "    mutation_lines = _run_d08_arm(rows)\n"
+)
+
+
+def _control_live_call_site_census() -> None:
+    source = inspect.getsource(run_live)
+    problems = _call_site_census_problems(source, _LIVE_CALL_SITES)
+    assert problems == [], problems
+
+
+def _control_live_call_form_lock() -> None:
+    source = inspect.getsource(run_live)
+    problems = _call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    assert problems == [], problems
+
+
+def _control_census_x1_clean() -> None:
+    problems = _call_site_census_problems(_CENSUS_X1_CLEAN_SOURCE, _LIVE_CALL_SITES)
+    assert problems == [], problems
+
+
+def _control_census_x2_missing() -> None:
+    problems = _call_site_census_problems(_CENSUS_X2_MISSING_SOURCE, _LIVE_CALL_SITES)
+    assert len(problems) == 1, problems
+    assert "_targets_problems" in problems[0], problems
+    assert "occurs 0 time" in problems[0], problems
+
+
+def _control_census_x3_duplicated() -> None:
+    problems = _call_site_census_problems(_CENSUS_X3_DUPLICATED_SOURCE, _LIVE_CALL_SITES)
+    assert len(problems) == 1, problems
+    assert "_ratchet_problems" in problems[0], problems
+    assert "occurs 2 time" in problems[0], problems
+
+
+def _control_form_lock_x1_clean() -> None:
+    problems = _call_site_census_problems(
+        _CENSUS_X1_CLEAN_SOURCE, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
+    assert problems == [], problems
+
+
+def _control_form_lock_x2_rewritten() -> None:
+    problems = _call_site_census_problems(
+        _FORM_LOCK_X2_REWRITTEN_SOURCE, _LIVE_CALL_SITES, _LIVE_CALL_FORMS
+    )
+    assert len(problems) == 1, problems
+    assert "CALL-FORM LOCK" in problems[0], problems
+    assert "_targets_problems" in problems[0], problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -620,6 +817,13 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
     ("ratchet-passes-below", _control_ratchet_passes_below),
     ("contract-surface-excluded", _control_contract_surface_excluded),
+    ("live-call-site-census", _control_live_call_site_census),
+    ("live-call-form-lock", _control_live_call_form_lock),
+    ("census-x1-clean", _control_census_x1_clean),
+    ("census-x2-missing", _control_census_x2_missing),
+    ("census-x3-duplicated", _control_census_x3_duplicated),
+    ("form-lock-x1-clean", _control_form_lock_x1_clean),
+    ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -645,6 +849,13 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ratchet-passes-at-pin",
     "ratchet-passes-below",
     "contract-surface-excluded",
+    "live-call-site-census",
+    "live-call-form-lock",
+    "census-x1-clean",
+    "census-x2-missing",
+    "census-x3-duplicated",
+    "form-lock-x1-clean",
+    "form-lock-x2-rewritten",
 )
 
 
