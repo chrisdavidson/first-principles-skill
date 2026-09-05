@@ -144,3 +144,4 @@ None. All threat-register mitigations for this plan (T-17-06 scratch-copy contai
 - FOUND: `docs/data/conformance.json`
 - FOUND: `.planning/phases/17-conformance-baseline/17-02-SUMMARY.md`
 - FOUND commit `a2f190c` (Task 1)
+- FOUND commit `07f0f86` (this Summary)
