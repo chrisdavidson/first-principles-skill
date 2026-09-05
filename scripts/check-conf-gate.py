@@ -1,0 +1,704 @@
+#!/usr/bin/env python3
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+"""CONF-GATE: the standing conformance gate over the fourteen shipped worked examples.
+
+Plans 18-01 through 18-06 drove four counts (unreadable, `heading_malformed_blocks`,
+`nonconforming_verdict_cells`, `silent_untraced_claims`) to zero across the corpus. This
+gate makes the zeros stick: it measures the shipped tree LIVE, through the frozen,
+CONTRACT-06-pinned detectors in `scripts/check-quality-harness.py`, and compares those live
+readings against targets written as literals in ITS OWN SOURCE — never against
+`docs/data/conformance.json`. That artifact is regenerated from the same tree this gate
+measures, so a gate reading both its targets and its readings from it would regenerate the
+target alongside any regression and could never fire. That is the 999.30/999.31 defect
+class this milestone exists to stop repeating.
+
+Import discipline (D-06): this file imports `scripts/report-conformance.py` exactly once,
+under the `sys.modules` key `_report_conformance`, and reads every detector function off
+that already-imported module (`_rc.detect_defects`, `_rc.build_rows`,
+`_rc.discover_artifacts`, `_rc._synthetic_row`, ...). It never re-registers the harness
+under `_quality_harness` — `report-conformance.py` already performs that one-way import at
+its own module scope, and re-running `exec_module` against the same `sys.modules` key would
+re-execute the harness module body inside a process that already has it loaded.
+
+Accepted cost, stated rather than hidden: `report-conformance.py` is the ONE aggregation
+this gate and the published baseline both depend on. A bug in `build_rows` or
+`detect_defects` makes the baseline and this gate wrong together, and neither can catch the
+other. The alternative — an independent re-implementation of the same discovery and
+measurement logic — was considered and declined in favour of a thin gate: two
+implementations of the same aggregation is twice the surface for the two to silently
+diverge, which is a worse failure mode than a shared bug.
+
+`scripts/check-quality-harness.py` is FROZEN (CONTRACT-06). This gate calls its detectors
+through `report-conformance.py`; it never modifies them and never re-implements them.
+
+Usage:
+    python3 scripts/check-conf-gate.py               # live leg against the shipped tree
+    python3 scripts/check-conf-gate.py --self-test    # offline control battery
+
+Exit codes:
+    0  live leg clean / --self-test clean
+    1  a target was exceeded, a floor was breached, the D-07 roster drifted, the D-03 rule
+       fired, the ratchet rose, a D-08 mutation did not produce its expected defect, or a
+       discovery floor failed
+    2  environment error (module import failure)
+"""
+
+from __future__ import annotations
+
+import argparse
+import importlib.util
+import sys
+from pathlib import Path
+
+REPO_ROOT: Path = Path(__file__).resolve().parents[1]
+
+# ---------------------------------------------------------------------------
+# Import (D-06): scripts/report-conformance.py, exactly once, under its own
+# sys.modules key. That module performs the one-way harness import under
+# "_quality_harness" at ITS OWN module scope — by the time this module's body
+# runs, that key is already populated. Every detector function this gate uses
+# is read off the already-imported `_rc` module below; `_quality_harness` is
+# never named as a sys.modules key anywhere in this file.
+# ---------------------------------------------------------------------------
+
+_RC_PATH: Path = REPO_ROOT / "scripts" / "report-conformance.py"
+_rc_spec = importlib.util.spec_from_file_location("_report_conformance", _RC_PATH)
+if _rc_spec is None or _rc_spec.loader is None:
+    sys.stderr.write(f"check-conf-gate: ENV FAIL — could not build a module spec for {_RC_PATH}\n")
+    sys.exit(2)
+_rc = importlib.util.module_from_spec(_rc_spec)
+sys.modules["_report_conformance"] = _rc  # assignment must precede exec_module (3.13/3.14 dataclasses._is_type)
+_rc_spec.loader.exec_module(_rc)
+
+detect_defects = _rc.detect_defects
+build_rows = _rc.build_rows
+discover_artifacts = _rc.discover_artifacts
+DiscoveryFloorError = _rc.DiscoveryFloorError
+CAVEAT_MARKER = _rc.CAVEAT_MARKER
+
+# ---------------------------------------------------------------------------
+# DEC-D: gated surfaces. contract-surface (shared/spine/references/
+# output-template.md) is measured by report-conformance.py but never gated
+# here — it is the specification document whose §4 worked examples
+# deliberately include non-conforming forms as labelled teaching contrasts.
+# Gating it would require either mislabelling a deliberately-broken example
+# or restructuring the document's own pedagogy. This is a named constant
+# carrying its own written reason, not a filter that happens to exclude it —
+# a disclosed decision, never a silent omission.
+# ---------------------------------------------------------------------------
+
+_GATED_SURFACES: tuple[str, ...] = ("shared-examples", "generated-twin")
+
+# D-05: targets are source literals, never read back from a regenerated
+# artifact. Readings are re-derived live from `build_rows(REPO_ROOT)` every
+# run. Moving a target is a reviewable source diff, the same discipline the
+# sha256 pins and `_RENDER_RULE_LITERALS` already apply.
+_TARGETS: dict[str, int] = {
+    "unreadable": 0,
+    "heading_malformed_blocks": 0,
+    "nonconforming_verdict_cells": 0,
+    "silent_untraced_claims": 0,
+}
+
+# D-04: one entry per shipped shared-examples analysis, transcribed from this
+# phase's own summaries (18-02 through 18-06), each independently confirmed
+# live against docs/data/conformance.json before being pinned here. No entry
+# is below its 2026-09-04 baseline reading — plans 18-01 through 18-06 cut
+# zero claims across the corpus — so no entry below carries a CUT-marker
+# inline comment naming a removed claim and the plan that removed it (the
+# convention any future reduction below baseline must follow).
+# Floored by EQUALITY against the live-discovered shared-examples ids (D-07),
+# never by subset: a dropped entry or an added-but-unfloored example both
+# fail by name.
+_CLAIM_FLOORS: dict[str, int] = {
+    "composed-inversion-second-order": 2,
+    "decompose-irreducibility": 7,
+    "estimate-fermi": 5,
+    "ishikawa-fishbone": 4,
+    "personal-general": 7,
+    "personal-general-2": 7,
+    "product-business": 3,
+    "product-business-2": 4,
+    "science-engineering": 3,
+    "science-engineering-2": 3,
+    "self-application": 9,
+    "software-systems": 8,
+    "software-systems-2": 10,
+    "theoretical-limit-carnot": 5,
+}
+
+# The corpus-wide marked_untraced_claims sum over shared-examples, measured
+# by plan 18-06 and unchanged since: both instances live in
+# decompose-irreducibility.md. Pinned as a RATCHET — the live reading may
+# fall, never rise. A rising marked count means claims are being marked
+# instead of cited, which is the drift this ratchet exists to catch. Task 3
+# reconciles this literal against the derived reading published in
+# docs/conformance-baseline.md.
+_MARKED_RATCHET: int = 2
+
+# The three prescribed section-6 lead-ins output-template.md names. A claim
+# that opens with one of these AND carries the caveat marker is illegal
+# (D-03): a prescribed lead-in commits the analysis to a specific, checkable
+# claim, and the marker is reserved for a genuinely-uncitable flagged
+# assumption, not a substitute for doing the citation work a prescribed
+# lead-in already promises.
+_PRESCRIBED_LEAD_INS: tuple[str, ...] = (
+    "**Recommended approach:**",
+    "**Key insight:**",
+    "**Trade-offs acknowledged:**",
+)
+
+# The one repaired example the D-08 live arm mutates in memory. personal-
+# general.md is the tree's exemplar of conforming chain form — two chains,
+# no drill-preamble scaffolding, straightforward verdict cells and citations
+# — so a mutation site is easy to locate and reason about by inspection.
+_D08_TARGET_SURFACE = "shared-examples"
+_D08_TARGET_ID = "personal-general"
+
+# The three literal mutation sites, transcribed from the live text of
+# shared/examples/personal-general.md and each confirmed unique (str.count
+# == 1) before being pinned here. A future edit to this file that removes
+# one of these needles is exactly the "mutation site cannot be located"
+# failure the D-08 arm is required to report rather than silently skip.
+_D08_HOP_NEEDLE = "→ The effective annual compensation gain"
+_D08_HOP_REPLACEMENT = "  The effective annual compensation gain"
+_D08_CELL_NEEDLE = (
+    "Discard — proxies the real question; GT-5 states the actual goal is not "
+    "compensation maximization"
+)
+_D08_CELL_REPLACEMENT = "Discard"
+_D08_CITE_NEEDLE = "3. (chain C1) Use the effective compensation figure"
+_D08_CITE_REPLACEMENT = "3. Use the effective compensation figure"
+
+
+# ---------------------------------------------------------------------------
+# Pure comparators. Each takes a list of row-shaped dicts (real, from
+# build_rows(REPO_ROOT), or synthetic, from _rc._synthetic_row) and returns a
+# list of named problem strings. Never called with anything but real rows at
+# the live call site; --self-test drives every one of these with synthetic
+# rows so the comparison logic itself is proven correct independently of
+# whether the real corpus happens to be clean today.
+# ---------------------------------------------------------------------------
+
+
+def _targets_problems(rows: list[dict]) -> list[str]:
+    """CONF-06: fail if any of the four _TARGETS counts rises above its
+    target on EITHER gated surface. `heading_malformed_blocks` is summed over
+    every row regardless of readability (the heading census runs
+    unconditionally, per report-conformance.py's build_row); the other three
+    are summed only over rows that resolved ("OK"), since an unreadable row
+    carries the literal "unreadable" for those fields, never a number.
+    """
+    problems: list[str] = []
+    for surface in _GATED_SURFACES:
+        surf_rows = [r for r in rows if r["surface"] == surface]
+        readable = [r for r in surf_rows if r["section_resolution"] == "OK"]
+        readings = {
+            "unreadable": sum(
+                1
+                for r in surf_rows
+                if str(r["section_resolution"]).startswith("SectionResolutionError:")
+            ),
+            "heading_malformed_blocks": sum(r["heading_malformed_blocks"] for r in surf_rows),
+            "nonconforming_verdict_cells": sum(
+                r["nonconforming_verdict_cells"] for r in readable
+            ),
+            "silent_untraced_claims": sum(r["silent_untraced_claims"] for r in readable),
+        }
+        for key, target in _TARGETS.items():
+            actual = readings[key]
+            if actual > target:
+                problems.append(
+                    f"TARGET EXCEEDED [{surface}] {key}: {actual} > target {target}"
+                )
+    return problems
+
+
+def _claim_floor_roster_problems(floor_keys: set[str], discovered_ids: set[str]) -> list[str]:
+    """D-07: EQUALITY, never subset, between _CLAIM_FLOORS' keys and the live-
+    discovered shared-examples ids. Reports both `missing` (discovered but
+    unfloored) and `extra` (floored but no longer discovered) by name.
+    """
+    missing = sorted(discovered_ids - floor_keys)
+    extra = sorted(floor_keys - discovered_ids)
+    if missing or extra:
+        return [f"D-07 ROSTER DRIFT: missing={missing} extra={extra}"]
+    return []
+
+
+def _claim_floor_problems(rows: list[dict]) -> list[str]:
+    """D-04: fail if any floored file's live `conclusion_claims` falls below
+    its pinned floor. A row absent from `rows` is already reported by
+    `_claim_floor_roster_problems` and is silently skipped here rather than
+    double-reported.
+    """
+    problems: list[str] = []
+    by_id = {r["analysis_id"]: r for r in rows if r["surface"] == "shared-examples"}
+    for analysis_id, floor in _CLAIM_FLOORS.items():
+        row = by_id.get(analysis_id)
+        if row is None:
+            continue
+        actual = row.get("conclusion_claims")
+        if isinstance(actual, int) and actual < floor:
+            problems.append(
+                f"D-04 CLAIM FLOOR BREACH [{analysis_id}]: conclusion_claims "
+                f"{actual} < floor {floor}"
+            )
+    return problems
+
+
+def _d03_rule_problems_from_text(text: str, analysis_id: str, relpath: str) -> list[str]:
+    """D-03: a claim carrying CAVEAT_MARKER may not open with one of the three
+    prescribed lead-ins. Calls the frozen `detect_defects` directly (never a
+    second markdown parse) and reads the audit-only `_untraced_claims_text`
+    field — a marked caveat always scores untraced (R-CLAIM-CAVEAT-MARKED),
+    so every marked claim is guaranteed to appear there.
+    """
+    problems: list[str] = []
+    record = detect_defects(text, analysis_id)
+    for claim_text in record["_untraced_claims_text"]:
+        if CAVEAT_MARKER in claim_text and claim_text.startswith(_PRESCRIBED_LEAD_INS):
+            problems.append(
+                f"D-03 RULE VIOLATION [{relpath}]: marked claim opens with a "
+                f"prescribed lead-in: {claim_text[:80]!r}"
+            )
+    return problems
+
+
+def _ratchet_problems(rows: list[dict]) -> list[str]:
+    """The marked-claim ratchet: the shared-examples sum of
+    `marked_untraced_claims` may fall, never rise, above `_MARKED_RATCHET`.
+    """
+    marked_sum = sum(
+        r["marked_untraced_claims"]
+        for r in rows
+        if r["surface"] == "shared-examples" and r["section_resolution"] == "OK"
+    )
+    if marked_sum > _MARKED_RATCHET:
+        return [f"MARKED-CLAIM RATCHET VIOLATION: {marked_sum} > pinned {_MARKED_RATCHET}"]
+    return []
+
+
+# ---------------------------------------------------------------------------
+# D-08: the live anti-vacuity arm. Three in-memory mutations of a real
+# repaired example the live leg has just measured, each required to produce
+# its specific defect. Mutations are string-only; shared/ and
+# first-principles/ are never written. This is the one thing a tempdir
+# fixture structurally cannot prove: that the live leg is wired to the
+# shipped artifacts, not to nothing.
+# ---------------------------------------------------------------------------
+
+
+def _run_d08_arm(rows: list[dict]) -> list[str]:
+    target_row = next(
+        (
+            r
+            for r in rows
+            if r["surface"] == _D08_TARGET_SURFACE and r["analysis_id"] == _D08_TARGET_ID
+        ),
+        None,
+    )
+    if target_row is None:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08 target {_D08_TARGET_ID!r} not found "
+            f"on surface {_D08_TARGET_SURFACE!r}; the anti-vacuity arm cannot run\n"
+        )
+        sys.exit(1)
+
+    relpath = target_row["relpath"]
+    path = REPO_ROOT / relpath
+    text = path.read_text(encoding="utf-8")
+    baseline = detect_defects(text, target_row["analysis_id"])
+    baseline_blocks = _rc._render_example_chain_blocks(text)
+    baseline_malformed = sum(
+        1 for _, b in baseline_blocks if not _rc._chain_block_well_formed(b)
+    )
+    baseline_marked = sum(1 for t in baseline["_untraced_claims_text"] if CAVEAT_MARKER in t)
+    baseline_silent = baseline["untraced_claims"] - baseline_marked
+
+    lines: list[str] = []
+
+    # (a) re-wrap one hop across two physical lines: remove the leading arrow
+    # from a continuation line and indent it instead, so the line no longer
+    # starts with an arrow and is not absorbed as a chain continuation.
+    if _D08_HOP_NEEDLE not in text or text.count(_D08_HOP_NEEDLE) != 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(a) mutation site not found "
+            f"(or not unique) in {relpath}\n"
+        )
+        sys.exit(1)
+    mutated_a = text.replace(_D08_HOP_NEEDLE, _D08_HOP_REPLACEMENT, 1)
+    blocks_a = _rc._render_example_chain_blocks(mutated_a)
+    malformed_a = sum(1 for _, b in blocks_a if not _rc._chain_block_well_formed(b))
+    if malformed_a != baseline_malformed + 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(a) hop re-wrap mutation on {relpath} "
+            f"did not increment heading_malformed_blocks by exactly 1 "
+            f"(baseline {baseline_malformed}, mutated {malformed_a})\n"
+        )
+        sys.exit(1)
+    lines.append(
+        f"check-conf-gate: D-08(a) hop re-wrap on {relpath} — "
+        f"heading_malformed_blocks {baseline_malformed} -> {malformed_a}"
+    )
+
+    # (b) strip the em dash and its justification from a repaired Verdict
+    # cell, leaving the bare vocabulary token.
+    if _D08_CELL_NEEDLE not in text or text.count(_D08_CELL_NEEDLE) != 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(b) mutation site not found "
+            f"(or not unique) in {relpath}\n"
+        )
+        sys.exit(1)
+    mutated_b = text.replace(_D08_CELL_NEEDLE, _D08_CELL_REPLACEMENT, 1)
+    record_b = detect_defects(mutated_b, target_row["analysis_id"])
+    if record_b["nonconforming_verdict_cells"] != baseline["nonconforming_verdict_cells"] + 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(b) verdict-cell strip on {relpath} "
+            f"did not increment nonconforming_verdict_cells by exactly 1 "
+            f"(baseline {baseline['nonconforming_verdict_cells']}, "
+            f"mutated {record_b['nonconforming_verdict_cells']})\n"
+        )
+        sys.exit(1)
+    lines.append(
+        f"check-conf-gate: D-08(b) verdict-cell strip on {relpath} — "
+        f"nonconforming_verdict_cells {baseline['nonconforming_verdict_cells']} -> "
+        f"{record_b['nonconforming_verdict_cells']}"
+    )
+
+    # (c) remove one (chain Cn) citation from an otherwise-traced claim.
+    if _D08_CITE_NEEDLE not in text or text.count(_D08_CITE_NEEDLE) != 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(c) mutation site not found "
+            f"(or not unique) in {relpath}\n"
+        )
+        sys.exit(1)
+    mutated_c = text.replace(_D08_CITE_NEEDLE, _D08_CITE_REPLACEMENT, 1)
+    record_c = detect_defects(mutated_c, target_row["analysis_id"])
+    marked_c = sum(1 for t in record_c["_untraced_claims_text"] if CAVEAT_MARKER in t)
+    silent_c = record_c["untraced_claims"] - marked_c
+    if silent_c != baseline_silent + 1:
+        sys.stderr.write(
+            f"check-conf-gate: COVERAGE FAIL — D-08(c) citation removal on {relpath} "
+            f"did not increment silent_untraced_claims by exactly 1 "
+            f"(baseline {baseline_silent}, mutated {silent_c})\n"
+        )
+        sys.exit(1)
+    lines.append(
+        f"check-conf-gate: D-08(c) citation removal on {relpath} — "
+        f"silent_untraced_claims {baseline_silent} -> {silent_c}"
+    )
+
+    return lines
+
+
+# ---------------------------------------------------------------------------
+# Live leg
+# ---------------------------------------------------------------------------
+
+
+def run_live() -> int:
+    try:
+        rows = build_rows(REPO_ROOT)
+    except DiscoveryFloorError as exc:
+        for line in str(exc).splitlines():
+            sys.stderr.write(line + "\n")
+        return 1
+
+    problems: list[str] = []
+    problems += _targets_problems(rows)
+
+    discovered_ids = {r["analysis_id"] for r in rows if r["surface"] == "shared-examples"}
+    problems += _claim_floor_roster_problems(set(_CLAIM_FLOORS), discovered_ids)
+    problems += _claim_floor_problems(rows)
+
+    for r in rows:
+        if r["surface"] not in _GATED_SURFACES or r["section_resolution"] != "OK":
+            continue
+        text = (REPO_ROOT / r["relpath"]).read_text(encoding="utf-8")
+        problems += _d03_rule_problems_from_text(text, r["analysis_id"], r["relpath"])
+
+    problems += _ratchet_problems(rows)
+
+    if problems:
+        for p in problems:
+            sys.stderr.write(f"check-conf-gate: FAIL — {p}\n")
+        return 1
+
+    mutation_lines = _run_d08_arm(rows)
+
+    gated_count = sum(1 for r in rows if r["surface"] in _GATED_SURFACES)
+    print(
+        f"check-conf-gate: COVERAGE — measured {gated_count} artifacts across "
+        f"{', '.join(_GATED_SURFACES)}"
+    )
+    for line in mutation_lines:
+        print(line)
+    print("check-conf-gate: PASS")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# --self-test: offline control battery, entirely synthetic rows and
+# in-memory documents. Never touches the real tree. Roster floored by
+# EQUALITY against a second, independently transcribed lock (the
+# SCAN-GUARD/_BRANCH_ROSTER_LOCK shape) so a control added to one and not the
+# other fails self_test() by name. No control here is given a control of its
+# own — the depth rule stops at one level.
+# ---------------------------------------------------------------------------
+
+_D03_FIRE_TEXT = (
+    "## 1. Problem Essence\nSome essence text that is long enough.\n\n"
+    "## 2. Assumptions Table\n| Assumption | Confidence |\n|---|---|\n\n"
+    "## 3. Ground Truths\n- GT-1: some ground truth here.\n\n"
+    "## 4. Derivation Chains\nGT-1 -> some conclusion, with no numbered chain heading.\n\n"
+    "## 5. Abandoned Reasoning\nNone.\n\n"
+    "## 6. Conclusion\n**Recommended approach:** " + CAVEAT_MARKER + ", this claim is long "
+    "enough to clear the assertiveness floor on its own merits.\n"
+)
+
+_D03_PASS_TEXT = (
+    "## 1. Problem Essence\nSome essence text that is long enough.\n\n"
+    "## 2. Assumptions Table\n| Assumption | Confidence |\n|---|---|\n\n"
+    "## 3. Ground Truths\n- GT-1: some ground truth here.\n\n"
+    "## 4. Derivation Chains\nGT-1 -> some conclusion, with no numbered chain heading.\n\n"
+    "## 5. Abandoned Reasoning\nNone.\n\n"
+    "## 6. Conclusion\n**Non-prescribed label:** " + CAVEAT_MARKER + ", this claim is long "
+    "enough to clear the assertiveness floor on its own merits.\n"
+)
+
+
+def _control_target_unreadable_fires() -> None:
+    bad = _rc._synthetic_row(
+        "shared-examples", "u.md", "u", section_resolution="SectionResolutionError: boom"
+    )
+    problems = _targets_problems([bad])
+    assert any("unreadable" in p for p in problems), problems
+
+
+def _control_target_unreadable_passes_at_zero() -> None:
+    good = _rc._synthetic_row("shared-examples", "g.md", "g")
+    assert _targets_problems([good]) == []
+
+
+def _control_target_heading_malformed_fires() -> None:
+    bad = _rc._synthetic_row("shared-examples", "h.md", "h", heading_malformed_blocks=1)
+    problems = _targets_problems([bad])
+    assert any("heading_malformed_blocks" in p for p in problems), problems
+
+
+def _control_target_nonconforming_verdict_fires() -> None:
+    bad = _rc._synthetic_row("shared-examples", "n.md", "n", nonconforming_verdict_cells=1)
+    problems = _targets_problems([bad])
+    assert any("nonconforming_verdict_cells" in p for p in problems), problems
+
+
+def _control_target_silent_untraced_fires() -> None:
+    bad = _rc._synthetic_row("shared-examples", "sl.md", "sl", silent_untraced_claims=1)
+    problems = _targets_problems([bad])
+    assert any("silent_untraced_claims" in p for p in problems), problems
+
+
+def _control_targets_pass_on_generated_twin_too() -> None:
+    good_shared = _rc._synthetic_row("shared-examples", "g.md", "g")
+    good_twin = _rc._synthetic_row("generated-twin", "g.md", "g")
+    assert _targets_problems([good_shared, good_twin]) == []
+
+
+def _control_target_fires_on_generated_twin() -> None:
+    bad_twin = _rc._synthetic_row("generated-twin", "t.md", "t", nonconforming_verdict_cells=1)
+    problems = _targets_problems([bad_twin])
+    assert any("[generated-twin]" in p for p in problems), problems
+
+
+def _control_d07_missing_named() -> None:
+    problems = _claim_floor_roster_problems({"a", "b"}, {"a", "b", "c"})
+    assert problems, problems
+    assert "missing=['c']" in problems[0], problems
+
+
+def _control_d07_extra_named() -> None:
+    problems = _claim_floor_roster_problems({"a", "b", "c"}, {"a", "b"})
+    assert problems, problems
+    assert "extra=['c']" in problems[0], problems
+
+
+def _control_d07_equal_passes() -> None:
+    assert _claim_floor_roster_problems({"a", "b"}, {"a", "b"}) == []
+
+
+def _control_d04_floor_fires() -> None:
+    floor = _CLAIM_FLOORS["personal-general"]
+    row = _rc._synthetic_row(
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor - 1
+    )
+    problems = _claim_floor_problems([row])
+    assert any("personal-general" in p for p in problems), problems
+
+
+def _control_d04_floor_passes_at_floor() -> None:
+    floor = _CLAIM_FLOORS["personal-general"]
+    row = _rc._synthetic_row(
+        "shared-examples", "personal-general.md", "personal-general", conclusion_claims=floor
+    )
+    assert _claim_floor_problems([row]) == []
+
+
+def _control_d03_fires_on_prescribed_leadin() -> None:
+    problems = _d03_rule_problems_from_text(_D03_FIRE_TEXT, "fire", "synthetic/fire.md")
+    assert problems, problems
+    assert "D-03 RULE VIOLATION" in problems[0], problems
+
+
+def _control_d03_passes_on_nonprescribed_leadin() -> None:
+    problems = _d03_rule_problems_from_text(_D03_PASS_TEXT, "pass", "synthetic/pass.md")
+    assert problems == [], problems
+
+
+def _control_ratchet_fires_above() -> None:
+    row = _rc._synthetic_row(
+        "shared-examples", "r.md", "r", marked_untraced_claims=_MARKED_RATCHET + 1
+    )
+    assert _ratchet_problems([row]) != []
+
+
+def _control_ratchet_passes_at_pin() -> None:
+    row = _rc._synthetic_row(
+        "shared-examples", "r2.md", "r2", marked_untraced_claims=_MARKED_RATCHET
+    )
+    assert _ratchet_problems([row]) == []
+
+
+def _control_ratchet_passes_below() -> None:
+    row = _rc._synthetic_row(
+        "shared-examples", "r3.md", "r3", marked_untraced_claims=max(_MARKED_RATCHET - 1, 0)
+    )
+    assert _ratchet_problems([row]) == []
+
+
+def _control_contract_surface_excluded() -> None:
+    """DEC-D reachability: a wildly non-conforming contract-surface row must
+    not fail any comparator — the exclusion is a deliberate, reachable
+    decision, not an accident of a filter nobody exercised.
+    """
+    bad = _rc._synthetic_row(
+        "contract-surface",
+        "output-template.md",
+        "output-template",
+        heading_malformed_blocks=99,
+        nonconforming_verdict_cells=99,
+        silent_untraced_claims=99,
+        marked_untraced_claims=99,
+        conclusion_claims=0,
+        section_resolution="SectionResolutionError: irrelevant",
+    )
+    assert bad["surface"] not in _GATED_SURFACES
+    assert _targets_problems([bad]) == []
+    assert _ratchet_problems([bad]) == []
+    assert _claim_floor_problems([bad]) == []
+
+
+_CONTROLS: tuple[tuple[str, object], ...] = (
+    ("target-unreadable-fires", _control_target_unreadable_fires),
+    ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
+    ("target-heading-malformed-fires", _control_target_heading_malformed_fires),
+    ("target-nonconforming-verdict-fires", _control_target_nonconforming_verdict_fires),
+    ("target-silent-untraced-fires", _control_target_silent_untraced_fires),
+    ("targets-pass-on-generated-twin-too", _control_targets_pass_on_generated_twin_too),
+    ("target-fires-on-generated-twin", _control_target_fires_on_generated_twin),
+    ("d07-missing-named", _control_d07_missing_named),
+    ("d07-extra-named", _control_d07_extra_named),
+    ("d07-equal-passes", _control_d07_equal_passes),
+    ("d04-floor-fires", _control_d04_floor_fires),
+    ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
+    ("d03-fires-on-prescribed-leadin", _control_d03_fires_on_prescribed_leadin),
+    ("d03-passes-on-nonprescribed-leadin", _control_d03_passes_on_nonprescribed_leadin),
+    ("ratchet-fires-above", _control_ratchet_fires_above),
+    ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
+    ("ratchet-passes-below", _control_ratchet_passes_below),
+    ("contract-surface-excluded", _control_contract_surface_excluded),
+)
+
+# Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
+# independently-typed transcription of every control id this self-test must
+# run. A control added to _CONTROLS but missing here, or vice versa, fails
+# self_test() by name rather than silently narrowing coverage.
+_CONTROL_IDS: tuple[str, ...] = (
+    "target-unreadable-fires",
+    "target-unreadable-passes-at-zero",
+    "target-heading-malformed-fires",
+    "target-nonconforming-verdict-fires",
+    "target-silent-untraced-fires",
+    "targets-pass-on-generated-twin-too",
+    "target-fires-on-generated-twin",
+    "d07-missing-named",
+    "d07-extra-named",
+    "d07-equal-passes",
+    "d04-floor-fires",
+    "d04-floor-passes-at-floor",
+    "d03-fires-on-prescribed-leadin",
+    "d03-passes-on-nonprescribed-leadin",
+    "ratchet-fires-above",
+    "ratchet-passes-at-pin",
+    "ratchet-passes-below",
+    "contract-surface-excluded",
+)
+
+
+def self_test() -> int:
+    executed: list[str] = []
+    failures: list[tuple[str, str]] = []
+
+    for control_id, control_fn in _CONTROLS:
+        executed.append(control_id)
+        try:
+            control_fn()
+        except AssertionError as exc:
+            failures.append((control_id, str(exc)))
+        except Exception as exc:  # noqa: BLE001 -- a control that crashes is a failure too
+            failures.append((control_id, f"{type(exc).__name__}: {exc}"))
+
+    registered = set(_CONTROL_IDS)
+    ran = set(executed)
+    missing = registered - ran
+    extra = ran - registered
+    if missing or extra:
+        failures.append(
+            (
+                "coverage-floor",
+                f"registered/executed control-id mismatch: missing={sorted(missing)} "
+                f"extra={sorted(extra)}",
+            )
+        )
+
+    if failures:
+        for control_id, message in failures:
+            sys.stderr.write(f"check-conf-gate: SELF-TEST FAIL [{control_id}] — {message}\n")
+        return 1
+
+    print(f"check-conf-gate: SELF-TEST PASS — {len(executed)} controls run")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="CONF-GATE: live conformance gate over the fourteen shipped worked "
+        "examples, against source-literal targets."
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the offline control battery (positive, negative, anti-masking)",
+    )
+    args = parser.parse_args(argv)
+
+    if args.self_test:
+        return self_test()
+    return run_live()
+
+
+if __name__ == "__main__":
+    sys.exit(main())
