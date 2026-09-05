@@ -99,7 +99,7 @@ One row per committed `.md` file in this directory, including `catalog.md`, prod
 
 | File | sha256 |
 |---|---|
-| `catalog.md` | `1530f0a4c55d8294c959f8155b5af47c41132106acba14cc92f2a72b738e8291` |
+| `catalog.md` | `e4a355eaad300cf10cfd0e55bc674f1f8950b4872708aa0653d4ba7799d33766` |
 | `t01-ledger-arbitrary-chain.md` | `7a4ccb0a4c5fc946b33b52008e0dad143fc69a8ff8ad1217bbae44d7fe1ac1bc` |
 | `t02-fabricated-read-at-source.md` | `dc2b05f2e6fdb739ecf39ce93f5d4af5ce7005552c664b9108b221d6173b7460` |
 | `t03-composition-cycle.md` | `0ca685c530ac2feb878fe50970dff0a3efee003d265b7dc154d60a010e543b99` |
