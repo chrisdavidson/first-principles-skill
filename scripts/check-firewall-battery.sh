@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 24 offline gate commands, captures each exit code, and prints a
+# Runs all 25 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,20 +15,20 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (24):
+# Gates (25):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
 #   HARN-01   HARN-02       HARN-03   HC-BOUND     REG-GUARD
-#   PROV-GUARD  SCAN-GUARD  INVARIANT-CHECK  FROZEN-EVIDENCE
+#   PROV-GUARD  SCAN-GUARD  CONF-GATE  INVARIANT-CHECK  FROZEN-EVIDENCE
 #
-# 21 of the 22 non-inline gates are registered through the `gate` helper
+# 22 of the 23 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 22 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 23 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 24.
+# than going through `gate`, for a reported total of 25.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -162,6 +162,19 @@
 # matching PROV-GUARD/REG-GUARD); the tally below is unchanged because gate()
 # counts once per gate id regardless of how many commands run under it.
 # SCAN-GUARD: Battery composition moved 23 -> 24.
+#
+# Composition change (CONF-GATE, Phase 18, v9.0.0): the battery gained one
+# gate, CONF-GATE (scripts/check-conf-gate.py). CONF-GATE compares four
+# conformance counts (unreadable, heading_malformed_blocks,
+# nonconforming_verdict_cells, silent_untraced_claims) on both gated example
+# surfaces (shared-examples, generated-twin) against source-literal zero
+# targets held in its own source — never against docs/data/conformance.json,
+# which is regenerated from the same tree and could therefore never fire
+# (the 999.30/999.31 defect class). It registers as `--self-test` + live, for
+# the same reason PROV-GUARD and SCAN-GUARD do: the self-test's rows are
+# synthetic and assert nothing about the shipped corpus.
+# CONF-GATE: Battery composition moved 24 -> 25. A gate that appears silently
+# is indistinguishable from a gate that was always there.
 #
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
