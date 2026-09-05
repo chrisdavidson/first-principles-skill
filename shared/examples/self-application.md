@@ -150,7 +150,7 @@ question is whether the budget tracks anything the agent actually depends on.
 
 ## 4. Derivation Chains
 
-### Conclusion: The budget is a convention without a named protected property
+### Conclusion C1: The budget is a convention without a named protected property
 
 GT-7 (META-Q4 records the budget as "stays under ~500 lines" with no independent
 observable consequence) + GT-8 (the regression gates that actually run on every
@@ -183,7 +183,7 @@ of per-turn context cost.
 
 ---
 
-### Conclusion: The methodology procedural block is not the segment consuming the budget
+### Conclusion C2: The methodology procedural block is not the segment consuming the budget
 
 GT-1 (current body: 878 lines) + GT-2 (Phase 1–5 procedural blocks: ~96 lines)
 + GT-3 (six inlined companion-tool procedures: ~175 lines) + GT-5 (inlined
@@ -210,7 +210,7 @@ shipped artifact. The arithmetic does not depend on any unverified input.
 
 ---
 
-### Conclusion: De-inlining the appendices is the minimum-cost intervention that restores the budget property, *if* the budget is treated as binding
+### Conclusion C3: De-inlining the appendices is the minimum-cost intervention that restores the budget property, *if* the budget is treated as binding
 
 GT-4 (Output Template and Validation Rubric already exist as separate files
 under `shared/spine/references/`, 470 lines combined) + GT-5 (the agent body

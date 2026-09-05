@@ -122,7 +122,7 @@ produced only after the assumption table is resolved against the team's measured
 
 ## 4. Derivation Chains
 
-### Conclusion: The build path's headline cost is lower than the buy path at the current MAU, but only if the build-side economic hinge holds
+### Conclusion C1: The build path's headline cost is lower than the buy path at the current MAU, but only if the build-side economic hinge holds
 
 GT-4 (4–8 weeks initial build + 0.1–0.3 FTE ongoing maintenance) + GT-3 (managed
 provider list prices ≈ $200–$800/month at the projected 1,000-MAU midpoint)
@@ -152,7 +152,7 @@ provider list prices ≈ $200–$800/month at the projected 1,000-MAU midpoint)
 
 ---
 
-### Conclusion: The buy path is reversible only if the migration-cost hinge holds, and the reversal window narrows as enterprise customers are added
+### Conclusion C2: The buy path is reversible only if the migration-cost hinge holds, and the reversal window narrows as enterprise customers are added
 
 GT-5 (provider data exports are partial — user records yes, MFA enrollment seeds and
 social-login linkages partial) + GT-2 (first enterprise customer expected in months
@@ -180,7 +180,7 @@ social-login linkages partial) + GT-2 (first enterprise customer expected in mon
 
 ---
 
-### Conclusion: The hybrid path dominates the binary framing on the load-bearing security surfaces while preserving optionality on the lock-in surfaces
+### Conclusion C3: The hybrid path dominates the binary framing on the load-bearing security surfaces while preserving optionality on the lock-in surfaces
 
 GT-6 (no secrets manager, no SOC2, no IR runbook — the security floor must be cleared
 regardless) + GT-1 (no engineer on the team has shipped production auth before) +

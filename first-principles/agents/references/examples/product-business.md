@@ -43,7 +43,7 @@ A complete first-principles analysis of a product and business pricing question,
 
 ## 4. Derivation Chains
 
-### Conclusion: The competitor-parity argument cannot justify adding a free tier
+### Conclusion C1: The competitor-parity argument cannot justify adding a free tier
 
 GT-3 (free-tier costs are real and must be separately budgeted) + GT-4 (conversion rate unknown and unverified)
 → Any projection of free-tier profitability or payback period requires a conversion rate assumption, and that assumption cannot be filled from competitor behavior without knowing competitors' cost structure and ICP overlap
@@ -53,7 +53,7 @@ GT-3 (free-tier costs are real and must be separately budgeted) + GT-4 (conversi
 
 ---
 
-### Conclusion: The free-tier decision is empirical, not a convention to follow; a time-boxed pilot is the minimum required action before any adoption decision
+### Conclusion C2: The free-tier decision is empirical, not a convention to follow; a time-boxed pilot is the minimum required action before any adoption decision
 
 GT-1 (240 teams at $10K/year average contract; outbound acquisition model) + GT-4 (conversion rate unknown and unverified)
 → At $10K/year average contract, even a modest conversion rate (1–2%) on a free-tier cohort could justify the investment; but at near-zero conversion the free tier generates support and infrastructure cost with no revenue offset — the outcome is highly sensitive to a variable that has never been measured for this product
@@ -63,7 +63,7 @@ GT-1 (240 teams at $10K/year average contract; outbound acquisition model) + GT-
 
 ---
 
-### Conclusion: The pilot threshold for adoption must be pre-specified before the pilot begins, not inferred from results afterward
+### Conclusion C3: The pilot threshold for adoption must be pre-specified before the pilot begins, not inferred from results afterward
 
 GT-2 (outbound-led acquisition; no existing self-serve channel) + GT-3 (free-tier costs are real and separately budgeted)
 → The break-even conversion rate has the form (blended monthly cost per free user) / (average contract value): GT-1 supplies the average contract value (~$10K/year), but no named ground truth supplies the blended monthly cost per free user — GT-3 establishes only that this cost is real and must be separately budgeted, not its magnitude. The threshold is therefore not yet calculable from the named ground truths; it requires one additional measured input — the per-free-user cost — that the pilot itself must produce

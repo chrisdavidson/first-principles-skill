@@ -99,7 +99,7 @@ required to meet the cabin's daily electrical load reliably?
 
 ## 4. Derivation Chains
 
-### Conclusion: A 400 W panel array is required to meet the estimated daily load
+### Conclusion C1: A 400 W panel array is required to meet the estimated daily load
 
 GT-2 (0.80 derating factor — covers temperature, wiring, MPPT, inverter, and battery
 round-trip losses; see GT-2 for the full enumerated loss list) + GT-5? (1.5 kWh/day
@@ -124,7 +124,7 @@ energy monitor for 30 days; confirm measured load before finalizing the array sp
 
 ---
 
-### Conclusion: A 6 kWh LiFePO4 battery bank is required for 3 days of autonomy
+### Conclusion C2: A 6 kWh LiFePO4 battery bank is required for 3 days of autonomy
 
 GT-5? (1.5 kWh/day estimated load) + GT-4 (3 days of autonomy)
 → Total usable energy to store = 1.5 kWh/day × 3 days = 4.5 kWh of usable capacity
