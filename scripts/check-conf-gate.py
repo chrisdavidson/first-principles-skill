@@ -165,20 +165,28 @@ _CLAIM_FLOORS_LOCK: dict[str, int] = {
     "theoretical-limit-carnot": 5,
 }
 
-# The corpus-wide marked_untraced_claims sum over shared-examples, measured
-# by plan 18-06 and unchanged since: both instances live in
-# decompose-irreducibility.md. Pinned as a RATCHET — the live reading may
-# fall, never rise. A rising marked count means claims are being marked
-# instead of cited, which is the drift this ratchet exists to catch. Task 3
-# reconciles this literal against the derived reading published in
-# docs/conformance-baseline.md.
+# The marked_untraced_claims sum over BOTH gated surfaces (_GATED_SURFACES):
+# shared-examples 2 + generated-twin 2 = 4, measured by plan 18-06 and
+# unchanged since — the two shared-examples instances live in
+# decompose-irreducibility.md, and DUAL-04's byte-identity with the
+# generated tree carries the same two instances onto generated-twin. This is
+# exactly the figure docs/conformance-baseline.md's "Disclosed bounds" §2
+# already publishes and names as pinned by this constant, so the code and
+# the published sentence now state the same quantity over the same row set.
+# Pinned as a RATCHET — the live reading may fall, never rise. A rising
+# marked count means claims are being marked instead of cited, which is the
+# drift this ratchet exists to catch. Closes 18-VERIFICATION.md minor gap 3
+# / 18-REVIEW.md WR-02, which found this constant scoped to shared-examples
+# only (2) while its own comment called that sum "corpus-wide" and the
+# published baseline already stated 4.
 #
 # CR-02(b): the `ratchet-value-locked` control below asserts this value
 # against an INLINE integer literal written at the control site, never read
 # from this constant — setting _MARKED_RATCHET to 99 previously left both
-# self-test and the live leg green. Plan 18-10 moves both this constant and
-# that lock to 4 together, as one two-place edit; this plan leaves both at 2.
-_MARKED_RATCHET: int = 2
+# self-test and the live leg green. Plan 18-10 is the first exercise of that
+# two-place discipline: it moves both this constant and that lock from 2 to
+# 4 together, in the same commit.
+_MARKED_RATCHET: int = 4
 
 # The three prescribed section-6 lead-ins output-template.md names. A claim
 # that opens with one of these AND carries the caveat marker is illegal
@@ -427,13 +435,15 @@ def _d03_rule_problems_from_text(text: str, analysis_id: str, relpath: str) -> l
 
 
 def _ratchet_problems(rows: list[dict]) -> list[str]:
-    """The marked-claim ratchet: the shared-examples sum of
-    `marked_untraced_claims` may fall, never rise, above `_MARKED_RATCHET`.
+    """The marked-claim ratchet: the sum of `marked_untraced_claims` over
+    BOTH gated surfaces (_GATED_SURFACES) may fall, never rise, above
+    `_MARKED_RATCHET` — matching `_targets_problems`' existing both-surfaces
+    shape and docs/conformance-baseline.md's published corpus-wide figure.
     """
     marked_sum = sum(
         r["marked_untraced_claims"]
         for r in rows
-        if r["surface"] == "shared-examples" and r["section_resolution"] == "OK"
+        if r["surface"] in _GATED_SURFACES and r["section_resolution"] == "OK"
     )
     if marked_sum > _MARKED_RATCHET:
         return [f"MARKED-CLAIM RATCHET VIOLATION: {marked_sum} > pinned {_MARKED_RATCHET}"]
@@ -792,25 +802,43 @@ def _control_d03_passes_on_unmarked_prescribed_leadin() -> None:
 
 
 def _control_ratchet_fires_above() -> None:
-    # CR-02(b): INLINE by design (3 is one above the pinned ratchet of 2) —
+    # 18-10: INLINE by design (5 is one above the pinned ratchet of 4) —
     # never `_MARKED_RATCHET + 1`, which is invariant to the ratchet's own
     # value and cannot fail when the ratchet is loosened.
-    row = _rc._synthetic_row("shared-examples", "r.md", "r", marked_untraced_claims=3)
+    row = _rc._synthetic_row("shared-examples", "r.md", "r", marked_untraced_claims=5)
     assert _ratchet_problems([row]) != []
 
 
 def _control_ratchet_passes_at_pin() -> None:
-    # CR-02(b): INLINE by design (2 is exactly the pinned ratchet) — see
+    # 18-10: INLINE by design (4 is exactly the pinned ratchet) — see
     # _control_ratchet_fires_above's comment.
-    row = _rc._synthetic_row("shared-examples", "r2.md", "r2", marked_untraced_claims=2)
+    row = _rc._synthetic_row("shared-examples", "r2.md", "r2", marked_untraced_claims=4)
     assert _ratchet_problems([row]) == []
 
 
 def _control_ratchet_passes_below() -> None:
-    # CR-02(b): INLINE by design (1 is one below the pinned ratchet) — see
+    # 18-10: INLINE by design (3 is one below the pinned ratchet) — see
     # _control_ratchet_fires_above's comment.
-    row = _rc._synthetic_row("shared-examples", "r3.md", "r3", marked_untraced_claims=1)
+    row = _rc._synthetic_row("shared-examples", "r3.md", "r3", marked_untraced_claims=3)
     assert _ratchet_problems([row]) == []
+
+
+def _control_ratchet_fires_across_both_surfaces() -> None:
+    """18-10 (WR-02): DISCRIMINATING between the old shared-examples-only
+    filter and the widened _GATED_SURFACES filter. shared-examples carries
+    marked_untraced_claims=2 and generated-twin alone carries 3: under the
+    OLD filter the sum would be 2 (<= the pinned ratchet of 4, no fire);
+    under the WIDENED filter the sum is 5 (> pinned 4, fires). A control
+    that would pass under both the old and the new filter would be
+    decorative — this one only passes under the new one, so narrowing
+    `_ratchet_problems` back to shared-examples-only fails this control by
+    name.
+    """
+    shared_row = _rc._synthetic_row("shared-examples", "s.md", "s", marked_untraced_claims=2)
+    twin_row = _rc._synthetic_row("generated-twin", "t.md", "t", marked_untraced_claims=3)
+    problems = _ratchet_problems([shared_row, twin_row])
+    assert problems != [], problems
+    assert "5" in problems[0] and "4" in problems[0], problems
 
 
 def _control_claim_floor_values_locked() -> None:
@@ -831,9 +859,11 @@ def _control_ratchet_value_locked() -> None:
     """CR-02(b): _MARKED_RATCHET must equal an INLINE integer literal
     written at this control site, never read from the constant itself —
     the shape that makes loosening _MARKED_RATCHET a reviewable, falsifiable
-    edit rather than an invisible one.
+    edit rather than an invisible one. Plan 18-10 is the first exercise of
+    this two-place discipline: it moves the constant and this lock from 2
+    to 4 together, in the same commit, per WR-02's widening.
     """
-    assert _MARKED_RATCHET == 2, _MARKED_RATCHET
+    assert _MARKED_RATCHET == 4, _MARKED_RATCHET
 
 
 def _control_contract_surface_excluded() -> None:
@@ -981,6 +1011,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ratchet-passes-at-pin", _control_ratchet_passes_at_pin),
     ("ratchet-passes-below", _control_ratchet_passes_below),
     ("ratchet-value-locked", _control_ratchet_value_locked),
+    ("ratchet-fires-across-both-surfaces", _control_ratchet_fires_across_both_surfaces),
     ("contract-surface-excluded", _control_contract_surface_excluded),
     ("live-call-site-census", _control_live_call_site_census),
     ("live-call-form-lock", _control_live_call_form_lock),
@@ -1019,6 +1050,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ratchet-passes-at-pin",
     "ratchet-passes-below",
     "ratchet-value-locked",
+    "ratchet-fires-across-both-surfaces",
     "contract-surface-excluded",
     "live-call-site-census",
     "live-call-form-lock",
