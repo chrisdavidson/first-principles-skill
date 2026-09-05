@@ -37,7 +37,10 @@ Exit codes:
 
 from __future__ import annotations
 
+import argparse
+import difflib
 import importlib.util
+import json
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -247,3 +250,338 @@ def pair_agreement(
             agreeing += 1
 
     return agreeing, len(all_ids), divergences
+
+
+# ---------------------------------------------------------------------------
+# Rendering: one row set, two renderers. Neither renderer restates figures the
+# other computes -- both read from the same rows/agreement inputs, so the two
+# surfaces cannot disagree with each other.
+# ---------------------------------------------------------------------------
+
+_EXCLUDED_AGREEMENT_FIELDS: tuple[str, ...] = ("analysis_id",) + PROVENANCE_FIELDS
+
+
+def _readable(group: list[dict]) -> list[dict]:
+    return [r for r in group if r["section_resolution"] == "OK"]
+
+
+def _unreadable_count(group: list[dict]) -> int:
+    return sum(
+        1 for r in group if str(r["section_resolution"]).startswith("SectionResolutionError:")
+    )
+
+
+def _sum_measured(group: list[dict], field: str) -> int:
+    return sum(r[field] for r in _readable(group))
+
+
+def _sum_heading(group: list[dict], field: str) -> int:
+    return sum(r[field] for r in group)
+
+
+def compute_headline(rows: list[dict]) -> dict:
+    """The six computed figures this report publishes. Every value here is derived from
+    `rows` at call time -- nothing is a hardcoded literal. Grouped per surface so a reader
+    can see shared-examples, generated-twin and the contract surface side by side.
+    """
+    by_surface = {
+        "shared-examples": [r for r in rows if r["surface"] == "shared-examples"],
+        "generated-twin": [r for r in rows if r["surface"] == "generated-twin"],
+        "contract-surface": [r for r in rows if r["surface"] == "contract-surface"],
+    }
+
+    def per_surface(fn) -> dict:
+        return {surface: fn(group) for surface, group in by_surface.items()}
+
+    return {
+        "unreadable": per_surface(_unreadable_count),
+        "conclusion_claims": {
+            surface: {
+                "total": _sum_measured(group, "conclusion_claims"),
+                "untraced": _sum_measured(group, "untraced_claims"),
+            }
+            for surface, group in by_surface.items()
+        },
+        "verdict_cells": {
+            surface: {
+                "total": _sum_measured(group, "verdict_cells"),
+                "nonconforming": _sum_measured(group, "nonconforming_verdict_cells"),
+            }
+            for surface, group in by_surface.items()
+        },
+        "section4_chain_blocks": {
+            surface: {
+                "total": _sum_measured(group, "chain_blocks"),
+                "malformed": _sum_measured(group, "malformed_chain_blocks"),
+            }
+            for surface, group in by_surface.items()
+        },
+        "heading_swept_blocks": {
+            surface: {
+                "total": _sum_heading(group, "heading_chain_blocks"),
+                "malformed": _sum_heading(group, "heading_malformed_blocks"),
+            }
+            for surface, group in by_surface.items()
+        },
+    }
+
+
+def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
+    agreeing, total, divergences = agreement
+    obj = {
+        "measurement_date": MEASUREMENT_DATE,
+        "generator": "scripts/report-conformance.py",
+        "artifact_count": len(rows),
+        "surface_counts": {
+            "shared-examples": sum(1 for r in rows if r["surface"] == "shared-examples"),
+            "generated-twin": sum(1 for r in rows if r["surface"] == "generated-twin"),
+            "contract-surface": sum(1 for r in rows if r["surface"] == "contract-surface"),
+        },
+        "headline": compute_headline(rows),
+        "pair_agreement": {
+            "agreeing": agreeing,
+            "total": total,
+            "divergences": [
+                {"analysis_id": analysis_id, "differing_fields": fields}
+                for analysis_id, fields in divergences
+            ],
+        },
+        "rows": rows,
+    }
+    return json.dumps(obj, indent=2) + "\n"
+
+
+def render_markdown(
+    rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]
+) -> str:
+    agreeing, total, divergences = agreement
+    shared = [r for r in rows if r["surface"] == "shared-examples"]
+    twin = [r for r in rows if r["surface"] == "generated-twin"]
+    contract = [r for r in rows if r["surface"] == "contract-surface"]
+    headline = compute_headline(rows)
+
+    lines: list[str] = []
+    lines.append("<!-- GENERATED — DO NOT EDIT -->")
+    lines.append("<!-- Source: scripts/report-conformance.py -->")
+    lines.append("<!-- Regenerate: python3 scripts/report-conformance.py -->")
+    lines.append("")
+    lines.append("# Conformance Baseline")
+    lines.append("")
+    lines.append(f"Measurement date: {MEASUREMENT_DATE}")
+    lines.append("")
+    lines.append(
+        "This file is a measurement, not a contract: no figure below defines what the "
+        "codebase is required to become, and no count in it gates a conformance check. "
+        "Regenerating this file only ever fails on staleness -- committed bytes that no "
+        "longer match a fresh run of `scripts/report-conformance.py` -- never on a count "
+        "read here being high."
+    )
+    lines.append("")
+    lines.append("## Headline")
+    lines.append("")
+    lines.append("| Reading | shared-examples | generated-twin | contract-surface |")
+    lines.append("|---|---|---|---|")
+    lines.append(
+        "| Files unreadable by `_slice_sections` "
+        f"| {headline['unreadable']['shared-examples']} of {len(shared)} "
+        f"| {headline['unreadable']['generated-twin']} of {len(twin)} "
+        f"| {headline['unreadable']['contract-surface']} of {len(contract)} |"
+    )
+    lines.append(
+        "| §6 conclusion claims (untraced) | "
+        + " | ".join(
+            f"{headline['conclusion_claims'][s]['total']} "
+            f"({headline['conclusion_claims'][s]['untraced']} untraced)"
+            for s in ("shared-examples", "generated-twin", "contract-surface")
+        )
+        + " |"
+    )
+    lines.append(
+        "| §2 verdict cells (non-conforming) | "
+        + " | ".join(
+            f"{headline['verdict_cells'][s]['total']} "
+            f"({headline['verdict_cells'][s]['nonconforming']} non-conforming)"
+            for s in ("shared-examples", "generated-twin", "contract-surface")
+        )
+        + " |"
+    )
+    lines.append(
+        "| §4 `chain_blocks` (malformed) | "
+        + " | ".join(
+            f"{headline['section4_chain_blocks'][s]['total']} "
+            f"({headline['section4_chain_blocks'][s]['malformed']} malformed)"
+            for s in ("shared-examples", "generated-twin", "contract-surface")
+        )
+        + " |"
+    )
+    lines.append(
+        "| `### Conclusion` heading-swept blocks (malformed) | "
+        + " | ".join(
+            f"{headline['heading_swept_blocks'][s]['total']} "
+            f"({headline['heading_swept_blocks'][s]['malformed']} malformed)"
+            for s in ("shared-examples", "generated-twin", "contract-surface")
+        )
+        + " |"
+    )
+    lines.append(
+        f"| Source-vs-twin agreement (D-04) | {agreeing} of {total} pairs agree | | |"
+    )
+    lines.append("")
+
+    lines.append("## Two chain-block censuses (D-05)")
+    lines.append("")
+    lines.append(
+        "`detect_defects` and the `### Conclusion` heading sweep are both produced by the "
+        "same frozen instrument, `scripts/check-quality-harness.py`, yet they read a "
+        "different number of chain blocks. `detect_defects`'s §4-scoped `chain_blocks` / "
+        "`malformed_chain_blocks` columns come from a section slice, so they cannot read "
+        "the files `_slice_sections` rejects. The `### Conclusion` heading sweep -- "
+        "`_render_example_chain_blocks` paired with `_chain_block_well_formed` -- is a "
+        "heading scan, not a section parse, so it can read those same files. The two "
+        "figures measure different things and are published as separately named columns "
+        "rather than reconciled into one number."
+    )
+    lines.append("")
+
+    lines.append("## Column vocabulary")
+    lines.append("")
+    lines.append(
+        "Three kinds of value appear in the per-artifact tables below. A number means the "
+        "detector read the document and counted. The literal `n/a` means no `.jsonl` "
+        "generation capture exists for this artifact -- true of all 29 artifacts, for the "
+        "nine provenance columns, unconditionally. The literal `unreadable` means "
+        "`_slice_sections` rejected the document, so the twelve measured schema fields "
+        "were never computed. The nine provenance columns are emitted in full precisely so "
+        "`n/a` and `0` are never printed as the same thing."
+    )
+    lines.append("")
+
+    header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
+    for surface_name, group in (
+        ("shared-examples", shared),
+        ("generated-twin", twin),
+        ("contract-surface", contract),
+    ):
+        lines.append(f"## {surface_name}")
+        lines.append("")
+        lines.append("| " + " | ".join(header_fields) + " |")
+        lines.append("|" + "---|" * len(header_fields))
+        for r in group:
+            lines.append("| " + " | ".join(str(r[f]) for f in header_fields) + " |")
+        lines.append("")
+
+    lines.append("## Source-vs-twin agreement (D-04)")
+    lines.append("")
+    lines.append(
+        "Compared fields (fifteen): " + ", ".join(f"`{f}`" for f in AGREEMENT_FIELDS) + "."
+    )
+    lines.append("")
+    lines.append(
+        "Excluded (ten, foreordained equal on both surfaces): "
+        + ", ".join(f"`{f}`" for f in _EXCLUDED_AGREEMENT_FIELDS)
+        + "."
+    )
+    lines.append("")
+    lines.append(f"Result: {agreeing} of {total} pairs agree.")
+    if divergences:
+        lines.append("")
+        for analysis_id, fields in divergences:
+            lines.append(f"- `{analysis_id}`: {', '.join(fields)}")
+    lines.append("")
+
+    lines.append(
+        "Prior readings: `git log --follow docs/conformance-baseline.md`."
+    )
+
+    return "\n".join(lines) + "\n"
+
+
+def generate_all(repo_root: Path) -> dict[Path, str]:
+    """Build both rendered strings from ONE `build_rows` call, so the two surfaces cannot
+    disagree with each other."""
+    rows = build_rows(repo_root)
+    agreement = pair_agreement(rows)
+    return {
+        MD_PATH: render_markdown(rows, agreement),
+        JSON_PATH: render_json(rows, agreement),
+    }
+
+
+def _write_text(path: Path, text: str) -> None:
+    path.write_text(text, encoding="utf-8")
+
+
+def cmd_write() -> int:
+    generated = generate_all(REPO_ROOT)
+    JSON_PATH.parent.mkdir(parents=True, exist_ok=True)
+    for path, text in generated.items():
+        _write_text(path, text)
+    row_count = len(json.loads(generated[JSON_PATH])["rows"])
+    print(f"report-conformance: PASS — wrote {MD_PATH} + {JSON_PATH} ({row_count} rows)")
+    return 0
+
+
+def cmd_check() -> int:
+    # Idempotency self-test: two in-memory generations must be equal, or an unsorted glob
+    # or a leaked wall-clock value would otherwise become a mystery --check failure.
+    pass1 = generate_all(REPO_ROOT)
+    pass2 = generate_all(REPO_ROOT)
+    if pass1 != pass2:
+        sys.stderr.write("NON-DETERMINISTIC: pass-1 != pass-2\n")
+        return 2
+
+    drifted: list[Path] = []
+    for path, generated in pass1.items():
+        on_disk = path.read_text(encoding="utf-8") if path.exists() else ""
+        if on_disk != generated:
+            drifted.append(path)
+            rel = path.relative_to(REPO_ROOT)
+            sys.stderr.write(f"DRIFT: {rel}\n")
+            sys.stderr.writelines(
+                difflib.unified_diff(
+                    on_disk.splitlines(keepends=True),
+                    generated.splitlines(keepends=True),
+                    fromfile=f"a/{rel}",
+                    tofile=f"b/{rel}",
+                    n=3,
+                )
+            )
+            sys.stderr.write("\n")
+
+    if drifted:
+        sys.stderr.write("Run: python3 scripts/report-conformance.py && git add -u\n")
+        return 1
+    print("report-conformance: PASS — no drift")
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Phase 17 conformance measurement report over the frozen quality harness."
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="regenerate in memory and diff against the on-disk artifacts; exit 1 on drift",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the offline control battery (positive, negative, anti-masking)",
+    )
+    args = parser.parse_args(argv)
+
+    try:
+        if args.self_test:
+            return self_test()
+        if args.check:
+            return cmd_check()
+        return cmd_write()
+    except DiscoveryFloorError as exc:
+        for line in str(exc).splitlines():
+            sys.stderr.write(line + "\n")
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
