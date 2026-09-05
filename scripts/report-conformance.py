@@ -502,6 +502,65 @@ def render_markdown(
     )
     lines.append("")
 
+    lines.append("## Disclosed bounds")
+    lines.append("")
+    lines.append(
+        "This phase publishes four disclosures in the same voice R7/R9/R10 use on the "
+        "agent surface to state their own measured bounds, rather than leaving them to be "
+        "discovered."
+    )
+    lines.append("")
+    lines.append(
+        "**1. Chain-form reach.** `heading_malformed_blocks == 0` means every scanned "
+        "block conforms under `_chain_block_well_formed`'s measured reach -- the head and "
+        "first hop, up to the second arrow of the first matching candidate. This is NOT "
+        "the same claim as \"no R7 violations remain in `shared/examples/`\": a wrap or a "
+        "GT-led hop after the second arrow is not detected. This phase fixes to the "
+        "detector's bound, which is what CONF-04 states; fixing to R7 as published is a "
+        "strictly larger job and is recorded as backlog, not as done."
+    )
+    lines.append("")
+    marked_total = sum(
+        headline["untraced_breakdown"][s]["marked"]
+        for s in ("shared-examples", "generated-twin")
+        if isinstance(headline["untraced_breakdown"][s]["marked"], int)
+    )
+    lines.append(
+        "**2. Marked-claim residual (derived).** "
+        f"{marked_total} claim(s) across shared-examples and generated-twin carry the "
+        "`no chain — flagged assumption only` marker "
+        f"(shared-examples: {headline['untraced_breakdown']['shared-examples']['marked']}, "
+        f"generated-twin: {headline['untraced_breakdown']['generated-twin']['marked']}), "
+        "computed from `rows` at render time, never hardcoded. A marked caveat still "
+        "scores untraced BY DESIGN (`R-CLAIM-CAVEAT-MARKED`): the marker discloses the "
+        "gap, it does not discharge the claim. Driving the `untraced_claims` reading "
+        "itself to zero would mean inventing citations, which is the failure mode the "
+        "bound exists to prevent."
+    )
+    lines.append("")
+    lines.append(
+        "**3. `shared/spine/references/output-template.md` is measured but not gated.** "
+        "It is the specification document whose §4 worked examples deliberately include "
+        "non-conforming forms as labelled teaching contrasts, so a detector-conformance "
+        "fix would require either mislabelling a deliberately-broken example or "
+        "restructuring the document's own pedagogy. CONF-03..06 name the fourteen shipped "
+        "analyses only. Phase 17 measured this surface and handed the scope question to "
+        "Phase 18; Phase 18 declines it by this stated reason -- an accepted, disclosed "
+        "exclusion, never a silent omission."
+    )
+    lines.append("")
+    lines.append(
+        "**4. The closure-ledger route has zero shipped exemplars.** "
+        "`output-template.md` §6 blesses two citation routes; the exemplars use one -- "
+        "the inline `(chain Cn)` form the template itself calls \"the mechanically "
+        "checkable form\" (decision D-01). After this phase no shipped worked example "
+        "demonstrates the `- \"quoted claim\" → chain Cn` closure-ledger row, because of "
+        "backlog 999.24 (an unfenced in-section-6 ledger row counts itself as a claim) "
+        "and `_slice_sections`'s section-6 rule, which ends §6 at the first ATX heading "
+        "of any depth."
+    )
+    lines.append("")
+
     header_fields = ["relpath"] + list(REPORT_FIELDS) + list(_DEFECT_RECORD_FIELDS)
     for surface_name, group in (
         ("shared-examples", shared),
