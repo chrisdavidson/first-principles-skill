@@ -16,11 +16,11 @@
     "conclusion_claims": {
       "shared-examples": {
         "total": 77,
-        "untraced": 60
+        "untraced": 36
       },
       "generated-twin": {
         "total": 77,
-        "untraced": 60
+        "untraced": 36
       },
       "contract-surface": {
         "total": 3,
@@ -30,11 +30,11 @@
     "untraced_breakdown": {
       "shared-examples": {
         "marked": 2,
-        "silent": 58
+        "silent": 34
       },
       "generated-twin": {
         "marked": 2,
-        "silent": 58
+        "silent": 34
       },
       "contract-surface": {
         "marked": 0,
@@ -44,11 +44,11 @@
     "verdict_cells": {
       "shared-examples": {
         "total": 77,
-        "nonconforming": 69
+        "nonconforming": 52
       },
       "generated-twin": {
         "total": 77,
-        "nonconforming": 69
+        "nonconforming": 52
       },
       "contract-surface": {
         "total": 1,
@@ -58,11 +58,11 @@
     "section4_chain_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 19
+        "malformed": 13
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 19
+        "malformed": 13
       },
       "contract-surface": {
         "total": 3,
@@ -72,11 +72,11 @@
     "heading_swept_blocks": {
       "shared-examples": {
         "total": 31,
-        "malformed": 19
+        "malformed": 13
       },
       "generated-twin": {
         "total": 31,
-        "malformed": 19
+        "malformed": 13
       },
       "contract-surface": {
         "total": 1,
@@ -253,11 +253,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "personal-general",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 5,
-      "nonconforming_verdict_cells": 5,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -274,7 +274,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -405,17 +405,17 @@
       "relpath": "shared/examples/self-application.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "self-application",
       "conclusion_claims": 9,
-      "untraced_claims": 9,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -429,7 +429,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 9
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -467,17 +467,17 @@
       "relpath": "shared/examples/software-systems.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "software-systems",
       "conclusion_claims": 8,
-      "untraced_claims": 8,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -491,7 +491,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 8
+      "silent_untraced_claims": 0
     },
     {
       "surface": "shared-examples",
@@ -687,11 +687,11 @@
       "heading_malformed_blocks": 0,
       "analysis_id": "personal-general",
       "conclusion_claims": 7,
-      "untraced_claims": 7,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 5,
-      "nonconforming_verdict_cells": 5,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 2,
       "malformed_chain_blocks": 0,
       "chain_flag": 0,
@@ -708,7 +708,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 7
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
@@ -839,17 +839,17 @@
       "relpath": "first-principles/agents/references/examples/self-application.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "self-application",
       "conclusion_claims": 9,
-      "untraced_claims": 9,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -863,7 +863,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 9
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",
@@ -901,17 +901,17 @@
       "relpath": "first-principles/agents/references/examples/software-systems.md",
       "section_resolution": "OK",
       "heading_chain_blocks": 3,
-      "heading_malformed_blocks": 3,
+      "heading_malformed_blocks": 0,
       "analysis_id": "software-systems",
       "conclusion_claims": 8,
-      "untraced_claims": 8,
-      "untraced_flag": 1,
+      "untraced_claims": 0,
+      "untraced_flag": 0,
       "verdict_cells": 6,
-      "nonconforming_verdict_cells": 6,
-      "verdict_flag": 1,
+      "nonconforming_verdict_cells": 0,
+      "verdict_flag": 0,
       "chain_blocks": 3,
-      "malformed_chain_blocks": 3,
-      "chain_flag": 1,
+      "malformed_chain_blocks": 0,
+      "chain_flag": 0,
       "dependency_cycles": 0,
       "ungrounded_chains": 0,
       "selfaudit_disagreements": 0,
@@ -925,7 +925,7 @@
       "orphan_fetches": "n/a",
       "provenance_flag": "n/a",
       "marked_untraced_claims": 0,
-      "silent_untraced_claims": 8
+      "silent_untraced_claims": 0
     },
     {
       "surface": "generated-twin",

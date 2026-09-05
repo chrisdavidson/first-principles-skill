@@ -44,12 +44,12 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 | Assumption | Type | Treatment | Verdict | Verification |
 |------------|------|-----------|---------|--------------|
-| Microservices enable faster deploys | convention | Challenge before use — this is a widely-held claim but depends on team maturity, pipeline design, inter-service dependency topology, and the nature of the coupling; it is not a physical or logical necessity | Challenge | Unverified for this team and codebase — flagged; microservices with synchronous dependencies and shared infrastructure can deploy more slowly than a well-configured monolith |
-| The deploy bottleneck is architectural coupling in the monolith | untested belief | Verify before use — the test suite runtime and pipeline structure have not been profiled to determine their contribution; alternative non-architectural causes exist and must be ruled out | Challenge | Unverified — flagged; no pipeline profiling data has been collected; the 45-minute runtime is consistent with both architectural and non-architectural bottleneck causes |
-| A 12-person team can operate a microservices estate at acceptable overhead | untested belief | Verify — distributed systems require per-service monitoring, independent CI pipelines, inter-service communication contracts, and distributed tracing; the ops burden scales with service count and is well-documented to exceed small-team capacity below a threshold | Challenge | Unverified — flagged; no evidence the team has operated distributed services; DORA research documents that teams below ~50 engineers operating more than ~10 services face significant reliability and velocity headwinds |
-| Slow deploys are causing meaningful, ongoing business harm | current constraint | Record expiry conditions — this constraint holds as long as the business requires more than ~2 deploys per day; it expires if product velocity requirements decrease or if the team ships features whose release cadence is compatible with the current ceiling | Accept | Observed: ~2 deploys/day maximum is the measured ceiling; business impact is real (engineering velocity is blocked; hotfixes require manual bypass procedures) even if the precise dollar value of the constraint is not quantified |
-| A full rewrite or big-bang migration is required to change the architecture | untested belief | Discard — the strangler fig pattern enables incremental extraction of services from a monolith while the monolith continues to handle remaining traffic; no big-bang rewrite is required; this assumption frames the decision as binary when it is not | Discard | Contradicted by published incremental migration patterns; the strangler fig approach is the documented industry mechanism for this exact scenario (Newman "Building Microservices", chapter on the strangler fig application) |
-| Schema-level coupling is equivalent to application-level deploy coupling — a shared relational schema blocks truly independent releases in the same way a shared application binary does | untested belief | Accept with verification — the inference in Chain 2 ("splitting the application while retaining the shared schema produces a distributed monolith") requires this to hold; the specific coupling mechanism is that any service performing a schema migration must either apply it to the shared schema (affecting all co-tenant services) or coordinate migration timing with all services that read those tables | Accept | Verified by technical analysis: a shared schema forces coordinated migration windows across all services; the deploy-independence that microservices nominally provide is negated at the data layer if schema ownership is not decomposed first — this is the documented definition of a distributed monolith (Newman "Building Microservices", 2nd ed., Chapter 4) |
+| Microservices enable faster deploys | convention | Challenge before use — this is a widely-held claim but depends on team maturity, pipeline design, inter-service dependency topology, and the nature of the coupling; it is not a physical or logical necessity | Challenge — unverified for this team; synchronous dependencies and shared infrastructure can deploy slower than a well-configured monolith | Unverified for this team and codebase — flagged; microservices with synchronous dependencies and shared infrastructure can deploy more slowly than a well-configured monolith |
+| The deploy bottleneck is architectural coupling in the monolith | untested belief | Verify before use — the test suite runtime and pipeline structure have not been profiled to determine their contribution; alternative non-architectural causes exist and must be ruled out | Challenge — no pipeline profiling data collected; the runtime is consistent with non-architectural causes too | Unverified — flagged; no pipeline profiling data has been collected; the 45-minute runtime is consistent with both architectural and non-architectural bottleneck causes |
+| A 12-person team can operate a microservices estate at acceptable overhead | untested belief | Verify — distributed systems require per-service monitoring, independent CI pipelines, inter-service communication contracts, and distributed tracing; the ops burden scales with service count and is well-documented to exceed small-team capacity below a threshold | Challenge — no evidence the team has run distributed services; DORA data shows headwinds below ~50 engineers / ~10 services | Unverified — flagged; no evidence the team has operated distributed services; DORA research documents that teams below ~50 engineers operating more than ~10 services face significant reliability and velocity headwinds |
+| Slow deploys are causing meaningful, ongoing business harm | current constraint | Record expiry conditions — this constraint holds as long as the business requires more than ~2 deploys per day; it expires if product velocity requirements decrease or if the team ships features whose release cadence is compatible with the current ceiling | Accept — measured ~2/day ceiling; business impact is real even without a quantified dollar value | Observed: ~2 deploys/day maximum is the measured ceiling; business impact is real (engineering velocity is blocked; hotfixes require manual bypass procedures) even if the precise dollar value of the constraint is not quantified |
+| A full rewrite or big-bang migration is required to change the architecture | untested belief | Discard — the strangler fig pattern enables incremental extraction of services from a monolith while the monolith continues to handle remaining traffic; no big-bang rewrite is required; this assumption frames the decision as binary when it is not | Discard — the strangler fig pattern enables incremental extraction; no big-bang rewrite is required | Contradicted by published incremental migration patterns; the strangler fig approach is the documented industry mechanism for this exact scenario (Newman "Building Microservices", chapter on the strangler fig application) |
+| Schema-level coupling is equivalent to application-level deploy coupling — a shared relational schema blocks truly independent releases in the same way a shared application binary does | untested belief | Accept with verification — the inference in Chain 2 ("splitting the application while retaining the shared schema produces a distributed monolith") requires this to hold; the specific coupling mechanism is that any service performing a schema migration must either apply it to the shared schema (affecting all co-tenant services) or coordinate migration timing with all services that read those tables | Accept — a shared schema forces coordinated migration windows; deploy-independence is negated without decomposition | Verified by technical analysis: a shared schema forces coordinated migration windows across all services; the deploy-independence that microservices nominally provide is negated at the data layer if schema ownership is not decomposed first — this is the documented definition of a distributed monolith (Newman "Building Microservices", 2nd ed., Chapter 4) |
 
 ---
 
@@ -87,21 +87,9 @@ preventing faster deploys, and what is the cheapest intervention that removes th
 
 ### Conclusion C1: Architecture is not demonstrably the primary bottleneck
 
-GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass
-including a complete test suite run) + GT-3 (2 deploys/day measured ceiling imposed by the
-sequential pipeline)
-→ The deploy cycle floor is set by the test suite wall-clock duration, and the 2-deploy/day
-  ceiling follows directly from that floor combined with the full-pipeline-per-deploy
-  requirement. A monolith running a fully-parallelized test suite in 8 minutes with a
-  blue-green deploy strategy requires only 8 minutes per deploy — no architectural change is
-  needed to remove the deploy-frequency bottleneck. Architecture determines whether services
-  can deploy independently, but the pipeline structure (sequential execution + full-suite
-  requirement), not the monolithic architecture itself, is the sufficient cause of the
-  measured 2-deploy/day ceiling.
-→ Architecture cannot be concluded to be the primary deploy bottleneck until the test suite
-  runtime, pipeline step serialization, and deployment restart time have been profiled and
-  ruled out as the dominant cause. The 45-minute pipeline is a sufficient explanation of the
-  2-deploy/day ceiling without any architectural coupling claim.
+GT-1 (45-minute full test suite runtime) + GT-2 (every deploy requires a full pipeline pass including a complete test suite run) + GT-3 (2 deploys/day measured ceiling imposed by the sequential pipeline)
+→ The deploy cycle floor is set by the test suite wall-clock duration, and the 2-deploy/day ceiling follows directly from that floor combined with the full-pipeline-per-deploy requirement; a monolith running a fully-parallelized test suite in 8 minutes with a blue-green deploy strategy requires only 8 minutes per deploy — no architectural change is needed to remove the deploy-frequency bottleneck; architecture determines whether services can deploy independently, but the pipeline structure (sequential execution + full-suite requirement), not the monolithic architecture itself, is the sufficient cause of the measured 2-deploy/day ceiling
+→ Architecture cannot be concluded to be the primary deploy bottleneck until the test suite runtime, pipeline step serialization, and deployment restart time have been profiled and ruled out as the dominant cause. The 45-minute pipeline is a sufficient explanation of the 2-deploy/day ceiling without any architectural coupling claim.
 
 **Confidence:** HIGH
 
@@ -109,20 +97,9 @@ sequential pipeline)
 
 ### Conclusion C2: The shared database coupling problem is separable from a microservices migration
 
-GT-5 (single shared relational database schema with no service-boundary ownership) + GT-4
-(microservices require per-service independent deployment pipelines and inter-service contracts)
-→ Splitting the application layer into separate services while retaining the shared schema
-  produces a distributed monolith: services that deploy independently in theory but cannot
-  actually execute schema migrations or release independently because all services share the
-  same database state. True independent deploys require that each service owns its schema
-  boundaries exclusively. This means schema decomposition is a prerequisite of, not a
-  consequence of, a microservices migration.
-→ Schema decomposition can be executed incrementally on the monolith — by establishing bounded
-  contexts, identifying which modules own which tables, and progressively enforcing that only
-  the owning module accesses those tables — without splitting the application into separately-
-  deployed services. The coupling reduction that enables independent deploys is separable from
-  the service-boundary split. The two problems can be addressed in sequence rather than as a
-  single large migration.
+GT-5 (single shared relational database schema with no service-boundary ownership) + GT-4 (microservices require per-service independent deployment pipelines and inter-service contracts)
+→ Splitting the application layer into separate services while retaining the shared schema produces a distributed monolith: services that deploy independently in theory but cannot actually execute schema migrations or release independently because all services share the same database state; true independent deploys require that each service owns its schema boundaries exclusively; this means schema decomposition is a prerequisite of, not a consequence of, a microservices migration
+→ Schema decomposition can be executed incrementally on the monolith — by establishing bounded contexts, identifying which modules own which tables, and progressively enforcing that only the owning module accesses those tables — without splitting the application into separately-deployed services. The coupling reduction that enables independent deploys is separable from the service-boundary split. The two problems can be addressed in sequence rather than as a single large migration.
 
 **Confidence:** HIGH
 
@@ -130,24 +107,9 @@ GT-5 (single shared relational database schema with no service-boundary ownershi
 
 ### Conclusion C3: The minimum viable intervention is to profile the bottleneck and apply the lowest-cost fix
 
-GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequential pipeline)
-+ GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
-→ The cost-risk profile of available interventions varies by orders of magnitude. The pipeline
-  has four measurable stages: test suite execution, artifact build, deployment and restart, and
-  health-check wait. Profiling these stages (a configuration-level instrumentation taking
-  approximately 1 day) identifies which stage is the dominant cost without requiring any code
-  change. Pipeline parallelization (splitting the test suite across concurrent CI workers) is
-  a configuration-level change achievable in days to 2 weeks with no architectural risk and
-  is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of
-  careful migration work with moderate risk and is largely reversible; a full
-  monolith-to-microservices migration is months-to-years of architectural work with high risk
-  and is not easily reversible, and it introduces the full GT-4 operational overhead before
-  delivering any deploy-speed benefit. Committing to the highest-cost option before ruling out
-  lower-cost options is not consistent with minimum viable intervention principles.
-→ The rational sequencing is: profile the pipeline to identify the specific bottleneck, apply
-  the lowest-cost intervention that removes it (almost certainly parallelization first), and
-  revisit microservices only after profiling demonstrates that the bottleneck is architectural
-  and schema decoupling alone is insufficient.
+GT-1 (45-minute test suite) + GT-3 (2 deploys/day ceiling imposed by the sequential pipeline) + GT-4 (microservices estate multiplies per-service ops overhead that a 12-engineer team must absorb)
+→ The cost-risk profile of available interventions varies by orders of magnitude; the pipeline has four measurable stages: test suite execution, artifact build, deployment and restart, and health-check wait; profiling these stages (a configuration-level instrumentation taking approximately 1 day) identifies which stage is the dominant cost without requiring any code change; pipeline parallelization (splitting the test suite across concurrent CI workers) is a configuration-level change achievable in days to 2 weeks with no architectural risk and is fully reversible; schema decomposition along bounded-context lines is weeks-to-months of careful migration work with moderate risk and is largely reversible; a full monolith-to-microservices migration is months-to-years of architectural work with high risk and is not easily reversible, and it introduces the full GT-4 operational overhead before delivering any deploy-speed benefit; committing to the highest-cost option before ruling out lower-cost options is not consistent with minimum viable intervention principles
+→ The rational sequencing is: profile the pipeline to identify the specific bottleneck, apply the lowest-cost intervention that removes it (almost certainly parallelization first), and revisit microservices only after profiling demonstrates that the bottleneck is architectural and schema decoupling alone is insufficient.
 
 **Confidence:** HIGH
 
@@ -277,23 +239,21 @@ that was not already in the Assumptions Table has been added there before this t
 
 ## 6. Conclusion
 
-**Recommended approach:** Execute a three-step intervention in order, stopping when deploy
+**Recommended approach:** (chains C1 and C3) Execute a three-step intervention in order, stopping when deploy
 frequency reaches the target:
 
-1. **Profile the pipeline** (approximately 1 day, as established in the minimum-viable-intervention
-   chain): instrument the CI/CD pipeline to measure the wall-clock contribution of each stage —
+1. **Profile the pipeline** (chain C3; approximately 1 day): instrument the CI/CD pipeline to measure the wall-clock contribution of each stage —
    test suite execution, artifact build, deployment and restart, health-check wait. Identify the
    dominant bottleneck. In most cases for a codebase of this profile, the test suite runtime
    (GT-1) is the dominant cost; profiling confirms or refutes this.
 
-2. **Parallelize the test suite and decouple the restart** (days to 2 weeks, as established in
-   the minimum-viable-intervention chain): split the test suite into shards and run them
+2. **Parallelize the test suite and decouple the restart** (chain C3; days to 2 weeks): split the test suite into shards and run them
    concurrently across multiple CI workers; introduce a blue-green or rolling deploy strategy
    to eliminate the coordinated-restart requirement from GT-2. These are CI configuration
    changes with no changes to application code and no architectural risk. After this step,
    measure deploy frequency. If the target is met, stop.
 
-3. **If profiling identifies schema coupling as a bottleneck**: begin incremental schema
+3. **If profiling identifies schema coupling as a bottleneck** (chain C2): begin incremental schema
    decomposition along bounded-context lines, guided by the module boundaries already present in
    the monolith. This is weeks-to-months of careful migration work (establishing exclusive table
    ownership per module, eliminating cross-module schema access, introducing service-level schema
@@ -307,7 +267,7 @@ and feature velocity rather than deploy speed — that is a different problem an
 fresh first-principles analysis with the real goal stated in the Essence Statement (Section 1,
 Problem Essence).
 
-**Key insight:** "Deploys are too slow" is a symptom with multiple independent possible causes
+**Key insight:** (chains C1, C2 and C3) "Deploys are too slow" is a symptom with multiple independent possible causes
 — test suite runtime, pipeline step serialization, deployment restart overhead, and database
 schema coupling are each sufficient to explain the current ceiling, and they require different
 interventions. Architecture migration is the highest-cost, highest-risk, and least reversible
@@ -320,19 +280,19 @@ introduces the full GT-4 operational overhead before the team sees any benefit.
 
 **Trade-offs acknowledged:**
 
-- Pipeline parallelization and blue-green deploys address the deploy-frequency bottleneck but
+- (chain C3) Pipeline parallelization and blue-green deploys address the deploy-frequency bottleneck but
   do not address the longer-term question of whether the monolith's architecture limits feature
   velocity, team autonomy, or scalability under load. Those are different problems. If they are
   real problems for this team, they warrant a separate analysis with those specific goals stated
   in the Essence Statement.
 
-- Schema decomposition is a real cost even when done incrementally. It requires identifying and
+- (chain C2) Schema decomposition is a real cost even when done incrementally. It requires identifying and
   enforcing module-level table ownership across a 6-year-old codebase where cross-module schema
   access is likely widespread. This is careful, high-attention work that carries risk of
   introducing data-consistency regressions if not executed with discipline. The recommendation
   is to pursue it only after profiling confirms it is the bottleneck, not preemptively.
 
-- The recommendation defers the microservices decision explicitly. Engineering leadership's
+- (chains C1 and C3) The recommendation defers the microservices decision explicitly. Engineering leadership's
   stated position is "we need microservices." This analysis does not validate that position —
   it identifies it as an untested belief and recommends against acting on it before the actual
   bottleneck is measured. If there is organizational pressure to begin a migration regardless
