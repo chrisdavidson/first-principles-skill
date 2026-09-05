@@ -186,3 +186,4 @@ None. All six threat-register mitigations for this plan (T-17-10 through T-17-14
 - FOUND: `.planning/phases/17-conformance-baseline/17-03-SUMMARY.md`
 - FOUND commit `032e920` (Task 1)
 - FOUND commit `e5bedd7` (Task 2)
+- FOUND commit `6482d69` (this Summary)
