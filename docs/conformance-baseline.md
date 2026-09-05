@@ -40,6 +40,8 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 
 **4. The closure-ledger route has zero shipped exemplars.** `output-template.md` §6 blesses two citation routes; the exemplars use one -- the inline `(chain Cn)` form the template itself calls "the mechanically checkable form" (decision D-01). After this phase no shipped worked example demonstrates the `- "quoted claim" → chain Cn` closure-ledger row, because of backlog 999.24 (an unfenced in-section-6 ledger row counts itself as a claim) and `_slice_sections`'s section-6 rule, which ends §6 at the first ATX heading of any depth.
 
+**5. The pre-commit conformance-drift gate fails on staleness, not on a lost catch (D-07).** `scripts/report-conformance.py --check` fails when the committed bytes of this file or `docs/data/conformance.json` no longer match a fresh run -- never when a count read here, including the adversarial-corpus false-negative rate below, is high. A detector change that moves a corpus reading fails `--check` as drift; regenerating the two artifacts makes it pass again. Nothing here raises an alarm that the *meaning* of a reading changed -- only that the committed bytes are out of date.
+
 ## shared-examples
 
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
@@ -83,6 +85,40 @@ This phase publishes four disclosures in the same voice R7/R9/R10 use on the age
 | relpath | section_resolution | heading_chain_blocks | heading_malformed_blocks | marked_untraced_claims | silent_untraced_claims | analysis_id | conclusion_claims | untraced_claims | untraced_flag | verdict_cells | nonconforming_verdict_cells | verdict_flag | chain_blocks | malformed_chain_blocks | chain_flag | dependency_cycles | ungrounded_chains | selfaudit_disagreements | provenance_labels | unmatched_sources | unreadable_sources | literals_checked | unlocated_literals | misattributed_literals | zero_literal_gts | orphan_fetches | provenance_flag |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | shared/spine/references/output-template.md | OK | 1 | 0 | 0 | 3 | output-template | 3 | 3 | 1 | 1 | 1 | 1 | 3 | 1 | 1 | 0 | 0 | 0 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
+
+## adversarial-corpus
+
+**False-negative rate:** 9 of 13 corpus items score fully clean under the unmodified, CONTRACT-06-frozen `detect_defects` -- despite every item being a stated, catalogued falsehood. Each of those 9 is a false negative: a substantively wrong analysis this instrument cannot distinguish from a sound one.
+
+- Stratum A: 1 of 5 clean
+- Stratum B1: 1 of 1 clean
+- Stratum B2: 7 of 7 clean
+
+**Backlog 999.4 gate input.** Stratum B2 -- reachable by nothing this project ships -- reads 7 of 7 clean. Per `.planning/ROADMAP.md` Phase 999.4 (CONDITIONAL, gated on this measurement): a low B2 rate closes 999.4 unrun, with this measurement recorded as the reason; a high B2 rate promotes 999.4, with this corpus as its validation set.
+
+**Stratum vocabulary.** Stratum A: a named `detect_defects` column (`dependency_cycles`, `ungrounded_chains` or `selfaudit_disagreements`) plausibly has reach over the item's wrongness. Stratum B1: out of `detect_defects`'s reach but reachable by another shipped instrument -- closed at PROV-GUARD only (`scripts/check-provenance.py`'s read-at-source join), since no other shipped instrument has a code path over an arbitrary analysis. Stratum B2: reachable by nothing this project ships.
+
+**Fixtures, not artifacts.** This section measures deliberately wrong test fixtures, never shipped artifacts. A probe reading clean is never the same claim as an artifact conforming. A stratum-A item scoring non-clean (`t03`, `t04`, `t05` in this corpus) is a positive control proving the run genuinely reaches that column on shipped corpus bytes, not a defect in the corpus. The false-negative rate above is a measurement no phase may target (D-06): the only lever that would move it is widening a frozen detector, which CONTRACT-06 forbids.
+
+**No generated twin.** The corpus is a test fixture, not a shipped artifact: nothing under `shared/` produces it and `sync-content.py` never emits it, so it has no twin and carries no pair-agreement row.
+
+| relpath | stratum | section_resolution | form_defects | dependency_cycles | ungrounded_chains | selfaudit_disagreements | fully_clean | disposition |
+|---|---|---|---|---|---|---|---|---|
+| tests/adversarial-corpus-v9.0/t01-ledger-arbitrary-chain.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: LEDGER-01, the 999.2 seed case — no shipped rule reads citation semantics; B2 by construction. |
+| tests/adversarial-corpus-v9.0/t02-fabricated-read-at-source.md | B1 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: reachable only by PROV-GUARD, named per decision (c); B1. |
+| tests/adversarial-corpus-v9.0/t03-composition-cycle.md | A | OK | 0 | 2 | 0 | 0 | False | accept-with-reason: caught — positive control proving `dependency_cycles` reaches shipped corpus bytes; not a hole. |
+| tests/adversarial-corpus-v9.0/t04-chain-only-head-ungrounded.md | A | OK | 0 | 0 | 2 | 0 | False | accept-with-reason: caught — positive control proving `ungrounded_chains` fires without also cycling; not a hole. |
+| tests/adversarial-corpus-v9.0/t05-selfaudit-overclaim-under-cycle.md | A | OK | 0 | 2 | 0 | 1 | False | accept-with-reason: caught — positive control confirming the Criterion-4 contradiction wiring end to end; not a hole. |
+| tests/adversarial-corpus-v9.0/t06-hidden-cycle-past-head.md | A | OK | 0 | 0 | 0 | 0 | True | defer-with-owner: backlog 999.4 (semantic claim-to-chain judging) — the detectors are frozen under CONTRACT-06 and this phase may not widen one. |
+| tests/adversarial-corpus-v9.0/t07-non-sequitur-between-hops.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: invalid inference between well-formed hops; no shipped rule judges inferential validity; B2. |
+| tests/adversarial-corpus-v9.0/t08-verdict-contradicts-its-type.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: verdict/Type coherence is outside `_verdict_conforms`' reach and outside Criterion 2's form scope; B2. |
+| tests/adversarial-corpus-v9.0/t09-arithmetic-does-not-follow.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: no numeric-plausibility check exists in the harness; B2. |
+| tests/adversarial-corpus-v9.0/t11-fabricated-ground-truth.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: unlabeled fabrication reachable by nothing shipped, including PROV-GUARD; B2. |
+| tests/adversarial-corpus-v9.0/t12-inline-citation-wrong-chain.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: same LEDGER-01 family via the inline citation form, demonstrating the flaw is form-independent; B2. |
+| tests/adversarial-corpus-v9.0/t13-grounded-alongside-cyclic-ref.md | A | OK | 0 | 2 | 2 | 0 | False | accept-with-reason: disclosed bound of `grounded()`'s own-ground-truth short-circuit; not treated as a fix target. |
+| tests/adversarial-corpus-v9.0/t14-order-of-magnitude-conversion.md | B2 | OK | 0 | 0 | 0 | 0 | True | accept-with-reason: no unit-conversion check exists in the harness; B2. |
+
+All thirteen form columns and all nine always-`n/a` provenance columns for these items are carried in full in `docs/data/conformance.json` under `adversarial_corpus.rows`, and are omitted here for readability.
 
 ## Source-vs-twin agreement (D-04)
 
