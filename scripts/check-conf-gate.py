@@ -288,6 +288,25 @@ _LIVE_CALL_FORMS: dict[str, str] = {
     "_run_d08_arm": "mutation_lines = " + "_run_d08_arm(rows)",
 }
 
+# BL-02 (18-VERIFICATION.md blocking gap): a SECOND, independently
+# transcribed roster of the same six enforcement symbol names — deliberately
+# NOT derived from _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any expression,
+# the same discipline _CLAIM_FLOORS_LOCK already applies to _CLAIM_FLOORS.
+# Before this lock, four of the six symbols (_run_d08_arm,
+# _claim_floor_problems, _d03_rule_problems_from_text,
+# _claim_floor_roster_problems) could be deleted from both census tables
+# plus their call site in run_live(), and `--self-test` still reported
+# `SELF-TEST PASS — 32 controls run` at rc 0. Adding or removing an
+# enforcement call is therefore a two-place reviewable edit by design.
+_LIVE_CALL_SITES_LOCK: tuple[str, ...] = (
+    "_targets_problems",
+    "_claim_floor_roster_problems",
+    "_claim_floor_problems",
+    "_d03_rule_problems_from_text",
+    "_ratchet_problems",
+    "_run_d08_arm",
+)
+
 
 def _strip_line_comments(source: str) -> str:
     """BL-01 (18-VERIFICATION.md): strip everything from the first `#` on each
@@ -1030,6 +1049,31 @@ def _control_census_x4_commented() -> None:
     assert "occurs 0 time" in problems[0], problems
 
 
+def _control_live_call_site_roster_locked() -> None:
+    """BL-02: `_LIVE_CALL_SITES` and `_LIVE_CALL_FORMS` must each agree, by
+    set equality, with the independently transcribed `_LIVE_CALL_SITES_LOCK`
+    — never with each other, since a coordinated deletion from both tables
+    (BL-02's measured defect) would satisfy a cross-table comparison. Also
+    asserts the tables' own "one call site, called exactly once" contract:
+    every `_LIVE_CALL_SITES` value must equal 1.
+
+    DISCLOSED BOUND, in the same voice as `check-selfaudit-scan.py`'s
+    ENTRY-SOURCE LOCK: this floors the roster's MEMBERSHIP and per-symbol
+    expected count, not the behaviour of the calls themselves. A coordinated
+    three-place edit (both tables, the lock, and the call site) remains
+    possible and is by design a reviewable source diff, exactly as a sha256
+    pin move is.
+    """
+    counts_diff = set(_LIVE_CALL_SITES) ^ set(_LIVE_CALL_SITES_LOCK)
+    assert not counts_diff, f"CALL-SITE ROSTER DRIFT: {sorted(counts_diff)}"
+
+    forms_diff = set(_LIVE_CALL_FORMS) ^ set(_LIVE_CALL_SITES_LOCK)
+    assert not forms_diff, f"CALL-SITE ROSTER DRIFT: {sorted(forms_diff)}"
+
+    wrong_counts = sorted(k for k, v in _LIVE_CALL_SITES.items() if v != 1)
+    assert not wrong_counts, f"CALL-SITE ROSTER DRIFT: expected-count != 1 for {wrong_counts}"
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -1065,6 +1109,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("form-lock-x1-clean", _control_form_lock_x1_clean),
     ("form-lock-x2-rewritten", _control_form_lock_x2_rewritten),
     ("census-x4-commented", _control_census_x4_commented),
+    ("live-call-site-roster-locked", _control_live_call_site_roster_locked),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -1105,6 +1150,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "form-lock-x1-clean",
     "form-lock-x2-rewritten",
     "census-x4-commented",
+    "live-call-site-roster-locked",
 )
 
 
