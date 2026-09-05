@@ -158,3 +158,12 @@ None. The script is fully functional; `docs/conformance-baseline.md` / `docs/dat
 
 ## Threat Flags
 None. All three threat-register mitigations (T-17-02 hardcoded output paths, T-17-03 audit-only field exclusion, T-17-05 anti-vacuity floors) were implemented exactly as specified in the plan's `<threat_model>`; no new security-relevant surface was introduced beyond what that register already names.
+
+## Self-Check: PASSED
+
+- FOUND: `scripts/report-conformance.py`
+- FOUND: `.planning/phases/17-conformance-baseline/17-01-SUMMARY.md`
+- FOUND commit `ace8277` (Task 1)
+- FOUND commit `0aae632` (Task 2)
+- FOUND commit `9d8f079` (Task 3)
+- FOUND commit `025f6bb` (this Summary)
