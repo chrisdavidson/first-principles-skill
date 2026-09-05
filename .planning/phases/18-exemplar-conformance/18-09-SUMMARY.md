@@ -269,6 +269,16 @@ None - no external service configuration required.
 - Plan 18-10 can proceed to move `_MARKED_RATCHET` (and its new `ratchet-value-locked` inline lock) from 2 to 4 together, as the plan's own out-of-scope note anticipates.
 - No blockers. Battery GREEN 25/25; `check-quality-harness.py` byte-unchanged (CONTRACT-06 intact); `git status --porcelain` clean.
 
+## Self-Check: PASSED
+
+- FOUND: `scripts/check-conf-gate.py`
+- FOUND: `.planning/phases/18-exemplar-conformance/18-09-SUMMARY.md`
+- FOUND: `81c99f3` (Task 1 commit)
+- FOUND: `5c440a7` (Task 2 commit)
+- FOUND: `c6403c8` (Task 3 commit)
+
+All claimed files and commits verified present via direct filesystem check and `git log`.
+
 ---
 *Phase: 18-exemplar-conformance*
 *Completed: 2026-09-05*
