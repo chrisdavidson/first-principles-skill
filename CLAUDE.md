@@ -195,7 +195,14 @@ Two gates fire on `git commit` (whichever hook mechanism is active):
    This check is deliberately NOT registered in `scripts/check-firewall-battery.sh` (the battery
    stays at 25) and adds no CI job (REG-GUARD's CI-job axis is unaffected) — it fails on
    staleness of the committed baseline only, never on a conformance count being too high (D-06,
-   `.planning/phases/17-conformance-baseline/17-CONTEXT.md`).
+   `.planning/phases/17-conformance-baseline/17-CONTEXT.md`). `docs/conformance-baseline.md` now
+   carries a fourth labelled surface, `adversarial-corpus`, measuring
+   `tests/adversarial-corpus-v9.0/`'s deliberately-wrong probes under the unmodified, frozen
+   `detect_defects` — a clean probe reading there is a MEASUREMENT of detector reach, never a
+   statement that an artifact conforms. `tests/adversarial-corpus-v9.0` is a registered
+   `_FROZEN_PATHS` entry alongside `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`
+   (Phase 19), and the battery total is unchanged at **25** because FROZEN-EVIDENCE is an inline
+   check that increments once regardless of array length.
 
 The agent body's line count (`first-principles/agents/first-principles.md`) is still reported by
 `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate

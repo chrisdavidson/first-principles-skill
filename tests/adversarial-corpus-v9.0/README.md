@@ -77,13 +77,20 @@ comparison ever sees it — the check is tamper-evidence for **modification and 
 deletion guard. Any change to this fixture's committed contents, including removal, must be reviewed
 in-diff like any other commit; nothing here enforces that automatically.
 
-**Sequencing note:** this fixture is created by plans 19-01 through 19-04 and is deliberately **NOT
-yet registered** in `_FROZEN_PATHS` at the time this README is written — the battery's untracked-file
-sweep would fail on these very files before they are committed at HEAD, since an unregistered
-directory full of new tracked-but-not-yet-committed content would otherwise be invisible to that
-leg, not because registering early is unsafe in itself, but because the corpus must exist at HEAD
-before a pathspec naming it can pass a diff-against-HEAD check. Plan 19-07 adds the `_FROZEN_PATHS`
-registration after this plan's commit lands, at which point the discipline above becomes active.
+**Sequencing note:** this fixture was created by plans 19-01 through 19-04, and plan 19-07
+registered it — `scripts/check-firewall-battery.sh`'s `_FROZEN_PATHS` array now carries
+`tests/adversarial-corpus-v9.0`, so both FROZEN-EVIDENCE legs described above cover this directory
+today: the `git diff --quiet HEAD` sweep catches an edit to any file already tracked here, and the
+`git status --porcelain --untracked-files=all` sweep catches a new file appearing inside it. The
+residual is unchanged by registration and is restated rather than reopened: a committed `git rm` of
+one of these files is in HEAD by the time the check runs, so no worktree comparison ever sees it —
+the protection is tamper-evidence for modification and addition, never a deletion guard.
+
+**The working rule for an editor.** FROZEN-EVIDENCE compares the worktree and index against HEAD,
+never against some prior state — so a deliberate, committed correction to a corpus item passes the
+check cleanly. The protection is tamper-evidence in review, not an edit lock. Any such correction
+must move that file's sha256 row in the table below in the same commit, or the table itself goes
+stale relative to the bytes it claims to describe.
 
 ## sha256 chain-of-custody table
 
@@ -92,7 +99,7 @@ One row per committed `.md` file in this directory, including `catalog.md`, prod
 
 | File | sha256 |
 |---|---|
-| `catalog.md` | `aa8feaaf68324134b9092a02e76b534b3f52d78efa5feff8e8b5b6603675bb4b` |
+| `catalog.md` | `1530f0a4c55d8294c959f8155b5af47c41132106acba14cc92f2a72b738e8291` |
 | `t01-ledger-arbitrary-chain.md` | `7a4ccb0a4c5fc946b33b52008e0dad143fc69a8ff8ad1217bbae44d7fe1ac1bc` |
 | `t02-fabricated-read-at-source.md` | `dc2b05f2e6fdb739ecf39ce93f5d4af5ce7005552c664b9108b221d6173b7460` |
 | `t03-composition-cycle.md` | `0ca685c530ac2feb878fe50970dff0a3efee003d265b7dc154d60a010e543b99` |

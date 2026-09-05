@@ -1202,7 +1202,7 @@
       "silent_untraced_claims": 0,
       "stratum": "A",
       "source": "hand-authored",
-      "disposition": "defer-with-owner: backlog 999.4 (semantic claim-to-chain judging) \u2014 the detectors are frozen under CONTRACT-06 and this phase may not widen one.",
+      "disposition": "defer-with-owner: backlog 999.35 (`_chain_head_refs` cannot see a circularity stated past a chain's head line) \u2014 the detectors are frozen under CONTRACT-06 and this phase may not widen one.",
       "form_defects": 0,
       "fully_clean": true
     },
@@ -1694,7 +1694,7 @@
         "silent_untraced_claims": 0,
         "stratum": "A",
         "source": "hand-authored",
-        "disposition": "defer-with-owner: backlog 999.4 (semantic claim-to-chain judging) \u2014 the detectors are frozen under CONTRACT-06 and this phase may not widen one.",
+        "disposition": "defer-with-owner: backlog 999.35 (`_chain_head_refs` cannot see a circularity stated past a chain's head line) \u2014 the detectors are frozen under CONTRACT-06 and this phase may not widen one.",
         "form_defects": 0,
         "fully_clean": true
       },

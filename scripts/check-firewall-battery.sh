@@ -655,6 +655,7 @@ _FROZEN_PATHS=(
     'tests/defrobust-v8.11'
     'tests/quality-provenance-v8.24'
     'tests/quality-ledger-v8.26'
+    'tests/adversarial-corpus-v9.0'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
