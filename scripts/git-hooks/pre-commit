@@ -15,7 +15,7 @@
 # conformance count being too high -- no count in that baseline gates
 # anything. By decision D-06 this second check is deliberately NOT registered
 # in scripts/check-firewall-battery.sh and NOT added to
-# .github/workflows/validation.yml, so the offline battery stays at 24.
+# .github/workflows/validation.yml, so the offline battery stays at 25.
 #
 # POSIX sh only -- no bashisms. Quote all expansions.
 
