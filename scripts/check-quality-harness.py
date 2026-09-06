@@ -8285,12 +8285,16 @@ _RENDER_FABRICATED_EXAMPLE_WORDINGS: tuple[str, ...] = (
 # echoing its input.
 _RENDER_CHAIN_FAMILY_PREFIXES: tuple[str, ...] = ("R-CHAIN-", "R-HEAD-")
 
-# The two doc-side QUAL-01 gate-description rows that must state the new
-# coverage — see control (m) and Task 3.
-_QUAL01_DOC_ROWS: tuple[str, ...] = (
-    "CLAUDE.md",
-    "docs/ARCHITECTURE.md",
-)
+# The doc-side QUAL-01 gate-description source that must state the new
+# coverage — see control (m) and Task 3. Repointed at plan 21-08 (CONF-12)
+# from the two hand-maintained `| QUAL-01 |` table-row surfaces
+# (`CLAUDE.md`, `docs/ARCHITECTURE.md`) to the single generated detail
+# page that now carries the narrative both rows used to duplicate. The
+# 22.6k-character cell text migrated to `docs/gates/QUAL-01.md`'s
+# hand-written region verbatim (plan 21-08's token-multiset subset diff),
+# so this is a change of INPUT SOURCE, never of what is checked or how
+# strictly.
+_QUAL01_DOC_ROWS: tuple[str, ...] = ("docs/gates/QUAL-01.md",)
 
 # The tokens each registered `| QUAL-01 |` table row must carry (plan
 # 11-10, WR-04/IN-02/IN-03; third entry added by plan 13-05, CR-01;
@@ -9037,7 +9041,7 @@ def _render_registry_lock_problems(
         )
     checked.add("contradiction_phrases")
 
-    expected_qual01_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
+    expected_qual01_doc_rows = ("docs/gates/QUAL-01.md",)
     if snapshot.qual01_doc_rows != expected_qual01_doc_rows:
         problems.append(
             f"qual01_doc_rows: {snapshot.qual01_doc_rows!r} != expected "
@@ -9525,32 +9529,91 @@ def _render_example_claim_floor_problems(
     return sorted(problems)
 
 
+# The `docs/gates/<ID>.md` generated-fence marker pairs, copied-grammar
+# (not code-dependency, matching `frozen_pathspecs()`'s own idiom in this
+# file) from `scripts/gen-gate-docs.py`'s `DETAIL_FACTS_MARKERS` /
+# DETAIL_HOWTORUN_MARKERS` literals. Used ONLY to strip generated-fence
+# content before the plan-21-08 repointed `_qual01_row_problem` search —
+# see that function's docstring for why stripping is load-bearing, not
+# cosmetic.
+_QUAL01_PAGE_FENCE_MARKERS: tuple[tuple[str, str], ...] = (
+    ("<!-- GENERATED:FACTS -->", "<!-- END GENERATED:FACTS -->"),
+    ("<!-- GENERATED:HOW-TO-RUN -->", "<!-- END GENERATED:HOW-TO-RUN -->"),
+)
+
+
+def _qual01_narrative_text(text: str) -> str:
+    """Strip every `_QUAL01_PAGE_FENCE_MARKERS` region (whole lines,
+    markers included) from *text*, returning only the hand-written
+    narrative. Load-bearing for T-21-08-02: the Facts fence's own
+    `disclosed_bounds_anchors` field is generated FROM
+    `_QUAL01_DOC_ROW_TOKENS` itself (see `describe()`), so searching the
+    fence too would make every token trivially "present" regardless of
+    what the hand-written narrative actually says — the exact vacuity
+    shape this repoint must not introduce."""
+    lines = text.splitlines(keepends=True)
+    kept: list[str] = []
+    open_end: str | None = None
+    for line in lines:
+        bare = line.splitlines()[0] if line.splitlines() else line
+        if open_end is None:
+            matched_start = False
+            for start, end in _QUAL01_PAGE_FENCE_MARKERS:
+                if bare == start:
+                    open_end = end
+                    matched_start = True
+                    break
+            if matched_start:
+                continue
+            kept.append(line)
+            continue
+        if bare == open_end:
+            open_end = None
+        continue
+    return "".join(kept)
+
+
 def _qual01_row_problem(read: _RenderSurfaceRead) -> list[str]:
     """Report every `_QUAL01_DOC_ROW_TOKENS` entry missing from *read*'s
-    `| QUAL-01 |` table row — one problem per missing token, naming the
+    hand-written narrative — one problem per missing token, naming the
     relpath and the token, never a single all-or-nothing verdict (plan
-    11-10, IN-02/IN-03).
+    11-10, IN-02/IN-03; adapted at plan 21-08 for the `docs/gates/
+    QUAL-01.md` repoint, CONF-12).
 
     Takes the `_RenderSurfaceRead` record itself, never a loose
     `(relpath, text)` pair — mirrors `_render_rule_report`'s discipline.
-    ROW-SCOPED (IN-03): only a physical line whose `lstrip()` starts with
-    the exact prefix `| QUAL-01 |` is inspected. A file may mention
-    "QUAL-01" on other lines (`CLAUDE.md` has three: the commands block,
-    the CI-gates intro paragraph, and the battery-tally paragraph) — a
-    claim stated on one of those does not satisfy this check; only the
-    table row itself does.
+
+    PAGE-SCOPED, not row-scoped (adapted from IN-03's original ROW-SCOPED
+    `| QUAL-01 |`-line matching, which no longer applies — a detail page
+    carries no table row at all). What the row-scoping previously bought:
+    `CLAUDE.md` mentions the string "QUAL-01" on lines that are not the
+    claim-bearing row (the commands block, the CI-gates intro paragraph,
+    the battery-tally paragraph), and the row-scoping stopped one of
+    those incidental mentions from satisfying the check. `docs/gates/
+    QUAL-01.md` is a single-gate page with no such incidental-mention
+    surface to guard against, so that specific risk is structurally
+    absent on the new source. What now takes its place, guarding the
+    DIFFERENT vacuity risk a single-purpose page introduces instead: the
+    generated Facts/How-to-run fences are stripped first
+    (`_qual01_narrative_text`) so the check can only be satisfied by the
+    HAND-WRITTEN narrative, never by the fence's own token-echoing
+    `disclosed_bounds_anchors` field (T-21-08-02). Whitespace is
+    normalized before matching (`" ".join(text.split())`), mirroring
+    `_RENDER_EXAMPLE_CLAIM_LITERAL`'s own established fix for the
+    identical defect class — a multi-word literal hard-wrapped across two
+    physical lines by prose reflow is invisible to a raw substring test;
+    measured live on this exact page, where wrapping split "fence shape
+    battery" across a line boundary.
     """
-    qual01_row_lines = [
-        line
-        for line in read.text.splitlines()
-        if line.lstrip().startswith("| QUAL-01 |")
-    ]
+    narrative = _qual01_narrative_text(read.text)
+    normalized = " ".join(narrative.split())
     problems: list[str] = []
     for token in _QUAL01_DOC_ROW_TOKENS:
-        if not any(token in line for line in qual01_row_lines):
+        normalized_token = " ".join(token.split())
+        if normalized_token not in normalized:
             problems.append(
-                f"{read.relpath}: the '| QUAL-01 |' row is missing "
-                f"required token {token!r}"
+                f"{read.relpath}: the QUAL-01 detail page's hand-written "
+                f"narrative is missing required token {token!r}"
             )
     return problems
 
@@ -10851,7 +10914,7 @@ def _selftest_render_contract() -> bool:
     R11's section-intro-label bound and its `R-CLAIM-LABEL-BARE` fixture,
     D-09's `R-CLAIM-CAVEAT-MARKED` non-discharge teeth, and the
     `quality-ledger-v8.26` fixture D-04's live leg reads.
-    A NEGATIVE-CASE COUNT FLOOR derives the expected 60 (2 doc rows x 30
+    A NEGATIVE-CASE COUNT FLOOR derives the expected 30 (1 doc rows x 30
     tokens) from the two registries rather than restating it, and a
     DOCSTRING COUNT LOCK (plan 13-17) asserts this very sentence's
     transcribed total — both factors, not only the product — against that
@@ -10861,7 +10924,10 @@ def _selftest_render_contract() -> bool:
     three surfaces restate one number and nothing compared them. Plan
     13-21 is the first count move since 13-17 built this floor and its
     docstring lock, exercised here rather than left theoretical; plan
-    14-06 is the second.
+    14-06 is the second; plan 21-08 (CONF-12) is the third, moving the
+    doc-row factor from 2 to 1 when `_QUAL01_DOC_ROWS` was repointed at
+    the two `| QUAL-01 |` table rows' single generated replacement,
+    `docs/gates/QUAL-01.md` — the token factor (30) is unchanged.
     DISCLOSED LIMITATION: the lock checks this count sentence's
     transcription only, not the rest of this docstring's prose — the same
     bound control (m) states for the doc rows.
@@ -12988,7 +13054,12 @@ def _selftest_render_contract() -> bool:
             ),
         ),
         (
-            "qual01_doc_rows with one entry dropped",
+            # Renamed at plan 21-08 (CONF-12): _QUAL01_DOC_ROWS now has
+            # exactly one entry (the repointed docs/gates/QUAL-01.md
+            # page), so [1:] empties it rather than dropping one of
+            # several — the mutation still fires the same "!= expected"
+            # failure against the fixed single-entry constant below.
+            "qual01_doc_rows emptied",
             "qual01_doc_rows",
             '!= expected',
             replace(
@@ -13599,10 +13670,21 @@ def _selftest_render_contract() -> bool:
     #     `_qual01_row_problem` can only be handed a `_RenderSurfaceRead`
     #     produced by `_read_qual01_doc_rows()`, never a hand-built
     #     `(relpath, text)` pair (plan 11-10, IN-02).
-    #     DISCLOSED LIMITATION: asserts the required tokens' presence on
-    #     the `| QUAL-01 |` table row only, not the rest of either row's
-    #     prose — the row can still over-claim in words no token covers.
-    expected_doc_rows = ("CLAUDE.md", "docs/ARCHITECTURE.md")
+    #     Repointed at plan 21-08 (CONF-12) from the two `| QUAL-01 |`
+    #     table-row surfaces to the single generated detail page,
+    #     `docs/gates/QUAL-01.md`, that now carries the migrated
+    #     narrative. See `_qual01_row_problem`'s docstring for what the
+    #     old ROW-SCOPING bought and what now covers the DIFFERENT vacuity
+    #     risk (T-21-08-02) the new single-purpose-page source introduces
+    #     instead: fence-exclusion, since the Facts fence's own
+    #     `disclosed_bounds_anchors` field is generated FROM
+    #     `_QUAL01_DOC_ROW_TOKENS` and would otherwise make every token
+    #     trivially "present" regardless of the hand-written narrative.
+    #     DISCLOSED LIMITATION: asserts the required tokens' presence in
+    #     the page's hand-written narrative only, not the rest of its
+    #     prose — the narrative can still over-claim in words no token
+    #     covers.
+    expected_doc_rows = ("docs/gates/QUAL-01.md",)
     if _QUAL01_DOC_ROWS != expected_doc_rows:
         _fail(
             f"(m) MEMBERSHIP LOCK: _QUAL01_DOC_ROWS shrank or reordered — "
@@ -13617,24 +13699,36 @@ def _selftest_render_contract() -> bool:
     for read in qual01_reads:
         qual01_read_relpaths.add(read.relpath)
 
-        # POSITIVE: every registered doc row carries every required token
-        # on its `| QUAL-01 |` row.
+        # POSITIVE: the registered page's hand-written narrative carries
+        # every required token.
         for problem in _qual01_row_problem(read):
             _fail(f"(m) POSITIVE: {problem}")
 
         for token in _QUAL01_DOC_ROW_TOKENS:
             # NEGATIVE, per (file, token): strip that ONE token from the
-            # `| QUAL-01 |` row in an in-memory copy — never the file on
+            # WHOLE page text in an in-memory copy — never the file on
             # disk — and require the same checker to report the defect
-            # naming that file and that token.
-            stripped_lines = [
-                line.replace(token, "")
-                if line.lstrip().startswith("| QUAL-01 |")
-                else line
-                for line in read.text.splitlines()
-            ]
+            # naming that file and that token. Stripping the whole text
+            # (not just the narrative) is deliberate: it also removes the
+            # token from the Facts fence's own echoed list, so this arm
+            # cannot pass by accident on the strength of the fence alone.
+            # A whitespace-INSENSITIVE strip, not a literal `.replace()`:
+            # measured live on this page, several multi-word tokens are
+            # themselves prose-wrapped across a line break (the same
+            # defect class `_qual01_row_problem`'s own whitespace
+            # normalization exists to see PAST) — a literal `.replace()`
+            # against the raw, still-wrapped text would miss that
+            # occurrence and this arm would silently fail to strip the
+            # token it means to remove, while the POSITIVE check (which
+            # normalizes before searching) still finds it — reporting a
+            # false NEGATIVE-arm failure that has nothing to do with
+            # fence-exclusion.
+            token_ws_pattern = re.compile(
+                r"\s+".join(re.escape(part) for part in token.split())
+            )
+            stripped_text = token_ws_pattern.sub("", read.text)
             stripped_read = _RenderSurfaceRead(
-                relpath=read.relpath, text="\n".join(stripped_lines)
+                relpath=read.relpath, text=stripped_text
             )
             stripped_problems = _qual01_row_problem(stripped_read)
             if not any(
@@ -13642,28 +13736,40 @@ def _selftest_render_contract() -> bool:
             ):
                 _fail(
                     f"(m) NEGATIVE: stripping {token!r} from "
-                    f"{read.relpath}'s '| QUAL-01 |' row did not produce "
-                    f"a problem naming that file and that token"
+                    f"{read.relpath} did not produce a problem naming "
+                    f"that file and that token"
                 )
 
-            # ANTI-MASKING, the IN-03 arm made explicit: build an
-            # in-memory copy where the `| QUAL-01 |` row has lost the
-            # token but a NON-row line elsewhere in the file gains it.
-            # Without this arm the row-scoping is asserted by nothing.
-            masked_lines = list(stripped_lines)
-            masked_lines.append(f"<!-- non-row QUAL-01 mention: {token} -->")
+            # ANTI-MASKING (T-21-08-02, replacing the retired IN-03
+            # row-scoping arm — the new page is single-purpose, so there
+            # is no non-claim-bearing "other mention" to guard against
+            # the way `CLAUDE.md`'s commands block was; the risk this new
+            # source introduces instead is the GENERATED FENCE trivially
+            # satisfying the check via its own token-echo field). Build an
+            # in-memory copy where the token is stripped from the
+            # NARRATIVE but re-added ONLY inside a synthetic generated
+            # fence appended to the text — the check must still report the
+            # token missing, proving fence content cannot mask its
+            # absence from the hand-written narrative.
+            narrative_stripped = _qual01_narrative_text(stripped_text)
+            fence_only_text = (
+                narrative_stripped
+                + "\n<!-- GENERATED:FACTS -->\n"
+                + f"fence-only mention: {token}\n"
+                + "<!-- END GENERATED:FACTS -->\n"
+            )
             masked_read = _RenderSurfaceRead(
-                relpath=read.relpath, text="\n".join(masked_lines)
+                relpath=read.relpath, text=fence_only_text
             )
             masked_problems = _qual01_row_problem(masked_read)
             if not any(
                 read.relpath in p and token in p for p in masked_problems
             ):
                 _fail(
-                    f"(m) ANTI-MASKING: {read.relpath}'s '| QUAL-01 |' "
-                    f"row lost {token!r} while a non-row line gained it, "
-                    f"and no problem was reported — the row-scoping is "
-                    f"not being enforced"
+                    f"(m) ANTI-MASKING: {read.relpath}'s narrative lost "
+                    f"{token!r} while a synthetic generated fence gained "
+                    f"it, and no problem was reported — the fence-"
+                    f"exclusion is not being enforced"
                 )
 
     # COVERAGE FLOOR: the relpaths actually read must equal
@@ -13676,9 +13782,9 @@ def _selftest_render_contract() -> bool:
             f"{sorted(_QUAL01_DOC_ROWS)!r}"
         )
 
-    # NEGATIVE-CASE COUNT FLOOR: 2 doc rows x 30 required tokens = 60 cases
+    # NEGATIVE-CASE COUNT FLOOR: 1 doc row x 30 required tokens = 30 cases
     # above, derived from the two registries rather than restated, and
-    # floored against an inline expected total of 60 — a doc row or a
+    # floored against an inline expected total of 30 — a doc row or a
     # required token silently dropped shrinks the derived count. Plan
     # 13-17 (WR-02, `13-VERIFICATION-round4.md`) added the tenth and
     # eleventh tokens (`call-site census`, `entry-source lock`), moving
@@ -13696,16 +13802,31 @@ def _selftest_render_contract() -> bool:
     # (23 tokens). The phase-14 review's CR-01/CR-02 fix added the
     # twenty-fourth through twenty-sixth (`fenced pseudo-heading`,
     # `boundary regression`, `silent false-clean`), moving it from 46
-    # (23 tokens) to 52 (26 tokens).
+    # (23 tokens) to 52 (26 tokens). DISCLOSED STALENESS: this historical
+    # trail was not kept current with every later token addition — the
+    # floor's own literal (`!= 60`, i.e. 2 doc rows x 30 tokens) already
+    # disagreed with this comment's last-recorded "52 (26 tokens)" before
+    # plan 21-08 touched either; a latent instance of the exact defect
+    # class (m2)'s DOCSTRING COUNT LOCK exists to catch, but (m2) locks
+    # only the docstring sentence, not this inline comment's own count
+    # narrative. Not corrected retroactively here — recorded rather than
+    # silently fixed, per the recompute-only-after-a-written-amendment
+    # discipline this file uses elsewhere (CONTRACT-06). Plan 21-08
+    # (CONF-12) repointed `_QUAL01_DOC_ROWS` from the two `| QUAL-01 |`
+    # table-row surfaces to the single generated `docs/gates/QUAL-01.md`
+    # detail page, moving this floor from 60 (2 doc rows x 30 tokens) to
+    # 30 (1 doc row x 30 tokens) by derivation — the repoint is a change
+    # of input source, not of the control population, so the token count
+    # (30) is unchanged and only the doc-row factor moved from 2 to 1.
     qual01_negative_case_count = len(_QUAL01_DOC_ROWS) * len(
         _QUAL01_DOC_ROW_TOKENS
     )
-    if qual01_negative_case_count != 60:
+    if qual01_negative_case_count != 30:
         _fail(
             f"(m) NEGATIVE-CASE COUNT FLOOR: derived "
             f"{qual01_negative_case_count} (file, token) case(s) from "
             f"{len(_QUAL01_DOC_ROWS)} doc row(s) x "
-            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 60"
+            f"{len(_QUAL01_DOC_ROW_TOKENS)} token(s) != expected 30"
         )
 
     # (m2) DOCSTRING COUNT LOCK (WR-02, `13-VERIFICATION-round4.md`,
