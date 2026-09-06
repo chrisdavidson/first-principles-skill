@@ -86,6 +86,15 @@ _CI_JOB_NAME_RE = re.compile(r"^(?P<job>.*?)\s*\((?P<ids>[^()]+)\)\s*$")
 # text on the `---` fence lines.
 _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 
+# D-21-J: a second, independently-typed transcription of `_run_self_test()`'s
+# 29 numbered control ids (matching each `# Control N` comment). `_run_self_test`
+# appends each id to a local `_executed` list as it runs and asserts, at the
+# end, that `_executed` and this tuple agree by SET EQUALITY — the same
+# coverage-floor shape `scripts/_gate_registry.py`'s own `self_test()` uses.
+# This is the roster `--describe`'s `control_count`/`control_ids` derive from
+# (a `len()` read, never a hand-typed literal beside untouched control code).
+_CONTROL_IDS: tuple[str, ...] = tuple(f"c{n}" for n in range(1, 30))
+
 
 def _require_python_version() -> None:
     if sys.version_info < (3, 12):
@@ -709,6 +718,7 @@ def _run_self_test() -> None:
     helper by name — none reimplements a filter or parser inline — so a
     no-op helper cannot pass.
     """
+    _executed: list[str] = []
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
         _write_skills_fixture(tmp_path)
@@ -724,6 +734,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c1")
         # Control 2 — D-11 symlink exclusion. Anti-masking: the symlink
         # target (alpha) itself must survive the exclusion.
         if "gamma" in result:
@@ -740,6 +751,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c2")
         # Control 3 — D-12 non-directory exclusion.
         if "notes.txt" in result or "notes" in result:
             sys.stderr.write(
@@ -748,6 +760,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c3")
         # Control 4 — absent skills dir returns empty set, never raises.
         absent_result = discover_skills(tmp_path / "does-not-exist")
         if absent_result != set():
@@ -757,6 +770,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c4")
         # Control 5 — agent present.
         agent_file = tmp_path / "agent.md"
         agent_file.write_text("agent body\n", encoding="utf-8")
@@ -768,6 +782,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c5")
         # Control 6 — agent absent.
         missing_agent = tmp_path / "missing.md"
         present, path = discover_agent(missing_agent)
@@ -778,6 +793,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c6")
         # Control 7 — manifest valid.
         good_manifest = tmp_path / "good.json"
         good_manifest.write_text('{"name": "x"}', encoding="utf-8")
@@ -789,6 +805,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c7")
         # Control 8 — D-09 malformed JSON fail-fast. Must prove SystemExit
         # actually fires, not merely that no exception escaped.
         bad_manifest = tmp_path / "bad.json"
@@ -811,6 +828,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c8")
         # Control 9 — non-object manifest root.
         array_manifest = tmp_path / "arr.json"
         array_manifest.write_text("[]", encoding="utf-8")
@@ -832,6 +850,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c9")
         # Control 10 — missing manifest.
         raised = False
         try:
@@ -851,6 +870,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+        _executed.append("c10")
     # Control 11 — D-07 absent keys tolerated. Direct negative control
     # against the Pitfall-3 failure mode (treating an absent key as an error).
     absent_keys_result = extract_registered_paths({})
@@ -862,6 +882,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c11")
     # Control 12 — string-valued field normalization.
     string_field_result = extract_registered_paths({"skills": "./x"})
     if string_field_result != (["./x"], []):
@@ -871,6 +892,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c12")
     # Control 13 — list-valued field passthrough.
     list_field_result = extract_registered_paths(
         {"agents": ["./a.md", "./b.md"]}
@@ -882,6 +904,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c13")
     # Control 14 — report shape. Key-set equality, JSON round-trip, and the
     # default-auto-discovery registration_source for an empty manifest.
     # Task 1 (Plan 02): the report now carries 12 keys, including three
@@ -929,6 +952,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c14")
     # Control 15 — report registration_source flips. Anti-constant control
     # for control 14: without this, a hardcoded return value would pass.
     flipped_report = build_discovery_report(
@@ -946,6 +970,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c15")
     # Control 16 — extract_frontmatter_name on literal strings (in-memory,
     # D-04): plain scalar, single-quoted, and double-quoted name values all
     # return the bare name.
@@ -963,6 +988,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c16")
     # Control 17 — anti-constant control for Control 16: a literal whose
     # frontmatter says `name: beta` must return exactly "beta", not a
     # hardcoded "alpha".
@@ -974,6 +1000,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c17")
     # Control 18 — malformed frontmatter shapes all return None without
     # raising (in-memory, D-04; ASVS V5, threat T-02-01).
     malformed_cases = {
@@ -992,6 +1019,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c18")
     # Control 19 — verify_skill_names against a mixed tempdir fixture
     # (D-04 wrapper tier): alpha matches, beta mismatches, delta has no
     # SKILL.md at all.
@@ -1046,6 +1074,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c19")
     # Control 20 — verify_agent_name against a mixed tempdir fixture:
     # matching name, mismatched name, and an absent agent file.
     with tempfile.TemporaryDirectory() as tmp20:
@@ -1094,6 +1123,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c20")
     # Control 21 — verify_manifest_paths against a mixed tempdir fixture:
     # a resolving path, a non-existent path, a `../` escape (containment,
     # threat T-02-03), and the empty-lists case.
@@ -1151,6 +1181,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c21")
     # Control 22 — report shape against a REAL tempdir fixture (Plan 02):
     # two skill directories (one matching, one mismatched) plus an agent
     # file, driven through build_discovery_report() with skills_dir/
@@ -1274,6 +1305,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c22")
     # Control 23 — collect_verification_failures, in-memory literal reports
     # (D-04): a clean report returns []; a report carrying two mismatched
     # skills, a mismatched agent and one unresolved path returns EXACTLY
@@ -1361,6 +1393,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c23")
     # Control 24 — format_report_text rendering, in-memory (same two
     # literal reports as Control 23, extended with the nine Phase 1 keys
     # so format_report_text's earlier lines don't KeyError). The clean
@@ -1419,6 +1452,7 @@ def _run_self_test() -> None:
     # (main()) is what asserts the invariant on the shipped surfaces — the same
     # split REG-GUARD's plugin axis already uses.
 
+    _executed.append("c24")
     # Control 25 — extract_battery_gate_ids: ordered extraction with VAL-03's
     # double registration collapsed to one. Anti-masking: the fixture also
     # carries the `gate() {` function definition and a commented-out
@@ -1454,6 +1488,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c25")
     # Control 26 — parse_ci_job_name over all three observed name forms.
     for job_name_26, expected_26 in (
         ("check-provenance (PROV-GUARD)", ["PROV-GUARD"]),
@@ -1470,6 +1505,7 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    _executed.append("c26")
     # Control 27 — extract_ci_gate_ids over an in-memory workflow document.
     # Anti-masking: the workflow-level `name:` ("validation") must NOT be
     # harvested as a gate id, and a job with no `name:` contributes nothing.
@@ -1509,6 +1545,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c27")
     # Control 28 — NEGATIVE CONTROL, the one this axis exists for: a battery
     # gate whose CI job has been deleted must produce exactly one failure line,
     # and that line must name the gate. This is the in-memory twin of the live
@@ -1532,6 +1569,7 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c28")
     # Control 29 — anti-masking positive half: with every non-exempt gate
     # CI-registered, the same helpers must report zero failures, and QUAL-01's
     # battery-only exemption must be recorded as an exemption (not silently
@@ -1577,17 +1615,60 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    _executed.append("c29")
+
+    # Coverage floor (D-21-J): _CONTROL_IDS is a second, independently-typed
+    # transcription of the 29 control ids above. A control block deleted or
+    # skipped leaves its id absent from `_executed`, which this comparison
+    # catches BY NAME rather than silently narrowing the published count —
+    # the same shape `scripts/_gate_registry.py`'s own `self_test()` uses for
+    # its own `_CONTROLS`/`_CONTROL_IDS` roster.
+    registered = set(_CONTROL_IDS)
+    ran = set(_executed)
+    missing = registered - ran
+    extra = ran - registered
+    if missing or extra:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — coverage floor: "
+            f"registered/executed control-id mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}\n"
+        )
+        sys.exit(1)
+
     print(
-        "check-registration --self-test: PASS (29 controls: discovery "
-        "exclusions D-10/D-11/D-12, agent presence, manifest fail-fast "
-        "D-09, absent-key tolerance D-07, report shape, frontmatter name "
-        "extraction, skill/agent name verification, manifest-path "
-        "resolution and containment, tempdir-fixture report values, "
-        "failure collection accumulate-then-report, text rendering, "
+        f"check-registration --self-test: PASS ({len(_CONTROL_IDS)} controls: "
+        "discovery exclusions D-10/D-11/D-12, agent presence, manifest "
+        "fail-fast D-09, absent-key tolerance D-07, report shape, "
+        "frontmatter name extraction, skill/agent name verification, "
+        "manifest-path resolution and containment, tempdir-fixture report "
+        "values, failure collection accumulate-then-report, text rendering, "
         "battery/CI gate-id extraction, CI-job registration with "
         "missing-job negative control and exemption-scope control)"
     )
     sys.exit(0)
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. `control_count`/`control_ids` are a `len()`/sorted-list
+    read of the module-level `_CONTROL_IDS` roster (D-21-J); `checked_files`
+    and `BATTERY_ONLY_GATE_IDS` are read directly from existing module-level
+    path/set constants."""
+    return {
+        "control_ids": sorted(_CONTROL_IDS),
+        "control_count": len(_CONTROL_IDS),
+        "registered_surfaces": [
+            "plugin axis (skill/agent frontmatter name: matches directory/file basename)",
+            "CI-job axis (every battery gate id has a matching name: <job> (<GATE-ID>) job)",
+        ],
+        "checked_files": sorted(
+            str(p.relative_to(REPO_ROOT))
+            for p in (BATTERY_PATH, CI_WORKFLOW_PATH, MANIFEST_PATH, AGENT_PATH)
+        ),
+        "locked_constants": {
+            "battery_only_gate_ids": sorted(BATTERY_ONLY_GATE_IDS),
+        },
+    }
 
 
 def main() -> None:
@@ -1607,7 +1688,16 @@ def main() -> None:
         action="store_true",
         help="emit the discovery report as JSON instead of human-readable text",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
     args = parser.parse_args()
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
 
     _require_python_version()
 
