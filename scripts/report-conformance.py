@@ -1578,6 +1578,181 @@ def _live_disposition_problems(live_rows: list[dict]) -> list[str]:
     return problems
 
 
+# Phase 20 (CONF-09/CONF-10, plan 20-05): the live-surface DENOMINATOR floors,
+# `_CORPUS_POPULATION_FLOORS`'s exact shape. Pinned from the real measurement of the
+# 8 landed tests/live-conformance-v9.0/ runs (all 8 resolved OK), derived
+# 2026-09-06:
+#
+#   python3 -c "
+#   import json
+#   data = json.load(open('docs/data/conformance.json'))
+#   rows = data['live_conformance']['rows']
+#   for f in ('conclusion_claims', 'verdict_cells', 'chain_blocks'):
+#       print(f, sum(r[f] for r in rows if r['section_resolution'] == 'OK'))
+#   "
+#   conclusion_claims 64
+#   verdict_cells 153
+#   chain_blocks 64
+#
+# DENOMINATOR floors, not targets: a zero numerator (silent_untraced_claims == 0,
+# etc.) is meaningful only against a population that has not itself been deleted.
+# DISCLOSED BOUND, same voice as `_CORPUS_POPULATION_FLOORS`: this floor detects
+# population SHRINKAGE below the pinned figure, never substitution of one
+# population for another -- deleting one run's claims while another run's grows by
+# the same count would not fire it.
+_LIVE_POPULATION_FLOORS: dict[str, int] = {
+    "conclusion_claims": 64,
+    "verdict_cells": 153,
+    "chain_blocks": 64,
+}
+
+
+def _live_population_problems(live_rows: list[dict]) -> list[str]:
+    """`_corpus_population_problems`'s exact shape, renamed and re-scoped to
+    resolved (`section_resolution == "OK"`) live rows only.
+
+    Per resolved row: `conclusion_claims == 0` or `chain_blocks == 0` is reported by
+    name -- a form-clean reading over an empty population is not a probe.
+
+    Surface-wide: the three `_LIVE_POPULATION_FLOORS` denominators, summed over
+    resolved rows, must not fall below their pinned floor.
+
+    A row that is unreadable or has no analysis (`section_resolution` reads an
+    `"SectionResolutionError: ..."`-shaped string or the literal `"no-analysis"`) is
+    skipped here, never summed and never reported as a population failure -- its own
+    state is already carried by `_live_roster_problems` and
+    `_live_disposition_problems`, and double-reporting it here would obscure which
+    floor found what.
+    """
+    problems: list[str] = []
+    totals: dict[str, int] = {field: 0 for field in _LIVE_POPULATION_FLOORS}
+    for r in live_rows:
+        if r["section_resolution"] != "OK":
+            continue
+        for field in ("conclusion_claims", "chain_blocks"):
+            if r[field] == 0:
+                problems.append(
+                    f"LIVE POPULATION [{r['analysis_id']}] {field}: 0 — a form-clean "
+                    "reading over an empty population is not a probe"
+                )
+        for field in _LIVE_POPULATION_FLOORS:
+            totals[field] += r[field]
+
+    for field, floor in _LIVE_POPULATION_FLOORS.items():
+        actual = totals[field]
+        if actual < floor:
+            problems.append(
+                f"LIVE POPULATION FLOOR BREACH {field}: {actual} < floor {floor} — a "
+                "zero defect count against a shrunken population is not conformance"
+            )
+    return problems
+
+
+# DISCLOSED BOUND, same voice as `_CORPUS_CALL_SITES` / CONF-GATE's own censuses:
+# these count and match SOURCE TEXT and observe no behaviour -- they catch a call
+# site that was DELETED, REWRITTEN, or COMMENTED OUT, not a call whose returned
+# problems are computed correctly and then discarded before reaching the failure
+# report.
+_LIVE_CALL_SITES: dict[str, int] = {
+    "_live_roster_problems": 1,
+    "_live_disposition_problems": 1,
+    "_live_population_problems": 1,
+}
+
+# The whitespace-normalized call-form fragment each symbol above must appear in,
+# transcribed from cmd_check()'s current source. Built BY CONCATENATION of short
+# string pieces, never as one contiguous literal -- the same self-match-hazard
+# discipline `_CORPUS_CALL_FORMS` states for itself.
+_LIVE_CALL_FORMS: dict[str, str] = {
+    "_live_roster_problems": (
+        "problems += "
+        + "_live_roster_problems(live_catalog_entries, live_catalog_problems, live_rows)"
+    ),
+    "_live_disposition_problems": (
+        "problems += " + "_live_disposition_problems(live_rows)"
+    ),
+    "_live_population_problems": (
+        "problems += " + "_live_population_problems(live_rows)"
+    ),
+}
+
+# A SECOND, independently transcribed roster of the same three enforcement symbol
+# names -- deliberately NOT derived from _LIVE_CALL_SITES or _LIVE_CALL_FORMS by any
+# expression. Narrowing either census table while this stays whole fails
+# `--self-test` by name.
+_LIVE_CALL_SITES_LOCK: tuple[str, ...] = (
+    "_live_roster_problems",
+    "_live_disposition_problems",
+    "_live_population_problems",
+)
+
+
+def _live_call_site_census_problems(
+    source: str,
+    expected_counts: dict[str, int],
+    expected_forms: dict[str, str] | None = None,
+) -> list[str]:
+    """`_corpus_call_site_census_problems`'s exact shape, renamed. A PURE
+    source-text census over `cmd_check()`'s Phase-20 enforcement call sites,
+    reusing `_strip_line_comments` unmodified so a `#`-commented-out call is caught
+    rather than counted as present. Takes source text as a parameter -- never
+    `inspect.getsource(cmd_check)` directly -- so the isolation-arm controls below
+    can drive it with synthetic strings, never the real function's source, which is
+    what keeps the arms falsifiable when the real source changes.
+    """
+    source = _strip_line_comments(source)
+    problems: list[str] = []
+    for symbol, expected in expected_counts.items():
+        actual = source.count(symbol + "(")
+        if actual != expected:
+            problems.append(
+                f"CALL-SITE CENSUS: {symbol} occurs {actual} time(s) in "
+                f"cmd_check's source, expected {expected}"
+            )
+    if expected_forms is not None:
+        normalized = " ".join(source.split())
+        for symbol, fragment in expected_forms.items():
+            normalized_fragment = " ".join(fragment.split())
+            if normalized_fragment not in normalized:
+                problems.append(
+                    f"CALL-FORM LOCK: {symbol}'s expected call form not found in "
+                    f"cmd_check's source: {fragment!r}"
+                )
+    return problems
+
+
+def _live_call_sites_roster_problems(
+    call_sites: dict[str, int] = _LIVE_CALL_SITES,
+    call_forms: dict[str, str] = _LIVE_CALL_FORMS,
+    lock: tuple[str, ...] = _LIVE_CALL_SITES_LOCK,
+) -> list[str]:
+    """`_corpus_call_sites_roster_problems`'s exact shape, renamed: *call_sites* and
+    *call_forms* must each agree, by set equality, with the independently
+    transcribed *lock* -- and every *call_sites* value must equal 1 (each
+    enforcement symbol is called exactly once). Takes the three tables as
+    parameters, defaulting to the real module constants, so a `--self-test` control
+    can drive this with an alternate table without mutating global state.
+    """
+    problems: list[str] = []
+    lock_set = set(lock)
+    counts_diff = set(call_sites) ^ lock_set
+    if counts_diff:
+        problems.append(
+            f"ROSTER LOCK: _LIVE_CALL_SITES diverges from lock: {sorted(counts_diff)}"
+        )
+    forms_diff = set(call_forms) ^ lock_set
+    if forms_diff:
+        problems.append(
+            f"ROSTER LOCK: _LIVE_CALL_FORMS diverges from lock: {sorted(forms_diff)}"
+        )
+    wrong_counts = sorted(k for k, v in call_sites.items() if v != 1)
+    if wrong_counts:
+        problems.append(
+            f"ROSTER LOCK: _LIVE_CALL_SITES has non-1 expected count for: {wrong_counts}"
+        )
+    return problems
+
+
 def pair_agreement(
     rows: list[dict],
 ) -> tuple[int, int, list[tuple[str, list[str]]]]:
@@ -2440,6 +2615,7 @@ def cmd_check() -> int:
 
     problems += _live_roster_problems(live_catalog_entries, live_catalog_problems, live_rows)
     problems += _live_disposition_problems(live_rows)
+    problems += _live_population_problems(live_rows)
 
     if problems:
         for p in problems:
@@ -4227,6 +4403,132 @@ def _control_live_disposition_covers_all_three_nonclean_shapes() -> None:
     assert any("LIVE SILENT PASS [c]" in p for p in problems), problems
 
 
+def _control_live_population_per_item_zero_detected() -> None:
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=True,
+        disposition="accept-with-reason: x.",
+        form_defects=0,
+        conclusion_claims=0,
+        chain_blocks=1,
+        verdict_cells=1,
+    )
+    problems = _live_population_problems([row])
+    assert any("LIVE POPULATION [a] conclusion_claims: 0" in p for p in problems), problems
+
+
+def _control_live_population_per_item_unreadable_skipped() -> None:
+    """An unreadable row is never summed and never reported here -- paired with a
+    readable row whose own counts exactly meet `_LIVE_POPULATION_FLOORS`, the pair
+    together produces no problem at all, proving the unreadable row is neither
+    counted against the floor nor named by this floor (its own state is already
+    carried by `_live_roster_problems`/`_live_disposition_problems`)."""
+    unreadable_row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=False,
+        disposition="fix: x.",
+        section_resolution="SectionResolutionError: x",
+        form_defects="unreadable",
+    )
+    healthy_row = _synthetic_live_row(
+        "b.md",
+        "b",
+        clean=True,
+        disposition="accept-with-reason: x.",
+        form_defects=0,
+        conclusion_claims=64,
+        verdict_cells=153,
+        chain_blocks=64,
+    )
+    assert _live_population_problems([unreadable_row, healthy_row]) == []
+
+
+def _control_live_population_surfacewide_breach_detected() -> None:
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=True,
+        disposition="accept-with-reason: x.",
+        form_defects=0,
+        conclusion_claims=1,
+        chain_blocks=1,
+        verdict_cells=1,
+    )
+    problems = _live_population_problems([row])
+    assert any(
+        "LIVE POPULATION FLOOR BREACH conclusion_claims" in p for p in problems
+    ), problems
+    assert any("LIVE POPULATION FLOOR BREACH verdict_cells" in p for p in problems), problems
+    assert any("LIVE POPULATION FLOOR BREACH chain_blocks" in p for p in problems), problems
+
+
+def _control_live_population_floor_values_locked() -> None:
+    """BL-03 (18-12's convention, reused by `_control_corpus_population_floor_values_locked`):
+    the pinned floors must equal an INLINE dict literal written at the control site,
+    never read from `_LIVE_POPULATION_FLOORS` itself.
+    """
+    expected = {"conclusion_claims": 64, "verdict_cells": 153, "chain_blocks": 64}
+    assert _LIVE_POPULATION_FLOORS == expected, (
+        f"LIVE POPULATION FLOOR VALUE MISMATCH: {_LIVE_POPULATION_FLOORS} != {expected}"
+    )
+
+
+def _control_live_call_site_census_positive() -> None:
+    source = inspect.getsource(cmd_check)
+    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    assert problems == [], problems
+
+
+def _control_live_call_site_census_missing() -> None:
+    source = "def cmd_check():\n    problems = []\n    return 0\n"
+    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES)
+    assert len(problems) == len(_LIVE_CALL_SITES), problems
+    assert all("occurs 0 time" in p for p in problems), problems
+
+
+def _control_live_call_site_census_commented() -> None:
+    source = (
+        "def cmd_check():\n"
+        "    problems = []\n"
+        "    # problems += "
+        + "_live_roster_problems(live_catalog_entries, live_catalog_problems, live_rows)\n"
+        "    problems += " + "_live_disposition_problems(live_rows)\n"
+        "    problems += " + "_live_population_problems(live_rows)\n"
+        "    return 0\n"
+    )
+    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES)
+    assert any("_live_roster_problems occurs 0" in p for p in problems), problems
+
+
+def _control_live_call_form_lock_rewritten() -> None:
+    source = (
+        "def cmd_check():\n"
+        "    problems = []\n"
+        "    problems += " + "_live_roster_problems(live_catalog_entries)\n"
+        "    problems += " + "_live_disposition_problems(live_rows)\n"
+        "    problems += " + "_live_population_problems(live_rows)\n"
+        "    return 0\n"
+    )
+    problems = _live_call_site_census_problems(source, _LIVE_CALL_SITES, _LIVE_CALL_FORMS)
+    assert any("CALL-FORM LOCK: _live_roster_problems" in p for p in problems), problems
+
+
+def _control_live_call_sites_roster_lock_narrowed() -> None:
+    narrowed_sites = dict(_LIVE_CALL_SITES)
+    del narrowed_sites["_live_population_problems"]
+    problems = _live_call_sites_roster_problems(call_sites=narrowed_sites)
+    assert any("_LIVE_CALL_SITES diverges" in p for p in problems), problems
+
+
+def _control_live_call_sites_roster_lock_wrong_count() -> None:
+    wrong_sites = dict(_LIVE_CALL_SITES)
+    wrong_sites["_live_roster_problems"] = 2
+    problems = _live_call_sites_roster_problems(call_sites=wrong_sites)
+    assert any("non-1 expected count" in p for p in problems), problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -4401,6 +4703,34 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "live-disposition-covers-all-three-nonclean-shapes",
         _control_live_disposition_covers_all_three_nonclean_shapes,
     ),
+    (
+        "live-population-per-item-zero-detected",
+        _control_live_population_per_item_zero_detected,
+    ),
+    (
+        "live-population-per-item-unreadable-skipped",
+        _control_live_population_per_item_unreadable_skipped,
+    ),
+    (
+        "live-population-surfacewide-breach-detected",
+        _control_live_population_surfacewide_breach_detected,
+    ),
+    (
+        "live-population-floor-values-locked",
+        _control_live_population_floor_values_locked,
+    ),
+    ("live-call-site-census-positive", _control_live_call_site_census_positive),
+    ("live-call-site-census-missing", _control_live_call_site_census_missing),
+    ("live-call-site-census-commented", _control_live_call_site_census_commented),
+    ("live-call-form-lock-rewritten", _control_live_call_form_lock_rewritten),
+    (
+        "live-call-sites-roster-lock-narrowed",
+        _control_live_call_sites_roster_lock_narrowed,
+    ),
+    (
+        "live-call-sites-roster-lock-wrong-count",
+        _control_live_call_sites_roster_lock_wrong_count,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -4488,6 +4818,16 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-disposition-valid-passes",
     "live-disposition-clean-skipped",
     "live-disposition-covers-all-three-nonclean-shapes",
+    "live-population-per-item-zero-detected",
+    "live-population-per-item-unreadable-skipped",
+    "live-population-surfacewide-breach-detected",
+    "live-population-floor-values-locked",
+    "live-call-site-census-positive",
+    "live-call-site-census-missing",
+    "live-call-site-census-commented",
+    "live-call-form-lock-rewritten",
+    "live-call-sites-roster-lock-narrowed",
+    "live-call-sites-roster-lock-wrong-count",
 )
 
 
