@@ -176,6 +176,33 @@
 # CONF-GATE: Battery composition moved 24 -> 25. A gate that appears silently
 # is indistinguishable from a gate that was always there.
 #
+# Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
+# scripts/report-conformance.py is NOT registered here, and its ~98-control
+# --self-test battery is NOT a gate in this file. That was already the standing
+# decision for its --check leg (D-06, .planning 17-CONTEXT.md), recorded until
+# now only in the two pre-commit hook headers; the review found that the
+# --self-test leg had inherited the same non-registration by silence rather
+# than by decision, so nothing automated ran ANY of those controls -- which is
+# the direct reason a missing positive arm (CR-02) shipped able to hide the
+# deletion of an entire enforcement floor.
+#
+# Why it stays out of this file rather than becoming gate 26:
+#   - REG-GUARD's CI-job axis requires every gate registered here to have a
+#     matching `name: <job> (<GATE-ID>)` job in .github/workflows/validation.yml,
+#     with QUAL-01 the single named battery-only exemption. Registering a gate
+#     here therefore forces either a new CI job or a second exemption, and
+#     widening that exemption list is exactly what makes the axis weaker.
+#   - The generator's --check leg is a STALENESS check against a regenerated
+#     baseline. It belongs at commit time, where the staleness is created, not
+#     in an offline battery whose GREEN result authorizes live runs.
+# Battery composition is UNCHANGED at 25.
+#
+# Where those controls now run instead: both pre-commit hooks (.githooks/pre-commit
+# and scripts/git-hooks/pre-commit) run `report-conformance.py --self-test` as
+# their gate 2, ahead of the existing --check as gate 3. A gate that appears
+# silently is indistinguishable from a gate that was always there -- and so is a
+# gate that was deliberately never added.
+#
 # NOTE: set -u is active; set -e is intentionally ABSENT — every gate must run
 # and be tallied even if an earlier gate fails (no early abort).
 

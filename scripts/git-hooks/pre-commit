@@ -1,5 +1,5 @@
 #!/bin/sh
-# Two gates for shared/ <-> generated trees and the conformance baseline.
+# Three gates for shared/ <-> generated trees and the conformance baseline.
 # Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
 #
 # Gate 1 -- sync-drift gate: blocks if shared/ and the generated tree have
@@ -8,7 +8,10 @@
 # (docs/v8.7-constraint-teardown.md) -- the reporting script
 # (scripts/check-body-budget.py) now always exits 0, so gating a commit on it
 # here would be dead weight.
-# Gate 2 -- conformance-baseline drift gate: blocks if
+# Gate 2 -- conformance generator self-test: blocks if
+# scripts/report-conformance.py --self-test fails. Runs the generator's own
+# falsifiability controls before its output is compared to anything (WR-05).
+# Gate 3 -- conformance-baseline drift gate: blocks if
 # docs/conformance-baseline.md / docs/data/conformance.json no longer match a
 # fresh run (scripts/report-conformance.py --check). This fails on STALENESS
 # of the committed baseline relative to a fresh measurement, never on a
@@ -36,14 +39,32 @@ else
 fi
 
 # --- Gate 1: sync-drift gate (compositional preservation) --------------------
-# Not exec'd -- a second gate follows, so its exit status is propagated
+# Not exec'd -- two more gates follow, so its exit status is propagated
 # explicitly with "|| exit $?" rather than replacing the shell process with
 # it. A failing sync check must not be silently replaced by a passing
 # conformance check, or the reverse.
 
 $PY scripts/sync-content.py --check || exit $?
 
-# --- Gate 2: conformance-baseline drift gate ---------------------------------
+# --- Gate 2: conformance generator self-test ---------------------------------
+# WR-05 (Phase 20 20-REVIEW): the generator's own falsifiability battery ran
+# nowhere automated -- no CI job, no scripts/check-firewall-battery.sh
+# registration, and both hooks ran only --check. Its controls therefore
+# executed only when a human typed the command, which is the direct reason a
+# missing positive arm (CR-02) shipped able to hide the deletion of an entire
+# enforcement floor with --self-test and --check both green.
+#
+# Ordered BEFORE --check on purpose: --check compares the committed baseline
+# against a fresh run of this same generator, so a generator whose own controls
+# are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd -- a
+# third gate follows.
+#
+# Deliberately NOT registered in scripts/check-firewall-battery.sh; that
+# decision, and why, is recorded in that file's header.
+
+$PY scripts/report-conformance.py --self-test || exit $?
+
+# --- Gate 3: conformance-baseline drift gate ---------------------------------
 # Terminal check -- only this one may use exec, because nothing follows it.
 
 exec $PY scripts/report-conformance.py --check
