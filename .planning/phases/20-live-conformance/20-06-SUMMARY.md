@@ -234,3 +234,17 @@ None.
 ---
 *Phase: 20-live-conformance*
 *Completed: 2026-09-06*
+
+## Self-Check: PASSED
+
+- `scripts/check-firewall-battery.sh` — FOUND
+- `CLAUDE.md` — FOUND
+- `docs/ARCHITECTURE.md` — FOUND
+- `docs/MEASUREMENT-MAP.md` — FOUND
+- `docs/TESTING.md` — FOUND
+- `.planning/phases/20-live-conformance/20-06-SUMMARY.md` — FOUND
+- `2c3f995` (Task 1 commit) — FOUND
+- `cff768d` (Task 2 commit) — FOUND
+- `5ac7537` (SUMMARY commit) — FOUND
+
+No missing items.
