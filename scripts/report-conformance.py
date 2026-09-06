@@ -1496,6 +1496,88 @@ def _corpus_call_sites_roster_problems(
     return problems
 
 
+# ---------------------------------------------------------------------------
+# Phase 20 (CONF-09/CONF-10, plan 20-05): the floors that make the published
+# live-conformance rate falsifiable. Each mirrors one of the five Phase 19 corpus
+# floors above, renamed and re-scoped to tests/live-conformance-v9.0/ -- copied
+# because the live surface reads its own catalog (tests/live-conformance-catalog.md,
+# via `_read_live_catalog`) and its own discovered roster (`build_rows`'
+# "live-conformance" rows), never the corpus's own catalog or roster.
+# ---------------------------------------------------------------------------
+
+
+def _live_roster_problems(
+    catalog_entries: dict[str, dict],
+    catalog_problems: list[str],
+    live_rows: list[dict],
+) -> list[str]:
+    """`_corpus_roster_problems`'s exact shape, renamed: EQUALITY, never subset,
+    between the live catalog's row-id set and the discovered live-conformance stem
+    set. Reports both `missing` (a discovered run with no catalog row) and `extra`
+    (a catalog row naming no discovered run) by name in one `D-20 LIVE ROSTER DRIFT`
+    problem, and folds in `_read_live_catalog`'s own *catalog_problems* first so a
+    malformed catalog row is named rather than silently shrinking the roster.
+
+    Compares against `{r["analysis_id"] for r in live_rows}` -- the set of
+    discovered `.jsonl` CAPTURE stems, deliberately NOT `*.md` analysis stems
+    (D-20-A). A `rate_limit_stub` / `transport_error_stub` / `no_terminal_result`
+    outcome produces a `.jsonl` with no `.md` sibling (`build_live_row`'s own "no
+    md_path.exists()" branch), so every attempted run -- not only a completed one --
+    is a roster member. Do not "simplify" this to a `.md`-stem comparison: doing so
+    would make a stubbed run permanently invisible to this floor, with no idempotent
+    way to notice the denominator silently shrank.
+    """
+    problems: list[str] = list(catalog_problems)
+    catalog_stems = set(catalog_entries)
+    discovered_stems = {r["analysis_id"] for r in live_rows}
+    missing = sorted(discovered_stems - catalog_stems)
+    extra = sorted(catalog_stems - discovered_stems)
+    if missing or extra:
+        problems.append(f"D-20 LIVE ROSTER DRIFT: missing={missing} extra={extra}")
+    return problems
+
+
+def _live_disposition_problems(live_rows: list[dict]) -> list[str]:
+    """CONF-10 / ROADMAP success criterion 3's zero-silent-passes clause for the live
+    surface, reusing `_VALID_DISPOSITION_PREFIXES` unchanged. Checks every row whose
+    `clean` is not True -- the union of "scored non-zero on one of
+    `_LIVE_FORM_FIELDS`", "unreadable" (a persisted analysis `_slice_sections`
+    rejected), and "no analysis at all" (a stub outcome with no `.md` ever written),
+    which is exactly the set `_live_row_clean` already computes as False. A row whose
+    `clean` is True is never checked here -- a genuinely clean run owes no
+    disclosure.
+
+    Reports the triggering condition by name so a reader is never left guessing:
+    `outcome != "completed"` reads as "no analysis produced"; a completed row whose
+    `section_resolution` is not `"OK"` reads as "unreadable"; anything else (a
+    completed, readable row with a non-zero form-defect count) reads as "scored
+    non-zero on one or more measured fields".
+    """
+    problems: list[str] = []
+    for r in live_rows:
+        if r["clean"] is True:
+            continue
+        if r["outcome"] != "completed":
+            condition = "no analysis produced (run did not complete)"
+        elif r["section_resolution"] != "OK":
+            condition = "unreadable"
+        else:
+            condition = "scored non-zero on one or more measured fields"
+        disposition = r.get("disposition")
+        if not disposition or disposition == "MISSING":
+            problems.append(
+                f"LIVE SILENT PASS [{r['analysis_id']}]: {condition}, no disposition "
+                "recorded"
+            )
+            continue
+        if not any(disposition.startswith(p) for p in _VALID_DISPOSITION_PREFIXES):
+            problems.append(
+                f"LIVE DISPOSITION FORM [{r['analysis_id']}]: {disposition!r} does not "
+                "begin with fix / accept-with-reason / defer-with-owner"
+            )
+    return problems
+
+
 def pair_agreement(
     rows: list[dict],
 ) -> tuple[int, int, list[tuple[str, list[str]]]]:
@@ -2350,6 +2432,14 @@ def cmd_check() -> int:
     problems += _corpus_target_problems(corpus_rows)
     problems += _corpus_population_problems(corpus_rows)
     problems += _corpus_perturbation_problems(rows, REPO_ROOT)
+
+    # Phase 20 (CONF-09/CONF-10, plan 20-05): the live-conformance floors, same
+    # collect-then-report shape as the corpus floors immediately above.
+    live_rows = [r for r in rows if r["surface"] == "live-conformance"]
+    live_catalog_entries, live_catalog_problems = _read_live_catalog(REPO_ROOT)
+
+    problems += _live_roster_problems(live_catalog_entries, live_catalog_problems, live_rows)
+    problems += _live_disposition_problems(live_rows)
 
     if problems:
         for p in problems:
@@ -4005,6 +4095,138 @@ def _control_live_json_key_is_sibling() -> None:
     ), obj["pair_agreement"]["divergences"]
 
 
+# ---------------------------------------------------------------------------
+# Phase 20 (CONF-09/CONF-10, plan 20-05) controls: the roster, disposition,
+# population and call-site floors that make the published live-conformance rate
+# falsifiable. Every one of these is tempdir/in-memory and none reads
+# tests/live-conformance-v9.0/.
+# ---------------------------------------------------------------------------
+
+
+def _control_live_roster_drift_detected() -> None:
+    live_rows = [
+        _synthetic_live_row("a.md", "a"),
+        _synthetic_live_row("b.md", "b"),
+    ]
+    catalog_entries = {
+        "a": {"notes": "x", "disposition": "accept-with-reason: x."},
+        "c": {"notes": "x", "disposition": "accept-with-reason: x."},
+    }
+    problems = _live_roster_problems(catalog_entries, [], live_rows)
+    assert len(problems) == 1, problems
+    assert "missing=['b']" in problems[0], problems
+    assert "extra=['c']" in problems[0], problems
+
+
+def _control_live_roster_equal_passes() -> None:
+    live_rows = [_synthetic_live_row("a.md", "a")]
+    catalog_entries = {"a": {"notes": "x", "disposition": "accept-with-reason: x."}}
+    assert _live_roster_problems(catalog_entries, [], live_rows) == []
+
+
+def _control_live_roster_catalog_problems_folded() -> None:
+    problems = _live_roster_problems({}, ["LIVE CATALOG PARSE FAIL — x"], [])
+    assert problems == ["LIVE CATALOG PARSE FAIL — x"], problems
+
+
+def _control_live_roster_stub_row_does_not_drift() -> None:
+    """The D-20-A regression control: a row with `analysis_present` False and a stub
+    outcome is still a roster member (its `analysis_id` is the `.jsonl` capture stem)
+    and, when the catalog names that same stem, produces no drift."""
+    stub_row = _synthetic_live_row(
+        "stub.jsonl",
+        "stub",
+        outcome="no_terminal_result",
+        clean=False,
+        analysis_present=False,
+        section_resolution="no-analysis",
+    )
+    catalog_entries = {"stub": {"notes": "x", "disposition": "fix: retry the run."}}
+    assert _live_roster_problems(catalog_entries, [], [stub_row]) == []
+
+
+def _control_live_disposition_silent_pass_detected() -> None:
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=False,
+        disposition="MISSING",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+    )
+    problems = _live_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "LIVE SILENT PASS [a]" in problems[0], problems
+
+
+def _control_live_disposition_form_bad_detected() -> None:
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=False,
+        disposition="probably fine",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+    )
+    problems = _live_disposition_problems([row])
+    assert len(problems) == 1, problems
+    assert "LIVE DISPOSITION FORM [a]" in problems[0], problems
+
+
+def _control_live_disposition_valid_passes() -> None:
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=False,
+        disposition="fix: known issue.",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+    )
+    assert _live_disposition_problems([row]) == []
+
+
+def _control_live_disposition_clean_skipped() -> None:
+    row = _synthetic_live_row("a.md", "a", clean=True, disposition="MISSING")
+    assert _live_disposition_problems([row]) == []
+
+
+def _control_live_disposition_covers_all_three_nonclean_shapes() -> None:
+    """One row non-zero on a count, one unreadable, one with no analysis -- each
+    with a `"MISSING"` disposition -- must produce three problems, proving the
+    predicate is not narrowed to any one of the three non-clean shapes."""
+    nonzero_row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=False,
+        disposition="MISSING",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+    )
+    unreadable_row = _synthetic_live_row(
+        "b.md",
+        "b",
+        clean=False,
+        disposition="MISSING",
+        section_resolution="SectionResolutionError: x",
+        form_defects="unreadable",
+    )
+    no_analysis_row = _synthetic_live_row(
+        "stub.jsonl",
+        "c",
+        clean=False,
+        disposition="MISSING",
+        outcome="rate_limit_stub",
+        analysis_present=False,
+        section_resolution="no-analysis",
+        form_defects="no-analysis",
+    )
+    problems = _live_disposition_problems([nonzero_row, unreadable_row, no_analysis_row])
+    assert len(problems) == 3, problems
+    assert any("LIVE SILENT PASS [a]" in p for p in problems), problems
+    assert any("LIVE SILENT PASS [b]" in p for p in problems), problems
+    assert any("LIVE SILENT PASS [c]" in p for p in problems), problems
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -4155,6 +4377,30 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ),
     ("live-render-determinism", _control_live_render_determinism),
     ("live-json-key-is-sibling", _control_live_json_key_is_sibling),
+    ("live-roster-drift-detected", _control_live_roster_drift_detected),
+    ("live-roster-equal-passes", _control_live_roster_equal_passes),
+    (
+        "live-roster-catalog-problems-folded",
+        _control_live_roster_catalog_problems_folded,
+    ),
+    (
+        "live-roster-stub-row-does-not-drift",
+        _control_live_roster_stub_row_does_not_drift,
+    ),
+    (
+        "live-disposition-silent-pass-detected",
+        _control_live_disposition_silent_pass_detected,
+    ),
+    (
+        "live-disposition-form-bad-detected",
+        _control_live_disposition_form_bad_detected,
+    ),
+    ("live-disposition-valid-passes", _control_live_disposition_valid_passes),
+    ("live-disposition-clean-skipped", _control_live_disposition_clean_skipped),
+    (
+        "live-disposition-covers-all-three-nonclean-shapes",
+        _control_live_disposition_covers_all_three_nonclean_shapes,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -4233,6 +4479,15 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-render-states-noninteractive-bound",
     "live-render-determinism",
     "live-json-key-is-sibling",
+    "live-roster-drift-detected",
+    "live-roster-equal-passes",
+    "live-roster-catalog-problems-folded",
+    "live-roster-stub-row-does-not-drift",
+    "live-disposition-silent-pass-detected",
+    "live-disposition-form-bad-detected",
+    "live-disposition-valid-passes",
+    "live-disposition-clean-skipped",
+    "live-disposition-covers-all-three-nonclean-shapes",
 )
 
 
