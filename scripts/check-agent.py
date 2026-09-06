@@ -20,6 +20,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -52,6 +53,37 @@ _REQUIRED_PHRASES = [
     "reason from ground truth",
     "decompose this problem",
 ]
+
+# Phase 21 (D-21-J): the check roster GATE-01's CLAUDE.md row publishes —
+# "8 frontmatter/body assertions". This is an ENUMERATION LIFT, not a
+# refactor: the checks below, their order, their failure messages and their
+# verdicts are unchanged (D-21-J's hard bound). Each entry's index is the
+# fixed position `_check_agent_text()` gates that check's execution on
+# (`if IDX < len(_CHECK_DESCRIPTIONS):`) — so len(_CHECK_DESCRIPTIONS) is
+# the count this module actually runs, not a hand-typed "8" beside untouched
+# inline code. Check 1 (index 0, the frontmatter-fence parse) is the sole
+# exception: it is structurally required to reach every later check (there
+# is no frontmatter/body to inspect without it) and stays unconditional,
+# matching how a malformed-fence input already exits(2) as an
+# environment-class error rather than accumulating into `failures`.
+_CHECK_DESCRIPTIONS: tuple[str, ...] = (
+    "Check 1: file begins with a frontmatter fence and splits into exactly 3 parts",
+    "Check 2: 'name' key present and equals the locked identity "
+    "(skipped under --skip-name-check)",
+    "Check 3: 'description' is a non-empty string within the max-length budget",
+    "Check 4: 'disallowedTools' key is present",
+    "Check 5: 'maxTurns' key is present; for the canonical identity only, "
+    "also carries the locked value (value clause skipped under --skip-name-check)",
+    "Check 6: body is non-empty after stripping whitespace",
+    "Check 7: body contains no unresolved sync markers",
+    "Check 8: 'description' contains all mandatory trigger phrases "
+    "(skipped under --skip-name-check)",
+)
+
+# Indices into _CHECK_DESCRIPTIONS scoped out under --skip-name-check — a
+# published fact of GATE-01's CLAUDE.md row (Checks 2, 5's value clause, 8),
+# derived here rather than re-typed in prose on every surface that states it.
+_SKIP_NAME_CHECK_SCOPED_INDICES: tuple[int, ...] = (1, 4, 7)
 
 # Self-test fixture: missing `name` key in frontmatter
 _FIXTURE_MISSING_NAME = """\
@@ -301,9 +333,11 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
         sys.exit(2)
 
     failures: list[str] = []
+    description: object = frontmatter.get("description")
+    n_checks = len(_CHECK_DESCRIPTIONS)
 
     # Check 2: name present and exactly "first-principles"
-    if not skip_name_check:
+    if 1 < n_checks and not skip_name_check:
         name = frontmatter.get("name")
         if name is None:
             failures.append(f"frontmatter missing required key 'name'")
@@ -311,20 +345,20 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
             failures.append(f"name must be '{_EXPECTED_NAME}', got '{name}'")
 
     # Check 3: description is a non-empty string with len <= 1024
-    description = frontmatter.get("description")
-    if description is None:
-        failures.append("frontmatter missing required key 'description'")
-    elif not isinstance(description, str):
-        failures.append(f"'description' must be a string, got {type(description).__name__}")
-    elif len(description) == 0:
-        failures.append("'description' must not be empty")
-    elif len(description) > _MAX_DESCRIPTION_LEN:
-        failures.append(
-            f"'description' length {len(description)} exceeds max {_MAX_DESCRIPTION_LEN} chars"
-        )
+    if 2 < n_checks:
+        if description is None:
+            failures.append("frontmatter missing required key 'description'")
+        elif not isinstance(description, str):
+            failures.append(f"'description' must be a string, got {type(description).__name__}")
+        elif len(description) == 0:
+            failures.append("'description' must not be empty")
+        elif len(description) > _MAX_DESCRIPTION_LEN:
+            failures.append(
+                f"'description' length {len(description)} exceeds max {_MAX_DESCRIPTION_LEN} chars"
+            )
 
     # Check 4: disallowedTools key present
-    if "disallowedTools" not in frontmatter:
+    if 3 < n_checks and "disallowedTools" not in frontmatter:
         failures.append("frontmatter missing required key 'disallowedTools'")
 
     # Check 5: maxTurns key present, and — for the canonical first-principles
@@ -334,27 +368,29 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     # structural schema requirement every builder-generated candidate must
     # share, so a candidate agent under a different turn budget is not
     # penalized for it.
-    if "maxTurns" not in frontmatter:
-        failures.append("frontmatter missing required key 'maxTurns'")
-    elif not skip_name_check and frontmatter.get("maxTurns") != _EXPECTED_MAX_TURNS:
-        failures.append(
-            f"'maxTurns' must be {_EXPECTED_MAX_TURNS} (Phase 5 Self-Audit Gate "
-            f"budget headroom), got {frontmatter.get('maxTurns')!r}"
-        )
+    if 4 < n_checks:
+        if "maxTurns" not in frontmatter:
+            failures.append("frontmatter missing required key 'maxTurns'")
+        elif not skip_name_check and frontmatter.get("maxTurns") != _EXPECTED_MAX_TURNS:
+            failures.append(
+                f"'maxTurns' must be {_EXPECTED_MAX_TURNS} (Phase 5 Self-Audit Gate "
+                f"budget headroom), got {frontmatter.get('maxTurns')!r}"
+            )
 
     # Check 6: body non-empty after strip
-    if not body.strip():
+    if 5 < n_checks and not body.strip():
         failures.append("agent file body is empty (whitespace-only after closing '---')")
 
     # Check 7: no unresolved sync markers in body
-    markers = _MARKER_RE.findall(body)
-    if markers:
-        failures.append(
-            f"body contains unresolved sync markers: {', '.join(markers[:5])}"
-        )
+    if 6 < n_checks:
+        markers = _MARKER_RE.findall(body)
+        if markers:
+            failures.append(
+                f"body contains unresolved sync markers: {', '.join(markers[:5])}"
+            )
 
     # Check 8: description must contain all four mandatory trigger phrases
-    if not skip_name_check:
+    if 7 < n_checks and not skip_name_check:
         if isinstance(description, str) and len(description) > 0:
             missing = [p for p in _REQUIRED_PHRASES if p not in description.lower()]
             if missing:
@@ -428,6 +464,34 @@ def _validate_agent_file(agent_path: Path, skip_name_check: bool = False) -> Non
     print("check-agent: PASS")
 
 
+def describe() -> dict:
+    """Phase 21 (D-03/D-21-J): pure, gate-agnostic self-description backing
+    GATE-01.
+
+    `branch_count` is `len(_CHECK_DESCRIPTIONS)` — a measured read of the
+    roster `_check_agent_text()` gates its checks on, not a hand-typed "8"
+    beside untouched inline code. Reads module-level constants only — no
+    disk I/O (AGENT_FILE's existence is not checked here), no argv, no
+    subprocess.
+    """
+    return {
+        "branch_roster": list(_CHECK_DESCRIPTIONS),
+        "branch_count": len(_CHECK_DESCRIPTIONS),
+        "scoped_branches": [
+            _CHECK_DESCRIPTIONS[i]
+            for i in _SKIP_NAME_CHECK_SCOPED_INDICES
+            if i < len(_CHECK_DESCRIPTIONS)
+        ],
+        "locked_constants": {
+            "expected_name": _EXPECTED_NAME,
+            "max_description_len": _MAX_DESCRIPTION_LEN,
+            "expected_max_turns": _EXPECTED_MAX_TURNS,
+        },
+        "checked_files": [str(AGENT_FILE.relative_to(REPO_ROOT))],
+        "disclosed_bounds_anchors": ["live-coverage-anti-vacuity"],
+    }
+
+
 def _run_self_test() -> None:
     """Run inline malformed fixtures and verify each produces failures."""
     # Each fixture declares the substring its *intended* check must emit, so a
@@ -491,7 +555,8 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
-    print("check-agent --self-test: PASS")
+    total_fixtures = len(fixtures) + 1  # + fixture-i (the skip_name_check positive case)
+    print(f"check-agent --self-test: PASS ({total_fixtures} fixtures)")
 
 
 def main() -> None:
@@ -519,6 +584,11 @@ def main() -> None:
             "use for builder-generated candidate agents"
         ),
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this script's self-description as a flat JSON blob on stdout (Phase 21).",
+    )
     args = parser.parse_args()
 
     _require_python_version()
@@ -526,6 +596,10 @@ def main() -> None:
 
     if args.self_test:
         _run_self_test()
+        return
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
         return
 
     # Default to the repo-anchored AGENT_FILE rather than requiring a caller-

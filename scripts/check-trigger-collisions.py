@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import itertools
+import json
 import re
 import sys
 from pathlib import Path
@@ -167,6 +168,26 @@ def build_skill_ngrams() -> dict[str, set[tuple[str, ...]]]:
     return skill_ngrams
 
 
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description backing
+    VAL-04 / GATE-02.
+
+    The n-gram width is read from `ngrams()`'s own default parameter via
+    `inspect.signature` — never a hand-typed `4` — so a future width change
+    cannot silently drift the published fact out of sync with the algorithm.
+    Reads module-level constants and one function signature only — no disk
+    I/O (the live skill population is not enumerated here; that walk is
+    inherently dynamic and belongs to the live scan, not this pure blob),
+    no argv, no subprocess.
+    """
+    import inspect
+
+    ngram_width = inspect.signature(ngrams).parameters["n"].default
+    return {
+        "derived_counts": {"ngram_width": ngram_width},
+    }
+
+
 def _run_self_test() -> None:
     """Negative proof (D-07): feed a deliberately colliding agent/skill pair
     into the same tokens()/ngrams() functions and assert a 4-gram collision is
@@ -200,10 +221,30 @@ def _run_self_test() -> None:
         )
         sys.exit(1)
 
+    # describe() consistency control (Phase 21, D-03): ngrams()'s own default
+    # `n` parameter is what describe() reads (via inspect.signature). Mutate
+    # a copy of that default and confirm the emitted value moves with it —
+    # proving the field is a real derivation, not a hand-typed literal.
+    original_defaults = ngrams.__defaults__
+    try:
+        before = describe()["derived_counts"]["ngram_width"]
+        ngrams.__defaults__ = (before + 2,)
+        after = describe()["derived_counts"]["ngram_width"]
+        if after != before + 2:
+            sys.stderr.write(
+                "check-trigger-collisions --self-test: FAIL — describe()'s "
+                f"ngram_width did not move with ngrams()'s default "
+                f"(before={before}, after mutation={after})\n"
+            )
+            sys.exit(1)
+    finally:
+        ngrams.__defaults__ = original_defaults
+
     sample = sorted(collision)[0]
     print(
         f"check-trigger-collisions --self-test: PASS "
-        f"(fixture collision detected: {' '.join(sample)})"
+        f"(fixture collision detected: {' '.join(sample)}; "
+        f"describe() consistency control: ngram_width moved {before} -> {after})"
     )
     sys.exit(0)
 
@@ -223,6 +264,11 @@ def main() -> None:
             "detects the collision (negative proof, D-07)"
         ),
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this script's self-description as a flat JSON blob on stdout (Phase 21).",
+    )
     args = parser.parse_args()
 
     _require_python_version()
@@ -230,6 +276,10 @@ def main() -> None:
 
     if args.self_test:
         _run_self_test()
+        return
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
         return
 
     try:

@@ -69,6 +69,28 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 _YAML_STAMP_RE = re.compile(r'^\s*version:\s*(?P<raw>\S.*?)\s*$', re.MULTILINE)
 _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 
+# Phase 21 (D-03/D-21-A): the static roster of stamp-source KINDS
+# collect_stamps() walks — one glob pattern plus three fixed files. This is
+# deliberately NOT a live count of discovered stamps (that would require the
+# disk I/O collect_stamps() itself performs, which describe() must not do —
+# D-03's "pure, no disk I/O" contract). len(_STAMP_SOURCE_KINDS) is what
+# describe() publishes instead of a hand-typed "17" so a fifth source kind
+# added to collect_stamps() without updating this roster is visible as a
+# stale describe() rather than a silent drift.
+_STAMP_SOURCE_KINDS: tuple[str, ...] = (
+    "shared/skills/*/SKILL.md (glob)",
+    "shared/spine/SKILL.meta.yml",
+    ".claude-plugin/marketplace.json",
+    "first-principles/.claude-plugin/plugin.json",
+)
+
+# The generated tree the docstring's "Scope" section explicitly excludes from
+# scanning (DUAL-04 already gates its divergence from these shared/ sources).
+_EXCLUDED_GENERATED_GLOBS: tuple[str, ...] = (
+    "first-principles/agents/**",
+    "first-principles/skills/**",
+)
+
 
 @dataclass(frozen=True)
 class Stamp:
@@ -292,6 +314,23 @@ def _build_fixture(
         )
 
 
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description backing
+    VERSION-01.
+
+    Reads module-level constants only — no disk I/O, no argv, no subprocess.
+    The stamp COUNT this gate discovers at runtime is inherently a property
+    of the live tree (collect_stamps() globs it), not a describe()-safe
+    constant; what IS describable without I/O is the fixed roster of source
+    KINDS it is configured to walk (_STAMP_SOURCE_KINDS) and the generated
+    tree it deliberately excludes.
+    """
+    return {
+        "derived_counts": {"stamp_source_kind_count": len(_STAMP_SOURCE_KINDS)},
+        "registered_surfaces": sorted(_EXCLUDED_GENERATED_GLOBS),
+    }
+
+
 def self_test() -> int:
     """Fixture-driven fault injection.
 
@@ -383,6 +422,23 @@ def self_test() -> int:
         ok_again, _, _ = check(clean)
         expect("detector-not-always-failing", ok_again)
 
+    # (h) describe() consistency control (Phase 21, D-03): mutate a copy of
+    # _STAMP_SOURCE_KINDS and confirm describe()'s emitted count moves with
+    # it — proving the field is a real derivation, not a hand-typed literal.
+    module = sys.modules[__name__]
+    original_kinds = module._STAMP_SOURCE_KINDS
+    try:
+        before = describe()["derived_counts"]["stamp_source_kind_count"]
+        module._STAMP_SOURCE_KINDS = original_kinds + ("fixture-extra-source",)
+        after = describe()["derived_counts"]["stamp_source_kind_count"]
+        expect(
+            "describe-consistency",
+            after == before + 1,
+            f"(before={before}, after mutation={after}, expected={before + 1})",
+        )
+    finally:
+        module._STAMP_SOURCE_KINDS = original_kinds
+
     if failures:
         sys.stderr.write(
             f"check-version-stamps --self-test: FAIL "
@@ -390,11 +446,15 @@ def self_test() -> int:
         )
         return 1
 
-    print("check-version-stamps --self-test: PASS (7 fixture trees, 11 named assertions)")
+    print("check-version-stamps --self-test: PASS (7 fixture trees, 12 named assertions)")
     return 0
 
 
 def main() -> None:
+    if "--describe" in sys.argv[1:]:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
+
     _require_python_version()
     _require_pyyaml()
 

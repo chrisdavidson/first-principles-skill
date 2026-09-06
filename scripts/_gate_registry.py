@@ -37,6 +37,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -174,6 +175,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "interpreter — when none is found the battery still runs legs 1-2 through "
             "`gate_prereq` and reports [PREREQ]/BLOCKED rather than [PASS]/GREEN."
         ),
+        consumes=("scan_globs", "locked_constants"),
         static_facts={
             "pytest_leg_script": "scripts/check-links_anchors_test.py",
             "pytest_leg_note": (
@@ -201,6 +203,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "battery registration (see `extra_ids` on this entry, excluded from the "
             "D-01 battery-id equality floor by construction)."
         ),
+        consumes=("derived_counts",),
     ),
     GateEntry(
         key="VAL-05",
@@ -211,6 +214,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/check-description-budget.py",
         run_command="python3 scripts/check-description-budget.py",
         summary="All skill listings stay under the 2000-character budget cap.",
+        consumes=("locked_constants",),
     ),
     GateEntry(
         key="VERSION-01",
@@ -228,6 +232,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "live scan as well as the self-test — the invariant is a property of "
             "the working tree, not of the script's own fixtures."
         ),
+        consumes=("derived_counts", "registered_surfaces"),
     ),
     GateEntry(
         key="REG-GUARD",
@@ -266,6 +271,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Dual-install name-collision scan: no skill/agent name collisions "
             "between the plugin and monolith install surfaces."
         ),
+        consumes=("registered_surfaces", "disclosed_bounds_anchors"),
     ),
     GateEntry(
         key="DUAL-04",
@@ -276,6 +282,13 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/sync-content.py",
         run_command="python3 scripts/sync-content.py --check",
         summary="`shared/` and the generated `first-principles/` tree are in sync.",
+        consumes=(
+            "derived_counts",
+            "registered_surfaces",
+            "locked_constants",
+            "control_ids",
+            "control_count",
+        ),
     ),
     GateEntry(
         key="GATE-02-v8.5",
@@ -310,6 +323,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "agent, including the exact `maxTurns` value (60), not merely its "
             "presence. The live leg targets the repo-anchored `AGENT_FILE` constant, "
             "so the gate is cwd-independent and cannot be silently re-pointed."
+        ),
+        consumes=(
+            "branch_roster",
+            "branch_count",
+            "scoped_branches",
+            "locked_constants",
+            "checked_files",
+            "disclosed_bounds_anchors",
         ),
     ),
     GateEntry(
@@ -771,6 +792,24 @@ _FIELD_DESCRIPTIONS: dict[str, str] = {
         "leg (self-test, live, etc.) — for gates with more than one leg where a "
         "single `run_command` on the registry entry is not granular enough"
     ),
+    "derived_counts": (
+        "a mapping of count-name -> len()-derived integer a gate publishes; "
+        "every value must trace to a live len() (or an inspect.signature "
+        "default, for a width/threshold baked into a function signature "
+        "rather than a container), never a hand-typed literal"
+    ),
+    "locked_constants": (
+        "a mapping of constant-name -> the literal value (str/int/bool) a "
+        "gate asserts against, read directly from the emitting script's own "
+        "module constant — the schema-lock shape (_EXPECTED_NAME, CAP, "
+        "GENERATED_MARKER, PLUGIN_ROOT_TOKEN)"
+    ),
+    "scoped_branches": (
+        "a sorted list of branch_roster entries (by description text) that "
+        "are skipped under a named alternate invocation mode (e.g. "
+        "--skip-name-check), so the scoping itself is derivable rather than "
+        "restated in prose"
+    ),
 }
 
 DESCRIBE_FIELD_VOCABULARY: frozenset[str] = frozenset(_FIELD_DESCRIPTIONS)
@@ -1007,15 +1046,50 @@ def _control_describe_emits_parseable_json() -> None:
     assert decoded == blob, "describe() output did not round-trip through JSON"
 
 
-def _control_live_requested_fields_vacuous_today() -> None:
-    """No script yet has a --describe limb (plans 21-03/04/05), so every
-    entry's `consumes` is empty today. This control pins that starting
-    state so a future accidental non-empty `consumes` with no backing limb
-    is visible as a deliberate change, not a silent drift."""
-    requested = _requested_fields_by_script()
-    assert requested == {}, (
-        f"expected zero requested fields today, got: {requested}"
+def _live_describe(script_relpath: str) -> dict:
+    """Shell out to a script's own `--describe` leg and parse its stdout.
+
+    Not a Python import: D-21-A forbids this module from importing another
+    gate script's code (it would let this module execute another gate's
+    checking logic, which its own docstring disclaims). Subprocess-invoking
+    `--describe` only reads that script's stdout, the same "copied grammar,
+    not a code dependency" boundary `_BATTERY_GATE_RE` already documents for
+    the D-01 floor.
+    """
+    proc = subprocess.run(
+        [sys.executable, str(REPO_ROOT / script_relpath), "--describe"],
+        capture_output=True,
+        text=True,
+        timeout=60,
     )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"{script_relpath} --describe exited {proc.returncode}: {proc.stderr}"
+        )
+    return json.loads(proc.stdout)
+
+
+def _control_d04_live_field_equality() -> None:
+    """Live D-04 floor: for every script ENTRIES declares a non-empty
+    `consumes` against, shell out to its real `--describe` leg and assert
+    `field_resolution_problems()` (plus `vocabulary_problems()`) report
+    nothing in either direction.
+
+    The script set is DERIVED from ENTRIES itself (`{e.script for e in
+    ENTRIES if e.consumes}`), never a hand-typed list — so this control
+    automatically covers every batch plan (21-03/04/05) lands, with no
+    further self-test edits required as later batches add their own
+    `consumes` tuples.
+    """
+    scripts = sorted({e.script for e in ENTRIES if e.consumes and e.script})
+    requested = _requested_fields_by_script()
+    emitted: dict[str, frozenset[str]] = {}
+    for script in scripts:
+        blob = _live_describe(script)
+        emitted[script] = frozenset(blob.keys())
+    problems = field_resolution_problems(requested, emitted)
+    problems += vocabulary_problems(emitted)
+    assert problems == [], problems
 
 
 _CONTROLS: tuple[tuple[str, object], ...] = (
@@ -1037,10 +1111,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d04-vocabulary-violation-fires", _control_d04_vocabulary_violation_fires),
     ("vocabulary-members-documented", _control_vocabulary_members_documented),
     ("describe-emits-parseable-json", _control_describe_emits_parseable_json),
-    (
-        "live-requested-fields-vacuous-today",
-        _control_live_requested_fields_vacuous_today,
-    ),
+    ("d04-live-field-equality", _control_d04_live_field_equality),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -1065,7 +1136,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d04-vocabulary-violation-fires",
     "vocabulary-members-documented",
     "describe-emits-parseable-json",
-    "live-requested-fields-vacuous-today",
+    "d04-live-field-equality",
 )
 
 
