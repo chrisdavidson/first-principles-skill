@@ -52,7 +52,10 @@ the repo for sibling-script loading.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as _dt
+import io
+import json
 import re
 import sys
 from pathlib import Path
@@ -404,13 +407,66 @@ def self_test() -> int:
     """
     all_passed = True
 
-    rc_boundary = self_test_boundary()
+    # Capture stdout for the RR-* sentinel coverage cross-check below (D-21-J,
+    # plan 21-04) while still printing everything to the real stdout, so the
+    # existing observable --self-test output is unchanged.
+    boundary_out = io.StringIO()
+    with contextlib.redirect_stdout(boundary_out):
+        rc_boundary = self_test_boundary()
+    print(boundary_out.getvalue(), end="")
     if rc_boundary != 0:
         all_passed = False
 
-    rc_focused = self_test_focused()
+    focused_out = io.StringIO()
+    with contextlib.redirect_stdout(focused_out):
+        rc_focused = self_test_focused()
+    print(focused_out.getvalue(), end="")
     if rc_focused != 0:
         all_passed = False
+
+    # RR-* sentinel coverage cross-check (D-21-J): every id in
+    # _bc.RR_SENTINEL_IDS must appear in the captured output (it was
+    # exercised), and every RR-* id the captured output actually names must
+    # be in the roster (nothing fired that the roster no longer covers).
+    # This is what makes the roster load-bearing rather than a parallel
+    # list — shrinking RR_SENTINEL_IDS while the underlying assertion still
+    # fires now fails this self-test by name (the "extra" direction).
+    #
+    # Line-start anchored: an RR-* id's own PASS/FAIL/teeth assertion always
+    # LEADS its printed line ("  RR-80-01 PASS: ..."). A bare RR-\d+-\d+
+    # scan also matches supersession-chain PROVENANCE mentions inside other
+    # sentinels' own messages ("Chain: RR-79-02 -> RR-92-01 -> ... ->
+    # RR-114-01") — retired predecessor ids that are not themselves
+    # assertions, and would otherwise register as false "extra" findings.
+    _RR_LEAD_RE = re.compile(r"^\s*(RR-\d+-\d+)\s", re.MULTILINE)
+    _rr_fired = set(_RR_LEAD_RE.findall(boundary_out.getvalue() + focused_out.getvalue()))
+    _rr_roster = set(_bc.RR_SENTINEL_IDS)
+    # RR-108-03 (S-P09 decompose) is a distinct, frozen-at-v7.4 legacy
+    # sentinel for a technique retired at Phase 111 (decompose merged into
+    # five-whys) — it fires its own PASS line but is NOT one of the 11
+    # entries CLAUDE.md's "Step 0 residual sentinels (RR-* ownership map)"
+    # documents, so it is exempted from this comparison by name rather than
+    # silently absorbed into the roster.
+    _RR_FIRED_EXEMPT = frozenset({"RR-108-03"})
+    _rr_missing = _rr_roster - _rr_fired
+    _rr_extra = _rr_fired - _rr_roster - _RR_FIRED_EXEMPT
+    if _rr_missing:
+        print(
+            f"self-test FAIL: RR-* sentinel(s) declared in RR_SENTINEL_IDS but "
+            f"never fired in captured output: {sorted(_rr_missing)}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    if _rr_extra:
+        print(
+            f"self-test FAIL: RR-* sentinel(s) fired in captured output but no "
+            f"longer covered by RR_SENTINEL_IDS (sentinel no longer covered): "
+            f"{sorted(_rr_extra)}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    if not _rr_missing and not _rr_extra:
+        print(f"RR-* sentinel coverage: PASS ({len(_rr_roster)} sentinels agree)")
 
     # K>N rejection sub-test (parallel to check-sub-skill-routing.py lines 840-868)
     try:
@@ -476,6 +532,12 @@ def build_parser() -> argparse.ArgumentParser:
             "Validate detection logic against in-module fixtures and exit. "
             "Runs boundary fixtures, focused fixtures, and K>N rejection test."
         ),
+    )
+    mode.add_argument(
+        "--describe",
+        dest="describe",
+        action="store_true",
+        help="Emit this gate's own self-description as JSON on stdout.",
     )
     p.add_argument(
         "--plugin-dir",
@@ -564,9 +626,34 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. The four namespaced threshold defaults are read from
+    `build_parser()`'s own argparse defaults (argparse does no I/O); the
+    RR-* sentinel roster is a `len()`/sorted-list read of
+    `_battery_core.py`'s own `RR_SENTINEL_IDS` (D-21-J) — never a re-typed
+    list of eleven ids."""
+    _defaults = {a.dest: a.default for a in build_parser()._actions}
+    return {
+        "locked_constants": {
+            "boundary_p_threshold": _defaults["boundary_p_threshold"],
+            "boundary_n_threshold": _defaults["boundary_n_threshold"],
+            "focused_p_threshold": _defaults["focused_p_threshold"],
+            "focused_n_threshold": _defaults["focused_n_threshold"],
+        },
+        "disclosed_bounds_anchors": sorted(_bc.RR_SENTINEL_IDS),
+        "derived_counts": {"rr_sentinel_count": len(_bc.RR_SENTINEL_IDS)},
+        "checked_files": [str(DEFAULT_PLUGIN_DIR.relative_to(_bc.REPO_ROOT))],
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return self_test()
