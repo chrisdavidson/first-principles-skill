@@ -192,3 +192,13 @@ None — no external service configuration required.
 ---
 *Phase: 20-live-conformance*
 *Completed: 2026-09-06*
+
+## Self-Check: PASSED
+
+All claimed files exist on disk and all claimed commits resolve in `git log --oneline --all`:
+
+- `20-02-SUMMARY.md` — FOUND
+- `c1ba57a`, `ca71be6`, `bb430a1`, `d030f4b`, `b8363a4`, `7790a3e`, `9ddffbc`, `b264e50` (Task 2 per-run commits) — FOUND
+- `96703db` (this plan's metadata commit) — FOUND
+
+No missing items.
