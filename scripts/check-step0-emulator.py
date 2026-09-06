@@ -33,6 +33,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -53,6 +54,24 @@ CATALOG_PATH: Path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
 # D-05.3 actually catch renames/typos in the table.
 # Phase 110 merged decompose into five-whys; Phase 111 removes it here (9→8).
 KNOWN_TECHNIQUES = ("pre-mortem", "inversion", "fishbone", "five-whys", "trade-off", "second-order", "estimate", "theoretical-limit")
+
+# D-21-J (Phase 21 plan 04): SEMGATE-02's six documented semantic-overlap
+# pairs — the original three (S-A01/A03/A05) plus fishbone<->five-whys,
+# theoretical-limit<->estimate and pre-mortem<->trade-off (S-A07/A09/A11,
+# 2026-08-16 audit finding CAP-1) — lifted from Category 7's inline fixture
+# ids to an enumerable module-level roster, so `--describe` can derive the
+# pair count as `len()` instead of the hand-typed "six pairs" this file's
+# own `--self-test` summary line and CLAUDE.md's STEP0-08 row both state.
+# No fixture logic changed: each id below already leads its own fixture's
+# comment inside `_run_self_test()`.
+SEMGATE02_OVERLAP_PAIRS: tuple[tuple[str, str], ...] = (
+    ("S-A01", "absorbed-decompose phrase vs. five-whys native phrase"),
+    ("S-A03", "theoretical-limit vs. inversion"),
+    ("S-A05", "inversion vs. pre-mortem"),
+    ("S-A07", "fishbone vs. five-whys"),
+    ("S-A09", "theoretical-limit vs. estimate"),
+    ("S-A11", "pre-mortem vs. trade-off"),
+)
 
 
 # ---------------------------------------------------------------------------
@@ -1699,6 +1718,28 @@ def _run_self_test() -> None:
         )
 
     # -----------------------------------------------------------------------
+    # (describe) describe()-consistency control (D-03, plan 21-04): the
+    # module-level constants --describe reads must agree with the live
+    # KNOWN_TECHNIQUES / SEMGATE02_OVERLAP_PAIRS this self-test just
+    # exercised via its Category 7 SEMGATE-07 fixtures.
+    # -----------------------------------------------------------------------
+    _desc = describe()
+    if _desc["derived_counts"]["known_technique_count"] != len(KNOWN_TECHNIQUES):
+        wrong.append(
+            f"(describe): known_technique_count disagrees with KNOWN_TECHNIQUES: {_desc}"
+        )
+    elif _desc["derived_counts"]["semgate02_pair_count"] != len(SEMGATE02_OVERLAP_PAIRS):
+        wrong.append(
+            f"(describe): semgate02_pair_count disagrees with SEMGATE02_OVERLAP_PAIRS: {_desc}"
+        )
+    else:
+        print(
+            "check-step0-emulator --self-test: describe()-consistency PASS "
+            f"({_desc['derived_counts']['known_technique_count']} techniques, "
+            f"{_desc['derived_counts']['semgate02_pair_count']} SEMGATE-02 pairs)"
+        )
+
+    # -----------------------------------------------------------------------
     # Final verdict
     # -----------------------------------------------------------------------
 
@@ -1721,6 +1762,24 @@ def _require_python_version() -> None:
         sys.exit(2)
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. `KNOWN_TECHNIQUES` and the six SEMGATE-02 overlap pairs
+    are read directly from module-level constants — never the hand-typed
+    "six pairs" this file's own `--self-test` summary line states."""
+    return {
+        "locked_constants": {"known_techniques": list(KNOWN_TECHNIQUES)},
+        "derived_counts": {
+            "known_technique_count": len(KNOWN_TECHNIQUES),
+            "semgate02_pair_count": len(SEMGATE02_OVERLAP_PAIRS),
+        },
+        "disclosed_bounds_anchors": [pair_id for pair_id, _desc in SEMGATE02_OVERLAP_PAIRS],
+        "checked_files": sorted(
+            str(p.relative_to(REPO_ROOT)) for p in (SKILL_BODY, CATALOG_PATH)
+        ),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
@@ -1737,6 +1796,11 @@ def main() -> None:
         ),
     )
     parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
+    parser.add_argument(
         "--prompt",
         metavar="TEXT",
         default=None,
@@ -1751,6 +1815,10 @@ def main() -> None:
         help=argparse.SUPPRESS,
     )
     args = parser.parse_args()
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
 
     _require_python_version()
 
