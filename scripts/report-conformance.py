@@ -2016,7 +2016,20 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
     obj = {
         "measurement_date": MEASUREMENT_DATE,
         "generator": "scripts/report-conformance.py",
+        # WR-02 (20-REVIEW): `artifact_count` and `surface_counts` describe DIFFERENT
+        # populations since Phase 20, and before this fix nothing said so -- a consumer
+        # summing `surface_counts` read 50 against an `artifact_count` of 42 and had no
+        # way to tell which was wrong. Both scopes are now named, and both relationships
+        # hold BY CONSTRUCTION rather than by coincidence:
+        #
+        #   artifact_count            == len(obj["rows"])            (published rows)
+        #   discovered_artifact_count == sum(surface_counts.values()) (every surface)
+        #
+        # `surface_counts` deliberately keeps its `live-conformance` entry: it is the
+        # DISCOVERY census, and dropping the entry would hide that the surface exists at
+        # all. `_control_json_count_scopes_agree` enforces both equalities.
         "artifact_count": len(published_rows),
+        "discovered_artifact_count": len(rows),
         "surface_counts": {
             "shared-examples": sum(1 for r in rows if r["surface"] == "shared-examples"),
             "generated-twin": sum(1 for r in rows if r["surface"] == "generated-twin"),
@@ -4345,6 +4358,55 @@ def _control_live_render_determinism() -> None:
     assert rendered_1 == rendered_2, (rendered_1, rendered_2)
 
 
+def _control_json_count_scopes_agree() -> None:
+    """WR-02 (20-REVIEW): the two count keys describe different populations, and both
+    relationships must hold BY CONSTRUCTION. Before Phase 20 they agreed by accident
+    (`artifact_count` was every row); after it, `artifact_count` excluded the live rows
+    while `surface_counts` still counted them, and the published sidecar shipped
+    `artifact_count 42` against `sum(surface_counts.values()) 50` with nothing naming
+    the discrepancy.
+
+    Driven with a row on EVERY surface, so neither equality can hold vacuously through
+    an absent surface.
+    """
+    rows = _synthetic_rows_for_render() + [
+        _synthetic_row(
+            "adversarial-corpus",
+            "c.md",
+            "c",
+            target_missed=False,
+            no_column_fired=False,
+            stratum="B2",
+            disposition="accept-with-reason: x.",
+            form_defects=0,
+        ),
+        _synthetic_live_row("x01.md", "x01"),
+    ]
+    obj = json.loads(render_json(rows, pair_agreement(rows)))
+
+    counts = obj["surface_counts"]
+    assert set(counts) == {
+        "shared-examples",
+        "generated-twin",
+        "contract-surface",
+        "adversarial-corpus",
+        "live-conformance",
+    }, counts
+    assert all(v > 0 for v in counts.values()), counts
+
+    assert obj["artifact_count"] == len(obj["rows"]), (
+        obj["artifact_count"],
+        len(obj["rows"]),
+    )
+    assert obj["discovered_artifact_count"] == sum(counts.values()), (
+        obj["discovered_artifact_count"],
+        sum(counts.values()),
+    )
+    # The two scopes must really differ here, or this control would pass on a build
+    # that quietly folded the live rows back into `rows`.
+    assert obj["discovered_artifact_count"] > obj["artifact_count"], obj["artifact_count"]
+
+
 def _control_live_json_key_is_sibling() -> None:
     live_row = _synthetic_live_row("x01.md", "x01")
     other_rows = _synthetic_rows_for_render()
@@ -4872,6 +4934,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_live_render_states_noninteractive_bound,
     ),
     ("live-render-determinism", _control_live_render_determinism),
+    ("json-count-scopes-agree", _control_json_count_scopes_agree),
     ("live-json-key-is-sibling", _control_live_json_key_is_sibling),
     ("live-roster-drift-detected", _control_live_roster_drift_detected),
     ("live-roster-equal-passes", _control_live_roster_equal_passes),
@@ -5022,6 +5085,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-render-states-n-and-caveat",
     "live-render-states-noninteractive-bound",
     "live-render-determinism",
+    "json-count-scopes-agree",
     "live-json-key-is-sibling",
     "live-roster-drift-detected",
     "live-roster-equal-passes",
