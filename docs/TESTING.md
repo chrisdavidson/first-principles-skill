@@ -216,6 +216,8 @@ python3 scripts/sync-content.py --write    # fix drift (regenerate)
 
 Blocks the commit if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh `report-conformance.py` run. Unlike the sync-drift gate above, this gate has **no CI counterpart and no battery id** — by decision D-06 it is deliberately absent from both `scripts/check-firewall-battery.sh` and `.github/workflows/validation.yml`, so it fires only at commit time. It fails on staleness of the committed baseline, never on a conformance count being too high — no count in that baseline gates anything.
 
+`docs/conformance-baseline.md` publishes five labelled surfaces: `shared-examples`, `generated-twin`, `adversarial-corpus`, and, as of Phase 20, `live-conformance` — the agent's own live-invoked output, captured under `tests/live-conformance-v9.0/` and scored by the same unmodified, frozen `detect_defects`. `live-conformance` has **no CI job and no battery gate**; its published rate is a recorded observation stated with its N, never a pass/fail threshold, and it is subject to the same K-of-5 noise discipline documented under [Measurement layers](MEASUREMENT-MAP.md#measurement-layers) — this drift gate only keeps the published reading byte-reproducible against the committed captures, it never blocks on the rate itself. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are registered `_FROZEN_PATHS` entries (see [FROZEN-EVIDENCE](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory)).
+
 ```sh
 python3 scripts/report-conformance.py --check    # detect drift
 python3 scripts/report-conformance.py            # fix drift (regenerate)

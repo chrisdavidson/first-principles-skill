@@ -17,10 +17,12 @@ everything else links here.
 | Step 0 live harness | `scripts/check-step0-live.py` | Manual `--repeat 5 --min-pass 3` (60 invocations) / offline `--self-test` | **STEP0-06** | Live MODE classification via approach-② bypass channel (see [STEP0-06](TESTING.md#step0-06--check-step0-live)) |
 | Traceability matrix | `scripts/check-traceability.py` | `--self-test` / `emit` (manual regeneration) | **TRACE-03** | Capability → requirement → test mapping (see [TRACE-03](TESTING.md#trace-03--check-traceability)) |
 | Quality harness | `scripts/check-quality-harness.py` | `--self-test` | **QUAL-01** (battery only — no CI job) | Blind A/B quality measurement: extraction guardrails, scoreline parsing, blinding integrity, defect detection |
+| Conformance surfaces | `scripts/report-conformance.py` | `--check` (drift) / regenerate (no flag) / `--self-test` | None — pre-commit only (D-06), no CI job, no battery gate | `shared-examples` / `generated-twin` conformance readings, the `adversarial-corpus` false-negative-rate reading, and the `live-conformance` reading over the agent's own live-invoked output (Phase 20, `tests/live-conformance-v9.0/`) scored by the same unmodified, frozen `detect_defects`. `live-conformance`'s rate is a recorded observation stated with its N, never a gate, and is subject to the same K-of-5 noise discipline documented below — see [Conformance-baseline drift gate](TESTING.md#conformance-baseline-drift-gate) |
 | BATT-06 sentinels | `scripts/_battery_core.py` → `self_test_boundary()` | via merged battery `--self-test` | BATT-06 | Anti-masking constants + honest-state carry-forward vectors |
 
 Two layers are **not** in `.github/workflows/validation.yml`: `check-routing.py` is a developer
-tool, and QUAL-01 runs only in the offline battery. Every other layer above is a CI job.
+tool, and QUAL-01 runs only in the offline battery. The conformance-surfaces layer is not in CI
+either (pre-commit only, D-06). Every other layer above is a CI job.
 
 **A K-of-5 result from the live layers is a recorded observation, not a gate** (governing record
 §2 item 3, [`v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md)). The evidence: the S-P04
