@@ -647,9 +647,26 @@ def _control_region_end_before_start_raises() -> None:
 
 
 def _control_region_marker_in_fence_ignored() -> None:
-    text = "```\nSTART\n```\nSTART\nold\nEND\nafter\n"
+    # Two invariants must BOTH hold, or this control cannot discriminate
+    # which one broke: whole-line anchoring (line 0 CONTAINS "START" as a
+    # substring but does not EQUAL it — a substring search would wrongly
+    # count it) and fence exclusion (the fenced "START" line equals the
+    # marker exactly but must not count either). Only the real, non-fenced,
+    # exact-match "START" line may be the start marker.
+    text = (
+        "See the START region below for an example.\n"
+        "```\n"
+        "START\n"
+        "```\n"
+        "START\n"
+        "old\n"
+        "END\n"
+        "after\n"
+    )
     result = _replace_region(text, "START", "END", "new\n")
-    assert result.startswith("```\nSTART\n```\n"), result
+    assert result.startswith(
+        "See the START region below for an example.\n```\nSTART\n```\n"
+    ), result
     assert result.endswith("START\nnew\nEND\nafter\n"), result
 
 
