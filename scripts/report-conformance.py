@@ -153,8 +153,11 @@ REPORT_FIELDS: tuple[str, ...] = (
 # report-added columns (three heading-census columns plus the two D-06a marked/silent
 # untraced-claim columns). Excluded: analysis_id (foreordained equal, same filename stem on
 # both surfaces) and the nine always-"n/a" provenance columns (foreordained equal, no capture
-# exists for any of the 29 artifacts). Including either would inflate the agreement headline
-# with matches that cannot fail.
+# exists for any artifact on either paired surface -- WR-04: this is a claim about
+# shared-examples and generated-twin, the only two surfaces pair_agreement compares, NOT
+# about the report as a whole; a live-conformance capture exists and its provenance columns
+# still read "n/a"). Including either would inflate the agreement headline with matches
+# that cannot fail.
 AGREEMENT_FIELDS: tuple[str, ...] = MEASURED_SCHEMA_FIELDS + REPORT_FIELDS
 
 # D-06a: the exact marker literal `output-template.md`, `validation-rubric.md` and
@@ -497,8 +500,11 @@ def build_row(artifact: Artifact, _audit_record_out: dict | None = None) -> dict
 
     Three-way column vocabulary, never confused with each other: a number means the
     detector read the document and counted; the literal "n/a" means no `.jsonl` capture
-    exists (true of all 29 artifacts for the nine provenance columns, unconditionally --
-    detect_defects never running changes nothing about capture availability); the literal
+    exists (true of every artifact on the four non-live surfaces, for the nine provenance
+    columns, unconditionally -- detect_defects never running changes nothing about capture
+    availability. WR-04: NOT unconditional across the whole report -- a `live-conformance`
+    row's capture DOES exist and those columns still read "n/a", because no join is
+    performed this phase); the literal
     "unreadable" means `_slice_sections` rejected the document, so the twelve measured
     schema fields were never computed.
 
@@ -2459,11 +2465,20 @@ def render_markdown(
 
     lines.append("## Column vocabulary")
     lines.append("")
+    # WR-04 (20-REVIEW): this paragraph stated the `n/a` rule UNCONDITIONALLY, and the
+    # `## live-conformance` section eighty lines below refuted it for its own rows --
+    # both sentences shipped in the same generated document. The count was stale too
+    # (`29`, hardcoded, while this surface has published 42 rows since Phase 19). Now
+    # scoped to the surfaces the claim is true of, with the count derived.
+    non_live = [r for r in rows if r["surface"] != "live-conformance"]
     lines.append(
         "Three kinds of value appear in the per-artifact tables below. A number means the "
         "detector read the document and counted. The literal `n/a` means no `.jsonl` "
-        "generation capture exists for this artifact -- true of all 29 artifacts, for the "
-        "nine provenance columns, unconditionally. The literal `unreadable` means "
+        f"generation capture exists for this artifact -- true of all {len(non_live)} "
+        "artifacts on the four surfaces above, for the nine provenance columns, "
+        "unconditionally. On `live-conformance` a capture DOES exist and those columns "
+        "still read `n/a`, because no join is performed this phase -- see that section's "
+        "Provenance departure (D-06). The literal `unreadable` means "
         "`_slice_sections` rejected the document, so the twelve measured schema fields "
         "were never computed. The nine provenance columns are emitted in full precisely so "
         "`n/a` and `0` are never printed as the same thing."
@@ -4403,6 +4418,50 @@ def _control_live_render_determinism() -> None:
     assert rendered_1 == rendered_2, (rendered_1, rendered_2)
 
 
+def _control_render_vocabulary_scoped_and_derived() -> None:
+    """WR-04 (20-REVIEW): the `## Column vocabulary` paragraph stated the `n/a` rule
+    unconditionally and the `## live-conformance` section refuted it eighty lines below,
+    with both sentences shipping in the same generated document. Its artifact count was
+    also a hardcoded `29`, stale since Phase 19.
+
+    Three arms: the exception is stated, the stale absolute is gone, and the count is
+    DERIVED (adding a non-live artifact must move it, and a live artifact must not).
+    """
+    base = _synthetic_rows_for_render() + [
+        _synthetic_row(
+            "adversarial-corpus",
+            "c.md",
+            "c",
+            target_missed=False,
+            no_column_fired=False,
+            stratum="B2",
+            target="silent_untraced_claims",
+            target_hits=["silent_untraced_claims"],
+            disposition="accept-with-reason: x.",
+            form_defects=0,
+        ),
+        _synthetic_live_row("x01.md", "x01"),
+    ]
+    rendered = render_markdown(base, pair_agreement(base))
+
+    assert "a capture DOES exist and those columns still read `n/a`" in rendered, rendered
+    assert "true of all 29 artifacts" not in rendered, "stale hardcoded count is back"
+    # The four non-live rows above are what the scoped claim covers.
+    assert "true of all 4 artifacts on the four surfaces above" in rendered, rendered
+
+    plus_live = base + [_synthetic_live_row("x02.md", "x02")]
+    rendered_live = render_markdown(plus_live, pair_agreement(plus_live))
+    assert "true of all 4 artifacts on the four surfaces above" in rendered_live, (
+        "a live artifact must NOT be counted by the non-live claim"
+    )
+
+    plus_other = base + [_synthetic_row("shared-examples", "extra.md", "extra")]
+    rendered_other = render_markdown(plus_other, pair_agreement(plus_other))
+    assert "true of all 5 artifacts on the four surfaces above" in rendered_other, (
+        "the count is not derived from the rows"
+    )
+
+
 def _control_json_count_scopes_agree() -> None:
     """WR-02 (20-REVIEW): the two count keys describe different populations, and both
     relationships must hold BY CONSTRUCTION. Before Phase 20 they agreed by accident
@@ -4980,6 +5039,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_live_render_states_noninteractive_bound,
     ),
     ("live-render-determinism", _control_live_render_determinism),
+    ("render-vocabulary-scoped-and-derived", _control_render_vocabulary_scoped_and_derived),
     ("json-count-scopes-agree", _control_json_count_scopes_agree),
     ("live-json-key-is-sibling", _control_live_json_key_is_sibling),
     ("live-roster-drift-detected", _control_live_roster_drift_detected),
@@ -5132,6 +5192,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-render-states-n-and-caveat",
     "live-render-states-noninteractive-bound",
     "live-render-determinism",
+    "render-vocabulary-scoped-and-derived",
     "json-count-scopes-agree",
     "live-json-key-is-sibling",
     "live-roster-drift-detected",

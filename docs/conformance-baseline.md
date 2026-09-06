@@ -26,7 +26,7 @@ This file is a measurement, not a contract: no figure below defines what the cod
 
 ## Column vocabulary
 
-Three kinds of value appear in the per-artifact tables below. A number means the detector read the document and counted. The literal `n/a` means no `.jsonl` generation capture exists for this artifact -- true of all 29 artifacts, for the nine provenance columns, unconditionally. The literal `unreadable` means `_slice_sections` rejected the document, so the twelve measured schema fields were never computed. The nine provenance columns are emitted in full precisely so `n/a` and `0` are never printed as the same thing.
+Three kinds of value appear in the per-artifact tables below. A number means the detector read the document and counted. The literal `n/a` means no `.jsonl` generation capture exists for this artifact -- true of all 42 artifacts on the four surfaces above, for the nine provenance columns, unconditionally. On `live-conformance` a capture DOES exist and those columns still read `n/a`, because no join is performed this phase -- see that section's Provenance departure (D-06). The literal `unreadable` means `_slice_sections` rejected the document, so the twelve measured schema fields were never computed. The nine provenance columns are emitted in full precisely so `n/a` and `0` are never printed as the same thing.
 
 ## Disclosed bounds
 
