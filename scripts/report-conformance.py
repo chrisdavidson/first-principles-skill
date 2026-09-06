@@ -67,6 +67,16 @@ ADVERSARIAL_CORPUS_GLOB: str = "tests/adversarial-corpus-v9.0/*.md"
 ADVERSARIAL_CORPUS_CATALOG: str = "tests/adversarial-corpus-v9.0/catalog.md"
 ADVERSARIAL_CORPUS_README: str = "tests/adversarial-corpus-v9.0/README.md"
 
+# Phase 20 (CONF-09/CONF-10): the fifth labelled surface. The glob is non-recursive by
+# design, so tests/live-conformance-v9.0/superseded/ is excluded by construction (a
+# re-dispatched stub's superseded capture lives there, per D-20-A's re-dispatch policy).
+# The catalog lives at top-level tests/ (not inside the fixture dir, unlike the
+# adversarial corpus's catalog.md), so no catalog-exclusion set is needed against this
+# glob, and README.md does not match *.jsonl either -- one glob, zero exclusions.
+LIVE_CONFORMANCE_CAPTURE_GLOB: str = "tests/live-conformance-v9.0/*.jsonl"
+LIVE_CONFORMANCE_CATALOG: str = "tests/live-conformance-catalog.md"
+LIVE_CONFORMANCE_README: str = "tests/live-conformance-v9.0/README.md"
+
 MIN_SHARED_EXAMPLES: int = 14
 MIN_TWIN_EXAMPLES: int = 14
 MIN_CONTRACT_SURFACES: int = 1
@@ -79,6 +89,14 @@ MIN_CONTRACT_SURFACES: int = 1
 # why the thirteen-item corpus is authored and committed BEFORE this
 # constant goes live, never after.
 MIN_CORPUS_ITEMS: int = 12
+
+# CONF-09's floor (Phase 20): fewer than this many landed live captures and
+# discover_artifacts raises DiscoveryFloorError rather than returning a short list --
+# the same "author fixtures before raising the floor" sequencing MIN_CORPUS_ITEMS' own
+# comment states, reused verbatim: raising this blocks EVERY commit in the repository
+# through the pre-commit conformance-drift gate, which is why the eight captures are
+# authored and committed BEFORE this constant goes live, never after.
+MIN_LIVE_CONFORMANCE_RUNS: int = 8
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +129,12 @@ _chain_ids = _mod._chain_ids
 _chain_blocks = _mod._chain_blocks
 _STRUCTURAL_LEDGER_ROW_RE = _mod._STRUCTURAL_LEDGER_ROW_RE
 _cites_chain = _mod._cites_chain
+# Phase 20 (CONF-09/CONF-10): read-only bindings the live-conformance surface uses to
+# resolve a capture's outcome and to parse its catalog -- never re-derived with a new
+# parse. Calling these is unrestricted; CONTRACT-06 does not cover either (it names only
+# the three chain/claim/section detectors), but both are still imported, never edited.
+classify_invocation_outcome = _mod.classify_invocation_outcome
+_read_quality_catalog = _mod._read_quality_catalog
 
 # Derived, never restated: slices of the frozen schema tuple, so widening
 # _DEFECT_RECORD_FIELDS upstream cannot silently narrow what this script excludes from
@@ -141,6 +165,13 @@ AGREEMENT_FIELDS: tuple[str, ...] = MEASURED_SCHEMA_FIELDS + REPORT_FIELDS
 # site.
 CAVEAT_MARKER: str = "no chain — flagged assumption only"
 
+# Phase 20 (amendment 2026-09-06): the literal substring every disclosure-opening
+# capture in this fixture uses when `AskUserQuestion` is unavailable under the
+# non-interactive `claude -p` transport -- confirmed present verbatim in all five `PR-*`
+# captures and absent from all three `Q-*` captures. Used only to COUNT disclosure
+# incidence for the published section; it never gates or scores a row.
+_NONINTERACTIVE_DISCLOSURE_MARKER: str = "AskUserQuestion"
+
 
 class DiscoveryFloorError(RuntimeError):
     """Raised when discover_artifacts finds fewer artifacts than its named floors require.
@@ -153,7 +184,11 @@ class DiscoveryFloorError(RuntimeError):
 @dataclass(frozen=True)
 class Artifact:
     surface: Literal[
-        "shared-examples", "generated-twin", "contract-surface", "adversarial-corpus"
+        "shared-examples",
+        "generated-twin",
+        "contract-surface",
+        "adversarial-corpus",
+        "live-conformance",
     ]
     relpath: str
     path: Path
@@ -214,6 +249,17 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
             f"README.md), found {len(corpus_paths)}"
         )
 
+    # Phase 20 (CONF-09): the live-conformance capture roster. discover_artifacts glob
+    # walks `.jsonl` files, the run of record for every attempted dispatch -- a stub
+    # outcome has no `.md` sibling, but it always has a `.jsonl`.
+    live_paths = sorted(repo_root.glob(LIVE_CONFORMANCE_CAPTURE_GLOB))
+    if len(live_paths) < MIN_LIVE_CONFORMANCE_RUNS:
+        messages.append(
+            f"report-conformance: COUNT FLOOR FAIL — expected >= "
+            f"{MIN_LIVE_CONFORMANCE_RUNS} files matching {LIVE_CONFORMANCE_CAPTURE_GLOB}, "
+            f"found {len(live_paths)}"
+        )
+
     if messages:
         raise DiscoveryFloorError("\n".join(messages))
 
@@ -233,6 +279,10 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
     for p in corpus_paths:
         artifacts.append(
             Artifact("adversarial-corpus", p.relative_to(repo_root).as_posix(), p, p.stem)
+        )
+    for p in live_paths:
+        artifacts.append(
+            Artifact("live-conformance", p.relative_to(repo_root).as_posix(), p, p.stem)
         )
     return artifacts
 
@@ -413,6 +463,33 @@ def parse_corpus_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
     return entries, problems
 
 
+def _read_live_catalog(repo_root: Path) -> tuple[dict[str, dict], list[str]]:
+    """Parse LIVE_CONFORMANCE_CATALOG through the harness's unmodified
+    `_read_quality_catalog`, returning `({row_id: {"notes": ..., "disposition": ...}},
+    problems)` in `parse_corpus_catalog`'s own (entries, problems) shape, so a catalog
+    parse failure is reported by name rather than silently shrinking the roster.
+
+    `disposition` is the substring after the FIRST occurrence of the literal
+    `"disposition: "` in the row's Notes cell, or the literal `"MISSING"` when that
+    marker is absent -- never re-derived, never guessed.
+    """
+    path = repo_root / LIVE_CONFORMANCE_CATALOG
+    entries: dict[str, dict] = {}
+    problems: list[str] = []
+    try:
+        prompts = _read_quality_catalog(path)
+    except ValueError as exc:
+        problems.append(f"LIVE CATALOG PARSE FAIL — {exc}")
+        return entries, problems
+
+    marker = "disposition: "
+    for prompt in prompts:
+        idx = prompt.notes.find(marker)
+        disposition = prompt.notes[idx + len(marker) :] if idx != -1 else "MISSING"
+        entries[prompt.id] = {"notes": prompt.notes, "disposition": disposition}
+    return entries, problems
+
+
 def build_row(artifact: Artifact, _audit_record_out: dict | None = None) -> dict:
     """D-03's partial row: the heading census runs FIRST and unconditionally, so a
     document `_slice_sections` rejects still carries a real heading-sweep reading rather
@@ -499,6 +576,21 @@ _CORPUS_SUBSTANTIVE_FIELDS: tuple[str, ...] = (
     "dependency_cycles",
     "ungrounded_chains",
     "selfaudit_disagreements",
+)
+
+# Phase 20 (CONF-09/CONF-10, D-20-A): "zero form defects" for the live surface is
+# CONF-GATE's exact four counts, and nothing wider -- readability (section_resolution
+# == "OK") plus these three. `heading_malformed_blocks` is counted unconditionally by
+# `check-conf-gate.py`'s own aggregation (it runs before detect_defects, per build_row's
+# unconditional heading census); `nonconforming_verdict_cells` and
+# `silent_untraced_claims` are counted only on a resolved row. Chosen over
+# `_CORPUS_FORM_FIELDS`'s three columns specifically so the live rate is directly
+# comparable to the control group's own published zeros on shared-examples /
+# generated-twin, per the decision record in tests/live-conformance-catalog.md (D-20-A).
+_LIVE_FORM_FIELDS: tuple[str, ...] = (
+    "heading_malformed_blocks",
+    "nonconforming_verdict_cells",
+    "silent_untraced_claims",
 )
 
 
@@ -612,20 +704,107 @@ def build_corpus_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
     return row
 
 
+def _live_row_clean(outcome: str, row: dict) -> bool:
+    """True only when the run completed, the analysis resolved, and every one of
+    `_LIVE_FORM_FIELDS` reads the integer 0 -- the exact three-way AND CONF-10's rate is
+    defined on. A pure function of (outcome, row) so a --self-test control can exercise
+    each of the three fields, and the outcome gate, independently -- without a tempdir
+    capture for every case.
+    """
+    if outcome != "completed":
+        return False
+    if row["section_resolution"] != "OK":
+        return False
+    return all(row[f] == 0 for f in _LIVE_FORM_FIELDS)
+
+
+def build_live_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
+    """Phase 20 (CONF-09/CONF-10): the live-conformance row builder. `artifact.path` is
+    the `.jsonl` capture -- the run of record, which always exists for an attempted run,
+    whether or not it ever produced a persisted analysis. `outcome` is resolved once via
+    the unmodified `classify_invocation_outcome`, never re-derived with a new parse.
+
+    If the sibling `.md` exists, the row is built by calling the unwrapped `build_row` on
+    an `Artifact` whose `path`/`relpath` point at the `.md` -- so `relpath` names the
+    thing that was actually scored, matching every other surface -- and whose
+    `analysis_id` is the shared stem. If it does not exist (every non-`completed`
+    outcome, per `_extract_and_persist_analysis`'s own contract), the row carries the
+    exact key set `build_row` produces with `section_resolution` and every measured
+    field reading the literal `"no-analysis"`, `analysis_id` reading the stem, and the
+    nine `PROVENANCE_FIELDS` reading `"n/a"` -- a run that produced nothing must never be
+    indistinguishable from a run that produced a clean, zero-count analysis.
+    """
+    stem = artifact.analysis_id
+    outcome = classify_invocation_outcome(artifact.path)
+    md_path = artifact.path.with_suffix(".md")
+    md_relpath = Path(artifact.relpath).with_suffix(".md").as_posix()
+
+    if md_path.exists():
+        md_artifact = Artifact("live-conformance", md_relpath, md_path, stem)
+        row = build_row(md_artifact)
+        analysis_present = True
+        askuserquestion_disclosed = _NONINTERACTIVE_DISCLOSURE_MARKER in md_path.read_text(
+            encoding="utf-8"
+        )
+    else:
+        row = {
+            "surface": "live-conformance",
+            "relpath": artifact.relpath,
+            "section_resolution": "no-analysis",
+            "heading_chain_blocks": "no-analysis",
+            "heading_malformed_blocks": "no-analysis",
+        }
+        for field in _DEFECT_RECORD_FIELDS:
+            if field == "analysis_id":
+                row[field] = stem
+            elif field in PROVENANCE_FIELDS:
+                row[field] = "n/a"
+            else:
+                row[field] = "no-analysis"
+        row["marked_untraced_claims"] = "no-analysis"
+        row["silent_untraced_claims"] = "no-analysis"
+        analysis_present = False
+        askuserquestion_disclosed = False
+
+    row["capture_relpath"] = artifact.relpath
+    row["outcome"] = outcome
+    row["analysis_present"] = analysis_present
+    row["askuserquestion_disclosed"] = askuserquestion_disclosed
+    row["disposition"] = catalog_entry["disposition"] if catalog_entry is not None else "MISSING"
+
+    if row["section_resolution"] == "OK":
+        row["form_defects"] = sum(row[f] for f in _LIVE_FORM_FIELDS)
+    elif row["section_resolution"] == "no-analysis":
+        row["form_defects"] = "no-analysis"
+    else:
+        row["form_defects"] = "unreadable"
+
+    row["clean"] = _live_row_clean(outcome, row)
+
+    return row
+
+
 def build_rows(repo_root: Path) -> list[dict]:
     """One row per discovered artifact, in discovery order (shared-examples, then
-    generated-twin, then contract-surface, then adversarial-corpus; each group sorted by
-    discover_artifacts). Corpus artifacts are routed through `build_corpus_row`, joined
-    against a catalog parsed exactly once per call; the other three surfaces go through
-    the unwrapped `build_row`. A catalog parse problem is not raised here -- reporting it
-    is a later floor's job (plan 19-06); an artifact whose stem has no clean catalog
-    entry simply reads `stratum`/`source`/`disposition` as "MISSING", never dropped."""
+    generated-twin, then contract-surface, then adversarial-corpus, then
+    live-conformance; each group sorted by discover_artifacts). Corpus artifacts are
+    routed through `build_corpus_row`, live-conformance artifacts through
+    `build_live_row`, each joined against its own catalog parsed exactly once per call;
+    the other three surfaces go through the unwrapped `build_row`. A catalog parse
+    problem is not raised here -- reporting it is a later floor's job; an artifact whose
+    stem has no clean catalog entry simply reads its join fields as "MISSING", never
+    dropped."""
     catalog_entries, _catalog_problems = parse_corpus_catalog(repo_root)
+    live_catalog_entries, _live_catalog_problems = _read_live_catalog(repo_root)
 
     rows: list[dict] = []
     for artifact in discover_artifacts(repo_root):
         if artifact.surface == "adversarial-corpus":
             rows.append(build_corpus_row(artifact, catalog_entries.get(artifact.analysis_id)))
+        elif artifact.surface == "live-conformance":
+            rows.append(
+                build_live_row(artifact, live_catalog_entries.get(artifact.analysis_id))
+            )
         else:
             rows.append(build_row(artifact))
     return rows
@@ -1491,6 +1670,43 @@ def compute_corpus_headline(corpus_rows: list[dict]) -> dict:
     }
 
 
+def compute_live_headline(live_rows: list[dict]) -> dict:
+    """Phase 20 (CONF-09/CONF-10)'s primary/secondary live-conformance rate headline. An
+    item-by-predicate sibling of `compute_corpus_headline`, NEVER an entry inside
+    `compute_headline` -- the live surface has no generated twin and aggregates by
+    predicate, not by numeric sum across a surface. Every value here is derived from
+    `live_rows` at call time; nothing is hardcoded.
+    """
+    total = len(live_rows)
+    clean = sum(1 for r in live_rows if r["clean"] is True)
+    completed = sum(1 for r in live_rows if r["outcome"] == "completed")
+    unreadable = _unreadable_count(live_rows)
+    no_analysis = sum(1 for r in live_rows if r["section_resolution"] == "no-analysis")
+
+    by_outcome: dict[str, int] = {}
+    for r in live_rows:
+        by_outcome[r["outcome"]] = by_outcome.get(r["outcome"], 0) + 1
+
+    form_defects = sum(r["form_defects"] for r in live_rows if r["section_resolution"] == "OK")
+
+    nonclean_without_disposition = sum(
+        1
+        for r in live_rows
+        if r["clean"] is not True and (not r.get("disposition") or r["disposition"] == "MISSING")
+    )
+
+    return {
+        "total": total,
+        "clean": clean,
+        "completed": completed,
+        "unreadable": unreadable,
+        "no_analysis": no_analysis,
+        "by_outcome": by_outcome,
+        "form_defects": form_defects,
+        "nonclean_without_disposition": nonclean_without_disposition,
+    }
+
+
 def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
     agreeing, total, divergences = agreement
     corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
@@ -2074,7 +2290,7 @@ None.
 
 
 def _make_minimum_tree(root: Path) -> None:
-    """Populate *root* with exactly the 14/14/1/12 floor minimum discover_artifacts
+    """Populate *root* with exactly the 14/14/1/12/8 floor minimum discover_artifacts
     requires."""
     shared_dir = root / "shared" / "examples"
     shared_dir.mkdir(parents=True, exist_ok=True)
@@ -2093,6 +2309,14 @@ def _make_minimum_tree(root: Path) -> None:
         (corpus_dir / f"t{i:02d}-item.md").write_text("x", encoding="utf-8")
     (corpus_dir / "catalog.md").write_text("x", encoding="utf-8")
     (corpus_dir / "README.md").write_text("x", encoding="utf-8")
+    # Phase 20 (CONF-09): discover_artifacts' new fifth floor requires
+    # MIN_LIVE_CONFORMANCE_RUNS `.jsonl` captures under this glob too, or every existing
+    # floor control below (which calls this helper and then discover_artifacts) would
+    # itself raise DiscoveryFloorError on the live-conformance floor it never populated.
+    live_dir = root / "tests" / "live-conformance-v9.0"
+    live_dir.mkdir(parents=True, exist_ok=True)
+    for i in range(MIN_LIVE_CONFORMANCE_RUNS):
+        (live_dir / f"l{i:02d}.jsonl").write_text("{}\n", encoding="utf-8")
 
 
 def _control_floor_shared_short() -> None:
@@ -2161,7 +2385,11 @@ def _control_floor_passes_at_minimum() -> None:
         _make_minimum_tree(root)
         artifacts = discover_artifacts(root)
         expected = (
-            MIN_SHARED_EXAMPLES + MIN_TWIN_EXAMPLES + MIN_CONTRACT_SURFACES + MIN_CORPUS_ITEMS
+            MIN_SHARED_EXAMPLES
+            + MIN_TWIN_EXAMPLES
+            + MIN_CONTRACT_SURFACES
+            + MIN_CORPUS_ITEMS
+            + MIN_LIVE_CONFORMANCE_RUNS
         )
         assert len(artifacts) == expected, (len(artifacts), expected)
 
@@ -3345,6 +3573,182 @@ def _control_corpus_call_sites_roster_lock_wrong_count() -> None:
     assert any("non-1 expected count" in p for p in problems), problems
 
 
+# ---------------------------------------------------------------------------
+# Phase 20 (CONF-09/CONF-10): the live-conformance surface controls. Every one of these
+# is tempdir/in-memory and none reads tests/live-conformance-v9.0/.
+# ---------------------------------------------------------------------------
+
+# A minimal "completed" .jsonl terminal-result line: is_error False, api_error_status
+# None -- the exact shape classify_invocation_outcome's own docstring requires.
+_COMPLETED_JSONL_LINE: str = (
+    json.dumps({"type": "result", "is_error": False, "api_error_status": None}) + "\n"
+)
+
+
+def _control_live_floor_short() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        (root / "tests" / "live-conformance-v9.0" / "l00.jsonl").unlink()
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert LIVE_CONFORMANCE_CAPTURE_GLOB in msg, msg
+            assert f"expected >= {MIN_LIVE_CONFORMANCE_RUNS}" in msg, msg
+            assert f"found {MIN_LIVE_CONFORMANCE_RUNS - 1}" in msg, msg
+        else:
+            raise AssertionError(
+                "discover_artifacts did not raise on a short live-conformance glob"
+            )
+
+
+def _control_live_row_no_analysis_literals() -> None:
+    """A capture with no `.md` sibling yields the literal `"no-analysis"` in every
+    measured field and `"n/a"` in every provenance field -- never `0` -- per the four-
+    value column vocabulary this surface adds."""
+    with tempfile.TemporaryDirectory() as td:
+        capture_path = Path(td) / "stub.jsonl"
+        capture_path.write_text("", encoding="utf-8")
+        artifact = Artifact(
+            "live-conformance", "stub.jsonl", capture_path, "stub"
+        )
+        row = build_live_row(artifact, None)
+        assert row["outcome"] == "no_terminal_result", row["outcome"]
+        assert row["analysis_present"] is False, row["analysis_present"]
+        assert row["section_resolution"] == "no-analysis", row["section_resolution"]
+        assert row["heading_chain_blocks"] == "no-analysis", row["heading_chain_blocks"]
+        assert row["heading_malformed_blocks"] == "no-analysis", row["heading_malformed_blocks"]
+        assert row["form_defects"] == "no-analysis", row["form_defects"]
+        assert row["clean"] is False, row["clean"]
+        assert row["disposition"] == "MISSING", row["disposition"]
+        for field in _DEFECT_RECORD_FIELDS:
+            if field == "analysis_id":
+                assert row[field] == "stub", row[field]
+                continue
+            if field in PROVENANCE_FIELDS:
+                assert row[field] == "n/a", (field, row[field])
+            else:
+                assert row[field] == "no-analysis", (field, row[field])
+                assert row[field] != 0, field
+
+
+def _control_live_row_unreadable_is_not_clean() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        capture_path = root / "bad.jsonl"
+        capture_path.write_text(_COMPLETED_JSONL_LINE, encoding="utf-8")
+        (root / "bad.md").write_text(_UNREADABLE_FIXTURE_TEXT, encoding="utf-8")
+        artifact = Artifact(
+            "live-conformance", "bad.jsonl", capture_path, "bad"
+        )
+        row = build_live_row(artifact, None)
+        assert row["outcome"] == "completed", row["outcome"]
+        assert row["analysis_present"] is True, row["analysis_present"]
+        assert row["section_resolution"].startswith("SectionResolutionError:"), row[
+            "section_resolution"
+        ]
+        assert row["form_defects"] == "unreadable", row["form_defects"]
+        assert row["clean"] is False, row["clean"]
+
+
+def _control_live_row_stub_is_not_clean() -> None:
+    """A `completed`-shaped row with zero counts is clean; the identical row shape with
+    a stub outcome is not -- `_live_row_clean` gates on outcome independently of
+    section_resolution/counts."""
+    completed_like = _synthetic_row("live-conformance", "x.md", "x")
+    assert _live_row_clean("completed", completed_like) is True, completed_like
+    assert _live_row_clean("rate_limit_stub", completed_like) is False, completed_like
+    assert _live_row_clean("transport_error_stub", completed_like) is False, completed_like
+    assert _live_row_clean("no_terminal_result", completed_like) is False, completed_like
+
+
+def _control_live_row_clean_requires_all_three_fields() -> None:
+    base = _synthetic_row("live-conformance", "x.md", "x")
+    assert _live_row_clean("completed", base) is True, base
+    for field in _LIVE_FORM_FIELDS:
+        mutated = dict(base)
+        mutated[field] = 1
+        assert _live_row_clean("completed", mutated) is False, (field, mutated)
+
+
+def _control_live_catalog_disposition_marker_parsed() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        catalog_dir = root / "tests"
+        catalog_dir.mkdir(parents=True, exist_ok=True)
+        (catalog_dir / "live-conformance-catalog.md").write_text(
+            "| ID | Prompt | Notes |\n"
+            "|---|---|---|\n"
+            "| a | some prompt | origin note. disposition: accept-with-reason: fine. |\n"
+            "| b | another prompt | origin note with no marker at all. |\n",
+            encoding="utf-8",
+        )
+        entries, problems = _read_live_catalog(root)
+        assert problems == [], problems
+        assert entries["a"]["disposition"] == "accept-with-reason: fine.", entries["a"]
+        assert entries["b"]["disposition"] == "MISSING", entries["b"]
+
+
+def _control_live_headline_counts_by_predicate() -> None:
+    clean_row = _synthetic_row(
+        "live-conformance",
+        "a.md",
+        "a",
+        outcome="completed",
+        clean=True,
+        disposition="accept-with-reason: ok.",
+        form_defects=0,
+        analysis_present=True,
+        askuserquestion_disclosed=False,
+        capture_relpath="a.jsonl",
+    )
+    nonclean_row = _synthetic_row(
+        "live-conformance",
+        "b.md",
+        "b",
+        outcome="completed",
+        clean=False,
+        disposition="fix: something.",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+        analysis_present=True,
+        askuserquestion_disclosed=True,
+        capture_relpath="b.jsonl",
+    )
+    with tempfile.TemporaryDirectory() as td:
+        capture_path = Path(td) / "c.jsonl"
+        capture_path.write_text("", encoding="utf-8")
+        stub_artifact = Artifact(
+            "live-conformance", "c.jsonl", capture_path, "c"
+        )
+        stub_row = build_live_row(stub_artifact, None)
+
+    rows = [clean_row, nonclean_row, stub_row]
+    headline = compute_live_headline(rows)
+    assert headline["total"] == 3, headline
+    assert headline["clean"] == 1, headline
+    assert headline["completed"] == 2, headline
+    assert headline["no_analysis"] == 1, headline
+    assert headline["unreadable"] == 0, headline
+    assert headline["by_outcome"] == {"completed": 2, "no_terminal_result": 1}, headline[
+        "by_outcome"
+    ]
+    assert headline["form_defects"] == 1, headline
+    assert headline["nonclean_without_disposition"] == 1, headline
+
+
+def _control_live_headline_not_in_compute_headline() -> None:
+    live_row = _synthetic_row(
+        "live-conformance", "a.md", "a", outcome="completed", clean=True, disposition="MISSING"
+    )
+    other_rows = _synthetic_rows_for_render()
+    headline = compute_headline(other_rows + [live_row])
+    assert "live-conformance" not in headline.get("by_surface", {}), headline
+    assert "live-conformance" not in headline["unreadable"], headline["unreadable"]
+    assert "live-conformance" not in headline["conclusion_claims"], headline["conclusion_claims"]
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -3470,6 +3874,23 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "corpus-call-sites-roster-lock-wrong-count",
         _control_corpus_call_sites_roster_lock_wrong_count,
     ),
+    ("live-floor-short", _control_live_floor_short),
+    ("live-row-no-analysis-literals", _control_live_row_no_analysis_literals),
+    ("live-row-unreadable-is-not-clean", _control_live_row_unreadable_is_not_clean),
+    ("live-row-stub-is-not-clean", _control_live_row_stub_is_not_clean),
+    (
+        "live-row-clean-requires-all-three-fields",
+        _control_live_row_clean_requires_all_three_fields,
+    ),
+    (
+        "live-catalog-disposition-marker-parsed",
+        _control_live_catalog_disposition_marker_parsed,
+    ),
+    ("live-headline-counts-by-predicate", _control_live_headline_counts_by_predicate),
+    (
+        "live-headline-not-in-compute-headline",
+        _control_live_headline_not_in_compute_headline,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -3535,6 +3956,14 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-call-sites-roster-lock-positive",
     "corpus-call-sites-roster-lock-narrowed",
     "corpus-call-sites-roster-lock-wrong-count",
+    "live-floor-short",
+    "live-row-no-analysis-literals",
+    "live-row-unreadable-is-not-clean",
+    "live-row-stub-is-not-clean",
+    "live-row-clean-requires-all-three-fields",
+    "live-catalog-disposition-marker-parsed",
+    "live-headline-counts-by-predicate",
+    "live-headline-not-in-compute-headline",
 )
 
 
