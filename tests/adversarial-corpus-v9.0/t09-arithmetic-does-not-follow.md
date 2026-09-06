@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Worked Example: Science and Engineering
 
 A complete first-principles analysis of a science and engineering sizing question,

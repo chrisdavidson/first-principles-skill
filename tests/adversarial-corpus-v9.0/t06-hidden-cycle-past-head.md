@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Analysis: Should the payments team keep the new fee schedule or roll it back?
 
 A first-principles analysis of whether to keep last month's fee-schedule change for the payments

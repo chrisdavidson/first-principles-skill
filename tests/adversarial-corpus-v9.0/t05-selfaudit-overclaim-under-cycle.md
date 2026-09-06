@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Analysis: Should the pricing team launch a dynamic-discount engine for repeat customers?
 
 A first-principles analysis of whether to launch an automated dynamic-discount engine for

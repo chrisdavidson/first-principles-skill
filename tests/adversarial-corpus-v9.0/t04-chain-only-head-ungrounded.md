@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Analysis: Should the docs team migrate to a new CMS before the next release cycle?
 
 A first-principles analysis of whether the documentation team should migrate to a new content

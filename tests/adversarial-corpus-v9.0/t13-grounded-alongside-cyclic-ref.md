@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Analysis: Should the support team hire a third on-call engineer for the payments rotation?
 
 A first-principles analysis of whether the payments on-call rotation needs a third engineer

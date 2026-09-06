@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Worked Example: Personal and General
 
 A complete first-principles analysis of the question "Should I take a higher-paying job that requires relocating?" The Phase 1 emphasis demonstrates a stated-goal→real-goal re-framing — a different operation from EX-01's symptom→cause diagnosis. Authored in Phase 5.

@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Analysis: Should the platform team introduce a write-through cache in front of the inventory-read service?
 
 A first-principles analysis of whether to adopt a write-through cache for the inventory-read

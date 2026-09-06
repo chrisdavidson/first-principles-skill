@@ -1,3 +1,5 @@
+> **ADVERSARIAL FIXTURE — DELIBERATELY FALSE.** Catalogued falsehood; see `README.md` and `catalog.md`. Never quote as fact, never copy into `shared/` or `first-principles/`.
+
 # Worked Example: Product and Business
 
 A complete first-principles analysis of a product and business pricing question, following the standardized output format. The Phase 2 Classified Assumptions Table is the deepest section of analysis — seven assumptions examined, two discarded outright — and the abandoned reasoning path demonstrates the Phase 4 no-analogies guidance applied to a competitor-parity argument. Authored in Phase 5.
