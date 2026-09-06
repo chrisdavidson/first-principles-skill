@@ -374,6 +374,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/check-step0-live.py",
         run_command="python3 scripts/check-step0-live.py --self-test",
         summary="Offline Step 0 live-harness scoring/parsing logic self-test.",
+        consumes=("locked_constants", "checked_files", "control_ids", "control_count"),
     ),
     GateEntry(
         key="TRACE-03",
@@ -424,6 +425,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "text. Live leg reads `tests/quality-provenance-v8.24/` and reports "
             "7/7 sources matched, 35/35 literals located."
         ),
+        consumes=("control_ids", "control_count", "registered_surfaces", "locked_constants"),
     ),
     GateEntry(
         key="HARN-01",
@@ -522,6 +524,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "14-entry claim floor locked by equality to the live-discovered "
             "`shared-examples` ids, the D-03 prescribed-lead-in rule, and the "
             "marked-claim ratchet (may fall, never rise)."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "population_floors",
+            "call_site_census",
+            "control_ids",
+            "control_count",
+            "locked_constants",
         ),
     ),
     GateEntry(

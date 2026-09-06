@@ -63,6 +63,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import inspect
+import json
 import sys
 import tempfile
 from pathlib import Path
@@ -1362,6 +1363,59 @@ def _control_d08_needle_not_unique_reported() -> None:
     ), problems
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05): pure, no disk
+    I/O, no argv, no subprocess. `registered_surfaces` is `_GATED_SURFACES`
+    emitted verbatim IN ORDER — never sorted — because plan 21-07's
+    generator and this gate's own `d0-gated-surfaces-locked`-shape controls
+    depend on the exact 2-tuple `("shared-examples", "generated-twin")`,
+    not an alphabetized rendering. `population_floors` is `_POPULATION_FLOORS`
+    directly. `call_site_census` is `_LIVE_CALL_SITES` directly — the same
+    roster `run_live()`'s own source-text census counts against.
+    `control_ids`/`control_count` are `_CONTROL_IDS`. `locked_constants`
+    carries the marked-claim ratchet's current pinned value and the three
+    prescribed lead-ins (joined, since the vocabulary's `locked_constants`
+    shape is scalar-valued)."""
+    return {
+        "registered_surfaces": list(_GATED_SURFACES),
+        "population_floors": dict(_POPULATION_FLOORS),
+        "call_site_census": dict(_LIVE_CALL_SITES),
+        "control_ids": list(_CONTROL_IDS),
+        "control_count": len(_CONTROL_IDS),
+        "locked_constants": {
+            "marked_claim_ratchet": _MARKED_RATCHET,
+            "prescribed_lead_ins": " | ".join(_PRESCRIBED_LEAD_INS_LOCK),
+        },
+    }
+
+
+def _control_describe_consistency() -> None:
+    """(describe): the emitted fields agree with the live module constants
+    this gate's own checking logic reads — never a hand-typed parallel."""
+    desc = describe()
+    assert desc["registered_surfaces"] == list(_GATED_SURFACES), (
+        f"registered_surfaces disagrees with _GATED_SURFACES: {desc['registered_surfaces']}"
+    )
+    assert desc["population_floors"] == dict(_POPULATION_FLOORS), (
+        f"population_floors disagrees with _POPULATION_FLOORS: {desc['population_floors']}"
+    )
+    assert desc["call_site_census"] == dict(_LIVE_CALL_SITES), (
+        f"call_site_census disagrees with _LIVE_CALL_SITES: {desc['call_site_census']}"
+    )
+    assert desc["control_ids"] == list(_CONTROL_IDS), (
+        f"control_ids disagrees with _CONTROL_IDS: {desc['control_ids']}"
+    )
+    assert desc["control_count"] == len(_CONTROL_IDS), (
+        f"control_count disagrees with len(_CONTROL_IDS): {desc['control_count']}"
+    )
+    assert desc["locked_constants"]["marked_claim_ratchet"] == _MARKED_RATCHET, (
+        f"marked_claim_ratchet disagrees with _MARKED_RATCHET: {desc['locked_constants']}"
+    )
+    assert desc["locked_constants"]["prescribed_lead_ins"] == " | ".join(
+        _PRESCRIBED_LEAD_INS_LOCK
+    ), f"prescribed_lead_ins disagrees with _PRESCRIBED_LEAD_INS_LOCK: {desc['locked_constants']}"
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-unreadable-fires", _control_target_unreadable_fires),
     ("target-unreadable-passes-at-zero", _control_target_unreadable_passes_at_zero),
@@ -1409,6 +1463,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d08-missing-sites-reported", _control_d08_missing_sites_reported),
     ("d08-increments-not-produced-reported", _control_d08_increments_not_produced_reported),
     ("d08-needle-not-unique-reported", _control_d08_needle_not_unique_reported),
+    ("describe", _control_describe_consistency),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape): a second,
@@ -1458,6 +1513,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d08-missing-sites-reported",
     "d08-increments-not-produced-reported",
     "d08-needle-not-unique-reported",
+    "describe",
 )
 
 
@@ -1506,7 +1562,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline control battery (positive, negative, anti-masking)",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout and exit",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return self_test()

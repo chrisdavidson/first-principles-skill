@@ -186,6 +186,27 @@ def _print(msg: str, quiet: bool) -> None:
 # ---------------------------------------------------------------------------
 
 
+# Plan-36-locked transport (Phase 21, D-03): the single source of truth for
+# the live `claude -p` invocation shape, with `<plugin_dir>`/`<prompt>`
+# placeholders substituted at call time by `_run_prompt_to`. Do not modify
+# this tuple's values or order — STEP0-06's `--describe` limb emits this
+# same constant verbatim (joined into one string) so the documented
+# transport can never drift from the one actually invoked.
+LOCKED_TRANSPORT_ARGV_TEMPLATE: tuple[str, ...] = (
+    "claude",
+    "-p",
+    "--plugin-dir",
+    "<plugin_dir>",
+    "--no-session-persistence",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--permission-mode",
+    "bypassPermissions",
+    "<prompt>",
+)
+
+
 def _run_prompt_to(prompt: "BoundaryPrompt | FocusedPrompt | MergedPrompt", plugin_dir: Path, out_path: Path) -> Path:
     """Issue one prompt via `claude -p` and capture the stream-json log to out_path.
 
@@ -196,19 +217,14 @@ def _run_prompt_to(prompt: "BoundaryPrompt | FocusedPrompt | MergedPrompt", plug
 
     Returns out_path (combined stdout + stderr written there).
     """
-    # Plan-36-locked — do not modify this argv list
+    # Plan-36-locked — argv is derived from LOCKED_TRANSPORT_ARGV_TEMPLATE
+    # (the fixed flags/order), never hand-retyped here; only the two
+    # placeholders vary per invocation.
     argv = [
-        "claude",
-        "-p",
-        "--plugin-dir",
-        str(plugin_dir),
-        "--no-session-persistence",
-        "--output-format",
-        "stream-json",
-        "--verbose",
-        "--permission-mode",
-        "bypassPermissions",
-        prompt.text,
+        str(plugin_dir) if tok == "<plugin_dir>" else (
+            prompt.text if tok == "<prompt>" else tok
+        )
+        for tok in LOCKED_TRANSPORT_ARGV_TEMPLATE
     ]
     proc = subprocess.run(
         argv,
