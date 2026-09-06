@@ -390,6 +390,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "coverage headline against five named current-fact surfaces and both "
             "tracked matrix artifacts."
         ),
+        consumes=(
+            "scan_globs",
+            "registered_surfaces",
+            "branch_roster",
+            "branch_count",
+            "locked_constants",
+            "coverage_headline",
+        ),
     ),
     GateEntry(
         key="QUAL-01",
@@ -489,6 +497,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "internally coherent in the emitted tree, with one hundred clause-level "
             "named branches floored by an independent transcription "
             "(`_BRANCH_ROSTER_LOCK`)."
+        ),
+        consumes=(
+            "branch_roster",
+            "branch_count",
+            "registered_surfaces",
+            "call_site_census",
+            "control_ids",
+            "control_count",
+            "locked_constants",
         ),
     ),
     GateEntry(
@@ -832,6 +849,14 @@ _FIELD_DESCRIPTIONS: dict[str, str] = {
         "are skipped under a named alternate invocation mode (e.g. "
         "--skip-name-check), so the scoping itself is derivable rather than "
         "restated in prose"
+    ),
+    "coverage_headline": (
+        "a mapping with 'slash' and 'prose' keys holding the two live "
+        "renderings of the traceability coverage headline, re-derived from "
+        "build_matrix_rows() on every call (the check-traceability.py "
+        "_headline_literals() shape) — deliberately NOT locked, since the "
+        "headline must keep moving the instant a matrix row is registered "
+        "or re-tiered"
     ),
 }
 
