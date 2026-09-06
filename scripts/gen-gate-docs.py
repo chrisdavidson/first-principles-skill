@@ -40,9 +40,13 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import ast
+import contextlib
 import difflib
 import fnmatch
 import importlib.util
+import inspect
+import io
 import json
 import re
 import subprocess
@@ -255,7 +259,9 @@ DETAIL_PAGE_DIR: Path = REPO_ROOT / "docs" / "gates"
 # The gate ids whose docs/gates/<ID>.md page carries a hand-written narrative
 # region — the four measured-fat cells (D-08). Membership is a property of
 # content, not a threshold rule someone applies.
-NARRATIVE_ENTRIES: frozenset[str] = frozenset({"QUAL-01", "SCAN-GUARD", "TRACE-03", "CONF-GATE"})
+NARRATIVE_ENTRIES: frozenset[str] = frozenset(
+    {"QUAL-01", "SCAN-GUARD", "TRACE-03", "CONF-GATE", "CONF-SURFACE"}
+)
 
 # The two region-marker pairs bounding CLAUDE.md's and docs/ARCHITECTURE.md's
 # generated CI-gate-table regions. Both surfaces reuse the identical literal
@@ -952,6 +958,466 @@ def detail_page_containment_problems(
 
 
 # ---------------------------------------------------------------------------
+# CONF-13: the standing hand-maintained count-literal scanner.
+#
+# 21-CONF13-BASELINE.md measured the real target (79 scanner-target hits, 15
+# legitimate exempt hits) and wrote the exemption taxonomy this section
+# implements. Its own job is not to re-measure the baseline — plan 21-08's
+# generation already collapsed most of the 250-hit raw surface structurally
+# — it is to make the remaining zero (or the residual plan 21-10 inherits)
+# STAND: a literal reappearing anywhere in the D-21-E surface set, outside a
+# generated fence and outside a named exemption class, must fail `--check`.
+# ---------------------------------------------------------------------------
+
+
+class LiteralHit(NamedTuple):
+    """One count-noun-adjacent number literal the scanner detected, before
+    exemption attribution. `relpath` is the surface's display name — a
+    plain repo-relative path for Markdown, `<script>#__doc__` for a module
+    docstring, matching `conf13_sweep.py`'s own labelling."""
+
+    relpath: str
+    line: int
+    text: str
+
+
+class LiteralExemptionClass(NamedTuple):
+    """One exemption class from 21-CONF13-BASELINE.md's taxonomy: a name, a
+    written reason (so a later reviewer can re-derive or dispute the call
+    from the artifact, not from memory — the baseline's own discipline), and
+    a matcher over one hit's own text. A hit matching no class is a finding,
+    never a silently-permitted pass (T-21-09-02)."""
+
+    name: str
+    reason: str
+    matches: object  # Callable[[str], bool]
+
+
+# --- vocabulary (verbatim from 21-CONF13-BASELINE.md's conf13_sweep.py) ----
+
+_LITERAL_ONES_1_20 = [
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen",
+    "eighteen", "nineteen", "twenty",
+]
+_LITERAL_ONES_1_9 = _LITERAL_ONES_1_20[:9]
+_LITERAL_TENS = ["thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+
+# Count nouns (singular/plural) — the D-21-E vocabulary harvested from
+# CLAUDE.md's own QUAL-01/SCAN-GUARD/TRACE-03/CONF-GATE rows, not guessed.
+# "call site"/"call sites" is handled as a bigram, separately from this set.
+_LITERAL_NOUNS: frozenset[str] = frozenset({
+    "branch", "branches", "control", "controls", "arm", "arms", "gate", "gates",
+    "row", "rows", "entry", "entries", "fixture", "fixtures", "surface", "surfaces",
+    "assertion", "assertions", "check", "checks", "id", "ids", "literal", "literals",
+    "stamp", "stamps", "pin", "pins", "job", "jobs", "plan", "plans", "mutation",
+    "mutations", "leg", "legs", "criterion", "criteria", "column", "columns",
+    "case", "cases", "probe", "probes", "item", "items",
+})
+_LITERAL_BIGRAM_NOUN_HEAD = "call"
+_LITERAL_BIGRAM_NOUN_TAILS = frozenset({"site", "sites"})
+
+_LITERAL_NUM_ATOM_RE = re.compile(
+    r"(?:\d{1,4}"
+    r"|(?:" + "|".join(sorted([re.escape(w) for w in _LITERAL_TENS], key=len, reverse=True)) + r")"
+    r"(?:-(?:" + "|".join(sorted([re.escape(w) for w in _LITERAL_ONES_1_9], key=len, reverse=True)) + r"))?"
+    r"|" + "|".join(
+        sorted([re.escape(w) for w in (_LITERAL_TENS + _LITERAL_ONES_1_20)], key=len, reverse=True)
+    ) + r"|(?:one\s+)?hundred)",
+    re.IGNORECASE,
+)
+_LITERAL_RANGE_SEP = {"to", "→", "->"}
+
+# Ordinal/label nouns: a number immediately AFTER one of these identifies
+# WHICH instance, not HOW MANY ("Criterion 4", "Phase 3", "Plan 01") —
+# direction-based, so "27 rows" (number-before-noun) is unaffected. Ported
+# from the baseline's own second tightening pass.
+_LITERAL_ORDINAL_ADJACENT_NOUNS = frozenset({
+    "criterion", "criteria", "phase", "check", "item", "arm", "row",
+    "plan", "leg", "id", "gate", "step",
+})
+_LITERAL_EXIT_CODE_PROSE_WORDS = frozenset({"exits", "exit"})
+# "Exit codes:" docstring blocks render as "    0  description" — a lone
+# leading digit 0/1/2 followed by 2+ spaces then prose; never a count.
+_LITERAL_EXIT_CODE_LINE_RE = re.compile(r"^\s*[012]\s{2,}\S")
+
+
+def _literal_tokenize(line: str) -> list[tuple[int, int, str]]:
+    return [(m.start(), m.end(), m.group()) for m in re.finditer(r"\S+", line)]
+
+
+def _literal_clean(raw: str) -> str:
+    return re.sub(r"^[^\w]+|[^\w]+$", "", raw)
+
+
+def _literal_is_num_atom(clean: str) -> bool:
+    if not clean:
+        return False
+    return bool(re.fullmatch(_LITERAL_NUM_ATOM_RE, clean))
+
+
+def _literal_is_noun(clean: str) -> bool:
+    return clean.lower() in _LITERAL_NOUNS
+
+
+def _scan_text_for_literal_hits(relpath: str, text: str) -> list[LiteralHit]:
+    """Detect count-noun-adjacent number literals (digit form, spelled-out
+    form, `up from N`, and two-token range forms), line-scoped — **disclosed
+    bound (1)**, inherited from `HEADLINE-LOCK`: a literal hard-wrapped
+    across two physical lines is invisible. Ports
+    `21-CONF13-BASELINE.md`'s `conf13_sweep.py::scan_text` verbatim,
+    including its two measurement-time tightening passes (the exit-code-line
+    exclusion, the ordinal/label-adjacency exclusion, and `§`-token
+    blanking) — these are DETECTION-time exclusions, not exemption classes:
+    they identify text that never made a count claim in the first place, so
+    they belong in the scanner (what counts as a candidate hit) rather than
+    in `LITERAL_EXEMPTION_CLASSES` (which permits a genuine count claim for a
+    named reason)."""
+    hits: list[LiteralHit] = []
+    lines = text.splitlines()
+    for lineno, line in enumerate(lines, start=1):
+        if _LITERAL_EXIT_CODE_LINE_RE.match(line):
+            continue
+        toks = _literal_tokenize(line)
+        cleaned = [_literal_clean(t[2]) for t in toks]
+        n = len(toks)
+        for _si in range(n):
+            if toks[_si][2].startswith("§"):
+                cleaned[_si] = ""
+
+        for i in range(n - 1):
+            if cleaned[i].lower() == "up" and i + 1 < n and cleaned[i + 1].lower() == "from":
+                if i + 2 < n and _literal_is_num_atom(cleaned[i + 2]):
+                    start = toks[i][0]
+                    end = toks[i + 2][1]
+                    hits.append(LiteralHit(relpath, lineno, line[start:end]))
+
+        i = 0
+        while i < n:
+            if not _literal_is_num_atom(cleaned[i]):
+                i += 1
+                continue
+            span_start_idx = i
+            span_end_idx = i
+            slash_m = re.fullmatch(r"(\d{1,4})/(\d{1,4})", cleaned[i])
+            if slash_m:
+                span_end_idx = i
+            elif i + 2 < n and cleaned[i + 1] in _LITERAL_RANGE_SEP and _literal_is_num_atom(cleaned[i + 2]):
+                span_end_idx = i + 2
+            elif cleaned[i].lower() == "one" and i + 1 < n and cleaned[i + 1].lower() == "hundred":
+                span_end_idx = i + 1
+
+            window_lo = max(0, span_start_idx - 3)
+            window_hi = min(n - 1, span_end_idx + 3)
+
+            if (
+                span_start_idx - 1 >= 0
+                and (
+                    cleaned[span_start_idx - 1].lower() in _LITERAL_ORDINAL_ADJACENT_NOUNS
+                    or cleaned[span_start_idx - 1].lower() in _LITERAL_EXIT_CODE_PROSE_WORDS
+                )
+            ):
+                i = span_end_idx + 1
+                continue
+
+            noun_idx = None
+            for j in range(window_lo, window_hi + 1):
+                if span_start_idx <= j <= span_end_idx:
+                    continue
+                if _literal_is_noun(cleaned[j]):
+                    noun_idx = j
+                    break
+                if (
+                    cleaned[j].lower() in _LITERAL_BIGRAM_NOUN_TAILS
+                    and j - 1 >= 0
+                    and cleaned[j - 1].lower() == _LITERAL_BIGRAM_NOUN_HEAD
+                ):
+                    noun_idx = j
+                    break
+
+            if noun_idx is not None:
+                lo_idx = min(span_start_idx, noun_idx)
+                hi_idx = max(span_end_idx, noun_idx)
+                start = toks[lo_idx][0]
+                end = toks[hi_idx][1]
+                hits.append(LiteralHit(relpath, lineno, line[start:end]))
+
+            i = span_end_idx + 1
+
+    return hits
+
+
+def _generated_marker_pairs_for(relpath: str) -> tuple[tuple[str, str], ...]:
+    """Which GENERATED-fence marker pairs apply to `relpath`, so the
+    generated-region discriminator (D-21-D: this scanner lives beside
+    `_replace_region`/D-06 precisely so it can reuse this) can tell a
+    hand-maintained literal from one inside a fence this same module already
+    regenerates. Reuses the existing marker constants — one implementation,
+    not a second (the action's own instruction)."""
+    if relpath == "CLAUDE.md":
+        return (CLAUDE_REGION_MARKERS,)
+    if relpath == "docs/ARCHITECTURE.md":
+        return (ARCHITECTURE_REGION_MARKERS,)
+    if relpath.startswith("docs/gates/") and relpath.endswith(".md"):
+        return _ALL_DETAIL_MARKER_PAIRS
+    return ()
+
+
+def _literal_hits_outside_generated(relpath: str, text: str) -> list[LiteralHit]:
+    """`_scan_text_for_literal_hits`, minus any hit whose line sits inside a
+    generated fence for this surface — a literal inside a generated fence is
+    not hand-maintained by definition (D-21-D)."""
+    all_hits = _scan_text_for_literal_hits(relpath, text)
+    marker_pairs = _generated_marker_pairs_for(relpath)
+    if not marker_pairs:
+        return all_hits
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, marker_pairs)
+    return [h for h in all_hits if not (1 <= h.line <= len(inside) and inside[h.line - 1])]
+
+
+# --- exemption taxonomy (21-CONF13-BASELINE.md § Exemption taxonomy) -------
+
+
+def _match_version_stamp_count(hit_text: str) -> bool:
+    return "version stamp" in hit_text.lower()
+
+
+def _match_retired_body_budget(hit_text: str) -> bool:
+    return "644" in hit_text
+
+
+def _match_plan_number_identifier(hit_text: str) -> bool:
+    if not re.search(r"\bplan \d{2}(-\d{2})?\b", hit_text, re.IGNORECASE):
+        return False
+    return not re.search(r"\b(more|added|split)\b", hit_text, re.IGNORECASE)
+
+
+_HEADLINE_ROW_DELTA_NUMBERS = ("192", "94", "286", "229", "214", "237", "252", "266")
+_HEADLINE_ROW_DELTA_RE = re.compile(
+    r"\b(?:" + "|".join(_HEADLINE_ROW_DELTA_NUMBERS) + r")\b.*\brows?\b"
+    r"|\brows?\b.*\b(?:" + "|".join(_HEADLINE_ROW_DELTA_NUMBERS) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _match_headline_provenance_delta(hit_text: str) -> bool:
+    return bool(_HEADLINE_ROW_DELTA_RE.search(hit_text))
+
+
+def _match_maxturns_60(hit_text: str) -> bool:
+    return bool(re.search(r"maxturns", hit_text, re.IGNORECASE)) and "60" in hit_text
+
+
+def _match_sha256_digest(hit_text: str) -> bool:
+    return bool(re.search(r"sha256", hit_text, re.IGNORECASE))
+
+
+def _match_commonmark_heading_depth(hit_text: str) -> bool:
+    return bool(re.search(r"hash", hit_text, re.IGNORECASE)) and bool(
+        re.search(r"\b1\b", hit_text) and re.search(r"\b6\b", hit_text)
+    )
+
+
+LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
+    LiteralExemptionClass(
+        "version-stamp-count",
+        "The 17 hand-maintained version stamps (VERSION-01's own invariant, "
+        "CLAUDE.md's Key invariants) are a legitimate, gate-enforced number — "
+        "not a CONF-13 branch count.",
+        _match_version_stamp_count,
+    ),
+    LiteralExemptionClass(
+        "headline-provenance-delta",
+        "HEADLINE-LOCK's own remit (scripts/check-traceability.py) — the "
+        "coverage-headline row-count's historical provenance narrative, "
+        "asserted live off build_matrix_rows(), not hand-transcribed.",
+        _match_headline_provenance_delta,
+    ),
+    LiteralExemptionClass(
+        "plan-number-identifier",
+        "A plan number ('Plan 04 Task 1') is an identifier — it names which "
+        "plan, not how many plans exist.",
+        _match_plan_number_identifier,
+    ),
+    LiteralExemptionClass(
+        "retired-body-budget",
+        "The retired 644-line agent-body budget (TEARDOWN-01) — explicitly "
+        "named in the exempt list.",
+        _match_retired_body_budget,
+    ),
+    LiteralExemptionClass(
+        "maxturns-60-value",
+        "GATE-01's pinned maxTurns value (60) is a gate-enforced structural "
+        "invariant, not a hand-maintained branch count.",
+        _match_maxturns_60,
+    ),
+    LiteralExemptionClass(
+        "sha256-digest",
+        "A CONTRACT-06 sha256 digest names a pinned function body's hash, "
+        "not a count.",
+        _match_sha256_digest,
+    ),
+    LiteralExemptionClass(
+        "commonmark-heading-depth",
+        "CommonMark's 1-6 ATX-heading-depth range is a language-spec fact, "
+        "not a hand-maintained branch count.",
+        _match_commonmark_heading_depth,
+    ),
+)
+
+
+def _literal_hit_exemption(hit: LiteralHit) -> str | None:
+    for cls in LITERAL_EXEMPTION_CLASSES:
+        if cls.matches(hit.text):
+            return cls.name
+    return None
+
+
+# --- surface set (D-21-E) --------------------------------------------------
+
+
+def _py_docstring_scan_scripts() -> tuple[str, ...]:
+    """The `.py` module-docstring surfaces: every script-backed,
+    non-anticipatory registry entry's script relpath, derived from
+    `_gate_registry.ENTRIES` itself via the already-existing
+    `_expected_harvest_scripts()` — never a second hand-typed list. This is
+    what closes `21-CONF13-BASELINE.md`'s own disclosed hand-transcription
+    bound ("plan 21-09's standing scanner is expected to derive this set
+    programmatically... rather than hand-list it a second time")."""
+    return tuple(sorted(_expected_harvest_scripts()))
+
+
+LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
+    "CLAUDE.md",                  # the densest single hand-maintained surface (D-21-E)
+    "docs/ARCHITECTURE.md",       # the CI-gate-table twin surface (D-02)
+    "docs/TESTING.md",            # per-gate narrative, largely folded under D-21-F
+    "docs/MEASUREMENT-MAP.md",    # layer-map prose citing gate/branch counts
+    "docs/COMPONENT-DIAGRAM.md",  # architecture-diagram prose citing gate counts
+    "docs/DATA-FLOW.md",          # data-flow prose citing gate counts
+    "docs/README.md",             # changelog-style narrative, historically the noisiest doc
+    "docs/gates/*.md",            # the 28 generated detail pages (thin + narrative)
+)
+
+# The full D-21-E scanned surface set: the Markdown globs above, plus every
+# script-backed registry entry's module docstring, derived (not re-typed).
+LITERAL_SCAN_SURFACES: tuple[str, ...] = LITERAL_SCAN_MD_GLOBS + _py_docstring_scan_scripts()
+
+
+class LiteralScanRead(NamedTuple):
+    """Everything one `run_literal_scan()` call actually did: the set of
+    relpaths it really opened (`read_relpaths` — never a glob-derived
+    substitute), the hits it found, and a named INFO line for every
+    registered candidate it declined to open. Mirrors
+    `check-traceability.py`'s `HEADLINE-LOCK` read-record shape."""
+
+    read_relpaths: frozenset[str]
+    hits: tuple[LiteralHit, ...]
+    declined: tuple[str, ...]
+
+
+def run_literal_scan(surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES) -> LiteralScanRead:
+    """The read loop: open every surface in `surfaces`, scan it for
+    candidate literal hits (outside any generated fence), and record which
+    relpaths were actually opened. Every candidate the loop declines to
+    open — a missing script, a glob matching zero files — is a named INFO
+    line, never a silent skip (the property `HEADLINE-LOCK` states for its
+    own scan)."""
+    read_relpaths: set[str] = set()
+    hits: list[LiteralHit] = []
+    declined: list[str] = []
+    for surface in surfaces:
+        if surface.endswith(".py"):
+            p = REPO_ROOT / surface
+            if not p.is_file():
+                declined.append(f"INFO: literal-scan declined to open {surface!r} (script not found)")
+                continue
+            try:
+                src = p.read_text(encoding="utf-8")
+                doc = ast.get_docstring(ast.parse(src, filename=str(p)))
+            except (OSError, SyntaxError) as exc:
+                declined.append(f"INFO: literal-scan declined to open {surface!r} ({exc!r})")
+                continue
+            read_relpaths.add(surface)
+            if doc:
+                hits.extend(_literal_hits_outside_generated(f"{surface}#__doc__", doc))
+            continue
+        if "*" in surface:
+            matched = sorted(REPO_ROOT.glob(surface))
+            if not matched:
+                declined.append(f"INFO: literal-scan glob {surface!r} matched zero files")
+            for p in matched:
+                if not p.is_file():
+                    continue
+                rel = p.relative_to(REPO_ROOT).as_posix()
+                text = p.read_text(encoding="utf-8")
+                read_relpaths.add(rel)
+                hits.extend(_literal_hits_outside_generated(rel, text))
+            continue
+        p = REPO_ROOT / surface
+        if not p.is_file():
+            declined.append(f"INFO: literal-scan declined to open {surface!r} (not found)")
+            continue
+        text = p.read_text(encoding="utf-8")
+        read_relpaths.add(surface)
+        hits.extend(_literal_hits_outside_generated(surface, text))
+    return LiteralScanRead(
+        read_relpaths=frozenset(read_relpaths), hits=tuple(hits), declined=tuple(declined)
+    )
+
+
+def literal_scan_coverage_floor_problems(
+    read: LiteralScanRead, surfaces: tuple[str, ...] = LITERAL_SCAN_SURFACES
+) -> list[str]:
+    """Every non-glob entry in `surfaces` must have really been opened —
+    i.e. present in `read.read_relpaths`. Takes the `LiteralScanRead` record
+    itself as its first parameter (asserted by `_control_scan_coverage_floor_signature_locked`),
+    never a glob-derived `set[str]`, so a glob-derived substitute is
+    unexpressible at this call site — the `HEADLINE-LOCK` block (m)
+    discipline: the floor cannot be forged by handing it a set built
+    independently of what the read loop actually opened."""
+    problems: list[str] = []
+    for surface in surfaces:
+        if "*" in surface:
+            continue
+        if surface not in read.read_relpaths:
+            problems.append(
+                f"literal-scan-coverage: registered surface {surface!r} was never opened "
+                "(see the matching INFO line for why)"
+            )
+    return problems
+
+
+def literal_scan_problems(read: LiteralScanRead) -> list[str]:
+    """One named finding per non-exempt hit, in CONF-13's own wording. A hit
+    matching an exemption class is permitted and attributed by name
+    (`literal_scan_attributions`); a hit matching none is a finding, never a
+    silent pass (T-21-09-02: this is what keeps a catch-all exemption from
+    making the whole scanner vacuous)."""
+    problems: list[str] = []
+    for hit in read.hits:
+        if _literal_hit_exemption(hit) is not None:
+            continue
+        problems.append(
+            f"{hit.relpath}:{hit.line}: hand-maintained count literal '{hit.text}' "
+            "(no exemption class matches)"
+        )
+    return problems
+
+
+def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
+    """Diagnostic companion to `literal_scan_problems`: one line per
+    EXEMPT hit, naming the class it was attributed to — so a permitted hit
+    is never silent about why it was permitted."""
+    lines: list[str] = []
+    for hit in read.hits:
+        cls_name = _literal_hit_exemption(hit)
+        if cls_name is not None:
+            lines.append(f"{hit.relpath}:{hit.line}: exempt ({cls_name}): '{hit.text}'")
+    return lines
+
+
+# ---------------------------------------------------------------------------
 # generate_all() — the single compute+render entry point (D-21-B interface).
 # Called ONCE per --write, TWICE per --check (idempotency), following
 # report-conformance.py:2636-2646's "cannot disagree with each other"
@@ -960,10 +1426,13 @@ def detail_page_containment_problems(
 
 
 def generate_all() -> dict[Path, str]:
-    non_anticipatory = [
-        e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS
-    ]
-    by_script, _harvest_problems = harvest(non_anticipatory)
+    # Harvest EVERY script-backed entry, including the anticipatory
+    # CONF-SURFACE (D-21-C/D-21-K): `_ANTICIPATORY_KEYS` excludes it from the
+    # D-01 battery-id floor and the live table row count (it is not yet
+    # battery/CI-registered), never from actually running its own
+    # `--describe` — `gen-gate-docs.py` exists now, so its own detail page
+    # needs the same real, harvested facts every other gate's page gets.
+    by_script, _harvest_problems = harvest(_gate_registry.ENTRIES)
 
     rows = _gate_table_rows(_gate_registry.ENTRIES, by_script)
     targets: dict[Path, str] = {}
@@ -1158,10 +1627,10 @@ def cmd_check() -> int:
                 sys.stderr.write(f"  differs: {rel}\n")
         return 2
 
-    non_anticipatory = [
-        e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS
-    ]
-    by_script, harvest_problems = harvest(non_anticipatory)
+    # See generate_all()'s matching comment: harvest EVERY script-backed
+    # entry, including the anticipatory CONF-SURFACE, so its own detail
+    # page's Facts fence gets real `--describe`-derived counts.
+    by_script, harvest_problems = harvest(_gate_registry.ENTRIES)
     battery_text = BATTERY_PATH.read_text(encoding="utf-8")
     registry_ids = _gate_registry._registry_entry_ids()
     battery_ids = frozenset(_gate_registry.battery_gate_ids(battery_text))
@@ -1182,7 +1651,11 @@ def cmd_check() -> int:
     )
 
     expected_scripts = _expected_harvest_scripts()
-    print(f"harvested {len(by_script)}/{len(expected_scripts)} script-backed entries")
+    harvested_expected = len(set(by_script) & expected_scripts)
+    print(
+        f"harvested {harvested_expected}/{len(expected_scripts)} expected script-backed "
+        f"entries ({len(by_script)} total, including the anticipatory CONF-SURFACE)"
+    )
     missing_scripts = expected_scripts - set(by_script)
     if missing_scripts:
         problems.append(
@@ -1209,6 +1682,19 @@ def cmd_check() -> int:
             problems += detail_page_containment_problems(
                 str(rel), generated, check_spelled_out=check_spelled_out
             )
+
+    # CONF-13: the standing hand-maintained count-literal scanner, run over
+    # the real on-disk D-21-E surface set (not `pass1`'s in-memory content —
+    # this scanner protects the actual repo state, the same target
+    # HEADLINE-LOCK's own live leg reads).
+    literal_read = run_literal_scan()
+    for info_line in literal_read.declined:
+        print(info_line)
+    problems += literal_scan_coverage_floor_problems(literal_read)
+    literal_findings = literal_scan_problems(literal_read)
+    if literal_findings:
+        print(f"literal-scan: {len(literal_findings)} non-exempt hit(s) found")
+    problems += literal_findings
 
     if problems:
         for p in problems:
@@ -1238,11 +1724,42 @@ def cmd_check() -> int:
     return 0
 
 
+# Short, stable identifiers naming CONF-13's own disclosed bounds (D-21-E's
+# `disclosed_bounds_anchors` shape) — so `docs/gates/CONF-SURFACE.md` can
+# enumerate them from a derived list rather than restating their prose a
+# second time. Order matches the numbered list in the plan's own action and
+# in the page's narrative below.
+LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
+    "line-scoped-detection",
+    "currency-not-correctness",
+    "closed-spelled-out-vocabulary",
+    "py-docstrings-only",
+)
+
+
 def describe() -> dict:
     """CONF-SURFACE's own self-description (D-21-C: "a generator that cannot
     describe itself would be the first exception to D-08's uniformity in
-    the same phase that establishes it"). Pure — reads only this module's
-    own constants."""
+    the same phase that establishes it"). Runs the real literal scan (a
+    read-only operation over the live tree) so the emitted counts are
+    genuinely `--describe`-derived, matching every other gate's own
+    `derived_counts`/`checked_files` discipline, rather than pure module
+    constants alone."""
+    literal_read = run_literal_scan()
+    exempt_counts: dict[str, int] = {cls.name: 0 for cls in LITERAL_EXEMPTION_CLASSES}
+    for hit in literal_read.hits:
+        cls_name = _literal_hit_exemption(hit)
+        if cls_name is not None:
+            exempt_counts[cls_name] += 1
+    non_exempt_count = len(literal_scan_problems(literal_read))
+    derived_counts = {
+        "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
+        "literal_scan_read_files": len(literal_read.read_relpaths),
+        "literal_scan_hits": len(literal_read.hits),
+        "literal_scan_non_exempt": non_exempt_count,
+    }
+    for cls_name, count in exempt_counts.items():
+        derived_counts[f"literal_scan_exempt_{cls_name}"] = count
     return {
         "control_ids": sorted(_CONTROL_IDS),
         "control_count": len(_CONTROL_IDS),
@@ -1250,6 +1767,10 @@ def describe() -> dict:
             "generated_marker": GENERATED_MARKER,
             "generated_end_marker": GENERATED_END_MARKER,
         },
+        "registered_surfaces": sorted(LITERAL_SCAN_SURFACES),
+        "checked_files": sorted(literal_read.read_relpaths),
+        "derived_counts": derived_counts,
+        "disclosed_bounds_anchors": list(LITERAL_SCAN_DISCLOSED_BOUNDS),
     }
 
 
@@ -1350,9 +1871,24 @@ def _control_check_dispatch_wired() -> None:
     from the pre-existing hand-maintained text. Both assertions describe
     the SAME invariant (`--check`'s rc reflects genuine drift against
     whatever is actually on disk) at two different, correctly-identified
-    points in the migration; this is not a weakening of the control."""
-    rc = main(["--check"])
-    assert rc == 0, f"main(['--check']) returned {rc}, expected 0 (no drift) against the live tree"
+    points in the migration; this is not a weakening of the control.
+
+    Plan 21-09 (CONF-13) adds a third legitimate reason for rc == 1: a
+    residual, named literal-scan finding (never drift). This control
+    asserts on the reason (no `DRIFT:` line ever; a `literal-scan:` line iff
+    rc == 1), matching `_control_page_check_dispatch_wired`'s own widening
+    below, so it stays correct on either side of plan 21-10's remediation."""
+    stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        rc = main(["--check"])
+    stdout_text, stderr_text = stdout_buf.getvalue(), stderr_buf.getvalue()
+    assert "DRIFT:" not in stderr_text, stderr_text
+    assert rc in (0, 1), f"main(['--check']) returned {rc}, expected 0 or 1 against the live tree"
+    if rc == 1:
+        assert "literal-scan:" in stdout_text, (
+            "expected the exit-1 to be the CONF-13 residual, not drift/floor "
+            "problems: " + stdout_text + stderr_text
+        )
 
 
 def _control_nondeterminism_exit_2() -> None:
@@ -1786,14 +2322,191 @@ def _control_page_check_dispatch_wired() -> None:
     opposite way — rc == 1, because the pages did not exist yet. Both
     readings describe the SAME invariant (`--check`'s rc tracks genuine
     drift against whatever is really on disk) at the two different points
-    in the migration where this control was exercised."""
+    in the migration where this control was exercised.
+
+    Plan 21-09 (CONF-13) wires a THIRD source of `--check` failure: the
+    standing literal-count scanner. The live tree still carries the
+    baseline's residual scanner-target hits at this plan's own completion
+    (plan 21-10's job to close), so `main(["--check"])` may legitimately
+    return 1 for that reason alone — never for drift. This control asserts
+    the REASON, not just the exit code, so it stays correct on either side
+    of plan 21-10's remediation: zero `DRIFT:` lines always, and a
+    `literal-scan:` line present if and only if the exit code is 1."""
     targets = generate_all()
     assert len(targets) == len(_gate_registry.ENTRIES) + 2, len(targets)
     for path in targets:
         if DETAIL_PAGE_DIR in path.parents:
             assert path.exists(), f"{path} unexpectedly missing from disk"
-    rc = main(["--check"])
-    assert rc == 0, f"main(['--check']) returned {rc}, expected 0 (no drift: pages exist and match)"
+    stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+        rc = main(["--check"])
+    stdout_text, stderr_text = stdout_buf.getvalue(), stderr_buf.getvalue()
+    assert "DRIFT:" not in stderr_text, stderr_text
+    assert rc in (0, 1), f"main(['--check']) returned {rc}, expected 0 or 1"
+    if rc == 0:
+        assert "literal-scan:" not in stdout_text, stdout_text
+    else:
+        assert "literal-scan:" in stdout_text, (
+            "expected the exit-1 to be the CONF-13 residual, not drift/floor "
+            "problems: " + stdout_text + stderr_text
+        )
+
+
+# ---------------------------------------------------------------------------
+# Task 1 controls: the CONF-13 standing literal scanner
+# ---------------------------------------------------------------------------
+
+
+def _control_scan_hit_outside_fence_fires() -> None:
+    text = "There are 47 controls in this fixture.\n"
+    hits = tuple(_literal_hits_outside_generated("fixture.md", text))
+    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=hits, declined=())
+    problems = literal_scan_problems(read)
+    assert len(problems) == 1, problems
+    assert "fixture.md:1" in problems[0], problems
+    assert "47" in problems[0], problems
+
+
+def _control_scan_hit_inside_fence_passes() -> None:
+    text = (
+        f"{CLAUDE_REGION_MARKERS[0]}\n"
+        "There are 47 controls in this fixture.\n"
+        f"{CLAUDE_REGION_MARKERS[1]}\n"
+    )
+    hits = _literal_hits_outside_generated("CLAUDE.md", text)
+    assert hits == [], hits
+
+
+def _control_scan_exempt_class_attributed() -> None:
+    text = "There are 17 version stamps tracked here.\n"
+    hits = _literal_hits_outside_generated("fixture.md", text)
+    assert len(hits) == 1, hits
+    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+    assert literal_scan_problems(read) == [], literal_scan_problems(read)
+    attrs = literal_scan_attributions(read)
+    assert len(attrs) == 1, attrs
+    assert "version-stamp-count" in attrs[0], attrs
+
+
+def _control_scan_unattributable_permit_fires() -> None:
+    """A hit matching NO exemption class must still fire as a finding — this
+    is what prevents a silent catch-all permit (T-21-09-02)."""
+    text = "There are 9 branches in this fixture.\n"
+    hits = _literal_hits_outside_generated("fixture.md", text)
+    assert len(hits) == 1, hits
+    for h in hits:
+        assert _literal_hit_exemption(h) is None, h
+    read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+    problems = literal_scan_problems(read)
+    assert len(problems) == 1, problems
+
+
+def _control_scan_spelled_out_detected() -> None:
+    text = "forty-seven controls were measured.\n"
+    hits = _literal_hits_outside_generated("fixture.md", text)
+    assert len(hits) == 1, hits
+    assert "forty-seven" in hits[0].text.lower(), hits
+
+
+def _control_scan_docstring_only() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        p = Path(tmp) / "fixture_mod.py"
+        p.write_text(
+            '"""There are 9 branches documented here."""\n'
+            "# there are 9 branches in this comment, never scanned\n"
+            "x = 1  # there are 9 branches in this comment either\n",
+            encoding="utf-8",
+        )
+        # `run_literal_scan` joins `REPO_ROOT / surface`; pathlib discards
+        # the left operand when the right one is already absolute, so an
+        # absolute scratch path drives the real read loop unmodified.
+        read = run_literal_scan(surfaces=(str(p),))
+        assert str(p) in read.read_relpaths, read.read_relpaths
+        assert len(read.hits) == 1, read.hits
+        assert read.hits[0].relpath == f"{p}#__doc__", read.hits
+
+
+def _control_scan_coverage_floor_fires() -> None:
+    with tempfile.TemporaryDirectory() as tmp:
+        missing_script = str(Path(tmp) / "does_not_exist.py")
+        read = run_literal_scan(surfaces=(missing_script,))
+        assert read.declined, "expected a declined INFO line for a missing script"
+        assert any(missing_script in line for line in read.declined), read.declined
+        problems = literal_scan_coverage_floor_problems(read, surfaces=(missing_script,))
+        assert len(problems) == 1, problems
+        assert missing_script in problems[0], problems
+
+
+def _control_scan_glob_narrowing_fires() -> None:
+    """The `HEADLINE-LOCK` block (l) property: narrowing the registered
+    surface set fails, naming the surface it can no longer reach — driven
+    through the REAL read loop and the REAL floor, not a hand-built
+    simulation."""
+    narrowed = tuple(s for s in LITERAL_SCAN_SURFACES if s != "CLAUDE.md")
+    read = run_literal_scan(surfaces=narrowed)
+    assert "CLAUDE.md" not in read.read_relpaths, read.read_relpaths
+    problems = literal_scan_coverage_floor_problems(read, surfaces=LITERAL_SCAN_SURFACES)
+    assert any("CLAUDE.md" in p for p in problems), problems
+
+
+def _control_scan_coverage_floor_signature_locked() -> None:
+    """`HEADLINE-LOCK` block (m)'s own discipline: the floor helper's first
+    parameter is the read record itself, never a glob-derived `set[str]` — a
+    glob-derived substitute is unexpressible at the call site."""
+    sig = inspect.signature(literal_scan_coverage_floor_problems)
+    params = list(sig.parameters.values())
+    assert params[0].name == "read", params
+    annotation = params[0].annotation
+    assert annotation in (LiteralScanRead, "LiteralScanRead"), annotation
+
+
+def _control_scan_neutralization_arms() -> None:
+    """Anti-vacuity by neutralization, three arms, each restored to its
+    ORIGINAL function after being probed. Each is proven to break exactly
+    the isolation arm the acceptance criteria name — not merely "some
+    control somewhere fails"."""
+
+    # Arm 1: disable the generated-region discriminator.
+    original_fence = _this_module._generated_marker_pairs_for
+    _this_module._generated_marker_pairs_for = lambda relpath: ()
+    try:
+        failed = False
+        try:
+            _control_scan_hit_inside_fence_passes()
+        except AssertionError:
+            failed = True
+        assert failed, "neutralizing the fence discriminator did not break scan-hit-inside-fence-passes"
+    finally:
+        _this_module._generated_marker_pairs_for = original_fence
+
+    # Arm 2: disable spelled-out normalisation (digit atoms only).
+    original_num_atom = _this_module._literal_is_num_atom
+    _digit_only_re = re.compile(r"\d{1,4}")
+    _this_module._literal_is_num_atom = (
+        lambda clean: bool(clean) and bool(re.fullmatch(_digit_only_re, clean))
+    )
+    try:
+        failed = False
+        try:
+            _control_scan_spelled_out_detected()
+        except AssertionError:
+            failed = True
+        assert failed, "neutralizing spelled-out matching did not break scan-spelled-out-detected"
+    finally:
+        _this_module._literal_is_num_atom = original_num_atom
+
+    # Arm 3: unconditional permit — every hit exempt, no class named.
+    original_exemption = _this_module._literal_hit_exemption
+    _this_module._literal_hit_exemption = lambda hit: "unconditional-permit"
+    try:
+        failed = False
+        try:
+            _control_scan_unattributable_permit_fires()
+        except AssertionError:
+            failed = True
+        assert failed, "an unconditional permit did not break scan-unattributable-permit-fires"
+    finally:
+        _this_module._literal_hit_exemption = original_exemption
 
 
 _CONTROLS: tuple[tuple[str, object], ...] = (
@@ -1836,6 +2549,16 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
+    ("scan-hit-outside-fence-fires", _control_scan_hit_outside_fence_fires),
+    ("scan-hit-inside-fence-passes", _control_scan_hit_inside_fence_passes),
+    ("scan-exempt-class-attributed", _control_scan_exempt_class_attributed),
+    ("scan-unattributable-permit-fires", _control_scan_unattributable_permit_fires),
+    ("scan-spelled-out-detected", _control_scan_spelled_out_detected),
+    ("scan-docstring-only", _control_scan_docstring_only),
+    ("scan-coverage-floor-fires", _control_scan_coverage_floor_fires),
+    ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
+    ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
+    ("scan-neutralization-arms", _control_scan_neutralization_arms),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -1881,6 +2604,16 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
     "check-reports-full-drift-count",
+    "scan-hit-outside-fence-fires",
+    "scan-hit-inside-fence-passes",
+    "scan-exempt-class-attributed",
+    "scan-unattributable-permit-fires",
+    "scan-spelled-out-detected",
+    "scan-docstring-only",
+    "scan-coverage-floor-fires",
+    "scan-glob-narrowing-fires",
+    "scan-coverage-floor-signature-locked",
+    "scan-neutralization-arms",
 )
 
 
