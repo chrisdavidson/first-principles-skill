@@ -4658,6 +4658,29 @@ def _control_live_call_form_lock_rewritten() -> None:
     assert any("CALL-FORM LOCK: _live_roster_problems" in p for p in problems), problems
 
 
+def _control_live_call_sites_roster_lock_positive() -> None:
+    """CR-02 (20-REVIEW): the POSITIVE arm, mirroring
+    `_control_corpus_call_sites_roster_lock_positive`. Without it nothing ever called
+    `_live_call_sites_roster_problems()` with its real defaults, so the real triple
+    `_LIVE_CALL_SITES` / `_LIVE_CALL_FORMS` / `_LIVE_CALL_SITES_LOCK` was never asserted
+    to agree with itself -- and deleting an entire enforcement floor (its two census
+    entries plus its `cmd_check()` call) left `--self-test` at 90/90 PASS and `--check`
+    at PASS. Measured, not reasoned: the corpus copy of the identical mechanism caught
+    the identical mutation by name."""
+    problems = _live_call_sites_roster_problems()
+    assert problems == [], problems
+
+
+def _control_live_call_sites_roster_lock_forms_narrowed() -> None:
+    """CR-02: both negative arms passed `call_sites=` overrides only, so
+    `_live_call_sites_roster_problems`' `forms_diff` branch was dead in every control.
+    This arm narrows `call_forms` instead, making that branch falsifiable."""
+    narrowed_forms = dict(_LIVE_CALL_FORMS)
+    del narrowed_forms["_live_disposition_problems"]
+    problems = _live_call_sites_roster_problems(call_forms=narrowed_forms)
+    assert any("_LIVE_CALL_FORMS diverges" in p for p in problems), problems
+
+
 def _control_live_call_sites_roster_lock_narrowed() -> None:
     narrowed_sites = dict(_LIVE_CALL_SITES)
     del narrowed_sites["_live_population_problems"]
@@ -4879,6 +4902,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("live-call-site-census-commented", _control_live_call_site_census_commented),
     ("live-call-form-lock-rewritten", _control_live_call_form_lock_rewritten),
     (
+        "live-call-sites-roster-lock-positive",
+        _control_live_call_sites_roster_lock_positive,
+    ),
+    (
+        "live-call-sites-roster-lock-forms-narrowed",
+        _control_live_call_sites_roster_lock_forms_narrowed,
+    ),
+    (
         "live-call-sites-roster-lock-narrowed",
         _control_live_call_sites_roster_lock_narrowed,
     ),
@@ -4984,6 +5015,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-call-site-census-missing",
     "live-call-site-census-commented",
     "live-call-form-lock-rewritten",
+    "live-call-sites-roster-lock-positive",
+    "live-call-sites-roster-lock-forms-narrowed",
     "live-call-sites-roster-lock-narrowed",
     "live-call-sites-roster-lock-wrong-count",
 )
