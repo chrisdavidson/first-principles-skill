@@ -4227,14 +4227,42 @@ def _control_live_headline_counts_by_predicate() -> None:
 
 
 def _control_live_headline_not_in_compute_headline() -> None:
+    """WR-01 (20-REVIEW): the exclusion invariant, asserted against the keys
+    `compute_headline` actually returns.
+
+    The arm this replaces read `headline.get("by_surface", {})`. `by_surface` is a
+    LOCAL variable inside `compute_headline`, never an output key, so the `.get`
+    default reduced that assertion to `"live-conformance" not in {}` -- the `x != x`
+    shape this codebase documents as a recurring defect class, sitting inside a
+    control whose entire job is to prove exclusion.
+
+    The replacement derives the per-surface keys from the returned object rather than
+    naming two of them, so a per-surface key added later is covered without editing
+    this control, and floors each one's surface set so the exclusion is checked
+    against populated dicts rather than empty ones.
+    """
     live_row = _synthetic_row(
         "live-conformance", "a.md", "a", outcome="completed", clean=True, disposition="MISSING"
     )
     other_rows = _synthetic_rows_for_render()
     headline = compute_headline(other_rows + [live_row])
-    assert "live-conformance" not in headline.get("by_surface", {}), headline
-    assert "live-conformance" not in headline["unreadable"], headline["unreadable"]
-    assert "live-conformance" not in headline["conclusion_claims"], headline["conclusion_claims"]
+
+    # Shape sentinel: `by_surface` must stay a local. If it ever becomes an output key
+    # this control is revisited deliberately, rather than silently keeping a `.get`
+    # default alive again.
+    assert "by_surface" not in headline, headline
+
+    per_surface_keys = sorted(k for k, v in headline.items() if isinstance(v, dict))
+    assert per_surface_keys, headline
+    for key in per_surface_keys:
+        # NON-VACUITY: each per-surface dict is keyed by the three aggregated surfaces,
+        # so the exclusion below is a real absence, not an absence from `{}`.
+        assert set(headline[key]) == {
+            "shared-examples",
+            "generated-twin",
+            "contract-surface",
+        }, (key, headline[key])
+        assert "live-conformance" not in headline[key], (key, headline[key])
 
 
 def _synthetic_live_row(relpath: str, analysis_id: str, **overrides) -> dict:
