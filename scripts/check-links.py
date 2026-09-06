@@ -90,6 +90,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import json
 import os
 import re
 import sys
@@ -559,6 +560,24 @@ def _check_file(
             )
 
 
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description backing VAL-03.
+
+    Reads module-level constants only — no disk I/O, no argv, no subprocess.
+    """
+    return {
+        "scan_globs": {
+            "full_check": list(FULL_CHECK_GLOBS),
+            "namespace_only": list(NAMESPACE_ONLY_GLOBS),
+            "docs_check": list(DOCS_CHECK_GLOBS),
+        },
+        "locked_constants": {
+            "plugin_root_token": PLUGIN_ROOT_TOKEN,
+            "plugin_root_token_target": PLUGIN_ROOT_TOKEN_TARGET,
+        },
+    }
+
+
 def _run_self_test() -> int:
     """Self-test (v8.5 GATE-01, D-03/D-04): prove the two newly-extended VAL-03
     scan surfaces are load-bearing on a synthetic fixture, independent of the
@@ -846,6 +865,24 @@ def _run_self_test() -> int:
             f"{resolved_miss} — broken agent-body links would go unreported"
         )
 
+    # --- describe() consistency (Phase 21, D-03): mutate a copy of
+    # FULL_CHECK_GLOBS and confirm the emitted scan_globs.full_check moves
+    # with it — proving the field is a real derivation, not a hand-typed
+    # literal in disguise.
+    _this_module = sys.modules[__name__]
+    _orig_full_check = _this_module.FULL_CHECK_GLOBS
+    try:
+        before = describe()["scan_globs"]["full_check"]
+        _this_module.FULL_CHECK_GLOBS = list(_orig_full_check) + ["fixture/*.md"]
+        after = describe()["scan_globs"]["full_check"]
+        if after != before + ["fixture/*.md"]:
+            wrong.append(
+                "describe() consistency: scan_globs.full_check did not move "
+                f"with FULL_CHECK_GLOBS (before={before}, after={after})"
+            )
+    finally:
+        _this_module.FULL_CHECK_GLOBS = _orig_full_check
+
     if wrong:
         sys.stderr.write("check-links --self-test: FAIL\n")
         for w in wrong:
@@ -902,12 +939,21 @@ def main(argv: list[str] | None = None, root: Path = REPO_ROOT) -> int:
             "load-bearing on a synthetic fixture tree"
         ),
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this script's self-description as a flat JSON blob on stdout (Phase 21).",
+    )
     args = parser.parse_args(argv)
 
     _require_python_version()
 
     if args.self_test:
         return _run_self_test()
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     _require_pyyaml()
 

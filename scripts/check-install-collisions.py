@@ -30,6 +30,7 @@ The live scan auto-activates if the monolith form is ever populated.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import tempfile
@@ -152,6 +153,23 @@ def _write_surface(
     )
 
 
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description backing
+    COLLIDE-01.
+
+    Reads module-level constants only — no disk I/O (whether MONOLITH_DIR
+    currently exists on disk is a live-tree fact this blob deliberately does
+    not check), no argv, no subprocess. `disclosed_bounds_anchors` names the
+    vacuous-when-absent bound by identifier rather than restating its prose.
+    """
+    return {
+        "registered_surfaces": sorted(
+            str(p.relative_to(REPO_ROOT)) for p in (PLUGIN_DIR, MONOLITH_DIR)
+        ),
+        "disclosed_bounds_anchors": ["vacuous-when-monolith-absent"],
+    }
+
+
 def _run_self_test() -> None:
     """Negative proof (D-04): inject a known-colliding name-pair into the
     production _find_collisions() helper and assert the scanner flags it.
@@ -240,10 +258,32 @@ def _run_self_test() -> None:
             )
             sys.exit(1)
 
+    # describe() consistency control (Phase 21, D-03): mutate a copy of
+    # PLUGIN_DIR and confirm describe()'s emitted registered_surfaces moves
+    # with it — proving the field is a real derivation, not a hand-typed
+    # literal in disguise.
+    module = sys.modules[__name__]
+    original_plugin_dir = module.PLUGIN_DIR
+    try:
+        before = describe()["registered_surfaces"]
+        module.PLUGIN_DIR = REPO_ROOT / "fixture-plugin-dir"
+        after = describe()["registered_surfaces"]
+        if "fixture-plugin-dir" not in after or before == after:
+            sys.stderr.write(
+                "check-install-collisions --self-test: FAIL — describe()'s "
+                f"registered_surfaces did not move with PLUGIN_DIR "
+                f"(before={before}, after mutation={after})\n"
+            )
+            sys.exit(1)
+    finally:
+        module.PLUGIN_DIR = original_plugin_dir
+
     print(
         f"check-install-collisions --self-test: PASS "
         f"(fixture collision detected: {sorted(collisions)[0]!r}; "
-        f"disjoint pair clean; collector fixture flagged 'shared-tool')"
+        f"disjoint pair clean; collector fixture flagged 'shared-tool'; "
+        f"describe() consistency control: registered_surfaces moved with "
+        f"PLUGIN_DIR)"
     )
     sys.exit(0)
 
@@ -263,12 +303,21 @@ def main() -> None:
             "detects the collision (negative proof, D-04)"
         ),
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this script's self-description as a flat JSON blob on stdout (Phase 21).",
+    )
     args = parser.parse_args()
 
     _require_python_version()
 
     if args.self_test:
         _run_self_test()
+        return
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
         return
 
     plugin_names = _collect_names(PLUGIN_DIR)

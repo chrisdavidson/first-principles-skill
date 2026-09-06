@@ -7,15 +7,18 @@
 
 Usage:
     python3 scripts/check-description-budget.py
+    python3 scripts/check-description-budget.py --self-test
+    python3 scripts/check-description-budget.py --describe
 
 Exit codes:
-    0  all skills within budget
-    1  total listing text exceeds 2000 chars
+    0  all skills within budget (or --self-test/--describe PASS)
+    1  total listing text exceeds 2000 chars (or --self-test FAIL)
     2  environment error (Python <3.12, PyYAML missing, malformed frontmatter)
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -23,6 +26,50 @@ from pathlib import Path
 # CAP is in characters (Python str length). Today's descriptions are ASCII;
 # char == byte. If non-ASCII enters, char count stays the right unit per D-19-8.
 CAP = 2000
+
+
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description backing VAL-05.
+
+    Reads the module-level constant only — no disk I/O, no argv, no
+    subprocess.
+    """
+    return {"locked_constants": {"cap": CAP}}
+
+
+def self_test() -> int:
+    """Phase 21 (D-21-A): describe()/CAP consistency control.
+
+    VAL-05 shipped with no --self-test before this plan (the gate has no
+    fixture-driven fault injection today — its only teeth are the live
+    total-vs-CAP comparison in main()). This is the FIRST self-test control
+    for this script: mutate a copy of CAP and confirm describe()'s emitted
+    value moves with it, proving the field is a real derivation rather than
+    a hand-typed literal in disguise.
+    """
+    import sys as _sys
+
+    module = _sys.modules[__name__]
+    original_cap = module.CAP
+    try:
+        before = describe()["locked_constants"]["cap"]
+        module.CAP = before + 1
+        after = describe()["locked_constants"]["cap"]
+        if after != before + 1:
+            sys.stderr.write(
+                "check-description-budget --self-test: FAIL — describe()'s "
+                f"cap did not move with CAP (before={before}, "
+                f"after mutation={after})\n"
+            )
+            return 1
+    finally:
+        module.CAP = original_cap
+
+    print(
+        f"check-description-budget --self-test: PASS — describe()'s "
+        f"locked_constants.cap moved {before} -> {after} with CAP"
+    )
+    return 0
 
 
 def _require_python_version() -> None:
@@ -49,6 +96,13 @@ def _require_pyyaml() -> None:
 
 
 def main() -> None:
+    if "--self-test" in sys.argv[1:]:
+        sys.exit(self_test())
+
+    if "--describe" in sys.argv[1:]:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
+
     _require_python_version()
     _require_pyyaml()
 

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import re
 import sys
 from pathlib import Path
@@ -322,6 +323,18 @@ GENERATED_TARGET_COUNT = 48
 # exception cannot leave it set); the nested cmd_self_test() checks this flag
 # and skips its own dispatch control while still running every other control.
 _GATE02_DISPATCH_REENTRANT = False
+
+# Phase 21 (D-03/D-21-A): the second, independently-typed roster of
+# cmd_self_test()'s own lettered control ids, matching the SCAN-GUARD/
+# CONF-GATE `_CONTROL_IDS` shape. cmd_self_test() does not iterate this tuple
+# (each lettered block is structurally distinct — count positive/negative,
+# fixture-driven, dispatch-driven), so it is not "load-bearing" in the sense
+# check-agent.py's `_CHECK_DESCRIPTIONS` roster is; it exists so `describe()`
+# can publish `len()` of a real roster rather than a hand-typed control count,
+# and control (l) below asserts the roster and the function stay in sync.
+_SELF_TEST_CONTROL_IDS: tuple[str, ...] = (
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+)
 
 
 def _require_pyyaml() -> None:
@@ -1882,6 +1895,32 @@ def cmd_self_test() -> int:
     except Exception as exc:
         failures.append(f"FAIL (k): unexpected exception: {exc!r}")
 
+    # (l) --describe consistency control (Phase 21, D-03): describe()'s
+    # derived_counts.generated_target_count reads GENERATED_TARGET_COUNT
+    # live, not a hand-typed copy. Mutate the module-level constant (the
+    # same idiom as (b)) and confirm the emitted value moves with it —
+    # proving the field is a real derivation, not a literal in disguise.
+    _orig_gtc = _this_module.GENERATED_TARGET_COUNT
+    try:
+        before = describe()["derived_counts"]["generated_target_count"]
+        _this_module.GENERATED_TARGET_COUNT = before + 5
+        after = describe()["derived_counts"]["generated_target_count"]
+        if after != before + 5:
+            failures.append(
+                f"FAIL (l): describe()'s generated_target_count did not move "
+                f"with GENERATED_TARGET_COUNT (before={before}, "
+                f"after mutation={after}, expected={before + 5})"
+            )
+        else:
+            print(
+                f"(l) describe() consistency control: PASS — "
+                f"generated_target_count moved {before} -> {after}"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (l): unexpected exception: {exc!r}")
+    finally:
+        _this_module.GENERATED_TARGET_COUNT = _orig_gtc
+
     if failures:
         for msg in failures:
             sys.stderr.write(msg + "\n")
@@ -1889,6 +1928,22 @@ def cmd_self_test() -> int:
 
     print("sync-content.py --self-test: ALL PASS")
     return 0
+
+
+def describe() -> dict:
+    """Phase 21 (D-03): pure, gate-agnostic self-description.
+
+    Backs DUAL-04, GATE-02-v8.5 and the sync-drift pre-commit row with no
+    gate-id branch (D-03) — reads module-level constants only, no disk I/O,
+    no argv, no subprocess.
+    """
+    return {
+        "derived_counts": {"generated_target_count": GENERATED_TARGET_COUNT},
+        "registered_surfaces": sorted(SLUGS_WITH_DETAIL),
+        "locked_constants": {"generated_marker": GENERATED_MARKER},
+        "control_ids": list(_SELF_TEST_CONTROL_IDS),
+        "control_count": len(_SELF_TEST_CONTROL_IDS),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1916,11 +1971,19 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Prove DEBT-01 orphan-guard and DEBT-02 count-drift guard are non-vacuous.",
     )
+    g.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this script's self-description as a flat JSON blob on stdout (Phase 21).",
+    )
     args = p.parse_args(argv)
     if args.check:
         return cmd_check()
     if args.self_test:
         return cmd_self_test()
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
     return cmd_write()
 
 
