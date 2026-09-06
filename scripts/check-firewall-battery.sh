@@ -661,6 +661,34 @@ fi
 # either leg: a committed `git rm` of a frozen file is in HEAD, so no
 # worktree comparison can see it (the fixture README already documents this
 # residual gap).
+# Amendment procedure for tests/live-conformance-catalog.md (WR-07, Phase 20
+# 20-REVIEW). That path is the one entry in this array whose contents the design
+# EXPECTS to be revised. It is not only prompt evidence: it is the disposition
+# record `_live_disposition_problems` reads, and its own Provenance section says
+# plan 20-03 "replaces each `MISSING` placeholder with the row's actual
+# disposition ... once that run's reading is known". Three rows currently carry a
+# `fix:` disposition naming a backlog item to be executed in a later phase; when
+# one lands, the honest move is to update that row's disposition cell -- and
+# doing so turns FROZEN-EVIDENCE RED, blocking every commit in the repo until the
+# edit is reverted or this array is edited.
+#
+# The freeze is kept anyway, deliberately: the prompts and their per-row origin
+# sentences are irreplaceable evidence for the eight paid live runs in
+# tests/live-conformance-v9.0, and splitting the disposition column into an
+# unfrozen sidecar would put the annotation and the thing it annotates in two
+# files that can drift. What was missing was not the freeze but the written
+# procedure, which is this:
+#
+#   To amend a disposition cell:
+#     1. Edit the `disposition: ` substring in that row's Notes cell. Only the
+#        disposition may change -- the ID, Prompt and origin sentence are the
+#        frozen evidence and must stay byte-identical.
+#     2. Regenerate: python3 scripts/report-conformance.py
+#     3. Commit the catalog and both regenerated baseline artifacts TOGETHER.
+#   FROZEN-EVIDENCE is expected RED between steps 1 and 3 and must be GREEN again
+#   after. A RED that survives the commit means something other than a
+#   disposition cell moved. Do not reach for --no-verify to get past step 1.
+#
 # ---------------------------------------------------------------------------
 _FROZEN_PATHS=(
     'tests/step0-baseline-v*.md'
