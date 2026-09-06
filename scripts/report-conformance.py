@@ -56,7 +56,7 @@ from pathlib import Path
 from typing import Literal
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
-MEASUREMENT_DATE: str = "2026-09-05"
+MEASUREMENT_DATE: str = "2026-09-06"
 MD_PATH: Path = REPO_ROOT / "docs" / "conformance-baseline.md"
 JSON_PATH: Path = REPO_ROOT / "docs" / "data" / "conformance.json"
 
