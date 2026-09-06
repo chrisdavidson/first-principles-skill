@@ -1710,15 +1710,26 @@ def compute_live_headline(live_rows: list[dict]) -> dict:
 def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
     agreeing, total, divergences = agreement
     corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
+    live_rows = [r for r in rows if r["surface"] == "live-conformance"]
+    # Phase 20 (CONF-09/CONF-10): unlike the adversarial-corpus precedent (whose rows
+    # stay in the flat "rows" list AND are nested under "adversarial_corpus"), a
+    # live-conformance row appears ONLY under the new "live_conformance" sibling key --
+    # never in the flat "rows" list. "rows" backs `compute_headline`/`pair_agreement`-
+    # adjacent consumers built for the four pre-existing surfaces; keeping the live
+    # surface out of it entirely is the extra margin against a future consumer that
+    # iterates "rows" without filtering by surface, on top of `_GATED_SURFACES` already
+    # excluding it from CONF-GATE.
+    published_rows = [r for r in rows if r["surface"] != "live-conformance"]
     obj = {
         "measurement_date": MEASUREMENT_DATE,
         "generator": "scripts/report-conformance.py",
-        "artifact_count": len(rows),
+        "artifact_count": len(published_rows),
         "surface_counts": {
             "shared-examples": sum(1 for r in rows if r["surface"] == "shared-examples"),
             "generated-twin": sum(1 for r in rows if r["surface"] == "generated-twin"),
             "contract-surface": sum(1 for r in rows if r["surface"] == "contract-surface"),
             "adversarial-corpus": len(corpus_rows),
+            "live-conformance": len(live_rows),
         },
         "headline": compute_headline(rows),
         "pair_agreement": {
@@ -1729,13 +1740,20 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
                 for analysis_id, fields in divergences
             ],
         },
-        "rows": rows,
+        "rows": published_rows,
         # Phase 19 (CONF-08): a NEW top-level key, never folded into the flat `rows` list
         # above or into `pair_agreement` -- the corpus has no generated twin, so widening
         # either would inflate the agreement headline with rows that cannot pair.
         "adversarial_corpus": {
             "headline": compute_corpus_headline(corpus_rows),
             "rows": corpus_rows,
+        },
+        # Phase 20 (CONF-09/CONF-10): a further NEW top-level key, sibling to
+        # adversarial_corpus. Unlike adversarial_corpus, the live surface's rows are
+        # ONLY here -- see published_rows above.
+        "live_conformance": {
+            "headline": compute_live_headline(live_rows),
+            "rows": live_rows,
         },
     }
     return json.dumps(obj, indent=2) + "\n"
@@ -1860,6 +1878,145 @@ def _render_adversarial_corpus_section(corpus_rows: list[dict], headline: dict) 
         "All thirteen form columns and all nine always-`n/a` provenance columns for "
         "these items are carried in full in `docs/data/conformance.json` under "
         "`adversarial_corpus.rows`, and are omitted here for readability."
+    )
+    lines.append("")
+    return lines
+
+
+_LIVE_TABLE_FIELDS: tuple[str, ...] = (
+    "relpath",
+    "outcome",
+    "section_resolution",
+    "heading_malformed_blocks",
+    "nonconforming_verdict_cells",
+    "silent_untraced_claims",
+    "form_defects",
+    "clean",
+    "disposition",
+)
+
+# Phase 20 (CONF-09/CONF-10, amendment 2026-09-06): the three literals
+# `_render_live_conformance_section`'s non-interactive-branch bound must state, and
+# `_control_live_render_states_noninteractive_bound`'s negative arm strips one at a
+# time -- registered here, once, so the render prose and the control read the identical
+# strings rather than two independently-typed copies that could drift apart.
+_LIVE_NONINTERACTIVE_MARKERS: tuple[str, str, str] = (
+    "AskUserQuestion was structurally unavailable",
+    "pre-analysis clarification path",
+    "mid-run re-open",
+)
+
+
+def _render_live_conformance_section(
+    live_rows: list[dict], headline: dict, corpus_headline: dict
+) -> list[str]:
+    """Phase 20 (CONF-09/CONF-10): the ## live-conformance section. Reads every figure
+    from `headline` (computed from `live_rows`) and `corpus_headline` (computed from the
+    same `build_rows()` call's adversarial-corpus rows, so the two sections can never
+    disagree) -- nothing here is a hardcoded literal count or analysis id."""
+    lines: list[str] = []
+    lines.append("## live-conformance")
+    lines.append("")
+    lines.append(
+        "**Live conformance rate:** "
+        f"{headline['clean']} of {headline['total']} runs attempted scored zero form "
+        "defects across the four counts this rate is defined on: `section_resolution` "
+        "reading `\"OK\"` (readable), plus `heading_malformed_blocks`, "
+        "`nonconforming_verdict_cells` and `silent_untraced_claims` all reading zero. "
+        f"N = {headline['total']} because CONF-10's rate is stated over every catalog "
+        "row dispatched, whether or not the run went on to complete."
+    )
+    lines.append("")
+    outcome_breakdown = ", ".join(
+        f"{count} `{outcome}`" for outcome, count in sorted(headline["by_outcome"].items())
+    )
+    lines.append(
+        "**Secondary rate, conditional on completion:** "
+        f"{headline['clean']} of {headline['completed']} runs whose outcome was "
+        f"`completed` scored the same four counts clean. Outcome breakdown: "
+        f"{outcome_breakdown}."
+    )
+    lines.append("")
+    lines.append(
+        "**Noise discipline.** The K-of-5 governing record "
+        "(`docs/v8.7-constraint-teardown.md` §2 item 3) established that noise equals "
+        f"effect for this project's live-measurement instruments at N=5. At N="
+        f"{headline['total']}, this reading carries the identical caveat: it is a "
+        "recorded observation, not a figure precise enough to detect a small true "
+        "effect."
+    )
+    lines.append("")
+    lines.append(
+        "**Delegation-conditional bound (D-04).** Every run went through `--probe`'s "
+        "frozen `_wrap_for_bypass` meta-instruction, which commands verbatim Agent-tool "
+        "dispatch. This is therefore a conformance rate conditional on delegation "
+        "having occurred, not an end-to-end user-path rate -- whether an unwrapped user "
+        "prompt reaches DELEGATE at all is measured separately, by `check-routing.py` "
+        "and `check-routing-battery.py`, neither of which this surface touches."
+    )
+    lines.append("")
+    disclosed = sum(1 for r in live_rows if r.get("askuserquestion_disclosed") is True)
+    lines.append(
+        "**Non-interactive-branch bound.** Every run went through `_run_prompt_to`'s "
+        "Plan-36-locked `claude -p` transport, which is non-interactive, so "
+        "AskUserQuestion was structurally unavailable in all of them. The Input "
+        "Contract (`shared/agent/input-contract.md`) names two paths this forecloses, "
+        "and NEITHER is measured by this surface: (a) the pre-analysis clarification "
+        "path, where the agent asks and a human answers before the analysis starts -- "
+        "the runs instead take the contract's documented fallback, stating the missing "
+        "inputs at the top of the response and proceeding best-effort; and (b) the "
+        "mid-run re-open, the Self-Audit-Gate-triggered re-entry edge the contract caps "
+        "at once per analysis, which can never fire under this transport, so its own "
+        "fallback (halt at the Absent verdict with a confidence caveat) is the only "
+        "branch these captures can exercise. This is a scope bound on what the figure "
+        "covers, never a defect and never a claim that the interactive branch would "
+        "score the same -- it is unmeasured, not measured-and-equal. "
+        f"Of the {headline['total']} runs, {disclosed} opened with this disclosure, "
+        "firing in the runs whose prompts were underspecified and not in the runs "
+        "carrying dense supporting figures -- a prompt-correlated pattern, not a "
+        "session-wide one. This corpus's prior committed live fixtures "
+        "(`tests/quality-provenance-v8.24`, `tests/quality-ledger-v8.26`) were "
+        "produced through the same locked transport and carry the same disclosure, "
+        "which is what keeps the PR-P1 longitudinal comparison like-for-like."
+    )
+    lines.append("")
+    lines.append(
+        "**False-negative backdrop.** A clean live reading means this instrument found "
+        "nothing, exactly as `adversarial-corpus`'s own published false-negative rate "
+        f"means for that surface ({corpus_headline['target_missed']} of "
+        f"{corpus_headline['total']} catalogued falsehoods missed) -- never a claim "
+        "that the analysis is correct."
+    )
+    lines.append("")
+    lines.append(
+        "**Provenance departure (D-06).** All nine provenance columns read `n/a` for "
+        "these runs even though the `.jsonl` captures exist in-tree, because nothing "
+        "joins them this phase. `n/a` means no join was performed, never \"checked, "
+        "found clean\". Backlog 999.12 / MEAS-01 stays open, with its input now "
+        "in-tree for the first time."
+    )
+    lines.append("")
+    lines.append(
+        "**Observation, not a gate.** This rate is a measurement no phase may target "
+        "and no gate reads (`scripts/check-conf-gate.py`'s `_GATED_SURFACES` does not "
+        "include this surface). It may inform a phase; it may not block one."
+    )
+    lines.append("")
+    lines.append(
+        "**No generated twin.** These captures are evidence, not shipped artifacts: "
+        "nothing under `shared/` produces them and `sync-content.py` never emits them, "
+        "so they carry no pair-agreement row."
+    )
+    lines.append("")
+    lines.append("| " + " | ".join(_LIVE_TABLE_FIELDS) + " |")
+    lines.append("|" + "---|" * len(_LIVE_TABLE_FIELDS))
+    for r in live_rows:
+        lines.append("| " + " | ".join(str(r[f]) for f in _LIVE_TABLE_FIELDS) + " |")
+    lines.append("")
+    lines.append(
+        "All thirteen form columns and all nine always-`n/a` provenance columns for "
+        "these runs are carried in full in `docs/data/conformance.json` under "
+        "`live_conformance.rows`, and are omitted here for readability."
     )
     lines.append("")
     return lines
@@ -2069,6 +2226,10 @@ def render_markdown(
     corpus = [r for r in rows if r["surface"] == "adversarial-corpus"]
     corpus_headline = compute_corpus_headline(corpus)
     lines.extend(_render_adversarial_corpus_section(corpus, corpus_headline))
+
+    live = [r for r in rows if r["surface"] == "live-conformance"]
+    live_headline = compute_live_headline(live)
+    lines.extend(_render_live_conformance_section(live, live_headline, corpus_headline))
 
     lines.append("## Source-vs-twin agreement (D-04)")
     lines.append("")
@@ -3749,6 +3910,101 @@ def _control_live_headline_not_in_compute_headline() -> None:
     assert "live-conformance" not in headline["conclusion_claims"], headline["conclusion_claims"]
 
 
+def _synthetic_live_row(relpath: str, analysis_id: str, **overrides) -> dict:
+    defaults = dict(
+        outcome="completed",
+        clean=True,
+        disposition="accept-with-reason: fine.",
+        form_defects=0,
+        analysis_present=True,
+        askuserquestion_disclosed=False,
+        capture_relpath=f"{analysis_id}.jsonl",
+    )
+    defaults.update(overrides)
+    return _synthetic_row("live-conformance", relpath, analysis_id, **defaults)
+
+
+def _control_live_render_no_hardcoded_stems() -> None:
+    """Perturbing a synthetic row's analysis id and counts must move the rendered
+    text -- a hardcoded stem or count would not."""
+    row_a = _synthetic_live_row("x01.md", "x01")
+    headline_a = compute_live_headline([row_a])
+    rendered_a = "\n".join(
+        _render_live_conformance_section([row_a], headline_a, compute_corpus_headline([]))
+    )
+
+    row_b = _synthetic_live_row(
+        "x02.md",
+        "x02",
+        clean=False,
+        disposition="fix: broke.",
+        form_defects=1,
+        nonconforming_verdict_cells=1,
+        askuserquestion_disclosed=True,
+    )
+    headline_b = compute_live_headline([row_a, row_b])
+    rendered_b = "\n".join(
+        _render_live_conformance_section([row_a, row_b], headline_b, compute_corpus_headline([]))
+    )
+
+    assert rendered_a != rendered_b, "rendered live-conformance section did not move"
+    assert "x01" in rendered_a and "x01" in rendered_b, rendered_b
+    assert "x02" in rendered_b and "x02" not in rendered_a, rendered_a
+
+
+def _control_live_render_states_n_and_caveat() -> None:
+    row = _synthetic_live_row("x01.md", "x01")
+    headline = compute_live_headline([row])
+    rendered = "\n".join(
+        _render_live_conformance_section([row], headline, compute_corpus_headline([]))
+    )
+    assert str(headline["total"]) in rendered, rendered
+    assert "noise equals effect" in rendered, rendered
+    assert "conditional on delegation having occurred" in rendered, rendered
+
+
+def _live_noninteractive_bound_problems(text: str) -> list[str]:
+    return [marker for marker in _LIVE_NONINTERACTIVE_MARKERS if marker not in text]
+
+
+def _control_live_render_states_noninteractive_bound() -> None:
+    row = _synthetic_live_row("x01.md", "x01")
+    headline = compute_live_headline([row])
+    rendered = "\n".join(
+        _render_live_conformance_section([row], headline, compute_corpus_headline([]))
+    )
+    assert _live_noninteractive_bound_problems(rendered) == [], rendered
+
+    for marker in _LIVE_NONINTERACTIVE_MARKERS:
+        stripped = rendered.replace(marker, "")
+        problems = _live_noninteractive_bound_problems(stripped)
+        assert marker in problems, (marker, problems)
+
+
+def _control_live_render_determinism() -> None:
+    row = _synthetic_live_row("x01.md", "x01")
+    headline = compute_live_headline([row])
+    corpus_headline = compute_corpus_headline([])
+    rendered_1 = _render_live_conformance_section([row], headline, corpus_headline)
+    rendered_2 = _render_live_conformance_section([row], headline, corpus_headline)
+    assert rendered_1 == rendered_2, (rendered_1, rendered_2)
+
+
+def _control_live_json_key_is_sibling() -> None:
+    live_row = _synthetic_live_row("x01.md", "x01")
+    other_rows = _synthetic_rows_for_render()
+    rows = other_rows + [live_row]
+    agreement = pair_agreement(rows)
+    obj = json.loads(render_json(rows, agreement))
+    assert "live_conformance" in obj, obj.keys()
+    assert obj["live_conformance"]["rows"] == [live_row], obj["live_conformance"]["rows"]
+    assert obj["surface_counts"]["live-conformance"] == 1, obj["surface_counts"]
+    assert all(r["surface"] != "live-conformance" for r in obj["rows"]), obj["rows"]
+    assert all(
+        d["analysis_id"] != "x01" for d in obj["pair_agreement"]["divergences"]
+    ), obj["pair_agreement"]["divergences"]
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -3891,6 +4147,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "live-headline-not-in-compute-headline",
         _control_live_headline_not_in_compute_headline,
     ),
+    ("live-render-no-hardcoded-stems", _control_live_render_no_hardcoded_stems),
+    ("live-render-states-n-and-caveat", _control_live_render_states_n_and_caveat),
+    (
+        "live-render-states-noninteractive-bound",
+        _control_live_render_states_noninteractive_bound,
+    ),
+    ("live-render-determinism", _control_live_render_determinism),
+    ("live-json-key-is-sibling", _control_live_json_key_is_sibling),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -3964,6 +4228,11 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-catalog-disposition-marker-parsed",
     "live-headline-counts-by-predicate",
     "live-headline-not-in-compute-headline",
+    "live-render-no-hardcoded-stems",
+    "live-render-states-n-and-caveat",
+    "live-render-states-noninteractive-bound",
+    "live-render-determinism",
+    "live-json-key-is-sibling",
 )
 
 
