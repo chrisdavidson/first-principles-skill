@@ -2268,6 +2268,29 @@ def _render_live_conformance_section(
     )
     lines.append("")
     disclosed = sum(1 for r in live_rows if r.get("askuserquestion_disclosed") is True)
+    # WR-06 (20-REVIEW): the two counts here were derived; the CAUSAL claim between
+    # them ("firing in the runs whose prompts were underspecified and not in the runs
+    # carrying dense supporting figures -- a prompt-correlated pattern") was not. A
+    # regeneration in which a `Q-*` run disclosed, or a `PR-*` run did not, would move
+    # the numbers and silently falsify the sentence, in a function whose own docstring
+    # says "nothing here is a hardcoded literal count or analysis id". Replaced with
+    # the derived split, which shows the pattern instead of asserting a cause for it.
+    disclosing_ids = (
+        ", ".join(
+            f"`{r['analysis_id']}`"
+            for r in live_rows
+            if r.get("askuserquestion_disclosed") is True
+        )
+        or "none"
+    )
+    silent_ids = (
+        ", ".join(
+            f"`{r['analysis_id']}`"
+            for r in live_rows
+            if r.get("askuserquestion_disclosed") is not True
+        )
+        or "none"
+    )
     lines.append(
         "**Non-interactive-branch bound.** Every run went through `_run_prompt_to`'s "
         "Plan-36-locked `claude -p` transport, which is non-interactive, so "
@@ -2285,13 +2308,17 @@ def _render_live_conformance_section(
         "score the same -- it is unmeasured, not measured-and-equal. "
         f"Of the {headline['total']} runs, {disclosed} state this disclosure "
         "somewhere in the analysis -- the measured predicate is a whole-document "
-        "substring test, never a test that the run OPENED with it, "
-        "firing in the runs whose prompts were underspecified and not in the runs "
-        "carrying dense supporting figures -- a prompt-correlated pattern, not a "
-        "session-wide one. This corpus's prior committed live fixtures "
+        "substring test, never a test that the run OPENED with it. "
+        f"Stating it: {disclosing_ids}. Not stating it: {silent_ids}. "
+        "The split is rendered as ids rather than characterised in prose, so a "
+        "regeneration that moves it shows the move instead of silently invalidating "
+        "a sentence. "
+        "This corpus's prior committed live fixtures "
         "(`tests/quality-provenance-v8.24`, `tests/quality-ledger-v8.26`) were "
         "produced through the same locked transport and carry the same disclosure, "
-        "which is what keeps the PR-P1 longitudinal comparison like-for-like."
+        "which is what keeps the PR-P1 longitudinal comparison like-for-like -- an "
+        "assertion `--self-test`'s `live-prior-fixtures-carry-disclosure` control "
+        "reads off those two committed files rather than leaving it unchecked."
     )
     lines.append("")
     empty_heading = sum(
@@ -4121,6 +4148,40 @@ def _control_live_floor_short() -> None:
             )
 
 
+# WR-06 (20-REVIEW): the two prior committed live fixtures the rendered section names
+# as carrying the same disclosure. Registered here once so the control below and the
+# prose read the same two paths rather than two independently-typed copies.
+_PRIOR_LIVE_FIXTURE_ANALYSES: tuple[str, ...] = (
+    "tests/quality-provenance-v8.24/PR-P1.md",
+    "tests/quality-ledger-v8.26/PR-P1.md",
+)
+
+
+def _control_live_prior_fixtures_carry_disclosure() -> None:
+    """WR-06 (20-REVIEW): the rendered section asserts that the two prior committed
+    live fixtures "were produced through the same locked transport and carry the same
+    disclosure, which is what keeps the PR-P1 longitudinal comparison like-for-like".
+    Both do -- but nothing checked it, so the sentence was an unverified claim sitting
+    in a renderer whose docstring promises everything is derived.
+
+    This is a LIVE arm by necessity: the claim is about two specific committed files,
+    so a synthetic fixture would assert nothing about them. Both paths are registered
+    `_FROZEN_PATHS` entries, so this reads bytes that cannot drift silently.
+
+    SCOPE: asserts the marker is PRESENT in each named analysis. It does not assert
+    the two runs used the same transport -- that is a provenance claim about how the
+    captures were produced, which no join performed this phase can check (D-06).
+    """
+    for relpath in _PRIOR_LIVE_FIXTURE_ANALYSES:
+        path = REPO_ROOT / relpath
+        assert path.exists(), f"prior live fixture named in the rendered prose is gone: {relpath}"
+        text = path.read_text(encoding="utf-8")
+        assert _NONINTERACTIVE_DISCLOSURE_MARKER in text, (
+            f"{relpath} no longer carries {_NONINTERACTIVE_DISCLOSURE_MARKER!r}; the "
+            "rendered live-conformance section still claims it does"
+        )
+
+
 def _control_live_row_askuserquestion_derivation() -> None:
     """WR-03 (20-REVIEW): the ONLY code path that produces the published disclosure
     count had zero control coverage -- every control that touched
@@ -4775,6 +4836,43 @@ def _control_live_population_per_row_fields_exclude_heading() -> None:
     ), problems
 
 
+def _control_live_render_disclosure_split_derived() -> None:
+    """WR-06 (20-REVIEW): the rendered disclosure split must be DERIVED from the rows.
+    The prose it replaces characterised the split causally ("firing in the runs whose
+    prompts were underspecified"), which a regeneration could silently falsify. Two
+    rows with opposite flags must land on opposite sides, and swapping the flags must
+    swap the sides -- a hardcoded id list passes neither direction.
+    """
+    def split(rows: list[dict]) -> tuple[str, str]:
+        text = "\n".join(
+            _render_live_conformance_section(
+                rows, compute_live_headline(rows), compute_corpus_headline([])
+            )
+        )
+        _, _, tail = text.partition("Stating it: ")
+        assert tail, text
+        stating, _, rest = tail.partition(". Not stating it: ")
+        assert rest, text
+        return stating, rest.split(". ")[0]
+
+    rows_a = [
+        _synthetic_live_row("x01.md", "x01", askuserquestion_disclosed=True),
+        _synthetic_live_row("x02.md", "x02", askuserquestion_disclosed=False),
+    ]
+    stating, silent = split(rows_a)
+    assert "`x01`" in stating and "`x02`" not in stating, (stating, silent)
+    assert "`x02`" in silent and "`x01`" not in silent, (stating, silent)
+
+    # Swap the flags: the two sides must swap with them.
+    rows_b = [
+        _synthetic_live_row("x01.md", "x01", askuserquestion_disclosed=False),
+        _synthetic_live_row("x02.md", "x02", askuserquestion_disclosed=True),
+    ]
+    stating2, silent2 = split(rows_b)
+    assert "`x02`" in stating2 and "`x01`" not in stating2, (stating2, silent2)
+    assert "`x01`" in silent2 and "`x02`" not in silent2, (stating2, silent2)
+
+
 def _control_live_render_states_empty_heading_bound() -> None:
     """CR-01 fork (a): the near-empty heading population is DISCLOSED in the rendered
     section, and the figures in that disclosure are derived from the rows rather than
@@ -5015,6 +5113,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_corpus_call_sites_roster_lock_wrong_count,
     ),
     ("live-floor-short", _control_live_floor_short),
+    ("live-prior-fixtures-carry-disclosure", _control_live_prior_fixtures_carry_disclosure),
     ("live-row-askuserquestion-derivation", _control_live_row_askuserquestion_derivation),
     ("live-row-no-analysis-literals", _control_live_row_no_analysis_literals),
     ("live-row-unreadable-is-not-clean", _control_live_row_unreadable_is_not_clean),
@@ -5085,6 +5184,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     (
         "live-population-per-row-fields-exclude-heading",
         _control_live_population_per_row_fields_exclude_heading,
+    ),
+    (
+        "live-render-disclosure-split-derived",
+        _control_live_render_disclosure_split_derived,
     ),
     (
         "live-render-states-empty-heading-bound",
@@ -5180,6 +5283,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-call-sites-roster-lock-narrowed",
     "corpus-call-sites-roster-lock-wrong-count",
     "live-floor-short",
+    "live-prior-fixtures-carry-disclosure",
     "live-row-askuserquestion-derivation",
     "live-row-no-analysis-literals",
     "live-row-unreadable-is-not-clean",
@@ -5209,6 +5313,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-population-surfacewide-breach-detected",
     "live-population-per-item-verdict-cells-zero-detected",
     "live-population-per-row-fields-exclude-heading",
+    "live-render-disclosure-split-derived",
     "live-render-states-empty-heading-bound",
     "live-population-floor-values-locked",
     "live-call-site-census-positive",
