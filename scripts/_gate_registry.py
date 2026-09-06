@@ -414,6 +414,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "contract's six legs. The single named battery-only CI exemption in "
             "REG-GUARD's `BATTERY_ONLY_GATE_IDS`."
         ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "disclosed_bounds_anchors",
+            "derived_counts",
+            "locked_constants",
+            "contract_pins",
+        ),
     ),
     GateEntry(
         key="PROV-GUARD",
@@ -623,6 +632,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "fires before commit. Deliberately not registered in the battery or "
             "in CI."
         ),
+        consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
     ),
     # --- Anticipatory entry (D-21-C) --------------------------------------
     # Not yet in scripts/check-firewall-battery.sh, not yet in
@@ -857,6 +867,13 @@ _FIELD_DESCRIPTIONS: dict[str, str] = {
         "_headline_literals() shape) — deliberately NOT locked, since the "
         "headline must keep moving the instant a matrix row is registered "
         "or re-tiered"
+    ),
+    "contract_pins": (
+        "a mapping of frozen-function-name -> {'digest': the pinned "
+        "sha256:<hex> literal, 'line_count': int} for every CONTRACT-06 "
+        "sha256-pinned function this gate carries — both values are READ "
+        "from the pin's own module constant and a pre-existing single-"
+        "call-site source wrapper, never recomputed inside describe()"
     ),
 }
 
