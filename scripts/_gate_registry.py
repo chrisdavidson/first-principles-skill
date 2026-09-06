@@ -662,6 +662,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "equality floor and from the live ARCHITECTURE.md row-count floor via "
             "_ANTICIPATORY_KEYS until plan 21-11 lands it."
         ),
+        consumes=(
+            "registered_surfaces",
+            "checked_files",
+            "derived_counts",
+            "disclosed_bounds_anchors",
+            "control_ids",
+            "control_count",
+            "locked_constants",
+        ),
     ),
 )
 
