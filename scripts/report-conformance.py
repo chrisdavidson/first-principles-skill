@@ -1578,21 +1578,38 @@ def _live_disposition_problems(live_rows: list[dict]) -> list[str]:
     return problems
 
 
-# Phase 20 (CONF-09/CONF-10, plan 20-05): the live-surface DENOMINATOR floors,
-# `_CORPUS_POPULATION_FLOORS`'s exact shape. Pinned from the real measurement of the
-# 8 landed tests/live-conformance-v9.0/ runs (all 8 resolved OK), derived
-# 2026-09-06:
+# Phase 20 (CONF-09/CONF-10, plan 20-05; keys re-derived at the 20-REVIEW CR-01 fix):
+# the live-surface DENOMINATOR floors. ONE denominator per `_LIVE_FORM_FIELDS`
+# numerator, and nothing else -- this set is derived from the rate's own definition,
+# NOT copied from `_CORPUS_POPULATION_FLOORS`, which is what shipped the CR-01 defect:
+#
+#   rate count (_LIVE_FORM_FIELDS)   denominator floored here
+#   heading_malformed_blocks     ->  heading_chain_blocks
+#   nonconforming_verdict_cells  ->  verdict_cells
+#   silent_untraced_claims       ->  conclusion_claims
+#
+# `chain_blocks` was floored here until the CR-01 fix and is now NOT: it is the
+# denominator of `malformed_chain_blocks`, which is not one of the counts this rate is
+# defined on, while `heading_chain_blocks` -- which IS `heading_malformed_blocks`'
+# denominator -- was floored nowhere. `chain_blocks` and `heading_chain_blocks` are two
+# different censuses (see the rendered `## Two chain-block censuses (D-05)` section),
+# so this was a substitution, not a rename. The corrected pairing is the same one
+# `check-conf-gate.py`'s `_POPULATION_FLOORS` already uses on the gated surfaces --
+# the gate D-20-A cites for comparability.
+#
+# Pinned from the real measurement of the 8 landed tests/live-conformance-v9.0/ runs
+# (all 8 resolved OK), derived 2026-09-06:
 #
 #   python3 -c "
 #   import json
 #   data = json.load(open('docs/data/conformance.json'))
 #   rows = data['live_conformance']['rows']
-#   for f in ('conclusion_claims', 'verdict_cells', 'chain_blocks'):
+#   for f in ('conclusion_claims', 'verdict_cells', 'heading_chain_blocks'):
 #       print(f, sum(r[f] for r in rows if r['section_resolution'] == 'OK'))
 #   "
 #   conclusion_claims 64
 #   verdict_cells 153
-#   chain_blocks 64
+#   heading_chain_blocks 6
 #
 # DENOMINATOR floors, not targets: a zero numerator (silent_untraced_claims == 0,
 # etc.) is meaningful only against a population that has not itself been deleted.
@@ -1603,19 +1620,38 @@ def _live_disposition_problems(live_rows: list[dict]) -> list[str]:
 _LIVE_POPULATION_FLOORS: dict[str, int] = {
     "conclusion_claims": 64,
     "verdict_cells": 153,
-    "chain_blocks": 64,
+    "heading_chain_blocks": 6,
 }
+
+# The subset of `_LIVE_POPULATION_FLOORS` that is additionally checked PER ROW, where
+# a zero means that row's own clean reading was taken over an empty population.
+# `heading_chain_blocks` is deliberately absent: it reads 0 on 7 of the 8 landed runs
+# (the heading sweep finds no `### Conclusion` blocks at all in them), so a per-row
+# arm over it would fire on 7 committed rows rather than describe a defect. That
+# emptiness is REAL and is disclosed in the rendered section's bounds block rather
+# than either suppressed or converted into a permanent failure -- the same fork the
+# 20-REVIEW CR-01 finding names as (a). `chain_blocks` is retained here as a
+# per-row readability probe even though it is no longer a surface-wide floor.
+_LIVE_PER_ROW_POPULATION_FIELDS: tuple[str, ...] = (
+    "conclusion_claims",
+    "verdict_cells",
+    "chain_blocks",
+)
 
 
 def _live_population_problems(live_rows: list[dict]) -> list[str]:
     """`_corpus_population_problems`'s exact shape, renamed and re-scoped to
     resolved (`section_resolution == "OK"`) live rows only.
 
-    Per resolved row: `conclusion_claims == 0` or `chain_blocks == 0` is reported by
-    name -- a form-clean reading over an empty population is not a probe.
+    Per resolved row: any `_LIVE_PER_ROW_POPULATION_FIELDS` count reading 0 is
+    reported by name -- a form-clean reading over an empty population is not a probe.
+    `heading_chain_blocks` is excluded from that per-row arm by construction and its
+    emptiness on 7 of the 8 landed runs is disclosed in the rendered section instead;
+    see `_LIVE_PER_ROW_POPULATION_FIELDS`.
 
-    Surface-wide: the three `_LIVE_POPULATION_FLOORS` denominators, summed over
-    resolved rows, must not fall below their pinned floor.
+    Surface-wide: the three `_LIVE_POPULATION_FLOORS` denominators -- one per
+    `_LIVE_FORM_FIELDS` numerator -- summed over resolved rows, must not fall below
+    their pinned floor.
 
     A row that is unreadable or has no analysis (`section_resolution` reads an
     `"SectionResolutionError: ..."`-shaped string or the literal `"no-analysis"`) is
@@ -1629,7 +1665,7 @@ def _live_population_problems(live_rows: list[dict]) -> list[str]:
     for r in live_rows:
         if r["section_resolution"] != "OK":
             continue
-        for field in ("conclusion_claims", "chain_blocks"):
+        for field in _LIVE_PER_ROW_POPULATION_FIELDS:
             if r[field] == 0:
                 problems.append(
                     f"LIVE POPULATION [{r['analysis_id']}] {field}: 0 — a form-clean "
@@ -2235,6 +2271,31 @@ def _render_live_conformance_section(
         "(`tests/quality-provenance-v8.24`, `tests/quality-ledger-v8.26`) were "
         "produced through the same locked transport and carry the same disclosure, "
         "which is what keeps the PR-P1 longitudinal comparison like-for-like."
+    )
+    lines.append("")
+    empty_heading = sum(
+        1
+        for r in live_rows
+        if r["section_resolution"] == "OK" and r["heading_chain_blocks"] == 0
+    )
+    resolved = sum(1 for r in live_rows if r["section_resolution"] == "OK")
+    heading_blocks = sum(
+        r["heading_chain_blocks"] for r in live_rows if r["section_resolution"] == "OK"
+    )
+    lines.append(
+        "**Empty-heading-population bound (CR-01).** `heading_malformed_blocks` is one "
+        "of the four counts above, and on this surface its own denominator is nearly "
+        f"empty: the `### Conclusion` heading sweep read {heading_blocks} block(s) in "
+        f"total across the {resolved} resolved run(s), and found NO blocks at all in "
+        f"{empty_heading} of them. For those runs `heading_malformed_blocks == 0` is "
+        "vacuous -- there was nothing to score -- so that quarter of the clean verdict "
+        "is carried by a single run, not by all of them. The other three counts "
+        "(`section_resolution`, `nonconforming_verdict_cells`, `silent_untraced_claims`) "
+        "are non-vacuous on every resolved run. `heading_chain_blocks` is floored "
+        "surface-wide by `_LIVE_POPULATION_FLOORS` so the population cannot shrink "
+        "silently, but it is deliberately NOT floored per row, because 0 is its honest "
+        "reading there. Stated here rather than left to be discovered, in the same "
+        "voice R7/R9/R10 use on the agent surface."
     )
     lines.append("")
     lines.append(
@@ -4441,6 +4502,7 @@ def _control_live_population_per_item_unreadable_skipped() -> None:
         conclusion_claims=64,
         verdict_cells=153,
         chain_blocks=64,
+        heading_chain_blocks=6,
     )
     assert _live_population_problems([unreadable_row, healthy_row]) == []
 
@@ -4461,7 +4523,88 @@ def _control_live_population_surfacewide_breach_detected() -> None:
         "LIVE POPULATION FLOOR BREACH conclusion_claims" in p for p in problems
     ), problems
     assert any("LIVE POPULATION FLOOR BREACH verdict_cells" in p for p in problems), problems
-    assert any("LIVE POPULATION FLOOR BREACH chain_blocks" in p for p in problems), problems
+    assert any(
+        "LIVE POPULATION FLOOR BREACH heading_chain_blocks" in p for p in problems
+    ), problems
+    assert not any(
+        "LIVE POPULATION FLOOR BREACH chain_blocks" in p for p in problems
+    ), ("chain_blocks is no longer a surface-wide floor (CR-01); a breach reported "
+        "under that name means the floor set regressed to the corpus copy", problems)
+
+
+def _control_live_population_per_item_verdict_cells_zero_detected() -> None:
+    """CR-01: `verdict_cells` is `nonconforming_verdict_cells`' denominator and is one
+    of the counts the live rate is defined on, yet it carried no per-row arm before
+    this fix -- a run whose verdict table was empty scored `nonconforming_verdict_cells
+    == 0` vacuously and was reported by nothing."""
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=True,
+        disposition="accept-with-reason: x.",
+        form_defects=0,
+        conclusion_claims=1,
+        chain_blocks=1,
+        verdict_cells=0,
+    )
+    problems = _live_population_problems([row])
+    assert any("LIVE POPULATION [a] verdict_cells: 0" in p for p in problems), problems
+
+
+def _control_live_population_per_row_fields_exclude_heading() -> None:
+    """CR-01, the deliberate ASYMMETRY between the two arms, locked so it cannot be
+    "tidied" into agreement in either direction: `heading_chain_blocks` is a
+    surface-wide floor and is NOT a per-row arm, because 0 is its honest per-row
+    reading on 7 of the 8 landed runs. A row carrying zero heading blocks and healthy
+    everything else must therefore produce no per-row problem, while the same field
+    must still be floored surface-wide."""
+    assert "heading_chain_blocks" in _LIVE_POPULATION_FLOORS, _LIVE_POPULATION_FLOORS
+    assert "heading_chain_blocks" not in _LIVE_PER_ROW_POPULATION_FIELDS, (
+        _LIVE_PER_ROW_POPULATION_FIELDS
+    )
+    assert "chain_blocks" not in _LIVE_POPULATION_FLOORS, _LIVE_POPULATION_FLOORS
+    row = _synthetic_live_row(
+        "a.md",
+        "a",
+        clean=True,
+        disposition="accept-with-reason: x.",
+        form_defects=0,
+        conclusion_claims=64,
+        verdict_cells=153,
+        chain_blocks=64,
+        heading_chain_blocks=0,
+    )
+    problems = _live_population_problems([row])
+    assert not any("LIVE POPULATION [a]" in p for p in problems), problems
+    assert any(
+        "LIVE POPULATION FLOOR BREACH heading_chain_blocks" in p for p in problems
+    ), problems
+
+
+def _control_live_render_states_empty_heading_bound() -> None:
+    """CR-01 fork (a): the near-empty heading population is DISCLOSED in the rendered
+    section, and the figures in that disclosure are derived from the rows rather than
+    written as literals -- perturbing the population must move them."""
+    empty = _synthetic_live_row("x01.md", "x01", heading_chain_blocks=0)
+    full = _synthetic_live_row("x02.md", "x02", heading_chain_blocks=6)
+
+    rendered_empty = "\n".join(
+        _render_live_conformance_section(
+            [empty], compute_live_headline([empty]), compute_corpus_headline([])
+        )
+    )
+    assert "Empty-heading-population bound" in rendered_empty, rendered_empty
+    assert "vacuous" in rendered_empty, rendered_empty
+    assert "found NO blocks at all in 1 of them" in rendered_empty, rendered_empty
+    assert "read 0 block(s) in total" in rendered_empty, rendered_empty
+
+    rendered_full = "\n".join(
+        _render_live_conformance_section(
+            [full], compute_live_headline([full]), compute_corpus_headline([])
+        )
+    )
+    assert "found NO blocks at all in 0 of them" in rendered_full, rendered_full
+    assert "read 6 block(s) in total" in rendered_full, rendered_full
 
 
 def _control_live_population_floor_values_locked() -> None:
@@ -4469,7 +4612,7 @@ def _control_live_population_floor_values_locked() -> None:
     the pinned floors must equal an INLINE dict literal written at the control site,
     never read from `_LIVE_POPULATION_FLOORS` itself.
     """
-    expected = {"conclusion_claims": 64, "verdict_cells": 153, "chain_blocks": 64}
+    expected = {"conclusion_claims": 64, "verdict_cells": 153, "heading_chain_blocks": 6}
     assert _LIVE_POPULATION_FLOORS == expected, (
         f"LIVE POPULATION FLOOR VALUE MISMATCH: {_LIVE_POPULATION_FLOORS} != {expected}"
     )
@@ -4716,6 +4859,18 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_live_population_surfacewide_breach_detected,
     ),
     (
+        "live-population-per-item-verdict-cells-zero-detected",
+        _control_live_population_per_item_verdict_cells_zero_detected,
+    ),
+    (
+        "live-population-per-row-fields-exclude-heading",
+        _control_live_population_per_row_fields_exclude_heading,
+    ),
+    (
+        "live-render-states-empty-heading-bound",
+        _control_live_render_states_empty_heading_bound,
+    ),
+    (
         "live-population-floor-values-locked",
         _control_live_population_floor_values_locked,
     ),
@@ -4821,6 +4976,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-population-per-item-zero-detected",
     "live-population-per-item-unreadable-skipped",
     "live-population-surfacewide-breach-detected",
+    "live-population-per-item-verdict-cells-zero-detected",
+    "live-population-per-row-fields-exclude-heading",
+    "live-render-states-empty-heading-bound",
     "live-population-floor-values-locked",
     "live-call-site-census-positive",
     "live-call-site-census-missing",
