@@ -64,6 +64,22 @@ if __name__ not in sys.modules:
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 DEFAULT_PLUGIN_DIR: Path = REPO_ROOT / "first-principles"
 
+# D-21-J (Phase 21 plan 04): the BATT-06/STEP0-08 RR-* residual sentinel
+# ownership map, lifted from prose (CLAUDE.md's own "Step 0 residual
+# sentinels" list) to an enumerable module-level roster, so
+# check-routing-battery.py's --describe can derive its RR-* list as a
+# len()/sorted-list read instead of a hand-retyped list of eleven ids. Every
+# id below is asserted, by name, somewhere in self_test_boundary()'s printed
+# output (each PASS/FAIL line states its own RR-* id) — check-routing-battery.py's
+# self_test() captures that output and cross-checks it against this roster in
+# both directions, which is what makes the roster load-bearing rather than a
+# parallel list.
+RR_SENTINEL_IDS: tuple[str, ...] = (
+    "RR-80-01", "RR-79-01", "RR-114-01", "RR-117-01", "RR-117-02",
+    "RR-119-01", "RR-119-02", "RR-108-02", "RR-108-04", "RR-108-05",
+    "RR-77-08",
+)
+
 
 # ===========================================================================
 # SECTION 1: Shared catalog-parsing utilities

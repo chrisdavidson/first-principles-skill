@@ -53,6 +53,7 @@ separate, later step; the battery's printed tally is unaffected by this file.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 import textwrap
@@ -68,6 +69,29 @@ _BODY_NAME = "SKILL-body.md"
 _CONTRACT_NAME = "input-contract.md"
 _RUBRIC_NAME = "validation-rubric.md"
 _META_NAME = "SKILL.meta.yml"
+
+# D-21-J (Phase 21 plan 04): a module-level, per-source transcription of the
+# `negative_controls` table's 37 labels (N1-N37) `_run_self_test()` builds
+# locally (it must stay local — its thunks close over the live file text
+# `_run_self_test()` reads, and `describe()` must stay pure / no disk I/O per
+# D-03). This roster names the SAME 37 ids, paired with the source file each
+# one mutates, so `--describe` can derive `control_count`/`control_ids` as a
+# `len()`/sorted-list read instead of the self-test docstring's own
+# deliberately-unasserted "never a magic number" count.
+_CONTROL_ROSTER: tuple[tuple[str, str], ...] = (
+    ("N1", _BODY_NAME), ("N2", _BODY_NAME), ("N3", _BODY_NAME), ("N4", _BODY_NAME),
+    ("N5", _BODY_NAME), ("N6", _BODY_NAME), ("N7", _BODY_NAME), ("N8", _BODY_NAME),
+    ("N9", _CONTRACT_NAME), ("N10", _CONTRACT_NAME),
+    ("N11", _RUBRIC_NAME), ("N12", _RUBRIC_NAME), ("N13", _BODY_NAME),
+    ("N14", _BODY_NAME), ("N15", _RUBRIC_NAME), ("N16", _RUBRIC_NAME),
+    ("N17", _RUBRIC_NAME), ("N18", _RUBRIC_NAME), ("N19", _CONTRACT_NAME),
+    ("N20", _BODY_NAME), ("N21", _BODY_NAME), ("N22", _CONTRACT_NAME),
+    ("N23", _CONTRACT_NAME), ("N24", _RUBRIC_NAME), ("N25", _BODY_NAME),
+    ("N26", _BODY_NAME), ("N27", _BODY_NAME), ("N28", _RUBRIC_NAME),
+    ("N29", _BODY_NAME), ("N30", _BODY_NAME), ("N31", _BODY_NAME),
+    ("N32", _BODY_NAME), ("N33", _BODY_NAME), ("N34", _META_NAME),
+    ("N35", _CONTRACT_NAME), ("N36", _BODY_NAME), ("N37", _BODY_NAME),
+)
 
 # ---------------------------------------------------------------------------
 # Pinned literals (see 02-03-PLAN.md <gate_contract>; wording confirmed
@@ -1281,6 +1305,26 @@ def _run_self_test() -> int:
             f"a pure re-wrap produced {len(failures)} failure(s): {'; '.join(failures)}",
         )
 
+    # (describe) describe()-consistency control (D-03, plan 21-04): the
+    # module-level `_CONTROL_ROSTER` --describe reads must name exactly the
+    # N-ids this self-test run just built and exercised in `negative_controls`
+    # — proving the roster is a live transcription of what runs, not a
+    # parallel list that could silently drift.
+    ran_ids = {label.split(" ", 1)[0] for label, *_rest in negative_controls}
+    roster_ids = {n for n, _source in _CONTROL_ROSTER}
+    if ran_ids != roster_ids:
+        _report(
+            "describe()-consistency (control roster matches negative_controls)",
+            False,
+            f"roster={sorted(roster_ids)} vs. ran={sorted(ran_ids)} — "
+            f"missing={sorted(roster_ids - ran_ids)} extra={sorted(ran_ids - roster_ids)}",
+        )
+    else:
+        print(
+            "check-loop-closure --self-test: describe()-consistency PASS "
+            f"({len(roster_ids)} control ids agree)"
+        )
+
     if offenders:
         sys.stderr.write(
             "check-loop-closure --self-test: FAIL — these controls wrongly passed or "
@@ -1290,6 +1334,20 @@ def _run_self_test() -> int:
 
     print("check-loop-closure --self-test: PASS")
     return 0
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. Every value is a `len()`/sorted-list read of a module-level
+    constant this gate's own checking logic reads."""
+    return {
+        "checked_files": sorted(
+            str(p.relative_to(REPO_ROOT))
+            for p in (BODY_PATH, CONTRACT_PATH, RUBRIC_PATH, META_PATH)
+        ),
+        "control_ids": sorted(n for n, _source in _CONTROL_ROSTER),
+        "control_count": len(_CONTROL_ROSTER),
+    }
 
 
 def main() -> None:
@@ -1302,7 +1360,16 @@ def main() -> None:
         action="store_true",
         help="run the positive control, negative controls, and anti-masking/anchor-arity controls",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
     args = parser.parse_args()
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        sys.exit(0)
 
     _require_python_version()
 

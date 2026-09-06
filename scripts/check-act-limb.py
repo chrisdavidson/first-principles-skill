@@ -60,6 +60,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import json
 import re
 import sys
 from pathlib import Path
@@ -345,6 +346,37 @@ _ANCHOR_CONTROL_EXEMPT: dict[str, str] = {}
 # if a future anchor arrives before its control does.
 _ANCHOR_CONTROL_PENDING: dict[str, str] = {}
 # --- ratchet-bookkeeping-end ---
+
+# D-21-J (Phase 21 plan 04): the 16 neutralizable branches this gate's
+# structural assertions are organized around, lifted from a local inside
+# `_run_self_test()` to module scope so `--describe` can derive
+# `branch_count`/`branch_roster` as a `len()`/sorted-list read rather than a
+# hand-typed "16" beside the anti-masking assertion that already reads this
+# same set. No verdict changes: `_run_self_test()` references the identical
+# name, now resolved as a module global instead of a local.
+REQUIRED_BRANCHES: frozenset[str] = frozenset({
+    "B-01", "B-02", "B-03", "B-04-imperative", "B-04-tools", "B-05-termination",
+    "B-06-not-found-assign", "B-12-table",
+    "R-01", "R-02-slice", "R-02-whole", "R-04-crit2", "R-04-crit5", "R-03-block",
+    "R-05-pointer", "R-07-band",
+})
+
+# D-21-J: a module-level roster of every `--self-test` control id this file
+# runs — the 71 `_check_negative(...)` fixture labels (`a`-`bv`, minus the two
+# reserved for the positive controls below), the two positive controls
+# (`a`, `b`), and the three module-level checks (`coh`, `cov`, `m`). This is
+# what `--describe`'s `control_count`/`control_ids` derive from (a `len()`
+# read, never the hand-typed "58 controls" this gate's own published row
+# states today — CLAUDE.md's HARN-01 row predates this roster and is
+# superseded by this live count).
+_CONTROL_IDS: tuple[str, ...] = (
+    "a", "b", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak",
+    "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw",
+    "ax", "ay", "az", "ba", "bb", "bc", "bd", "be", "bf", "bg", "bh", "bi",
+    "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
+    "bv", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "o", "p",
+    "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh", "cov", "m",
+)
 
 
 def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
@@ -2242,12 +2274,8 @@ def _run_self_test() -> int:
     # Anti-masking assertion: all 16 neutralizable branches must have coverage
     # from the fixture battery. This gate requires full branch coverage so that
     # no single removed fixture can leave a branch untested.
-    REQUIRED_BRANCHES = {
-        "B-01", "B-02", "B-03", "B-04-imperative", "B-04-tools", "B-05-termination",
-        "B-06-not-found-assign", "B-12-table",
-        "R-01", "R-02-slice", "R-02-whole", "R-04-crit2", "R-04-crit5", "R-03-block",
-        "R-05-pointer", "R-07-band"
-    }
+    # (REQUIRED_BRANCHES is now a module-level constant — D-21-J, plan 21-04 —
+    # so --describe can derive branch_count/branch_roster from it.)
     uncovered = REQUIRED_BRANCHES - covered_branches
     if uncovered:
         print(f"ANTI-MASKING GATE FAILURE: {len(uncovered)} branch(es) not covered: {sorted(uncovered)}")
@@ -2290,6 +2318,34 @@ def _run_self_test() -> int:
     else:
         print("(m) dispatch control: skipped (nested self-test run)")
 
+    # (describe) describe()-consistency control (D-03, plan 21-04): the
+    # module-level rosters --describe reads must agree with the rosters this
+    # self-test itself just exercised — proving the lift is load-bearing, not
+    # a parallel list that could silently drift from what the checking logic
+    # actually reads.
+    _desc = describe()
+    if _desc["branch_count"] != len(REQUIRED_BRANCHES) or set(
+        _desc["branch_roster"]
+    ) != REQUIRED_BRANCHES:
+        print(
+            "(describe) describe()-consistency: WRONGLY FAILED — branch_roster/"
+            f"branch_count disagree with REQUIRED_BRANCHES: {_desc}"
+        )
+        problems.append("(describe): branch roster/count mismatch")
+    elif _desc["control_count"] != len(_CONTROL_IDS) or set(
+        _desc["control_ids"]
+    ) != set(_CONTROL_IDS):
+        print(
+            "(describe) describe()-consistency: WRONGLY FAILED — control_ids/"
+            f"control_count disagree with _CONTROL_IDS: {_desc}"
+        )
+        problems.append("(describe): control roster/count mismatch")
+    else:
+        print(
+            "(describe) describe()-consistency: PASS "
+            f"({_desc['branch_count']} branches, {_desc['control_count']} controls)"
+        )
+
     if problems:
         sys.stderr.write(
             "check-act-limb --self-test: FAIL — " + "; ".join(problems) + "\n"
@@ -2298,6 +2354,28 @@ def _run_self_test() -> int:
 
     print("check-act-limb --self-test: PASS")
     return 0
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. Every value is a `len()`/sorted-list read of a module-level
+    constant this gate's own checking logic reads — never a hand-typed
+    literal beside untouched code (D-21-A/D-21-J)."""
+    return {
+        "branch_roster": sorted(REQUIRED_BRANCHES),
+        "branch_count": len(REQUIRED_BRANCHES),
+        "control_ids": sorted(_CONTROL_IDS),
+        "control_count": len(_CONTROL_IDS),
+        "checked_files": sorted(
+            str(p.relative_to(REPO_ROOT)) for p in (AGENT_FILE, RUBRIC_FILE)
+        ),
+        "disclosed_bounds_anchors": [
+            "literal-anchor-not-semantics",
+            "b16-imperative-inversion-only",
+            "body-13-predicate-not-semantics",
+            "no-live-measurement-layer",
+        ],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2328,7 +2406,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline self-test control battery (controls a-s)",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return _run_self_test()

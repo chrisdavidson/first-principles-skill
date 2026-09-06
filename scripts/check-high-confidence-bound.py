@@ -34,6 +34,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -47,6 +48,18 @@ EMITTED_RUBRIC: Path = REPO_ROOT / "first-principles" / "agents" / "references" 
 _HOW_TO_APPLY = "## How to Apply This Gate"
 _EXCEPTIONS_SUMMARY = "## Exceptions Summary"
 _SCORING_MODEL = "## Scoring Model"
+
+# D-21-J (Phase 21 plan 04): the three documented EXCEPT exceptions, lifted
+# from a local inside `_check_exceptions_summary()` to a module-level roster
+# so `--describe` can derive the exception count as `len()` instead of the
+# hand-typed "three" this file's own docstring and CLAUDE.md's HC-BOUND row
+# both state today. No verdict changes: `_check_exceptions_summary()`
+# iterates the same (letter, keyword) pairs, now read from module scope.
+_EXCEPTIONS_ROSTER: tuple[tuple[str, str], ...] = (
+    ("(a)", "nreachable source"),  # matches "unreachable source" case-insensitively
+    ("(b)", "peculative chain"),  # matches "speculative chain" case-insensitively
+    ("(c)", "bsent-fails derivation"),  # matches "absent-fails" case-insensitively
+)
 _CRITERION3_START = "### Criterion 3: Establish Ground Truths"
 _CRITERION4_START = "### Criterion 4: Reason Upward"
 _CRITERION5_START = "### Criterion 5: Validate"
@@ -369,18 +382,13 @@ def _check_exceptions_summary(text: str, surface: str) -> list[str]:
     elif exceptions_idx > scoring_idx:
         failures.append(f"HC-14: {surface} — Exceptions Summary appears after Scoring Model")
 
-    # HC-15: Three lettered entries present, in order, inside the section
+    # HC-15: lettered entries present, in order, inside the section (module-
+    # level _EXCEPTIONS_ROSTER, D-21-J — see its own comment for why this is
+    # no longer a local literal)
     exceptions_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
     if exceptions_span is not None:
-        # Check for the three lettered entries
-        entries = [
-            ("(a)", "nreachable source"),  # nreachable matches "unreachable source" case-insensitively
-            ("(b)", "peculative chain"),    # peculative matches "speculative chain" case-insensitively
-            ("(c)", "bsent-fails derivation"), # bsent-fails matches "absent-fails" case-insensitively
-        ]
-
         entry_positions = []
-        for letter, keyword in entries:
+        for letter, keyword in _EXCEPTIONS_ROSTER:
             # Check if both letter and keyword appear in the span
             if _contains(exceptions_span, letter) and _contains(exceptions_span, keyword):
                 # Find position of the letter to check order
@@ -390,7 +398,7 @@ def _check_exceptions_summary(text: str, surface: str) -> list[str]:
                 failures.append(f"HC-15: {surface} — Exceptions Summary: entry '{letter}' with '{keyword}' not found")
 
         # Check order
-        if len(entry_positions) == 3:
+        if len(entry_positions) == len(_EXCEPTIONS_ROSTER):
             # Verify they are in a-b-c order by position
             positions = [pos[2] for pos in entry_positions]
             if positions != sorted(positions):
@@ -418,10 +426,22 @@ def _check_except_distribution(text: str, surface: str) -> list[str]:
     exceptions_span = _slice(text, _EXCEPTIONS_SUMMARY, _SCORING_MODEL)
     summary_except = _count_flex(exceptions_span, "EXCEPT:") if exceptions_span else 0
 
-    if total_except != 3 or c3_except != 1 or c5_except != 2 or summary_except != 0:
+    # HC-16's total is derived from _EXCEPTIONS_ROSTER (D-21-J): each
+    # documented exception corresponds to exactly one "EXCEPT:" occurrence in
+    # the rubric (C3 or C5), so a roster shrunk out of step with the live
+    # text's actual "EXCEPT:" count is what makes this check load-bearing
+    # rather than a parallel list — a roster edit with no matching text edit
+    # now fails HC-16 by name instead of passing silently.
+    _expected_total = len(_EXCEPTIONS_ROSTER)
+    if (
+        total_except != _expected_total
+        or c3_except != 1
+        or c5_except != 2
+        or summary_except != 0
+    ):
         failures.append(
             f"HC-16: {surface} — EXCEPT distribution incorrect: "
-            f"total={total_except} (expect 3), C3={c3_except} (expect 1), "
+            f"total={total_except} (expect {_expected_total}), C3={c3_except} (expect 1), "
             f"C5={c5_except} (expect 2), Summary={summary_except} (expect 0)"
         )
 
@@ -1003,9 +1023,25 @@ def _run_self_test() -> int:
         print(f"(r) error: {e}")
         problems.append("r: error")
 
+    # (describe) describe()-consistency control (D-03, plan 21-04): the
+    # except_exception_count --describe emits must agree with the live
+    # _EXCEPTIONS_ROSTER this self-test run just exercised via HC-15.
+    _desc = describe()
+    if _desc["derived_counts"]["except_exception_count"] != len(_EXCEPTIONS_ROSTER):
+        print(
+            "(describe) describe()-consistency: WRONGLY FAILED — "
+            f"except_exception_count disagrees with _EXCEPTIONS_ROSTER: {_desc}"
+        )
+        problems.append("describe: except_exception_count mismatch")
+    else:
+        print(
+            "(describe) describe()-consistency: PASS "
+            f"({_desc['derived_counts']['except_exception_count']} exceptions)"
+        )
+
     # CLI dispatch control
     print(f"\n=== Roster ===")
-    print(f"Controls run: 19, problems: {len(problems)}")
+    print(f"Controls run: 20, problems: {len(problems)}")
 
     if problems:
         print(f"FAIL — problems: {'; '.join(problems)}")
@@ -1013,6 +1049,20 @@ def _run_self_test() -> int:
 
     print("check-high-confidence-bound --self-test: PASS")
     return 0
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. The three EXCEPT exceptions are read from the module-level
+    `_EXCEPTIONS_ROSTER` (D-21-J) — a `len()`/list read, never the hand-typed
+    "three" this file's docstring and CLAUDE.md's HC-BOUND row both state."""
+    return {
+        "registered_surfaces": sorted(
+            str(p.relative_to(REPO_ROOT)) for p in (CANONICAL_RUBRIC, EMITTED_RUBRIC)
+        ),
+        "derived_counts": {"except_exception_count": len(_EXCEPTIONS_ROSTER)},
+        "disclosed_bounds_anchors": [letter for letter, _keyword in _EXCEPTIONS_ROSTER],
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1036,7 +1086,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline self-test control battery",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return _run_self_test()
