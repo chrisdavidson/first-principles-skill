@@ -2277,7 +2277,9 @@ def _render_live_conformance_section(
         "branch these captures can exercise. This is a scope bound on what the figure "
         "covers, never a defect and never a claim that the interactive branch would "
         "score the same -- it is unmeasured, not measured-and-equal. "
-        f"Of the {headline['total']} runs, {disclosed} opened with this disclosure, "
+        f"Of the {headline['total']} runs, {disclosed} state this disclosure "
+        "somewhere in the analysis -- the measured predicate is a whole-document "
+        "substring test, never a test that the run OPENED with it, "
         "firing in the runs whose prompts were underspecified and not in the runs "
         "carrying dense supporting figures -- a prompt-correlated pattern, not a "
         "session-wide one. This corpus's prior committed live fixtures "
@@ -4104,6 +4106,49 @@ def _control_live_floor_short() -> None:
             )
 
 
+def _control_live_row_askuserquestion_derivation() -> None:
+    """WR-03 (20-REVIEW): the ONLY code path that produces the published disclosure
+    count had zero control coverage -- every control that touched
+    `askuserquestion_disclosed` supplied it as a `_synthetic_row` override, and the two
+    controls that really call `build_live_row` never asserted it.
+
+    Drives the real derivation both ways against a tempdir fixture, and pins its
+    DISCLOSED SCOPE: the predicate is a whole-document substring test, so a mention
+    anywhere in the analysis counts. That is what the rendered prose now says
+    ("state this disclosure"), and the third arm below is what keeps the two from
+    drifting apart again -- a marker buried in section 4 must still read True.
+    """
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        for stem, body in (
+            ("with", f"# a\n\n{_NONINTERACTIVE_DISCLOSURE_MARKER} was unavailable.\n"),
+            ("without", "# a\n\nNo marker in this one.\n"),
+            (
+                "buried",
+                "# a\n\nOpening paragraph with no marker at all.\n\n"
+                "## 4. Reasoning\n\nA late mention of "
+                f"{_NONINTERACTIVE_DISCLOSURE_MARKER} deep in the body.\n",
+            ),
+        ):
+            (root / f"{stem}.jsonl").write_text("", encoding="utf-8")
+            (root / f"{stem}.md").write_text(body, encoding="utf-8")
+
+        def flag(stem: str) -> bool:
+            artifact = Artifact(
+                "live-conformance", f"{stem}.jsonl", root / f"{stem}.jsonl", stem
+            )
+            return build_live_row(artifact, None)["askuserquestion_disclosed"]
+
+        assert flag("with") is True, "marker present but flag not set"
+        assert flag("without") is False, "no marker but flag set"
+        # DISCLOSED SCOPE, not an aspiration: whole-document, not opening-scoped.
+        assert flag("buried") is True, (
+            "the predicate is documented as a whole-document substring test; a "
+            "buried mention reading False means the predicate was narrowed without "
+            "the rendered prose being narrowed with it"
+        )
+
+
 def _control_live_row_no_analysis_literals() -> None:
     """A capture with no `.md` sibling yields the literal `"no-analysis"` in every
     measured field and `"n/a"` in every provenance field -- never `0` -- per the four-
@@ -4911,6 +4956,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_corpus_call_sites_roster_lock_wrong_count,
     ),
     ("live-floor-short", _control_live_floor_short),
+    ("live-row-askuserquestion-derivation", _control_live_row_askuserquestion_derivation),
     ("live-row-no-analysis-literals", _control_live_row_no_analysis_literals),
     ("live-row-unreadable-is-not-clean", _control_live_row_unreadable_is_not_clean),
     ("live-row-stub-is-not-clean", _control_live_row_stub_is_not_clean),
@@ -5074,6 +5120,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-call-sites-roster-lock-narrowed",
     "corpus-call-sites-roster-lock-wrong-count",
     "live-floor-short",
+    "live-row-askuserquestion-derivation",
     "live-row-no-analysis-literals",
     "live-row-unreadable-is-not-clean",
     "live-row-stub-is-not-clean",
