@@ -324,6 +324,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "presence. The live leg targets the repo-anchored `AGENT_FILE` constant, "
             "so the gate is cwd-independent and cannot be silently re-pointed."
         ),
+        consumes=(
+            "branch_roster",
+            "branch_count",
+            "scoped_branches",
+            "locked_constants",
+            "checked_files",
+            "disclosed_bounds_anchors",
+        ),
     ),
     GateEntry(
         key="BATT-06",
