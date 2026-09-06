@@ -255,6 +255,13 @@ ENTRIES: tuple[GateEntry, ...] = (
             "`check-registration.py`'s `_BATTERY_GATE_RE` parsing semantics rather "
             "than inventing a second grammar over the same file."
         ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "checked_files",
+            "locked_constants",
+        ),
     ),
     GateEntry(
         key="COLLIDE-01",
@@ -429,6 +436,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Criterion 3 Fix note are present, correctly placed, and internally "
             "coherent in the emitted tree."
         ),
+        consumes=("branch_roster", "branch_count", "control_ids", "control_count", "checked_files", "disclosed_bounds_anchors"),
     ),
     GateEntry(
         key="HARN-02",
@@ -443,6 +451,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "back to Phase 1, every re-entry edge is bounded to one re-perception "
             "pass, and a fired edge is recorded."
         ),
+        consumes=("checked_files", "control_ids", "control_count"),
     ),
     GateEntry(
         key="HARN-03",
@@ -456,6 +465,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Focused-mode parity: stub surface, agent surface and cross-surface "
             "parity-token set equality, with the D-12 anchor-control ratchet."
         ),
+        consumes=("locked_constants", "registered_surfaces", "disclosed_bounds_anchors"),
     ),
     GateEntry(
         key="SCAN-GUARD",
@@ -491,6 +501,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "present and well-formed on both rubric surfaces, and all three "
             "documented EXCEPT exceptions are present."
         ),
+        consumes=("registered_surfaces", "derived_counts", "disclosed_bounds_anchors"),
     ),
     GateEntry(
         key="CONF-GATE",
