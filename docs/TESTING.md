@@ -7,163 +7,40 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 
 ## CI gates — operational run-detail
 
-All CI gates run in `.github/workflows/validation.yml` on push/PR to master. Run them locally before pushing.
+<!-- GENERATED — DO NOT EDIT. Source: scripts/_gate_registry.py. Regenerate via: scripts/gen-gate-docs.py --write. -->
+`docs/TESTING.md` is how to run every gate locally; `docs/gates/<GATE-ID>.md` is what each gate asserts and what it does not. One row below per registry entry — the id (or `—` for an entry with no standalone gate id), the detail page, and the exact local run command.
 
-### VAL-01 — plugin-validate
-
-Validates the plugin schema. Requires the Claude Code CLI.
-
-```sh
-claude plugin validate ./first-principles
-```
-
-### VAL-02 — markdownlint
-
-Checks Markdown style across `first-principles/**/*.md` using `.markdownlint.jsonc` rules.
-
-```sh
-# CI uses the markdownlint-cli2-action; run locally:
-npx markdownlint-cli2 "first-principles/**/*.md"
-```
-
-### VAL-03 — check-links
-
-Scans all relative Markdown links in the `first-principles/`, `shared/`, and `docs/` trees and verifies they resolve to existing files. For `docs/` links, anchor targets are also validated against the target heading's github-slugger slug (em-dash headings produce double-hyphen anchors). `docs/-prefixed` links inside `docs/` are flagged as CF-04 violations. `docs/history/**` is excluded (frozen archives).
-
-```sh
-python3 scripts/check-links.py
-```
-
-### VAL-04 / GATE-02 — check-trigger-collisions
-
-Scans all skill `description` fields for 4-gram collisions (shared phrases that could cause ambiguous routing). In CI, the `--self-test` fixture runs first, then the live scan.
-
-```sh
-python3 scripts/check-trigger-collisions.py --self-test   # offline fixture
-python3 scripts/check-trigger-collisions.py               # live scan
-```
-
-### VAL-05 — check-description-budget
-
-Verifies that every skill listing (name + description combined) stays under the 2000-character cap.
-
-```sh
-python3 scripts/check-description-budget.py
-```
-
-### VERSION-01 — check-version-stamps
-
-Verifies that every hand-maintained version stamp carries the same value — the 14
-`shared/skills/*/SKILL.md` sources, `shared/spine/SKILL.meta.yml`,
-`.claude-plugin/marketplace.json`, and `first-principles/.claude-plugin/plugin.json`.
-
-```sh
-python3 scripts/check-version-stamps.py --self-test   # fixture-driven fault injection
-python3 scripts/check-version-stamps.py               # live scan of the working tree
-```
-
-Unlike most gates here, both modes matter: the invariant is a property of the working tree, so
-the self-test alone would prove only that the detector works, not that the tree is consistent.
-
-Why it exists: plugin installs are version-gated, not content-gated. An edit that ships without
-a version bump never reaches an installed session, so a single missed stamp produces an inert
-update while every other gate stays green. Nothing previously asserted *equality* —
-`sync-content.py` copies `metadata.version` through per-file rather than propagating one source
-of truth, and the version-string invariant in
-[CONFIGURATION.md](CONFIGURATION.md#key-invariants) checks a stamp's **format**, not its
-agreement with the others.
-
-The stamp count is reported, never asserted. Hardcoding it would recreate the drift the gate
-exists to catch: a newly added skill is discovered by glob automatically, and one that forgets
-its stamp fails on presence instead of on a magic number.
-
-The generated tree is deliberately out of scope — those stamps are produced by `sync-content.py`
-from the `shared/` sources, and DUAL-04 already fails on any divergence between them.
-
-### DUAL-04 — sync-check
-
-Verifies that `shared/` and the generated `first-principles/` tree are in sync. Exit 1 on any drift. This is the pre-commit sync-drift gate run on every commit and also wired into CI.
-
-```sh
-python3 scripts/sync-content.py --check
-# To fix drift:
-python3 scripts/sync-content.py --write && git add -u
-```
-
-### GATE-01 — check-agent
-
-Structural integrity check for the assembled agent: frontmatter schema, required fields, `disallowedTools`, version format, and description constraints. In CI, the `--self-test` fixture runs first, then the live file check.
-
-```sh
-python3 scripts/check-agent.py --self-test                                         # offline fixture
-python3 scripts/check-agent.py --file first-principles/agents/first-principles.md  # live check
-```
-
-### BATT-06 — check-routing-battery
-
-Merged dual-signal routing battery — captures each prompt in `tests/routing-battery-catalog.md` once and scores both the boundary-discipline signal and the focused-output signal. In CI only the offline `--self-test` runs; the full live battery is a developer tool.
-
-```sh
-# CI gate (offline, deterministic — no live Claude session):
-python3 scripts/check-routing-battery.py --self-test
-
-# Full live run (developer tool — requires a running Claude session):
-python3 scripts/check-routing-battery.py --catalog tests/routing-battery-catalog.md --repeat 5 --min-pass 3
-```
-
-The `--self-test` mode exercises the boundary and focused-output fixture suites from `scripts/_battery_core.py`, including the anti-masking sentinels (see [Anti-masking measurement invariants](#anti-masking-measurement-invariants) below).
-
-### STEP0-08 — check-step0-emulator
-
-Offline Step 0 phrase-detection classifier. Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each trigger phrase into a deterministic regex classifier, and classifies a prompt to `MODE` (`focused-<technique>` or `full-composer`). No live Claude session required.
-
-```sh
-python3 scripts/check-step0-emulator.py --self-test
-```
-
-The `--self-test` mode runs two fixture categories: fault-injection fixtures (D-05 corruption modes) and the full `tests/step0-fixture-catalog.md` classification suite.
-
-### STEP0-06 — check-step0-live
-
-Live Step 0 harness. Forces invocation of the agent body via the approach-② bypass channel against a running `claude` session. Classifies each run's `MODE` from the captured stream.
-
-```sh
-# CI gate (offline deterministic self-test — no live Claude invoked):
-python3 scripts/check-step0-live.py --self-test
-
-# Full live run (manual only — 60 invocations, requires a live Claude session):
-python3 scripts/check-step0-live.py --catalog tests/step0-fixture-catalog.md --repeat 5 --min-pass 3
-```
-
-The offline `--self-test` asserts the scoring and parsing logic without invoking Claude. The full live run against `tests/step0-fixture-catalog.md` is the canonical manual baseline (see `tests/step0-baseline-v6.4.md`).
-
-**K-of-5 is a recorded observation, not a gate (governing record §2 item 3, `docs/v8.7-constraint-teardown.md`).** A K/N result from the full live run is recorded as an observation — it may not gate a phase. The S-P04 (five-whys) vector swung 2/5 → 0/5 → 2/5 across v7.11, v8.5, and v8.6 with no source change to the five-whys technique between those measurements; at N=5, noise equals effect. The tool's documented invocation and pass-threshold flag are unchanged — what changed is the authority a phase gives the resulting verdict. See [`docs/v8.7-constraint-teardown.md`](v8.7-constraint-teardown.md).
-
-### TRACE-03 — check-traceability
-
-Traceability matrix gate. The `--self-test` mode runs in-process fixtures and named sentinels with no disk I/O beyond the script itself.
-
-```sh
-python3 scripts/check-traceability.py --self-test
-```
-
-To regenerate the capability → requirement → test matrix:
-
-```sh
-python3 scripts/check-traceability.py emit \
-    --md-output docs/requirements-matrix.md \
-    --json-output docs/data/matrix.json
-```
-
-### QUAL-01 — check-quality-harness
-
-Offline blind A/B quality-measurement harness self-test. Exercises extraction guardrails A/B, the scoreline parser, blinding integrity, tabulation arithmetic, baseline-fixture integrity, and the mechanical defect detector — no live Claude session required. The promoted instrument behind the pre/post-fix quality baseline (HARNESS-01, [`v8.7-quality-baseline-freeze.md`](v8.7-quality-baseline-freeze.md)).
-
-```sh
-python3 scripts/check-quality-harness.py --self-test
-```
-
-Added at v8.7 Phase 164; moved `scripts/check-firewall-battery.sh`'s offline gate count from 15 to 16.
+| Gate | Page | Run command |
+|------|------|-------------|
+| VAL-01 | [`docs/gates/VAL-01.md`](gates/VAL-01.md) | `claude plugin validate ./first-principles` |
+| VAL-02 | [`docs/gates/VAL-02.md`](gates/VAL-02.md) | `markdownlint-cli2 --config .markdownlint.jsonc 'first-principles/**/*.md'` |
+| VAL-03 | [`docs/gates/VAL-03.md`](gates/VAL-03.md) | `python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && <pytest-capable interpreter> -m pytest scripts/check-links_anchors_test.py -q` |
+| VAL-04 / GATE-02 | [`docs/gates/VAL-04.md`](gates/VAL-04.md) | `python3 scripts/check-trigger-collisions.py --self-test && python3 scripts/check-trigger-collisions.py` |
+| VAL-05 | [`docs/gates/VAL-05.md`](gates/VAL-05.md) | `python3 scripts/check-description-budget.py` |
+| VERSION-01 | [`docs/gates/VERSION-01.md`](gates/VERSION-01.md) | `python3 scripts/check-version-stamps.py --self-test && python3 scripts/check-version-stamps.py` |
+| REG-GUARD | [`docs/gates/REG-GUARD.md`](gates/REG-GUARD.md) | `python3 scripts/check-registration.py --self-test && python3 scripts/check-registration.py` |
+| COLLIDE-01 | [`docs/gates/COLLIDE-01.md`](gates/COLLIDE-01.md) | `python3 scripts/check-install-collisions.py --self-test && python3 scripts/check-install-collisions.py` |
+| DUAL-04 | [`docs/gates/DUAL-04.md`](gates/DUAL-04.md) | `python3 scripts/sync-content.py --check` |
+| GATE-02-v8.5 | [`docs/gates/GATE-02-v8.5.md`](gates/GATE-02-v8.5.md) | `python3 scripts/sync-content.py --self-test` |
+| GATE-01 | [`docs/gates/GATE-01.md`](gates/GATE-01.md) | `python3 scripts/check-agent.py --self-test && python3 scripts/check-agent.py` |
+| BATT-06 | [`docs/gates/BATT-06.md`](gates/BATT-06.md) | `python3 scripts/check-routing-battery.py --self-test` |
+| STEP0-08 | [`docs/gates/STEP0-08.md`](gates/STEP0-08.md) | `python3 scripts/check-step0-emulator.py --self-test` |
+| STEP0-06 | [`docs/gates/STEP0-06.md`](gates/STEP0-06.md) | `python3 scripts/check-step0-live.py --self-test` |
+| TRACE-03 | [`docs/gates/TRACE-03.md`](gates/TRACE-03.md) | `python3 scripts/check-traceability.py --self-test` |
+| QUAL-01 | [`docs/gates/QUAL-01.md`](gates/QUAL-01.md) | `python3 scripts/check-quality-harness.py --self-test` |
+| PROV-GUARD | [`docs/gates/PROV-GUARD.md`](gates/PROV-GUARD.md) | `python3 scripts/check-provenance.py --self-test && python3 scripts/check-provenance.py` |
+| HARN-01 | [`docs/gates/HARN-01.md`](gates/HARN-01.md) | `python3 scripts/check-act-limb.py --self-test` |
+| HARN-02 | [`docs/gates/HARN-02.md`](gates/HARN-02.md) | `python3 scripts/check-loop-closure.py --self-test` |
+| HARN-03 | [`docs/gates/HARN-03.md`](gates/HARN-03.md) | `python3 scripts/check-focused-parity.py --self-test` |
+| SCAN-GUARD | [`docs/gates/SCAN-GUARD.md`](gates/SCAN-GUARD.md) | `python3 scripts/check-selfaudit-scan.py --self-test && python3 scripts/check-selfaudit-scan.py` |
+| HC-BOUND | [`docs/gates/HC-BOUND.md`](gates/HC-BOUND.md) | `python3 scripts/check-high-confidence-bound.py --self-test` |
+| CONF-GATE | [`docs/gates/CONF-GATE.md`](gates/CONF-GATE.md) | `python3 scripts/check-conf-gate.py --self-test && python3 scripts/check-conf-gate.py` |
+| INVARIANT-CHECK | [`docs/gates/INVARIANT-CHECK.md`](gates/INVARIANT-CHECK.md) | `python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2)` |
+| FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"` |
+| — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
+| — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |
+| — | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
+<!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)
 
@@ -176,7 +53,7 @@ python3 scripts/check-routing.py --catalog tests/routing-catalog.md --repeat 5 -
 python3 scripts/check-routing.py --dry-run --catalog tests/routing-catalog.md   # parse-only, no live session
 ```
 
-**Merged dual-signal battery (live run)** — see BATT-06 above for the `check-routing-battery.py` live invocation.
+**Merged dual-signal battery (live run)** — see [`docs/gates/BATT-06.md`](gates/BATT-06.md) for the `check-routing-battery.py` live invocation.
 
 Routing outcomes vary between sessions, plugin sets, and Claude routing-model versions. Never attribute a single FAIL to one commit without a same-window control run. Each prompt gets a fresh `claude -p` session.
 

@@ -23,6 +23,17 @@ CI job: `check-traceability`
 
 <!-- HAND-WRITTEN: preserved verbatim across regeneration. -->
 
+## How to run, in detail
+
+The `--self-test` mode runs in-process fixtures and named sentinels with no disk I/O beyond the
+script itself. To regenerate the capability → requirement → test matrix:
+
+```sh
+python3 scripts/check-traceability.py emit \
+    --md-output docs/requirements-matrix.md \
+    --json-output docs/data/matrix.json
+```
+
 ## What it asserts
 
 Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures, plus

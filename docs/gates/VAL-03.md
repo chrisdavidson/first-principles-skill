@@ -16,3 +16,9 @@ python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && 
 
 CI job: `check-links`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Em-dash headings produce double-hyphen anchors, which the anchor-validation rule accounts for.
+`docs/-prefixed` links inside `docs/` are flagged as CF-04 violations. `docs/history/**` is
+excluded from the scan (frozen archives).

@@ -193,7 +193,7 @@ to `stream-json`.
 
 The capture methodology in this doc is implemented across several scripts.
 For gate run-commands see
-[`TESTING.md#batt-06--check-routing-battery`](TESTING.md#batt-06--check-routing-battery).
+[`gates/BATT-06.md`](gates/BATT-06.md).
 For the full CI and pre-commit gate table see
 [`ARCHITECTURE.md#ci-and-pre-commit-gate-inventory`](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 
@@ -241,14 +241,14 @@ independent layers:
   classifier. Reads the `**Phrase detection rules**` table from
   `shared/spine/SKILL-body.md` and compiles it into a deterministic regex
   classifier. No live `claude` session required. CI gate:
-  [`TESTING.md#step0-08--check-step0-emulator`](TESTING.md#step0-08--check-step0-emulator).
+  [`gates/STEP0-08.md`](gates/STEP0-08.md).
 
 - **`scripts/check-step0-live.py`** (STEP0-06) — live agent-body harness.
   Forces Step 0 classification through the approach-② `_wrap_for_bypass`
   bypass channel over the `stream-json` transport. Scores K-of-N results
   across the 12-row `tests/step0-fixture-catalog.md`. CI gate (offline
   self-test only):
-  [`TESTING.md#step0-06--check-step0-live`](TESTING.md#step0-06--check-step0-live).
+  [`gates/STEP0-06.md`](gates/STEP0-06.md).
 
 ### Retired shims
 
