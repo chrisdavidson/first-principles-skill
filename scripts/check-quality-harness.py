@@ -4732,6 +4732,75 @@ def _slice_sections_pin_problems(source: str) -> list[str]:
     ]
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05).
+
+    Added OUTSIDE the three CONTRACT-06 pinned functions
+    (`_chain_block_well_formed`, `_conclusion_claims`, `_slice_sections`)
+    — not one byte of any of them changes, and no pin is recomputed here.
+    `contract_pins`' line counts are derived by calling the pre-existing
+    `_chain_detector_source()`/`_conclusion_claims_source()`/
+    `_slice_sections_source()` wrapper functions — each already the sole
+    named call site for `inspect.getsource()` against its own frozen
+    function (their own docstrings state this); reusing the wrapper adds
+    no second such call site. The digests themselves are READ from the
+    pinned literals, never recomputed.
+
+    `control_ids`/`control_count` are the 27 locked fixture ids from
+    `_RENDER_CONTRACT_EXTRACTION_TABLE`. `registered_surfaces` is
+    `_RENDER_RULE_SURFACES`. `disclosed_bounds_anchors` is
+    `_QUAL01_DOC_ROW_TOKENS` — the 30 tokens plan 21-08's repoint
+    consumes, once `docs/gates/QUAL-01.md`'s cell shrinks. `locked_constants`
+    carries the R1-R12 rule ids, the surface->required-rules scoping map,
+    and `_QUAL01_DOC_ROWS`, each joined to a single string since the
+    vocabulary's `locked_constants` shape is scalar-valued. Emitting the
+    rule ids and the fourth (non-CONTRACT-06) `_RENDER_RULE_LITERALS`
+    digest pin's CONTENT is a read, never a recompute of that pin either.
+    """
+    def _rule_sort_key(rule_id: str) -> tuple[int, str]:
+        return (int(rule_id[1:]), rule_id)
+
+    _fixture_ids = sorted(fid for fid, *_rest in _RENDER_CONTRACT_EXTRACTION_TABLE)
+    _chain_lines = len(_chain_detector_source().splitlines())
+    _claims_lines = len(_conclusion_claims_source().splitlines())
+    _slice_lines = len(_slice_sections_source().splitlines())
+
+    return {
+        "control_ids": _fixture_ids,
+        "control_count": len(_fixture_ids),
+        "registered_surfaces": sorted(_RENDER_RULE_SURFACES),
+        "disclosed_bounds_anchors": sorted(_QUAL01_DOC_ROW_TOKENS),
+        "derived_counts": {
+            "rule_count": len(_RENDER_RULE_LITERALS),
+            "render_surface_count": len(_RENDER_RULE_SURFACES),
+            "qual01_doc_row_count": len(_QUAL01_DOC_ROWS),
+            "qual01_doc_row_token_count": len(_QUAL01_DOC_ROW_TOKENS),
+        },
+        "locked_constants": {
+            "rule_ids": " | ".join(sorted(_RENDER_RULE_LITERALS, key=_rule_sort_key)),
+            "render_surface_required_rules": "; ".join(
+                f"{surface}: {','.join(_RENDER_SURFACE_REQUIRED_RULES[surface])}"
+                for surface in _RENDER_RULE_SURFACES
+            ),
+            "qual01_doc_rows": " | ".join(_QUAL01_DOC_ROWS),
+        },
+        "contract_pins": {
+            "_chain_block_well_formed": {
+                "digest": _CHAIN_DETECTOR_PINNED_DIGEST,
+                "line_count": _chain_lines,
+            },
+            "_conclusion_claims": {
+                "digest": _CONCLUSION_CLAIMS_PINNED_DIGEST,
+                "line_count": _claims_lines,
+            },
+            "_slice_sections": {
+                "digest": _SLICE_SECTIONS_PINNED_DIGEST,
+                "line_count": _slice_lines,
+            },
+        },
+    }
+
+
 # Bold lead-in ending in a colon (e.g. "**Key insight:** ..."); the colon
 # must sit immediately before the closing bold markers, distinguishing a
 # labelled claim from a bold phrase (e.g. "**Confidence: HIGH**") whose
@@ -16813,7 +16882,42 @@ def self_test() -> int:
     else:
         print("self-test: slice_sections_pin sub-check PASSED")
 
+    # (describe) describe()-consistency sub-check (D-03, plan 21-05): the
+    # module-level constants --describe reads must agree with the live
+    # _RENDER_CONTRACT_EXTRACTION_TABLE / _RENDER_RULE_LITERALS /
+    # _QUAL01_DOC_ROW_TOKENS / CONTRACT-06 pin literals this self-test just
+    # exercised. Reads only — no pin is recomputed by this check.
+    if not _selftest_describe_consistency():
+        all_passed = False
+        print("self-test: describe sub-check FAILED", file=sys.stderr)
+    else:
+        print("self-test: describe sub-check PASSED")
+
     return 0 if all_passed else 1
+
+
+def _selftest_describe_consistency() -> bool:
+    """(describe) sub-check body: describe()'s emitted fields agree with
+    the live module constants this gate's own checking logic reads."""
+    desc = describe()
+    _fixture_ids = sorted(fid for fid, *_rest in _RENDER_CONTRACT_EXTRACTION_TABLE)
+    if desc["control_ids"] != _fixture_ids:
+        return False
+    if desc["control_count"] != len(_fixture_ids):
+        return False
+    if desc["registered_surfaces"] != sorted(_RENDER_RULE_SURFACES):
+        return False
+    if desc["disclosed_bounds_anchors"] != sorted(_QUAL01_DOC_ROW_TOKENS):
+        return False
+    if desc["derived_counts"]["qual01_doc_row_token_count"] != len(_QUAL01_DOC_ROW_TOKENS):
+        return False
+    if desc["contract_pins"]["_chain_block_well_formed"]["digest"] != _CHAIN_DETECTOR_PINNED_DIGEST:
+        return False
+    if desc["contract_pins"]["_conclusion_claims"]["digest"] != _CONCLUSION_CLAIMS_PINNED_DIGEST:
+        return False
+    if desc["contract_pins"]["_slice_sections"]["digest"] != _SLICE_SECTIONS_PINNED_DIGEST:
+        return False
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -16831,6 +16935,11 @@ def build_parser() -> argparse.ArgumentParser:
         dest="self_test",
         action="store_true",
         help="Run the offline deterministic self-test and exit (no claude invoked)",
+    )
+    p.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this gate's own self-description as JSON on stdout and exit",
     )
     p.add_argument(
         "--catalog",
@@ -16965,6 +17074,12 @@ def main(argv: list[str] | None = None) -> int:
     """Entry point. Returns exit code (0=pass, 1=fail, 2=usage/env error)."""
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    # --describe MUST return before any environment guard or live path,
+    # same ordering discipline as --self-test (D-03/D-16).
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     # --self-test MUST return before any environment guard or live path (D-16).
     if args.self_test:

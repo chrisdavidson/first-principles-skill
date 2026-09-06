@@ -136,6 +136,47 @@ HEADLINE_SCAN_GLOBS: list[str] = [
 _TRACE03_DOC_ROWS: tuple[str, ...] = ("CLAUDE.md", "docs/ARCHITECTURE.md")
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05).
+
+    `scan_globs` is `HEADLINE_SCAN_GLOBS` emitted verbatim, ELEMENT BY
+    ELEMENT, IN ORDER — never sorted, never pre-joined. Plan 21-07's
+    generator renders block (n)'s glob substring by applying
+    `", ".join(f"`{g}`" for g in scan_globs)` to this exact emission, so
+    the generated TRACE-03 row and block (n)'s own comparison read the
+    same constant in the same order.
+
+    `coverage_headline` is the one deliberate exception to this function's
+    otherwise-pure contract: it calls `_headline_literals()`, which reads
+    `build_matrix_rows()` live (disk I/O) rather than a cached value,
+    because `_headline_literals()` is itself deliberately un-memoized — a
+    cached headline here would let the published figure go stale the
+    moment a matrix row is registered or re-tiered, defeating the entire
+    reason that function refuses to cache.
+
+    `locked_constants` carries `_TRACE03_DOC_ROWS`, `HISTORICAL_EXEMPT_FILES`,
+    the `_HEADLINE_LOCK_STAGES` dispatcher names, and `_SELFTEST_ANCHOR_PREFIXES`
+    — each joined into a single string, since the vocabulary's
+    `locked_constants` shape is scalar-valued.
+    """
+    _slash_lit, _prose_lit = _headline_literals()
+    return {
+        "scan_globs": list(HEADLINE_SCAN_GLOBS),
+        "registered_surfaces": sorted(COVERED_HEADLINE_SURFACES),
+        "branch_roster": list(_HEADLINE_LOCK_BLOCKS),
+        "branch_count": len(_HEADLINE_LOCK_BLOCKS),
+        "locked_constants": {
+            "trace03_doc_rows": " | ".join(_TRACE03_DOC_ROWS),
+            "historical_exempt_files": " | ".join(sorted(HISTORICAL_EXEMPT_FILES)),
+            "headline_lock_stage_names": " | ".join(
+                fn.__name__ for fn in _HEADLINE_LOCK_STAGES
+            ),
+            "selftest_anchor_prefixes": " | ".join(_SELFTEST_ANCHOR_PREFIXES),
+        },
+        "coverage_headline": {"slash": _slash_lit, "prose": _prose_lit},
+    }
+
+
 # Arrow-layer tokens for _is_historical_headline_hit()'s figure-adjacency test (CR-03/WR-07).
 # Neither constant contains any digit from the coverage headline itself. _HTML_COMMENT_CLOSE is
 # defined FIRST and _ARROW_TOKENS references it by name (never retyped), because the same three
@@ -6310,6 +6351,40 @@ def _self_test_headline_lock(wrong_results: list[str]) -> None:
         )
 
 
+def _self_test_describe_consistency(wrong_results: list[str]) -> None:
+    """(describe) describe()-consistency control (D-03, plan 21-05): the
+    module-level constants --describe reads must agree with the live
+    HEADLINE_SCAN_GLOBS/COVERED_HEADLINE_SURFACES/_HEADLINE_LOCK_BLOCKS this
+    self-test's own HEADLINE-LOCK sentinel just exercised, and the emitted
+    coverage_headline must equal a fresh call to _headline_literals() —
+    never a cached or hand-typed figure."""
+    desc = describe()
+    if desc["scan_globs"] != list(HEADLINE_SCAN_GLOBS):
+        wrong_results.append("(describe): scan_globs disagrees with HEADLINE_SCAN_GLOBS")
+        return
+    if desc["registered_surfaces"] != sorted(COVERED_HEADLINE_SURFACES):
+        wrong_results.append(
+            "(describe): registered_surfaces disagrees with COVERED_HEADLINE_SURFACES"
+        )
+        return
+    if desc["branch_roster"] != list(_HEADLINE_LOCK_BLOCKS):
+        wrong_results.append("(describe): branch_roster disagrees with _HEADLINE_LOCK_BLOCKS")
+        return
+    if desc["branch_count"] != len(_HEADLINE_LOCK_BLOCKS):
+        wrong_results.append("(describe): branch_count disagrees with len(_HEADLINE_LOCK_BLOCKS)")
+        return
+    _fresh_slash, _fresh_prose = _headline_literals()
+    if desc["coverage_headline"] != {"slash": _fresh_slash, "prose": _fresh_prose}:
+        wrong_results.append(
+            "(describe): coverage_headline disagrees with a fresh _headline_literals() call"
+        )
+        return
+    print(
+        "check-traceability --self-test: (describe) describe()-consistency PASS "
+        f"({len(_HEADLINE_LOCK_BLOCKS)} blocks, {len(HEADLINE_SCAN_GLOBS)} scan globs)"
+    )
+
+
 def _run_self_test() -> None:
     """Run the inline artifact-resolution / schema / sentinel fixtures — no .planning/ reads required.
 
@@ -6381,6 +6456,7 @@ def _run_self_test() -> None:
     _self_test_v825_rows_sentinel(wrong_results)
     _self_test_v826_rows_sentinel(wrong_results)
     _self_test_headline_lock(wrong_results)
+    _self_test_describe_consistency(wrong_results)
     if wrong_results:
         sys.stderr.write(
             f"check-traceability --self-test: FAIL — {', '.join(wrong_results)}\n"
@@ -6437,6 +6513,11 @@ def main() -> None:
             "exit 0 only if all pass (CI gate entry point)"
         ),
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout and exit",
+    )
     subparsers = parser.add_subparsers(dest="subcommand")
 
     emit_parser = subparsers.add_parser(
@@ -6468,6 +6549,15 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+
+    # --describe: MUST return before any subcommand dispatch, same ordering
+    # discipline as --self-test (D-03/D-21-A interfaces contract) — a
+    # top-level flag checked before subcommand dispatch, never a
+    # `describe` subcommand.
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
+
     _require_python_version()
 
     if args.self_test:

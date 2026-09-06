@@ -1619,8 +1619,56 @@ REQUIRED_CONTROLS: frozenset[str] = frozenset(
         "PROV04-network-blocked",
         "PROV04-network-armed-proof",
         "GATE01-antimask-selfproof",
+        "describe",
     }
 )
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05): pure, no disk
+    I/O, no argv, no subprocess. `control_ids`/`control_count` are
+    `REQUIRED_CONTROLS`, the pre-existing D-16 anti-masking roster this
+    gate's own `--self-test` already floors against `_covered_controls` —
+    reused directly rather than re-derived. `registered_surfaces` is the
+    live fixture's own two relpaths (`_FIXTURE_CAPTURE`/`_FIXTURE_ANALYSIS`)
+    — the fixture IDENTITY, never the published measurement
+    (`7/7 sources matched, 35/35 literals located`), which is a live
+    reading of a frozen fixture and would go stale the instant the fixture
+    changes if repeated here as a limb literal."""
+    return {
+        "control_ids": sorted(REQUIRED_CONTROLS),
+        "control_count": len(REQUIRED_CONTROLS),
+        "registered_surfaces": sorted(
+            {
+                str(_FIXTURE_CAPTURE.relative_to(REPO_ROOT)),
+                str(_FIXTURE_ANALYSIS.relative_to(REPO_ROOT)),
+            }
+        ),
+        "locked_constants": {"no_network_control": "PROV04-network-blocked"},
+    }
+
+
+def _control_describe_consistency() -> None:
+    """(describe): the emitted roster and fixture identity agree with the
+    live constants this gate's own checking logic reads — not a hand-typed
+    parallel list."""
+    desc = describe()
+    assert desc["control_ids"] == sorted(REQUIRED_CONTROLS), (
+        f"control_ids disagrees with REQUIRED_CONTROLS: {desc['control_ids']}"
+    )
+    assert desc["control_count"] == len(REQUIRED_CONTROLS), (
+        f"control_count disagrees with len(REQUIRED_CONTROLS): {desc['control_count']}"
+    )
+    expected_surfaces = sorted(
+        {
+            str(_FIXTURE_CAPTURE.relative_to(REPO_ROOT)),
+            str(_FIXTURE_ANALYSIS.relative_to(REPO_ROOT)),
+        }
+    )
+    assert desc["registered_surfaces"] == expected_surfaces, (
+        f"registered_surfaces disagrees with the live fixture constants: "
+        f"{desc['registered_surfaces']}"
+    )
 
 
 def _run_self_test() -> None:
@@ -1663,6 +1711,7 @@ def _run_self_test() -> None:
     _run_control("PROV04-network-blocked", _control_prov04_network_blocked)
     _run_control("PROV04-network-armed-proof", _control_prov04_network_armed_proof)
     _run_control("GATE01-antimask-selfproof", _control_gate01_antimask_selfproof)
+    _run_control("describe", _control_describe_consistency)
 
     # D-16 anti-masking: the full named inventory must have run, and nothing
     # that ran may be absent from the inventory (a control cannot silently
@@ -1808,7 +1857,16 @@ def main() -> None:
         action="store_true",
         help="run the offline control battery (positive, negative, anti-masking)",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout and exit",
+    )
     args = parser.parse_args()
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return
 
     _require_python_version()
 

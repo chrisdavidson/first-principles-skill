@@ -999,16 +999,75 @@ def self_test() -> int:
         except OSError:
             pass
 
+    # -----------------------------------------------------------------------
+    # (describe) describe()-consistency control (D-03, plan 21-05): the
+    # module-level roster --describe reads must agree with _CONTROL_IDS
+    # itself, and the locked transport string must match _battery_core.py's
+    # own LOCKED_TRANSPORT_ARGV_TEMPLATE — never a hand-retyped copy.
+    # -----------------------------------------------------------------------
+    _desc = describe()
+    if _desc["control_ids"] != list(_CONTROL_IDS):
+        print(
+            f"self-test FAIL: (describe) control_ids disagrees with _CONTROL_IDS: {_desc['control_ids']}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    elif _desc["control_count"] != len(_CONTROL_IDS):
+        print(
+            f"self-test FAIL: (describe) control_count disagrees with len(_CONTROL_IDS): {_desc['control_count']}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    elif _desc["locked_constants"]["transport_command"] != " ".join(
+        _mod.LOCKED_TRANSPORT_ARGV_TEMPLATE
+    ):
+        print(
+            "self-test FAIL: (describe) transport_command disagrees with "
+            "_battery_core.LOCKED_TRANSPORT_ARGV_TEMPLATE",
+            file=sys.stderr,
+        )
+        all_passed = False
+    else:
+        print(
+            f"check-step0-live --self-test: describe()-consistency PASS "
+            f"({len(_CONTROL_IDS)} controls)"
+        )
+
     if all_passed:
         print(
             "self-test PASS (4 fixtures + K>N rejection + catalog parse + priority-subset"
             " + /8-tally + failing-S-P16 firewall + failing-S-N firewall"
             f" + non-blocking-S-N04 + {_dca_label} + routing-count"
             f" + {_v85_label} + {_rea_label} + {_rr_cov_label}"
-            " + null-subagent-no-raise + reduced-run-denominator)"
+            " + null-subagent-no-raise + reduced-run-denominator + describe)"
         )
         return 0
     return 1
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. The locked transport string is read from
+    `_battery_core.LOCKED_TRANSPORT_ARGV_TEMPLATE` — the single source
+    `_run_prompt_to` itself builds its argv from — never a hand-retyped
+    copy of the `claude -p ...` invocation. `control_ids`/`control_count`
+    are `_CONTROL_IDS`, a hand-authored-once roster (D-21-J) naming every
+    check `self_test()` runs. Emits no K-of-5 verdict data (governing
+    record §2 item 3): this limb documents the harness, not a result."""
+    return {
+        "locked_constants": {
+            "transport_command": " ".join(_mod.LOCKED_TRANSPORT_ARGV_TEMPLATE),
+            "baseline_version": _BASELINE_VERSION,
+        },
+        "checked_files": sorted(
+            {
+                "tests/step0-fixture-catalog.md",
+                f"tests/step0-baseline-{_BASELINE_VERSION}.md",
+            }
+        ),
+        "control_ids": list(_CONTROL_IDS),
+        "control_count": len(_CONTROL_IDS),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -1065,6 +1124,39 @@ CANONICAL_TALLY_IDS = (
 # S-P04 = five-whys (the surviving technique); S-P16 = the absorbed trigger
 # re-homed to focused-five-whys (merge-validation signal, outside /8).
 DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
+
+# D-21-J roster lift (Phase 21 plan 05): this file's self_test() had no
+# enumerable control roster before this plan — every check was an inline
+# `if ...: print("self-test FAIL: <name>...")` block with no id list to hang
+# a `--describe` limb on. Hand-authored-once tuple naming every existing
+# check in the order self_test() runs them, plus the new describe()-consistency
+# control this plan adds — matches check-act-limb.py's/check-registration.py's
+# batch-B precedent (21-04-SUMMARY.md).
+_CONTROL_IDS: tuple[str, ...] = (
+    "fixture-focused_premortem",
+    "fixture-full_composer_structural",
+    "fixture-none_with_dispatch_LOAD_BEARING",
+    "fixture-none_without_dispatch",
+    "kn-rejection",
+    "catalog-parse-valid",
+    "catalog-parse-unknown-mode",
+    "priority-subset-reorder",
+    "priority-subset-none-passthrough",
+    "priority-subset-no-mutate",
+    "tally-8-drift",
+    "known-modes-size-drift",
+    "d01a-failing-sp16-firewall",
+    "d01a-failing-sn-firewall",
+    "non-block-neg",
+    "scrubbed-slug-absence",
+    "routing-count-drift",
+    "v85-emitter-target",
+    "routing-emitter-absence",
+    "rr-id-coverage",
+    "null-subagent-no-raise",
+    "reduced-run-denominator",
+    "describe",
+)
 
 # D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.13
 # re-measure of Step 0 deferred residuals (Phase 137, cap-defensive — 3-row
@@ -1506,6 +1598,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run offline deterministic self-test and exit (no claude invoked)",
     )
+    p.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit this gate's own self-description as JSON on stdout and exit",
+    )
     return p
 
 
@@ -1518,6 +1615,12 @@ def main(argv: list[str] | None = None) -> int:
     """Entry point. Returns exit code (0=pass, 1=fail, 2=usage/env error)."""
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    # (0) --describe: MUST return before any env guard or claude invocation,
+    # same ordering discipline as --self-test (D-06/D-03).
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     # (1) --self-test: MUST return before any env guard or claude invocation (D-06)
     if args.self_test:

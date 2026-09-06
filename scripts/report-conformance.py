@@ -53,7 +53,7 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, get_args, get_type_hints
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 MEASUREMENT_DATE: str = "2026-09-06"
@@ -4987,6 +4987,72 @@ def _control_live_call_sites_roster_lock_wrong_count() -> None:
     assert any("non-1 expected count" in p for p in problems), problems
 
 
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05): pure, no disk
+    I/O, no argv, no subprocess. `registered_surfaces` is the five
+    surface pathspecs `discover_artifacts` reads (four globs plus
+    `CONTRACT_SURFACE_RELPATH`, resolved by explicit path rather than a
+    glob) — the `Artifact.surface` Literal's five members, derived via
+    `typing.get_type_hints` rather than hand-retyped. `checked_files`
+    names the two tracked artifacts this gate's `--check` drift mode
+    compares against. `control_ids`/`control_count` are `_CONTROL_IDS`.
+    No `_GATED_SURFACES` counterpart exists in this file."""
+    _surface_names = sorted(get_args(get_type_hints(Artifact)["surface"]))
+    return {
+        "registered_surfaces": sorted(
+            {
+                SHARED_EXAMPLES_GLOB,
+                TWIN_EXAMPLES_GLOB,
+                CONTRACT_SURFACE_RELPATH,
+                ADVERSARIAL_CORPUS_GLOB,
+                LIVE_CONFORMANCE_CAPTURE_GLOB,
+            }
+        ),
+        "checked_files": sorted(
+            {
+                str(MD_PATH.relative_to(REPO_ROOT)),
+                str(JSON_PATH.relative_to(REPO_ROOT)),
+            }
+        ),
+        "control_ids": list(_CONTROL_IDS),
+        "control_count": len(_CONTROL_IDS),
+        "locked_constants": {"surface_names": " | ".join(_surface_names)},
+    }
+
+
+def _control_describe_consistency() -> None:
+    """(describe): the emitted fields agree with the live module constants
+    this gate's own checking logic reads — never a hand-typed parallel."""
+    desc = describe()
+    expected_surfaces = sorted(
+        {
+            SHARED_EXAMPLES_GLOB,
+            TWIN_EXAMPLES_GLOB,
+            CONTRACT_SURFACE_RELPATH,
+            ADVERSARIAL_CORPUS_GLOB,
+            LIVE_CONFORMANCE_CAPTURE_GLOB,
+        }
+    )
+    assert desc["registered_surfaces"] == expected_surfaces, (
+        f"registered_surfaces disagrees with the five surface pathspecs: {desc['registered_surfaces']}"
+    )
+    expected_checked = sorted(
+        {
+            str(MD_PATH.relative_to(REPO_ROOT)),
+            str(JSON_PATH.relative_to(REPO_ROOT)),
+        }
+    )
+    assert desc["checked_files"] == expected_checked, (
+        f"checked_files disagrees with MD_PATH/JSON_PATH: {desc['checked_files']}"
+    )
+    assert desc["control_ids"] == list(_CONTROL_IDS), (
+        f"control_ids disagrees with _CONTROL_IDS: {desc['control_ids']}"
+    )
+    assert desc["control_count"] == len(_CONTROL_IDS), (
+        f"control_count disagrees with len(_CONTROL_IDS): {desc['control_count']}"
+    )
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -5217,6 +5283,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "live-call-sites-roster-lock-wrong-count",
         _control_live_call_sites_roster_lock_wrong_count,
     ),
+    ("describe", _control_describe_consistency),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -5324,6 +5391,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-call-sites-roster-lock-forms-narrowed",
     "live-call-sites-roster-lock-narrowed",
     "live-call-sites-roster-lock-wrong-count",
+    "describe",
 )
 
 
@@ -5376,7 +5444,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline control battery (positive, negative, anti-masking)",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout and exit",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     try:
         if args.self_test:

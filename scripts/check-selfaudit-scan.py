@@ -331,6 +331,7 @@ import argparse
 import contextlib
 import inspect
 import io
+import json
 import re
 import sys
 import textwrap
@@ -1506,6 +1507,38 @@ def _validate_files() -> int:
 # Self-test
 # ---------------------------------------------------------------------------
 
+# D-21-J roster lift (Phase 21 plan 05): `_validate_files`' four call-site
+# census legs, lifted from a local tuple inside `_run_self_test` to module
+# scope so `describe()` can emit `call_site_census` without executing
+# `_run_self_test` itself (D-03: pure, no I/O). `_run_self_test` now reads
+# this same constant — a single source, not a parallel copy.
+_VALIDATE_LEG_SYMBOLS: tuple[str, ...] = (
+    "_check_body_text",
+    "_check_rubric_text",
+    "_check_cross_surface",
+    "_live_exit_code",
+)
+
+# The self-test's own infrastructure-level controls — the named checks that
+# sit OUTSIDE REQUIRED_BRANCHES/_BRANCH_ROSTER_LOCK (roster equality, the
+# call-site censuses, the in-process dispatch controls, and this plan's new
+# describe()-consistency control). Hand-authored-once tuple (D-21-J),
+# matching batch B's check-act-limb.py precedent — REQUIRED_BRANCHES itself
+# is explicitly NOT touched by this plan (its roster floor's two
+# independently-transcribed halves are load-bearing and read-only here).
+_META_CONTROL_IDS: tuple[str, ...] = (
+    "roster-census",
+    "roster-lock",
+    "roster-entry-source",
+    "roster-es-census",
+    "validate-census",
+    "live-census",
+    "dispatch",
+    "live-dispatch",
+    "live-dispatch-census",
+    "describe",
+)
+
 REQUIRED_BRANCHES: frozenset[str] = frozenset(
     {
         "B-01-slice-count",
@@ -1679,6 +1712,33 @@ _BRANCH_ROSTER_LOCK: frozenset[str] = frozenset(
         "X-05-superseded-body", "X-05-superseded-rubric",
     }
 )
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03, plan 21-05): pure, no disk
+    I/O, no argv, no subprocess. `branch_roster`/`branch_count` are
+    `REQUIRED_BRANCHES` — read only, never edited by this plan.
+    `registered_surfaces` names `AGENT_FILE`/`RUBRIC_FILE`.
+    `call_site_census` is `_VALIDATE_LEG_SYMBOLS` (each expected exactly
+    once, the `(validate-census)` shape). `control_ids`/`control_count`
+    are `_META_CONTROL_IDS` — the self-test's infrastructure-level
+    controls that sit outside the branch roster. `locked_constants`
+    carries the `_BAND_BULLETS` literal set (joined, since the
+    vocabulary's `locked_constants` shape is scalar-valued)."""
+    return {
+        "branch_roster": sorted(REQUIRED_BRANCHES),
+        "branch_count": len(REQUIRED_BRANCHES),
+        "registered_surfaces": sorted(
+            {
+                str(AGENT_FILE.relative_to(REPO_ROOT)),
+                str(RUBRIC_FILE.relative_to(REPO_ROOT)),
+            }
+        ),
+        "call_site_census": {symbol: 1 for symbol in _VALIDATE_LEG_SYMBOLS},
+        "control_ids": list(_META_CONTROL_IDS),
+        "control_count": len(_META_CONTROL_IDS),
+        "locked_constants": {"band_bullets": " | ".join(_BAND_BULLETS)},
+    }
 
 
 def _roster_problems(
@@ -3365,14 +3425,8 @@ def _run_self_test() -> int:
     # by concatenating the symbol name with `"("`, matching the roster
     # census's own convention.
     _validate_files_src = inspect.getsource(_validate_files)
-    _validate_leg_symbols = (
-        "_check_body_text",
-        "_check_rubric_text",
-        "_check_cross_surface",
-        "_live_exit_code",
-    )
     _validate_census_ok = True
-    for _leg_symbol in _validate_leg_symbols:
+    for _leg_symbol in _VALIDATE_LEG_SYMBOLS:
         _leg_pattern = _leg_symbol + "("
         _leg_count = _validate_files_src.count(_leg_pattern)
         if _leg_count != 1:
@@ -3539,6 +3593,31 @@ def _run_self_test() -> int:
             f"({_live_dispatch_call_count} call site)"
         )
 
+    # (describe) describe()-consistency control (D-03, plan 21-05): the
+    # module-level constants --describe reads must agree with the live
+    # REQUIRED_BRANCHES/_VALIDATE_LEG_SYMBOLS/_META_CONTROL_IDS/_BAND_BULLETS
+    # this self-test just exercised. Deliberately NOT a REQUIRED_BRANCHES
+    # entry — it lives alongside (dispatch)/(live-dispatch) in
+    # _META_CONTROL_IDS, the self-test's infrastructure-control roster.
+    _desc = describe()
+    if _desc["branch_roster"] != sorted(REQUIRED_BRANCHES):
+        problems.append("(describe): branch_roster disagrees with REQUIRED_BRANCHES")
+    elif _desc["branch_count"] != len(REQUIRED_BRANCHES):
+        problems.append("(describe): branch_count disagrees with len(REQUIRED_BRANCHES)")
+    elif _desc["call_site_census"] != {symbol: 1 for symbol in _VALIDATE_LEG_SYMBOLS}:
+        problems.append("(describe): call_site_census disagrees with _VALIDATE_LEG_SYMBOLS")
+    elif _desc["control_ids"] != list(_META_CONTROL_IDS):
+        problems.append("(describe): control_ids disagrees with _META_CONTROL_IDS")
+    elif _desc["control_count"] != len(_META_CONTROL_IDS):
+        problems.append("(describe): control_count disagrees with len(_META_CONTROL_IDS)")
+    elif _desc["locked_constants"]["band_bullets"] != " | ".join(_BAND_BULLETS):
+        problems.append("(describe): band_bullets disagrees with _BAND_BULLETS")
+    else:
+        print(
+            f"(describe) describe()-consistency: PASS "
+            f"({len(REQUIRED_BRANCHES)} branches, {len(_META_CONTROL_IDS)} meta-controls)"
+        )
+
     if problems:
         sys.stderr.write("check-selfaudit-scan --self-test: FAIL — " + "; ".join(problems) + "\n")
         return 1
@@ -3575,7 +3654,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline self-test control battery",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout and exit",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return _run_self_test()

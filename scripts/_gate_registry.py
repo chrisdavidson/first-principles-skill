@@ -374,6 +374,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/check-step0-live.py",
         run_command="python3 scripts/check-step0-live.py --self-test",
         summary="Offline Step 0 live-harness scoring/parsing logic self-test.",
+        consumes=("locked_constants", "checked_files", "control_ids", "control_count"),
     ),
     GateEntry(
         key="TRACE-03",
@@ -388,6 +389,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "resolution, plus the HEADLINE-LOCK sentinel asserting the published "
             "coverage headline against five named current-fact surfaces and both "
             "tracked matrix artifacts."
+        ),
+        consumes=(
+            "scan_globs",
+            "registered_surfaces",
+            "branch_roster",
+            "branch_count",
+            "locked_constants",
+            "coverage_headline",
         ),
     ),
     GateEntry(
@@ -404,6 +413,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "integrity, the mechanical defect detector, and the emission rendering "
             "contract's six legs. The single named battery-only CI exemption in "
             "REG-GUARD's `BATTERY_ONLY_GATE_IDS`."
+        ),
+        consumes=(
+            "control_ids",
+            "control_count",
+            "registered_surfaces",
+            "disclosed_bounds_anchors",
+            "derived_counts",
+            "locked_constants",
+            "contract_pins",
         ),
     ),
     GateEntry(
@@ -424,6 +442,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "text. Live leg reads `tests/quality-provenance-v8.24/` and reports "
             "7/7 sources matched, 35/35 literals located."
         ),
+        consumes=("control_ids", "control_count", "registered_surfaces", "locked_constants"),
     ),
     GateEntry(
         key="HARN-01",
@@ -488,6 +507,15 @@ ENTRIES: tuple[GateEntry, ...] = (
             "named branches floored by an independent transcription "
             "(`_BRANCH_ROSTER_LOCK`)."
         ),
+        consumes=(
+            "branch_roster",
+            "branch_count",
+            "registered_surfaces",
+            "call_site_census",
+            "control_ids",
+            "control_count",
+            "locked_constants",
+        ),
     ),
     GateEntry(
         key="HC-BOUND",
@@ -522,6 +550,14 @@ ENTRIES: tuple[GateEntry, ...] = (
             "14-entry claim floor locked by equality to the live-discovered "
             "`shared-examples` ids, the D-03 prescribed-lead-in rule, and the "
             "marked-claim ratchet (may fall, never rise)."
+        ),
+        consumes=(
+            "registered_surfaces",
+            "population_floors",
+            "call_site_census",
+            "control_ids",
+            "control_count",
+            "locked_constants",
         ),
     ),
     GateEntry(
@@ -596,6 +632,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "fires before commit. Deliberately not registered in the battery or "
             "in CI."
         ),
+        consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
     ),
     # --- Anticipatory entry (D-21-C) --------------------------------------
     # Not yet in scripts/check-firewall-battery.sh, not yet in
@@ -822,6 +859,21 @@ _FIELD_DESCRIPTIONS: dict[str, str] = {
         "are skipped under a named alternate invocation mode (e.g. "
         "--skip-name-check), so the scoping itself is derivable rather than "
         "restated in prose"
+    ),
+    "coverage_headline": (
+        "a mapping with 'slash' and 'prose' keys holding the two live "
+        "renderings of the traceability coverage headline, re-derived from "
+        "build_matrix_rows() on every call (the check-traceability.py "
+        "_headline_literals() shape) — deliberately NOT locked, since the "
+        "headline must keep moving the instant a matrix row is registered "
+        "or re-tiered"
+    ),
+    "contract_pins": (
+        "a mapping of frozen-function-name -> {'digest': the pinned "
+        "sha256:<hex> literal, 'line_count': int} for every CONTRACT-06 "
+        "sha256-pinned function this gate carries — both values are READ "
+        "from the pin's own module constant and a pre-existing single-"
+        "call-site source wrapper, never recomputed inside describe()"
     ),
 }
 
