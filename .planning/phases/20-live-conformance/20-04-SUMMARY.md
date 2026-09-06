@@ -149,3 +149,16 @@ None.
 ---
 *Phase: 20-live-conformance*
 *Completed: 2026-09-06*
+
+## Self-Check: PASSED
+
+- `scripts/report-conformance.py` — FOUND
+- `docs/conformance-baseline.md` — FOUND
+- `docs/data/conformance.json` — FOUND
+- `.planning/phases/20-live-conformance/20-04-SUMMARY.md` — FOUND
+- `9056065` (Task 1 commit) — FOUND
+- `214ca9d` (Task 2 commit) — FOUND
+- `a3847ac` (Task 3 commit) — FOUND
+- `11e9293` (SUMMARY commit) — FOUND
+
+No missing items.
