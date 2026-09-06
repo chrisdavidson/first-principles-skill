@@ -352,6 +352,7 @@ ENTRIES: tuple[GateEntry, ...] = (
             "Offline merged dual-signal routing-battery self-test (boundary + "
             "focused-output); owns the honest-state and anti-masking sentinels."
         ),
+        consumes=("locked_constants", "disclosed_bounds_anchors", "derived_counts", "checked_files"),
     ),
     GateEntry(
         key="STEP0-08",
@@ -362,6 +363,7 @@ ENTRIES: tuple[GateEntry, ...] = (
         script="scripts/check-step0-emulator.py",
         run_command="python3 scripts/check-step0-emulator.py --self-test",
         summary="Offline Step 0 phrase-detection classifier self-test.",
+        consumes=("locked_constants", "derived_counts", "disclosed_bounds_anchors", "checked_files"),
     ),
     GateEntry(
         key="STEP0-06",
