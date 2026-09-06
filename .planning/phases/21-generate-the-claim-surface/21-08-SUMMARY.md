@@ -3,7 +3,7 @@ phase: 21-generate-the-claim-surface
 plan: 08
 subsystem: tooling
 tags: [gate-registry, generator, claim-surface, region-replacement, ci-gates, drift-gate, containment-rule, checkpoint]
-status: paused-at-checkpoint
+status: complete
 
 # Dependency graph
 requires:
@@ -154,33 +154,34 @@ key-decisions:
 requirements-completed: [CONF-12]
 
 # Metrics
-duration: ~3.5 hours (single session, through Task 3's mechanical work;
-  paused before the checkpoint's required human sign-off)
+duration: ~4 hours (single session, including the checkpoint round-trip
+  and the post-approval pluralization fix)
 completed: 2026-09-06
 ---
 
 # Phase 21 Plan 08: Generate the Claim Surface (Land It) Summary
 
-**The first real `python3 scripts/gen-gate-docs.py --write` landed: `CLAUDE.md`'s and
-`docs/ARCHITECTURE.md`'s CI-gate tables are now generated from `scripts/_gate_registry.py`, all
-28 `docs/gates/<GATE-ID>.md` pages exist, the four fat narratives (QUAL-01, SCAN-GUARD, TRACE-03,
+**`python3 scripts/gen-gate-docs.py --write` landed: `CLAUDE.md`'s and `docs/ARCHITECTURE.md`'s
+CI-gate tables are now generated from `scripts/_gate_registry.py`, all 28
+`docs/gates/<GATE-ID>.md` pages exist, the four fat narratives (QUAL-01, SCAN-GUARD, TRACE-03,
 CONF-GATE) are migrated into readable, structured prose with zero disclosed-bound loss, and
-QUAL-01's doc-row control is repointed at its new source — all staged as one pending commit,
-paused at Task 3's mandatory human-verify checkpoint before that commit lands.**
+QUAL-01's doc-row control is repointed at its new source — landed in the single combined commit
+the plan requires, after a human-verify checkpoint approval with one cosmetic fix folded in.**
 
-## Status: PAUSED AT CHECKPOINT
+## Status: COMPLETE
 
-This plan's Task 3 is `type="checkpoint:human-verify" gate="blocking"`. All of Task 3's
-mechanical work (the repoint, the structural-property preservation, the full verification set) is
-complete and green. What remains is the human sign-off the checkpoint exists for — reading the
-regenerated `CLAUDE.md`/`docs/ARCHITECTURE.md` regions and `docs/gates/QUAL-01.md` end to end and
-answering "can a reviewer read it?" — after which a continuation agent runs the single commit.
-Everything below is real, verified work; nothing is committed yet except this SUMMARY.
+This plan's Task 3 was `type="checkpoint:human-verify" gate="blocking"`. The coordinator read the
+regenerated `CLAUDE.md`/`docs/ARCHITECTURE.md` regions and `docs/gates/QUAL-01.md` end to end
+independently (not a blind approval), confirmed the four fat-page migrations, the link fixes, and
+the D-06 containment extension were sound, and approved with one required fix: the
+population-arithmetic sentence's literal `gate(s)`/`check(s)` parenthetical plurals. That fix was
+made in the renderer (`scripts/gen-gate-docs.py`, deviation #7 below), re-verified in full
+(idempotence, self-test, battery, CONTRACT-06 digests), and everything landed together in commit
+`b83d23d`. See **Checkpoint Approval** below for the full record.
 
 ## Performance
 
-- **Duration:** ~3.5 hours, single session (Tasks 1-2 complete; Task 3 complete through the
-  point where human judgment is required)
+- **Duration:** ~4 hours, single session, including the checkpoint round-trip
 - **Files modified:** `CLAUDE.md`, `docs/ARCHITECTURE.md`, `scripts/gen-gate-docs.py`,
   `scripts/check-quality-harness.py`
 - **Files created:** 28 `docs/gates/*.md` pages
@@ -349,7 +350,7 @@ word/inline-code span), and injected the result into the page's hand-written reg
 - **Verification:** All 27 links on both surfaces confirmed to resolve, by a dedicated script
   stat-ing each target from its own surface's directory; new self-test control
   `gates-link-resolves-per-surface` (35 controls total); `check-links.py` still passes.
-- **Committed in:** not yet committed (staged, pending checkpoint approval)
+- **Committed in:** `b83d23d`
 
 **2. [Rule 1 - Bug] 20 of 28 pages' H1 title lines exceed 120 characters**
 - **Found during:** Task 2, writing the line-length verification script Task 2's own acceptance
@@ -421,7 +422,7 @@ identifiers, measured-transition vectors, and ordinary-language small numbers as
   count — no new control added for this fix beyond what #1 already added, since the existing
   `containment-violation-fires`/`containment-satisfied-passes`/`containment-spelled-out-normalised`
   controls already exercise the mechanism the new patterns extend).
-- **Committed in:** not yet committed (staged, pending checkpoint approval)
+- **Committed in:** `b83d23d`
 
 **4. [Rule 1 - Bug] A migrated narrative sentence became false the moment Task 3's repoint landed**
 - **Found during:** Task 3, final read-through of the migrated `docs/gates/QUAL-01.md` page
@@ -436,7 +437,7 @@ identifiers, measured-transition vectors, and ordinary-language small numbers as
 - **Files modified:** `docs/gates/QUAL-01.md`
 - **Verification:** Re-ran `--write`/`--check`/`--self-test` and the full battery after the
   correction; all still green (`FIREWALL: GREEN (25/25)`).
-- **Committed in:** not yet committed (staged, pending checkpoint approval)
+- **Committed in:** `b83d23d`
 
 **5. [Rule 1 - Bug] `_qual01_row_problem`'s own NEW self-test NEGATIVE/ANTI-MASKING arms initially
 used a literal `.replace()`, which the migration's own line-wrapping defeated**
@@ -455,7 +456,7 @@ used a literal `.replace()`, which the migration's own line-wrapping defeated**
 - **Verification:** `--self-test` exits 0 with all `render_contract` sub-checks (including the
   newly-worded `(m)` arms) passing; re-confirmed by the two independent scratch-copy
   token-deletion mutations recorded above.
-- **Committed in:** not yet committed (staged, pending checkpoint approval)
+- **Committed in:** `b83d23d`
 
 **6. [Rule 1 - Bug] A pre-existing, already-stale historical comment trail was not compounded**
 - **Found during:** Task 3, updating the NEGATIVE-CASE COUNT FLOOR's literal from 60 to 30
@@ -471,14 +472,39 @@ used a literal `.replace()`, which the migration's own line-wrapping defeated**
 - **Files modified:** `scripts/check-quality-harness.py` (comment only; the functional `!= 60` ->
   `!= 30` change is fix content, not this disclosure)
 - **Verification:** n/a (documentation disclosure, not a behavior change)
-- **Committed in:** not yet committed (staged, pending checkpoint approval)
+- **Committed in:** `b83d23d`
 
-**Total deviations:** 6 auto-fixed (all Rule 1). None required a Rule 4 architectural-change
-checkpoint — see deviation #3's own "why this was resolved as Rule 1" note for the closest call.
-**Impact on plan:** All six are correctness fixes surfaced by the plan's own required
-verification steps (running `--write`/`--check`/`--self-test` and reading the result, exactly as
-instructed), not scope creep. None changes the plan's success criteria; every task's stated
-deliverable is present and independently verified above.
+**7. [Rule 1 - Bug, coordinator-requested at the checkpoint] Population-arithmetic sentence
+rendered literal parenthetical plurals**
+- **Found during:** the checkpoint's human-verify review (coordinator read the regenerated
+  `CLAUDE.md` region independently)
+- **Issue:** The generated closing sentence read "...plus 1 battery-only gate(s) plus 2 inline
+  check(s)..." — a template artifact on a surface whose entire stated purpose is readability.
+- **Fix:** Added `_pluralize_count(count, singular, plural=None)` to `scripts/gen-gate-docs.py`
+  and used it for both counted nouns in `_population_arithmetic_sentence()`, so the sentence
+  renders "1 battery-only gate plus 2 inline checks" (and correctly for any other count the
+  registry ever reaches, including the plural-battery-only and zero-inline cases). Fixed in the
+  RENDERER, never by hand-editing generated output, per the coordinator's explicit instruction.
+  Added one new self-test control, `arithmetic-sentence-pluralizes-correctly` (36 controls total,
+  up from 35), asserting both the helper's singular/plural output for each noun independently and
+  that the literal strings `gate(s)`/`check(s)` never appear in the live-rendered sentence.
+- **Files modified:** `scripts/gen-gate-docs.py`
+- **Verification:** `--write` run twice, byte-identical (SHA-256 hash-verified); `--check` exits
+  0; `--self-test` exits 0 (36 controls); `bash scripts/check-firewall-battery.sh` reports
+  GREEN (25/25); all three CONTRACT-06 digests reconfirmed byte-unchanged (no diff at all in
+  `scripts/check-quality-harness.py` from this fix, which touched only `gen-gate-docs.py`);
+  `check-links.py`, `check-registration.py`, `report-conformance.py --check`, and
+  `check-traceability.py --self-test` (block (n), zero edits to that file) all still pass.
+- **Committed in:** `b83d23d` (same single commit as deviations #1-6, per the coordinator's
+  explicit instruction to fold the fix in before landing, not as a follow-up)
+
+**Total deviations:** 7 auto-fixed (all Rule 1; #7 was coordinator-requested during the
+checkpoint review rather than self-discovered, but is the same class of narrow, low-risk
+correctness fix as #1-6). None required a Rule 4 architectural-change checkpoint — see
+deviation #3's own "why this was resolved as Rule 1" note for the closest call.
+**Impact on plan:** All seven are correctness fixes surfaced by the plan's own required
+verification steps or by the checkpoint's human review, not scope creep. None changes the plan's
+success criteria; every task's stated deliverable is present and independently verified above.
 
 ## Assumption Drift (advisory)
 
@@ -507,8 +533,9 @@ deliverable is present and independently verified above.
 - `scripts/gen-gate-docs.py` (modified) — `_rewrite_gates_link_for_architecture()`,
   `_CITATION_SHAPE_RES`/`_strip_citation_shaped_numbers()`, `check_spelled_out` parameter on
   `_normalise_numbers()`/`detail_page_containment_problems()`, nested-dict and scalar-valued-dict
-  rendering in `_facts_block()`, new self-test control `gates-link-resolves-per-surface`
-  (34 -> 35 controls)
+  rendering in `_facts_block()`, `_pluralize_count()`, two new self-test controls
+  (`gates-link-resolves-per-surface`, `arithmetic-sentence-pluralizes-correctly`; 34 -> 36
+  controls total)
 - `scripts/check-quality-harness.py` (modified) — `_QUAL01_DOC_ROWS` repointed;
   `_QUAL01_PAGE_FENCE_MARKERS`/`_qual01_narrative_text()` added; `_qual01_row_problem()` rewritten
   page-scoped/fence-excluded/whitespace-normalized; both membership locks and the derived
@@ -527,24 +554,46 @@ spelled-out-number opt-out, rather than rewriting migrated prose to dodge every 
 the QUAL-01 repoint's anti-vacuity mechanism is fence-exclusion, not a whole-file search, closing
 T-21-08-02 by construction.
 
+## Checkpoint Approval
+
+**Date:** 2026-09-06
+**Decision:** Approved, with one required fix folded in before the commit (deviation #7 above).
+
+The coordinator read the regenerated surfaces independently rather than approving blind:
+- `docs/gates/QUAL-01.md`: 275 lines, structured Facts / How to run / What it asserts / Disclosed
+  bounds / Provenance / Residuals, longest line 781 characters — confirmed as "a real improvement
+  over the 22,630-character single cell" that "a reviewer can actually work through."
+- Thin pages spot-checked (`VAL-02.md`, `HARN-02.md`): accurate and adequate, facts genuinely
+  `--describe`-derived (`HARN-02` carries its real 37 control ids).
+- `CLAUDE.md`'s regenerated `### CI gates` region: 27 rows, four columns, readable one-liners,
+  per-gate detail links resolve; the closing population arithmetic reads correctly (before the
+  pluralization fix, the arithmetic itself — 22 + 1 + 2 = 25 — was already confirmed correct; only
+  the noun phrasing needed the fix).
+- `docs/ARCHITECTURE.md`: the registration-history, GATE-02-disambiguation, and
+  retired-body-budget paragraphs confirmed to survive intact outside the markers.
+- Independently re-ran `check-links.py` (PASS) and `gen-gate-docs.py --check` (exit 0) rather than
+  trusting this SUMMARY's own claims.
+- All six recorded deviations reviewed and judged sound, with explicit endorsement of the D-06
+  citation-exemption approach: "a containment rule that real prose falsifies should be widened
+  against real prose, not against synthetic fixtures."
+- **Required fix:** the `gate(s)`/`check(s)` literal-parenthetical-plural wart (deviation #7),
+  fixed in the renderer per the coordinator's explicit instruction, then the full verification set
+  (idempotence, self-test, battery, CONTRACT-06 digests, the four external checkers) was re-run in
+  full before the single commit landed.
+
 ## Issues Encountered
 
-None beyond the six deviations above, all resolved within this plan's own scope.
+None beyond the seven deviations above, all resolved within this plan's own scope.
 
 ## Next Phase Readiness
 
-- **This plan is PAUSED at Task 3's mandatory `checkpoint:human-verify` gate.** All mechanical
-  work, structural-property preservation, and the full verification set (self-tests, containment,
-  links, registration, conformance baseline, CONTRACT-06 digests, battery) are complete and green.
-  `git diff --cached --stat` shows exactly the expected 32-file change set, nothing more.
-- **Awaiting:** a human reading `CLAUDE.md`'s and `docs/ARCHITECTURE.md`'s regenerated regions and
-  `docs/gates/QUAL-01.md` end to end, per Task 3's `<how-to-verify>` steps 3-6, and typing
-  "approved" (to commit) or describing what reads wrong.
-- **On approval:** the continuation agent's only remaining action is `git commit` — everything is
-  already staged and verified; no further mechanical work is needed. Recommended commit message
-  shape: `feat(21-08): land the generated claim surface — CLAUDE.md/ARCHITECTURE.md tables, 28
-  docs/gates/ pages, four migrated narratives, QUAL-01 doc-row repoint`.
-- No blockers beyond the pending human sign-off itself.
+- **This plan is COMPLETE.** All work landed in a single commit, `b83d23d`, per the plan's own
+  design (T-21-08-05: never a red QUAL-01 state in git history) — the shrink, the four narrative
+  migrations, the QUAL-01 repoint, and the checkpoint-requested pluralization fix all landed
+  together. `git status --porcelain` is empty after the commit.
+- `bash scripts/check-firewall-battery.sh` reports **GREEN (25/25)** against the committed state
+  (re-run after the commit, not just before it).
+- No blockers. Ready for `/bm:verify-phase 21` or the next plan in this phase.
 
 ## Known Stubs
 
@@ -555,4 +604,13 @@ D-08, and their fully-generated content is complete).
 
 ---
 *Phase: 21-generate-the-claim-surface*
-*Paused at checkpoint: 2026-09-06*
+*Completed: 2026-09-06*
+
+## Self-Check: PASSED
+
+- FOUND: `docs/gates/` contains 28 files (`ls docs/gates/*.md | wc -l`)
+- FOUND: commit `b83d23d` (`git log --oneline --all`)
+- FOUND: `bash scripts/check-firewall-battery.sh` reports FIREWALL: GREEN (25/25), post-commit
+- FOUND: `python3 scripts/gen-gate-docs.py --self-test` exits 0 (36 controls)
+- FOUND: `python3 scripts/gen-gate-docs.py --check` exits 0 (zero drift)
+- FOUND: `git status --porcelain` empty post-commit
