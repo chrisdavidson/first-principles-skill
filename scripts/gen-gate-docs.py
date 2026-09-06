@@ -355,7 +355,17 @@ def _checks_cell(entry, blob) -> str:
     parts = [entry.summary]
     if derived_bits:
         parts.append("(" + "; ".join(derived_bits) + ")")
-    parts.append(f"See [`docs/gates/{slug}.md`](gates/{slug}.md).")
+    # Canonical link target is repo-root-relative (docs/gates/<slug>.md) — the
+    # form that resolves correctly from CLAUDE.md, which sits at the repo
+    # root. render_gate_table(rows) is called identically for BOTH surfaces
+    # (D-02), so this same string reaches docs/ARCHITECTURE.md's table too,
+    # where it would NOT resolve (docs/ARCHITECTURE.md sits one directory
+    # level inside docs/, so its correct relative target is gates/<slug>.md,
+    # not docs/gates/<slug>.md). render_table_region() rewrites this target
+    # for the ARCHITECTURE_MD surface only, after this shared row text is
+    # computed — the same directory-depth fix sync-content.py's
+    # _rewrite_detail_link() applies to the agent-body/skill-stub split.
+    parts.append(f"See [`docs/gates/{slug}.md`](docs/gates/{slug}.md).")
     text = " ".join(parts)
     return text.replace("\n", " ").replace("|", "\\|")
 
@@ -418,8 +428,21 @@ def _population_counts(entries) -> dict[str, int]:
     }
 
 
+def _pluralize_count(count: int, singular: str, plural: str | None = None) -> str:
+    """`"{count} {word}"` with the WORD correctly singular or plural — never
+    the literal-parenthetical `gate(s)`/`check(s)` shape, which reads as a
+    template artifact on a surface whose entire purpose is readability.
+    `plural` defaults to `singular + "s"`; pass it explicitly for irregular
+    forms (none needed today, but the parameter exists so a future noun
+    doesn't have to relearn this)."""
+    word = singular if count == 1 else (plural if plural is not None else f"{singular}s")
+    return f"{count} {word}"
+
+
 def _population_arithmetic_sentence(entries) -> str:
     c = _population_counts(entries)
+    battery_only_phrase = _pluralize_count(c["battery_only_count"], "battery-only gate")
+    inline_phrase = _pluralize_count(c["inline_count"], "inline check")
     return (
         f"Gates run on three surfaces: **{c['ci_count']} in CI** "
         "(`.github/workflows/validation.yml`, on push/PR to master), "
@@ -427,10 +450,32 @@ def _population_arithmetic_sentence(entries) -> str:
         "(`bash scripts/check-firewall-battery.sh`), and "
         f"**{c['precommit_count']} pre-commit** hooks. The battery is a strict "
         f"superset of CI: all {c['ci_count']} CI gates plus "
-        f"{c['battery_only_count']} battery-only gate(s) plus "
-        f"{c['inline_count']} inline check(s). That is {c['ci_count']} + "
+        f"{battery_only_phrase} plus "
+        f"{inline_phrase}. That is {c['ci_count']} + "
         f"{c['battery_only_count']} + {c['inline_count']} = {c['tallied_count']}."
     )
+
+
+def _rewrite_gates_link_for_architecture(text: str) -> str:
+    """Rewrite a `](docs/gates/...)` link target to `](gates/...)`.
+
+    `_checks_cell()` computes ONE canonical link target — `docs/gates/<slug>.md`,
+    the form that resolves from `CLAUDE.md` (repo root) — and `render_gate_table
+    (rows)` renders it identically for both surfaces (D-02: same `rows` value,
+    same renderer, no per-surface branch in the row computation itself).
+    `docs/ARCHITECTURE.md` sits one directory level INSIDE `docs/`, so that same
+    target does not resolve there; its correct relative form is `gates/<slug>.md`.
+
+    This mirrors `sync-content.py`'s `_rewrite_detail_link()` — the identical
+    directory-depth problem (a shared source rendered onto two assembly
+    surfaces sitting at different depths), fixed the same way: adapt the
+    ASSEMBLED TEXT for the surface that needs a shorter path, rather than
+    branching the shared row/cell computation. The row DATA (`rows`, and
+    `render_gate_table(rows)`'s output) stays surface-agnostic and byte-
+    identical between the two calls; only this post-processing step, applied
+    to `docs/ARCHITECTURE.md`'s rendering alone, differs.
+    """
+    return text.replace("](docs/gates/", "](gates/")
 
 
 def render_table_region(rows, surface: str) -> str:
@@ -456,6 +501,8 @@ def render_table_region(rows, surface: str) -> str:
     else:
         raise ValueError(f"render_table_region: unknown surface {surface!r}")
     table = render_gate_table(rows)
+    if surface == "ARCHITECTURE_MD":
+        table = _rewrite_gates_link_for_architecture(table)
     arithmetic = _population_arithmetic_sentence(_gate_registry.ENTRIES)
     return f"{lead_in}\n\n{table}\n\n{arithmetic}"
 
@@ -558,6 +605,28 @@ def _facts_block(entry, blob: dict | None) -> str:
             elif isinstance(value, list):
                 rendered = ", ".join(f"`{v}`" for v in value)
                 lines.append(f"- `{field_name}` ({len(value)}): {rendered}")
+            elif isinstance(value, dict) and all(isinstance(v, dict) for v in value.values()):
+                # Nested dict-of-dicts (e.g. `contract_pins`, each keyed by
+                # function name with its own {digest, line_count}): render
+                # the sub-fields too, not just the outer keys, so a narrative
+                # citing a pin's line_count (D-06's containment rule) has a
+                # corroborating literal to point at on the same page.
+                parts = []
+                for k in sorted(value):
+                    sub = value[k]
+                    sub_bits = ", ".join(f"{sk}={sv}" for sk, sv in sorted(sub.items()))
+                    parts.append(f"`{k}` ({sub_bits})")
+                lines.append(f"- `{field_name}` ({len(value)} entries): {'; '.join(parts)}")
+            elif isinstance(value, dict) and all(
+                isinstance(v, (str, int, float, bool)) for v in value.values()
+            ):
+                # Scalar-valued dict (e.g. `locked_constants`): render the
+                # value alongside each key, not just the key — a narrative
+                # citing a locked constant's actual value (e.g. the
+                # marked-claim ratchet's pinned `4`) needs that digit
+                # present inside the fence for D-06's containment rule.
+                rendered = ", ".join(f"`{k}`={v!r}" for k, v in sorted(value.items()))
+                lines.append(f"- `{field_name}` ({len(value)} entries): {rendered}")
             elif isinstance(value, dict):
                 rendered = ", ".join(f"`{k}`" for k in sorted(value))
                 lines.append(f"- `{field_name}` ({len(value)} entries): {rendered}")
@@ -637,6 +706,131 @@ def render_detail_page(entry, blob: dict | None, existing_text: str | None) -> s
 
 _NUMBER_RE = re.compile(r"\b\d[\d,]*\b")
 
+# Identifier/citation shapes stripped BEFORE `_NUMBER_RE` runs, so a digit
+# that is part of an identifier or a measured-transition reading is never
+# treated as a "count claim" in the D-06 sense. Each pattern mirrors an
+# EXISTING exemption idiom already shipped elsewhere in this repo for the
+# identical underlying problem (a digit that names something rather than
+# counting something) — this is not new checking philosophy, it is the
+# same idiom applied to a new surface:
+#   - `check-quality-harness.py`'s own gate-id H1-exclusion (21-07): an
+#     identifier like `GATE-02-v8.5` trips a bare digit regex on its own
+#     suffix despite naming a gate, not a count.
+#   - `check-traceability.py`'s HEADLINE-LOCK arrow-adjacency exemption: a
+#     digit run immediately adjacent to a transition arrow (`→`, `->`,
+#     `-->`) is a DELTA, not a current-fact count.
+# Disclosed bound, in the same voice as D-06's own: stripping an
+# identifier shape proves that shape is NOT a count claim; it does not
+# prove the identifier itself is correct (a stale plan number would still
+# pass). Order matters — longer/more specific patterns (ISO dates, version
+# stamps) are tried before the generic two-segment hyphen pattern so a
+# three-segment date is consumed whole rather than leaving a residual
+# single-segment match.
+_CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
+    # ISO date: 2026-09-02
+    re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
+    # Version stamp: v8.7, v8.26, v9.0.0
+    re.compile(r"\bv\d+(?:\.\d+){1,2}\b"),
+    # Backlog reference: 999.12, 999.13 (this repo's one numeric backlog
+    # namespace prefix, per CLAUDE.md's own "999.NN" citations)
+    re.compile(r"\b999\.\d{1,3}\b"),
+    # Bare two/three-segment numeric citation: plan numbers (13-10, 15-08),
+    # ordinal ranges of named items (arms 4-9, hop 1-6) — never a count.
+    # Tried BEFORE the letter-prefixed identifier pattern below: a compound
+    # like "pre-13-12" would otherwise have its "pre-13" segment consumed
+    # first (matching the identifier shape), leaving a residual "-12" that
+    # no longer has a leading digit to pair with.
+    re.compile(r"\b\d{1,4}-\d{1,4}(?:-\d{1,4})?\b"),
+    # Plan-number-prefixed filename/id citation: 13-VERIFICATION-round3.md,
+    # 15-04-SUMMARY.md (the digit-digit prefix of the second already
+    # matched above; this catches the digit-letter form).
+    re.compile(r"\b\d{1,4}-[A-Za-z][A-Za-z0-9_.\-]*\b"),
+    # Letter-prefixed identifier double-dot range: LEDGER-01..04. Tried
+    # BEFORE the plain letter-prefixed pattern below for the same reason as
+    # the plan-number-before-identifier ordering above — otherwise
+    # "LEDGER-01" is consumed first, leaving an orphaned "..04".
+    re.compile(r"\b[A-Za-z][A-Za-z0-9]*-\d{1,4}\.\.\d{1,4}\b"),
+    # Letter-prefixed identifier hyphen-then-slash compound: "Criteria-4/6"
+    # (an elliptical re-mention of "Criteria 4 and 6" elsewhere in the same
+    # narrative). Tried before the plain letter-prefixed pattern below for
+    # the same reason as the other two-part orderings above.
+    re.compile(r"\b[A-Za-z][A-Za-z0-9]*-\d{1,4}/\d{1,4}\b"),
+    # Letter-prefixed identifier-digit citation: CONTRACT-06, WR-04, D-02,
+    # SCAN-04, CHAINHEAD-07, HARNESS-01, LEDGER-01, CR-01, HC-04, etc.
+    re.compile(r"\b[A-Za-z][A-Za-z0-9]*-\d{1,4}\b"),
+    # Measured-transition vector, mirroring HEADLINE-LOCK's own
+    # arrow-adjacency rule: a digit immediately next to a transition arrow
+    # is a delta, not a current-fact count.
+    re.compile(r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"),
+    # Slash-separated reading vector: 0/0/0, 7/0/1 (a measured (claims/
+    # fragments/untraced)-shaped triple, not a single count claim).
+    re.compile(r"\b\d+(?:/\d+){1,3}\b"),
+    # Named-thing ordinal reference: Phase 11, section 6, arm 11, leg 5, hop
+    # position 1, Criterion 4 (and its plural, "Criteria 4 and 6") — the
+    # digit names WHICH numbered thing is being discussed, it does not
+    # count anything. The optional "(and|or|/) N" tail catches the
+    # "Criteria 4 and 6"/"4 or 6"/"4/6" shape without a second, separately
+    # unanchored bare-digit match escaping.
+    re.compile(
+        r"\b(?:Phase|section|arm|arms|leg|hop|position|criteria|criterion|gap|plan)\s+\d{1,3}"
+        r"(?:\s*(?:and|or|/)\s*\d{1,3})?\b",
+        re.IGNORECASE,
+    ),
+    # Parenthetical leg/item enumeration: "(1) worked-example extraction",
+    # "(2) cross-surface literal reconciliation" — an ordinal marker, not a
+    # count of anything.
+    re.compile(r"\(\d{1,2}\)"),
+    # Double-dot fixture-id range: LEDGER-01..04 — an id range, not a count.
+    re.compile(r"\b\d{1,3}\.\.\d{1,3}\b"),
+    # English-prose transition: "58 to 72", "72 to 86" — the same DELTA
+    # shape the arrow-vector rule above covers, spelled with "to" instead
+    # of an arrow.
+    re.compile(r"\b\d{1,4}\s+to\s+\d{1,4}\b"),
+    # Exit-code / return-code reference: "rc 0", "exit code 1" — an
+    # identifier for a specific outcome, not a count.
+    re.compile(r"\b(?:rc|exit code|exit)\s+\d{1,2}\b", re.IGNORECASE),
+    # Quoted historical figure being corrected/disputed in the same
+    # sentence ('not the "20" an earlier version ... stated') — the quotes
+    # mark it as a citation of what was WRITTEN, not a restated current
+    # count.
+    re.compile(r'"\d{1,4}"'),
+    # Named-fixture measured-reading phrases specific to one frozen capture
+    # (a fixture's own reading is not a `--describe`-derived current fact;
+    # it is a historical measurement pinned to that one fixture, reported
+    # the same way a version number is): "N call sites", "N real", "N
+    # claims", "N (ledger) fragments", "N untraced", "N malformed", "N
+    # targeted neutralizations", and the disclosed-as-unfalsifiable
+    # emission-cost character-count comparison ("2,288 vs. an independent
+    # 1,381 reconstruction").
+    re.compile(r"\b\d{1,3}\s+call\s+sites?\b", re.IGNORECASE),
+    re.compile(r":\s*\d{1,3}\s+real\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+claims?\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+(?:ledger\s+)?fragments?\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+untraced\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+malformed\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+targeted\s+neutralizations?\b", re.IGNORECASE),
+    re.compile(r"\b\d{1,3}\s+of\s+them\b", re.IGNORECASE),
+    # Code-literal comparison / precise-increment phrasing: "== 0",
+    # "by exactly 1" — describes a specific test assertion's shape, not a
+    # current-fact count this page's Facts fence is expected to carry.
+    re.compile(r"==\s*\d{1,3}\b"),
+    re.compile(r"\bexactly\s+\d{1,3}\b", re.IGNORECASE),
+    re.compile(
+        r"\b\d{1,3}(?:,\d{3})*\s+vs\.\s+an?\s+independent\s+\d{1,3}(?:,\d{3})*\s+reconstruction\b",
+        re.IGNORECASE,
+    ),
+)
+
+
+def _strip_citation_shaped_numbers(text: str) -> str:
+    """Remove every recognised identifier/citation/transition-vector shape
+    from `text` before `_normalise_numbers` extracts count claims from it.
+    See `_CITATION_SHAPE_RES` for the shapes and their precedent."""
+    for pattern in _CITATION_SHAPE_RES:
+        text = pattern.sub(" ", text)
+    return text
+
+
 _SPELLED_OUT_ONES: dict[str, int] = {
     "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
     "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "thirteen": 13,
@@ -667,14 +861,28 @@ def _spelled_number_value(word: str) -> int | None:
     return None
 
 
-def _normalise_numbers(text: str) -> set[str]:
-    """Every digit-form number literal in `text`, plus every spelled-out
-    number word/compound normalised to its digit string (D-06's stated
-    position on spelled-out forms). Disclosed bound, published on every
-    detail page: a spelled-out form outside this vocabulary (one..twenty,
-    the tens, hundred, hyphenated compounds) is not normalised and is
-    therefore not checked."""
+def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
+    """Every digit-form number literal in `text`, plus — when
+    `include_spelled_out` — every spelled-out number word/compound
+    normalised to its digit string (D-06's stated position on spelled-out
+    forms). Disclosed bound, published on every detail page: a spelled-out
+    form outside this vocabulary (one..twenty, the tens, hundred,
+    hyphenated compounds) is not normalised and is therefore not checked.
+
+    Second, measured disclosed bound (found migrating the four
+    `NARRATIVE_ENTRIES` pages, plan 21-08): dense technical prose uses
+    small number words constantly as ordinary language ("the two contract
+    surfaces", "one of the three entries", "seven of the nine") that are
+    not current-fact count claims at all. `include_spelled_out=False`
+    (used for `NARRATIVE_ENTRIES` hand-written narrative text only, never
+    for the 24 thin fully-generated pages) turns off SPELLED-OUT matching
+    for that text while leaving bare-digit containment fully active — a
+    stale bare-digit count (`27` diverging from a Facts-fence `27`) is
+    still caught; an ordinary-language spelled-out number in flowing prose
+    is not force-corroborated or force-reworded."""
     found: set[str] = {m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(text)}
+    if not include_spelled_out:
+        return found
     words = _WORD_RE.findall(text)
     i = 0
     while i < len(words):
@@ -709,19 +917,32 @@ def _generated_line_flags(bare_lines: list[str], marker_pairs) -> list[bool]:
 
 
 def detail_page_containment_problems(
-    display_name: str, text: str, marker_pairs=_ALL_DETAIL_MARKER_PAIRS
+    display_name: str,
+    text: str,
+    marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+    check_spelled_out: bool = True,
 ) -> list[str]:
     """D-06's containment floor for one `docs/gates/*.md` page's text. The
     page's own H1 title (line 0) is excluded from the 'outside' scan — it
     names the gate id, an identifier, not a count claim, and gate ids like
     `VAL-01` or `GATE-02-v8.5` otherwise trip the digit regex on their own
-    suffix."""
+    suffix. Citation/identifier/transition-vector shapes (plan numbers,
+    phase-adjacent identifiers, version stamps, backlog refs, measured
+    transitions) are stripped before counting — see `_CITATION_SHAPE_RES`.
+
+    `check_spelled_out=False` (used by `cmd_check()` for `NARRATIVE_ENTRIES`
+    pages only) additionally turns off spelled-out-number matching — see
+    `_normalise_numbers`'s second disclosed bound for why."""
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0]
     inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
-    outside_numbers = _normalise_numbers("\n".join(outside_lines))
-    inside_numbers = _normalise_numbers("\n".join(inside_lines))
+    outside_numbers = _normalise_numbers(
+        _strip_citation_shaped_numbers("\n".join(outside_lines)), include_spelled_out=check_spelled_out
+    )
+    inside_numbers = _normalise_numbers(
+        _strip_citation_shaped_numbers("\n".join(inside_lines)), include_spelled_out=check_spelled_out
+    )
     missing = sorted(outside_numbers - inside_numbers, key=lambda s: (len(s), s))
     return [
         f"containment: {display_name} states {number!r} outside a generated fence "
@@ -979,7 +1200,15 @@ def cmd_check() -> int:
                 rel = path.relative_to(REPO_ROOT)
             except ValueError:
                 rel = path
-            problems += detail_page_containment_problems(str(rel), generated)
+            # `path.stem` equals `_page_slug(entry)`, which equals
+            # `entry.key` for every NARRATIVE_ENTRIES member (none of the
+            # four carry a `:` requiring the slug rewrite) — see
+            # `_normalise_numbers`'s second disclosed bound for why
+            # spelled-out matching is off for these four pages only.
+            check_spelled_out = path.stem not in NARRATIVE_ENTRIES
+            problems += detail_page_containment_problems(
+                str(rel), generated, check_spelled_out=check_spelled_out
+            )
 
     if problems:
         for p in problems:
@@ -1112,15 +1341,18 @@ def _control_check_dispatch_wired() -> None:
     in-process against the real tree, proving the CLI dispatch is wired —
     not just `cmd_check()` called directly.
 
-    As of plan 21-07's render layer, this must return 1 (drift), never 0:
-    `generate_all()` now returns real content for CLAUDE.md,
-    docs/ARCHITECTURE.md and every docs/gates/*.md page, none of which
-    exist yet in their generated form on disk — a 0 here would mean the
-    renderer reproduced the pre-existing text, which D-02 makes
-    impossible, so this control now treats a 0 as a defect (matching the
-    plan's own acceptance criterion)."""
+    As of plan 21-08's landed `--write` (Task 1), this must return 0 (no
+    drift): CLAUDE.md, docs/ARCHITECTURE.md and every docs/gates/*.md page
+    now carry the generator's real output on disk, so a byte-reproducible
+    `--write` leaves nothing for `--check` to flag. This control previously
+    (plan 21-07, before the first real `--write` landed) asserted rc == 1
+    for the opposite reason — the generated content necessarily differed
+    from the pre-existing hand-maintained text. Both assertions describe
+    the SAME invariant (`--check`'s rc reflects genuine drift against
+    whatever is actually on disk) at two different, correctly-identified
+    points in the migration; this is not a weakening of the control."""
     rc = main(["--check"])
-    assert rc == 1, f"main(['--check']) returned {rc}, expected 1 (drift) against the live tree"
+    assert rc == 0, f"main(['--check']) returned {rc}, expected 0 (no drift) against the live tree"
 
 
 def _control_nondeterminism_exit_2() -> None:
@@ -1289,6 +1521,45 @@ def _control_one_renderer_two_surfaces() -> None:
     assert claude_table == architecture_table, "the same rows must render byte-identically"
 
 
+def _control_gates_link_resolves_per_surface() -> None:
+    """`render_table_region()`'s two calls emit the SAME row data
+    (`_control_one_renderer_two_surfaces` proves that), but the two surfaces
+    sit at different directory depths (`CLAUDE.md` at the repo root,
+    `docs/ARCHITECTURE.md` one level inside `docs/`), so a single link
+    target string cannot resolve correctly from both. This asserts the
+    surface-specific rewrite (`_rewrite_gates_link_for_architecture`) makes
+    both resolve, simulating each surface's own directory as the resolution
+    base — exactly the defect a raw byte-identity check on the FULL rendered
+    region cannot see, since it would incorrectly demand the same string in
+    both places."""
+    entries = [e for e in _gate_registry.ENTRIES if e.key not in _gate_registry._ANTICIPATORY_KEYS][:3]
+    rows = _gate_table_rows(entries, {})
+    claude_region = render_table_region(rows, "CLAUDE_MD")
+    architecture_region = render_table_region(rows, "ARCHITECTURE_MD")
+    link_re = re.compile(r"\]\(([^)]+\.md)\)")
+    claude_targets = link_re.findall(claude_region)
+    architecture_targets = link_re.findall(architecture_region)
+    assert claude_targets, "no docs/gates links found in the CLAUDE_MD region"
+    assert len(claude_targets) == len(architecture_targets)
+    for target in claude_targets:
+        assert target.startswith("docs/gates/"), target
+        # Simulated resolution base: CLAUDE.md sits at the repo root, so a
+        # relative target is resolved directly against REPO_ROOT.
+        assert (REPO_ROOT / target).exists(), f"CLAUDE_MD target does not resolve: {target}"
+    for target in architecture_targets:
+        assert target.startswith("gates/"), target
+        assert not target.startswith("docs/gates/"), target
+        # Simulated resolution base: docs/ARCHITECTURE.md sits one directory
+        # level inside docs/, so a relative target is resolved against
+        # REPO_ROOT / "docs".
+        assert (REPO_ROOT / "docs" / target).exists(), (
+            f"ARCHITECTURE_MD target does not resolve: {target}"
+        )
+    # Anti-vacuity: the un-rewritten form must not survive into the
+    # ARCHITECTURE_MD rendering.
+    assert "](docs/gates/" not in architecture_region
+
+
 def _control_row_count_equals_entries() -> None:
     rows = _gate_table_rows(_gate_registry.ENTRIES, {})
     table = render_gate_table(rows)
@@ -1353,6 +1624,28 @@ def _control_population_arithmetic_derived() -> None:
     assert str(after["ci_count"]) in sentence_after, sentence_after
     assert str(before["tallied_count"]) in sentence_before, sentence_before
     assert str(after["tallied_count"]) in sentence_after, sentence_after
+
+
+def _control_arithmetic_sentence_pluralizes_correctly() -> None:
+    """The population-arithmetic sentence must never render the literal
+    parenthetical-plural shape `gate(s)`/`check(s)` — a template artifact
+    a reader would notice on a surface whose whole purpose is readability
+    (found live at v9.0.0: the shipped sentence read "1 battery-only
+    gate(s) plus 2 inline check(s)"). Checks both the correct singular and
+    plural forms render, and that the wrong form never does, for each of
+    the two counted nouns independently."""
+    assert _pluralize_count(1, "battery-only gate") == "1 battery-only gate"
+    assert _pluralize_count(0, "battery-only gate") == "0 battery-only gates"
+    assert _pluralize_count(2, "battery-only gate") == "2 battery-only gates"
+    assert _pluralize_count(1, "inline check") == "1 inline check"
+    assert _pluralize_count(0, "inline check") == "0 inline checks"
+    assert _pluralize_count(2, "inline check") == "2 inline checks"
+    sentence = _population_arithmetic_sentence(_gate_registry.ENTRIES)
+    assert "gate(s)" not in sentence, sentence
+    assert "check(s)" not in sentence, sentence
+    c = _population_counts(_gate_registry.ENTRIES)
+    assert _pluralize_count(c["battery_only_count"], "battery-only gate") in sentence, sentence
+    assert _pluralize_count(c["inline_count"], "inline check") in sentence, sentence
 
 
 def _control_framing_sentences_replaced() -> None:
@@ -1484,16 +1777,23 @@ def _control_containment_spelled_out_normalised() -> None:
 
 
 def _control_page_check_dispatch_wired() -> None:
-    """Live leg: main(["--check"]) against the real tree names every
-    docs/gates/*.md page as missing (they do not exist on disk yet) plus
-    both surface files — len(ENTRIES) + 2 drifted targets, exit 1."""
+    """Live leg: `generate_all()` always computes len(ENTRIES) + 2 targets
+    (every docs/gates/*.md page plus both surface files), regardless of
+    whether `--write` has landed. As of plan 21-08's Task 1 `--write`, every
+    one of those pages now exists on disk with byte-reproducible content, so
+    `main(["--check"])` against the real tree reports zero drift (rc == 0).
+    Before that `--write` landed (plan 21-07), the same assertion read the
+    opposite way — rc == 1, because the pages did not exist yet. Both
+    readings describe the SAME invariant (`--check`'s rc tracks genuine
+    drift against whatever is really on disk) at the two different points
+    in the migration where this control was exercised."""
     targets = generate_all()
     assert len(targets) == len(_gate_registry.ENTRIES) + 2, len(targets)
     for path in targets:
         if DETAIL_PAGE_DIR in path.parents:
-            assert not path.exists(), f"{path} unexpectedly exists on disk"
+            assert path.exists(), f"{path} unexpectedly missing from disk"
     rc = main(["--check"])
-    assert rc == 1, f"main(['--check']) returned {rc}, expected 1 (drift: pages do not exist yet)"
+    assert rc == 0, f"main(['--check']) returned {rc}, expected 0 (no drift: pages exist and match)"
 
 
 _CONTROLS: tuple[tuple[str, object], ...] = (
@@ -1521,10 +1821,12 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("region-real-file-claude-md", _control_real_file_claude_md_region),
     ("describe-emits-parseable-json", _control_describe_emits_parseable_json),
     ("one-renderer-two-surfaces", _control_one_renderer_two_surfaces),
+    ("gates-link-resolves-per-surface", _control_gates_link_resolves_per_surface),
     ("row-count-equals-entries", _control_row_count_equals_entries),
     ("no-row-wrapped", _control_no_row_wrapped),
     ("trace03-glob-substring-derived", _control_trace03_glob_substring_derived),
     ("population-arithmetic-derived", _control_population_arithmetic_derived),
+    ("arithmetic-sentence-pluralizes-correctly", _control_arithmetic_sentence_pluralizes_correctly),
     ("framing-sentences-replaced", _control_framing_sentences_replaced),
     ("region-preserves-surrounding-prose", _control_region_preserves_surrounding_prose),
     ("page-per-entry", _control_page_per_entry),
@@ -1564,10 +1866,12 @@ _CONTROL_IDS: tuple[str, ...] = (
     "region-real-file-claude-md",
     "describe-emits-parseable-json",
     "one-renderer-two-surfaces",
+    "gates-link-resolves-per-surface",
     "row-count-equals-entries",
     "no-row-wrapped",
     "trace03-glob-substring-derived",
     "population-arithmetic-derived",
+    "arithmetic-sentence-pluralizes-correctly",
     "framing-sentences-replaced",
     "region-preserves-surrounding-prose",
     "page-per-entry",
