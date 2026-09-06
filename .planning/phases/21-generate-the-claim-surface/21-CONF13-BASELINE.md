@@ -694,3 +694,426 @@ below classifies every one of these 250 hits.
 **Determinism:** the sweep was run twice back to back; output was byte-for-byte identical both
 times.
 
+## Classification
+
+Run: `python3 conf13_classify.py --repo-root <repo>` (consumes `conf13_sweep.run_sweep()`'s
+output directly, with no filtering step — every one of the 250 raw hits is classified exactly
+once, by construction, so `unclassified=0` and `double-classified=0` hold structurally rather
+than needing a separate join script).
+
+| Surface | Raw | structural | scanner-target | exempt | false-positive | fp% |
+|---|---|---|---|---|---|---|
+| CLAUDE.md | 105 | 87 | 8 | 9 | 1 | 1.0% |
+| docs/ARCHITECTURE.md | 62 | 59 | 2 | 1 | 0 | 0.0% |
+| docs/COMPONENT-DIAGRAM.md | 2 | 0 | 2 | 0 | 0 | 0.0% |
+| docs/DATA-FLOW.md | 2 | 0 | 2 | 0 | 0 | 0.0% |
+| docs/MEASUREMENT-MAP.md | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| docs/README.md | 23 | 0 | 17 | 4 | 2 | 8.7% |
+| docs/TESTING.md | 5 | 4 | 1 | 0 | 0 | 0.0% |
+| scripts/check-act-limb.py#__doc__ | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| scripts/check-agent.py#__doc__ | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| scripts/check-conf-gate.py#__doc__ | 3 | 0 | 3 | 0 | 0 | 0.0% |
+| scripts/check-description-budget.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-focused-parity.py#__doc__ | 2 | 0 | 2 | 0 | 0 | 0.0% |
+| scripts/check-high-confidence-bound.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-install-collisions.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-links.py#__doc__ | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| scripts/check-loop-closure.py#__doc__ | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| scripts/check-provenance.py#__doc__ | 2 | 0 | 2 | 0 | 0 | 0.0% |
+| scripts/check-quality-harness.py#__doc__ | 4 | 0 | 3 | 1 | 0 | 0.0% |
+| scripts/check-registration.py#__doc__ | 1 | 0 | 1 | 0 | 0 | 0.0% |
+| scripts/check-routing-battery.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-selfaudit-scan.py#__doc__ | 28 | 0 | 25 | 0 | 3 | 10.7% |
+| scripts/check-step0-emulator.py#__doc__ | 4 | 0 | 4 | 0 | 0 | 0.0% |
+| scripts/check-step0-live.py#__doc__ | 2 | 0 | 2 | 0 | 0 | 0.0% |
+| scripts/check-traceability.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-trigger-collisions.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/check-version-stamps.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| scripts/sync-content.py#__doc__ | 0 | 0 | 0 | 0 | 0 | 0.0% |
+| **TOTAL** | **250** | **150** | **79** | **15** | **6** | **2.4%** |
+
+**Per-surface arithmetic (asserted per surface, not just in aggregate):** every row's
+`structural + scanner-target + exempt + false-positive` sums to exactly that row's `Raw` column
+(verified by the classifier's own construction — each hit is routed to exactly one of the four
+buckets and every bucket is summed from the same `per_surface[surface]` dict the `Raw` column is
+derived from). Aggregate: `150 + 79 + 15 + 6 = 250` = the raw total.
+
+**False-positive ceiling:** the classifier's own `--repo-root` run exits `0` with
+`All surfaces under 25% false-positive ceiling.` printed — every one of the 28 surfaces (27
+candidate files/globs + `docs/gates/*.md`'s vacuous 0) is at or under 10.7% (the worst surface,
+`scripts/check-selfaudit-scan.py#__doc__`, 3/28). This is after the two sweep-pattern
+tightenings recorded above; no surface required a third pass.
+
+## Exemption taxonomy
+
+Every exemption class actually used, with its matching rule and written reason. A class with 0
+hits is not listed (none were removed — all classes named below fired at least once).
+
+| Class | Matching rule | Written reason | Hits |
+|---|---|---|---|
+| `version-stamp-count` | text contains `version stamp` | The 14 `shared/skills/*/SKILL.md` + `SKILL.meta.yml` + 2 manifests = 17 hand-maintained version stamps (VERSION-01's own invariant, `CLAUDE.md` § Key invariants) are legitimate, gate-enforced numbers — not a CONF-13 branch count. Both the "17 total" and "14 skill-file" sub-counts appear (`docs/ARCHITECTURE.md:96` distinguishes 14 skill stamps from the 17-stamp total, itself a real, VERSION-01-enforced fact, not drift). | 3 |
+| `headline-provenance-delta` | digit(s) matching one of `192,94,286,229,214,237,252,266` adjacent to `row`/`rows` | These are `HEADLINE-LOCK`'s own remit (`scripts/check-traceability.py`) — the coverage-headline row-count's historical provenance narrative (`229 → 214 → 237 → 252 → 266 → 286`), asserted live off `build_matrix_rows()`, not hand-transcribed. CONF-13's own exempt list names "the coverage headline `192/94/0/286`... owned by HEADLINE-LOCK, out of this scanner's remit by construction"; this class extends that same reasoning to the intermediate deltas the identical narrative cites, since they document how HEADLINE-LOCK's own figure arrived at its current value, not a separate hand-maintained count. | 11 |
+| `plan-number-identifier` | text matches `plan \d{2}(-\d{2})?` with no adjacent verb (`more`/`added`/`split`) | Plan numbers (`Plan 04 Task 1`) are identifiers, matching the exempt list's own named example (`13-10`) — they name which plan, not how many plans exist. | 1 |
+| `retired-body-budget` | text contains `644` | The retired 644-line agent-body budget (TEARDOWN-01) — explicitly named in the exempt list. Measured 0 hits this run (the `docs/ARCHITECTURE.md:185` mention of `644` fell inside the structural CI-gate-table range and was classified `structural`, not `exempt` — recorded here for completeness even though it did not surface as a standalone exempt hit). |
+
+**`maxTurns` 60, gate ids (`VAL-01`, `STEP0-08`), sha256 digests, and CommonMark heading depths
+(1-6)** — all named in the exempt list — measured **0 hits** on this sweep's candidate surfaces.
+Not listed as taxonomy rows per the plan's instruction ("an exemption class with 0 hits is
+removed rather than left as dead weight"); recorded here once so their absence is a measured
+fact, not an oversight.
+
+## Target
+
+**Per-surface `scanner-target → 0` figures** (the count that must reach 0, driven by hand in
+plans `21-10`/`21-04`/`21-07`/`21-08` and then held at 0 by plan `21-09`'s standing scanner):
+
+| Surface | scanner-target → 0 | exempt (scanner must permit) |
+|---|---|---|
+| CLAUDE.md | 8 | 9 |
+| docs/ARCHITECTURE.md | 2 | 1 |
+| docs/COMPONENT-DIAGRAM.md | 2 | 0 |
+| docs/DATA-FLOW.md | 2 | 0 |
+| docs/MEASUREMENT-MAP.md | 1 | 0 |
+| docs/README.md | 17 | 4 |
+| docs/TESTING.md | 1 | 0 |
+| scripts/check-act-limb.py#__doc__ | 1 | 0 |
+| scripts/check-agent.py#__doc__ | 1 | 0 |
+| scripts/check-conf-gate.py#__doc__ | 3 | 0 |
+| scripts/check-focused-parity.py#__doc__ | 2 | 0 |
+| scripts/check-links.py#__doc__ | 1 | 0 |
+| scripts/check-loop-closure.py#__doc__ | 1 | 0 |
+| scripts/check-provenance.py#__doc__ | 2 | 0 |
+| scripts/check-quality-harness.py#__doc__ | 3 | 1 |
+| scripts/check-registration.py#__doc__ | 1 | 0 |
+| scripts/check-selfaudit-scan.py#__doc__ | 25 | 0 |
+| scripts/check-step0-emulator.py#__doc__ | 4 | 0 |
+| scripts/check-step0-live.py#__doc__ | 2 | 0 |
+| **Aggregate** | **79** | **15** |
+
+**CONF-13's driveable target is `79` (`scanner-target → 0`), with `15` legitimate exempt hits
+the standing scanner (plan `21-09`) must continue to permit.** This is not `9` (the roadmap's
+admitted-partial figure), not `1015`, and not `76` (the two unfiltered readings this document
+supersedes) — it is materially different from all three, as expected, and its derivation (raw
+250 → 150 structural + 79 scanner-target + 15 exempt + 6 false-positive) is fully shown above
+rather than asserted.
+
+**Composition note, so later plans do not need to re-derive it:** of the 79 scanner-target hits,
+25 (32%) sit in a single file's docstring — `scripts/check-selfaudit-scan.py`, CONF-13's own
+named example — confirming the requirement's own instinct that this file carries a
+disproportionate share. The remaining 54 are spread across the two CI-gate-table host files'
+non-table prose (10), `docs/README.md`'s changelog-style narrative (17), the three peripheral
+`docs/*.md` files (`COMPONENT-DIAGRAM.md` 2, `DATA-FLOW.md` 2, `MEASUREMENT-MAP.md` 1,
+`TESTING.md` 1), and 17 further `.py` docstrings averaging under 2 hits each.
+
+**150 of the 250 raw hits (60%) are `structural`** — they sit inside the CI-gate-table narrative
+that plans `21-04`–`21-08` replace with generated `docs/gates/<ID>.md` links (D-05), or inside
+`docs/TESTING.md`'s per-gate sections folded into a generated index (D-21-F). These reach 0 by
+construction, with no scanner involvement, the moment those plans land — confirming
+`21-RESEARCH.md`'s prediction that "a large fraction... will be eliminated structurally, for
+free, the moment D-05's detail-page split lands."
+
+## Disclosed bounds
+
+**Detection is line-scoped, inherited from `HEADLINE-LOCK`'s own disclosed bound.** A
+hand-maintained count hard-wrapped across two physical lines (the number on one line, its count
+noun on the next) is invisible to this sweep. Not measured as occurring in this corpus today, but
+not structurally excluded either — the same bound `HEADLINE-LOCK` itself carries and discloses.
+
+**Containment proves a number is current, not that it describes the right thing (the D-06
+bound).** This baseline — and the standing scanner plan `21-09` builds from it — can confirm a
+literal number appears in prose; neither can confirm that number is attached to the correct noun,
+or that it agrees with the artifact it claims to describe. A count that is internally consistent
+but wrong (e.g. correctly stating "8 checks" for a function that actually has 9) passes this
+sweep and would pass the standing scanner too.
+
+**The exemption taxonomy is judgment, not a closed enumeration.** `21-CONTEXT.md`'s exempt list
+names version stamps, the retired body budget, `maxTurns` 60, plan numbers, gate ids, sha256
+digests, the coverage headline, CommonMark heading depths, and "ordinary English quantifiers with
+no count-noun referent." This document additionally classified ordinal/label references
+(`Criterion 4`, `Phase 3`) as **false-positive** rather than exempt (reasoning: the number
+identifies which instance, not how many — "no count claim" per the plan's own false-positive
+definition) and treated headline-provenance deltas as an **exempt** extension of the
+already-named coverage-headline exemption (reasoning: same HEADLINE-LOCK-owned narrative, not a
+separately hand-maintained figure). Both calls are documented with their reasoning above so a
+later reviewer can re-derive or dispute them from the artifact, not from memory.
+
+**The `.py` docstring surface set (`PY_DOCSTRING_SURFACES`, 20 scripts) is a snapshot of the
+battery's current script-backed gate registrations.** If a future phase adds or removes a
+script-backed gate, this list drifts from `scripts/check-firewall-battery.sh`'s live
+registrations until manually re-derived — plan `21-09`'s standing scanner is expected to derive
+this set programmatically (by parsing `check-firewall-battery.sh`'s `gate "<ID>" ...
+"python3 scripts/<X>.py"` lines) rather than hand-list it a second time, closing this baseline's
+own hand-transcription.
+
+**`git status --porcelain` before and after both Task 1 and Task 2 showed only this plan's two
+`.planning/` files** (`21-CONF13-BASELINE.md` itself and, after this plan completes,
+`21-01-SUMMARY.md`) — no `scripts/`, `docs/`, or `CLAUDE.md` file was modified by this plan. The
+sweep and classifier scripts themselves live only in the session scratchpad
+(`/tmp/claude-*/scratchpad/`), never in `scripts/`, per the plan's own instruction that this is a
+measurement instrument, not the standing scanner (plan `21-09`'s deliverable).
+
+---
+
+## Full classified hit list
+
+The complete join of Task 1's 250 raw hits against Task 2's disposition — `[disposition/class]`
+prefixes each line. Format: `relpath:line: [disposition/class] matched text`.
+
+```
+CLAUDE.md:7: [exempt/version-stamp-count] 17 version stamps
+CLAUDE.md:37: [scanner-target/hand-maintained-count] (24 controls)
+CLAUDE.md:39: [scanner-target/hand-maintained-count] (42 controls)
+CLAUDE.md:134: [false-positive/adjacency-mistrack] two assembly surfaces,
+CLAUDE.md:157: [structural/ci-gate-table-narrative] one missed stamp
+CLAUDE.md:157: [structural/ci-gate-table-narrative] one missing its stamp
+CLAUDE.md:158: [structural/ci-gate-table-narrative] gate over **two**
+CLAUDE.md:158: [structural/ci-gate-table-narrative] 29 isolated control
+CLAUDE.md:161: [structural/ci-gate-table-narrative] checks — 8
+CLAUDE.md:161: [structural/ci-gate-table-narrative] 24 battery gates
+CLAUDE.md:161: [structural/ci-gate-table-narrative] Checks 2
+CLAUDE.md:161: [structural/ci-gate-table-narrative] Checks 2 and 8
+CLAUDE.md:161: [structural/ci-gate-table-narrative] 8: Check
+CLAUDE.md:163: [structural/ci-gate-table-narrative] 7 SEMGATE named assertions
+CLAUDE.md:165: [structural/ci-gate-table-narrative] five named current-fact surfaces
+CLAUDE.md:165: [structural/ci-gate-table-narrative] literal itself: one
+CLAUDE.md:165: [structural/ci-gate-table-narrative] eight named arms,
+CLAUDE.md:165: [structural/ci-gate-table-narrative] four cases
+CLAUDE.md:165: [structural/ci-gate-table-narrative] two whole-file cases
+CLAUDE.md:165: [structural/ci-gate-table-narrative] two ARROW arms,
+CLAUDE.md:165: [structural/ci-gate-table-narrative] arms, one
+CLAUDE.md:165: [structural/ci-gate-table-narrative] site (`(m)`'s three
+CLAUDE.md:167: [structural/ci-gate-table-narrative] six separate legs:
+CLAUDE.md:167: [structural/ci-gate-table-narrative] legs: (1)
+CLAUDE.md:167: [structural/ci-gate-table-narrative] thirteen chain-family fixtures
+CLAUDE.md:167: [structural/ci-gate-table-narrative] (6 call sites:
+CLAUDE.md:167: [structural/ci-gate-table-narrative] sites: 1
+CLAUDE.md:167: [structural/ci-gate-table-narrative] (6 call sites:
+CLAUDE.md:167: [structural/ci-gate-table-narrative] sites: 1
+CLAUDE.md:167: [structural/ci-gate-table-narrative] (5 call sites:
+CLAUDE.md:167: [structural/ci-gate-table-narrative] sites: 1
+CLAUDE.md:167: [structural/ci-gate-table-narrative] (2) cross-surface literal
+CLAUDE.md:167: [structural/ci-gate-table-narrative] literal reconciliation — twelve
+CLAUDE.md:167: [structural/ci-gate-table-narrative] surface among all four
+CLAUDE.md:167: [structural/ci-gate-table-narrative] two contract surfaces
+CLAUDE.md:167: [structural/ci-gate-table-narrative] surfaces declare all twelve);
+CLAUDE.md:167: [structural/ci-gate-table-narrative] four registered surfaces
+CLAUDE.md:167: [structural/ci-gate-table-narrative] three entries
+CLAUDE.md:167: [structural/ci-gate-table-narrative] (5) **worked-example conformance** (plan
+CLAUDE.md:167: [structural/ci-gate-table-narrative] literals on all three
+CLAUDE.md:167: [structural/ci-gate-table-narrative] nine `R-CLAIM-*` fixtures
+CLAUDE.md:167: [structural/ci-gate-table-narrative] fixtures pinning R11's three
+CLAUDE.md:167: [structural/ci-gate-table-narrative] 6 absorbed the Gate
+CLAUDE.md:167: [structural/ci-gate-table-narrative] three independently-neutralization-tested anti-vacuity arms,
+CLAUDE.md:167: [structural/ci-gate-table-narrative] arms, plus two
+CLAUDE.md:167: [structural/ci-gate-table-narrative] one row
+CLAUDE.md:167: [structural/ci-gate-table-narrative] Eleven mutations
+CLAUDE.md:167: [structural/ci-gate-table-narrative] one arm.
+CLAUDE.md:167: [structural/ci-gate-table-narrative] four canonical surfaces
+CLAUDE.md:167: [structural/ci-gate-table-narrative] arm for those five.
+CLAUDE.md:167: [structural/ci-gate-table-narrative] surface (three
+CLAUDE.md:167: [structural/ci-gate-table-narrative] check requires only two
+CLAUDE.md:167: [structural/ci-gate-table-narrative] pins — three,
+CLAUDE.md:167: [structural/ci-gate-table-narrative] two new pins
+CLAUDE.md:167: [structural/ci-gate-table-narrative] four lettered controls
+CLAUDE.md:168: [structural/ci-gate-table-narrative] fixtures for all 16
+CLAUDE.md:168: [structural/ci-gate-table-narrative] branches (58
+CLAUDE.md:171: [structural/ci-gate-table-narrative] one hundred clause-level named branches
+CLAUDE.md:171: [structural/ci-gate-table-narrative] (plan 15-06 split thirty-one
+CLAUDE.md:171: [structural/ci-gate-table-narrative] branches to fifty-eight
+CLAUDE.md:171: [structural/ci-gate-table-narrative] one arm
+CLAUDE.md:171: [structural/ci-gate-table-narrative] plan 15-07 added fourteen
+CLAUDE.md:171: [structural/ci-gate-table-narrative] Criteria 4 and 6
+CLAUDE.md:171: [structural/ci-gate-table-narrative] six branches
+CLAUDE.md:171: [structural/ci-gate-table-narrative] column for (`Rubric-9`/`Rubric-10`, four
+CLAUDE.md:171: [structural/ci-gate-table-narrative] two branches),
+CLAUDE.md:171: [structural/ci-gate-table-narrative] two branches);
+CLAUDE.md:171: [structural/ci-gate-table-narrative] plan 15-08 added fourteen
+CLAUDE.md:171: [structural/ci-gate-table-narrative] four single-surface arms
+CLAUDE.md:171: [structural/ci-gate-table-narrative] plan 15-09 added one
+CLAUDE.md:171: [structural/ci-gate-table-narrative] plan 15-11 added seven
+CLAUDE.md:171: [structural/ci-gate-table-narrative] two per-surface arms)
+CLAUDE.md:171: [structural/ci-gate-table-narrative] "Criteria 4 and 6
+CLAUDE.md:171: [structural/ci-gate-table-narrative] plan 15-12 added six
+CLAUDE.md:171: [structural/ci-gate-table-narrative] two hand-written `_BAND_SOUND`-only ids
+CLAUDE.md:171: [structural/ci-gate-table-narrative] ids with eight
+CLAUDE.md:171: [structural/ci-gate-table-narrative] one literal
+CLAUDE.md:171: [structural/ci-gate-table-narrative] surface in one
+CLAUDE.md:171: [structural/ci-gate-table-narrative] four legs
+CLAUDE.md:171: [structural/ci-gate-table-narrative] two synthetic isolation arms
+CLAUDE.md:171: [structural/ci-gate-table-narrative] row claimed, "one
+CLAUDE.md:171: [structural/ci-gate-table-narrative] (plan 15-12). Eight
+CLAUDE.md:171: [structural/ci-gate-table-narrative] row named only five
+CLAUDE.md:171: [structural/ci-gate-table-narrative] seven pre-15-11 arms,
+CLAUDE.md:171: [structural/ci-gate-table-narrative] arms, omitting Rubric-2's two.
+CLAUDE.md:171: [structural/ci-gate-table-narrative] Criterion 4 or 6
+CLAUDE.md:173: [structural/ci-gate-table-narrative] 24 controls
+CLAUDE.md:174: [structural/ci-gate-table-narrative] seven enforcement call sites
+CLAUDE.md:174: [structural/ci-gate-table-narrative] four internal predicates (plan
+CLAUDE.md:174: [structural/ci-gate-table-narrative] three mutations
+CLAUDE.md:186: [structural/ci-gate-table-narrative] two inline checks
+CLAUDE.md:190: [scanner-target/hand-maintained-count] Two gates
+CLAUDE.md:192: [scanner-target/hand-maintained-count] 1. The **sync-drift gate**
+CLAUDE.md:252: [exempt/headline-provenance-delta] 229 → 214 rows;
+CLAUDE.md:252: [exempt/headline-provenance-delta] 214 rows;
+CLAUDE.md:252: [scanner-target/hand-maintained-count] rows; the 23
+CLAUDE.md:253: [exempt/headline-provenance-delta] 214 → 237 rows;
+CLAUDE.md:253: [exempt/headline-provenance-delta] 237 rows;
+CLAUDE.md:253: [scanner-target/hand-maintained-count] rows; the 15
+CLAUDE.md:254: [exempt/headline-provenance-delta] 237 → 252 rows;
+CLAUDE.md:254: [exempt/headline-provenance-delta] 252 rows;
+CLAUDE.md:254: [scanner-target/hand-maintained-count] rows; the 14
+CLAUDE.md:255: [exempt/headline-provenance-delta] (row count 252
+CLAUDE.md:258: [exempt/headline-provenance-delta] row count 266
+CLAUDE.md:339: [scanner-target/hand-maintained-count] surface now contributes 16
+docs/ARCHITECTURE.md:82: [scanner-target/hand-maintained-count] one entry
+docs/ARCHITECTURE.md:96: [exempt/version-stamp-count] 14 version stamps
+docs/ARCHITECTURE.md:96: [scanner-target/hand-maintained-count] stamps rather than 13.
+docs/ARCHITECTURE.md:121: [structural/ci-gate-table-narrative] Gates run on three
+docs/ARCHITECTURE.md:124: [structural/ci-gate-table-narrative] 22 CI gates
+docs/ARCHITECTURE.md:126: [structural/ci-gate-table-narrative] one registered gate
+docs/ARCHITECTURE.md:126: [structural/ci-gate-table-narrative] job, plus the two
+docs/ARCHITECTURE.md:136: [structural/ci-gate-table-narrative] 17 hand-maintained version stamps
+docs/ARCHITECTURE.md:137: [structural/ci-gate-table-narrative] gate over two
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] five current-fact surfaces
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] literal itself (one
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] four cases,
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] two whole-file cases
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] two arrow arms
+docs/ARCHITECTURE.md:145: [structural/ci-gate-table-narrative] arms (one
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] six separate legs:
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] legs: (1)
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] thirteen chain-family fixtures
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] (6 call sites:
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] sites: 1
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] (6 call sites:
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] sites: 1
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] (5 call sites:
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] sites: 1
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] (2) cross-surface literal
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] literal reconciliation — twelve
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] surface among all four
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] two contract surfaces
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] surfaces declare all twelve);
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] four registered surfaces
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] three entries
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] (5) **worked-example conformance** (plan
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] literals on all three
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] nine `R-CLAIM-*` fixtures
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] fixtures pinning R11's three
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] 6 absorbed the Gate
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] three independently-neutralization-tested anti-vacuity arms,
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] arms, plus two
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] one row
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] Eleven mutations
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] one arm.
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] four canonical surfaces
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] arm for those five.
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] surface (three
+docs/ARCHITECTURE.md:146: [structural/ci-gate-table-narrative] check requires only two
+docs/ARCHITECTURE.md:147: [structural/ci-gate-table-narrative] fixtures for all 16
+docs/ARCHITECTURE.md:147: [structural/ci-gate-table-narrative] branches (58
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] one hundred clause-level named branches
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] branches (72
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] plan 15-07; 72
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] 86 at plan
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] 87 at plan
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] 94 at plan
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] 100 at plan
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] two hand-written ids
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] ids with eight
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] "one id
+docs/ARCHITECTURE.md:150: [structural/ci-gate-table-narrative] seven arms
+docs/ARCHITECTURE.md:153: [structural/ci-gate-table-narrative] arm whose four
+docs/ARCHITECTURE.md:175: [structural/ci-gate-table-narrative] **Two gates
+docs/ARCHITECTURE.md:179: [structural/ci-gate-table-narrative] two unrelated checks.
+docs/ARCHITECTURE.md:185: [structural/ci-gate-table-narrative] gate at all; 644
+docs/TESTING.md:124: [structural/testing-per-gate-section] two fixture
+docs/TESTING.md:166: [structural/testing-per-gate-section] gate count from 15 to 16.
+docs/TESTING.md:187: [structural/testing-per-gate-section] Two gates
+docs/TESTING.md:219: [structural/testing-per-gate-section] five labelled surfaces:
+docs/TESTING.md:245: [scanner-target/hand-maintained-count] literal `== 4`
+docs/MEASUREMENT-MAP.md:52: [scanner-target/hand-maintained-count] assertion — one
+docs/COMPONENT-DIAGRAM.md:66: [scanner-target/hand-maintained-count] 12 CI gates,
+docs/COMPONENT-DIAGRAM.md:66: [scanner-target/hand-maintained-count] two pre-commit gates)
+docs/DATA-FLOW.md:51: [scanner-target/hand-maintained-count] 4 — Gates
+docs/DATA-FLOW.md:53: [scanner-target/hand-maintained-count] two pre-commit gates
+docs/README.md:26: [exempt/headline-provenance-delta] row count 229
+docs/README.md:29: [exempt/headline-provenance-delta] row count 237
+docs/README.md:30: [exempt/headline-provenance-delta] row count 252
+docs/README.md:36: [scanner-target/hand-maintained-count] 7 docs/metadata items),
+docs/README.md:36: [scanner-target/hand-maintained-count] 19 not-approved items),
+docs/README.md:42: [scanner-target/hand-maintained-count] 612 to 590 lines, the surface
+docs/README.md:56: [scanner-target/hand-maintained-count] five entries
+docs/README.md:56: [scanner-target/hand-maintained-count] five live entries
+docs/README.md:56: [scanner-target/hand-maintained-count] five live entries
+docs/README.md:56: [scanner-target/hand-maintained-count] **one** entry
+docs/README.md:58: [scanner-target/hand-maintained-count] **0 items
+docs/README.md:58: [false-positive/ordinal-label-reference] items each** for two
+docs/README.md:58: [scanner-target/hand-maintained-count] sixteen green gates
+docs/README.md:58: [scanner-target/hand-maintained-count] 6 live rows
+docs/README.md:58: [scanner-target/hand-maintained-count] rows to 0
+docs/README.md:61: [scanner-target/hand-maintained-count] 16 gates
+docs/README.md:102: [scanner-target/hand-maintained-count] 16 surfaces
+docs/README.md:106: [false-positive/adjacency-mistrack] fixture (9)
+docs/README.md:107: [scanner-target/hand-maintained-count] 13 live matrix rows'
+docs/README.md:135: [scanner-target/hand-maintained-count] gate and the two
+docs/README.md:191: [scanner-target/hand-maintained-count] three new offline gates
+docs/README.md:192: [exempt/version-stamp-count] 17 version stamps
+docs/README.md:207: [scanner-target/hand-maintained-count] 13 rows
+scripts/check-step0-live.py#__doc__:27: [scanner-target/hand-maintained-count] fixture (default: 5)
+scripts/check-step0-live.py#__doc__:28: [scanner-target/hand-maintained-count] row PASS (default: 3)
+scripts/check-step0-emulator.py#__doc__:17: [scanner-target/hand-maintained-count] TWO fixture
+scripts/check-step0-emulator.py#__doc__:18: [scanner-target/hand-maintained-count] 1. Fault-injection fixtures
+scripts/check-step0-emulator.py#__doc__:18: [scanner-target/hand-maintained-count] fixtures (D-05) — four
+scripts/check-step0-emulator.py#__doc__:20: [scanner-target/hand-maintained-count] 2. Classification fixtures
+scripts/check-links.py#__doc__:14: [scanner-target/hand-maintained-count] two newly-extended scan surfaces
+scripts/check-registration.py#__doc__:10: [scanner-target/hand-maintained-count] 29 named, decision-traceable controls
+scripts/check-agent.py#__doc__:11: [scanner-target/hand-maintained-count] three inline malformed fixtures
+scripts/check-quality-harness.py#__doc__:20: [exempt/plan-number-identifier] **Plan 04 Task 1
+scripts/check-quality-harness.py#__doc__:61: [scanner-target/hand-maintained-count] [ID]        Dispatch exactly one
+scripts/check-quality-harness.py#__doc__:66: [scanner-target/hand-maintained-count] one tabulated row.
+scripts/check-quality-harness.py#__doc__:66: [scanner-target/hand-maintained-count] row. Dispatches exactly one
+scripts/check-provenance.py#__doc__:28: [scanner-target/hand-maintained-count] 2. The literal
+scripts/check-provenance.py#__doc__:35: [scanner-target/hand-maintained-count] 4. PROV-04's no-network control
+scripts/check-act-limb.py#__doc__:51: [scanner-target/hand-maintained-count] 2 item
+scripts/check-loop-closure.py#__doc__:35: [scanner-target/hand-maintained-count] gate reads four
+scripts/check-focused-parity.py#__doc__:15: [scanner-target/hand-maintained-count] check between the two
+scripts/check-focused-parity.py#__doc__:67: [scanner-target/hand-maintained-count] 2 item
+scripts/check-selfaudit-scan.py#__doc__:24: [scanner-target/hand-maintained-count] two tables. This gate
+scripts/check-selfaudit-scan.py#__doc__:34: [scanner-target/hand-maintained-count] surfaces run TWO
+scripts/check-selfaudit-scan.py#__doc__:42: [scanner-target/hand-maintained-count] 17 stamps
+scripts/check-selfaudit-scan.py#__doc__:90: [scanner-target/hand-maintained-count] 2 item
+scripts/check-selfaudit-scan.py#__doc__:97: [scanner-target/hand-maintained-count] two surfaces
+scripts/check-selfaudit-scan.py#__doc__:104: [false-positive/ordinal-label-reference] Criteria 4 and 6
+scripts/check-selfaudit-scan.py#__doc__:132: [false-positive/ordinal-label-reference] Criteria 4 and 6,
+scripts/check-selfaudit-scan.py#__doc__:156: [false-positive/ordinal-label-reference] Criterion 4 or 6
+scripts/check-selfaudit-scan.py#__doc__:170: [scanner-target/hand-maintained-count] eight arms
+scripts/check-selfaudit-scan.py#__doc__:178: [scanner-target/hand-maintained-count] literal via the `-1`
+scripts/check-selfaudit-scan.py#__doc__:187: [scanner-target/hand-maintained-count] four assertions
+scripts/check-selfaudit-scan.py#__doc__:191: [scanner-target/hand-maintained-count] (9) **What plan
+scripts/check-selfaudit-scan.py#__doc__:210: [scanner-target/hand-maintained-count] literals themselves — two
+scripts/check-selfaudit-scan.py#__doc__:213: [scanner-target/hand-maintained-count] (11) **What plan
+scripts/check-selfaudit-scan.py#__doc__:216: [scanner-target/hand-maintained-count] (eight ids
+scripts/check-selfaudit-scan.py#__doc__:221: [scanner-target/hand-maintained-count] 0 ("All 94 branches
+scripts/check-selfaudit-scan.py#__doc__:221: [scanner-target/hand-maintained-count] 94 branches
+scripts/check-selfaudit-scan.py#__doc__:222: [scanner-target/hand-maintained-count] six now-uncovered ids.
+scripts/check-selfaudit-scan.py#__doc__:224: [scanner-target/hand-maintained-count] literal (nine
+scripts/check-selfaudit-scan.py#__doc__:227: [scanner-target/hand-maintained-count] one hand-written arm
+scripts/check-selfaudit-scan.py#__doc__:228: [scanner-target/hand-maintained-count] one arm
+scripts/check-selfaudit-scan.py#__doc__:238: [scanner-target/hand-maintained-count] (12) **What plan
+scripts/check-selfaudit-scan.py#__doc__:273: [scanner-target/hand-maintained-count] one row
+scripts/check-selfaudit-scan.py#__doc__:275: [scanner-target/hand-maintained-count] one row
+scripts/check-selfaudit-scan.py#__doc__:275: [scanner-target/hand-maintained-count] fixture actually contains, 7
+scripts/check-selfaudit-scan.py#__doc__:280: [scanner-target/hand-maintained-count] 17 table data rows**
+scripts/check-selfaudit-scan.py#__doc__:293: [scanner-target/hand-maintained-count] rows (17
+scripts/check-selfaudit-scan.py#__doc__:293: [scanner-target/hand-maintained-count] rows (17 / 44)
+scripts/check-conf-gate.py#__doc__:1: [scanner-target/hand-maintained-count] gate over the fourteen
+scripts/check-conf-gate.py#__doc__:26: [scanner-target/hand-maintained-count] surface for the two
+scripts/check-conf-gate.py#__doc__:44: [scanner-target/hand-maintained-count] two arms
+```
+
+---
+
+*Phase: 21-generate-the-claim-surface*
+*Plan: 21-01*
+*Baseline measured: 2026-09-06*
