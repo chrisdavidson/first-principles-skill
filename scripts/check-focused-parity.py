@@ -85,6 +85,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import io
+import json
 import re
 import sys
 import textwrap
@@ -2624,6 +2625,30 @@ def _run_self_test_body() -> int:
             "alarmed with both lines returned"
         )
 
+    # (describe) describe()-consistency control (D-03, plan 21-04): the
+    # module-level constants --describe reads must agree with the live
+    # module state this self-test just exercised against — proving the
+    # emitted facts are derived reads, not hand-typed literals that could
+    # silently drift from EXPECTED_STUB_COUNT / _ANCHOR_CONTROL_EXEMPT.
+    _desc = describe()
+    if _desc["locked_constants"]["expected_stub_count"] != EXPECTED_STUB_COUNT:
+        _problems.append(
+            "(describe): locked_constants.expected_stub_count "
+            f"{_desc['locked_constants']['expected_stub_count']!r} != live "
+            f"EXPECTED_STUB_COUNT {EXPECTED_STUB_COUNT!r}"
+        )
+    elif set(_desc["disclosed_bounds_anchors"]) != set(_ANCHOR_CONTROL_EXEMPT):
+        _problems.append(
+            "(describe): disclosed_bounds_anchors disagrees with "
+            "_ANCHOR_CONTROL_EXEMPT"
+        )
+    else:
+        print(
+            "(describe) describe()-consistency: PASS "
+            f"(expected_stub_count={EXPECTED_STUB_COUNT}, "
+            f"{len(_ANCHOR_CONTROL_EXEMPT)} exempt anchors)"
+        )
+
     if _problems:
         sys.stderr.write(
             "check-focused-parity --self-test: FAIL — " + "; ".join(_problems) + "\n"
@@ -2632,6 +2657,28 @@ def _run_self_test_body() -> int:
 
     print("check-focused-parity --self-test: PASS")
     return 0
+
+
+def describe() -> dict[str, object]:
+    """This gate's own self-description (D-03): pure, no disk I/O, no argv,
+    no subprocess. `EXPECTED_STUB_COUNT` and the D-12 anchor-control ratchet's
+    exempt map are read directly from the module constants this gate's own
+    checking/coverage logic reads — never a hand-typed literal beside
+    untouched code."""
+    return {
+        "locked_constants": {
+            "expected_stub_count": EXPECTED_STUB_COUNT,
+            "launcher_slug": LAUNCHER_SLUG,
+        },
+        "registered_surfaces": sorted(
+            [
+                str(AGENT_FILE.relative_to(REPO_ROOT)) + "  # agent surface",
+                str(PLUGIN_SKILLS_DIR.relative_to(REPO_ROOT)) + "  # stub surface",
+                "cross-surface  # derived agreement between the two above",
+            ]
+        ),
+        "disclosed_bounds_anchors": sorted(_ANCHOR_CONTROL_EXEMPT),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -2666,7 +2713,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="run the offline self-test control battery",
     )
+    parser.add_argument(
+        "--describe",
+        action="store_true",
+        help="emit this gate's own self-description as JSON on stdout",
+    )
     args = parser.parse_args(argv)
+
+    if args.describe:
+        print(json.dumps(describe(), indent=2, sort_keys=True))
+        return 0
 
     if args.self_test:
         return _run_self_test()
