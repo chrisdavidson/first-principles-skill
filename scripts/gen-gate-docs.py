@@ -2075,6 +2075,130 @@ def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
     return lines
 
 
+# --- py-docstrings-only blind-spot measurement (plan 21-20 Task 3) --------
+#
+# The standing scanner's `.py` branch (`run_literal_scan`, above) reads
+# exactly the module-level docstring via `ast.get_docstring(ast.parse(src))`
+# -- that single call IS the `py-docstrings-only` disclosed bound. A count
+# literal sitting in a FUNCTION, async-function, or CLASS docstring is
+# structurally invisible to it. `_nonmodule_docstring_hits`, below,
+# MEASURES that blind spot's live size without closing it: its hits are
+# never fed into `literal_scan_problems`, never added to `--check`'s
+# enforced findings, and never change what the standing scanner polices.
+#
+# Decision of record (not re-derived here on every read): the standing
+# scan is NOT widened to cover these docstrings. Widening it would surface
+# a very large number of non-module-docstring hits across the registered
+# `.py` surfaces -- re-measure live via `describe()`'s
+# `literal_scan_nonmodule_docstring_hits` field rather than trusting a
+# stale figure in this comment -- and after plan 21-20 Task 1 the
+# deferred-literal ledger is BOTH size-pinned and key-digest-locked, so
+# absorbing that volume by refilling the ledger is exactly the regression
+# Task 1 closes. The bound therefore stays; what changes is that its size
+# is now published and derived, not merely asserted in prose.
+def _nonmodule_docstring_hits(
+    sources: dict[str, str] | None = None,
+) -> list[LiteralHit]:
+    """Every function-, async-function-, and class-docstring literal hit
+    across the registered `.py` surfaces, excluding each module's own
+    docstring (already covered by `run_literal_scan`'s `.py` branch).
+    Each hit's `relpath` is `<surface>#<qualname>` (a dotted path through
+    any enclosing class/function, matching `<script>#__doc__`'s labelling
+    shape for the module docstring itself).
+
+    Takes an optional `sources` mapping (relpath -> source text) so a
+    control can drive this against synthetic text without touching the
+    real tree or the filesystem, mirroring
+    `literal_ledger_ratchet_problems`'s parameter-injection shape. Reads
+    the real `.py` surfaces in `LITERAL_SCAN_SURFACES` when *sources* is
+    omitted."""
+    if sources is None:
+        sources = {}
+        for surface in LITERAL_SCAN_SURFACES:
+            if not surface.endswith(".py"):
+                continue
+            path = REPO_ROOT / surface
+            if path.is_file():
+                sources[surface] = path.read_text(encoding="utf-8")
+
+    hits: list[LiteralHit] = []
+
+    def _walk(node: ast.AST, surface: str, prefix: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                qualname = f"{prefix}{child.name}"
+                doc = ast.get_docstring(child)
+                if doc:
+                    hits.extend(_literal_hits_outside_generated(f"{surface}#{qualname}", doc))
+                _walk(child, surface, prefix=f"{qualname}.")
+            else:
+                _walk(child, surface, prefix)
+
+    for surface, text in sources.items():
+        try:
+            tree = ast.parse(text, filename=surface)
+        except SyntaxError:
+            continue
+        _walk(tree, surface, prefix="")
+
+    return hits
+
+
+# This phase's own file's pinned non-module-docstring hit count (plan
+# 21-20 Task 3): the file this phase edits, and the file
+# `_control_registry_self_test_passes`'s stale "16 controls" docstring
+# literal (WR-08, closed by Task 2) actually landed in. Everywhere else
+# the blind spot is MEASURED, not enforced (see the comment above); this
+# one file additionally carries a two-sided ratchet so a second WR-08
+# cannot land here unnoticed -- growth over the pin is a finding, and a
+# shrink below it demands the pin be lowered in the same commit, the same
+# shape as Task 1's ledger ratchet. Never recompute this pin to make a
+# failing check pass; re-pin it only alongside a real docstring edit in
+# the same commit.
+_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 30
+
+
+def nonmodule_docstring_selffile_ratchet_problems(
+    live_count: int | None = None,
+    pinned_count: int | None = None,
+) -> list[str]:
+    """Two-sided ratchet over `scripts/gen-gate-docs.py`'s OWN share of the
+    py-docstrings-only blind spot: growth over the pin is a finding (a
+    second WR-08 landing in the file the first one landed in); a shrink
+    below the pin is ALSO a finding, demanding the pin be lowered to the
+    live count in the same commit, so a shrink cannot silently buy
+    headroom for a later, unnoticed regrowth (the same two-predicate shape
+    `literal_ledger_ratchet_problems` uses for the deferred-literal
+    ledger's own size pin).
+
+    Takes the live and pinned counts as optional parameters (defaulting
+    to the real ones) so the permanent registered controls can drive this
+    against synthetic counts without touching the module-level constant."""
+    if live_count is None:
+        live_count = len(
+            [h for h in _nonmodule_docstring_hits() if h.relpath.startswith("scripts/gen-gate-docs.py#")]
+        )
+    if pinned_count is None:
+        pinned_count = _SELF_FILE_NONMODULE_DOCSTRING_HITS
+    problems: list[str] = []
+    if live_count > pinned_count:
+        problems.append(
+            "nonmodule-docstring self-file ratchet: scripts/gen-gate-docs.py's live "
+            f"non-module-docstring hit count {live_count} exceeds the pinned "
+            f"{pinned_count} -- a new hand-maintained count literal landed in a "
+            "function/class docstring in this file (the WR-08 shape) and must be "
+            "fixed or the pin explicitly raised alongside a written justification"
+        )
+    if live_count < pinned_count:
+        problems.append(
+            "nonmodule-docstring self-file ratchet: scripts/gen-gate-docs.py's live "
+            f"non-module-docstring hit count {live_count} is below the pinned "
+            f"{pinned_count} -- lower _SELF_FILE_NONMODULE_DOCSTRING_HITS to the "
+            "live count in this same commit so the shrink is locked in"
+        )
+    return problems
+
+
 def _emit_deferred_ledger_backlog_id(relpath: str) -> str:
     """The 999.40/999.41/999.42 classification recorded in
     21-CONF13-BASELINE.md: docs/gates/*.md narrative pages, .py module
@@ -2431,6 +2555,10 @@ def cmd_check() -> int:
     problems += literal_ledger_ratchet_problems()
     problems += literal_ledger_staleness_problems(literal_read)
 
+    # plan 21-20 Task 3: this phase's own file's two-sided ratchet over its
+    # share of the (deliberately unwidened) py-docstrings-only blind spot.
+    problems += nonmodule_docstring_selffile_ratchet_problems()
+
     if problems:
         for p in problems:
             sys.stderr.write(p + "\n")
@@ -2499,6 +2627,12 @@ def describe() -> dict:
         1 for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values() if _bid == "999.42"
     )
     ledger_mechanical = len(_DEFERRED_LITERAL_HITS) - ledger_adjudicated
+    # The py-docstrings-only blind spot's own live size (plan 21-20 Task
+    # 3): a MEASUREMENT, never fed back into `non_exempt_count` or any
+    # `--check` finding -- see `_nonmodule_docstring_hits`'s own comment
+    # for why the standing scan is not widened to cover it.
+    nonmodule_hits = _nonmodule_docstring_hits()
+    nonmodule_surfaces = {h.relpath.split("#", 1)[0] for h in nonmodule_hits}
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
@@ -2508,6 +2642,8 @@ def describe() -> dict:
         "literal_scan_ledger_max": _DEFERRED_LEDGER_MAX,
         "literal_scan_ledger_adjudicated": ledger_adjudicated,
         "literal_scan_ledger_mechanical": ledger_mechanical,
+        "literal_scan_nonmodule_docstring_hits": len(nonmodule_hits),
+        "literal_scan_nonmodule_docstring_surfaces": len(nonmodule_surfaces),
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -3697,6 +3833,26 @@ def _control_own_registry_docstring_has_no_count() -> None:
     )
 
 
+def _control_selffile_docstring_ratchet_fires() -> None:
+    """A synthetic live count one above a synthetic pin must fail, naming
+    both figures -- the growth direction of this file's own
+    py-docstrings-only-blind-spot ratchet (a second WR-08 landing in the
+    file the first one landed in)."""
+    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=5, pinned_count=4)
+    assert len(problems) == 1, problems
+    assert "5" in problems[0] and "4" in problems[0], problems[0]
+
+
+def _control_selffile_docstring_ratchet_requires_repin_on_shrink() -> None:
+    """A synthetic live count one below a synthetic pin must also fail,
+    naming both figures -- the shrink direction, demanding the pin be
+    lowered to the live count in the same commit rather than granting
+    free headroom for a later, unnoticed regrowth."""
+    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=3, pinned_count=4)
+    assert len(problems) == 1, problems
+    assert "3" in problems[0] and "4" in problems[0], problems[0]
+
+
 def _control_slug_collision_raises() -> None:
     """Phase 21-14 (T-21-14-02): a synthetic two-entry list sharing a slug
     must raise `SlugCollisionError` naming both keys.
@@ -3808,6 +3964,11 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("registry-self-test", _control_registry_self_test_passes),
     ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
+    ("selffile-docstring-ratchet-fires", _control_selffile_docstring_ratchet_fires),
+    (
+        "selffile-docstring-ratchet-requires-repin-on-shrink",
+        _control_selffile_docstring_ratchet_requires_repin_on_shrink,
+    ),
     ("slug-collision-raises", _control_slug_collision_raises),
 )
 
@@ -3884,6 +4045,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ledger-injection-testing-fires",
     "registry-self-test",
     "own-registry-docstring-has-no-count",
+    "selffile-docstring-ratchet-fires",
+    "selffile-docstring-ratchet-requires-repin-on-shrink",
     "slug-collision-raises",
 )
 
