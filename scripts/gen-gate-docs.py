@@ -329,6 +329,38 @@ def _page_slug(entry) -> str:
     return entry.key.replace(":", "-")
 
 
+class SlugCollisionError(ValueError):
+    """Raised by `generate_all()` when two registry entries resolve to the
+    same `docs/gates/<slug>.md` page slug (T-21-14-02). `_control_page_per_entry`
+    compares SETS of expected-vs-emitted paths and therefore cannot see a
+    collision — the `targets` dict `generate_all()` builds would silently
+    overwrite one entry's detail page with another's, and the set comparison
+    would still read as clean because both sets have the same cardinality
+    drop. This raises at generation time, before any page is written, naming
+    every colliding key."""
+
+
+def _assert_no_slug_collisions(entries) -> None:
+    """Pure floor, called by `generate_all()` and driven directly by its own
+    negative-arm control (`slug-collision-raises`) against a synthetic
+    entry list, so the control exercises the SAME code the live floor uses.
+
+    Raises `SlugCollisionError` naming every key sharing a slug when
+    `len({_page_slug(e) for e in entries}) != len(entries)`.
+    """
+    by_slug: dict[str, list[str]] = {}
+    for e in entries:
+        by_slug.setdefault(_page_slug(e), []).append(e.key)
+    collisions = {slug: keys for slug, keys in by_slug.items() if len(keys) > 1}
+    if collisions:
+        detail = "; ".join(
+            f"{slug!r} shared by {keys!r}" for slug, keys in sorted(collisions.items())
+        )
+        raise SlugCollisionError(
+            f"duplicate docs/gates/<slug>.md page slug(s): {detail}"
+        )
+
+
 def _glob_prose(globs) -> str:
     """`", ".join(f"`{g}`" for g in globs)` — the exact formula
     `check-traceability.py`'s block (n) requires for its TRACE-03 row lock.
@@ -1594,6 +1626,11 @@ def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
 
 
 def generate_all() -> dict[Path, str]:
+    # Phase 21-14 (T-21-14-02): a duplicate page slug must fail here, before
+    # any target is written, rather than silently overwriting one entry's
+    # detail page via the `targets` dict below.
+    _assert_no_slug_collisions(_gate_registry.ENTRIES)
+
     # Harvest EVERY script-backed entry, including CONF-SURFACE itself
     # (D-21-C/D-21-K): `_ANTICIPATORY_KEYS` — now empty, plan 21-11 landed
     # CONF-SURFACE's battery/CI registration — exists purely as a mechanism
@@ -2834,6 +2871,65 @@ def _control_scan_neutralization_arms() -> None:
         _this_module._literal_hit_exemption = original_exemption
 
 
+def _control_registry_self_test_passes() -> None:
+    """Phase 21-14 (CR-06): wires the orphan. `scripts/_gate_registry.py
+    --self-test`'s 16 controls — including the ONLY duplicate-`key`/
+    `gate_id` check — previously ran nowhere automated: not the battery, not
+    CI, not either pre-commit hook. This drives it as a real subprocess
+    (`_control_harvest_nonzero_exit_named`'s shape) so a broken registry
+    control now fails `gen-gate-docs.py --self-test`, and by extension the
+    battery, CI, and both pre-commit hooks at once, naming which registry
+    control broke via `proc.stderr`."""
+    proc = subprocess.run(
+        [sys.executable, str(_REGISTRY_PATH), "--self-test"],
+        capture_output=True,
+        text=True,
+        timeout=60,
+    )
+    assert proc.returncode == 0, (
+        f"scripts/_gate_registry.py --self-test exited {proc.returncode}: "
+        f"{proc.stderr}"
+    )
+
+
+def _control_slug_collision_raises() -> None:
+    """Phase 21-14 (T-21-14-02): a synthetic two-entry list sharing a slug
+    must raise `SlugCollisionError` naming both keys.
+    `_control_page_per_entry` compares SETS of expected-vs-emitted paths and
+    cannot see a collision (both sides shrink by the same count); this
+    floor can, and it fires before any page is written."""
+    fake = _gate_registry.GateEntry(
+        key="FAKE-01",
+        gate_id="FAKE-01",
+        extra_ids=(),
+        mechanism="x",
+        ci_job=None,
+        script="scripts/fake.py",
+        run_command="python3 scripts/fake.py --self-test",
+        summary="Fake gate for the slug-collision negative control.",
+        consumes=(),
+    )
+    # `_page_slug` replaces ":" with "-", so a PRECOMMIT:-shaped key and a
+    # plain key can collide on the same rendered slug without being
+    # textually identical.
+    fake_colliding = _gate_registry.GateEntry(
+        key="FAKE:01",
+        gate_id="FAKE:01",
+        extra_ids=(),
+        mechanism="x",
+        ci_job=None,
+        script="scripts/fake2.py",
+        run_command="python3 scripts/fake2.py --self-test",
+        summary="Second fake gate colliding on the same page slug.",
+        consumes=(),
+    )
+    try:
+        _assert_no_slug_collisions([fake, fake_colliding])
+        raise AssertionError("expected SlugCollisionError")
+    except SlugCollisionError as exc:
+        assert "FAKE-01" in str(exc) and "FAKE:01" in str(exc), str(exc)
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("harvest-nonzero-exit-named", _control_harvest_nonzero_exit_named),
     ("harvest-malformed-json-named", _control_harvest_malformed_json_named),
@@ -2892,6 +2988,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
+    ("registry-self-test", _control_registry_self_test_passes),
+    ("slug-collision-raises", _control_slug_collision_raises),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -2952,6 +3050,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
     "scan-neutralization-arms",
+    "registry-self-test",
+    "slug-collision-raises",
 )
 
 
