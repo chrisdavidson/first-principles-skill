@@ -523,9 +523,13 @@ def _checks_cell(entry, blob) -> str:
 def _gate_table_rows(
     entries, harvested: dict[str, dict]
 ) -> list[tuple[str, str, str, str]]:
-    """Build the 27-row (documented, non-anticipatory) x 4-column row set
-    from `entries` + a harvest blob map. Pure — used identically to build
-    the SAME `rows` value `generate_all()` hands to both surfaces (D-02)."""
+    """Build the documented (non-anticipatory) x 4-column row set from
+    `entries` + a harvest blob map -- one row per non-anticipatory
+    registry entry, a live count this function derives from `entries`
+    rather than a hand-typed one (a prior row-count docstring literal
+    went stale as the registry grew; plan 21-20 Task 2 removed it). Pure
+    -- used identically to build the SAME `rows` value `generate_all()`
+    hands to both surfaces (D-02)."""
     rows: list[tuple[str, str, str, str]] = []
     for entry in entries:
         if entry.key in _gate_registry._ANTICIPATORY_KEYS:
@@ -1093,7 +1097,8 @@ def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
     surfaces", "one of the three entries", "seven of the nine") that are
     not current-fact count claims at all. `include_spelled_out=False`
     (used for `NARRATIVE_ENTRIES` hand-written narrative text only, never
-    for the 24 thin fully-generated pages) turns off SPELLED-OUT matching
+    for the thin fully-generated pages, a live-counted population that
+    moves as gates are added) turns off SPELLED-OUT matching
     for that text while leaving bare-digit containment fully active — a
     stale bare-digit count (`27` diverging from a Facts-fence `27`) is
     still caught; an ordinary-language spelled-out number in flowing prose
@@ -3577,22 +3582,35 @@ def _control_ledger_occurrence_surplus_fires() -> None:
 def _control_ledger_not_an_unconditional_permit() -> None:
     """Anti-masking: (a) the real ledger contains no wildcard-shaped key —
     no bare-relpath key, no empty-string text — so it cannot silently widen
-    into the whole-surface permit it replaced; (b) emptying the ledger
-    makes the live scan report a large, non-zero finding count, proving the
-    ledger is load-bearing rather than decorative (the same spirit as
-    `_control_scan_neutralization_arms` arm 3)."""
+    into the whole-surface permit it replaced (untouched by this task);
+    (b) emptying the ledger makes the live scan report AT LEAST AS MANY
+    findings as the ledger holds entries, proving the ledger is
+    load-bearing rather than decorative (the same spirit as
+    `_control_scan_neutralization_arms` arm 3).
+
+    Arm (b) is relative to the ledger's own live size, not the fixed
+    absolute floor this control used to assert (WR-05). The absolute form
+    turns RED on successful remediation: once enough of today's hits are
+    genuinely fixed and removed from the ledger, the fixed floor starts
+    failing -- taking `--self-test`, the battery, CI and both pre-commit
+    hooks down with it -- with a message that reads like a regression
+    while describing progress. The relative form cannot make that
+    mistake: it shrinks in lockstep with the ledger it measures.
+    """
     for relpath, text in _DEFERRED_LITERAL_HITS:
         assert relpath, "bare-relpath-shaped key found (wildcard permit)"
         assert text, f"empty-text key found for {relpath!r} (wildcard permit)"
 
     original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    ledger_size = len(original_ledger)
     _this_module._DEFERRED_LITERAL_HITS = {}
     try:
         read = run_literal_scan()
         problems = literal_scan_problems(read)
-        assert len(problems) > 100, (
-            f"emptying the ledger produced only {len(problems)} findings — "
-            "expected a large, non-zero count proving the ledger is load-bearing"
+        assert len(problems) >= ledger_size, (
+            f"emptying the ledger produced only {len(problems)} findings, "
+            f"fewer than the ledger's own {ledger_size} entries -- the "
+            "ledger is not load-bearing"
         )
     finally:
         _this_module._DEFERRED_LITERAL_HITS = original_ledger
@@ -3642,10 +3660,10 @@ def _control_ledger_injection_testing_fires() -> None:
 
 
 def _control_registry_self_test_passes() -> None:
-    """Phase 21-14 (CR-06): wires the orphan. `scripts/_gate_registry.py
-    --self-test`'s 16 controls — including the ONLY duplicate-`key`/
-    `gate_id` check — previously ran nowhere automated: not the battery, not
-    CI, not either pre-commit hook. This drives it as a real subprocess
+    """Wires the orphan. `scripts/_gate_registry.py --self-test`'s
+    controls — including the ONLY duplicate-`key`/`gate_id` check —
+    previously ran nowhere automated: not the battery, not CI, not either
+    pre-commit hook. This drives it as a real subprocess
     (`_control_harvest_nonzero_exit_named`'s shape) so a broken registry
     control now fails `gen-gate-docs.py --self-test`, and by extension the
     battery, CI, and both pre-commit hooks at once, naming which registry
@@ -3659,6 +3677,23 @@ def _control_registry_self_test_passes() -> None:
     assert proc.returncode == 0, (
         f"scripts/_gate_registry.py --self-test exited {proc.returncode}: "
         f"{proc.stderr}"
+    )
+
+
+def _control_own_registry_docstring_has_no_count() -> None:
+    """Deliberately narrow: pins the one function whose docstring shipped
+    a stale hand-maintained control-roster count, gone by the time this
+    control was added. Asserts `_control_registry_self_test_passes`'s
+    docstring carries no digit at all, rather than re-checking any
+    particular value -- a value would go stale again the moment the
+    registry's own control count changes. This control answers only for
+    that one function; the general, quantified answer for the rest of
+    this file's function docstrings is a separate derived measurement,
+    not a floor here. Carries no digit in its own docstring either, for
+    the same reason."""
+    doc = _control_registry_self_test_passes.__doc__ or ""
+    assert not re.search(r"[0-9]", doc), (
+        f"_control_registry_self_test_passes' docstring carries a digit: {doc!r}"
     )
 
 
@@ -3772,6 +3807,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
     ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("registry-self-test", _control_registry_self_test_passes),
+    ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
     ("slug-collision-raises", _control_slug_collision_raises),
 )
 
@@ -3847,6 +3883,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ledger-injection-architecture-fires",
     "ledger-injection-testing-fires",
     "registry-self-test",
+    "own-registry-docstring-has-no-count",
     "slug-collision-raises",
 )
 
