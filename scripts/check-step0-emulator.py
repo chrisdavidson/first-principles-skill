@@ -108,6 +108,26 @@ def _semgate02_pair_problems(
     return []
 
 
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `..._roster_problems`-shaped message into its `missing=` and
+    `extra=` clauses, so a roster negative arm can assert which direction
+    its synthetic id actually landed in rather than merely that it appears
+    somewhere in the joined message.
+
+    Raises `ValueError` naming the offending text if either clause marker
+    is absent, instead of silently returning the whole string as both
+    clauses — a message-format change must fail loudly, not disable every
+    arm built on this split at once.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"roster arm message missing 'missing='/' extra=' markers: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
 # ---------------------------------------------------------------------------
 # Table parsing helpers
 # ---------------------------------------------------------------------------
@@ -1834,17 +1854,27 @@ def _run_self_test() -> None:
             "PASSED — _semgate02_pair_problems did NOT fire on a synthetic mismatch"
         )
         wrong.append("SEMGATE02-floor-negative (floor did not fire on synthetic mismatch)")
-    elif "synthetic-b" not in _semgate02_synthetic_text or "synthetic-c" not in _semgate02_synthetic_text:
-        print(
-            "check-step0-emulator --self-test: SEMGATE02-floor-negative WRONGLY "
-            f"FAILED — fired but did not name both synthetic ids: {_semgate02_synthetic_problems!r}"
-        )
-        wrong.append("SEMGATE02-floor-negative (floor did not name both directions)")
     else:
-        print(
-            "check-step0-emulator --self-test: SEMGATE02-floor-negative PASS — "
-            f"fires and names both directions: {_semgate02_synthetic_problems!r}"
+        _semgate02_missing_clause, _semgate02_extra_clause = _roster_arm_clauses(
+            _semgate02_synthetic_text
         )
+        if (
+            "synthetic-b" not in _semgate02_missing_clause
+            or "synthetic-c" not in _semgate02_extra_clause
+        ):
+            print(
+                "check-step0-emulator --self-test: SEMGATE02-floor-negative WRONGLY "
+                f"FAILED — fired but did not name both synthetic ids in their correct "
+                f"clauses: missing_clause={_semgate02_missing_clause!r} "
+                f"extra_clause={_semgate02_extra_clause!r}"
+            )
+            wrong.append("SEMGATE02-floor-negative (floor did not name both directions)")
+        else:
+            print(
+                "check-step0-emulator --self-test: SEMGATE02-floor-negative PASS — "
+                f"fires and names both directions: "
+                f"missing_clause={_semgate02_missing_clause!r} extra_clause={_semgate02_extra_clause!r}"
+            )
 
     # -----------------------------------------------------------------------
     # Final verdict

@@ -371,6 +371,26 @@ def _control_roster_problems(
     return []
 
 
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `..._roster_problems`-shaped message into its `missing=` and
+    `extra=` clauses, so a roster negative arm can assert which direction
+    its synthetic id actually landed in rather than merely that it appears
+    somewhere in the joined message.
+
+    Raises `ValueError` naming the offending text if either clause marker
+    is absent, instead of silently returning the whole string as both
+    clauses — a message-format change must fail loudly, not disable every
+    arm built on this split at once.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"roster arm message missing 'missing='/' extra=' markers: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
 def _require_pyyaml() -> None:
     """Catch missing PyYAML at startup with a clear remediation message (Pitfall 4)."""
     try:
@@ -1985,16 +2005,20 @@ def cmd_self_test() -> int:
                 "FAIL (m): _control_roster_problems did NOT fire on a "
                 "synthetic mismatch"
             )
-        elif "synthetic-b" not in problem_text or "synthetic-c" not in problem_text:
-            failures.append(
-                f"FAIL (m): _control_roster_problems fired but did not name "
-                f"both the missing and extra synthetic ids: {problems!r}"
-            )
         else:
-            print(
-                "(m) control roster/executed floor negative control: PASS — "
-                f"fires and names both directions: {problems!r}"
-            )
+            missing_clause, extra_clause = _roster_arm_clauses(problem_text)
+            if "synthetic-b" not in missing_clause or "synthetic-c" not in extra_clause:
+                failures.append(
+                    f"FAIL (m): _control_roster_problems fired but did not name "
+                    f"both the missing and extra synthetic ids in their correct "
+                    f"clauses: missing_clause={missing_clause!r} extra_clause={extra_clause!r}"
+                )
+            else:
+                print(
+                    "(m) control roster/executed floor negative control: PASS — "
+                    f"fires and names both directions: missing_clause={missing_clause!r} "
+                    f"extra_clause={extra_clause!r}"
+                )
     except Exception as exc:
         failures.append(f"FAIL (m): unexpected exception: {exc!r}")
 

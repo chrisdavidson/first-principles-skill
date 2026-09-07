@@ -1079,18 +1079,22 @@ def self_test() -> int:
             file=sys.stderr,
         )
         all_passed = False
-    elif "synthetic-b" not in _synthetic_text or "synthetic-c" not in _synthetic_text:
-        print(
-            "self-test FAIL: (roster-floor-missing/extra) negative arms — fired but "
-            f"did not name both the missing and extra synthetic ids: {_synthetic_problems!r}",
-            file=sys.stderr,
-        )
-        all_passed = False
     else:
-        print(
-            "check-step0-live --self-test: (roster-floor-missing/extra) negative "
-            f"arms PASS — fires and names both directions: {_synthetic_problems!r}"
-        )
+        _missing_clause, _extra_clause = _roster_arm_clauses(_synthetic_text)
+        if "synthetic-b" not in _missing_clause or "synthetic-c" not in _extra_clause:
+            print(
+                "self-test FAIL: (roster-floor-missing/extra) negative arms — fired but "
+                f"did not name both the missing and extra synthetic ids in their "
+                f"correct clauses: missing_clause={_missing_clause!r} extra_clause={_extra_clause!r}",
+                file=sys.stderr,
+            )
+            all_passed = False
+        else:
+            print(
+                "check-step0-live --self-test: (roster-floor-missing/extra) negative "
+                f"arms PASS — fires and names both directions: "
+                f"missing_clause={_missing_clause!r} extra_clause={_extra_clause!r}"
+            )
 
     # Executed-vs-registered floor (Phase 21-15, CR-05): _CONTROL_IDS is a
     # second, independently-typed transcription of the control ids this
@@ -1272,6 +1276,27 @@ def _step0_control_roster_problems(
             f"extra={sorted(extra)}"
         ]
     return []
+
+
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `..._roster_problems`-shaped message into its `missing=` and
+    `extra=` clauses, so a roster negative arm can assert which direction
+    its synthetic id actually landed in rather than merely that it appears
+    somewhere in the joined message.
+
+    Raises `ValueError` naming the offending text if either clause marker
+    is absent, instead of silently returning the whole string as both
+    clauses — a message-format change must fail loudly, not disable every
+    arm built on this split at once.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"roster arm message missing 'missing='/' extra=' markers: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
 
 # D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.13
 # re-measure of Step 0 deferred residuals (Phase 137, cap-defensive — 3-row
