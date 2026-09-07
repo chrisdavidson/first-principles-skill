@@ -218,3 +218,7 @@ None -- no external service configuration required.
 ---
 *Phase: 21-generate-the-claim-surface*
 *Completed: 2026-09-07*
+
+## Self-Check: PASSED
+
+All 4 modified files confirmed present on disk (`scripts/gen-gate-docs.py`, `docs/gates/CONF-SURFACE.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`); all 4 commit hashes (`dfa1f78`, `6d4213a`, `badcf53`, `7b8a58c`) confirmed present in `git log --oneline`.
