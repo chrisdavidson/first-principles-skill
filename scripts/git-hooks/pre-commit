@@ -1,5 +1,6 @@
 #!/bin/sh
-# Three gates for shared/ <-> generated trees and the conformance baseline.
+# Five gates for shared/ <-> generated trees, the conformance baseline, and
+# the CI-gate claim surface.
 # Installed by scripts/install-hooks.sh as .git/hooks/pre-commit (symlink).
 #
 # Gate 1 -- sync-drift gate: blocks if shared/ and the generated tree have
@@ -16,9 +17,22 @@
 # fresh run (scripts/report-conformance.py --check). This fails on STALENESS
 # of the committed baseline relative to a fresh measurement, never on a
 # conformance count being too high -- no count in that baseline gates
-# anything. By decision D-06 this second check is deliberately NOT registered
-# in scripts/check-firewall-battery.sh and NOT added to
-# .github/workflows/validation.yml, so the offline battery stays at 25.
+# anything. By decision D-06 report-conformance.py's own controls are
+# deliberately NOT registered a second time in scripts/check-firewall-battery.sh
+# and NOT added to .github/workflows/validation.yml -- they run here, at
+# commit time, instead.
+# Gate 4 -- claim-surface generator self-test: blocks if
+# scripts/gen-gate-docs.py --self-test fails. Same WR-05 ordering rationale
+# as Gate 2 -- a broken generator's own controls must be caught before its
+# comparison against committed output (Gate 5) is even attempted.
+# Gate 5 -- claim-surface drift gate: blocks if CLAUDE.md's/
+# docs/ARCHITECTURE.md's generated gate tables, docs/TESTING.md's generated
+# index, or any docs/gates/<ID>.md page no longer match a fresh
+# scripts/gen-gate-docs.py --write run, or if CONF-13's standing literal
+# scanner finds a non-exempt hand-maintained count literal
+# (scripts/gen-gate-docs.py --check). CONF-SURFACE (D-21-C, plan 21-11) --
+# also registered in scripts/check-firewall-battery.sh with a matching
+# gen-gate-docs (CONF-SURFACE) CI job, unlike Gates 2/3's generator.
 #
 # POSIX sh only -- no bashisms. Quote all expansions.
 
@@ -29,7 +43,17 @@ cd "$(git rev-parse --show-toplevel)"
 # --- Interpreter resolution --------------------------------------------------
 
 if command -v uv >/dev/null 2>&1; then
-    PY="uv run"
+    # "uv run python3", not "uv run" (bare script path): the bare form makes
+    # uv build a fresh per-script PEP-723-isolated environment that ignores
+    # uv.lock and the project's declared dev dependencies -- documented in
+    # CLAUDE.md and already followed by every CI job. Gate 4/5's
+    # scripts/gen-gate-docs.py subprocess-invokes several sibling scripts via
+    # sys.executable (D-21-A); under bare "uv run scripts/gen-gate-docs.py"
+    # that interpreter has none of PyYAML those siblings need, and harvest()
+    # silently degrades to a D-04-floor-violation exit rather than the
+    # intended CONF-13 residual check. "uv run python3" runs every gate
+    # against the same project-locked .venv sys.executable resolves inside.
+    PY="uv run python3"
 elif command -v python3 >/dev/null 2>&1; then
     PY="python3"
 else
@@ -39,7 +63,7 @@ else
 fi
 
 # --- Gate 1: sync-drift gate (compositional preservation) --------------------
-# Not exec'd -- two more gates follow, so its exit status is propagated
+# Not exec'd -- four more gates follow, so its exit status is propagated
 # explicitly with "|| exit $?" rather than replacing the shell process with
 # it. A failing sync check must not be silently replaced by a passing
 # conformance check, or the reverse.
@@ -56,8 +80,8 @@ $PY scripts/sync-content.py --check || exit $?
 #
 # Ordered BEFORE --check on purpose: --check compares the committed baseline
 # against a fresh run of this same generator, so a generator whose own controls
-# are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd -- a
-# third gate follows.
+# are failing makes that comparison meaningless. Costs ~0.1s. Not exec'd --
+# three more gates follow.
 #
 # Deliberately NOT registered in scripts/check-firewall-battery.sh; that
 # decision, and why, is recorded in that file's header.
@@ -65,6 +89,20 @@ $PY scripts/sync-content.py --check || exit $?
 $PY scripts/report-conformance.py --self-test || exit $?
 
 # --- Gate 3: conformance-baseline drift gate ---------------------------------
+# Not exec'd -- two more gates follow.
+
+$PY scripts/report-conformance.py --check || exit $?
+
+# --- Gate 4: claim-surface generator self-test -------------------------------
+# Same WR-05 ordering discipline as Gate 2, for scripts/gen-gate-docs.py
+# (CONF-SURFACE, D-21-C, plan 21-11): the generator's own controls must be
+# caught before Gate 5 compares its output to the committed tree, since that
+# comparison is meaningless if the generator itself is broken. Not exec'd --
+# one more gate follows.
+
+$PY scripts/gen-gate-docs.py --self-test || exit $?
+
+# --- Gate 5: claim-surface drift gate ----------------------------------------
 # Terminal check -- only this one may use exec, because nothing follows it.
 
-exec $PY scripts/report-conformance.py --check
+exec $PY scripts/gen-gate-docs.py --check

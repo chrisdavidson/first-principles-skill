@@ -96,23 +96,27 @@ class GateEntry:
 # ENTRIES
 #
 # One per row in docs/ARCHITECTURE.md's "CI and pre-commit gate inventory"
-# table (27 rows today: 23 battery-registered gate ids — VAL-04's row
-# carries a second, extra id, GATE-02, so 23 rows still means 23 primary ids
-# — plus the 2 inline checks INVARIANT-CHECK/FROZEN-EVIDENCE already among
-# those 23... no: the 23 are the `gate`/`gate_prereq` registrations; the 2
-# inline checks are separate rows, giving 25 battery-tallied rows; plus the
-# 2 pre-commit mechanism rows with no gate id at all = 27 total documented
-# rows), PLUS one anticipatory entry, CONF-SURFACE (D-21-C), added now ahead
-# of its own documentation: the generator this entry describes
-# (`scripts/gen-gate-docs.py`) does not exist yet, is not yet in the battery,
-# has no CI job yet, and does not yet appear in docs/ARCHITECTURE.md's table
-# — plan 21-11 wires all three in the same commit that adds this entry to
-# the live count. `_ANTICIPATORY_KEYS` names it explicitly so the live
-# vacuity control below can state "27 documented + 1 anticipatory = 28" as a
-# derived, not asserted, fact rather than silently drifting the floor.
+# table (28 rows as of plan 21-11: 24 battery-registered gate ids — VAL-04's
+# row carries a second, extra id, GATE-02, so 24 rows still means 24 primary
+# ids — plus the 2 inline checks INVARIANT-CHECK/FROZEN-EVIDENCE already
+# among those 24... no: the 24 are the `gate`/`gate_prereq` registrations;
+# the 2 inline checks are separate rows, giving 26 battery-tallied rows; plus
+# the 2 pre-commit mechanism rows with no gate id at all = 28 total
+# documented rows).
+#
+# `_ANTICIPATORY_KEYS` is now empty (D-21-C, plan 21-11): CONF-SURFACE was
+# the single anticipatory entry — added ahead of its own documentation while
+# `scripts/gen-gate-docs.py` did not yet exist, was not yet in the battery,
+# had no CI job, and did not yet appear in docs/ARCHITECTURE.md's table.
+# Plan 21-11 wired all three (battery registration, CI job, and both
+# pre-commit hooks) and regenerated docs/ARCHITECTURE.md's table to include
+# its row, so CONF-SURFACE is now a fully-documented entry like every other
+# row and no longer needs the exclusion. The mechanism stays named
+# (`_ANTICIPATORY_KEYS`, not deleted) so a future anticipatory entry has a
+# working precedent to extend, rather than needing to be re-invented.
 # ---------------------------------------------------------------------------
 
-_ANTICIPATORY_KEYS: frozenset[str] = frozenset({"CONF-SURFACE"})
+_ANTICIPATORY_KEYS: frozenset[str] = frozenset()
 
 
 def _ci(job_key: str) -> str:
@@ -634,19 +638,18 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
         consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
     ),
-    # --- Anticipatory entry (D-21-C) --------------------------------------
-    # Not yet in scripts/check-firewall-battery.sh, not yet in
-    # .github/workflows/validation.yml, not yet in docs/ARCHITECTURE.md's
-    # table. Plan 21-11 wires all three. Recorded here now so the registry
-    # -- the single source of truth every later plan reads -- can describe
-    # its OWN drift gate the moment it exists, matching D-08's "a generator
-    # that cannot describe itself would be the first exception to its own
-    # uniformity in the same phase that establishes it."
+    # --- CONF-SURFACE (D-21-C) ---------------------------------------------
+    # The claim-surface drift gate. Landed by plan 21-11 into
+    # scripts/check-firewall-battery.sh, .github/workflows/validation.yml,
+    # and both pre-commit hooks in the same commit that removed it from
+    # `_ANTICIPATORY_KEYS` above -- matching D-08's "a generator that cannot
+    # describe itself would be the first exception to its own uniformity in
+    # the same phase that establishes it."
     GateEntry(
         key="CONF-SURFACE",
-        gate_id=None,
+        gate_id="CONF-SURFACE",
         extra_ids=(),
-        mechanism="planned: battery + CI (not yet registered, D-21-C)",
+        mechanism=_ci("gen-gate-docs"),
         ci_job="gen-gate-docs",
         script="scripts/gen-gate-docs.py",
         run_command=(
@@ -657,10 +660,9 @@ ENTRIES: tuple[GateEntry, ...] = (
             "The claim-surface drift gate itself: regenerates `CLAUDE.md`'s and "
             "docs/ARCHITECTURE.md's gate tables and docs/gates/<ID>.md pages from "
             "this registry's ENTRIES and every gate's --describe emission, and "
-            "fails on drift. Script does not exist yet (plan 21-06/07); this entry "
-            "is anticipatory (D-21-C) and is excluded from the D-01 battery-id "
-            "equality floor and from the live ARCHITECTURE.md row-count floor via "
-            "_ANTICIPATORY_KEYS until plan 21-11 lands it."
+            "fails on drift. Registered in the battery, with a matching "
+            "`gen-gate-docs (CONF-SURFACE)` CI job and both pre-commit hooks "
+            "(plan 21-11, D-21-C)."
         ),
         consumes=(
             "registered_surfaces",

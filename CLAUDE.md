@@ -173,8 +173,9 @@ Both surfaces render the same population and the same columns from `scripts/_gat
 | FROZEN-EVIDENCE | battery only (inline) | — | Frozen baselines and captures are unmodified relative to HEAD, plus an untracked-files sweep over the same paths. `_FROZEN_PATHS` grows over time; this inline check increments the battery tally once regardless of array length. See [`docs/gates/FROZEN-EVIDENCE.md`](docs/gates/FROZEN-EVIDENCE.md). |
 | — | sync-drift gate (pre-commit) | `scripts/sync-content.py --check` | `shared/` and the generated tree are in sync — the same check as DUAL-04, fired before commit rather than in CI/battery. See [`docs/gates/PRECOMMIT-sync-drift-gate.md`](docs/gates/PRECOMMIT-sync-drift-gate.md). |
 | — | conformance-baseline drift gate (pre-commit) | `scripts/report-conformance.py --check` | `docs/conformance-baseline.md` and `docs/data/conformance.json` reproduce byte-for-byte a fresh `report-conformance.py` run (D-06); fires before commit. Deliberately not registered in the battery or in CI. (registered_surfaces=5; checked_files=2; control_ids=101; control_count=101; locked_constants=1 entries) See [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md). |
+| CONF-SURFACE | `gen-gate-docs` (CI) | `scripts/gen-gate-docs.py --self-test` | The claim-surface drift gate itself: regenerates `CLAUDE.md`'s and docs/ARCHITECTURE.md's gate tables and docs/gates/<ID>.md pages from this registry's ENTRIES and every gate's --describe emission, and fails on drift. Registered in the battery, with a matching `gen-gate-docs (CONF-SURFACE)` CI job and both pre-commit hooks (plan 21-11, D-21-C). (registered_surfaces=30; checked_files=57; derived_counts=12 entries; disclosed_bounds_anchors=5; control_ids=49; control_count=49; locked_constants=2 entries) See [`docs/gates/CONF-SURFACE.md`](docs/gates/CONF-SURFACE.md). |
 
-Gates run on three surfaces: **22 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **25 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **2 pre-commit** hooks. The battery is a strict superset of CI: all 22 CI gates plus 1 battery-only gate plus 2 inline checks. That is 22 + 1 + 2 = 25.
+Gates run on three surfaces: **23 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **26 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **2 pre-commit** hooks. The battery is a strict superset of CI: all 23 CI gates plus 1 battery-only gate plus 2 inline checks. That is 23 + 1 + 2 = 26.
 <!-- END GENERATED -->
 
 HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a
@@ -185,20 +186,26 @@ call running both `--self-test` and the live leg — and is counted in the batte
 SCAN-GUARD was registered at v8.26.0 under Phase 15 — a CI job plus a battery `gate` call running
 both `--self-test` and the live leg (plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05
 finding), matching PROV-GUARD's and REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's
-`--self-test`-only shape — and is counted in the battery total below.
+`--self-test`-only shape — and is counted in the battery total below. CONF-SURFACE was registered
+at v9.0.0 under Phase 21 (D-21-C, plan 21-11) — a CI job plus a battery `gate` call running
+`gen-gate-docs.py --self-test` then `--check` — and is counted in the battery total below.
 
-`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **25/25** — in one shot and prints a FIREWALL: GREEN / RED / BLOCKED verdict (SHIP-06: BLOCKED, exit 2, is a third outcome for an unmet external prerequisite — currently only VAL-03's pytest interpreter — and is distinct from a genuine gate failure, RED, exit 1). QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17; HARN-01/02/03 (added under HARN-04, Phase 4, v8.18.0) moved it from 17 to 20; HC-BOUND (added under HC-04, Phase 6, v8.19.0) moved it from 20 to 21; REG-GUARD (added under REG-03, Phase 3, v8.21.0) moved it from 21 to 22; PROV-GUARD (added under Phase 6, v8.24.0) moved it from 22 to 23; SCAN-GUARD (added under Phase 15, v8.26.0) moved it from 23 to 24. CONF-GATE (added under Phase 18, v9.0.0) moved it from 24 to 25. The tally is 23 `gate`/`gate_prereq` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
+`bash scripts/check-firewall-battery.sh` runs the full offline gate set — currently **26/26** — in one shot and prints a FIREWALL: GREEN / RED / BLOCKED verdict (SHIP-06: BLOCKED, exit 2, is a third outcome for an unmet external prerequisite — currently only VAL-03's pytest interpreter — and is distinct from a genuine gate failure, RED, exit 1). QUAL-01 (added at v8.7 Phase 164, HARNESS-01) moved the battery from 15 to 16; VERSION-01 (added by the 2026-08-16 audit, [`docs/audit-2026-08-16-duplication-staleness.md`](docs/audit-2026-08-16-duplication-staleness.md)) moved it from 16 to 17; HARN-01/02/03 (added under HARN-04, Phase 4, v8.18.0) moved it from 17 to 20; HC-BOUND (added under HC-04, Phase 6, v8.19.0) moved it from 20 to 21; REG-GUARD (added under REG-03, Phase 3, v8.21.0) moved it from 21 to 22; PROV-GUARD (added under Phase 6, v8.24.0) moved it from 22 to 23; SCAN-GUARD (added under Phase 15, v8.26.0) moved it from 23 to 24. CONF-GATE (added under Phase 18, v9.0.0) moved it from 24 to 25. CONF-SURFACE (added under Phase 21, v9.0.0, D-21-C) moved it from 25 to 26 — generated by this same gate rather than hand-swept, the phase's own demonstration. The tally is 24 `gate`/`gate_prereq` registrations plus two inline checks (INVARIANT-CHECK, FROZEN-EVIDENCE); the body-size `[INFO]` line is deliberately untallied. See [`docs/v8.7-quality-baseline-freeze.md`](docs/v8.7-quality-baseline-freeze.md) and [`docs/v8.7-constraint-teardown.md`](docs/v8.7-constraint-teardown.md) for the milestone's full gate-composition and retired-constraint record.
 
 ### Pre-commit gates
 
-Two gates fire on `git commit` (whichever hook mechanism is active):
+Five gates fire on `git commit` (whichever hook mechanism is active) — both `.githooks/pre-commit`
+and `scripts/git-hooks/pre-commit` run the same five, in the same order:
 
 1. The **sync-drift gate** — blocks if `shared/` and the generated tree have diverged.
-2. The **conformance-baseline drift gate** — `scripts/report-conformance.py --check` — blocks if
+2. The **conformance generator self-test** — `scripts/report-conformance.py --self-test` — blocks
+   if the generator's own falsifiability controls fail, ahead of gate 3's comparison against
+   committed output (WR-05 ordering).
+3. The **conformance-baseline drift gate** — `scripts/report-conformance.py --check` — blocks if
    `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run.
-   This check is deliberately NOT registered in `scripts/check-firewall-battery.sh` (the battery
-   stays at 25) and adds no CI job (REG-GUARD's CI-job axis is unaffected) — it fails on
-   staleness of the committed baseline only, never on a conformance count being too high (D-06,
+   This check is deliberately NOT registered a second time in `scripts/check-firewall-battery.sh`
+   and adds no CI job (REG-GUARD's CI-job axis is unaffected) — it fails on staleness of the
+   committed baseline only, never on a conformance count being too high (D-06,
    `.planning/phases/17-conformance-baseline/17-CONTEXT.md`). `docs/conformance-baseline.md`
    carries the pre-existing labelled surface `adversarial-corpus`, measuring
    `tests/adversarial-corpus-v9.0/`'s deliberately-wrong probes under the unmodified, frozen
@@ -210,9 +217,18 @@ Two gates fire on `git commit` (whichever hook mechanism is active):
    occurred (D-04) — and subject to the same K-of-5 noise discipline as every other live reading
    in this file. `tests/live-conformance-v9.0` and `tests/live-conformance-catalog.md` are now
    registered `_FROZEN_PATHS` entries (Phase 20) alongside `tests/adversarial-corpus-v9.0`,
-   `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`, and the battery total is
-   unchanged at **25** because FROZEN-EVIDENCE is an inline check that increments once regardless
-   of array length.
+   `tests/quality-provenance-v8.24` and `tests/quality-ledger-v8.26`, and the battery total (26,
+   see above) is unaffected by either registered-vs-unregistered pre-commit gate because
+   FROZEN-EVIDENCE is an inline check that increments once regardless of array length.
+4. The **claim-surface generator self-test** — `scripts/gen-gate-docs.py --self-test` — same
+   WR-05 ordering discipline as gate 2, ahead of gate 5's comparison.
+5. The **claim-surface drift gate** — `scripts/gen-gate-docs.py --check` (CONF-SURFACE, D-21-C,
+   plan 21-11) — blocks if this file's, `docs/ARCHITECTURE.md`'s, `docs/TESTING.md`'s or any
+   `docs/gates/<ID>.md` page's generated region no longer matches a fresh `--write` run, or if
+   CONF-13's standing literal scanner finds a non-exempt hand-maintained count literal. Unlike
+   gates 2-3's generator, CONF-SURFACE is *also* registered in `scripts/check-firewall-battery.sh`
+   with a matching `gen-gate-docs (CONF-SURFACE)` CI job (see the gate table above) — it runs on
+   all three surfaces, not pre-commit only.
 
 The agent body's line count (`first-principles/agents/first-principles.md`) is still reported by
 `scripts/check-body-budget.py` on every run, but it no longer blocks a commit — the 644-line gate

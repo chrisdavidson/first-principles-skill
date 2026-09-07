@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 25 offline gate commands, captures each exit code, and prints a
+# Runs all 26 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,20 +15,21 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (25):
+# Gates (26):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
 #   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
 #   HARN-01   HARN-02       HARN-03   HC-BOUND     REG-GUARD
-#   PROV-GUARD  SCAN-GUARD  CONF-GATE  INVARIANT-CHECK  FROZEN-EVIDENCE
+#   PROV-GUARD  SCAN-GUARD  CONF-GATE  CONF-SURFACE  INVARIANT-CHECK
+#   FROZEN-EVIDENCE
 #
-# 22 of the 23 non-inline gates are registered through the `gate` helper
+# 23 of the 24 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 23 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 24 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 25.
+# than going through `gate`, for a reported total of 26.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -176,6 +177,21 @@
 # CONF-GATE: Battery composition moved 24 -> 25. A gate that appears silently
 # is indistinguishable from a gate that was always there.
 #
+# Composition change (CONF-SURFACE, Phase 21, D-21-C): the battery gained one
+# gate, CONF-SURFACE (scripts/gen-gate-docs.py). CONF-SURFACE is the drift
+# gate for the generated CI-gate claim surface itself: it regenerates
+# CLAUDE.md's and docs/ARCHITECTURE.md's gate tables and docs/gates/<ID>.md
+# pages from scripts/_gate_registry.py's ENTRIES and every gate's --describe
+# emission, and fails if the committed tree has drifted from that
+# regeneration or if its own standing CONF-13 literal scanner finds a
+# non-exempt hand-maintained count literal. It registers as `--self-test`
+# then `--check`, self-test first, per the WR-05 ordering lesson
+# (18-VERIFICATION.md): a broken generator's own controls must be caught
+# before its comparison against committed output is even attempted, since
+# that comparison is meaningless if the generator is broken.
+# CONF-SURFACE: Battery composition moved 25 -> 26. A gate that appears
+# silently is indistinguishable from a gate that was always there.
+#
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
 # --self-test battery is NOT a gate in this file. That was already the standing
@@ -186,7 +202,7 @@
 # the direct reason a missing positive arm (CR-02) shipped able to hide the
 # deletion of an entire enforcement floor.
 #
-# Why it stays out of this file rather than becoming gate 26:
+# Why it stays out of this file rather than becoming gate 27:
 #   - REG-GUARD's CI-job axis requires every gate registered here to have a
 #     matching `name: <job> (<GATE-ID>)` job in .github/workflows/validation.yml,
 #     with QUAL-01 the single named battery-only exemption. Registering a gate
@@ -195,7 +211,8 @@
 #   - The generator's --check leg is a STALENESS check against a regenerated
 #     baseline. It belongs at commit time, where the staleness is created, not
 #     in an offline battery whose GREEN result authorizes live runs.
-# Battery composition is UNCHANGED at 25.
+# Battery composition is UNCHANGED at 26 by this non-decision (report-conformance.py
+# itself; CONF-SURFACE, a different generator, is what moved it 25 -> 26 above).
 #
 # Where those controls now run instead: both pre-commit hooks (.githooks/pre-commit
 # and scripts/git-hooks/pre-commit) run `report-conformance.py --self-test` as
@@ -551,6 +568,21 @@ gate "CONF-GATE" \
     "check-conf-gate.py --self-test + live" \
     "python3 scripts/check-conf-gate.py --self-test" \
     "python3 scripts/check-conf-gate.py"
+
+# CONF-SURFACE — the claim-surface drift gate itself (D-21-C): regenerates
+#                CLAUDE.md's and docs/ARCHITECTURE.md's gate tables and
+#                docs/gates/<ID>.md pages from scripts/_gate_registry.py's
+#                ENTRIES and every gate's --describe emission, and fails on
+#                drift or a non-exempt CONF-13 literal-scan finding.
+#                --self-test runs first (WR-05 ordering: a broken generator's
+#                own controls must be caught before --check's comparison
+#                against committed output is even attempted), then --check.
+#                `gate()` increments TOTAL once regardless of how many
+#                commands run under it, so this is one tally slot, not two.
+gate "CONF-SURFACE" \
+    "gen-gate-docs.py --self-test + --check" \
+    "python3 scripts/gen-gate-docs.py --self-test" \
+    "python3 scripts/gen-gate-docs.py --check"
 
 # body-size — un-tallied [INFO] line (TEARDOWN-01: gate retired, docs/v8.7-constraint-teardown.md).
 # Does NOT go through `gate()` -- `gate()` unconditionally increments TOTAL, and this line
