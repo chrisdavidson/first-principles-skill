@@ -104,20 +104,20 @@ deferred the rest as three coherent groups, each under its own numbered
 backlog id, each matched by relpath (never by hit text) in
 `scripts/gen-gate-docs.py`'s `_DEFERRED_REMEDIATION_SURFACES`:
 
-- **backlog `999.32`** — the `docs/gates/*.md` narrative pages
+- **backlog `999.40`** — the `docs/gates/*.md` narrative pages
   (`QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`,
   `GATE-01.md`, `HC-BOUND.md`, `REG-GUARD.md`, `VAL-02.md`,
   `VERSION-01.md`, `STEP0-08.md`). Root cause: dense hand-written/migrated
   technical narrative uses ordinary-language small numbers that D-06's own
   citation-exemption vocabulary (plan 21-08) already learned to ignore for
   containment purposes, but this scanner does not share that vocabulary.
-- **backlog `999.33`** — the `.py` module docstrings this scanner reads.
+- **backlog `999.41`** — the `.py` module docstrings this scanner reads.
   Root cause: the same ordinary-language-number shape in dense narrative
   docstrings; `21-CONF13-BASELINE.md`'s own false-positive layer
   (ordinal-label-reference, adjacency-mistrack, enumerated-list-marker)
   was deliberately not ported into this standing scanner (plan 21-09's own
   key-decision).
-- **backlog `999.34`** — `CLAUDE.md`, `docs/ARCHITECTURE.md`,
+- **backlog `999.42`** — `CLAUDE.md`, `docs/ARCHITECTURE.md`,
   `docs/TESTING.md`. Root cause: these three carry operational/provenance
   narrative outside the generated CI-gate-table region (D-02) or outside
   the CI-gate `###` sections `docs/TESTING.md`'s own fold reached (D-21-F).

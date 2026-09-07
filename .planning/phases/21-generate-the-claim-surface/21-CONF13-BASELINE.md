@@ -1135,14 +1135,26 @@ three coherent groups (a whole surface class each, not a scattering of individua
 under its own `999.x` backlog id and each exempted under the new `deferred-remediation` class
 (`scripts/gen-gate-docs.py`'s `_DEFERRED_REMEDIATION_SURFACES`):
 
+**ID correction (Phase 21 plan 21-12, Task 3):** the three groups below were originally filed
+under `999.32`/`999.33`/`999.34` (as `21-10-SUMMARY.md` and the first cut of this table record).
+Those three ids were already in use by unrelated pre-existing backlog entries
+(`.planning/ROADMAP.md` § Backlog — `report-conformance.py`'s provenance sentinel, Phase 17's
+pre-commit doc sweep, and CONF-GATE's `run_live()` control flow, respectively, both filed
+2026-09-05). Plan 21-12 renumbered these three CONF-13 deferral groups to `999.40`/`999.41`/
+`999.42` — the next free ids — everywhere they are cited in shipped, non-historical artifacts
+(`scripts/gen-gate-docs.py`, `docs/gates/CONF-SURFACE.md`, this table) and added real
+`.planning/ROADMAP.md` § Backlog rows for them. `21-10-SUMMARY.md`'s own historical text still
+reads `999.32`/`999.33`/`999.34` and is left as-is (a force-tracked record of what that plan
+actually did); this note is the correction pointer for a reader who follows that citation here.
+
 | Backlog id | Group | Surfaces | Items | Root cause |
 |---|---|---|---|---|
-| `999.32` | `docs/gates/*.md` narrative pages | `QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`, `GATE-01.md`, `HC-BOUND.md`, `REG-GUARD.md`, `VAL-02.md`, `VERSION-01.md`, `STEP0-08.md` (10 files) | 68 | Dense hand-written/migrated technical narrative uses ordinary-language small numbers ("two contract surfaces", "(1) worked-example extraction") that D-06's containment check already learned a citation-exemption vocabulary for (plan 21-08) but the standing CONF-13 scanner does not share (21-09-SUMMARY.md's own Assumption Drift note). Closing this requires either porting D-06's citation-exemption vocabulary into the scanner or hand-editing ten dense narrative pages — both out of Task 3's own budget. |
-| `999.33` | `.py` module docstrings | `check-selfaudit-scan.py`, `check-step0-emulator.py`, `check-quality-harness.py`, `check-conf-gate.py`, `check-step0-live.py`, `check-provenance.py`, `check-focused-parity.py`, `check-registration.py`, `check-loop-closure.py`, `check-links.py`, `check-agent.py`, `check-act-limb.py` (12 scripts) | 49 | The same ordinary-language-number shape in dense narrative docstrings. `21-CONF13-BASELINE.md`'s own false-positive layer (`ordinal-label-reference`, `adjacency-mistrack`, `enumerated-list-marker`) was deliberately not ported into the standing scanner (plan 21-09's key-decision) — porting it now is out of Task 3's budget and belongs with the scanner-hardening work `999.32` also needs. |
-| `999.34` | Peripheral CI-gate-table host surfaces' remaining prose | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` (3 files) | 17 | `CLAUDE.md` and `docs/ARCHITECTURE.md` carry operational/provenance narrative outside the generated table region (D-02's fold reaches only the table itself); `docs/TESTING.md` carries the "Pre-commit gates" and "Anti-masking measurement invariants" sections, which D-21-F's fold deliberately left outside its scope (the 13 CI-gate `###` sections only, not the whole file). |
+| `999.40` | `docs/gates/*.md` narrative pages | `QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`, `GATE-01.md`, `HC-BOUND.md`, `REG-GUARD.md`, `VAL-02.md`, `VERSION-01.md`, `STEP0-08.md` (10 files) | 68 | Dense hand-written/migrated technical narrative uses ordinary-language small numbers ("two contract surfaces", "(1) worked-example extraction") that D-06's containment check already learned a citation-exemption vocabulary for (plan 21-08) but the standing CONF-13 scanner does not share (21-09-SUMMARY.md's own Assumption Drift note). Closing this requires either porting D-06's citation-exemption vocabulary into the scanner or hand-editing ten dense narrative pages — both out of Task 3's own budget. |
+| `999.41` | `.py` module docstrings | `check-selfaudit-scan.py`, `check-step0-emulator.py`, `check-quality-harness.py`, `check-conf-gate.py`, `check-step0-live.py`, `check-provenance.py`, `check-focused-parity.py`, `check-registration.py`, `check-loop-closure.py`, `check-links.py`, `check-agent.py`, `check-act-limb.py` (12 scripts) | 49 | The same ordinary-language-number shape in dense narrative docstrings. `21-CONF13-BASELINE.md`'s own false-positive layer (`ordinal-label-reference`, `adjacency-mistrack`, `enumerated-list-marker`) was deliberately not ported into the standing scanner (plan 21-09's key-decision) — porting it now is out of Task 3's budget and belongs with the scanner-hardening work `999.40` also needs. |
+| `999.42` | Peripheral CI-gate-table host surfaces' remaining prose | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` (3 files) | 17 | `CLAUDE.md` and `docs/ARCHITECTURE.md` carry operational/provenance narrative outside the generated table region (D-02's fold reaches only the table itself); `docs/TESTING.md` carries the "Pre-commit gates" and "Anti-masking measurement invariants" sections, which D-21-F's fold deliberately left outside its scope (the 13 CI-gate `###` sections only, not the whole file). |
 
 **Trigger condition for closing the deferral:** any future plan that either (a) ports D-06's
-citation-exemption vocabulary into the CONF-13 standing scanner (closing `999.32`/`999.33`
+citation-exemption vocabulary into the CONF-13 standing scanner (closing `999.40`/`999.41`
 structurally), or (b) hand-remediates the specific surfaces above using the same three moves
 Task 3 used (point at generated fact / corroborate / exempt with a named class), then removes
 the corresponding entries from `_DEFERRED_REMEDIATION_SURFACES` and this table.
