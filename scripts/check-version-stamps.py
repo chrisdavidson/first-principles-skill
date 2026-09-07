@@ -53,6 +53,7 @@ Exit codes:
 
 from __future__ import annotations
 
+import argparse
 import json
 import re
 import sys
@@ -77,8 +78,17 @@ _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 # describe() publishes instead of a hand-typed "17" so a fifth source kind
 # added to collect_stamps() without updating this roster is visible as a
 # stale describe() rather than a silent drift.
+#
+# Phase 21-14 (CR-03): each value is a bare relpath or glob with no prose
+# suffix — a "(glob)" annotation on the first entry made the value fail the
+# vocabulary's own "file relpath" definition. That an entry is a glob is
+# evident from the `*` in it. `registered_surfaces` in describe() publishes
+# `sorted(_STAMP_SOURCE_KINDS)` directly (the surfaces the gate DECLARES IT
+# READS), never `_EXCLUDED_GENERATED_GLOBS` (surfaces it deliberately does
+# NOT read) — publishing the latter under that name stated the inverse of
+# what the closed vocabulary defines (CR-03).
 _STAMP_SOURCE_KINDS: tuple[str, ...] = (
-    "shared/skills/*/SKILL.md (glob)",
+    "shared/skills/*/SKILL.md",
     "shared/spine/SKILL.meta.yml",
     ".claude-plugin/marketplace.json",
     "first-principles/.claude-plugin/plugin.json",
@@ -86,10 +96,43 @@ _STAMP_SOURCE_KINDS: tuple[str, ...] = (
 
 # The generated tree the docstring's "Scope" section explicitly excludes from
 # scanning (DUAL-04 already gates its divergence from these shared/ sources).
+# Not part of `registered_surfaces` (the vocabulary is closed by name; this is
+# an exclusion, not a surface the gate reads) — stated in
+# docs/gates/VERSION-01.md's hand-written narrative instead, and used below
+# only by a self-test sanity control asserting these kinds are never walked.
 _EXCLUDED_GENERATED_GLOBS: tuple[str, ...] = (
     "first-principles/agents/**",
     "first-principles/skills/**",
 )
+
+# Phase 21-14 (CR-03/CR-05): the kinds `collect_stamps()` actually walked on
+# its most recent call, reset at entry and assigned at exit. Lets
+# `self_test()` floor the published `_STAMP_SOURCE_KINDS` roster against
+# reality without collect_stamps() changing its two-value return signature.
+_LAST_WALKED_SOURCE_KINDS: list[str] = []
+
+
+def _stamp_roster_problems(
+    walked: list[str], registered: tuple[str, ...]
+) -> list[str]:
+    """Pure set-equality floor between what `collect_stamps()` actually
+    walked and the published `_STAMP_SOURCE_KINDS` roster.
+
+    `missing=` names a kind the live walk reached that the roster does not
+    declare (the roster under-claims). `extra=` names a kind the roster
+    declares that the live walk never reaches (the roster over-claims) — the
+    CR-05 direction that was previously undetectable.
+    """
+    walked_set = set(walked)
+    registered_set = set(registered)
+    missing = walked_set - registered_set
+    extra = registered_set - walked_set
+    if missing or extra:
+        return [
+            f"stamp-source-kind roster/walked mismatch: "
+            f"missing={sorted(missing)} extra={sorted(extra)}"
+        ]
+    return []
 
 
 @dataclass(frozen=True)
@@ -186,9 +229,19 @@ def collect_stamps(root: Path) -> tuple[list[Stamp], list[str]]:
     Returns (stamps, problems). A problem is a per-file defect (missing stamp,
     unquoted stamp, unreadable file); divergence between files is judged by the
     caller, which needs the whole set to report it usefully.
+
+    Phase 21-14 (CR-03/CR-05): also records, into the module-level
+    `_LAST_WALKED_SOURCE_KINDS`, which of the four walk sites below actually
+    ran — reset to empty at entry, assigned to the final list at exit — so
+    `self_test()` can floor `_STAMP_SOURCE_KINDS` against reality without
+    changing this function's two-value return signature.
     """
     stamps: list[Stamp] = []
     problems: list[str] = []
+    walked: list[str] = []
+
+    module = sys.modules[__name__]
+    module._LAST_WALKED_SOURCE_KINDS = []  # reset at entry
 
     def read(path: Path) -> str | None:
         try:
@@ -197,7 +250,11 @@ def collect_stamps(root: Path) -> tuple[list[Stamp], list[str]]:
             problems.append(f"{path}: unreadable: {exc}")
             return None
 
-    # Skill sources -- globbed, never counted against a constant.
+    # Skill sources -- globbed, never counted against a constant. The site
+    # itself always runs (the glob call and loop are unconditional), so the
+    # kind is recorded regardless of match count.
+    skill_kind = "shared/skills/*/SKILL.md"
+    walked.append(skill_kind)
     for skill in sorted((root / "shared" / "skills").glob("*/SKILL.md")):
         label = str(skill.relative_to(root))
         text = read(skill)
@@ -208,8 +265,10 @@ def collect_stamps(root: Path) -> tuple[list[Stamp], list[str]]:
             stamps.append(Stamp(label, value))
 
     # Spine metadata -- plain YAML, no frontmatter fences.
+    spine_kind = "shared/spine/SKILL.meta.yml"
     spine = root / "shared" / "spine" / "SKILL.meta.yml"
     if spine.exists():
+        walked.append(spine_kind)
         text = read(spine)
         if text is not None:
             label = str(spine.relative_to(root))
@@ -219,16 +278,21 @@ def collect_stamps(root: Path) -> tuple[list[Stamp], list[str]]:
 
     # Manifests. Both are hand-maintained: sync-content.py explicitly does NOT
     # generate first-principles/.claude-plugin/plugin.json.
-    for manifest in (
-        root / ".claude-plugin" / "marketplace.json",
-        root / "first-principles" / ".claude-plugin" / "plugin.json",
+    for manifest, manifest_kind in (
+        (root / ".claude-plugin" / "marketplace.json", ".claude-plugin/marketplace.json"),
+        (
+            root / "first-principles" / ".claude-plugin" / "plugin.json",
+            "first-principles/.claude-plugin/plugin.json",
+        ),
     ):
         if not manifest.exists():
             continue
+        walked.append(manifest_kind)
         text = read(manifest)
         if text is not None:
             stamps.extend(_json_stamps(text, str(manifest.relative_to(root)), problems))
 
+    module._LAST_WALKED_SOURCE_KINDS = walked  # assigned at exit
     return stamps, problems
 
 
@@ -322,12 +386,19 @@ def describe() -> dict:
     The stamp COUNT this gate discovers at runtime is inherently a property
     of the live tree (collect_stamps() globs it), not a describe()-safe
     constant; what IS describable without I/O is the fixed roster of source
-    KINDS it is configured to walk (_STAMP_SOURCE_KINDS) and the generated
-    tree it deliberately excludes.
+    KINDS it is configured to walk (_STAMP_SOURCE_KINDS).
+
+    Phase 21-14 (CR-03): `registered_surfaces` publishes the surfaces this
+    gate DECLARES IT READS — `_STAMP_SOURCE_KINDS`, floored against
+    `collect_stamps()`'s own walk sites by `self_test()`. It previously
+    published `_EXCLUDED_GENERATED_GLOBS` (the surfaces the gate explicitly
+    does NOT read) under this name, stating the closed vocabulary's inverse.
+    The exclusion is real and still true; it belongs in
+    docs/gates/VERSION-01.md's hand-written narrative, not in this field.
     """
     return {
         "derived_counts": {"stamp_source_kind_count": len(_STAMP_SOURCE_KINDS)},
-        "registered_surfaces": sorted(_EXCLUDED_GENERATED_GLOBS),
+        "registered_surfaces": sorted(_STAMP_SOURCE_KINDS),
     }
 
 
@@ -339,6 +410,7 @@ def self_test() -> int:
     self-test into a vacuous pass.
     """
     failures: list[str] = []
+    module = sys.modules[__name__]
 
     def expect(name: str, condition: bool, detail: str = "") -> None:
         if condition:
@@ -422,10 +494,67 @@ def self_test() -> int:
         ok_again, _, _ = check(clean)
         expect("detector-not-always-failing", ok_again)
 
-    # (h) describe() consistency control (Phase 21, D-03): mutate a copy of
+        # (h) Kind roster/walked floor, positive (Phase 21-14, CR-03/CR-05):
+        # published _STAMP_SOURCE_KINDS must equal what collect_stamps()
+        # actually walks on the live tree, in both directions.
+        collect_stamps(REPO_ROOT)
+        kind_problems = _stamp_roster_problems(
+            module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
+        )
+        expect("kind-roster-matches-walked", not kind_problems, f"({kind_problems})")
+
+        # (i) Negative arm, over-claim direction (CR-05): a fabricated
+        # roster entry that nothing walks must surface as extra= — the
+        # direction that was previously undetectable.
+        original_kinds = module._STAMP_SOURCE_KINDS
+        try:
+            module._STAMP_SOURCE_KINDS = original_kinds + ("fixture-fabricated-kind",)
+            collect_stamps(REPO_ROOT)
+            kind_problems = _stamp_roster_problems(
+                module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
+            )
+            expect(
+                "kind-roster-overclaim-detected",
+                any(
+                    "fixture-fabricated-kind" in p and "extra=" in p
+                    for p in kind_problems
+                ),
+                f"({kind_problems})",
+            )
+        finally:
+            module._STAMP_SOURCE_KINDS = original_kinds
+
+        # (j) Negative arm, under-claim direction (CR-05): a fixture tree
+        # missing one of the four sources must surface that kind as
+        # missing=.
+        missing_spine = base / "missing-spine"
+        _build_fixture(missing_spine, skill_stamps=['"1.0.0"'], spine_stamp=None)
+        collect_stamps(missing_spine)
+        kind_problems = _stamp_roster_problems(
+            module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
+        )
+        expect(
+            "kind-roster-underclaim-detected",
+            any(
+                "shared/spine/SKILL.meta.yml" in p and "missing=" in p
+                for p in kind_problems
+            ),
+            f"({kind_problems})",
+        )
+
+        # (k) Sanity control: the excluded generated-tree globs must never
+        # appear among what collect_stamps() walked — they are declared
+        # excluded, not merely absent from the roster by omission.
+        excluded_walked = [
+            k
+            for k in module._LAST_WALKED_SOURCE_KINDS
+            if k in module._EXCLUDED_GENERATED_GLOBS
+        ]
+        expect("excluded-globs-never-walked", not excluded_walked, f"({excluded_walked})")
+
+    # (l) describe() consistency control (Phase 21, D-03): mutate a copy of
     # _STAMP_SOURCE_KINDS and confirm describe()'s emitted count moves with
     # it — proving the field is a real derivation, not a hand-typed literal.
-    module = sys.modules[__name__]
     original_kinds = module._STAMP_SOURCE_KINDS
     try:
         before = describe()["derived_counts"]["stamp_source_kind_count"]
@@ -439,6 +568,24 @@ def self_test() -> int:
     finally:
         module._STAMP_SOURCE_KINDS = original_kinds
 
+    # (m) argparse dispatch control (Phase 21-14, WR-12): a mistyped flag
+    # must not fall through to the live scan and silently exit 0. Before
+    # this control, `--decribe` fell through to the argv-substring dispatch
+    # and ran the live scan, exiting 0 for a check that was never requested.
+    try:
+        main(["--decribe"])
+        expect(
+            "typo-flag-rejected",
+            False,
+            "(main(['--decribe']) returned normally instead of raising SystemExit)",
+        )
+    except SystemExit as exc:
+        expect(
+            "typo-flag-rejected",
+            exc.code not in (0, None),
+            f"(SystemExit code={exc.code!r}, expected non-zero)",
+        )
+
     if failures:
         sys.stderr.write(
             f"check-version-stamps --self-test: FAIL "
@@ -446,19 +593,55 @@ def self_test() -> int:
         )
         return 1
 
-    print("check-version-stamps --self-test: PASS (7 fixture trees, 12 named assertions)")
+    print("check-version-stamps --self-test: PASS (8 fixture trees, 16 named assertions)")
     return 0
 
 
-def main() -> None:
-    if "--describe" in sys.argv[1:]:
+def _build_arg_parser() -> argparse.ArgumentParser:
+    """Phase 21-14 (WR-12): argparse with a mutually exclusive group, replacing
+    the `if "--flag" in sys.argv[1:]` substring dispatch. That dispatch let a
+    mistyped flag (e.g. `--decribe`) fall through to the live scan silently —
+    a CI step or battery line with a typo reported PASS for a check it never
+    ran.
+    """
+    parser = argparse.ArgumentParser(
+        prog="check-version-stamps.py",
+        description=(
+            "VERSION-01 gate: every hand-maintained version stamp carries "
+            "the same value."
+        ),
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--self-test", action="store_true", help="Run the fixture-driven self-test."
+    )
+    mode.add_argument(
+        "--describe",
+        action="store_true",
+        help="Emit a JSON self-description and exit.",
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> None:
+    """Run the check-version-stamps CLI.
+
+    `argv` defaults to None, which makes argparse fall back to `sys.argv[1:]`
+    exactly as before this parameter existed. The parameter exists so
+    `self_test()`'s typo-dispatch control can drive `main()` itself against a
+    fixture argv (mirrors `sync-content.py`'s `main(argv=...)` precedent,
+    Phase 152 WR-01).
+    """
+    args = _build_arg_parser().parse_args(argv)
+
+    if args.describe:
         print(json.dumps(describe(), indent=2, sort_keys=True))
         return
 
     _require_python_version()
     _require_pyyaml()
 
-    if "--self-test" in sys.argv[1:]:
+    if args.self_test:
         sys.exit(self_test())
 
     ok, problems, stamps = check(REPO_ROOT)
