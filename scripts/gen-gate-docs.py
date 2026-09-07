@@ -6,7 +6,8 @@
 
 Hand-transcribed gate documentation was the direct cause of a substantial
 share of review findings across Phases 13-15 (see
-`scripts/_gate_registry.py`'s own module docstring for the measured figure)
+`scripts/_gate_registry.py`'s own `HAND_TRANSCRIPTION_FINDING_SHARE`
+constant for the measured figure)
 — every branch count, surface list and disclosed bound was copied by hand
 into up to five places with nothing checking they agreed. This script is
 the fix's compute+render layer (D-21-B): it subprocess-invokes every
@@ -1943,14 +1944,36 @@ def _literal_hit_exemption(hit: LiteralHit) -> str | None:
 
 
 def _py_docstring_scan_scripts() -> tuple[str, ...]:
-    """The `.py` module-docstring surfaces: every script-backed,
-    non-anticipatory registry entry's script relpath, derived from
-    `_gate_registry.ENTRIES` itself via the already-existing
-    `_expected_harvest_scripts()` — never a second hand-typed list. This is
-    what closes `21-CONF13-BASELINE.md`'s own disclosed hand-transcription
-    bound ("plan 21-09's standing scanner is expected to derive this set
-    programmatically... rather than hand-list it a second time")."""
-    return tuple(sorted(_expected_harvest_scripts()))
+    """The `.py` module-docstring surfaces: every `.py` file directly under
+    `scripts/`, derived by a live glob and returned as sorted repo-relative
+    paths — never a second hand-typed list. This is what closes
+    `21-CONF13-BASELINE.md`'s own disclosed hand-transcription bound ("plan
+    21-09's standing scanner is expected to derive this set
+    programmatically... rather than hand-list it a second time"), and it is
+    the true half of the population's original claim.
+
+    The false half, corrected here: this function used to derive its
+    population from `_expected_harvest_scripts()` — the identical
+    registry-derived set that caused CR-01 (`21-VERIFICATION.md` round 2).
+    That made `scripts/_gate_registry.py`, the module that DEFINES those
+    entries, structurally unable to be one of its own scanned surfaces —
+    the CONF-13 twin of CR-01, found live one requirement over during this
+    plan's own plan-checking. CONF-13's rule governs any Python source
+    under `scripts/`, not only the `--describe`-backed registry entries
+    `_expected_harvest_scripts()` names; deriving the population from that
+    narrower set was deriving from the wrong set, not the same as deriving.
+    `_expected_harvest_scripts()` itself is unchanged and still backs
+    `harvest()`'s own floor; this function simply stopped calling it.
+
+    The surviving bound: `.py` coverage is still module docstrings only
+    (`ast.get_docstring`), and still scoped to `scripts/` — a `.py` file
+    elsewhere in the tree is out of reach by construction."""
+    return tuple(
+        sorted(
+            str(path.relative_to(REPO_ROOT))
+            for path in (REPO_ROOT / "scripts").glob("*.py")
+        )
+    )
 
 
 LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
@@ -3546,6 +3569,69 @@ def _control_scan_coverage_floor_signature_locked() -> None:
     assert annotation in (LiteralScanRead, "LiteralScanRead"), annotation
 
 
+def _control_literal_scan_py_population_complete() -> None:
+    """Standalone, permanently registered population-completeness floor for
+    CONF-13's `.py` scan population (T-21-23-01, the CONF-13 twin of
+    19-D-04/CR-03/plan-21-22's `roster-arm-shape-census-population-complete`,
+    modelled on that same shape over a different population): the `.py`
+    members of `LITERAL_SCAN_SURFACES` must equal a live, independently
+    taken glob of `scripts/*.py` — set EQUALITY, never subset, so a
+    re-narrowing back toward `_expected_harvest_scripts()` fails BY NAME,
+    naming the specific files it would hide, not merely that a count
+    moved."""
+    py_surfaces = {s for s in LITERAL_SCAN_SURFACES if s.endswith(".py")}
+    live_glob = {
+        str(path.relative_to(REPO_ROOT))
+        for path in (REPO_ROOT / "scripts").glob("*.py")
+    }
+    missing = sorted(live_glob - py_surfaces)
+    extra = sorted(py_surfaces - live_glob)
+    assert py_surfaces == live_glob, (
+        f"population != live glob of scripts/*.py -- missing={missing} extra={extra}"
+    )
+    expected = _expected_harvest_scripts()
+    difference = sorted(expected - py_surfaces)
+    assert py_surfaces > expected, (
+        f"population is not a strict superset of _expected_harvest_scripts() -- missing={difference}"
+    )
+    assert "scripts/_gate_registry.py" in py_surfaces, sorted(py_surfaces)
+
+
+def _control_literal_scan_covers_registry_module() -> None:
+    """Permanent, standalone reproduction of the CONF-13 twin of CR-01
+    (T-21-23-01): `scripts/_gate_registry.py` — the module CONF-13's rule
+    governs like any other `.py` file under `scripts/` — is now covered by
+    the standing literal scan, since the population is a live glob rather
+    than an `ENTRIES`-derived set. Positive half proves the real file's
+    module docstring is clean; negative half proves a reintroduced
+    hand-maintained count literal is caught and named, driving the same
+    `literal_scan_problems` the real `--check` leg calls, not a
+    hand-simulated equivalent."""
+    real_text = (REPO_ROOT / "scripts/_gate_registry.py").read_text(encoding="utf-8")
+    real_doc = ast.get_docstring(ast.parse(real_text, filename="scripts/_gate_registry.py")) or ""
+    positive_hits = tuple(
+        _literal_hits_outside_generated("scripts/_gate_registry.py#__doc__", real_doc)
+    )
+    positive_read = LiteralScanRead(read_relpaths=frozenset(), hits=positive_hits, declined=())
+    assert literal_scan_problems(positive_read) == [], positive_hits
+
+    # Assembled across more than one physical source line: this file is
+    # itself a population member the live scan reads, so a contiguous
+    # literal on one on-disk line here would self-match — the same defence
+    # `_control_roster_arm_shape_census_vacuity` already documents.
+    defective_doc = (
+        "This fixture module docstring carries seven"
+        " items for the test."
+    )
+    negative_hits = tuple(
+        _literal_hits_outside_generated("scripts/_gate_registry.py#__doc__", defective_doc)
+    )
+    negative_read = LiteralScanRead(read_relpaths=frozenset(), hits=negative_hits, declined=())
+    negative = literal_scan_problems(negative_read)
+    assert len(negative) == 1, negative
+    assert "scripts/_gate_registry.py" in negative[0], negative
+
+
 def _control_scan_neutralization_arms() -> None:
     """Anti-vacuity by neutralization, three arms, each restored to its
     ORIGINAL function after being probed. Each is proven to break exactly
@@ -4068,6 +4154,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-coverage-floor-fires", _control_scan_coverage_floor_fires),
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
+    (
+        "literal-scan-py-population-complete",
+        _control_literal_scan_py_population_complete,
+    ),
+    (
+        "literal-scan-covers-registry-module",
+        _control_literal_scan_covers_registry_module,
+    ),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
     ("roster-arm-shape-census", _control_roster_arm_shape_census),
     ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
@@ -4157,6 +4251,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-coverage-floor-fires",
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
+    "literal-scan-py-population-complete",
+    "literal-scan-covers-registry-module",
     "scan-neutralization-arms",
     "roster-arm-shape-census",
     "roster-arm-shape-census-vacuity",
