@@ -164,6 +164,98 @@ def _expected_harvest_scripts() -> frozenset[str]:
 
 
 # ---------------------------------------------------------------------------
+# GAP A item 3 (plan 21-19): a standing, registry-derived census of the
+# defective roster-arm shape that wave 15 introduced and plans 21-17/21-18
+# removed from the six scripts they touched — a synthetic id tested against
+# the WHOLE joined roster-mismatch message rather than against its extracted
+# `missing=`/`extra=` clause. Nothing before this plan stopped a seventh
+# script, or a later edit to any of the six, from reintroducing it; this
+# census makes that unreintroducible across every script-backed registry
+# entry, not just the six this phase touched (21-18-SUMMARY.md
+# falsification 7's own reopening demonstration).
+# ---------------------------------------------------------------------------
+
+# Wave-15 shape: a synthetic fixture id (always literally the word
+# "synthetic" plus a hyphen and a single lowercase letter, across every
+# fixture in this repo) tested with `not in` against a plain identifier that
+# does NOT end in `_clause`. The FIXED shape splits the id into its own
+# clause first, so the fixed identifier always ends in `_clause` and must
+# not match. (Deliberately not spelled out here as a literal quoted example
+# — this file is itself one of the 22 population members the live control
+# below scans, and a literal example in this comment would self-match.)
+_ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE = re.compile(
+    r'"synthetic-[a-z]"\s+not in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
+)
+
+# check-version-stamps.py's pre-21-17 shape: testing whether the clause
+# marker text itself (the word missing followed by an equals sign, or the
+# word extra followed by an equals sign) appears anywhere in the joined
+# message, via `in` rather than `not in` — true of every roster-mismatch
+# message regardless of which clause anything landed in. Always defective;
+# there is no fixed form of this exact shape (the fix is the clause split,
+# not a renamed identifier). Same self-match note as above applies.
+_ROSTER_ARM_CLAUSE_MARKER_RE = re.compile(
+    r'"(?:missing=|extra=)"\s+in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
+)
+
+
+def _roster_arm_census_sources() -> dict[str, str]:
+    """Build the live population for `roster_arm_shape_census_problems()`'s
+    default `sources=None` path: reads every `_expected_harvest_scripts()`
+    relpath from `REPO_ROOT`. Exposed separately (not inlined into the scan
+    function) so the anti-vacuity floor can assert the read count
+    independently of the scan logic itself."""
+    return {
+        relpath: (REPO_ROOT / relpath).read_text(encoding="utf-8")
+        for relpath in sorted(_expected_harvest_scripts())
+    }
+
+
+def roster_arm_shape_census_problems(
+    sources: dict[str, str] | None = None,
+) -> list[str]:
+    """Scan every population member's source text for the two defective
+    roster-arm shapes above. `sources` lets the vacuity control drive this
+    function against synthetic text without touching disk (mirrors
+    `literal_ledger_ratchet_problems(ledger=...)`'s parameter shape); the
+    default `None` reads the real population via
+    `_roster_arm_census_sources()`. An empty population is itself a
+    finding — a census that silently scans nothing must fail, not pass.
+
+    Scoped to `--self-test` only: this is a property of source SHAPE, not
+    of generated-output drift, and `--self-test` already runs in the
+    battery, in CI, and in both pre-commit hooks. Not wired into
+    `cmd_check()`.
+    """
+    if sources is None:
+        sources = _roster_arm_census_sources()
+
+    if not sources:
+        return [
+            "roster-arm-shape-census: population is empty — the census "
+            "cannot scan nothing"
+        ]
+
+    problems: list[str] = []
+    for relpath in sorted(sources):
+        lines = sources[relpath].splitlines()
+        for lineno, line in enumerate(lines, start=1):
+            for match in _ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE.finditer(line):
+                ident = match.group(1)
+                if not ident.endswith("_clause"):
+                    problems.append(
+                        f"{relpath}:{lineno}: whole-message synthetic-id "
+                        f"membership test (wave-15 shape): {match.group(0)!r}"
+                    )
+            for match in _ROSTER_ARM_CLAUSE_MARKER_RE.finditer(line):
+                problems.append(
+                    f"{relpath}:{lineno}: bare clause-marker membership "
+                    f"test against a whole message: {match.group(0)!r}"
+                )
+    return problems
+
+
+# ---------------------------------------------------------------------------
 # Frozen-path disjointness floor (T-21-06-02 / 19-D-08)
 #
 # `_FROZEN_PATHS_ARRAY_RE` / `_FROZEN_PATHS_ENTRY_RE` copy the identical
@@ -3152,6 +3244,56 @@ def _control_scan_neutralization_arms() -> None:
         _this_module._literal_hit_exemption = original_exemption
 
 
+def _control_roster_arm_shape_census() -> None:
+    """GAP A item 3 (plan 21-19): the live tree carries none of the
+    defective roster-arm shapes, and the census actually read every
+    population member — an anti-vacuity floor independent of the scan
+    logic itself, since a census silently reading nothing would otherwise
+    also report zero problems."""
+    problems = roster_arm_shape_census_problems()
+    assert problems == [], problems
+    sources = _roster_arm_census_sources()
+    expected = len(_expected_harvest_scripts())
+    assert len(sources) == expected, (len(sources), expected)
+
+
+def _control_roster_arm_shape_census_vacuity() -> None:
+    """Anti-vacuity by construction: drives
+    `roster_arm_shape_census_problems` against three synthetic sources —
+    the wave-15 shape, the check-version-stamps.py pre-21-17 shape, and the
+    FIXED shape — and asserts exactly the first two fire, by relpath, and
+    the third does not. Stops the census from passing because its patterns
+    match nothing.
+
+    The first two fixture strings below are deliberately assembled across
+    more than one physical source line: `gen-gate-docs.py` is itself one of
+    the 22 population members this census scans (a script-backed registry
+    entry, CONF-SURFACE), so if either defective shape appeared contiguously
+    on a single ON-DISK line of this file's own source, the live control
+    above would self-match its own fixture data. Splitting the literal
+    across a line boundary defeats that per-line self-match while the
+    JOINED runtime value — what the function under test actually receives
+    — is unaffected and still carries the shape whole."""
+    sources = {
+        "scripts/fixture-wave15.py": (
+            '    elif "synthetic-b" not'
+            ' in _synthetic_text:\n'
+        ),
+        "scripts/fixture-version-stamps.py": (
+            '            "extra="'
+            ' in p\n'
+        ),
+        "scripts/fixture-fixed.py": (
+            '    elif "synthetic-b" not in missing_clause:\n'
+        ),
+    }
+    problems = roster_arm_shape_census_problems(sources=sources)
+    assert len(problems) == 2, problems
+    assert any("scripts/fixture-wave15.py" in p for p in problems), problems
+    assert any("scripts/fixture-version-stamps.py" in p for p in problems), problems
+    assert not any("scripts/fixture-fixed.py" in p for p in problems), problems
+
+
 # ---------------------------------------------------------------------------
 # Task 2 controls: the deferred-literal-ledger's ratchet and staleness
 # floors, plus the three per-surface injection arms promoting Task 1's
@@ -3392,6 +3534,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
+    ("roster-arm-shape-census", _control_roster_arm_shape_census),
+    ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
     ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
     ("ledger-staleness-fires", _control_ledger_staleness_fires),
@@ -3462,6 +3606,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
     "scan-neutralization-arms",
+    "roster-arm-shape-census",
+    "roster-arm-shape-census-vacuity",
     "ledger-ratchet-fires",
     "ledger-ratchet-allows-shrink",
     "ledger-staleness-fires",
