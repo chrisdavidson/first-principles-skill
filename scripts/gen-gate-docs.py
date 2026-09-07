@@ -1538,6 +1538,63 @@ def _match_deferred_ledger(hit: LiteralHit) -> bool:
     return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
 
 
+# The ledger's pinned maximum size, as committed by plan 21-16 Task 1 (135
+# entries). This is the ONE place in the ledger machinery where a hand-typed
+# number is correct: deriving the pin from `len(_DEFERRED_LITERAL_HITS)` at
+# runtime would compare the ledger against itself, which can never fail --
+# a tautology, not a ratchet. The ledger may SHRINK below this pin (a
+# stale entry removed, its underlying prose fixed) but may never exceed it
+# (`literal_ledger_ratchet_problems`, below) -- growing the ledger back
+# into a de-facto whole-surface permit is exactly the regression this plan
+# closes (T-21-16-02).
+_DEFERRED_LEDGER_MAX: int = 135
+
+
+def literal_ledger_ratchet_problems(
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+    max_size: int | None = None,
+) -> list[str]:
+    """The ledger may shrink and must never grow. Takes the ledger and its
+    pin as optional parameters (defaulting to the real ones) so the
+    permanent negative-arm controls can drive it against a synthetic
+    ledger/pin pair without touching the module-level constants."""
+    if ledger is None:
+        ledger = _DEFERRED_LITERAL_HITS
+    if max_size is None:
+        max_size = _DEFERRED_LEDGER_MAX
+    live_size = len(ledger)
+    if live_size > max_size:
+        return [
+            "deferred-literal-ledger ratchet: live ledger size "
+            f"{live_size} exceeds the pinned maximum {max_size} -- the "
+            "ledger may shrink but must never grow"
+        ]
+    return []
+
+
+def literal_ledger_staleness_problems(
+    read: LiteralScanRead,
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+) -> list[str]:
+    """Every ledger key must match at least one live hit. A key matching
+    nothing is a finding naming the key -- the ledger cannot silently
+    outlive its own findings, which is what actually drives the ratchet
+    down: a permitted residual whose underlying prose was fixed must be
+    removed from the ledger, not left to rot."""
+    if ledger is None:
+        ledger = _DEFERRED_LITERAL_HITS
+    live_keys = {_ledger_key_for(hit) for hit in read.hits}
+    problems: list[str] = []
+    for relpath, text in sorted(ledger):
+        if (relpath, text) not in live_keys:
+            problems.append(
+                f"{relpath}: deferred-literal-ledger key no longer matches any "
+                f"live hit: '{text}' (remove this ledger entry -- its "
+                "underlying prose was likely already fixed)"
+            )
+    return problems
+
+
 LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
     LiteralExemptionClass(
         "version-stamp-count",
@@ -2120,6 +2177,12 @@ def cmd_check() -> int:
         print(f"literal-scan: {len(literal_findings)} non-exempt hit(s) found")
     problems += literal_findings
 
+    # plan 21-16 Task 2: the ledger's ratchet and staleness floors, evaluated
+    # alongside the scan findings above and never short-circuited, so one
+    # cannot mask the other.
+    problems += literal_ledger_ratchet_problems()
+    problems += literal_ledger_staleness_problems(literal_read)
+
     if problems:
         for p in problems:
             sys.stderr.write(p + "\n")
@@ -2158,7 +2221,9 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "currency-not-correctness",
     "closed-spelled-out-vocabulary",
     "py-docstrings-only",
-    "deferred-remediation-is-budget-driven",
+    "enumerated-per-hit-ledger",
+    "ledger-ratchet-may-shrink-never-grow",
+    "non-primary-entries-pinned-mechanically",
 )
 
 
@@ -2182,6 +2247,8 @@ def describe() -> dict:
         "literal_scan_read_files": len(literal_read.read_relpaths),
         "literal_scan_hits": len(literal_read.hits),
         "literal_scan_non_exempt": non_exempt_count,
+        "literal_scan_ledger_entries": len(_DEFERRED_LITERAL_HITS),
+        "literal_scan_ledger_max": _DEFERRED_LEDGER_MAX,
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -3074,6 +3141,129 @@ def _control_scan_neutralization_arms() -> None:
         _this_module._literal_hit_exemption = original_exemption
 
 
+# ---------------------------------------------------------------------------
+# Task 2 controls: the deferred-literal-ledger's ratchet and staleness
+# floors, plus the three per-surface injection arms promoting Task 1's
+# manual falsifications into permanent registered controls.
+# ---------------------------------------------------------------------------
+
+
+def _control_ledger_ratchet_fires() -> None:
+    """A synthetic ledger one entry larger than a synthetic pin must fail,
+    naming both the pinned figure and the live figure."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_ledger_ratchet_allows_shrink() -> None:
+    """A synthetic ledger one entry SMALLER than its pin must pass -- the
+    ratchet permits remediation, it is not an equality floor that would
+    block exactly the shrink it exists to encourage."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture")}
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2)
+    assert problems == [], problems
+
+
+def _control_ledger_staleness_fires() -> None:
+    """A fabricated ledger key matching no live hit must fail, naming that
+    key -- the ledger cannot silently outlive its own findings."""
+    ledger = {("fixture.md", "this text never appears anywhere in the tree"): ("999.99", 1, "fixture")}
+    read = LiteralScanRead(read_relpaths=frozenset(), hits=(), declined=())
+    problems = literal_ledger_staleness_problems(read, ledger=ledger)
+    assert len(problems) == 1, problems
+    assert "this text never appears anywhere in the tree" in problems[0], problems[0]
+
+
+def _control_ledger_occurrence_surplus_fires() -> None:
+    """A ledgered key's pinned occurrence count exceeded by the live scan
+    must fail, naming the key and both counts — promoted from Task 1's
+    manual falsification into a permanent registered control."""
+    original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    fixture_ledger = dict(original_ledger)
+    fixture_ledger[("fixture.md", "9 branches")] = ("999.99", 1, "fixture, pinned at 1")
+    _this_module._DEFERRED_LITERAL_HITS = fixture_ledger
+    try:
+        text = "There are 9 branches here.\nThere are 9 branches here too.\n"
+        hits = _literal_hits_outside_generated("fixture.md", text)
+        assert len(hits) == 2, hits
+        read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+        problems = literal_scan_problems(read)
+        surplus = [p for p in problems if "occurrence surplus" in p]
+        assert len(surplus) == 1, problems
+        assert "pinned 1" in surplus[0] and "live 2" in surplus[0], surplus[0]
+    finally:
+        _this_module._DEFERRED_LITERAL_HITS = original_ledger
+
+
+def _control_ledger_not_an_unconditional_permit() -> None:
+    """Anti-masking: (a) the real ledger contains no wildcard-shaped key —
+    no bare-relpath key, no empty-string text — so it cannot silently widen
+    into the whole-surface permit it replaced; (b) emptying the ledger
+    makes the live scan report a large, non-zero finding count, proving the
+    ledger is load-bearing rather than decorative (the same spirit as
+    `_control_scan_neutralization_arms` arm 3)."""
+    for relpath, text in _DEFERRED_LITERAL_HITS:
+        assert relpath, "bare-relpath-shaped key found (wildcard permit)"
+        assert text, f"empty-text key found for {relpath!r} (wildcard permit)"
+
+    original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    _this_module._DEFERRED_LITERAL_HITS = {}
+    try:
+        read = run_literal_scan()
+        problems = literal_scan_problems(read)
+        assert len(problems) > 100, (
+            f"emptying the ledger produced only {len(problems)} findings — "
+            "expected a large, non-zero count proving the ledger is load-bearing"
+        )
+    finally:
+        _this_module._DEFERRED_LITERAL_HITS = original_ledger
+
+
+def _control_ledger_injection_claude_md_fires() -> None:
+    """Promotes Task 1's manual CLAUDE.md falsification into a permanent
+    control: an injected count literal outside the generated region must be
+    a non-exempt finding on the real, on-disk CLAUDE.md."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("CLAUDE.md", mutated)
+    read = LiteralScanRead(read_relpaths=frozenset({"CLAUDE.md"}), hits=tuple(hits), declined=())
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
+def _control_ledger_injection_architecture_fires() -> None:
+    """Same as `_control_ledger_injection_claude_md_fires`, for
+    docs/ARCHITECTURE.md."""
+    text = (REPO_ROOT / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("docs/ARCHITECTURE.md", mutated)
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"docs/ARCHITECTURE.md"}), hits=tuple(hits), declined=()
+    )
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
+def _control_ledger_injection_testing_fires() -> None:
+    """Same as `_control_ledger_injection_claude_md_fires`, for
+    docs/TESTING.md -- the exact surface the shipped regression
+    ("Two gates fire on every `git commit`" while both hooks ran five) was
+    silently permitted on before this plan."""
+    text = (REPO_ROOT / "docs/TESTING.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("docs/TESTING.md", mutated)
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"docs/TESTING.md"}), hits=tuple(hits), declined=()
+    )
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
 def _control_registry_self_test_passes() -> None:
     """Phase 21-14 (CR-06): wires the orphan. `scripts/_gate_registry.py
     --self-test`'s 16 controls — including the ONLY duplicate-`key`/
@@ -3191,6 +3381,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
+    ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
+    ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
+    ("ledger-staleness-fires", _control_ledger_staleness_fires),
+    ("ledger-occurrence-surplus-fires", _control_ledger_occurrence_surplus_fires),
+    ("ledger-not-an-unconditional-permit", _control_ledger_not_an_unconditional_permit),
+    ("ledger-injection-claude-md-fires", _control_ledger_injection_claude_md_fires),
+    ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
+    ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("registry-self-test", _control_registry_self_test_passes),
     ("slug-collision-raises", _control_slug_collision_raises),
 )
@@ -3253,6 +3451,14 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
     "scan-neutralization-arms",
+    "ledger-ratchet-fires",
+    "ledger-ratchet-allows-shrink",
+    "ledger-staleness-fires",
+    "ledger-occurrence-surplus-fires",
+    "ledger-not-an-unconditional-permit",
+    "ledger-injection-claude-md-fires",
+    "ledger-injection-architecture-fires",
+    "ledger-injection-testing-fires",
     "registry-self-test",
     "slug-collision-raises",
 )
