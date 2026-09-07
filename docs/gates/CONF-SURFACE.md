@@ -22,6 +22,21 @@ python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py
 CI job: `gen-gate-docs`
 <!-- END GENERATED:HOW-TO-RUN -->
 
+## Requirement amendment (CONF-12, D-07)
+
+`.planning/REQUIREMENTS.md`'s CONF-12 originally required, alongside generation and the drift
+gate, that no table cell in the generated CI-gate tables exceed a fixed character cap. That
+clause was amended (Phase 21 plan 21-12, D-07): the cap is removed. A cell is short in practice
+because its detail moved to this page — the split this generator implements — not because a
+numeric ceiling is measured or enforced anywhere in this codebase. The count that satisfies the
+milestone's standing instruction in the cap's place is named in the amended requirement text
+itself: CONF-13's non-exempt hand-maintained literal count (this page's own `literal_scan_non_exempt`
+field above, held at its target by this same generator's `--check`), and the gate registry's
+equality floor over gate ids (`scripts/_gate_registry.py --self-test`). The full amendment text,
+with its measured before/after evidence for the previously-oversized cells, lives in
+`.planning/REQUIREMENTS.md`'s CONF-12 entry; `.planning/ROADMAP.md`'s Phase 21 success criterion
+3 was updated in the same edit so the two documents do not diverge.
+
 ## Disclosed bounds
 
 <!-- HAND-WRITTEN: preserved verbatim across regeneration. Fill in this
