@@ -1576,6 +1576,27 @@ def _selfaudit_meta_floor_problems(
         ]
     return []
 
+
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `..._roster_problems`-shaped message into its `missing=` and
+    `extra=` clauses, so a roster negative arm can assert which direction
+    its synthetic id actually landed in rather than merely that it appears
+    somewhere in the joined message.
+
+    Raises `ValueError` naming the offending text if either clause marker
+    is absent, instead of silently returning the whole string as both
+    clauses — a message-format change must fail loudly, not disable every
+    arm built on this split at once.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"roster arm message missing 'missing='/' extra=' markers: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
 REQUIRED_BRANCHES: frozenset[str] = frozenset(
     {
         "B-01-slice-count",
@@ -3671,17 +3692,20 @@ def _run_self_test() -> int:
             "_selfaudit_meta_floor_problems did NOT fire on a synthetic mismatch"
         )
         problems.append("(roster-floor-missing/extra): floor did not fire on synthetic mismatch")
-    elif "synthetic-b" not in _synthetic_text or "synthetic-c" not in _synthetic_text:
-        print(
-            "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — fired but "
-            f"did not name both the missing and extra synthetic ids: {_synthetic_problems!r}"
-        )
-        problems.append("(roster-floor-missing/extra): floor did not name both directions")
     else:
-        print(
-            "(roster-floor-missing/extra) negative arms: PASS — fires and names "
-            f"both directions: {_synthetic_problems!r}"
-        )
+        _missing_clause, _extra_clause = _roster_arm_clauses(_synthetic_text)
+        if "synthetic-b" not in _missing_clause or "synthetic-c" not in _extra_clause:
+            print(
+                "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — fired but "
+                f"did not name both the missing and extra synthetic ids in their "
+                f"correct clauses: missing_clause={_missing_clause!r} extra_clause={_extra_clause!r}"
+            )
+            problems.append("(roster-floor-missing/extra): floor did not name both directions")
+        else:
+            print(
+                "(roster-floor-missing/extra) negative arms: PASS — fires and names "
+                f"both directions: missing_clause={_missing_clause!r} extra_clause={_extra_clause!r}"
+            )
 
     # (describe) describe()-consistency control (D-03, plan 21-05): the
     # module-level constants --describe reads must agree with the live
