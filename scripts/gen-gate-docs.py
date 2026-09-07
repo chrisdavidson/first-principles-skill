@@ -45,6 +45,7 @@ import ast
 import contextlib
 import difflib
 import fnmatch
+import hashlib
 import importlib.util
 import inspect
 import io
@@ -1707,38 +1708,111 @@ def _match_deferred_ledger(hit: LiteralHit) -> bool:
     return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
 
 
+def _deferred_ledger_keys_digest(
+    ledger: dict[tuple[str, str], tuple[str, int, str]],
+) -> str:
+    """sha256 over *ledger*'s sorted `(relpath, text)` keys, one key per
+    line with a stable `\\x1f` separator between the two components, UTF-8
+    encoded. Order-independent (the keys are sorted before hashing) and
+    sensitive to any key-set change, including a same-size substitution --
+    the case `_DEFERRED_LEDGER_MAX` alone cannot see (plan 21-20 Task 1,
+    T-21-20-01)."""
+    lines = [f"{relpath}\x1f{text}" for relpath, text in sorted(ledger)]
+    blob = "\n".join(lines).encode("utf-8")
+    return "sha256:" + hashlib.sha256(blob).hexdigest()
+
+
 # The ledger's pinned maximum size, as committed by plan 21-16 Task 1 (135
-# entries). This is the ONE place in the ledger machinery where a hand-typed
-# number is correct: deriving the pin from `len(_DEFERRED_LITERAL_HITS)` at
-# runtime would compare the ledger against itself, which can never fail --
-# a tautology, not a ratchet. The ledger may SHRINK below this pin (a
-# stale entry removed, its underlying prose fixed) but may never exceed it
-# (`literal_ledger_ratchet_problems`, below) -- growing the ledger back
-# into a de-facto whole-surface permit is exactly the regression this plan
-# closes (T-21-16-02).
+# entries) and turned by plan 21-20 Task 1 into a REPIN OBLIGATION rather
+# than free headroom: the ledger may still shrink, but a shrink must
+# re-pin `_DEFERRED_LEDGER_MAX` to the new live size in the SAME commit
+# that shrinks it, or `literal_ledger_ratchet_problems`'s second predicate
+# (below) fails, naming both figures. This is the ONE place in the ledger
+# machinery where a hand-typed number is correct: deriving the pin from
+# `len(_DEFERRED_LITERAL_HITS)` at runtime would compare the ledger
+# against itself, which can never fail -- a tautology, not a ratchet.
+# Standing rule, in this repo's own words (the CONTRACT-06 pin discipline,
+# `scripts/check-quality-harness.py`): never recompute a pin to make a
+# failing check pass.
 _DEFERRED_LEDGER_MAX: int = 135
+
+
+# A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
+# 21-20 Task 1), closing the hole the size pin above cannot see on its
+# own: a remove-and-add performed in ONE commit -- one real entry removed,
+# a fabricated, never-adjudicated permit added in its place -- leaves
+# `live_size == max_size`, so neither the growth nor the shrink predicate
+# fires. This digest is the one predicate a same-size substitution cannot
+# evade. Same pin idiom `scripts/check-quality-harness.py` already uses
+# for its three CONTRACT-06 detector digests: hand-committed, because a
+# self-derived digest compares the ledger against itself. Standing rule:
+# never recompute this digest to make a failing check pass -- a mismatch
+# means the key set changed, and silently recomputing it here is what an
+# unadjudicated refill would look like from the outside.
+#
+# DISCLOSED BOUND: this digest proves the key set changed DELIBERATELY --
+# someone edited `_DEFERRED_LITERAL_HITS` and re-ran the pin -- never that
+# the change was ADJUDICATED. It cannot tell a genuinely-remediated permit
+# apart from a rubber-stamped one; it can only prove the set is not
+# drifting silently underneath an unchanged pin.
+_DEFERRED_LEDGER_KEYS_DIGEST = (
+    "sha256:0a249f6de8c4b520d3e76590cfc6d1b8296497c5cbfef05bd7533d64a0f068bc"
+)
 
 
 def literal_ledger_ratchet_problems(
     ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
     max_size: int | None = None,
+    keys_digest: str | None = None,
 ) -> list[str]:
-    """The ledger may shrink and must never grow. Takes the ledger and its
-    pin as optional parameters (defaulting to the real ones) so the
-    permanent negative-arm controls can drive it against a synthetic
-    ledger/pin pair without touching the module-level constants."""
+    """Three independent predicates, all evaluated (none short-circuits
+    another): (1) `live_size > max_size` is growth, always a finding; (2)
+    `live_size < max_size` is an un-repinned shrink -- legal, but
+    `_DEFERRED_LEDGER_MAX` must be lowered to the live size in the SAME
+    commit, or remediation buys permanent headroom for a future,
+    never-adjudicated permit; (3) the live key-set digest not matching the
+    pin is the ONLY predicate that closes a same-size substitution -- an
+    atomic remove-and-add leaves `live_size == max_size`, so predicates 1
+    and 2 alone produce no finding for it. Do not delete predicate 3 as
+    redundant with the size checks; it is the one they cannot see.
+
+    Takes the ledger, its pin, and its key-set digest as optional
+    parameters (defaulting to the real ones) so the permanent negative-arm
+    controls can drive it against synthetic ledger/pin/digest triples
+    without touching the module-level constants."""
     if ledger is None:
         ledger = _DEFERRED_LITERAL_HITS
     if max_size is None:
         max_size = _DEFERRED_LEDGER_MAX
+    if keys_digest is None:
+        keys_digest = _DEFERRED_LEDGER_KEYS_DIGEST
+    problems: list[str] = []
     live_size = len(ledger)
     if live_size > max_size:
-        return [
+        problems.append(
             "deferred-literal-ledger ratchet: live ledger size "
             f"{live_size} exceeds the pinned maximum {max_size} -- the "
             "ledger may shrink but must never grow"
-        ]
-    return []
+        )
+    if live_size < max_size:
+        problems.append(
+            "deferred-literal-ledger ratchet: live ledger size "
+            f"{live_size} is below the pinned maximum {max_size} -- lower "
+            "_DEFERRED_LEDGER_MAX to the live size in this same commit so "
+            "the shrink is locked in and cannot silently refill with a "
+            "new, never-adjudicated permit"
+        )
+    live_digest = _deferred_ledger_keys_digest(ledger)
+    if live_digest != keys_digest:
+        problems.append(
+            "deferred-literal-ledger ratchet: live key-set digest "
+            f"{live_digest!r} != pinned {keys_digest!r} -- the ledger's "
+            "key set changed; if this is a deliberate, adjudicated "
+            "remediation, re-pin _DEFERRED_LEDGER_KEYS_DIGEST to the live "
+            "value in this same commit (this digest proves the key set "
+            "changed deliberately, never that the change was adjudicated)"
+        )
+    return problems
 
 
 def literal_ledger_staleness_problems(
@@ -2391,7 +2465,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "closed-spelled-out-vocabulary",
     "py-docstrings-only",
     "enumerated-per-hit-ledger",
-    "ledger-ratchet-may-shrink-never-grow",
+    "ledger-repin-and-key-digest",
     "non-primary-entries-pinned-mechanically",
 )
 
@@ -3409,20 +3483,64 @@ def _control_roster_arm_shape_census_vacuity() -> None:
 
 def _control_ledger_ratchet_fires() -> None:
     """A synthetic ledger one entry larger than a synthetic pin must fail,
-    naming both the pinned figure and the live figure."""
+    naming both the pinned figure and the live figure. Drives the digest
+    parameter with this ledger's own live digest so the growth predicate
+    is isolated from the (unrelated) key-set-drift predicate."""
     ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1)
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1, keys_digest=digest)
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
 
-def _control_ledger_ratchet_allows_shrink() -> None:
-    """A synthetic ledger one entry SMALLER than its pin must pass -- the
-    ratchet permits remediation, it is not an equality floor that would
-    block exactly the shrink it exists to encourage."""
+def _control_ledger_ratchet_requires_repin_on_shrink() -> None:
+    """A synthetic ledger one entry SMALLER than its pin must now produce
+    exactly one finding, naming both figures -- plan 21-20 Task 1 replaced
+    the old free-shrink pass with a same-commit repin obligation: an
+    un-repinned shrink buys permanent headroom for a future,
+    never-adjudicated permit (T-21-20-02), so it is a finding rather than
+    a silent pass. Drives the digest parameter with this ledger's own live
+    digest so the shrink predicate is isolated from key-set drift."""
     ledger = {("fixture.md", "one"): ("999.99", 1, "fixture")}
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2)
-    assert problems == [], problems
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2, keys_digest=digest)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_ledger_key_digest_fires() -> None:
+    """The verifier's exact reproduction (21-VERIFICATION.md GAP B), made
+    permanent: remove one real ledger entry and add a fabricated,
+    never-adjudicated permit in its place so the size is UNCHANGED, and
+    confirm a finding naming the digest mismatch. Neither the growth nor
+    the shrink predicate can see this -- `live_size` never moves -- so
+    this is the one arm that proves predicate 3 is load-bearing."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    pinned_digest = _deferred_ledger_keys_digest(ledger)
+    substituted = dict(ledger)
+    substituted.pop(("fixture.md", "one"))
+    substituted[("fixture.md", "three (a never-adjudicated permit)")] = ("999.99", 1, "fixture")
+    assert len(substituted) == len(ledger), "fixture is not a same-size substitution"
+    problems = literal_ledger_ratchet_problems(
+        ledger=substituted, max_size=len(ledger), keys_digest=pinned_digest
+    )
+    assert len(problems) == 1, problems
+    assert "digest" in problems[0], problems[0]
+
+
+def _control_ledger_key_digest_derived() -> None:
+    """The digest helper is a real derivation, not a constant standing in
+    for one: two synthetic ledgers differing in exactly one key produce
+    different digests, and the same ledger built in a different insertion
+    order produces the SAME digest (the sort-before-hash discipline)."""
+    ledger_a = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    ledger_b = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "three"): ("999.99", 1, "fixture")}
+    digest_a = _deferred_ledger_keys_digest(ledger_a)
+    digest_b = _deferred_ledger_keys_digest(ledger_b)
+    assert digest_a != digest_b, "differing key sets produced the same digest"
+    ledger_a_reordered = dict(reversed(list(ledger_a.items())))
+    digest_a_reordered = _deferred_ledger_keys_digest(ledger_a_reordered)
+    assert digest_a_reordered == digest_a, "insertion-order changed the digest"
 
 
 def _control_ledger_staleness_fires() -> None:
@@ -3644,7 +3762,9 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("roster-arm-shape-census", _control_roster_arm_shape_census),
     ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
-    ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
+    ("ledger-ratchet-requires-repin-on-shrink", _control_ledger_ratchet_requires_repin_on_shrink),
+    ("ledger-key-digest-fires", _control_ledger_key_digest_fires),
+    ("ledger-key-digest-derived", _control_ledger_key_digest_derived),
     ("ledger-staleness-fires", _control_ledger_staleness_fires),
     ("ledger-occurrence-surplus-fires", _control_ledger_occurrence_surplus_fires),
     ("ledger-not-an-unconditional-permit", _control_ledger_not_an_unconditional_permit),
@@ -3717,7 +3837,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "roster-arm-shape-census",
     "roster-arm-shape-census-vacuity",
     "ledger-ratchet-fires",
-    "ledger-ratchet-allows-shrink",
+    "ledger-ratchet-requires-repin-on-shrink",
+    "ledger-key-digest-fires",
+    "ledger-key-digest-derived",
     "ledger-staleness-fires",
     "ledger-occurrence-surplus-fires",
     "ledger-not-an-unconditional-permit",
