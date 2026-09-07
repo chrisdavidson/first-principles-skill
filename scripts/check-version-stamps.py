@@ -87,6 +87,16 @@ _FENCE_RE = re.compile(r"^---\s*$", re.MULTILINE)
 # READS), never `_EXCLUDED_GENERATED_GLOBS` (surfaces it deliberately does
 # NOT read) — publishing the latter under that name stated the inverse of
 # what the closed vocabulary defines (CR-03).
+#
+# Phase 21-17: `_stamp_roster_problems` below computes
+# `missing = registered - walked` (a kind this roster DECLARES that the live
+# walk never reaches — the roster over-claims) and
+# `extra = walked - registered` (a kind the live walk REACHES that this
+# roster does not declare — the roster under-claims). This is the same
+# missing/extra vocabulary used by `check-agent.py`, `check-act-limb.py`,
+# `check-selfaudit-scan.py`, `check-step0-live.py`, `check-step0-emulator.py`
+# and `sync-content.py` — this file previously computed the reverse, which no
+# sibling floor does.
 _STAMP_SOURCE_KINDS: tuple[str, ...] = (
     "shared/skills/*/SKILL.md",
     "shared/spine/SKILL.meta.yml",
@@ -118,21 +128,45 @@ def _stamp_roster_problems(
     """Pure set-equality floor between what `collect_stamps()` actually
     walked and the published `_STAMP_SOURCE_KINDS` roster.
 
-    `missing=` names a kind the live walk reached that the roster does not
-    declare (the roster under-claims). `extra=` names a kind the roster
-    declares that the live walk never reaches (the roster over-claims) — the
-    CR-05 direction that was previously undetectable.
+    `missing=` names a kind the roster declares that the live walk never
+    reaches (the roster over-claims). `extra=` names a kind the live walk
+    reaches that the roster does not declare (the roster under-claims — the
+    CR-05 direction). Phase 21-17: this is the same missing/extra polarity
+    used by `check-agent.py`, `check-act-limb.py`, `check-selfaudit-scan.py`,
+    `check-step0-live.py`, `check-step0-emulator.py` and `sync-content.py`;
+    this file previously computed the reverse of every sibling floor.
     """
     walked_set = set(walked)
     registered_set = set(registered)
-    missing = walked_set - registered_set
-    extra = registered_set - walked_set
+    missing = registered_set - walked_set
+    extra = walked_set - registered_set
     if missing or extra:
         return [
             f"stamp-source-kind roster/walked mismatch: "
             f"missing={sorted(missing)} extra={sorted(extra)}"
         ]
     return []
+
+
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `_stamp_roster_problems` mismatch message into its
+    `missing=` and `extra=` clauses, mirroring the idiom in
+    `check-agent.py`'s `_index_roster_problems` negative arm.
+
+    Raises `ValueError` naming the offending text if either the `missing=`
+    or the ` extra=` marker is absent, rather than silently returning the
+    whole string as both clauses — a message-format change must surface as
+    a loud failure here, not as both clauses collapsing to the same
+    whole-message blindness this helper exists to remove.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"_roster_arm_clauses: message lacks 'missing=' or ' extra=' "
+            f"marker: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
 
 
 @dataclass(frozen=True)
@@ -503,9 +537,10 @@ def self_test() -> int:
         )
         expect("kind-roster-matches-walked", not kind_problems, f"({kind_problems})")
 
-        # (i) Negative arm, over-claim direction (CR-05): a fabricated
-        # roster entry that nothing walks must surface as extra= — the
-        # direction that was previously undetectable.
+        # (i) Negative arm, over-claim direction via fabricated roster entry
+        # (CR-05/21-17): a roster entry that nothing walks is DECLARED but
+        # never REACHED, so it must land in the MISSING clause and NOT in
+        # the EXTRA clause.
         original_kinds = module._STAMP_SOURCE_KINDS
         try:
             module._STAMP_SOURCE_KINDS = original_kinds + ("fixture-fabricated-kind",)
@@ -513,34 +548,88 @@ def self_test() -> int:
             kind_problems = _stamp_roster_problems(
                 module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
             )
+            joined = " ".join(kind_problems)
+            missing_clause, extra_clause = (
+                _roster_arm_clauses(joined) if kind_problems else ("", "")
+            )
             expect(
-                "kind-roster-overclaim-detected",
-                any(
-                    "fixture-fabricated-kind" in p and "extra=" in p
-                    for p in kind_problems
-                ),
+                "kind-roster-overclaim-fabricated",
+                bool(kind_problems)
+                and "fixture-fabricated-kind" in missing_clause
+                and "fixture-fabricated-kind" not in extra_clause,
                 f"({kind_problems})",
             )
         finally:
             module._STAMP_SOURCE_KINDS = original_kinds
 
-        # (j) Negative arm, under-claim direction (CR-05): a fixture tree
-        # missing one of the four sources must surface that kind as
-        # missing=.
+        # (j) Negative arm, over-claim direction via fixture tree (CR-05/
+        # 21-17): a tree that lacks shared/spine/SKILL.meta.yml means the
+        # walk never REACHES it while the roster still DECLARES it — an
+        # over-claim, not an under-claim (this arm was misnamed before this
+        # plan). Must land in the MISSING clause and NOT in the EXTRA
+        # clause.
         missing_spine = base / "missing-spine"
         _build_fixture(missing_spine, skill_stamps=['"1.0.0"'], spine_stamp=None)
         collect_stamps(missing_spine)
         kind_problems = _stamp_roster_problems(
             module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
         )
+        joined = " ".join(kind_problems)
+        missing_clause, extra_clause = (
+            _roster_arm_clauses(joined) if kind_problems else ("", "")
+        )
         expect(
-            "kind-roster-underclaim-detected",
-            any(
-                "shared/spine/SKILL.meta.yml" in p and "missing=" in p
-                for p in kind_problems
-            ),
+            "kind-roster-overclaim-fixture",
+            bool(kind_problems)
+            and "shared/spine/SKILL.meta.yml" in missing_clause
+            and "shared/spine/SKILL.meta.yml" not in extra_clause,
             f"({kind_problems})",
         )
+
+        # (j') Negative arm, GENUINE under-claim direction (21-17): shrink
+        # the roster while walking the REAL repo tree, so the walk still
+        # REACHES a kind the roster no longer DECLARES. Must land in the
+        # EXTRA clause and NOT in the MISSING clause. This is the permanent
+        # form of the one-off scratch-copy demonstration recorded in
+        # 21-14-SUMMARY.md — the direction that had no registered control
+        # before this plan.
+        original_kinds = module._STAMP_SOURCE_KINDS
+        try:
+            module._STAMP_SOURCE_KINDS = tuple(
+                k for k in original_kinds if k != "shared/spine/SKILL.meta.yml"
+            )
+            collect_stamps(REPO_ROOT)
+            kind_problems = _stamp_roster_problems(
+                module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
+            )
+            joined = " ".join(kind_problems)
+            missing_clause, extra_clause = (
+                _roster_arm_clauses(joined) if kind_problems else ("", "")
+            )
+            expect(
+                "kind-roster-underclaim-detected",
+                bool(kind_problems)
+                and "shared/spine/SKILL.meta.yml" in extra_clause
+                and "shared/spine/SKILL.meta.yml" not in missing_clause,
+                f"({kind_problems})",
+            )
+        finally:
+            module._STAMP_SOURCE_KINDS = original_kinds
+
+        # Message-shape guard control (21-17): _roster_arm_clauses must
+        # raise ValueError on a message missing the ' extra=' marker,
+        # proving the guard is live rather than decorative.
+        try:
+            _roster_arm_clauses(
+                "stamp-source-kind roster/walked mismatch: missing=[]"
+            )
+            expect(
+                "kind-roster-arm-shape-guard",
+                False,
+                "(_roster_arm_clauses accepted a message lacking ' extra=')",
+            )
+        except ValueError:
+            expect("kind-roster-arm-shape-guard", True)
 
         # (k) Sanity control: the excluded generated-tree globs must never
         # appear among what collect_stamps() walked — they are declared
