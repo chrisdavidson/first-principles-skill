@@ -369,6 +369,17 @@ REQUIRED_BRANCHES: frozenset[str] = frozenset({
 # read, never the hand-typed "58 controls" this gate's own published row
 # states today — CLAUDE.md's HARN-01 row predates this roster and is
 # superseded by this live count).
+#
+# Phase 21-15 (CR-05): every id above used to be validated against itself —
+# nothing recorded which ids actually ran. `_run_self_test()` now appends
+# each control's own id to a local `executed` list as its first action
+# (`_check_negative`'s appends cover the 71 fixture labels in one call site;
+# `a`, `b`, `coh`, `cov` and `m` each append individually), and
+# `_control_roster_problems()` floors `set(executed) == set(_CONTROL_IDS)`
+# in both directions before the verdict. `roster-floor-missing` and
+# `roster-floor-extra` are permanent negative-arm controls proving that
+# floor fires, driven against a synthetic executed/registered pair through
+# the SAME helper the live floor calls.
 _CONTROL_IDS: tuple[str, ...] = (
     "a", "b", "aa", "ab", "ac", "ad", "ae", "af", "ag", "ah", "ai", "aj", "ak",
     "al", "am", "an", "ao", "ap", "aq", "ar", "as", "at", "au", "av", "aw",
@@ -376,7 +387,32 @@ _CONTROL_IDS: tuple[str, ...] = (
     "bj", "bk", "bl", "bm", "bn", "bo", "bp", "bq", "br", "bs", "bt", "bu",
     "bv", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "n", "o", "p",
     "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "coh", "cov", "m",
+    "roster-floor-missing", "roster-floor-extra",
 )
+
+
+def _control_roster_problems(
+    executed: list[str], registered: tuple[str, ...]
+) -> list[str]:
+    """Pure set-equality floor shared by `_run_self_test()`'s live check and
+    its own negative arms (`roster-floor-missing`/`roster-floor-extra`), so
+    the arms exercise the SAME code the live floor uses rather than a
+    re-implementation.
+
+    Reports both directions in one message (D-04 lesson): a control
+    registered but never executed is named under `missing=`; a control that
+    executed but was never added to `_CONTROL_IDS` is named under `extra=`.
+    """
+    executed_set = set(executed)
+    registered_set = set(registered)
+    missing = registered_set - executed_set
+    extra = executed_set - registered_set
+    if missing or extra:
+        return [
+            f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
 
 
 def _slice(text: str, start_heading: str, end_heading: str) -> str | None:
@@ -1292,11 +1328,18 @@ def _run_self_test() -> int:
     problems: list[str] = []
     covered_branches: set[str] = set()
 
+    # Phase 21-15 (CR-05): every control below appends its own id to this list
+    # as its first action (before any assertion, so a control that fails
+    # still counts as executed) — floored against `_CONTROL_IDS` at the end
+    # of this function via `_control_roster_problems()`, in both directions.
+    executed: list[str] = []
+
     # Two module-level checks run before the fixture battery. Neither reads a
     # fixture: (coh) asserts the derived anchor pairs still stand in the relation
     # their derivation creates (WR-14), and (cov) asserts no anchor constant has
     # shipped without a control (WR-02's standing half). Both print in the roster
     # even when green, so the coverage position is visible without reading code.
+    executed.append("coh")
     coherence_failures = _check_anchor_coherence()
     if coherence_failures:
         print(f"(coh) anchor coherence: WRONGLY FAILED: {'; '.join(coherence_failures)}")
@@ -1304,6 +1347,7 @@ def _run_self_test() -> int:
     else:
         print("(coh) anchor coherence: PASS (0 failures)")
 
+    executed.append("cov")
     coverage_failures = _check_anchor_control_coverage(
         Path(__file__).read_text(encoding="utf-8")
     )
@@ -1345,6 +1389,7 @@ def _run_self_test() -> int:
         If branch_id is provided and the fixture correctly fails, the branch ID
         is recorded in covered_branches for anti-masking assertion tracking.
         """
+        executed.append(label)
 
         def _fired_ids(msgs: list[str]) -> list[str]:
             return sorted({m.split(" ", 1)[0].rstrip(":") for m in msgs})
@@ -1382,6 +1427,7 @@ def _run_self_test() -> int:
             covered_branches.add(branch_id)
 
     # (a) Positive control — body.
+    executed.append("a")
     a_failures = _check_body_text(real_body)
     if a_failures:
         print(f"(a) positive control — body: WRONGLY FAILED: {'; '.join(a_failures)}")
@@ -1390,6 +1436,7 @@ def _run_self_test() -> int:
         print("(a) positive control — body: PASS (0 failures)")
 
     # (b) Positive control — rubric.
+    executed.append("b")
     b_failures = _check_rubric_text(real_rubric)
     if b_failures:
         print(f"(b) positive control — rubric: WRONGLY FAILED: {'; '.join(b_failures)}")
@@ -2285,6 +2332,7 @@ def _run_self_test() -> int:
 
     # (m) Dispatch control: prove the CLI layer reaches this block, not merely
     # that _run_self_test() is correct when called directly.
+    executed.append("m")
     _this_module = sys.modules[__name__]
     if not _this_module._HARN01_DISPATCH_REENTRANT:
         _this_module._HARN01_DISPATCH_REENTRANT = True
@@ -2317,6 +2365,54 @@ def _run_self_test() -> int:
             _this_module._HARN01_DISPATCH_REENTRANT = False
     else:
         print("(m) dispatch control: skipped (nested self-test run)")
+
+    # (roster-floor-missing / roster-floor-extra) Negative arms (permanent
+    # registered controls, Phase 21-15, CR-05): prove `_control_roster_problems`
+    # — the SAME helper the live floor below calls — actually fires on a
+    # synthetic mismatch and names the specific offending ids, in both
+    # directions. Driven against a synthetic executed/registered pair, never
+    # the real module roster, so these arms cannot corrupt the live floor
+    # they are proving.
+    executed.append("roster-floor-missing")
+    executed.append("roster-floor-extra")
+    _synthetic_registered = ("synthetic-a", "synthetic-b")
+    _synthetic_executed = ["synthetic-a", "synthetic-c"]
+    _synthetic_problems = _control_roster_problems(_synthetic_executed, _synthetic_registered)
+    _synthetic_text = " ".join(_synthetic_problems)
+    if not _synthetic_problems:
+        print(
+            "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — "
+            "_control_roster_problems did NOT fire on a synthetic mismatch"
+        )
+        problems.append("(roster-floor-missing/extra): floor did not fire on synthetic mismatch")
+    elif "synthetic-b" not in _synthetic_text or "synthetic-c" not in _synthetic_text:
+        print(
+            "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — fired but "
+            f"did not name both the missing and extra synthetic ids: {_synthetic_problems!r}"
+        )
+        problems.append("(roster-floor-missing/extra): floor did not name both directions")
+    else:
+        print(
+            "(roster-floor-missing/extra) negative arms: PASS — fires and names "
+            f"both directions: {_synthetic_problems!r}"
+        )
+
+    # Executed-vs-registered floor (Phase 21-15, CR-05): _CONTROL_IDS is a
+    # second, independently-typed transcription of the control ids this
+    # function's controls append to `executed`. A control silently not
+    # running — deleted, or an `executed.append()`/`_check_negative()` call
+    # removed — leaves its id absent from `executed`, which this floor
+    # catches BY NAME, in both directions in one run, rather than silently
+    # narrowing the published roster.
+    roster_problems = _control_roster_problems(executed, _CONTROL_IDS)
+    if roster_problems:
+        problems.extend(roster_problems)
+        print("control roster/executed floor: FAIL — " + "; ".join(roster_problems))
+    else:
+        print(
+            f"control roster/executed floor: PASS — {len(executed)} controls "
+            "executed, all registered in _CONTROL_IDS"
+        )
 
     # (describe) describe()-consistency control (D-03, plan 21-04): the
     # module-level rosters --describe reads must agree with the rosters this

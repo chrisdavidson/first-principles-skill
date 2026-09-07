@@ -66,6 +66,17 @@ _REQUIRED_PHRASES = [
 # is no frontmatter/body to inspect without it) and stays unconditional,
 # matching how a malformed-fence input already exits(2) as an
 # environment-class error rather than accumulating into `failures`.
+#
+# Phase 21-15 (CR-05): this claim used to rest on the gating condition alone —
+# nothing recorded which indices actually ran, so a fabricated ninth entry
+# appended to this tuple would publish `branch_count` 9 with nothing behind
+# it. `_check_agent_text()` now records every index it actually reaches into
+# the module-level `_EXECUTED_CHECK_INDICES` set (cleared at the top of each
+# call), and `_run_self_test()` floors that set against
+# `range(len(_CHECK_DESCRIPTIONS))` — minus `_SKIP_NAME_CHECK_SCOPED_INDICES`
+# under `--skip-name-check` — via `_index_roster_problems()`, in both
+# directions, with a permanent synthetic negative arm proving the floor
+# itself fires.
 _CHECK_DESCRIPTIONS: tuple[str, ...] = (
     "Check 1: file begins with a frontmatter fence and splits into exactly 3 parts",
     "Check 2: 'name' key present and equals the locked identity "
@@ -84,6 +95,55 @@ _CHECK_DESCRIPTIONS: tuple[str, ...] = (
 # published fact of GATE-01's CLAUDE.md row (Checks 2, 5's value clause, 8),
 # derived here rather than re-typed in prose on every surface that states it.
 _SKIP_NAME_CHECK_SCOPED_INDICES: tuple[int, ...] = (1, 4, 7)
+
+# Phase 21-15 (CR-05): populated fresh on every `_check_agent_text()` call
+# with the index of every check that call actually reached (cleared as that
+# function's first statement). Module-level rather than a return value so the
+# existing return type (`list[str]` of failures) does not have to change to
+# carry it.
+_EXECUTED_CHECK_INDICES: set[int] = set()
+
+
+def _index_roster_problems(executed: set[int], expected: set[int]) -> list[str]:
+    """Pure set-equality floor shared by `_run_self_test()`'s live arms and
+    its own synthetic negative arm, so the negative arm exercises the SAME
+    code the live floor uses rather than a re-implementation.
+
+    Reports both directions in one message (D-04 lesson): an index expected
+    but never reached is named under `missing=`; an index reached but not
+    expected is named under `extra=`.
+    """
+    missing = expected - executed
+    extra = executed - expected
+    if missing or extra:
+        return [
+            f"executed/registered check-index mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
+
+
+# Self-test fixture: fully valid canonical agent — zero failures under
+# skip_name_check=False, used by the executed-check-index floor (Phase 21-15)
+# to assert every check actually ran, not merely that a malformed fixture
+# happened to reach the gate that catches its one defect.
+_FIXTURE_VALID_CANONICAL = """\
+---
+name: first-principles
+description: Analyze from first principles; challenge assumptions; reason from ground truth; decompose this problem into its ground truths.
+license: MIT
+metadata:
+  version: "3.0.0"
+disallowedTools:
+  - Write
+  - Edit
+maxTurns: 60
+AskUserQuestion: permitted
+---
+## Body
+
+This is a non-empty body with valid content and no unresolved sync markers.
+"""
 
 # Self-test fixture: missing `name` key in frontmatter
 _FIXTURE_MISSING_NAME = """\
@@ -308,6 +368,10 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     """
     import yaml
 
+    # Phase 21-15 (CR-05): reset the executed-index collector at the top of
+    # every call so a prior call's indices never leak into this one's floor.
+    _EXECUTED_CHECK_INDICES.clear()
+
     # Check 1: file must begin with a frontmatter fence, then split into 3 parts
     if not text.startswith("---"):
         sys.stderr.write("check-agent: agent file does not begin with a frontmatter fence\n")
@@ -332,12 +396,18 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
         sys.stderr.write(f"check-agent: frontmatter is not a mapping (got {got})\n")
         sys.exit(2)
 
+    # Check 1 completed without exiting — record it unconditionally, matching
+    # the comment above _CHECK_DESCRIPTIONS: index 0 is structurally required
+    # to reach every later check and is never gated on n_checks.
+    _EXECUTED_CHECK_INDICES.add(0)
+
     failures: list[str] = []
     description: object = frontmatter.get("description")
     n_checks = len(_CHECK_DESCRIPTIONS)
 
     # Check 2: name present and exactly "first-principles"
     if 1 < n_checks and not skip_name_check:
+        _EXECUTED_CHECK_INDICES.add(1)
         name = frontmatter.get("name")
         if name is None:
             failures.append(f"frontmatter missing required key 'name'")
@@ -346,6 +416,7 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
 
     # Check 3: description is a non-empty string with len <= 1024
     if 2 < n_checks:
+        _EXECUTED_CHECK_INDICES.add(2)
         if description is None:
             failures.append("frontmatter missing required key 'description'")
         elif not isinstance(description, str):
@@ -358,8 +429,10 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
             )
 
     # Check 4: disallowedTools key present
-    if 3 < n_checks and "disallowedTools" not in frontmatter:
-        failures.append("frontmatter missing required key 'disallowedTools'")
+    if 3 < n_checks:
+        _EXECUTED_CHECK_INDICES.add(3)
+        if "disallowedTools" not in frontmatter:
+            failures.append("frontmatter missing required key 'disallowedTools'")
 
     # Check 5: maxTurns key present, and — for the canonical first-principles
     # identity only — carries the locked value. The value clause is scoped to
@@ -369,6 +442,12 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
     # share, so a candidate agent under a different turn budget is not
     # penalized for it.
     if 4 < n_checks:
+        # Index 4 is recorded as executed exactly when the skip_name_check-
+        # scoped value clause is in play (mirroring Checks 2/8's simpler
+        # `and not skip_name_check` gate) — the key-presence half below always
+        # runs and is not itself scoped, so it does not gate this append.
+        if not skip_name_check:
+            _EXECUTED_CHECK_INDICES.add(4)
         if "maxTurns" not in frontmatter:
             failures.append("frontmatter missing required key 'maxTurns'")
         elif not skip_name_check and frontmatter.get("maxTurns") != _EXPECTED_MAX_TURNS:
@@ -378,11 +457,14 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
             )
 
     # Check 6: body non-empty after strip
-    if 5 < n_checks and not body.strip():
-        failures.append("agent file body is empty (whitespace-only after closing '---')")
+    if 5 < n_checks:
+        _EXECUTED_CHECK_INDICES.add(5)
+        if not body.strip():
+            failures.append("agent file body is empty (whitespace-only after closing '---')")
 
     # Check 7: no unresolved sync markers in body
     if 6 < n_checks:
+        _EXECUTED_CHECK_INDICES.add(6)
         markers = _MARKER_RE.findall(body)
         if markers:
             failures.append(
@@ -391,6 +473,7 @@ def _check_agent_text(text: str, skip_name_check: bool = False) -> list[str]:
 
     # Check 8: description must contain all four mandatory trigger phrases
     if 7 < n_checks and not skip_name_check:
+        _EXECUTED_CHECK_INDICES.add(7)
         if isinstance(description, str) and len(description) > 0:
             missing = [p for p in _REQUIRED_PHRASES if p not in description.lower()]
             if missing:
@@ -548,6 +631,64 @@ def _run_self_test() -> None:
             "correctly passed (0 failures)"
         )
 
+    # Executed-check-index floor (Phase 21-15, CR-05), unconditional arm: run
+    # the fully valid fixture with skip_name_check=False and assert every
+    # index in _CHECK_DESCRIPTIONS was actually reached — not merely gated on
+    # n_checks in the abstract.
+    _check_agent_text(_FIXTURE_VALID_CANONICAL, skip_name_check=False)
+    full_expected = set(range(len(_CHECK_DESCRIPTIONS)))
+    full_problems = _index_roster_problems(_EXECUTED_CHECK_INDICES, full_expected)
+    if full_problems:
+        print(f"check-agent --self-test: index-floor (unconditional) FAIL — {'; '.join(full_problems)}")
+        wrong_passes.append("index-floor-unconditional: " + "; ".join(full_problems))
+    else:
+        print(
+            f"check-agent --self-test: index-floor (unconditional) PASS — "
+            f"all {len(full_expected)} check indices reached"
+        )
+
+    # Executed-check-index floor, --skip-name-check arm: the same fixture
+    # under skip_name_check=True must reach every index EXCEPT the ones
+    # _SKIP_NAME_CHECK_SCOPED_INDICES declares scoped out — making that tuple
+    # load-bearing rather than merely a published fact with nothing behind it.
+    _check_agent_text(_FIXTURE_VALID_CANONICAL, skip_name_check=True)
+    scoped_expected = full_expected - set(_SKIP_NAME_CHECK_SCOPED_INDICES)
+    scoped_problems = _index_roster_problems(_EXECUTED_CHECK_INDICES, scoped_expected)
+    if scoped_problems:
+        print(f"check-agent --self-test: index-floor (skip-name-check) FAIL — {'; '.join(scoped_problems)}")
+        wrong_passes.append("index-floor-skip-name-check: " + "; ".join(scoped_problems))
+    else:
+        print(
+            f"check-agent --self-test: index-floor (skip-name-check) PASS — "
+            f"all {len(scoped_expected)} unscoped check indices reached, "
+            f"{len(_SKIP_NAME_CHECK_SCOPED_INDICES)} scoped indices correctly skipped"
+        )
+
+    # Negative arm (permanent registered control): prove _index_roster_problems
+    # — the SAME helper the two floor arms above call — actually fires on a
+    # synthetic mismatch and names both the missing and the extra index, so
+    # the floor's own falsification machinery is itself under test.
+    synthetic_expected = {0, 1, 2}
+    synthetic_executed = {0, 1, 3}
+    synthetic_problems = _index_roster_problems(synthetic_executed, synthetic_expected)
+    synthetic_text = " ".join(synthetic_problems)
+    missing_clause = synthetic_text.split("missing=", 1)[-1].split(" extra=", 1)[0] if synthetic_problems else ""
+    extra_clause = synthetic_text.split("extra=", 1)[-1] if synthetic_problems else ""
+    if not synthetic_problems:
+        print("check-agent --self-test: index-floor negative-arm WRONGLY PASSED (expected failure)")
+        wrong_passes.append("index-floor-negative-arm (no failures produced)")
+    elif "2" not in missing_clause or "3" not in extra_clause:
+        print(
+            f"check-agent --self-test: index-floor negative-arm fired but did not "
+            f"name both the missing and extra indices: {synthetic_problems!r}"
+        )
+        wrong_passes.append("index-floor-negative-arm (wrong indices named)")
+    else:
+        print(
+            f"check-agent --self-test: index-floor negative-arm PASS — fires and "
+            f"names both directions: {synthetic_problems!r}"
+        )
+
     if wrong_passes:
         sys.stderr.write(
             f"check-agent --self-test: FAIL — these fixtures wrongly passed or "
@@ -556,7 +697,11 @@ def _run_self_test() -> None:
         sys.exit(1)
 
     total_fixtures = len(fixtures) + 1  # + fixture-i (the skip_name_check positive case)
-    print(f"check-agent --self-test: PASS ({total_fixtures} fixtures)")
+    total_controls = total_fixtures + 3  # + the two index-floor arms + the negative arm
+    print(
+        f"check-agent --self-test: PASS ({total_fixtures} fixtures, "
+        f"{total_controls} controls total)"
+    )
 
 
 def main() -> None:
