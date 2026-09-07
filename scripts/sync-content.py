@@ -330,11 +330,45 @@ _GATE02_DISPATCH_REENTRANT = False
 # (each lettered block is structurally distinct — count positive/negative,
 # fixture-driven, dispatch-driven), so it is not "load-bearing" in the sense
 # check-agent.py's `_CHECK_DESCRIPTIONS` roster is; it exists so `describe()`
-# can publish `len()` of a real roster rather than a hand-typed control count,
-# and control (l) below asserts the roster and the function stay in sync.
+# can publish `len()` of a real roster rather than a hand-typed control count.
+#
+# Phase 21-14 (CR-02): this roster used to drift silently from what actually
+# runs — control (l) asserted only that `generated_target_count` tracked
+# `GENERATED_TARGET_COUNT`, nothing about the roster itself. Every lettered
+# block below now appends its own id to a local `executed` list as its FIRST
+# statement (before any try/fixture setup, so a raising control still counts
+# as executed), and a floor evaluated after the last control — the module
+# function below named `_control_roster_problems` — asserts
+# `set(executed) == set(_SELF_TEST_CONTROL_IDS)` in both directions. Control
+# (m) proves that floor actually fires.
 _SELF_TEST_CONTROL_IDS: tuple[str, ...] = (
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k",
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
 )
+
+
+def _control_roster_problems(
+    executed: list[str], registered: tuple[str, ...]
+) -> list[str]:
+    """Pure set-equality floor shared by cmd_self_test()'s live check and its
+    own negative arm (control (m)), so the arm exercises the SAME code the
+    live floor uses rather than a re-implementation.
+
+    Reports both directions in one message (D-04 lesson): a control
+    registered but never executed is named under `missing=`; a control that
+    executed but was never added to `_SELF_TEST_CONTROL_IDS` is named under
+    `extra=`. A fix satisfying only one direction must not be able to mask
+    the other.
+    """
+    executed_set = set(executed)
+    registered_set = set(registered)
+    missing = registered_set - executed_set
+    extra = executed_set - registered_set
+    if missing or extra:
+        return [
+            f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
 
 
 def _require_pyyaml() -> None:
@@ -1485,8 +1519,10 @@ def cmd_self_test() -> int:
     import tempfile
 
     failures: list[str] = []
+    executed: list[str] = []
 
     # (a) Count positive control.
+    executed.append("a")
     try:
         result = generate_all()
         if len(result) != GENERATED_TARGET_COUNT:
@@ -1500,6 +1536,7 @@ def cmd_self_test() -> int:
         failures.append(f"FAIL (a): generate_all() raised unexpectedly: {exc}")
 
     # (b) Count negative control — temporarily set GENERATED_TARGET_COUNT to wrong value.
+    executed.append("b")
     original_count = GENERATED_TARGET_COUNT
     # Reference the module-level variable via the module's globals dict so the
     # generate_all() closure sees the patched value (same module, no importlib needed).
@@ -1517,6 +1554,7 @@ def cmd_self_test() -> int:
         _this_module.GENERATED_TARGET_COUNT = original_count  # always restore
 
     # (c) Orphan-guard teeth.
+    executed.append("c")
     try:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
@@ -1539,6 +1577,7 @@ def cmd_self_test() -> int:
         failures.append(f"FAIL (c): unexpected exception: {exc!r}")
 
     # (d) GATE-02 positive control: the real extractor output must be clean.
+    executed.append("d")
     try:
         problems: list[str] = []
         for slug in sorted(SLUGS_WITH_DETAIL):
@@ -1559,6 +1598,7 @@ def cmd_self_test() -> int:
 
     # (e) GATE-02 negative control 1 (missing) — stripping the pointer from an
     # in-memory fixture must make the shared checker report a problem.
+    executed.append("e")
     try:
         missed: list[str] = []
         for slug in sorted(SLUGS_WITH_DETAIL):
@@ -1583,6 +1623,7 @@ def cmd_self_test() -> int:
 
     # (f) GATE-02 negative control 2 (duplicate) — the failure must cite the
     # count as the cause, not merely report "failed" (D-11).
+    executed.append("f")
     try:
         missed = []
         wrong_reason: list[tuple[str, list[str]]] = []
@@ -1626,6 +1667,7 @@ def cmd_self_test() -> int:
     # stub keeps the file-relative `references/` form, which the harness does
     # resolve against the skill's own directory. Asserting per-surface is what
     # stops the agent body silently regressing to the non-resolving form.
+    executed.append("g")
     try:
         wrong: list[str] = []
         all_targets = generate_all()
@@ -1767,6 +1809,7 @@ def cmd_self_test() -> int:
     # sentinel prevents the nested main(["--self-test"]) call from recursing
     # into its own dispatch control; it is restored in a finally clause so an
     # exception cannot leave it set.
+    executed.append("h")
     _this_module = sys.modules[__name__]
     if not _this_module._GATE02_DISPATCH_REENTRANT:
         _this_module._GATE02_DISPATCH_REENTRANT = True
@@ -1804,6 +1847,7 @@ def cmd_self_test() -> int:
     # {{FOCUSED_VALIDATION}} token must raise, and the message must name the
     # missing token — proving PAR-02 is enforced at generation time, not
     # only by a downstream gate.
+    executed.append("i")
     try:
         fixture_body = "{{PROCEDURE:five-whys}}\n\n---\n"
         try:
@@ -1829,6 +1873,7 @@ def cmd_self_test() -> int:
     # carrying {{FOCUSED_VALIDATION}} must raise, citing LAUNCHER_SKILLS or
     # the launcher slug — a launcher dispatches the composer agent, which
     # already runs Phase 5, so it must never carry the token.
+    executed.append("j")
     try:
         try:
             _expand_focused_validation_token(
@@ -1857,6 +1902,7 @@ def cmd_self_test() -> int:
     # a fixture file by temporarily pointing the module-level
     # FOCUSED_VALIDATION_SOURCE constant at a tempdir fixture, restoring in a
     # `finally` clause (the (b) idiom) — never mutates a real file.
+    executed.append("k")
     try:
         with tempfile.TemporaryDirectory() as d:
             fixture_path = Path(d) / "focused-validation-step.md"
@@ -1900,6 +1946,7 @@ def cmd_self_test() -> int:
     # live, not a hand-typed copy. Mutate the module-level constant (the
     # same idiom as (b)) and confirm the emitted value moves with it —
     # proving the field is a real derivation, not a literal in disguise.
+    executed.append("l")
     _orig_gtc = _this_module.GENERATED_TARGET_COUNT
     try:
         before = describe()["derived_counts"]["generated_target_count"]
@@ -1920,6 +1967,51 @@ def cmd_self_test() -> int:
         failures.append(f"FAIL (l): unexpected exception: {exc!r}")
     finally:
         _this_module.GENERATED_TARGET_COUNT = _orig_gtc
+
+    # (m) Control roster/executed floor negative control (Phase 21-14,
+    # CR-02): proves `_control_roster_problems` — the SAME helper the live
+    # floor below calls — actually fires on a synthetic mismatch, in both
+    # directions, and names the specific offending ids. Driven against a
+    # synthetic executed/registered pair, never the real module roster, so
+    # this arm cannot itself corrupt the live floor it is proving.
+    executed.append("m")
+    try:
+        synthetic_registered = ("synthetic-a", "synthetic-b")
+        synthetic_executed = ["synthetic-a", "synthetic-c"]
+        problems = _control_roster_problems(synthetic_executed, synthetic_registered)
+        problem_text = " ".join(problems)
+        if not problems:
+            failures.append(
+                "FAIL (m): _control_roster_problems did NOT fire on a "
+                "synthetic mismatch"
+            )
+        elif "synthetic-b" not in problem_text or "synthetic-c" not in problem_text:
+            failures.append(
+                f"FAIL (m): _control_roster_problems fired but did not name "
+                f"both the missing and extra synthetic ids: {problems!r}"
+            )
+        else:
+            print(
+                "(m) control roster/executed floor negative control: PASS — "
+                f"fires and names both directions: {problems!r}"
+            )
+    except Exception as exc:
+        failures.append(f"FAIL (m): unexpected exception: {exc!r}")
+
+    # Executed-vs-registered floor (Phase 21-14, CR-02): _SELF_TEST_CONTROL_IDS
+    # is a second, independently-typed transcription of the lettered control
+    # ids above. A control silently not running — deleted, or an
+    # `executed.append()` call removed — leaves its id absent from `executed`,
+    # which this floor catches BY NAME, in both directions in one run (the
+    # D-04 lesson), rather than silently narrowing the published roster.
+    roster_problems = _control_roster_problems(executed, _SELF_TEST_CONTROL_IDS)
+    if roster_problems:
+        failures.extend(roster_problems)
+    else:
+        print(
+            f"control roster/executed floor: PASS — {len(executed)} "
+            f"controls executed, all registered in _SELF_TEST_CONTROL_IDS"
+        )
 
     if failures:
         for msg in failures:
