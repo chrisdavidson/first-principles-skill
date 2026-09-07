@@ -2242,6 +2242,15 @@ def describe() -> dict:
         if cls_name is not None:
             exempt_counts[cls_name] += 1
     non_exempt_count = len(literal_scan_problems(literal_read))
+    # 999.42 (the three primary surfaces) is the one backlog id adjudicated
+    # BY HAND, entry by entry; 999.40/999.41 are pinned MECHANICALLY,
+    # without per-entry adjudication (plan 21-16 Task 1). Computed from the
+    # ledger's own backlog ids, never hand-counted, so this figure moves
+    # with the ledger rather than going stale beside it.
+    ledger_adjudicated = sum(
+        1 for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values() if _bid == "999.42"
+    )
+    ledger_mechanical = len(_DEFERRED_LITERAL_HITS) - ledger_adjudicated
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
@@ -2249,6 +2258,8 @@ def describe() -> dict:
         "literal_scan_non_exempt": non_exempt_count,
         "literal_scan_ledger_entries": len(_DEFERRED_LITERAL_HITS),
         "literal_scan_ledger_max": _DEFERRED_LEDGER_MAX,
+        "literal_scan_ledger_adjudicated": ledger_adjudicated,
+        "literal_scan_ledger_mechanical": ledger_mechanical,
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
