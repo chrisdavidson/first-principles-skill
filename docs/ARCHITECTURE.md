@@ -165,6 +165,10 @@ REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's `--self-test`-only 
 SCAN-GUARD is counted in the battery total above. CONF-GATE was registered at v9.0.0 under
 Phase 18 — a CI job plus a battery `gate` call running both `--self-test` **and** the live
 leg, matching PROV-GUARD's and SCAN-GUARD's shape, and is counted in the battery total above.
+CONF-SURFACE was registered at v9.0.0 under Phase 21 (D-21-C, plan 21-11) — a CI job plus a
+battery `gate` call running `gen-gate-docs.py --self-test` then `--check`, and both pre-commit
+hooks (five gates each, up from three) — and is counted in the battery total above: this is the
+`25 → 26` move produced by CONF-SURFACE itself rather than swept by hand across five surfaces.
 
 **Two gates are called GATE-02 and they are not the same gate.** `VAL-04 / GATE-02` is the v3.0
 trigger-collision scanner (`check-trigger-collisions.py`), carried by a single job whose live name
