@@ -394,6 +394,12 @@ def self_test() -> int:
     """
     all_passed = True
 
+    # Phase 21-15 (CR-05): every control below appends its own id from
+    # _CONTROL_IDS as the first statement of its block (before its condition
+    # is evaluated, so a control that raises still counts as executed) —
+    # floored against _CONTROL_IDS at the end of this function.
+    executed: list[str] = []
+
     # --- 4 classification fixtures ---
     for name, body, expected in [
         ("focused_premortem", _FIXTURE_ST_FOCUSED_PREMORTEM, "focused-pre-mortem"),
@@ -402,11 +408,13 @@ def self_test() -> int:
         ("none_with_dispatch_LOAD_BEARING", _FIXTURE_ST_NONE_WITH_DISPATCH, "full-composer"),
         ("none_without_dispatch", _FIXTURE_ST_NONE_NO_DISPATCH, "none"),
     ]:
+        executed.append(f"fixture-{name}")
         if not _run_one_fixture_step0(name, body, expected):
             all_passed = False
 
     # --- K>N rejection sub-test ---
     # --repeat 2 --min-pass 3 is invalid (3 > 2); _validate_kn must return exit code 2
+    executed.append("kn-rejection")
     try:
         rc = main(["--catalog", "/nonexistent", "--repeat", "2", "--min-pass", "3"])
     except SystemExit as e:
@@ -420,6 +428,7 @@ def self_test() -> int:
 
     # --- Catalog parse sub-test ---
     # Valid rows: parse succeeds and returns correct objects
+    executed.append("catalog-parse-valid")
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".md", delete=False, encoding="utf-8"
     ) as tf:
@@ -445,6 +454,7 @@ def self_test() -> int:
             pass
 
     # Verify unknown-mode detection causes sys.exit(non-zero)
+    executed.append("catalog-parse-unknown-mode")
     with tempfile.NamedTemporaryFile(
         mode="w", suffix=".md", delete=False, encoding="utf-8"
     ) as tf:
@@ -487,6 +497,7 @@ def self_test() -> int:
     ]
     _prows_ids_before = [r.id for r in _prows]  # snapshot for immutability check
     # With [] (flag present, no value) → uses DEFAULT_PRIORITY_IDS = (S-P04, S-P16) first
+    executed.append("priority-subset-reorder")
     _reordered = _apply_priority(_prows, [])
     _expected_order = ["S-P04", "S-P16", "S-P01", "S-P10"]
     _actual_order = [r.id for r in _reordered]
@@ -497,6 +508,7 @@ def self_test() -> int:
         )
         all_passed = False
     # With None → passthrough (unchanged order)
+    executed.append("priority-subset-none-passthrough")
     _passthrough = _apply_priority(_prows, None)
     _passthrough_order = [r.id for r in _passthrough]
     if _passthrough_order != _prows_ids_before:
@@ -506,6 +518,7 @@ def self_test() -> int:
         )
         all_passed = False
     # Input list must not be mutated by either call
+    executed.append("priority-subset-no-mutate")
     _prows_ids_after = [r.id for r in _prows]
     if _prows_ids_after != _prows_ids_before:
         print(
@@ -517,6 +530,7 @@ def self_test() -> int:
     # --- /8 tally drift guard (READY-03 / D-03) ---
     # Assert the 8-technique canonical tally count exactly, without naming any scrubbed ID.
     # A len mismatch means a technique was added or removed and this guard must be updated.
+    executed.append("tally-8-drift")
     if len(CANONICAL_TALLY_IDS) != 8:
         print(
             f"self-test FAIL: /8-tally drift — expected len(CANONICAL_TALLY_IDS)==8, got {len(CANONICAL_TALLY_IDS)}",
@@ -529,6 +543,7 @@ def self_test() -> int:
     #   1 × full-composer + 13 × focused-<technique> (including estimate + theoretical-limit,
     #   excluding the ninth technique removed in v7.5). If the count rises to 15 a scrubbed
     #   slug was re-introduced; if it falls below 14 an active technique was lost.
+    executed.append("known-modes-size-drift")
     if len(KNOWN_MODES) != 14:
         print(
             f"self-test FAIL: KNOWN_MODES size drift — expected 14, got {len(KNOWN_MODES)}",
@@ -540,6 +555,7 @@ def self_test() -> int:
     # Build a synthetic results list: all 8 canonical rows PASS + S-P16 FAILS.
     # Assert (a) _write_baseline writes without raising (CR-01 regression guard),
     # and (b) _battery_gate returns battery_pass=True (WR-01 regression guard).
+    executed.append("d01a-failing-sp16-firewall")
     _d01a_args = argparse.Namespace(repeat=5, min_pass=3)
     _d01a_canonical = [
         PromptResult(
@@ -601,6 +617,7 @@ def self_test() -> int:
     # --- D-01a firewall: failing S-N row does not crash _write_baseline (WR-04) ---
     # Build a synthetic results list: all 8 canonical rows PASS + S-N01 FAILS.
     # Assert _write_baseline writes without raising (WR-04 regression guard).
+    executed.append("d01a-failing-sn-firewall")
     _d01a_sn01 = PromptResult(
         prompt=Step0Prompt(id="S-N01", text="oblique prompt", expected="full-composer"),
         modes=["focused-pre-mortem"] * 5,   # over-routes — fails
@@ -641,6 +658,7 @@ def self_test() -> int:
     # S-N04 FAILS returns battery_pass=True (S-N04 is non-blocking); and
     # (b) the same set with S-N01 FAILS instead returns battery_pass=False
     # (S-N01 is a blocking oblique negative).
+    executed.append("non-block-neg")
     _nb_canonical = [
         PromptResult(
             prompt=Step0Prompt(id=cid, text="t", expected="focused-pre-mortem"),
@@ -686,6 +704,7 @@ def self_test() -> int:
     # Reads this file's own source and asserts the three scrubbed slugs are absent.
     # Tokens built by fragment concatenation so no forbidden literal appears verbatim;
     # any re-introduction would trip this guard and turn STEP0-06 red.
+    executed.append("scrubbed-slug-absence")
     _dca_label = "de" + "compose-absence"
     _own_src = Path(__file__).read_text(encoding="utf-8")
     for _tok in [
@@ -704,6 +723,7 @@ def self_test() -> int:
     # --- routing-count drift guard (READY-01 / D-02) ---
     # Asserts tests/routing-catalog.md parses to exactly 13 P / 20 N,
     # reusing the live check-routing.parse_catalog (no hand-rolled parser).
+    executed.append("routing-count-drift")
     _rcheck_path = Path(__file__).resolve().parent / "check-routing.py"
     _rcheck_spec = importlib.util.spec_from_file_location("_check_routing_module", _rcheck_path)
     _rcheck_mod = importlib.util.module_from_spec(_rcheck_spec)  # type: ignore[arg-type]
@@ -724,6 +744,7 @@ def self_test() -> int:
     # check is scoped to these three strings ONLY — the lineage prose legitimately
     # cites the prior v7.11 baseline as a comparison anchor, so a whole-file grep
     # for "v7.11" would produce false failures.
+    executed.append("v85-emitter-target")
     _v85_label = "v8.5-emitter-target"
     if _BASELINE_VERSION != "v8.5":
         print(
@@ -765,6 +786,7 @@ def self_test() -> int:
     # does NOT add any emitter machinery to the routing scripts (D-03).
     # The guard searches the routing files only (naturally safe; no fragment
     # concatenation needed since check-step0-live.py itself is never searched here).
+    executed.append("routing-emitter-absence")
     _rea_label = "routing-emitter-absence"
     _routing_scripts = [
         Path(__file__).resolve().parent / "check-routing.py",
@@ -794,6 +816,7 @@ def self_test() -> int:
     # non-None entry in _RR_ID_MAP. This prevents a catalog-grows-but-map-doesn't-update
     # regression from silently passing STEP0-06 while _write_baseline would crash
     # on a live run (the exact class of defect that CR-01 found in Phase 128).
+    executed.append("rr-id-coverage")
     _rr_cov_label = "rr-id-coverage"
     _rr_cov_catalog_path = REPO_ROOT / "tests" / "step0-fixture-catalog.md"
     try:
@@ -835,6 +858,7 @@ def self_test() -> int:
     # original bug: dict.get(key, default) returns None (not the default) when
     # the key is present with a JSON-null value, so .lower() on None raised
     # AttributeError — contradicting the function's documented no-raise contract.
+    executed.append("null-subagent-no-raise")
     _null_dispatch_line = json.dumps({
         "type": "assistant",
         "message": {
@@ -911,6 +935,7 @@ def self_test() -> int:
     # canonical tally denominator is the MEASURED count (/3), not a fixed /8.
     # Guards ONLY the denominator behavior — the full _write_baseline round-trip
     # is the D-03 won't-do item and is deliberately NOT tested here.
+    executed.append("reduced-run-denominator")
     _d07b_args = argparse.Namespace(repeat=5, min_pass=3)
     _d07b_reduced = [
         PromptResult(
@@ -1005,6 +1030,7 @@ def self_test() -> int:
     # itself, and the locked transport string must match _battery_core.py's
     # own LOCKED_TRANSPORT_ARGV_TEMPLATE — never a hand-retyped copy.
     # -----------------------------------------------------------------------
+    executed.append("describe")
     _desc = describe()
     if _desc["control_ids"] != list(_CONTROL_IDS):
         print(
@@ -1031,6 +1057,59 @@ def self_test() -> int:
         print(
             f"check-step0-live --self-test: describe()-consistency PASS "
             f"({len(_CONTROL_IDS)} controls)"
+        )
+
+    # (roster-floor-missing / roster-floor-extra) Negative arms (permanent
+    # registered controls, Phase 21-15, CR-05): prove
+    # `_step0_control_roster_problems` — the SAME helper the live floor below
+    # calls — actually fires on a synthetic mismatch and names the specific
+    # offending ids, in both directions. Driven against a synthetic
+    # executed/registered pair, never the real module roster, so these arms
+    # cannot corrupt the live floor they are proving.
+    executed.append("roster-floor-missing")
+    executed.append("roster-floor-extra")
+    _synthetic_registered = ("synthetic-a", "synthetic-b")
+    _synthetic_executed = ["synthetic-a", "synthetic-c"]
+    _synthetic_problems = _step0_control_roster_problems(_synthetic_executed, _synthetic_registered)
+    _synthetic_text = " ".join(_synthetic_problems)
+    if not _synthetic_problems:
+        print(
+            "self-test FAIL: (roster-floor-missing/extra) negative arms — "
+            "_step0_control_roster_problems did NOT fire on a synthetic mismatch",
+            file=sys.stderr,
+        )
+        all_passed = False
+    elif "synthetic-b" not in _synthetic_text or "synthetic-c" not in _synthetic_text:
+        print(
+            "self-test FAIL: (roster-floor-missing/extra) negative arms — fired but "
+            f"did not name both the missing and extra synthetic ids: {_synthetic_problems!r}",
+            file=sys.stderr,
+        )
+        all_passed = False
+    else:
+        print(
+            "check-step0-live --self-test: (roster-floor-missing/extra) negative "
+            f"arms PASS — fires and names both directions: {_synthetic_problems!r}"
+        )
+
+    # Executed-vs-registered floor (Phase 21-15, CR-05): _CONTROL_IDS is a
+    # second, independently-typed transcription of the control ids this
+    # function's controls append to `executed`. A control silently not
+    # running — deleted, or an `executed.append()` call removed — leaves its
+    # id absent from `executed`, which this floor catches BY NAME, in both
+    # directions in one run, rather than silently narrowing the published
+    # roster.
+    _roster_problems = _step0_control_roster_problems(executed, _CONTROL_IDS)
+    if _roster_problems:
+        print(
+            "self-test FAIL: control roster/executed floor — " + "; ".join(_roster_problems),
+            file=sys.stderr,
+        )
+        all_passed = False
+    else:
+        print(
+            f"check-step0-live --self-test: control roster/executed floor PASS — "
+            f"{len(executed)} controls executed, all registered in _CONTROL_IDS"
         )
 
     if all_passed:
@@ -1132,6 +1211,16 @@ DEFAULT_PRIORITY_IDS: tuple[str, ...] = ("S-P04", "S-P16")
 # check in the order self_test() runs them, plus the new describe()-consistency
 # control this plan adds — matches check-act-limb.py's/check-registration.py's
 # batch-B precedent (21-04-SUMMARY.md).
+#
+# Phase 21-15 (CR-05): this roster used to validate against itself — nothing
+# recorded which ids actually ran. `self_test()` now appends each control's
+# own id to a local `executed` list as its block's first statement (verified,
+# not assumed, to match this tuple's declared order), and
+# `_step0_control_roster_problems()` floors `set(executed) == set(_CONTROL_IDS)`
+# in both directions before the verdict. `roster-floor-missing` and
+# `roster-floor-extra` are permanent negative-arm controls proving that floor
+# fires, driven against a synthetic executed/registered pair through the SAME
+# helper the live floor calls.
 _CONTROL_IDS: tuple[str, ...] = (
     "fixture-focused_premortem",
     "fixture-full_composer_structural",
@@ -1156,7 +1245,33 @@ _CONTROL_IDS: tuple[str, ...] = (
     "null-subagent-no-raise",
     "reduced-run-denominator",
     "describe",
+    "roster-floor-missing",
+    "roster-floor-extra",
 )
+
+
+def _step0_control_roster_problems(
+    executed: list[str], registered: tuple[str, ...]
+) -> list[str]:
+    """Pure set-equality floor shared by `self_test()`'s live check and its
+    own negative arms (`roster-floor-missing`/`roster-floor-extra`), so the
+    arms exercise the SAME code the live floor uses rather than a
+    re-implementation.
+
+    Reports both directions in one message (D-04 lesson): a control
+    registered but never executed is named under `missing=`; a control that
+    executed but was never added to `_CONTROL_IDS` is named under `extra=`.
+    """
+    executed_set = set(executed)
+    registered_set = set(registered)
+    missing = registered_set - executed_set
+    extra = executed_set - registered_set
+    if missing or extra:
+        return [
+            f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
 
 # D-03/D-04 — _RR_ID_MAP carries the residual-tracking IDs for this v7.13
 # re-measure of Step 0 deferred residuals (Phase 137, cap-defensive — 3-row

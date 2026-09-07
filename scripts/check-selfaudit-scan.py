@@ -1526,6 +1526,16 @@ _VALIDATE_LEG_SYMBOLS: tuple[str, ...] = (
 # matching batch B's check-act-limb.py precedent — REQUIRED_BRANCHES itself
 # is explicitly NOT touched by this plan (its roster floor's two
 # independently-transcribed halves are load-bearing and read-only here).
+#
+# Phase 21-15 (CR-05): this roster used to validate against itself (the
+# describe-consistency control above compared `describe()` to this SAME
+# constant). `_run_self_test()` now appends each meta-control's own id to a
+# local `executed` list as its block's first action, and
+# `_selfaudit_meta_floor_problems()` floors `set(executed) ==
+# set(_META_CONTROL_IDS)` in both directions before the verdict.
+# `roster-floor-missing` and `roster-floor-extra` are permanent negative-arm
+# controls proving that floor fires, driven against a synthetic
+# executed/registered pair through the SAME helper the live floor calls.
 _META_CONTROL_IDS: tuple[str, ...] = (
     "roster-census",
     "roster-lock",
@@ -1537,7 +1547,34 @@ _META_CONTROL_IDS: tuple[str, ...] = (
     "live-dispatch",
     "live-dispatch-census",
     "describe",
+    "roster-floor-missing",
+    "roster-floor-extra",
 )
+
+
+def _selfaudit_meta_floor_problems(
+    executed: list[str], registered: tuple[str, ...]
+) -> list[str]:
+    """Pure set-equality floor shared by `_run_self_test()`'s live check and
+    its own negative arms (`roster-floor-missing`/`roster-floor-extra`), so
+    the arms exercise the SAME code the live floor uses rather than a
+    re-implementation.
+
+    Reports both directions in one message (D-04 lesson): a control
+    registered but never executed is named under `missing=`; a control that
+    executed but was never added to `_META_CONTROL_IDS` is named under
+    `extra=`.
+    """
+    executed_set = set(executed)
+    registered_set = set(registered)
+    missing = registered_set - executed_set
+    extra = executed_set - registered_set
+    if missing or extra:
+        return [
+            f"control roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
 
 REQUIRED_BRANCHES: frozenset[str] = frozenset(
     {
@@ -1825,6 +1862,15 @@ def _run_self_test() -> int:
 
     problems: list[str] = []
     covered_branches: set[str] = set()
+
+    # Phase 21-15 (CR-05): every meta-control below appends its own id from
+    # _META_CONTROL_IDS to this list as its block's first action — floored
+    # against _META_CONTROL_IDS at the end of this function via
+    # `_selfaudit_meta_floor_problems()`, in both directions.
+    # REQUIRED_BRANCHES/_BRANCH_ROSTER_LOCK's own fixture battery (below,
+    # via `_check_negative`) is a separate, pre-existing, read-only floor
+    # and is NOT tracked in this list.
+    executed: list[str] = []
 
     def _check_negative(
         label: str,
@@ -3213,6 +3259,7 @@ def _run_self_test() -> int:
     # THE FLOOR ITSELF (WR-02, `15-REVIEW.md`): roster-equality plus
     # coverage-subset, routed through `_roster_problems` so the isolation
     # arms below drive the exact code path this real call uses.
+    executed.append("roster-lock")
     roster_real_problems = _roster_problems(
         REQUIRED_BRANCHES, _BRANCH_ROSTER_LOCK, frozenset(covered_branches)
     )
@@ -3259,6 +3306,7 @@ def _run_self_test() -> int:
     # whose only real call is deleted must fail the gate by name, not merely
     # pass because the isolation arms above still exercise the helper in
     # isolation. Counts THE FLOOR ITSELF plus the three isolation arms.
+    executed.append("roster-census")
     roster_call_pattern = "_roster_problems" + "("
     roster_call_count = inspect.getsource(_run_self_test).count(roster_call_pattern)
     if roster_call_count != 4:
@@ -3308,6 +3356,7 @@ def _run_self_test() -> int:
     # OWN declaration and pass vacuously regardless of what the real call
     # site three lines above actually reads — observed live while
     # developing this control, fixed before landing.
+    executed.append("roster-entry-source")
     roster_entry_source_expected = (
         "REQUIRED_BRANCHES" + ", " + "_BRANCH_ROSTER_LOCK" + ", "
         + "frozenset(covered_branches)"
@@ -3371,6 +3420,7 @@ def _run_self_test() -> int:
     # the three isolation arms above, so deleting the real call leaves this
     # census red rather than the battery silently staying green with the
     # exact defect the lock exists to catch restored.
+    executed.append("roster-es-census")
     roster_es_call_pattern = "_entry_source_problems" + "("
     roster_es_call_count = inspect.getsource(_run_self_test).count(roster_es_call_pattern)
     if roster_es_call_count != 4:
@@ -3424,6 +3474,7 @@ def _run_self_test() -> int:
     # `--self-test` silently green (T-15-18). Each search pattern is built
     # by concatenating the symbol name with `"("`, matching the roster
     # census's own convention.
+    executed.append("validate-census")
     _validate_files_src = inspect.getsource(_validate_files)
     _validate_census_ok = True
     for _leg_symbol in _VALIDATE_LEG_SYMBOLS:
@@ -3451,6 +3502,7 @@ def _run_self_test() -> int:
     # sites in `_run_self_test`'s OWN source against the number of isolation
     # arms added above (2), in the same shape as the roster census, so
     # deleting an isolation arm fails by name.
+    executed.append("live-census")
     _live_call_pattern = "_live_exit_code" + "("
     _live_call_count = inspect.getsource(_run_self_test).count(_live_call_pattern)
     if _live_call_count != 2:
@@ -3484,6 +3536,7 @@ def _run_self_test() -> int:
     # Dispatch-reachability control: re-enter main(["--self-test"]) in-process
     # to prove the CLI layer reaches this block, not merely that
     # _run_self_test() is correct when called directly.
+    executed.append("dispatch")
     this_module = sys.modules[__name__]
     if not this_module._SCANGUARD_DISPATCH_REENTRANT:
         this_module._SCANGUARD_DISPATCH_REENTRANT = True
@@ -3530,6 +3583,7 @@ def _run_self_test() -> int:
     # coverage from any control. Unlike the `--self-test` dispatch control
     # above, `main([])` calls `_validate_files()`, not `_run_self_test()`,
     # so it never re-enters this function and needs no reentrancy sentinel.
+    executed.append("live-dispatch")
     live_dispatch_out, live_dispatch_err = io.StringIO(), io.StringIO()
     try:
         with contextlib.redirect_stdout(live_dispatch_out), contextlib.redirect_stderr(
@@ -3573,6 +3627,7 @@ def _run_self_test() -> int:
     # this one floors what the control asserts; this one floors that the
     # control itself still exists. Pattern built from two concatenated
     # halves so this line's own source never self-matches.
+    executed.append("live-dispatch-census")
     _live_dispatch_call_pattern = "live_dispatch_rc = main(" + "[])"
     _live_dispatch_call_count = inspect.getsource(_run_self_test).count(
         _live_dispatch_call_pattern
@@ -3593,12 +3648,61 @@ def _run_self_test() -> int:
             f"({_live_dispatch_call_count} call site)"
         )
 
+    # (roster-floor-missing / roster-floor-extra) Negative arms (permanent
+    # registered controls, Phase 21-15, CR-05): prove
+    # `_selfaudit_meta_floor_problems` — the SAME helper the live floor
+    # below calls — actually fires on a synthetic mismatch and names the
+    # specific offending ids, in both directions. Driven against a synthetic
+    # executed/registered pair, never the real module roster, so these arms
+    # cannot corrupt the live floor they are proving. Runs BEFORE the
+    # (describe) control below so `executed` already carries all
+    # non-describe ids by the time describe()'s own comparison reads it.
+    executed.append("roster-floor-missing")
+    executed.append("roster-floor-extra")
+    _synthetic_registered = ("synthetic-a", "synthetic-b")
+    _synthetic_executed = ["synthetic-a", "synthetic-c"]
+    _synthetic_problems = _selfaudit_meta_floor_problems(
+        _synthetic_executed, _synthetic_registered
+    )
+    _synthetic_text = " ".join(_synthetic_problems)
+    if not _synthetic_problems:
+        print(
+            "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — "
+            "_selfaudit_meta_floor_problems did NOT fire on a synthetic mismatch"
+        )
+        problems.append("(roster-floor-missing/extra): floor did not fire on synthetic mismatch")
+    elif "synthetic-b" not in _synthetic_text or "synthetic-c" not in _synthetic_text:
+        print(
+            "(roster-floor-missing/extra) negative arms: WRONGLY FAILED — fired but "
+            f"did not name both the missing and extra synthetic ids: {_synthetic_problems!r}"
+        )
+        problems.append("(roster-floor-missing/extra): floor did not name both directions")
+    else:
+        print(
+            "(roster-floor-missing/extra) negative arms: PASS — fires and names "
+            f"both directions: {_synthetic_problems!r}"
+        )
+
     # (describe) describe()-consistency control (D-03, plan 21-05): the
     # module-level constants --describe reads must agree with the live
     # REQUIRED_BRANCHES/_VALIDATE_LEG_SYMBOLS/_META_CONTROL_IDS/_BAND_BULLETS
     # this self-test just exercised. Deliberately NOT a REQUIRED_BRANCHES
     # entry — it lives alongside (dispatch)/(live-dispatch) in
     # _META_CONTROL_IDS, the self-test's infrastructure-control roster.
+    #
+    # Phase 21-15 (CR-05): the control_ids/control_count comparison below
+    # used to compare `describe()` against `_META_CONTROL_IDS` — the SAME
+    # constant `describe()` itself reads — which is a tautology, not a
+    # check (CR-05's own finding). It now compares against `executed`, the
+    # ids this self-test run actually reached, so a control silently
+    # removed from _META_CONTROL_IDS or from the roster this run exercised
+    # is caught here too, independent of the separate roster floor below.
+    # This is the LAST control to append (its own id, "describe") before the
+    # comparison runs, so `executed` is complete (all other 11 ids already
+    # appended, including the two negative arms above) by the time
+    # `_desc["control_count"]` (== len(_META_CONTROL_IDS) == 12) is compared
+    # against `len(executed)`.
+    executed.append("describe")
     _desc = describe()
     if _desc["branch_roster"] != sorted(REQUIRED_BRANCHES):
         problems.append("(describe): branch_roster disagrees with REQUIRED_BRANCHES")
@@ -3606,16 +3710,34 @@ def _run_self_test() -> int:
         problems.append("(describe): branch_count disagrees with len(REQUIRED_BRANCHES)")
     elif _desc["call_site_census"] != {symbol: 1 for symbol in _VALIDATE_LEG_SYMBOLS}:
         problems.append("(describe): call_site_census disagrees with _VALIDATE_LEG_SYMBOLS")
-    elif _desc["control_ids"] != list(_META_CONTROL_IDS):
-        problems.append("(describe): control_ids disagrees with _META_CONTROL_IDS")
-    elif _desc["control_count"] != len(_META_CONTROL_IDS):
-        problems.append("(describe): control_count disagrees with len(_META_CONTROL_IDS)")
+    elif set(_desc["control_ids"]) != set(executed):
+        problems.append("(describe): control_ids disagrees with executed controls")
+    elif _desc["control_count"] != len(executed):
+        problems.append("(describe): control_count disagrees with len(executed)")
     elif _desc["locked_constants"]["band_bullets"] != " | ".join(_BAND_BULLETS):
         problems.append("(describe): band_bullets disagrees with _BAND_BULLETS")
     else:
         print(
             f"(describe) describe()-consistency: PASS "
-            f"({len(REQUIRED_BRANCHES)} branches, {len(_META_CONTROL_IDS)} meta-controls)"
+            f"({len(REQUIRED_BRANCHES)} branches, {len(executed)} meta-controls "
+            "executed, agreeing with control_ids)"
+        )
+
+    # Executed-vs-registered floor (Phase 21-15, CR-05): _META_CONTROL_IDS is
+    # a second, independently-typed transcription of the meta-control ids
+    # this function's controls append to `executed`. A control silently not
+    # running — deleted, or an `executed.append()` call removed — leaves its
+    # id absent from `executed`, which this floor catches BY NAME, in both
+    # directions in one run, rather than silently narrowing the published
+    # roster.
+    _meta_roster_problems = _selfaudit_meta_floor_problems(executed, _META_CONTROL_IDS)
+    if _meta_roster_problems:
+        problems.extend(_meta_roster_problems)
+        print("control roster/executed floor: FAIL — " + "; ".join(_meta_roster_problems))
+    else:
+        print(
+            f"control roster/executed floor: PASS — {len(executed)} meta-controls "
+            "executed, all registered in _META_CONTROL_IDS"
         )
 
     if problems:

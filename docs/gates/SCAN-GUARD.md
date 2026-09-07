@@ -7,8 +7,8 @@
 - `branch_count`: `100`
 - `registered_surfaces` (2): `first-principles/agents/first-principles.md`, `first-principles/agents/references/validation-rubric.md`
 - `call_site_census` (4 entries): `_check_body_text`=1, `_check_cross_surface`=1, `_check_rubric_text`=1, `_live_exit_code`=1
-- `control_ids` (10): `roster-census`, `roster-lock`, `roster-entry-source`, `roster-es-census`, `validate-census`, `live-census`, `dispatch`, `live-dispatch`, `live-dispatch-census`, `describe`
-- `control_count`: `10`
+- `control_ids` (12): `roster-census`, `roster-lock`, `roster-entry-source`, `roster-es-census`, `validate-census`, `live-census`, `dispatch`, `live-dispatch`, `live-dispatch-census`, `describe`, `roster-floor-missing`, `roster-floor-extra`
+- `control_count`: `12`
 - `locked_constants` (1 entries): `band_bullets`='- **Rigorous** | - **Sound** | - **Hand-wavy** | - **Absent**'
 <!-- END GENERATED:FACTS -->
 

@@ -73,6 +73,40 @@ SEMGATE02_OVERLAP_PAIRS: tuple[tuple[str, str], ...] = (
     ("S-A11", "pre-mortem vs. trade-off"),
 )
 
+# Phase 21-15 (CR-05): this roster used to validate against itself —
+# `describe()` fed BOTH `derived_counts.semgate02_pair_count` and
+# `disclosed_bounds_anchors` from it, and nothing recorded which pair ids
+# actually ran. Each of Category 7's six pair blocks now appends its own
+# S-AXX id to a local `executed_pairs` list as its block's first action, and
+# `_semgate02_pair_problems()` floors `set(executed_pairs) ==
+# {pair_id for pair_id, _ in SEMGATE02_OVERLAP_PAIRS}` in both directions
+# before the verdict — a negative arm drives the same helper with a
+# synthetic pair id set, never SEMGATE02_OVERLAP_PAIRS itself (adding a
+# fabricated entry there would corrupt the real published pair count/
+# disclosed-bounds roster, not merely test the floor).
+
+
+def _semgate02_pair_problems(
+    executed: set[str], registered: set[str]
+) -> list[str]:
+    """Pure set-equality floor shared by `_run_self_test()`'s live check and
+    its own negative arm, so the arm exercises the SAME code the live floor
+    uses rather than a re-implementation.
+
+    Reports both directions in one message (D-04 lesson): a pair id
+    registered but never executed is named under `missing=`; a pair id
+    that executed but was never added to `SEMGATE02_OVERLAP_PAIRS` is named
+    under `extra=`.
+    """
+    missing = registered - executed
+    extra = executed - registered
+    if missing or extra:
+        return [
+            f"SEMGATE-02 pair roster/executed mismatch: missing={sorted(missing)} "
+            f"extra={sorted(extra)}"
+        ]
+    return []
+
 
 # ---------------------------------------------------------------------------
 # Table parsing helpers
@@ -381,6 +415,12 @@ def _run_self_test() -> None:
     Pitfall 3: fault-injection fixtures use hardcoded malformed strings, NOT the live file.
     """
     wrong: list[str] = []
+
+    # Phase 21-15 (CR-05): Category 7's six pair blocks below each append
+    # their own S-AXX id to this list as their block's first action —
+    # floored against SEMGATE02_OVERLAP_PAIRS at the end of Category 7 via
+    # `_semgate02_pair_problems()`, in both directions.
+    executed_pairs: list[str] = []
 
     # -----------------------------------------------------------------------
     # Category 1: D-05 fault-injection fixtures (hardcoded malformed strings)
@@ -1052,6 +1092,7 @@ def _run_self_test() -> None:
     # Drift guard: hardcoded absorbed-decompose↔five-whys literal must still match
     # the live catalog S-A01 row, OR the row must be absent (deletion is the
     # survivable case — the hardcoded literal is what gets classified below).
+    executed_pairs.append("S-A01")
     _sa01_catalog_prompt = next(
         (p for rid, p, _ in fixtures if rid == "S-A01"), None
     )
@@ -1068,6 +1109,7 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded theoretical-limit↔inversion literal must still match
     # the live catalog S-A03 row, OR the row must be absent.
+    executed_pairs.append("S-A03")
     _sa03_catalog_prompt = next(
         (p for rid, p, _ in fixtures if rid == "S-A03"), None
     )
@@ -1084,6 +1126,7 @@ def _run_self_test() -> None:
 
     # Drift guard: hardcoded inversion↔pre-mortem literal must still match the live
     # catalog S-A05 row, OR the row must be absent.
+    executed_pairs.append("S-A05")
     _sa05_catalog_prompt = next(
         (p for rid, p, _ in fixtures if rid == "S-A05"), None
     )
@@ -1177,6 +1220,7 @@ def _run_self_test() -> None:
     )
 
     for _row_id, _prompt, _expected, _pair_label, _hint in _SEMGATE07_CAP1_PAIRS:
+        executed_pairs.append(_row_id)
         _catalog_prompt = next((p for rid, p, _ in fixtures if rid == _row_id), None)
         if _catalog_prompt is not None and _catalog_prompt != _prompt:
             print(
@@ -1722,21 +1766,84 @@ def _run_self_test() -> None:
     # module-level constants --describe reads must agree with the live
     # KNOWN_TECHNIQUES / SEMGATE02_OVERLAP_PAIRS this self-test just
     # exercised via its Category 7 SEMGATE-07 fixtures.
+    #
+    # Phase 21-15 (CR-05): the semgate02_pair_count/disclosed_bounds_anchors
+    # comparison below used to compare `describe()` against
+    # `SEMGATE02_OVERLAP_PAIRS` — the SAME constant `describe()` itself
+    # reads — which is a tautology, not a check. It now compares against
+    # `executed_pairs`, the pair ids Category 7 actually ran.
     # -----------------------------------------------------------------------
     _desc = describe()
     if _desc["derived_counts"]["known_technique_count"] != len(KNOWN_TECHNIQUES):
         wrong.append(
             f"(describe): known_technique_count disagrees with KNOWN_TECHNIQUES: {_desc}"
         )
-    elif _desc["derived_counts"]["semgate02_pair_count"] != len(SEMGATE02_OVERLAP_PAIRS):
+    elif _desc["derived_counts"]["semgate02_pair_count"] != len(executed_pairs):
         wrong.append(
-            f"(describe): semgate02_pair_count disagrees with SEMGATE02_OVERLAP_PAIRS: {_desc}"
+            f"(describe): semgate02_pair_count disagrees with executed pairs: {_desc}"
+        )
+    elif set(_desc["disclosed_bounds_anchors"]) != set(executed_pairs):
+        wrong.append(
+            f"(describe): disclosed_bounds_anchors disagrees with executed pairs: {_desc}"
         )
     else:
         print(
             "check-step0-emulator --self-test: describe()-consistency PASS "
             f"({_desc['derived_counts']['known_technique_count']} techniques, "
-            f"{_desc['derived_counts']['semgate02_pair_count']} SEMGATE-02 pairs)"
+            f"{_desc['derived_counts']['semgate02_pair_count']} SEMGATE-02 pairs, "
+            "agreeing with executed pairs)"
+        )
+
+    # -----------------------------------------------------------------------
+    # (SEMGATE02-floor / SEMGATE02-floor-negative) Executed-vs-registered
+    # floor for Category 7's six pair blocks (Phase 21-15, CR-05):
+    # SEMGATE02_OVERLAP_PAIRS is a second, independently-typed transcription
+    # of the pair ids the six blocks above append to `executed_pairs`. A
+    # block silently not running — deleted, or its
+    # `executed_pairs.append()` call removed — leaves its id absent from
+    # `executed_pairs`, which this floor catches BY NAME, in both
+    # directions in one run, rather than silently narrowing the published
+    # roster. The negative arm below is a permanent registered control
+    # proving the floor fires, driven against a synthetic pair-id set —
+    # never SEMGATE02_OVERLAP_PAIRS itself.
+    # -----------------------------------------------------------------------
+    _semgate02_registered_ids = {pair_id for pair_id, _ in SEMGATE02_OVERLAP_PAIRS}
+    _semgate02_floor_problems = _semgate02_pair_problems(
+        set(executed_pairs), _semgate02_registered_ids
+    )
+    if _semgate02_floor_problems:
+        wrong.extend(_semgate02_floor_problems)
+        print("check-step0-emulator --self-test: SEMGATE02-floor FAIL — " + "; ".join(
+            _semgate02_floor_problems
+        ))
+    else:
+        print(
+            f"check-step0-emulator --self-test: SEMGATE02-floor PASS — "
+            f"{len(executed_pairs)} pairs executed, all registered in SEMGATE02_OVERLAP_PAIRS"
+        )
+
+    _semgate02_synthetic_registered = {"synthetic-a", "synthetic-b"}
+    _semgate02_synthetic_executed = {"synthetic-a", "synthetic-c"}
+    _semgate02_synthetic_problems = _semgate02_pair_problems(
+        _semgate02_synthetic_executed, _semgate02_synthetic_registered
+    )
+    _semgate02_synthetic_text = " ".join(_semgate02_synthetic_problems)
+    if not _semgate02_synthetic_problems:
+        print(
+            "check-step0-emulator --self-test: SEMGATE02-floor-negative WRONGLY "
+            "PASSED — _semgate02_pair_problems did NOT fire on a synthetic mismatch"
+        )
+        wrong.append("SEMGATE02-floor-negative (floor did not fire on synthetic mismatch)")
+    elif "synthetic-b" not in _semgate02_synthetic_text or "synthetic-c" not in _semgate02_synthetic_text:
+        print(
+            "check-step0-emulator --self-test: SEMGATE02-floor-negative WRONGLY "
+            f"FAILED — fired but did not name both synthetic ids: {_semgate02_synthetic_problems!r}"
+        )
+        wrong.append("SEMGATE02-floor-negative (floor did not name both directions)")
+    else:
+        print(
+            "check-step0-emulator --self-test: SEMGATE02-floor-negative PASS — "
+            f"fires and names both directions: {_semgate02_synthetic_problems!r}"
         )
 
     # -----------------------------------------------------------------------
