@@ -5,10 +5,10 @@
 
 - `registered_surfaces` (30): `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/COMPONENT-DIAGRAM.md`, `docs/DATA-FLOW.md`, `docs/MEASUREMENT-MAP.md`, `docs/README.md`, `docs/TESTING.md`, `docs/gates/*.md`, `scripts/check-act-limb.py`, `scripts/check-agent.py`, `scripts/check-conf-gate.py`, `scripts/check-description-budget.py`, `scripts/check-focused-parity.py`, `scripts/check-high-confidence-bound.py`, `scripts/check-install-collisions.py`, `scripts/check-links.py`, `scripts/check-loop-closure.py`, `scripts/check-provenance.py`, `scripts/check-quality-harness.py`, `scripts/check-registration.py`, `scripts/check-routing-battery.py`, `scripts/check-selfaudit-scan.py`, `scripts/check-step0-emulator.py`, `scripts/check-step0-live.py`, `scripts/check-traceability.py`, `scripts/check-trigger-collisions.py`, `scripts/check-version-stamps.py`, `scripts/gen-gate-docs.py`, `scripts/report-conformance.py`, `scripts/sync-content.py`
 - `checked_files` (60): `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/COMPONENT-DIAGRAM.md`, `docs/DATA-FLOW.md`, `docs/MEASUREMENT-MAP.md`, `docs/README.md`, `docs/TESTING.md`, `docs/gates/BATT-06.md`, `docs/gates/COLLIDE-01.md`, `docs/gates/CONF-GATE.md`, `docs/gates/CONF-SURFACE.md`, `docs/gates/DUAL-04.md`, `docs/gates/FROZEN-EVIDENCE.md`, `docs/gates/GATE-01.md`, `docs/gates/GATE-02-v8.5.md`, `docs/gates/HARN-01.md`, `docs/gates/HARN-02.md`, `docs/gates/HARN-03.md`, `docs/gates/HC-BOUND.md`, `docs/gates/INVARIANT-CHECK.md`, `docs/gates/PRECOMMIT-claim-surface-drift-gate.md`, `docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`, `docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`, `docs/gates/PRECOMMIT-conformance-generator-self-test.md`, `docs/gates/PRECOMMIT-sync-drift-gate.md`, `docs/gates/PROV-GUARD.md`, `docs/gates/QUAL-01.md`, `docs/gates/REG-GUARD.md`, `docs/gates/SCAN-GUARD.md`, `docs/gates/STEP0-06.md`, `docs/gates/STEP0-08.md`, `docs/gates/TRACE-03.md`, `docs/gates/VAL-01.md`, `docs/gates/VAL-02.md`, `docs/gates/VAL-03.md`, `docs/gates/VAL-04.md`, `docs/gates/VAL-05.md`, `docs/gates/VERSION-01.md`, `scripts/check-act-limb.py`, `scripts/check-agent.py`, `scripts/check-conf-gate.py`, `scripts/check-description-budget.py`, `scripts/check-focused-parity.py`, `scripts/check-high-confidence-bound.py`, `scripts/check-install-collisions.py`, `scripts/check-links.py`, `scripts/check-loop-closure.py`, `scripts/check-provenance.py`, `scripts/check-quality-harness.py`, `scripts/check-registration.py`, `scripts/check-routing-battery.py`, `scripts/check-selfaudit-scan.py`, `scripts/check-step0-emulator.py`, `scripts/check-step0-live.py`, `scripts/check-traceability.py`, `scripts/check-trigger-collisions.py`, `scripts/check-version-stamps.py`, `scripts/gen-gate-docs.py`, `scripts/report-conformance.py`, `scripts/sync-content.py`
-- `derived_counts` (12 entries): `literal_scan_exempt_commonmark-heading-depth`=0, `literal_scan_exempt_deferred-remediation`=139, `literal_scan_exempt_headline-provenance-delta`=11, `literal_scan_exempt_maxturns-60-value`=0, `literal_scan_exempt_plan-number-identifier`=3, `literal_scan_exempt_retired-body-budget`=1, `literal_scan_exempt_sha256-digest`=1, `literal_scan_exempt_version-stamp-count`=3, `literal_scan_hits`=158, `literal_scan_non_exempt`=0, `literal_scan_read_files`=60, `literal_scan_surfaces`=30
-- `disclosed_bounds_anchors` (5): `line-scoped-detection`, `currency-not-correctness`, `closed-spelled-out-vocabulary`, `py-docstrings-only`, `deferred-remediation-is-budget-driven`
-- `control_ids` (53): `arithmetic-sentence-names-gates-not-hooks`, `arithmetic-sentence-pluralizes-correctly`, `check-dispatch-wired`, `check-reports-full-drift-count`, `containment-satisfied-passes`, `containment-spelled-out-normalised`, `containment-violation-fires`, `describe-emits-parseable-json`, `floors-run-together`, `framing-sentences-replaced`, `frozen-path-write-fires`, `frozen-paths-derived-not-typed`, `gates-link-resolves-per-surface`, `harvest-malformed-json-named`, `harvest-nonzero-exit-named`, `harvest-one-bad-does-not-abort`, `hook-mechanism-count-independent-of-precommit-count`, `narrative-preserved-across-regeneration`, `no-row-wrapped`, `nondeterminism-exit-2`, `one-renderer-two-surfaces`, `page-per-entry`, `population-arithmetic-derived`, `region-duplicate-end-raises`, `region-duplicate-start-raises`, `region-end-before-start-raises`, `region-happy-path`, `region-marker-in-fence-ignored`, `region-preserves-crlf`, `region-preserves-final-newline`, `region-preserves-surrounding-prose`, `region-real-file-claude-md`, `region-tilde-fence-quoting-backticks`, `region-zero-end-raises`, `region-zero-start-raises`, `registry-self-test`, `row-count-equals-entries`, `scan-coverage-floor-fires`, `scan-coverage-floor-signature-locked`, `scan-docstring-only`, `scan-exempt-class-attributed`, `scan-glob-narrowing-fires`, `scan-hit-inside-fence-passes`, `scan-hit-outside-fence-fires`, `scan-neutralization-arms`, `scan-spelled-out-detected`, `scan-unattributable-permit-fires`, `slug-collision-raises`, `testing-index-links-resolve`, `testing-index-row-count-equals-entries`, `testing-real-file-region`, `thin-page-fully-generated`, `trace03-glob-substring-derived`
-- `control_count`: `53`
+- `derived_counts` (16 entries): `literal_scan_exempt_commonmark-heading-depth`=0, `literal_scan_exempt_deferred-literal-ledger`=139, `literal_scan_exempt_headline-provenance-delta`=11, `literal_scan_exempt_maxturns-60-value`=0, `literal_scan_exempt_plan-number-identifier`=3, `literal_scan_exempt_retired-body-budget`=1, `literal_scan_exempt_sha256-digest`=1, `literal_scan_exempt_version-stamp-count`=3, `literal_scan_hits`=158, `literal_scan_ledger_adjudicated`=21, `literal_scan_ledger_entries`=135, `literal_scan_ledger_max`=135, `literal_scan_ledger_mechanical`=114, `literal_scan_non_exempt`=0, `literal_scan_read_files`=60, `literal_scan_surfaces`=30
+- `disclosed_bounds_anchors` (7): `line-scoped-detection`, `currency-not-correctness`, `closed-spelled-out-vocabulary`, `py-docstrings-only`, `enumerated-per-hit-ledger`, `ledger-ratchet-may-shrink-never-grow`, `non-primary-entries-pinned-mechanically`
+- `control_ids` (61): `arithmetic-sentence-names-gates-not-hooks`, `arithmetic-sentence-pluralizes-correctly`, `check-dispatch-wired`, `check-reports-full-drift-count`, `containment-satisfied-passes`, `containment-spelled-out-normalised`, `containment-violation-fires`, `describe-emits-parseable-json`, `floors-run-together`, `framing-sentences-replaced`, `frozen-path-write-fires`, `frozen-paths-derived-not-typed`, `gates-link-resolves-per-surface`, `harvest-malformed-json-named`, `harvest-nonzero-exit-named`, `harvest-one-bad-does-not-abort`, `hook-mechanism-count-independent-of-precommit-count`, `ledger-injection-architecture-fires`, `ledger-injection-claude-md-fires`, `ledger-injection-testing-fires`, `ledger-not-an-unconditional-permit`, `ledger-occurrence-surplus-fires`, `ledger-ratchet-allows-shrink`, `ledger-ratchet-fires`, `ledger-staleness-fires`, `narrative-preserved-across-regeneration`, `no-row-wrapped`, `nondeterminism-exit-2`, `one-renderer-two-surfaces`, `page-per-entry`, `population-arithmetic-derived`, `region-duplicate-end-raises`, `region-duplicate-start-raises`, `region-end-before-start-raises`, `region-happy-path`, `region-marker-in-fence-ignored`, `region-preserves-crlf`, `region-preserves-final-newline`, `region-preserves-surrounding-prose`, `region-real-file-claude-md`, `region-tilde-fence-quoting-backticks`, `region-zero-end-raises`, `region-zero-start-raises`, `registry-self-test`, `row-count-equals-entries`, `scan-coverage-floor-fires`, `scan-coverage-floor-signature-locked`, `scan-docstring-only`, `scan-exempt-class-attributed`, `scan-glob-narrowing-fires`, `scan-hit-inside-fence-passes`, `scan-hit-outside-fence-fires`, `scan-neutralization-arms`, `scan-spelled-out-detected`, `scan-unattributable-permit-fires`, `slug-collision-raises`, `testing-index-links-resolve`, `testing-index-row-count-equals-entries`, `testing-real-file-region`, `thin-page-fully-generated`, `trace03-glob-substring-derived`
+- `control_count`: `61`
 - `locked_constants` (2 entries): `generated_end_marker`='<!-- END GENERATED -->', `generated_marker`='<!-- GENERATED — DO NOT EDIT. Source: {source}. Regenerate via: scripts/gen-gate-docs.py --write. -->'
 <!-- END GENERATED:FACTS -->
 
@@ -89,20 +89,44 @@ figures as a bare digit outside the fence). Plan 21-10 drove
 `literal_scan_non_exempt` to **0** — the exemption-class breakdown
 (version stamps, headline-provenance deltas, plan-number identifiers, the
 retired body budget, the pinned `maxTurns` value, sha256 digests, the
-CommonMark heading-depth range, and `deferred-remediation`) sits in the
-Facts fence above, each keyed `literal_scan_exempt_<class-name>`.
+CommonMark heading-depth range, and `deferred-literal-ledger`, described
+below) sits in the Facts fence above, each keyed
+`literal_scan_exempt_<class-name>`.
 
-**(5) `deferred-remediation` is a budget-driven whole-surface deferral, not
-a content-based exemption.** Plan 21-10's Task 3 inherited a non-exempt-hit
-count and a file count both far beyond the task's own ~15-item/6-file
-working budget (see the Facts fence above for the exact reading before
-this class existed: `21-CONF13-BASELINE.md`'s "Plan 21-10 disposition
-ledger" section states it directly). It hand-remediated every item on the
-surfaces its own scope named (`docs/COMPONENT-DIAGRAM.md`,
-`docs/MEASUREMENT-MAP.md`, `docs/DATA-FLOW.md`, `docs/README.md`), and
-deferred the rest as three coherent groups, each under its own numbered
-backlog id, each matched by relpath (never by hit text) in
-`scripts/gen-gate-docs.py`'s `_DEFERRED_REMEDIATION_SURFACES`:
+**(5) The deferred-literal-ledger is an enumerated PER-HIT permit, not a
+whole-surface deferral.** Plan 21-10's Task 3 whole-surface-exempted a
+registered surface by `hit.relpath` alone — every hit on that surface was
+permitted regardless of what its text said, including `CLAUDE.md`,
+`docs/ARCHITECTURE.md` and `docs/TESTING.md`, the surfaces this scanner
+exists to protect. That structural zero survived a genuinely wrong
+docs/TESTING.md sentence this same phase shipped, undercounting the real
+pre-commit-gate count — the scanner saw it and permitted it (the exact
+wording is recorded in plan 21-16's own SUMMARY, not restated here). Plan
+21-16 replaced it with `scripts/gen-gate-docs.py`'s
+`_DEFERRED_LITERAL_HITS`, keyed by `(relpath, normalised_text)`: a hit on a
+registered surface that is NOT in the ledger is a finding regardless of
+which surface it sits on, and a ledgered key's LIVE occurrence count
+exceeding its pinned figure is also a finding — the same exact sentence
+copied to a second place is a new finding, not a free ride on the existing
+entry. Permanent registered controls (`ledger-injection-claude-md-fires`,
+`ledger-injection-architecture-fires`, `ledger-injection-testing-fires`)
+each inject a synthetic count literal into a single primary surface and
+assert it is caught.
+
+**What this ledger does NOT certify: that every pinned entry's number is
+itself correct.** The entries on the primary surfaces (`CLAUDE.md`,
+`docs/ARCHITECTURE.md`, `docs/TESTING.md` — backlog `999.42`,
+`literal_scan_ledger_adjudicated`=21 in the Facts fence above) were
+adjudicated BY HAND, one at a time: most were confirmed
+CORRECT-BUT-HAND-MAINTAINED (a currently-true fact nothing derives) and
+the rest named NOT-A-COUNT (a false positive of the adjacency heuristic —
+an enumerated-list marker, a per-item ratio statement, or a correct number
+attached to the wrong noun); the per-entry adjudication table, with its
+disposition counts, is recorded in plan 21-16's own SUMMARY. The remaining
+entries (`literal_scan_ledger_mechanical`=114 in the Facts fence above)
+were pinned MECHANICALLY from a live scan, without per-entry adjudication
+— a real reduction in what this ledger certifies, stated here rather than
+left implicit:
 
 - **backlog `999.40`** — the `docs/gates/*.md` narrative pages
   (`QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`,
@@ -117,17 +141,23 @@ backlog id, each matched by relpath (never by hit text) in
   (ordinal-label-reference, adjacency-mistrack, enumerated-list-marker)
   was deliberately not ported into this standing scanner (plan 21-09's own
   key-decision).
-- **backlog `999.42`** — `CLAUDE.md`, `docs/ARCHITECTURE.md`,
-  `docs/TESTING.md`. Root cause: these three carry operational/provenance
-  narrative outside the generated CI-gate-table region (D-02) or outside
-  the CI-gate `###` sections `docs/TESTING.md`'s own fold reached (D-21-F).
+
+**(6) The ledger ratchets down, never up.** Its pinned maximum
+(`literal_scan_ledger_max`=135 in the Facts fence above) is a typed
+integer constant, not a value derived from the ledger's own length — a
+self-derived pin would compare the ledger against itself, which can never
+fail. The live ledger size (`literal_scan_ledger_entries`=135 in the Facts
+fence above) may fall below the pin (an entry removed once its underlying
+prose is fixed) but exceeding it fails `--check`, naming both the pinned
+and the live figure. A ledger key that no longer matches any live hit is
+itself a finding — the ledger cannot silently outlive its own findings,
+which is what actually drives the ratchet down over time.
 
 Full item counts, reasons and the per-item closing move for every
-hand-remediated item are recorded in
+hand-remediated item under plan 21-10's original ~15-item/6-file budget
+sweep are recorded in
 `.planning/phases/21-generate-the-claim-surface/21-CONF13-BASELINE.md`'s
-"Plan 21-10 disposition ledger" section. Closing any of the three deferred
-groups requires either porting D-06's citation-exemption vocabulary into
-this scanner, or hand-remediating the named surfaces with the same three
-moves (point at generated fact / corroborate / exempt with a named class)
-— then removing the corresponding entries from
-`_DEFERRED_REMEDIATION_SURFACES`.
+"Plan 21-10 disposition ledger" section. Adjudicating a mechanically-pinned
+entry (removing it from `_DEFERRED_LITERAL_HITS` once its prose is fixed
+or its number confirmed correct) shrinks the ledger; the ratchet permits
+that shrink but never a growth back toward a whole-surface permit.

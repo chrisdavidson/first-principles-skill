@@ -1345,66 +1345,254 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
     )
 
 
-# --- deferred-remediation (plan 21-10, Task 3): whole-surface deferral -----
+# --- deferred-literal-ledger (plan 21-16): enumerated per-hit permit -------
 #
-# A budget-driven deferral, not a content-based exemption — every hit on a
-# REGISTERED surface in this map is permitted, regardless of what its text
-# says, because plan 21-10 measured the surface's remediation as out of this
-# task's ~15-item/6-file budget and deferred the whole surface under a named
-# 999.x backlog id with a written reason (21-CONF13-BASELINE.md,
-# docs/gates/CONF-SURFACE.md). Matches on `hit.relpath`, never `hit.text` —
-# the one exemption class in this tuple that needs the whole hit rather than
-# just its text, which is why `LiteralExemptionClass.matches` takes the full
-# `LiteralHit` rather than a bare string.
-_DEFERRED_REMEDIATION_SURFACES: dict[str, str] = {
-    # 999.40: docs/gates/*.md narrative pages migrated/hand-written under
-    # plans 21-08/21-10 — dense technical prose using ordinary-language small
-    # numbers ("two contract surfaces", "(1) worked-example extraction") that
-    # D-06's containment check already learned a citation-exemption
-    # vocabulary for (plan 21-08) but the standing CONF-13 scanner does not
-    # share (21-09-SUMMARY.md's own Assumption Drift note).
-    "docs/gates/QUAL-01.md": "999.40",
-    "docs/gates/SCAN-GUARD.md": "999.40",
-    "docs/gates/TRACE-03.md": "999.40",
-    "docs/gates/CONF-GATE.md": "999.40",
-    "docs/gates/GATE-01.md": "999.40",
-    "docs/gates/HC-BOUND.md": "999.40",
-    "docs/gates/REG-GUARD.md": "999.40",
-    "docs/gates/VAL-02.md": "999.40",
-    "docs/gates/VERSION-01.md": "999.40",
-    "docs/gates/STEP0-08.md": "999.40",
-    # 999.41: .py module docstrings — the same ordinary-language-number shape,
-    # in dense narrative docstrings this scanner reads verbatim
-    # (21-CONF13-BASELINE.md's own false-positive layer — ordinal-label-
-    # reference, adjacency-mistrack, enumerated-list-marker — was deliberately
-    # not ported into the standing scanner; plan 21-09's key-decision).
-    "scripts/check-selfaudit-scan.py#__doc__": "999.41",
-    "scripts/check-step0-emulator.py#__doc__": "999.41",
-    "scripts/check-quality-harness.py#__doc__": "999.41",
-    "scripts/check-conf-gate.py#__doc__": "999.41",
-    "scripts/check-step0-live.py#__doc__": "999.41",
-    "scripts/check-provenance.py#__doc__": "999.41",
-    "scripts/check-focused-parity.py#__doc__": "999.41",
-    "scripts/check-registration.py#__doc__": "999.41",
-    "scripts/check-loop-closure.py#__doc__": "999.41",
-    "scripts/check-links.py#__doc__": "999.41",
-    "scripts/check-agent.py#__doc__": "999.41",
-    "scripts/check-act-limb.py#__doc__": "999.41",
-    # 999.42: the peripheral CI-gate-table host surfaces' own remaining
-    # non-structural prose — CLAUDE.md and docs/ARCHITECTURE.md carry
-    # operational/provenance narrative outside the generated table region
-    # (D-02's fold), and docs/TESTING.md carries the "Pre-commit gates" and
-    # "Anti-masking measurement invariants" sections plan 21-10 Task 1
-    # deliberately left outside the per-gate-section fold (D-21-F's own
-    # scope: the 13 CI-gate ### sections, not the whole file).
-    "CLAUDE.md": "999.42",
-    "docs/ARCHITECTURE.md": "999.42",
-    "docs/TESTING.md": "999.42",
+# Plan 21-10's whole-surface permit dict (matching on `hit.relpath` alone)
+# made every hit on a registered surface permitted regardless of what its
+# text said -- including CLAUDE.md,
+# docs/ARCHITECTURE.md and docs/TESTING.md, the three surfaces CONF-13
+# exists to protect. That structural zero survived a genuinely wrong claim
+# this same phase shipped (docs/TESTING.md's "Two gates fire on every
+# `git commit`" while both hooks ran five) -- the scanner saw it and
+# permitted it (21-VERIFICATION.md GAP 1).
+#
+# `_DEFERRED_LITERAL_HITS` replaces the whole-surface permit with an
+# enumerated per-hit ledger: keyed by `(relpath, normalised_text)` -- the
+# EXACT text the scanner captured, whitespace-normalised -- and valued by
+# `(backlog_id, occurrences, written_reason)`. A hit whose key is not in
+# this dict is a finding regardless of which surface it sits on; a
+# ledgered key whose LIVE occurrence count exceeds its pinned `occurrences`
+# is also a finding (see literal_scan_problems's occurrence-surplus pass,
+# below) -- the same exact sentence copied to a second place is a NEW
+# finding, not a free ride on an existing entry.
+#
+# The 21 primary-surface entries (CLAUDE.md, docs/ARCHITECTURE.md,
+# docs/TESTING.md -- 999.42) were adjudicated BY HAND, one at a time: each
+# is either a currently-correct hand-maintained fact nothing derives
+# (disposition CORRECT-BUT-HAND-MAINTAINED) or a false positive of the
+# adjacency heuristic (disposition NOT-A-COUNT -- an enumerated-list
+# marker, a per-item ratio statement, or a correct number attached to the
+# wrong noun). No STALE literal survived the adjudication; every one that
+# was stale was already fixed by plan 21-13 or earlier in this phase. The
+# remaining 114 entries (10 docs/gates/*.md narrative pages, 999.40; 12
+# `.py#__doc__` module docstrings, 999.41) are pinned MECHANICALLY from the
+# live scan, without per-entry adjudication -- a real reduction in what
+# this ledger certifies, published as a disclosed bound on
+# docs/gates/CONF-SURFACE.md rather than left implicit.
+#
+# Populated via `--emit-deferred-ledger` (below), never hand-typed -- hand
+# transcription of exactly this shape is the defect this plan exists to
+# end.
+_DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
+    ('CLAUDE.md', '(33 controls)'): ('999.42', 1, 'Correct: check-provenance.py --describe reports control_count 33 (live-verified).'),
+    ('CLAUDE.md', '(43 controls)'): ('999.42', 1, 'Correct: check-conf-gate.py --describe reports control_count 43 (live-verified).'),
+    ('CLAUDE.md', '1. The **sync-drift gate**'): ('999.42', 1, "NOT-A-COUNT: an enumerated-list marker ('1.') the adjacency heuristic mistakes for a count -- it identifies which list item, not how many pre-commit gates exist."),
+    ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
+    ('CLAUDE.md', 'rows; the 14'): ('999.42', 1, "Correct: 14 v8.25 milestone requirements were registered as matrix rows at Phase 12 / 12-01 -- same headline-provenance narrative as the '23' entry above."),
+    ('CLAUDE.md', 'rows; the 15'): ('999.42', 1, "Correct: 15 v8.24 milestone requirements were registered as matrix rows at Phase 6 / D-06 -- same headline-provenance narrative as the '23' entry above."),
+    ('CLAUDE.md', 'rows; the 23'): ('999.42', 1, "Correct: 23 v8.18 milestone requirements were registered as matrix rows at Phase 4 / D-05 -- historical provenance narrative for the coverage headline, matching docs/requirements-traceability.md; not caught by the headline-provenance-delta class because 23 is not one of that class's row-delta numbers."),
+    ('CLAUDE.md', 'surface now contributes 16'): ('999.42', 1, 'Correct: the skill-stub cross-technique-link surface contributes 16 real links (12 cross-technique + 4 detail.md pointers) as of v8.17.5 -- a structural fact, not derived by any script.'),
+    ('CLAUDE.md', 'three surfaces,'): ('999.42', 1, 'Correct: gates run on three surfaces -- CI, the offline battery, and pre-commit -- a structural fact restated at CLAUDE.md:181, not derived by any script.'),
+    ('CLAUDE.md', 'two assembly surfaces,'): ('999.42', 1, 'Correct: the assembled agent body and the skill stub are the two assembly surfaces _rewrite_detail_link() adapts a detail-sibling pointer for -- a structural fact, not derived by any script.'),
+    ('CLAUDE.md', 'two inline checks'): ('999.42', 1, 'Correct: INVARIANT-CHECK and FROZEN-EVIDENCE are the two inline (non-gate/gate_prereq) battery checks -- a structural fact, not derived by any script.'),
+    ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
+    ('docs/ARCHITECTURE.md', '**Two gates'): ('999.42', 1, "NOT-A-COUNT: 'Two gates are called GATE-02' identifies two DIFFERENT gates that share a display name (VAL-04/GATE-02 vs GATE-02-v8.5) -- the number is correct but attached to a disambiguation, not a population count."),
+    ('docs/ARCHITECTURE.md', 'five surfaces.'): ('999.42', 1, "Correct: the battery total is restated on five surfaces (CLAUDE.md, docs/ARCHITECTURE.md, docs/TESTING.md, docs/gates/CONF-SURFACE.md, and check-firewall-battery.sh's own tally comment) rather than swept by hand across all of them -- verified by grep across the five files."),
+    ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
+    ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
+    ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
+    ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
+    ('docs/TESTING.md', 'Five gates'): ('999.42', 1, "Correct: 5 pre-commit gates fire on every git commit -- same verified fact as CLAUDE.md's 'Five gates' entry above."),
+    ('docs/TESTING.md', 'five labelled surfaces:'): ('999.42', 1, "Correct: docs/conformance-baseline.md publishes five labelled surfaces (shared-examples, generated-twin, contract-surface, adversarial-corpus, live-conformance) -- verified by reading that file's own ## headers."),
+    ('docs/TESTING.md', 'literal `== 4`'): ('999.42', 1, "NOT-A-COUNT: 'literal' here means the constant's literal value as written in code (_COMPOSER_FOCUS_CEILING == 4), not a count of literals -- an adjacency-mistrack false positive on the noun 'literal'."),
+    ('docs/gates/CONF-GATE.md', 'four internal predicates (plan'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/CONF-GATE.md', 'seven enforcement call sites'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/CONF-GATE.md', 'three mutations'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/GATE-01.md', 'checks — 8'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/HC-BOUND.md', 'surfaces, and all three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', '(2) cross-surface literal'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', '(5 call sites:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', '(5) **worked-example conformance** (plan'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', '(6 call sites:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', '6 absorbed the Gate'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'Eleven mutations'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'arms, plus two'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'check requires only two'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'four canonical surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'four lettered controls'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'gate count from 15'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'legs: (1)'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'literal reconciliation — twelve'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'literals on all three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'nine `R-CLAIM-*` fixtures'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'one arm.'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'one row'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'pins — three,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'sites: 1'): ('999.40', 3, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'six legs.'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'six separate legs:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'surface (three'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'surface among all four'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'surfaces declare all twelve);'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'three independently-neutralization-tested anti-vacuity arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'two contract surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/QUAL-01.md', 'two new pins'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/REG-GUARD.md', 'two surfaces:'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', '"Criteria 4 and 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', '(plan 15-06 split thirty-one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'Criteria 4 and 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'Criterion 4 or 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', "arms, omitting Rubric-2's two."): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'branches to fifty-eight'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'four branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'four legs'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'ids with eight'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'one arm'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'one hundred clause-level named branches'): ('999.40', 2, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'one literal'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'plan 15-07 added fourteen'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'plan 15-08 added fourteen'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'plan 15-09 added one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'plan 15-12 added six'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'row claimed, "one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'row named only five'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'surface in one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'two branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/SCAN-GUARD.md', 'two branches);'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/STEP0-08.md', 'two fixture'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'arms, one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'eight named arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'five named current-fact surfaces'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'four cases'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'literal itself: one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', "site (`(m)`'s three"): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'two ARROW arms,'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/TRACE-03.md', 'two whole-file cases'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/VAL-02.md', 'two gates'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/VERSION-01.md', '4 hand-maintained stamp'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('docs/gates/VERSION-01.md', "surfaces `collect_stamps()`'s own four"): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-act-limb.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-agent.py#__doc__', 'three inline malformed fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-conf-gate.py#__doc__', 'gate over the fourteen'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-conf-gate.py#__doc__', 'surface for the two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-conf-gate.py#__doc__', 'two arms'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-focused-parity.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-focused-parity.py#__doc__', 'check between the two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-links.py#__doc__', 'two newly-extended scan surfaces'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-loop-closure.py#__doc__', 'gate reads four'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-provenance.py#__doc__', '2. The literal'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-provenance.py#__doc__', "4. PROV-04's no-network control"): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-quality-harness.py#__doc__', '[ID] Dispatch exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-quality-harness.py#__doc__', 'one tabulated row.'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-quality-harness.py#__doc__', 'row. Dispatches exactly one'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-registration.py#__doc__', '29 named, decision-traceable controls'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '(11) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '(12) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '(9) **What plan'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '(eight ids'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '0 ("All 94 branches'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '17 stamps'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '17 table data rows**'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '2 item'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', '94 branches'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6,'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'Criterion 4 or 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'eight arms'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'fixture actually contains, 7'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'four assertions'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'literal (nine'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'literal via the `-1`'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'literals themselves — two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'one arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'one hand-written arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'one row'): ('999.41', 2, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'rows (17'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'rows (17 / 44)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'six now-uncovered ids.'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'surfaces run TWO'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'two surfaces'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'two tables. This gate'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-emulator.py#__doc__', '1. Fault-injection fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-emulator.py#__doc__', '2. Classification fixtures'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-emulator.py#__doc__', 'TWO fixture'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-emulator.py#__doc__', 'fixtures (D-05) — four'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-live.py#__doc__', 'fixture (default: 5)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-step0-live.py#__doc__', 'row PASS (default: 3)'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
 }
 
 
-def _match_deferred_remediation(hit: LiteralHit) -> bool:
-    return hit.relpath in _DEFERRED_REMEDIATION_SURFACES
+def _ledger_key_for(hit: LiteralHit) -> tuple[str, str]:
+    """The `_DEFERRED_LITERAL_HITS` key for one hit: its relpath paired with
+    its whitespace-normalised text -- never a bare relpath (that would be
+    the whole-surface permit this ledger replaces)."""
+    return (hit.relpath, " ".join(hit.text.split()))
+
+
+def _match_deferred_ledger(hit: LiteralHit) -> bool:
+    """Presence check only -- a matcher sees one hit at a time and cannot
+    count occurrences across the whole scan. The occurrence-surplus check
+    (a ledgered key whose LIVE count exceeds its pinned figure) runs
+    separately, over the full `read.hits`, inside `literal_scan_problems`
+    below -- the one place the whole scan is visible."""
+    return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
+
+
+# The ledger's pinned maximum size, as committed by plan 21-16 Task 1 (135
+# entries). This is the ONE place in the ledger machinery where a hand-typed
+# number is correct: deriving the pin from `len(_DEFERRED_LITERAL_HITS)` at
+# runtime would compare the ledger against itself, which can never fail --
+# a tautology, not a ratchet. The ledger may SHRINK below this pin (a
+# stale entry removed, its underlying prose fixed) but may never exceed it
+# (`literal_ledger_ratchet_problems`, below) -- growing the ledger back
+# into a de-facto whole-surface permit is exactly the regression this plan
+# closes (T-21-16-02).
+_DEFERRED_LEDGER_MAX: int = 135
+
+
+def literal_ledger_ratchet_problems(
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+    max_size: int | None = None,
+) -> list[str]:
+    """The ledger may shrink and must never grow. Takes the ledger and its
+    pin as optional parameters (defaulting to the real ones) so the
+    permanent negative-arm controls can drive it against a synthetic
+    ledger/pin pair without touching the module-level constants."""
+    if ledger is None:
+        ledger = _DEFERRED_LITERAL_HITS
+    if max_size is None:
+        max_size = _DEFERRED_LEDGER_MAX
+    live_size = len(ledger)
+    if live_size > max_size:
+        return [
+            "deferred-literal-ledger ratchet: live ledger size "
+            f"{live_size} exceeds the pinned maximum {max_size} -- the "
+            "ledger may shrink but must never grow"
+        ]
+    return []
+
+
+def literal_ledger_staleness_problems(
+    read: LiteralScanRead,
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+) -> list[str]:
+    """Every ledger key must match at least one live hit. A key matching
+    nothing is a finding naming the key -- the ledger cannot silently
+    outlive its own findings, which is what actually drives the ratchet
+    down: a permitted residual whose underlying prose was fixed must be
+    removed from the ledger, not left to rot."""
+    if ledger is None:
+        ledger = _DEFERRED_LITERAL_HITS
+    live_keys = {_ledger_key_for(hit) for hit in read.hits}
+    problems: list[str] = []
+    for relpath, text in sorted(ledger):
+        if (relpath, text) not in live_keys:
+            problems.append(
+                f"{relpath}: deferred-literal-ledger key no longer matches any "
+                f"live hit: '{text}' (remove this ledger entry -- its "
+                "underlying prose was likely already fixed)"
+            )
+    return problems
 
 
 LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
@@ -1453,16 +1641,16 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
         _match_commonmark_heading_depth,
     ),
     LiteralExemptionClass(
-        "deferred-remediation",
-        "Plan 21-10 measured this surface's remediation as beyond its own "
-        "~15-item/6-file task budget and deferred it under a named 999.x "
-        "backlog id (999.40 docs/gates/*.md narrative, 999.41 .py module "
-        "docstrings, 999.42 the peripheral CI-gate-table host surfaces' own "
-        "remaining prose) — see 21-CONF13-BASELINE.md and "
-        "docs/gates/CONF-SURFACE.md for the full item list and reason. Not a "
-        "content-based exemption: every hit on a deferred surface is "
-        "permitted regardless of what its text says.",
-        _match_deferred_remediation,
+        "deferred-literal-ledger",
+        "Plan 21-16 replaced the whole-surface permit this class used to "
+        "grant with an enumerated per-hit ledger (_DEFERRED_LITERAL_HITS): "
+        "each permitted hit is named by its exact (relpath, text) key, a "
+        "999.x backlog id, and a pinned occurrence count — see "
+        "21-CONF13-BASELINE.md and docs/gates/CONF-SURFACE.md. A hit on a "
+        "registered surface that is NOT in the ledger is a finding "
+        "regardless of which surface it sits on, and a ledgered key's live "
+        "occurrence count exceeding its pinned figure is also a finding.",
+        _match_deferred_ledger,
     ),
 )
 
@@ -1593,7 +1781,15 @@ def literal_scan_problems(read: LiteralScanRead) -> list[str]:
     matching an exemption class is permitted and attributed by name
     (`literal_scan_attributions`); a hit matching none is a finding, never a
     silent pass (T-21-09-02: this is what keeps a catch-all exemption from
-    making the whole scanner vacuous)."""
+    making the whole scanner vacuous).
+
+    Also runs the deferred-literal-ledger's occurrence-surplus check: a
+    ledgered key's LIVE count across `read.hits` must not exceed its pinned
+    `occurrences` figure — the same exact sentence copied to a second place
+    on the same surface is a NEW finding, not a free ride on the existing
+    entry. This is done here, over the whole scan, rather than inside
+    `_match_deferred_ledger` (plan 21-16 Task 1): a per-hit matcher sees one
+    hit at a time and cannot count."""
     problems: list[str] = []
     for hit in read.hits:
         if _literal_hit_exemption(hit) is not None:
@@ -1602,6 +1798,20 @@ def literal_scan_problems(read: LiteralScanRead) -> list[str]:
             f"{hit.relpath}:{hit.line}: hand-maintained count literal '{hit.text}' "
             "(no exemption class matches)"
         )
+
+    live_counts: dict[tuple[str, str], int] = {}
+    for hit in read.hits:
+        key = _ledger_key_for(hit)
+        if key in _DEFERRED_LITERAL_HITS:
+            live_counts[key] = live_counts.get(key, 0) + 1
+    for key, live_count in sorted(live_counts.items()):
+        _backlog_id, pinned_occurrences, _reason = _DEFERRED_LITERAL_HITS[key]
+        if live_count > pinned_occurrences:
+            relpath, text = key
+            problems.append(
+                f"{relpath}: deferred-literal-ledger occurrence surplus for "
+                f"'{text}': pinned {pinned_occurrences}, live {live_count}"
+            )
     return problems
 
 
@@ -1615,6 +1825,56 @@ def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
         if cls_name is not None:
             lines.append(f"{hit.relpath}:{hit.line}: exempt ({cls_name}): '{hit.text}'")
     return lines
+
+
+def _emit_deferred_ledger_backlog_id(relpath: str) -> str:
+    """The 999.40/999.41/999.42 classification recorded in
+    21-CONF13-BASELINE.md: docs/gates/*.md narrative pages, .py module
+    docstrings, or the three peripheral CI-gate-table host surfaces."""
+    if relpath.startswith("docs/gates/"):
+        return "999.40"
+    if relpath in ("CLAUDE.md", "docs/ARCHITECTURE.md", "docs/TESTING.md"):
+        return "999.42"
+    return "999.41"
+
+
+def emit_deferred_ledger() -> str:
+    """Maintenance-only (`--emit-deferred-ledger`): run the real scanner
+    with the deferred-literal-ledger exemption class disabled, so every
+    otherwise-non-exempt hit surfaces, then print a `_DEFERRED_LITERAL_HITS`
+    literal — sorted deterministically, each entry's backlog id assigned
+    from its surface's 999.40/999.41/999.42 classification — to stdout.
+    Writes NOTHING to disk; the executor pipes this output into the module
+    by hand, rather than hand-typing 135 keys, which is the exact defect
+    this plan exists to end. The written reason is left as a TODO for the
+    human adjudicator to fill in — this function's job is population, not
+    adjudication."""
+    classes_without_ledger = tuple(
+        c for c in LITERAL_EXEMPTION_CLASSES if c.name != "deferred-literal-ledger"
+    )
+
+    def _exemption_without_ledger(hit: LiteralHit) -> str | None:
+        for cls in classes_without_ledger:
+            if cls.matches(hit):
+                return cls.name
+        return None
+
+    read = run_literal_scan()
+    counts: dict[tuple[str, str], int] = {}
+    for hit in read.hits:
+        if _exemption_without_ledger(hit) is not None:
+            continue
+        counts[_ledger_key_for(hit)] = counts.get(_ledger_key_for(hit), 0) + 1
+
+    lines = ["_DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {"]
+    for (relpath, text), occ in sorted(counts.items()):
+        backlog_id = _emit_deferred_ledger_backlog_id(relpath)
+        lines.append(
+            f"    ({relpath!r}, {text!r}): ({backlog_id!r}, {occ}, "
+            '"TODO: written reason"),'
+        )
+    lines.append("}")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -1917,6 +2177,12 @@ def cmd_check() -> int:
         print(f"literal-scan: {len(literal_findings)} non-exempt hit(s) found")
     problems += literal_findings
 
+    # plan 21-16 Task 2: the ledger's ratchet and staleness floors, evaluated
+    # alongside the scan findings above and never short-circuited, so one
+    # cannot mask the other.
+    problems += literal_ledger_ratchet_problems()
+    problems += literal_ledger_staleness_problems(literal_read)
+
     if problems:
         for p in problems:
             sys.stderr.write(p + "\n")
@@ -1955,7 +2221,9 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "currency-not-correctness",
     "closed-spelled-out-vocabulary",
     "py-docstrings-only",
-    "deferred-remediation-is-budget-driven",
+    "enumerated-per-hit-ledger",
+    "ledger-ratchet-may-shrink-never-grow",
+    "non-primary-entries-pinned-mechanically",
 )
 
 
@@ -1974,11 +2242,24 @@ def describe() -> dict:
         if cls_name is not None:
             exempt_counts[cls_name] += 1
     non_exempt_count = len(literal_scan_problems(literal_read))
+    # 999.42 (the three primary surfaces) is the one backlog id adjudicated
+    # BY HAND, entry by entry; 999.40/999.41 are pinned MECHANICALLY,
+    # without per-entry adjudication (plan 21-16 Task 1). Computed from the
+    # ledger's own backlog ids, never hand-counted, so this figure moves
+    # with the ledger rather than going stale beside it.
+    ledger_adjudicated = sum(
+        1 for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values() if _bid == "999.42"
+    )
+    ledger_mechanical = len(_DEFERRED_LITERAL_HITS) - ledger_adjudicated
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
         "literal_scan_hits": len(literal_read.hits),
         "literal_scan_non_exempt": non_exempt_count,
+        "literal_scan_ledger_entries": len(_DEFERRED_LITERAL_HITS),
+        "literal_scan_ledger_max": _DEFERRED_LEDGER_MAX,
+        "literal_scan_ledger_adjudicated": ledger_adjudicated,
+        "literal_scan_ledger_mechanical": ledger_mechanical,
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -2871,6 +3152,129 @@ def _control_scan_neutralization_arms() -> None:
         _this_module._literal_hit_exemption = original_exemption
 
 
+# ---------------------------------------------------------------------------
+# Task 2 controls: the deferred-literal-ledger's ratchet and staleness
+# floors, plus the three per-surface injection arms promoting Task 1's
+# manual falsifications into permanent registered controls.
+# ---------------------------------------------------------------------------
+
+
+def _control_ledger_ratchet_fires() -> None:
+    """A synthetic ledger one entry larger than a synthetic pin must fail,
+    naming both the pinned figure and the live figure."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_ledger_ratchet_allows_shrink() -> None:
+    """A synthetic ledger one entry SMALLER than its pin must pass -- the
+    ratchet permits remediation, it is not an equality floor that would
+    block exactly the shrink it exists to encourage."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture")}
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2)
+    assert problems == [], problems
+
+
+def _control_ledger_staleness_fires() -> None:
+    """A fabricated ledger key matching no live hit must fail, naming that
+    key -- the ledger cannot silently outlive its own findings."""
+    ledger = {("fixture.md", "this text never appears anywhere in the tree"): ("999.99", 1, "fixture")}
+    read = LiteralScanRead(read_relpaths=frozenset(), hits=(), declined=())
+    problems = literal_ledger_staleness_problems(read, ledger=ledger)
+    assert len(problems) == 1, problems
+    assert "this text never appears anywhere in the tree" in problems[0], problems[0]
+
+
+def _control_ledger_occurrence_surplus_fires() -> None:
+    """A ledgered key's pinned occurrence count exceeded by the live scan
+    must fail, naming the key and both counts — promoted from Task 1's
+    manual falsification into a permanent registered control."""
+    original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    fixture_ledger = dict(original_ledger)
+    fixture_ledger[("fixture.md", "9 branches")] = ("999.99", 1, "fixture, pinned at 1")
+    _this_module._DEFERRED_LITERAL_HITS = fixture_ledger
+    try:
+        text = "There are 9 branches here.\nThere are 9 branches here too.\n"
+        hits = _literal_hits_outside_generated("fixture.md", text)
+        assert len(hits) == 2, hits
+        read = LiteralScanRead(read_relpaths=frozenset({"fixture.md"}), hits=tuple(hits), declined=())
+        problems = literal_scan_problems(read)
+        surplus = [p for p in problems if "occurrence surplus" in p]
+        assert len(surplus) == 1, problems
+        assert "pinned 1" in surplus[0] and "live 2" in surplus[0], surplus[0]
+    finally:
+        _this_module._DEFERRED_LITERAL_HITS = original_ledger
+
+
+def _control_ledger_not_an_unconditional_permit() -> None:
+    """Anti-masking: (a) the real ledger contains no wildcard-shaped key —
+    no bare-relpath key, no empty-string text — so it cannot silently widen
+    into the whole-surface permit it replaced; (b) emptying the ledger
+    makes the live scan report a large, non-zero finding count, proving the
+    ledger is load-bearing rather than decorative (the same spirit as
+    `_control_scan_neutralization_arms` arm 3)."""
+    for relpath, text in _DEFERRED_LITERAL_HITS:
+        assert relpath, "bare-relpath-shaped key found (wildcard permit)"
+        assert text, f"empty-text key found for {relpath!r} (wildcard permit)"
+
+    original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    _this_module._DEFERRED_LITERAL_HITS = {}
+    try:
+        read = run_literal_scan()
+        problems = literal_scan_problems(read)
+        assert len(problems) > 100, (
+            f"emptying the ledger produced only {len(problems)} findings — "
+            "expected a large, non-zero count proving the ledger is load-bearing"
+        )
+    finally:
+        _this_module._DEFERRED_LITERAL_HITS = original_ledger
+
+
+def _control_ledger_injection_claude_md_fires() -> None:
+    """Promotes Task 1's manual CLAUDE.md falsification into a permanent
+    control: an injected count literal outside the generated region must be
+    a non-exempt finding on the real, on-disk CLAUDE.md."""
+    text = (REPO_ROOT / "CLAUDE.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("CLAUDE.md", mutated)
+    read = LiteralScanRead(read_relpaths=frozenset({"CLAUDE.md"}), hits=tuple(hits), declined=())
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
+def _control_ledger_injection_architecture_fires() -> None:
+    """Same as `_control_ledger_injection_claude_md_fires`, for
+    docs/ARCHITECTURE.md."""
+    text = (REPO_ROOT / "docs/ARCHITECTURE.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("docs/ARCHITECTURE.md", mutated)
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"docs/ARCHITECTURE.md"}), hits=tuple(hits), declined=()
+    )
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
+def _control_ledger_injection_testing_fires() -> None:
+    """Same as `_control_ledger_injection_claude_md_fires`, for
+    docs/TESTING.md -- the exact surface the shipped regression
+    ("Two gates fire on every `git commit`" while both hooks ran five) was
+    silently permitted on before this plan."""
+    text = (REPO_ROOT / "docs/TESTING.md").read_text(encoding="utf-8")
+    mutated = text + "\nSCAN-GUARD carries 999 clause-level named branches\n"
+    hits = _literal_hits_outside_generated("docs/TESTING.md", mutated)
+    read = LiteralScanRead(
+        read_relpaths=frozenset({"docs/TESTING.md"}), hits=tuple(hits), declined=()
+    )
+    problems = literal_scan_problems(read)
+    injected = [p for p in problems if "999" in p]
+    assert len(injected) == 1, problems
+
+
 def _control_registry_self_test_passes() -> None:
     """Phase 21-14 (CR-06): wires the orphan. `scripts/_gate_registry.py
     --self-test`'s 16 controls — including the ONLY duplicate-`key`/
@@ -2988,6 +3392,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
+    ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
+    ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
+    ("ledger-staleness-fires", _control_ledger_staleness_fires),
+    ("ledger-occurrence-surplus-fires", _control_ledger_occurrence_surplus_fires),
+    ("ledger-not-an-unconditional-permit", _control_ledger_not_an_unconditional_permit),
+    ("ledger-injection-claude-md-fires", _control_ledger_injection_claude_md_fires),
+    ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
+    ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("registry-self-test", _control_registry_self_test_passes),
     ("slug-collision-raises", _control_slug_collision_raises),
 )
@@ -3050,6 +3462,14 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
     "scan-neutralization-arms",
+    "ledger-ratchet-fires",
+    "ledger-ratchet-allows-shrink",
+    "ledger-staleness-fires",
+    "ledger-occurrence-surplus-fires",
+    "ledger-not-an-unconditional-permit",
+    "ledger-injection-claude-md-fires",
+    "ledger-injection-architecture-fires",
+    "ledger-injection-testing-fires",
     "registry-self-test",
     "slug-collision-raises",
 )
@@ -3111,6 +3531,14 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Emit this gate's self-description as a flat JSON blob on stdout.",
     )
+    g.add_argument(
+        "--emit-deferred-ledger",
+        action="store_true",
+        help=(
+            "Maintenance-only: print a mechanically-populated "
+            "_DEFERRED_LITERAL_HITS literal to stdout. Writes nothing to disk."
+        ),
+    )
     args = p.parse_args(argv)
     if args.write:
         return cmd_write()
@@ -3118,6 +3546,9 @@ def main(argv: list[str] | None = None) -> int:
         return cmd_check()
     if args.self_test:
         return self_test()
+    if args.emit_deferred_ledger:
+        print(emit_deferred_ledger())
+        return 0
     print(json.dumps(describe(), indent=2, sort_keys=True))
     return 0
 
