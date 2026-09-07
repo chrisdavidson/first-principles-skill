@@ -45,6 +45,7 @@ import ast
 import contextlib
 import difflib
 import fnmatch
+import hashlib
 import importlib.util
 import inspect
 import io
@@ -522,9 +523,13 @@ def _checks_cell(entry, blob) -> str:
 def _gate_table_rows(
     entries, harvested: dict[str, dict]
 ) -> list[tuple[str, str, str, str]]:
-    """Build the 27-row (documented, non-anticipatory) x 4-column row set
-    from `entries` + a harvest blob map. Pure — used identically to build
-    the SAME `rows` value `generate_all()` hands to both surfaces (D-02)."""
+    """Build the documented (non-anticipatory) x 4-column row set from
+    `entries` + a harvest blob map -- one row per non-anticipatory
+    registry entry, a live count this function derives from `entries`
+    rather than a hand-typed one (a prior row-count docstring literal
+    went stale as the registry grew; plan 21-20 Task 2 removed it). Pure
+    -- used identically to build the SAME `rows` value `generate_all()`
+    hands to both surfaces (D-02)."""
     rows: list[tuple[str, str, str, str]] = []
     for entry in entries:
         if entry.key in _gate_registry._ANTICIPATORY_KEYS:
@@ -1092,7 +1097,8 @@ def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
     surfaces", "one of the three entries", "seven of the nine") that are
     not current-fact count claims at all. `include_spelled_out=False`
     (used for `NARRATIVE_ENTRIES` hand-written narrative text only, never
-    for the 24 thin fully-generated pages) turns off SPELLED-OUT matching
+    for the thin fully-generated pages, a live-counted population that
+    moves as gates are added) turns off SPELLED-OUT matching
     for that text while leaving bare-digit containment fully active — a
     stale bare-digit count (`27` diverging from a Facts-fence `27`) is
     still caught; an ordinary-language spelled-out number in flowing prose
@@ -1707,38 +1713,111 @@ def _match_deferred_ledger(hit: LiteralHit) -> bool:
     return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
 
 
+def _deferred_ledger_keys_digest(
+    ledger: dict[tuple[str, str], tuple[str, int, str]],
+) -> str:
+    """sha256 over *ledger*'s sorted `(relpath, text)` keys, one key per
+    line with a stable `\\x1f` separator between the two components, UTF-8
+    encoded. Order-independent (the keys are sorted before hashing) and
+    sensitive to any key-set change, including a same-size substitution --
+    the case `_DEFERRED_LEDGER_MAX` alone cannot see (plan 21-20 Task 1,
+    T-21-20-01)."""
+    lines = [f"{relpath}\x1f{text}" for relpath, text in sorted(ledger)]
+    blob = "\n".join(lines).encode("utf-8")
+    return "sha256:" + hashlib.sha256(blob).hexdigest()
+
+
 # The ledger's pinned maximum size, as committed by plan 21-16 Task 1 (135
-# entries). This is the ONE place in the ledger machinery where a hand-typed
-# number is correct: deriving the pin from `len(_DEFERRED_LITERAL_HITS)` at
-# runtime would compare the ledger against itself, which can never fail --
-# a tautology, not a ratchet. The ledger may SHRINK below this pin (a
-# stale entry removed, its underlying prose fixed) but may never exceed it
-# (`literal_ledger_ratchet_problems`, below) -- growing the ledger back
-# into a de-facto whole-surface permit is exactly the regression this plan
-# closes (T-21-16-02).
+# entries) and turned by plan 21-20 Task 1 into a REPIN OBLIGATION rather
+# than free headroom: the ledger may still shrink, but a shrink must
+# re-pin `_DEFERRED_LEDGER_MAX` to the new live size in the SAME commit
+# that shrinks it, or `literal_ledger_ratchet_problems`'s second predicate
+# (below) fails, naming both figures. This is the ONE place in the ledger
+# machinery where a hand-typed number is correct: deriving the pin from
+# `len(_DEFERRED_LITERAL_HITS)` at runtime would compare the ledger
+# against itself, which can never fail -- a tautology, not a ratchet.
+# Standing rule, in this repo's own words (the CONTRACT-06 pin discipline,
+# `scripts/check-quality-harness.py`): never recompute a pin to make a
+# failing check pass.
 _DEFERRED_LEDGER_MAX: int = 135
+
+
+# A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
+# 21-20 Task 1), closing the hole the size pin above cannot see on its
+# own: a remove-and-add performed in ONE commit -- one real entry removed,
+# a fabricated, never-adjudicated permit added in its place -- leaves
+# `live_size == max_size`, so neither the growth nor the shrink predicate
+# fires. This digest is the one predicate a same-size substitution cannot
+# evade. Same pin idiom `scripts/check-quality-harness.py` already uses
+# for its three CONTRACT-06 detector digests: hand-committed, because a
+# self-derived digest compares the ledger against itself. Standing rule:
+# never recompute this digest to make a failing check pass -- a mismatch
+# means the key set changed, and silently recomputing it here is what an
+# unadjudicated refill would look like from the outside.
+#
+# DISCLOSED BOUND: this digest proves the key set changed DELIBERATELY --
+# someone edited `_DEFERRED_LITERAL_HITS` and re-ran the pin -- never that
+# the change was ADJUDICATED. It cannot tell a genuinely-remediated permit
+# apart from a rubber-stamped one; it can only prove the set is not
+# drifting silently underneath an unchanged pin.
+_DEFERRED_LEDGER_KEYS_DIGEST = (
+    "sha256:0a249f6de8c4b520d3e76590cfc6d1b8296497c5cbfef05bd7533d64a0f068bc"
+)
 
 
 def literal_ledger_ratchet_problems(
     ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
     max_size: int | None = None,
+    keys_digest: str | None = None,
 ) -> list[str]:
-    """The ledger may shrink and must never grow. Takes the ledger and its
-    pin as optional parameters (defaulting to the real ones) so the
-    permanent negative-arm controls can drive it against a synthetic
-    ledger/pin pair without touching the module-level constants."""
+    """Three independent predicates, all evaluated (none short-circuits
+    another): (1) `live_size > max_size` is growth, always a finding; (2)
+    `live_size < max_size` is an un-repinned shrink -- legal, but
+    `_DEFERRED_LEDGER_MAX` must be lowered to the live size in the SAME
+    commit, or remediation buys permanent headroom for a future,
+    never-adjudicated permit; (3) the live key-set digest not matching the
+    pin is the ONLY predicate that closes a same-size substitution -- an
+    atomic remove-and-add leaves `live_size == max_size`, so predicates 1
+    and 2 alone produce no finding for it. Do not delete predicate 3 as
+    redundant with the size checks; it is the one they cannot see.
+
+    Takes the ledger, its pin, and its key-set digest as optional
+    parameters (defaulting to the real ones) so the permanent negative-arm
+    controls can drive it against synthetic ledger/pin/digest triples
+    without touching the module-level constants."""
     if ledger is None:
         ledger = _DEFERRED_LITERAL_HITS
     if max_size is None:
         max_size = _DEFERRED_LEDGER_MAX
+    if keys_digest is None:
+        keys_digest = _DEFERRED_LEDGER_KEYS_DIGEST
+    problems: list[str] = []
     live_size = len(ledger)
     if live_size > max_size:
-        return [
+        problems.append(
             "deferred-literal-ledger ratchet: live ledger size "
             f"{live_size} exceeds the pinned maximum {max_size} -- the "
             "ledger may shrink but must never grow"
-        ]
-    return []
+        )
+    if live_size < max_size:
+        problems.append(
+            "deferred-literal-ledger ratchet: live ledger size "
+            f"{live_size} is below the pinned maximum {max_size} -- lower "
+            "_DEFERRED_LEDGER_MAX to the live size in this same commit so "
+            "the shrink is locked in and cannot silently refill with a "
+            "new, never-adjudicated permit"
+        )
+    live_digest = _deferred_ledger_keys_digest(ledger)
+    if live_digest != keys_digest:
+        problems.append(
+            "deferred-literal-ledger ratchet: live key-set digest "
+            f"{live_digest!r} != pinned {keys_digest!r} -- the ledger's "
+            "key set changed; if this is a deliberate, adjudicated "
+            "remediation, re-pin _DEFERRED_LEDGER_KEYS_DIGEST to the live "
+            "value in this same commit (this digest proves the key set "
+            "changed deliberately, never that the change was adjudicated)"
+        )
+    return problems
 
 
 def literal_ledger_staleness_problems(
@@ -1994,6 +2073,130 @@ def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
         if cls_name is not None:
             lines.append(f"{hit.relpath}:{hit.line}: exempt ({cls_name}): '{hit.text}'")
     return lines
+
+
+# --- py-docstrings-only blind-spot measurement (plan 21-20 Task 3) --------
+#
+# The standing scanner's `.py` branch (`run_literal_scan`, above) reads
+# exactly the module-level docstring via `ast.get_docstring(ast.parse(src))`
+# -- that single call IS the `py-docstrings-only` disclosed bound. A count
+# literal sitting in a FUNCTION, async-function, or CLASS docstring is
+# structurally invisible to it. `_nonmodule_docstring_hits`, below,
+# MEASURES that blind spot's live size without closing it: its hits are
+# never fed into `literal_scan_problems`, never added to `--check`'s
+# enforced findings, and never change what the standing scanner polices.
+#
+# Decision of record (not re-derived here on every read): the standing
+# scan is NOT widened to cover these docstrings. Widening it would surface
+# a very large number of non-module-docstring hits across the registered
+# `.py` surfaces -- re-measure live via `describe()`'s
+# `literal_scan_nonmodule_docstring_hits` field rather than trusting a
+# stale figure in this comment -- and after plan 21-20 Task 1 the
+# deferred-literal ledger is BOTH size-pinned and key-digest-locked, so
+# absorbing that volume by refilling the ledger is exactly the regression
+# Task 1 closes. The bound therefore stays; what changes is that its size
+# is now published and derived, not merely asserted in prose.
+def _nonmodule_docstring_hits(
+    sources: dict[str, str] | None = None,
+) -> list[LiteralHit]:
+    """Every function-, async-function-, and class-docstring literal hit
+    across the registered `.py` surfaces, excluding each module's own
+    docstring (already covered by `run_literal_scan`'s `.py` branch).
+    Each hit's `relpath` is `<surface>#<qualname>` (a dotted path through
+    any enclosing class/function, matching `<script>#__doc__`'s labelling
+    shape for the module docstring itself).
+
+    Takes an optional `sources` mapping (relpath -> source text) so a
+    control can drive this against synthetic text without touching the
+    real tree or the filesystem, mirroring
+    `literal_ledger_ratchet_problems`'s parameter-injection shape. Reads
+    the real `.py` surfaces in `LITERAL_SCAN_SURFACES` when *sources* is
+    omitted."""
+    if sources is None:
+        sources = {}
+        for surface in LITERAL_SCAN_SURFACES:
+            if not surface.endswith(".py"):
+                continue
+            path = REPO_ROOT / surface
+            if path.is_file():
+                sources[surface] = path.read_text(encoding="utf-8")
+
+    hits: list[LiteralHit] = []
+
+    def _walk(node: ast.AST, surface: str, prefix: str) -> None:
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                qualname = f"{prefix}{child.name}"
+                doc = ast.get_docstring(child)
+                if doc:
+                    hits.extend(_literal_hits_outside_generated(f"{surface}#{qualname}", doc))
+                _walk(child, surface, prefix=f"{qualname}.")
+            else:
+                _walk(child, surface, prefix)
+
+    for surface, text in sources.items():
+        try:
+            tree = ast.parse(text, filename=surface)
+        except SyntaxError:
+            continue
+        _walk(tree, surface, prefix="")
+
+    return hits
+
+
+# This phase's own file's pinned non-module-docstring hit count (plan
+# 21-20 Task 3): the file this phase edits, and the file
+# `_control_registry_self_test_passes`'s stale "16 controls" docstring
+# literal (WR-08, closed by Task 2) actually landed in. Everywhere else
+# the blind spot is MEASURED, not enforced (see the comment above); this
+# one file additionally carries a two-sided ratchet so a second WR-08
+# cannot land here unnoticed -- growth over the pin is a finding, and a
+# shrink below it demands the pin be lowered in the same commit, the same
+# shape as Task 1's ledger ratchet. Never recompute this pin to make a
+# failing check pass; re-pin it only alongside a real docstring edit in
+# the same commit.
+_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 30
+
+
+def nonmodule_docstring_selffile_ratchet_problems(
+    live_count: int | None = None,
+    pinned_count: int | None = None,
+) -> list[str]:
+    """Two-sided ratchet over `scripts/gen-gate-docs.py`'s OWN share of the
+    py-docstrings-only blind spot: growth over the pin is a finding (a
+    second WR-08 landing in the file the first one landed in); a shrink
+    below the pin is ALSO a finding, demanding the pin be lowered to the
+    live count in the same commit, so a shrink cannot silently buy
+    headroom for a later, unnoticed regrowth (the same two-predicate shape
+    `literal_ledger_ratchet_problems` uses for the deferred-literal
+    ledger's own size pin).
+
+    Takes the live and pinned counts as optional parameters (defaulting
+    to the real ones) so the permanent registered controls can drive this
+    against synthetic counts without touching the module-level constant."""
+    if live_count is None:
+        live_count = len(
+            [h for h in _nonmodule_docstring_hits() if h.relpath.startswith("scripts/gen-gate-docs.py#")]
+        )
+    if pinned_count is None:
+        pinned_count = _SELF_FILE_NONMODULE_DOCSTRING_HITS
+    problems: list[str] = []
+    if live_count > pinned_count:
+        problems.append(
+            "nonmodule-docstring self-file ratchet: scripts/gen-gate-docs.py's live "
+            f"non-module-docstring hit count {live_count} exceeds the pinned "
+            f"{pinned_count} -- a new hand-maintained count literal landed in a "
+            "function/class docstring in this file (the WR-08 shape) and must be "
+            "fixed or the pin explicitly raised alongside a written justification"
+        )
+    if live_count < pinned_count:
+        problems.append(
+            "nonmodule-docstring self-file ratchet: scripts/gen-gate-docs.py's live "
+            f"non-module-docstring hit count {live_count} is below the pinned "
+            f"{pinned_count} -- lower _SELF_FILE_NONMODULE_DOCSTRING_HITS to the "
+            "live count in this same commit so the shrink is locked in"
+        )
+    return problems
 
 
 def _emit_deferred_ledger_backlog_id(relpath: str) -> str:
@@ -2352,6 +2555,10 @@ def cmd_check() -> int:
     problems += literal_ledger_ratchet_problems()
     problems += literal_ledger_staleness_problems(literal_read)
 
+    # plan 21-20 Task 3: this phase's own file's two-sided ratchet over its
+    # share of the (deliberately unwidened) py-docstrings-only blind spot.
+    problems += nonmodule_docstring_selffile_ratchet_problems()
+
     if problems:
         for p in problems:
             sys.stderr.write(p + "\n")
@@ -2391,7 +2598,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "closed-spelled-out-vocabulary",
     "py-docstrings-only",
     "enumerated-per-hit-ledger",
-    "ledger-ratchet-may-shrink-never-grow",
+    "ledger-repin-and-key-digest",
     "non-primary-entries-pinned-mechanically",
 )
 
@@ -2420,6 +2627,12 @@ def describe() -> dict:
         1 for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values() if _bid == "999.42"
     )
     ledger_mechanical = len(_DEFERRED_LITERAL_HITS) - ledger_adjudicated
+    # The py-docstrings-only blind spot's own live size (plan 21-20 Task
+    # 3): a MEASUREMENT, never fed back into `non_exempt_count` or any
+    # `--check` finding -- see `_nonmodule_docstring_hits`'s own comment
+    # for why the standing scan is not widened to cover it.
+    nonmodule_hits = _nonmodule_docstring_hits()
+    nonmodule_surfaces = {h.relpath.split("#", 1)[0] for h in nonmodule_hits}
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
@@ -2429,6 +2642,8 @@ def describe() -> dict:
         "literal_scan_ledger_max": _DEFERRED_LEDGER_MAX,
         "literal_scan_ledger_adjudicated": ledger_adjudicated,
         "literal_scan_ledger_mechanical": ledger_mechanical,
+        "literal_scan_nonmodule_docstring_hits": len(nonmodule_hits),
+        "literal_scan_nonmodule_docstring_surfaces": len(nonmodule_surfaces),
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -3409,20 +3624,64 @@ def _control_roster_arm_shape_census_vacuity() -> None:
 
 def _control_ledger_ratchet_fires() -> None:
     """A synthetic ledger one entry larger than a synthetic pin must fail,
-    naming both the pinned figure and the live figure."""
+    naming both the pinned figure and the live figure. Drives the digest
+    parameter with this ledger's own live digest so the growth predicate
+    is isolated from the (unrelated) key-set-drift predicate."""
     ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1)
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=1, keys_digest=digest)
     assert len(problems) == 1, problems
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
 
-def _control_ledger_ratchet_allows_shrink() -> None:
-    """A synthetic ledger one entry SMALLER than its pin must pass -- the
-    ratchet permits remediation, it is not an equality floor that would
-    block exactly the shrink it exists to encourage."""
+def _control_ledger_ratchet_requires_repin_on_shrink() -> None:
+    """A synthetic ledger one entry SMALLER than its pin must now produce
+    exactly one finding, naming both figures -- plan 21-20 Task 1 replaced
+    the old free-shrink pass with a same-commit repin obligation: an
+    un-repinned shrink buys permanent headroom for a future,
+    never-adjudicated permit (T-21-20-02), so it is a finding rather than
+    a silent pass. Drives the digest parameter with this ledger's own live
+    digest so the shrink predicate is isolated from key-set drift."""
     ledger = {("fixture.md", "one"): ("999.99", 1, "fixture")}
-    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2)
-    assert problems == [], problems
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = literal_ledger_ratchet_problems(ledger=ledger, max_size=2, keys_digest=digest)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_ledger_key_digest_fires() -> None:
+    """The verifier's exact reproduction (21-VERIFICATION.md GAP B), made
+    permanent: remove one real ledger entry and add a fabricated,
+    never-adjudicated permit in its place so the size is UNCHANGED, and
+    confirm a finding naming the digest mismatch. Neither the growth nor
+    the shrink predicate can see this -- `live_size` never moves -- so
+    this is the one arm that proves predicate 3 is load-bearing."""
+    ledger = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    pinned_digest = _deferred_ledger_keys_digest(ledger)
+    substituted = dict(ledger)
+    substituted.pop(("fixture.md", "one"))
+    substituted[("fixture.md", "three (a never-adjudicated permit)")] = ("999.99", 1, "fixture")
+    assert len(substituted) == len(ledger), "fixture is not a same-size substitution"
+    problems = literal_ledger_ratchet_problems(
+        ledger=substituted, max_size=len(ledger), keys_digest=pinned_digest
+    )
+    assert len(problems) == 1, problems
+    assert "digest" in problems[0], problems[0]
+
+
+def _control_ledger_key_digest_derived() -> None:
+    """The digest helper is a real derivation, not a constant standing in
+    for one: two synthetic ledgers differing in exactly one key produce
+    different digests, and the same ledger built in a different insertion
+    order produces the SAME digest (the sort-before-hash discipline)."""
+    ledger_a = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "two"): ("999.99", 1, "fixture")}
+    ledger_b = {("fixture.md", "one"): ("999.99", 1, "fixture"), ("fixture.md", "three"): ("999.99", 1, "fixture")}
+    digest_a = _deferred_ledger_keys_digest(ledger_a)
+    digest_b = _deferred_ledger_keys_digest(ledger_b)
+    assert digest_a != digest_b, "differing key sets produced the same digest"
+    ledger_a_reordered = dict(reversed(list(ledger_a.items())))
+    digest_a_reordered = _deferred_ledger_keys_digest(ledger_a_reordered)
+    assert digest_a_reordered == digest_a, "insertion-order changed the digest"
 
 
 def _control_ledger_staleness_fires() -> None:
@@ -3459,22 +3718,35 @@ def _control_ledger_occurrence_surplus_fires() -> None:
 def _control_ledger_not_an_unconditional_permit() -> None:
     """Anti-masking: (a) the real ledger contains no wildcard-shaped key —
     no bare-relpath key, no empty-string text — so it cannot silently widen
-    into the whole-surface permit it replaced; (b) emptying the ledger
-    makes the live scan report a large, non-zero finding count, proving the
-    ledger is load-bearing rather than decorative (the same spirit as
-    `_control_scan_neutralization_arms` arm 3)."""
+    into the whole-surface permit it replaced (untouched by this task);
+    (b) emptying the ledger makes the live scan report AT LEAST AS MANY
+    findings as the ledger holds entries, proving the ledger is
+    load-bearing rather than decorative (the same spirit as
+    `_control_scan_neutralization_arms` arm 3).
+
+    Arm (b) is relative to the ledger's own live size, not the fixed
+    absolute floor this control used to assert (WR-05). The absolute form
+    turns RED on successful remediation: once enough of today's hits are
+    genuinely fixed and removed from the ledger, the fixed floor starts
+    failing -- taking `--self-test`, the battery, CI and both pre-commit
+    hooks down with it -- with a message that reads like a regression
+    while describing progress. The relative form cannot make that
+    mistake: it shrinks in lockstep with the ledger it measures.
+    """
     for relpath, text in _DEFERRED_LITERAL_HITS:
         assert relpath, "bare-relpath-shaped key found (wildcard permit)"
         assert text, f"empty-text key found for {relpath!r} (wildcard permit)"
 
     original_ledger = _this_module._DEFERRED_LITERAL_HITS
+    ledger_size = len(original_ledger)
     _this_module._DEFERRED_LITERAL_HITS = {}
     try:
         read = run_literal_scan()
         problems = literal_scan_problems(read)
-        assert len(problems) > 100, (
-            f"emptying the ledger produced only {len(problems)} findings — "
-            "expected a large, non-zero count proving the ledger is load-bearing"
+        assert len(problems) >= ledger_size, (
+            f"emptying the ledger produced only {len(problems)} findings, "
+            f"fewer than the ledger's own {ledger_size} entries -- the "
+            "ledger is not load-bearing"
         )
     finally:
         _this_module._DEFERRED_LITERAL_HITS = original_ledger
@@ -3524,10 +3796,10 @@ def _control_ledger_injection_testing_fires() -> None:
 
 
 def _control_registry_self_test_passes() -> None:
-    """Phase 21-14 (CR-06): wires the orphan. `scripts/_gate_registry.py
-    --self-test`'s 16 controls — including the ONLY duplicate-`key`/
-    `gate_id` check — previously ran nowhere automated: not the battery, not
-    CI, not either pre-commit hook. This drives it as a real subprocess
+    """Wires the orphan. `scripts/_gate_registry.py --self-test`'s
+    controls — including the ONLY duplicate-`key`/`gate_id` check —
+    previously ran nowhere automated: not the battery, not CI, not either
+    pre-commit hook. This drives it as a real subprocess
     (`_control_harvest_nonzero_exit_named`'s shape) so a broken registry
     control now fails `gen-gate-docs.py --self-test`, and by extension the
     battery, CI, and both pre-commit hooks at once, naming which registry
@@ -3542,6 +3814,43 @@ def _control_registry_self_test_passes() -> None:
         f"scripts/_gate_registry.py --self-test exited {proc.returncode}: "
         f"{proc.stderr}"
     )
+
+
+def _control_own_registry_docstring_has_no_count() -> None:
+    """Deliberately narrow: pins the one function whose docstring shipped
+    a stale hand-maintained control-roster count, gone by the time this
+    control was added. Asserts `_control_registry_self_test_passes`'s
+    docstring carries no digit at all, rather than re-checking any
+    particular value -- a value would go stale again the moment the
+    registry's own control count changes. This control answers only for
+    that one function; the general, quantified answer for the rest of
+    this file's function docstrings is a separate derived measurement,
+    not a floor here. Carries no digit in its own docstring either, for
+    the same reason."""
+    doc = _control_registry_self_test_passes.__doc__ or ""
+    assert not re.search(r"[0-9]", doc), (
+        f"_control_registry_self_test_passes' docstring carries a digit: {doc!r}"
+    )
+
+
+def _control_selffile_docstring_ratchet_fires() -> None:
+    """A synthetic live count one above a synthetic pin must fail, naming
+    both figures -- the growth direction of this file's own
+    py-docstrings-only-blind-spot ratchet (a second WR-08 landing in the
+    file the first one landed in)."""
+    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=5, pinned_count=4)
+    assert len(problems) == 1, problems
+    assert "5" in problems[0] and "4" in problems[0], problems[0]
+
+
+def _control_selffile_docstring_ratchet_requires_repin_on_shrink() -> None:
+    """A synthetic live count one below a synthetic pin must also fail,
+    naming both figures -- the shrink direction, demanding the pin be
+    lowered to the live count in the same commit rather than granting
+    free headroom for a later, unnoticed regrowth."""
+    problems = nonmodule_docstring_selffile_ratchet_problems(live_count=3, pinned_count=4)
+    assert len(problems) == 1, problems
+    assert "3" in problems[0] and "4" in problems[0], problems[0]
 
 
 def _control_slug_collision_raises() -> None:
@@ -3644,7 +3953,9 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("roster-arm-shape-census", _control_roster_arm_shape_census),
     ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
-    ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
+    ("ledger-ratchet-requires-repin-on-shrink", _control_ledger_ratchet_requires_repin_on_shrink),
+    ("ledger-key-digest-fires", _control_ledger_key_digest_fires),
+    ("ledger-key-digest-derived", _control_ledger_key_digest_derived),
     ("ledger-staleness-fires", _control_ledger_staleness_fires),
     ("ledger-occurrence-surplus-fires", _control_ledger_occurrence_surplus_fires),
     ("ledger-not-an-unconditional-permit", _control_ledger_not_an_unconditional_permit),
@@ -3652,6 +3963,12 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
     ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
     ("registry-self-test", _control_registry_self_test_passes),
+    ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
+    ("selffile-docstring-ratchet-fires", _control_selffile_docstring_ratchet_fires),
+    (
+        "selffile-docstring-ratchet-requires-repin-on-shrink",
+        _control_selffile_docstring_ratchet_requires_repin_on_shrink,
+    ),
     ("slug-collision-raises", _control_slug_collision_raises),
 )
 
@@ -3717,7 +4034,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "roster-arm-shape-census",
     "roster-arm-shape-census-vacuity",
     "ledger-ratchet-fires",
-    "ledger-ratchet-allows-shrink",
+    "ledger-ratchet-requires-repin-on-shrink",
+    "ledger-key-digest-fires",
+    "ledger-key-digest-derived",
     "ledger-staleness-fires",
     "ledger-occurrence-surplus-fires",
     "ledger-not-an-unconditional-permit",
@@ -3725,6 +4044,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ledger-injection-architecture-fires",
     "ledger-injection-testing-fires",
     "registry-self-test",
+    "own-registry-docstring-has-no-count",
+    "selffile-docstring-ratchet-fires",
+    "selffile-docstring-ratchet-requires-repin-on-shrink",
     "slug-collision-raises",
 )
 
