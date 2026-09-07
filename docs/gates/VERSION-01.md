@@ -4,7 +4,7 @@
 ## Facts
 
 - `derived_counts` (1 entries): `stamp_source_kind_count`=4
-- `registered_surfaces` (2): `first-principles/agents/**`, `first-principles/skills/**`
+- `registered_surfaces` (4): `.claude-plugin/marketplace.json`, `first-principles/.claude-plugin/plugin.json`, `shared/skills/*/SKILL.md`, `shared/spine/SKILL.meta.yml`
 <!-- END GENERATED:FACTS -->
 
 <!-- GENERATED:HOW-TO-RUN -->
@@ -38,5 +38,12 @@ The stamp count is reported, never asserted. Hardcoding it would recreate the dr
 exists to catch: a newly added skill is discovered by glob automatically, and one that forgets its
 stamp fails on presence instead of on a magic number.
 
-The generated tree is deliberately out of scope — those stamps are produced by `sync-content.py`
-from the `shared/` sources, and DUAL-04 already fails on any divergence between them.
+The 4 walked source kinds above are what `registered_surfaces` in the Facts fence names — the
+surfaces `collect_stamps()`'s own four walk sites actually reach, floored against that roster in
+both directions by `self_test()` (a fabricated roster entry nothing walks fails as an over-claim;
+a walked source the roster fails to declare fails as an under-claim).
+
+The generated tree under `first-principles/agents/**` and `first-principles/skills/**` is
+deliberately EXCLUDED from that walk — not one of the four kinds `registered_surfaces` names —
+because those stamps are produced by `sync-content.py` from the `shared/` sources above, and
+DUAL-04 (`sync-content.py --check`) already fails on any divergence between them.
