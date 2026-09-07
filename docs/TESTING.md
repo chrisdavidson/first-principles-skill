@@ -64,7 +64,7 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-Two gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate and the conformance-baseline drift gate. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
+Five gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate, the conformance generator self-test, the conformance-baseline drift gate, the claim-surface generator self-test, and the claim-surface drift gate. Both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` run the same five, in the same order — see `CLAUDE.md`'s `### Pre-commit gates` section for the full per-gate detail. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Body-size report (not a gate — TEARDOWN-01)
 
