@@ -24,6 +24,11 @@ CI job: — (not a CI job)
 
 <!-- HAND-WRITTEN: preserved verbatim across regeneration. -->
 
+## How to run, in detail
+
+Added at v8.7 Phase 164; moved `scripts/check-firewall-battery.sh`'s offline gate count from 15
+to 16.
+
 ## What it asserts
 
 Offline blind A/B quality-measurement harness self-test (deterministic, no live session) —

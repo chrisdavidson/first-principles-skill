@@ -66,10 +66,14 @@ are wired to the production `_collect_files` / `_check_file` functions and
 will fire correctly the moment real content lands (Phase 154 for the first,
 any future skill-stub cross-ref for the second).
 
-Scan surfaces (docs/ cross-doc link checking — D-04, DOCTOOL-01):
-    - docs/*.md  (user-facing documentation; relative cross-doc links + anchor
-      validation via github-slugger rule; docs/-prefixed links flagged as CF-04
-      violations; docs/history/** excluded — frozen archives)
+Scan surfaces (docs/ cross-doc link checking — D-04, DOCTOOL-01; widened Phase 21, D-21-H):
+    See DOCS_CHECK_GLOBS below for the live glob list this axis actually reaches —
+    stated here as derived (len(DOCS_CHECK_GLOBS) and the globs themselves), not as
+    a typed sentence carrying its own count, so this docstring cannot itself drift
+    from the constant it describes (CONF-13). Relative cross-doc links + anchor
+    validation via github-slugger rule apply to every matched surface; docs/-prefixed
+    links inside docs/ are flagged as CF-04 violations; docs/history/** is excluded
+    (frozen archives).
 
 Namespace-ref enforcement (D-19-6, open question #3):
     Strict backtick-only: bare /first-principles:name in prose is ignored.
@@ -197,8 +201,16 @@ NAMESPACE_ONLY_GLOBS = [
 # Scan globs: docs/ surface — relative cross-doc links + anchor validation (D-04).
 # docs/history/** is excluded: frozen per-milestone archives with stale links that
 # are intentionally not gated (per REQUIREMENTS Out-of-Scope).
+#
+# Phase 21 (D-21-H): added docs/gates/*.md. The generated per-gate detail pages
+# are a claim surface in their own right, and CLAUDE.md's / docs/ARCHITECTURE.md's
+# / docs/TESTING.md's generated tables all link into them — leaving that surface
+# unchecked would be inherited coverage assumed rather than granted. VAL-02
+# (markdownlint) is deliberately NOT widened the same way; see docs/gates/VAL-02.md
+# for the written reason.
 DOCS_CHECK_GLOBS = [
     "docs/*.md",
+    "docs/gates/*.md",
 ]
 
 # Markdown link pattern: [label](target)
@@ -864,6 +876,75 @@ def _run_self_test() -> int:
             f"to a nonexistent reference resolved to an existing path "
             f"{resolved_miss} — broken agent-body links would go unreported"
         )
+
+    # --- 9. docs/gates/*.md load-bearing (Phase 21, D-21-H) ---
+    # A tempdir docs/gates/ page with a broken relative link must be reported
+    # via the PRODUCTION DOCS_CHECK_GLOBS constant, and the same page with a
+    # valid link must not — the two-direction mutation the plan's own
+    # acceptance criterion names. Uses DOCS_CHECK_GLOBS verbatim (not a
+    # hand-picked pattern), so removing the "docs/gates/*.md" entry from the
+    # module constant makes the positive-detection assertion below fail.
+    with tempfile.TemporaryDirectory() as docs_tmp:
+        docs_tmp_root = Path(docs_tmp)
+        gates_dir = docs_tmp_root / "docs" / "gates"
+        gates_dir.mkdir(parents=True, exist_ok=True)
+
+        (gates_dir / "BROKEN-FIXTURE.md").write_text(
+            "# BROKEN-FIXTURE\n\nSee [missing](./missing.md) for details.\n",
+            encoding="utf-8",
+        )
+        (gates_dir / "VALID-FIXTURE.md").write_text(
+            "# VALID-FIXTURE\n\nSee [sibling](./BROKEN-FIXTURE.md) for context.\n",
+            encoding="utf-8",
+        )
+
+        docs_gates_files = _collect_files(DOCS_CHECK_GLOBS, root=docs_tmp_root)
+        gates_matched = [p for p in docs_gates_files if p.parent.name == "gates"]
+        if len(gates_matched) != 2:
+            wrong.append(
+                "non-vacuity (docs/gates axis): DOCS_CHECK_GLOBS matched "
+                f"{len(gates_matched)} file(s) under docs/gates/ in the fixture, "
+                "expected 2 (BROKEN-FIXTURE.md, VALID-FIXTURE.md) — a zero-match "
+                "glob is the exact failure mode this axis exists to prevent"
+            )
+
+        docs_broken: list[tuple[Path, int, str, str]] = []
+        docs_total_links: list[int] = [0]
+        docs_total_refs: list[int] = [0]
+        for source_file in docs_gates_files:
+            _check_docs_file(source_file, docs_tmp_root / "docs", docs_broken, docs_total_links, docs_total_refs)
+
+        broken_fixture_flagged = [
+            entry for entry in docs_broken
+            if "BROKEN-FIXTURE.md" in str(entry[0]) and entry[3] == "file not found"
+        ]
+        if not broken_fixture_flagged:
+            wrong.append(
+                "positive detection (docs/gates axis): BROKEN-FIXTURE.md's "
+                "broken link to ./missing.md was not flagged with reason "
+                f"'file not found' via DOCS_CHECK_GLOBS — broken list: {docs_broken!r}"
+            )
+
+        valid_fixture_flagged = [entry for entry in docs_broken if "VALID-FIXTURE.md" in str(entry[0])]
+        if valid_fixture_flagged:
+            wrong.append(
+                "negative control (docs/gates axis): VALID-FIXTURE.md's "
+                f"resolving link was incorrectly flagged: {valid_fixture_flagged!r}"
+            )
+
+        # Two-direction mutation, without the "docs/gates/*.md" entry: the
+        # same broken page must go UNREPORTED when the glob only reaches
+        # docs/*.md — proving a green check over a surface the scan never
+        # opens is the exact vacuity this widening exists to prevent.
+        narrowed_files = _collect_files(["docs/*.md"], root=docs_tmp_root)
+        narrowed_gates_matched = [p for p in narrowed_files if p.parent.name == "gates"]
+        if narrowed_gates_matched:
+            wrong.append(
+                "glob-narrowing control (docs/gates axis): the narrowed "
+                "['docs/*.md'] glob unexpectedly matched a docs/gates/ file — "
+                f"{narrowed_gates_matched!r} — the fixture no longer isolates "
+                "the axis this control exists to prove"
+            )
 
     # --- describe() consistency (Phase 21, D-03): mutate a copy of
     # FULL_CHECK_GLOBS and confirm the emitted scan_globs.full_check moves

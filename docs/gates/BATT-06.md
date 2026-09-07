@@ -18,3 +18,15 @@ python3 scripts/check-routing-battery.py --self-test
 
 CI job: `check-routing-battery`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Captures each prompt in `tests/routing-battery-catalog.md` once and scores both the
+boundary-discipline signal and the focused-output signal. In CI only the offline `--self-test`
+above runs; the full live battery is a developer tool — see `CLAUDE.md`'s "Routing battery
+(requires a running Claude Code session)" section for the full live-run command with catalog and
+threshold flags.
+
+The `--self-test` mode exercises the boundary and focused-output fixture suites from
+`scripts/_battery_core.py`, including the anti-masking sentinels (see
+[docs/TESTING.md § Anti-masking measurement invariants](../TESTING.md#anti-masking-measurement-invariants)).

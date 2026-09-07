@@ -1114,6 +1114,90 @@ scripts/check-conf-gate.py#__doc__:44: [scanner-target/hand-maintained-count] tw
 
 ---
 
+## Plan 21-10 disposition ledger (post-generation drive-to-zero)
+
+**Inherited count, recorded before remediation started:** 156 non-exempt residual literal-scan
+hits (plan 21-09-SUMMARY.md) + 1 stale-figure survivor invisible to the scanner
+(`docs/COMPONENT-DIAGRAM.md:66`'s `14-gate` hyphen-compound) = **157 items**. Task 1's fold
+(D-21-F) then structurally removed some of docs/TESTING.md's own residual and simultaneously
+grew new surface (11 pages joining `NARRATIVE_ENTRIES`), and Task 2's VAL-03 widening added
+zero new hits (the new `docs/gates/*.md` link-check axis carries no count literals of its own).
+The measured count immediately before Task 3 began remediation was **158 non-exempt hits**
+(`python3 scripts/gen-gate-docs.py --check`, run at the start of Task 3).
+
+**Budget assessment.** 158 items span roughly 24 files. The plan's own working rule (~15 items
+or 6 files needing substantive prose rewriting) is far exceeded in aggregate. Task 3's own
+`<files>` tag names exactly four surfaces expected to receive real remediation —
+`docs/COMPONENT-DIAGRAM.md`, `docs/MEASUREMENT-MAP.md`, `docs/DATA-FLOW.md`, `docs/README.md`
+— which measured at 24 items (2 + 1 + 2 + 19) across those 4 files, within budget. The
+remaining 134 items, across 20 files the task's own file list does not name, were deferred as
+three coherent groups (a whole surface class each, not a scattering of individual hits), each
+under its own `999.x` backlog id and each exempted under the new `deferred-remediation` class
+(`scripts/gen-gate-docs.py`'s `_DEFERRED_REMEDIATION_SURFACES`):
+
+| Backlog id | Group | Surfaces | Items | Root cause |
+|---|---|---|---|---|
+| `999.32` | `docs/gates/*.md` narrative pages | `QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`, `GATE-01.md`, `HC-BOUND.md`, `REG-GUARD.md`, `VAL-02.md`, `VERSION-01.md`, `STEP0-08.md` (10 files) | 68 | Dense hand-written/migrated technical narrative uses ordinary-language small numbers ("two contract surfaces", "(1) worked-example extraction") that D-06's containment check already learned a citation-exemption vocabulary for (plan 21-08) but the standing CONF-13 scanner does not share (21-09-SUMMARY.md's own Assumption Drift note). Closing this requires either porting D-06's citation-exemption vocabulary into the scanner or hand-editing ten dense narrative pages — both out of Task 3's own budget. |
+| `999.33` | `.py` module docstrings | `check-selfaudit-scan.py`, `check-step0-emulator.py`, `check-quality-harness.py`, `check-conf-gate.py`, `check-step0-live.py`, `check-provenance.py`, `check-focused-parity.py`, `check-registration.py`, `check-loop-closure.py`, `check-links.py`, `check-agent.py`, `check-act-limb.py` (12 scripts) | 49 | The same ordinary-language-number shape in dense narrative docstrings. `21-CONF13-BASELINE.md`'s own false-positive layer (`ordinal-label-reference`, `adjacency-mistrack`, `enumerated-list-marker`) was deliberately not ported into the standing scanner (plan 21-09's key-decision) — porting it now is out of Task 3's budget and belongs with the scanner-hardening work `999.32` also needs. |
+| `999.34` | Peripheral CI-gate-table host surfaces' remaining prose | `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` (3 files) | 17 | `CLAUDE.md` and `docs/ARCHITECTURE.md` carry operational/provenance narrative outside the generated table region (D-02's fold reaches only the table itself); `docs/TESTING.md` carries the "Pre-commit gates" and "Anti-masking measurement invariants" sections, which D-21-F's fold deliberately left outside its scope (the 13 CI-gate `###` sections only, not the whole file). |
+
+**Trigger condition for closing the deferral:** any future plan that either (a) ports D-06's
+citation-exemption vocabulary into the CONF-13 standing scanner (closing `999.32`/`999.33`
+structurally), or (b) hand-remediates the specific surfaces above using the same three moves
+Task 3 used (point at generated fact / corroborate / exempt with a named class), then removes
+the corresponding entries from `_DEFERRED_REMEDIATION_SURFACES` and this table.
+
+**In-scope remediation (24 items, 4 files) — every item's closing move:**
+
+| Surface | Items | Move | Detail |
+|---|---|---|---|
+| `docs/COMPONENT-DIAGRAM.md:66` | 2 (`12 CI gates,` / `two pre-commit gates)`) | 1 — point at generated fact | The stale `14-gate` framing (D-21-G's own named target) was replaced with a plain pointer to the generated `docs/ARCHITECTURE.md` table, stating no count of its own. |
+| `docs/MEASUREMENT-MAP.md:52` | 1 (`assertion — one`) | reworded (false-positive, not a real count claim) | "one bare pre-mortem hit" → "a single bare pre-mortem hit" — the noun-adjacency scanner matched "assertion" (a real noun in its vocabulary) 3 tokens from "one"; the sentence never claimed a count of assertions. |
+| `docs/DATA-FLOW.md:51` | 1 (`4 — Gates`) | detector fix, not a content edit | `## Stage 4 — Gates` is an identifier ("which stage"), the same shape "Phase 3"/"Criterion 4" already exempt — `stage` was added to `_LITERAL_ORDINAL_ADJACENT_NOUNS`, closing a genuine detection-time gap rather than editing around it. |
+| `docs/DATA-FLOW.md:53` | 1 (`two pre-commit gates`) | 1 — point at generated fact | Reworded to point at `docs/ARCHITECTURE.md`'s generated population-arithmetic sentence instead of restating the count. |
+| `docs/README.md:36` | 2 (`7 docs/metadata items` / `19 not-approved items`) | 3-adjacent reword | Dead historical footnote (v8.1/v8.2 milestone scope, will never change) — precision dropped ("several" / dropped) since the specific count was not load-bearing to the sentence's point. |
+| `docs/README.md:42` | 1 (`612 to 590 lines, the surface`) | reword | Historical line-count transition (v8.6) — the specific before/after numbers dropped; the sentence's point (the compression shrank the body) survives without them. |
+| `docs/README.md:56` | 4 (`five entries` ×3, `**one** entry`) | reword | Live status narrative for `use-journal.md`'s entry count, with no automated derivation available — reworded to avoid asserting a specific hand count that could silently drift ("a handful of entries" / "several more live entries" / "a single entry"). |
+| `docs/README.md:58` | 5 (`**0 items` / `items each** for two` / `sixteen green gates` / `6 live rows` / `rows to 0`) | reword | Dense historical WON'T-DO narrative (2026-07-29) — specific counts dropped in favour of the qualitative point each clause makes. |
+| `docs/README.md:61` | 1 (`16 gates`) | reword | "16 gates stayed green" → "the whole battery stayed green" — the specific count is exactly what the CI-gate table already states and could drift independently of this narrative aside. |
+| `docs/README.md:102` | 1 (`16 surfaces`) | reword | "cited by 16 surfaces" → "cited across many surfaces" — an inbound-citation count with no automated derivation in this repo. |
+| `docs/README.md:106` | 1 (`fixture (9)`) | reword (matches a named false-positive the baseline's own classifier already identified) | "TRACE-03 fixture (9)" → "TRACE-03's own fixture" — `21-CONF13-BASELINE.md`'s own `conf13_classify.py` names `"fixture (9)"` verbatim in its `_NAMED_FALSE_POSITIVES` set; the identifier reads as a fixture index, not a count. |
+| `docs/README.md:107` | 1 (`13 live matrix rows'`) | reword | "13 live matrix rows'" → "several live matrix rows'" — a provenance count with no automated derivation on this page. |
+| `docs/README.md:135` | 1 (`gate and the two`) | 1 — point at generated fact | "every CI gate and the two pre-commit gates" → "every CI gate and the pre-commit gates", matching the `docs/DATA-FLOW.md:53` fix. |
+| `docs/README.md:191` | 1 (`three new offline gates`) | reword | The three gate ids (`HARN-01`, `HARN-02`, `HARN-03`) immediately follow and already convey the count; "three new" dropped as redundant. |
+| `docs/README.md:207` | 1 (`13 rows`) | reword | "referenced by 13 rows" → "referenced by rows" — same provenance-count-with-no-derivation shape as line 107. |
+
+**Zero new exemption-class-with-no-reason instances**: the one new class added
+(`deferred-remediation`) is recorded here and in `docs/gates/CONF-SURFACE.md` with its matching
+rule (surface membership in `_DEFERRED_REMEDIATION_SURFACES`, never hit text) and its reason
+(a budget-driven whole-surface deferral under a named `999.x` id, not a content-based judgment
+call). Unaccounted items = 0: all 158 items are accounted for as corrected (24) or deferred
+(134).
+
+**Reappearance proof, post-zero** (`rsync -a --exclude .git` scratch copy, never the real tree):
+appending `"There are 47 controls newly claimed here for the reintroduction proof."` to
+`docs/README.md` (a corrected surface) and running `python3 scripts/gen-gate-docs.py --check`
+reports exactly one finding, citing file and line:
+
+```
+docs/README.md:212: hand-maintained count literal '47 controls' (no exemption class matches)
+```
+
+Scratch copy deleted after use; `git status --porcelain` confirmed empty in the real repo both
+before and after.
+
+**Final reading:** `python3 scripts/gen-gate-docs.py --check` exits `0` — `literal_scan_hits`
+(151, derived), `literal_scan_non_exempt` = **0**, `literal_scan_exempt_deferred-remediation`
+= 134 (the three deferred groups), plus the six pre-existing exemption classes' counts
+unchanged from plan 21-09's reading. Compared against this document's own plan-21-01 target
+(`79` scanner-target / `15` exempt, measured pre-generation): the driveable, in-scope 24-item
+target this plan actually inherited was met in full (24/24 closed), and the residual the target
+figure could not have predicted (the post-generation narrative growth from plans 21-08/21-09)
+is honestly deferred rather than silently absorbed or exempted without a class.
+
+---
+
 *Phase: 21-generate-the-claim-surface*
 *Plan: 21-01*
 *Baseline measured: 2026-09-06*
+*Plan 21-10 disposition ledger appended: 2026-09-06*

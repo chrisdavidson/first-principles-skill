@@ -23,6 +23,17 @@ CI job: `check-traceability`
 
 <!-- HAND-WRITTEN: preserved verbatim across regeneration. -->
 
+## How to run, in detail
+
+The `--self-test` mode runs in-process fixtures and named sentinels with no disk I/O beyond the
+script itself. To regenerate the capability → requirement → test matrix:
+
+```sh
+python3 scripts/check-traceability.py emit \
+    --md-output docs/requirements-matrix.md \
+    --json-output docs/data/matrix.json
+```
+
 ## What it asserts
 
 Offline traceability gate self-test — capability/tier schema + artifact resolution fixtures, plus
@@ -116,3 +127,10 @@ counts) rather than any digit run, which closes the undisclosed fail-open where 
 statement followed by an arrow and any digits at all escaped both `(f)` and the scan (`(i2)` arms
 7-8 lock both halves of the decision). `docs/data/matrix.json` is tracked as of TEARDOWN-03,
 docs/v8.7-constraint-teardown.md. Deterministic, no live session.
+
+**`HEADLINE_SCAN_GLOBS` is deliberately NOT widened to `docs/gates/*.md` (D-21-I, plan 21-10).**
+The generated per-gate pages state derived facts and disclosed bounds, never the coverage headline
+itself, so there is nothing for this sentinel to reach today. The trigger condition, stated so a
+later reviewer does not have to rediscover it: if a `docs/gates/<GATE-ID>.md` page ever states the
+coverage headline as current fact, the glob must be added explicitly — it will not happen
+automatically, since `HEADLINE_SCAN_GLOBS` is a hand-maintained list, not a directory-wide sweep.

@@ -20,3 +20,9 @@ python3 scripts/check-agent.py --self-test && python3 scripts/check-agent.py
 
 CI job: `check-agent`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Structural integrity check for the assembled agent: frontmatter schema, required fields,
+`disallowedTools`, version format, and description constraints. The run command above already
+sequences the offline `--self-test` fixture before the live file check.

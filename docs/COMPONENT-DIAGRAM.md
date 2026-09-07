@@ -63,7 +63,8 @@ flowchart LR
     AGENT -->|"reads"| BATT06
 ```
 
-For the full 14-gate inventory (the 12 CI gates, VAL-01 through TRACE-03, plus the two pre-commit gates) see
+For the full gate inventory (every gate mapped to its owning script and job name, generated from
+`scripts/_gate_registry.py`) see
 [ARCHITECTURE.md#ci-and-pre-commit-gate-inventory](ARCHITECTURE.md#ci-and-pre-commit-gate-inventory).
 For the token-substitution mechanics see
 [ARCHITECTURE.md#token-substitution](ARCHITECTURE.md#token-substitution).

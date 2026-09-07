@@ -15,3 +15,8 @@ python3 scripts/check-trigger-collisions.py --self-test && python3 scripts/check
 
 CI job: `check-trigger-collisions`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+In CI, the `--self-test` fixture runs first, then the live scan — the run command above already
+sequences both.

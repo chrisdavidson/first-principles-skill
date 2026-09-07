@@ -18,3 +18,17 @@ python3 scripts/check-step0-live.py --self-test
 
 CI job: `check-step0-live`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Forces invocation of the agent body via the approach-② bypass channel against a running `claude`
+session. Classifies each run's `MODE` from the captured stream. The offline `--self-test` above
+asserts the scoring and parsing logic without invoking Claude — see `CLAUDE.md`'s measurement
+harness section for the full live-run command with catalog and threshold flags.
+
+The full live run against `tests/step0-fixture-catalog.md` is the canonical manual baseline (see
+`tests/step0-baseline-v7.8.md`).
+
+A K-of-N result from the full live run is a recorded observation, never a gate — see `CLAUDE.md`'s
+"K-of-5 is a recorded observation, not a gate" note for the full disclosure, including why the
+tool's own invocation and pass-threshold flag stay unchanged.

@@ -15,3 +15,7 @@ claude plugin validate ./first-principles
 
 CI job: `plugin-validate`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Requires the Claude Code CLI to be installed and on `PATH`.

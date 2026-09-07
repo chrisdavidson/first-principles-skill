@@ -18,3 +18,12 @@ python3 scripts/check-step0-emulator.py --self-test
 
 CI job: `check-step0-emulator`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Reads the `**Phrase detection rules**` table from `shared/spine/SKILL-body.md`, compiles each
+trigger phrase into a deterministic regex classifier, and classifies a prompt to `MODE`
+(`focused-<technique>` or `full-composer`). No live Claude session required.
+
+The `--self-test` mode runs two fixture categories: fault-injection fixtures (D-05 corruption
+modes) and the full `tests/step0-fixture-catalog.md` classification suite.

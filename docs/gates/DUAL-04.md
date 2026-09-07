@@ -19,3 +19,12 @@ python3 scripts/sync-content.py --check
 
 CI job: `sync-check`
 <!-- END GENERATED:HOW-TO-RUN -->
+
+## How to run, in detail
+
+Exit 1 on any drift. This is the same check as the pre-commit sync-drift gate — it fires before a
+commit locally, and again in CI on push/PR. To fix drift:
+
+```sh
+python3 scripts/sync-content.py --write && git add -u
+```
