@@ -58,10 +58,10 @@ class GateEntry:
 
     `key` is a stable identifier used internally by this module (equal to
     `gate_id` for every battery-registered entry; a synthetic `PRECOMMIT:...`
-    string for the two pre-commit mechanism rows, which carry no gate id).
+    string for the five pre-commit mechanism rows, which carry no gate id).
 
     `gate_id` is the id `scripts/check-firewall-battery.sh` registers via
-    `gate "<ID>"` / `gate_prereq "<ID>"` — `None` for the two pre-commit rows,
+    `gate "<ID>"` / `gate_prereq "<ID>"` — `None` for the five pre-commit rows,
     which have no battery registration at all.
 
     `extra_ids` carries additional ids the SAME row states but the battery
@@ -96,13 +96,11 @@ class GateEntry:
 # ENTRIES
 #
 # One per row in docs/ARCHITECTURE.md's "CI and pre-commit gate inventory"
-# table (28 rows as of plan 21-11: 24 battery-registered gate ids — VAL-04's
+# table (31 rows as of plan 21-13: 24 battery-registered gate ids — VAL-04's
 # row carries a second, extra id, GATE-02, so 24 rows still means 24 primary
-# ids — plus the 2 inline checks INVARIANT-CHECK/FROZEN-EVIDENCE already
-# among those 24... no: the 24 are the `gate`/`gate_prereq` registrations;
-# the 2 inline checks are separate rows, giving 26 battery-tallied rows; plus
-# the 2 pre-commit mechanism rows with no gate id at all = 28 total
-# documented rows).
+# ids — plus the 2 inline checks INVARIANT-CHECK/FROZEN-EVIDENCE, giving 26
+# battery-tallied rows; plus the 5 pre-commit mechanism rows with no gate id
+# at all, one per hook gate (plan 21-13, CR-04) = 31 total documented rows).
 #
 # `_ANTICIPATORY_KEYS` is now empty (D-21-C, plan 21-11): CONF-SURFACE was
 # the single anticipatory entry — added ahead of its own documentation while
@@ -623,6 +621,22 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
+        key="PRECOMMIT:conformance-generator-self-test",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="conformance generator self-test (pre-commit)",
+        ci_job=None,
+        script="scripts/report-conformance.py",
+        run_command="python3 scripts/report-conformance.py --self-test",
+        summary=(
+            "Blocks if `scripts/report-conformance.py --self-test` fails. Runs "
+            "the generator's own falsifiability controls before its output is "
+            "compared to anything (WR-05) — ordered before `--check` because a "
+            "generator whose own controls are failing makes that comparison "
+            "meaningless."
+        ),
+    ),
+    GateEntry(
         key="PRECOMMIT:conformance-baseline-drift-gate",
         gate_id=None,
         extra_ids=(),
@@ -637,6 +651,40 @@ ENTRIES: tuple[GateEntry, ...] = (
             "in CI."
         ),
         consumes=("registered_surfaces", "checked_files", "control_ids", "control_count", "locked_constants"),
+    ),
+    GateEntry(
+        key="PRECOMMIT:claim-surface-generator-self-test",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="claim-surface generator self-test (pre-commit)",
+        ci_job=None,
+        script="scripts/gen-gate-docs.py",
+        run_command="python3 scripts/gen-gate-docs.py --self-test",
+        summary=(
+            "Blocks if `scripts/gen-gate-docs.py --self-test` fails. Same WR-05 "
+            "ordering discipline as the conformance generator self-test — a "
+            "broken generator's own controls must be caught before its "
+            "comparison against committed output (the claim-surface drift "
+            "gate) is even attempted."
+        ),
+    ),
+    GateEntry(
+        key="PRECOMMIT:claim-surface-drift-gate",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="claim-surface drift gate (pre-commit)",
+        ci_job=None,
+        script="scripts/gen-gate-docs.py",
+        run_command="python3 scripts/gen-gate-docs.py --check",
+        summary=(
+            "Blocks if `CLAUDE.md`'s/`docs/ARCHITECTURE.md`'s generated gate "
+            "tables, `docs/TESTING.md`'s generated index, or any "
+            "`docs/gates/<ID>.md` page no longer match a fresh "
+            "`scripts/gen-gate-docs.py --write` run, or if CONF-13's standing "
+            "literal scanner finds a non-exempt hand-maintained count literal "
+            "— the same check as CONF-SURFACE, fired before commit rather "
+            "than in CI/battery."
+        ),
     ),
     # --- CONF-SURFACE (D-21-C) ---------------------------------------------
     # The claim-surface drift gate. Landed by plan 21-11 into
@@ -728,10 +776,10 @@ def registry_id_problems(
     never registers.
 
     `precommit_ids` also carries the two truly-inline battery checks
-    (`INVARIANT-CHECK`, `FROZEN-EVIDENCE`) alongside the two pre-commit
-    mechanism rows — all four increment a battery/pre-commit tally directly
+    (`INVARIANT-CHECK`, `FROZEN-EVIDENCE`) alongside the five pre-commit
+    mechanism rows — all seven increment a battery/pre-commit tally directly
     rather than through a `gate "<ID>"` / `gate_prereq "<ID>"` call
-    `battery_gate_ids()` can see, so all four must be excluded from this
+    `battery_gate_ids()` can see, so all seven must be excluded from this
     comparison by construction, not merely by convention.
 
     Pure: does no I/O. Reports `missing=` (battery has it, registry lacks
@@ -771,7 +819,7 @@ def _registry_entry_ids() -> frozenset[str]:
 
 
 def _registry_precommit_ids() -> frozenset[str]:
-    """Ids excluded from the D-01 battery-gate-id equality floor: the two
+    """Ids excluded from the D-01 battery-gate-id equality floor: the five
     pre-commit mechanism rows' synthetic keys (no gate id, no battery
     registration to compare against at all) AND the two truly-inline
     battery checks, `INVARIANT-CHECK` and `FROZEN-EVIDENCE`, which increment
@@ -782,9 +830,107 @@ def _registry_precommit_ids() -> frozenset[str]:
     precommit_keys = frozenset(
         e.key
         for e in ENTRIES
-        if e.gate_id is None and e.script is not None and e.key.startswith("PRECOMMIT:")
+        if e.gate_id is None and e.key.startswith("PRECOMMIT:")
     )
     return precommit_keys | frozenset({"INVARIANT-CHECK", "FROZEN-EVIDENCE"})
+
+
+# ---------------------------------------------------------------------------
+# CR-04: pre-commit hook-roster floor — derives the five `PRECOMMIT:` rows'
+# `run_command` set from both hook scripts' own source text, rather than
+# trusting the registry to have transcribed them correctly.
+# ---------------------------------------------------------------------------
+
+# The two hook relpaths that must run the identical five-gate sequence in
+# the identical order (both files' own header comments assert this; nothing
+# checked it before this plan). Named here, not re-typed at each call site.
+_HOOK_PATHS: tuple[str, str] = (".githooks/pre-commit", "scripts/git-hooks/pre-commit")
+
+# Matches a `(?:exec )?$PY <script> <flag>` invocation line — the shape both
+# hook scripts use for every one of their five gates (the terminal line uses
+# `exec`, the other four use `|| exit $?`, which this pattern ignores since
+# it only needs the script and the leading flag).
+_HOOK_GATE_INVOCATION_RE = re.compile(
+    r'^[ \t]*(?:exec[ \t]+)?\$PY[ \t]+(scripts/\S+)[ \t]+(--\S+)',
+    re.MULTILINE,
+)
+
+
+def hook_gate_invocations(hook_src: str) -> tuple[str, ...]:
+    """Derive the ordered sequence of hook-gate invocations from a hook
+    script's own source TEXT (not a path) — the same signature discipline
+    `battery_gate_ids()` uses, so a control can drive it against synthetic
+    fixtures with no disk I/O.
+
+    Normalises `$PY` to `python3` at the comparison boundary, not by
+    re-typing the commands: the hooks resolve `$PY` to `uv run python3` or
+    `python3` at runtime, but every registry `run_command` is always written
+    in the `python3 <script> <flag>` form, so this is where the two
+    vocabularies are reconciled.
+    """
+    return tuple(
+        f"python3 {script} {flag}"
+        for script, flag in _HOOK_GATE_INVOCATION_RE.findall(hook_src)
+    )
+
+
+def hook_roster_problems(
+    hook_a_invocations: tuple[str, ...] | None = None,
+    hook_b_invocations: tuple[str, ...] | None = None,
+    registry_run_commands: frozenset[str] | None = None,
+) -> list[str]:
+    """CR-04's derived pre-commit hook floor, reported in ONE run and never
+    short-circuited (the same bidirectional-report discipline
+    `registry_id_problems()` and `field_resolution_problems()` already use):
+
+      (a) `hook_a_invocations == hook_b_invocations` — a hook gate edited in
+          one file only is a finding, the lockstep property both hooks'
+          header comments assert but nothing previously checked;
+      (b) the union of both hooks' invocations equals `registry_run_commands`
+          — reported as `missing=` (a hook gate with no `PRECOMMIT:` registry
+          row) and `extra=` (a registry row naming an invocation neither
+          hook makes).
+
+    Every argument defaults to a LIVE read (both real hook files via
+    `_HOOK_PATHS`, and the real `PRECOMMIT:` `run_command` set from
+    `ENTRIES`) so this function can be called with no arguments for the live
+    check. Passing explicit tuples/sets — as the missing=/extra=/divergence
+    self-test arms do — makes the call pure with no disk I/O, exercising the
+    same comparison logic against synthetic fixtures.
+    """
+    if hook_a_invocations is None:
+        hook_a_invocations = hook_gate_invocations(
+            (REPO_ROOT / _HOOK_PATHS[0]).read_text(encoding="utf-8")
+        )
+    if hook_b_invocations is None:
+        hook_b_invocations = hook_gate_invocations(
+            (REPO_ROOT / _HOOK_PATHS[1]).read_text(encoding="utf-8")
+        )
+    if registry_run_commands is None:
+        registry_run_commands = frozenset(
+            e.run_command for e in ENTRIES if e.key.startswith("PRECOMMIT:")
+        )
+    problems: list[str] = []
+    if hook_a_invocations != hook_b_invocations:
+        problems.append(
+            "hook-divergence: the two hook scripts' derived invocation "
+            f"sequences differ: {list(hook_a_invocations)} != "
+            f"{list(hook_b_invocations)}"
+        )
+    derived = frozenset(hook_a_invocations) | frozenset(hook_b_invocations)
+    missing = derived - registry_run_commands
+    extra = registry_run_commands - derived
+    if missing:
+        problems.append(
+            "hook-roster missing=: hook gate(s) with no PRECOMMIT: registry "
+            f"row: {sorted(missing)}"
+        )
+    if extra:
+        problems.append(
+            "hook-roster extra=: PRECOMMIT: registry row(s) naming an "
+            f"invocation neither hook makes: {sorted(extra)}"
+        )
+    return problems
 
 
 # ---------------------------------------------------------------------------
@@ -1025,6 +1171,89 @@ def _control_d01_live_battery_equality() -> None:
     assert problems == [], problems
 
 
+def _control_cr04_hook_roster_live_positive() -> None:
+    """CR-04's positive arm, over the REAL hook text: both hook scripts
+    derive exactly five invocations each, the two sequences agree, and they
+    equal the five `PRECOMMIT:` registry rows' `run_command` set. Called
+    with zero arguments — the same live-default call shape a developer or
+    the pre-commit hook itself would use."""
+    problems = hook_roster_problems()
+    assert problems == [], problems
+    hook_a = hook_gate_invocations(
+        (REPO_ROOT / _HOOK_PATHS[0]).read_text(encoding="utf-8")
+    )
+    hook_b = hook_gate_invocations(
+        (REPO_ROOT / _HOOK_PATHS[1]).read_text(encoding="utf-8")
+    )
+    assert len(hook_a) == 5, hook_a
+    assert len(hook_b) == 5, hook_b
+    assert hook_a == hook_b, (hook_a, hook_b)
+
+
+def _control_cr04_hook_roster_missing_fires() -> None:
+    """FALSIFICATION, `missing=` direction: a synthetic sixth invocation line
+    appended to a COPY of the real hook source text must produce a finding
+    naming the offending command by name."""
+    real_hook_src = (REPO_ROOT / _HOOK_PATHS[0]).read_text(encoding="utf-8")
+    synthetic_hook_src = (
+        real_hook_src + "\n$PY scripts/check-agent.py --self-test || exit $?\n"
+    )
+    synthetic_invocations = hook_gate_invocations(synthetic_hook_src)
+    assert "python3 scripts/check-agent.py --self-test" in synthetic_invocations, (
+        synthetic_invocations
+    )
+    registry_commands = frozenset(
+        e.run_command for e in ENTRIES if e.key.startswith("PRECOMMIT:")
+    )
+    problems = hook_roster_problems(
+        synthetic_invocations, synthetic_invocations, registry_commands
+    )
+    assert len(problems) == 1, problems
+    assert "missing=" in problems[0], problems
+    assert "python3 scripts/check-agent.py --self-test" in problems[0], problems
+
+
+def _control_cr04_hook_roster_extra_fires() -> None:
+    """FALSIFICATION, `extra=` direction: a registry roster naming a
+    fabricated invocation the real hook text does not make must produce a
+    finding naming that offending command by name."""
+    real_hook_src = (REPO_ROOT / _HOOK_PATHS[0]).read_text(encoding="utf-8")
+    real_invocations = hook_gate_invocations(real_hook_src)
+    fabricated_commands = frozenset(real_invocations) | frozenset(
+        {"python3 scripts/check-links.py --check"}
+    )
+    problems = hook_roster_problems(
+        real_invocations, real_invocations, fabricated_commands
+    )
+    assert len(problems) == 1, problems
+    assert "extra=" in problems[0], problems
+    assert "python3 scripts/check-links.py --check" in problems[0], problems
+
+
+def _control_cr04_hook_roster_divergence_fires() -> None:
+    """FALSIFICATION, hook-divergence direction: two synthetic hook texts
+    differing by one invocation line must produce a finding naming the
+    differing command, even when the registry roster covers the union of
+    both (isolating the divergence arm from the missing=/extra= arms)."""
+    hook_a_src = (
+        "$PY scripts/sync-content.py --check || exit $?\n"
+        "$PY scripts/report-conformance.py --self-test || exit $?\n"
+    )
+    hook_b_src = (
+        "$PY scripts/sync-content.py --check || exit $?\n"
+        "$PY scripts/report-conformance.py --check || exit $?\n"
+    )
+    inv_a = hook_gate_invocations(hook_a_src)
+    inv_b = hook_gate_invocations(hook_b_src)
+    assert inv_a != inv_b, (inv_a, inv_b)
+    registry_commands = frozenset(inv_a) | frozenset(inv_b)
+    problems = hook_roster_problems(inv_a, inv_b, registry_commands)
+    assert len(problems) == 1, problems
+    assert "hook-divergence" in problems[0], problems
+    assert "python3 scripts/report-conformance.py --self-test" in problems[0], problems
+    assert "python3 scripts/report-conformance.py --check" in problems[0], problems
+
+
 def _parse_architecture_data_row_count() -> int:
     """Parse docs/ARCHITECTURE.md's 'CI and pre-commit gate inventory' table
     live and return its data-row count (excludes the header and separator
@@ -1175,6 +1404,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("d01-gate-prereq-recognised", _control_d01_gate_prereq_recognised),
     ("d01-precommit-excluded", _control_d01_precommit_excluded),
     ("d01-live-battery-equality", _control_d01_live_battery_equality),
+    ("cr04-hook-roster-live-positive", _control_cr04_hook_roster_live_positive),
+    ("cr04-hook-roster-missing-fires", _control_cr04_hook_roster_missing_fires),
+    ("cr04-hook-roster-extra-fires", _control_cr04_hook_roster_extra_fires),
+    ("cr04-hook-roster-divergence-fires", _control_cr04_hook_roster_divergence_fires),
     (
         "entries-count-matches-architecture-table",
         _control_entries_count_matches_architecture_table,
@@ -1203,6 +1436,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "d01-gate-prereq-recognised",
     "d01-precommit-excluded",
     "d01-live-battery-equality",
+    "cr04-hook-roster-live-positive",
+    "cr04-hook-roster-missing-fires",
+    "cr04-hook-roster-extra-fires",
+    "cr04-hook-roster-divergence-fires",
     "entries-count-matches-architecture-table",
     "no-gate-id-duplicated",
     "d04-missing-field-fires",

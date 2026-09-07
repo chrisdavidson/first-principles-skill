@@ -38,7 +38,10 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | INVARIANT-CHECK | [`docs/gates/INVARIANT-CHECK.md`](gates/INVARIANT-CHECK.md) | `python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2)` |
 | FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"` |
 | — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
+| — | [`docs/gates/PRECOMMIT-conformance-generator-self-test.md`](gates/PRECOMMIT-conformance-generator-self-test.md) | `python3 scripts/report-conformance.py --self-test` |
 | — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |
+| — | [`docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`](gates/PRECOMMIT-claim-surface-generator-self-test.md) | `python3 scripts/gen-gate-docs.py --self-test` |
+| — | [`docs/gates/PRECOMMIT-claim-surface-drift-gate.md`](gates/PRECOMMIT-claim-surface-drift-gate.md) | `python3 scripts/gen-gate-docs.py --check` |
 | CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
 <!-- END GENERATED -->
 
@@ -61,7 +64,7 @@ Routing outcomes vary between sessions, plugin sets, and Claude routing-model ve
 
 ## Pre-commit gates
 
-Two gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate and the conformance-baseline drift gate. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
+Five gates fire on every `git commit` when a hook mechanism is installed — the sync-drift gate, the conformance generator self-test, the conformance-baseline drift gate, the claim-surface generator self-test, and the claim-surface drift gate. Both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` run the same five, in the same order — see `CLAUDE.md`'s `### Pre-commit gates` section for the full per-gate detail. For how to install the hook, see [docs/DEVELOPMENT.md](DEVELOPMENT.md).
 
 ### Body-size report (not a gate — TEARDOWN-01)
 
