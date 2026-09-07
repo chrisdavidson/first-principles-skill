@@ -38,7 +38,10 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | INVARIANT-CHECK | [`docs/gates/INVARIANT-CHECK.md`](gates/INVARIANT-CHECK.md) | `python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2)` |
 | FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"` |
 | — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
+| — | [`docs/gates/PRECOMMIT-conformance-generator-self-test.md`](gates/PRECOMMIT-conformance-generator-self-test.md) | `python3 scripts/report-conformance.py --self-test` |
 | — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |
+| — | [`docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`](gates/PRECOMMIT-claim-surface-generator-self-test.md) | `python3 scripts/gen-gate-docs.py --self-test` |
+| — | [`docs/gates/PRECOMMIT-claim-surface-drift-gate.md`](gates/PRECOMMIT-claim-surface-drift-gate.md) | `python3 scripts/gen-gate-docs.py --check` |
 | CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
 <!-- END GENERATED -->
 

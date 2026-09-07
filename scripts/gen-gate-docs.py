@@ -432,7 +432,17 @@ def _population_counts(entries) -> dict[str, int]:
     """Every count the population-arithmetic sentence states, derived from
     `entries` — never a hand-typed literal. `entries` is a parameter (not a
     read of the module global) specifically so a self-test control can add a
-    synthetic entry and observe which counts move."""
+    synthetic entry and observe which counts move.
+
+    `precommit_count` and `hook_mechanism_count` are two SEPARATELY derived
+    figures naming two different nouns (CR-04): `precommit_count` counts
+    pre-commit GATES (registry `PRECOMMIT:` rows, one per hook gate);
+    `hook_mechanism_count` counts hook MECHANISMS (distinct hook script
+    relpaths in `_gate_registry._HOOK_PATHS` that exist on disk — never the
+    same value reused under a second name). A reader could not previously
+    tell whether "2 pre-commit" meant hooks or gates, which is what made the
+    stale figure unfalsifiable in the first place.
+    """
     documented = [e for e in entries if e.key not in _gate_registry._ANTICIPATORY_KEYS]
     ci_count = sum(1 for e in documented if e.ci_job is not None)
     precommit_count = sum(1 for e in documented if e.key.startswith("PRECOMMIT:"))
@@ -444,12 +454,16 @@ def _population_counts(entries) -> dict[str, int]:
     )
     tallied_count = sum(1 for e in documented if e.gate_id is not None)
     battery_only_count = tallied_count - ci_count - inline_count
+    hook_mechanism_count = sum(
+        1 for relpath in _gate_registry._HOOK_PATHS if (REPO_ROOT / relpath).exists()
+    )
     return {
         "ci_count": ci_count,
         "precommit_count": precommit_count,
         "inline_count": inline_count,
         "tallied_count": tallied_count,
         "battery_only_count": battery_only_count,
+        "hook_mechanism_count": hook_mechanism_count,
     }
 
 
@@ -468,12 +482,15 @@ def _population_arithmetic_sentence(entries) -> str:
     c = _population_counts(entries)
     battery_only_phrase = _pluralize_count(c["battery_only_count"], "battery-only gate")
     inline_phrase = _pluralize_count(c["inline_count"], "inline check")
+    precommit_gates_phrase = _pluralize_count(c["precommit_count"], "pre-commit gate")
+    hook_mechanism_phrase = _pluralize_count(c["hook_mechanism_count"], "hook mechanism")
     return (
         f"Gates run on three surfaces: **{c['ci_count']} in CI** "
         "(`.github/workflows/validation.yml`, on push/PR to master), "
         f"**{c['tallied_count']} tallied in the offline battery** "
         "(`bash scripts/check-firewall-battery.sh`), and "
-        f"**{c['precommit_count']} pre-commit** hooks. The battery is a strict "
+        f"**{precommit_gates_phrase}** ({hook_mechanism_phrase} run the "
+        "identical set in the identical order). The battery is a strict "
         f"superset of CI: all {c['ci_count']} CI gates plus "
         f"{battery_only_phrase} plus "
         f"{inline_phrase}. That is {c['ci_count']} + "
@@ -2393,6 +2410,74 @@ def _control_population_arithmetic_derived() -> None:
     assert str(before["tallied_count"]) in sentence_before, sentence_before
     assert str(after["tallied_count"]) in sentence_after, sentence_after
 
+    # CR-04: a SIXTH synthetic `PRECOMMIT:` row must move precommit_count
+    # (and only precommit_count) — proving the figure is derived from the
+    # PRECOMMIT: roster and not from anything else, the same isolation
+    # discipline the ci_count/tallied_count assertions above already give
+    # the pre-existing synthetic entry.
+    synthetic_precommit = _gate_registry.GateEntry(
+        key="PRECOMMIT:syn-test-gate",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="synthetic pre-commit gate for the population-arithmetic control",
+        ci_job=None,
+        script=None,
+        run_command="true",
+        summary="Synthetic PRECOMMIT: entry for the population-arithmetic control.",
+    )
+    after_precommit = _population_counts(base + [synthetic_precommit])
+    assert after_precommit["precommit_count"] == before["precommit_count"] + 1, (
+        before,
+        after_precommit,
+    )
+    assert after_precommit["ci_count"] == before["ci_count"], (before, after_precommit)
+    assert after_precommit["tallied_count"] == before["tallied_count"], (
+        before,
+        after_precommit,
+    )
+    assert after_precommit["inline_count"] == before["inline_count"], (
+        before,
+        after_precommit,
+    )
+    sentence_precommit_after = _population_arithmetic_sentence(base + [synthetic_precommit])
+    assert str(after_precommit["precommit_count"]) in sentence_precommit_after, (
+        sentence_precommit_after
+    )
+
+
+def _control_arithmetic_sentence_names_gates_not_hooks() -> None:
+    """CR-04's noun-disambiguation control: the rendered sentence must state
+    the pre-commit clause as GATES (`pre-commit gates`), never the ambiguous
+    `pre-commit** hooks` shape that made the original figure unfalsifiable —
+    a reader could not tell whether "2 pre-commit" meant hooks or gates, so
+    neither value could be called wrong."""
+    sentence = _population_arithmetic_sentence(_gate_registry.ENTRIES)
+    assert "pre-commit gates" in sentence, sentence
+    assert "pre-commit** hooks" not in sentence, sentence
+
+
+def _control_hook_mechanism_count_independent_of_precommit_count() -> None:
+    """`hook_mechanism_count` and `precommit_count` must be computed by
+    DIFFERENT code paths: mutating the synthetic entries list (adding a
+    PRECOMMIT: row) must move precommit_count without moving
+    hook_mechanism_count. If they moved together, one derivation would be
+    doing both jobs and the CR-04 disambiguation would be cosmetic."""
+    base = list(_gate_registry.ENTRIES)
+    before = _population_counts(base)
+    synthetic_precommit = _gate_registry.GateEntry(
+        key="PRECOMMIT:syn-test-gate-2",
+        gate_id=None,
+        extra_ids=(),
+        mechanism="synthetic pre-commit gate for the independence control",
+        ci_job=None,
+        script=None,
+        run_command="true",
+        summary="Synthetic PRECOMMIT: entry for the independence control.",
+    )
+    after = _population_counts(base + [synthetic_precommit])
+    assert after["precommit_count"] != before["precommit_count"], (before, after)
+    assert after["hook_mechanism_count"] == before["hook_mechanism_count"], (before, after)
+
 
 def _control_arithmetic_sentence_pluralizes_correctly() -> None:
     """The population-arithmetic sentence must never render the literal
@@ -2783,6 +2868,11 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("trace03-glob-substring-derived", _control_trace03_glob_substring_derived),
     ("population-arithmetic-derived", _control_population_arithmetic_derived),
     ("arithmetic-sentence-pluralizes-correctly", _control_arithmetic_sentence_pluralizes_correctly),
+    ("arithmetic-sentence-names-gates-not-hooks", _control_arithmetic_sentence_names_gates_not_hooks),
+    (
+        "hook-mechanism-count-independent-of-precommit-count",
+        _control_hook_mechanism_count_independent_of_precommit_count,
+    ),
     ("framing-sentences-replaced", _control_framing_sentences_replaced),
     ("region-preserves-surrounding-prose", _control_region_preserves_surrounding_prose),
     ("page-per-entry", _control_page_per_entry),
@@ -2841,6 +2931,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "trace03-glob-substring-derived",
     "population-arithmetic-derived",
     "arithmetic-sentence-pluralizes-correctly",
+    "arithmetic-sentence-names-gates-not-hooks",
+    "hook-mechanism-count-independent-of-precommit-count",
     "framing-sentences-replaced",
     "region-preserves-surrounding-prose",
     "page-per-entry",
