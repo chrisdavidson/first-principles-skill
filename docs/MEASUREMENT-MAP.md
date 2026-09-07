@@ -49,7 +49,7 @@ This table is the core lookup. Source: `CLAUDE.md`, `scripts/_battery_core.py` (
 | **RR-77-08** | `_COMPOSER_FOCUS_CEILING=4` lock (anti-masking) | **BATT-06** | `_battery_core.self_test_boundary()` → RR-77-08 sentinel |
 | **RR-80-01** | S-N04 negative-control over-routing dip (CLOSED 4/5 at v6.4) | **STEP0-08** (emulator assertion) **+ BATT-06** (marker-counting assertion) — dual-layer | `check-step0-emulator.py --self-test` Category 3; `_battery_core.self_test_boundary()` RR-80-01 |
 
-**RR-80-01 dual-layer detail:** STEP0-08 (`check-step0-emulator.py --self-test`) owns the emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified `full-composer` (catalog-independent inline literal). BATT-06 (`_battery_core.self_test_boundary()`) owns the marker-counting assertion — one bare pre-mortem hit (count=1) is below `MIN_HEADER_HITS` (2), so `classify()` returns `"none"`, not `"focused-pre-mortem"`.
+**RR-80-01 dual-layer detail:** STEP0-08 (`check-step0-emulator.py --self-test`) owns the emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified `full-composer` (catalog-independent inline literal). BATT-06 (`_battery_core.self_test_boundary()`) owns the marker-counting assertion — a single bare pre-mortem hit (count=1) is below `MIN_HEADER_HITS` (2), so `classify()` returns `"none"`, not `"focused-pre-mortem"`.
 
 For the complete Active-Surface list and the coverage headline (192 reproducible / 94 audit-only / 0 gap / 286 total), see [requirements-traceability.md](requirements-traceability.md).
 

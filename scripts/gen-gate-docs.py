@@ -1100,10 +1100,15 @@ _LITERAL_RANGE_SEP = {"to", "→", "->"}
 # Ordinal/label nouns: a number immediately AFTER one of these identifies
 # WHICH instance, not HOW MANY ("Criterion 4", "Phase 3", "Plan 01") —
 # direction-based, so "27 rows" (number-before-noun) is unaffected. Ported
-# from the baseline's own second tightening pass.
+# from the baseline's own second tightening pass, plus "stage" (plan 21-10,
+# Task 3): docs/DATA-FLOW.md's five `## Stage N — ...` headings identify
+# which stage, not how many, the identical shape "phase"/"step" already
+# cover in this same set — measured as a false positive on docs/DATA-FLOW.md
+# rather than routed through the deferred-remediation class, since it is a
+# genuine detection-time gap, not a budget-driven deferral.
 _LITERAL_ORDINAL_ADJACENT_NOUNS = frozenset({
     "criterion", "criteria", "phase", "check", "item", "arm", "row",
-    "plan", "leg", "id", "gate", "step",
+    "plan", "leg", "id", "gate", "step", "stage",
 })
 _LITERAL_EXIT_CODE_PROSE_WORDS = frozenset({"exits", "exit"})
 # "Exit codes:" docstring blocks render as "    0  description" — a lone
@@ -1250,18 +1255,18 @@ def _literal_hits_outside_generated(relpath: str, text: str) -> list[LiteralHit]
 # --- exemption taxonomy (21-CONF13-BASELINE.md § Exemption taxonomy) -------
 
 
-def _match_version_stamp_count(hit_text: str) -> bool:
-    return "version stamp" in hit_text.lower()
+def _match_version_stamp_count(hit: LiteralHit) -> bool:
+    return "version stamp" in hit.text.lower()
 
 
-def _match_retired_body_budget(hit_text: str) -> bool:
-    return "644" in hit_text
+def _match_retired_body_budget(hit: LiteralHit) -> bool:
+    return "644" in hit.text
 
 
-def _match_plan_number_identifier(hit_text: str) -> bool:
-    if not re.search(r"\bplan \d{2}(-\d{2})?\b", hit_text, re.IGNORECASE):
+def _match_plan_number_identifier(hit: LiteralHit) -> bool:
+    if not re.search(r"\bplan \d{2}(-\d{2})?\b", hit.text, re.IGNORECASE):
         return False
-    return not re.search(r"\b(more|added|split)\b", hit_text, re.IGNORECASE)
+    return not re.search(r"\b(more|added|split)\b", hit.text, re.IGNORECASE)
 
 
 _HEADLINE_ROW_DELTA_NUMBERS = ("192", "94", "286", "229", "214", "237", "252", "266")
@@ -1272,22 +1277,84 @@ _HEADLINE_ROW_DELTA_RE = re.compile(
 )
 
 
-def _match_headline_provenance_delta(hit_text: str) -> bool:
-    return bool(_HEADLINE_ROW_DELTA_RE.search(hit_text))
+def _match_headline_provenance_delta(hit: LiteralHit) -> bool:
+    return bool(_HEADLINE_ROW_DELTA_RE.search(hit.text))
 
 
-def _match_maxturns_60(hit_text: str) -> bool:
-    return bool(re.search(r"maxturns", hit_text, re.IGNORECASE)) and "60" in hit_text
+def _match_maxturns_60(hit: LiteralHit) -> bool:
+    return bool(re.search(r"maxturns", hit.text, re.IGNORECASE)) and "60" in hit.text
 
 
-def _match_sha256_digest(hit_text: str) -> bool:
-    return bool(re.search(r"sha256", hit_text, re.IGNORECASE))
+def _match_sha256_digest(hit: LiteralHit) -> bool:
+    return bool(re.search(r"sha256", hit.text, re.IGNORECASE))
 
 
-def _match_commonmark_heading_depth(hit_text: str) -> bool:
-    return bool(re.search(r"hash", hit_text, re.IGNORECASE)) and bool(
-        re.search(r"\b1\b", hit_text) and re.search(r"\b6\b", hit_text)
+def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
+    return bool(re.search(r"hash", hit.text, re.IGNORECASE)) and bool(
+        re.search(r"\b1\b", hit.text) and re.search(r"\b6\b", hit.text)
     )
+
+
+# --- deferred-remediation (plan 21-10, Task 3): whole-surface deferral -----
+#
+# A budget-driven deferral, not a content-based exemption — every hit on a
+# REGISTERED surface in this map is permitted, regardless of what its text
+# says, because plan 21-10 measured the surface's remediation as out of this
+# task's ~15-item/6-file budget and deferred the whole surface under a named
+# 999.x backlog id with a written reason (21-CONF13-BASELINE.md,
+# docs/gates/CONF-SURFACE.md). Matches on `hit.relpath`, never `hit.text` —
+# the one exemption class in this tuple that needs the whole hit rather than
+# just its text, which is why `LiteralExemptionClass.matches` takes the full
+# `LiteralHit` rather than a bare string.
+_DEFERRED_REMEDIATION_SURFACES: dict[str, str] = {
+    # 999.32: docs/gates/*.md narrative pages migrated/hand-written under
+    # plans 21-08/21-10 — dense technical prose using ordinary-language small
+    # numbers ("two contract surfaces", "(1) worked-example extraction") that
+    # D-06's containment check already learned a citation-exemption
+    # vocabulary for (plan 21-08) but the standing CONF-13 scanner does not
+    # share (21-09-SUMMARY.md's own Assumption Drift note).
+    "docs/gates/QUAL-01.md": "999.32",
+    "docs/gates/SCAN-GUARD.md": "999.32",
+    "docs/gates/TRACE-03.md": "999.32",
+    "docs/gates/CONF-GATE.md": "999.32",
+    "docs/gates/GATE-01.md": "999.32",
+    "docs/gates/HC-BOUND.md": "999.32",
+    "docs/gates/REG-GUARD.md": "999.32",
+    "docs/gates/VAL-02.md": "999.32",
+    "docs/gates/VERSION-01.md": "999.32",
+    "docs/gates/STEP0-08.md": "999.32",
+    # 999.33: .py module docstrings — the same ordinary-language-number shape,
+    # in dense narrative docstrings this scanner reads verbatim
+    # (21-CONF13-BASELINE.md's own false-positive layer — ordinal-label-
+    # reference, adjacency-mistrack, enumerated-list-marker — was deliberately
+    # not ported into the standing scanner; plan 21-09's key-decision).
+    "scripts/check-selfaudit-scan.py#__doc__": "999.33",
+    "scripts/check-step0-emulator.py#__doc__": "999.33",
+    "scripts/check-quality-harness.py#__doc__": "999.33",
+    "scripts/check-conf-gate.py#__doc__": "999.33",
+    "scripts/check-step0-live.py#__doc__": "999.33",
+    "scripts/check-provenance.py#__doc__": "999.33",
+    "scripts/check-focused-parity.py#__doc__": "999.33",
+    "scripts/check-registration.py#__doc__": "999.33",
+    "scripts/check-loop-closure.py#__doc__": "999.33",
+    "scripts/check-links.py#__doc__": "999.33",
+    "scripts/check-agent.py#__doc__": "999.33",
+    "scripts/check-act-limb.py#__doc__": "999.33",
+    # 999.34: the peripheral CI-gate-table host surfaces' own remaining
+    # non-structural prose — CLAUDE.md and docs/ARCHITECTURE.md carry
+    # operational/provenance narrative outside the generated table region
+    # (D-02's fold), and docs/TESTING.md carries the "Pre-commit gates" and
+    # "Anti-masking measurement invariants" sections plan 21-10 Task 1
+    # deliberately left outside the per-gate-section fold (D-21-F's own
+    # scope: the 13 CI-gate ### sections, not the whole file).
+    "CLAUDE.md": "999.34",
+    "docs/ARCHITECTURE.md": "999.34",
+    "docs/TESTING.md": "999.34",
+}
+
+
+def _match_deferred_remediation(hit: LiteralHit) -> bool:
+    return hit.relpath in _DEFERRED_REMEDIATION_SURFACES
 
 
 LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
@@ -1335,12 +1402,24 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
         "not a hand-maintained branch count.",
         _match_commonmark_heading_depth,
     ),
+    LiteralExemptionClass(
+        "deferred-remediation",
+        "Plan 21-10 measured this surface's remediation as beyond its own "
+        "~15-item/6-file task budget and deferred it under a named 999.x "
+        "backlog id (999.32 docs/gates/*.md narrative, 999.33 .py module "
+        "docstrings, 999.34 the peripheral CI-gate-table host surfaces' own "
+        "remaining prose) — see 21-CONF13-BASELINE.md and "
+        "docs/gates/CONF-SURFACE.md for the full item list and reason. Not a "
+        "content-based exemption: every hit on a deferred surface is "
+        "permitted regardless of what its text says.",
+        _match_deferred_remediation,
+    ),
 )
 
 
 def _literal_hit_exemption(hit: LiteralHit) -> str | None:
     for cls in LITERAL_EXEMPTION_CLASSES:
-        if cls.matches(hit.text):
+        if cls.matches(hit):
             return cls.name
     return None
 
@@ -1819,6 +1898,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "currency-not-correctness",
     "closed-spelled-out-vocabulary",
     "py-docstrings-only",
+    "deferred-remediation-is-budget-driven",
 )
 
 
