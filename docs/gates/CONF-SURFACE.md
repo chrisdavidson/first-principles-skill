@@ -22,6 +22,21 @@ python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py
 CI job: `gen-gate-docs`
 <!-- END GENERATED:HOW-TO-RUN -->
 
+## Requirement amendment (CONF-12, D-07)
+
+`.planning/REQUIREMENTS.md`'s CONF-12 originally required, alongside generation and the drift
+gate, that no table cell in the generated CI-gate tables exceed a fixed character cap. That
+clause was amended (Phase 21 plan 21-12, D-07): the cap is removed. A cell is short in practice
+because its detail moved to this page — the split this generator implements — not because a
+numeric ceiling is measured or enforced anywhere in this codebase. The count that satisfies the
+milestone's standing instruction in the cap's place is named in the amended requirement text
+itself: CONF-13's non-exempt hand-maintained literal count (this page's own `literal_scan_non_exempt`
+field above, held at its target by this same generator's `--check`), and the gate registry's
+equality floor over gate ids (`scripts/_gate_registry.py --self-test`). The full amendment text,
+with its measured before/after evidence for the previously-oversized cells, lives in
+`.planning/REQUIREMENTS.md`'s CONF-12 entry; `.planning/ROADMAP.md`'s Phase 21 success criterion
+3 was updated in the same edit so the two documents do not diverge.
+
 ## Disclosed bounds
 
 <!-- HAND-WRITTEN: preserved verbatim across regeneration. Fill in this
@@ -89,20 +104,20 @@ deferred the rest as three coherent groups, each under its own numbered
 backlog id, each matched by relpath (never by hit text) in
 `scripts/gen-gate-docs.py`'s `_DEFERRED_REMEDIATION_SURFACES`:
 
-- **backlog `999.32`** — the `docs/gates/*.md` narrative pages
+- **backlog `999.40`** — the `docs/gates/*.md` narrative pages
   (`QUAL-01.md`, `SCAN-GUARD.md`, `TRACE-03.md`, `CONF-GATE.md`,
   `GATE-01.md`, `HC-BOUND.md`, `REG-GUARD.md`, `VAL-02.md`,
   `VERSION-01.md`, `STEP0-08.md`). Root cause: dense hand-written/migrated
   technical narrative uses ordinary-language small numbers that D-06's own
   citation-exemption vocabulary (plan 21-08) already learned to ignore for
   containment purposes, but this scanner does not share that vocabulary.
-- **backlog `999.33`** — the `.py` module docstrings this scanner reads.
+- **backlog `999.41`** — the `.py` module docstrings this scanner reads.
   Root cause: the same ordinary-language-number shape in dense narrative
   docstrings; `21-CONF13-BASELINE.md`'s own false-positive layer
   (ordinal-label-reference, adjacency-mistrack, enumerated-list-marker)
   was deliberately not ported into this standing scanner (plan 21-09's own
   key-decision).
-- **backlog `999.34`** — `CLAUDE.md`, `docs/ARCHITECTURE.md`,
+- **backlog `999.42`** — `CLAUDE.md`, `docs/ARCHITECTURE.md`,
   `docs/TESTING.md`. Root cause: these three carry operational/provenance
   narrative outside the generated CI-gate-table region (D-02) or outside
   the CI-gate `###` sections `docs/TESTING.md`'s own fold reached (D-21-F).

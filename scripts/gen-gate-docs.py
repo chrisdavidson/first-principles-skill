@@ -1308,49 +1308,49 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # just its text, which is why `LiteralExemptionClass.matches` takes the full
 # `LiteralHit` rather than a bare string.
 _DEFERRED_REMEDIATION_SURFACES: dict[str, str] = {
-    # 999.32: docs/gates/*.md narrative pages migrated/hand-written under
+    # 999.40: docs/gates/*.md narrative pages migrated/hand-written under
     # plans 21-08/21-10 — dense technical prose using ordinary-language small
     # numbers ("two contract surfaces", "(1) worked-example extraction") that
     # D-06's containment check already learned a citation-exemption
     # vocabulary for (plan 21-08) but the standing CONF-13 scanner does not
     # share (21-09-SUMMARY.md's own Assumption Drift note).
-    "docs/gates/QUAL-01.md": "999.32",
-    "docs/gates/SCAN-GUARD.md": "999.32",
-    "docs/gates/TRACE-03.md": "999.32",
-    "docs/gates/CONF-GATE.md": "999.32",
-    "docs/gates/GATE-01.md": "999.32",
-    "docs/gates/HC-BOUND.md": "999.32",
-    "docs/gates/REG-GUARD.md": "999.32",
-    "docs/gates/VAL-02.md": "999.32",
-    "docs/gates/VERSION-01.md": "999.32",
-    "docs/gates/STEP0-08.md": "999.32",
-    # 999.33: .py module docstrings — the same ordinary-language-number shape,
+    "docs/gates/QUAL-01.md": "999.40",
+    "docs/gates/SCAN-GUARD.md": "999.40",
+    "docs/gates/TRACE-03.md": "999.40",
+    "docs/gates/CONF-GATE.md": "999.40",
+    "docs/gates/GATE-01.md": "999.40",
+    "docs/gates/HC-BOUND.md": "999.40",
+    "docs/gates/REG-GUARD.md": "999.40",
+    "docs/gates/VAL-02.md": "999.40",
+    "docs/gates/VERSION-01.md": "999.40",
+    "docs/gates/STEP0-08.md": "999.40",
+    # 999.41: .py module docstrings — the same ordinary-language-number shape,
     # in dense narrative docstrings this scanner reads verbatim
     # (21-CONF13-BASELINE.md's own false-positive layer — ordinal-label-
     # reference, adjacency-mistrack, enumerated-list-marker — was deliberately
     # not ported into the standing scanner; plan 21-09's key-decision).
-    "scripts/check-selfaudit-scan.py#__doc__": "999.33",
-    "scripts/check-step0-emulator.py#__doc__": "999.33",
-    "scripts/check-quality-harness.py#__doc__": "999.33",
-    "scripts/check-conf-gate.py#__doc__": "999.33",
-    "scripts/check-step0-live.py#__doc__": "999.33",
-    "scripts/check-provenance.py#__doc__": "999.33",
-    "scripts/check-focused-parity.py#__doc__": "999.33",
-    "scripts/check-registration.py#__doc__": "999.33",
-    "scripts/check-loop-closure.py#__doc__": "999.33",
-    "scripts/check-links.py#__doc__": "999.33",
-    "scripts/check-agent.py#__doc__": "999.33",
-    "scripts/check-act-limb.py#__doc__": "999.33",
-    # 999.34: the peripheral CI-gate-table host surfaces' own remaining
+    "scripts/check-selfaudit-scan.py#__doc__": "999.41",
+    "scripts/check-step0-emulator.py#__doc__": "999.41",
+    "scripts/check-quality-harness.py#__doc__": "999.41",
+    "scripts/check-conf-gate.py#__doc__": "999.41",
+    "scripts/check-step0-live.py#__doc__": "999.41",
+    "scripts/check-provenance.py#__doc__": "999.41",
+    "scripts/check-focused-parity.py#__doc__": "999.41",
+    "scripts/check-registration.py#__doc__": "999.41",
+    "scripts/check-loop-closure.py#__doc__": "999.41",
+    "scripts/check-links.py#__doc__": "999.41",
+    "scripts/check-agent.py#__doc__": "999.41",
+    "scripts/check-act-limb.py#__doc__": "999.41",
+    # 999.42: the peripheral CI-gate-table host surfaces' own remaining
     # non-structural prose — CLAUDE.md and docs/ARCHITECTURE.md carry
     # operational/provenance narrative outside the generated table region
     # (D-02's fold), and docs/TESTING.md carries the "Pre-commit gates" and
     # "Anti-masking measurement invariants" sections plan 21-10 Task 1
     # deliberately left outside the per-gate-section fold (D-21-F's own
     # scope: the 13 CI-gate ### sections, not the whole file).
-    "CLAUDE.md": "999.34",
-    "docs/ARCHITECTURE.md": "999.34",
-    "docs/TESTING.md": "999.34",
+    "CLAUDE.md": "999.42",
+    "docs/ARCHITECTURE.md": "999.42",
+    "docs/TESTING.md": "999.42",
 }
 
 
@@ -1407,8 +1407,8 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
         "deferred-remediation",
         "Plan 21-10 measured this surface's remediation as beyond its own "
         "~15-item/6-file task budget and deferred it under a named 999.x "
-        "backlog id (999.32 docs/gates/*.md narrative, 999.33 .py module "
-        "docstrings, 999.34 the peripheral CI-gate-table host surfaces' own "
+        "backlog id (999.40 docs/gates/*.md narrative, 999.41 .py module "
+        "docstrings, 999.42 the peripheral CI-gate-table host surfaces' own "
         "remaining prose) — see 21-CONF13-BASELINE.md and "
         "docs/gates/CONF-SURFACE.md for the full item list and reason. Not a "
         "content-based exemption: every hit on a deferred surface is "
