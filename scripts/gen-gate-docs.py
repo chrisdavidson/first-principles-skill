@@ -164,6 +164,98 @@ def _expected_harvest_scripts() -> frozenset[str]:
 
 
 # ---------------------------------------------------------------------------
+# GAP A item 3 (plan 21-19): a standing, registry-derived census of the
+# defective roster-arm shape that wave 15 introduced and plans 21-17/21-18
+# removed from the six scripts they touched — a synthetic id tested against
+# the WHOLE joined roster-mismatch message rather than against its extracted
+# `missing=`/`extra=` clause. Nothing before this plan stopped a seventh
+# script, or a later edit to any of the six, from reintroducing it; this
+# census makes that unreintroducible across every script-backed registry
+# entry, not just the six this phase touched (21-18-SUMMARY.md
+# falsification 7's own reopening demonstration).
+# ---------------------------------------------------------------------------
+
+# Wave-15 shape: a synthetic fixture id (always literally the word
+# "synthetic" plus a hyphen and a single lowercase letter, across every
+# fixture in this repo) tested with `not in` against a plain identifier that
+# does NOT end in `_clause`. The FIXED shape splits the id into its own
+# clause first, so the fixed identifier always ends in `_clause` and must
+# not match. (Deliberately not spelled out here as a literal quoted example
+# — this file is itself one of the 22 population members the live control
+# below scans, and a literal example in this comment would self-match.)
+_ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE = re.compile(
+    r'"synthetic-[a-z]"\s+not in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
+)
+
+# check-version-stamps.py's pre-21-17 shape: testing whether the clause
+# marker text itself (the word missing followed by an equals sign, or the
+# word extra followed by an equals sign) appears anywhere in the joined
+# message, via `in` rather than `not in` — true of every roster-mismatch
+# message regardless of which clause anything landed in. Always defective;
+# there is no fixed form of this exact shape (the fix is the clause split,
+# not a renamed identifier). Same self-match note as above applies.
+_ROSTER_ARM_CLAUSE_MARKER_RE = re.compile(
+    r'"(?:missing=|extra=)"\s+in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
+)
+
+
+def _roster_arm_census_sources() -> dict[str, str]:
+    """Build the live population for `roster_arm_shape_census_problems()`'s
+    default `sources=None` path: reads every `_expected_harvest_scripts()`
+    relpath from `REPO_ROOT`. Exposed separately (not inlined into the scan
+    function) so the anti-vacuity floor can assert the read count
+    independently of the scan logic itself."""
+    return {
+        relpath: (REPO_ROOT / relpath).read_text(encoding="utf-8")
+        for relpath in sorted(_expected_harvest_scripts())
+    }
+
+
+def roster_arm_shape_census_problems(
+    sources: dict[str, str] | None = None,
+) -> list[str]:
+    """Scan every population member's source text for the two defective
+    roster-arm shapes above. `sources` lets the vacuity control drive this
+    function against synthetic text without touching disk (mirrors
+    `literal_ledger_ratchet_problems(ledger=...)`'s parameter shape); the
+    default `None` reads the real population via
+    `_roster_arm_census_sources()`. An empty population is itself a
+    finding — a census that silently scans nothing must fail, not pass.
+
+    Scoped to `--self-test` only: this is a property of source SHAPE, not
+    of generated-output drift, and `--self-test` already runs in the
+    battery, in CI, and in both pre-commit hooks. Not wired into
+    `cmd_check()`.
+    """
+    if sources is None:
+        sources = _roster_arm_census_sources()
+
+    if not sources:
+        return [
+            "roster-arm-shape-census: population is empty — the census "
+            "cannot scan nothing"
+        ]
+
+    problems: list[str] = []
+    for relpath in sorted(sources):
+        lines = sources[relpath].splitlines()
+        for lineno, line in enumerate(lines, start=1):
+            for match in _ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE.finditer(line):
+                ident = match.group(1)
+                if not ident.endswith("_clause"):
+                    problems.append(
+                        f"{relpath}:{lineno}: whole-message synthetic-id "
+                        f"membership test (wave-15 shape): {match.group(0)!r}"
+                    )
+            for match in _ROSTER_ARM_CLAUSE_MARKER_RE.finditer(line):
+                problems.append(
+                    f"{relpath}:{lineno}: bare clause-marker membership "
+                    f"test against a whole message: {match.group(0)!r}"
+                )
+    return problems
+
+
+# ---------------------------------------------------------------------------
 # Frozen-path disjointness floor (T-21-06-02 / 19-D-08)
 #
 # `_FROZEN_PATHS_ARRAY_RE` / `_FROZEN_PATHS_ENTRY_RE` copy the identical
@@ -1073,6 +1165,83 @@ def detail_page_containment_problems(
         f"containment: {display_name} states {number!r} outside a generated fence "
         "with no matching literal inside one (D-06)"
         for number in missing
+    ]
+
+
+# ---------------------------------------------------------------------------
+# T-21-19-01: joins docs/gates/VERSION-01.md's narrative citations to live
+# `expect(` control names in scripts/check-version-stamps.py, so a renamed
+# or removed control id fails THIS page's own claim rather than leaving a
+# narrative sentence that merely HAPPENS to be true today (the falsified
+# "floored ... in both directions" sentence this plan replaces). Scoped to
+# this one page and this one script only — it does not generalise to any
+# other NARRATIVE_ENTRIES detail page.
+# ---------------------------------------------------------------------------
+
+# A control-id-shaped backticked token: lowercase alphanumerics joined by at
+# least one hyphen. Deliberately excludes underscores, dots, slashes and
+# parens so file paths, function calls and dotted field names never match.
+_BACKTICK_CONTROL_ID_SHAPE_RE = re.compile(r"`([a-z0-9]+(?:-[a-z0-9]+)+)`")
+
+
+def _extract_control_id_shaped_tokens(text: str) -> set[str]:
+    """Every backticked token in `text` shaped like a control id, excluding
+    any token that resolves to a real repo path — `scripts/<token>.py` or
+    `<token>` existing directly under `REPO_ROOT` — which is what keeps
+    script-name and directory-name mentions like `check-version-stamps` and
+    `first-principles` out of the set."""
+    tokens = set(_BACKTICK_CONTROL_ID_SHAPE_RE.findall(text))
+    return {
+        token
+        for token in tokens
+        if not (REPO_ROOT / "scripts" / f"{token}.py").exists()
+        and not (REPO_ROOT / token).exists()
+    }
+
+
+def _expect_call_present(token: str, script_text: str) -> bool:
+    """True if `script_text` contains an `expect("<token>"` call, tolerating
+    the multi-line `expect(\\n    "<token>",` call form this repo's
+    self-tests commonly use (a literal substring check would miss every
+    multi-line call site)."""
+    pattern = re.compile(r'expect\(\s*"' + re.escape(token) + r'"')
+    return bool(pattern.search(script_text))
+
+
+def version01_narrative_problems(
+    page_text: str | None = None,
+    script_text: str | None = None,
+) -> list[str]:
+    """Every backticked control-id-shaped token `docs/gates/VERSION-01.md`'s
+    hand-written narrative cites must exist as a live `expect(` name in
+    `scripts/check-version-stamps.py` — otherwise the page's coverage claim
+    can drift from the code silently, exactly as the falsified "floored ...
+    in both directions" sentence did. An empty citation set is itself a
+    finding: the join must have something to join, not pass vacuously.
+    `page_text`/`script_text` default to the real files; a synthetic pair
+    drives the vacuity and fabricated-id control arms without touching disk.
+    """
+    if page_text is None:
+        page_text = (REPO_ROOT / "docs/gates/VERSION-01.md").read_text(encoding="utf-8")
+    if script_text is None:
+        script_text = (REPO_ROOT / "scripts/check-version-stamps.py").read_text(encoding="utf-8")
+
+    lines = page_text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_text = "\n".join(line for line, is_in in zip(lines, inside) if not is_in)
+    tokens = _extract_control_id_shaped_tokens(outside_text)
+
+    if not tokens:
+        return [
+            "version01-narrative-control-ids-live: no backticked control-id-shaped "
+            "token found in docs/gates/VERSION-01.md's narrative"
+        ]
+
+    return [
+        f"version01-narrative-control-ids-live: cited control id {token!r} not "
+        "found as a live expect(...) name in scripts/check-version-stamps.py"
+        for token in sorted(tokens)
+        if not _expect_call_present(token, script_text)
     ]
 
 
@@ -2953,6 +3122,35 @@ def _control_containment_spelled_out_normalised() -> None:
     assert "'47'" in problems[0], problems
 
 
+def _control_version01_narrative_control_ids_live() -> None:
+    """T-21-19-01: the real docs/gates/VERSION-01.md narrative's cited
+    control ids are all live `expect(` names in check-version-stamps.py,
+    plus three synthetic arms proving the join is not vacuous: an empty
+    citation set is itself a finding, a fabricated id is named, and a real
+    id produces nothing."""
+    assert version01_narrative_problems() == [], version01_narrative_problems()
+
+    empty_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nNo control ids cited here.\n",
+        script_text='def x():\n    expect("some-other-id", True)\n',
+    )
+    assert len(empty_problems) == 1, empty_problems
+    assert "no backticked" in empty_problems[0].lower(), empty_problems
+
+    fabricated_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nSee `kind-roster-nonexistent-arm` for detail.\n",
+        script_text='def x():\n    expect("some-other-id", True)\n',
+    )
+    assert len(fabricated_problems) == 1, fabricated_problems
+    assert "kind-roster-nonexistent-arm" in fabricated_problems[0], fabricated_problems
+
+    real_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nSee `kind-roster-matches-walked` for detail.\n",
+        script_text='def x():\n    expect("kind-roster-matches-walked", True)\n',
+    )
+    assert real_problems == [], real_problems
+
+
 def _control_page_check_dispatch_wired() -> None:
     """Live leg: `generate_all()` always computes len(ENTRIES) + 3 targets
     (every docs/gates/*.md page plus the three surface files — CLAUDE.md,
@@ -3150,6 +3348,56 @@ def _control_scan_neutralization_arms() -> None:
         assert failed, "an unconditional permit did not break scan-unattributable-permit-fires"
     finally:
         _this_module._literal_hit_exemption = original_exemption
+
+
+def _control_roster_arm_shape_census() -> None:
+    """GAP A item 3 (plan 21-19): the live tree carries none of the
+    defective roster-arm shapes, and the census actually read every
+    population member — an anti-vacuity floor independent of the scan
+    logic itself, since a census silently reading nothing would otherwise
+    also report zero problems."""
+    problems = roster_arm_shape_census_problems()
+    assert problems == [], problems
+    sources = _roster_arm_census_sources()
+    expected = len(_expected_harvest_scripts())
+    assert len(sources) == expected, (len(sources), expected)
+
+
+def _control_roster_arm_shape_census_vacuity() -> None:
+    """Anti-vacuity by construction: drives
+    `roster_arm_shape_census_problems` against three synthetic sources —
+    the wave-15 shape, the check-version-stamps.py pre-21-17 shape, and the
+    FIXED shape — and asserts exactly the first two fire, by relpath, and
+    the third does not. Stops the census from passing because its patterns
+    match nothing.
+
+    The first two fixture strings below are deliberately assembled across
+    more than one physical source line: `gen-gate-docs.py` is itself one of
+    the 22 population members this census scans (a script-backed registry
+    entry, CONF-SURFACE), so if either defective shape appeared contiguously
+    on a single ON-DISK line of this file's own source, the live control
+    above would self-match its own fixture data. Splitting the literal
+    across a line boundary defeats that per-line self-match while the
+    JOINED runtime value — what the function under test actually receives
+    — is unaffected and still carries the shape whole."""
+    sources = {
+        "scripts/fixture-wave15.py": (
+            '    elif "synthetic-b" not'
+            ' in _synthetic_text:\n'
+        ),
+        "scripts/fixture-version-stamps.py": (
+            '            "extra="'
+            ' in p\n'
+        ),
+        "scripts/fixture-fixed.py": (
+            '    elif "synthetic-b" not in missing_clause:\n'
+        ),
+    }
+    problems = roster_arm_shape_census_problems(sources=sources)
+    assert len(problems) == 2, problems
+    assert any("scripts/fixture-wave15.py" in p for p in problems), problems
+    assert any("scripts/fixture-version-stamps.py" in p for p in problems), problems
+    assert not any("scripts/fixture-fixed.py" in p for p in problems), problems
 
 
 # ---------------------------------------------------------------------------
@@ -3381,6 +3629,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-violation-fires", _control_containment_violation_fires),
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
+    ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
     ("scan-hit-outside-fence-fires", _control_scan_hit_outside_fence_fires),
     ("scan-hit-inside-fence-passes", _control_scan_hit_inside_fence_passes),
@@ -3392,6 +3641,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-glob-narrowing-fires", _control_scan_glob_narrowing_fires),
     ("scan-coverage-floor-signature-locked", _control_scan_coverage_floor_signature_locked),
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
+    ("roster-arm-shape-census", _control_roster_arm_shape_census),
+    ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
     ("ledger-ratchet-allows-shrink", _control_ledger_ratchet_allows_shrink),
     ("ledger-staleness-fires", _control_ledger_staleness_fires),
@@ -3451,6 +3702,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-violation-fires",
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
+    "version01-narrative-control-ids-live",
     "check-reports-full-drift-count",
     "scan-hit-outside-fence-fires",
     "scan-hit-inside-fence-passes",
@@ -3462,6 +3714,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-glob-narrowing-fires",
     "scan-coverage-floor-signature-locked",
     "scan-neutralization-arms",
+    "roster-arm-shape-census",
+    "roster-arm-shape-census-vacuity",
     "ledger-ratchet-fires",
     "ledger-ratchet-allows-shrink",
     "ledger-staleness-fires",

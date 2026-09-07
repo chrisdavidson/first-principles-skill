@@ -39,9 +39,17 @@ exists to catch: a newly added skill is discovered by glob automatically, and on
 stamp fails on presence instead of on a magic number.
 
 The 4 walked source kinds above are what `registered_surfaces` in the Facts fence names — the
-surfaces `collect_stamps()`'s own four walk sites actually reach, floored against that roster in
-both directions by `self_test()` (a fabricated roster entry nothing walks fails as an over-claim;
-a walked source the roster fails to declare fails as an under-claim).
+surfaces `collect_stamps()`'s own four walk sites actually reach. `self_test()` floors that roster
+against the walk with permanent controls, each pinned to a single mismatch clause:
+`kind-roster-overclaim-fabricated` and `kind-roster-overclaim-fixture` assert that a fabricated or
+fixture-only roster entry lands in the `missing=` clause (declared, never reached — an over-claim),
+and `kind-roster-underclaim-detected` asserts that a walked source the roster fails to declare
+lands in the `extra=` clause (reached, never declared — an under-claim). These arms prove the floor
+names the correct direction for a synthetic id and for a fixture-driven case; they do not prove
+the roster describes the right surfaces. A separate mechanical join (`gen-gate-docs.py`'s own
+self-test) checks every control id this page cites in backticks against a live `expect()` name in
+`scripts/check-version-stamps.py` — that join covers this page and this script only, and does not
+generalise to any other detail page.
 
 The generated tree under `first-principles/agents/**` and `first-principles/skills/**` is
 deliberately EXCLUDED from that walk — not one of the four kinds `registered_surfaces` names —
