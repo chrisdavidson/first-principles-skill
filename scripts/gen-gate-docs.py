@@ -1169,6 +1169,83 @@ def detail_page_containment_problems(
 
 
 # ---------------------------------------------------------------------------
+# T-21-19-01: joins docs/gates/VERSION-01.md's narrative citations to live
+# `expect(` control names in scripts/check-version-stamps.py, so a renamed
+# or removed control id fails THIS page's own claim rather than leaving a
+# narrative sentence that merely HAPPENS to be true today (the falsified
+# "floored ... in both directions" sentence this plan replaces). Scoped to
+# this one page and this one script only — it does not generalise to any
+# other NARRATIVE_ENTRIES detail page.
+# ---------------------------------------------------------------------------
+
+# A control-id-shaped backticked token: lowercase alphanumerics joined by at
+# least one hyphen. Deliberately excludes underscores, dots, slashes and
+# parens so file paths, function calls and dotted field names never match.
+_BACKTICK_CONTROL_ID_SHAPE_RE = re.compile(r"`([a-z0-9]+(?:-[a-z0-9]+)+)`")
+
+
+def _extract_control_id_shaped_tokens(text: str) -> set[str]:
+    """Every backticked token in `text` shaped like a control id, excluding
+    any token that resolves to a real repo path — `scripts/<token>.py` or
+    `<token>` existing directly under `REPO_ROOT` — which is what keeps
+    script-name and directory-name mentions like `check-version-stamps` and
+    `first-principles` out of the set."""
+    tokens = set(_BACKTICK_CONTROL_ID_SHAPE_RE.findall(text))
+    return {
+        token
+        for token in tokens
+        if not (REPO_ROOT / "scripts" / f"{token}.py").exists()
+        and not (REPO_ROOT / token).exists()
+    }
+
+
+def _expect_call_present(token: str, script_text: str) -> bool:
+    """True if `script_text` contains an `expect("<token>"` call, tolerating
+    the multi-line `expect(\\n    "<token>",` call form this repo's
+    self-tests commonly use (a literal substring check would miss every
+    multi-line call site)."""
+    pattern = re.compile(r'expect\(\s*"' + re.escape(token) + r'"')
+    return bool(pattern.search(script_text))
+
+
+def version01_narrative_problems(
+    page_text: str | None = None,
+    script_text: str | None = None,
+) -> list[str]:
+    """Every backticked control-id-shaped token `docs/gates/VERSION-01.md`'s
+    hand-written narrative cites must exist as a live `expect(` name in
+    `scripts/check-version-stamps.py` — otherwise the page's coverage claim
+    can drift from the code silently, exactly as the falsified "floored ...
+    in both directions" sentence did. An empty citation set is itself a
+    finding: the join must have something to join, not pass vacuously.
+    `page_text`/`script_text` default to the real files; a synthetic pair
+    drives the vacuity and fabricated-id control arms without touching disk.
+    """
+    if page_text is None:
+        page_text = (REPO_ROOT / "docs/gates/VERSION-01.md").read_text(encoding="utf-8")
+    if script_text is None:
+        script_text = (REPO_ROOT / "scripts/check-version-stamps.py").read_text(encoding="utf-8")
+
+    lines = page_text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_text = "\n".join(line for line, is_in in zip(lines, inside) if not is_in)
+    tokens = _extract_control_id_shaped_tokens(outside_text)
+
+    if not tokens:
+        return [
+            "version01-narrative-control-ids-live: no backticked control-id-shaped "
+            "token found in docs/gates/VERSION-01.md's narrative"
+        ]
+
+    return [
+        f"version01-narrative-control-ids-live: cited control id {token!r} not "
+        "found as a live expect(...) name in scripts/check-version-stamps.py"
+        for token in sorted(tokens)
+        if not _expect_call_present(token, script_text)
+    ]
+
+
+# ---------------------------------------------------------------------------
 # CONF-13: the standing hand-maintained count-literal scanner.
 #
 # 21-CONF13-BASELINE.md measured the real target (79 scanner-target hits, 15
@@ -3045,6 +3122,35 @@ def _control_containment_spelled_out_normalised() -> None:
     assert "'47'" in problems[0], problems
 
 
+def _control_version01_narrative_control_ids_live() -> None:
+    """T-21-19-01: the real docs/gates/VERSION-01.md narrative's cited
+    control ids are all live `expect(` names in check-version-stamps.py,
+    plus three synthetic arms proving the join is not vacuous: an empty
+    citation set is itself a finding, a fabricated id is named, and a real
+    id produces nothing."""
+    assert version01_narrative_problems() == [], version01_narrative_problems()
+
+    empty_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nNo control ids cited here.\n",
+        script_text='def x():\n    expect("some-other-id", True)\n',
+    )
+    assert len(empty_problems) == 1, empty_problems
+    assert "no backticked" in empty_problems[0].lower(), empty_problems
+
+    fabricated_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nSee `kind-roster-nonexistent-arm` for detail.\n",
+        script_text='def x():\n    expect("some-other-id", True)\n',
+    )
+    assert len(fabricated_problems) == 1, fabricated_problems
+    assert "kind-roster-nonexistent-arm" in fabricated_problems[0], fabricated_problems
+
+    real_problems = version01_narrative_problems(
+        page_text="# VERSION-01\n\nSee `kind-roster-matches-walked` for detail.\n",
+        script_text='def x():\n    expect("kind-roster-matches-walked", True)\n',
+    )
+    assert real_problems == [], real_problems
+
+
 def _control_page_check_dispatch_wired() -> None:
     """Live leg: `generate_all()` always computes len(ENTRIES) + 3 targets
     (every docs/gates/*.md page plus the three surface files — CLAUDE.md,
@@ -3523,6 +3629,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-violation-fires", _control_containment_violation_fires),
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
+    ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
     ("scan-hit-outside-fence-fires", _control_scan_hit_outside_fence_fires),
     ("scan-hit-inside-fence-passes", _control_scan_hit_inside_fence_passes),
@@ -3595,6 +3702,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-violation-fires",
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
+    "version01-narrative-control-ids-live",
     "check-reports-full-drift-count",
     "scan-hit-outside-fence-fires",
     "scan-hit-inside-fence-passes",
