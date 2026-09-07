@@ -39,7 +39,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"` |
 | — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
 | — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |
-| — | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
+| CONF-SURFACE | [`docs/gates/CONF-SURFACE.md`](gates/CONF-SURFACE.md) | `python3 scripts/gen-gate-docs.py --self-test && python3 scripts/gen-gate-docs.py --check` |
 <!-- END GENERATED -->
 
 ## Routing battery (developer tools — not in CI)

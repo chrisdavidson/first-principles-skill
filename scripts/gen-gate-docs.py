@@ -4,19 +4,20 @@
 # ///
 """CONF-SURFACE: generate the CI-gate claim surface from --describe emissions.
 
-Hand-transcribed gate documentation produced 41% of all review findings
-across Phases 13-15 — every branch count, surface list and disclosed bound
-was copied by hand into up to five places with nothing checking they
-agreed. This script is the fix's compute layer (D-21-B): it subprocess-
-invokes every script-backed `scripts/_gate_registry.py` entry's `--describe`
-leg, applies the registry's own D-01/D-04 floors plus a frozen-path
-disjointness floor over its own write set, and exposes the region-
-replacement primitive `docs/gates/<GATE-ID>.md` pages and the two hand-
-written table regions will be regenerated through. The render layer that
-turns harvested facts into `CLAUDE.md`/`docs/ARCHITECTURE.md`/`docs/gates/`
-text is a later plan's job (`generate_all()` is a stub here, returning no
-targets) — this plan proves the harvest, the floors and the region-rewrite
-primitive work before any rendered text exists to drift against.
+Hand-transcribed gate documentation was the direct cause of a substantial
+share of review findings across Phases 13-15 (see
+`scripts/_gate_registry.py`'s own module docstring for the measured figure)
+— every branch count, surface list and disclosed bound was copied by hand
+into up to five places with nothing checking they agreed. This script is
+the fix's compute+render layer (D-21-B): it subprocess-invokes every
+script-backed `scripts/_gate_registry.py` entry's `--describe` leg, applies
+the registry's own D-01/D-04 floors plus a frozen-path disjointness floor
+over its own write set, and regenerates `CLAUDE.md`'s and
+`docs/ARCHITECTURE.md`'s gate tables, `docs/TESTING.md`'s per-gate index,
+and every `docs/gates/<GATE-ID>.md` detail page from harvested facts. It
+also carries CONF-13's standing scanner (`run_literal_scan()`) — the
+`--check` leg that drives this file's own registration, CONF-SURFACE, as a
+battery gate, CI job and pre-commit hook (plan 21-11, D-21-C).
 
 This module does not import any of the scripts it describes as gates (D-21-A
 — it shells out to their `--describe` leg exactly as
@@ -1576,12 +1577,13 @@ def literal_scan_attributions(read: LiteralScanRead) -> list[str]:
 
 
 def generate_all() -> dict[Path, str]:
-    # Harvest EVERY script-backed entry, including the anticipatory
-    # CONF-SURFACE (D-21-C/D-21-K): `_ANTICIPATORY_KEYS` excludes it from the
-    # D-01 battery-id floor and the live table row count (it is not yet
-    # battery/CI-registered), never from actually running its own
-    # `--describe` — `gen-gate-docs.py` exists now, so its own detail page
-    # needs the same real, harvested facts every other gate's page gets.
+    # Harvest EVERY script-backed entry, including CONF-SURFACE itself
+    # (D-21-C/D-21-K): `_ANTICIPATORY_KEYS` — now empty, plan 21-11 landed
+    # CONF-SURFACE's battery/CI registration — exists purely as a mechanism
+    # for a FUTURE anticipatory entry to exclude itself from the D-01
+    # battery-id floor and the live table row count while not yet
+    # battery/CI-registered; it never excludes a script from actually
+    # running its own `--describe`.
     by_script, _harvest_problems = harvest(_gate_registry.ENTRIES)
 
     rows = _gate_table_rows(_gate_registry.ENTRIES, by_script)
@@ -1623,8 +1625,8 @@ def generate_all() -> dict[Path, str]:
         _TESTING_BOOTSTRAP_BEFORE,
     )
 
-    # D-08: every registry entry — including the anticipatory CONF-SURFACE
-    # member — gets a docs/gates/<GATE-ID>.md page.
+    # D-08: every registry entry — including CONF-SURFACE itself — gets a
+    # docs/gates/<GATE-ID>.md page.
     for entry in _gate_registry.ENTRIES:
         page_path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
         existing_text = page_path.read_text(encoding="utf-8") if page_path.exists() else None
@@ -1792,8 +1794,9 @@ def cmd_check() -> int:
         return 2
 
     # See generate_all()'s matching comment: harvest EVERY script-backed
-    # entry, including the anticipatory CONF-SURFACE, so its own detail
-    # page's Facts fence gets real `--describe`-derived counts.
+    # entry, including CONF-SURFACE itself (plan 21-11 landed it — no longer
+    # anticipatory), so its own detail page's Facts fence gets real
+    # `--describe`-derived counts.
     by_script, harvest_problems = harvest(_gate_registry.ENTRIES)
     battery_text = BATTERY_PATH.read_text(encoding="utf-8")
     registry_ids = _gate_registry._registry_entry_ids()
@@ -1818,7 +1821,7 @@ def cmd_check() -> int:
     harvested_expected = len(set(by_script) & expected_scripts)
     print(
         f"harvested {harvested_expected}/{len(expected_scripts)} expected script-backed "
-        f"entries ({len(by_script)} total, including the anticipatory CONF-SURFACE)"
+        f"entries ({len(by_script)} total)"
     )
     missing_scripts = expected_scripts - set(by_script)
     if missing_scripts:
