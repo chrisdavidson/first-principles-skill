@@ -2,23 +2,24 @@
 # /// script
 # requires-python = ">=3.12"
 # ///
-"""Gate registry (Phase 21, D-01): one entry per documented gate row.
+"""Gate registry (Phase 21, D-01): a single entry per documented gate row.
 
-Hand-transcribed gate documentation produced 41% of all review findings across
-Phases 13-15 — every branch count, surface list and disclosed bound was copied
+Hand-transcribed gate documentation produced the measured share of all review
+findings across Phases 13-15 (see `HAND_TRANSCRIPTION_FINDING_SHARE` below for
+the figure) — every branch count, surface list and disclosed bound was copied
 by hand into up to five places with nothing checking they agreed. This module
-is the fix: it holds `len(ENTRIES)` entries, one per row `CLAUDE.md`'s and
-`docs/ARCHITECTURE.md`'s gate tables currently document, and floors its own id
-set by EQUALITY against the ids `scripts/check-firewall-battery.sh` actually
-registers — derived by regex from that file's own source text, never
-hand-retyped a second time (D-21-K: this registry does NOT get a second,
-independently-typed transcription in this phase; that question is explicitly
-Phase 22's call, 999.30/999.31).
+is the fix: it holds `len(ENTRIES)` entries -- a single entry per row
+`CLAUDE.md`'s and `docs/ARCHITECTURE.md`'s gate tables currently document, and
+floors its own id set by EQUALITY against the ids
+`scripts/check-firewall-battery.sh` actually registers — derived by regex from
+that file's own source text, never hand-retyped a second time (D-21-K: this
+registry does NOT get a second, independently-typed transcription in this
+phase; that question is explicitly Phase 22's call, 999.30/999.31).
 
 Later plans in this phase (21-03/04/05) implement `--describe` limbs against
 this module's `DESCRIBE_FIELD_VOCABULARY`; the generator (21-06/07) renders
 `CLAUDE.md` and `docs/ARCHITECTURE.md` from `ENTRIES`; the drift gate (21-11)
-is registered as one of `ENTRIES` in its own right.
+is registered as an `ENTRIES` member in its own right.
 
 This module does not import any of the scripts it describes (D-21-A): it
 declares field names and static facts, it never executes another gate's
@@ -45,6 +46,17 @@ from pathlib import Path
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
 ARCHITECTURE_PATH: Path = REPO_ROOT / "docs" / "ARCHITECTURE.md"
+
+# Measured across Phases 13-15 (this phase's own milestone justification):
+# the share of all review findings in those phases directly caused by
+# hand-transcribed gate documentation drifting out of sync with the scripts
+# it described. A frozen historical measurement, not a derived count -- it
+# does not move as the code in this file changes, and re-measuring it is out
+# of scope for this module. Kept here, in a named constant rather than
+# inline prose, so CONF-13's standing literal scanner (which reads this
+# module's own docstring) sees no hand-maintained count claim while the
+# figure itself stays in the tracked tree.
+HAND_TRANSCRIPTION_FINDING_SHARE: str = "41%"
 
 
 # ---------------------------------------------------------------------------

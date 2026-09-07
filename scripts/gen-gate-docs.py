@@ -6,7 +6,8 @@
 
 Hand-transcribed gate documentation was the direct cause of a substantial
 share of review findings across Phases 13-15 (see
-`scripts/_gate_registry.py`'s own module docstring for the measured figure)
+`scripts/_gate_registry.py`'s own `HAND_TRANSCRIPTION_FINDING_SHARE`
+constant for the measured figure)
 — every branch count, surface list and disclosed bound was copied by hand
 into up to five places with nothing checking they agreed. This script is
 the fix's compute+render layer (D-21-B): it subprocess-invokes every
