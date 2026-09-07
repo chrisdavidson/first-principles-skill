@@ -1795,6 +1795,19 @@ def literal_ledger_ratchet_problems(
     and 2 alone produce no finding for it. Do not delete predicate 3 as
     redundant with the size checks; it is the one they cannot see.
 
+    WR-11 (21-VERIFICATION.md round 2): on the REAL ledger, any size
+    change is necessarily also a key-set change, so a single edit fires
+    predicate 1-or-2 AND predicate 3 together -- predicate 3 alone is
+    SUFFICIENT to detect that edit. Predicates 1 and 2 are retained anyway,
+    for two reasons the digest cannot supply: they name the specific
+    remedy (which pin to lower, and to what value), and they are
+    independently exercised by the synthetic ledger/pin/digest triples the
+    permanent controls drive, where a caller supplies a consistent digest
+    and only the size differs. The redundancy this creates on the real
+    ledger is in the REPORTING, not in the coverage -- a future reader
+    deleting a "redundant" predicate would be giving up the remedy-naming
+    and the independent synthetic-triple coverage, not removing dead code.
+
     Takes the ledger, its pin, and its key-set digest as optional
     parameters (defaulting to the real ones) so the permanent negative-arm
     controls can drive it against synthetic ledger/pin/digest triples
@@ -1811,7 +1824,9 @@ def literal_ledger_ratchet_problems(
         problems.append(
             "deferred-literal-ledger ratchet: live ledger size "
             f"{live_size} exceeds the pinned maximum {max_size} -- the "
-            "ledger may shrink but must never grow"
+            "ledger must never grow; a shrink is legal only when both "
+            "_DEFERRED_LEDGER_MAX and _DEFERRED_LEDGER_KEYS_DIGEST are "
+            "re-pinned to the live values in this same commit"
         )
     if live_size < max_size:
         problems.append(
@@ -3824,6 +3839,18 @@ def _control_ledger_not_an_unconditional_permit() -> None:
     hooks down with it -- with a message that reads like a regression
     while describing progress. The relative form cannot make that
     mistake: it shrinks in lockstep with the ledger it measures.
+
+    Relative-floor entailment (21-VERIFICATION.md round 2): in the
+    PASSING state, arm (b) is logically entailed by
+    `literal_ledger_staleness_problems` already passing on the live tree
+    -- every ledger key matches at least one live hit, so emptying the
+    ledger necessarily produces at least `ledger_size` findings, and arm
+    (b) is not independent evidence of load-bearingness while the tree is
+    green. It is kept anyway because it fails against the threat it was
+    designed for -- a reintroduced catch-all exemption class collapsing
+    the finding count -- which the staleness floor does not detect; a
+    reader should not mistake arm (b) for independent evidence in the
+    passing state.
     """
     for relpath, text in _DEFERRED_LITERAL_HITS:
         assert relpath, "bare-relpath-shaped key found (wildcard permit)"
