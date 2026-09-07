@@ -846,6 +846,15 @@ def _registry_precommit_ids() -> frozenset[str]:
 # checked it before this plan). Named here, not re-typed at each call site.
 _HOOK_PATHS: tuple[str, str] = (".githooks/pre-commit", "scripts/git-hooks/pre-commit")
 
+# The three literal message prefixes `hook_roster_problems()` emits, shared
+# by the producer (below) and `_hook_roster_arm_clauses`' parser so the two
+# cannot drift apart. A message-format change on the producer side must fail
+# loudly at the parser rather than degrade into whole-message blindness —
+# that is the boundary the pre-plan-21-21 shape crossed silently.
+_HOOK_DIVERGENCE_PREFIX = "hook-divergence: "
+_HOOK_ROSTER_MISSING_PREFIX = "hook-roster missing=: "
+_HOOK_ROSTER_EXTRA_PREFIX = "hook-roster extra=: "
+
 # Matches a `(?:exec )?$PY <script> <flag>` invocation line — the shape both
 # hook scripts use for every one of their five gates (the terminal line uses
 # `exec`, the other four use `|| exit $?`, which this pattern ignores since
@@ -913,7 +922,8 @@ def hook_roster_problems(
     problems: list[str] = []
     if hook_a_invocations != hook_b_invocations:
         problems.append(
-            "hook-divergence: the two hook scripts' derived invocation "
+            _HOOK_DIVERGENCE_PREFIX
+            + "the two hook scripts' derived invocation "
             f"sequences differ: {list(hook_a_invocations)} != "
             f"{list(hook_b_invocations)}"
         )
@@ -922,15 +932,89 @@ def hook_roster_problems(
     extra = registry_run_commands - derived
     if missing:
         problems.append(
-            "hook-roster missing=: hook gate(s) with no PRECOMMIT: registry "
+            _HOOK_ROSTER_MISSING_PREFIX
+            + "hook gate(s) with no PRECOMMIT: registry "
             f"row: {sorted(missing)}"
         )
     if extra:
         problems.append(
-            "hook-roster extra=: PRECOMMIT: registry row(s) naming an "
+            _HOOK_ROSTER_EXTRA_PREFIX
+            + "PRECOMMIT: registry row(s) naming an "
             f"invocation neither hook makes: {sorted(extra)}"
         )
     return problems
+
+
+def _hook_roster_arm_clauses(problems: list[str]) -> tuple[str, str]:
+    """Split a `hook_roster_problems()` findings list into its `missing=`
+    and `extra=` payload clauses, porting `check-version-stamps.py`'s
+    `_roster_arm_clauses` idiom to this producer's SEPARATE-list-entry
+    message grammar rather than a single joined string.
+
+    Four legs, each raising `ValueError` naming the offending text rather
+    than silently degrading to whole-message blindness:
+
+      1. every entry must start with exactly one of the three declared
+         prefixes (`_HOOK_DIVERGENCE_PREFIX`, `_HOOK_ROSTER_MISSING_PREFIX`,
+         `_HOOK_ROSTER_EXTRA_PREFIX`); an unrecognised entry raises.
+      2. no single entry may carry BOTH the missing= and extra= clause
+         markers — the combined-message shape a message-construction
+         refactor could reintroduce, and the one this helper exists to
+         catch, checked via a `not in` precondition rather than the bare
+         `in`-membership-against-a-whole-message shape the census below
+         forbids.
+      3. no prefix may appear on more than one entry.
+      4. otherwise return `(missing_clause, extra_clause)` — the payload
+         following each roster prefix, and the empty string when that
+         finding is absent.
+    """
+    missing_clause = ""
+    extra_clause = ""
+    seen_missing = False
+    seen_extra = False
+    seen_divergence = False
+    for entry in problems:
+        if entry.startswith(_HOOK_ROSTER_MISSING_PREFIX):
+            if "extra=" not in entry:
+                if seen_missing:
+                    raise ValueError(
+                        "_hook_roster_arm_clauses: missing= prefix appears "
+                        f"on more than one entry: {entry!r}"
+                    )
+                seen_missing = True
+                missing_clause = entry.removeprefix(_HOOK_ROSTER_MISSING_PREFIX)
+            else:
+                raise ValueError(
+                    "_hook_roster_arm_clauses: entry carries both roster "
+                    f"clause markers: {entry!r}"
+                )
+        elif entry.startswith(_HOOK_ROSTER_EXTRA_PREFIX):
+            if "missing=" not in entry:
+                if seen_extra:
+                    raise ValueError(
+                        "_hook_roster_arm_clauses: extra= prefix appears "
+                        f"on more than one entry: {entry!r}"
+                    )
+                seen_extra = True
+                extra_clause = entry.removeprefix(_HOOK_ROSTER_EXTRA_PREFIX)
+            else:
+                raise ValueError(
+                    "_hook_roster_arm_clauses: entry carries both roster "
+                    f"clause markers: {entry!r}"
+                )
+        elif entry.startswith(_HOOK_DIVERGENCE_PREFIX):
+            if seen_divergence:
+                raise ValueError(
+                    "_hook_roster_arm_clauses: hook-divergence prefix "
+                    f"appears on more than one entry: {entry!r}"
+                )
+            seen_divergence = True
+        else:
+            raise ValueError(
+                "_hook_roster_arm_clauses: entry does not start with a "
+                f"recognised prefix: {entry!r}"
+            )
+    return (missing_clause, extra_clause)
 
 
 # ---------------------------------------------------------------------------
@@ -1176,7 +1260,10 @@ def _control_cr04_hook_roster_live_positive() -> None:
     derive exactly five invocations each, the two sequences agree, and they
     equal the five `PRECOMMIT:` registry rows' `run_command` set. Called
     with zero arguments — the same live-default call shape a developer or
-    the pre-commit hook itself would use."""
+    the pre-commit hook itself would use. Its three sibling negative arms
+    below now parse `hook_roster_problems()`'s findings through
+    `_hook_roster_arm_clauses` rather than testing a bare clause-marker
+    substring against the whole message."""
     problems = hook_roster_problems()
     assert problems == [], problems
     hook_a = hook_gate_invocations(
@@ -1209,8 +1296,9 @@ def _control_cr04_hook_roster_missing_fires() -> None:
         synthetic_invocations, synthetic_invocations, registry_commands
     )
     assert len(problems) == 1, problems
-    assert "missing=" in problems[0], problems
-    assert "python3 scripts/check-agent.py --self-test" in problems[0], problems
+    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
+    assert "python3 scripts/check-agent.py --self-test" in missing_clause, problems
+    assert extra_clause == "", problems
 
 
 def _control_cr04_hook_roster_extra_fires() -> None:
@@ -1226,8 +1314,9 @@ def _control_cr04_hook_roster_extra_fires() -> None:
         real_invocations, real_invocations, fabricated_commands
     )
     assert len(problems) == 1, problems
-    assert "extra=" in problems[0], problems
-    assert "python3 scripts/check-links.py --check" in problems[0], problems
+    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
+    assert "python3 scripts/check-links.py --check" in extra_clause, problems
+    assert missing_clause == "", problems
 
 
 def _control_cr04_hook_roster_divergence_fires() -> None:
@@ -1249,9 +1338,77 @@ def _control_cr04_hook_roster_divergence_fires() -> None:
     registry_commands = frozenset(inv_a) | frozenset(inv_b)
     problems = hook_roster_problems(inv_a, inv_b, registry_commands)
     assert len(problems) == 1, problems
-    assert "hook-divergence" in problems[0], problems
+    assert problems[0].startswith(_HOOK_DIVERGENCE_PREFIX), problems
+    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
+    assert missing_clause == "", problems
+    assert extra_clause == "", problems
     assert "python3 scripts/report-conformance.py --self-test" in problems[0], problems
     assert "python3 scripts/report-conformance.py --check" in problems[0], problems
+
+
+def _control_cr04_hook_roster_arm_shape_guard() -> None:
+    """Message-shape guard, mirroring `check-version-stamps.py`'s
+    `kind-roster-arm-shape-guard` control: `_hook_roster_arm_clauses` must
+    raise `ValueError` naming the offending text on every malformed shape,
+    return `("", "")` for an empty list, and split a well-formed list
+    correctly. The both-markers fixture is assembled by concatenating the
+    two shared prefix constants across more than one physical source line —
+    the same self-match defence `_control_roster_arm_shape_census_vacuity`
+    documents — because plan 21-22 puts this file under the census that
+    scans for the bare quoted-marker `in` shape."""
+    # (a) a single entry carrying both clause markers.
+    both_markers_entry = (
+        _HOOK_ROSTER_MISSING_PREFIX
+        + "fixture-command-a "
+        + _HOOK_ROSTER_EXTRA_PREFIX
+        + "fixture-command-b"
+    )
+    try:
+        _hook_roster_arm_clauses([both_markers_entry])
+    except ValueError as exc:
+        assert "fixture-command-a" in str(exc), exc
+    else:
+        assert False, (
+            "_hook_roster_arm_clauses accepted an entry carrying both "
+            "roster clause markers"
+        )
+
+    # (b) an entry with an unrecognised prefix.
+    try:
+        _hook_roster_arm_clauses(["unrecognised-prefix: fixture-command-c"])
+    except ValueError as exc:
+        assert "unrecognised-prefix" in str(exc), exc
+    else:
+        assert False, "_hook_roster_arm_clauses accepted an unrecognised prefix"
+
+    # (c) two entries sharing the missing= prefix.
+    try:
+        _hook_roster_arm_clauses(
+            [
+                _HOOK_ROSTER_MISSING_PREFIX + "fixture-command-d",
+                _HOOK_ROSTER_MISSING_PREFIX + "fixture-command-e",
+            ]
+        )
+    except ValueError as exc:
+        assert "fixture-command-e" in str(exc), exc
+    else:
+        assert False, (
+            "_hook_roster_arm_clauses accepted two entries sharing the "
+            "missing= prefix"
+        )
+
+    # Empty list returns ("", "").
+    assert _hook_roster_arm_clauses([]) == ("", ""), _hook_roster_arm_clauses([])
+
+    # Well-formed two-entry list returns the correct clause split.
+    missing_clause, extra_clause = _hook_roster_arm_clauses(
+        [
+            _HOOK_ROSTER_MISSING_PREFIX + "fixture-command-f",
+            _HOOK_ROSTER_EXTRA_PREFIX + "fixture-command-g",
+        ]
+    )
+    assert missing_clause == "fixture-command-f", missing_clause
+    assert extra_clause == "fixture-command-g", extra_clause
 
 
 def _parse_architecture_data_row_count() -> int:
@@ -1408,6 +1565,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("cr04-hook-roster-missing-fires", _control_cr04_hook_roster_missing_fires),
     ("cr04-hook-roster-extra-fires", _control_cr04_hook_roster_extra_fires),
     ("cr04-hook-roster-divergence-fires", _control_cr04_hook_roster_divergence_fires),
+    ("cr04-hook-roster-arm-shape-guard", _control_cr04_hook_roster_arm_shape_guard),
     (
         "entries-count-matches-architecture-table",
         _control_entries_count_matches_architecture_table,
@@ -1440,6 +1598,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "cr04-hook-roster-missing-fires",
     "cr04-hook-roster-extra-fires",
     "cr04-hook-roster-divergence-fires",
+    "cr04-hook-roster-arm-shape-guard",
     "entries-count-matches-architecture-table",
     "no-gate-id-duplicated",
     "d04-missing-field-fires",
