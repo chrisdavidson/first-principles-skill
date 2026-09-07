@@ -145,3 +145,11 @@ None - no external service configuration required.
 ---
 *Phase: 21-generate-the-claim-surface*
 *Completed: 2026-09-07*
+
+## Self-Check: PASSED
+
+- FOUND: `scripts/check-version-stamps.py`
+- FOUND: `.planning/phases/21-generate-the-claim-surface/21-17-SUMMARY.md`
+- FOUND: commit `8f3c7b4` (Task 1)
+- FOUND: commit `fad7b80` (Task 2)
+- FOUND: commit `745668b` (this SUMMARY)
