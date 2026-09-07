@@ -171,9 +171,13 @@ def _expected_harvest_scripts() -> frozenset[str]:
 # the WHOLE joined roster-mismatch message rather than against its extracted
 # `missing=`/`extra=` clause. Nothing before this plan stopped a seventh
 # script, or a later edit to any of the six, from reintroducing it; this
-# census makes that unreintroducible across every script-backed registry
-# entry, not just the six this phase touched (21-18-SUMMARY.md
-# falsification 7's own reopening demonstration).
+# census makes that unreintroducible across every `.py` file under
+# `scripts/`, not just the six this phase touched (21-18-SUMMARY.md
+# falsification 7's own reopening demonstration). Plan 21-22 widened the
+# population from a registry-derived set to a live glob, closing CR-01:
+# the registry-derived population made `scripts/_gate_registry.py` --
+# the module that DEFINES the registry -- structurally unable to be one
+# of its own members.
 # ---------------------------------------------------------------------------
 
 # Wave-15 shape: a synthetic fixture id (always literally the word
@@ -182,8 +186,9 @@ def _expected_harvest_scripts() -> frozenset[str]:
 # does NOT end in `_clause`. The FIXED shape splits the id into its own
 # clause first, so the fixed identifier always ends in `_clause` and must
 # not match. (Deliberately not spelled out here as a literal quoted example
-# — this file is itself one of the 22 population members the live control
-# below scans, and a literal example in this comment would self-match.)
+# — this file is itself one of the population members the live control
+# below scans (see `roster_arm_census_population` for the live count), and
+# a literal example in this comment would self-match.)
 _ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE = re.compile(
     r'"synthetic-[a-z]"\s+not in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
 )
@@ -202,13 +207,22 @@ _ROSTER_ARM_CLAUSE_MARKER_RE = re.compile(
 
 def _roster_arm_census_sources() -> dict[str, str]:
     """Build the live population for `roster_arm_shape_census_problems()`'s
-    default `sources=None` path: reads every `_expected_harvest_scripts()`
-    relpath from `REPO_ROOT`. Exposed separately (not inlined into the scan
-    function) so the anti-vacuity floor can assert the read count
-    independently of the scan logic itself."""
+    default `sources=None` path: every `.py` file directly under
+    `scripts/`, read as UTF-8 and keyed by repo-relative path -- derived by
+    a live glob, not from `_expected_harvest_scripts()`. The roster-arm
+    rule governs any Python source under `scripts/`, not only the
+    `--describe`-backed registry entries that function names; deriving the
+    population from `ENTRIES` made the module that DEFINES those entries
+    (`scripts/_gate_registry.py`) structurally unable to be one of its own
+    members -- the CR-01 defect `21-VERIFICATION.md` round 2 recorded.
+    `_expected_harvest_scripts()` itself is unchanged and still backs
+    `harvest()`'s own floor; this function simply stopped calling it.
+    Exposed separately (not inlined into the scan function) so the
+    anti-vacuity floor can assert the read count independently of the scan
+    logic itself."""
     return {
-        relpath: (REPO_ROOT / relpath).read_text(encoding="utf-8")
-        for relpath in sorted(_expected_harvest_scripts())
+        str(path.relative_to(REPO_ROOT)): path.read_text(encoding="utf-8")
+        for path in sorted((REPO_ROOT / "scripts").glob("*.py"))
     }
 
 
@@ -2644,6 +2658,7 @@ def describe() -> dict:
         "literal_scan_ledger_mechanical": ledger_mechanical,
         "literal_scan_nonmodule_docstring_hits": len(nonmodule_hits),
         "literal_scan_nonmodule_docstring_surfaces": len(nonmodule_surfaces),
+        "roster_arm_census_population": len(_roster_arm_census_sources()),
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -3566,16 +3581,36 @@ def _control_scan_neutralization_arms() -> None:
 
 
 def _control_roster_arm_shape_census() -> None:
-    """GAP A item 3 (plan 21-19): the live tree carries none of the
+    """GAP A item 3 (plan 21-19), reach corrected under CR-01 (plan
+    21-22): every `.py` file directly under `scripts/` carries none of the
     defective roster-arm shapes, and the census actually read every
     population member — an anti-vacuity floor independent of the scan
     logic itself, since a census silently reading nothing would otherwise
-    also report zero problems."""
+    also report zero problems.
+
+    DISCLOSED BOUND: this is a check of source SHAPE within one directory.
+    It does not reach `.py` files outside `scripts/`, and it cannot tell
+    whether a roster arm is semantically correct — only whether it asserts
+    against an extracted clause rather than a whole message."""
     problems = roster_arm_shape_census_problems()
     assert problems == [], problems
     sources = _roster_arm_census_sources()
-    expected = len(_expected_harvest_scripts())
-    assert len(sources) == expected, (len(sources), expected)
+    live_glob = {
+        str(path.relative_to(REPO_ROOT))
+        for path in (REPO_ROOT / "scripts").glob("*.py")
+    }
+    missing = sorted(live_glob - set(sources))
+    extra = sorted(set(sources) - live_glob)
+    assert set(sources) == live_glob, (
+        f"population != live glob of scripts/*.py -- missing={missing} extra={extra}"
+    )
+    expected = _expected_harvest_scripts()
+    assert set(sources) > expected, (
+        "population is not a strict superset of _expected_harvest_scripts() "
+        f"-- missing={sorted(expected - set(sources))}"
+    )
+    assert "scripts/_gate_registry.py" in sources, sorted(sources)
+    assert sources and roster_arm_shape_census_problems(sources=sources) == [], sources
 
 
 def _control_roster_arm_shape_census_vacuity() -> None:
@@ -3588,13 +3623,14 @@ def _control_roster_arm_shape_census_vacuity() -> None:
 
     The first two fixture strings below are deliberately assembled across
     more than one physical source line: `gen-gate-docs.py` is itself one of
-    the 22 population members this census scans (a script-backed registry
-    entry, CONF-SURFACE), so if either defective shape appeared contiguously
-    on a single ON-DISK line of this file's own source, the live control
-    above would self-match its own fixture data. Splitting the literal
-    across a line boundary defeats that per-line self-match while the
-    JOINED runtime value — what the function under test actually receives
-    — is unaffected and still carries the shape whole."""
+    the population members this census scans (see
+    `roster_arm_census_population` for the live count), so if either
+    defective shape appeared contiguously on a single ON-DISK line of this
+    file's own source, the live control above would self-match its own
+    fixture data. Splitting the literal across a line boundary defeats
+    that per-line self-match while the JOINED runtime value — what the
+    function under test actually receives — is unaffected and still
+    carries the shape whole."""
     sources = {
         "scripts/fixture-wave15.py": (
             '    elif "synthetic-b" not'
@@ -3613,6 +3649,62 @@ def _control_roster_arm_shape_census_vacuity() -> None:
     assert any("scripts/fixture-wave15.py" in p for p in problems), problems
     assert any("scripts/fixture-version-stamps.py" in p for p in problems), problems
     assert not any("scripts/fixture-fixed.py" in p for p in problems), problems
+
+
+def _control_roster_arm_shape_census_population_complete() -> None:
+    """Standalone, permanently registered reproduction of the
+    population-completeness floor `_control_roster_arm_shape_census`
+    itself also asserts (T-21-22-02): proves a re-narrowing of
+    `_roster_arm_census_sources()` back toward `_expected_harvest_scripts()`
+    fails BY NAME, naming the specific files a narrowing would hide, not
+    merely that a count moved — the 19-D-04 / CR-03 property that a subset
+    test cannot see its own narrowing while an equality floor can."""
+    sources = _roster_arm_census_sources()
+    live_glob = {
+        str(path.relative_to(REPO_ROOT))
+        for path in (REPO_ROOT / "scripts").glob("*.py")
+    }
+    missing = sorted(live_glob - set(sources))
+    extra = sorted(set(sources) - live_glob)
+    assert set(sources) == live_glob, (
+        f"population != live glob of scripts/*.py -- missing={missing} extra={extra}"
+    )
+    expected = _expected_harvest_scripts()
+    difference = sorted(expected - set(sources))
+    assert set(sources) > expected, (
+        f"population is not a strict superset of _expected_harvest_scripts() -- missing={difference}"
+    )
+    assert "scripts/_gate_registry.py" in sources, sorted(sources)
+    assert sources, "population is empty"
+
+
+def _control_roster_arm_shape_census_registry_covered() -> None:
+    """Permanent, standalone reproduction of the verifier's CR-01 finding
+    (T-21-22-02): `scripts/_gate_registry.py` — the module that DEFINES
+    the roster-arm rule — is now covered by the census, since the
+    population is a live glob rather than an `ENTRIES`-derived set.
+    Positive half proves the real file is clean; negative half proves a
+    reintroduced defect is caught and named."""
+    real_text = (REPO_ROOT / "scripts/_gate_registry.py").read_text(encoding="utf-8")
+    positive = roster_arm_shape_census_problems(
+        sources={"scripts/_gate_registry.py": real_text}
+    )
+    assert positive == [], positive
+
+    # Assembled across more than one physical source line: this file is
+    # itself a population member the live census scans, so a contiguous
+    # literal on one on-disk line here would self-match — the same
+    # defence `_control_roster_arm_shape_census_vacuity` already
+    # documents.
+    defective_line = (
+        '    elif "extra="'
+        ' in problems[0]:\n'
+    )
+    negative = roster_arm_shape_census_problems(
+        sources={"scripts/_gate_registry.py": real_text + defective_line}
+    )
+    assert len(negative) == 1, negative
+    assert "scripts/_gate_registry.py" in negative[0], negative
 
 
 # ---------------------------------------------------------------------------
@@ -3952,6 +4044,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("scan-neutralization-arms", _control_scan_neutralization_arms),
     ("roster-arm-shape-census", _control_roster_arm_shape_census),
     ("roster-arm-shape-census-vacuity", _control_roster_arm_shape_census_vacuity),
+    (
+        "roster-arm-shape-census-population-complete",
+        _control_roster_arm_shape_census_population_complete,
+    ),
+    (
+        "roster-arm-shape-census-registry-covered",
+        _control_roster_arm_shape_census_registry_covered,
+    ),
     ("ledger-ratchet-fires", _control_ledger_ratchet_fires),
     ("ledger-ratchet-requires-repin-on-shrink", _control_ledger_ratchet_requires_repin_on_shrink),
     ("ledger-key-digest-fires", _control_ledger_key_digest_fires),
@@ -4033,6 +4133,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "scan-neutralization-arms",
     "roster-arm-shape-census",
     "roster-arm-shape-census-vacuity",
+    "roster-arm-shape-census-population-complete",
+    "roster-arm-shape-census-registry-covered",
     "ledger-ratchet-fires",
     "ledger-ratchet-requires-repin-on-shrink",
     "ledger-key-digest-fires",
