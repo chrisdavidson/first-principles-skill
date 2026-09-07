@@ -54,6 +54,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import re
 import sys
@@ -436,6 +437,15 @@ def describe() -> dict:
     }
 
 
+# Phase 21-17: module-level (deliberately outside `self_test()`, so they
+# never appear in `inspect.getsource(self_test)`'s own text and inflate the
+# fixture-call-site census that reads that text) tokens the census below
+# matches against.
+_FIXTURE_WRAPPER_CALL = "build_fixture("
+_FIXTURE_BUILDER_CALL = "_build_fixture("
+_FIXTURE_DELEGATION_ARGS = "*args, **kwargs"
+
+
 def self_test() -> int:
     """Fixture-driven fault injection.
 
@@ -444,9 +454,12 @@ def self_test() -> int:
     self-test into a vacuous pass.
     """
     failures: list[str] = []
+    executed: list[str] = []
+    fixture_count = 0
     module = sys.modules[__name__]
 
     def expect(name: str, condition: bool, detail: str = "") -> None:
+        executed.append(name)
         if condition:
             print(f"check-version-stamps --self-test: {name} PASS")
         else:
@@ -454,12 +467,22 @@ def self_test() -> int:
             print(msg)
             failures.append(name)
 
+    def build_fixture(*args, **kwargs) -> None:
+        """Thin counting wrapper around `_build_fixture` — the single
+        increment site for the published fixture-tree figure (Phase 21-17).
+        `fixture-count-matches-call-sites` censuses THIS wrapper's own call
+        sites rather than `_build_fixture`'s, so a call that bypasses the
+        wrapper (and so the counter) is visible as a census mismatch."""
+        nonlocal fixture_count
+        fixture_count += 1
+        _build_fixture(*args, **kwargs)
+
     with tempfile.TemporaryDirectory(prefix="version-stamps-selftest-") as tmp:
         base = Path(tmp)
 
         # (a) Positive control: every stamp agrees.
         clean = base / "clean"
-        _build_fixture(clean, skill_stamps=['"1.0.0"'] * 3)
+        build_fixture(clean, skill_stamps=['"1.0.0"'] * 3)
         ok, problems, stamps = check(clean)
         expect("clean-agrees", ok, f"(problems={problems})")
         expect(
@@ -471,7 +494,7 @@ def self_test() -> int:
         # (b) Fault injection: one skill stamp diverges. This is the exact v8.14
         #     failure mode -- everything green except the one file that matters.
         drifted = base / "drifted"
-        _build_fixture(drifted, skill_stamps=['"1.0.0"', '"1.0.0"', '"0.9.9"'])
+        build_fixture(drifted, skill_stamps=['"1.0.0"', '"1.0.0"', '"0.9.9"'])
         ok, problems, _ = check(drifted)
         expect("divergent-skill-detected", not ok)
         expect(
@@ -482,14 +505,14 @@ def self_test() -> int:
 
         # (c) Fault injection: a manifest lags behind the sources.
         lagging = base / "lagging"
-        _build_fixture(lagging, skill_stamps=['"1.0.0"'] * 2, plugin_stamp="0.9.9")
+        build_fixture(lagging, skill_stamps=['"1.0.0"'] * 2, plugin_stamp="0.9.9")
         ok, _, _ = check(lagging)
         expect("divergent-manifest-detected", not ok)
 
         # (d) Fault injection: a skill ships with no stamp at all. Presence, not
         #     count, is what catches this -- so a 15th skill cannot slip through.
         missing = base / "missing"
-        _build_fixture(missing, skill_stamps=['"1.0.0"'])
+        build_fixture(missing, skill_stamps=['"1.0.0"'])
         d = missing / "shared" / "skills" / "no-stamp"
         d.mkdir(parents=True, exist_ok=True)
         (d / "SKILL.md").write_text(
@@ -506,7 +529,7 @@ def self_test() -> int:
         # (e) Fault injection: the documented format invariant. An unquoted
         #     stamp is what turns `8.17` into a float and breaks the compare.
         unquoted = base / "unquoted"
-        _build_fixture(unquoted, skill_stamps=['"1.0.0"', "1.0"])
+        build_fixture(unquoted, skill_stamps=['"1.0.0"', "1.0"])
         ok, problems, _ = check(unquoted)
         expect("unquoted-stamp-detected", not ok)
         expect(
@@ -569,7 +592,7 @@ def self_test() -> int:
         # plan). Must land in the MISSING clause and NOT in the EXTRA
         # clause.
         missing_spine = base / "missing-spine"
-        _build_fixture(missing_spine, skill_stamps=['"1.0.0"'], spine_stamp=None)
+        build_fixture(missing_spine, skill_stamps=['"1.0.0"'], spine_stamp=None)
         collect_stamps(missing_spine)
         kind_problems = _stamp_roster_problems(
             module._LAST_WALKED_SOURCE_KINDS, module._STAMP_SOURCE_KINDS
@@ -675,6 +698,42 @@ def self_test() -> int:
             f"(SystemExit code={exc.code!r}, expected non-zero)",
         )
 
+    # Anti-drift census (21-17): the fixture counter incremented by the
+    # wrapper above must equal the number of fixture-building call
+    # STATEMENTS in THIS function's own source text, so the published
+    # fixture figure cannot silently drift from what the counter tallied.
+    # Only lines whose first token (after stripping indentation) IS the
+    # call are counted -- this deliberately excludes prose that merely
+    # names the callable (comments, this docstring block, the string
+    # literals in the census logic immediately below), which a plain
+    # substring search would miscount as call sites. Counts the wrapper's
+    # own invocation sites plus any call that bypasses the wrapper and
+    # reaches the underlying builder directly -- a bypass call never
+    # advances the counter, so it must inflate this census to make that
+    # divergence visible. The one call this deliberately excludes is the
+    # wrapper's own internal delegation to the underlying builder.
+    self_test_source = inspect.getsource(self_test)
+    wrapper_call_sites = 0
+    for line in self_test_source.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(_FIXTURE_WRAPPER_CALL):
+            wrapper_call_sites += 1
+        elif stripped.startswith(_FIXTURE_BUILDER_CALL) and _FIXTURE_DELEGATION_ARGS not in stripped:
+            wrapper_call_sites += 1
+    expect(
+        "fixture-count-matches-call-sites",
+        fixture_count == wrapper_call_sites,
+        f"(fixture_count={fixture_count}, call_sites={wrapper_call_sites})",
+    )
+
+    # A duplicated control id would silently understate the published
+    # assertion figure without any literal being typed (21-17).
+    expect(
+        "expect-names-unique",
+        len(executed) == len(set(executed)),
+        f"(duplicated: {sorted({n for n in executed if executed.count(n) > 1})})",
+    )
+
     if failures:
         sys.stderr.write(
             f"check-version-stamps --self-test: FAIL "
@@ -682,7 +741,10 @@ def self_test() -> int:
         )
         return 1
 
-    print("check-version-stamps --self-test: PASS (8 fixture trees, 16 named assertions)")
+    print(
+        f"check-version-stamps --self-test: PASS "
+        f"({fixture_count} fixture trees, {len(executed)} named assertions)"
+    )
     return 0
 
 
