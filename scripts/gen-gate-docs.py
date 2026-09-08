@@ -1847,7 +1847,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', 'two inline checks'): ('999.42', 1, 'Correct: INVARIANT-CHECK and FROZEN-EVIDENCE are the two inline (non-gate/gate_prereq) battery checks -- a structural fact, not derived by any script.'),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
     ('docs/ARCHITECTURE.md', '**Two gates'): ('999.42', 1, "NOT-A-COUNT: 'Two gates are called GATE-02' identifies two DIFFERENT gates that share a display name (VAL-04/GATE-02 vs GATE-02-v8.5) -- the number is correct but attached to a disambiguation, not a population count."),
-    ('docs/ARCHITECTURE.md', 'five surfaces.'): ('999.42', 1, "Correct: the battery total is restated on five surfaces (CLAUDE.md, docs/ARCHITECTURE.md, docs/TESTING.md, docs/gates/CONF-SURFACE.md, and check-firewall-battery.sh's own tally comment) rather than swept by hand across all of them -- verified by grep across the five files."),
     ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
     ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
     ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
@@ -2014,7 +2013,7 @@ def _deferred_ledger_keys_digest(
 # Standing rule, in this repo's own words (the CONTRACT-06 pin discipline,
 # `scripts/check-quality-harness.py`): never recompute a pin to make a
 # failing check pass.
-_DEFERRED_LEDGER_MAX: int = 135
+_DEFERRED_LEDGER_MAX: int = 134
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -2036,7 +2035,7 @@ _DEFERRED_LEDGER_MAX: int = 135
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:0a249f6de8c4b520d3e76590cfc6d1b8296497c5cbfef05bd7533d64a0f068bc"
+    "sha256:d968f66d09bbd83c2bb65bbfb13d42cafc80310a3193aefe40768baa25395f3a"
 )
 
 
