@@ -244,6 +244,43 @@ standing record.
 
 Bypass for intentional in-progress work: `git commit --no-verify`
 
+### Review protocol
+
+Any reviewer of this repository — the vendored `bm:gsd-code-reviewer` agent, a fork of it, or a
+human — tiers every finding, carries the tier in `REVIEW.md` frontmatter, and blocks only on
+product findings.
+
+1. **Tier every finding** as `product` or `apparatus` against
+   [docs/PROCESS.md](docs/PROCESS.md) section 2. The cut is by claim-audience, not by directory
+   and not by subject — see section 2 for the full rule; it is not re-transcribed here.
+2. **Carry the tier in `REVIEW.md` frontmatter**, in this exact shape:
+
+   ```yaml
+   findings:
+     product:   {critical: N, warning: N, info: N}
+     apparatus: {critical: N, warning: N, info: N}
+     total: N
+   blocking: N        # product only
+   status: issues_found
+   ```
+
+3. **Block only on product findings.** Apparatus findings auto-file to the
+   `.planning/ROADMAP.md` backlog and never block a phase.
+
+**Accepted limitation, stated plainly.** `bm:gsd-code-reviewer` is vendored outside this
+repository, under the plugin cache, and is replaced on plugin update — there is no repo-side
+binding. The agent holds `Read`, `Grep` and `Glob` and reads this file, which is the only reach
+this repository has into its behaviour. The first live test of whether this block is honoured is
+this phase's own `/bm:code-review 22`.
+
+**The derived check a reviewer's output must satisfy**, stated as prose rather than as a gate:
+every finding in a `REVIEW.md` carries a `product` or `apparatus` tier, and a finding carrying
+neither is itself a defect in the review.
+
+No script, control or CI job enforces any of this. D-08 rejected a findings-classifier
+post-processor by name, and D-01 made the cut a judgement a path glob cannot decide — CR-05 is
+the counterexample, an edit made in `scripts/` that produced a product-tier defect.
+
 ### Routing battery
 
 Two verifiers cover different layers of routing correctness (`check-routing.py` for the
