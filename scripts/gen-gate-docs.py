@@ -1851,6 +1851,24 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
     ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
     ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
+    ('docs/README.md', '**0 items'): ('999.44', 1, "Correct: main.py's three dedicated test files collected 0 items each for two years (260728-pa2) -- a closed historical measurement; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'no items run after run'."),
+    ('docs/README.md', '**one** entry'): ('999.44', 1, "Correct: as of the 2026-07-29 disposition, the use-journal limb held exactly one entry -- a closed historical count of a past state; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'only a single'."),
+    ('docs/README.md', "13 live matrix rows'"): ('999.44', 1, "Correct: whole-system-remeasure-verdict.md anchors provenance for 13 live matrix rows' dispositions -- a closed count measured against the traceability matrix at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'several'."),
+    ('docs/README.md', '13 rows'): ('999.44', 1, 'Correct: whole-system-remeasure-verdict.md is referenced by 13 rows of the traceability matrix -- a closed count of a specific matrix generation; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely.'),
+    ('docs/README.md', '16 gates'): ('999.44', 1, "Correct: v8.13's launcher sat undeliverable while 16 gates stayed green -- a closed historical count of the battery size at that specific 2026-07-29 milestone-open moment, before CONF-SURFACE and other later gates were added; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'the whole battery'."),
+    ('docs/README.md', '16 surfaces'): ('999.44', 1, "Correct: v8.7-constraint-teardown.md is cited by 16 surfaces, including both pre-commit hooks -- a closed count measured at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'many'."),
+    ('docs/README.md', '19 not-approved items),'): ('999.44', 1, "Correct: v8.2's re-investigation covered the 19 not-approved items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
+    ('docs/README.md', '6 live rows'): ('999.44', 1, "Correct: v8.14's own milestone audit compared 6 live rows to 0 baseline rows and printed a pass -- a closed historical measurement of that specific audit run; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'live rows against a stale, empty baseline'."),
+    ('docs/README.md', '612 to 590 lines, the surface'): ('999.44', 1, "Correct: v8.6 cut the agent body from 612 to 590 lines -- a closed historical measurement from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the unfalsifiable 'shrinking the agent body's line count'."),
+    ('docs/README.md', '7 docs/metadata items),'): ('999.44', 1, "Correct: v8.1 selectively implemented 7 docs/metadata items -- a closed historical count from a milestone that ended in 2026 and cannot go stale; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with the hedge 'several'."),
+    ('docs/README.md', 'five entries'): ('999.44', 1, "Correct: use-journal.md needed about five entries of real, non-harness use, per the Post-v8.11 gate's original 2026-07-24 statement -- a closed historical figure describing a past state of that gate; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a handful of'."),
+    ('docs/README.md', 'five live entries'): ('999.44', 2, "Correct: both the 2026-07-25 and 2026-07-26 dispositions of the Post-v8.11 gate state use-journal.md needed 'about five live entries' -- the gating criterion CR-05 names as a decision threshold, not narrative color; two occurrences, both restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced both with 'several more'."),
+    ('docs/README.md', 'fixture (9)'): ('999.44', 1, "Correct: gen-01-rearch-milestone.md is deep-resolved by TRACE-03's own fixture, which carries a population of 9 -- a closed structural fact about the fixture at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the (9) count entirely."),
+    ('docs/README.md', 'gate and the five'): ('999.44', 1, "NOT-A-RESTORE: plan 22-04 Task 1's judgement-call replacement for the row-17 hedge ('the pre-commit gates'). The pre-3c17833 text read 'the two pre-commit gates', now FALSE (five pre-commit gates fire as of CONF-SURFACE, plan 21-11) -- so 'two' was deliberately not restored. 'five' is the live, currently-true count, verified against docs/TESTING.md:67 ('Five gates fire on every git commit...') and CLAUDE.md's Pre-commit gates section -- a true present-tense fact, not a frozen historical measurement, whose falsifiability this entry restores."),
+    ('docs/README.md', 'items each** for two'): ('999.44', 1, "Correct: same restored sentence as the '**0 items' key above -- main.py's three dedicated test files collected 0 items each for two years (260728-pa2); the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06)."),
+    ('docs/README.md', 'rows to 0'): ('999.44', 1, "Correct: same restored sentence as the '6 live rows' key above -- v8.14's own milestone audit compared 6 live rows to 0 baseline rows; the scanner splits the one restored figure into two matched windows. Restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06)."),
+    ('docs/README.md', 'sixteen green gates'): ('999.44', 1, "Correct: as of the 2026-07-29 GREENMEAN-01 finding, sixteen green gates sat over a version stamp that left the update path inert (v8.14 / DELIV-01) -- a closed historical count at that specific milestone-open moment; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'a fully green battery'."),
+    ('docs/README.md', 'three new offline gates'): ('999.44', 1, "Correct: the 2026-08-27 Perceive/Reason/Act/Observe/Report review's four gaps were closed and gated by three new offline gates (HARN-01, HARN-02, HARN-03) -- a closed historical count naming exactly which gates; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had dropped the number entirely."),
     ('docs/TESTING.md', 'Five gates'): ('999.42', 1, "Correct: 5 pre-commit gates fire on every git commit -- same verified fact as CLAUDE.md's 'Five gates' entry above."),
     ('docs/TESTING.md', 'five labelled surfaces:'): ('999.42', 1, "Correct: docs/conformance-baseline.md publishes five labelled surfaces (shared-examples, generated-twin, contract-surface, adversarial-corpus, live-conformance) -- verified by reading that file's own ## headers."),
     ('docs/TESTING.md', 'literal `== 4`'): ('999.42', 1, "NOT-A-COUNT: 'literal' here means the constant's literal value as written in code (_COMPOSER_FOCUS_CEILING == 4), not a count of literals -- an adjacency-mistrack false positive on the noun 'literal'."),
@@ -2013,7 +2031,7 @@ def _deferred_ledger_keys_digest(
 # Standing rule, in this repo's own words (the CONTRACT-06 pin discipline,
 # `scripts/check-quality-harness.py`): never recompute a pin to make a
 # failing check pass.
-_DEFERRED_LEDGER_MAX: int = 134
+_DEFERRED_LEDGER_MAX: int = 152
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -2035,7 +2053,7 @@ _DEFERRED_LEDGER_MAX: int = 134
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:d968f66d09bbd83c2bb65bbfb13d42cafc80310a3193aefe40768baa25395f3a"
+    "sha256:3ba9791b998420e5e6b1bb8e660e136198d2d636075bd1ec03902f006f29009f"
 )
 
 
@@ -2528,13 +2546,21 @@ def nonmodule_docstring_selffile_ratchet_problems(
 
 
 def _emit_deferred_ledger_backlog_id(relpath: str) -> str:
-    """The 999.40/999.41/999.42 classification recorded in
+    """The 999.40/999.41/999.42/999.44 classification recorded in
     21-CONF13-BASELINE.md: docs/gates/*.md narrative pages, .py module
-    docstrings, or the three peripheral CI-gate-table host surfaces."""
+    docstrings, the three peripheral CI-gate-table host surfaces, or
+    docs/README.md's own restored historical figures (999.44, D-22-D). The
+    999.44 branch is explicit rather than left to fall through to the
+    999.41 default: that default's published title says it holds Python
+    module docstrings, and filing a Markdown surface's hits under a
+    factually wrong label via a default branch is a catch-all in all but
+    name (T-21-09-02)."""
     if relpath.startswith("docs/gates/"):
         return "999.40"
     if relpath in ("CLAUDE.md", "docs/ARCHITECTURE.md", "docs/TESTING.md"):
         return "999.42"
+    if relpath == "docs/README.md":
+        return "999.44"
     return "999.41"
 
 
@@ -2947,13 +2973,17 @@ def describe() -> dict:
         if cls_name is not None:
             exempt_counts[cls_name] += 1
     non_exempt_count = len(literal_scan_problems(literal_read))
-    # 999.42 (the three primary surfaces) is the one backlog id adjudicated
-    # BY HAND, entry by entry; 999.40/999.41 are pinned MECHANICALLY,
-    # without per-entry adjudication (plan 21-16 Task 1). Computed from the
-    # ledger's own backlog ids, never hand-counted, so this figure moves
-    # with the ledger rather than going stale beside it.
+    # 999.42 (the three primary surfaces) and 999.44 (docs/README.md,
+    # plan 22-04) are the backlog ids adjudicated BY HAND, entry by entry;
+    # 999.40/999.41 are pinned MECHANICALLY, without per-entry adjudication
+    # (plan 21-16 Task 1). Computed from the ledger's own backlog ids,
+    # never hand-counted, so this figure moves with the ledger rather than
+    # going stale beside it.
+    _ADJUDICATED_BACKLOG_IDS = ("999.42", "999.44")
     ledger_adjudicated = sum(
-        1 for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values() if _bid == "999.42"
+        1
+        for (_bid, _occ, _reason) in _DEFERRED_LITERAL_HITS.values()
+        if _bid in _ADJUDICATED_BACKLOG_IDS
     )
     ledger_mechanical = len(_DEFERRED_LITERAL_HITS) - ledger_adjudicated
     # The py-docstrings-only blind spot's own live size (plan 21-20 Task
