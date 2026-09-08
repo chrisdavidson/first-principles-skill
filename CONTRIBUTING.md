@@ -37,9 +37,12 @@ Install the hook so sync drift is caught before you push:
 ./scripts/install-hooks.sh
 ```
 
-One gate fires on `git commit`: the **sync-drift gate**, which blocks if `shared/` and the
-generated tree have diverged. (A body-budget gate used to run alongside it; it was retired
-under TEARDOWN-01 and no longer fires.)
+Five gates fire on `git commit`, in a fixed order, mirrored identically across
+`.githooks/pre-commit` and `scripts/git-hooks/pre-commit`. See
+[CLAUDE.md](CLAUDE.md#pre-commit-gates)'s `### Pre-commit gates` section and
+[docs/CONFIGURATION.md](docs/CONFIGURATION.md#pre-commit-hooks) for the enumeration — the list is
+not repeated here, following this file's own `## CI gates` discipline below. (A body-budget gate
+used to run alongside the first of these; it was retired under TEARDOWN-01 and no longer fires.)
 
 There is a second, mutually exclusive mechanism (`git config core.hooksPath .githooks`) — pick
 one, never both. Full detail, including what `install-hooks.sh` does to an existing hook, is in
@@ -67,6 +70,11 @@ rather than gates are flagged there as such.
 
 One rule that is easy to trip over, because it changed: the agent body's line count is **not**
 an invariant. The 644-line gate was retired under TEARDOWN-01 and is now report-only.
+
+**a guard guards the product; a guard is not itself guarded** — the chain
+`999.27 → 999.28 → 999.30` is the measured justification. [docs/PROCESS.md](docs/PROCESS.md)
+holds the full depth rule, the product/apparatus review split, and the rework cap; this file
+cites it and does not restate its rules.
 
 ## CI gates
 
