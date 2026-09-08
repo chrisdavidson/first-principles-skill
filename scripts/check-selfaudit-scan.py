@@ -258,14 +258,19 @@ Exit codes:
     literal, re-derived by direct enumeration against the live file (not
     transcribed from any prior count) on 2026-09-08: eleven found in
     total — `_BAND_BULLETS` (iterated at `Rubric-11`'s two production
-    sites, `~lines 1243` and `~1251`, and by this `zip` generator), nine
+    sites in `_check_rubric_text` — the loop over the tuple guarded by
+    `if crit4_slice is not None:` and its twin guarded by
+    `if crit6_slice is not None:` — and by this `zip` generator), nine
     inline `for … in (…)` tuples across the body, rubric and cross-surface
     checks (`Rubric-13`'s region-split loop and its nested clause loop
     count as two separate constructs, not one, since each iterates its own
-    tuple independently), and `_VALIDATE_LEG_SYMBOLS` (`~line 1515`). Ten
+    tuple independently), and `_VALIDATE_LEG_SYMBOLS` (the module-level
+    tuple defined immediately above `_META_CONTROL_IDS`). Ten
     of the eleven carry one hand-written arm per literal.
     `_VALIDATE_LEG_SYMBOLS` is a NAMED EXCEPTION: a four-literal tuple
-    driving the `validate-census` check (`~line 3505`) through a single
+    driving the `validate-census` check (the `for _leg_symbol in
+    _VALIDATE_LEG_SYMBOLS` loop in `_run_self_test`, the file's only
+    occurrence of that loop header) through a single
     aggregate pass/fail message with no per-leg id and no membership
     lock — the same shape backlog 999.30 item 1 records, closed-by-decision
     under the depth rule (`docs/PROCESS.md` §1) rather than fixed here,

@@ -1828,16 +1828,20 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # `.py#__doc__` module docstrings, 999.41) are pinned MECHANICALLY from the
 # live scan, without per-entry adjudication -- a real reduction in what
 # this ledger certifies, published as a disclosed bound on
-# docs/gates/CONF-SURFACE.md rather than left implicit. Two 999.41 entries
-# were individually hand-adjudicated, alongside the docstring edit that
-# produced each: `scripts/check-selfaudit-scan.py#__doc__`,
-# `'check (`~line 3505`)'` (plan 22-05, closing 999.31 item 1), and
-# `scripts/check-selfaudit-scan.py#__doc__`,
+# docs/gates/CONF-SURFACE.md rather than left implicit. One 999.41 entry
+# is individually hand-adjudicated, alongside the docstring edit that
+# produced it: `scripts/check-selfaudit-scan.py#__doc__`,
 # `'nineteen not-found reporting arms'` (plan 22-06, closing 999.31 item 4).
-# Both keep the 999.41 backlog id because that classification is still the
-# correct one for their surface -- only their written reason moved from the
+# It keeps the 999.41 backlog id because that classification is still the
+# correct one for its surface -- only its written reason moved from the
 # mechanical placeholder to a real one, the same discipline plan 22-04
 # applied to the 18 hand-adjudicated `docs/README.md` entries under 999.44.
+# A second 999.41 entry that was individually hand-adjudicated this same
+# way, `scripts/check-selfaudit-scan.py#__doc__`'s validate-census
+# call-site citation (plan 22-05, closing 999.31 item 1), no longer
+# exists: plan 22-10 (CR-03) found the citation stale by 43 lines against
+# the live file and replaced it in the docstring itself with a rot-proof
+# symbol anchor, leaving no digit literal for this ledger to pin.
 #
 # Populated via `--emit-deferred-ledger` (below), never hand-typed -- hand
 # transcription of exactly this shape is the defect this plan exists to
@@ -1950,7 +1954,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/gates/SCAN-GUARD.md', '(plan 15-06 split thirty-one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'Criteria 4 and 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'Criterion 4 or 6'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', "arms, omitting Rubric-2's two."): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'branches to fifty-eight'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'four branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'four legs'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -1963,7 +1966,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/gates/SCAN-GUARD.md', 'plan 15-09 added one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'plan 15-12 added six'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'row claimed, "one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('docs/gates/SCAN-GUARD.md', 'row named only five'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'surface in one'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'two branches),'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('docs/gates/SCAN-GUARD.md', 'two branches);'): ('999.40', 1, 'Pinned mechanically from the live literal scan under 999.40 (docs/gates/*.md narrative pages) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -2006,7 +2008,6 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6,'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'Criterion 4 or 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'check (`~line 3505`)'): ('999.41', 1, "NOT-A-COUNT: '~line 3505' is a source-line citation pointing at the validate-census check's call site (scripts/check-selfaudit-scan.py:3505 as of 2026-09-08), from the multi-literal census re-derivation this plan's docstring paragraph records for 999.31 item 1 -- the adjacency heuristic attaches the digit to the word 'check' as though it counted something, but it names a line number, not a population."),
     ('scripts/check-selfaudit-scan.py#__doc__', 'fixture actually contains, 7'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'four assertions'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'literal via the `-1`'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -2080,7 +2081,16 @@ def _deferred_ledger_keys_digest(
 # close CR-01/WR-02 introduced 2 newly hand-adjudicated 999.44 entries
 # (`'gate and the five')`,'` and `16 rows`), each with its own written
 # reason recorded in this same commit -- deliberate growth, not headroom.
-_DEFERRED_LEDGER_MAX: int = 184
+# Lowered 184 -> 183 by plan 22-10 Task 1 (CR-03): removed the one 999.41
+# entry pinning the stale, dated validate-census call-site citation after
+# replacing it with a rot-proof symbol anchor in the docstring itself; no
+# replacement entry was needed because the rewrite introduced no new digit.
+# Lowered 183 -> 181 by plan 22-10 Task 2: rewriting docs/gates/SCAN-GUARD.md's
+# coverage-claim narrative to state the re-derived multi-literal and
+# not-found-arm censuses removed 2 stale 999.40 entries whose prose no
+# longer exists; no replacement entry was needed because the rewrite
+# introduced no new digit literal.
+_DEFERRED_LEDGER_MAX: int = 181
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -2102,7 +2112,7 @@ _DEFERRED_LEDGER_MAX: int = 184
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:f71e8dc15aa3601c5df841f80420cc50e7ab4f34e4678f8792d56b33e10609b1"
+    "sha256:200b241f2689980316ee4b16adf9f363d834a518ec102227267cd438a96be94d"
 )
 
 
