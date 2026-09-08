@@ -959,10 +959,10 @@ def hook_roster_problems(
 
 
 class HookRosterClauses(NamedTuple):
-    """The three payload clauses `_hook_roster_arm_clauses` extracts from a
+    """The payload clauses `_hook_roster_arm_clauses` extracts from a
     `hook_roster_problems()` findings list — named fields rather than a
-    widened positional tuple, so the three call sites read as what they
-    assert and a future field cannot be silently mis-positioned."""
+    widened positional tuple, so every call site reads as what it asserts
+    and a future field cannot be silently mis-positioned."""
 
     missing: str
     extra: str
