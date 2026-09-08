@@ -208,21 +208,52 @@ rubber-stamped one; it can only prove the set is not drifting silently
 underneath an unchanged pin.
 
 **The roster-arm shape census.** A separate, permanent self-test control —
-distinct from the literal-scan taxonomy above — proves that every `.py`
-file directly under `scripts/` asserts a roster-mismatch finding against an
-extracted clause, never against a whole message. The
-`roster_arm_census_population` field in the Facts fence above is the live,
-glob-derived population size; it is not restated by hand here. Disclosed
-bound, in the same measured voice this page uses elsewhere: this is a
-check of source SHAPE within a single directory — it does not reach `.py`
-files outside `scripts/`, and it cannot tell whether a roster arm is
-semantically correct, only whether it asserts against an extracted clause
-rather than a whole message. Its population was previously derived from
-the gate registry's own `ENTRIES`, which made `scripts/_gate_registry.py`
-— the module that DEFINES those entries — structurally unable to ever
-appear in its own census; that gap is closed by widening the population to
-a live directory glob, recorded during this phase's round-two
-verification.
+distinct from the literal-scan taxonomy above — scans for an enumerated,
+NAMED set of defective spellings: `roster-arm-synthetic-id-membership`,
+`roster-arm-bare-clause-marker`, and `roster-arm-value-bearing-clause-marker`.
+This is a spelling-level scan for named spellings, **not a guarantee about
+assertion SHAPE in general** — a whole-message assertion written in any
+spelling outside this named set passes the scan clean. The
+`roster_arm_census_population` and `roster_arm_census_shapes` fields in the
+Facts fence above are the live, derived population size and shape-roster
+size; neither is restated by hand here.
+
+The routes this scan cannot reach are named too, rather than left an
+unbounded admission: `roster-arm-unreached-payload-substring` (a
+whole-message assertion against `problems[0]`, or any other joined
+finding — its live population size is published, read-only and gating
+nothing, as `roster_arm_payload_assert_sites` in the Facts fence above),
+`roster-arm-unreached-other-spellings` (any other way of writing a
+whole-message membership test; the spelling set named above is closed),
+`roster-arm-unreached-outside-scripts` (`.py` files not directly under
+`scripts/`), and `roster-arm-unreached-semantic-correctness` (whether a
+roster arm is semantically right, which no source-shape scan can see).
+`roster_arm_census_unreached` in the Facts fence above is the live,
+derived size of this unreached-route roster.
+
+**This paragraph previously stated an unscoped universal** about
+assertion SHAPE, and live counterexamples inside the census's own scanned
+population — confirmed live during this phase's round-three verification
+— falsified it. The correction above is a spelling-level scan over a
+named, enumerated set, never a claim about assertion shape in general.
+
+**The join itself is disclosed, not assumed.** Every shape id and route
+id named above is held to the live `_ROSTER_ARM_SHAPES` /
+`_ROSTER_ARM_UNREACHED` rosters by a registered self-test control
+(`confsurface-census-narrative-joined`) asserting SET EQUALITY in both
+directions — a shape added in code and not named here is a finding, and
+an id named here that does not exist in code is a finding too — and the
+superseded sentence above is pinned so it cannot return to this page or
+to the census docstrings it also lived on. This is an equality join plus
+a spelling-level pin on a single superseded sentence; it does not prove
+this page's narrative is honest in general, only that these named ids and
+that superseded sentence stay in sync with the live code.
+
+Its population was previously derived from the gate registry's own
+`ENTRIES`, which made `scripts/_gate_registry.py` — the module that
+DEFINES those entries — structurally unable to ever appear in its own
+census; that gap is closed by widening the population to a live directory
+glob, recorded during this phase's round-two verification.
 
 Full item counts, reasons and the per-item closing move for every
 hand-remediated item under plan 21-10's original ~15-item/6-file budget

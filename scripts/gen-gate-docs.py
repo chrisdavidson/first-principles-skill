@@ -1409,6 +1409,124 @@ def version01_narrative_problems(
 
 
 # ---------------------------------------------------------------------------
+# Plan 21-25 (round 4 of CR-01's recurrence): the roster-arm census's own
+# generated narrative on docs/gates/CONF-SURFACE.md, joined to the live
+# `_ROSTER_ARM_SHAPES` / `_ROSTER_ARM_UNREACHED` rosters by set EQUALITY in
+# both directions, plus a locked over-claim pin so the superseded universal
+# cannot return to either surface it lived on (the page, and the two
+# corrected docstring twins Task 1 of this plan closed).
+# ---------------------------------------------------------------------------
+
+_BACKTICK_ROSTER_ARM_ID_RE = re.compile(r"`(roster-arm-[a-z0-9-]+)`")
+
+# Four superseded over-claim fragments, whitespace-normalized at match time
+# so a hard-wrapped occurrence cannot slip the pin (the exact blind spot a
+# single-line grep has against these fragments — see this plan's own
+# before-edit demonstration). The first two lived on
+# docs/gates/CONF-SURFACE.md's hand-written narrative; the last two lived
+# on the two `_control_roster_arm_shape_census`/
+# `roster_arm_shape_census_problems` docstring twins Task 1 corrected. A
+# pin seeded only from the page's wording would never fire on a docstring
+# regression — the hole this four-entry roster closes.
+_CENSUS_OVERCLAIM_PHRASES: tuple[str, ...] = (
+    "proves that every `.py` file directly under `scripts/` asserts a "
+    "roster-mismatch finding against an extracted clause, never against a "
+    "whole message",
+    "never against a whole message",
+    "carries none of the defective roster-arm shapes",
+    "the two defective roster-arm shapes",
+)
+
+
+def confsurface_census_narrative_problems(
+    page_text: str | None = None,
+    shape_ids: frozenset[str] | None = None,
+    route_ids: frozenset[str] | None = None,
+) -> list[str]:
+    """Join `docs/gates/CONF-SURFACE.md`'s hand-written roster-arm-census
+    narrative to the live `_ROSTER_ARM_SHAPES` / `_ROSTER_ARM_UNREACHED`
+    rosters by SET EQUALITY, both directions: a shape or route id named on
+    the page that does not exist in code is a finding, and a live id not
+    named on the page is a finding too (the equality-never-subset
+    discipline a subset test cannot see its own narrowing). An empty
+    extracted set is itself a finding — the join must have something to
+    join. Also rejects, on the isolated page text AND on the two corrected
+    census docstrings, any occurrence of a phrase in the locked
+    `_CENSUS_OVERCLAIM_PHRASES` roster — the over-claim arm this round
+    exists to add, since narrowing the claim once does not prove a wider
+    claim cannot return.
+
+    `page_text` defaults to the real page; `shape_ids`/`route_ids` default
+    to the live rosters' ids. A synthetic page text drives the vacuity and
+    equality-floor control arms without touching disk.
+
+    Registered `--self-test` only, matching `version01_narrative_problems`'
+    verified live placement — NOT wired into `cmd_check()`. This is a
+    property of hand-written prose against live code, not of
+    generated-output drift, and `--self-test` already runs in the battery,
+    in CI (as `gen-gate-docs (CONF-SURFACE)`), and in both pre-commit
+    hooks — a control that fails here still blocks the commit, the push
+    and the battery. What this scoping genuinely excludes: a bare
+    `--check` invocation on its own (nothing in this repo's gate set does
+    that in isolation) would not re-evaluate this join.
+    """
+    if page_text is None:
+        page_text = (REPO_ROOT / "docs/gates/CONF-SURFACE.md").read_text(encoding="utf-8")
+    if shape_ids is None:
+        shape_ids = frozenset(shape.shape_id for shape in _ROSTER_ARM_SHAPES)
+    if route_ids is None:
+        route_ids = frozenset(route.route_id for route in _ROSTER_ARM_UNREACHED)
+    live_ids = shape_ids | route_ids
+
+    lines = page_text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_text = "\n".join(line for line, is_in in zip(lines, inside) if not is_in)
+    collapsed_page = re.sub(r"\s+", " ", outside_text)
+
+    problems: list[str] = []
+
+    tokens = set(_BACKTICK_ROSTER_ARM_ID_RE.findall(outside_text))
+    if not tokens:
+        problems.append(
+            "confsurface-census-narrative-joined: no backticked roster-arm-* "
+            "token found in docs/gates/CONF-SURFACE.md's narrative"
+        )
+    else:
+        for missing_id in sorted(live_ids - tokens):
+            problems.append(
+                f"confsurface-census-narrative-joined: live id {missing_id!r} not "
+                "cited on docs/gates/CONF-SURFACE.md's narrative"
+            )
+        for fabricated_id in sorted(tokens - live_ids):
+            problems.append(
+                f"confsurface-census-narrative-joined: cited id {fabricated_id!r} "
+                "does not exist in the live _ROSTER_ARM_SHAPES / "
+                "_ROSTER_ARM_UNREACHED rosters"
+            )
+
+    for phrase in _CENSUS_OVERCLAIM_PHRASES:
+        normalised_phrase = re.sub(r"\s+", " ", phrase)
+        if normalised_phrase in collapsed_page:
+            problems.append(
+                f"confsurface-census-narrative-joined: over-claim phrase "
+                f"{normalised_phrase!r} found on docs/gates/CONF-SURFACE.md's "
+                "narrative"
+            )
+
+    for fn in (_control_roster_arm_shape_census, roster_arm_shape_census_problems):
+        collapsed_doc = re.sub(r"\s+", " ", fn.__doc__ or "")
+        for phrase in _CENSUS_OVERCLAIM_PHRASES:
+            normalised_phrase = re.sub(r"\s+", " ", phrase)
+            if normalised_phrase in collapsed_doc:
+                problems.append(
+                    f"confsurface-census-narrative-joined: over-claim phrase "
+                    f"{normalised_phrase!r} found in {fn.__name__}'s docstring"
+                )
+
+    return problems
+
+
+# ---------------------------------------------------------------------------
 # CONF-13: the standing hand-maintained count-literal scanner.
 #
 # 21-CONF13-BASELINE.md measured the real target (79 scanner-target hits, 15
@@ -3569,6 +3687,67 @@ def _control_version01_narrative_control_ids_live() -> None:
     assert real_problems == [], real_problems
 
 
+def _control_confsurface_census_narrative_joined() -> None:
+    """Lettered legs (a)-(d): (a) the real page and the real rosters
+    produce `[]`; (b) synthetic page text containing the byte-frozen
+    superseded sentence — hard-wrapped exactly as it sat on disk, then
+    reflowed onto a single line — produces a finding naming the
+    over-claim, proving the whitespace-normalization leg is not
+    line-scoped; (c) synthetic page text omitting a live id, and synthetic
+    text citing a fabricated `roster-arm-` id, each produce a finding
+    naming that id — both directions of the equality floor; (d) synthetic
+    page text with no `roster-arm-` token at all produces the vacuity
+    finding."""
+    # (a)
+    assert confsurface_census_narrative_problems() == [], confsurface_census_narrative_problems()
+
+    live_ids = sorted(shape.shape_id for shape in _ROSTER_ARM_SHAPES) + sorted(
+        route.route_id for route in _ROSTER_ARM_UNREACHED
+    )
+    ids_line = " ".join(f"`{i}`" for i in live_ids)
+
+    # (b) over-claim rejected — exact on-disk wrap (5 lines, break points
+    # matching the sentence's real position on docs/gates/CONF-SURFACE.md
+    # before this plan's edit), then the identical sentence on one line.
+    wrapped_overclaim_page = (
+        "## Disclosed bounds\n\n"
+        f"{ids_line}\n\n"
+        "**The roster-arm shape census.** A separate, permanent self-test control —\n"
+        "distinct from the literal-scan taxonomy above — proves that every `.py`\n"
+        "file directly under `scripts/` asserts a roster-mismatch finding against an\n"
+        "extracted clause, never against a whole message. The\n"
+        "`roster_arm_census_population` field in the Facts fence above is the live,\n"
+    )
+    wrapped_problems = confsurface_census_narrative_problems(page_text=wrapped_overclaim_page)
+    assert any("never against a whole message" in p for p in wrapped_problems), wrapped_problems
+
+    oneline_overclaim_page = (
+        "## Disclosed bounds\n\n"
+        f"{ids_line}\n\n"
+        "A separate, permanent self-test control proves that every `.py` file "
+        "directly under `scripts/` asserts a roster-mismatch finding against an "
+        "extracted clause, never against a whole message.\n"
+    )
+    oneline_problems = confsurface_census_narrative_problems(page_text=oneline_overclaim_page)
+    assert any("never against a whole message" in p for p in oneline_problems), oneline_problems
+
+    # (c) equality floor, both directions
+    missing_one_page = "## Disclosed bounds\n\n" + " ".join(f"`{i}`" for i in live_ids[1:]) + "\n"
+    missing_problems = confsurface_census_narrative_problems(page_text=missing_one_page)
+    assert any(live_ids[0] in p for p in missing_problems), missing_problems
+
+    fabricated_page = f"## Disclosed bounds\n\n{ids_line} `roster-arm-something-invented`\n"
+    fabricated_problems = confsurface_census_narrative_problems(page_text=fabricated_page)
+    assert any("roster-arm-something-invented" in p for p in fabricated_problems), fabricated_problems
+
+    # (d) vacuity
+    vacuity_problems = confsurface_census_narrative_problems(
+        page_text="## Disclosed bounds\n\nNo roster ids cited here.\n"
+    )
+    assert len(vacuity_problems) == 1, vacuity_problems
+    assert "no backticked" in vacuity_problems[0].lower(), vacuity_problems
+
+
 def _control_page_check_dispatch_wired() -> None:
     """Live leg: `generate_all()` always computes len(ENTRIES) + 3 targets
     (every docs/gates/*.md page plus the three surface files — CLAUDE.md,
@@ -4312,6 +4491,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
     ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
+    ("confsurface-census-narrative-joined", _control_confsurface_census_narrative_joined),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
     ("scan-hit-outside-fence-fires", _control_scan_hit_outside_fence_fires),
     ("scan-hit-inside-fence-passes", _control_scan_hit_inside_fence_passes),
@@ -4409,6 +4589,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
     "version01-narrative-control-ids-live",
+    "confsurface-census-narrative-joined",
     "check-reports-full-drift-count",
     "scan-hit-outside-fence-fires",
     "scan-hit-inside-fence-passes",
