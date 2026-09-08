@@ -2244,11 +2244,25 @@ LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
     "docs/COMPONENT-DIAGRAM.md",  # architecture-diagram prose citing gate counts
     "docs/DATA-FLOW.md",          # data-flow prose citing gate counts
     "docs/README.md",             # changelog-style narrative, historically the noisiest doc
-    "docs/gates/*.md",            # the 28 generated detail pages (thin + narrative)
+    "docs/gates/*.md",            # every generated detail page (thin + narrative), one
+                                   # per _gate_registry.ENTRIES row -- see
+                                   # literal_scan_read_files for the live count, never
+                                   # re-typed here (a stale "28" sat here until
+                                   # 21-VERIFICATION.md round 3 found it against a live
+                                   # 31; this comment is a `#` comment, invisible to
+                                   # CONF-13's own ast-based docstring scanner by
+                                   # construction, the same disclosed py-docstrings-only
+                                   # blind spot demonstrated a second time)
 )
 
 # The full D-21-E scanned surface set: the Markdown globs above, plus every
-# script-backed registry entry's module docstring, derived (not re-typed).
+# `.py` file directly under `scripts/`'s own module docstring, derived by a
+# live glob (`_py_docstring_scan_scripts()`), never re-typed. Widened from
+# the narrower `--describe`-backed registry entries' module docstrings by
+# plan 21-23, closing the CONF-13 twin of CR-01: deriving from that
+# narrower set made `scripts/_gate_registry.py` -- the module that DEFINES
+# those entries -- structurally unable to ever be one of its own scanned
+# surfaces.
 LITERAL_SCAN_SURFACES: tuple[str, ...] = LITERAL_SCAN_MD_GLOBS + _py_docstring_scan_scripts()
 
 
@@ -3100,6 +3114,13 @@ def _control_check_dispatch_wired() -> None:
 
 
 def _control_nondeterminism_exit_2() -> None:
+    """Redirects `cmd_check()`'s own stdout/stderr writes over `io.StringIO`
+    buffers -- the identical idiom `_control_check_dispatch_wired` already
+    uses over the same call -- so this control's own PASS does not print
+    the diagnostic it is testing for. Also asserts the captured stderr
+    actually contains the `NON-DETERMINISTIC` diagnostic, proving the
+    return code and the diagnostic travel together rather than only that
+    the return code is 2."""
     original = _this_module.generate_all
     calls = {"n": 0}
 
@@ -3107,10 +3128,17 @@ def _control_nondeterminism_exit_2() -> None:
         calls["n"] += 1
         return {Path("/tmp/gen-gate-docs-fixture-target.md"): f"call-{calls['n']}"}
 
+    stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
     try:
         _this_module.generate_all = _flaky
-        rc = cmd_check()
+        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+            rc = cmd_check()
         assert rc == 2, f"cmd_check() returned {rc}, expected 2 for a non-deterministic generator"
+        stderr_text = stderr_buf.getvalue()
+        assert "NON-DETERMINISTIC" in stderr_text, (
+            "cmd_check() returned 2 without writing the NON-DETERMINISTIC "
+            f"diagnostic: {stderr_text!r}"
+        )
     finally:
         _this_module.generate_all = original
 
