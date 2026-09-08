@@ -11,7 +11,7 @@
 ## How to run
 
 ```sh
-python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && <pytest-capable interpreter> -m pytest scripts/check-links_anchors_test.py -q
+python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && .venv/bin/python3 -m pytest scripts/check-links_anchors_test.py -q  # or any pytest-capable interpreter
 ```
 
 CI job: `check-links`

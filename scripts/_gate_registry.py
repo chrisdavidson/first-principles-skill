@@ -180,7 +180,8 @@ ENTRIES: tuple[GateEntry, ...] = (
         run_command=(
             "python3 scripts/check-links.py --self-test && "
             "python3 scripts/check-links.py && "
-            "<pytest-capable interpreter> -m pytest scripts/check-links_anchors_test.py -q"
+            ".venv/bin/python3 -m pytest scripts/check-links_anchors_test.py -q  "
+            "# or any pytest-capable interpreter"
         ),
         summary=(
             "Relative Markdown link validity across the plugin, `shared/`, and `docs/` "
@@ -583,9 +584,8 @@ ENTRIES: tuple[GateEntry, ...] = (
         ci_job=None,
         script=None,
         run_command=(
-            "python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen "
-            "counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 "
-            "MIN_HEADER_HITS=2)"
+            "bash scripts/check-firewall-battery.sh  "
+            "# INVARIANT-CHECK runs inline; no standalone command"
         ),
         summary=(
             "Anti-masking constants still hold in `scripts/_battery_core.py`: "
@@ -611,7 +611,10 @@ ENTRIES: tuple[GateEntry, ...] = (
         mechanism="battery only (inline)",
         ci_job=None,
         script=None,
-        run_command='git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"',
+        run_command=(
+            "bash scripts/check-firewall-battery.sh  "
+            "# FROZEN-EVIDENCE runs inline; no standalone command"
+        ),
         summary=(
             "Frozen baselines and captures are unmodified relative to HEAD, plus an "
             "untracked-files sweep over the same paths. `_FROZEN_PATHS` grows over "

@@ -10,7 +10,7 @@ This gate carries no `--describe`-derived facts (no script backs it).
 ## How to run
 
 ```sh
-git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"
+bash scripts/check-firewall-battery.sh  # FROZEN-EVIDENCE runs inline; no standalone command
 ```
 
 CI job: — (not a CI job)
