@@ -14,7 +14,7 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 |------|------|-------------|
 | VAL-01 | [`docs/gates/VAL-01.md`](gates/VAL-01.md) | `claude plugin validate ./first-principles` |
 | VAL-02 | [`docs/gates/VAL-02.md`](gates/VAL-02.md) | `markdownlint-cli2 --config .markdownlint.jsonc 'first-principles/**/*.md'` |
-| VAL-03 | [`docs/gates/VAL-03.md`](gates/VAL-03.md) | `python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && <pytest-capable interpreter> -m pytest scripts/check-links_anchors_test.py -q` |
+| VAL-03 | [`docs/gates/VAL-03.md`](gates/VAL-03.md) | `python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && .venv/bin/python3 -m pytest scripts/check-links_anchors_test.py -q  # or any pytest-capable interpreter` |
 | VAL-04 / GATE-02 | [`docs/gates/VAL-04.md`](gates/VAL-04.md) | `python3 scripts/check-trigger-collisions.py --self-test && python3 scripts/check-trigger-collisions.py` |
 | VAL-05 | [`docs/gates/VAL-05.md`](gates/VAL-05.md) | `python3 scripts/check-description-budget.py` |
 | VERSION-01 | [`docs/gates/VERSION-01.md`](gates/VERSION-01.md) | `python3 scripts/check-version-stamps.py --self-test && python3 scripts/check-version-stamps.py` |
@@ -35,8 +35,8 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | SCAN-GUARD | [`docs/gates/SCAN-GUARD.md`](gates/SCAN-GUARD.md) | `python3 scripts/check-selfaudit-scan.py --self-test && python3 scripts/check-selfaudit-scan.py` |
 | HC-BOUND | [`docs/gates/HC-BOUND.md`](gates/HC-BOUND.md) | `python3 scripts/check-high-confidence-bound.py --self-test` |
 | CONF-GATE | [`docs/gates/CONF-GATE.md`](gates/CONF-GATE.md) | `python3 scripts/check-conf-gate.py --self-test && python3 scripts/check-conf-gate.py` |
-| INVARIANT-CHECK | [`docs/gates/INVARIANT-CHECK.md`](gates/INVARIANT-CHECK.md) | `python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2)` |
-| FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}"` |
+| INVARIANT-CHECK | [`docs/gates/INVARIANT-CHECK.md`](gates/INVARIANT-CHECK.md) | `bash scripts/check-firewall-battery.sh  # INVARIANT-CHECK runs inline; no standalone command` |
+| FROZEN-EVIDENCE | [`docs/gates/FROZEN-EVIDENCE.md`](gates/FROZEN-EVIDENCE.md) | `bash scripts/check-firewall-battery.sh  # FROZEN-EVIDENCE runs inline; no standalone command` |
 | — | [`docs/gates/PRECOMMIT-sync-drift-gate.md`](gates/PRECOMMIT-sync-drift-gate.md) | `python3 scripts/sync-content.py --check` |
 | — | [`docs/gates/PRECOMMIT-conformance-generator-self-test.md`](gates/PRECOMMIT-conformance-generator-self-test.md) | `python3 scripts/report-conformance.py --self-test` |
 | — | [`docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`](gates/PRECOMMIT-conformance-baseline-drift-gate.md) | `python3 scripts/report-conformance.py --check` |

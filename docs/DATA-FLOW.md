@@ -55,7 +55,10 @@ Every `git commit` fires the pre-commit gates locally before the commit lands (s
 generated population-arithmetic sentence for the current count):
 
 - **Sync-drift gate** — runs `scripts/sync-content.py --check` and blocks if `shared/` and the generated tree have diverged.
+- **Conformance generator self-test** — runs `scripts/report-conformance.py --self-test`, running the generator's own falsifiability controls before its output is compared to anything (the WR-05 ordering rule: a generator whose own controls are failing makes the comparison meaningless).
 - **Conformance-baseline drift gate** — runs `scripts/report-conformance.py --check` and blocks if `docs/conformance-baseline.md` or `docs/data/conformance.json` no longer match a fresh run. It fails on staleness of the committed baseline, never on a conformance count being too high, and is deliberately absent from the battery and from CI (D-06).
+- **Claim-surface generator self-test** — runs `scripts/gen-gate-docs.py --self-test`, the same WR-05 ordering discipline as the conformance generator self-test, ahead of the claim-surface drift gate's comparison.
+- **Claim-surface drift gate** — runs `scripts/gen-gate-docs.py --check` (CONF-SURFACE) and blocks if `CLAUDE.md`'s, `docs/ARCHITECTURE.md`'s or `docs/TESTING.md`'s generated regions, or any `docs/gates/<ID>.md` page, no longer match a fresh `--write` run, or if CONF-13's standing literal scanner finds a non-exempt hand-maintained count literal.
 
 A body-budget gate used to run alongside it, blocking a commit that grew the agent body
 (`first-principles/agents/first-principles.md`) past 644 lines. It was retired under

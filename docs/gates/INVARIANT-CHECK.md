@@ -10,7 +10,7 @@ This gate carries no `--describe`-derived facts (no script backs it).
 ## How to run
 
 ```sh
-python3 - <<'PYEOF' # inline: asserts _battery_core.py's frozen counts (pre-mortem=9 fishbone=7 inversion=13 trade-off=10 MIN_HEADER_HITS=2)
+bash scripts/check-firewall-battery.sh  # INVARIANT-CHECK runs inline; no standalone command
 ```
 
 CI job: — (not a CI job)
