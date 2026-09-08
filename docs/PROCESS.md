@@ -84,11 +84,21 @@ scanner can dispute in their place. That is the argument for the depth rule, in 
 measured terms, not an abstraction borrowed from elsewhere.
 
 The count is 17, not the 16 the origin review stated, and the correction is itself the discipline
-being described: the review's own table collapsed two textually distinct edits — "about five live
-entries" was hedged twice in the same paragraph — into a single row, and omitted a further
-deletion ("while 16 gates stayed green" hedged to "while the whole battery stayed green"). Getting
-a count of deleted falsifiable claims wrong by under-counting is the same failure mode one level
-removed. Plan 22-04 restores all 17 rows verbatim.
+being described: three adjustments, in both directions. One of the review's 16 rows —
+`docs/gates/TRACE-03.md`'s "across several lines" — is not a `docs/README.md` row and is out of
+this paragraph's stated scope; it remains un-restored, and its stated "before" text does not
+appear anywhere in git history, so this section does not present CR-05 as fully closed. The
+review's own table also collapsed two textually distinct `docs/README.md` edits — "about five
+live entries" was hedged twice in the same paragraph — into a single row, and omitted a further
+deletion ("while 16 gates stayed green" hedged to "while the whole battery stayed green"). 16 − 1
++ 1 + 1 = 17. Getting a count of deleted falsifiable claims wrong by under-counting is the same
+failure mode one level removed.
+
+Plan 22-04 restores 16 of the 17 rows verbatim. Row 17 — `docs/README.md`'s TESTING.md nav cell —
+is deliberately NOT a verbatim restore: the pre-hedge text stated a pre-commit gate count that
+CONF-SURFACE (plan 21-11) made false, so the live count was written instead of the original. That
+single judgement call is recorded per-entry in `scripts/gen-gate-docs.py`'s ledger under the key
+`('docs/README.md', 'gate and the five')`, adjudicated NOT-A-RESTORE.
 
 ## 2. Product and apparatus
 
