@@ -179,6 +179,16 @@ def _expected_harvest_scripts() -> frozenset[str]:
 # the registry-derived population made `scripts/_gate_registry.py` --
 # the module that DEFINES the registry -- structurally unable to be one
 # of its own members.
+#
+# Plan 21-25: the census is a SPELLING-LEVEL scan over a named, enumerated
+# roster (`_ROSTER_ARM_SHAPES`), not a proof about assertion SHAPE in
+# general — `21-VERIFICATION.md` round 3's CR-01 finding. Three shapes are
+# now registered, including the value-bearing clause-marker spelling that
+# round demonstrated live in `scripts/check-conf-gate.py` and
+# `scripts/report-conformance.py` (both remediated by plan 21-24 before
+# this widening landed — see the precondition check at the top of this
+# plan's Task 1). The routes the scan cannot reach are named too, in
+# `_ROSTER_ARM_UNREACHED`.
 # ---------------------------------------------------------------------------
 
 # Wave-15 shape: a synthetic fixture id (always literally the word
@@ -194,15 +204,118 @@ _ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE = re.compile(
     r'"synthetic-[a-z]"\s+not in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
 )
 
-# check-version-stamps.py's pre-21-17 shape: testing whether the clause
+# check-version-stamps.py's pre-21-17 shape: testing whether the BARE clause
 # marker text itself (the word missing followed by an equals sign, or the
-# word extra followed by an equals sign) appears anywhere in the joined
-# message, via `in` rather than `not in` — true of every roster-mismatch
-# message regardless of which clause anything landed in. Always defective;
-# there is no fixed form of this exact shape (the fix is the clause split,
-# not a renamed identifier). Same self-match note as above applies.
+# word extra followed by an equals sign, with NOTHING ELSE inside the quoted
+# literal) appears anywhere in the joined message, via `in` rather than
+# `not in` — true of every roster-mismatch message regardless of which
+# clause anything landed in. Always defective; there is no fixed form of
+# this exact shape (the fix is the clause split, not a renamed identifier).
+# Same self-match note as above applies.
 _ROSTER_ARM_CLAUSE_MARKER_RE = re.compile(
     r'"(?:missing=|extra=)"\s+in\s+([A-Za-z_][A-Za-z0-9_]*)\b'
+)
+
+# `21-VERIFICATION.md` round 3's demonstrated spelling: the same clause
+# marker, but carrying its VALUE inside the quoted literal rather than
+# standing bare (e.g. the marker followed by a bracketed list before the
+# closing quote). A one-or-more quantifier — not zero-or-more — keeps this
+# shape disjoint from the bare shape above: the bare shape's quoted literal
+# closes immediately after the marker, this one's closes only after at
+# least one further character, so no single quoted literal can satisfy both
+# patterns. Split across two adjacent string literals, per this file's own
+# self-match convention: this file is itself a population member the live
+# census scans, and a contiguous marker-then-`in`-then-identifier sequence
+# on one physical on-disk line here would self-match the very pattern it
+# defines.
+_ROSTER_ARM_VALUE_BEARING_CLAUSE_MARKER_RE = re.compile(
+    r'"(?:missing=|extra=)[^"]+"'
+    r"\s+in\s+([A-Za-z_][A-Za-z0-9_]*)\b"
+)
+
+
+class RosterArmShape(NamedTuple):
+    """One named, enumerated defective spelling `roster_arm_shape_census_
+    problems` scans for — named fields, not a positional tuple, so a
+    finding can report which spelling actually matched. `shape_id` is the
+    backticked identifier `docs/gates/CONF-SURFACE.md`'s narrative and
+    `confsurface_census_narrative_problems` join against; `pattern` is the
+    compiled regex; `clause_identifier_exempt` is True only for the
+    synthetic-membership shape, whose captured identifier is exempt from
+    the finding when it already ends in `_clause` (the FIXED form);
+    `finding_text` is the prose fragment a finding reports."""
+
+    shape_id: str
+    pattern: re.Pattern[str]
+    clause_identifier_exempt: bool
+    finding_text: str
+
+
+# The single roster the scan loop iterates — adding a shape is a one-line
+# edit here, and every finding names its `shape_id`.
+_ROSTER_ARM_SHAPES: tuple[RosterArmShape, ...] = (
+    RosterArmShape(
+        shape_id="roster-arm-synthetic-id-membership",
+        pattern=_ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE,
+        clause_identifier_exempt=True,
+        finding_text="whole-message synthetic-id membership test (wave-15 shape)",
+    ),
+    RosterArmShape(
+        shape_id="roster-arm-bare-clause-marker",
+        pattern=_ROSTER_ARM_CLAUSE_MARKER_RE,
+        clause_identifier_exempt=False,
+        finding_text="bare clause-marker membership test against a whole message",
+    ),
+    RosterArmShape(
+        shape_id="roster-arm-value-bearing-clause-marker",
+        pattern=_ROSTER_ARM_VALUE_BEARING_CLAUSE_MARKER_RE,
+        clause_identifier_exempt=False,
+        finding_text="value-bearing clause-marker membership test against a whole message",
+    ),
+)
+
+
+class RosterArmUnreached(NamedTuple):
+    """One named escape route `_ROSTER_ARM_SHAPES`'s spelling-level scan
+    cannot reach, with the written reason it cannot — so the disclosed
+    bound on `docs/gates/CONF-SURFACE.md` is a named, closed list rather
+    than an unbounded admission."""
+
+    route_id: str
+    reason: str
+
+
+_ROSTER_ARM_UNREACHED: tuple[RosterArmUnreached, ...] = (
+    RosterArmUnreached(
+        route_id="roster-arm-unreached-payload-substring",
+        reason=(
+            "an assertion against `problems[0]` (or any whole finding) where the "
+            "producer emits ONE joined multi-clause message; the census does not "
+            "classify these. The population's live count of `problems[0]`-shaped "
+            "assertions is published as a read-only measurement, "
+            "`roster_arm_payload_assert_sites`, rather than left unquantified."
+        ),
+    ),
+    RosterArmUnreached(
+        route_id="roster-arm-unreached-other-spellings",
+        reason=(
+            "any other way of writing a whole-message membership test, e.g. "
+            "against a joined expression rather than a bare identifier; this is "
+            "a spelling scan and the spelling set is closed at the roster's "
+            "three entries."
+        ),
+    ),
+    RosterArmUnreached(
+        route_id="roster-arm-unreached-outside-scripts",
+        reason="`.py` files not directly under `scripts/`.",
+    ),
+    RosterArmUnreached(
+        route_id="roster-arm-unreached-semantic-correctness",
+        reason=(
+            "whether a roster arm is semantically right, which no source-shape "
+            "scan can see."
+        ),
+    ),
 )
 
 
@@ -230,8 +343,13 @@ def _roster_arm_census_sources() -> dict[str, str]:
 def roster_arm_shape_census_problems(
     sources: dict[str, str] | None = None,
 ) -> list[str]:
-    """Scan every population member's source text for the two defective
-    roster-arm shapes above. `sources` lets the vacuity control drive this
+    """Scan every population member's source text for a spelling-level
+    match against any registered `_ROSTER_ARM_SHAPES` entry — a scan for
+    named spellings, NOT a proof about assertion shape in general. The
+    escape routes this scan does not reach are named in
+    `_ROSTER_ARM_UNREACHED`, with the largest of them published as a
+    read-only measurement (`_roster_arm_payload_assert_site_count`) rather
+    than left unquantified. `sources` lets the vacuity control drive this
     function against synthetic text without touching disk (mirrors
     `literal_ledger_ratchet_problems(ledger=...)`'s parameter shape); the
     default `None` reads the real population via
@@ -256,19 +374,43 @@ def roster_arm_shape_census_problems(
     for relpath in sorted(sources):
         lines = sources[relpath].splitlines()
         for lineno, line in enumerate(lines, start=1):
-            for match in _ROSTER_ARM_SYNTHETIC_MEMBERSHIP_RE.finditer(line):
-                ident = match.group(1)
-                if not ident.endswith("_clause"):
+            for shape in _ROSTER_ARM_SHAPES:
+                for match in shape.pattern.finditer(line):
+                    if shape.clause_identifier_exempt and match.group(1).endswith("_clause"):
+                        continue
                     problems.append(
-                        f"{relpath}:{lineno}: whole-message synthetic-id "
-                        f"membership test (wave-15 shape): {match.group(0)!r}"
+                        f"{relpath}:{lineno}: {shape.finding_text} "
+                        f"[{shape.shape_id}]: {match.group(0)!r}"
                     )
-            for match in _ROSTER_ARM_CLAUSE_MARKER_RE.finditer(line):
-                problems.append(
-                    f"{relpath}:{lineno}: bare clause-marker membership "
-                    f"test against a whole message: {match.group(0)!r}"
-                )
     return problems
+
+
+# The bare shape `\bin\s+problems\[0\]` — deliberately not one of
+# `_ROSTER_ARM_SHAPES`: it is the largest named unreached route
+# (`roster-arm-unreached-payload-substring`), a READ-ONLY measurement of
+# how many population LINES carry a whole-message `problems[0]` assertion
+# of any spelling, never a finding source itself.
+_ROSTER_ARM_PAYLOAD_ASSERT_RE = re.compile(r"\bin\s+problems\[0\]")
+
+
+def _roster_arm_payload_assert_site_count(sources: dict[str, str] | None = None) -> int:
+    """READ-ONLY measurement of `_ROSTER_ARM_UNREACHED`'s largest named
+    escape route: how many LINES across the population carry the bare
+    `_ROSTER_ARM_PAYLOAD_ASSERT_RE` shape, regardless of what precedes it.
+    Never fed into `roster_arm_shape_census_problems`'s findings list and
+    never turns `--check` red — the exact sense
+    `literal_scan_nonmodule_docstring_hits` already is. `sources` mirrors
+    `roster_arm_shape_census_problems`'s own
+    parameter shape so a falsification arm can drive it against a
+    synthetic population without touching disk."""
+    if sources is None:
+        sources = _roster_arm_census_sources()
+    return sum(
+        1
+        for text in sources.values()
+        for line in text.splitlines()
+        if _ROSTER_ARM_PAYLOAD_ASSERT_RE.search(line)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2206,8 +2348,11 @@ def _nonmodule_docstring_hits(
 # shrink below it demands the pin be lowered in the same commit, the same
 # shape as Task 1's ledger ratchet. Never recompute this pin to make a
 # failing check pass; re-pin it only alongside a real docstring edit in
-# the same commit.
-_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 30
+# the same commit. Lowered 30 -> 29 by plan 21-25 Task 1: rewording
+# `_control_roster_arm_shape_census_vacuity`'s docstring under its own
+# CR-01-recurrence correction removed its one pre-existing hit ("two
+# fixture strings") without adding a replacement.
+_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 29
 
 
 def nonmodule_docstring_selffile_ratchet_problems(
@@ -2652,6 +2797,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "enumerated-per-hit-ledger",
     "ledger-repin-and-key-digest",
     "non-primary-entries-pinned-mechanically",
+    "roster-arm-census-is-spelling-level",
 )
 
 
@@ -2697,6 +2843,10 @@ def describe() -> dict:
         "literal_scan_nonmodule_docstring_hits": len(nonmodule_hits),
         "literal_scan_nonmodule_docstring_surfaces": len(nonmodule_surfaces),
         "roster_arm_census_population": len(_roster_arm_census_sources()),
+        "roster_arm_census_shapes": len(_ROSTER_ARM_SHAPES),
+        "roster_arm_census_unreached": len(_ROSTER_ARM_UNREACHED),
+        "roster_arm_payload_assert_sites": _roster_arm_payload_assert_site_count(),
+        "literal_scan_py_population": len(_py_docstring_scan_scripts()),
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -3683,16 +3833,20 @@ def _control_scan_neutralization_arms() -> None:
 
 def _control_roster_arm_shape_census() -> None:
     """GAP A item 3 (plan 21-19), reach corrected under CR-01 (plan
-    21-22): every `.py` file directly under `scripts/` carries none of the
-    defective roster-arm shapes, and the census actually read every
-    population member — an anti-vacuity floor independent of the scan
-    logic itself, since a census silently reading nothing would otherwise
-    also report zero problems.
+    21-22), scan narrowed to a named spelling roster under CR-01's
+    recurrence (plan 21-25): no member of the live population matches any
+    spelling registered in `_ROSTER_ARM_SHAPES`, the population equals the
+    live glob of every `.py` file directly under `scripts/`, and the
+    census actually read every population member — an anti-vacuity floor
+    independent of the scan logic itself, since a census silently reading
+    nothing would otherwise also report zero problems.
 
-    DISCLOSED BOUND: this is a check of source SHAPE within one directory.
-    It does not reach `.py` files outside `scripts/`, and it cannot tell
-    whether a roster arm is semantically correct — only whether it asserts
-    against an extracted clause rather than a whole message."""
+    DISCLOSED BOUND: this is a spelling-level scan over an enumerated
+    shape roster, within one directory. The routes it does not reach are
+    named in `_ROSTER_ARM_UNREACHED` — it does not reach `.py` files
+    outside `scripts/`, it cannot tell whether a roster arm is
+    semantically correct, and a whole-message assertion written in any
+    spelling outside the roster passes this scan clean."""
     problems = roster_arm_shape_census_problems()
     assert problems == [], problems
     sources = _roster_arm_census_sources()
@@ -3716,16 +3870,18 @@ def _control_roster_arm_shape_census() -> None:
 
 def _control_roster_arm_shape_census_vacuity() -> None:
     """Anti-vacuity by construction: drives
-    `roster_arm_shape_census_problems` against three synthetic sources —
-    the wave-15 shape, the check-version-stamps.py pre-21-17 shape, and the
-    FIXED shape — and asserts exactly the first two fire, by relpath, and
-    the third does not. Stops the census from passing because its patterns
+    `roster_arm_shape_census_problems` against synthetic sources covering
+    the wave-15 shape, the check-version-stamps.py pre-21-17 shape, the
+    `21-VERIFICATION.md` round-3 value-bearing shape (plan 21-25), and
+    each defective shape's own clause-split FIXED form — asserting the
+    defective fixtures fire, by relpath and shape id, and the fixed
+    fixtures do not. Stops the census from passing because its patterns
     match nothing.
 
-    The first two fixture strings below are deliberately assembled across
+    The defective fixture strings below are deliberately assembled across
     more than one physical source line: `gen-gate-docs.py` is itself one of
     the population members this census scans (see
-    `roster_arm_census_population` for the live count), so if either
+    `roster_arm_census_population` for the live count), so if any
     defective shape appeared contiguously on a single ON-DISK line of this
     file's own source, the live control above would self-match its own
     fixture data. Splitting the literal across a line boundary defeats
@@ -3741,15 +3897,27 @@ def _control_roster_arm_shape_census_vacuity() -> None:
             '            "extra="'
             ' in p\n'
         ),
+        "scripts/fixture-value-bearing.py": (
+            "    assert \"missing=['c']\""
+            " in problems[0], problems\n"
+        ),
         "scripts/fixture-fixed.py": (
             '    elif "synthetic-b" not in missing_clause:\n'
         ),
+        "scripts/fixture-value-bearing-fixed.py": (
+            "    assert \"'c'\" in extra_clause, extra_clause\n"
+        ),
     }
     problems = roster_arm_shape_census_problems(sources=sources)
-    assert len(problems) == 2, problems
+    assert len(problems) == 3, problems
     assert any("scripts/fixture-wave15.py" in p for p in problems), problems
     assert any("scripts/fixture-version-stamps.py" in p for p in problems), problems
+    assert any(
+        "scripts/fixture-value-bearing.py" in p and "roster-arm-value-bearing-clause-marker" in p
+        for p in problems
+    ), problems
     assert not any("scripts/fixture-fixed.py" in p for p in problems), problems
+    assert not any("scripts/fixture-value-bearing-fixed.py" in p for p in problems), problems
 
 
 def _control_roster_arm_shape_census_population_complete() -> None:
