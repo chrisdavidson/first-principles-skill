@@ -407,6 +407,5 @@ authoritative record first:
 - Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches all 17 or none.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01 and is report-only.
-- **a guard guards the product; a guard is not itself guarded** — a guard's subject is the product; no guard in this repository takes another guard's own correctness as its subject. [docs/PROCESS.md](docs/PROCESS.md) states the full rule. Convention — no gate enforces it.
 
 Each invariant is paired with the gate that enforces it in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) — including the two that are conventions with no gate behind them.
