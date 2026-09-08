@@ -128,3 +128,100 @@ They are stated in this file as literals and attributed by ledger entry (plan 22
 phase's own D-22-A), never by a catch-all exemption. A moving count is never stated as a literal
 at all.
 
+## 3. The rework cap
+
+Two limits, because Phase 21 recorded two distinct failure modes:
+
+1. **Cap = 2 gap-closure ROUNDS.** A round is one verification → plan → execute cycle. A round
+   may contain N plans provided each closes an independently-verified gap.
+2. **Same-class trip** — a finding of a defect class already closed in this phase halts
+   immediately and forces a replan at the root, regardless of round count. Applied retroactively
+   to Phase 21: round 2 would have tripped this same-class rule and halted then.
+
+The measured evidence, from Phase 21: **13 gap-closure plans across 4 rounds against a stated cap
+of 2.** Each round closed the specifically-flagged instance while a structurally identical
+instance of the same class appeared elsewhere. Applying the rule retroactively: round 1 (4 plans,
+3 distinct independently-verified gaps) would be allowed under limit 1; round 2 would trip limit 2
+and halt. The actual outcome was 4 rounds and 13 plans, with the class still recurring at close.
+
+**Deviation from the wording in plans, stated explicitly, not applied silently.** `REQUIREMENTS.md`
+CONF-15 and ROADMAP criterion 4 both state the cap as *"more than 2 gap-closure plans halts the
+phase and forces a replan."* This page changes the unit from **plans** to **rounds**. Reason: a
+per-phase plan *count* cannot distinguish round 1 of a genuine three-gap closure from round 4 of
+point-fixing, and it did not fire at all when round 2 breached it silently — nothing outside the
+exception record itself checked that the record existed. Neither `REQUIREMENTS.md` nor
+`ROADMAP.md` is rewritten by this change; this page is the record.
+
+### 3.1 Recorded exceptions (append-only)
+
+An exception to the cap is taken by explicit developer decision, in writing, in this table, in
+the same diff as the plans it authorises.
+
+**Why the ledger moved here, per the measured cause of the round-2 breach:** `*-CONTEXT.md` files
+are not git-tracked (`*-SUMMARY.md` files are force-tracked; `*-CONTEXT.md` is not), so Phase 21's
+exception record lived where no gate, no CI job and no diff review could see it — which is how
+round 2 breached the cap with no record written at the time. A tracked, public, CONF-13-scanned
+surface makes enforcement ordinary code review: plans landing with no matching ledger row in the
+same diff are visible in the diff.
+
+A mechanical checker over `.planning/` was considered and rejected: `.planning/` is gitignored so
+it can never run in CI, it would guard the process rather than the product, and it would be a new
+guard in the phase that caps guards.
+
+| Phase | Date | Rounds | Plans | Reason |
+|---|---|---|---|---|
+| Phase 21 | 2026-09-07 | round 1 | 21-13..21-16 (4) | Three blocking must-have failures sharing one root cause — a gate reporting GREEN while the claim it publishes is false — with zero gap-closure plans spent before this round. The alternatives were shipping known-wrong published claims or a Phase 21.1 rename that would honour the rule only by resetting its counter. |
+| Phase 21 | 2026-09-07 | rounds 2 and 3 | 21-17..21-23 (7; running total 11) | Round 2's four plans closed three independently-verified blocking gaps, but **round 2 was executed with no exception recorded at the time — a fact discovered by the round-2 verifier, not self-reported.** Round 3 grew from two plans to three when plan-checking found a live twin of the same defect one requirement over. |
+| Phase 21 | 2026-09-08 | round 4 | 21-24, 21-25 (2; running total 13) | The fourth consecutive round in which closing a flagged instance left or produced a new instance of the same class. Two plans, because the remediation had to land and commit before the census was widened to detect it, or every commit in the repo would block mid-execution. |
+
+**Round 1, in full.** `21-VERIFICATION.md` failed 3 of 4 must-haves, all blocking: CONF-13's
+standing scanner could not fail on `CLAUDE.md`, `docs/ARCHITECTURE.md` or `docs/TESTING.md` (a
+whole-surface relpath permit; a live-wrong literal was detected then dropped); CONF-11's
+`--describe` emissions were not derived from live constants on at least two scripts, with the
+wrong figures already rendered onto the generated surface; CONF-12's generated `CLAUDE.md`
+contradicted hand-written `CLAUDE.md` seventeen lines below it. The planner judged the set
+uncompressible to 2 plans without dropping scope, and the plan-checker independently confirmed all
+three gaps close if the four plans execute as written (32 falsification arms, no criterion
+reducing to "the battery is green"). The cap's purpose is to stop endless point-fixing rounds;
+Phase 21 had spent zero gap-closure plans before this round, so it was round 1 addressing three
+blocking gaps sharing one root cause, not a fourth round of patches. The cap was NOT amended — it
+stood at 2 for every other phase in the milestone, and Phase 19's own "cap of 2 now spent"
+accounting was unaffected. This was a single named exception, not a new rule.
+
+**Rounds 2 and 3, in full.** Round 2 was plans 21-17..21-20, four gap-closure plans against
+`21-VERIFICATION.md` round 1's three blocking gaps, executed with **no exception recorded at the
+time** — a fact discovered by the round-2 verifier, not self-reported. Round 3 was plans 21-21,
+21-22 and 21-23: two against the single blocking gap the round-2 closure apparatus itself opened,
+and a third added at plan-checking time when the same structural defect was found live one
+requirement over — `_py_docstring_scan_scripts()` derived CONF-13's literal-scan population from
+the identical set that caused the round-1 defect, so the same seven `.py` files were invisible to
+CONF-13's standing scanner too. Running total: 4 (round 1) + 4 (round 2) + 3 (round 3) = 11
+gap-closure plans against a stated cap of 2. The omission in round 2 was of the *record*, not of
+the deliberation — round 2's four plans closed three independently-verified blocking gaps and were
+confirmed to have genuinely closed them — and an undocumented breach is worse than a documented
+one precisely because it cannot be reviewed. The cap was NOT amended. A cap exceeded without
+halting the phase is evidence about the cap's own design: a cap stated as a per-phase plan count
+cannot tell round 1 of a genuine multi-gap closure from round 4 of point-fixing, and it did not
+fire at all when round 2 breached it, because nothing mechanically checked that the exception
+record existed.
+
+**Round 4, in full.** Round 4 was plans 21-24 and 21-25, against `21-VERIFICATION.md` round 3's
+single blocking gap: a generated gate-documentation page published a universal about a census's
+reach that was false against files inside the census's own population. Running total: 4 + 4 + 3 +
+2 = 13 gap-closure plans against a stated cap of 2. This was the fourth consecutive round in which
+closing a specifically-flagged instance of "a published claim that does not match what the code
+verifies" left, or produced, a new instance of the same class — not a fourth round of point-fixing
+but the first round to attack the recurrence itself, by binding the published claim to the live
+roster it describes with an equality floor and an over-claim falsification arm. The cap was NOT
+amended. A cap exceeded four times in one phase, with the fourth exception written by the same
+process that failed to write the second one at the time, is evidence about the cap's design —
+carried forward here rather than softened. This recurrence pattern — four rounds, same defect
+class, a new location each time — is the concrete case against a cap stated as a per-phase plan
+count, and it is this page's own reason for changing the unit to rounds.
+
+Rows in this ledger are **appended, never edited and never removed.** A superseded row is
+annotated in place, not deleted.
+
+The cap's own standing is unchanged by any exception recorded here: it stands at **2 rounds** for
+every phase.
+
