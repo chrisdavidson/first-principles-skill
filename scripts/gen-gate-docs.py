@@ -1862,6 +1862,7 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
     ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
     ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
+    ('docs/PROCESS.md', "'gate and the five')`,"): ('999.44', 1, "NOT-A-COUNT: verbatim citation of the ('docs/README.md', 'gate and the five') ledger key this same plan (22-09) adds to §1.2 -- the adjacency heuristic fires on the word 'five' inside the quoted key string, but the key names a lookup fragment, not a measured quantity; the count and its adjudication live in that cited entry itself, not here."),
     ('docs/PROCESS.md', '"13 plans,"'): ('999.44', 1, "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count."),
     ('docs/PROCESS.md', '(32 falsification arms,'): ('999.44', 1, "Correct: the plan-checker's independent confirmation that Phase 21 round 1's four plans carried 32 falsification arms between them -- a closed count of that specific 2026-09-07 plan-check that cannot change after the fact."),
     ('docs/PROCESS.md', '(4 plans,'): ('999.44', 1, "Correct: round 1's actual composition (4 plans: 21-13..21-16) restated in the retroactive-application sentence -- a closed historical count of Phase 21 round 1, a distinct occurrence from the ledger-table cell restoring the same figure."),
@@ -1870,7 +1871,8 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/PROCESS.md', '13 gap-closure plans'): ('999.44', 1, "Correct: restates the Phase 21 headline figure (13 gap-closure plans across 4 rounds) inside the ledger's own Round-1 narrative paragraph -- same closed measurement as '**13 gap-closure plans' above, a different sentence."),
     ('docs/PROCESS.md', '13 plans,'): ('999.44', 1, "Correct: 'The actual outcome was 4 rounds and 13 plans, with the class still recurring at close' -- the same closed Phase 21 total restated a third time, in the paragraph summarising what actually happened rather than what the cap would have allowed."),
     ('docs/PROCESS.md', '16 gates'): ('999.44', 1, "Correct: quotes the same restored docs/README.md sentence already ledgered under ('docs/README.md', '16 gates') -- v8.13's launcher sat undeliverable while 16 gates stayed green, a closed count of the battery size at that 2026-07-29 milestone-open moment; this file cites it a second time as CR-05's worked example, same frozen figure, new surface."),
-    ('docs/PROCESS.md', '17 rows'): ('999.44', 1, "Correct: 'Plan 22-04 restores all 17 rows verbatim' -- the closed count of historical figures plan 22-04 restored to docs/README.md under CR-05's fix, dated 2026-09-08, independently corrected here from the origin review's undercounted 16 (see the preceding sentence's own correction narrative)."),
+    ('docs/PROCESS.md', '16 rows'): ('999.44', 1, "Correct: 'One of the review's 16 rows' -- the closed size of 21-REVIEW.md's own CR-05 origin table (16 data rows), dated 2026-09-07, re-derived by plan 22-09 by counting that table directly and confirmed unchanged; distinct from the corrected 17 this paragraph derives, and cited as the review's own uncorrected starting count."),
+    ('docs/PROCESS.md', '17 rows'): ('999.44', 1, "Correct: 'Plan 22-04 restores 16 of the 17 rows verbatim' -- the closed count of historical figures plan 22-04 restored to docs/README.md under CR-05's fix, dated 2026-09-08, independently corrected here from the origin review's undercounted 16 (see the preceding paragraph's own three-adjustment reconciliation); row 17 itself is a deliberate NOT-A-RESTORE, ledgered separately under ('docs/README.md', 'gate and the five')."),
     ('docs/PROCESS.md', '2 gap-closure plans'): ('999.44', 1, "NOT-A-COUNT: this is a verbatim quotation of REQUIREMENTS.md CONF-15 / ROADMAP criterion 4's superseded wording ('more than 2 gap-closure plans halts the phase'), cited only to explain D-06's unit change from plans to rounds -- not a live rule this file states, so it cannot go stale independent of the quoted source."),
     ('docs/PROCESS.md', '2 plans'): ('999.44', 1, "Correct: 'the planner judged the set uncompressible to 2 plans without dropping scope' -- a closed record of the Phase 21 round-1 planner's own compression judgement, dated 2026-09-07, distinct from this file's own rework-cap rule (stated elsewhere as 2 rounds, not 2 plans)."),
     ('docs/PROCESS.md', '2 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 2 was plans 21-17..21-20' -- the '2' identifies which round (round 2), not a count of anything; the plan range it introduces is covered by the neighbouring 'plans 21-17..21-20, four' entry."),
@@ -2074,7 +2076,11 @@ def _deferred_ledger_keys_digest(
 # LITERAL_SCAN_MD_GLOBS, adding 30 newly hand-adjudicated 999.44 entries
 # (2 on CONTRIBUTING.md, 28 on docs/PROCESS.md), each with its own written
 # reason recorded in this same commit -- deliberate growth, not headroom.
-_DEFERRED_LEDGER_MAX: int = 182
+# Raised 182 -> 184 by plan 22-09 Task 2: rewriting docs/PROCESS.md §1.2 to
+# close CR-01/WR-02 introduced 2 newly hand-adjudicated 999.44 entries
+# (`'gate and the five')`,'` and `16 rows`), each with its own written
+# reason recorded in this same commit -- deliberate growth, not headroom.
+_DEFERRED_LEDGER_MAX: int = 184
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -2096,7 +2102,7 @@ _DEFERRED_LEDGER_MAX: int = 182
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:b758aa0d68349de6fa53e83c103350c195a80ac0207c9e57e332373437066579"
+    "sha256:f71e8dc15aa3601c5df841f80420cc50e7ab4f34e4678f8792d56b33e10609b1"
 )
 
 
