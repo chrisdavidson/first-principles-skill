@@ -165,18 +165,48 @@ Exit codes:
     not named in either `15-VERIFICATION.md` gap's `missing:` list and is not
     closed by this plan.
 (8) **`15-REVIEW.md`'s remaining findings, named rather than fixed here**:
-    WR-03's not-found reporting arms carry no branch id of their own (net of
-    the one `R-02-placement-aa` closed) — Body-3's scan-lead,
-    ledger-fence-tail and ledger-clean not-found reports; Rubric-2's
-    scan-block and Precedence not-found reports; Rubric-13's
-    admission-sentence and Criterion-4-index not-found guards; and
-    Rubric-13's region-split anchor not-found guard (`split_idx`, the arm
-    plan 15-11 added) — eight arms total, re-measured by per-arm
-    neutralization against the tree plans 15-11 and 15-12 leave behind
-    (`15-13-SUMMARY.md` Measurement 2; the pre-15-08 review measured seven
-    and named five, omitting Rubric-2's two — an omission this plan closes
-    by re-deriving the set rather than transcribing it) — are asserted
-    only through their sibling count checks. WR-04: `_find_flat`'s
+    WR-03's not-found reporting arms across `_check_body_text` and
+    `_check_rubric_text` were re-censused by per-site neutralization on
+    disposable `rsync --exclude .git` scratch copies on 2026-09-08
+    (`22-06-SUMMARY.md`, repeating `15-13-SUMMARY.md` Measurement 2's own
+    per-arm methodology against the current tree rather than transcribing
+    its scope-limited prior figure): nineteen not-found reporting arms
+    total — Body-1's section guard; Body-3's scan-lead, ledger-fence-tail
+    and ledger-clean guards; Rubric-2's scan-block and Precedence guards
+    (`aa_idx`, the third Rubric-2 guard, excluded — independently
+    controlled by `R-02-placement-anchor`); Rubric-3..8's scan-block-slice
+    guard; Rubric-9's Criterion-4-slice guard plus its span/Rigorous
+    ordering sub-guards; Rubric-10's Criterion-6-slice guard plus its
+    span/Rigorous ordering sub-guards; Rubric-13's Verdict-Block-Format-slice
+    guard, its region-split anchor guard (`split_idx`, the arm plan 15-11
+    added), and its admission/Criterion-4-index ordering sub-guards; and
+    Rubric-14's Criterion-2-slice guard. Of the nineteen: one is
+    independently CONTROLLED — `aa_idx`, via `R-02-placement-anchor`'s own
+    branch id; two — Body-1's and Rubric-3..8's slice guards — are
+    load-bearing but not through a named branch id: neutralizing either
+    crashes `--self-test` with an uncaught `TypeError` (downstream code
+    assumes a non-None slice) rather than producing a controlled failure
+    message, counted here as CONTROLLED because their absence is provably,
+    loudly detected rather than silently passed over, not because a check
+    names them; sixteen are UNCONTROLLED — `--self-test` still exits 0 with
+    no branch reported uncovered when the guard is neutralized alone —
+    including the four sites a 2026-09-08 backlog review (999.31 item 4)
+    named as never independently neutralized: Rubric-9's Criterion-4-slice,
+    Rubric-10's Criterion-6-slice, Rubric-13's Verdict-Block-Format-slice,
+    and Rubric-14's Criterion-2-slice guards. SIBLING-ONLY (a failure
+    through a sibling check or the anti-masking floor alone, naming no arm)
+    accounts for zero of the nineteen. This census supersedes the file's
+    prior published figure, which counted only the WR-03-named subset
+    (Body-3, Rubric-2's non-`aa_idx` pair, Rubric-13's
+    admission/Criterion-4-index pair, and `split_idx`) and omitted Body-1,
+    Rubric-3..8's slice guard, and the four Rubric-9/10/13/14 slice guards
+    named above. No lock, control, branch id or gate was added to raise the
+    CONTROLLED count; the sixteen-arm UNCONTROLLED residual (with the two
+    crash-only guards' own disclosed caveat) is a measured limitation of
+    this file's own anti-masking floor, the same shape
+    `_VALIDATE_LEG_SYMBOLS` (bound (11) above, backlog 999.30 item 1)
+    already discloses — closed-by-decision under the depth rule
+    (`docs/PROCESS.md` §1) rather than fixed here. WR-04: `_find_flat`'s
     normalization is not independently load-bearing in any ordering arm,
     because the fail-closed `-1` guard masks its absence — a raw-`find`
     reversion still fails on a hard-wrapped literal via the `-1` guard alone,
