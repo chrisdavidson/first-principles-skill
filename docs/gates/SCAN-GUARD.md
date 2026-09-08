@@ -97,15 +97,23 @@ before that census ran) were re-applied against the current tree in plan 15-13 a
 with no regression. **Coverage claim, narrowed to what is measured** (`15-REVIEW.md` WR-03):
 clause-level ids cover every `!= N` count guard, every multi-literal tuple and every cross-surface
 arm — not, as an earlier version of this row claimed, "one id per independently neutralizable
-assertion arm"; a full census of every multi-literal construct in the file (nine found) confirms
-this is now TRUE of the whole file, with no named exceptions (plan 15-12). Eight not-found reporting
-arms (net of the one `R-02-placement-aa` closed) carry no branch id of their own and are asserted
-only through their sibling count checks, re-measured by per-arm neutralization against the tree
-plans 15-11 and 15-12 leave behind: Body-3's scan-lead, ledger-fence-tail and ledger-clean not-found
-reports; Rubric-2's scan-block and Precedence not-found reports; Rubric-13's admission-sentence and
-Criterion-4-index not-found guards; and Rubric-13's region-split anchor not-found guard
-(`split_idx`, the arm plan 15-11 added) — the prior version of this row named only five of the seven
-pre-15-11 arms, omitting Rubric-2's two.
+assertion arm"; plan 15-12's own full census of every multi-literal construct in the file found
+nine and confirmed the claim held for the whole file, disclosing no exception. Plan 22-05
+re-derived that census by direct enumeration against the live file and superseded it: eleven
+multi-literal constructs, ten of which each carry a hand-written arm per literal, with
+`_VALIDATE_LEG_SYMBOLS` the one NAMED EXCEPTION — a four-literal tuple driving the validate-census
+check through a single aggregate pass/fail message with no per-leg id and no membership lock,
+disclosed rather than closed under the depth rule (`docs/PROCESS.md` §1), because adding the
+missing lock or a per-leg arm to make the claim true of all eleven would be the LEVEL move the
+rule stops. Not-found reporting arms across `_check_body_text` and `_check_rubric_text` were
+re-censused by plan 22-06 through per-site neutralization on disposable scratch copies, superseding
+this row's prior WR-03-scoped eight-arm figure: of a nineteen-arm roster, CONTROLLED are three (one
+via `R-02-placement-anchor`'s own branch id, two — Body-1's and Rubric-3..8's slice guards — via an
+uncaught crash rather than a named check), SIBLING-ONLY are zero, and UNCONTROLLED are sixteen —
+three plus zero plus sixteen sums to the full nineteen-arm roster. The sixteen-arm UNCONTROLLED
+residual, including the four sites a backlog review (999.31 item 4) named as never independently
+neutralized, is a published measured limitation, disclosed rather than closed under the depth rule
+(`docs/PROCESS.md` §1) rather than fixed.
 
 ## Disclosed bounds
 
