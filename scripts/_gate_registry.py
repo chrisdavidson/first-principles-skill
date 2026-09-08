@@ -42,6 +42,7 @@ import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import NamedTuple
 
 REPO_ROOT: Path = Path(__file__).resolve().parents[1]
 BATTERY_PATH: Path = REPO_ROOT / "scripts" / "check-firewall-battery.sh"
@@ -957,11 +958,23 @@ def hook_roster_problems(
     return problems
 
 
-def _hook_roster_arm_clauses(problems: list[str]) -> tuple[str, str]:
-    """Split a `hook_roster_problems()` findings list into its `missing=`
-    and `extra=` payload clauses, porting `check-version-stamps.py`'s
-    `_roster_arm_clauses` idiom to this producer's SEPARATE-list-entry
-    message grammar rather than a single joined string.
+class HookRosterClauses(NamedTuple):
+    """The payload clauses `_hook_roster_arm_clauses` extracts from a
+    `hook_roster_problems()` findings list — named fields rather than a
+    widened positional tuple, so every call site reads as what it asserts
+    and a future field cannot be silently mis-positioned."""
+
+    missing: str
+    extra: str
+    divergence: str
+
+
+def _hook_roster_arm_clauses(problems: list[str]) -> HookRosterClauses:
+    """Split a `hook_roster_problems()` findings list into its `missing=`,
+    `extra=` and hook-divergence payload clauses, porting
+    `check-version-stamps.py`'s `_roster_arm_clauses` idiom to this
+    producer's SEPARATE-list-entry message grammar rather than a single
+    joined string.
 
     Four legs, each raising `ValueError` naming the offending text rather
     than silently degrading to whole-message blindness:
@@ -976,12 +989,13 @@ def _hook_roster_arm_clauses(problems: list[str]) -> tuple[str, str]:
          `in`-membership-against-a-whole-message shape the census below
          forbids.
       3. no prefix may appear on more than one entry.
-      4. otherwise return `(missing_clause, extra_clause)` — the payload
-         following each roster prefix, and the empty string when that
-         finding is absent.
+      4. otherwise return a `HookRosterClauses(missing, extra, divergence)`
+         — the payload following each roster/divergence prefix, and the
+         empty string when that finding is absent.
     """
     missing_clause = ""
     extra_clause = ""
+    divergence_clause = ""
     seen_missing = False
     seen_extra = False
     seen_divergence = False
@@ -1021,12 +1035,13 @@ def _hook_roster_arm_clauses(problems: list[str]) -> tuple[str, str]:
                     f"appears on more than one entry: {entry!r}"
                 )
             seen_divergence = True
+            divergence_clause = entry.removeprefix(_HOOK_DIVERGENCE_PREFIX)
         else:
             raise ValueError(
                 "_hook_roster_arm_clauses: entry does not start with a "
                 f"recognised prefix: {entry!r}"
             )
-    return (missing_clause, extra_clause)
+    return HookRosterClauses(missing_clause, extra_clause, divergence_clause)
 
 
 # ---------------------------------------------------------------------------
@@ -1308,9 +1323,9 @@ def _control_cr04_hook_roster_missing_fires() -> None:
         synthetic_invocations, synthetic_invocations, registry_commands
     )
     assert len(problems) == 1, problems
-    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
-    assert "python3 scripts/check-agent.py --self-test" in missing_clause, problems
-    assert extra_clause == "", problems
+    clauses = _hook_roster_arm_clauses(problems)
+    assert "python3 scripts/check-agent.py --self-test" in clauses.missing, problems
+    assert clauses.extra == "", problems
 
 
 def _control_cr04_hook_roster_extra_fires() -> None:
@@ -1326,9 +1341,9 @@ def _control_cr04_hook_roster_extra_fires() -> None:
         real_invocations, real_invocations, fabricated_commands
     )
     assert len(problems) == 1, problems
-    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
-    assert "python3 scripts/check-links.py --check" in extra_clause, problems
-    assert missing_clause == "", problems
+    clauses = _hook_roster_arm_clauses(problems)
+    assert "python3 scripts/check-links.py --check" in clauses.extra, problems
+    assert clauses.missing == "", problems
 
 
 def _control_cr04_hook_roster_divergence_fires() -> None:
@@ -1351,38 +1366,48 @@ def _control_cr04_hook_roster_divergence_fires() -> None:
     problems = hook_roster_problems(inv_a, inv_b, registry_commands)
     assert len(problems) == 1, problems
     assert problems[0].startswith(_HOOK_DIVERGENCE_PREFIX), problems
-    missing_clause, extra_clause = _hook_roster_arm_clauses(problems)
-    assert missing_clause == "", problems
-    assert extra_clause == "", problems
-    assert "python3 scripts/report-conformance.py --self-test" in problems[0], problems
-    assert "python3 scripts/report-conformance.py --check" in problems[0], problems
+    clauses = _hook_roster_arm_clauses(problems)
+    assert clauses.missing == "", problems
+    assert clauses.extra == "", problems
+    assert "python3 scripts/report-conformance.py --self-test" in clauses.divergence, (
+        clauses
+    )
+    assert "python3 scripts/report-conformance.py --check" in clauses.divergence, clauses
 
 
 def _control_cr04_hook_roster_arm_shape_guard() -> None:
     """Message-shape guard, mirroring `check-version-stamps.py`'s
     `kind-roster-arm-shape-guard` control: `_hook_roster_arm_clauses` must
     raise `ValueError` naming the offending text on every malformed shape,
-    return `("", "")` for an empty list, and split a well-formed list
-    correctly. The both-markers fixture is assembled by concatenating the
-    two shared prefix constants across more than one physical source line —
-    the same self-match defence `_control_roster_arm_shape_census_vacuity`
-    documents — because plan 21-22 puts this file under the census that
-    scans for the bare quoted-marker `in` shape."""
-    # (a) a single entry carrying both clause markers.
-    both_markers_entry = (
+    return an all-empty `HookRosterClauses` for an empty list, and split a
+    well-formed list correctly.
+
+    Every fixture here is assembled from the shared `_HOOK_*_PREFIX`
+    constants rather than a quoted marker literal — not a defence against
+    the fixture splitting across physical source lines (this file carries
+    no `"missing="`/`"extra="` string literal at all), but because building
+    every fixture from the same constants the producer emits is what keeps
+    producer and parser from drifting apart: a rename of any prefix
+    constant breaks both sides identically, at the same edit, rather than
+    the fixture continuing to build a message the real producer no longer
+    emits (21-24, correcting a prior IN-03 finding that misattributed this
+    to a self-match defence against plan 21-22's census)."""
+    # (a) a single entry carrying both clause markers, reached through the
+    # missing= branch.
+    both_markers_entry_missing = (
         _HOOK_ROSTER_MISSING_PREFIX
         + "fixture-command-a "
         + _HOOK_ROSTER_EXTRA_PREFIX
         + "fixture-command-b"
     )
     try:
-        _hook_roster_arm_clauses([both_markers_entry])
+        _hook_roster_arm_clauses([both_markers_entry_missing])
     except ValueError as exc:
         assert "fixture-command-a" in str(exc), exc
     else:
         assert False, (
             "_hook_roster_arm_clauses accepted an entry carrying both "
-            "roster clause markers"
+            "roster clause markers (missing= branch)"
         )
 
     # (b) an entry with an unrecognised prefix.
@@ -1409,18 +1434,72 @@ def _control_cr04_hook_roster_arm_shape_guard() -> None:
             "missing= prefix"
         )
 
-    # Empty list returns ("", "").
-    assert _hook_roster_arm_clauses([]) == ("", ""), _hook_roster_arm_clauses([])
+    # (d) two entries sharing the extra= prefix (line 1006's raise site,
+    # the mirror of arm (c) on the extra= branch).
+    try:
+        _hook_roster_arm_clauses(
+            [
+                _HOOK_ROSTER_EXTRA_PREFIX + "fixture-command-h",
+                _HOOK_ROSTER_EXTRA_PREFIX + "fixture-command-i",
+            ]
+        )
+    except ValueError as exc:
+        assert "fixture-command-i" in str(exc), exc
+    else:
+        assert False, (
+            "_hook_roster_arm_clauses accepted two entries sharing the "
+            "extra= prefix"
+        )
+
+    # (e) two hook-divergence entries (line 1019's raise site).
+    try:
+        _hook_roster_arm_clauses(
+            [
+                _HOOK_DIVERGENCE_PREFIX + "fixture-command-j",
+                _HOOK_DIVERGENCE_PREFIX + "fixture-command-k",
+            ]
+        )
+    except ValueError as exc:
+        assert "hook-divergence" in str(exc), exc
+    else:
+        assert False, (
+            "_hook_roster_arm_clauses accepted two hook-divergence entries"
+        )
+
+    # (f) a single entry carrying both clause markers, reached through the
+    # extra= branch (line 1013's raise site — an entry starting with the
+    # extra prefix that also carries the missing marker, the mirror of arm
+    # (a); today's only both-markers coverage runs through the missing
+    # branch).
+    both_markers_entry_extra = (
+        _HOOK_ROSTER_EXTRA_PREFIX
+        + "fixture-command-l "
+        + _HOOK_ROSTER_MISSING_PREFIX
+        + "fixture-command-m"
+    )
+    try:
+        _hook_roster_arm_clauses([both_markers_entry_extra])
+    except ValueError as exc:
+        assert "fixture-command-l" in str(exc), exc
+    else:
+        assert False, (
+            "_hook_roster_arm_clauses accepted an entry carrying both "
+            "roster clause markers (extra= branch)"
+        )
+
+    # Empty list returns an all-empty HookRosterClauses.
+    assert _hook_roster_arm_clauses([]) == ("", "", ""), _hook_roster_arm_clauses([])
 
     # Well-formed two-entry list returns the correct clause split.
-    missing_clause, extra_clause = _hook_roster_arm_clauses(
+    clauses = _hook_roster_arm_clauses(
         [
             _HOOK_ROSTER_MISSING_PREFIX + "fixture-command-f",
             _HOOK_ROSTER_EXTRA_PREFIX + "fixture-command-g",
         ]
     )
-    assert missing_clause == "fixture-command-f", missing_clause
-    assert extra_clause == "fixture-command-g", extra_clause
+    assert clauses.missing == "fixture-command-f", clauses
+    assert clauses.extra == "fixture-command-g", clauses
+    assert clauses.divergence == "", clauses
 
 
 def _parse_architecture_data_row_count() -> int:
