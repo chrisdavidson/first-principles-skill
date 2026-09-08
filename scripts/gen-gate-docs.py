@@ -1828,14 +1828,16 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # `.py#__doc__` module docstrings, 999.41) are pinned MECHANICALLY from the
 # live scan, without per-entry adjudication -- a real reduction in what
 # this ledger certifies, published as a disclosed bound on
-# docs/gates/CONF-SURFACE.md rather than left implicit. One 999.41 entry
-# (`scripts/check-selfaudit-scan.py#__doc__`, `'check (`~line 3505`)'`) was
-# individually hand-adjudicated by plan 22-05, alongside the docstring edit
-# that produced it (closing 999.31 item 1); it keeps the 999.41 backlog id
-# because that classification is still the correct one for its surface --
-# only its written reason moved from the mechanical placeholder to a real
-# one, the same discipline plan 22-04 applied to the 18 hand-adjudicated
-# `docs/README.md` entries under 999.44.
+# docs/gates/CONF-SURFACE.md rather than left implicit. Two 999.41 entries
+# were individually hand-adjudicated, alongside the docstring edit that
+# produced each: `scripts/check-selfaudit-scan.py#__doc__`,
+# `'check (`~line 3505`)'` (plan 22-05, closing 999.31 item 1), and
+# `scripts/check-selfaudit-scan.py#__doc__`,
+# `'nineteen not-found reporting arms'` (plan 22-06, closing 999.31 item 4).
+# Both keep the 999.41 backlog id because that classification is still the
+# correct one for their surface -- only their written reason moved from the
+# mechanical placeholder to a real one, the same discipline plan 22-04
+# applied to the 18 hand-adjudicated `docs/README.md` entries under 999.44.
 #
 # Populated via `--emit-deferred-ledger` (below), never hand-typed -- hand
 # transcription of exactly this shape is the defect this plan exists to
@@ -1973,11 +1975,11 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('scripts/check-selfaudit-scan.py#__doc__', 'Criteria 4 and 6,'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'Criterion 4 or 6'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'check (`~line 3505`)'): ('999.41', 1, "NOT-A-COUNT: '~line 3505' is a source-line citation pointing at the validate-census check's call site (scripts/check-selfaudit-scan.py:3505 as of 2026-09-08), from the multi-literal census re-derivation this plan's docstring paragraph records for 999.31 item 1 -- the adjacency heuristic attaches the digit to the word 'check' as though it counted something, but it names a line number, not a population."),
-    ('scripts/check-selfaudit-scan.py#__doc__', 'eight arms'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'fixture actually contains, 7'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'four assertions'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'literal via the `-1`'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'literals themselves — two'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
+    ('scripts/check-selfaudit-scan.py#__doc__', 'nineteen not-found reporting arms'): ('999.41', 1, "Re-derived by per-site neutralization on disposable rsync --exclude .git scratch copies, 2026-09-08 (22-06-SUMMARY.md), closing 999.31 item 4 -- CONTROLLED=3 (one via R-02-placement-anchor's own branch id, two -- Body-1's and Rubric-3..8's slice guards -- via an uncaught crash rather than a named check), SIBLING-ONLY=0, UNCONTROLLED=16, of nineteen total candidate not-found reporting arms; the docstring states all three bucket counts and the roster size, not this figure alone."),
     ('scripts/check-selfaudit-scan.py#__doc__', 'one arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'one hand-written arm'): ('999.41', 1, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
     ('scripts/check-selfaudit-scan.py#__doc__', 'one row'): ('999.41', 2, 'Pinned mechanically from the live literal scan under 999.41 (.py module docstrings) -- not adjudicated entry-by-entry; see docs/gates/CONF-SURFACE.md for what this group certifies.'),
@@ -2060,7 +2062,7 @@ _DEFERRED_LEDGER_MAX: int = 152
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:bf71a11703d09210a274702b9c19db8b3665ddcedcc46836b39b7ed91aa14c74"
+    "sha256:1663c1a1f60cd4c45df8df685bc06b54a7b3b39d07e5660a3fa4332d1cc4db63"
 )
 
 
