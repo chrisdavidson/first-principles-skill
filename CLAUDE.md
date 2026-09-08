@@ -181,6 +181,10 @@ Both surfaces render the same population and the same columns from `scripts/_gat
 Gates run on three surfaces: **23 in CI** (`.github/workflows/validation.yml`, on push/PR to master), **26 tallied in the offline battery** (`bash scripts/check-firewall-battery.sh`), and **5 pre-commit gates** (2 hook mechanisms run the identical set in the identical order). The battery is a strict superset of CI: all 23 CI gates plus 1 battery-only gate plus 2 inline checks. That is 23 + 1 + 2 = 26.
 <!-- END GENERATED -->
 
+**a guard guards the product; a guard is not itself guarded** — measured justification: the
+chain `999.27 → 999.28 → 999.30`. [docs/PROCESS.md](docs/PROCESS.md) holds the full depth rule,
+the product/apparatus review split, and the rework cap; cite it, do not restate its rules here.
+
 HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each is a CI job plus a
 single `--self-test`-only battery `gate` call, and each is counted in the battery total below. HC-BOUND
 was registered at v8.19.0 under Phase 6 (HC-04). REG-GUARD was registered at v8.21.0 under Phase 3 (REG-03).
@@ -239,6 +243,43 @@ was retired under TEARDOWN-01. See `docs/v8.7-constraint-teardown.md` for the ev
 standing record.
 
 Bypass for intentional in-progress work: `git commit --no-verify`
+
+### Review protocol
+
+Any reviewer of this repository — the vendored `bm:gsd-code-reviewer` agent, a fork of it, or a
+human — tiers every finding, carries the tier in `REVIEW.md` frontmatter, and blocks only on
+product findings.
+
+1. **Tier every finding** as `product` or `apparatus` against
+   [docs/PROCESS.md](docs/PROCESS.md) section 2. The cut is by claim-audience, not by directory
+   and not by subject — see section 2 for the full rule; it is not re-transcribed here.
+2. **Carry the tier in `REVIEW.md` frontmatter**, in this exact shape:
+
+   ```yaml
+   findings:
+     product:   {critical: N, warning: N, info: N}
+     apparatus: {critical: N, warning: N, info: N}
+     total: N
+   blocking: N        # product only
+   status: issues_found
+   ```
+
+3. **Block only on product findings.** Apparatus findings auto-file to the
+   `.planning/ROADMAP.md` backlog and never block a phase.
+
+**Accepted limitation, stated plainly.** `bm:gsd-code-reviewer` is vendored outside this
+repository, under the plugin cache, and is replaced on plugin update — there is no repo-side
+binding. The agent holds `Read`, `Grep` and `Glob` and reads this file, which is the only reach
+this repository has into its behaviour. The first live test of whether this block is honoured is
+this phase's own `/bm:code-review 22`.
+
+**The derived check a reviewer's output must satisfy**, stated as prose rather than as a gate:
+every finding in a `REVIEW.md` carries a `product` or `apparatus` tier, and a finding carrying
+neither is itself a defect in the review.
+
+No script, control or CI job enforces any of this. D-08 rejected a findings-classifier
+post-processor by name, and D-01 made the cut a judgement a path glob cannot decide — CR-05 is
+the counterexample, an edit made in `scripts/` that produced a product-tier defect.
 
 ### Routing battery
 
@@ -366,5 +407,6 @@ authoritative record first:
 - Every hand-maintained version stamp must carry the *same* value — see VERSION-01 above. A bump touches all 17 or none.
 - Reserved words `anthropic` and `claude` are forbidden in skill `name` fields.
 - The agent body's line count is **not** an invariant: the 644-line gate was retired under TEARDOWN-01 and is report-only.
+- **a guard guards the product; a guard is not itself guarded** — a guard's subject is the product; no guard in this repository takes another guard's own correctness as its subject. [docs/PROCESS.md](docs/PROCESS.md) states the full rule. Convention — no gate enforces it.
 
 Each invariant is paired with the gate that enforces it in [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md#key-invariants) — including the two that are conventions with no gate behind them.
