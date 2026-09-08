@@ -2733,9 +2733,13 @@ def _run_self_test() -> int:
 
     # R-11-bands-crit4-<band>/R-11-bands-crit6-<band> (plan 15-12, closing
     # `15-VERIFICATION.md`'s WR-01 gap): one strip-arm and one dup-arm per
-    # `_BAND_BULLETS` literal, driven from the tuple ITSELF via `zip(...,
-    # strict=True)` rather than a hand-written four-literal list — the
-    # verifier reproduced live that narrowing `_BAND_BULLETS` from four
+    # `_BAND_BULLETS` literal, driven from the tuple ITSELF via a plain
+    # `zip` over `_BAND_BULLETS` and `_BAND_NAMES` rather than a hand-written
+    # four-literal list — deliberately NOT `strict=True`: that would turn
+    # a length-mismatched pair into a loud `ValueError` instead of a
+    # silently-uncovered branch, which makes the LENGTHENING direction
+    # fail-open (see bound (11) above). The verifier reproduced live that
+    # narrowing `_BAND_BULLETS` from four
     # literals to one (`(_BAND_SOUND,)`) left `--self-test` at rc=0
     # reporting "All 94 branches covered", because the prior R-11a/R-11b
     # controls this loop replaces exercised `_BAND_SOUND` only — the other
