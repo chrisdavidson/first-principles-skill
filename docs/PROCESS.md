@@ -162,6 +162,25 @@ point-fixing, and it did not fire at all when round 2 breached it silently — n
 exception record itself checked that the record existed. Neither `REQUIREMENTS.md` nor
 `ROADMAP.md` is rewritten by this change; this page is the record.
 
+**First live firing: Phase 22, gap-closure round 2, 2026-09-08 — limit 2, honoured.** The rule
+fired on the phase that wrote it. Phase 22's round 1 closed both of `22-VERIFICATION.md`'s gaps,
+and the round-2 reviewer independently re-derived every carried finding against the live tree and
+confirmed each genuinely closed. That same review then found new product-tier blockers, two of
+them the class round 1 had just closed: a hand-typed stale count that plan 22-09's own
+literal-removal edit introduced onto a page whose Facts fence contradicts it, and stale cross-file
+line citations still live in a file plan 22-10 edited. Limit 2 tripped. **No exception was taken
+and no §3.1 row was written** — the findings were carried to backlog 999.49 for a replan at the
+root, and the phase closed as `halted-for-root-replan` rather than opening a round 2.
+
+Two properties of that firing are worth recording, because they are what the rule was for. First,
+the trip was called on a *class* recurrence, not on a round count — under limit 1 alone, round 2
+was still within the cap and would have proceeded. Second, the offline battery reported GREEN
+at every point in this phase — before the gap-closure round, after it, and after the review that
+tripped the rule — because no gate in this repository takes the truth of a hand-written narrative
+sentence as its subject. Every finding came from reading prose.
+That is a statement about gate reach, and it is the same distinction Phase 21's close recorded —
+not a claim that these surfaces are correct.
+
 ### 3.1 Recorded exceptions (append-only)
 
 An exception to the cap is taken by explicit developer decision, in writing, in this table, in
