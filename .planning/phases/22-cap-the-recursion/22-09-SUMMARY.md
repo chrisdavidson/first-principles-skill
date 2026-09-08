@@ -153,6 +153,12 @@ None - no external service configuration required.
 - `22-VERIFICATION.md`'s gap 2 (CR-03, the three stale source-line citations in `scripts/check-selfaudit-scan.py`'s census docstring) is explicitly out of this plan's scope and remains for plan `22-10` (wave 10), which STATE.md's ordering-hazard note already sequences strictly after this plan — both plans repin the same two `_DEFERRED_LEDGER_MAX`/`_DEFERRED_LEDGER_KEYS_DIGEST` scalars, and a concurrent update would produce a digest matching neither tree.
 - Round 1 of the phase's stated cap of 2 gap-closure rounds is now spent on this class (CR-01/CR-02/WR-01/WR-02); per this plan's own written pre-commitment, a round 2 on this same class would trip limit 2 and require a replan at the root, not a third round of point fixes.
 
+## Self-Check: PASSED
+
+All claimed files confirmed present (`CLAUDE.md`, `docs/PROCESS.md`, `scripts/gen-gate-docs.py`,
+`docs/gates/CONF-SURFACE.md`, this SUMMARY.md) and all three commit hashes (`0878dcc`, `46c97a6`,
+`56bae3c`) confirmed present in `git log --oneline --all`.
+
 ---
 *Phase: 22-cap-the-recursion*
 *Completed: 2026-09-08*
