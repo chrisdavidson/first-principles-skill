@@ -478,6 +478,27 @@ def _claim_floor_roster_problems(floor_keys: set[str], discovered_ids: set[str])
     return []
 
 
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `_claim_floor_roster_problems` D-07 message into its
+    `missing=` and `extra=` clauses, ported from
+    `check-version-stamps.py`'s `_roster_arm_clauses` (21-24).
+
+    Raises `ValueError` naming the offending text if either the `missing=`
+    or the ` extra=` marker is absent, rather than silently returning the
+    whole string as both clauses — a message-format change must surface as
+    a loud failure here, not as both clauses collapsing to the same
+    whole-message blindness this helper exists to remove.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"_roster_arm_clauses: message lacks 'missing=' or ' extra=' "
+            f"marker: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
 def _claim_floor_problems(rows: list[dict]) -> list[str]:
     """D-04: fail if any floored file's live `conclusion_claims` falls below
     its pinned floor. A row absent from `rows` is already reported by
@@ -894,13 +915,44 @@ def _control_target_fires_on_generated_twin() -> None:
 def _control_d07_missing_named() -> None:
     problems = _claim_floor_roster_problems({"a", "b"}, {"a", "b", "c"})
     assert problems, problems
-    assert "missing=['c']" in problems[0], problems
+    missing_clause, extra_clause = _roster_arm_clauses(problems[0])
+    assert "'c'" in missing_clause, missing_clause
+    assert extra_clause == "[]", extra_clause
 
 
 def _control_d07_extra_named() -> None:
     problems = _claim_floor_roster_problems({"a", "b", "c"}, {"a", "b"})
     assert problems, problems
-    assert "extra=['c']" in problems[0], problems
+    missing_clause, extra_clause = _roster_arm_clauses(problems[0])
+    assert "'c'" in extra_clause, extra_clause
+    assert missing_clause == "[]", missing_clause
+
+
+def _control_d07_roster_arm_shape_guard() -> None:
+    # Message-shape guard control (21-24): _roster_arm_clauses must raise
+    # ValueError on a message missing either marker, proving the guard is
+    # live rather than decorative. Fixture strings are built by
+    # concatenation across physical source lines so no quoted
+    # `missing=`/`extra=` literal sits beside an `in` on one line — the
+    # self-match defence this file's own census population requires.
+    no_extra = "D-07 ROSTER DRIFT: " + "missing=" + "['c']"
+    try:
+        _roster_arm_clauses(no_extra)
+        assert False, "(_roster_arm_clauses accepted a message lacking ' extra=')"
+    except ValueError:
+        pass
+
+    no_missing = "D-07 ROSTER DRIFT: " + " extra=" + "['c']"
+    try:
+        _roster_arm_clauses(no_missing)
+        assert False, "(_roster_arm_clauses accepted a message lacking 'missing=')"
+    except ValueError:
+        pass
+
+    well_formed = "D-07 ROSTER DRIFT: " + "missing=" + "['a']" + " extra=" + "['b']"
+    missing_clause, extra_clause = _roster_arm_clauses(well_formed)
+    assert missing_clause == "['a']", missing_clause
+    assert extra_clause == "['b']", extra_clause
 
 
 def _control_d07_equal_passes() -> None:
@@ -1426,6 +1478,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("target-fires-on-generated-twin", _control_target_fires_on_generated_twin),
     ("d07-missing-named", _control_d07_missing_named),
     ("d07-extra-named", _control_d07_extra_named),
+    ("d07-roster-arm-shape-guard", _control_d07_roster_arm_shape_guard),
     ("d07-equal-passes", _control_d07_equal_passes),
     ("d04-floor-fires", _control_d04_floor_fires),
     ("d04-floor-passes-at-floor", _control_d04_floor_passes_at_floor),
@@ -1480,6 +1533,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "target-fires-on-generated-twin",
     "d07-missing-named",
     "d07-extra-named",
+    "d07-roster-arm-shape-guard",
     "d07-equal-passes",
     "d04-floor-fires",
     "d04-floor-passes-at-floor",

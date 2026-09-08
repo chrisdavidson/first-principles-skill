@@ -855,6 +855,42 @@ def _corpus_roster_problems(
     return problems
 
 
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `D-04 CORPUS ROSTER DRIFT` / `D-20 LIVE ROSTER DRIFT` message
+    into its `missing=` and `extra=` clauses, ported from
+    `check-version-stamps.py`'s `_roster_arm_clauses` (21-24). Serves both
+    `_corpus_roster_problems` and `_live_roster_problems` -- their messages
+    share the identical `missing={...} extra={...}` grammar and differ only
+    in their `D-04`/`D-20` prefix.
+
+    Raises `ValueError` naming the offending text if either the `missing=`
+    or the ` extra=` marker is absent, rather than silently returning the
+    whole string as both clauses — a message-format change must surface as
+    a loud failure here, not as both clauses collapsing to the same
+    whole-message blindness this helper exists to remove.
+    """
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"_roster_arm_clauses: message lacks 'missing=' or ' extra=' "
+            f"marker: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
+def _roster_drift_finding(problems: list[str]) -> str:
+    """Select the roster-drift finding from a `problems` list by its
+    `ROSTER DRIFT` prefix, not by list index -- both `_corpus_roster_problems`
+    and `_live_roster_problems` prepend `catalog_problems` before appending
+    the roster finding, so it is not reliably `problems[0]` (21-24
+    falsification 4)."""
+    for problem in problems:
+        if "ROSTER DRIFT" in problem:
+            return problem
+    raise ValueError(f"_roster_drift_finding: no 'ROSTER DRIFT' entry in {problems!r}")
+
+
 # The three disposition prefixes D-04/CONTEXT.md's stratum table names as
 # honest dispositions. A fourth value ("MISSING", or an empty cell) is
 # exactly the silent pass CONF-08 forbids.
@@ -3318,8 +3354,10 @@ def _control_corpus_roster_drift_detected() -> None:
     }
     problems = _corpus_roster_problems(catalog_entries, [], corpus_rows)
     assert len(problems) == 1, problems
-    assert "missing=['b']" in problems[0], problems
-    assert "extra=['c']" in problems[0], problems
+    finding = _roster_drift_finding(problems)
+    missing_clause, extra_clause = _roster_arm_clauses(finding)
+    assert "'b'" in missing_clause, missing_clause
+    assert "'c'" in extra_clause, extra_clause
 
 
 def _control_corpus_roster_equal_passes() -> None:
@@ -3339,6 +3377,33 @@ def _control_corpus_roster_equal_passes() -> None:
 def _control_corpus_roster_catalog_problems_folded() -> None:
     problems = _corpus_roster_problems({}, ["CATALOG PARSE FAIL — x"], [])
     assert problems == ["CATALOG PARSE FAIL — x"], problems
+
+
+def _control_roster_arm_shape_guard() -> None:
+    # Message-shape guard control (21-24): _roster_arm_clauses must raise
+    # ValueError on a message missing either marker, proving the guard is
+    # live rather than decorative. Fixture strings are built by
+    # concatenation across physical source lines so no quoted
+    # `missing=`/`extra=` literal sits beside an `in` on one line — the
+    # self-match defence this file's own census population requires.
+    no_extra = "D-04 CORPUS ROSTER DRIFT: " + "missing=" + "['c']"
+    try:
+        _roster_arm_clauses(no_extra)
+        assert False, "(_roster_arm_clauses accepted a message lacking ' extra=')"
+    except ValueError:
+        pass
+
+    no_missing = "D-04 CORPUS ROSTER DRIFT: " + " extra=" + "['c']"
+    try:
+        _roster_arm_clauses(no_missing)
+        assert False, "(_roster_arm_clauses accepted a message lacking 'missing=')"
+    except ValueError:
+        pass
+
+    well_formed = "D-04 CORPUS ROSTER DRIFT: " + "missing=" + "['a']" + " extra=" + "['b']"
+    missing_clause, extra_clause = _roster_arm_clauses(well_formed)
+    assert missing_clause == "['a']", missing_clause
+    assert extra_clause == "['b']", extra_clause
 
 
 def _control_corpus_disposition_silent_pass_detected() -> None:
@@ -4606,8 +4671,10 @@ def _control_live_roster_drift_detected() -> None:
     }
     problems = _live_roster_problems(catalog_entries, [], live_rows)
     assert len(problems) == 1, problems
-    assert "missing=['b']" in problems[0], problems
-    assert "extra=['c']" in problems[0], problems
+    finding = _roster_drift_finding(problems)
+    missing_clause, extra_clause = _roster_arm_clauses(finding)
+    assert "'b'" in missing_clause, missing_clause
+    assert "'c'" in extra_clause, extra_clause
 
 
 def _control_live_roster_equal_passes() -> None:
@@ -5082,6 +5149,7 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "corpus-roster-catalog-problems-folded",
         _control_corpus_roster_catalog_problems_folded,
     ),
+    ("roster-arm-shape-guard", _control_roster_arm_shape_guard),
     (
         "corpus-disposition-silent-pass-detected",
         _control_corpus_disposition_silent_pass_detected,
@@ -5313,6 +5381,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "corpus-roster-drift-detected",
     "corpus-roster-equal-passes",
     "corpus-roster-catalog-problems-folded",
+    "roster-arm-shape-guard",
     "corpus-disposition-silent-pass-detected",
     "corpus-disposition-target-missed-only-checked",
     "corpus-disposition-form-bad-detected",
