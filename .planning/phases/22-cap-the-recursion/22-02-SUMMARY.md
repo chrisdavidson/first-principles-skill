@@ -179,6 +179,18 @@ None - no external service configuration required.
   both `.githooks/pre-commit` and `scripts/git-hooks/pre-commit` exit 0.
 - No blockers for downstream plans in this phase.
 
+## Self-Check: PASSED
+
+- `[ -f CLAUDE.md ]` → FOUND
+- `[ -f CONTRIBUTING.md ]` → FOUND
+- `[ -f .planning/phases/22-cap-the-recursion/22-02-SUMMARY.md ]` → FOUND
+- `git log --oneline --all | grep -q d40efa4` → FOUND (Task 1 commit)
+- `git log --oneline --all | grep -q d305845` → FOUND (Task 2 commit)
+- `git log --oneline --all | grep -q 823fbd1` → FOUND (Task 3 commit)
+- `git log --oneline --all | grep -q 8bda048` → FOUND (SUMMARY.md commit)
+- All plan-level `<verification>` commands re-run above with observed (not assumed) output,
+  including `bash scripts/check-firewall-battery.sh` → `FIREWALL: GREEN (26/26)`.
+
 ---
 *Phase: 22-cap-the-recursion*
 *Completed: 2026-09-08*
