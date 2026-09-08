@@ -223,16 +223,29 @@ Exit codes:
     proper subset leaves the corresponding branch ids uncovered and fails
     the anti-masking floor by name — reproduced live: `_BAND_BULLETS =
     (_BAND_SOUND,)` moved `--self-test` from rc 0 ("All 94 branches
-    covered") to rc 1, naming the six now-uncovered ids. A full census of
-    every construct in this file where a check iterates over more than one
-    literal (nine found in total: `_BAND_BULLETS` plus eight inline
-    `for … in (…)` tuples across the body, rubric and cross-surface checks)
-    found `_BAND_BULLETS` was the file's ONLY exception before this plan;
-    the other eight already carried one hand-written arm per literal. The
-    published "every multi-literal tuple has one arm per literal" claim is
-    therefore now TRUE of the whole file, with no named exceptions —
-    narrower and more precise than an aspiration, per the plan 15-12
-    SUMMARY's census table. Deliberately NOT `strict=True` in the `zip`
+    covered") to rc 1, naming the six now-uncovered ids. A census of every
+    construct in this file where a check iterates over more than one
+    literal, re-derived by direct enumeration against the live file (not
+    transcribed from any prior count) on 2026-09-08: eleven found in
+    total — `_BAND_BULLETS` (iterated at `Rubric-11`'s two production
+    sites, `~lines 1243` and `~1251`, and by this `zip` generator), nine
+    inline `for … in (…)` tuples across the body, rubric and cross-surface
+    checks (`Rubric-13`'s region-split loop and its nested clause loop
+    count as two separate constructs, not one, since each iterates its own
+    tuple independently), and `_VALIDATE_LEG_SYMBOLS` (`~line 1515`). Ten
+    of the eleven carry one hand-written arm per literal.
+    `_VALIDATE_LEG_SYMBOLS` is a NAMED EXCEPTION: a four-literal tuple
+    driving the `validate-census` check (`~line 3505`) through a single
+    aggregate pass/fail message with no per-leg id and no membership
+    lock — the same shape backlog 999.30 item 1 records, closed-by-decision
+    under the depth rule (`docs/PROCESS.md` §1) rather than fixed here,
+    because adding the missing lock or a per-leg arm to make this census
+    claim true would extend the very recursion the depth rule exists to
+    stop. The published "every multi-literal tuple has one arm per
+    literal" claim therefore holds for ten of the file's eleven
+    multi-literal constructs, with `_VALIDATE_LEG_SYMBOLS` the one
+    deliberately unclosed, named exception — a measured bound, not an
+    unconditional universal. Deliberately NOT `strict=True` in the `zip`
     call: a length-mismatched `_BAND_BULLETS`/`_BAND_NAMES` pair fails
     LOUDLY (an uncaught `ValueError`, itself a nonzero exit) rather than
     silently, but this makes the LENGTHENING direction fail-open — a fifth
@@ -2733,9 +2746,13 @@ def _run_self_test() -> int:
 
     # R-11-bands-crit4-<band>/R-11-bands-crit6-<band> (plan 15-12, closing
     # `15-VERIFICATION.md`'s WR-01 gap): one strip-arm and one dup-arm per
-    # `_BAND_BULLETS` literal, driven from the tuple ITSELF via `zip(...,
-    # strict=True)` rather than a hand-written four-literal list — the
-    # verifier reproduced live that narrowing `_BAND_BULLETS` from four
+    # `_BAND_BULLETS` literal, driven from the tuple ITSELF via a plain
+    # `zip` over `_BAND_BULLETS` and `_BAND_NAMES` rather than a hand-written
+    # four-literal list — deliberately NOT `strict=True`: that would turn
+    # a length-mismatched pair into a loud `ValueError` instead of a
+    # silently-uncovered branch, which makes the LENGTHENING direction
+    # fail-open (see bound (11) above). The verifier reproduced live that
+    # narrowing `_BAND_BULLETS` from four
     # literals to one (`(_BAND_SOUND,)`) left `--self-test` at rc=0
     # reporting "All 94 branches covered", because the prior R-11a/R-11b
     # controls this loop replaces exercised `_BAND_SOUND` only — the other
