@@ -1854,12 +1854,42 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', 'three surfaces,'): ('999.42', 1, 'Correct: gates run on three surfaces -- CI, the offline battery, and pre-commit -- a structural fact restated at CLAUDE.md:181, not derived by any script.'),
     ('CLAUDE.md', 'two assembly surfaces,'): ('999.42', 1, 'Correct: the assembled agent body and the skill stub are the two assembly surfaces _rewrite_detail_link() adapts a detail-sibling pointer for -- a structural fact, not derived by any script.'),
     ('CLAUDE.md', 'two inline checks'): ('999.42', 1, 'Correct: INVARIANT-CHECK and FROZEN-EVIDENCE are the two inline (non-gate/gate_prereq) battery checks -- a structural fact, not derived by any script.'),
+    ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
+    ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
     ('docs/ARCHITECTURE.md', '**Two gates'): ('999.42', 1, "NOT-A-COUNT: 'Two gates are called GATE-02' identifies two DIFFERENT gates that share a display name (VAL-04/GATE-02 vs GATE-02-v8.5) -- the number is correct but attached to a disambiguation, not a population count."),
     ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
     ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
     ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
     ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
+    ('docs/PROCESS.md', '"13 plans,"'): ('999.44', 1, "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count."),
+    ('docs/PROCESS.md', '(32 falsification arms,'): ('999.44', 1, "Correct: the plan-checker's independent confirmation that Phase 21 round 1's four plans carried 32 falsification arms between them -- a closed count of that specific 2026-09-07 plan-check that cannot change after the fact."),
+    ('docs/PROCESS.md', '(4 plans,'): ('999.44', 1, "Correct: round 1's actual composition (4 plans: 21-13..21-16) restated in the retroactive-application sentence -- a closed historical count of Phase 21 round 1, a distinct occurrence from the ledger-table cell restoring the same figure."),
+    ('docs/PROCESS.md', '**13 gap-closure plans'): ('999.44', 1, "Correct: the headline figure of Phase 21's own measured evidence -- 13 gap-closure plans across 4 rounds against a stated cap of 2 -- a closed, dated (2026-09-07/08) measurement of a phase that has already ended."),
+    ('docs/PROCESS.md', '1 (4 plans,'): ('999.44', 1, "Correct: overlapping heuristic window over 'round 1 (4 plans, 3 distinct independently-verified gaps)' -- the same closed round-1 composition as the '(4 plans,' entry above, captured with the leading round number."),
+    ('docs/PROCESS.md', '13 gap-closure plans'): ('999.44', 1, "Correct: restates the Phase 21 headline figure (13 gap-closure plans across 4 rounds) inside the ledger's own Round-1 narrative paragraph -- same closed measurement as '**13 gap-closure plans' above, a different sentence."),
+    ('docs/PROCESS.md', '13 plans,'): ('999.44', 1, "Correct: 'The actual outcome was 4 rounds and 13 plans, with the class still recurring at close' -- the same closed Phase 21 total restated a third time, in the paragraph summarising what actually happened rather than what the cap would have allowed."),
+    ('docs/PROCESS.md', '16 gates'): ('999.44', 1, "Correct: quotes the same restored docs/README.md sentence already ledgered under ('docs/README.md', '16 gates') -- v8.13's launcher sat undeliverable while 16 gates stayed green, a closed count of the battery size at that 2026-07-29 milestone-open moment; this file cites it a second time as CR-05's worked example, same frozen figure, new surface."),
+    ('docs/PROCESS.md', '17 rows'): ('999.44', 1, "Correct: 'Plan 22-04 restores all 17 rows verbatim' -- the closed count of historical figures plan 22-04 restored to docs/README.md under CR-05's fix, dated 2026-09-08, independently corrected here from the origin review's undercounted 16 (see the preceding sentence's own correction narrative)."),
+    ('docs/PROCESS.md', '2 gap-closure plans'): ('999.44', 1, "NOT-A-COUNT: this is a verbatim quotation of REQUIREMENTS.md CONF-15 / ROADMAP criterion 4's superseded wording ('more than 2 gap-closure plans halts the phase'), cited only to explain D-06's unit change from plans to rounds -- not a live rule this file states, so it cannot go stale independent of the quoted source."),
+    ('docs/PROCESS.md', '2 plans'): ('999.44', 1, "Correct: 'the planner judged the set uncompressible to 2 plans without dropping scope' -- a closed record of the Phase 21 round-1 planner's own compression judgement, dated 2026-09-07, distinct from this file's own rework-cap rule (stated elsewhere as 2 rounds, not 2 plans)."),
+    ('docs/PROCESS.md', '2 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 2 was plans 21-17..21-20' -- the '2' identifies which round (round 2), not a count of anything; the plan range it introduces is covered by the neighbouring 'plans 21-17..21-20, four' entry."),
+    ('docs/PROCESS.md', '3 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 3 was plans 21-21,' -- the '3' identifies which round (round 3), the same round-number-identifier shape as the '2 was plans' entry above, a different round."),
+    ('docs/PROCESS.md', '4 was plans'): ('999.44', 1, "NOT-A-COUNT: adjacency-heuristic window over 'Round 4 was plans 21-24 and 21-25' -- the '4' identifies which round (round 4), the same round-number-identifier shape as '2 was plans' and '3 was plans' above."),
+    ('docs/PROCESS.md', 'Two plans,'): ('999.44', 1, "Correct: round 4's actual composition (plans 21-24 and 21-25, two plans) stated in the ledger table's own Reason cell -- a closed historical count of that specific round, dated 2026-09-08."),
+    ('docs/PROCESS.md', 'four literals'): ('999.44', 1, "Correct: describes the 999.28 defect's own historical shape -- SCAN-GUARD's _BAND_BULLETS was narrowable from four literals to one with --self-test still reporting full coverage -- a closed measurement of an already-fixed, past code state (closed by plans 15-12/15-13), verified against the live 999.28 backlog entry."),
+    ('docs/PROCESS.md', 'four plans'): ('999.44', 3, "Correct: 'four plans' occurs three times -- two describing round 2's own closed composition (the ledger-table Reason cell's Phase 21 row, and the Rounds-2-and-3 narrative's closing summary, both restating round 2 = plans 21-17..21-20), and one describing round 1's separately-closed composition (the plan-checker's confirmation that 'the four plans execute as written', i.e. round 1 = plans 21-13..21-16) -- three distinct sentences, two closed counts (4 for round 1, 4 for round 2) that coincide only by digit."),
+    ('docs/PROCESS.md', 'item — one'): ('999.44', 1, "NOT-A-COUNT: 'findings split per item — one backlog entry may carry two tiers' uses 'one' as a singular determiner (any single entry), not a count of how many entries exist or how many tiers there are -- a generic statement of the D-01 corollary, not a measurement that could go stale."),
+    ('docs/PROCESS.md', 'literals to one'): ('999.44', 1, "Correct: overlapping heuristic window over the same 999.28 sentence as 'four literals' above ('four literals to one') -- identical closed historical event, captured at the trailing half of the phrase rather than the leading half."),
+    ('docs/PROCESS.md', 'literals — at two'): ('999.44', 1, "Correct: 'CONF-13, which already scans Markdown surfaces for unattributed literals — at two product surfaces it did not previously reach' names this phase's own REACH widening -- a closed count of exactly how many surfaces plan 22-07 registers (docs/PROCESS.md, CONTRIBUTING.md), fixed the moment this commit lands and never open to drift afterward."),
+    ('docs/PROCESS.md', 'one verification → plan'): ('999.44', 1, "NOT-A-COUNT: 'A round is one verification → plan → execute cycle' uses 'one' as an identity/definition (a round IS a single such cycle), not a count of external, mutable things that could go stale."),
+    ('docs/PROCESS.md', 'plans 21-17..21-20, four'): ('999.44', 1, "Correct: names the exact plan-id range Phase 21 round 2 comprised (21-17 through 21-20) and confirms its size -- a closed historical fact combining a plan-number identifier with the frozen count of how many plans that specific range spans (four), dated 2026-09-07."),
+    ('docs/PROCESS.md', 'plans across 4'): ('999.44', 1, "Correct: 'The measured evidence, from Phase 21: 13 gap-closure plans across 4 rounds against a stated cap of 2' -- the same closed Phase 21 headline figure as '**13 gap-closure plans' above, captured at the round-count half of the same sentence."),
+    ('docs/PROCESS.md', 'plans closed three'): ('999.44', 2, "Correct: 'round 2's four plans closed three independently-verified blocking gaps' is stated twice -- once in the ledger table's Phase-21-rounds-2-and-3 Reason cell, once in the 'Rounds 2 and 3, in full' narrative paragraph restating the same closed count -- both describing the identical, closed Phase 21 round 2 outcome, hence occurrence count 2."),
+    ('docs/PROCESS.md', 'plans to three'): ('999.44', 1, "Correct: 'Round 3 grew from two plans to three when plan-checking found a live twin of the same defect one requirement over' -- a closed historical count of round 3's own scope growth, dated 2026-09-07, the post-growth half of that sentence."),
+    ('docs/PROCESS.md', 'plans," "4'): ('999.44', 1, "Correct: overlapping heuristic window continuing the same quoted-exemplar list as '\"13 plans,\"' above ('\"13 plans,\" \"4 rounds,\"') -- same citation of the frozen-count class, captured at the second exemplar's boundary."),
+    ('docs/PROCESS.md', 'plans," "4 rounds," "41%,"'): ('999.44', 1, "Correct: the fuller heuristic window over the same quoted-exemplar list, spanning the second and third named exemplars ('4 rounds,' '41%,') of the class this file's own section-2 standing constraint names -- same citation, a third overlapping capture of one sentence."),
+    ('docs/PROCESS.md', 'two plans'): ('999.44', 1, "Correct: 'Round 3 grew from two plans to three' -- round 3's original, pre-growth scope, a closed historical count distinct from the 'plans to three' entry above, which captures the post-growth half of the same sentence."),
     ('docs/README.md', '**0 items'): ('999.44', 1, "Correct: main.py's three dedicated test files collected 0 items each for two years (260728-pa2) -- a closed historical measurement; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'no items run after run'."),
     ('docs/README.md', '**one** entry'): ('999.44', 1, "Correct: as of the 2026-07-29 disposition, the use-journal limb held exactly one entry -- a closed historical count of a past state; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'only a single'."),
     ('docs/README.md', "13 live matrix rows'"): ('999.44', 1, "Correct: whole-system-remeasure-verdict.md anchors provenance for 13 live matrix rows' dispositions -- a closed count measured against the traceability matrix at the time this doc-index entry was written; restored verbatim from git show 3c17833 -- docs/README.md (2026-09-06), which had replaced it with 'several'."),
@@ -2039,8 +2069,12 @@ def _deferred_ledger_keys_digest(
 # against itself, which can never fail -- a tautology, not a ratchet.
 # Standing rule, in this repo's own words (the CONTRACT-06 pin discipline,
 # `scripts/check-quality-harness.py`): never recompute a pin to make a
-# failing check pass.
-_DEFERRED_LEDGER_MAX: int = 152
+# failing check pass. Raised 152 -> 182 by plan 22-07 Task 2: the D-05
+# REACH widening registered docs/PROCESS.md and CONTRIBUTING.md in
+# LITERAL_SCAN_MD_GLOBS, adding 30 newly hand-adjudicated 999.44 entries
+# (2 on CONTRIBUTING.md, 28 on docs/PROCESS.md), each with its own written
+# reason recorded in this same commit -- deliberate growth, not headroom.
+_DEFERRED_LEDGER_MAX: int = 182
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -2062,7 +2096,7 @@ _DEFERRED_LEDGER_MAX: int = 152
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:1663c1a1f60cd4c45df8df685bc06b54a7b3b39d07e5660a3fa4332d1cc4db63"
+    "sha256:b758aa0d68349de6fa53e83c103350c195a80ac0207c9e57e332373437066579"
 )
 
 
@@ -2279,6 +2313,13 @@ LITERAL_SCAN_MD_GLOBS: tuple[str, ...] = (
                                    # CONF-13's own ast-based docstring scanner by
                                    # construction, the same disclosed py-docstrings-only
                                    # blind spot demonstrated a second time)
+    "docs/PROCESS.md",            # the canonical process contract; states the depth rule
+                                   # and carries the exception ledger's frozen historical
+                                   # counts (D-05, plan 22-07)
+    "CONTRIBUTING.md",            # contributor-facing product surface that carried a
+                                   # false published gate count while outside every
+                                   # scanner's reach -- the finding this widening closes
+                                   # (D-05, plan 22-07)
 )
 
 # The full D-21-E scanned surface set: the Markdown globs above, plus every
@@ -2557,18 +2598,21 @@ def nonmodule_docstring_selffile_ratchet_problems(
 def _emit_deferred_ledger_backlog_id(relpath: str) -> str:
     """The 999.40/999.41/999.42/999.44 classification recorded in
     21-CONF13-BASELINE.md: docs/gates/*.md narrative pages, .py module
-    docstrings, the three peripheral CI-gate-table host surfaces, or
-    docs/README.md's own restored historical figures (999.44, D-22-D). The
-    999.44 branch is explicit rather than left to fall through to the
-    999.41 default: that default's published title says it holds Python
-    module docstrings, and filing a Markdown surface's hits under a
-    factually wrong label via a default branch is a catch-all in all but
-    name (T-21-09-02)."""
+    docstrings, the peripheral CI-gate-table host surfaces, or a
+    D-05/D-22-D REACH-widened surface's own hand-adjudicated historical
+    figures (999.44) -- docs/README.md's restored figures, and (plan
+    22-07) docs/PROCESS.md's and CONTRIBUTING.md's own frozen historical
+    counts, both newly registered in LITERAL_SCAN_MD_GLOBS. The 999.44
+    branches are explicit rather than left to fall through to the 999.41
+    default: that default's published title says it holds Python module
+    docstrings, and filing a Markdown surface's hits under a factually
+    wrong label via a default branch is a catch-all in all but name
+    (T-21-09-02)."""
     if relpath.startswith("docs/gates/"):
         return "999.40"
     if relpath in ("CLAUDE.md", "docs/ARCHITECTURE.md", "docs/TESTING.md"):
         return "999.42"
-    if relpath == "docs/README.md":
+    if relpath in ("docs/README.md", "docs/PROCESS.md", "CONTRIBUTING.md"):
         return "999.44"
     return "999.41"
 
