@@ -106,6 +106,23 @@ _spec.loader.exec_module(_gate_docs)  # type: ignore[union-attr]
 _EXPECTED_ARROW_PATTERN = r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"
 _EXPECTED_ENGLISH_PATTERN = r"\b\d{1,4}\s+to\s+\d{1,4}\b"
 
+# Membership pin, deliberately re-pinned by hand. The two `.pattern` selections
+# above are one-directional: they catch a delta spelling being REMOVED from
+# `_CITATION_SHAPE_RES`, and catch nothing at all when a THIRD delta spelling is
+# ADDED to it (a "from N to M" form, an en-dash range, an `N=>M` form). In that
+# case this census would keep exiting 0 while enumerating a strictly smaller
+# population than the mechanism strips, and the docstring's claim to cover "the
+# delta-vector members of the shared citation/identifier exemption tuple" would
+# silently become false — the failure mode most likely to matter, and the one
+# the pattern pins do not reach. Pinning the tuple's length turns any change in
+# its membership into a refusal to run plus a named stderr message.
+#
+# Pinned against `scripts/gen-gate-docs.py` at commit ca65d3b. Bumping this
+# number is a deliberate act: re-adjudicate which members are delta spellings,
+# and update `_EXPECTED_ARROW_PATTERN`/`_EXPECTED_ENGLISH_PATTERN` if the answer
+# changed, before quoting any count this tool prints.
+_PINNED_TUPLE_LEN = 27
+
 ORDERED_RUNGS: tuple[str, ...] = ("md-narrow", "md-all", "py-docstrings", "shared-text")
 
 
@@ -122,7 +139,23 @@ class Row(NamedTuple):
 def select_delta_patterns() -> tuple[re.Pattern[str], re.Pattern[str]] | None:
     """The live arrow/english delta-vector `re.Pattern` objects, selected out
     of `_gen_gate_docs._CITATION_SHAPE_RES` by exact `.pattern` string match.
-    Returns None and prints a named error to stderr if either is missing."""
+    Returns None and prints a named error to stderr if either is missing, or
+    if the tuple's own membership count no longer matches `_PINNED_TUPLE_LEN`
+    — the second check is what catches a delta spelling being ADDED, which the
+    per-pattern selections cannot see."""
+    live_len = len(_gate_docs._CITATION_SHAPE_RES)
+    if live_len != _PINNED_TUPLE_LEN:
+        print(
+            "FIDELITY FLOOR FAILED — _gen_gate_docs._CITATION_SHAPE_RES membership has "
+            f"changed since this census was pinned (expected {_PINNED_TUPLE_LEN} members, "
+            f"found {live_len}). A member added to that tuple may be a third delta "
+            "spelling this census does not enumerate, which would make its counts a "
+            "strictly smaller population than the mechanism strips. Re-adjudicate which "
+            "members are delta spellings and re-pin _PINNED_TUPLE_LEN before quoting any "
+            "count.",
+            file=sys.stderr,
+        )
+        return None
     arrow: re.Pattern[str] | None = None
     english: re.Pattern[str] | None = None
     for pattern in _gate_docs._CITATION_SHAPE_RES:
