@@ -300,3 +300,49 @@ or its number confirmed correct) shrinks the ledger; the ratchet permits
 that shrink — provided it is re-pinned in the same commit — but never a
 growth back toward a whole-surface permit, and never a same-size
 substitution the key digest would catch.
+
+## REACH-or-LEVEL determinations (v9.1.0, CONTAIN-01, CONTAIN-02, CONTAIN-03)
+
+`docs/v9.1-claim-containment-diagnosis.md` §5a already classifies `CONTAIN-01`, `CONTAIN-02` and
+`CONTAIN-03` as REACH at the requirement level, against `docs/PROCESS.md` §1.1's REACH/LEVEL
+distinction. This section does not repeat that classification — `docs/PROCESS.md` §1's own rule
+forbids restating a claim on a second surface. What follows instead is the per-change argument
+§5a's own qualification asks for: §5a states that `CONTAIN-01`'s wider reach is, on its own, "a
+wider point-fix, not a deeper one" unless paired with `CONTAIN-02`'s terminus arm. Making that
+pairing good — naming, per change, the action a future contributor loses — is what the
+paragraphs below do; the label itself is not asserted a further time.
+
+**`CONTAIN-01` (reach).** The existing `docs/gates/*.md` containment guard
+(`detail_page_containment_problems`) is pointed at `CLAUDE.md`, `docs/ARCHITECTURE.md` and
+`docs/TESTING.md` — product surfaces stating the same shape of current-fact quantity claim it
+already polices on the gate-detail pages, none of them reached before this phase. On its own this
+widening is exactly the wider point-fix `docs/PROCESS.md` §1 warns against: it touches more files
+with the same check, not a deeper one. What makes it a capability change rather than a wider
+correction is its pairing with `CONTAIN-02`: the wider surface set is what gives the terminus arm
+anything to see outside `docs/gates/*.md` in the first place, and the terminus arm is what makes
+the wider surface set catch a shape of claim a flat containment pass structurally cannot — a chain
+whose narrated final value has gone stale while every earlier hop stays true. Neither half carries
+the argument alone: a wider reach with no terminus arm behind it is correction-only, and a terminus
+arm with no reach beyond the gate pages behind it has nothing new to watch.
+
+**`CONTAIN-02` (a new comparison, still REACH).** The new arm's subject is a chain's own terminus
+value — the last hop of a narrated `N → M` (or a longer `N → M → P` sequence) — compared against a
+value published inside that same page's own generated fence. The future action it removes: once
+this arm lands, a contributor can no longer let a growth chain's own terminus drift away from the
+live figure its page publishes without the check disputing it — an action that stays structurally
+available today, as §5a's own measurement demonstrates, because the delta exemption strips a
+chain's whole vector including its terminus. The arm's subject is a page's own claim about a live
+figure, never a checker's own correctness, which is why this is REACH rather than the LEVEL move
+`docs/PROCESS.md` §1.1 caps at L3: it points an existing product-guard's discipline at one more
+thing the page says, it does not add a guard whose subject is `CONF-SURFACE`'s own correctness.
+
+**`CONTAIN-03` (this section itself).** Writing this determination is not itself the meta-guard
+regress `docs/PROCESS.md` §1 caps, because it adds no check, no CI job, no battery gate, and no
+`--self-test` control asserting that a determination exists on this page. A control built to
+assert the string "REACH" is present here would be exactly the label-assertion `CONTAIN-03`'s own
+text forbids; what this requirement asks for is a written argument on a product page, read by a
+reviewer, not scored by a mechanism.
+
+Each unit landed in plans 25-02 and 25-03 carries a docstring line pointing at this section by
+name — the function implementing the chain-terminus arm, and the call site widening containment's
+reached-surface loop in `cmd_check()` — and none of them restates its content.
