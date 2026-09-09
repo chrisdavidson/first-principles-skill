@@ -429,11 +429,50 @@ $ git status --short .planning/
 - **Committed in:** N/A — `.planning/REQUIREMENTS.md` is gitignored, no commit exists for this
   file.
 
+**3. [Rule 1 - Bug] `bm-sdk query state.record-session` overwrote the byte-verbatim-protected
+Phase 22 halt record's `Resume file:` line**
+- **Found during:** the post-execution `state_updates` step, running
+  `bm-sdk query state.record-session --stopped-at "Completed 23-05-PLAN.md" --resume-file "None"`
+  as directed by the executor workflow.
+- **Issue:** This project's `.planning/STATE.md` uses a bespoke, hand-maintained structure (no
+  `## Performance Metrics` section, no `## Decisions` section, no separate `## Session` block
+  with its own `Resume file:` field) — confirmed first by `state.update-progress`,
+  `state.record-metric`, and `state.add-decision` all returning `{"...": false, "reason": "...
+  section not found in STATE.md"}` rather than mutating anything. `state.record-session`,
+  however, did not fail closed: it found the document's *only* `Resume file:` line — inside the
+  byte-verbatim-protected `#### The Phase 22 halt record, verbatim` block this plan's own
+  acceptance criteria require to stay untouched — and overwrote it from
+  `.planning/phases/24-diagnosis-name-the-mechanism-not-the-instance/24-CONTEXT.md` to `None`.
+  Caught immediately by re-diffing the halt block against the pre-edit copy taken at the start of
+  Task 3, per this plan's own required verification step.
+- **Fix:** Reverted the single line back to its original text
+  (`Resume file: .planning/phases/24-diagnosis-name-the-mechanism-not-the-instance/24-CONTEXT.md`)
+  via a targeted edit; re-diffed the full halt block and the `### v9.0.0 is OPEN...` heading block
+  against the pre-edit copy, both now byte-identical (diff exit 0, confirmed twice). No further
+  `bm-sdk query state.*` mutation verb was run against `.planning/STATE.md` after this was found —
+  `roadmap.update-plan-progress` and `requirements.mark-complete` were run afterward only against
+  `.planning/ROADMAP.md` and `.planning/REQUIREMENTS.md`, each diffed against its own pre-run copy
+  and confirmed to make only the intended, narrow change (a progress-table row; no change, since
+  all four REL boxes were already complete, respectively).
+- **Files modified:** `.planning/STATE.md` (the corruption and its revert are both in the
+  working tree; gitignored, no commit exists for either).
+- **Verification:** `diff` of the halt block and the HELD heading block against the pre-edit copy,
+  both exit 0 after the revert; `git status --short` empty; full battery re-run, `FIREWALL: GREEN
+  (26/26)`.
+- **Committed in:** N/A — `.planning/STATE.md` is gitignored, no commit exists for this file.
+  **This is worth a reader's attention beyond this plan**: the tool-assist step in the standard
+  executor workflow is not safe to run unattended against a hand-maintained `STATE.md` that
+  deviates from the canonical GSD scaffold, specifically for `record-session`'s `Resume file:`
+  target-line search, which is not scoped to a dedicated session section the way the other three
+  verbs' section searches are.
+
 ---
 
-**Total deviations:** 2 auto-fixed (1 bug in a verification step, 1 stale-claim bug in a
-gitignored planning artifact). **Impact on plan:** Neither touched any of the three no-fix-fenced
-sites or the shipped `CHANGELOG.md`. No scope creep.
+**Total deviations:** 3 auto-fixed (1 bug in a verification step, 1 stale-claim bug in a
+gitignored planning artifact, 1 tooling bug that corrupted and required reverting a
+byte-verbatim-protected block). **Impact on plan:** None reached a commit or the shipped
+`CHANGELOG.md`; the third was caught and reverted before it could persist, by this plan's own
+mandated re-verification step. No scope creep.
 
 ## Assumption Drift (advisory)
 
