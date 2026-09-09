@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
-"""Enumerate every N -> M delta vector in narrative prose outside a recognised
-generated fence, across tracked Markdown and scripts/ module docstrings, in
-all three spellings the containment mechanism's own exemption covers: an
-arrow (an ASCII "->"/"-->" or the unicode arrow), and the English-prose "N to
-M" form.
+"""Enumerate each non-overlapping N -> M delta match in narrative prose outside
+a recognised generated fence, across tracked Markdown and scripts/ module
+docstrings, in all three spellings the containment mechanism's own exemption
+covers: an arrow (an ASCII "->"/"-->" or the unicode arrow), and the
+English-prose "N to M" form.
+
+Match count, not hop count, stated because the two differ: re.finditer is
+non-overlapping, so a chain written inline as one continuous span matches once
+per pair of operands, not once per hop -- the middle operand anchors the first
+match's tail and cannot also anchor the next match's head. That is the same
+property `_strip_citation_shaped_numbers` itself has, analysed at length as a
+property of the mechanism in the claim-containment diagnosis under docs/, and
+restated here as a property of this census. The counts this tool prints are
+exact on match count and a floor on hop count.
 
 Manual tool, not a CI gate — the same standing as `trace-tests-usage.py`. It
 is registered in `check-firewall-battery.sh`, in
