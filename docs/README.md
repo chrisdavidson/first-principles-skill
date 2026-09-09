@@ -198,6 +198,12 @@ milestone requirement block registered as matrix rows since v7.9.
 |----------|----------------|
 | [v8.18-praor-loop-closure.md](v8.18-praor-loop-closure.md) | 2026-08-29. The v8.18.0 milestone record — the four PRAOR-loop gaps found by the 2026-08-27 review, each gap's disposition and guarding gate, the HARN-04 battery/CI registrations, the traceability move, the standing-record changes (`v8.0-final-closure.md`'s lifted immutability trait, the correction note inside the `## [8.17.2]` CHANGELOG entry), and the deliberate deferrals with their triggers. |
 
+## v9.1 — Claim containment diagnosis
+
+| Document | What it covers |
+|----------|----------------|
+| [v9.1-claim-containment-diagnosis.md](v9.1-claim-containment-diagnosis.md) | Names the mechanism behind quantity-shaped claims going stale on generated-surface pages, adjudicates the sibling census, dispositions CR-01/CR-02/CR-03 with a stated bound apiece, declares the consistency-shaped class out of scope with a falsifiable reason, and renders REACH-or-LEVEL keep/drop verdicts on the ratchet enforcement mechanisms before any of them is built. Dated diagnosis, produced before the mechanism it names is changed — see its own Status banner. |
+
 ## Reference & history
 
 | Document | What it covers |
