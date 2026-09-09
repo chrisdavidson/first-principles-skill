@@ -83,7 +83,7 @@ import importlib.util
 import re
 import subprocess
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import NamedTuple
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -192,21 +192,34 @@ def _git_ls_files(pathspec: str) -> list[str]:
     return sorted(line for line in result.stdout.splitlines() if line)
 
 
+def _matches_narrow_glob(relpath: str, pattern: str) -> bool:
+    """Whether one tracked repo-relative path is selected by one
+    `LITERAL_SCAN_MD_GLOBS` entry, reproducing `Path.glob`'s own semantics
+    rather than `fnmatch`'s: a literal entry matches by full equality (so a
+    nested `sub/CLAUDE.md` is not selected by the entry `CLAUDE.md`), and a
+    `*` never crosses a path separator (so `docs/gates/*.md` does not select
+    `docs/gates/sub/x.md`)."""
+    if "*" not in pattern:
+        return relpath == pattern
+    candidate, glob = PurePosixPath(relpath), PurePosixPath(pattern)
+    return len(candidate.parts) == len(glob.parts) and candidate.match(pattern)
+
+
 def files_for_rung(rung: str) -> list[str]:
     """Repo-relative paths for one rung of the ladder, per its pre-registered
     definition. Raises RuntimeError on a source-control listing failure."""
     if rung == "md-narrow":
-        paths: set[str] = set()
-        for pattern in _gate_docs.LITERAL_SCAN_MD_GLOBS:
-            if "*" in pattern:
-                for candidate in REPO_ROOT.glob(pattern):
-                    if candidate.is_file():
-                        paths.add(str(candidate.relative_to(REPO_ROOT)))
-            else:
-                candidate = REPO_ROOT / pattern
-                if candidate.is_file():
-                    paths.add(pattern)
-        return sorted(paths)
+        # A filter over the tracked listing, NOT a filesystem glob, so all four
+        # rungs share one source of truth. Enumerating the filesystem here let an
+        # untracked or gitignored `docs/gates/*.md` — a scratch copy, a
+        # mutation-test artifact — enter `md-narrow` while never entering
+        # `md-all`, silently breaking the ladder's documented subset relation
+        # with a clean exit and no warning.
+        return sorted(
+            relpath for relpath in _git_ls_files("*.md")
+            if any(_matches_narrow_glob(relpath, g)
+                   for g in _gate_docs.LITERAL_SCAN_MD_GLOBS)
+        )
     if rung == "md-all":
         return _git_ls_files("*.md")
     if rung == "py-docstrings":
