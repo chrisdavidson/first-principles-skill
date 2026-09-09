@@ -2,7 +2,8 @@
 """Enumerate each non-overlapping N -> M delta match in narrative prose outside
 a recognised generated fence, across tracked Markdown and scripts/ module
 docstrings, in all three spellings the containment mechanism's own exemption
-covers: an arrow (an ASCII "->"/"-->" or the unicode arrow), and the
+covers: an arrow (an ASCII "->"/"-->" or the unicode arrow), a slash-paired
+operand group on each side of that same arrow ("133/96 -> 132/97"), and the
 English-prose "N to M" form.
 
 Match count, not hop count, stated because the two differ: re.finditer is
@@ -30,7 +31,7 @@ designs that arm, not a decision this tool makes for them.
 Scope bound: the population is the delta-vector members of the shared
 citation/identifier exemption tuple ONLY, not the whole tuple. A span that
 some other member of that tuple would also strip is still counted here if it
-matches one of the two delta spellings — membership is decided by the delta
+matches one of the three delta spellings — membership is decided by the delta
 spellings alone, never by whether a different exemption would also apply.
 
 Granularity bound, disclosed because the counts depend on it: this census
@@ -97,19 +98,22 @@ sys.modules["_gen_gate_docs"] = _gate_docs  # MUST precede exec_module (module e
 # `_this_module = sys.modules[__name__]` at module scope)
 _spec.loader.exec_module(_gate_docs)  # type: ignore[union-attr]
 
-# The two delta-vector pattern strings this census is faithful to, quoted
-# verbatim from `_CITATION_SHAPE_RES`'s own two entries, never retyped as a
+# The three delta-vector pattern strings this census is faithful to, quoted
+# verbatim from `_CITATION_SHAPE_RES`'s own three entries, never retyped as a
 # second, independently-written grammar. Selected below by exact `.pattern`
-# match against the live tuple — if either string is absent from the live
+# match against the live tuple — if any string is absent from the live
 # tuple, the census is no longer faithful to the mechanism it was built to
 # enumerate and refuses to run.
 _EXPECTED_ARROW_PATTERN = r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"
 _EXPECTED_ENGLISH_PATTERN = r"\b\d{1,4}\s+to\s+\d{1,4}\b"
+# Added Phase 25 (CONTAIN-02): the slash-paired transition vector this
+# census's own docstring previously anticipated as "a THIRD delta spelling".
+_EXPECTED_SLASH_PATTERN = r"\d[\d,]*(?:/\d[\d,]*)+\s*(?:→|-->|->)\s*\d[\d,]*(?:/\d[\d,]*)+"
 
-# Membership pin, deliberately re-pinned by hand. The two `.pattern` selections
-# above are one-directional: they catch a delta spelling being REMOVED from
-# `_CITATION_SHAPE_RES`, and catch nothing at all when a THIRD delta spelling is
-# ADDED to it (a "from N to M" form, an en-dash range, an `N=>M` form). In that
+# Membership pin, deliberately re-pinned by hand. The three `.pattern`
+# selections above are one-directional: they catch a delta spelling being
+# REMOVED from `_CITATION_SHAPE_RES`, and catch nothing at all when a FOURTH
+# delta spelling is ADDED to it (an en-dash range, an `N=>M` form). In that
 # case this census would keep exiting 0 while enumerating a strictly smaller
 # population than the mechanism strips, and the docstring's claim to cover "the
 # delta-vector members of the shared citation/identifier exemption tuple" would
@@ -117,11 +121,13 @@ _EXPECTED_ENGLISH_PATTERN = r"\b\d{1,4}\s+to\s+\d{1,4}\b"
 # the pattern pins do not reach. Pinning the tuple's length turns any change in
 # its membership into a refusal to run plus a named stderr message.
 #
-# Pinned against `scripts/gen-gate-docs.py` at commit ca65d3b. Bumping this
-# number is a deliberate act: re-adjudicate which members are delta spellings,
-# and update `_EXPECTED_ARROW_PATTERN`/`_EXPECTED_ENGLISH_PATTERN` if the answer
-# changed, before quoting any count this tool prints.
-_PINNED_TUPLE_LEN = 27
+# Pinned against `scripts/gen-gate-docs.py` at commit ca65d3b (27 members),
+# re-pinned at commit b661281 (28 members, the slash-paired member landing in
+# the same phase this comment was updated). Bumping this number is a
+# deliberate act: re-adjudicate which members are delta spellings, and update
+# `_EXPECTED_ARROW_PATTERN`/`_EXPECTED_ENGLISH_PATTERN`/`_EXPECTED_SLASH_PATTERN`
+# if the answer changed, before quoting any count this tool prints.
+_PINNED_TUPLE_LEN = 28
 
 ORDERED_RUNGS: tuple[str, ...] = ("md-narrow", "md-all", "py-docstrings", "shared-text")
 
@@ -136,19 +142,19 @@ class Row(NamedTuple):
     context: str
 
 
-def select_delta_patterns() -> tuple[re.Pattern[str], re.Pattern[str]] | None:
-    """The live arrow/english delta-vector `re.Pattern` objects, selected out
-    of `_gen_gate_docs._CITATION_SHAPE_RES` by exact `.pattern` string match.
-    Returns None and prints a named error to stderr if either is missing, or
-    if the tuple's own membership count no longer matches `_PINNED_TUPLE_LEN`
-    — the second check is what catches a delta spelling being ADDED, which the
-    per-pattern selections cannot see."""
+def select_delta_patterns() -> tuple[re.Pattern[str], re.Pattern[str], re.Pattern[str]] | None:
+    """The live arrow/english/slash delta-vector `re.Pattern` objects,
+    selected out of `_gen_gate_docs._CITATION_SHAPE_RES` by exact `.pattern`
+    string match. Returns None and prints a named error to stderr if any is
+    missing, or if the tuple's own membership count no longer matches
+    `_PINNED_TUPLE_LEN` — the second check is what catches a delta spelling
+    being ADDED, which the per-pattern selections cannot see."""
     live_len = len(_gate_docs._CITATION_SHAPE_RES)
     if live_len != _PINNED_TUPLE_LEN:
         print(
             "FIDELITY FLOOR FAILED — _gen_gate_docs._CITATION_SHAPE_RES membership has "
             f"changed since this census was pinned (expected {_PINNED_TUPLE_LEN} members, "
-            f"found {live_len}). A member added to that tuple may be a third delta "
+            f"found {live_len}). A member added to that tuple may be a fourth delta "
             "spelling this census does not enumerate, which would make its counts a "
             "strictly smaller population than the mechanism strips. Re-adjudicate which "
             "members are delta spellings and re-pin _PINNED_TUPLE_LEN before quoting any "
@@ -158,16 +164,21 @@ def select_delta_patterns() -> tuple[re.Pattern[str], re.Pattern[str]] | None:
         return None
     arrow: re.Pattern[str] | None = None
     english: re.Pattern[str] | None = None
+    slash: re.Pattern[str] | None = None
     for pattern in _gate_docs._CITATION_SHAPE_RES:
         if pattern.pattern == _EXPECTED_ARROW_PATTERN:
             arrow = pattern
         elif pattern.pattern == _EXPECTED_ENGLISH_PATTERN:
             english = pattern
+        elif pattern.pattern == _EXPECTED_SLASH_PATTERN:
+            slash = pattern
     missing = []
     if arrow is None:
         missing.append("the arrow-transition delta-vector pattern")
     if english is None:
         missing.append("the English-prose 'N to M' delta-vector pattern")
+    if slash is None:
+        missing.append("the slash-paired transition-vector delta pattern")
     if missing:
         print(
             "FIDELITY FLOOR FAILED — " + " and ".join(missing) + " no longer appear as a "
@@ -177,7 +188,7 @@ def select_delta_patterns() -> tuple[re.Pattern[str], re.Pattern[str]] | None:
             file=sys.stderr,
         )
         return None
-    return arrow, english
+    return arrow, english, slash
 
 
 def _git_ls_files(pathspec: str) -> list[str]:
@@ -251,6 +262,7 @@ def scan_relpath(
     relpath: str,
     arrow_re: re.Pattern[str],
     english_re: re.Pattern[str],
+    slash_re: re.Pattern[str],
 ) -> tuple[list[Row], bool]:
     """Rows found in one file for one rung, plus whether the file carries a
     fence `_gen_gate_docs` recognises at all (recorded per-file, per D-09's
@@ -279,7 +291,7 @@ def scan_relpath(
     for idx, line in enumerate(lines):
         if inside[idx]:
             continue
-        for pattern, spelling in ((arrow_re, "arrow"), (english_re, "english")):
+        for pattern, spelling in ((arrow_re, "arrow"), (english_re, "english"), (slash_re, "slash")):
             for m in pattern.finditer(line):
                 rows.append(
                     Row(rung, relpath, base_lineno + idx, spelling, m.group(0), fenced, line.strip())
@@ -329,7 +341,7 @@ def main() -> int:
     selected = select_delta_patterns()
     if selected is None:
         return 1
-    arrow_re, english_re = selected
+    arrow_re, english_re, slash_re = selected
 
     rungs = list(ORDERED_RUNGS) if args.rung == "all" else [args.rung]
 
@@ -347,7 +359,7 @@ def main() -> int:
         rung_rows: list[Row] = []
         for relpath in paths:
             try:
-                rows, fenced = scan_relpath(rung, relpath, arrow_re, english_re)
+                rows, fenced = scan_relpath(rung, relpath, arrow_re, english_re, slash_re)
             except (OSError, UnicodeDecodeError, SyntaxError) as exc:
                 failures.append(f"{rung}: could not read {relpath}: {exc}")
                 continue

@@ -1105,6 +1105,16 @@ _NUMBER_RE = re.compile(r"\b\d[\d,]*\b")
 # stamps) are tried before the generic two-segment hyphen pattern so a
 # three-segment date is consumed whole rather than leaving a residual
 # single-segment match.
+
+# The slash-paired transition-vector pattern's own string, named so this
+# module's own ordering control (`_control_citation_shape_slash_before_arrow`)
+# and `scripts/census-delta-vectors.py`'s `_EXPECTED_SLASH_PATTERN` can both
+# assert against the identical literal without a third, independent retyping
+# of it inside `_CITATION_SHAPE_RES` itself.
+_SLASH_PAIRED_TRANSITION_PATTERN: str = (
+    r"\d[\d,]*(?:/\d[\d,]*)+\s*(?:→|-->|->)\s*\d[\d,]*(?:/\d[\d,]*)+"
+)
+
 _CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
     # ISO date: 2026-09-02
     re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
@@ -1137,6 +1147,22 @@ _CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
     # Letter-prefixed identifier-digit citation: CONTRACT-06, WR-04, D-02,
     # SCAN-04, CHAINHEAD-07, HARNESS-01, LEDGER-01, CR-01, HC-04, etc.
     re.compile(r"\b[A-Za-z][A-Za-z0-9]*-\d{1,4}\b"),
+    # Slash-paired transition vector: 133/96 → 132/97, the historical
+    # requirements-ledger delta shape used throughout CLAUDE.md. Same DELTA
+    # shape the single-operand arrow-vector rule immediately below covers,
+    # spelled with a slash-joined operand group on each side instead of a
+    # single operand. Tried BEFORE that rule -- ORDERING IS LOAD-BEARING:
+    # `re.sub` is applied per pattern in tuple order and is non-overlapping,
+    # so if the single-operand pattern ran first it would consume only the
+    # arrow-adjacent operands (`96 → 132`) and strand the sibling operands
+    # (`133`, `97`) as bare numbers -- the half-strip CONTAIN-02's
+    # chain-terminus arm exists to close. Added in this phase so the chain
+    # grammar can see CLAUDE.md's own growth chains as chains, which it
+    # cannot do while each hop is only half-matched -- not an exemption
+    # widened for its own sake. See docs/gates/CONF-SURFACE.md's
+    # `## REACH-or-LEVEL determinations` section for the determination;
+    # not restated here.
+    re.compile(_SLASH_PAIRED_TRANSITION_PATTERN),
     # Measured-transition vector, mirroring HEADLINE-LOCK's own
     # arrow-adjacency rule: a digit immediately next to a transition arrow
     # is a delta, not a current-fact count.
@@ -3784,6 +3810,64 @@ def _control_containment_spelled_out_normalised() -> None:
     assert "'47'" in problems[0], problems
 
 
+def _control_containment_slash_paired_vector_stripped() -> None:
+    """A slash-paired transition vector (`133/96 → 132/97`) outside a
+    generated fence, with a fence carrying neither operand, produces zero
+    containment findings -- the whole span is stripped as one DELTA, not
+    treated as four independent current-fact counts. Regression guard for
+    the half-strip D-01 measured: if the slash-paired pattern were ever
+    reordered after the single-operand arrow pattern in
+    `_CITATION_SHAPE_RES`, this control would fail, because the
+    single-operand pattern would then run first and strand `133`/`97` as
+    bare numbers with no fence counterpart -- see
+    `_control_citation_shape_slash_before_arrow` for the direct ordering
+    assertion."""
+    text = (
+        "# Page\n\nCoverage moved 133/96 → 132/97 this cycle.\n\n"
+        f"{DETAIL_FACTS_MARKERS[0]}\nsome fact\n{DETAIL_FACTS_MARKERS[1]}\n"
+    )
+    problems = detail_page_containment_problems("test.md", text)
+    assert problems == [], problems
+
+
+def _control_citation_shape_slash_before_arrow() -> None:
+    """The slash-paired transition-vector pattern's index in
+    `_CITATION_SHAPE_RES` must be lower than the single-operand
+    arrow-vector pattern's index, so a future reorder fails loudly here
+    rather than silently reintroducing the half-strip D-01 measured (the
+    single-operand pattern consuming only the arrow-adjacent operands of a
+    slash-paired vector and stranding its siblings as bare numbers)."""
+    slash_idx = next(
+        i for i, p in enumerate(_CITATION_SHAPE_RES)
+        if p.pattern == _SLASH_PAIRED_TRANSITION_PATTERN
+    )
+    arrow_idx = next(
+        i for i, p in enumerate(_CITATION_SHAPE_RES)
+        if p.pattern == r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"
+    )
+    assert slash_idx < arrow_idx, (slash_idx, arrow_idx)
+
+
+def _control_citation_shape_len_matches_census_pin() -> None:
+    """`len(_CITATION_SHAPE_RES)` must equal
+    `scripts/census-delta-vectors.py`'s `_PINNED_TUPLE_LEN`, imported from
+    that module rather than retyped here -- the same discipline
+    `_CLAIM_FLOORS_LOCK`/`_BRANCH_ROSTER_LOCK` apply elsewhere (a second,
+    independently-loaded read of the pin), applied to a cross-file pin
+    instead of a same-file one. A tuple growth landed without the
+    same-commit re-pin in `census-delta-vectors.py` would otherwise only
+    be caught by that unregistered census tool's own FIDELITY FLOOR check;
+    this control makes the drift visible in this module's own
+    `--self-test` too."""
+    census_path = REPO_ROOT / "scripts" / "census-delta-vectors.py"
+    spec = importlib.util.spec_from_file_location("_census_delta_vectors_probe", census_path)
+    census = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
+    spec.loader.exec_module(census)  # type: ignore[union-attr]
+    assert len(_CITATION_SHAPE_RES) == census._PINNED_TUPLE_LEN, (
+        len(_CITATION_SHAPE_RES), census._PINNED_TUPLE_LEN
+    )
+
+
 def _control_version01_narrative_control_ids_live() -> None:
     """T-21-19-01: the real docs/gates/VERSION-01.md narrative's cited
     control ids are all live `expect(` names in check-version-stamps.py,
@@ -4616,6 +4700,15 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-violation-fires", _control_containment_violation_fires),
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
+    (
+        "containment-slash-paired-vector-stripped",
+        _control_containment_slash_paired_vector_stripped,
+    ),
+    ("citation-shape-slash-before-arrow", _control_citation_shape_slash_before_arrow),
+    (
+        "citation-shape-len-matches-census-pin",
+        _control_citation_shape_len_matches_census_pin,
+    ),
     ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
     ("confsurface-census-narrative-joined", _control_confsurface_census_narrative_joined),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
@@ -4714,6 +4807,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-violation-fires",
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
+    "containment-slash-paired-vector-stripped",
+    "citation-shape-slash-before-arrow",
+    "citation-shape-len-matches-census-pin",
     "version01-narrative-control-ids-live",
     "confsurface-census-narrative-joined",
     "check-reports-full-drift-count",
