@@ -2858,5 +2858,195 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04)."
+  },
+  {
+    "key": "v9.0/CONF-01",
+    "bare_id": "CONF-01",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/conformance-baseline.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/report-conformance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-02",
+    "bare_id": "CONF-02",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/conformance-baseline.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/report-conformance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-03",
+    "bare_id": "CONF-03",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "shared/examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-conf-gate.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-04",
+    "bare_id": "CONF-04",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "shared/examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-conf-gate.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-05",
+    "bare_id": "CONF-05",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "shared/examples/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-conf-gate.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-06",
+    "bare_id": "CONF-06",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-conf-gate.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-conf-gate.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-07",
+    "bare_id": "CONF-07",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/adversarial-corpus-v9.0",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-08",
+    "bare_id": "CONF-08",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/adversarial-corpus-v9.0",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/report-conformance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-09",
+    "bare_id": "CONF-09",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "tests/live-conformance-v9.0",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/report-conformance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-10",
+    "bare_id": "CONF-10",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/conformance-baseline.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/report-conformance.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-11",
+    "bare_id": "CONF-11",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "docs/gates/",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-12",
+    "bare_id": "CONF-12",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-13",
+    "bare_id": "CONF-13",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/CONF-14",
+    "bare_id": "CONF-14",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "docs/PROCESS.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it."
+  },
+  {
+    "key": "v9.0/CONF-15",
+    "bare_id": "CONF-15",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it."
+  },
+  {
+    "key": "v9.0/REL-01",
+    "bare_id": "REL-01",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/REL-02",
+    "bare_id": "REL-02",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/REL-03",
+    "bare_id": "REL-03",
+    "milestone": "v9.0",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.0/REL-04",
+    "bare_id": "REL-04",
+    "milestone": "v9.0",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04 and v8.26 SHIP-04/05)."
   }
 ]

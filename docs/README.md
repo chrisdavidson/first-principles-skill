@@ -17,12 +17,12 @@
 
 > **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
 > — the authoritative surface: active residuals, dispositions, and the **current** coverage
-> headline of **192 reproducible / 94 audit-only / 0 gap / 286 total**.
+> headline of **208 reproducible / 97 audit-only / 0 gap / 305 total**.
 >
 > **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
 > limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
 > document calls its figure "final" because v8.0 was intended to wrap the project; work continued,
-> and the headline has moved seven times since (133/96 → 132/97 at the v8.8 post-close re-tier,
+> and the headline has moved eight times since (133/96 → 132/97 at the v8.8 post-close re-tier,
 > then → 126/88 when 15 builder requirements were retired, taking the row count 229 → 214, then
 > → 147/90 when the 23 v8.18 requirements were registered as matrix rows, taking the row count
 > 214 → 237, then → 161/91 when the 15 v8.24 requirements were registered as matrix rows, taking
@@ -30,8 +30,9 @@
 > rows, taking the row count 252 → 266, then → 175/91 when CONTRACT-06 was re-tiered reproducible
 > at v8.26 Phase 13, with the row count unchanged at 266, then → 192/94 when the 20 v8.26
 > requirements were registered as matrix rows at Phase 16 (SHIP-03), taking the row count
-> 266 → 286). Read it as a record of where v8.0 stood, not as the
-> current state.
+> 266 → 286, then → 208/97 when the 19 v9.0 requirements were registered as matrix rows at
+> Phase 23 (REL-03), taking the row count 286 → 305). Read it as a record of where v8.0 stood,
+> not as the current state.
 >
 > Later milestones v8.1 (a Grok-review triage that selectively implemented 7 docs/metadata items), v8.2 (a fresh analysis-only re-investigation of the 19 not-approved items), v8.3 (a technique-overlap + context-optimization evaluation, findings-only, byte-freeze untouched), and v8.4 (an implementation-readiness evaluation that returned a GO verdict on the GROK-04 hero banner — specified and costed but not built in that milestone — and a NO-GO on reference-file extraction) left this terminal baseline unchanged.
 
@@ -151,7 +152,7 @@ The narrower question, *does a gate resolve the file itself?*, is yes for exactl
 |----------|----------------|
 | [v8.0-final-closure.md](v8.0-final-closure.md) | The v8.0 terminal ACCEPTED-FINAL dispositions and deferred-ledger summary. **Its counts are superseded** — see its Standing banner and the table above |
 | [requirements-traceability.md](requirements-traceability.md) | Authoritative requirements traceability surface: active residuals, coverage headline, compact historical ledger, gap findings |
-| [requirements-matrix.md](requirements-matrix.md) | Generated 286-row capability → requirement → test matrix |
+| [requirements-matrix.md](requirements-matrix.md) | Generated 305-row capability → requirement → test matrix |
 
 ## v8.5 — Context optimization (reference-file split)
 
