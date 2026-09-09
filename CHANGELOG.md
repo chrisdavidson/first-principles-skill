@@ -11,6 +11,124 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.0.0] — 2026-09-09
+
+Ships the milestone that measures and closes the exemplar-conformance gap [8.26.0] disclosed: the
+**conformance baseline** (CONF-01, CONF-02), **exemplar conformance and the `CONF-GATE` ratchet**
+(CONF-03 through CONF-06), the **adversarial corpus and its published false-negative rate**
+(CONF-07, CONF-08), **live conformance** (CONF-09, CONF-10), the **generated claim surface**
+(CONF-11 through CONF-13), the **depth rule with the review protocol and rework cap** (CONF-14,
+CONF-15), and the **release act itself** (REL-01 through REL-04). The coverage headline moves
+`192 reproducible / 94 audit-only / 0 gap / 286 total` to `208 reproducible / 97 audit-only / 0 gap
+/ 305 total` (19 requirements registered as matrix rows via a new `_rows_v9()`, 16 reproducible +
+3 audit-only), and the firewall battery tally moves **24/24** to **26/26** this milestone —
+`CONF-GATE` (Phase 18) moved it 24 → 25, `CONF-SURFACE` (Phase 21) moved it 25 → 26.
+
+### Added
+
+- **Conformance baseline** (CONF-01, CONF-02). `docs/conformance-baseline.md` and
+  `docs/data/conformance.json` report every `_DEFECT_RECORD_FIELDS` reading for all 14
+  `shared/examples/*.md` files and separately for `shared/spine/references/output-template.md`,
+  naming files the detector cannot read rather than skipping them; `--check` reproduces the
+  committed artifacts byte for byte and exits 1 on drift. **Disclosed limits —** the file states
+  no target and blocks no gate; its numbers are dated, a measurement rather than a contract.
+- **Exemplar conformance and the `CONF-GATE` ratchet** (CONF-03 through CONF-06). All 14 shipped
+  worked examples now resolve into six template sections (`0 of 14` unreadable, both
+  shared-examples and generated-twin); `0` of 77 §2 verdict cells are non-conforming; `0` of 31
+  chain blocks are malformed; §6 untraced claims read `2` (both marked, `0` silent), with the
+  marked-claim residual pinned by `scripts/check-conf-gate.py`'s `_MARKED_RATCHET = 4` — a ratchet
+  that may fall, never rise. `CONF-GATE` is a standing battery gate moving the tally 24 → 25.
+  **Disclosed limits —** `heading_malformed_blocks == 0` proves conformance to
+  `_chain_block_well_formed`'s measured reach (the head and first hop only), not to R7 as
+  published; the `untraced_claims` reading does not reach zero by design — a marked caveat still
+  scores untraced (`R-CLAIM-CAVEAT-MARKED`), and driving it to zero would mean inventing
+  citations; `shared/spine/references/output-template.md`'s §4 worked examples are measured but
+  not gated, because they deliberately include non-conforming forms as labelled teaching
+  contrasts; and the closure-ledger citation route (`- "quoted claim" → chain Cn`) has zero
+  shipped exemplars.
+- **Adversarial corpus and its false-negative rate** (CONF-07, CONF-08). `tests/adversarial-corpus-v9.0/`
+  ships 13 analyses that pass every form check while being substantively wrong, each with a
+  written statement of what is false about it and which rule ought to have caught it; every item
+  is filed with a named disposition — fix, accept-with-reason, or defer-with-owner. **Disclosed
+  limits —** the published false-negative rate is **10 of 13**: the unmodified, CONTRACT-06-frozen
+  `detect_defects` did not catch the catalogued falsehood in 10 of the 13 items (Stratum A 2 of 5,
+  Stratum B1 1 of 1, Stratum B2 7 of 7). Stratum B2 (7 of the 13) is reachable by nothing this
+  project ships.
+- **Live conformance** (CONF-09, CONF-10). 8 live runs are captured on the shipped v8.26.0 body
+  across the fixture set, each committed under `tests/live-conformance-v9.0/` with its full
+  `detect_defects` reading; a live conformance rate is published in `docs/conformance-baseline.md`
+  as an observation with its N stated, never a gate. **Disclosed limits —** the published rate is
+  **5 of 8** (primary and secondary conditional rate agree; all 8 attempted runs completed),
+  subject to the K-of-5 governing record's noise discipline (`docs/v8.7-constraint-teardown.md`
+  §2 item 3: at N=5, noise equals effect). On this surface `heading_malformed_blocks`'s own
+  denominator is nearly empty — the `### Conclusion` heading sweep found 6 blocks total across the
+  8 resolved runs and none at all in 7 of them — so a quarter of the clean verdict's four counts is
+  carried by a single run, not by all of them.
+- **Generated claim surface** (CONF-11 through CONF-13). Every registered gate script supports
+  `--describe`, emitting its own documentation row from its live constants; `CLAUDE.md`'s CI-gate
+  table and `docs/ARCHITECTURE.md`'s inventory are generated from those emissions, with per-gate
+  detail on `docs/gates/<GATE-ID>.md` and a gate failing when committed text no longer matches
+  emitted text; a standing scanner drives hand-maintained branch-count literals in prose to **0**
+  non-exempt. **Disclosed limits —** the scanner's `headline-provenance-delta` exemption class
+  strips the entire `N → M` delta run, including its terminus, so a chain whose final value has
+  gone stale is indistinguishable from one that is current and reads as exempt rather than as a
+  hit — stated here as the requirement's own measured bound (D-11), not discovered by a reader.
+- **Depth rule, review protocol and rework cap** (CONF-14, CONF-15). `docs/PROCESS.md` states the
+  depth rule — "a guard guards the product; a guard is not itself guarded" — with the
+  `999.27 → 999.28 → 999.30` chain cited as its measured justification; `CLAUDE.md`'s "Review
+  protocol" section states the product/apparatus tier cut, the `/bm:code-review` output shape, and
+  the block-on-product-findings-only rule. **Disclosed limits —** neither is enforced by any
+  script, control, or CI job; `CLAUDE.md` states this plainly in its own words.
+- **19 new traceability-matrix rows** (16 reproducible + 3 audit-only) via a new `_rows_v9()`,
+  moving the coverage headline `192/94/0/286` → `208/97/0/305`. **Disclosed limits —** of the 16
+  reproducible rows, only REL-03 carries a `_self_test_*`-prefixed anchor that `_resolve_artifact()`
+  dispatch-checks; the other 15 carry a bare script path, because none of those five scripts
+  (`report-conformance.py`, `check-conf-gate.py`, `check-firewall-battery.sh`, `gen-gate-docs.py`,
+  `check-version-stamps.py`) defines a `_selftest_`/`_self_test_`-prefixed symbol — each script's
+  own `--self-test`/`--check` CLI surface supplies that guarantee instead.
+
+**Exemplar-conformance disclosure closed (SHIP-05).** `[8.26.0]` measured, with the unmodified
+frozen detectors (`_slice_sections`, `_verdict_conforms`, `_conclusion_claims`,
+`_chain_block_well_formed`), that the 14 shipped worked examples in `shared/examples/` violated
+R1 through R12 at 68-100%: **4 of 14** unreadable by `_slice_sections`; **69/69** section-2 verdict
+cells non-conforming; **56/58** section-6 claims untraced, with **0** carrying the
+`no chain — flagged assumption only` marker; **19/28** chain blocks malformed. Re-derived
+2026-09-09 with the same unmodified detectors: **0 of 14** unreadable, on both the shared-examples
+and generated-twin columns; **0 of 77** section-2 verdict cells non-conforming — the denominator
+moved **69 → 77** because CONF-03 made the four previously-unreadable files readable, exposing
+verdict cells the detector had never been able to count; **2 of 77** section-6 claims untraced,
+both marked and **0** silent — the denominator moved **58 → 77** for the same reason, and this
+reading does not reach zero by design: a marked caveat still scores untraced
+(`R-CLAIM-CAVEAT-MARKED`), and driving it to zero would mean inventing citations, not closing a
+gap; **0 of 31** chain blocks malformed — the denominator moved **28 → 31** for the same reason.
+Stating that these three denominators moved is the honest reading of this pair; pairing the old
+`69/69` against the new `0/77` as though they shared one denominator would not be.
+
+**Three accepted findings ship live and uncorrected.** Per decision D-14
+(`.planning/phases/23-ship-v9-0-0/23-CONTEXT.md`), this release discloses three findings that
+`docs/v9.1-claim-containment-diagnosis.md` § 3 accepted with a stated, falsifiable bound apiece —
+the disposition of record for all three below. None of the three sentences is corrected, deleted,
+or reworded by this release; each ships exactly as found.
+
+- **CR-01** — `docs/gates/CONF-SURFACE.md` § "Disclosed bounds", bound (6) narrates the
+  deferred-literal ledger's growth history and states a most-recent hop of `182 → 184`, while the
+  live `_DEFERRED_LEDGER_MAX` in `scripts/gen-gate-docs.py` reads `181`. The standing scanner's
+  `N → M`-shaped exemption class strips the whole delta vector including its terminus, so a stale
+  terminus and a current one are indistinguishable to it. Disposition: accepted, closing at
+  Phase 25's chain-terminus arm (CONTAIN-02). See `docs/v9.1-claim-containment-diagnosis.md` § 3.
+- **CR-02** — `CLAUDE.md` § "Review protocol" cites CR-05 as "an edit made in `scripts/` that
+  produced a product-tier defect," but CR-05's own `File:` field in
+  `.planning/phases/21-generate-the-claim-surface/21-REVIEW.md` names only `docs/` prose
+  (`docs/README.md`, `docs/MEASUREMENT-MAP.md`, `docs/COMPONENT-DIAGRAM.md`). Disposition:
+  accepted, dispositioned by routing rather than by fix, filed as backlog 999.55. See
+  `docs/v9.1-claim-containment-diagnosis.md` § 3.
+- **CR-03** — `docs/README.md` § "Standing of the nine milestone documents" (the
+  `whole-system-remeasure-verdict.md` row) states the document is cited by 13 matrix rows; the
+  live distinct-row count in `docs/data/matrix.json` is 12 — a raw substring count over-counts one
+  row that cites the document twice. Disposition: accepted, with the bound that nothing this
+  milestone reaches it — `docs/README.md` carries no recognised generated fence to compare the
+  claim against — filed as backlog 999.54. See `docs/v9.1-claim-containment-diagnosis.md` § 3.
+
 ## [8.26.0] — 2026-09-04
 
 Ships three deliverables that make the emission rendering contract's own claims checkable: the
