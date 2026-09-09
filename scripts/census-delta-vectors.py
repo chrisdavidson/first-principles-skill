@@ -24,6 +24,22 @@ some other member of that tuple would also strip is still counted here if it
 matches one of the two delta spellings — membership is decided by the delta
 spellings alone, never by whether a different exemption would also apply.
 
+Granularity bound, disclosed because the counts depend on it: this census
+matches per physical line (`scan_relpath` iterates `lines` and calls
+`finditer` on each one), while `_strip_citation_shaped_numbers` — the function
+this census exists to enumerate faithfully — is applied by
+`detail_page_containment_problems` to the whole joined document text. Both
+delta patterns cross newlines, because the whitespace class each one puts
+between its operands matches a newline as readily as a space,
+so a vector that wraps a line break is stripped by the mechanism but is NOT
+enumerated here. Worked instance, from this project's own tree: a three-hop
+phase-chain citation whose second arrow closes one line and whose third
+operand opens the next yields one match line-scoped and two document-scoped.
+(That instance is described rather than transcribed on purpose — writing the
+literal here would add a row to the `py-docstrings` rung this module's own
+ladder reports.) The printed counts are therefore a floor on what the
+mechanism strips, not an equality with it.
+
 Pre-registered widening ladder, walked in this order, every rung published
 with its count whatever that count is, including zero:
 
