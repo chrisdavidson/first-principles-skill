@@ -15,13 +15,12 @@
 > The gate-load-bearing documents (`live-monitoring-runbook.md`, `gen-01-rearch-milestone.md`),
 > the standing governing records, and all current-state developer docs were kept.
 
-<!-- GENERATED:README-COVERAGE-HEADLINE -->
+> <!-- GENERATED:README-COVERAGE-HEADLINE -->
 > **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
 > — the authoritative surface: active residuals, dispositions, and the **current** coverage
 > headline of **208 reproducible / 97 audit-only / 0 gap / 305 total**.
 >
-<!-- END GENERATED:README-COVERAGE-HEADLINE -->
-
+> <!-- END GENERATED:README-COVERAGE-HEADLINE -->
 > **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted
 > limitations, deferred-ledger disposition, and the v8.0 coverage headline of 133/96/0/229. That
 > document calls its figure "final" because v8.0 was intended to wrap the project; work continued,

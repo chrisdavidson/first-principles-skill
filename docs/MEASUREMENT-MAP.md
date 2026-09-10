@@ -53,9 +53,9 @@ This table is the core lookup. Source: `CLAUDE.md`, `scripts/_battery_core.py` (
 
 <!-- GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->
 For the complete Active-Surface list and the coverage headline (208 reproducible / 97 audit-only / 0 gap / 305 total), see [requirements-traceability.md](requirements-traceability.md).
+<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->
 
 ---
-<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->
 
 ## Live thresholds and constants
 

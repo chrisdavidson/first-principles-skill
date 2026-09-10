@@ -575,9 +575,20 @@ _TESTING_BOOTSTRAP_BEFORE = "## Routing battery (developer tools — not in CI)"
 # region on every subsequent regeneration: the anchor-after line is the
 # last line of the PRECEDING blockquote (a real blank line already
 # separates it from the region), and the anchor-before line is the first
-# line of the NEXT paragraph within the same overall blockquote — so the
-# markers land outside any blockquote paragraph rather than splitting one
-# apart, and the swallowed paragraph is reproduced whole inside the fence.
+# line of the NEXT paragraph within the SAME overall blockquote as the
+# region itself — no blank line separates the region from that next
+# paragraph at the phase-base commit, and none may be introduced here.
+# README_HEADLINE_MARKERS' own "> "-prefixed marker lines (T-26-13) are what
+# keep the region INSIDE that blockquote rather than splitting it; this
+# bootstrap-only path (dead once the markers exist, which they do today)
+# still opens with a real, unprefixed blank line before the start marker --
+# correct, since that blank line is the genuine break between the PRECEDING
+# blockquote and this one -- but its closing `\n\n` (in
+# `_replace_or_bootstrap_region`'s shared bootstrap-block format) would
+# introduce a blank line the base text does NOT have between this region
+# and the next paragraph, were this region ever deleted and re-bootstrapped
+# from scratch; not fixed here because that bootstrap path is provably dead
+# for this region today (see the T-26-13 comment above `_NARRATIVE_REGIONS`).
 _README_BOOTSTRAP_AFTER = (
     "> the standing governing records, and all current-state developer docs were kept."
 )
@@ -586,12 +597,18 @@ _README_BOOTSTRAP_BEFORE = (
 )
 
 # docs/MEASUREMENT-MAP.md's coverage-headline sentence is a plain paragraph
-# (no blockquote), but no unique anchor line sits between it and the next
-# heading except the heading itself — the intervening horizontal rule
-# ("---") repeats four times elsewhere on this page, so it cannot serve as
-# an anchor. The region therefore reproduces the sentence AND the
-# following rule (see _NARRATIVE_REGIONS' MEASUREMENT-MAP template) so
-# nothing between the anchors is dropped.
+# (no blockquote). The region (see _NARRATIVE_REGIONS' MEASUREMENT-MAP
+# template) is narrowed to the bare sentence (T-26-13): the trailing blank
+# line and the "---" thematic break beneath it live OUTSIDE the end marker
+# on disk today, moved there by hand in the same commit that narrowed the
+# template, because "---" repeats four times elsewhere on this page and
+# cannot itself serve as a unique bootstrap anchor. This bootstrap-only path
+# is dead for this region today (its markers already exist, so every
+# `--write` takes `_replace_region` instead) and is UNCHANGED: were this
+# region ever deleted and re-bootstrapped from scratch, it would still
+# swallow the blank line and "---" into the fence, since `_replace_or_
+# bootstrap_region`'s suffix starts exactly at `_MEASUREMENT_MAP_BOOTSTRAP_
+# BEFORE` (the next heading) with nothing narrower available to anchor on.
 _MEASUREMENT_MAP_BOOTSTRAP_AFTER = (
     "**RR-80-01 dual-layer detail:** STEP0-08 (`check-step0-emulator.py --self-test`) owns the "
     "emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified "
@@ -1545,17 +1562,34 @@ class _NarrativeRegion(NamedTuple):
 # _replace_or_bootstrap_region() call onto the text the first call already
 # produced (never a second independent read of CLAUDE.md), so neither write
 # is lost.
+# README_HEADLINE_MARKERS carries a "> " blockquote-continuation prefix on
+# BOTH marker lines (found by 26-07's checkpoint response, T-26-13): an
+# unprefixed HTML comment at column 0 is a CommonMark blockquote-lazy-
+# continuation failure -- it terminates the enclosing blockquote rather
+# than continuing it, splitting what is one blockquote at the phase-base
+# commit into a sequence of disconnected blockquote/HTML-block fragments.
+# `_replace_region`/`_generated_line_flags`/`_fenced_line_flags` all match
+# markers on WHOLE-LINE content, so a "> "-prefixed marker string is a
+# complete, ordinary marker to every one of them; only the literal changes.
 README_HEADLINE_MARKERS: tuple[str, str] = (
-    "<!-- GENERATED:README-COVERAGE-HEADLINE -->",
-    "<!-- END GENERATED:README-COVERAGE-HEADLINE -->",
+    "> <!-- GENERATED:README-COVERAGE-HEADLINE -->",
+    "> <!-- END GENERATED:README-COVERAGE-HEADLINE -->",
 )
 MEASUREMENT_MAP_HEADLINE_MARKERS: tuple[str, str] = (
     "<!-- GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
     "<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
 )
+# CLAUDE_HEADLINE_MARKERS carries a two-space list-item-continuation prefix
+# on BOTH marker lines (same T-26-13 finding): a column-0 HTML comment
+# inside a list item is UNDER-indented relative to the item's own content
+# column (2, set by the "- " bullet marker) and is not eligible for lazy
+# continuation (lazy continuation covers plain paragraph text only, never a
+# line that itself opens an interrupting block, and an HTML comment does)
+# -- so an unprefixed marker silently ejects everything after it from the
+# list item entirely, rather than merely making the item loose.
 CLAUDE_HEADLINE_MARKERS: tuple[str, str] = (
-    "<!-- GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
-    "<!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
+    "  <!-- GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
+    "  <!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
 )
 
 # Bootstrap anchors (first-migration only) for CLAUDE.md's coverage-headline
@@ -1590,23 +1624,43 @@ _CLAUDE_HEADLINE_BOOTSTRAP_BEFORE = (
 # -- rendering must be byte-identical to what is on disk (proven by this
 # module's own --self-test control, not merely asserted).
 #
-# All three templates now cover more than the bare digit-bearing clause: no
-# unique, non-fenced anchor line sits directly adjacent to any of the three
-# sentences, so each region's fence necessarily brackets a little more of
-# its host paragraph than the sentence alone -- reproduced whole, never
-# truncated, per D-02's "one whole sentence, even spanning several quoted
-# lines" rule. docs/README.md's sentence spans the entire quoted paragraph
-# (its own blockquote, kept internally unsplit, bracketed by markers placed
-# outside any blockquote rather than mid-paragraph); docs/MEASUREMENT-MAP.md's
-# region also swallows the horizontal rule immediately following the
-# sentence, because "---" repeats four times elsewhere on that page and
-# cannot serve as a bootstrap anchor; CLAUDE.md's region (plan 26-05) swallows
-# only the sentence's own three wrapped lines -- the bootstrap-after anchor
-# is the bullet's own opening line, and the bootstrap-before anchor is the
-# very next sentence's opening line, made into a stable whole line by this
-# same plan's own CLAUDE.md edit (splitting one glued physical line in two,
-# no words moved) so the FROZEN historical counts the following sentence
+# docs/README.md's sentence spans its own blockquote paragraph -- reproduced
+# whole, never truncated, per D-02's "one whole sentence, even spanning
+# several quoted lines" rule; CLAUDE.md's region (plan 26-05) swallows only
+# the sentence's own three wrapped lines -- the bootstrap-after anchor is
+# the bullet's own opening line, and the bootstrap-before anchor is the very
+# next sentence's opening line, made into a stable whole line by this same
+# plan's own CLAUDE.md edit (splitting one glued physical line in two, no
+# words moved) so the FROZEN historical counts the following sentence
 # narrates (D-06 proviso 3) stay outside this fence, never swallowed.
+#
+# T-26-13 (26-07's checkpoint response): the FIRST migration bracketed each
+# sentence with column-0, unprefixed markers, and (for docs/MEASUREMENT-MAP.md)
+# let the fence swallow the trailing blank line and the "---" thematic break
+# beneath it. Text bytes stayed identical (RATCHET-01's own drift check
+# compares rendered TEXT, never parsed block structure), but rendered block
+# structure did not: docs/README.md's one base blockquote split into three
+# fragments (the two column-0 HTML comments each terminate a blockquote
+# rather than continuing it -- see README_HEADLINE_MARKERS' own comment);
+# CLAUDE.md's tight, single-paragraph list item was severed by the same
+# column-0 defect (a comment under-indented relative to the item's own
+# content column is not eligible for lazy continuation, so the item's own
+# text after the marker fell out of the list entirely -- see
+# CLAUDE_HEADLINE_MARKERS' own comment); and docs/MEASUREMENT-MAP.md's fence
+# owned a horizontal rule it had no rendering business rewriting, even though
+# rendering itself was unaffected there. The fix: docs/README.md's and
+# CLAUDE.md's markers now carry the host's own required per-line prefix ("> "
+# / two spaces) so they continue their enclosing blockquote/list-item rather
+# than terminating it; docs/MEASUREMENT-MAP.md's template is narrowed to the
+# bare sentence, and the trailing blank line plus "---" now live OUTSIDE the
+# END marker (moved there once, by hand, in the same commit that narrowed the
+# template -- `_replace_or_bootstrap_region`'s FIRST-migration-only bootstrap
+# block format, "\n{start}\n{body}{end}\n\n", is untouched and would still
+# swallow an adjacent "---" if this region were ever deleted and re-
+# bootstrapped from scratch; that bootstrap path is dead for all three
+# regions today since their markers already exist, and `_replace_region` --
+# the path every subsequent `--write`/`--check` actually takes -- knows
+# nothing about "---" at all once the template omits it).
 _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
     _NarrativeRegion(
         surface="docs/README.md",
@@ -1629,9 +1683,7 @@ _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
         field_path="coverage_headline.prose",
         template=(
             "For the complete Active-Surface list and the coverage headline "
-            "({value}), see [requirements-traceability.md](requirements-traceability.md).\n"
-            "\n"
-            "---"
+            "({value}), see [requirements-traceability.md](requirements-traceability.md)."
         ),
     ),
     _NarrativeRegion(
@@ -1755,6 +1807,110 @@ def _narrative_region_value_on_disk(region: "_NarrativeRegion", text: str) -> st
         return None
     end = len(body) - len(suffix) if suffix else len(body)
     return body[len(prefix) : end]
+
+
+# T-26-13 (26-07's checkpoint response): a cheap, structural, non-CommonMark-
+# parser control catching the exact regression class the checkpoint found --
+# a marker landing in a DIFFERENT blockquote/list-item container than the
+# body it brackets, which preserves rendered TEXT (RATCHET-01's own drift
+# check) while changing rendered BLOCK STRUCTURE (blockquote grouping, list
+# tightness). A full CommonMark parser was considered and rejected: this
+# repo already has three independent block-aware primitives
+# (`_fenced_line_flags`, `_generated_line_flags`, the containment loop's own
+# number-adjacency heuristic) and none of them is a general block parser --
+# adding a fourth, heavier one to catch a single regression class would be
+# the same "widened criterion" move plan 25-04/26-07 Task 2 already rejected
+# once for a different check. A narrow prefix-equality comparison is
+# sufficient because every registered region host uses exactly one of two
+# container idioms (blockquote "> ", or list-item indentation) or neither
+# (a plain paragraph) -- and a marker whose own leading container prefix
+# disagrees with its body's is a marker in the wrong container, full stop,
+# regardless of which of the two idioms is in play.
+def _line_container_prefix(line: str) -> str:
+    """The leading blockquote-marker-or-indentation prefix of one line: the
+    leading run of bare `>` characters if the line is blockquote-prefixed
+    (deliberately excluding the single OPTIONAL space CommonMark allows
+    after each `>` -- a bare `>` continuation line and a `"> "`-prefixed
+    text line are the SAME container at the SAME quote depth, and must
+    compare equal here even though one has a trailing space and the other
+    does not), otherwise the line's leading whitespace run (empty for a
+    plain, unindented line). Compares like-for-like against a neighboring
+    line's own prefix -- it does not (and need not) know what CommonMark
+    does with the rest of the line."""
+    m = re.match(r"^>+", line)
+    if m:
+        return m.group(0)
+    m2 = re.match(r"^[ ]*", line)
+    return m2.group(0) if m2 else ""
+
+
+def narrative_region_marker_context_problems(
+    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    surface_texts: dict[str, str] | None = None,
+) -> list[str]:
+    """For every registered region: the START marker's own line-prefix must
+    equal its body's first line's prefix, and the END marker's own line-
+    prefix must equal its body's last line's prefix. A mismatch means the
+    marker sits in a different blockquote/list-item container than the text
+    it brackets -- exactly the T-26-13 regression (docs/README.md's split
+    blockquote, CLAUDE.md's severed list item), caught here BEFORE `--check`
+    would otherwise pass on text-byte equality alone. Silently skips a
+    region whose markers are malformed (missing/duplicated/out of order) --
+    that shape is `RegionMarkerError`/`_replace_region`'s own territory, not
+    this control's. `surface_texts` lets a `--self-test` control substitute
+    an in-memory page (FROZEN-EVIDENCE discipline); the real files are read
+    only when the caller passes nothing."""
+    problems: list[str] = []
+    texts: dict[str, str] = dict(surface_texts) if surface_texts is not None else {}
+
+    def _text_for(surface: str) -> str | None:
+        if surface in texts:
+            return texts[surface]
+        if surface_texts is not None:
+            return None
+        path = REPO_ROOT / surface
+        if not path.exists():
+            return None
+        t = path.read_text(encoding="utf-8")
+        texts[surface] = t
+        return t
+
+    for region in regions:
+        text = _text_for(region.surface)
+        if text is None:
+            continue
+        lines = text.splitlines()
+        fenced = _fenced_line_flags(lines)
+        start_marker, end_marker = region.markers
+        start_idxs = [
+            i for i, (b, f) in enumerate(zip(lines, fenced)) if not f and b == start_marker
+        ]
+        end_idxs = [i for i, (b, f) in enumerate(zip(lines, fenced)) if not f and b == end_marker]
+        if len(start_idxs) != 1 or len(end_idxs) != 1:
+            continue
+        start_idx, end_idx = start_idxs[0], end_idxs[0]
+        if end_idx <= start_idx + 1:
+            continue
+        body_lines = lines[start_idx + 1 : end_idx]
+        start_prefix = _line_container_prefix(lines[start_idx])
+        end_prefix = _line_container_prefix(lines[end_idx])
+        body_first_prefix = _line_container_prefix(body_lines[0])
+        body_last_prefix = _line_container_prefix(body_lines[-1])
+        if start_prefix != body_first_prefix:
+            problems.append(
+                f"narrative-marker-context: {region.surface} start marker "
+                f"{start_marker!r} carries prefix {start_prefix!r}, but its own body's "
+                f"first line carries {body_first_prefix!r} -- the marker sits in a "
+                "different blockquote/list-item container than its body (NARR-02/T-26-13)"
+            )
+        if end_prefix != body_last_prefix:
+            problems.append(
+                f"narrative-marker-context: {region.surface} end marker {end_marker!r} "
+                f"carries prefix {end_prefix!r}, but its own body's last line carries "
+                f"{body_last_prefix!r} -- the marker sits in a different blockquote/"
+                "list-item container than its body (NARR-02/T-26-13)"
+            )
+    return problems
 
 
 def _narrative_restatement_findings(
@@ -4580,6 +4736,7 @@ def cmd_check() -> int:
             narrative_reached.add(_named_narrative_paths[path])
     problems += narrative_region_surface_roster_problems(narrative_reached)
     problems += narrative_restatement_problems()
+    problems += narrative_region_marker_context_problems()
 
     # CONF-13: the standing hand-maintained count-literal scanner, run over
     # the real on-disk D-21-E surface set (not `pass1`'s in-memory content —
@@ -6904,6 +7061,128 @@ def _control_narrative_restatement_wired_into_cmd_check() -> None:
         _this_module.narrative_restatement_problems = original
 
 
+def _control_narrative_marker_context_legs() -> None:
+    """`narrative_region_marker_context_problems` (T-26-13): a blockquote-
+    prefixed marker matching its blockquote-prefixed body passes; a bare
+    marker bracketing a blockquote-prefixed body fails, naming the surface
+    and both prefixes; a list-indented marker matching its list-indented
+    body passes; an unprefixed marker matching a plain unindented body
+    passes -- covering all three registered container idioms plus the one
+    mismatched (regression) shape. Built entirely in memory, never the real
+    tree (FROZEN-EVIDENCE discipline)."""
+    region = _NarrativeRegion(
+        surface="fixtures/marker-context.md",
+        markers=("<!-- GENERATED:CTX-TEST -->", "<!-- END GENERATED:CTX-TEST -->"),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="X {value} Y",
+    )
+
+    # Leg 1: blockquote match (start+end markers "> "-prefixed, matching
+    # their own blockquote-prefixed body) -- passes.
+    bq_match = (
+        "# Fixture\n\n"
+        "> <!-- GENERATED:CTX-TEST -->\n"
+        "> X 42 Y\n"
+        "> <!-- END GENERATED:CTX-TEST -->\n"
+    )
+    assert narrative_region_marker_context_problems((region,), {region.surface: bq_match}) == []
+
+    # Leg 2: blockquote MISMATCH (T-26-13's own regression shape) -- bare,
+    # unprefixed markers bracketing a blockquote-prefixed body -- fails,
+    # naming the surface, both markers, and both observed prefixes.
+    bq_mismatch = (
+        "# Fixture\n\n"
+        "<!-- GENERATED:CTX-TEST -->\n"
+        "> X 42 Y\n"
+        "<!-- END GENERATED:CTX-TEST -->\n"
+    )
+    problems = narrative_region_marker_context_problems((region,), {region.surface: bq_mismatch})
+    assert len(problems) == 2, problems
+    assert all("fixtures/marker-context.md" in p for p in problems), problems
+    assert "start marker" in problems[0] and "'>'" in problems[0], problems
+    assert "end marker" in problems[1] and "'>'" in problems[1], problems
+
+    # Leg 3: list-indent match (two-space-indented markers matching their
+    # own two-space-indented body) -- passes.
+    list_match = "# Fixture\n\n  <!-- GENERATED:CTX-TEST -->\n  X 42 Y\n  <!-- END GENERATED:CTX-TEST -->\n"
+    assert narrative_region_marker_context_problems((region,), {region.surface: list_match}) == []
+
+    # Leg 4: plain paragraph, no container at all (both prefixes empty) --
+    # passes.
+    plain_match = "# Fixture\n\n<!-- GENERATED:CTX-TEST -->\nX 42 Y\n<!-- END GENERATED:CTX-TEST -->\n"
+    assert narrative_region_marker_context_problems((region,), {region.surface: plain_match}) == []
+
+    # A bare ">" continuation line (no trailing space) is the SAME container
+    # as a "> "-prefixed marker -- must NOT be reported as a mismatch. This
+    # is docs/README.md's own real shape: its body's last line before the
+    # end marker is a bare ">" continuation, not a "> "-prefixed one.
+    region2 = _NarrativeRegion(
+        surface="fixtures/marker-context-2.md",
+        markers=("> <!-- GENERATED:CTX-TEST-2 -->", "> <!-- END GENERATED:CTX-TEST-2 -->"),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="X {value} Y",
+    )
+    real_shape = (
+        "# Fixture\n\n"
+        "> <!-- GENERATED:CTX-TEST-2 -->\n"
+        "> X 42 Y\n"
+        ">\n"
+        "> <!-- END GENERATED:CTX-TEST-2 -->\n"
+    )
+    assert (
+        narrative_region_marker_context_problems((region2,), {region2.surface: real_shape}) == []
+    ), narrative_region_marker_context_problems((region2,), {region2.surface: real_shape})
+
+
+def _control_narrative_marker_context_live_tree_clean() -> None:
+    """The real, currently-registered three narrative regions
+    (docs/README.md, docs/MEASUREMENT-MAP.md, CLAUDE.md) all pass
+    `narrative_region_marker_context_problems()` against the actual on-disk
+    tree today -- proving the T-26-13 fix, not merely a fixture shape that
+    resembles it."""
+    assert narrative_region_marker_context_problems() == []
+
+
+def _control_narrative_marker_context_wired_into_cmd_check() -> None:
+    """`cmd_check()`'s aggregated problems genuinely include whatever
+    `narrative_region_marker_context_problems()` returns -- the same
+    monkeypatch-stub pattern `_control_narrative_restatement_wired_into_
+    cmd_check` already uses for its sibling check, proved independently
+    here rather than assumed by analogy."""
+    original = _this_module.narrative_region_marker_context_problems
+
+    def _stub_finding(*_args: object, **_kwargs: object) -> list[str]:
+        return ["narrative-marker-context: fixtures/synthetic.md start marker ..."]
+
+    def _stub_none(*_args: object, **_kwargs: object) -> list[str]:
+        return []
+
+    try:
+        _this_module.narrative_region_marker_context_problems = _stub_finding
+        stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+            rc_finding = cmd_check()
+        stderr_finding = stderr_buf.getvalue()
+        assert rc_finding == 1, (
+            f"cmd_check() returned {rc_finding}, expected 1 with a stubbed marker-context finding"
+        )
+        assert "narrative-marker-context: fixtures/synthetic.md" in stderr_finding, stderr_finding
+
+        _this_module.narrative_region_marker_context_problems = _stub_none
+        stdout_buf2, stderr_buf2 = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout_buf2), contextlib.redirect_stderr(stderr_buf2):
+            rc_none = cmd_check()
+        assert rc_none == 0, (
+            f"cmd_check() returned {rc_none} with narrative_region_marker_context_problems "
+            f"stubbed to []; expected 0 against the real tree's own current clean state: "
+            f"{stderr_buf2.getvalue()}"
+        )
+    finally:
+        _this_module.narrative_region_marker_context_problems = original
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("harvest-nonzero-exit-named", _control_harvest_nonzero_exit_named),
     ("harvest-malformed-json-named", _control_harvest_malformed_json_named),
@@ -7128,6 +7407,12 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "narrative-restatement-wired-into-cmd-check",
         _control_narrative_restatement_wired_into_cmd_check,
     ),
+    ("narrative-marker-context-legs", _control_narrative_marker_context_legs),
+    ("narrative-marker-context-live-tree-clean", _control_narrative_marker_context_live_tree_clean),
+    (
+        "narrative-marker-context-wired-into-cmd-check",
+        _control_narrative_marker_context_wired_into_cmd_check,
+    ),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -7246,6 +7531,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "narrative-restatement-four-legs",
     "narrative-roster-accumulated-not-table-derived",
     "narrative-restatement-wired-into-cmd-check",
+    "narrative-marker-context-legs",
+    "narrative-marker-context-live-tree-clean",
+    "narrative-marker-context-wired-into-cmd-check",
 )
 
 
