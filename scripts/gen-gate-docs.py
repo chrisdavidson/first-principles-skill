@@ -1538,10 +1538,13 @@ class _NarrativeRegion(NamedTuple):
 # single-per-file GENERATED_MARKER format string; a shared marker text
 # across regions on different pages would not itself collide, since
 # `_replace_region` operates per file, but naming them distinctly here
-# keeps every region individually greppable). CLAUDE.md's own third pair is
-# plan 26-05's, together with the containment re-pin its region forces --
-# deliberately absent here so this wave moves no ledger (26-CONTEXT.md D-01's
-# migrate-first/re-pin-last ordering).
+# keeps every region individually greppable). CLAUDE.md's own third pair
+# (plan 26-05) is a SECOND, independent marker pair on a page that already
+# carries CLAUDE_REGION_MARKERS (the CI-gate table) -- _generated_marker_
+# pairs_for("CLAUDE.md") returns both, and generate_all() chains the second
+# _replace_or_bootstrap_region() call onto the text the first call already
+# produced (never a second independent read of CLAUDE.md), so neither write
+# is lost.
 README_HEADLINE_MARKERS: tuple[str, str] = (
     "<!-- GENERATED:README-COVERAGE-HEADLINE -->",
     "<!-- END GENERATED:README-COVERAGE-HEADLINE -->",
@@ -1549,6 +1552,33 @@ README_HEADLINE_MARKERS: tuple[str, str] = (
 MEASUREMENT_MAP_HEADLINE_MARKERS: tuple[str, str] = (
     "<!-- GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
     "<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
+)
+CLAUDE_HEADLINE_MARKERS: tuple[str, str] = (
+    "<!-- GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
+    "<!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->",
+)
+
+# Bootstrap anchors (first-migration only) for CLAUDE.md's coverage-headline
+# sentence, "## Requirements surface" -> `docs/requirements-traceability.md`
+# bullet. Neither anchor pre-existed as a clean whole-line boundary: the
+# sentence starts mid-bullet (its first line reads cleanly, "Active
+# residuals..."), but its last line ("findings.") was glued, on the same
+# physical line, to the FOLLOWING sentence's own opening words ("(Derived
+# from regenerated matrix Phase 138 Plan 03; ..."), which narrates several
+# FROZEN historical counts (D-06 proviso 3) this task must not swallow into
+# a fence (that would shrink the containment ledger inside Task 1, which
+# this task's own acceptance criteria forbid). This task's own CLAUDE.md
+# edit splits that one glued line in two -- no words moved, only the
+# newline -- so "(Derived from..." becomes its own stable, pre-existing
+# whole line the bootstrap can anchor on, once and only for the first
+# migration; every subsequent `--write` uses `_replace_region` directly and
+# never re-consults these two anchors.
+_CLAUDE_HEADLINE_BOOTSTRAP_AFTER = (
+    "- **`docs/requirements-traceability.md`** — **the authoritative source of truth; "
+    "start here.**"
+)
+_CLAUDE_HEADLINE_BOOTSTRAP_BEFORE = (
+    "  (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered"
 )
 
 # The two NARR-02 region candidates 26-02-SUMMARY.md's pre-migration census
@@ -1560,17 +1590,23 @@ MEASUREMENT_MAP_HEADLINE_MARKERS: tuple[str, str] = (
 # -- rendering must be byte-identical to what is on disk (proven by this
 # module's own --self-test control, not merely asserted).
 #
-# Both templates now cover more than the bare digit-bearing clause (wired
-# in plan 26-04): no unique, non-fenced anchor line sits directly adjacent
-# to either sentence, so each region's fence necessarily brackets a little
-# more of its host paragraph than the sentence alone -- reproduced whole,
-# never truncated, per D-02's "one whole sentence, even spanning several
-# quoted lines" rule. docs/README.md's sentence spans the entire quoted
-# paragraph (its own blockquote, kept internally unsplit, bracketed by
-# markers placed outside any blockquote rather than mid-paragraph);
-# docs/MEASUREMENT-MAP.md's region also swallows the horizontal rule
-# immediately following the sentence, because "---" repeats four times
-# elsewhere on that page and cannot serve as a bootstrap anchor.
+# All three templates now cover more than the bare digit-bearing clause: no
+# unique, non-fenced anchor line sits directly adjacent to any of the three
+# sentences, so each region's fence necessarily brackets a little more of
+# its host paragraph than the sentence alone -- reproduced whole, never
+# truncated, per D-02's "one whole sentence, even spanning several quoted
+# lines" rule. docs/README.md's sentence spans the entire quoted paragraph
+# (its own blockquote, kept internally unsplit, bracketed by markers placed
+# outside any blockquote rather than mid-paragraph); docs/MEASUREMENT-MAP.md's
+# region also swallows the horizontal rule immediately following the
+# sentence, because "---" repeats four times elsewhere on that page and
+# cannot serve as a bootstrap anchor; CLAUDE.md's region (plan 26-05) swallows
+# only the sentence's own three wrapped lines -- the bootstrap-after anchor
+# is the bullet's own opening line, and the bootstrap-before anchor is the
+# very next sentence's opening line, made into a stable whole line by this
+# same plan's own CLAUDE.md edit (splitting one glued physical line in two,
+# no words moved) so the FROZEN historical counts the following sentence
+# narrates (D-06 proviso 3) stay outside this fence, never swallowed.
 _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
     _NarrativeRegion(
         surface="docs/README.md",
@@ -1598,6 +1634,17 @@ _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
             "---"
         ),
     ),
+    _NarrativeRegion(
+        surface="CLAUDE.md",
+        markers=CLAUDE_HEADLINE_MARKERS,
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template=(
+            "  Active residuals, the current coverage headline\n"
+            "  (**{value}**), compact historical ledger, and gap\n"
+            "  findings."
+        ),
+    ),
 )
 
 # A SECOND, independently typed transcription of the two surfaces above --
@@ -1607,7 +1654,7 @@ _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
 # way is harmless by construction and therefore invisible to this floor --
 # only a set that actually differs from these two is caught.
 _NARRATIVE_REGION_SURFACES_LOCK: frozenset[str] = frozenset(
-    {"docs/README.md", "docs/MEASUREMENT-MAP.md"}
+    {"docs/README.md", "docs/MEASUREMENT-MAP.md", "CLAUDE.md"}
 )
 
 
@@ -2333,32 +2380,29 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
 # ---------------------------------------------------------------------------
 
 _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
-    ('CLAUDE.md', '03'): ('999.69', 2, "Identifier residue: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Not a count claim. CONTAIN-04 reconciles this residue in Phase 26."),
-    ('CLAUDE.md', '1024'): ('999.69', 1, 'Spec constant: "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- VAL-05\'s own hand-maintained budget ceiling, corroborated by `scripts/check-description-budget.py`, not by this page\'s own generated CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '14'): ('999.69', 1, 'Frozen historical count: "the 14 v8.25 milestone requirements registered as matrix rows" -- an arrow-free restatement of a past milestone\'s requirement count in the historical requirements-ledger paragraph, the frozen-historical-count exception `docs/PROCESS.md` §2 already draws in kind. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '15'): ('999.69', 2, 'Frozen historical count: "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same frozen-historical-count exception as \'14\' above. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '17'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count, corroborated by `scripts/check-version-stamps.py` and `docs/gates/VERSION-01.md`, not by this page\'s own CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '20'): ('999.69', 1, 'Frozen historical count: "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '208'): ('999.69', 1, "Live coverage headline: \"208 reproducible / 97 audit-only / 0 gap / 305 total\" -- true and unfenced, D-02's own motivating case: this page's only generated fence is the CI-gate table, which carries no headline field. CONTAIN-04 reconciles this residue in Phase 26."),
-    ('CLAUDE.md', '22'): ('999.69', 1, "Identifier residue: \"this phase's own `/bm:code-review 22`\" -- a review-invocation phase number naming WHICH review ran, not a count. CONTAIN-04 reconciles this residue in Phase 26."),
-    ('CLAUDE.md', '24'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "The tally is 24 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, corroborated by running that script, not by this page\'s CI-gate-table fence (which states the battery TOTAL, 26, not this sub-tally). CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '260728'): ('999.69', 1, 'Identifier residue: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '266'): ('999.69', 1, 'Frozen historical count: "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns). CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '305'): ('999.69', 1, "Live coverage headline: \"305 total\" and \"generated 305-row capability->requirement->test matrix\" -- the same unfenced live headline as '208'/'97', D-02's own motivating case. CONTAIN-04 reconciles this residue in Phase 26."),
-    ('CLAUDE.md', '43'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "CONF-GATE: exemplar-conformance comparator self-test (43 controls)" -- `scripts/check-conf-gate.py --describe`\'s own `control_count`, corroborated by `docs/gates/CONF-GATE.md`\'s own Facts fence, not by this page\'s CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '60'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count, corroborated by `scripts/check-step0-live.py` and its own baseline docs, not by this page\'s CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('CLAUDE.md', '97'): ('999.69', 1, "Live coverage headline: \"97 audit-only\" -- the same unfenced live headline as '208'/'305', D-02's own motivating case. CONTAIN-04 reconciles this residue in Phase 26."),
-    ('docs/ARCHITECTURE.md', '03'): ('999.69', 1, 'Identifier residue: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Not a count claim. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/ARCHITECTURE.md', '14'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13" -- the skill-stub version-stamp count VERSION-01 corroborates, not this page\'s own CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'Frozen/retired historical constant: the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '1'): ('999.69', 1, 'Ordinary small number in dense prose: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '2'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant, corroborated by INVARIANT-CHECK\'s own battery-line reading, not by this page\'s generated per-gate index fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '2156'): ('999.69', 1, 'Line-number citation into a `scripts/` module: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, and one of the two line-number citations this class of number covers on this page. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '2178'): ('999.69', 1, 'Line-number citation into a `scripts/` module: "# scripts/_battery_core.py, line 2178" -- the sibling citation to \'2156\' immediately above it in the same fixture-comment pair. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '3'): ('999.69', 1, 'Ordinary small number in a code-sample command line: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '4'): ('999.69', 3, 'Live fact whose corroborating fence is on a different page: `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally), corroborated by INVARIANT-CHECK\'s own battery-line reading, not by this page\'s generated per-gate index fence. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '5'): ('999.69', 1, 'Ordinary small number in a code-sample command line: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. CONTAIN-04 reconciles this residue in Phase 26.'),
-    ('docs/TESTING.md', '644'): ('999.69', 1, 'Frozen/retired historical constant: "The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`)" -- the same retired body-budget figure (TEARDOWN-01) ledgered on `docs/ARCHITECTURE.md`\'s own \'644\' entry above. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '03'): ('999.73', 2, "NOT A COUNT CLAIM: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper is widened to recognise slash-compound identifiers, not by a generated region. Split out of 999.69 into 999.73 at Phase 26 plan 05 (CONTAIN-04 reconciles quantity-shaped residue only)."),
+    ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- VAL-05\'s own hand-maintained budget ceiling. Re-verified live this plan: `python3 scripts/check-description-budget.py --describe` emits only `locked_constants: {"cap": 2000}` -- no field for the 1,024 figure exists today. CONTAIN-04 reconciles this residue once such a field is added; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
+    ('CLAUDE.md', '14'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 14 v8.25 milestone requirements registered as matrix rows" -- an arrow-free restatement of a past milestone\'s requirement count in the historical requirements-ledger paragraph. Stays a literal by design; regionizing it would be a regression, not progress.'),
+    ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
+    ('CLAUDE.md', '17'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` emits `registered_surfaces` (4 path strings) and `stamp_source_kind_count: 4` -- no field exposes "17 hand-maintained stamps" itself today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
+    ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above.'),
+    ('CLAUDE.md', '22'): ('999.73', 1, "NOT A COUNT CLAIM: \"this phase's own `/bm:code-review 22`\" -- a review-invocation phase number naming WHICH review ran, not a count. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper recognises this identifier shape. Split out of 999.69 into 999.73 at Phase 26 plan 05."),
+    ('CLAUDE.md', '24'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "The tally is 24 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count. Re-confirmed live this plan: the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it (only `.script`-backed Python entries are harvested); `_gate_registry.battery_gate_ids()` already parses the file, making this the cheapest cannot-reach entry to close by adding a describe field, but that field does not exist today. Deferred as cannot-reach residue (D-06 proviso 2).'),
+    ('CLAUDE.md', '43'): ('999.69', 1, 'CANNOT-REACH (no harvest field) -- AND FOUND STALE this plan, deliberately left unfixed for scope discipline: "CONF-GATE: exemplar-conformance comparator self-test (43 controls)" -- `scripts/check-conf-gate.py --describe` was re-invoked live this session and now reports `control_count: 44`, not 43; the prior ledger reason\'s "live-verified" claim was true on 2026-09-09 and is false one day later. `_DEFERRED_LITERAL_HITS` carries a TWIN entry for this exact same text, `(\'CLAUDE.md\', \'(43 controls)\')` under 999.42 -- fixing CLAUDE.md\'s own prose here would move that ledger too (a same-size key substitution needing its own re-pin), and this plan\'s own acceptance criteria hold the literal ledger untouched, its re-pin reserved for plan 26-06. Left ledgered, unfixed, and flagged rather than silently corrected out of scope; cited as RATCHET-02\'s own motivating example of a reason going stale with no size or key-set change to trip any ratchet predicate.'),
+    ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
+    ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
+    ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/ARCHITECTURE.md', '14'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13" -- the skill-stub version-stamp sub-count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` exposes `registered_surfaces` (4 paths) and `stamp_source_kind_count: 4` only -- no field for this 14-stamp sub-count exists today (the same gap as `CLAUDE.md`\'s \'17\' entry). Deferred as cannot-reach residue (D-06 proviso 2).'),
+    ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry.'),
+    ('docs/TESTING.md', '1'): ('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
+    ('docs/TESTING.md', '2156'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, one of the two line-number citations this class of number covers on this page. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises line-number-citation shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '2178'): ('999.73', 1, 'NOT A COUNT CLAIM: "# scripts/_battery_core.py, line 2178" -- the sibling citation to \'2156\' immediately above it in the same fixture-comment pair. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'2156\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '3'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises CLI-flag-value shapes in reproduced commands. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
+    ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
+    ('docs/TESTING.md', '644'): ('999.69', 1, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`)" -- the same retired body-budget figure (TEARDOWN-01) ledgered on `docs/ARCHITECTURE.md`\'s own \'644\' entry above.'),
 }
 
 # The ledger's pinned maximum size and key-set digest. Standing rule, in
@@ -2380,7 +2424,49 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # migration. Backlog id `999.69` for all 26 (the next free id after
 # `_DEFERRED_LITERAL_HITS`' `999.40`/`999.41`/`999.42`/`999.44`
 # precedent).
-_CONTAINMENT_LEDGER_MAX: int = 26
+#
+# Lowered 26 -> 23 by plan 26-05 Task 2: CLAUDE.md's own generated
+# coverage-headline region (this same plan's Task 1) removed 3 entries
+# outright (`'208'`, `'97'`, `'305'` -- the live headline triple, now
+# rendered inside a generated fence, D-02's own motivating case). A fourth
+# entry, `('CLAUDE.md', '43')`, was found FACTUALLY WRONG during this
+# plan's own re-derivation -- its "live-verified" reason cited
+# `check-conf-gate.py --describe`'s `control_count` as 43; a fresh
+# invocation in this same session returned 44. It was deliberately NOT
+# corrected: `_DEFERRED_LITERAL_HITS` carries a TWIN entry for the exact
+# same text, `('CLAUDE.md', '(43 controls)')` under 999.42, and fixing
+# `CLAUDE.md`'s own prose would move that ledger too (a same-size key
+# substitution needing its own re-pin) -- out of this plan's own stated
+# scope, which holds the literal ledger untouched and reserves its re-pin
+# for plan 26-06 (the roadmap's own migrate-first/re-pin-last ordering
+# hazard, applied across plans as well as within one). The entry stays
+# ledgered, with its reason corrected to state the discovery rather than
+# silently keep asserting a value now known false. The remaining 22
+# entries were re-adjudicated entry-by-entry, re-deriving every
+# "cannot-reach" claim by a fresh `--describe` invocation in this same
+# session (never trusting the prior ledger's own reading) and re-tiering 9
+# entries from a blanket CONTAIN-04 disposition to backlog `999.73`
+# (docs/gates/CONF-SURFACE.md's published containment delta) --
+# citation/identifier/arithmetic residue the containment scanner's own
+# shape-stripping does not recognise, a REACH move on that stripper rather
+# than a generated region, explicitly out of this phase's D-E
+# quantity-shaped scope. See docs/gates/CONF-SURFACE.md's published
+# containment delta for the full before/after measurement and the
+# per-class breakdown.
+#
+# RATCHET-02's scope, stated where this assertion lives (D-07 proviso 3):
+# this ratchet bounds the ledger's SIZE only. It does NOT re-verify that
+# any existing, unchanged entry's reason is still factually correct --
+# `('CLAUDE.md', '43')`, above, is the concrete, present-tense instance
+# this plan found: its reason read "live-verified" against a value that
+# had already gone stale (43 vs. the live 44) one day after the entry was
+# written, with no size or key-set change to trip any of the three
+# predicates below. A factually-wrong reason on an unchanged key passes
+# `containment_ledger_ratchet_problems()` silently -- see CONTAIN-04's own
+# reconciliation discipline (re-deriving every reason from a fresh
+# `--describe` invocation, never trusting a prior reading) for the
+# practice that actually catches this, since the ratchet itself cannot.
+_CONTAINMENT_LEDGER_MAX: int = 23
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -2391,8 +2477,14 @@ _CONTAINMENT_LEDGER_MAX: int = 26
 # this digest proves the key set changed DELIBERATELY, never that the
 # change was ADJUDICATED. Never recompute this digest to make a failing
 # check pass.
+#
+# Re-pinned by plan 26-05 Task 2, in the SAME commit as the 26 -> 23
+# reconciliation above (D-05 proviso 1): the key set changed by exactly
+# the 3 removed keys (`('CLAUDE.md', '208')`, `('CLAUDE.md', '97')`,
+# `('CLAUDE.md', '305')`); `('CLAUDE.md', '43')` stays ledgered (see the
+# comment above `_CONTAINMENT_LEDGER_MAX`) and no key was added.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:67bc2d748bdb3330e701bc90c6b7660f1e849fcebdcf8fb36d0f44f589b78f94"
+    "sha256:ac8790ce65be987c8714f7f0bc27fb02b1749d2c1b4e7f23a66f64a927a03ff8"
 )
 
 
@@ -2541,6 +2633,50 @@ def containment_ledger_staleness_problems(
                 "underlying prose was likely already fixed)"
             )
     return problems
+
+
+# The three tags plan 26-05's reconciliation pass wrote at the START of
+# every surviving entry's own reason string (D-03/D-06 proviso 2's own
+# classification scheme): CANNOT-REACH (no `--describe` field exposes the
+# value today; CONTAIN-04-owned, closes when one does), FROZEN HISTORICAL
+# (docs/PROCESS.md §2's exception, D-06 proviso 3 -- stays a literal by
+# design, not residue), NOT A COUNT CLAIM (citation/identifier/arithmetic
+# residue containment's own shape-stripping doesn't recognise -- backlog
+# 999.73, out of this phase's D-E quantity-shaped scope). A reason
+# matching none of the three raises, rather than passing silently, so a
+# future entry can never go unclassified.
+_CONTAINMENT_LEDGER_CLASS_TAGS: tuple[tuple[str, str], ...] = (
+    ("NOT A COUNT CLAIM", "not_a_count_claim"),
+    ("FROZEN", "frozen_historical"),
+    ("CANNOT-REACH", "cannot_reach"),
+)
+
+
+def _containment_ledger_class_counts(
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+) -> dict[str, int]:
+    """Every surviving `_DEFERRED_CONTAINMENT_HITS` entry, tallied by the
+    class its own reason text names (D-06 proviso 2's published per-class
+    breakdown) -- generated from the ledger itself, never hand-typed, so
+    `describe()`'s published counts cannot go stale the way a hand-typed
+    tally on `docs/gates/CONF-SURFACE.md` could. Raises `ValueError`,
+    naming the offending key, if any entry's reason starts with none of
+    `_CONTAINMENT_LEDGER_CLASS_TAGS` -- an unclassified entry is a defect
+    in the reconciliation, never a silent zero."""
+    if ledger is None:
+        ledger = _DEFERRED_CONTAINMENT_HITS
+    counts = {tag_name: 0 for _tag_text, tag_name in _CONTAINMENT_LEDGER_CLASS_TAGS}
+    for key, (_backlog, _occ, reason) in ledger.items():
+        for tag_text, tag_name in _CONTAINMENT_LEDGER_CLASS_TAGS:
+            if reason.startswith(tag_text):
+                counts[tag_name] += 1
+                break
+        else:
+            raise ValueError(
+                f"_containment_ledger_class_counts: {key!r}'s reason starts with none of "
+                f"{[t for t, _n in _CONTAINMENT_LEDGER_CLASS_TAGS]}: {reason!r}"
+            )
+    return counts
 
 
 def emit_containment_ledger() -> str:
@@ -2958,7 +3094,7 @@ def _generated_marker_pairs_for(relpath: str) -> tuple[tuple[str, str], ...]:
     regenerates. Reuses the existing marker constants — one implementation,
     not a second (the action's own instruction)."""
     if relpath == "CLAUDE.md":
-        return (CLAUDE_REGION_MARKERS,)
+        return (CLAUDE_REGION_MARKERS, CLAUDE_HEADLINE_MARKERS)
     if relpath == "docs/ARCHITECTURE.md":
         return (ARCHITECTURE_REGION_MARKERS,)
     if relpath == "docs/TESTING.md":
@@ -4030,6 +4166,23 @@ def generate_all() -> dict[Path, str]:
         _MEASUREMENT_MAP_BOOTSTRAP_BEFORE,
     )
 
+    # NARR-02/RATCHET-01 (plan 26-05): CLAUDE.md's own coverage-headline
+    # sentence -- a SECOND, independent region on a page that already carries
+    # CLAUDE_REGION_MARKERS (the CI-gate table, set above). This call chains
+    # onto `targets[CLAUDE_MD]` -- the text the FIRST CLAUDE_MD call already
+    # produced -- rather than re-reading `claude_text` a second time
+    # independently, or the CI-gate-table write above would be lost the
+    # moment this second write lands.
+    claude_headline_region = _render_narrative_sentence(_NARRATIVE_REGIONS[2], traceability_blob)
+    targets[CLAUDE_MD] = _replace_or_bootstrap_region(
+        targets[CLAUDE_MD],
+        CLAUDE_HEADLINE_MARKERS[0],
+        CLAUDE_HEADLINE_MARKERS[1],
+        claude_headline_region,
+        _CLAUDE_HEADLINE_BOOTSTRAP_AFTER,
+        _CLAUDE_HEADLINE_BOOTSTRAP_BEFORE,
+    )
+
     # D-08: every registry entry — including CONF-SURFACE itself — gets a
     # docs/gates/<GATE-ID>.md page.
     for entry in _gate_registry.ENTRIES:
@@ -4329,18 +4482,19 @@ def cmd_check() -> int:
     problems += containment_ledger_ratchet_problems()
     problems += containment_ledger_staleness_problems(live_containment_findings)
 
-    # NARR-02/RATCHET-01, plan 26-04: the narrative-region roster's own
+    # NARR-02/RATCHET-01, plans 26-04/26-05: the narrative-region roster's own
     # equality floor, over the surface-key set THIS LOOP actually
     # accumulates from `pass1` -- never `{r.surface for r in
     # _NARRATIVE_REGIONS}` (the same T-26-03 argument
     # `containment_surface_roster_problems` already makes above). Plus the
     # restatement census's `'finding'`-class subset: a live restatement of
     # a region's own rendered value, outside any generated fence, on a
-    # roster surface.
+    # roster surface. CLAUDE.md joined the roster in plan 26-05.
     narrative_reached: set[str] = set()
     _named_narrative_paths: dict[Path, str] = {
         README_MD: "docs/README.md",
         MEASUREMENT_MAP_MD: "docs/MEASUREMENT-MAP.md",
+        CLAUDE_MD: "CLAUDE.md",
     }
     for path in pass1:
         if path in _named_narrative_paths:
@@ -4419,6 +4573,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "second-g3-target-unreachable",
     "component-diagram-mermaid-fence-unreachable",
     "narrative-region-two-surface-lock-only",
+    "containment-ledger-reconciliation-delta",
 )
 
 
@@ -4457,6 +4612,7 @@ def describe() -> dict:
     nonmodule_hits = _nonmodule_docstring_hits()
     nonmodule_surfaces = {h.relpath.split("#", 1)[0] for h in nonmodule_hits}
     chain_stale, chain_current, chain_uncorroborable = _chain_terminus_live_tallies()
+    containment_class_counts = _containment_ledger_class_counts()
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
@@ -4476,6 +4632,9 @@ def describe() -> dict:
         "containment_ledger_entries": len(_DEFERRED_CONTAINMENT_HITS),
         "containment_ledger_max": _CONTAINMENT_LEDGER_MAX,
         "containment_surfaces": len(_CONTAINMENT_SURFACES),
+        "containment_ledger_cannot_reach": containment_class_counts["cannot_reach"],
+        "containment_ledger_frozen_historical": containment_class_counts["frozen_historical"],
+        "containment_ledger_not_a_count_claim": containment_class_counts["not_a_count_claim"],
         "chain_termini_stale": chain_stale,
         "chain_termini_current": chain_current,
         "chain_termini_uncorroborable": chain_uncorroborable,
@@ -5077,7 +5236,24 @@ def _control_region_preserves_surrounding_prose() -> None:
     assert generated.startswith(prefix_original), "CLAUDE.md prefix (through heading) diverged"
     idx2 = original.index(_CLAUDE_BOOTSTRAP_BEFORE)
     suffix_original = original[idx2:]
-    assert generated.endswith(suffix_original), "CLAUDE.md suffix (registration history onward) diverged"
+    # Plan 26-05 added a SECOND, independent region (CLAUDE_HEADLINE_MARKERS)
+    # further down this same suffix, for the coverage-headline sentence --
+    # apply that same bootstrap-or-replace transform to the expected suffix
+    # here too, so this control still proves every OTHER byte of the suffix
+    # is unchanged, rather than asserting an invariant the second region
+    # necessarily breaks.
+    by_script, _harvest_problems = harvest(_gate_registry.ENTRIES)
+    traceability_blob = by_script.get("scripts/check-traceability.py")
+    headline_region = _render_narrative_sentence(_NARRATIVE_REGIONS[2], traceability_blob)
+    suffix_expected = _replace_or_bootstrap_region(
+        suffix_original,
+        CLAUDE_HEADLINE_MARKERS[0],
+        CLAUDE_HEADLINE_MARKERS[1],
+        headline_region,
+        _CLAUDE_HEADLINE_BOOTSTRAP_AFTER,
+        _CLAUDE_HEADLINE_BOOTSTRAP_BEFORE,
+    )
+    assert generated.endswith(suffix_expected), "CLAUDE.md suffix (registration history onward) diverged"
 
 
 # ---------------------------------------------------------------------------
@@ -6134,6 +6310,29 @@ def _control_containment_ledger_key_digest_fires() -> None:
     assert "digest" in problems[0], problems[0]
 
 
+def _control_containment_ledger_class_counts_cover_ledger() -> None:
+    """`_containment_ledger_class_counts()` classifies every real, live
+    `_DEFERRED_CONTAINMENT_HITS` entry -- the class tallies sum to the live
+    ledger size (D-06 proviso 2's published per-class breakdown must
+    actually cover every entry, not a subset), and an entry whose reason
+    starts with none of `_CONTAINMENT_LEDGER_CLASS_TAGS` raises rather than
+    silently reading as zero across every class (plan 26-05's own
+    reconciliation discipline: a factually-wrong or unclassified reason
+    must be loud, mirroring RATCHET-02's scope-only limit at the
+    constant)."""
+    counts = _containment_ledger_class_counts()
+    assert sum(counts.values()) == len(_DEFERRED_CONTAINMENT_HITS), (
+        counts,
+        len(_DEFERRED_CONTAINMENT_HITS),
+    )
+    fixture = {("fixture.md", "1"): ("999.99", 1, "an unclassified reason with no recognised tag")}
+    try:
+        _containment_ledger_class_counts(fixture)
+        raise AssertionError("expected ValueError for an unclassified reason")
+    except ValueError as exc:
+        assert "fixture.md" in str(exc), str(exc)
+
+
 def _control_containment_ledger_staleness_fires() -> None:
     """A fabricated ledger key matching no live finding must fail, naming
     that key -- mirrors `_control_ledger_staleness_fires`."""
@@ -6400,22 +6599,46 @@ def _control_narrative_roster_missing_and_extra_named() -> None:
 
 
 def _control_narrative_marker_pairs_distinct() -> None:
-    """The two region marker pairs carry four pairwise-distinct strings
+    """The three region marker pairs carry six pairwise-distinct strings
     (the `DETAIL_FACTS_MARKERS`/`DETAIL_HOWTORUN_MARKERS` multi-per-page
     shape, never the single-per-file `GENERATED_MARKER` format), and none
-    of the four equals `GENERATED_END_MARKER` or `GENERATED_MARKER`'s own
+    of the six equals `GENERATED_END_MARKER` or `GENERATED_MARKER`'s own
     rendered form."""
     all_markers = [
         marker
-        for pair in (README_HEADLINE_MARKERS, MEASUREMENT_MAP_HEADLINE_MARKERS)
+        for pair in (
+            README_HEADLINE_MARKERS,
+            MEASUREMENT_MAP_HEADLINE_MARKERS,
+            CLAUDE_HEADLINE_MARKERS,
+        )
         for marker in pair
     ]
-    assert len(set(all_markers)) == 4, all_markers
+    assert len(set(all_markers)) == 6, all_markers
     assert GENERATED_END_MARKER not in all_markers, all_markers
     rendered_generated = GENERATED_MARKER.format(source="scripts/_gate_registry.py")
     for marker in all_markers:
         assert marker != rendered_generated, marker
         assert "GENERATED — DO NOT EDIT" not in marker, marker
+
+
+def _control_claude_headline_region_chained_not_reread() -> None:
+    """`_generated_marker_pairs_for("CLAUDE.md")` returns exactly the TWO
+    pairs (the pre-existing CI-gate-table region plus this plan's own
+    coverage-headline region), and `generate_all()`'s single `CLAUDE_MD`
+    target carries BOTH regions' start markers -- proving the second
+    `_replace_or_bootstrap_region()` call chained onto the first call's own
+    output (`targets[CLAUDE_MD]`) rather than re-reading `CLAUDE.md` a
+    second time independently, which would have silently dropped one of
+    the two writes (the plan's own stated risk)."""
+    pairs = _generated_marker_pairs_for("CLAUDE.md")
+    assert pairs == (CLAUDE_REGION_MARKERS, CLAUDE_HEADLINE_MARKERS), pairs
+    targets = generate_all()
+    claude_text = targets[CLAUDE_MD]
+    assert CLAUDE_REGION_MARKERS[0] in claude_text, "CI-gate-table region lost"
+    assert CLAUDE_REGION_MARKERS[1] in claude_text, "CI-gate-table region lost"
+    assert CLAUDE_HEADLINE_MARKERS[0] in claude_text, "coverage-headline region lost"
+    assert CLAUDE_HEADLINE_MARKERS[1] in claude_text, "coverage-headline region lost"
+    assert "CLAUDE.md" in _NARRATIVE_REGION_SURFACES_LOCK
 
 
 def _control_narrative_region_templates_single_value_slot() -> None:
@@ -6745,6 +6968,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_containment_ledger_not_an_unconditional_permit,
     ),
     (
+        "containment-ledger-class-counts-cover-ledger",
+        _control_containment_ledger_class_counts_cover_ledger,
+    ),
+    (
         "containment-ledger-suppresses-known-finding",
         _control_containment_ledger_suppresses_known_finding,
     ),
@@ -6787,6 +7014,10 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     (
         "narrative-marker-pairs-distinct",
         _control_narrative_marker_pairs_distinct,
+    ),
+    (
+        "claude-headline-region-chained-not-reread",
+        _control_claude_headline_region_chained_not_reread,
     ),
     (
         "narrative-region-templates-single-value-slot",
@@ -6911,6 +7142,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-ledger-key-digest-fires",
     "containment-ledger-staleness-fires",
     "containment-ledger-not-an-unconditional-permit",
+    "containment-ledger-class-counts-cover-ledger",
     "containment-ledger-suppresses-known-finding",
     "containment-ledger-occurrence-surplus-fires",
     "chain-terminus-pre-fix-synthetic-fixture",
@@ -6925,6 +7157,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "narrative-roster-no-default-raises",
     "narrative-roster-missing-and-extra-named",
     "narrative-marker-pairs-distinct",
+    "claude-headline-region-chained-not-reread",
     "narrative-region-templates-single-value-slot",
     "narrative-render-raises-on-absent-field",
     "narrative-render-round-trips-through-disk-value",
