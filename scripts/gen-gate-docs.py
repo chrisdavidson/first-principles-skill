@@ -1322,6 +1322,108 @@ def _generated_line_flags(bare_lines: list[str], marker_pairs) -> list[bool]:
     return inside
 
 
+# ---------------------------------------------------------------------------
+# CONTAIN-01: the four surfaces containment is meant to reach, and a
+# set-equality floor over whatever `cmd_check()`'s widened loop actually
+# accumulates -- see docs/gates/CONF-SURFACE.md's "## REACH-or-LEVEL
+# determinations" section for the per-change argument behind this table;
+# not restated here.
+# ---------------------------------------------------------------------------
+
+
+class _ContainmentSurface(NamedTuple):
+    """A surface class containment's widened loop must reach. `key` is
+    the stable relpath-shaped identifier `_generated_marker_pairs_for()`
+    already dispatches on (`"CLAUDE.md"`, `"docs/ARCHITECTURE.md"`,
+    `"docs/TESTING.md"`, `"docs/gates/*.md"`). `check_spelled_out` is the
+    polarity `detail_page_containment_problems()` is called with for this
+    surface -- `False` for the named narrative surfaces CLAUDE.md,
+    docs/ARCHITECTURE.md and docs/TESTING.md (D-05: dense hand-written
+    technical prose is exactly the population `_normalise_numbers()`'s
+    second disclosed bound was written for), and the existing per-page
+    `path.stem not in NARRATIVE_ENTRIES` derivation is preserved unchanged
+    for the `docs/gates/*.md` class."""
+
+    key: str
+    check_spelled_out: bool
+
+
+_CONTAINMENT_SURFACES: tuple[_ContainmentSurface, ...] = (
+    _ContainmentSurface("CLAUDE.md", False),
+    _ContainmentSurface("docs/ARCHITECTURE.md", False),
+    _ContainmentSurface("docs/TESTING.md", False),
+    _ContainmentSurface("docs/gates/*.md", False),
+)
+
+# A SECOND, independently typed transcription of the four keys above --
+# deliberately NOT derived from `_CONTAINMENT_SURFACES` in any way, the same
+# idiom `check-conf-gate.py`'s `_CLAIM_FLOORS_LOCK` and
+# `check-selfaudit-scan.py`'s `_BRANCH_ROSTER_LOCK` already apply elsewhere.
+# `containment_surface_roster_problems()` compares the set the widened loop
+# actually accumulates against this lock by EQUALITY, never a subset test
+# (18-D-07 / 19-D-04 / 20-D-07 -- a subset test proved unable to see its own
+# table narrowing). DISCLOSED LIMITATION, the same bound the two precedent
+# locks state: a transcription of EQUAL value written a different way is
+# harmless by construction and therefore invisible to this floor -- only a
+# set that actually differs from these four is caught.
+_CONTAINMENT_SURFACES_LOCK: frozenset[str] = frozenset(
+    {"CLAUDE.md", "docs/ARCHITECTURE.md", "docs/TESTING.md", "docs/gates/*.md"}
+)
+
+
+def containment_surface_roster_problems(
+    reached_keys: frozenset[str] | set[str],
+    lock: frozenset[str] = _CONTAINMENT_SURFACES_LOCK,
+) -> list[str]:
+    """D-05 proviso 3 / D-05's "Where the roster floor is wired" section:
+    `reached_keys` is REQUIRED and carries no default -- the only default
+    available at module level would be table-derived
+    (`{s.key for s in _CONTAINMENT_SURFACES}`), which would silently turn
+    this floor into a table-vs-lock self-consistency check, a weaker claim
+    that stays green while the loop that is supposed to populate
+    `reached_keys` narrows underneath it. Every call site must therefore
+    hand this function a set it accumulated itself, from the loop that
+    actually walked the surfaces -- not read back off the table.
+
+    A genuine set-EQUALITY test, never a subset test: reports `missing=`
+    (locked but not reached) and `extra=` (reached but not locked), both
+    sorted, both named in one message, mirroring
+    `self_test()`'s own registered/ran coverage-floor shape (see this
+    module's `_CONTROL_IDS` coverage check)."""
+    missing = sorted(lock - reached_keys)
+    extra = sorted(reached_keys - lock)
+    if missing or extra:
+        return [
+            f"containment-surface-roster: missing={missing} extra={extra} "
+            "(CONTAIN-01, D-05 proviso 3 -- the reached-surface set must "
+            "equal the locked four, never a subset)"
+        ]
+    return []
+
+
+def _roster_arm_clauses(text: str) -> tuple[str, str]:
+    """Split a `containment_surface_roster_problems()` message into its
+    `missing=` and `extra=` clauses, ported from `check-conf-gate.py`'s
+    (and `check-selfaudit-scan.py`'s) own `_roster_arm_clauses` — this
+    module's own controls must test against the EXTRACTED clause, never
+    against the whole joined message via a bare `"missing=" in <identifier>`
+    test, which is exactly the defective spelling
+    `roster_arm_shape_census_problems` scans every `.py` file under
+    `scripts/` for.
+
+    Raises `ValueError` naming the offending text if either marker is
+    absent, rather than silently returning the whole string as both
+    clauses."""
+    if "missing=" not in text or " extra=" not in text:
+        raise ValueError(
+            f"_roster_arm_clauses: message lacks 'missing=' or ' extra=' "
+            f"marker: {text!r}"
+        )
+    missing_clause = text.split("missing=", 1)[-1].split(" extra=", 1)[0]
+    extra_clause = text.split("extra=", 1)[-1]
+    return missing_clause, extra_clause
+
+
 def detail_page_containment_problems(
     display_name: str,
     text: str,
@@ -3810,6 +3912,55 @@ def _control_containment_spelled_out_normalised() -> None:
     assert "'47'" in problems[0], problems
 
 
+def _control_containment_surface_roster_lock_non_empty() -> None:
+    """The anti-vacuity precondition the empty-reached-set arm depends on:
+    if `_CONTAINMENT_SURFACES_LOCK` were itself empty, the empty-set arm
+    below would compare two empty sets and pass vacuously. Asserting the
+    lock is non-empty is what makes that arm a genuine failure rather than
+    a tautology."""
+    assert len(_CONTAINMENT_SURFACES_LOCK) > 0, _CONTAINMENT_SURFACES_LOCK
+
+
+def _control_containment_surface_roster_satisfied_passes() -> None:
+    """Handed exactly the four locked keys, the floor returns []."""
+    problems = containment_surface_roster_problems(frozenset(_CONTAINMENT_SURFACES_LOCK))
+    assert problems == [], problems
+
+
+def _control_containment_surface_roster_missing_fires() -> None:
+    """One key short of the lock must fire, naming the removed key in its
+    extracted `missing=` clause -- never a bare whole-message test (the
+    `roster_arm_shape_census_problems` shape this file's own scan forbids)."""
+    reached = set(_CONTAINMENT_SURFACES_LOCK) - {"docs/TESTING.md"}
+    problems = containment_surface_roster_problems(frozenset(reached))
+    assert len(problems) == 1, problems
+    missing_clause, _extra_clause = _roster_arm_clauses(problems[0])
+    assert "docs/TESTING.md" in missing_clause, missing_clause
+
+
+def _control_containment_surface_roster_extra_fires() -> None:
+    """A fabricated fifth key must fire, naming it in its extracted
+    `extra=` clause -- the arm a subset test structurally cannot have."""
+    reached = set(_CONTAINMENT_SURFACES_LOCK) | {"docs/fabricated-surface.md"}
+    problems = containment_surface_roster_problems(frozenset(reached))
+    assert len(problems) == 1, problems
+    _missing_clause, extra_clause = _roster_arm_clauses(problems[0])
+    assert "docs/fabricated-surface.md" in extra_clause, extra_clause
+
+
+def _control_containment_surface_roster_empty_set_fires() -> None:
+    """An empty reached set -- the shape a call site that accumulated
+    nothing would pass -- must fire naming ALL FOUR locked keys in its
+    extracted `missing=` clause, never pass vacuously. Depends on
+    `_control_containment_surface_roster_lock_non_empty` for its own
+    non-vacuity."""
+    problems = containment_surface_roster_problems(frozenset())
+    assert len(problems) == 1, problems
+    missing_clause, _extra_clause = _roster_arm_clauses(problems[0])
+    for key in _CONTAINMENT_SURFACES_LOCK:
+        assert key in missing_clause, (key, missing_clause)
+
+
 def _control_containment_slash_paired_vector_stripped() -> None:
     """A slash-paired transition vector (`133/96 → 132/97`) outside a
     generated fence, with a fence carrying neither operand, produces zero
@@ -4701,6 +4852,26 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("containment-satisfied-passes", _control_containment_satisfied_passes),
     ("containment-spelled-out-normalised", _control_containment_spelled_out_normalised),
     (
+        "containment-surface-roster-lock-non-empty",
+        _control_containment_surface_roster_lock_non_empty,
+    ),
+    (
+        "containment-surface-roster-satisfied-passes",
+        _control_containment_surface_roster_satisfied_passes,
+    ),
+    (
+        "containment-surface-roster-missing-fires",
+        _control_containment_surface_roster_missing_fires,
+    ),
+    (
+        "containment-surface-roster-extra-fires",
+        _control_containment_surface_roster_extra_fires,
+    ),
+    (
+        "containment-surface-roster-empty-set-fires",
+        _control_containment_surface_roster_empty_set_fires,
+    ),
+    (
         "containment-slash-paired-vector-stripped",
         _control_containment_slash_paired_vector_stripped,
     ),
@@ -4807,6 +4978,11 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-violation-fires",
     "containment-satisfied-passes",
     "containment-spelled-out-normalised",
+    "containment-surface-roster-lock-non-empty",
+    "containment-surface-roster-satisfied-passes",
+    "containment-surface-roster-missing-fires",
+    "containment-surface-roster-extra-fires",
+    "containment-surface-roster-empty-set-fires",
     "containment-slash-paired-vector-stripped",
     "citation-shape-slash-before-arrow",
     "citation-shape-len-matches-census-pin",
