@@ -36,7 +36,7 @@ python3 scripts/check-install-collisions.py              # COLLIDE-01: live-tree
 python3 scripts/check-quality-harness.py --self-test     # QUAL-01: offline blind A/B quality-harness self-test
 python3 scripts/check-provenance.py --self-test           # PROV-GUARD: provenance-verifier self-test (33 controls)
 python3 scripts/check-provenance.py                        # PROV-GUARD: live coverage check against tests/quality-provenance-v8.24/
-python3 scripts/check-conf-gate.py --self-test              # CONF-GATE: exemplar-conformance comparator self-test (43 controls)
+python3 scripts/check-conf-gate.py --self-test              # CONF-GATE: exemplar-conformance comparator self-test (control count: see the CI gates table's CONF-GATE row below)
 python3 scripts/check-conf-gate.py                           # CONF-GATE: live comparator against source-literal conformance targets
 ```
 

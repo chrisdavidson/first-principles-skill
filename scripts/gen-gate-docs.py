@@ -2388,7 +2388,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above.'),
     ('CLAUDE.md', '22'): ('999.73', 1, "NOT A COUNT CLAIM: \"this phase's own `/bm:code-review 22`\" -- a review-invocation phase number naming WHICH review ran, not a count. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper recognises this identifier shape. Split out of 999.69 into 999.73 at Phase 26 plan 05."),
     ('CLAUDE.md', '24'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "The tally is 24 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count. Re-confirmed live this plan: the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it (only `.script`-backed Python entries are harvested); `_gate_registry.battery_gate_ids()` already parses the file, making this the cheapest cannot-reach entry to close by adding a describe field, but that field does not exist today. Deferred as cannot-reach residue (D-06 proviso 2).'),
-    ('CLAUDE.md', '43'): ('999.69', 1, 'CANNOT-REACH (no harvest field) -- AND FOUND STALE this plan, deliberately left unfixed for scope discipline: "CONF-GATE: exemplar-conformance comparator self-test (43 controls)" -- `scripts/check-conf-gate.py --describe` was re-invoked live this session and now reports `control_count: 44`, not 43; the prior ledger reason\'s "live-verified" claim was true on 2026-09-09 and is false one day later. `_DEFERRED_LITERAL_HITS` carries a TWIN entry for this exact same text, `(\'CLAUDE.md\', \'(43 controls)\')` under 999.42 -- fixing CLAUDE.md\'s own prose here would move that ledger too (a same-size key substitution needing its own re-pin), and this plan\'s own acceptance criteria hold the literal ledger untouched, its re-pin reserved for plan 26-06. Left ledgered, unfixed, and flagged rather than silently corrected out of scope; cited as RATCHET-02\'s own motivating example of a reason going stale with no size or key-set change to trip any ratchet predicate.'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
@@ -2466,7 +2465,19 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # reconciliation discipline (re-deriving every reason from a fresh
 # `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_CONTAINMENT_LEDGER_MAX: int = 23
+#
+# Lowered 23 -> 22 by plan 26-06 Task 2: fixing the deferred-literal
+# ledger's own twin entry for this exact text (CLAUDE.md:39's hand-typed
+# "(43 controls)", replaced with a pointer to this file's generated
+# CONF-GATE gate-table row -- see `_DEFERRED_LEDGER_MAX`'s own comment
+# above) removed the digit "43" from CLAUDE.md's prose entirely, so the
+# containment finding this entry deferred no longer exists. Removed rather
+# than left ledgered: `containment_ledger_staleness_problems()` treats a
+# ledger key with no matching live finding as an error, not a pass, and the
+# entry's own stale reason (see above) is the thing plan 26-05 flagged for
+# this exact fix. No replacement entry was needed; no new digit literal was
+# introduced.
+_CONTAINMENT_LEDGER_MAX: int = 22
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -2483,8 +2494,12 @@ _CONTAINMENT_LEDGER_MAX: int = 23
 # the 3 removed keys (`('CLAUDE.md', '208')`, `('CLAUDE.md', '97')`,
 # `('CLAUDE.md', '305')`); `('CLAUDE.md', '43')` stays ledgered (see the
 # comment above `_CONTAINMENT_LEDGER_MAX`) and no key was added.
+#
+# Re-pinned again by plan 26-06 Task 2, in the SAME commit as the 23 -> 22
+# reconciliation above: the key set changed by exactly the one removed key
+# (`('CLAUDE.md', '43')`); no key was added.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:ac8790ce65be987c8714f7f0bc27fb02b1749d2c1b4e7f23a66f64a927a03ff8"
+    "sha256:847df3a54ecad5273f7fbc6d2d2e44f31fa599885c11b90c721afa98db0e1f4d"
 )
 
 
@@ -3217,7 +3232,6 @@ def _match_commonmark_heading_depth(hit: LiteralHit) -> bool:
 # end.
 _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '(33 controls)'): ('999.42', 1, 'Correct: check-provenance.py --describe reports control_count 33 (live-verified).'),
-    ('CLAUDE.md', '(43 controls)'): ('999.42', 1, 'Correct: check-conf-gate.py --describe reports control_count 43 (live-verified).'),
     ('CLAUDE.md', '1. The **sync-drift gate**'): ('999.42', 1, "NOT-A-COUNT: an enumerated-list marker ('1.') the adjacency heuristic mistakes for a count -- it identifies which list item, not how many pre-commit gates exist."),
     ('CLAUDE.md', 'Five gates'): ('999.42', 1, 'Correct: 5 pre-commit gates fire on git commit (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) -- verified against both hook scripts in plan 21-13.'),
     ('CLAUDE.md', 'rows; the 14'): ('999.42', 1, "Correct: 14 v8.25 milestone requirements were registered as matrix rows at Phase 12 / 12-01 -- same headline-provenance narrative as the '23' entry above."),
@@ -3476,7 +3490,45 @@ def _deferred_ledger_keys_digest(
 # not-found-arm censuses removed 2 stale 999.40 entries whose prose no
 # longer exists; no replacement entry was needed because the rewrite
 # introduced no new digit literal.
-_DEFERRED_LEDGER_MAX: int = 181
+#
+# Lowered 181 -> 180 by plan 26-06 Task 1: re-checking every ledger reason
+# that asserted a live value against its own naming gate's `--describe`
+# output (mechanically enumerated by scanning for the "--describe reports"
+# phrase, not by reading a prior finding) found `('CLAUDE.md', '(43
+# controls)')` FALSE -- its reason read "check-conf-gate.py --describe
+# reports control_count 43 (live-verified)"; a fresh invocation in this
+# session returns 44, matching plan 26-05's own containment-ledger finding
+# for the identical text (`('CLAUDE.md', '43')`, backlog 999.69). The fix
+# is the prose edit at CLAUDE.md:39: the hand-typed "(43 controls)"
+# parenthetical is replaced with a pointer to this file's own generated
+# CONF-GATE gate-table row (which already renders the live `control_count`
+# from the harvest), not with a corrected "(44 controls)" digit -- a marker
+# pair cannot bracket that line (it sits inside a fenced ```sh block, where
+# `_literal_hits_outside_generated()` never applies), so a region is not
+# available here and the pointer edit is the only NARR-02-consistent fix.
+# This is NOT CR-05's gaming move: CR-05 deleted a claim that was still
+# TRUE and substituted an unfalsifiable hedge ("the pre-commit gates") in
+# its place; this deletes a claim already proven FALSE in this session and
+# substitutes a pointer to a generated value on the same page -- strictly
+# MORE checkable than the hand-typed digit it replaces, not less. The twin
+# `('CLAUDE.md', '43')` containment-ledger entry lost its own underlying
+# finding in the same edit (the digit "43" no longer appears in CLAUDE.md's
+# prose at all) and is reconciled in this same commit -- see
+# `_CONTAINMENT_LEDGER_MAX`'s own comment block below.
+#
+# RATCHET-02's scope, stated where this assertion lives (D-07 proviso 3):
+# this ratchet bounds the ledger's SIZE only. It does NOT re-verify that
+# any existing, unchanged entry's reason is still factually correct --
+# `('CLAUDE.md', '(43 controls)')`, above, is the concrete, present-tense
+# instance this plan found: its reason read "live-verified" against a value
+# that had already gone stale (43 vs. the live 44) one day after the entry
+# was written, with no size or key-set change to trip any of the three
+# predicates below. A factually-wrong reason on an unchanged key passes
+# `literal_ledger_ratchet_problems()` silently -- see CONTAIN-04's own
+# reconciliation discipline (re-deriving every "live-verified" reason from
+# a fresh `--describe` invocation, never trusting a prior reading) for the
+# practice that actually catches this, since the ratchet itself cannot.
+_DEFERRED_LEDGER_MAX: int = 180
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -3497,8 +3549,12 @@ _DEFERRED_LEDGER_MAX: int = 181
 # the change was ADJUDICATED. It cannot tell a genuinely-remediated permit
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
+#
+# Re-pinned by plan 26-06 Task 2, in the SAME commit as the 181 -> 180
+# reconciliation above (D-05 proviso 1): the key set changed by exactly the
+# one removed key (`('CLAUDE.md', '(43 controls)')`); no key was added.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:200b241f2689980316ee4b16adf9f363d834a518ec102227267cd438a96be94d"
+    "sha256:e76f58eeb5bab2a849f427f18726177fd9b2c4d2de7595fe8ba69486585eae9b"
 )
 
 
@@ -5443,13 +5499,13 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER Task 2's own correction:
-    one chain, hop count 5, terminus `('181',)`, matching the live
-    `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN and was
-    originally written pre-fix (hop count 3, terminus `('184',)`) in Task
-    1 of this same plan; revised here in the SAME commit that corrects the
-    real page, per the plan's own note that a live-text control tracks
-    whatever the live text says. See
+    `generate_all()` (never a paraphrase) -- AFTER plan 26-06 Task 2's own
+    correction: one chain, hop count 6, terminus `('180',)`, matching the
+    live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; plan
+    22-10's own Task 2 correction previously set it to hop count 5,
+    terminus `('181',)`. Revised again here in the SAME commit that
+    corrects the real page, per the plan's own note that a live-text
+    control tracks whatever the live text says. See
     `_control_chain_terminus_pre_fix_synthetic_fixture` for the control
     that stays provable in perpetuity after this correction."""
     pass1 = generate_all()
@@ -5463,15 +5519,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 5, chains[0]
-    assert chains[0][-1][1] == ("181",), chains[0]
+    assert len(chains[0]) == 6, chains[0]
+    assert chains[0][-1][1] == ("180",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "181" in inside_numbers, inside_numbers
+    assert "180" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
