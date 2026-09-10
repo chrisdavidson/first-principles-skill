@@ -6231,6 +6231,169 @@ def _control_slug_collision_raises() -> None:
         assert "FAKE-01" in str(exc) and "FAKE:01" in str(exc), str(exc)
 
 
+def _control_narrative_region_roster_equals_lock() -> None:
+    """The roster's own surface set (`{r.surface for r in
+    _NARRATIVE_REGIONS}`) equals the independently transcribed
+    `_NARRATIVE_REGION_SURFACES_LOCK` by EQUALITY, and handing that exact
+    set to the comparator returns `[]`."""
+    reached = {r.surface for r in _NARRATIVE_REGIONS}
+    assert reached == _NARRATIVE_REGION_SURFACES_LOCK, (reached, _NARRATIVE_REGION_SURFACES_LOCK)
+    assert narrative_region_surface_roster_problems(frozenset(reached)) == []
+
+
+def _control_narrative_roster_no_default_raises() -> None:
+    """`narrative_region_surface_roster_problems()` called with zero
+    positional arguments must raise `TypeError` -- proving `reached_keys`
+    carries no default (the same T-26-03 argument
+    `containment_surface_roster_problems` already makes: a table-derived
+    default would silently convert this floor into a table-vs-lock
+    self-consistency check)."""
+    try:
+        narrative_region_surface_roster_problems()  # type: ignore[call-arg]
+        raise AssertionError("expected TypeError for missing reached_keys")
+    except TypeError:
+        pass
+
+
+def _control_narrative_roster_missing_and_extra_named() -> None:
+    """A set differing from the lock in BOTH directions -- the lock's own
+    docs/README.md surface removed, a fabricated surface added -- fires
+    naming both in a single message's extracted `missing=`/`extra=`
+    clauses, never a bare whole-message test."""
+    skewed = (set(_NARRATIVE_REGION_SURFACES_LOCK) - {"docs/README.md"}) | {
+        "docs/fabricated-narrative-surface.md"
+    }
+    problems = narrative_region_surface_roster_problems(frozenset(skewed))
+    assert len(problems) == 1, problems
+    missing_clause, extra_clause = _roster_arm_clauses(problems[0])
+    assert "docs/README.md" in missing_clause, missing_clause
+    assert "docs/fabricated-narrative-surface.md" in extra_clause, extra_clause
+
+
+def _control_narrative_marker_pairs_distinct() -> None:
+    """The two region marker pairs carry four pairwise-distinct strings
+    (the `DETAIL_FACTS_MARKERS`/`DETAIL_HOWTORUN_MARKERS` multi-per-page
+    shape, never the single-per-file `GENERATED_MARKER` format), and none
+    of the four equals `GENERATED_END_MARKER` or `GENERATED_MARKER`'s own
+    rendered form."""
+    all_markers = [
+        marker
+        for pair in (README_HEADLINE_MARKERS, MEASUREMENT_MAP_HEADLINE_MARKERS)
+        for marker in pair
+    ]
+    assert len(set(all_markers)) == 4, all_markers
+    assert GENERATED_END_MARKER not in all_markers, all_markers
+    rendered_generated = GENERATED_MARKER.format(source="scripts/_gate_registry.py")
+    for marker in all_markers:
+        assert marker != rendered_generated, marker
+        assert "GENERATED — DO NOT EDIT" not in marker, marker
+
+
+def _control_narrative_region_templates_single_value_slot() -> None:
+    """Every `_NARRATIVE_REGIONS` entry's `template` contains exactly one
+    `{value}` occurrence -- D-02's whole-sentence unit of generation, never
+    a numeric fragment."""
+    for region in _NARRATIVE_REGIONS:
+        assert region.template.count("{value}") == 1, region
+
+
+def _control_narrative_render_raises_on_absent_field() -> None:
+    """`_render_narrative_sentence` raises the NAMED
+    `NarrativeFieldNotFoundError` -- never a bare `KeyError`, never a silent
+    `None` -- when `region.field_path` is absent from the harvest blob
+    (D-03: an absent field is a cannot-reach case, not a fallback)."""
+    region = _NarrativeRegion(
+        surface="docs/README.md",
+        markers=("<!-- GENERATED:NARR-TEST -->", "<!-- END GENERATED:NARR-TEST -->"),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.does_not_exist",
+        template="X {value} Y",
+    )
+    try:
+        _render_narrative_sentence(region, {"coverage_headline": {}})
+        raise AssertionError("expected NarrativeFieldNotFoundError")
+    except NarrativeFieldNotFoundError:
+        pass
+
+
+def _control_narrative_render_round_trips_through_disk_value() -> None:
+    """`_render_narrative_sentence` round-trips through
+    `_narrative_region_value_on_disk`: rendering a synthetic value into a
+    template and recovering it from the rendered region's own on-disk body
+    returns the same string. Built entirely in memory -- no real file is
+    touched (FROZEN-EVIDENCE discipline)."""
+    region = _NarrativeRegion(
+        surface="fixtures/narrative-round-trip.md",
+        markers=("<!-- GENERATED:NARR-RT -->", "<!-- END GENERATED:NARR-RT -->"),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="Coverage stands at {value} today.",
+    )
+    blob = {"coverage_headline": {"prose": "1 reproducible / 2 audit-only / 0 gap / 3 total"}}
+    rendered = _render_narrative_sentence(region, blob)
+    fixture_text = f"# Fixture\n\n{region.markers[0]}\n{rendered}\n{region.markers[1]}\n"
+    recovered = _narrative_region_value_on_disk(region, fixture_text)
+    assert recovered == blob["coverage_headline"]["prose"], (recovered, rendered)
+
+
+def _control_narrative_exemption_matcher_never_suppresses() -> None:
+    """The `generated-narrative-region` exemption entry's matcher returns
+    `False` for a hit whose text IS a region-rendered value -- the
+    mechanical statement of the D-04 correction (26-RESEARCH.md's own
+    "Mechanism-Level Findings"): suppression happens entirely via
+    `_generated_marker_pairs_for()`, never via this exemption class. A
+    future "fix" that makes this matcher start returning `True` to
+    compensate for a missing fence registration fails THIS control by
+    name."""
+    cls = next(c for c in LITERAL_EXEMPTION_CLASSES if c.name == "generated-narrative-region")
+    hit = LiteralHit(
+        "docs/README.md", 20, "208 reproducible / 97 audit-only / 0 gap / 305 total"
+    )
+    assert cls.matches(hit) is False, hit
+
+
+def _control_narrative_restatement_four_legs() -> None:
+    """`narrative_restatement_problems` over a synthetic in-memory surface
+    (never the real tree -- FROZEN-EVIDENCE discipline): a restatement
+    OUTSIDE the region yields a finding; the SAME value INSIDE the region,
+    inside a FENCED code block, and inside a linked DELTA CHAIN each yield
+    nothing -- covering every classified outcome."""
+    region = _NarrativeRegion(
+        surface="fixtures/narrative-restatement-host.md",
+        markers=("<!-- GENERATED:NARR-CENSUS -->", "<!-- END GENERATED:NARR-CENSUS -->"),
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="The pinned count is {value} today.",
+    )
+    value = "42"
+    host_text = (
+        "# Fixture host\n\n"
+        f"{region.markers[0]}\n"
+        f"The pinned count is {value} today.\n"
+        f"{region.markers[1]}\n\n"
+        f"Restated again: {value} appears here unfenced.\n\n"
+        "```\n"
+        f"fenced restatement: {value}\n"
+        "```\n\n"
+        f"The count moved {value} → 43, then 43 → 44.\n"
+    )
+    surface_texts = {region.surface: host_text}
+
+    findings = _narrative_restatement_findings((region,), surface_texts)
+    kinds = [kind for kind, _region, _surface, _lineno in findings]
+    assert kinds.count("finding") == 1, findings
+    assert kinds.count("in-region") == 1, findings
+    assert kinds.count("fenced") == 1, findings
+    assert kinds.count("chain-hop") == 1, findings
+
+    problems = narrative_restatement_problems((region,), surface_texts)
+    assert len(problems) == 1, problems
+    assert "fixtures/narrative-restatement-host.md" in problems[0], problems[0]
+
+    counts = narrative_restatement_counts((region,), surface_texts)
+    assert counts == {"finding": 1, "in-region": 1, "fenced": 1, "chain-hop": 1}, counts
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("harvest-nonzero-exit-named", _control_harvest_nonzero_exit_named),
     ("harvest-malformed-json-named", _control_harvest_malformed_json_named),
@@ -6403,6 +6566,42 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_selffile_docstring_ratchet_requires_repin_on_shrink,
     ),
     ("slug-collision-raises", _control_slug_collision_raises),
+    (
+        "narrative-region-roster-equals-lock",
+        _control_narrative_region_roster_equals_lock,
+    ),
+    (
+        "narrative-roster-no-default-raises",
+        _control_narrative_roster_no_default_raises,
+    ),
+    (
+        "narrative-roster-missing-and-extra-named",
+        _control_narrative_roster_missing_and_extra_named,
+    ),
+    (
+        "narrative-marker-pairs-distinct",
+        _control_narrative_marker_pairs_distinct,
+    ),
+    (
+        "narrative-region-templates-single-value-slot",
+        _control_narrative_region_templates_single_value_slot,
+    ),
+    (
+        "narrative-render-raises-on-absent-field",
+        _control_narrative_render_raises_on_absent_field,
+    ),
+    (
+        "narrative-render-round-trips-through-disk-value",
+        _control_narrative_render_round_trips_through_disk_value,
+    ),
+    (
+        "narrative-exemption-matcher-never-suppresses",
+        _control_narrative_exemption_matcher_never_suppresses,
+    ),
+    (
+        "narrative-restatement-four-legs",
+        _control_narrative_restatement_four_legs,
+    ),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -6508,6 +6707,15 @@ _CONTROL_IDS: tuple[str, ...] = (
     "selffile-docstring-ratchet-fires",
     "selffile-docstring-ratchet-requires-repin-on-shrink",
     "slug-collision-raises",
+    "narrative-region-roster-equals-lock",
+    "narrative-roster-no-default-raises",
+    "narrative-roster-missing-and-extra-named",
+    "narrative-marker-pairs-distinct",
+    "narrative-region-templates-single-value-slot",
+    "narrative-render-raises-on-absent-field",
+    "narrative-render-round-trips-through-disk-value",
+    "narrative-exemption-matcher-never-suppresses",
+    "narrative-restatement-four-legs",
 )
 
 
