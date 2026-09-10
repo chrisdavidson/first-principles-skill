@@ -1359,17 +1359,35 @@ class _ContainmentSurface(NamedTuple):
     technical prose is exactly the population `_normalise_numbers()`'s
     second disclosed bound was written for), and the existing per-page
     `path.stem not in NARRATIVE_ENTRIES` derivation is preserved unchanged
-    for the `docs/gates/*.md` class."""
+    for the `docs/gates/*.md` class.
+
+    `terminus_policy` (CONTAIN-02) is the chain-terminus arm's own
+    three-outcome discriminator for this surface class, a STRUCTURAL
+    property of what the surface's own generated fence publishes, never a
+    per-chain judgement call: `"fence-authoritative"` for `docs/gates/*.md`
+    -- a gate page's Facts fence is generated from that gate's own
+    `--describe` emission and publishes every derived count the page
+    narrates, so a chain terminus absent from it is a claim the page's own
+    generated source contradicts. `"fence-silent"` for the three narrative
+    surfaces -- their generated regions are gate-registry renderings (a
+    table and an index) that publish no derived count of their own at all,
+    so absence there carries no information. Disclosed bound, stated
+    plainly rather than left implicit: under `"fence-silent"` a genuinely
+    stale terminus is reported as UNCORROBORABLE, not caught -- see
+    `chain_terminus_problems`'s own docstring and
+    docs/gates/CONF-SURFACE.md's numbered disclosed-bounds entry for the
+    measured live tally."""
 
     key: str
     check_spelled_out: bool
+    terminus_policy: str
 
 
 _CONTAINMENT_SURFACES: tuple[_ContainmentSurface, ...] = (
-    _ContainmentSurface("CLAUDE.md", False),
-    _ContainmentSurface("docs/ARCHITECTURE.md", False),
-    _ContainmentSurface("docs/TESTING.md", False),
-    _ContainmentSurface("docs/gates/*.md", False),
+    _ContainmentSurface("CLAUDE.md", False, "fence-silent"),
+    _ContainmentSurface("docs/ARCHITECTURE.md", False, "fence-silent"),
+    _ContainmentSurface("docs/TESTING.md", False, "fence-silent"),
+    _ContainmentSurface("docs/gates/*.md", False, "fence-authoritative"),
 )
 
 # A SECOND, independently typed transcription of the four keys above --
@@ -1786,6 +1804,160 @@ def _link_delta_chains(
         if not extended:
             open_chains.append([hop])
     return [chain for chain in open_chains if len(chain) >= 2]
+
+
+def _split_inside_outside_lines(text: str, marker_pairs) -> tuple[list[str], list[str]]:
+    """(outside_lines, inside_lines) for one page's text and marker pairs --
+    the H1 title line (index 0) is always excluded from the OUTSIDE scan,
+    matching `detail_page_containment_problems`'s own convention. Shared by
+    `chain_terminus_problems` and its own self-test controls so the fence
+    primitive (`_generated_line_flags`) is reused rather than
+    re-implemented a further time."""
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, marker_pairs)
+    outside_lines = [
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+    ]
+    inside_lines = [line for line, is_in in zip(lines, inside) if is_in]
+    return outside_lines, inside_lines
+
+
+def _chain_terminus_surface_verdicts(
+    text: str,
+    marker_pairs,
+    terminus_policy: str,
+) -> list[tuple[str, tuple[str, ...], list[str]]]:
+    """One `(verdict, terminus_tuple, hop_span_list)` entry per growth chain
+    `_link_delta_chains` assembles from `text`'s outside lines (D-03's
+    growth-chain gate: a <2-hop pair never reaches this function at all,
+    already filtered out by `_link_delta_chains` itself). `verdict` is one
+    of `'stale'` / `'current'` / `'uncorroborable'`, decided structurally by
+    `terminus_policy` -- D-03's three-outcome discriminator, reusing the
+    SAME flat whole-fence set-membership primitive
+    `detail_page_containment_problems` already uses (no per-format named-
+    field lookup):
+
+      - every member of the chain's terminus tuple present in the
+        inside-fence number set -> `'current'`.
+      - otherwise, `terminus_policy == 'fence-authoritative'` -> `'stale'`.
+      - otherwise (`'fence-silent'`) -> `'uncorroborable'` -- D-02's
+        disclosed bound: a genuinely stale terminus on a `fence-silent`
+        surface is reported as uncorroborable, not caught. Measured, not
+        hypothetical; stated beside the `terminus_policy` field on
+        `_CONTAINMENT_SURFACES` and as a numbered disclosed bound on
+        docs/gates/CONF-SURFACE.md.
+
+    The inside-fence number set is computed with spelled-out extraction ON
+    (a spelled-out corroborator inside a fence still matches), citation-
+    shape-stripped exactly as `_containment_missing_numbers` already does."""
+    outside_lines, inside_lines = _split_inside_outside_lines(text, marker_pairs)
+    inside_numbers = _normalise_numbers(
+        _strip_citation_shaped_numbers("\n".join(inside_lines)), include_spelled_out=True
+    )
+    outside_text = "\n".join(outside_lines)
+    chains = _link_delta_chains(_delta_chain_hops(outside_text))
+    results: list[tuple[str, tuple[str, ...], list[str]]] = []
+    for chain in chains:
+        terminus = chain[-1][1]
+        spans = [hop[2] for hop in chain]
+        if all(member in inside_numbers for member in terminus):
+            results.append(("current", terminus, spans))
+        elif terminus_policy == "fence-authoritative":
+            results.append(("stale", terminus, spans))
+        else:
+            results.append(("uncorroborable", terminus, spans))
+    return results
+
+
+def chain_terminus_problems(
+    display_name: str,
+    text: str,
+    marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+    terminus_policy: str = "fence-authoritative",
+) -> list[str]:
+    """CONTAIN-02's chain-terminus arm: a growth chain's LAST hop's right
+    operand tuple (D-01: "the last value of the whole chain, not every
+    pair's right-hand value") corroborated against the same page's own
+    generated fence, via `_chain_terminus_surface_verdicts`. Returns ONLY
+    the stale findings -- the current/uncorroborable tallies are exposed
+    through that same function (see `_chain_terminus_live_tallies`, which
+    `describe()` publishes as `chain_termini_current` /
+    `chain_termini_uncorroborable`), never folded into this list.
+
+    See docs/gates/CONF-SURFACE.md's "## REACH-or-LEVEL determinations"
+    section for the determination behind this mechanism; not restated
+    here."""
+    problems: list[str] = []
+    for verdict, terminus, spans in _chain_terminus_surface_verdicts(
+        text, marker_pairs, terminus_policy
+    ):
+        if verdict != "stale":
+            continue
+        terminus_display = "/".join(terminus) if len(terminus) > 1 else terminus[0]
+        rendered_chain = " -> ".join(spans)
+        problems.append(
+            f"chain-terminus: {display_name} narrates a growth chain ending in "
+            f"{terminus_display!r} ({rendered_chain}) with no matching literal "
+            "inside a generated fence on the same page (CONTAIN-02, D-01/D-02/D-03)"
+        )
+    return problems
+
+
+def _chain_terminus_live_tallies() -> tuple[int, int, int]:
+    """`(stale, current, uncorroborable)` chain-terminus tallies across
+    every `_CONTAINMENT_SURFACES` page, live -- the population `describe()`
+    publishes as `chain_termini_stale` / `chain_termini_current` /
+    `chain_termini_uncorroborable`.
+
+    Reads REAL ON-DISK text directly (`Path.read_text`), NEVER
+    `generate_all()` -- confirmed by direct timeout during this plan's own
+    execution, not assumed: `describe()` is itself invoked as a subprocess
+    by `harvest()`'s own self-harvest of this module (CONF-SURFACE
+    harvests its own `--describe`), so calling `generate_all()` from here
+    would recurse (`generate_all()` calls `harvest()`, which re-invokes
+    this same module's `--describe` as a fresh subprocess, which would
+    call `generate_all()` again). Mirrors `run_literal_scan()`'s own
+    discipline of reading real on-disk files for the identical reason."""
+    named_paths: dict[str, Path] = {
+        "CLAUDE.md": CLAUDE_MD,
+        "docs/ARCHITECTURE.md": ARCHITECTURE_MD,
+        "docs/TESTING.md": TESTING_MD,
+    }
+    stale = current = uncorroborable = 0
+    for surface in _CONTAINMENT_SURFACES:
+        if surface.key == "docs/gates/*.md":
+            for entry in _gate_registry.ENTRIES:
+                path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
+                if not path.exists():
+                    continue
+                generated = path.read_text(encoding="utf-8")
+                rel = str(path.relative_to(REPO_ROOT))
+                marker_pairs = _generated_marker_pairs_for(rel)
+                for verdict, _terminus, _spans in _chain_terminus_surface_verdicts(
+                    generated, marker_pairs, surface.terminus_policy
+                ):
+                    if verdict == "stale":
+                        stale += 1
+                    elif verdict == "current":
+                        current += 1
+                    else:
+                        uncorroborable += 1
+            continue
+        path = named_paths[surface.key]
+        if not path.exists():
+            continue
+        generated = path.read_text(encoding="utf-8")
+        marker_pairs = _generated_marker_pairs_for(surface.key)
+        for verdict, _terminus, _spans in _chain_terminus_surface_verdicts(
+            generated, marker_pairs, surface.terminus_policy
+        ):
+            if verdict == "stale":
+                stale += 1
+            elif verdict == "current":
+                current += 1
+            else:
+                uncorroborable += 1
+    return stale, current, uncorroborable
 
 
 # ---------------------------------------------------------------------------
@@ -3660,6 +3832,9 @@ def cmd_check() -> int:
     _surface_check_spelled_out: dict[str, bool] = {
         s.key: s.check_spelled_out for s in _CONTAINMENT_SURFACES
     }
+    _surface_terminus_policy: dict[str, str] = {
+        s.key: s.terminus_policy for s in _CONTAINMENT_SURFACES
+    }
     reached: set[str] = set()
     live_containment_findings: dict[tuple[str, str], int] = {}
     for path, generated in pass1.items():
@@ -3697,6 +3872,17 @@ def cmd_check() -> int:
         marker_pairs = _generated_marker_pairs_for(rel)
         problems += detail_page_containment_problems(
             rel, generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+        )
+        # CONTAIN-02, D-01/D-02/D-03: the chain-terminus arm, run over the
+        # same surface loop and the same per-surface `terminus_policy`
+        # (fence-authoritative for docs/gates/*.md, fence-silent for the
+        # three narrative surfaces) -- see docs/gates/CONF-SURFACE.md's
+        # "## REACH-or-LEVEL determinations" section for the determination.
+        problems += chain_terminus_problems(
+            rel,
+            generated,
+            marker_pairs=marker_pairs,
+            terminus_policy=_surface_terminus_policy[surface_key],
         )
         missing = _containment_missing_numbers(
             generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
@@ -3823,6 +4009,7 @@ def describe() -> dict:
     # for why the standing scan is not widened to cover it.
     nonmodule_hits = _nonmodule_docstring_hits()
     nonmodule_surfaces = {h.relpath.split("#", 1)[0] for h in nonmodule_hits}
+    chain_stale, chain_current, chain_uncorroborable = _chain_terminus_live_tallies()
     derived_counts = {
         "literal_scan_surfaces": len(LITERAL_SCAN_SURFACES),
         "literal_scan_read_files": len(literal_read.read_relpaths),
@@ -3842,6 +4029,9 @@ def describe() -> dict:
         "containment_ledger_entries": len(_DEFERRED_CONTAINMENT_HITS),
         "containment_ledger_max": _CONTAINMENT_LEDGER_MAX,
         "containment_surfaces": len(_CONTAINMENT_SURFACES),
+        "chain_termini_stale": chain_stale,
+        "chain_termini_current": chain_current,
+        "chain_termini_uncorroborable": chain_uncorroborable,
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -4618,15 +4808,17 @@ def _control_containment_slash_paired_vector_stripped() -> None:
     assert problems == [], problems
 
 
-def _control_delta_chain_hops_confsurface_pre_fix() -> None:
+def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- BEFORE Task 2's own correction
-    lands in this same plan: one chain, hop count 3, terminus `('184',)`.
-    This control is LIVE-TEXT-DRIVEN, so once Task 2 corrects the real page
-    its expected terminus is revised in the same commit -- a live-text
-    control tracks whatever the live text says, by design; Task 2's own
-    synthetic-fixture control is what stays provable in perpetuity after
-    the correction."""
+    `generate_all()` (never a paraphrase) -- AFTER Task 2's own correction:
+    one chain, hop count 5, terminus `('181',)`, matching the live
+    `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN and was
+    originally written pre-fix (hop count 3, terminus `('184',)`) in Task
+    1 of this same plan; revised here in the SAME commit that corrects the
+    real page, per the plan's own note that a live-text control tracks
+    whatever the live text says. See
+    `_control_chain_terminus_pre_fix_synthetic_fixture` for the control
+    that stays provable in perpetuity after this correction."""
     pass1 = generate_all()
     entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
     path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
@@ -4638,8 +4830,15 @@ def _control_delta_chain_hops_confsurface_pre_fix() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 3, chains[0]
-    assert chains[0][-1][1] == ("184",), chains[0]
+    assert len(chains[0]) == 5, chains[0]
+    assert chains[0][-1][1] == ("181",), chains[0]
+    inside_numbers = _normalise_numbers(
+        _strip_citation_shaped_numbers(
+            "\n".join(line for line, is_in in zip(lines, inside) if is_in)
+        ),
+        include_spelled_out=True,
+    )
+    assert "181" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
@@ -5535,6 +5734,78 @@ def _control_containment_ledger_occurrence_surplus_fires() -> None:
     assert "1" in problems[0] and "2" in problems[0], problems[0]
 
 
+def _control_chain_terminus_pre_fix_synthetic_fixture() -> None:
+    """T-25-03-01: a permanent, embedded SYNTHETIC copy of the pre-fix
+    CONF-SURFACE.md growth-chain prose (the exact text this page carried
+    before Task 2 corrected it), driving `chain_terminus_problems` directly
+    with `terminus_policy='fence-authoritative'` -- this is the control
+    that keeps CONTAIN-02's fail-before/pass-after demonstration checkable
+    in perpetuity, since the real page is now corrected and can no longer
+    demonstrate the failure. Asserts exactly one stale finding naming both
+    the terminus value and the page name."""
+    fixture_text = (
+        "# CONF-SURFACE\n\n"
+        f"{DETAIL_FACTS_MARKERS[0]}\nliteral_scan_ledger_max: 181\n{DETAIL_FACTS_MARKERS[1]}\n\n"
+        "## Disclosed bounds\n\n"
+        "Growth is not barred outright — plan 22-04 grew it 134 → 152, plan "
+        "22-07 grew it a second time, 152 → 182, and plan 22-09 grew it a "
+        "third time, 182 → 184, by reconciling a prior rewrite.\n"
+    )
+    problems = chain_terminus_problems(
+        "docs/gates/CONF-SURFACE.md",
+        fixture_text,
+        marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+        terminus_policy="fence-authoritative",
+    )
+    assert len(problems) == 1, problems
+    assert "'184'" in problems[0], problems[0]
+    assert "docs/gates/CONF-SURFACE.md" in problems[0], problems[0]
+
+
+def _control_chain_terminus_corrected_page_clean() -> None:
+    """The real, live, CORRECTED docs/gates/CONF-SURFACE.md page produces
+    ZERO chain-terminus findings -- the positive counterpart to
+    `_control_chain_terminus_pre_fix_synthetic_fixture`, driven through
+    `generate_all()` against the actual on-disk (post-Task-2) prose."""
+    pass1 = generate_all()
+    entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
+    path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
+    text = pass1[path]
+    problems = chain_terminus_problems(
+        "docs/gates/CONF-SURFACE.md",
+        text,
+        marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+        terminus_policy="fence-authoritative",
+    )
+    assert problems == [], problems
+
+
+def _control_chain_terminus_fence_silent_uncorroborable() -> None:
+    """A growth chain whose terminus is absent from a `fence-silent`
+    surface's region produces ZERO findings (never a failure) and is
+    counted as UNCORROBORABLE rather than dropped silently (D-02's
+    disclosed bound) -- the direct unit-level counterpart to
+    `_control_chain_terminus_pre_fix_synthetic_fixture`'s
+    `fence-authoritative` case, over a synthetic `fence-silent` page."""
+    text = (
+        "# Page\n\n"
+        f"{CLAUDE_REGION_MARKERS[0]}\nsome unrelated fact\n{CLAUDE_REGION_MARKERS[1]}\n\n"
+        "Coverage moved 229 → 214 rows this cycle.\n"
+        "It later moved 214 → 237 rows.\n"
+    )
+    problems = chain_terminus_problems(
+        "test.md",
+        text,
+        marker_pairs=(CLAUDE_REGION_MARKERS,),
+        terminus_policy="fence-silent",
+    )
+    assert problems == [], problems
+    verdicts = _chain_terminus_surface_verdicts(text, (CLAUDE_REGION_MARKERS,), "fence-silent")
+    assert len(verdicts) == 1, verdicts
+    assert verdicts[0][0] == "uncorroborable", verdicts[0]
+    assert verdicts[0][1] == ("237",), verdicts[0]
+
+
 def _control_registry_self_test_passes() -> None:
     """Wires the orphan. `scripts/_gate_registry.py --self-test`'s
     controls — including the ONLY duplicate-`key`/`gate_id` check —
@@ -5703,8 +5974,8 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_containment_slash_paired_vector_stripped,
     ),
     (
-        "delta-chain-hops-confsurface-pre-fix",
-        _control_delta_chain_hops_confsurface_pre_fix,
+        "delta-chain-hops-confsurface-corrected",
+        _control_delta_chain_hops_confsurface_corrected,
     ),
     (
         "delta-chain-hops-qual01-out-of-grammar",
@@ -5783,6 +6054,18 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "containment-ledger-occurrence-surplus-fires",
         _control_containment_ledger_occurrence_surplus_fires,
     ),
+    (
+        "chain-terminus-pre-fix-synthetic-fixture",
+        _control_chain_terminus_pre_fix_synthetic_fixture,
+    ),
+    (
+        "chain-terminus-corrected-page-clean",
+        _control_chain_terminus_corrected_page_clean,
+    ),
+    (
+        "chain-terminus-fence-silent-uncorroborable",
+        _control_chain_terminus_fence_silent_uncorroborable,
+    ),
     ("registry-self-test", _control_registry_self_test_passes),
     ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
     ("selffile-docstring-ratchet-fires", _control_selffile_docstring_ratchet_fires),
@@ -5846,7 +6129,7 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-surface-roster-extra-fires",
     "containment-surface-roster-empty-set-fires",
     "containment-slash-paired-vector-stripped",
-    "delta-chain-hops-confsurface-pre-fix",
+    "delta-chain-hops-confsurface-corrected",
     "delta-chain-hops-qual01-out-of-grammar",
     "delta-chain-hops-scanguard-spelled-out",
     "delta-chain-hops-claude-row-count-recovered",
@@ -5888,6 +6171,9 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-ledger-not-an-unconditional-permit",
     "containment-ledger-suppresses-known-finding",
     "containment-ledger-occurrence-surplus-fires",
+    "chain-terminus-pre-fix-synthetic-fixture",
+    "chain-terminus-corrected-page-clean",
+    "chain-terminus-fence-silent-uncorroborable",
     "registry-self-test",
     "own-registry-docstring-has-no-count",
     "selffile-docstring-ratchet-fires",
