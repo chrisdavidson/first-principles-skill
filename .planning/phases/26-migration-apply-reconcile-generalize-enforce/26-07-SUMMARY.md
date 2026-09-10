@@ -402,6 +402,336 @@ None — no external service configuration required.
 - Backlog `999.41` (the `.py`-docstring bucket), `999.70` (the second G3 target), and the containment ledger's own remaining `cannot_reach`/`frozen_historical`/`not_a_count_claim` residue (now 20 entries: 6 cannot-reach, 5 frozen-historical, 9 not-a-count-claim) are published and named, not closed in-phase — consistent with D-06 proviso 2 and D-05 proviso 4, and explicitly not required for Phase 26's own closure.
 - No blockers. `FIREWALL: GREEN (26/26)`, tally unchanged; CI job count unchanged at 23.
 
+## Task 4: Checkpoint Response and Render-Fidelity Fix
+
+### The checkpoint and the human's response
+
+Task 4 (`checkpoint:human-verify`, `gate="blocking"`) paused after commits `53bb85a`/`9ee3ae8`/
+`8659dc3`/`5c07689` (Tasks 1-3 plus the plan-summary/self-check commits above), asking the
+developer to read the four migrated/edited product surfaces. The developer's response:
+
+> "fix the rendering, accept the bounds"
+
+**Accepted as-is, not revisited:**
+- Disclosed bound (12): Python module docstrings excluded from criterion 3's region target; 47
+  entries stay ledgered under backlog `999.41`, published not closed.
+- Disclosed bound (13): the cannot-reach residue (`tests/premise-rejection-catalog.md`'s second
+  G3 target, `docs/COMPONENT-DIAGRAM.md`'s fenced Mermaid label).
+- The decision that `docs/v9.1-claim-containment-diagnosis.md` is not a region host.
+
+**To fix:** three rendering regressions found by diffing the migrated surfaces against the
+phase-base commit `f2073f3` — the migration is byte-neutral in rendered TEXT (RATCHET-01's own
+drift check compares text, never parsed block structure) but was not byte-neutral in rendered
+BLOCK STRUCTURE. No gate in this repository caught this class before the checkpoint, because the
+text bytes were, and remain, preserved.
+
+### Root cause, per file, with the CommonMark rule that explains it
+
+**1. `docs/README.md` — the blockquote was split.** At `f2073f3` the "Current state — start
+here" paragraph and the "Historical terminal record" paragraph lived in ONE blockquote (base
+lines 18-22: a continuous `>`-prefixed block with a bare `>` separator line between the two
+paragraphs). The migration's markers were bare, column-0 HTML comments
+(`<!-- GENERATED:README-COVERAGE-HEADLINE -->`, no leading `>`). A line that is not `>`-prefixed
+is not eligible for blockquote lazy continuation when it itself opens a new block (an HTML
+comment is CommonMark start-condition type 2, one of the six conditions that MAY interrupt an
+open construct) — so each bare marker line terminated the enclosing blockquote rather than
+continuing it, turning one blockquote into a sequence of disconnected blockquote/HTML-block
+fragments (visually: two separate blockquotes, the invisible comments contributing no visible
+box of their own).
+
+**2. `CLAUDE.md` — the list item went from tight to loose, and worse.** At `f2073f3` the
+`- **docs/requirements-traceability.md**` bullet was ONE contiguous paragraph (bullet head +
+"Active residuals...findings." + "(Derived from..." + the historical-count narration, all on
+2-space-indented continuation lines with zero blank lines anywhere in the span). The migration
+put a blank line immediately before the START marker and immediately after the END marker
+(making the item loose — CommonMark: "A list is loose if any of its constituent list items are
+separated by blank lines, or if any of its constituent list items directly contain two
+block-level elements with a blank line between them... paragraphs in a loose list are wrapped in
+`<p>` tags, while paragraphs in a tight list are not"), AND placed both markers at column 0
+inside a list item whose content column is 2 (set by the `"- "` bullet marker). A line that is
+under-indented relative to a list item's content column is eligible for lazy continuation ONLY
+if it would otherwise be ordinary paragraph continuation text; a line that itself opens an
+interrupting block (our HTML comment, again start-condition type 2) does not qualify — so the
+column-0 marker did not merely make the item loose, it fell OUT of the list item entirely,
+silently ejecting everything physically after it (the sentence, and the historical-count
+narration) into top-level, non-list content. This is the more severe of the two defects and was
+flagged explicitly in the resume instructions as something to verify by reasoning through the
+render, not assume.
+
+**3. `docs/MEASUREMENT-MAP.md` — the region over-scoped.** The fence enclosed not only its
+sentence but the trailing blank line AND the `---` thematic break beneath it (the original
+bootstrap swallowed both because `"---"` repeats four times elsewhere on the page and could not
+serve as a unique bootstrap anchor for a NARROWER region). Rendering was unaffected here (an
+HTML comment either side of `sentence\n\n---` doesn't change what's visible), but the fence had
+no rendering business owning a horizontal rule it could, in principle, rewrite on a future
+regeneration.
+
+### The fix
+
+**Roster/marker literal changes (`scripts/gen-gate-docs.py`)** — engineered at the source of
+truth, not by hand-editing the emitted files into shape:
+
+- `README_HEADLINE_MARKERS` now carries a `"> "` blockquote-continuation prefix on BOTH marker
+  lines: `"> <!-- GENERATED:README-COVERAGE-HEADLINE -->"` / `"> <!-- END GENERATED:... -->"`.
+  `_replace_region`/`_generated_line_flags`/`_fenced_line_flags` all match markers on WHOLE-LINE
+  content, so this is a complete, ordinary marker to every one of them — no mechanism change
+  needed, only the literal.
+- `CLAUDE_HEADLINE_MARKERS` now carries a two-space list-item-continuation prefix on BOTH marker
+  lines, matching the item's own content column.
+- `_NARRATIVE_REGIONS[1]` (docs/MEASUREMENT-MAP.md)'s `template` is narrowed to the bare
+  sentence — the trailing `"\n\n---"` is dropped, and the blank line plus `"---"` now live
+  OUTSIDE the end marker on disk.
+- The surrounding rationale comments (which had described the swallowed shape as an intentional
+  design, not a bug) are corrected to describe the fixed shape and to name the T-26-13 finding;
+  the bootstrap-only path (`_replace_or_bootstrap_region`'s shared `"\n{start}\n{body}{end}\n\n"`
+  block format) is explicitly left unchanged and its residual limitation documented in a comment
+  — that path is provably dead for all three regions today (their markers already exist, so
+  every `--write`/`--check` takes `_replace_region` instead), and re-engineering a bootstrap path
+  that cannot itself be exercised was judged disproportionate to this fix.
+
+**On-disk realignment (one-time hand edit, matching the new source of truth):**
+- `docs/README.md`: both marker lines gained the `"> "` prefix; the stray blank line between the
+  end marker and "Historical terminal record" was removed.
+- `CLAUDE.md`: both marker lines gained the two-space prefix; the blank lines before the start
+  marker and after the end marker were removed.
+- `docs/MEASUREMENT-MAP.md`: the end marker was moved to sit immediately after the sentence,
+  ahead of the blank line and `"---"`.
+
+`python3 scripts/gen-gate-docs.py --check` confirmed **zero drift** against this new source of
+truth immediately after the hand edits (before `--write` was ever run) — proof the edits are
+exactly what the roster now generates, not merely plausible.
+
+### Block-structure fidelity vs. `f2073f3`, by transcript
+
+Text-diff against the phase base, restricted to the touched span (only the marker lines
+inserted/moved; no other line altered — `f2073f3` here is a stand-in for the phase-base
+comparison target used per the plan's `<interfaces>` block, i.e. `git show f2073f3:<path>`):
+
+```
+$ diff <(git show f2073f3:docs/README.md | sed -n '15,26p') <(sed -n '15,25p' docs/README.md)
+3a4
+> > <!-- GENERATED:README-COVERAGE-HEADLINE -->
+7a9
+> > <!-- END GENERATED:README-COVERAGE-HEADLINE -->
+10,12d11
+< [continuing historical-narration lines beyond the compared window]
+```
+
+Block-by-block classification (a narrow, purpose-built classifier applying only the CommonMark
+rules this comparison needs — blockquote continuation/lazy-continuation, list-item paragraph
+interruption by an HTML comment, blank-line breaks, thematic breaks, headings — built and run in
+`/tmp/.../scratchpad/block_walk.py`, never shipped):
+
+**`docs/README.md`** — BASE vs FIXED:
+
+```
+BASE                                              FIXED
+BLOCKQUOTE-OPEN  > gate-load-bearing...           BLOCKQUOTE-OPEN  > gate-load-bearing...
+  bq-paragraph-START                                bq-paragraph-START
+  bq-paragraph-continuation ...kept.                bq-paragraph-continuation ...kept.
+BLANK (real break)                                BLANK (real break)
+BLOCKQUOTE-OPEN  > Current state...               BLOCKQUOTE-OPEN  > <!-- GENERATED:... -->
+  bq-paragraph-START                                bq-html-comment (invisible, ends para)
+  bq-paragraph-continuation                         bq-paragraph-START  > Current state...
+  bq-paragraph-continuation                         bq-paragraph-continuation
+  bq-blank-in-quote (para ends, quote OPEN)          bq-paragraph-continuation
+  bq-paragraph-START  > Historical terminal...       bq-blank-in-quote (para ends, quote OPEN)
+                                                      bq-html-comment (invisible, ends para)
+                                                      bq-paragraph-START  > Historical terminal...
+```
+
+`BLOCKQUOTE-OPEN` fires exactly ONCE in each of the two container spans, both base and fixed —
+the blockquote never closes and reopens; it stays a single container with the identical 2-paragraph
+split base already had (the bare `>` line was already a paragraph break in the BASE commit, not
+something this fix introduced), plus two additional invisible HTML-comment children. Rendered
+result: one `<blockquote>` wrapping two `<p>` elements, identical to base, with two comments that
+render nothing.
+
+**`CLAUDE.md`** — BASE vs FIXED (list item, de-indented by its own 2-space content column):
+
+```
+BASE                                              FIXED
+paragraph-START  the authoritative source...      paragraph-START  the authoritative source...
+  paragraph-continuation  Active residuals...      HTML-COMMENT (invisible, interrupts para)
+  paragraph-continuation  (Derived from...          paragraph-START  Active residuals...
+                                                     paragraph-continuation
+                                                     paragraph-continuation  findings.
+                                                     HTML-COMMENT (invisible, interrupts para)
+                                                     paragraph-START  (Derived from...
+```
+
+No blank line appears anywhere in either span, so per the CommonMark tight/loose rule quoted
+above, the list stays TIGHT in both BASE and FIXED — meaning FIXED's three paragraph nodes each
+render WITHOUT a wrapping `<p>` tag, exactly like BASE's one merged paragraph. In the tight-list
+HTML rendering, adjacent bare inline-content blocks separated only by a source newline (no `<p>`,
+no visible box for the invisible comments) collapse to a single flowing line when rendered by a
+standard HTML client, because a bare newline between text nodes is ordinary collapsible
+whitespace, not a block-level break. This is the mechanism that restores "one flowing
+description": not a literal merge into one `<p>` node (the comments genuinely interrupt the
+paragraph at the AST level), but the absence of any `<p>`-imposed visual break, which is what a
+loose list's spacing would have introduced and what BASE never had.
+
+**`docs/MEASUREMENT-MAP.md`** — BASE vs FIXED:
+
+```
+BASE                                              FIXED
+paragraph-START  For the complete...              HTML-COMMENT (invisible)
+BLANK (real break)                                paragraph-START  For the complete...
+THEMATIC-BREAK (---)                              HTML-COMMENT (invisible)
+BLANK (real break)                                BLANK (real break)
+HEADING  ## Live thresholds...                    THEMATIC-BREAK (---)
+                                                   BLANK (real break)
+                                                   HEADING  ## Live thresholds...
+```
+
+Identical visible sequence (paragraph, break, thematic break, break, heading) with two invisible
+comments flanking the paragraph and no longer enclosing the thematic break — the strongest match
+of the three, since nothing here depends on tight/loose or lazy-continuation subtlety.
+
+### Both ledger pins, confirmed unmoved by this continuation
+
+```
+$ python3 -c "... print(len(_DEFERRED_LITERAL_HITS), _DEFERRED_LEDGER_MAX,
+                        len(_DEFERRED_CONTAINMENT_HITS), _CONTAINMENT_LEDGER_MAX)"
+before this continuation's edits: 180 180 20 20
+after this continuation's edits:  180 180 20 20
+```
+
+Both pins are byte-unchanged by this continuation's own work. Note: the resume instructions
+stated `_CONTAINMENT_LEDGER_MAX` "must stay 22" — that figure predates this same plan's own Task
+2 (commit `9ee3ae8`), which re-pinned it 22 → 20 as a documented, already-committed deviation
+(the coincidental cross-check corroboration recorded above, under "Deviations from Plan").
+20 is the value at the moment this checkpoint fired and the value this continuation is bound not
+to move further; it has not moved, which is the operative guarantee the resume instructions were
+asking for ("This continuation is not permitted to move a pin").
+
+### The invisible-regression class: control added, not backlogged
+
+**Decision: added a cheap, real control** — `narrative_region_marker_context_problems()`, wired
+into `cmd_check()`'s aggregated problems (`scripts/gen-gate-docs.py`). For every registered
+region: the START marker's own leading blockquote-`>`/list-indent prefix must equal its body's
+first line's prefix, and the END marker's prefix must equal its body's last line's prefix. A
+mismatch names the surface, both markers, and both observed prefixes.
+
+**Why a control, not a backlog item:** a full CommonMark parser was considered and rejected —
+this module already has three independent block-aware primitives (`_fenced_line_flags`,
+`_generated_line_flags`, the containment loop's own number-adjacency heuristic) and none of them
+is a general block parser; adding a fourth, heavier one to catch a single regression class would
+repeat the "widened criterion" move this same phase's Task 2 already rejected once, for a
+different check (D-06 proviso 2's synthetic-fixture/widened-criterion rejection, applied here by
+the same reasoning). A narrow prefix-equality comparison is proportionate and sufficient because
+every registered region host uses exactly one of two container idioms (blockquote `"> "`, or
+list-item indentation) or neither (a plain paragraph) — a marker whose own leading container
+prefix disagrees with its body's is a marker in the wrong container, full stop, regardless of
+which idiom is in play. The comparison normalizes away the one legitimate cosmetic difference
+within a shared container (a bare `">"` continuation line vs. a `"> "`-prefixed marker line,
+both the same blockquote depth) by comparing only the leading run of bare `>` characters, not
+the optional trailing space CommonMark allows after each one.
+
+Proof the control works, not merely exists:
+```
+$ python3 -c "... print(m.narrative_region_marker_context_problems())"
+real tree (fixed):    []
+synthetic mismatch:   ["narrative-marker-context: fixtures/ctx.md start marker '<!-- GENERATED:CTX-TEST -->'
+                        carries prefix '', but its own body's first line carries '>' -- the marker sits
+                        in a different blockquote/list-item container than its body (NARR-02/T-26-13)",
+                       "... end marker ... carries prefix '' ... body's last line carries '>' ..."]
+```
+
+Three new `--self-test` controls (109 → 112, cascading a `--write` refresh of CLAUDE.md's,
+docs/ARCHITECTURE.md's and docs/gates/CONF-SURFACE.md's own generated CONF-SURFACE table
+cell/Facts fence — no other cell changed): `narrative-marker-context-legs` (four fixture legs:
+blockquote match, blockquote mismatch/T-26-13's own shape, list-indent match, plain-paragraph
+match, plus the bare-`>`-vs-`"> "` non-mismatch case matching docs/README.md's own real shape),
+`narrative-marker-context-live-tree-clean` (asserts the REAL, now-fixed three regions pass, not
+just a fixture resembling them), and `narrative-marker-context-wired-into-cmd-check` (the same
+monkeypatch-stub proof pattern `narrative-restatement-wired-into-cmd-check` already uses for its
+sibling check).
+
+### Full verification, all green
+
+```
+$ python3 scripts/gen-gate-docs.py --self-test
+gen-gate-docs: SELF-TEST PASS — 112 controls run
+
+$ python3 scripts/gen-gate-docs.py --check
+harvested 22/22 expected script-backed entries (22 total)
+$ echo $?
+0
+
+$ sh .githooks/pre-commit
+report-conformance: SELF-TEST PASS — 102 controls run
+report-conformance: PASS — no drift
+gen-gate-docs: SELF-TEST PASS — 112 controls run
+harvested 22/22 expected script-backed entries (22 total)
+$ echo $?
+0
+
+$ bash scripts/check-firewall-battery.sh
+[... 24 gate/gate_prereq PASS lines + 2 inline PASS + 1 INFO ...]
+FIREWALL: GREEN (26/26)
+$ echo $?
+0
+```
+
+`git diff --diff-filter=D --name-only HEAD~1 HEAD` (after the fix commit) is empty — no
+unexpected deletions. `git status --short` clean before the first edit of this continuation and
+after the fix commit.
+
+### Task Commits (Task 4, this continuation)
+
+4. **Task 4: fix the three rendering regressions, add the T-26-13 control, close the phase** —
+   `97fdceb` (fix). Touches `scripts/gen-gate-docs.py`, `docs/README.md`, `CLAUDE.md`,
+   `docs/MEASUREMENT-MAP.md`, `docs/ARCHITECTURE.md`, `docs/gates/CONF-SURFACE.md`. One atomic
+   commit rather than three: all three per-file marker/template changes and the new control live
+   in the same generator file and are only jointly self-test/`--check`-consistent (the
+   control_ids cascade into CLAUDE.md/ARCHITECTURE.md/CONF-SURFACE.md's own generated table cell
+   depends on the control addition landing in the same pass as the marker/template fixes it
+   documents) — splitting them into three commits would have required staging partial-file diffs
+   with no clean boundary and no independent verifiable state in between.
+
+### Deviations from Plan (Task 4)
+
+**2. [Rule 1 — bug, directly caused by adding a new self-test control] Adding three new controls
+raised `control_ids`/`control_count` (109 → 112), staling CLAUDE.md's/docs/ARCHITECTURE.md's own
+generated CONF-SURFACE table cell and docs/gates/CONF-SURFACE.md's Facts fence.**
+- **Found during:** first `--self-test`/`--check` run after wiring
+  `narrative_region_marker_context_problems()` and its three controls.
+- **Issue:** `--self-test` passed (112 controls) but the standalone "wired into cmd_check" control
+  failed with a `DRIFT: CLAUDE.md` / `DRIFT: docs/ARCHITECTURE.md` finding — the CONF-SURFACE
+  table row's own `control_ids=109; control_count=109` text was now stale against the freshly
+  regenerated `112`.
+- **Why:** the exact same self-referential cascade Task 2 of this plan (and plan 26-06 before it)
+  already hit and named: CONF-SURFACE's own meta-facts (control count) are themselves rendered
+  inside the generated surfaces it describes, so adding a control changes what those surfaces
+  must say about themselves.
+- **Fix:** ran `python3 scripts/gen-gate-docs.py --write`, which regenerated exactly
+  `CLAUDE.md`'s and `docs/ARCHITECTURE.md`'s CONF-SURFACE table cell and
+  `docs/gates/CONF-SURFACE.md`'s Facts fence (`control_ids`/`control_count` 109 → 112,
+  `roster_arm_payload_assert_sites` 50 → 51 as an incidental side effect of the new asserts added)
+  — no other cell changed, confirmed by `git diff` review before staging.
+- **Files modified:** `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/gates/CONF-SURFACE.md`.
+- **Verification:** `--self-test` (112 controls), `--check`, `sh .githooks/pre-commit`, and
+  `bash scripts/check-firewall-battery.sh` (`FIREWALL: GREEN (26/26)`) all pass after the `--write`.
+- **Committed in:** `97fdceb` (Task 4 commit).
+
+**Total deviations, this continuation:** 1, a Rule 1 auto-fix directly caused by this
+continuation's own edit (the same self-referential-cascade class this plan's Task 2 and plan
+26-06 already named once each). No scope creep; no architectural decision required.
+
+### Phase close, reconfirmed after the fix
+
+- All seven Phase 26 requirements remain ticked in `.planning/REQUIREMENTS.md` with their own
+  evidence lines (unchanged by this continuation — the fix touched no requirement's own text).
+- `.planning/ROADMAP.md`'s Phase 26 entry remains marked complete with all six success criteria's
+  discharge evidence in place (`/usr/bin/grep -n "Phase 26" .planning/ROADMAP.md` shows the
+  `- [x] **Phase 26: Migration**` roadmap-index line and the phase's own `### Phase 26:` section,
+  unchanged by this continuation).
+- `FIREWALL: GREEN (26/26)` holds after the fix, with the same 26/26 tally as before it (the new
+  controls are counted inside CONF-SURFACE's own `control_ids`/`control_count`, not as a new
+  battery registration — the battery/CI/exemption invariance Task 3 reconciled is unaffected).
+- Both ledgers unmoved by this continuation (180/180, 20/20 — see above).
+
 ---
 *Phase: 26-migration-apply-reconcile-generalize-enforce*
 *Completed: 2026-09-10*
@@ -415,3 +745,17 @@ None — no external service configuration required.
 - FOUND: commit `53bb85a` in `git log --oneline --all`
 - FOUND: commit `9ee3ae8` in `git log --oneline --all`
 - FOUND: commit `8659dc3` in `git log --oneline --all`
+
+## Self-Check (Task 4 continuation): PASSED
+
+- FOUND: `docs/README.md`
+- FOUND: `docs/MEASUREMENT-MAP.md`
+- FOUND: `CLAUDE.md`
+- FOUND: `scripts/gen-gate-docs.py`
+- FOUND: commit `97fdceb` in `git log --oneline --all`
+- CONFIRMED: `python3 scripts/gen-gate-docs.py --self-test` — SELF-TEST PASS, 112 controls run
+- CONFIRMED: `python3 scripts/gen-gate-docs.py --check` — exit 0
+- CONFIRMED: `sh .githooks/pre-commit` — exit 0 (5 gates)
+- CONFIRMED: `bash scripts/check-firewall-battery.sh` — FIREWALL: GREEN (26/26)
+- CONFIRMED: `_DEFERRED_LEDGER_MAX` 180/180, `_CONTAINMENT_LEDGER_MAX` 20/20, both unmoved
+- CONFIRMED: `narrative_region_marker_context_problems()` returns `[]` against the real tree
