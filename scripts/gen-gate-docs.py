@@ -1116,6 +1116,13 @@ _SLASH_PAIRED_TRANSITION_PATTERN: str = (
     r"\d[\d,]*(?:/\d[\d,]*)+\s*(?:→|-->|->)\s*\d[\d,]*(?:/\d[\d,]*)+"
 )
 
+# Named for the identical reason `_SLASH_PAIRED_TRANSITION_PATTERN` is named
+# above: so `_delta_chain_hops` (CONTAIN-02) can select these two members out
+# of the live `_CITATION_SHAPE_RES` tuple by identity, without a second,
+# independently-retyped copy of their regex text.
+_ARROW_TRANSITION_PATTERN: str = r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"
+_ENGLISH_PROSE_TRANSITION_PATTERN: str = r"\b\d{1,4}\s+to\s+\d{1,4}\b"
+
 _CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
     # ISO date: 2026-09-02
     re.compile(r"\b\d{4}-\d{2}-\d{2}\b"),
@@ -1167,7 +1174,7 @@ _CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
     # Measured-transition vector, mirroring HEADLINE-LOCK's own
     # arrow-adjacency rule: a digit immediately next to a transition arrow
     # is a delta, not a current-fact count.
-    re.compile(r"\d[\d,]*\s*(?:→|-->|->)\s*\d[\d,]*"),
+    re.compile(_ARROW_TRANSITION_PATTERN),
     # Slash-separated reading vector: 0/0/0, 7/0/1 (a measured (claims/
     # fragments/untraced)-shaped triple, not a single count claim).
     re.compile(r"\b\d+(?:/\d+){1,3}\b"),
@@ -1191,7 +1198,7 @@ _CITATION_SHAPE_RES: tuple[re.Pattern[str], ...] = (
     # English-prose transition: "58 to 72", "72 to 86" — the same DELTA
     # shape the arrow-vector rule above covers, spelled with "to" instead
     # of an arrow.
-    re.compile(r"\b\d{1,4}\s+to\s+\d{1,4}\b"),
+    re.compile(_ENGLISH_PROSE_TRANSITION_PATTERN),
     # Exit-code / return-code reference: "rc 0", "exit code 1" — an
     # identifier for a specific outcome, not a count.
     re.compile(r"\b(?:rc|exit code|exit)\s+\d{1,2}\b", re.IGNORECASE),
@@ -1286,7 +1293,16 @@ def _normalise_numbers(text: str, include_spelled_out: bool = True) -> set[str]:
     for that text while leaving bare-digit containment fully active — a
     stale bare-digit count (`27` diverging from a Facts-fence `27`) is
     still caught; an ordinary-language spelled-out number in flowing prose
-    is not force-corroborated or force-reworded."""
+    is not force-corroborated or force-reworded.
+
+    Addendum to the second disclosed bound (found designing the
+    chain-terminus arm, plan 25-03): that bound does NOT apply to
+    `_delta_chain_hops`' own hop-value extraction. A hop's operands are a
+    closed, already-delimited population — the two sides of one regex
+    match — not the open-ended dense prose the second bound is about, so
+    the chain parser reads spelled-out hop values unconditionally,
+    independent of the surrounding page's own `check_spelled_out` polarity
+    for ORDINARY containment."""
     found: set[str] = {m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(text)}
     if not include_spelled_out:
         return found
@@ -1540,6 +1556,236 @@ def detail_page_containment_problems(
             "with no matching literal inside one (D-06)"
         )
     return problems
+
+
+# ---------------------------------------------------------------------------
+# CONTAIN-02: the chain-terminus arm's parser half -- assembles a growth
+# chain (N -> M -> P, possibly narrated across several non-adjacent
+# sentences) out of `_CITATION_SHAPE_RES`'s own delta-vector members, so a
+# chain's LAST value can be corroborated separately from its history instead
+# of being stripped whole along with it. See docs/gates/CONF-SURFACE.md's
+# "## REACH-or-LEVEL determinations" section for the determination behind
+# this mechanism; not restated here.
+# ---------------------------------------------------------------------------
+
+# Parser-only spelled-out extension of the English-prose 'N to M' shape
+# (D-04): `_CITATION_SHAPE_RES`'s own English-prose member
+# (`_ENGLISH_PROSE_TRANSITION_PATTERN`) stays digit-only, so ORDINARY
+# containment's exemption grammar is unchanged. This pattern is used ONLY by
+# `_delta_chain_hops`'s own extraction pass below, never added to the shared
+# tuple -- widening the shared member would change what every page's
+# ordinary containment strips, not just what the chain parser can see.
+# Derived from the same `_SPELLED_OUT_TENS`/`_SPELLED_OUT_ONES` vocabulary
+# `_spelled_number_value` already uses, never a second, hand-typed word
+# list.
+_SPELLED_NUMBER_TOKEN_PATTERN: str = (
+    r"(?:(?:"
+    + "|".join(sorted(_SPELLED_OUT_TENS, key=len, reverse=True))
+    + r")(?:-(?:"
+    + "|".join(sorted(_SPELLED_OUT_ONES, key=len, reverse=True))
+    + r"))?"
+    + r"|(?:"
+    + "|".join(sorted(_SPELLED_OUT_ONES, key=len, reverse=True))
+    + r"))"
+)
+_SPELLED_ENGLISH_TRANSITION_RE = re.compile(
+    r"\b(" + _SPELLED_NUMBER_TOKEN_PATTERN + r"(?:\s+hundred)?)\s+to\s+"
+    r"(" + _SPELLED_NUMBER_TOKEN_PATTERN + r"(?:\s+hundred)?)\b",
+    re.IGNORECASE,
+)
+
+# One matched delta-vector span's own left/right separator -- an arrow (any
+# of the three spellings `_CITATION_SHAPE_RES`'s arrow member recognises) or
+# the English-prose "to". Used only to SPLIT an already-matched span into its
+# two operand-group halves, never to find a span itself.
+_HOP_SEPARATOR_RE = re.compile(r"→|-->|->|\bto\b", re.IGNORECASE)
+
+
+def _split_hop_span(span: str) -> tuple[str, str] | None:
+    """One matched delta-vector span's raw left/right operand-group text,
+    split at its own arrow-or-'to' separator. `None` if no separator is
+    found -- defensive; every span `_delta_chain_hops` feeds this came from
+    a pattern that itself requires one of these separators, so this should
+    not be reachable in practice."""
+    parts = _HOP_SEPARATOR_RE.split(span, maxsplit=1)
+    if len(parts) != 2:
+        return None
+    return parts[0], parts[1]
+
+
+def _operand_value(raw: str) -> str | None:
+    """One hop operand's raw text (one side of a plain delta match, or one
+    slash-separated member of a slash-paired operand group) to its
+    normalised digit string, or `None` if it does not normalise to exactly
+    one number (D-04: reject rather than guess). Digit-form operands
+    normalise directly; spelled-out operands reuse `_spelled_number_value`
+    -- see `_normalise_numbers`'s own docstring addendum (plan 25-03) for
+    why this is unconditional, independent of the surrounding page's own
+    `check_spelled_out` polarity for ORDINARY containment."""
+    raw = raw.strip()
+    digits = raw.replace(",", "")
+    if digits and digits.isdigit():
+        return digits
+    words = raw.split()
+    if not words:
+        return None
+    if len(words) == 1:
+        value = _spelled_number_value(words[0])
+        return str(value) if value is not None else None
+    if len(words) == 2 and words[1].lower() == "hundred":
+        value = _spelled_number_value(words[0])
+        return str(value * 100) if value is not None else None
+    return None
+
+
+def _operand_group_tuple(raw: str) -> tuple[str, ...] | None:
+    """One hop side's raw operand-group text ('132/97' or a plain '184') to
+    a tuple of normalised digit strings -- a 1-tuple for a single operand,
+    an n-tuple for a slash-paired group, so a slash chain's compound
+    terminus is a first-class value rather than a hole in the mechanism.
+    `None` if any member fails to normalise (D-04: reject the whole hop
+    rather than guess a partial tuple)."""
+    values: list[str] = []
+    for part in raw.split("/"):
+        value = _operand_value(part)
+        if value is None:
+            return None
+        values.append(value)
+    return tuple(values) if values else None
+
+
+def _select_delta_chain_patterns() -> tuple[re.Pattern[str], re.Pattern[str], re.Pattern[str]]:
+    """The live slash/arrow/English-prose delta-vector `re.Pattern` objects,
+    selected out of `_CITATION_SHAPE_RES` by exact `.pattern` string match
+    against the same named constants the tuple's own entries are compiled
+    from (`_SLASH_PAIRED_TRANSITION_PATTERN`, `_ARROW_TRANSITION_PATTERN`,
+    `_ENGLISH_PROSE_TRANSITION_PATTERN`) -- mirroring
+    `scripts/census-delta-vectors.py`'s `select_delta_patterns()` idiom, so a
+    future edit to a delta pattern cannot leave a hand-copied twin behind.
+    This module IS `_CITATION_SHAPE_RES`'s own source of truth, so (unlike
+    that cross-file census) no separate fidelity-floor length pin is needed
+    here; a pattern absent from the live tuple raises `LookupError` naming
+    which one, rather than degrading silently."""
+    slash: re.Pattern[str] | None = None
+    arrow: re.Pattern[str] | None = None
+    english: re.Pattern[str] | None = None
+    for pattern in _CITATION_SHAPE_RES:
+        if pattern.pattern == _SLASH_PAIRED_TRANSITION_PATTERN:
+            slash = pattern
+        elif pattern.pattern == _ARROW_TRANSITION_PATTERN:
+            arrow = pattern
+        elif pattern.pattern == _ENGLISH_PROSE_TRANSITION_PATTERN:
+            english = pattern
+    missing = [
+        name
+        for name, value in (
+            ("slash-paired", slash),
+            ("arrow", arrow),
+            ("english-prose", english),
+        )
+        if value is None
+    ]
+    if missing:
+        raise LookupError(
+            f"_select_delta_chain_patterns: missing from _CITATION_SHAPE_RES: {missing}"
+        )
+    assert slash is not None and arrow is not None and english is not None  # for mypy
+    return slash, arrow, english
+
+
+def _delta_chain_hops(text: str) -> list[tuple[tuple[str, ...], tuple[str, ...], str]]:
+    """Every delta-vector match in `text`, in document order, as
+    `(left_tuple, right_tuple, matched_span_text)` hops -- the parser half
+    of CONTAIN-02's chain-terminus arm. See docs/gates/CONF-SURFACE.md's
+    "## REACH-or-LEVEL determinations" section for the determination behind
+    this mechanism; not restated here.
+
+    Patterns are selected out of the live `_CITATION_SHAPE_RES` tuple at
+    runtime (`_select_delta_chain_patterns`) rather than a hand-copied
+    second regex, so a future edit to a delta pattern cannot leave a
+    hand-copied twin behind.
+
+    The slash-paired pattern is applied FIRST and its matched spans are
+    masked out (same character length, so absolute offsets of later matches
+    stay stable) before the narrower arrow/English-prose passes run --
+    mirroring `_strip_citation_shaped_numbers`'s own ordering discipline, so
+    "133/96 -> 132/97" yields one 2-operand hop rather than a spurious
+    1-operand arrow hop plus two stranded operands.
+
+    Disclosed bound (D-04): every hop operand is read with spelled-out
+    extraction ON, unconditionally, independent of the page's own
+    `check_spelled_out` polarity for ORDINARY containment -- see
+    `_normalise_numbers`'s own docstring addendum (plan 25-03) for why a
+    hop's operands (a closed, already-delimited population -- the two sides
+    of one regex match) are exempt from that bound. An operand that does not
+    normalise to exactly one number is rejected -- the whole hop is dropped
+    -- rather than guessed.
+
+    Disclosed bound (D-04): the English-prose 'N to M' shape
+    `_CITATION_SHAPE_RES` itself carries is digit-only; a spelled-out hop
+    ('ninety-four to one hundred') is read by this function's OWN extension
+    (`_SPELLED_ENGLISH_TRANSITION_RE`), never by widening
+    `_CITATION_SHAPE_RES`'s own English-prose member -- doing that would
+    change what ORDINARY containment strips on every page."""
+    slash_pattern, arrow_pattern, english_pattern = _select_delta_chain_patterns()
+    raw_hops: list[tuple[int, tuple[str, ...], tuple[str, ...], str]] = []
+
+    def _consume(pattern: re.Pattern[str], working_text: str) -> str:
+        for m in pattern.finditer(working_text):
+            split = _split_hop_span(m.group(0))
+            if split is None:
+                continue
+            left = _operand_group_tuple(split[0])
+            right = _operand_group_tuple(split[1])
+            if left is None or right is None:
+                continue
+            raw_hops.append((m.start(), left, right, m.group(0)))
+        return pattern.sub(lambda mm: "�" * len(mm.group(0)), working_text)
+
+    working = text
+    working = _consume(slash_pattern, working)
+    working = _consume(arrow_pattern, working)
+    working = _consume(english_pattern, working)
+    working = _consume(_SPELLED_ENGLISH_TRANSITION_RE, working)
+
+    raw_hops.sort(key=lambda h: h[0])
+    return [(left, right, span) for _start, left, right, span in raw_hops]
+
+
+def _link_delta_chains(
+    hops: list[tuple[tuple[str, ...], tuple[str, ...], str]],
+) -> list[list[tuple[tuple[str, ...], tuple[str, ...], str]]]:
+    """Assemble maximal chains from `hops` (already in document order) by
+    VALUE CONTINUITY: a hop extends the open chain whose current terminus
+    tuple equals the hop's own left tuple, earliest-started chain winning a
+    tie; otherwise it opens a new chain (D-01/D-03's deterministic linking
+    rule). Returns only chains of TWO OR MORE hops -- D-03's growth-chain
+    gate, run before any fence lookup, is what makes a flat single-hop pair
+    (docs/gates/QUAL-01.md's two named conditions) fall out of grammar with
+    no special-casing.
+
+    Disclosed bound (D-01/D-03, measured against every fixture site at plan
+    time): linking is by VALUE CONTINUITY ONLY. Two unrelated quantities
+    that happen to share a hop value are joined into one chain -- measured
+    zero occurrences across the whole tree-wide surface population examined
+    at plan time, stated here as a bound rather than claimed away.
+
+    Disclosed bound: the grammar sees only the delta shapes
+    `_CITATION_SHAPE_RES` carries, plus this parser's own spelled-out 'to'
+    extension. A growth narrated in a shape none of them matches is
+    invisible to the arm."""
+    open_chains: list[list[tuple[tuple[str, ...], tuple[str, ...], str]]] = []
+    for hop in hops:
+        left = hop[0]
+        extended = False
+        for chain in open_chains:
+            if chain[-1][1] == left:
+                chain.append(hop)
+                extended = True
+                break
+        if not extended:
+            open_chains.append([hop])
+    return [chain for chain in open_chains if len(chain) >= 2]
 
 
 # ---------------------------------------------------------------------------
@@ -4372,6 +4618,91 @@ def _control_containment_slash_paired_vector_stripped() -> None:
     assert problems == [], problems
 
 
+def _control_delta_chain_hops_confsurface_pre_fix() -> None:
+    """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
+    `generate_all()` (never a paraphrase) -- BEFORE Task 2's own correction
+    lands in this same plan: one chain, hop count 3, terminus `('184',)`.
+    This control is LIVE-TEXT-DRIVEN, so once Task 2 corrects the real page
+    its expected terminus is revised in the same commit -- a live-text
+    control tracks whatever the live text says, by design; Task 2's own
+    synthetic-fixture control is what stays provable in perpetuity after
+    the correction."""
+    pass1 = generate_all()
+    entry = next(e for e in _gate_registry.ENTRIES if e.key == "CONF-SURFACE")
+    path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
+    text = pass1[path]
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_lines = [
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+    ]
+    chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
+    assert len(chains) == 1, chains
+    assert len(chains[0]) == 3, chains[0]
+    assert chains[0][-1][1] == ("184",), chains[0]
+
+
+def _control_delta_chain_hops_qual01_out_of_grammar() -> None:
+    """docs/gates/QUAL-01.md's real, live outside text -- the two flat
+    single-hop pairs ('2 -> 0', '1 -> 0') never value-link (0 != 2, 0 != 1),
+    so zero growth chains are assembled -- D-03's growth-chain gate falls
+    out of grammar with no special-casing."""
+    pass1 = generate_all()
+    entry = next(e for e in _gate_registry.ENTRIES if e.key == "QUAL-01")
+    path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
+    text = pass1[path]
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_lines = [
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+    ]
+    chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
+    assert chains == [], chains
+
+
+def _control_delta_chain_hops_scanguard_spelled_out() -> None:
+    """docs/gates/SCAN-GUARD.md's real, live outside text -- one chain,
+    terminus `('100',)`, with at least one of its hops carrying a
+    spelled-out operand ('eighty-six to eighty-seven', etc.) -- proves the
+    D-04 parser half non-vacuously: read digit-only, this chain would
+    appear to end at '86' against a fence carrying '100', a false failure
+    on an accurate page."""
+    pass1 = generate_all()
+    entry = next(e for e in _gate_registry.ENTRIES if e.key == "SCAN-GUARD")
+    path = DETAIL_PAGE_DIR / f"{_page_slug(entry)}.md"
+    text = pass1[path]
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, _ALL_DETAIL_MARKER_PAIRS)
+    outside_lines = [
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+    ]
+    chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
+    assert len(chains) == 1, chains
+    assert chains[0][-1][1] == ("100",), chains[0]
+    spans = [hop[2] for hop in chains[0]]
+    assert any(not any(ch.isdigit() for ch in span) for span in spans), spans
+
+
+def _control_delta_chain_hops_claude_row_count_recovered() -> None:
+    """CLAUDE.md's real, live outside text -- the interleaved coverage-
+    headline paragraph yields the row-count chain's terminus `('305',)`
+    among the chains assembled, proving non-adjacent linking: a
+    consecutive-only linker would fragment this chain against the
+    interleaved slash-paired chain sharing the same paragraph and lose the
+    terminus entirely."""
+    pass1 = generate_all()
+    text = pass1[CLAUDE_MD]
+    marker_pairs = _generated_marker_pairs_for("CLAUDE.md")
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, marker_pairs)
+    outside_lines = [
+        line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0
+    ]
+    chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
+    termini = [chain[-1][1] for chain in chains]
+    assert ("305",) in termini, termini
+
+
 def _control_citation_shape_slash_before_arrow() -> None:
     """The slash-paired transition-vector pattern's index in
     `_CITATION_SHAPE_RES` must be lower than the single-operand
@@ -5371,6 +5702,22 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "containment-slash-paired-vector-stripped",
         _control_containment_slash_paired_vector_stripped,
     ),
+    (
+        "delta-chain-hops-confsurface-pre-fix",
+        _control_delta_chain_hops_confsurface_pre_fix,
+    ),
+    (
+        "delta-chain-hops-qual01-out-of-grammar",
+        _control_delta_chain_hops_qual01_out_of_grammar,
+    ),
+    (
+        "delta-chain-hops-scanguard-spelled-out",
+        _control_delta_chain_hops_scanguard_spelled_out,
+    ),
+    (
+        "delta-chain-hops-claude-row-count-recovered",
+        _control_delta_chain_hops_claude_row_count_recovered,
+    ),
     ("citation-shape-slash-before-arrow", _control_citation_shape_slash_before_arrow),
     (
         "citation-shape-len-matches-census-pin",
@@ -5499,6 +5846,10 @@ _CONTROL_IDS: tuple[str, ...] = (
     "containment-surface-roster-extra-fires",
     "containment-surface-roster-empty-set-fires",
     "containment-slash-paired-vector-stripped",
+    "delta-chain-hops-confsurface-pre-fix",
+    "delta-chain-hops-qual01-out-of-grammar",
+    "delta-chain-hops-scanguard-spelled-out",
+    "delta-chain-hops-claude-row-count-recovered",
     "citation-shape-slash-before-arrow",
     "citation-shape-len-matches-census-pin",
     "version01-narrative-control-ids-live",
