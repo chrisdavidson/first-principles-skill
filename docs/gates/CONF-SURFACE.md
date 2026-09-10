@@ -516,6 +516,24 @@ so substituting `scripts/gen-gate-docs.py --check` for `cog --check` (D-01) leav
 fully intact. The landing site is pre-commit gate 5 (`gen-gate-docs.py --check`, already present):
 no additional pre-commit gate, no CI job and no battery registration is added to carry this arm.
 
+### RATCHET-01, demonstrated by mutation
+
+Per this plan's own mutation protocol, RATCHET-01 was proved by mutation, not by reading. On a
+disposable `rsync --exclude .git` scratch copy -- the real repository confirmed clean by `git
+status --porcelain` before the first mutation and after the last -- Arm A (the unmutated control)
+passed `--check` unchanged; Arm B (mutating a narrative region's own rendered value on
+`docs/README.md`, without touching any constant) made `--check` fail with a `DRIFT:` line naming
+that file; Arm C (mutating a different, currently-accurate region on `CLAUDE.md`, a different host
+surface) made `--check` fail with an independent `DRIFT:` line naming that second file, proving the
+check is general rather than fitted to Arm B's own target; and the census arm (a hand-typed
+restatement of a region's own rendered value appended to `docs/MEASUREMENT-MAP.md`, outside any
+generated fence) made `--check` fail naming the file and the exact line. Every mutation was
+restored and confirmed byte-identical against the real repository via `md5sum` before the next arm
+ran. The full transcript, verbatim, is recorded in this plan's own summary (`26-07-SUMMARY.md`). No
+sixth pre-commit gate, no CI job and no battery registration was added to carry this demonstration
+-- it runs entirely through pre-commit gate 5 (`scripts/gen-gate-docs.py --check`), which already
+existed.
+
 ### The meta-guard-regress argument, recorded
 
 With RATCHET-03 dropped, the remaining pair is both REACH: neither RATCHET-01 nor RATCHET-02 takes
