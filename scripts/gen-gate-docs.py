@@ -4630,6 +4630,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "component-diagram-mermaid-fence-unreachable",
     "narrative-region-two-surface-lock-only",
     "containment-ledger-reconciliation-delta",
+    "py-docstring-not-narrative-prose-scope",
 )
 
 
