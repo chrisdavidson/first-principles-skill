@@ -4329,6 +4329,25 @@ def cmd_check() -> int:
     problems += containment_ledger_ratchet_problems()
     problems += containment_ledger_staleness_problems(live_containment_findings)
 
+    # NARR-02/RATCHET-01, plan 26-04: the narrative-region roster's own
+    # equality floor, over the surface-key set THIS LOOP actually
+    # accumulates from `pass1` -- never `{r.surface for r in
+    # _NARRATIVE_REGIONS}` (the same T-26-03 argument
+    # `containment_surface_roster_problems` already makes above). Plus the
+    # restatement census's `'finding'`-class subset: a live restatement of
+    # a region's own rendered value, outside any generated fence, on a
+    # roster surface.
+    narrative_reached: set[str] = set()
+    _named_narrative_paths: dict[Path, str] = {
+        README_MD: "docs/README.md",
+        MEASUREMENT_MAP_MD: "docs/MEASUREMENT-MAP.md",
+    }
+    for path in pass1:
+        if path in _named_narrative_paths:
+            narrative_reached.add(_named_narrative_paths[path])
+    problems += narrative_region_surface_roster_problems(narrative_reached)
+    problems += narrative_restatement_problems()
+
     # CONF-13: the standing hand-maintained count-literal scanner, run over
     # the real on-disk D-21-E surface set (not `pass1`'s in-memory content —
     # this scanner protects the actual repo state, the same target
@@ -4399,6 +4418,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "roster-arm-census-is-spelling-level",
     "second-g3-target-unreachable",
     "component-diagram-mermaid-fence-unreachable",
+    "narrative-region-two-surface-lock-only",
 )
 
 
@@ -4459,7 +4479,11 @@ def describe() -> dict:
         "chain_termini_stale": chain_stale,
         "chain_termini_current": chain_current,
         "chain_termini_uncorroborable": chain_uncorroborable,
+        "narrative_regions": len(_NARRATIVE_REGIONS),
     }
+    narrative_counts = narrative_restatement_counts()
+    for kind, count in narrative_counts.items():
+        derived_counts[f"narrative_restatement_{kind.replace('-', '_')}"] = count
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
     return {
@@ -6499,6 +6523,83 @@ def _control_narrative_restatement_four_legs() -> None:
     assert counts == {"finding": 1, "in-region": 1, "fenced": 1, "chain-hop": 1}, counts
 
 
+def _control_narrative_roster_accumulated_not_table_derived() -> None:
+    """`cmd_check()`'s own narrative-region roster floor call site is fed
+    the surface-key set THIS RUN's `pass1` actually contains (plan 26-04's
+    `narrative_reached` accumulator), never a table-derived default -- the
+    same "mutation Arm 2" argument the containment loop's own
+    `_named_containment_paths` precedent already proves. Monkeypatches
+    `generate_all` to drop `docs/README.md`'s target from an otherwise-real
+    `pass1`, deterministically (memoized so pass1 == pass2 and the
+    non-determinism check does not fire), and asserts `cmd_check()`'s
+    aggregated problems name `docs/README.md` missing. A table-derived
+    default (`{r.surface for r in _NARRATIVE_REGIONS}`) could never observe
+    this removal, because the table itself is unchanged -- so this control
+    fails if a future edit ever swaps the wired accumulator back for one."""
+    original = _this_module.generate_all
+    real_targets = original()
+    mutated = {k: v for k, v in real_targets.items() if k != README_MD}
+    assert len(mutated) == len(real_targets) - 1, (len(mutated), len(real_targets))
+
+    def _fixture() -> dict[Path, str]:
+        return dict(mutated)
+
+    stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
+    try:
+        _this_module.generate_all = _fixture
+        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+            rc = cmd_check()
+        stderr_text = stderr_buf.getvalue()
+        assert rc == 1, f"cmd_check() returned {rc}, expected 1 with docs/README.md missing from pass1"
+        assert "narrative-region-surface-roster" in stderr_text, stderr_text
+        assert "docs/README.md" in stderr_text, stderr_text
+    finally:
+        _this_module.generate_all = original
+
+
+def _control_narrative_restatement_wired_into_cmd_check() -> None:
+    """`cmd_check()`'s aggregated problems genuinely include whatever
+    `narrative_restatement_problems()` returns -- not merely that the
+    function classifies correctly in isolation
+    (`_control_narrative_restatement_four_legs` already proves that at the
+    function level). Monkeypatches the function itself: a stubbed single
+    'finding'-shaped message (the OUTSIDE-the-region leg) makes
+    `cmd_check()` fail, naming that message; a stubbed empty list (the
+    IN-REGION/FENCED/CHAIN-HOP legs' own real outcome, all three producing
+    nothing) leaves `cmd_check()` passing, against the real tree's own
+    otherwise-clean current state."""
+    original = _this_module.narrative_restatement_problems
+
+    def _stub_finding(*_args: object, **_kwargs: object) -> list[str]:
+        return ["narrative-restatement: fixtures/synthetic.md:1 restates the value ..."]
+
+    def _stub_none(*_args: object, **_kwargs: object) -> list[str]:
+        return []
+
+    try:
+        _this_module.narrative_restatement_problems = _stub_finding
+        stdout_buf, stderr_buf = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout_buf), contextlib.redirect_stderr(stderr_buf):
+            rc_finding = cmd_check()
+        stderr_finding = stderr_buf.getvalue()
+        assert rc_finding == 1, (
+            f"cmd_check() returned {rc_finding}, expected 1 with a stubbed restatement finding"
+        )
+        assert "narrative-restatement: fixtures/synthetic.md:1" in stderr_finding, stderr_finding
+
+        _this_module.narrative_restatement_problems = _stub_none
+        stdout_buf2, stderr_buf2 = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout_buf2), contextlib.redirect_stderr(stderr_buf2):
+            rc_none = cmd_check()
+        assert rc_none == 0, (
+            f"cmd_check() returned {rc_none} with narrative_restatement_problems stubbed to "
+            f"[]; expected 0 against the real tree's own current clean state: "
+            f"{stderr_buf2.getvalue()}"
+        )
+    finally:
+        _this_module.narrative_restatement_problems = original
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("harvest-nonzero-exit-named", _control_harvest_nonzero_exit_named),
     ("harvest-malformed-json-named", _control_harvest_malformed_json_named),
@@ -6707,6 +6808,14 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         "narrative-restatement-four-legs",
         _control_narrative_restatement_four_legs,
     ),
+    (
+        "narrative-roster-accumulated-not-table-derived",
+        _control_narrative_roster_accumulated_not_table_derived,
+    ),
+    (
+        "narrative-restatement-wired-into-cmd-check",
+        _control_narrative_restatement_wired_into_cmd_check,
+    ),
 )
 
 # Second, independently-typed transcription of every control id above (the
@@ -6821,6 +6930,8 @@ _CONTROL_IDS: tuple[str, ...] = (
     "narrative-render-round-trips-through-disk-value",
     "narrative-exemption-matcher-never-suppresses",
     "narrative-restatement-four-legs",
+    "narrative-roster-accumulated-not-table-derived",
+    "narrative-restatement-wired-into-cmd-check",
 )
 
 
