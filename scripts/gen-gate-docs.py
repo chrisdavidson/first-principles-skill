@@ -3215,6 +3215,23 @@ def _match_deferred_ledger(hit: LiteralHit) -> bool:
     return _ledger_key_for(hit) in _DEFERRED_LITERAL_HITS
 
 
+def _match_generated_narrative_region(hit: LiteralHit) -> bool:  # noqa: ARG001
+    """Always `False` -- the D-04 mechanism correction 26-RESEARCH.md's own
+    "Mechanism-Level Findings" section documents: `_literal_hits_outside_
+    generated()` already filters a hit inside a registered GENERATED fence
+    BEFORE any exemption matcher ever runs, so the actual suppression for a
+    `_NarrativeRegion` is entirely the job of registering its marker pair in
+    `_generated_marker_pairs_for()` -- a step this plan deliberately does
+    NOT take (the mechanism lands inert). This entry is therefore a named,
+    auditable DECLARATION of the class, not the suppression mechanism
+    itself: a hit ever reaching this matcher would mean that fence
+    registration is missing, not that this matcher should start returning
+    `True` to compensate -- doing that would mask the missing registration
+    rather than close it. Resolution (a) of 26-RESEARCH.md's two options,
+    chosen deliberately."""
+    return False
+
+
 def _deferred_ledger_keys_digest(
     ledger: dict[tuple[str, str], tuple[str, int, str]],
 ) -> str:
@@ -3433,6 +3450,19 @@ LITERAL_EXEMPTION_CLASSES: tuple[LiteralExemptionClass, ...] = (
         "regardless of which surface it sits on, and a ledgered key's live "
         "occurrence count exceeding its pinned figure is also a finding.",
         _match_deferred_ledger,
+    ),
+    LiteralExemptionClass(
+        "generated-narrative-region",
+        "A named, auditable declaration of the class NARR-02's regions "
+        "belong to -- not the suppression mechanism itself. Suppression is "
+        "done entirely by a surface's own marker-pair registration in "
+        "_generated_marker_pairs_for(), because "
+        "_literal_hits_outside_generated() filters a fenced hit before any "
+        "exemption matcher ever runs (26-RESEARCH.md's own Mechanism-Level "
+        "Findings). A hit reaching this matcher would mean that "
+        "registration is missing, not that this class should start "
+        "matching it.",
+        _match_generated_narrative_region,
     ),
 )
 
