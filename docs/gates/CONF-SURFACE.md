@@ -386,3 +386,98 @@ reviewer, not scored by a mechanism.
 Each unit landed in plans 25-02 and 25-03 carries a docstring line pointing at this section by
 name — the function implementing the chain-terminus arm, and the call site widening containment's
 reached-surface loop in `cmd_check()` — and none of them restates its content.
+
+## REACH-or-LEVEL determinations (Phase 26, NARR-01, NARR-02, RATCHET-01, RATCHET-02, RATCHET-03)
+
+### The cog question, answered
+
+`.planning/research/STACK.md` recommends adopting `cogapp` for this problem, and
+`.planning/research/ARCHITECTURE.md` §2 rejects that recommendation in terms. The two disagree, and
+this project takes ARCHITECTURE.md's side (`26-CONTEXT.md` D-01): `cogapp` is not adopted, owing
+STACK.md a written answer rather than a silent override. STACK.md's strongest point is conceded by name: cog's unit of
+generation is a marked span inside an otherwise hand-written file, which is exactly the granularity
+this problem needs — a whole-file or whole-table regeneration is the wrong shape for a narrative
+paragraph carrying one live number. D-01 and D-02 reproduce that identical granularity without the
+dependency: `_replace_region` and `_replace_or_bootstrap_region` already swap an exact marked span
+between two anchor lines, and `_generated_marker_pairs_for` already registers which surface owns
+which span, the same primitives `generate_all()` already uses to bootstrap the CI-gate-table
+regions on `CLAUDE.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`. A new host page's sentence
+region is a call-site and registration change to those existing primitives, not a new generation
+engine. The accepted cost of D-02's one-sentence granularity is stated plainly, citing
+`.planning/research/ARCHITECTURE.md` §3's finding about `report-conformance.py`: that file's own
+narrative is prose living as a Python string, so the sentence's wording now lives in Python code
+rather than Markdown, and re-wording it (not re-valuing it) means editing and re-running a script.
+That cost is paid once already, on a whole-page scale, and D-02 pays a narrower version of the
+identical cost at sentence scale.
+
+### The RATCHET verdicts, landed
+
+RATCHET-01 is KEEP (REACH) — see `docs/v9.1-claim-containment-diagnosis.md` section 6's own
+"RATCHET-01" subsection for the argument in full, cited here rather than restated. RATCHET-02 is
+KEEP (REACH) — see that same section 6's "RATCHET-02" subsection. RATCHET-03 is DROP (LEVEL) — see that
+same section 6's "RATCHET-03" subsection. What section 6 could not know, because the mechanism it judges did not
+exist yet, is added here rather than re-argued: RATCHET-01's KEEP argument never turned on which
+CLI compares a generated region to its own generating source — it turns on the comparison itself —
+so substituting `scripts/gen-gate-docs.py --check` for `cog --check` (D-01) leaves the verdict
+fully intact. The landing site is pre-commit gate 5 (`gen-gate-docs.py --check`, already present):
+no additional pre-commit gate, no CI job and no battery registration is added to carry this arm.
+
+### The meta-guard-regress argument, recorded
+
+With RATCHET-03 dropped, the remaining pair is both REACH: neither RATCHET-01 nor RATCHET-02 takes
+another guard's own correctness as its subject — RATCHET-01 compares generated prose to its live
+generating source, and RATCHET-02 bounds a ledger's own product-visible size. `docs/v9.1-claim-
+containment-diagnosis.md` section 6's "Whether the three together constitute the meta-guard regress"
+subsection is cited for the argument in full; it is not reproduced here. This page's own new
+narrative-restatement census (part 4 below, wired by a later plan in this phase) is classified
+explicitly rather than left to fall through an implicit gap.
+
+### Forward REACH-or-LEVEL determinations for this phase's own new mechanisms
+
+Written here before any of the following exists, per RATCHET-04's own ordering requirement.
+
+**NARR-01** is a non-code convention: REACH. `docs/v9.1-claim-containment-diagnosis.md` §5a
+already classifies it; that classification is cited, not re-transcribed. Answered in one sentence,
+per test 3's own worked framing: a generalized scope clause on an existing rule is not a second
+rule governing whether the first rule was followed — it widens what the rule already reaches, the
+same move §1.1's own worked example makes for a scanned population, rather than adding a rule that
+audits the rule, which is what keeps the classification REACH rather than the LEVEL move §1.1
+caps.
+
+**NARR-02's generated narrative regions** point the "a moving value is generated, not hand-typed"
+discipline this page's own containment mechanism already practices at more host pages — pages
+containment structurally cannot reach today. The subject is a rendered sentence's own currency
+against its harvested source, not another guard's correctness: REACH.
+
+**The narrative sentence-region roster equality floor** is the identical set-equality-plus-
+independently-transcribed-lock shape `_CONTAINMENT_SURFACES`/`_CONTAINMENT_SURFACES_LOCK` already
+use for the containment loop, applied to the new region roster rather than to a new subject. Its
+own subject is which product pages carry a registered region, a product-visible fact, never a
+guard's correctness: REACH.
+
+**The narrative-restatement census** that a later plan in this phase wires into `cmd_check()` names
+its own subject explicitly: hand-typed restatements of an already-generated value on a product
+surface, not another guard's correctness. It is therefore REACH, the identical argument
+`_scan_text_for_literal_hits()` itself already carries for the standing literal scan it extends.
+
+### The capability statement
+
+Once this phase lands, a contributor will no longer be able to hand-type the live coverage headline
+on a registered narrative surface, outside that surface's own generated region, and reach `HEAD` —
+`CLAUDE.md` is the named surface this is proved against — because pre-commit gate 5 disputes both a
+stale region body and a hand-typed restatement sitting outside it. Two facts make this a capability
+change rather than a wider point-fix, per test 1's own framing: those sentences are hand-typed
+today, and `HEADLINE-LOCK`'s own disclosed bound — cited from `CLAUDE.md`'s Key invariants rather
+than restated — means a green sentinel is compatible with stale prose surviving on every one of
+them, because a line still stating the superseded figure produces no hit at all. Removing that
+surviving action, on the named surface, is the structural change this phase makes possible.
+
+### Requirement amendment (D-04)
+
+`.planning/REQUIREMENTS.md`'s NARR-02 and RATCHET-01 texts, and `.planning/ROADMAP.md`'s Phase 26 success
+criterion three (the exemption-class entry) and success criterion four (the pre-commit-blocking
+behavior), named `cog`, `cog --check` and `cog-generated-region` as the mechanism to be built. This phase amends all four sites to name the mechanism actually built —
+`generated-narrative-region` and `scripts/gen-gate-docs.py --check` — citing
+`.planning/research/ARCHITECTURE.md` §2's rejection as the reason, in the same shape as the
+existing CONF-12 amendment entry above. The edit is recorded here so a later reader cannot mistake
+it for drift; the edits themselves land on their own surfaces, not here.
