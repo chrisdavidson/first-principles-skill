@@ -55,6 +55,7 @@ import re
 import subprocess
 import sys
 import tempfile
+from collections import Counter
 from pathlib import Path
 from typing import NamedTuple
 
@@ -1424,23 +1425,17 @@ def _roster_arm_clauses(text: str) -> tuple[str, str]:
     return missing_clause, extra_clause
 
 
-def detail_page_containment_problems(
-    display_name: str,
+def _containment_missing_numbers(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
     check_spelled_out: bool = True,
 ) -> list[str]:
-    """D-06's containment floor for one `docs/gates/*.md` page's text. The
-    page's own H1 title (line 0) is excluded from the 'outside' scan — it
-    names the gate id, an identifier, not a count claim, and gate ids like
-    `VAL-01` or `GATE-02-v8.5` otherwise trip the digit regex on their own
-    suffix. Citation/identifier/transition-vector shapes (plan numbers,
-    phase-adjacent identifiers, version stamps, backlog refs, measured
-    transitions) are stripped before counting — see `_CITATION_SHAPE_RES`.
-
-    `check_spelled_out=False` (used by `cmd_check()` for `NARRATIVE_ENTRIES`
-    pages only) additionally turns off spelled-out-number matching — see
-    `_normalise_numbers`'s second disclosed bound for why."""
+    """The raw, pre-ledger sorted list of normalised number strings stated
+    outside a generated fence with no matching literal inside the fence --
+    `detail_page_containment_problems()`'s own extraction, split out so the
+    containment-ledger machinery below (`_containment_live_finding_counts()`,
+    `emit_containment_ledger()`) can derive the SAME finding population it
+    scores, rather than a second, independently-drifting extraction."""
     lines = text.splitlines()
     inside = _generated_line_flags(lines, marker_pairs)
     outside_lines = [line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0]
@@ -1451,12 +1446,306 @@ def detail_page_containment_problems(
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers("\n".join(inside_lines)), include_spelled_out=check_spelled_out
     )
-    missing = sorted(outside_numbers - inside_numbers, key=lambda s: (len(s), s))
-    return [
-        f"containment: {display_name} states {number!r} outside a generated fence "
-        "with no matching literal inside one (D-06)"
-        for number in missing
-    ]
+    return sorted(outside_numbers - inside_numbers, key=lambda s: (len(s), s))
+
+
+def _containment_missing_number_counts(
+    text: str,
+    marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+    check_spelled_out: bool = True,
+) -> "Counter[str]":
+    """Occurrence COUNTS (not just presence) of every number stated outside
+    a generated fence, over the same citation-stripped outside-text
+    `_containment_missing_numbers()` extracts from -- the containment
+    ledger's own occurrence-surplus check needs this: a ledgered number
+    whose LIVE count exceeds its pinned count is itself a finding
+    (mirroring `_DEFERRED_LITERAL_HITS`'s identical discipline), which a
+    bare set membership test cannot see."""
+    lines = text.splitlines()
+    inside = _generated_line_flags(lines, marker_pairs)
+    outside_lines = [line for idx, (line, is_in) in enumerate(zip(lines, inside)) if not is_in and idx != 0]
+    stripped_outside = _strip_citation_shaped_numbers("\n".join(outside_lines))
+    counts: Counter[str] = Counter(m.group(0).replace(",", "") for m in _NUMBER_RE.finditer(stripped_outside))
+    if not check_spelled_out:
+        return counts
+    words = _WORD_RE.findall(stripped_outside)
+    i = 0
+    while i < len(words):
+        value = _spelled_number_value(words[i])
+        if value is not None:
+            if i + 1 < len(words) and words[i + 1].lower() == "hundred":
+                value *= 100
+                i += 1
+            counts[str(value)] += 1
+        i += 1
+    return counts
+
+
+def detail_page_containment_problems(
+    display_name: str,
+    text: str,
+    marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
+    check_spelled_out: bool = True,
+    *,
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+) -> list[str]:
+    """D-06's containment floor for one page's text. The page's own H1
+    title (line 0) is excluded from the 'outside' scan — it names the gate
+    id, an identifier, not a count claim, and gate ids like `VAL-01` or
+    `GATE-02-v8.5` otherwise trip the digit regex on their own suffix.
+    Citation/identifier/transition-vector shapes (plan numbers,
+    phase-adjacent identifiers, version stamps, backlog refs, measured
+    transitions) are stripped before counting — see `_CITATION_SHAPE_RES`.
+
+    `check_spelled_out=False` (used by `cmd_check()` for `NARRATIVE_ENTRIES`
+    pages and the CONTAIN-01 REACH surfaces named in `_CONTAINMENT_SURFACES`)
+    additionally turns off spelled-out-number matching — see
+    `_normalise_numbers`'s second disclosed bound for why.
+
+    `ledger` (keyword-only, defaulting to the live `_DEFERRED_CONTAINMENT_HITS`)
+    suppresses a finding whose `(display_name, number)` key is ledgered —
+    unless live occurrences of that number exceed the ledgered count, in
+    which case the surplus is reported instead of being silently folded
+    into the existing permit (CONTAIN-01, D-05). Every existing caller and
+    control is unaffected: the parameter defaults to the real ledger, which
+    is empty until a later task in this same plan populates it."""
+    if ledger is None:
+        ledger = _DEFERRED_CONTAINMENT_HITS
+    missing = _containment_missing_numbers(text, marker_pairs, check_spelled_out)
+    if not missing:
+        return []
+    if not ledger:
+        return [
+            f"containment: {display_name} states {number!r} outside a generated fence "
+            "with no matching literal inside one (D-06)"
+            for number in missing
+        ]
+    counts = _containment_missing_number_counts(text, marker_pairs, check_spelled_out)
+    problems: list[str] = []
+    for number in missing:
+        key = (display_name, number)
+        if key in ledger:
+            _backlog_id, pinned_occurrences, _reason = ledger[key]
+            live_occurrences = counts[number]
+            if live_occurrences > pinned_occurrences:
+                problems.append(
+                    f"containment-ledger occurrence surplus: {display_name} number "
+                    f"{number!r} pinned {pinned_occurrences}, live {live_occurrences} "
+                    "-- a new instance of an already-ledgered number needs its own "
+                    "adjudication, not a free ride on the existing entry"
+                )
+            continue
+        problems.append(
+            f"containment: {display_name} states {number!r} outside a generated fence "
+            "with no matching literal inside one (D-06)"
+        )
+    return problems
+
+
+# ---------------------------------------------------------------------------
+# CONTAIN-01 (D-05): the deferred-containment ledger -- structurally
+# mirrors `_DEFERRED_LITERAL_HITS`' shape (an enumerated per-hit permit,
+# growth/shrink/digest ratchet, staleness predicate, `--emit-*` generator
+# rather than hand-typing) but keyed by CONTAINMENT'S OWN unit
+# (`(relpath, normalised-number-string)`), never by reusing
+# `_DEFERRED_LITERAL_HITS` itself -- the two mechanisms' hit units do not
+# line up 1:1 (literal-scan hits are phrase-shaped; containment hits are
+# bare normalised digit strings). See docs/gates/CONF-SURFACE.md's
+# "## REACH-or-LEVEL determinations" section for the determination behind
+# this mechanism; not restated here.
+#
+# Populated via `--emit-containment-ledger` (below), never hand-typed --
+# hand transcription of exactly this shape is the defect this ledger
+# exists to end.
+# ---------------------------------------------------------------------------
+
+_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {}
+
+# The ledger's pinned maximum size and key-set digest. First population is
+# EMPTY (plan 25-02 Task 2) -- the widening and the ledger's real content
+# both land together in Task 3, in the same commit that widens
+# `cmd_check()`'s containment loop, per D-05 proviso 1 ("the widening may
+# not land the tree red"). Standing rule, in this repo's own words (the
+# CONTRACT-06 pin discipline, `scripts/check-quality-harness.py`): never
+# recompute a pin to make a failing check pass.
+_CONTAINMENT_LEDGER_MAX: int = 0
+
+# A sha256 pin over the ledger's sorted `(relpath, number)` key set,
+# reusing `_deferred_ledger_keys_digest()` (already generic over any
+# `dict[tuple[str, str], tuple[str, int, str]]` — the deferred-literal
+# ledger's own values are ignored by the digest, only its keys are
+# hashed, so the identical function applies here without modification).
+# DISCLOSED BOUND, the same one `_DEFERRED_LEDGER_KEYS_DIGEST` states:
+# this digest proves the key set changed DELIBERATELY, never that the
+# change was ADJUDICATED. Never recompute this digest to make a failing
+# check pass.
+_CONTAINMENT_LEDGER_KEYS_DIGEST = (
+    "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+)
+
+
+def containment_ledger_ratchet_problems(
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+    max_size: int | None = None,
+    keys_digest: str | None = None,
+) -> list[str]:
+    """The containment-specific mirror of `literal_ledger_ratchet_problems`,
+    over `_DEFERRED_CONTAINMENT_HITS` / `_CONTAINMENT_LEDGER_MAX` /
+    `_CONTAINMENT_LEDGER_KEYS_DIGEST` instead of the literal-scan ledger's
+    own triple. Three independent predicates, none short-circuiting
+    another: (1) `live_size > max_size` is growth, always a finding; (2)
+    `live_size < max_size` is an un-repinned shrink -- legal, but the pin
+    must be lowered to the live size in the SAME commit, or remediation
+    buys permanent headroom for a future, never-adjudicated permit; (3)
+    the live key-set digest not matching the pin is the ONLY predicate
+    that closes a same-size substitution. See
+    `literal_ledger_ratchet_problems`'s own docstring for the full
+    rationale; not restated here.
+
+    Takes the ledger, its pin, and its key-set digest as optional
+    parameters (defaulting to the real ones) so the permanent
+    negative-arm controls can drive it against synthetic triples without
+    touching the module-level constants."""
+    if ledger is None:
+        ledger = _DEFERRED_CONTAINMENT_HITS
+    if max_size is None:
+        max_size = _CONTAINMENT_LEDGER_MAX
+    if keys_digest is None:
+        keys_digest = _CONTAINMENT_LEDGER_KEYS_DIGEST
+    problems: list[str] = []
+    live_size = len(ledger)
+    if live_size > max_size:
+        problems.append(
+            "deferred-containment-ledger ratchet: live ledger size "
+            f"{live_size} exceeds the pinned maximum {max_size} -- the "
+            "ledger must never grow; a shrink is legal only when both "
+            "_CONTAINMENT_LEDGER_MAX and _CONTAINMENT_LEDGER_KEYS_DIGEST are "
+            "re-pinned to the live values in this same commit"
+        )
+    if live_size < max_size:
+        problems.append(
+            "deferred-containment-ledger ratchet: live ledger size "
+            f"{live_size} is below the pinned maximum {max_size} -- lower "
+            "_CONTAINMENT_LEDGER_MAX to the live size in this same commit so "
+            "the shrink is locked in and cannot silently refill with a new, "
+            "never-adjudicated permit"
+        )
+    live_digest = _deferred_ledger_keys_digest(ledger)
+    if live_digest != keys_digest:
+        problems.append(
+            "deferred-containment-ledger ratchet: live key-set digest "
+            f"{live_digest!r} != pinned {keys_digest!r} -- the ledger's key "
+            "set changed; if this is a deliberate, adjudicated remediation, "
+            "re-pin _CONTAINMENT_LEDGER_KEYS_DIGEST to the live value in "
+            "this same commit (this digest proves the key set changed "
+            "deliberately, never that the change was adjudicated)"
+        )
+    return problems
+
+
+def _containment_live_finding_counts() -> dict[tuple[str, str], int]:
+    """Every `(relpath, number)` containment finding across
+    `_CONTAINMENT_SURFACES`, with its live occurrence count -- the
+    population `--emit-containment-ledger` prints and
+    `containment_ledger_staleness_problems()`'s default consults. Iterates
+    `_CONTAINMENT_SURFACES` directly (the same discipline
+    `emit_deferred_ledger()` uses for the literal-scan side), NOT
+    `cmd_check()`'s own loop-accumulated `reached` set -- a
+    maintenance/measurement helper, never itself a check, so it sees every
+    surface's findings regardless of the widened loop's own reach. The
+    `docs/gates/*.md` class uses the existing per-page
+    `path.stem not in NARRATIVE_ENTRIES` derivation, matching
+    `cmd_check()`'s own containment loop rather than the placeholder
+    `check_spelled_out` value `_CONTAINMENT_SURFACES` carries for that one
+    entry."""
+    pass1 = generate_all()
+    named_paths: dict[str, Path] = {
+        "CLAUDE.md": CLAUDE_MD,
+        "docs/ARCHITECTURE.md": ARCHITECTURE_MD,
+        "docs/TESTING.md": TESTING_MD,
+    }
+    counts: dict[tuple[str, str], int] = {}
+    for surface in _CONTAINMENT_SURFACES:
+        if surface.key == "docs/gates/*.md":
+            for path, generated in pass1.items():
+                if DETAIL_PAGE_DIR not in path.parents:
+                    continue
+                rel = str(path.relative_to(REPO_ROOT))
+                check_spelled_out = path.stem not in NARRATIVE_ENTRIES
+                marker_pairs = _generated_marker_pairs_for(rel)
+                missing = _containment_missing_numbers(
+                    generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+                )
+                if not missing:
+                    continue
+                occ = _containment_missing_number_counts(
+                    generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+                )
+                for number in missing:
+                    counts[(rel, number)] = occ[number]
+            continue
+        path = named_paths[surface.key]
+        generated = pass1[path]
+        marker_pairs = _generated_marker_pairs_for(surface.key)
+        missing = _containment_missing_numbers(
+            generated, marker_pairs=marker_pairs, check_spelled_out=surface.check_spelled_out
+        )
+        if not missing:
+            continue
+        occ = _containment_missing_number_counts(
+            generated, marker_pairs=marker_pairs, check_spelled_out=surface.check_spelled_out
+        )
+        for number in missing:
+            counts[(surface.key, number)] = occ[number]
+    return counts
+
+
+def containment_ledger_staleness_problems(
+    live_findings: dict[tuple[str, str], int] | None = None,
+    ledger: dict[tuple[str, str], tuple[str, int, str]] | None = None,
+) -> list[str]:
+    """Every `_DEFERRED_CONTAINMENT_HITS` key must match at least one live
+    containment finding -- the ledger cannot silently outlive its own
+    findings, which is what actually drives the ratchet down: a permitted
+    residual whose underlying prose was fixed must be removed from the
+    ledger, not left to rot. Mirrors `literal_ledger_staleness_problems`'s
+    own shape.
+
+    `live_findings` defaults to a fresh `_containment_live_finding_counts()`
+    read (computed with the ledger permit disabled, so a key that is
+    suppressed today because it is ledgered still counts as live for this
+    predicate); a synthetic mapping drives the permanent negative-arm
+    control without touching the real tree or re-running the harvest."""
+    if live_findings is None:
+        live_findings = _containment_live_finding_counts()
+    if ledger is None:
+        ledger = _DEFERRED_CONTAINMENT_HITS
+    problems: list[str] = []
+    for relpath, number in sorted(ledger):
+        if (relpath, number) not in live_findings:
+            problems.append(
+                f"{relpath}: deferred-containment-ledger key no longer matches any "
+                f"live finding: {number!r} (remove this ledger entry -- its "
+                "underlying prose was likely already fixed)"
+            )
+    return problems
+
+
+def emit_containment_ledger() -> str:
+    """Maintenance-only (`--emit-containment-ledger`): print a
+    mechanically-populated `_DEFERRED_CONTAINMENT_HITS` literal to stdout,
+    sorted deterministically, each entry's backlog id fixed at `999.69`
+    (the next free id after `_DEFERRED_LITERAL_HITS`'
+    999.40/999.41/999.42/999.44 precedent) and its written reason left as
+    a `TODO: written reason` placeholder for the human adjudicator to fill
+    in. Writes NOTHING to disk -- this function's job is population, not
+    adjudication, mirroring `emit_deferred_ledger()`'s own discipline."""
+    counts = _containment_live_finding_counts()
+    lines = ["_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {"]
+    for (relpath, number), occ in sorted(counts.items()):
+        lines.append(f"    ({relpath!r}, {number!r}): ('999.69', {occ}, " '"TODO: written reason"),')
+    lines.append("}")
+    return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -3070,7 +3359,12 @@ def cmd_check() -> int:
 
     # D-06: containment floor over every generated docs/gates/*.md page —
     # a number stated outside a generated fence must also appear inside one
-    # on the same page.
+    # on the same page. Also accumulates every raw (relpath, number)
+    # finding this loop reaches, live-occurrence-counted, so the
+    # deferred-containment ledger's staleness predicate below can consult
+    # this run's own findings rather than recomputing a second harvest+
+    # render pass (CONTAIN-01, plan 25-02 Task 2).
+    live_containment_findings: dict[tuple[str, str], int] = {}
     for path, generated in pass1.items():
         if DETAIL_PAGE_DIR in path.parents:
             try:
@@ -3086,6 +3380,18 @@ def cmd_check() -> int:
             problems += detail_page_containment_problems(
                 str(rel), generated, check_spelled_out=check_spelled_out
             )
+            missing = _containment_missing_numbers(generated, check_spelled_out=check_spelled_out)
+            if missing:
+                occ = _containment_missing_number_counts(generated, check_spelled_out=check_spelled_out)
+                for number in missing:
+                    live_containment_findings[(str(rel), number)] = occ[number]
+
+    # CONTAIN-01, plan 25-02 Task 2: the deferred-containment ledger's
+    # ratchet and staleness floors, mirroring the literal-scan ledger's own
+    # discipline below. Empty/zero-pinned/digest-matching until plan 25-02
+    # Task 3 populates the ledger alongside the widened loop above.
+    problems += containment_ledger_ratchet_problems()
+    problems += containment_ledger_staleness_problems(live_containment_findings)
 
     # CONF-13: the standing hand-maintained count-literal scanner, run over
     # the real on-disk D-21-E surface set (not `pass1`'s in-memory content —
@@ -3205,6 +3511,8 @@ def describe() -> dict:
         "roster_arm_census_unreached": len(_ROSTER_ARM_UNREACHED),
         "roster_arm_payload_assert_sites": _roster_arm_payload_assert_site_count(),
         "literal_scan_py_population": len(_py_docstring_scan_scripts()),
+        "containment_ledger_entries": len(_DEFERRED_CONTAINMENT_HITS),
+        "containment_ledger_max": _CONTAINMENT_LEDGER_MAX,
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
@@ -4708,6 +5016,111 @@ def _control_ledger_injection_testing_fires() -> None:
     assert len(injected) == 1, problems
 
 
+def _control_containment_ledger_ratchet_fires() -> None:
+    """A synthetic containment ledger larger than its pin by a single
+    entry must fail, naming both the pinned figure and the live figure --
+    the containment-ledger mirror of `_control_ledger_ratchet_fires`."""
+    ledger = {
+        ("fixture.md", "1"): ("999.99", 1, "fixture"),
+        ("fixture.md", "2"): ("999.99", 1, "fixture"),
+    }
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = containment_ledger_ratchet_problems(ledger=ledger, max_size=1, keys_digest=digest)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_containment_ledger_ratchet_requires_repin_on_shrink() -> None:
+    """A synthetic ledger smaller than its pin by a single entry must also
+    fail, naming both figures -- the same same-commit repin obligation
+    `_control_ledger_ratchet_requires_repin_on_shrink` enforces for the
+    literal-scan ledger."""
+    ledger = {("fixture.md", "1"): ("999.99", 1, "fixture")}
+    digest = _deferred_ledger_keys_digest(ledger)
+    problems = containment_ledger_ratchet_problems(ledger=ledger, max_size=2, keys_digest=digest)
+    assert len(problems) == 1, problems
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
+def _control_containment_ledger_key_digest_fires() -> None:
+    """A same-size key substitution (a real entry removed, a fabricated
+    permit added in its place) must fail on the digest predicate alone --
+    neither the growth nor the shrink predicate can see it, mirroring
+    `_control_ledger_key_digest_fires`."""
+    ledger = {
+        ("fixture.md", "1"): ("999.99", 1, "fixture"),
+        ("fixture.md", "2"): ("999.99", 1, "fixture"),
+    }
+    pinned_digest = _deferred_ledger_keys_digest(ledger)
+    substituted = dict(ledger)
+    substituted.pop(("fixture.md", "1"))
+    substituted[("fixture.md", "3 (a never-adjudicated permit)")] = ("999.99", 1, "fixture")
+    assert len(substituted) == len(ledger), "fixture is not a same-size substitution"
+    problems = containment_ledger_ratchet_problems(
+        ledger=substituted, max_size=len(ledger), keys_digest=pinned_digest
+    )
+    assert len(problems) == 1, problems
+    assert "digest" in problems[0], problems[0]
+
+
+def _control_containment_ledger_staleness_fires() -> None:
+    """A fabricated ledger key matching no live finding must fail, naming
+    that key -- mirrors `_control_ledger_staleness_fires`."""
+    ledger = {("fixture.md", "999999"): ("999.99", 1, "fixture")}
+    problems = containment_ledger_staleness_problems(live_findings={}, ledger=ledger)
+    assert len(problems) == 1, problems
+    assert "999999" in problems[0], problems[0]
+
+
+def _control_containment_ledger_not_an_unconditional_permit() -> None:
+    """A finding whose `(display_name, number)` key is absent from the
+    ledger must still fire -- the ledger permits only its enumerated keys,
+    it is not a whole-surface or wildcard permit. Mirrors
+    `_control_ledger_not_an_unconditional_permit`'s arm (b) for the
+    literal-scan ledger, adapted to a direct single-page test since
+    containment's ledger is keyed page-by-page rather than by one flat
+    surface scan."""
+    text = (
+        "# Page\n\nthere are 47 controls\n\n"
+        f"{DETAIL_FACTS_MARKERS[0]}\nsome fact\n{DETAIL_FACTS_MARKERS[1]}\n"
+    )
+    fixture_ledger = {("test.md", "999999"): ("999.99", 1, "fixture, unrelated key")}
+    problems = detail_page_containment_problems("test.md", text, ledger=fixture_ledger)
+    assert len(problems) == 1, problems
+    assert "'47'" in problems[0], problems
+
+
+def _control_containment_ledger_suppresses_known_finding() -> None:
+    """A finding whose key IS ledgered, with live occurrences at or below
+    the pinned count, is suppressed -- the ledger's whole point, and the
+    positive counterpart to
+    `_control_containment_ledger_not_an_unconditional_permit`."""
+    text = (
+        "# Page\n\nthere are 47 controls\n\n"
+        f"{DETAIL_FACTS_MARKERS[0]}\nsome fact\n{DETAIL_FACTS_MARKERS[1]}\n"
+    )
+    fixture_ledger = {("test.md", "47"): ("999.99", 1, "fixture, correctly permitted")}
+    problems = detail_page_containment_problems("test.md", text, ledger=fixture_ledger)
+    assert problems == [], problems
+
+
+def _control_containment_ledger_occurrence_surplus_fires() -> None:
+    """A ledgered key's pinned occurrence count exceeded by the live text
+    must fail, naming the occurrence surplus -- mirrors
+    `_control_ledger_occurrence_surplus_fires`'s discipline for the
+    literal-scan ledger, applied to containment's own unit (a bare
+    normalised number, not a literal-scan phrase)."""
+    text = (
+        "# Page\n\nthere are 47 controls, and 47 more elsewhere\n\n"
+        f"{DETAIL_FACTS_MARKERS[0]}\nsome fact\n{DETAIL_FACTS_MARKERS[1]}\n"
+    )
+    fixture_ledger = {("test.md", "47"): ("999.99", 1, "fixture, pinned at 1")}
+    problems = detail_page_containment_problems("test.md", text, ledger=fixture_ledger)
+    assert len(problems) == 1, problems
+    assert "occurrence surplus" in problems[0], problems[0]
+    assert "1" in problems[0] and "2" in problems[0], problems[0]
+
+
 def _control_registry_self_test_passes() -> None:
     """Wires the orphan. `scripts/_gate_registry.py --self-test`'s
     controls — including the ONLY duplicate-`key`/`gate_id` check —
@@ -4921,6 +5334,25 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
     ("ledger-injection-claude-md-fires", _control_ledger_injection_claude_md_fires),
     ("ledger-injection-architecture-fires", _control_ledger_injection_architecture_fires),
     ("ledger-injection-testing-fires", _control_ledger_injection_testing_fires),
+    ("containment-ledger-ratchet-fires", _control_containment_ledger_ratchet_fires),
+    (
+        "containment-ledger-ratchet-requires-repin-on-shrink",
+        _control_containment_ledger_ratchet_requires_repin_on_shrink,
+    ),
+    ("containment-ledger-key-digest-fires", _control_containment_ledger_key_digest_fires),
+    ("containment-ledger-staleness-fires", _control_containment_ledger_staleness_fires),
+    (
+        "containment-ledger-not-an-unconditional-permit",
+        _control_containment_ledger_not_an_unconditional_permit,
+    ),
+    (
+        "containment-ledger-suppresses-known-finding",
+        _control_containment_ledger_suppresses_known_finding,
+    ),
+    (
+        "containment-ledger-occurrence-surplus-fires",
+        _control_containment_ledger_occurrence_surplus_fires,
+    ),
     ("registry-self-test", _control_registry_self_test_passes),
     ("own-registry-docstring-has-no-count", _control_own_registry_docstring_has_no_count),
     ("selffile-docstring-ratchet-fires", _control_selffile_docstring_ratchet_fires),
@@ -5015,6 +5447,13 @@ _CONTROL_IDS: tuple[str, ...] = (
     "ledger-injection-claude-md-fires",
     "ledger-injection-architecture-fires",
     "ledger-injection-testing-fires",
+    "containment-ledger-ratchet-fires",
+    "containment-ledger-ratchet-requires-repin-on-shrink",
+    "containment-ledger-key-digest-fires",
+    "containment-ledger-staleness-fires",
+    "containment-ledger-not-an-unconditional-permit",
+    "containment-ledger-suppresses-known-finding",
+    "containment-ledger-occurrence-surplus-fires",
     "registry-self-test",
     "own-registry-docstring-has-no-count",
     "selffile-docstring-ratchet-fires",
@@ -5087,6 +5526,14 @@ def main(argv: list[str] | None = None) -> int:
             "_DEFERRED_LITERAL_HITS literal to stdout. Writes nothing to disk."
         ),
     )
+    g.add_argument(
+        "--emit-containment-ledger",
+        action="store_true",
+        help=(
+            "Maintenance-only: print a mechanically-populated "
+            "_DEFERRED_CONTAINMENT_HITS literal to stdout. Writes nothing to disk."
+        ),
+    )
     args = p.parse_args(argv)
     if args.write:
         return cmd_write()
@@ -5096,6 +5543,9 @@ def main(argv: list[str] | None = None) -> int:
         return self_test()
     if args.emit_deferred_ledger:
         print(emit_deferred_ledger())
+        return 0
+    if args.emit_containment_ledger:
+        print(emit_containment_ledger())
         return 0
     print(json.dumps(describe(), indent=2, sort_keys=True))
     return 0
