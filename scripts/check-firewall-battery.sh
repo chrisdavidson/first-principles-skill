@@ -745,6 +745,7 @@ _FROZEN_PATHS=(
     'tests/adversarial-corpus-v9.0'
     'tests/live-conformance-v9.0'
     'tests/live-conformance-catalog.md'
+    'tests/recurrence-reading-v9.1'
 )
 
 git diff --quiet HEAD -- "${_FROZEN_PATHS[@]}" 2>/dev/null
