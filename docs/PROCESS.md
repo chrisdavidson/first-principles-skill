@@ -122,15 +122,29 @@ the boundary every time a new gate's reach changed, rather than applying one rul
 two tiers. A false sentence in `CLAUDE.md` is a product defect regardless of whether its *subject*
 is the apparatus, because the reader cannot audit it either way.
 
-**Standing constraint for this whole file, and for any product surface stating a count over the
-gate battery:** any mention of the number of gates the battery runs must point at the generated
-fact — `CLAUDE.md`'s generated CI-gate table and its population-arithmetic sentence — rather than
-state a bare digit. That total is not frozen; it has moved from 15 to its current value over the
-project's history, and hardcoding it here would manufacture exactly the stale-count defect this
-page exists to name. [COMPONENT-DIAGRAM.md](COMPONENT-DIAGRAM.md) already makes this move for the
-same reason — pointing at the generated source instead of a bare, driftable digit — and
-[ARCHITECTURE.md](ARCHITECTURE.md) carries the full CI-gate table this page's own claim about
-"the battery" ultimately resolves to.
+**Standing constraint for this whole file, and for every restated moving count on a product
+surface — not the gate-battery count alone:** a moving count is any figure derived from live state
+that a re-run can change, and it is never stated as a bare digit; it points at the generated fact,
+or it is itself generated. The gate battery's total remains this rule's own worked example rather
+than its whole subject: any mention of the number of gates the battery runs must point at the
+generated fact — `CLAUDE.md`'s generated CI-gate table and its population-arithmetic sentence —
+rather than state a bare digit. That total is not frozen; it has moved from 15 to its current
+value over the project's history, and hardcoding it here would manufacture exactly the stale-count
+defect this page exists to name. [COMPONENT-DIAGRAM.md](COMPONENT-DIAGRAM.md) already makes this
+move for the same reason — pointing at the generated source instead of a bare, driftable digit —
+and [ARCHITECTURE.md](ARCHITECTURE.md) carries the full CI-gate table this page's own claim about
+"the battery" ultimately resolves to. The enforcement this widened rule names already exists
+rather than being newly built here: CONF-13's standing literal scanner already fires on every
+registered surface, so a hand-typed moving count there is already a build-blocking finding
+regardless of this paragraph's wording — point at `docs/gates/CONF-SURFACE.md`'s own generated
+registered-surfaces figure for that population rather than stating it here as a digit, and read
+prose on any surface the scanner does not reach as author discipline, not an enforced rule. Per
+`docs/PROCESS.md` §1.1, generalizing this scope clause is REACH, not LEVEL —
+`docs/v9.1-claim-containment-diagnosis.md` §5a already classifies it so, cited rather than
+re-transcribed here, and its own answer to whether a convention document gets its own
+meta-convention applies without changes: widening an existing rule's scope clause is not a second
+rule governing whether the first rule was followed, so no meta-convention is created by this
+paragraph.
 
 Frozen historical counts — "13 plans," "4 rounds," "41%," "17 figures" — are different in kind
 from a moving total: they describe a specific, closed, immutable past state and will never change.
