@@ -405,3 +405,13 @@ None — no external service configuration required.
 ---
 *Phase: 26-migration-apply-reconcile-generalize-enforce*
 *Completed: 2026-09-10*
+
+## Self-Check: PASSED
+
+- FOUND: `docs/gates/CONF-SURFACE.md`
+- FOUND: `scripts/gen-gate-docs.py`
+- FOUND: `CLAUDE.md`
+- FOUND: `docs/ARCHITECTURE.md`
+- FOUND: commit `53bb85a` in `git log --oneline --all`
+- FOUND: commit `9ee3ae8` in `git log --oneline --all`
+- FOUND: commit `8659dc3` in `git log --oneline --all`
