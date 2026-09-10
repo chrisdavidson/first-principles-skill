@@ -1559,16 +1559,55 @@ def detail_page_containment_problems(
 # exists to end.
 # ---------------------------------------------------------------------------
 
-_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {}
+_DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
+    ('CLAUDE.md', '03'): ('999.69', 2, "Identifier residue: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Not a count claim. CONTAIN-04 reconciles this residue in Phase 26."),
+    ('CLAUDE.md', '1024'): ('999.69', 1, 'Spec constant: "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- VAL-05\'s own hand-maintained budget ceiling, corroborated by `scripts/check-description-budget.py`, not by this page\'s own generated CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '14'): ('999.69', 1, 'Frozen historical count: "the 14 v8.25 milestone requirements registered as matrix rows" -- an arrow-free restatement of a past milestone\'s requirement count in the historical requirements-ledger paragraph, the frozen-historical-count exception `docs/PROCESS.md` §2 already draws in kind. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '15'): ('999.69', 2, 'Frozen historical count: "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same frozen-historical-count exception as \'14\' above. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '17'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count, corroborated by `scripts/check-version-stamps.py` and `docs/gates/VERSION-01.md`, not by this page\'s own CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '20'): ('999.69', 1, 'Frozen historical count: "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '208'): ('999.69', 1, "Live coverage headline: \"208 reproducible / 97 audit-only / 0 gap / 305 total\" -- true and unfenced, D-02's own motivating case: this page's only generated fence is the CI-gate table, which carries no headline field. CONTAIN-04 reconciles this residue in Phase 26."),
+    ('CLAUDE.md', '22'): ('999.69', 1, "Identifier residue: \"this phase's own `/bm:code-review 22`\" -- a review-invocation phase number naming WHICH review ran, not a count. CONTAIN-04 reconciles this residue in Phase 26."),
+    ('CLAUDE.md', '24'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "The tally is 24 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, corroborated by running that script, not by this page\'s CI-gate-table fence (which states the battery TOTAL, 26, not this sub-tally). CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '260728'): ('999.69', 1, 'Identifier residue: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '266'): ('999.69', 1, 'Frozen historical count: "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns). CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '305'): ('999.69', 1, "Live coverage headline: \"305 total\" and \"generated 305-row capability->requirement->test matrix\" -- the same unfenced live headline as '208'/'97', D-02's own motivating case. CONTAIN-04 reconciles this residue in Phase 26."),
+    ('CLAUDE.md', '43'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "CONF-GATE: exemplar-conformance comparator self-test (43 controls)" -- `scripts/check-conf-gate.py --describe`\'s own `control_count`, corroborated by `docs/gates/CONF-GATE.md`\'s own Facts fence, not by this page\'s CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '60'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count, corroborated by `scripts/check-step0-live.py` and its own baseline docs, not by this page\'s CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('CLAUDE.md', '97'): ('999.69', 1, "Live coverage headline: \"97 audit-only\" -- the same unfenced live headline as '208'/'305', D-02's own motivating case. CONTAIN-04 reconciles this residue in Phase 26."),
+    ('docs/ARCHITECTURE.md', '03'): ('999.69', 1, 'Identifier residue: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Not a count claim. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/ARCHITECTURE.md', '14'): ('999.69', 1, 'Live fact whose corroborating fence is on a different page: "The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13" -- the skill-stub version-stamp count VERSION-01 corroborates, not this page\'s own CI-gate-table fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'Frozen/retired historical constant: the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '1'): ('999.69', 1, 'Ordinary small number in dense prose: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '2'): ('999.69', 2, 'Live fact whose corroborating fence is on a different page: `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant, corroborated by INVARIANT-CHECK\'s own battery-line reading, not by this page\'s generated per-gate index fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '2156'): ('999.69', 1, 'Line-number citation into a `scripts/` module: "# scripts/_battery_core.py, line 2156" -- a source-location citation, not a count claim, and one of the two line-number citations this class of number covers on this page. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '2178'): ('999.69', 1, 'Line-number citation into a `scripts/` module: "# scripts/_battery_core.py, line 2178" -- the sibling citation to \'2156\' immediately above it in the same fixture-comment pair. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '3'): ('999.69', 1, 'Ordinary small number in a code-sample command line: "--repeat 5 --min-pass 3" (the routing-battery run command) -- a CLI flag value in a reproduced shell command, not a count-noun-adjacent claim (the code-literal comparison `_rr7708_composer == 3` elsewhere on this page is already stripped structurally by the `==\\s*\\d` citation shape). CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '4'): ('999.69', 3, 'Live fact whose corroborating fence is on a different page: `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally), corroborated by INVARIANT-CHECK\'s own battery-line reading, not by this page\'s generated per-gate index fence. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '5'): ('999.69', 1, 'Ordinary small number in a code-sample command line: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. CONTAIN-04 reconciles this residue in Phase 26.'),
+    ('docs/TESTING.md', '644'): ('999.69', 1, 'Frozen/retired historical constant: "The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`)" -- the same retired body-budget figure (TEARDOWN-01) ledgered on `docs/ARCHITECTURE.md`\'s own \'644\' entry above. CONTAIN-04 reconciles this residue in Phase 26.'),
+}
 
-# The ledger's pinned maximum size and key-set digest. First population is
-# EMPTY (plan 25-02 Task 2) -- the widening and the ledger's real content
-# both land together in Task 3, in the same commit that widens
-# `cmd_check()`'s containment loop, per D-05 proviso 1 ("the widening may
-# not land the tree red"). Standing rule, in this repo's own words (the
-# CONTRACT-06 pin discipline, `scripts/check-quality-harness.py`): never
-# recompute a pin to make a failing check pass.
-_CONTAINMENT_LEDGER_MAX: int = 0
+# The ledger's pinned maximum size and key-set digest. Standing rule, in
+# this repo's own words (the CONTRACT-06 pin discipline,
+# `scripts/check-quality-harness.py`): never recompute a pin to make a
+# failing check pass; never change the ledger without re-pinning in the
+# same commit.
+#
+# Raised 0 -> 26 by plan 25-02 Task 3: this ledger's FIRST population,
+# under CONTAIN-01's four-surface widening. All 26 entries were emitted by
+# `--emit-containment-ledger` (never hand-typed), then individually
+# hand-adjudicated -- each entry's written reason states what the number
+# is and why deferring it is correct (a frozen historical count, the live
+# coverage headline with no matching fence field on this page, identifier
+# residue from a half-stripped slash-compound gate id, a spec constant, a
+# line-number citation into a `scripts/` module, or an ordinary small
+# number in dense prose/a code-sample command line). Every entry names
+# CONTAIN-04 (Phase 26) as the requirement that reconciles it after the
+# migration. Backlog id `999.69` for all 26 (the next free id after
+# `_DEFERRED_LITERAL_HITS`' `999.40`/`999.41`/`999.42`/`999.44`
+# precedent).
+_CONTAINMENT_LEDGER_MAX: int = 26
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -1580,7 +1619,7 @@ _CONTAINMENT_LEDGER_MAX: int = 0
 # change was ADJUDICATED. Never recompute this digest to make a failing
 # check pass.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "sha256:67bc2d748bdb3330e701bc90c6b7660f1e849fcebdcf8fb36d0f44f589b78f94"
 )
 
 
@@ -3357,39 +3396,82 @@ def cmd_check() -> int:
             f"entries — missing: {sorted(missing_scripts)} (T-21-06-05)"
         )
 
-    # D-06: containment floor over every generated docs/gates/*.md page —
-    # a number stated outside a generated fence must also appear inside one
-    # on the same page. Also accumulates every raw (relpath, number)
-    # finding this loop reaches, live-occurrence-counted, so the
-    # deferred-containment ledger's staleness predicate below can consult
+    # CONTAIN-01: containment floor over all four _CONTAINMENT_SURFACES —
+    # CLAUDE.md, docs/ARCHITECTURE.md, docs/TESTING.md and docs/gates/*.md
+    # — a number stated outside a generated fence must also appear inside
+    # one on the same page. Also accumulates (a) every surface key this
+    # loop actually reaches, into `reached` — the floor below's subject,
+    # never read back off `_CONTAINMENT_SURFACES` (D-05 proviso 3) — and
+    # (b) every raw (relpath, number) finding, live-occurrence-counted, so
+    # the deferred-containment ledger's staleness predicate can consult
     # this run's own findings rather than recomputing a second harvest+
-    # render pass (CONTAIN-01, plan 25-02 Task 2).
+    # render pass (plan 25-02 Task 2).
+    _named_containment_paths: dict[Path, str] = {
+        CLAUDE_MD: "CLAUDE.md",
+        ARCHITECTURE_MD: "docs/ARCHITECTURE.md",
+        TESTING_MD: "docs/TESTING.md",
+    }
+    _surface_check_spelled_out: dict[str, bool] = {
+        s.key: s.check_spelled_out for s in _CONTAINMENT_SURFACES
+    }
+    reached: set[str] = set()
     live_containment_findings: dict[tuple[str, str], int] = {}
     for path, generated in pass1.items():
-        if DETAIL_PAGE_DIR in path.parents:
+        if path in _named_containment_paths:
+            surface_key = _named_containment_paths[path]
+            if surface_key not in _surface_check_spelled_out:
+                # The path is still generated (CLAUDE_MD/ARCHITECTURE_MD/
+                # TESTING_MD are always written), but this surface has no
+                # `_CONTAINMENT_SURFACES` entry to tell us its polarity --
+                # skip BEFORE `reached.add()`, so a surface deleted from
+                # the table is genuinely absent from `reached` too, and
+                # the roster floor below reports it in `missing=` rather
+                # than this loop raising `KeyError` (mutation Arm 2).
+                continue
+            rel = surface_key
+            check_spelled_out = _surface_check_spelled_out[surface_key]
+        elif DETAIL_PAGE_DIR in path.parents:
+            surface_key = "docs/gates/*.md"
             try:
-                rel = path.relative_to(REPO_ROOT)
+                rel = str(path.relative_to(REPO_ROOT))
             except ValueError:
-                rel = path
+                rel = str(path)
             # `path.stem` equals `_page_slug(entry)`, which equals
             # `entry.key` for every NARRATIVE_ENTRIES member (none of the
             # four carry a `:` requiring the slug rewrite) — see
             # `_normalise_numbers`'s second disclosed bound for why
-            # spelled-out matching is off for these four pages only.
+            # spelled-out matching is off for these four pages only. The
+            # `docs/gates/*.md` entry's own `check_spelled_out` field in
+            # `_CONTAINMENT_SURFACES` is a placeholder, deliberately unused
+            # here — this per-page derivation is preserved unchanged.
             check_spelled_out = path.stem not in NARRATIVE_ENTRIES
-            problems += detail_page_containment_problems(
-                str(rel), generated, check_spelled_out=check_spelled_out
+        else:
+            continue
+        reached.add(surface_key)
+        marker_pairs = _generated_marker_pairs_for(rel)
+        problems += detail_page_containment_problems(
+            rel, generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+        )
+        missing = _containment_missing_numbers(
+            generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
+        )
+        if missing:
+            occ = _containment_missing_number_counts(
+                generated, marker_pairs=marker_pairs, check_spelled_out=check_spelled_out
             )
-            missing = _containment_missing_numbers(generated, check_spelled_out=check_spelled_out)
-            if missing:
-                occ = _containment_missing_number_counts(generated, check_spelled_out=check_spelled_out)
-                for number in missing:
-                    live_containment_findings[(str(rel), number)] = occ[number]
+            for number in missing:
+                live_containment_findings[(rel, number)] = occ[number]
+
+    # CONTAIN-01, D-05 proviso 3: the reached-surface set must equal the
+    # locked four, never a subset — this floor's subject is `reached`, the
+    # set THIS LOOP actually accumulated above, not `_CONTAINMENT_SURFACES`
+    # itself (this plan's "Where the roster floor is wired" section). The
+    # module's only call site.
+    problems += containment_surface_roster_problems(reached)
 
     # CONTAIN-01, plan 25-02 Task 2: the deferred-containment ledger's
     # ratchet and staleness floors, mirroring the literal-scan ledger's own
-    # discipline below. Empty/zero-pinned/digest-matching until plan 25-02
-    # Task 3 populates the ledger alongside the widened loop above.
+    # discipline below.
     problems += containment_ledger_ratchet_problems()
     problems += containment_ledger_staleness_problems(live_containment_findings)
 
@@ -3513,6 +3595,7 @@ def describe() -> dict:
         "literal_scan_py_population": len(_py_docstring_scan_scripts()),
         "containment_ledger_entries": len(_DEFERRED_CONTAINMENT_HITS),
         "containment_ledger_max": _CONTAINMENT_LEDGER_MAX,
+        "containment_surfaces": len(_CONTAINMENT_SURFACES),
     }
     for cls_name, count in exempt_counts.items():
         derived_counts[f"literal_scan_exempt_{cls_name}"] = count
