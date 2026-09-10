@@ -3958,11 +3958,14 @@ def cmd_check() -> int:
     return 0
 
 
-# Short, stable identifiers naming CONF-13's own disclosed bounds (D-21-E's
+# Short, stable identifiers naming this page's own disclosed bounds (D-21-E's
 # `disclosed_bounds_anchors` shape) — so `docs/gates/CONF-SURFACE.md` can
 # enumerate them from a derived list rather than restating their prose a
 # second time. Order matches the numbered list in the plan's own action and
-# in the page's narrative below.
+# in the page's narrative below. Originally CONF-13-only; the last entry
+# (plan 25-04) is the chain-terminus arm's own published reach gap on the
+# second G3 demonstration target — a different mechanism than the literal
+# scanner, sharing this same anchor list because it is the same field.
 LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "line-scoped-detection",
     "currency-not-correctness",
@@ -3972,6 +3975,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "ledger-repin-and-key-digest",
     "non-primary-entries-pinned-mechanically",
     "roster-arm-census-is-spelling-level",
+    "second-g3-target-unreachable",
 )
 
 
