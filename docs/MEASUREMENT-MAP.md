@@ -51,9 +51,11 @@ This table is the core lookup. Source: `CLAUDE.md`, `scripts/_battery_core.py` (
 
 **RR-80-01 dual-layer detail:** STEP0-08 (`check-step0-emulator.py --self-test`) owns the emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified `full-composer` (catalog-independent inline literal). BATT-06 (`_battery_core.self_test_boundary()`) owns the marker-counting assertion — a single bare pre-mortem hit (count=1) is below `MIN_HEADER_HITS` (2), so `classify()` returns `"none"`, not `"focused-pre-mortem"`.
 
+<!-- GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->
 For the complete Active-Surface list and the coverage headline (208 reproducible / 97 audit-only / 0 gap / 305 total), see [requirements-traceability.md](requirements-traceability.md).
 
 ---
+<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->
 
 ## Live thresholds and constants
 

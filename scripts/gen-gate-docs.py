@@ -509,6 +509,12 @@ ARCHITECTURE_MD: Path = REPO_ROOT / "docs" / "ARCHITECTURE.md"
 TESTING_MD: Path = REPO_ROOT / "docs" / "TESTING.md"
 DETAIL_PAGE_DIR: Path = REPO_ROOT / "docs" / "gates"
 
+# The two NARR-02/RATCHET-01 narrative-region host files this plan wires
+# (26-02-SUMMARY.md's two region candidates; 26-03 built the mechanism
+# inert, this plan registers and bootstraps it onto these two paths).
+README_MD: Path = REPO_ROOT / "docs" / "README.md"
+MEASUREMENT_MAP_MD: Path = REPO_ROOT / "docs" / "MEASUREMENT-MAP.md"
+
 # The gate ids whose docs/gates/<ID>.md page carries a hand-written narrative
 # region — the four measured-fat cells (D-08) plus the 11 gates whose
 # docs/TESTING.md `###` section carried operational prose beyond its bare run
@@ -560,6 +566,40 @@ _ARCHITECTURE_BOOTSTRAP_BEFORE = (
 # region on every subsequent regeneration.
 _TESTING_BOOTSTRAP_AFTER = "## CI gates — operational run-detail"
 _TESTING_BOOTSTRAP_BEFORE = "## Routing battery (developer tools — not in CI)"
+
+# docs/README.md's coverage-headline sentence sits inside a blockquote,
+# wrapped across three quoted lines plus a trailing blank-quote
+# continuation (D-02: the unit of generation is the WHOLE sentence, even
+# spanning several quoted lines — see _NARRATIVE_REGIONS' README template).
+# Both anchors are hand-written prose that stays outside the generated
+# region on every subsequent regeneration: the anchor-after line is the
+# last line of the PRECEDING blockquote (a real blank line already
+# separates it from the region), and the anchor-before line is the first
+# line of the NEXT paragraph within the same overall blockquote — so the
+# markers land outside any blockquote paragraph rather than splitting one
+# apart, and the swallowed paragraph is reproduced whole inside the fence.
+_README_BOOTSTRAP_AFTER = (
+    "> the standing governing records, and all current-state developer docs were kept."
+)
+_README_BOOTSTRAP_BEFORE = (
+    "> **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted"
+)
+
+# docs/MEASUREMENT-MAP.md's coverage-headline sentence is a plain paragraph
+# (no blockquote), but no unique anchor line sits between it and the next
+# heading except the heading itself — the intervening horizontal rule
+# ("---") repeats four times elsewhere on this page, so it cannot serve as
+# an anchor. The region therefore reproduces the sentence AND the
+# following rule (see _NARRATIVE_REGIONS' MEASUREMENT-MAP template) so
+# nothing between the anchors is dropped.
+_MEASUREMENT_MAP_BOOTSTRAP_AFTER = (
+    "**RR-80-01 dual-layer detail:** STEP0-08 (`check-step0-emulator.py --self-test`) owns the "
+    "emulator-layer assertion — the S-N04 prompt fires no trigger phrase and is classified "
+    "`full-composer` (catalog-independent inline literal). BATT-06 (`_battery_core.self_test_boundary()`) "
+    "owns the marker-counting assertion — a single bare pre-mortem hit (count=1) is below "
+    "`MIN_HEADER_HITS` (2), so `classify()` returns `\"none\"`, not `\"focused-pre-mortem\"`."
+)
+_MEASUREMENT_MAP_BOOTSTRAP_BEFORE = "## Live thresholds and constants"
 
 # The shared post-unification statement (D-02): replaces both surfaces'
 # superseded framing sentences ("keeps its own operational copy by design" /
@@ -1516,16 +1556,35 @@ MEASUREMENT_MAP_HEADLINE_MARKERS: tuple[str, str] = (
 # containment-unreachable, both backed by scripts/check-traceability.py's
 # already-harvested `coverage_headline.prose` field (the same field
 # HEADLINE-LOCK's own machinery backs). Each `template` is the EXACT host
-# sentence on disk today, with the live headline text replaced by `{value}`
+# text on disk today, with the live headline text replaced by `{value}`
 # -- rendering must be byte-identical to what is on disk (proven by this
 # module's own --self-test control, not merely asserted).
+#
+# Both templates now cover more than the bare digit-bearing clause (wired
+# in plan 26-04): no unique, non-fenced anchor line sits directly adjacent
+# to either sentence, so each region's fence necessarily brackets a little
+# more of its host paragraph than the sentence alone -- reproduced whole,
+# never truncated, per D-02's "one whole sentence, even spanning several
+# quoted lines" rule. docs/README.md's sentence spans the entire quoted
+# paragraph (its own blockquote, kept internally unsplit, bracketed by
+# markers placed outside any blockquote rather than mid-paragraph);
+# docs/MEASUREMENT-MAP.md's region also swallows the horizontal rule
+# immediately following the sentence, because "---" repeats four times
+# elsewhere on that page and cannot serve as a bootstrap anchor.
 _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
     _NarrativeRegion(
         surface="docs/README.md",
         markers=README_HEADLINE_MARKERS,
         source_script="scripts/check-traceability.py",
         field_path="coverage_headline.prose",
-        template="> headline of **{value}**.",
+        template=(
+            "> **Current state — start here:** [`requirements-traceability.md`]"
+            "(requirements-traceability.md)\n"
+            "> — the authoritative surface: active residuals, dispositions, and the "
+            "**current** coverage\n"
+            "> headline of **{value}**.\n"
+            ">"
+        ),
     ),
     _NarrativeRegion(
         surface="docs/MEASUREMENT-MAP.md",
@@ -1534,7 +1593,9 @@ _NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
         field_path="coverage_headline.prose",
         template=(
             "For the complete Active-Surface list and the coverage headline "
-            "({value}), see [requirements-traceability.md](requirements-traceability.md)."
+            "({value}), see [requirements-traceability.md](requirements-traceability.md).\n"
+            "\n"
+            "---"
         ),
     ),
 )
@@ -2902,6 +2963,10 @@ def _generated_marker_pairs_for(relpath: str) -> tuple[tuple[str, str], ...]:
         return (ARCHITECTURE_REGION_MARKERS,)
     if relpath == "docs/TESTING.md":
         return (TESTING_REGION_MARKERS,)
+    if relpath == "docs/README.md":
+        return (README_HEADLINE_MARKERS,)
+    if relpath == "docs/MEASUREMENT-MAP.md":
+        return (MEASUREMENT_MAP_HEADLINE_MARKERS,)
     if relpath.startswith("docs/gates/") and relpath.endswith(".md"):
         return _ALL_DETAIL_MARKER_PAIRS
     return ()
@@ -3930,6 +3995,39 @@ def generate_all() -> dict[Path, str]:
         testing_region,
         _TESTING_BOOTSTRAP_AFTER,
         _TESTING_BOOTSTRAP_BEFORE,
+    )
+
+    # NARR-02/RATCHET-01 (plan 26-04): the two narrative-region host
+    # surfaces 26-03 built the mechanism for, wired via the same
+    # _replace_or_bootstrap_region() call shape as the three targets above.
+    # Both regions read scripts/check-traceability.py's own already-
+    # harvested `coverage_headline` field -- no new harvest field, per D-03.
+    # `_render_narrative_sentence` raises the named
+    # `NarrativeFieldNotFoundError` (never a silent skip) if that harvest
+    # ever comes back without the field -- a cannot-reach case, not a
+    # fallback, matching D-03's own discipline.
+    traceability_blob = by_script.get("scripts/check-traceability.py")
+
+    readme_text = README_MD.read_text(encoding="utf-8")
+    readme_region = _render_narrative_sentence(_NARRATIVE_REGIONS[0], traceability_blob)
+    targets[README_MD] = _replace_or_bootstrap_region(
+        readme_text,
+        README_HEADLINE_MARKERS[0],
+        README_HEADLINE_MARKERS[1],
+        readme_region,
+        _README_BOOTSTRAP_AFTER,
+        _README_BOOTSTRAP_BEFORE,
+    )
+
+    measurement_map_text = MEASUREMENT_MAP_MD.read_text(encoding="utf-8")
+    measurement_map_region = _render_narrative_sentence(_NARRATIVE_REGIONS[1], traceability_blob)
+    targets[MEASUREMENT_MAP_MD] = _replace_or_bootstrap_region(
+        measurement_map_text,
+        MEASUREMENT_MAP_HEADLINE_MARKERS[0],
+        MEASUREMENT_MAP_HEADLINE_MARKERS[1],
+        measurement_map_region,
+        _MEASUREMENT_MAP_BOOTSTRAP_AFTER,
+        _MEASUREMENT_MAP_BOOTSTRAP_BEFORE,
     )
 
     # D-08: every registry entry — including CONF-SURFACE itself — gets a
@@ -4968,10 +5066,16 @@ def _control_page_per_entry() -> None:
     page_paths = {p for p in targets if DETAIL_PAGE_DIR in p.parents}
     expected = {DETAIL_PAGE_DIR / f"{_page_slug(e)}.md" for e in _gate_registry.ENTRIES}
     assert page_paths == expected, page_paths.symmetric_difference(expected)
-    assert CLAUDE_MD in targets and ARCHITECTURE_MD in targets and TESTING_MD in targets, (
-        targets.keys()
-    )
-    assert len(targets) == len(expected) + 3, (len(targets), len(expected))
+    assert (
+        CLAUDE_MD in targets
+        and ARCHITECTURE_MD in targets
+        and TESTING_MD in targets
+        and README_MD in targets
+        and MEASUREMENT_MAP_MD in targets
+    ), (targets.keys())
+    # +5: CLAUDE_MD, ARCHITECTURE_MD, TESTING_MD (D-21 tables) plus the two
+    # NARR-02 narrative-region hosts this plan (26-04) wired.
+    assert len(targets) == len(expected) + 5, (len(targets), len(expected))
 
 
 def _control_narrative_preserved_across_regeneration() -> None:
@@ -5360,10 +5464,11 @@ def _control_confsurface_census_narrative_joined() -> None:
 
 
 def _control_page_check_dispatch_wired() -> None:
-    """Live leg: `generate_all()` always computes len(ENTRIES) + 3 targets
-    (every docs/gates/*.md page plus the three surface files — CLAUDE.md,
-    docs/ARCHITECTURE.md, docs/TESTING.md, the last added by plan 21-10's
-    D-21-F fold), regardless of whether `--write` has landed. As of plan
+    """Live leg: `generate_all()` always computes len(ENTRIES) + 5 targets
+    (every docs/gates/*.md page plus the five surface files — CLAUDE.md,
+    docs/ARCHITECTURE.md, docs/TESTING.md (the D-21-F fold), and, as of
+    plan 26-04, docs/README.md and docs/MEASUREMENT-MAP.md (the NARR-02
+    narrative-region hosts)), regardless of whether `--write` has landed. As of plan
     21-08's Task 1 `--write`, every one of those pages now exists on disk
     with byte-reproducible content, so `main(["--check"])` against the real
     tree reports zero drift (rc == 0). Before that `--write` landed (plan
@@ -5382,7 +5487,7 @@ def _control_page_check_dispatch_wired() -> None:
     of plan 21-10's remediation: zero `DRIFT:` lines always, and a
     `literal-scan:` line present if and only if the exit code is 1."""
     targets = generate_all()
-    assert len(targets) == len(_gate_registry.ENTRIES) + 3, len(targets)
+    assert len(targets) == len(_gate_registry.ENTRIES) + 5, len(targets)
     for path in targets:
         if DETAIL_PAGE_DIR in path.parents:
             assert path.exists(), f"{path} unexpectedly missing from disk"
