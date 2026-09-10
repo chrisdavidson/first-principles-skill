@@ -5,8 +5,8 @@
 
 - `registered_surfaces` (40): `CLAUDE.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, `docs/COMPONENT-DIAGRAM.md`, `docs/DATA-FLOW.md`, `docs/MEASUREMENT-MAP.md`, `docs/PROCESS.md`, `docs/README.md`, `docs/TESTING.md`, `docs/gates/*.md`, `scripts/_battery_core.py`, `scripts/_gate_registry.py`, `scripts/_skill_io.py`, `scripts/census-delta-vectors.py`, `scripts/check-act-limb.py`, `scripts/check-agent.py`, `scripts/check-body-budget.py`, `scripts/check-conf-gate.py`, `scripts/check-description-budget.py`, `scripts/check-focused-parity.py`, `scripts/check-high-confidence-bound.py`, `scripts/check-install-collisions.py`, `scripts/check-links.py`, `scripts/check-links_anchors_test.py`, `scripts/check-loop-closure.py`, `scripts/check-provenance.py`, `scripts/check-quality-harness.py`, `scripts/check-registration.py`, `scripts/check-routing-battery.py`, `scripts/check-routing.py`, `scripts/check-selfaudit-scan.py`, `scripts/check-step0-emulator.py`, `scripts/check-step0-live.py`, `scripts/check-traceability.py`, `scripts/check-trigger-collisions.py`, `scripts/check-version-stamps.py`, `scripts/gen-gate-docs.py`, `scripts/report-conformance.py`, `scripts/sync-content.py`, `scripts/trace-tests-usage.py`
 - `checked_files` (70): `CLAUDE.md`, `CONTRIBUTING.md`, `docs/ARCHITECTURE.md`, `docs/COMPONENT-DIAGRAM.md`, `docs/DATA-FLOW.md`, `docs/MEASUREMENT-MAP.md`, `docs/PROCESS.md`, `docs/README.md`, `docs/TESTING.md`, `docs/gates/BATT-06.md`, `docs/gates/COLLIDE-01.md`, `docs/gates/CONF-GATE.md`, `docs/gates/CONF-SURFACE.md`, `docs/gates/DUAL-04.md`, `docs/gates/FROZEN-EVIDENCE.md`, `docs/gates/GATE-01.md`, `docs/gates/GATE-02-v8.5.md`, `docs/gates/HARN-01.md`, `docs/gates/HARN-02.md`, `docs/gates/HARN-03.md`, `docs/gates/HC-BOUND.md`, `docs/gates/INVARIANT-CHECK.md`, `docs/gates/PRECOMMIT-claim-surface-drift-gate.md`, `docs/gates/PRECOMMIT-claim-surface-generator-self-test.md`, `docs/gates/PRECOMMIT-conformance-baseline-drift-gate.md`, `docs/gates/PRECOMMIT-conformance-generator-self-test.md`, `docs/gates/PRECOMMIT-sync-drift-gate.md`, `docs/gates/PROV-GUARD.md`, `docs/gates/QUAL-01.md`, `docs/gates/REG-GUARD.md`, `docs/gates/SCAN-GUARD.md`, `docs/gates/STEP0-06.md`, `docs/gates/STEP0-08.md`, `docs/gates/TRACE-03.md`, `docs/gates/VAL-01.md`, `docs/gates/VAL-02.md`, `docs/gates/VAL-03.md`, `docs/gates/VAL-04.md`, `docs/gates/VAL-05.md`, `docs/gates/VERSION-01.md`, `scripts/_battery_core.py`, `scripts/_gate_registry.py`, `scripts/_skill_io.py`, `scripts/census-delta-vectors.py`, `scripts/check-act-limb.py`, `scripts/check-agent.py`, `scripts/check-body-budget.py`, `scripts/check-conf-gate.py`, `scripts/check-description-budget.py`, `scripts/check-focused-parity.py`, `scripts/check-high-confidence-bound.py`, `scripts/check-install-collisions.py`, `scripts/check-links.py`, `scripts/check-links_anchors_test.py`, `scripts/check-loop-closure.py`, `scripts/check-provenance.py`, `scripts/check-quality-harness.py`, `scripts/check-registration.py`, `scripts/check-routing-battery.py`, `scripts/check-routing.py`, `scripts/check-selfaudit-scan.py`, `scripts/check-step0-emulator.py`, `scripts/check-step0-live.py`, `scripts/check-traceability.py`, `scripts/check-trigger-collisions.py`, `scripts/check-version-stamps.py`, `scripts/gen-gate-docs.py`, `scripts/report-conformance.py`, `scripts/sync-content.py`, `scripts/trace-tests-usage.py`
-- `derived_counts` (38 entries): `chain_termini_current`=5, `chain_termini_stale`=0, `chain_termini_uncorroborable`=0, `containment_ledger_cannot_reach`=7, `containment_ledger_entries`=22, `containment_ledger_frozen_historical`=6, `containment_ledger_max`=22, `containment_ledger_not_a_count_claim`=9, `containment_surfaces`=4, `literal_scan_exempt_commonmark-heading-depth`=0, `literal_scan_exempt_deferred-literal-ledger`=188, `literal_scan_exempt_generated-narrative-region`=0, `literal_scan_exempt_headline-provenance-delta`=13, `literal_scan_exempt_maxturns-60-value`=0, `literal_scan_exempt_plan-number-identifier`=6, `literal_scan_exempt_retired-body-budget`=1, `literal_scan_exempt_sha256-digest`=2, `literal_scan_exempt_version-stamp-count`=3, `literal_scan_hits`=213, `literal_scan_ledger_adjudicated`=69, `literal_scan_ledger_entries`=180, `literal_scan_ledger_max`=180, `literal_scan_ledger_mechanical`=111, `literal_scan_non_exempt`=0, `literal_scan_nonmodule_docstring_hits`=398, `literal_scan_nonmodule_docstring_surfaces`=24, `literal_scan_py_population`=30, `literal_scan_read_files`=70, `literal_scan_surfaces`=40, `narrative_regions`=3, `narrative_restatement_chain_hop`=0, `narrative_restatement_fenced`=0, `narrative_restatement_finding`=0, `narrative_restatement_in_region`=9, `roster_arm_census_population`=30, `roster_arm_census_shapes`=3, `roster_arm_census_unreached`=4, `roster_arm_payload_assert_sites`=50
-- `disclosed_bounds_anchors` (13): `line-scoped-detection`, `currency-not-correctness`, `closed-spelled-out-vocabulary`, `py-docstrings-only`, `enumerated-per-hit-ledger`, `ledger-repin-and-key-digest`, `non-primary-entries-pinned-mechanically`, `roster-arm-census-is-spelling-level`, `second-g3-target-unreachable`, `component-diagram-mermaid-fence-unreachable`, `narrative-region-two-surface-lock-only`, `containment-ledger-reconciliation-delta`, `py-docstring-not-narrative-prose-scope`
+- `derived_counts` (38 entries): `chain_termini_current`=5, `chain_termini_stale`=0, `chain_termini_uncorroborable`=0, `containment_ledger_cannot_reach`=6, `containment_ledger_entries`=20, `containment_ledger_frozen_historical`=5, `containment_ledger_max`=20, `containment_ledger_not_a_count_claim`=9, `containment_surfaces`=4, `literal_scan_exempt_commonmark-heading-depth`=0, `literal_scan_exempt_deferred-literal-ledger`=188, `literal_scan_exempt_generated-narrative-region`=0, `literal_scan_exempt_headline-provenance-delta`=13, `literal_scan_exempt_maxturns-60-value`=0, `literal_scan_exempt_plan-number-identifier`=6, `literal_scan_exempt_retired-body-budget`=1, `literal_scan_exempt_sha256-digest`=2, `literal_scan_exempt_version-stamp-count`=3, `literal_scan_hits`=213, `literal_scan_ledger_adjudicated`=69, `literal_scan_ledger_entries`=180, `literal_scan_ledger_max`=180, `literal_scan_ledger_mechanical`=111, `literal_scan_non_exempt`=0, `literal_scan_nonmodule_docstring_hits`=398, `literal_scan_nonmodule_docstring_surfaces`=24, `literal_scan_py_population`=30, `literal_scan_read_files`=70, `literal_scan_surfaces`=40, `narrative_regions`=3, `narrative_restatement_chain_hop`=0, `narrative_restatement_fenced`=0, `narrative_restatement_finding`=0, `narrative_restatement_in_region`=9, `roster_arm_census_population`=30, `roster_arm_census_shapes`=3, `roster_arm_census_unreached`=4, `roster_arm_payload_assert_sites`=50
+- `disclosed_bounds_anchors` (14): `line-scoped-detection`, `currency-not-correctness`, `closed-spelled-out-vocabulary`, `py-docstrings-only`, `enumerated-per-hit-ledger`, `ledger-repin-and-key-digest`, `non-primary-entries-pinned-mechanically`, `roster-arm-census-is-spelling-level`, `second-g3-target-unreachable`, `component-diagram-mermaid-fence-unreachable`, `narrative-region-two-surface-lock-only`, `containment-ledger-reconciliation-delta`, `py-docstring-not-narrative-prose-scope`, `criterion-3-cannot-reach-residue`
 - `control_ids` (109): `arithmetic-sentence-names-gates-not-hooks`, `arithmetic-sentence-pluralizes-correctly`, `chain-terminus-corrected-page-clean`, `chain-terminus-fence-silent-uncorroborable`, `chain-terminus-pre-fix-synthetic-fixture`, `check-dispatch-wired`, `check-reports-full-drift-count`, `citation-shape-len-matches-census-pin`, `citation-shape-slash-before-arrow`, `claude-headline-region-chained-not-reread`, `confsurface-census-narrative-joined`, `containment-ledger-class-counts-cover-ledger`, `containment-ledger-key-digest-fires`, `containment-ledger-not-an-unconditional-permit`, `containment-ledger-occurrence-surplus-fires`, `containment-ledger-ratchet-fires`, `containment-ledger-ratchet-requires-repin-on-shrink`, `containment-ledger-staleness-fires`, `containment-ledger-suppresses-known-finding`, `containment-satisfied-passes`, `containment-slash-paired-vector-stripped`, `containment-spelled-out-normalised`, `containment-surface-roster-empty-set-fires`, `containment-surface-roster-extra-fires`, `containment-surface-roster-lock-non-empty`, `containment-surface-roster-missing-fires`, `containment-surface-roster-satisfied-passes`, `containment-violation-fires`, `delta-chain-hops-claude-row-count-recovered`, `delta-chain-hops-confsurface-corrected`, `delta-chain-hops-qual01-out-of-grammar`, `delta-chain-hops-scanguard-spelled-out`, `describe-emits-parseable-json`, `floors-run-together`, `framing-sentences-replaced`, `frozen-path-write-fires`, `frozen-paths-derived-not-typed`, `gates-link-resolves-per-surface`, `harvest-malformed-json-named`, `harvest-nonzero-exit-named`, `harvest-one-bad-does-not-abort`, `hook-mechanism-count-independent-of-precommit-count`, `ledger-injection-architecture-fires`, `ledger-injection-claude-md-fires`, `ledger-injection-testing-fires`, `ledger-key-digest-derived`, `ledger-key-digest-fires`, `ledger-not-an-unconditional-permit`, `ledger-occurrence-surplus-fires`, `ledger-ratchet-fires`, `ledger-ratchet-requires-repin-on-shrink`, `ledger-staleness-fires`, `literal-scan-covers-registry-module`, `literal-scan-py-population-complete`, `narrative-exemption-matcher-never-suppresses`, `narrative-marker-pairs-distinct`, `narrative-preserved-across-regeneration`, `narrative-region-roster-equals-lock`, `narrative-region-templates-single-value-slot`, `narrative-render-raises-on-absent-field`, `narrative-render-round-trips-through-disk-value`, `narrative-restatement-four-legs`, `narrative-restatement-wired-into-cmd-check`, `narrative-roster-accumulated-not-table-derived`, `narrative-roster-missing-and-extra-named`, `narrative-roster-no-default-raises`, `no-row-wrapped`, `nondeterminism-exit-2`, `one-renderer-two-surfaces`, `own-registry-docstring-has-no-count`, `page-per-entry`, `population-arithmetic-derived`, `region-duplicate-end-raises`, `region-duplicate-start-raises`, `region-end-before-start-raises`, `region-happy-path`, `region-marker-in-fence-ignored`, `region-preserves-crlf`, `region-preserves-final-newline`, `region-preserves-surrounding-prose`, `region-real-file-claude-md`, `region-tilde-fence-quoting-backticks`, `region-zero-end-raises`, `region-zero-start-raises`, `registry-self-test`, `roster-arm-shape-census`, `roster-arm-shape-census-population-complete`, `roster-arm-shape-census-registry-covered`, `roster-arm-shape-census-vacuity`, `row-count-equals-entries`, `scan-coverage-floor-fires`, `scan-coverage-floor-signature-locked`, `scan-docstring-only`, `scan-exempt-class-attributed`, `scan-glob-narrowing-fires`, `scan-hit-inside-fence-passes`, `scan-hit-outside-fence-fires`, `scan-neutralization-arms`, `scan-spelled-out-detected`, `scan-unattributable-permit-fires`, `selffile-docstring-ratchet-fires`, `selffile-docstring-ratchet-requires-repin-on-shrink`, `slug-collision-raises`, `testing-index-links-resolve`, `testing-index-row-count-equals-entries`, `testing-real-file-region`, `thin-page-fully-generated`, `trace03-glob-substring-derived`, `version01-narrative-control-ids-live`
 - `control_count`: `109`
 - `locked_constants` (2 entries): `generated_end_marker`='<!-- END GENERATED -->', `generated_marker`='<!-- GENERATED — DO NOT EDIT. Source: {source}. Regenerate via: scripts/gen-gate-docs.py --write. -->'
@@ -435,6 +435,44 @@ discipline section already commits to pointing at a generated fact rather than r
 regionizing a frozen record would be the regression D-06 proviso 3 forbids (the same exception
 bound (9)'s frozen-historical-count entries rely on).
 
+### Criterion 3's published target
+
+NARR-02's own scope names the containment-unreachable narrative surfaces plus `CLAUDE.md`
+(`docs/PROCESS.md`, `docs/README.md`, `CONTRIBUTING.md`, `docs/MEASUREMENT-MAP.md`,
+`docs/COMPONENT-DIAGRAM.md`, `docs/DATA-FLOW.md`, `CLAUDE.md`). Re-invoking
+`run_literal_scan()` and filtering its hits to exactly that named set, in this session,
+finds every hit on that set already carries a matching exemption class -- a hand-typed count
+literal on those pages with no exemption class matching it is the target, and it is driven to
+**zero**, over the shipped artifacts on disk today, not merely "the check passes": the same
+`literal_scan_non_exempt` field the Facts fence above already publishes globally holds at zero
+when the read is narrowed to this named-surface set (re-deriving the module and filtering
+`run_literal_scan().hits` by `relpath` against the named set -- the exact command is transcribed
+in `26-07-SUMMARY.md`). Before this phase, two of those pages (`docs/README.md`,
+`docs/MEASUREMENT-MAP.md`) carried a live region-candidate restatement with no generated fence at
+all -- the delta this phase closes, measured against `26-02-SUMMARY.md`'s own pre-migration
+census rather than estimated: both candidates are now generated regions (bound (10) above),
+`CLAUDE.md`'s own occurrence joined the roster the same way (plan 26-05), and the occurrence
+outside the roster's reach is the fenced Mermaid label bound (9) already names. What this
+narrowed-scope zero does NOT claim is answered by bound (13) below.
+
+**(13) The cannot-reach residue behind criterion 3's published target is its own count, never
+absorbed into the target above.** D-03's own load-bearing consequence is that a sentence stating a
+value no gate currently `--describe`s cannot become a region until that gate exposes the field;
+those sites are counted here, not fixed. The residue consists of exactly the sites already recorded
+individually above: `tests/premise-rejection-catalog.md`'s second G3 demonstration target, which
+carries no generated region at all so no value stated there can ever be corroborated (bound (8));
+and `docs/COMPONENT-DIAGRAM.md`'s Mermaid node label, restating the coverage headline inside a
+fenced code block that a non-fenced marker line cannot bracket (bound (9)). Re-deriving the
+named-surface census this phase's own commands produce finds no further cannot-reach site beyond
+these two -- the narrowed `literal_scan_non_exempt` reading the section above states is not a
+wider population hiding behind an exemption class, it is genuinely exhausted by the exemption
+classes named in the Facts fence. Following bound (8)'s own precedent, two alternatives were
+rejected rather than built: a synthetic fixture proving a region mechanism could reach either site
+(a control demonstrating a control's own presence rather than its measured effect, the same
+vacuous shape bound (8) already rejects); and a widened criterion declaring a fenced or
+unregioned occurrence out of scope by definition (which would silently absorb a real, currently-
+live restatement rather than name it).
+
 ## REACH-or-LEVEL determinations (v9.1.0, CONTAIN-01, CONTAIN-02, CONTAIN-03)
 
 `docs/v9.1-claim-containment-diagnosis.md` §5a already classifies `CONTAIN-01`, `CONTAIN-02` and
@@ -583,6 +621,46 @@ today, and `HEADLINE-LOCK`'s own disclosed bound — cited from `CLAUDE.md`'s Ke
 than restated — means a green sentinel is compatible with stale prose surviving on every one of
 them, because a line still stating the superseded figure produces no hit at all. Removing that
 surviving action, on the named surface, is the structural change this phase makes possible.
+
+### The capability statement, demonstrated
+
+Plan 26-01 wrote the capability statement above before any of this phase's mechanism existed --
+a pre-commitment, not yet an observation. Restated here as a fact with its own evidence: a
+contributor can no longer hand-type the live coverage headline on `CLAUDE.md`, outside its own
+generated region, and reach `HEAD` -- Task 1's Arm C transcript (`26-07-SUMMARY.md`) is the
+demonstration, mutating that exact region on that exact page and watching pre-commit gate 5
+dispute it by name; the census arm's own transcript demonstrates the sibling capability change,
+that a hand-typed restatement of a rendered value OUTSIDE its region, on any roster page, is
+disputed too, naming the file and the line. The prior bound this closes is `HEADLINE-LOCK`'s own
+disclosed bound, cited from `CLAUDE.md`'s Key invariants rather than restated: a line stating a
+superseded figure used to produce no hit at all, because a green sentinel and stale prose could
+coexist. What is NOT closed, stated plainly: the residue bound (13) just above (the two cannot-
+reach sites), and every narrative page outside the roster's own fixed population -- a page that is
+not `docs/README.md`, `docs/MEASUREMENT-MAP.md` or `CLAUDE.md` may still carry a hand-typed
+restatement of the same value with nothing here to dispute it, unless that page also happens to
+sit on the registered literal-scan surface set already (bound (10) above states this limit).
+
+### The four self-referential tests, answered for this phase
+
+**Test 1 (capability, not correction).** Answered directly above: the specific action a
+contributor loses is hand-typing the coverage headline on `CLAUDE.md` outside its own region and
+reaching `HEAD`, demonstrated by mutation rather than asserted.
+
+**Test 2 (sibling site named first).** `26-02-SUMMARY.md`'s pre-migration census named every
+region candidate and the one structurally-unreachable occurrence BEFORE any region was built --
+the sibling-site discipline `docs/v9.1-claim-containment-diagnosis.md` established for CR-01/CR-02
+applied to this phase's own new mechanism from its first plan, not retrofitted afterward.
+
+**Test 3 (REACH-or-LEVEL in writing).** Plan 26-01's determinations section, written before any of
+NARR-01, NARR-02, RATCHET-01, RATCHET-02 or the roster/census wiring existed, is the citation --
+see "Forward REACH-or-LEVEL determinations for this phase's own new mechanisms" above, dated ahead
+of the build it judges.
+
+**Test 4 (recurrence, not compliance).** This phase's own verification is not "was the
+generated-region convention followed" -- it is whether a stale live count can reach `HEAD` on the
+migrated surfaces at all, the same distinction `docs/PROCESS.md` draws between measuring
+recurrence and scoring compliance. That measurement lands at `REL-08`, this milestone's own
+product-recurrence check, not inside this phase's own exit record.
 
 ### Requirement amendment (D-04)
 

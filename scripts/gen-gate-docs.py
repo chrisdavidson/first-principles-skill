@@ -2382,7 +2382,6 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
 _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '03'): ('999.73', 2, "NOT A COUNT CLAIM: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper is widened to recognise slash-compound identifiers, not by a generated region. Split out of 999.69 into 999.73 at Phase 26 plan 05 (CONTAIN-04 reconciles quantity-shaped residue only)."),
     ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- VAL-05\'s own hand-maintained budget ceiling. Re-verified live this plan: `python3 scripts/check-description-budget.py --describe` emits only `locked_constants: {"cap": 2000}` -- no field for the 1,024 figure exists today. CONTAIN-04 reconciles this residue once such a field is added; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
-    ('CLAUDE.md', '14'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 14 v8.25 milestone requirements registered as matrix rows" -- an arrow-free restatement of a past milestone\'s requirement count in the historical requirements-ledger paragraph. Stays a literal by design; regionizing it would be a regression, not progress.'),
     ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
     ('CLAUDE.md', '17'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` emits `registered_surfaces` (4 path strings) and `stamp_source_kind_count: 4` -- no field exposes "17 hand-maintained stamps" itself today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above.'),
@@ -2392,7 +2391,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
-    ('docs/ARCHITECTURE.md', '14'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "The launcher is why `shared/skills/*/SKILL.md` holds 14 version stamps rather than 13" -- the skill-stub version-stamp sub-count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` exposes `registered_surfaces` (4 paths) and `stamp_source_kind_count: 4` only -- no field for this 14-stamp sub-count exists today (the same gap as `CLAUDE.md`\'s \'17\' entry). Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry.'),
     ('docs/TESTING.md', '1'): ('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '2'): ('999.69', 2, 'CANNOT-REACH (no harvest field): `MIN_HEADER_HITS: int = 2` and the bolded "`MIN_HEADER_HITS=2`" heading -- `scripts/_battery_core.py`\'s own constant. Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds (`boundary_n_threshold`, `boundary_p_threshold`, `focused_n_threshold`, `focused_p_threshold`) -- no field for `MIN_HEADER_HITS` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
@@ -2477,7 +2475,27 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # entry's own stale reason (see above) is the thing plan 26-05 flagged for
 # this exact fix. No replacement entry was needed; no new digit literal was
 # introduced.
-_CONTAINMENT_LEDGER_MAX: int = 22
+#
+# Lowered 22 -> 20 by plan 26-07 Task 2: adding this file's own
+# `criterion-3-cannot-reach-residue` disclosed-bound anchor moved
+# `disclosed_bounds_anchors` 13 -> 14 -- the same coincidental-corroboration
+# trap plan 26-06 Task 3 found (raising a generated count into an unrelated
+# frozen digit already stated elsewhere on the same page): CLAUDE.md's own
+# generated CI-gate table already renders CONF-SURFACE's
+# `disclosed_bounds_anchors` cell, so the frozen-historical "14" in
+# CLAUDE.md's coverage-headline paragraph, and the cannot-reach "14" in
+# docs/ARCHITECTURE.md's version-stamp paragraph, both gained a same-page
+# in-fence match they did not have before -- not because either page's own
+# prose changed, but because an unrelated field's live value happened to
+# render the same digit. `containment_ledger_staleness_problems()` reported
+# both keys as no longer matching any live finding; removed rather than left
+# ledgered, per the same discipline plan 26-06 Task 2 applied to
+# `('CLAUDE.md', '43')`. Unlike plan 26-06 Task 3 (which chose a
+# non-colliding total by bundling two new bounds under one anchor), no such
+# choice was available here: this plan adds exactly one new anchor, so the
+# post-edit total is forced arithmetically, and the collision is resolved by
+# reconciling the ledger in the same commit instead.
+_CONTAINMENT_LEDGER_MAX: int = 20
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -2498,8 +2516,13 @@ _CONTAINMENT_LEDGER_MAX: int = 22
 # Re-pinned again by plan 26-06 Task 2, in the SAME commit as the 23 -> 22
 # reconciliation above: the key set changed by exactly the one removed key
 # (`('CLAUDE.md', '43')`); no key was added.
+#
+# Re-pinned again by plan 26-07 Task 2, in the SAME commit as the 22 -> 20
+# reconciliation above: the key set changed by exactly the two removed keys
+# (`('CLAUDE.md', '14')`, `('docs/ARCHITECTURE.md', '14')`); no key was
+# added.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:847df3a54ecad5273f7fbc6d2d2e44f31fa599885c11b90c721afa98db0e1f4d"
+    "sha256:3bf6da23c97b60b5594cf888d8f54da4c89bf725410b3df5bc52f37082bc5462"
 )
 
 
@@ -4631,6 +4654,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "narrative-region-two-surface-lock-only",
     "containment-ledger-reconciliation-delta",
     "py-docstring-not-narrative-prose-scope",
+    "criterion-3-cannot-reach-residue",
 )
 
 
