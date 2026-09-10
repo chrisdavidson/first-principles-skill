@@ -3976,6 +3976,7 @@ LITERAL_SCAN_DISCLOSED_BOUNDS: tuple[str, ...] = (
     "non-primary-entries-pinned-mechanically",
     "roster-arm-census-is-spelling-level",
     "second-g3-target-unreachable",
+    "component-diagram-mermaid-fence-unreachable",
 )
 
 
