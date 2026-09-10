@@ -1459,6 +1459,300 @@ def _roster_arm_clauses(text: str) -> tuple[str, str]:
     return missing_clause, extra_clause
 
 
+# ---------------------------------------------------------------------------
+# NARR-02: the narrative-region roster (D-01/D-02/D-03), landed INERT --
+# declared, locked and self-tested here, not yet wired to any host surface
+# or to cmd_check(). See docs/gates/CONF-SURFACE.md's own "## REACH-or-LEVEL
+# determinations" section for the mechanism argument this roster implements
+# (D-01: the repo's own existing `_replace_region`/
+# `_replace_or_bootstrap_region` primitives, `cogapp` not adopted); not
+# restated here.
+# ---------------------------------------------------------------------------
+
+
+class _NarrativeRegion(NamedTuple):
+    """One generated one-sentence region (D-02: the unit of generation is a
+    WHOLE sentence, never a numeric fragment). `surface` is the host page's
+    repo-relative path. `markers` is this region's OWN distinct marker pair
+    -- never the single-per-file `GENERATED_MARKER` format: `_replace_region`
+    raises `RegionMarkerError` when a marker is found zero or more than once,
+    so two regions on one page sharing a marker text is a crash, not a
+    silent merge (the `DETAIL_FACTS_MARKERS`/`DETAIL_HOWTORUN_MARKERS`
+    multi-per-page shape this follows, not `GENERATED_MARKER`'s single-per-
+    file shape). `source_script` plus `field_path` (a dotted path, e.g.
+    `"coverage_headline.prose"`) name the harvest field this region reads --
+    D-03: a region may name only a field that already exists in
+    `source_script`'s own `--describe` JSON, never an importable module and
+    never a registered escape hatch. `template` is the whole sentence with
+    exactly one `{value}` placeholder."""
+
+    surface: str
+    markers: tuple[str, str]
+    source_script: str
+    field_path: str
+    template: str
+
+
+# Per-region marker pairs (pattern (a) step 1, the DETAIL_FACTS_MARKERS
+# multi-per-page shape -- four pairwise-distinct strings, never the
+# single-per-file GENERATED_MARKER format string; a shared marker text
+# across regions on different pages would not itself collide, since
+# `_replace_region` operates per file, but naming them distinctly here
+# keeps every region individually greppable). CLAUDE.md's own third pair is
+# plan 26-05's, together with the containment re-pin its region forces --
+# deliberately absent here so this wave moves no ledger (26-CONTEXT.md D-01's
+# migrate-first/re-pin-last ordering).
+README_HEADLINE_MARKERS: tuple[str, str] = (
+    "<!-- GENERATED:README-COVERAGE-HEADLINE -->",
+    "<!-- END GENERATED:README-COVERAGE-HEADLINE -->",
+)
+MEASUREMENT_MAP_HEADLINE_MARKERS: tuple[str, str] = (
+    "<!-- GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
+    "<!-- END GENERATED:MEASUREMENT-MAP-COVERAGE-HEADLINE -->",
+)
+
+# The two NARR-02 region candidates 26-02-SUMMARY.md's pre-migration census
+# measured (docs/README.md:20, docs/MEASUREMENT-MAP.md:54) -- both
+# containment-unreachable, both backed by scripts/check-traceability.py's
+# already-harvested `coverage_headline.prose` field (the same field
+# HEADLINE-LOCK's own machinery backs). Each `template` is the EXACT host
+# sentence on disk today, with the live headline text replaced by `{value}`
+# -- rendering must be byte-identical to what is on disk (proven by this
+# module's own --self-test control, not merely asserted).
+_NARRATIVE_REGIONS: tuple[_NarrativeRegion, ...] = (
+    _NarrativeRegion(
+        surface="docs/README.md",
+        markers=README_HEADLINE_MARKERS,
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template="> headline of **{value}**.",
+    ),
+    _NarrativeRegion(
+        surface="docs/MEASUREMENT-MAP.md",
+        markers=MEASUREMENT_MAP_HEADLINE_MARKERS,
+        source_script="scripts/check-traceability.py",
+        field_path="coverage_headline.prose",
+        template=(
+            "For the complete Active-Surface list and the coverage headline "
+            "({value}), see [requirements-traceability.md](requirements-traceability.md)."
+        ),
+    ),
+)
+
+# A SECOND, independently typed transcription of the two surfaces above --
+# the same `_CONTAINMENT_SURFACES_LOCK` idiom, deliberately NOT derived from
+# `_NARRATIVE_REGIONS` in any way. DISCLOSED LIMITATION, the same bound the
+# precedent lock states: a transcription of EQUAL value written a different
+# way is harmless by construction and therefore invisible to this floor --
+# only a set that actually differs from these two is caught.
+_NARRATIVE_REGION_SURFACES_LOCK: frozenset[str] = frozenset(
+    {"docs/README.md", "docs/MEASUREMENT-MAP.md"}
+)
+
+
+def narrative_region_surface_roster_problems(
+    reached_keys: frozenset[str] | set[str],
+    lock: frozenset[str] = _NARRATIVE_REGION_SURFACES_LOCK,
+) -> list[str]:
+    """`reached_keys` is REQUIRED and carries no default -- the only default
+    available at module level would be table-derived
+    (`{r.surface for r in _NARRATIVE_REGIONS}`), which would silently turn
+    this floor into a table-vs-lock self-consistency check, a weaker claim
+    that stays green while the loop that is supposed to populate
+    `reached_keys` narrows underneath it (the same argument
+    `containment_surface_roster_problems`'s own docstring makes -- copied
+    deliberately, not reworded). Every call site must hand this function a
+    set it accumulated itself, from whatever loop actually walked the
+    surfaces -- not read back off the table.
+
+    A genuine set-EQUALITY test, never a subset test: reports `missing=`
+    (locked but not reached) and `extra=` (reached but not locked), both
+    sorted, both named in one message."""
+    missing = sorted(lock - reached_keys)
+    extra = sorted(reached_keys - lock)
+    if missing or extra:
+        return [
+            f"narrative-region-surface-roster: missing={missing} extra={extra} "
+            "(NARR-02 -- the reached-surface set must equal the locked two, "
+            "never a subset)"
+        ]
+    return []
+
+
+class NarrativeFieldNotFoundError(LookupError):
+    """Raised by `_render_narrative_sentence` when `region.field_path` is
+    absent from the harvest blob -- D-03: a region may not invent a value;
+    an absent field is a cannot-reach case (published as a disclosed bound
+    elsewhere), never a fallback, so this is a NAMED error, never a silent
+    `None` and never a bare `KeyError` a caller could confuse with an
+    unrelated missing dict key."""
+
+
+def _render_narrative_sentence(region: "_NarrativeRegion", blob: dict) -> str:
+    """Resolve `region.field_path` (a dotted path, e.g.
+    `'coverage_headline.prose'`) against `region.source_script`'s own
+    `--describe` blob, and render the WHOLE sentence (D-02) --
+    `region.template.format(value=...)`. Never computes a value inline and
+    never imports another module to obtain one (D-03) -- modelled on
+    `_facts_block`'s own one-field-to-one-line renderer, at sentence grain
+    rather than bullet grain."""
+    node = blob
+    for part in region.field_path.split("."):
+        if not isinstance(node, dict) or part not in node:
+            raise NarrativeFieldNotFoundError(
+                f"_render_narrative_sentence: field_path {region.field_path!r} "
+                f"not found in {region.source_script}'s --describe blob "
+                f"(region surface {region.surface!r})"
+            )
+        node = node[part]
+    return region.template.format(value=node)
+
+
+def _narrative_region_value_on_disk(region: "_NarrativeRegion", text: str) -> str | None:
+    """Harvest-free recovery of a region's live rendered value straight from
+    its own on-disk body -- no subprocess, no harvest import, no escape
+    hatch. This does not weaken D-03: `cmd_check()`'s existing drift diff
+    already asserts a region's on-disk body equals a fresh
+    `_render_narrative_sentence` render before `--check` can ever pass, so a
+    body recovered here that reconciles with the template's own fixed
+    prefix/suffix around `{value}` IS the harvest value by construction, not
+    a guess. Fails closed rather than guessing: returns `None` when the
+    marker pair is absent (or found zero or more than once, or out of
+    order), or when the recovered body cannot be reconciled with the
+    template's own fixed text around `{value}`."""
+    start_marker, end_marker = region.markers
+    lines = text.splitlines(keepends=True)
+    bare_lines = [ln.splitlines()[0] if ln.splitlines() else ln for ln in lines]
+    fenced = _fenced_line_flags(bare_lines)
+    start_idxs = [
+        i
+        for i, (bare, is_fenced) in enumerate(zip(bare_lines, fenced))
+        if not is_fenced and bare == start_marker
+    ]
+    end_idxs = [
+        i
+        for i, (bare, is_fenced) in enumerate(zip(bare_lines, fenced))
+        if not is_fenced and bare == end_marker
+    ]
+    if len(start_idxs) != 1 or len(end_idxs) != 1:
+        return None
+    start_idx, end_idx = start_idxs[0], end_idxs[0]
+    if end_idx <= start_idx:
+        return None
+    body = "\n".join(bare_lines[start_idx + 1 : end_idx])
+    prefix, sep, suffix = region.template.partition("{value}")
+    if sep != "{value}":
+        return None
+    if not body.startswith(prefix) or not body.endswith(suffix):
+        return None
+    end = len(body) - len(suffix) if suffix else len(body)
+    return body[len(prefix) : end]
+
+
+def _narrative_restatement_findings(
+    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    surface_texts: dict[str, str] | None = None,
+) -> list[tuple[str, "_NarrativeRegion", str, int]]:
+    """Every occurrence of a recoverable region's own on-disk value, across
+    every roster surface, classified as `'finding'` (a live restatement
+    outside any generated region, outside a fenced code block, and not part
+    of a linked delta chain -- the only class this module ever treats as a
+    defect) or one of the exempted classes `'in-region'`, `'fenced'`,
+    `'chain-hop'` (historical narration, `docs/PROCESS.md` §2's preserved
+    exception). Structural, not a list: derived from the roster of
+    *generators*, each of which `--check` falsifies when it goes stale.
+
+    Harvest-free and read-only, mirroring `_narrative_region_value_on_disk`:
+    no subprocess, no importable-module escape hatch. `surface_texts` lets a
+    `--self-test` control substitute an in-memory page for the real tree
+    (FROZEN-EVIDENCE discipline -- fixtures stay in-memory or tempdir-only,
+    never written into the real tree); the real files are read only when
+    the caller passes nothing."""
+    resolved_texts: dict[str, str] = dict(surface_texts) if surface_texts is not None else {}
+
+    def _text_for(surface: str) -> str | None:
+        if surface in resolved_texts:
+            return resolved_texts[surface]
+        if surface_texts is not None:
+            return None
+        path = REPO_ROOT / surface
+        if not path.exists():
+            return None
+        text = path.read_text(encoding="utf-8")
+        resolved_texts[surface] = text
+        return text
+
+    marker_pairs_by_surface: dict[str, list[tuple[str, str]]] = {}
+    for r in regions:
+        marker_pairs_by_surface.setdefault(r.surface, []).append(r.markers)
+
+    surfaces = sorted({r.surface for r in regions})
+    findings: list[tuple[str, "_NarrativeRegion", str, int]] = []
+
+    for region in regions:
+        source_text = _text_for(region.surface)
+        if source_text is None:
+            continue
+        value = _narrative_region_value_on_disk(region, source_text)
+        if not value:
+            continue
+        for surface in surfaces:
+            s_text = _text_for(surface)
+            if s_text is None:
+                continue
+            lines = s_text.splitlines()
+            fenced = _fenced_line_flags(lines)
+            generated = _generated_line_flags(
+                lines, tuple(marker_pairs_by_surface.get(surface, ()))
+            )
+            chains = _link_delta_chains(_delta_chain_hops(s_text))
+            chain_spans = [span for chain in chains for (_l, _r, span) in chain]
+            for lineno, line in enumerate(lines, start=1):
+                if value not in line:
+                    continue
+                if fenced[lineno - 1]:
+                    findings.append(("fenced", region, surface, lineno))
+                elif generated[lineno - 1]:
+                    findings.append(("in-region", region, surface, lineno))
+                elif any(span in line for span in chain_spans):
+                    findings.append(("chain-hop", region, surface, lineno))
+                else:
+                    findings.append(("finding", region, surface, lineno))
+    return findings
+
+
+def narrative_restatement_counts(
+    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    surface_texts: dict[str, str] | None = None,
+) -> dict[str, int]:
+    """Per-class tallies over `_narrative_restatement_findings` -- for later
+    publication as generated `derived_counts` (not wired to `describe()` in
+    this plan; landed inert alongside the rest of the mechanism)."""
+    counts = {"finding": 0, "in-region": 0, "fenced": 0, "chain-hop": 0}
+    for kind, *_rest in _narrative_restatement_findings(regions, surface_texts):
+        counts[kind] += 1
+    return counts
+
+
+def narrative_restatement_problems(
+    regions: tuple["_NarrativeRegion", ...] = _NARRATIVE_REGIONS,
+    surface_texts: dict[str, str] | None = None,
+) -> list[str]:
+    """The `'finding'`-class subset of `_narrative_restatement_findings`, one
+    message per occurrence, each naming the file, the line, and the region
+    whose value was restated outside its own generated fence."""
+    problems: list[str] = []
+    for kind, region, surface, lineno in _narrative_restatement_findings(regions, surface_texts):
+        if kind != "finding":
+            continue
+        problems.append(
+            f"narrative-restatement: {surface}:{lineno} restates the value "
+            f"{region.surface}'s own generated-narrative-region renders, "
+            "outside any generated fence (NARR-02)"
+        )
+    return problems
+
+
 def _containment_missing_numbers(
     text: str,
     marker_pairs=_ALL_DETAIL_MARKER_PAIRS,
