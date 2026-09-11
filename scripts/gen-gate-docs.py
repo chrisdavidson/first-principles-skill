@@ -525,6 +525,10 @@ NARRATIVE_ENTRIES: frozenset[str] = frozenset(
         "QUAL-01", "SCAN-GUARD", "TRACE-03", "CONF-GATE", "CONF-SURFACE",
         "VAL-01", "VAL-02", "VAL-03", "VAL-04", "VAL-05", "VERSION-01",
         "DUAL-04", "GATE-01", "BATT-06", "STEP0-08", "STEP0-06",
+        # HARN-02 joined in v9.2.0 Phase 28 commit A to host its GUARD-03
+        # REACH-or-LEVEL determination, because a thin page is regenerated
+        # end to end (D-08) and would erase it.
+        "HARN-02",
     }
 )
 

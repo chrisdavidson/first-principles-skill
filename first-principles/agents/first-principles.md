@@ -24,8 +24,11 @@ To run a complete first-principles analysis, supply:
   scientific hypothesis, personal choice, engineering trade-off, etc.
 - **Key constraints** — any non-negotiable boundaries or requirements the solution must
   satisfy (budget, timeline, compatibility, regulatory, physical limits, etc.).
-- **Known ground truths** — facts you have already verified that the analysis should
-  treat as fixed starting points rather than assumptions to challenge.
+- **Known ground truths** — facts you want the analysis to start from. Each enters
+  Phase 2 as a candidate and is classified like any other input: one that names a
+  source enters as `reported-by-delegate`, one that names none as `unverified`.
+  Supplying a fact raises its priority for the Phase 3 verification step; it does
+  not discharge that step.
 
 If the problem statement is workable, this agent proceeds directly to the 5-phase analysis without asking for confirmation or framing.
 It requests clarification only when something essential is absent: no clear problem statement, or a constraint whose presence or absence would change the entire analysis.

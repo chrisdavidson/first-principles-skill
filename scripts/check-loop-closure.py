@@ -71,13 +71,14 @@ _RUBRIC_NAME = "validation-rubric.md"
 _META_NAME = "SKILL.meta.yml"
 
 # D-21-J (Phase 21 plan 04): a module-level, per-source transcription of the
-# `negative_controls` table's 37 labels (N1-N37) `_run_self_test()` builds
-# locally (it must stay local — its thunks close over the live file text
+# `negative_controls` table's labels `_run_self_test()` builds locally (it
+# must stay local — its thunks close over the live file text
 # `_run_self_test()` reads, and `describe()` must stay pure / no disk I/O per
-# D-03). This roster names the SAME 37 ids, paired with the source file each
-# one mutates, so `--describe` can derive `control_count`/`control_ids` as a
-# `len()`/sorted-list read instead of the self-test docstring's own
-# deliberately-unasserted "never a magic number" count.
+# D-03). This roster names the SAME ids as `negative_controls`, paired with
+# the source file each one mutates, so `--describe` can derive
+# `control_count`/`control_ids` as a `len()`/sorted-list read instead of the
+# self-test docstring's own deliberately-unasserted "never a magic number"
+# count.
 _CONTROL_ROSTER: tuple[tuple[str, str], ...] = (
     ("N1", _BODY_NAME), ("N2", _BODY_NAME), ("N3", _BODY_NAME), ("N4", _BODY_NAME),
     ("N5", _BODY_NAME), ("N6", _BODY_NAME), ("N7", _BODY_NAME), ("N8", _BODY_NAME),
@@ -91,6 +92,7 @@ _CONTROL_ROSTER: tuple[tuple[str, str], ...] = (
     ("N29", _BODY_NAME), ("N30", _BODY_NAME), ("N31", _BODY_NAME),
     ("N32", _BODY_NAME), ("N33", _BODY_NAME), ("N34", _META_NAME),
     ("N35", _CONTRACT_NAME), ("N36", _BODY_NAME), ("N37", _BODY_NAME),
+    ("N38", _CONTRACT_NAME), ("N39", _CONTRACT_NAME),
 )
 
 # ---------------------------------------------------------------------------
@@ -230,6 +232,19 @@ _EDGE_COUNT = "Four re-entry edges exist in this methodology"  # L17
 _ONE_EDGE_TWO_STATEMENTS = "one edge, two statements"  # L18
 _SUPERSEDED_EDGE_COUNT = "Five re-entry edges exist in this methodology"  # X6
 _RE_PERCEPTION_PASS = "re-perception pass"  # scoped to the Repeat line (S1)
+
+# L19 / X7: Input Contract bullet 4's candidate routing.
+#
+# L19 pins bullet 4's candidate routing (SUP-01, GUARD-01) — a supplied ground
+# truth enters Phase 2 as a candidate the same way any other input does, rather
+# than as a ground truth exempt from challenge. X7 pins the superseded exemption
+# clause absent: a presence literal cannot see the old clause re-added beside the
+# new one, so the absence pin is the only standing check that sees that
+# coexistence. X7 reaches the exact historical wording only. The REACH-or-LEVEL
+# determination for both literals lives in `docs/gates/HARN-02.md` §
+# "REACH-or-LEVEL determination" — see that section rather than this comment.
+_CANDIDATE_ENTRY = "enters Phase 2 as a candidate"  # L19
+_SUPERSEDED_EXEMPTION = "rather than assumptions to challenge"  # X7 (must be ABSENT)
 
 # Anchors for scoped, single-line assertions. Each must match exactly one
 # line — zero or two is itself a failure (see _find_unique_line below), so a
@@ -522,6 +537,16 @@ def _check_input_contract_text(text: str) -> list[str]:
         failures.append(
             f'{src}: the mid-run re-open does not route its answer by which artifact is '
             f'missing ("{_MIDRUN_LANDING}")'
+        )
+    if not _contains(text, _CANDIDATE_ENTRY):
+        failures.append(
+            f'{src}: the Known ground truths bullet no longer routes a supplied fact into '
+            f'Phase 2 as a candidate ("{_CANDIDATE_ENTRY}")'
+        )
+    if _contains(text, _SUPERSEDED_EXEMPTION):
+        failures.append(
+            f'{src}: an Input Contract bullet exempts supplied facts from challenge again '
+            f'("{_SUPERSEDED_EXEMPTION}")'
         )
 
     return failures
@@ -1105,6 +1130,18 @@ def _run_self_test() -> int:
             lambda: _strip_everywhere(body, _ONE_EDGE_TWO_STATEMENTS),
             check_body,
             f"{_BODY_NAME}: the enumeration no longer says the Fix/Repeat loop",
+        ),
+        (
+            "N38 (input-contract: strip L19, the candidate-entry clause)",
+            lambda: _strip_everywhere(contract, _CANDIDATE_ENTRY),
+            check_contract,
+            f'{_CONTRACT_NAME}: the Known ground truths bullet no longer routes',
+        ),
+        (
+            "N39 (input-contract: reinstate X7 hard-wrapped beside the live bullet — the coexistence shape a presence literal cannot see)",
+            lambda: _reinstate_hard_wrapped(contract, _SUPERSEDED_EXEMPTION),
+            check_contract,
+            f'{_CONTRACT_NAME}: an Input Contract bullet exempts supplied facts from challenge again',
         ),
         (
             "N13 (body: strip second-order from the bound paragraph only)",
