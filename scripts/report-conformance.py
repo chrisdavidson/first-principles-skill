@@ -44,6 +44,7 @@ Exit codes:
 from __future__ import annotations
 
 import argparse
+import ast
 import difflib
 import importlib.util
 import inspect
@@ -97,6 +98,27 @@ MIN_CORPUS_ITEMS: int = 12
 # through the pre-commit conformance-drift gate, which is why the eight captures are
 # authored and committed BEFORE this constant goes live, never after.
 MIN_LIVE_CONFORMANCE_RUNS: int = 8
+
+# Phase 27 (REL-08): the sixth labelled surface. Its six declared record slots are frozen
+# evidence (CONTEXT.md D-07) -- a reader parses whatever the frozen record files say,
+# never a live scan of the repository, so no MIN_* count-floor constant guards the record
+# roster itself the way MIN_CORPUS_ITEMS/MIN_LIVE_CONFORMANCE_RUNS do; the floor below
+# guards only the two support files every reading depends on.
+RECURRENCE_READING_DIR: str = "tests/recurrence-reading-v9.1"
+RECURRENCE_SUPPORT_FILES: tuple[str, str] = ("README.md", "protocol.md")
+MIN_RECURRENCE_SUPPORT_FILES: int = 2
+# The declared roster of the six (timing x arm) record slots, in this exact order --
+# each filename encodes its own timing and arm, and a file's absence is a state this
+# surface renders (an explicit "not yet recorded"), never inferred or silently dropped
+# from the roster.
+RECURRENCE_RECORD_FILES: tuple[str, str, str, str, str, str] = (
+    "pre-arm-scanner.md",
+    "pre-arm-reader-a.md",
+    "pre-arm-reader-b.md",
+    "post-arm-scanner.md",
+    "post-arm-reader-a.md",
+    "post-arm-reader-b.md",
+)
 
 
 # ---------------------------------------------------------------------------
@@ -192,6 +214,7 @@ class Artifact:
         "contract-surface",
         "adversarial-corpus",
         "live-conformance",
+        "recurrence-reading",
     ]
     relpath: str
     path: Path
@@ -263,6 +286,20 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
             f"found {len(live_paths)}"
         )
 
+    # Phase 27 (REL-08): the recurrence-reading support-file floor. Named-path failure
+    # over the two support files, never a bare zero -- the two files are resolved by
+    # explicit name, not a glob, so "found 0" would obscure which file is missing.
+    recurrence_dir = repo_root / RECURRENCE_READING_DIR
+    recurrence_support_present = sum(
+        1 for name in RECURRENCE_SUPPORT_FILES if (recurrence_dir / name).is_file()
+    )
+    if recurrence_support_present < MIN_RECURRENCE_SUPPORT_FILES:
+        messages.append(
+            f"report-conformance: COUNT FLOOR FAIL — expected {MIN_RECURRENCE_SUPPORT_FILES} "
+            f"support files {RECURRENCE_SUPPORT_FILES} to exist under {RECURRENCE_READING_DIR}, "
+            f"found {recurrence_support_present}"
+        )
+
     if messages:
         raise DiscoveryFloorError("\n".join(messages))
 
@@ -286,6 +323,13 @@ def discover_artifacts(repo_root: Path) -> list[Artifact]:
     for p in live_paths:
         artifacts.append(
             Artifact("live-conformance", p.relative_to(repo_root).as_posix(), p, p.stem)
+        )
+    # Phase 27 (REL-08): every declared record slot is appended, present or absent --
+    # the roster must not silently shrink when a reading has not yet been taken.
+    for name in RECURRENCE_RECORD_FILES:
+        p = recurrence_dir / name
+        artifacts.append(
+            Artifact("recurrence-reading", p.relative_to(repo_root).as_posix(), p, p.stem)
         )
     return artifacts
 
@@ -790,6 +834,159 @@ def build_live_row(artifact: Artifact, catalog_entry: dict | None) -> dict:
     return row
 
 
+# ---------------------------------------------------------------------------
+# Phase 27 (REL-08): the sixth labelled surface, `recurrence-reading`. Unlike the four
+# surfaces above, there is no document here for `detect_defects` to score -- the unit is
+# a frozen, human-authored sites/claims table (CONTEXT.md D-04), not a worked analysis.
+# ---------------------------------------------------------------------------
+
+
+class RecurrenceRecordParseError(ValueError):
+    """Raised when a recurrence-reading record file's parsed rows disagree with its own
+    declared totals line, or a row's `tier`/`fence class` cell falls outside its closed
+    vocabulary (see `tests/recurrence-reading-v9.1/protocol.md` `## Record format`). A
+    doctored total, or an out-of-vocabulary cell, must not survive parsing (T-27-08)."""
+
+
+_RECURRENCE_RECORD_HEADER: tuple[str, ...] = (
+    "#",
+    "file:line",
+    "claimed value",
+    "live generated value",
+    "how derived",
+    "tier",
+    "fence class",
+    "distinct claim",
+)
+_RECURRENCE_VALID_TIERS: frozenset[str] = frozenset({"product", "apparatus"})
+_RECURRENCE_VALID_FENCE_CLASSES: frozenset[str] = frozenset({"FENCED", "RELEASE-OWNED"})
+_RECURRENCE_TOTALS_RE: re.Pattern[str] = re.compile(
+    r"\*\*Totals this file:\*\*\s*(\d+)\s*sites\s*/\s*(\d+)\s*distinct claims\."
+)
+
+
+def _read_recurrence_records(path: Path) -> tuple[list[dict], tuple[int, int]]:
+    """Parse one recurrence-reading record file's eight-column Markdown table, returning
+    `(rows, (declared_sites, declared_claims))`.
+
+    Re-derives `sites` as the parsed row count and `claims` as the number of distinct
+    values in the `distinct claim` column, then compares both against the file's own
+    `**Totals this file:** N sites / M distinct claims.` line -- a mismatch raises
+    `RecurrenceRecordParseError`, which is what turns the hand-typed total inside the
+    frozen evidence into a corroborated figure rather than an uncorroborated one
+    (T-27-08). A row whose `tier` cell is not one of `_RECURRENCE_VALID_TIERS`, or whose
+    `fence class` cell is not one of `_RECURRENCE_VALID_FENCE_CLASSES`, is a
+    closed-column-vocabulary violation and also raises, following the
+    `_parse_corpus_target` precedent's closed-vocabulary discipline.
+    """
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+
+    header_idx: int | None = None
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            continue
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if cells == list(_RECURRENCE_RECORD_HEADER):
+            header_idx = i
+            break
+    if header_idx is None:
+        raise RecurrenceRecordParseError(
+            f"{path}: header row {_RECURRENCE_RECORD_HEADER!r} not found"
+        )
+
+    rows: list[dict] = []
+    # The row immediately after the header is the `|---|---|...` separator; skip it.
+    for line in lines[header_idx + 2 :]:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            break
+        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        if len(cells) != len(_RECURRENCE_RECORD_HEADER):
+            raise RecurrenceRecordParseError(
+                f"{path}: row has {len(cells)} cells, expected "
+                f"{len(_RECURRENCE_RECORD_HEADER)}: {stripped!r}"
+            )
+        row = dict(zip(_RECURRENCE_RECORD_HEADER, cells))
+        if row["tier"] not in _RECURRENCE_VALID_TIERS:
+            raise RecurrenceRecordParseError(
+                f"{path}: row {row['#']!r} tier {row['tier']!r} not one of "
+                f"{sorted(_RECURRENCE_VALID_TIERS)}"
+            )
+        if row["fence class"] not in _RECURRENCE_VALID_FENCE_CLASSES:
+            raise RecurrenceRecordParseError(
+                f"{path}: row {row['#']!r} fence class {row['fence class']!r} not one of "
+                f"{sorted(_RECURRENCE_VALID_FENCE_CLASSES)}"
+            )
+        rows.append(row)
+
+    totals_match: re.Match[str] | None = None
+    for line in lines:
+        m = _RECURRENCE_TOTALS_RE.search(line)
+        if m:
+            totals_match = m
+            break
+    if totals_match is None:
+        raise RecurrenceRecordParseError(
+            f"{path}: no '**Totals this file:** N sites / M distinct claims.' line found"
+        )
+    declared_sites = int(totals_match.group(1))
+    declared_claims = int(totals_match.group(2))
+
+    derived_sites = len(rows)
+    derived_claims = len({row["distinct claim"] for row in rows})
+
+    if derived_sites != declared_sites or derived_claims != declared_claims:
+        raise RecurrenceRecordParseError(
+            f"{path}: declared totals {declared_sites} sites / {declared_claims} distinct "
+            f"claims disagree with parsed rows ({derived_sites} sites / {derived_claims} "
+            "distinct claims)"
+        )
+
+    return rows, (declared_sites, declared_claims)
+
+
+def build_recurrence_row(artifact: Artifact) -> dict:
+    """Build one row for a `recurrence-reading` artifact -- one of the six declared
+    record slots in `RECURRENCE_RECORD_FILES`, present or absent. `timing` and `arm` are
+    derived from the filename itself (each name encodes both); `reader` is `a`, `b`, or
+    `n/a` for the scanner arm, which has no reader. Never scores the record with the
+    chain/claim/section defect detector -- there is no document to score here, only a
+    frozen sites/claims table (CONTEXT.md D-04).
+    """
+    name = Path(artifact.relpath).name
+    timing = "pre-arm" if name.startswith("pre-arm") else "post-arm"
+    arm = "scanner" if "scanner" in name else "prose"
+    if "reader-a" in name:
+        reader = "a"
+    elif "reader-b" in name:
+        reader = "b"
+    else:
+        reader = "n/a"
+
+    row: dict = {
+        "surface": artifact.surface,
+        "record_file": artifact.relpath,
+        "timing": timing,
+        "arm": arm,
+        "reader": reader,
+        "present": artifact.path.is_file(),
+    }
+    if not row["present"]:
+        return row
+
+    rows, _declared_totals = _read_recurrence_records(artifact.path)
+    product_rows = [r for r in rows if r["tier"] == "product"]
+    apparatus_rows = [r for r in rows if r["tier"] == "apparatus"]
+    row["sites_product"] = len(product_rows)
+    row["claims_product"] = len({r["distinct claim"] for r in product_rows})
+    row["sites_apparatus"] = len(apparatus_rows)
+    row["claims_apparatus"] = len({r["distinct claim"] for r in apparatus_rows})
+    row["rows"] = rows
+    return row
+
+
 def build_rows(repo_root: Path) -> list[dict]:
     """One row per discovered artifact, in discovery order (shared-examples, then
     generated-twin, then contract-surface, then adversarial-corpus, then
@@ -811,6 +1008,8 @@ def build_rows(repo_root: Path) -> list[dict]:
             rows.append(
                 build_live_row(artifact, live_catalog_entries.get(artifact.analysis_id))
             )
+        elif artifact.surface == "recurrence-reading":
+            rows.append(build_recurrence_row(artifact))
         else:
             rows.append(build_row(artifact))
     return rows
@@ -2042,10 +2241,110 @@ def compute_live_headline(live_rows: list[dict]) -> dict:
     }
 
 
+def compute_recurrence_headline(recurrence_rows: list[dict]) -> dict:
+    """Phase 27 (REL-08)'s recurrence-reading headline, modelled on
+    `compute_live_headline` rather than the shared `compute_headline` -- the
+    document-defect vocabulary the shared function aggregates does not fit these fields.
+
+    Returns per-(timing, arm, reader) sites/claims pairs per tier under `by_cell`; the
+    instrument gap under `instrument_gap` -- for each timing where both arms are present,
+    the set of `file:line` values the prose arm recorded that the scanner arm did not,
+    and the reverse; and the timing delta under `timing_delta` -- for each arm/reader
+    where both timings are present, the set of sites present at pre-arm only, at post-arm
+    only, and at both, joined on `file` (the `file:line` cell with its line number
+    stripped) plus `claimed value` rather than on the full `file:line` string, so a line
+    shifted by an insertion above it is not mistaken for a new site.
+
+    This function must NEVER compute a summed total across the two arms, an averaged
+    figure across the two readers, or any single combined recurrence number --
+    CONTEXT.md D-01 (two instruments, reported separately, never summed) and D-05 (two
+    readers, both figures published, a per-site disagreement named rather than
+    reconciled) forbid exactly that collapse. Both `instrument_gap` and `timing_delta`
+    are returned as sorted id sets, never as counts characterised in prose.
+    """
+
+    def _row_for(timing: str, arm: str, reader: str) -> dict | None:
+        for r in recurrence_rows:
+            if r["timing"] == timing and r["arm"] == arm and r["reader"] == reader:
+                return r
+        return None
+
+    by_cell: dict[str, dict] = {}
+    for row in recurrence_rows:
+        key = f"{row['timing']}/{row['arm']}/{row['reader']}"
+        if not row["present"]:
+            by_cell[key] = {"present": False}
+            continue
+        by_cell[key] = {
+            "present": True,
+            "sites_product": row["sites_product"],
+            "claims_product": row["claims_product"],
+            "sites_apparatus": row["sites_apparatus"],
+            "claims_apparatus": row["claims_apparatus"],
+        }
+
+    def _line_ids(row: dict) -> set[str]:
+        return {r["file:line"] for r in row.get("rows", [])}
+
+    instrument_gap: dict[str, dict] = {}
+    for timing in ("pre-arm", "post-arm"):
+        scanner_row = _row_for(timing, "scanner", "n/a")
+        reader_a_row = _row_for(timing, "prose", "a")
+        reader_b_row = _row_for(timing, "prose", "b")
+        prose_rows_present = [
+            r for r in (reader_a_row, reader_b_row) if r is not None and r["present"]
+        ]
+        if scanner_row is None or not scanner_row["present"] or not prose_rows_present:
+            continue
+        scanner_ids = _line_ids(scanner_row)
+        prose_ids: set[str] = set()
+        for r in prose_rows_present:
+            prose_ids |= _line_ids(r)
+        instrument_gap[timing] = {
+            "prose_not_scanner": sorted(prose_ids - scanner_ids),
+            "scanner_not_prose": sorted(scanner_ids - prose_ids),
+        }
+
+    def _claimed_ids(row: dict) -> set[str]:
+        # Joined on `file` (the `file:line` cell with its line number stripped) plus
+        # `claimed value`, NEVER on the full `file:line` string -- a line shifted by an
+        # insertion above it must not be mistaken for a new site (CONTEXT.md D-15's
+        # fence-break discipline depends on this distinction).
+        ids: set[str] = set()
+        for r in row.get("rows", []):
+            file_part = r["file:line"].rsplit(":", 1)[0]
+            ids.add(f"{file_part}::{r['claimed value']}")
+        return ids
+
+    timing_delta: dict[str, dict] = {}
+    for arm, reader in (("scanner", "n/a"), ("prose", "a"), ("prose", "b")):
+        pre_row = _row_for("pre-arm", arm, reader)
+        post_row = _row_for("post-arm", arm, reader)
+        if pre_row is None or post_row is None:
+            continue
+        if not pre_row["present"] or not post_row["present"]:
+            continue
+        pre_ids = _claimed_ids(pre_row)
+        post_ids = _claimed_ids(post_row)
+        cell = arm if reader == "n/a" else f"{arm}-{reader}"
+        timing_delta[cell] = {
+            "pre_only": sorted(pre_ids - post_ids),
+            "post_only": sorted(post_ids - pre_ids),
+            "both": sorted(pre_ids & post_ids),
+        }
+
+    return {
+        "by_cell": by_cell,
+        "instrument_gap": instrument_gap,
+        "timing_delta": timing_delta,
+    }
+
+
 def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]) -> str:
     agreeing, total, divergences = agreement
     corpus_rows = [r for r in rows if r["surface"] == "adversarial-corpus"]
     live_rows = [r for r in rows if r["surface"] == "live-conformance"]
+    recurrence_rows = [r for r in rows if r["surface"] == "recurrence-reading"]
     # Phase 20 (CONF-09/CONF-10): unlike the adversarial-corpus precedent (whose rows
     # stay in the flat "rows" list AND are nested under "adversarial_corpus"), a
     # live-conformance row appears ONLY under the new "live_conformance" sibling key --
@@ -2054,7 +2353,12 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
     # surface out of it entirely is the extra margin against a future consumer that
     # iterates "rows" without filtering by surface, on top of `_GATED_SURFACES` already
     # excluding it from CONF-GATE.
-    published_rows = [r for r in rows if r["surface"] != "live-conformance"]
+    # Phase 27 (REL-08): a recurrence-reading row has no document-defect schema at all
+    # (no `section_resolution`, no measured schema fields), so it is excluded from the
+    # flat "rows" list on the same grounds -- it appears only under "recurrence_reading".
+    published_rows = [
+        r for r in rows if r["surface"] not in ("live-conformance", "recurrence-reading")
+    ]
     obj = {
         "measurement_date": MEASUREMENT_DATE,
         "generator": "scripts/report-conformance.py",
@@ -2078,6 +2382,7 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
             "contract-surface": sum(1 for r in rows if r["surface"] == "contract-surface"),
             "adversarial-corpus": len(corpus_rows),
             "live-conformance": len(live_rows),
+            "recurrence-reading": len(recurrence_rows),
         },
         "headline": compute_headline(rows),
         "pair_agreement": {
@@ -2102,6 +2407,12 @@ def render_json(rows: list[dict], agreement: tuple[int, int, list[tuple[str, lis
         "live_conformance": {
             "headline": compute_live_headline(live_rows),
             "rows": live_rows,
+        },
+        # Phase 27 (REL-08): a further NEW top-level key, sibling to live_conformance.
+        # Never truncated -- every parsed record row is carried in full.
+        "recurrence_reading": {
+            "headline": compute_recurrence_headline(recurrence_rows),
+            "rows": recurrence_rows,
         },
     }
     return json.dumps(obj, indent=2) + "\n"
@@ -2424,6 +2735,117 @@ def _render_live_conformance_section(
     return lines
 
 
+_RECURRENCE_TIMINGS: tuple[str, str] = ("pre-arm", "post-arm")
+_RECURRENCE_ARMS: tuple[tuple[str, str], ...] = (
+    ("scanner", "n/a"),
+    ("prose", "a"),
+    ("prose", "b"),
+)
+
+
+def _render_recurrence_reading_section(
+    recurrence_rows: list[dict], headline: dict
+) -> list[str]:
+    """Phase 27 (REL-08): the ## recurrence-reading section. Far shorter than
+    `_render_live_conformance_section` -- there is no per-item corpus, roster or
+    disposition apparatus to narrate here, only a frozen sites/claims table per
+    (timing x arm) cell. Every figure is read from `recurrence_rows`/`headline`
+    (`compute_recurrence_headline`'s output); nothing here is a hardcoded literal count.
+    """
+    lines: list[str] = []
+    lines.append("## recurrence-reading")
+    lines.append("")
+    lines.append(
+        "This surface publishes the recurrence-reading sweep's own sites/claims figures, "
+        "re-derived from the frozen record files committed under "
+        "`tests/recurrence-reading-v9.1/`. Its sweep rules -- surface list, hit "
+        "criterion, exclusions, fence classes, the trip predicate -- live at "
+        "`tests/recurrence-reading-v9.1/protocol.md` and are not restated here."
+    )
+    lines.append("")
+
+    def _row_for(timing: str, arm: str, reader: str) -> dict | None:
+        for r in recurrence_rows:
+            if r["timing"] == timing and r["arm"] == arm and r["reader"] == reader:
+                return r
+        return None
+
+    absent_files = [r["record_file"] for r in recurrence_rows if not r["present"]]
+    if absent_files:
+        lines.append(
+            "**Reading not yet recorded.** No digit is published for the following "
+            "record file(s), each named rather than rendered as a zero: "
+            + ", ".join(f"`{f}`" for f in sorted(absent_files))
+            + "."
+        )
+        lines.append("")
+
+    present_rows = [r for r in recurrence_rows if r["present"]]
+    for r in present_rows:
+        arm_label = "scanner" if r["arm"] == "scanner" else f"prose, reader {r['reader']}"
+        lines.append(
+            f"**{r['timing']}, {arm_label}** (`{r['record_file']}`): "
+            f"{r['sites_product']} sites / {r['claims_product']} distinct claims "
+            f"(product tier); {r['sites_apparatus']} sites / {r['claims_apparatus']} "
+            "distinct claims (apparatus tier)."
+        )
+    if present_rows:
+        lines.append("")
+
+    for timing in _RECURRENCE_TIMINGS:
+        gap = headline["instrument_gap"].get(timing)
+        if gap is None:
+            continue
+        lines.append(
+            f"**Instrument gap ({timing}).** The scanner instrument and the prose "
+            "instrument are read separately, side by side, precisely so the gap between "
+            "them is itself a measurement of how far the migration mechanism reaches "
+            "versus how much of the class still needs a human reader. Sites the prose "
+            "arm recorded that the scanner arm did "
+            "not: " + (", ".join(f"`{s}`" for s in gap["prose_not_scanner"]) or "none")
+            + ". Sites the scanner arm recorded that the prose arm did not: "
+            + (", ".join(f"`{s}`" for s in gap["scanner_not_prose"]) or "none")
+            + "."
+        )
+        lines.append("")
+
+    for arm, reader in _RECURRENCE_ARMS:
+        cell = arm if reader == "n/a" else f"{arm}-{reader}"
+        delta = headline["timing_delta"].get(cell)
+        if delta is None:
+            continue
+        arm_label = "scanner" if arm == "scanner" else f"prose reader {reader}"
+        lines.append(
+            f"**Timing delta ({arm_label}).** Measured before the release acts and "
+            "again after, published as this before/after pair; attributing a "
+            "post-arm-only site to a specific release act is a later plan's own "
+            "analysis, never this renderer's. Present at pre-arm only: "
+            + (", ".join(f"`{s}`" for s in delta["pre_only"]) or "none")
+            + ". Present at post-arm only: "
+            + (", ".join(f"`{s}`" for s in delta["post_only"]) or "none")
+            + ". Present at both: "
+            + (", ".join(f"`{s}`" for s in delta["both"]) or "none")
+            + "."
+        )
+        lines.append("")
+
+    lines.append(
+        "**Instruments never summed; readers never reconciled.** The scanner and prose "
+        "figures above are published side by side and never added together; a per-site "
+        "disagreement between prose readers A and B is named, never merged into a "
+        "single reconciled figure."
+    )
+    lines.append("")
+    lines.append(
+        "**Observation, not a gate.** This reading is a measurement no phase may target "
+        "and no gate reads: `scripts/check-conf-gate.py`'s `_GATED_SURFACES` does not "
+        "name `recurrence-reading` -- confirmed by direct read of that module, not "
+        "asserted. A non-zero figure here does not block a release."
+    )
+    lines.append("")
+    return lines
+
+
 def render_markdown(
     rows: list[dict], agreement: tuple[int, int, list[tuple[str, list[str]]]]
 ) -> str:
@@ -2533,7 +2955,12 @@ def render_markdown(
     # both sentences shipped in the same generated document. The count was stale too
     # (`29`, hardcoded, while this surface has published 42 rows since Phase 19). Now
     # scoped to the surfaces the claim is true of, with the count derived.
-    non_live = [r for r in rows if r["surface"] != "live-conformance"]
+    # Rule 1 (Phase 27): widened to also exclude recurrence-reading rows, which carry no
+    # provenance-field schema at all (they are not a `detect_defects`-scored document) --
+    # counting them here would silently misstate what "the four surfaces above" means.
+    non_live = [
+        r for r in rows if r["surface"] not in ("live-conformance", "recurrence-reading")
+    ]
     lines.append(
         "Three kinds of value appear in the per-artifact tables below. A number means the "
         "detector read the document and counted. The literal `n/a` means no `.jsonl` "
@@ -2641,6 +3068,10 @@ def render_markdown(
     live = [r for r in rows if r["surface"] == "live-conformance"]
     live_headline = compute_live_headline(live)
     lines.extend(_render_live_conformance_section(live, live_headline, corpus_headline))
+
+    recurrence = [r for r in rows if r["surface"] == "recurrence-reading"]
+    recurrence_headline = compute_recurrence_headline(recurrence)
+    lines.extend(_render_recurrence_reading_section(recurrence, recurrence_headline))
 
     lines.append("## Source-vs-twin agreement (D-04)")
     lines.append("")
@@ -2898,6 +3329,14 @@ def _make_minimum_tree(root: Path) -> None:
     live_dir.mkdir(parents=True, exist_ok=True)
     for i in range(MIN_LIVE_CONFORMANCE_RUNS):
         (live_dir / f"l{i:02d}.jsonl").write_text("{}\n", encoding="utf-8")
+    # Phase 27 (REL-08): discover_artifacts' sixth floor requires the two recurrence-
+    # reading support files, or every existing floor control below (which calls this
+    # helper and then discover_artifacts) would itself raise DiscoveryFloorError on the
+    # recurrence-reading floor it never populated.
+    recurrence_dir = root / RECURRENCE_READING_DIR
+    recurrence_dir.mkdir(parents=True, exist_ok=True)
+    for name in RECURRENCE_SUPPORT_FILES:
+        (recurrence_dir / name).write_text("x", encoding="utf-8")
 
 
 def _control_floor_shared_short() -> None:
@@ -2971,6 +3410,10 @@ def _control_floor_passes_at_minimum() -> None:
             + MIN_CONTRACT_SURFACES
             + MIN_CORPUS_ITEMS
             + MIN_LIVE_CONFORMANCE_RUNS
+            # Every declared recurrence-reading record slot is appended unconditionally,
+            # present or absent -- not gated by a MIN_* floor the way the surfaces above
+            # are.
+            + len(RECURRENCE_RECORD_FILES)
         )
         assert len(artifacts) == expected, (len(artifacts), expected)
 
@@ -4611,6 +5054,14 @@ def _control_json_count_scopes_agree() -> None:
             form_defects=0,
         ),
         _synthetic_live_row("x01.md", "x01"),
+        {
+            "surface": "recurrence-reading",
+            "record_file": "tests/recurrence-reading-v9.1/pre-arm-scanner.md",
+            "timing": "pre-arm",
+            "arm": "scanner",
+            "reader": "n/a",
+            "present": False,
+        },
     ]
     obj = json.loads(render_json(rows, pair_agreement(rows)))
 
@@ -4621,6 +5072,7 @@ def _control_json_count_scopes_agree() -> None:
         "contract-surface",
         "adversarial-corpus",
         "live-conformance",
+        "recurrence-reading",
     }, counts
     assert all(v > 0 for v in counts.values()), counts
 
@@ -5120,6 +5572,326 @@ def _control_describe_consistency() -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Phase 27 (REL-08): recurrence-reading controls.
+# ---------------------------------------------------------------------------
+
+
+def _recurrence_record_text(
+    rows_spec: list[dict[str, str]], declared_sites: int, declared_claims: int
+) -> str:
+    """Render one recurrence-reading record file's Markdown text from a list of row
+    dicts (each carrying the eight `_RECURRENCE_RECORD_HEADER` keys except `#`, which is
+    assigned by position) plus a totals line -- the inverse of `_read_recurrence_records`,
+    used only to build --self-test fixtures."""
+    lines = ["| " + " | ".join(_RECURRENCE_RECORD_HEADER) + " |", "|" + "---|" * 8]
+    for i, r in enumerate(rows_spec, start=1):
+        lines.append(
+            "| "
+            + " | ".join(
+                [str(i)] + [r[k] for k in _RECURRENCE_RECORD_HEADER[1:]]
+            )
+            + " |"
+        )
+    lines.append("")
+    lines.append(
+        f"**Totals this file:** {declared_sites} sites / {declared_claims} distinct claims."
+    )
+    return "\n".join(lines) + "\n"
+
+
+def _synthetic_recurrence_row(
+    record_file: str, timing: str, arm: str, reader: str, **overrides
+) -> dict:
+    row: dict = {
+        "surface": "recurrence-reading",
+        "record_file": record_file,
+        "timing": timing,
+        "arm": arm,
+        "reader": reader,
+        "present": True,
+        "sites_product": 0,
+        "claims_product": 0,
+        "sites_apparatus": 0,
+        "claims_apparatus": 0,
+        "rows": [],
+    }
+    row.update(overrides)
+    return row
+
+
+def _control_recurrence_support_floor() -> None:
+    """recurrence-support-floor: the floor fires when protocol.md is absent."""
+    with tempfile.TemporaryDirectory() as td:
+        root = Path(td)
+        _make_minimum_tree(root)
+        (root / RECURRENCE_READING_DIR / "protocol.md").unlink()
+        try:
+            discover_artifacts(root)
+        except DiscoveryFloorError as exc:
+            msg = str(exc)
+            assert RECURRENCE_READING_DIR in msg, msg
+            assert "COUNT FLOOR FAIL" in msg, msg
+        else:
+            raise AssertionError("discover_artifacts did not raise when protocol.md is missing")
+
+
+def _control_recurrence_totals_line_must_match_rows() -> None:
+    """recurrence-totals-line-must-match-rows: a record whose totals line disagrees
+    with its parsed rows raises RecurrenceRecordParseError."""
+    with tempfile.TemporaryDirectory() as td:
+        path = Path(td) / "pre-arm-scanner.md"
+        text = _recurrence_record_text(
+            [
+                {
+                    "file:line": "docs/README.md:10",
+                    "claimed value": "5",
+                    "live generated value": "6",
+                    "how derived": "manual",
+                    "tier": "product",
+                    "fence class": "FENCED",
+                    "distinct claim": "readme-count",
+                }
+            ],
+            declared_sites=2,
+            declared_claims=1,
+        )
+        path.write_text(text, encoding="utf-8")
+        try:
+            _read_recurrence_records(path)
+        except RecurrenceRecordParseError as exc:
+            assert "disagree" in str(exc), exc
+        else:
+            raise AssertionError("mismatched totals line did not raise")
+
+
+def _control_recurrence_closed_column_vocabulary() -> None:
+    """recurrence-closed-column-vocabulary: a row with a tier or fence class cell
+    outside its closed vocabulary is rejected."""
+    with tempfile.TemporaryDirectory() as td:
+        bad_tier_path = Path(td) / "bad-tier.md"
+        bad_tier_path.write_text(
+            _recurrence_record_text(
+                [
+                    {
+                        "file:line": "docs/README.md:10",
+                        "claimed value": "5",
+                        "live generated value": "6",
+                        "how derived": "manual",
+                        "tier": "product-ish",
+                        "fence class": "FENCED",
+                        "distinct claim": "readme-count",
+                    }
+                ],
+                declared_sites=1,
+                declared_claims=1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            _read_recurrence_records(bad_tier_path)
+        except RecurrenceRecordParseError as exc:
+            assert "tier" in str(exc), exc
+        else:
+            raise AssertionError("out-of-vocabulary tier did not raise")
+
+        bad_fence_path = Path(td) / "bad-fence.md"
+        bad_fence_path.write_text(
+            _recurrence_record_text(
+                [
+                    {
+                        "file:line": "docs/README.md:10",
+                        "claimed value": "5",
+                        "live generated value": "6",
+                        "how derived": "manual",
+                        "tier": "product",
+                        "fence class": "SORT-OF-FENCED",
+                        "distinct claim": "readme-count",
+                    }
+                ],
+                declared_sites=1,
+                declared_claims=1,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            _read_recurrence_records(bad_fence_path)
+        except RecurrenceRecordParseError as exc:
+            assert "fence class" in str(exc), exc
+        else:
+            raise AssertionError("out-of-vocabulary fence class did not raise")
+
+
+def _control_recurrence_absent_record_emits_no_digit() -> None:
+    """recurrence-absent-record-emits-no-digit: with every record file absent, the
+    rendered section names all six files and emits no Arabic digit outside the frozen
+    directory path's own bytes."""
+    rows = [
+        {
+            "surface": "recurrence-reading",
+            "record_file": f"{RECURRENCE_READING_DIR}/{name}",
+            "timing": "pre-arm" if name.startswith("pre-arm") else "post-arm",
+            "arm": "scanner" if "scanner" in name else "prose",
+            "reader": "a" if "reader-a" in name else "b" if "reader-b" in name else "n/a",
+            "present": False,
+        }
+        for name in RECURRENCE_RECORD_FILES
+    ]
+    headline = compute_recurrence_headline(rows)
+    rendered = "\n".join(_render_recurrence_reading_section(rows, headline))
+    for name in RECURRENCE_RECORD_FILES:
+        assert name in rendered, rendered
+    stripped = rendered.replace(RECURRENCE_READING_DIR, "")
+    assert not any(c.isdigit() for c in stripped), stripped
+
+
+def _control_recurrence_arms_never_summed() -> None:
+    """recurrence-arms-never-summed: the rendered section contains no figure equal to
+    the arithmetic sum of the two arms' sites figures for any timing, against a
+    synthetic two-arm fixture whose sum is distinguishable from both operands."""
+    scanner_row = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/pre-arm-scanner.md",
+        "pre-arm",
+        "scanner",
+        "n/a",
+        sites_product=3,
+        claims_product=1,
+        rows=[{"file:line": "docs/README.md:1", "claimed value": "x", "distinct claim": "x"}],
+    )
+    prose_row = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/pre-arm-reader-a.md",
+        "pre-arm",
+        "prose",
+        "a",
+        sites_product=4,
+        claims_product=1,
+        rows=[{"file:line": "docs/README.md:2", "claimed value": "y", "distinct claim": "y"}],
+    )
+    rows = [scanner_row, prose_row]
+    headline = compute_recurrence_headline(rows)
+    rendered = "\n".join(_render_recurrence_reading_section(rows, headline))
+    assert "3 sites" in rendered, rendered
+    assert "4 sites" in rendered, rendered
+    assert "7" not in rendered, rendered
+
+
+def _control_recurrence_readers_never_averaged() -> None:
+    """recurrence-readers-never-averaged: same, for the two readers' figures."""
+    reader_a = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/pre-arm-reader-a.md",
+        "pre-arm",
+        "prose",
+        "a",
+        sites_product=2,
+        rows=[{"file:line": "docs/README.md:1", "claimed value": "x", "distinct claim": "x"}],
+    )
+    reader_b = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/pre-arm-reader-b.md",
+        "pre-arm",
+        "prose",
+        "b",
+        sites_product=6,
+        rows=[{"file:line": "docs/OTHER.md:1", "claimed value": "z", "distinct claim": "z"}],
+    )
+    rows = [reader_a, reader_b]
+    headline = compute_recurrence_headline(rows)
+    rendered = "\n".join(_render_recurrence_reading_section(rows, headline))
+    assert "2 sites" in rendered, rendered
+    assert "6 sites" in rendered, rendered
+    assert "4 sites" not in rendered, rendered
+
+
+def _control_recurrence_timing_delta_joins_on_content() -> None:
+    """recurrence-timing-delta-joins-on-content: a synthetic pre/post fixture pair in
+    which one site's line number shifts but its file and claimed value do not is
+    classified as present at both timings, never as one site gone and one site new."""
+    pre_row = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/pre-arm-scanner.md",
+        "pre-arm",
+        "scanner",
+        "n/a",
+        rows=[{"file:line": "docs/README.md:20", "claimed value": "5", "distinct claim": "x"}],
+    )
+    post_row = _synthetic_recurrence_row(
+        f"{RECURRENCE_READING_DIR}/post-arm-scanner.md",
+        "post-arm",
+        "scanner",
+        "n/a",
+        rows=[{"file:line": "docs/README.md:25", "claimed value": "5", "distinct claim": "x"}],
+    )
+    headline = compute_recurrence_headline([pre_row, post_row])
+    delta = headline["timing_delta"]["scanner"]
+    assert delta["pre_only"] == [], delta
+    assert delta["post_only"] == [], delta
+    assert delta["both"] == ["docs/README.md::5"], delta
+
+
+_RECURRENCE_HEADLINE_IDENTIFIERS: tuple[str, ...] = (
+    "sites_product",
+    "claims_product",
+    "sites_apparatus",
+    "claims_apparatus",
+    "recurrence_headline",
+    "compute_recurrence_headline",
+    "by_cell",
+    "instrument_gap",
+    "timing_delta",
+)
+
+
+def _if_guards_exit_form(node: ast.If) -> bool:
+    for stmt in ast.walk(node):
+        if isinstance(stmt, ast.Raise):
+            return True
+        if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Constant) and stmt.value.value == 1:
+            return True
+        if (
+            isinstance(stmt, ast.Call)
+            and isinstance(stmt.func, ast.Attribute)
+            and stmt.func.attr == "exit"
+            and isinstance(stmt.func.value, ast.Name)
+            and stmt.func.value.id == "sys"
+        ):
+            return True
+    return False
+
+
+def _recurrence_exit_conditioning_violations(source: str) -> list[str]:
+    """Return source snippets where an `if` test references a published
+    recurrence-headline figure (`_RECURRENCE_HEADLINE_IDENTIFIERS`) and its body reaches
+    a `raise`, a `return 1`, or a `sys.exit` call -- CONTEXT.md D-08 made mechanical."""
+    tree = ast.parse(source)
+    violations: list[str] = []
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.If):
+            continue
+        test_dump = ast.dump(node.test)
+        if not any(name in test_dump for name in _RECURRENCE_HEADLINE_IDENTIFIERS):
+            continue
+        if _if_guards_exit_form(node):
+            violations.append(ast.unparse(node.test))
+    return violations
+
+
+def _control_recurrence_no_exit_code_conditioned_on_count() -> None:
+    """recurrence-no-exit-code-conditioned-on-count: a source-level control over this
+    module's own text, asserting that no `sys.exit`, `raise` or `return 1` is
+    predicated on a recurrence sites or claims value (CONTEXT.md D-08, made mechanical).
+    Also proves itself non-vacuous against a synthetic snippet carrying exactly the
+    forbidden shape."""
+    source = Path(__file__).read_text(encoding="utf-8")
+    violations = _recurrence_exit_conditioning_violations(source)
+    assert violations == [], f"exit form conditioned on a recurrence figure: {violations}"
+
+    synthetic = (
+        "def f(headline):\n"
+        "    if headline['by_cell']['pre-arm/scanner/n/a']['sites_product'] > 0:\n"
+        "        raise RuntimeError('recurrence found')\n"
+    )
+    synthetic_violations = _recurrence_exit_conditioning_violations(synthetic)
+    assert synthetic_violations, "control failed to catch its own synthetic violation"
+
+
 _CONTROLS: tuple[tuple[str, object], ...] = (
     ("floor-shared-short", _control_floor_shared_short),
     ("floor-twin-short", _control_floor_twin_short),
@@ -5352,6 +6124,26 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_live_call_sites_roster_lock_wrong_count,
     ),
     ("describe", _control_describe_consistency),
+    ("recurrence-support-floor", _control_recurrence_support_floor),
+    (
+        "recurrence-totals-line-must-match-rows",
+        _control_recurrence_totals_line_must_match_rows,
+    ),
+    ("recurrence-closed-column-vocabulary", _control_recurrence_closed_column_vocabulary),
+    (
+        "recurrence-absent-record-emits-no-digit",
+        _control_recurrence_absent_record_emits_no_digit,
+    ),
+    ("recurrence-arms-never-summed", _control_recurrence_arms_never_summed),
+    ("recurrence-readers-never-averaged", _control_recurrence_readers_never_averaged),
+    (
+        "recurrence-timing-delta-joins-on-content",
+        _control_recurrence_timing_delta_joins_on_content,
+    ),
+    (
+        "recurrence-no-exit-code-conditioned-on-count",
+        _control_recurrence_no_exit_code_conditioned_on_count,
+    ),
 )
 
 # Coverage floor (SCAN-GUARD's _BRANCH_ROSTER_LOCK shape, backlog 999.30/999.31): a second,
@@ -5461,6 +6253,14 @@ _CONTROL_IDS: tuple[str, ...] = (
     "live-call-sites-roster-lock-narrowed",
     "live-call-sites-roster-lock-wrong-count",
     "describe",
+    "recurrence-support-floor",
+    "recurrence-totals-line-must-match-rows",
+    "recurrence-closed-column-vocabulary",
+    "recurrence-absent-record-emits-no-digit",
+    "recurrence-arms-never-summed",
+    "recurrence-readers-never-averaged",
+    "recurrence-timing-delta-joins-on-content",
+    "recurrence-no-exit-code-conditioned-on-count",
 )
 
 

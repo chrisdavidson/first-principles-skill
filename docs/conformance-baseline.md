@@ -155,6 +155,16 @@ All thirteen form columns and all nine always-`n/a` provenance columns for these
 
 All thirteen form columns and all nine always-`n/a` provenance columns for these runs are carried in full in `docs/data/conformance.json` under `live_conformance.rows`, and are omitted here for readability.
 
+## recurrence-reading
+
+This surface publishes the recurrence-reading sweep's own sites/claims figures, re-derived from the frozen record files committed under `tests/recurrence-reading-v9.1/`. Its sweep rules -- surface list, hit criterion, exclusions, fence classes, the trip predicate -- live at `tests/recurrence-reading-v9.1/protocol.md` and are not restated here.
+
+**Reading not yet recorded.** No digit is published for the following record file(s), each named rather than rendered as a zero: `tests/recurrence-reading-v9.1/post-arm-reader-a.md`, `tests/recurrence-reading-v9.1/post-arm-reader-b.md`, `tests/recurrence-reading-v9.1/post-arm-scanner.md`, `tests/recurrence-reading-v9.1/pre-arm-reader-a.md`, `tests/recurrence-reading-v9.1/pre-arm-reader-b.md`, `tests/recurrence-reading-v9.1/pre-arm-scanner.md`.
+
+**Instruments never summed; readers never reconciled.** The scanner and prose figures above are published side by side and never added together; a per-site disagreement between prose readers A and B is named, never merged into a single reconciled figure.
+
+**Observation, not a gate.** This reading is a measurement no phase may target and no gate reads: `scripts/check-conf-gate.py`'s `_GATED_SURFACES` does not name `recurrence-reading` -- confirmed by direct read of that module, not asserted. A non-zero figure here does not block a release.
+
 ## Source-vs-twin agreement (D-04)
 
 Compared fields (17): `conclusion_claims`, `untraced_claims`, `untraced_flag`, `verdict_cells`, `nonconforming_verdict_cells`, `verdict_flag`, `chain_blocks`, `malformed_chain_blocks`, `chain_flag`, `dependency_cycles`, `ungrounded_chains`, `selfaudit_disagreements`, `section_resolution`, `heading_chain_blocks`, `heading_malformed_blocks`, `marked_untraced_claims`, `silent_untraced_claims`.

@@ -2,13 +2,14 @@
   "measurement_date": "2026-09-06",
   "generator": "scripts/report-conformance.py",
   "artifact_count": 42,
-  "discovered_artifact_count": 50,
+  "discovered_artifact_count": 56,
   "surface_counts": {
     "shared-examples": 14,
     "generated-twin": 14,
     "contract-surface": 1,
     "adversarial-corpus": 13,
-    "live-conformance": 8
+    "live-conformance": 8,
+    "recurrence-reading": 6
   },
   "headline": {
     "unreadable": {
@@ -2365,6 +2366,82 @@
         "disposition": "accept-with-reason: scored 0/0/0/0 across the four D-20-A counts (section_resolution OK, heading_malformed_blocks 0, nonconforming_verdict_cells 0, silent_untraced_claims 0). Against `adversarial-corpus`'s published 10-of-13 false-negative rate, a clean reading here means this instrument found nothing, not that the analysis is correct.",
         "form_defects": 0,
         "clean": true
+      }
+    ]
+  },
+  "recurrence_reading": {
+    "headline": {
+      "by_cell": {
+        "pre-arm/scanner/n/a": {
+          "present": false
+        },
+        "pre-arm/prose/a": {
+          "present": false
+        },
+        "pre-arm/prose/b": {
+          "present": false
+        },
+        "post-arm/scanner/n/a": {
+          "present": false
+        },
+        "post-arm/prose/a": {
+          "present": false
+        },
+        "post-arm/prose/b": {
+          "present": false
+        }
+      },
+      "instrument_gap": {},
+      "timing_delta": {}
+    },
+    "rows": [
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/pre-arm-scanner.md",
+        "timing": "pre-arm",
+        "arm": "scanner",
+        "reader": "n/a",
+        "present": false
+      },
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/pre-arm-reader-a.md",
+        "timing": "pre-arm",
+        "arm": "prose",
+        "reader": "a",
+        "present": false
+      },
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/pre-arm-reader-b.md",
+        "timing": "pre-arm",
+        "arm": "prose",
+        "reader": "b",
+        "present": false
+      },
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/post-arm-scanner.md",
+        "timing": "post-arm",
+        "arm": "scanner",
+        "reader": "n/a",
+        "present": false
+      },
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/post-arm-reader-a.md",
+        "timing": "post-arm",
+        "arm": "prose",
+        "reader": "a",
+        "present": false
+      },
+      {
+        "surface": "recurrence-reading",
+        "record_file": "tests/recurrence-reading-v9.1/post-arm-reader-b.md",
+        "timing": "post-arm",
+        "arm": "prose",
+        "reader": "b",
+        "present": false
       }
     ]
   }
