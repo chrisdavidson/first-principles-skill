@@ -11,6 +11,108 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.1.0] — 2026-09-11
+
+Ships the milestone that names the mechanism behind the class [8.26.0] and [9.0.0] both shipped
+live instances of — a hand-written prose claim whose truth is a digit no gate can dispute — and
+lets the known-wrong sentences fall out of that answer rather than being fixed one at a time: the
+**diagnosis** (PROSE-01 through PROSE-04), **containment reach** (CONTAIN-01 through CONTAIN-04),
+the **generalized digit-narrowing rule and generated narrative regions** (NARR-01, NARR-02), the
+**ratchets** (RATCHET-01 through RATCHET-04), and the **release act itself** (REL-05 through
+REL-08). The coverage headline moves `208 reproducible / 97 audit-only / 0 gap / 305 total` to
+`217 reproducible / 106 audit-only / 0 gap / 323 total` (18 requirements registered as matrix rows
+via a new `_rows_v91()`, 9 reproducible + 9 audit-only), and the firewall battery tally is
+unchanged at **26/26** this milestone — the unchanged total is itself a success criterion (D-D),
+never an incidental fact.
+
+### Added
+
+- **Diagnosis** (PROSE-01 through PROSE-04). Named the mechanism: containment's `N → M`
+  delta-exemption class strips the whole vector including its terminus, so a chain whose final
+  value has gone stale reads as exempt rather than as a hit, indistinguishable to the checker from
+  one that is current. A sibling site (`CLAUDE.md`'s own Review protocol paragraph, CR-02 below)
+  was named before any fix was written. States in writing that the answer covers the
+  **quantity-shaped** class only — a claim whose truth is a digit corroborable against a generated
+  fence — and that the **consistency-shaped** class (one rule stated two contradictory ways, no
+  digit to check) is out of scope, filed as backlog 999.50 and 999.51. Each of v9.0.0's carried
+  findings now carries a recorded disposition: **CR-01** closed at Phase 25's chain-terminus arm,
+  demonstrated failing-before and passing-after by mutation on a disposable scratch copy; **CR-02**
+  dispositioned by routing rather than by fix — it states no digit, so nothing in this milestone's
+  quantity-shaped scope can corroborate or contradict it — filed as backlog 999.55; **CR-03**
+  remains accepted with its original bound, since `docs/README.md` carries no recognised generated
+  fence for anything to compare its claim against, filed as backlog 999.54; **P-CR-01** (found by a
+  post-`[9.0.0]`-entry review, never named in that entry) closed by the fix already shipped under
+  it, commit `b661281`. **Disclosed limits —** `docs/v9.1-claim-containment-diagnosis.md` § 3 is a
+  dated record of these dispositions as they stood at diagnosis time (2026-09-09); CR-01's own
+  closure happened afterward, in Phase 25, and is stated here rather than on that page, which this
+  milestone does not reopen as a region host.
+- **Containment reach** (CONTAIN-01 through CONTAIN-04). `CONF-SURFACE`'s containment check now
+  reaches `CLAUDE.md`, `docs/ARCHITECTURE.md`, `docs/TESTING.md` and `docs/gates/*.md`, floored by
+  a set-equality roster rather than a subset check; a chain-terminus arm
+  (`chain_terminus_problems`) watches an `N → M` delta chain's own final value against its live
+  source, the falsifiable closing point for CR-01 above; every REACH-or-LEVEL determination behind
+  a containment change is written before the mechanism exists, not after. The deferred-literal and
+  deferred-containment ledgers are both reconciled against a live re-adjudication of every entry —
+  their growth-only/size-only bound (RATCHET-02, below) and the reconciliation deltas themselves
+  are stated in `docs/gates/CONF-SURFACE.md`'s own disclosed-bounds section rather than restated
+  here. **Disclosed limits —** the cannot-reach residue behind the reach above is its own count,
+  never absorbed into it: `tests/premise-rejection-catalog.md`'s second G3 demonstration target
+  carries no generated region at all, and `docs/COMPONENT-DIAGRAM.md`'s Mermaid node label sits
+  inside a fenced code block a non-fenced marker line cannot bracket — both named individually in
+  `docs/gates/CONF-SURFACE.md`'s disclosed bounds rather than fixed. This release's own act added
+  a fresh entry to the deferred-containment ledger — a currently-correct digit with no
+  corroborating generated field, the same raw shape this milestone's mechanism targets — tracked
+  by the same growth-only bound rather than hidden; see that page for the entry.
+- **The generalized rule and generated narrative regions** (NARR-01, NARR-02). `docs/PROCESS.md`
+  section 2's digit-narrowing rule is generalized from the gate-battery count to every restated
+  moving count on a product surface, pointing at `docs/gates/CONF-SURFACE.md`'s own generated
+  `registered_surfaces` figure rather than stating a population as a digit. Two generated narrative
+  regions (`CLAUDE.md`, `docs/README.md`, `docs/MEASUREMENT-MAP.md` — a third host added beyond the
+  two originally scoped) now render their own coverage-headline sentence from the live harvested
+  fact, wired into `scripts/gen-gate-docs.py --check`'s drift check alongside the pre-existing
+  literal scanner. Filtering a fresh literal scan to the surfaces this migration reaches finds
+  **zero** non-exempt hits, out of 80 total, all exempt. **Disclosed limits —** that zero is
+  narrowed-scope, not tree-wide: the two cannot-reach residues named above
+  (`tests/premise-rejection-catalog.md`, `docs/COMPONENT-DIAGRAM.md`) sit outside every region a
+  narrative-region mechanism could bracket, named as a published, counted residue rather than
+  silently absorbed into the zero.
+- **The ratchets** (RATCHET-01 through RATCHET-04). `scripts/gen-gate-docs.py --check` runs the
+  narrative-restatement census unconditionally on every commit (RATCHET-01), demonstrated by a
+  four-arm mutation proof (two independent host surfaces plus the census arm each fail with a
+  named file and line; the unmutated arm passes). The deferred-literal ledger carries a
+  non-increase assertion with a growth-only/size-only bound restricted to `_CONTAINMENT_LEDGER_MAX`
+  and `_DEFERRED_LEDGER_MAX` moving in one direction only, at a size a human re-adjudicates
+  (RATCHET-02). A diff-review scan flagging a removed literal replaced by a hedge word was
+  **dropped** rather than shipped: RATCHET-03 is discharged by a recorded verdict citing the
+  meta-guard-regress argument its own proposer raised, not by a shipped scan — no new gate,
+  holding D-D. Every one of RATCHET-01 through RATCHET-03's mechanism changes carries a written
+  REACH-or-LEVEL determination made before the mechanism existed (RATCHET-04). **Disclosed
+  limits —** none beyond what CONTAIN-04's bullet above already states; RATCHET-02's bound is
+  cited there rather than restated twice.
+- **The release act itself** (REL-05 through REL-08). All 17 hand-maintained version stamps read
+  `9.1.0`, `VERSION-01` green, `sync-content.py --check` clean, `VERSION-01`'s PASS proven
+  non-vacuous by mutation on a scratch copy (REL-05). The firewall battery tally is unchanged at
+  **26/26** — established by a direct count of gate and inline-check registrations at both the
+  phase's base commit and this release's own HEAD, with the battery's own printed tally cited only
+  as corroboration (REL-06). This milestone's 18 requirements are registered as matrix rows behind
+  a live-derived `V91-ROWS` equality sentinel (9 reproducible + 9 audit-only), and the
+  coverage-headline move above is produced by `HEADLINE-LOCK`'s sweep across every
+  `COVERED_HEADLINE_SURFACES` member plus both tracked matrix artifacts, never a hand edit
+  (REL-07). Verification for this entry itself is measured against **product recurrence** — does
+  this milestone's own defect class recur, counted the way `docs/PROCESS.md` counted its four
+  prior recurrences — never against whether the new convention was followed; both instruments'
+  readings (a frozen-scanner arm and an independent two-reader prose arm), at both the pre-release
+  and post-release timing, are published unreconciled in `docs/conformance-baseline.md`'s
+  `recurrence-reading` section rather than restated here (REL-08). **Disclosed limits —**
+  `HEADLINE-LOCK` verifies every `COVERED_HEADLINE_SURFACES` member, but `gen-gate-docs.py --write`
+  produces only the narrower, `_NarrativeRegion`-backed subset of three; the remaining two members
+  (`docs/requirements-traceability.md`, `docs/COMPONENT-DIAGRAM.md`) require a manual edit on every
+  headline move that `HEADLINE-LOCK` then verifies rather than produces — named in full in
+  `docs/gates/CONF-SURFACE.md`'s disclosed bounds. Separately, nothing mechanical joins the 18
+  matrix rows `_rows_v91()` registers to the requirement roster in `.planning/REQUIREMENTS.md`;
+  the correspondence was checked by hand this phase, and a stronger, roster-derived equality check
+  was considered and rejected as out of this phase's own scope.
+
 ## [9.0.0] — 2026-09-09
 
 Ships the milestone that measures and closes the exemplar-conformance gap [8.26.0] disclosed: the
