@@ -27,9 +27,9 @@ fill their own rows in the same commits that add their record files.
 | `pre-arm-scanner.md` | pre-arm | scanner | n/a | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | in-process import of `scripts/gen-gate-docs.py`, no live agent session (no reader to isolate) | `c70c8607e412bb77d9c6556a3fe2e1a1d7f9ccc165ee4afa7dd73c89a99135ac` |
 | `pre-arm-reader-a.md` | pre-arm | prose | A | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | fresh non-interactive `claude -p` session, scratch cwd outside this repository, repository added only via `--add-dir`, `--allowedTools` restricted to `Read Grep Glob` plus a read-only `Bash` allowlist, `--permission-prompts none`; realized in practice as `Read`/`Grep`/`Glob`-only (see the record file's own header for the disclosed bound) | `d603e46db5f53c7328b7a433f4ce672ae17bebe439047ed616045a9e991b0fd8` |
 | `pre-arm-reader-b.md` | pre-arm | prose | B | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | fresh non-interactive `claude -p` session, scratch cwd outside this repository, repository added only via `--add-dir`, `--allowedTools` restricted to `Read Grep Glob` plus a read-only `Bash` allowlist, `--permission-prompts none`; realized in practice as `Read`/`Grep`/`Glob`-only (see the record file's own header for the disclosed bound) | `18e1673b7a711e7cc76221d24fb033345b380bcc36eba2df3025c00e34e141d1` |
-| `post-arm-scanner.md` | post-arm | scanner | n/a | pending | pending | pending |
-| `post-arm-reader-a.md` | post-arm | prose | A | pending | pending | pending |
-| `post-arm-reader-b.md` | post-arm | prose | B | pending | pending | pending |
+| `post-arm-scanner.md` | post-arm | scanner | n/a | `7d7c1d9a75ceecf4d76c840a3952ed34b01e2f77` | in-process import of `scripts/gen-gate-docs.py`, no live agent session (no reader to isolate) | `17b92bbc1c732705b58884bfd496f554a8611ab5489492a13610b4c1b4592c80` |
+| `post-arm-reader-a.md` | post-arm | prose | A | `7d7c1d9a75ceecf4d76c840a3952ed34b01e2f77` | fresh non-interactive `claude -p` session (third launch; the first two were stopped by the account's usage limit before producing a reading), scratch cwd outside this repository, repository added only via `--add-dir`, the same `--allowedTools` list and `--permission-prompts none` as every other prose run, captured with `--output-format json`, run on `claude-opus-5`; given neither pre-arm record (see the record file's own header for the disclosed bounds) | `c0338687873b2750b62d57b0a6365da049b115e3d438a521aab44c90ca1bc41b` |
+| `post-arm-reader-b.md` | post-arm | prose | B | `7d7c1d9a75ceecf4d76c840a3952ed34b01e2f77` | fresh non-interactive `claude -p` session (second launch; the first was stopped by the account's usage limit before producing a reading), scratch cwd outside this repository, repository added only via `--add-dir`, the same `--allowedTools` list and `--permission-prompts none` as every other prose run, run on `claude-fable-5-1`; given neither pre-arm record (see the record file's own header for the disclosed bounds) | `e3ad2c4efcd38bc1a1d1716f40548186658e8f51cccd5ad502a6faea576fdd91` |
 
 ## Reader independence
 
@@ -50,6 +50,30 @@ publishes therefore measures variance in judgement between two runs of one model
 variance a genuinely separate human reader would add. This is the same disclosed-bound voice the
 `live-conformance` surface uses for its own delegation-conditional bound: a reading conditional
 on a stated mechanism, published as such, never asserted as more than it is.
+
+**The post-arm timing, and what its delta can and cannot say.** Each post-arm reader was a fresh
+session and was given neither reader's pre-arm record, so neither could re-check an earlier list
+of its own. Three things still stand between the post-arm/pre-arm delta and a clean measurement
+of tree change, and each is stated here rather than left to be discovered:
+
+1. **Reader-to-reader variance.** The delta mixes tree change with variance between two runs of
+   a model, and D-27-12's non-communicating-not-statistically-independent bound applies to this
+   timing exactly as it applies to the first.
+2. **An anchoring channel the design itself contains.** `docs/conformance-baseline.md` is on
+   `protocol.md`'s product-tier surface list, and after the pre-arm reading its
+   `recurrence-reading` section publishes the pre-arm prose union's `file:line` ids in its
+   instrument-gap paragraph. Both post-arm readers read that page. No record file reached either
+   reader, but the pre-arm site ids did. Closing the channel would mean editing the frozen
+   protocol or the surface under measurement, so it stays open and is disclosed instead. Reader A
+   reported the exposure in its own method account; reader B's account does not mention it.
+3. **Model.** Post-arm reader B ran on `claude-fable-5-1` and post-arm reader A on
+   `claude-opus-5`, because the account's default model changed between the launch that produced
+   B's reading and the one that produced A's. The pre-arm readers' model cannot be read back now.
+   `protocol.md` does not fix a model, so this is not a protocol deviation, but it is a third term
+   in reader A's delta.
+
+Attribution of individual sites to the release acts comes from the timing delta and plan 27-07's
+fence adjudication, never from the readers.
 
 ## What was deliberately NOT committed, and why
 
