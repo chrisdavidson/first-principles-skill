@@ -865,6 +865,36 @@ _RECURRENCE_TOTALS_RE: re.Pattern[str] = re.compile(
 )
 
 
+def _split_recurrence_table_row(stripped: str) -> list[str]:
+    """Split one `| a | b | ... |` table row into its cells, treating a single-backtick
+    code span as atomic -- a `how derived` cell legitimately quotes a `grep` pattern
+    containing a literal `|` (e.g. a regex alternation or a Markdown table-row anchor
+    like `^\\| *S-`), and a naive `str.split('|')` would shred that cell into extra
+    fields. Mirrors how GFM itself renders a table: a pipe inside backtick-delimited
+    inline code does not start a new cell. Only single backticks are recognised (this
+    repo's own record format never nests code spans), and an odd number of backticks on
+    the row falls back to the naive split rather than raising, so a malformed row still
+    surfaces as a cell-count mismatch with a readable message instead of a confusing
+    stack trace from an unmatched-backtick scan."""
+    body = stripped.strip("|")
+    if body.count("`") % 2 != 0:
+        return [c.strip() for c in body.split("|")]
+    cells: list[str] = []
+    current: list[str] = []
+    in_code = False
+    for ch in body:
+        if ch == "`":
+            in_code = not in_code
+            current.append(ch)
+        elif ch == "|" and not in_code:
+            cells.append("".join(current).strip())
+            current = []
+        else:
+            current.append(ch)
+    cells.append("".join(current).strip())
+    return cells
+
+
 def _read_recurrence_records(path: Path) -> tuple[list[dict], tuple[int, int]]:
     """Parse one recurrence-reading record file's eight-column Markdown table, returning
     `(rows, (declared_sites, declared_claims))`.
@@ -887,7 +917,7 @@ def _read_recurrence_records(path: Path) -> tuple[list[dict], tuple[int, int]]:
         stripped = line.strip()
         if not stripped.startswith("|"):
             continue
-        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        cells = _split_recurrence_table_row(stripped)
         if cells == list(_RECURRENCE_RECORD_HEADER):
             header_idx = i
             break
@@ -902,7 +932,7 @@ def _read_recurrence_records(path: Path) -> tuple[list[dict], tuple[int, int]]:
         stripped = line.strip()
         if not stripped.startswith("|"):
             break
-        cells = [c.strip() for c in stripped.strip("|").split("|")]
+        cells = _split_recurrence_table_row(stripped)
         if len(cells) != len(_RECURRENCE_RECORD_HEADER):
             raise RecurrenceRecordParseError(
                 f"{path}: row has {len(cells)} cells, expected "

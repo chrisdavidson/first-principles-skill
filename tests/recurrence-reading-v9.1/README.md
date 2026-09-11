@@ -24,9 +24,9 @@ fill their own rows in the same commits that add their record files.
 
 | File | Timing | Arm | Reader id | Commit sha read | Isolation mechanism | sha256sum |
 |------|--------|-----|-----------|------------------|----------------------|-----------|
-| `pre-arm-scanner.md` | pre-arm | scanner | n/a | pending | pending | pending |
-| `pre-arm-reader-a.md` | pre-arm | prose | A | pending | pending | pending |
-| `pre-arm-reader-b.md` | pre-arm | prose | B | pending | pending | pending |
+| `pre-arm-scanner.md` | pre-arm | scanner | n/a | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | in-process import of `scripts/gen-gate-docs.py`, no live agent session (no reader to isolate) | `c70c8607e412bb77d9c6556a3fe2e1a1d7f9ccc165ee4afa7dd73c89a99135ac` |
+| `pre-arm-reader-a.md` | pre-arm | prose | A | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | fresh non-interactive `claude -p` session, scratch cwd outside this repository, repository added only via `--add-dir`, `--allowedTools` restricted to `Read Grep Glob` plus a read-only `Bash` allowlist, `--permission-prompts none`; realized in practice as `Read`/`Grep`/`Glob`-only (see the record file's own header for the disclosed bound) | `d603e46db5f53c7328b7a433f4ce672ae17bebe439047ed616045a9e991b0fd8` |
+| `pre-arm-reader-b.md` | pre-arm | prose | B | `33fe35b157a8fdf283d4d9fe89f3194845bea480` | fresh non-interactive `claude -p` session, scratch cwd outside this repository, repository added only via `--add-dir`, `--allowedTools` restricted to `Read Grep Glob` plus a read-only `Bash` allowlist, `--permission-prompts none`; realized in practice as `Read`/`Grep`/`Glob`-only (see the record file's own header for the disclosed bound) | `18e1673b7a711e7cc76221d24fb033345b380bcc36eba2df3025c00e34e141d1` |
 | `post-arm-scanner.md` | post-arm | scanner | n/a | pending | pending | pending |
 | `post-arm-reader-a.md` | post-arm | prose | A | pending | pending | pending |
 | `post-arm-reader-b.md` | post-arm | prose | B | pending | pending | pending |
@@ -39,6 +39,17 @@ session, and no shared scratch state. The specific mechanism used to isolate a g
 example, separate agent dispatches with no shared context window) is recorded in that run's own
 chain-of-custody row above, not asserted generically here — a generic assertion in this section
 would be exactly the unreachable claim `protocol.md`'s hit criterion excludes.
+
+**Non-communicating bound (D-27-12), stated rather than left to be discovered.** Both readers
+are Claude instances, invoked from the same executing session that transcribes their output into
+this directory. "Independent" here means *non-communicating* — two separate processes, two
+separate scratch working directories, no file or context exchanged between them, neither told
+the other exists — never *statistically independent*. A systematic blind spot shared by the
+underlying model would be invisible to this design, and the reader-to-reader gap this surface
+publishes therefore measures variance in judgement between two runs of one model, not the full
+variance a genuinely separate human reader would add. This is the same disclosed-bound voice the
+`live-conformance` surface uses for its own delegation-conditional bound: a reading conditional
+on a stated mechanism, published as such, never asserted as more than it is.
 
 ## What was deliberately NOT committed, and why
 
