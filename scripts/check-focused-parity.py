@@ -206,6 +206,24 @@ _WHEN_TO_REACH_HEADING = "## When to reach for this"
 # reflow that moves the line break elsewhere in the sentence.
 _CLOSING_HANDOFF_ANCHOR = "invoke the main `first-principles`"
 
+# SUP-03/SUP-04/GUARD-02, D-28-P3 (v9.2.0 Phase 28 commit B): the candidate-
+# input handoff tail every non-launcher stub carries, asserted as one
+# whitespace-flattened literal spanning both the routing clause (SUP-03) and
+# the no-cited-source clause (SUP-04) so dropping or rewording either half
+# fails Stub-13. See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination"
+# for the argument; this comment does not restate it.
+_HANDOFF_CANDIDATE_TAIL = (
+    "as candidate inputs for Phase 2. Carry the `?` marks with it — this run "
+    "opened no cited source."
+)
+
+# SUP-03, D-28-P3: the exempt slot name, asserted absent from every stub
+# INCLUDING the launcher — the same coexistence shape as HARN-02's
+# `_SUPERSEDED_EXEMPTION` in `scripts/check-loop-closure.py`, so a presence
+# literal alone cannot stay green if the old routing line is re-added beside
+# the new tail. See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination".
+_HANDOFF_EXEMPT_SLOT = "Known ground truths"
+
 # D-03: the three verdict-state literals, emitted verbatim and unconditionally.
 # IN-01 (`03-REVIEW.md`): the ` - ` in the third literal is an ASCII hyphen,
 # deliberately — it is pinned here, so a later prose "tidy-up" of that
@@ -636,7 +654,7 @@ def _load_real_stubs() -> dict[str, str]:
 
 
 def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
-    """Validate the stub-surface assertions (`Stub-0` through `Stub-12`)
+    """Validate the stub-surface assertions (`Stub-0` through `Stub-13`)
     against *stubs*.
 
     *stubs* is a slug -> body mapping for all 14 generated skills. Operating
@@ -861,6 +879,24 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
             failures.append(
                 f"Stub-12 (unresolved token): {slug} carries an unresolved "
                 f"generation token: {offending!r}"
+            )
+
+    # --- Stub-13 (SUP-03/SUP-04, candidate handoff) --------------------------
+    for slug, body in sorted(non_launcher.items()):
+        count = _count_flex(body, _HANDOFF_CANDIDATE_TAIL)
+        if count != 1:
+            failures.append(
+                f"Stub-13 (SUP-03/SUP-04, candidate handoff): {slug} carries "
+                f"the candidate-input handoff tail {count} time(s), expected "
+                "exactly 1"
+            )
+    for slug, body in sorted(stubs.items()):
+        n = _count_flex(body, _HANDOFF_EXEMPT_SLOT)
+        if n != 0:
+            failures.append(
+                f"Stub-13 (SUP-03, exempt slot): {slug} routes its output "
+                f"into the {_HANDOFF_EXEMPT_SLOT!r} slot {n} time(s), "
+                "expected 0"
             )
 
     return failures
@@ -1864,6 +1900,27 @@ def _run_self_test_body() -> int:
     # that slug.
     g5_stubs = _append_to(real_stubs, "theoretical-limit", "{{TOOL:fishbone}}")
     _check_negative("g5", _check_stub_surface(g5_stubs), "Stub-12", "theoretical-limit")
+
+    # (g6) Stub-13 candidate-handoff-tail control: strip the tail from the
+    # `identify-essence` stub, the only non-launcher slug no existing
+    # stub-surface control mutates.
+    g6_stubs = _mutate_one(real_stubs, "identify-essence", _HANDOFF_CANDIDATE_TAIL)
+    _check_negative(
+        "g6",
+        _check_stub_surface(g6_stubs),
+        "Stub-13",
+        "identify-essence carries the candidate-input handoff tail",
+    )
+
+    # (g7) Stub-13 exempt-slot control: append a re-entry of the retired
+    # routing line to the launcher, proving the absence half reaches the one
+    # stub the presence half deliberately skips.
+    g7_stubs = _append_to(
+        real_stubs, LAUNCHER_SLUG, f"agent with this output as {_HANDOFF_EXEMPT_SLOT}."
+    )
+    _check_negative(
+        "g7", _check_stub_surface(g7_stubs), "Stub-13", f"{LAUNCHER_SLUG} routes its output into"
+    )
 
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
     # marker; the failure must NAME the slug.

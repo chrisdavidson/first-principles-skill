@@ -160,4 +160,5 @@ run that skipped the check.
 ---
 
 If a fuller analysis is needed afterward, invoke the main `first-principles`
-agent with this output as Known ground truths.
+agent with this output as candidate inputs for Phase 2. Carry the `?` marks
+with it — this run opened no cited source.
