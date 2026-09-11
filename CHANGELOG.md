@@ -113,6 +113,24 @@ never an incidental fact.
   the correspondence was checked by hand this phase, and a stronger, roster-derived equality check
   was considered and rejected as out of this phase's own scope.
 
+**Addendum 2026-09-11, recurrence reading:** `docs/PROCESS.md`'s same-class trip, the rework
+limit that halts a phase when a defect class it closed recurs, fired on this release's
+post-release recurrence reading, read milestone-scoped as the ship phase's own context decided
+before any reading was taken. The ship phase therefore closed halted for a root replan while this
+release shipped in full; the halt is a statement about rework and changes no requirement's
+verdict. The trip rests on sites both independent prose readers recorded at both timings, among
+them `README.md:143`, `docs/CONFIGURATION.md:148`, `docs/DEVELOPMENT.md:171`,
+`docs/ONBOARDING.md:113`, `docs/TESTING.md:117` and `docs/TESTING.md:118`; no firing site is
+disputed. The reading also found sites made stale during the release block itself, true before
+the release acts and false after them because the matrix-row registration moved their live
+value: `CLAUDE.md:334`, `docs/README.md:27`, `docs/README.md:157` and, recorded by a single reader
+only and so disputed, `docs/README.md:36`. The reach map of every site the scanner arm could not
+see, grouped by why, is carried to planning-backlog entry 999.77, with dated pointers on 999.54,
+999.57 and 999.58 for the sites those entries already own. The figures are in
+`docs/conformance-baseline.md`'s `recurrence-reading` section and are not restated here. This
+milestone shipped with its own goal measurably unmet: the quantity-shaped defect class it set out
+to contain still recurs in prose its mechanism does not reach.
+
 ## [9.0.0] — 2026-09-09
 
 Ships the milestone that measures and closes the exemplar-conformance gap [8.26.0] disclosed: the
