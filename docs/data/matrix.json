@@ -3048,5 +3048,185 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04 and v8.26 SHIP-04/05)."
+  },
+  {
+    "key": "v9.1/PROSE-01",
+    "bare_id": "PROSE-01",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/v9.1-claim-containment-diagnosis.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Whether a mechanism is named in writing is not a predicate any gate evaluates."
+  },
+  {
+    "key": "v9.1/PROSE-02",
+    "bare_id": "PROSE-02",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/v9.1-claim-containment-diagnosis.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Whether a sibling site was located before a fix was written is a fact about ordering in history, which no re-run can establish."
+  },
+  {
+    "key": "v9.1/PROSE-03",
+    "bare_id": "PROSE-03",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/v9.1-claim-containment-diagnosis.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A written scope exclusion; no gate reads it."
+  },
+  {
+    "key": "v9.1/PROSE-04",
+    "bare_id": "PROSE-04",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/v9.1-claim-containment-diagnosis.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A recorded disposition per finding; the v8.18/v8.24/v8.26 SHIP-04/05 and v9.0 REL-04 precedent for prose records."
+  },
+  {
+    "key": "v9.1/CONTAIN-01",
+    "bare_id": "CONTAIN-01",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/CONTAIN-02",
+    "bare_id": "CONTAIN-02",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/CONTAIN-03",
+    "bare_id": "CONTAIN-03",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/gates/CONF-SURFACE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments."
+  },
+  {
+    "key": "v9.1/CONTAIN-04",
+    "bare_id": "CONTAIN-04",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/NARR-01",
+    "bare_id": "NARR-01",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/PROCESS.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "The generalized rule is process prose; the CONF-14/CONF-15 precedent."
+  },
+  {
+    "key": "v9.1/NARR-02",
+    "bare_id": "NARR-02",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/RATCHET-01",
+    "bare_id": "RATCHET-01",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/RATCHET-02",
+    "bare_id": "RATCHET-02",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/gen-gate-docs.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/RATCHET-03",
+    "bare_id": "RATCHET-03",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/gates/CONF-SURFACE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Discharged by a recorded DROP verdict, not by a shipped mechanism -- so there is nothing to re-run, and this rationale states that rather than pointing at a mechanism which does not exist for this row."
+  },
+  {
+    "key": "v9.1/RATCHET-04",
+    "bare_id": "RATCHET-04",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "docs/gates/CONF-SURFACE.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Dated written determinations; same character as CONTAIN-03."
+  },
+  {
+    "key": "v9.1/REL-05",
+    "bare_id": "REL-05",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/REL-06",
+    "bare_id": "REL-06",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/REL-07",
+    "bare_id": "REL-07",
+    "milestone": "v9.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.1/REL-08",
+    "bare_id": "REL-08",
+    "milestone": "v9.1",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 and v9.0 REL-04 precedent)."
   }
 ]

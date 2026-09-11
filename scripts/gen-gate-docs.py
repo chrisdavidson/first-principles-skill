@@ -2546,6 +2546,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
     ('CLAUDE.md', '60'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "60 live claude invocations (manual only, not run in CI)" and "(60 invocations) / offline `--self-test`" -- the Step 0 live-harness manual run count. Re-verified live this plan: `python3 scripts/check-step0-live.py --describe` emits `control_count: 25` and fixture/control ids only -- no field for "60 manual invocations" exists today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
+    ('CLAUDE.md', '18'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "the 18 v9.1 milestone requirements registered as matrix rows at Phase 27 / REL-07" -- the v9.1 milestone\'s own row count in the requirements-ledger derivation chain, the same shape as the pre-existing "19"/"20"/"23" milestone-row-count mentions in this same paragraph (none of which are ledgered, because each happens to share a same-page in-fence match today by coincidence -- see the `_CONTAINMENT_LEDGER_MAX` comment above the `disclosed_bounds_anchors` reconciliation for the identical coincidental-corroboration shape). Re-verified live this plan: `python3 scripts/check-traceability.py --describe` emits `coverage_headline`, `registered_surfaces`, `scan_globs`, `branch_roster`/`branch_count` (19) and `locked_constants` only -- no field exposes the per-milestone matrix-row count (18) that this sentence states. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('docs/ARCHITECTURE.md', '03'): ('999.73', 1, 'NOT A COUNT CLAIM: the same half-stripped slash-compound gate-id shape as `CLAUDE.md`\'s \'03\' entry -- "matching PROV-GUARD\'s and REG-GUARD\'s shape rather than HARN-01/02/03\'s and HC-BOUND\'s" leaves "02"/"03" stranded once "HARN-01" is consumed whole. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper is widened. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/ARCHITECTURE.md', '644'): ('999.69', 2, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): the retired 644-line agent-body budget (TEARDOWN-01) -- "past 644 lines" and "644 survives only as a historical" reference constant, explicitly named as retired rather than enforced. Same figure `CLAUDE.md`\'s own literal-scan `retired-body-budget` exemption class already recognises; containment has no equivalent exemption class, hence the ledger entry.'),
     ('docs/TESTING.md', '1'): ('999.73', 1, 'NOT A COUNT CLAIM: the arithmetic expression `_COMPOSER_FOCUS_CEILING - 1` (RR-77-08\'s surviving-conjuncts paragraph) -- an offset in a formula, not a count-noun-adjacent claim. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises arithmetic-expression shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
@@ -2651,7 +2652,17 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # choice was available here: this plan adds exactly one new anchor, so the
 # post-edit total is forced arithmetically, and the collision is resolved by
 # reconciling the ledger in the same commit instead.
-_CONTAINMENT_LEDGER_MAX: int = 20
+#
+# Raised 20 -> 21 by Phase 27 plan 06 Task 2: registering `_rows_v91()` and
+# extending CLAUDE.md's own requirements-ledger chain with the v9.1 hop
+# introduced a new bare digit ("18", the v9.1 milestone's row count) with no
+# same-page in-fence match -- genuinely new, not a coincidental-corroboration
+# repeat of an existing key (confirmed live: `_containment_missing_numbers`
+# over CLAUDE.md returned exactly one number, '18', absent from every
+# pre-existing ledgered key for this page). Added as CANNOT-REACH under
+# 999.69 (no `check-traceability.py --describe` field exposes a per-milestone
+# matrix-row count) -- one key added, none removed.
+_CONTAINMENT_LEDGER_MAX: int = 21
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -2677,8 +2688,12 @@ _CONTAINMENT_LEDGER_MAX: int = 20
 # reconciliation above: the key set changed by exactly the two removed keys
 # (`('CLAUDE.md', '14')`, `('docs/ARCHITECTURE.md', '14')`); no key was
 # added.
+#
+# Re-pinned again by Phase 27 plan 06 Task 2, in the SAME commit as the
+# 20 -> 21 reconciliation above: the key set changed by exactly the one
+# added key (`('CLAUDE.md', '18')`); no key was removed.
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:3bf6da23c97b60b5594cf888d8f54da4c89bf725410b3df5bc52f37082bc5462"
+    "sha256:d0c21df4847ab18c996c01305f14ba2908d0c52d694644c4d4b0afb1835846d4"
 )
 
 
@@ -5755,9 +5770,10 @@ def _control_delta_chain_hops_scanguard_spelled_out() -> None:
 
 def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     """CLAUDE.md's real, live outside text -- the interleaved coverage-
-    headline paragraph yields the row-count chain's terminus `('305',)`
-    among the chains assembled, proving non-adjacent linking: a
-    consecutive-only linker would fragment this chain against the
+    headline paragraph yields the row-count chain's terminus `('323',)`
+    (Phase 27 plan 06 extended the chain's prior `('305',)` terminus with
+    the v9.1 hop) among the chains assembled, proving non-adjacent linking:
+    a consecutive-only linker would fragment this chain against the
     interleaved slash-paired chain sharing the same paragraph and lose the
     terminus entirely."""
     pass1 = generate_all()
@@ -5770,7 +5786,7 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     termini = [chain[-1][1] for chain in chains]
-    assert ("305",) in termini, termini
+    assert ("323",) in termini, termini
 
 
 def _control_citation_shape_slash_before_arrow() -> None:

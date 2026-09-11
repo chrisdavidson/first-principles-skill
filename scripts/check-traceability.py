@@ -2031,13 +2031,171 @@ def _rows_v9() -> list[MatrixRow]:
     ]
 
 
+def _rows_v91() -> list[MatrixRow]:
+    """v9.1 milestone rows — 18 requirements, 9 reproducible + 9 audit-only (Phase 27, D-27-07).
+
+    All rows carry milestone="v9.1". Keys use the milestone-qualified form "v9.1/<bare_id>".
+
+    Tiering, decided per row against "does something re-run", never by block — the same
+    discipline _rows_v9()'s own docstring states and this phase's own 27-06-PLAN.md D-27-07
+    table restates: a blanket count check is explicitly rejected because swapping one row's
+    tier with another's while holding the counts constant would pass silently. Nine rows are
+    audit-only, each named and reasoned individually here, transcribed from D-27-07's table:
+
+      - PROSE-01: whether a mechanism is *named in writing* is not a predicate any gate
+        evaluates.
+      - PROSE-02: whether a sibling site was located *before* a fix was written is a fact
+        about ordering in history, which no re-run can establish.
+      - PROSE-03: a written scope exclusion; no gate reads it.
+      - PROSE-04: a recorded disposition per finding; the v8.18/v8.24/v8.26 SHIP-04/05 and
+        v9.0 REL-04 precedent for prose records.
+      - CONTAIN-03: a written REACH-or-LEVEL determination; the argument is the deliverable
+        and no gate reads arguments.
+      - NARR-01: the generalized rule is process prose; the CONF-14/CONF-15 precedent.
+      - RATCHET-03: discharged by a recorded DROP verdict, not by a shipped mechanism — there
+        is nothing to re-run, and this row's own rationale states that rather than pointing
+        at a mechanism that does not exist for it.
+      - RATCHET-04: dated written determinations; same character as CONTAIN-03.
+      - REL-08: no gate re-runs to check a CHANGELOG entry's prose; the REL-04 precedent.
+
+    The remaining 9 rows are reproducible: CONTAIN-01, CONTAIN-02 and CONTAIN-04 because
+    `containment_surface_roster_problems()` / `chain_terminus_problems()` / the ledger pin and
+    key digest re-run their respective claims every `gen-gate-docs.py --check`; NARR-02
+    because the narrative regions' drift diff and the restatement census both run every
+    `--check`; RATCHET-01 because `--check` runs as pre-commit gate 5 and in CI, re-running the
+    claim on every commit; RATCHET-02 because the non-increase assertion re-runs every
+    `--check`; REL-05 because VERSION-01 re-runs the lockstep claim (the REL-01 precedent);
+    REL-06 because the battery re-runs its own tally (the REL-02 precedent); REL-07 because
+    HEADLINE-LOCK re-runs the headline claim (the REL-03 precedent) — the one row in this
+    milestone carrying a dispatch-checked `#_self_test_*` anchor.
+
+    Capability assignment follows _rows_v9()'s own discriminator ("changes the agent's
+    methodology prose or its shipped reading material -> Methodology; harness and release
+    apparatus -> Test-Network"): PROSE-01..04, CONTAIN-03, NARR-01, RATCHET-03, RATCHET-04 and
+    REL-08 are Methodology — each is a written record, argument or process determination, not
+    gate code. CONTAIN-01, CONTAIN-02, CONTAIN-04, NARR-02, RATCHET-01, RATCHET-02, REL-05,
+    REL-06 and REL-07 are Test-Network — each is report, gate or release apparatus code.
+
+    DISCLOSED BOUNDARY. Of the 9 reproducible rows, only REL-07 carries a `#_self_test_*`
+    anchor (`scripts/check-traceability.py#_self_test_headline_lock`) — the one row whose
+    claim is check-traceability.py verifying itself, mirroring v9.0/REL-03's own precedent.
+    The other 8 reproducible rows carry a bare script path
+    (scripts/gen-gate-docs.py for six of them, scripts/check-version-stamps.py for REL-05,
+    scripts/check-firewall-battery.sh for REL-06) as artifact_link — none of those three
+    scripts defines a `_selftest_`- or `_self_test_`-prefixed symbol this row can dispatch
+    against, so `_resolve_artifact()`'s dispatch-reachability leg does not apply to them: a
+    bare path only proves the FILE EXISTS, never that anything re-runs the claim. The dispatch
+    guarantee for these 8 rows is supplied instead by each script's own `--self-test` /
+    `--check` CLI surface, exercised directly in this phase's own verification, not by this
+    matrix. State this rather than letting a reader assume the `#anchor` dispatch guarantee
+    extends to a bare path — overstating that reach is the defect class this milestone exists
+    to end.
+
+    RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
+    function's 18-ID roster and `.planning/REQUIREMENTS.md`'s own v9.1.0 requirement roster is
+    kept equal by transcription and by a one-off manual set-equality check run at plan time
+    (27-06-SUMMARY.md), not by anything mechanical — `.planning/` is gitignored and can never
+    be read by a CI gate, so no verb can join the two rosters live. CONTEXT.md D-17 records the
+    stronger roster-parsing alternative (deriving the count from `.planning/REQUIREMENTS.md` by
+    equality) as considered and rejected for this milestone.
+    """
+    _audit_prose_named = (
+        "Whether a mechanism is named in writing is not a predicate any gate evaluates."
+    )
+    _audit_prose_ordering = (
+        "Whether a sibling site was located before a fix was written is a fact about "
+        "ordering in history, which no re-run can establish."
+    )
+    _audit_prose_scope = "A written scope exclusion; no gate reads it."
+    _audit_prose_disposition = (
+        "A recorded disposition per finding; the v8.18/v8.24/v8.26 SHIP-04/05 and v9.0 "
+        "REL-04 precedent for prose records."
+    )
+    _audit_reach_level = (
+        "A written REACH-or-LEVEL determination; the argument is the deliverable and no "
+        "gate reads arguments."
+    )
+    _audit_process_prose_v91 = (
+        "The generalized rule is process prose; the CONF-14/CONF-15 precedent."
+    )
+    _audit_ratchet03_drop = (
+        "Discharged by a recorded DROP verdict, not by a shipped mechanism -- so there is "
+        "nothing to re-run, and this rationale states that rather than pointing at a "
+        "mechanism which does not exist for this row."
+    )
+    _audit_ratchet04_determinations = (
+        "Dated written determinations; same character as CONTAIN-03."
+    )
+    _audit_ship_changelog_v91 = (
+        "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 "
+        "SHIP-04/SHIP-05 and v9.0 REL-04 precedent)."
+    )
+    return [
+        MatrixRow("v9.1/PROSE-01", "PROSE-01", "v9.1", "Methodology",
+                  "docs/v9.1-claim-containment-diagnosis.md",
+                  "audit-only", "", _audit_prose_named),
+        MatrixRow("v9.1/PROSE-02", "PROSE-02", "v9.1", "Methodology",
+                  "docs/v9.1-claim-containment-diagnosis.md",
+                  "audit-only", "", _audit_prose_ordering),
+        MatrixRow("v9.1/PROSE-03", "PROSE-03", "v9.1", "Methodology",
+                  "docs/v9.1-claim-containment-diagnosis.md",
+                  "audit-only", "", _audit_prose_scope),
+        MatrixRow("v9.1/PROSE-04", "PROSE-04", "v9.1", "Methodology",
+                  "docs/v9.1-claim-containment-diagnosis.md",
+                  "audit-only", "", _audit_prose_disposition),
+        MatrixRow("v9.1/CONTAIN-01", "CONTAIN-01", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/CONTAIN-02", "CONTAIN-02", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/CONTAIN-03", "CONTAIN-03", "v9.1", "Methodology",
+                  "docs/gates/CONF-SURFACE.md",
+                  "audit-only", "", _audit_reach_level),
+        MatrixRow("v9.1/CONTAIN-04", "CONTAIN-04", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/NARR-01", "NARR-01", "v9.1", "Methodology",
+                  "docs/PROCESS.md",
+                  "audit-only", "", _audit_process_prose_v91),
+        MatrixRow("v9.1/NARR-02", "NARR-02", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/RATCHET-01", "RATCHET-01", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/RATCHET-02", "RATCHET-02", "v9.1", "Test-Network",
+                  "scripts/gen-gate-docs.py",
+                  "reproducible", "scripts/gen-gate-docs.py", ""),
+        MatrixRow("v9.1/RATCHET-03", "RATCHET-03", "v9.1", "Methodology",
+                  "docs/gates/CONF-SURFACE.md",
+                  "audit-only", "", _audit_ratchet03_drop),
+        MatrixRow("v9.1/RATCHET-04", "RATCHET-04", "v9.1", "Methodology",
+                  "docs/gates/CONF-SURFACE.md",
+                  "audit-only", "", _audit_ratchet04_determinations),
+        MatrixRow("v9.1/REL-05", "REL-05", "v9.1", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", ""),
+        MatrixRow("v9.1/REL-06", "REL-06", "v9.1", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+        MatrixRow("v9.1/REL-07", "REL-07", "v9.1", "Test-Network",
+                  "scripts/check-traceability.py",
+                  "reproducible",
+                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+        MatrixRow("v9.1/REL-08", "REL-08", "v9.1", "Methodology",
+                  "CHANGELOG.md",
+                  "audit-only", "", _audit_ship_changelog_v91),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Nine inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Ten inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
     at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12; (h) was
-    added at v8.26 Phase 16; (i) was added at v9.0 Phase 23.
+    added at v8.26 Phase 16; (i) was added at v9.0 Phase 23; (j) was added at v9.1 Phase 27.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -2088,6 +2246,15 @@ def build_matrix_rows() -> list[MatrixRow]:
         and its DISCLOSED BOUNDARY: only REL-03 carries a `#_self_test_*` anchor, the other 15
         reproducible rows carry a bare script path that `_resolve_artifact()` does not
         dispatch-check.
+    (j) v9.1 milestone (18 rows, 9 reproducible + 9 audit-only) — Phase 27/D-27-07: the
+        milestone's PROSE-*/CONTAIN-*/NARR-*/RATCHET-*/REL-* requirements. PROSE-01..04,
+        CONTAIN-03, NARR-01, RATCHET-03, RATCHET-04 and REL-08 carry Methodology (written
+        records, arguments or process determinations); CONTAIN-01/02/04, NARR-02,
+        RATCHET-01/02 and REL-05/06/07 carry Test-Network (report/gate/release apparatus).
+        All 9 audit-only rows are named individually, never by count. See `_rows_v91()` for
+        the full per-row rationale and its DISCLOSED BOUNDARY: only REL-07 carries a
+        `#_self_test_*` anchor, the other 8 reproducible rows carry a bare script path that
+        `_resolve_artifact()` does not dispatch-check.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -2122,6 +2289,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v826())
     # --- v9.0 milestone (Phase 23) — 16 reproducible + 3 audit-only ---
     rows.extend(_rows_v9())
+    # --- v9.1 milestone (Phase 27 / D-27-07) — 9 reproducible + 9 audit-only ---
+    rows.extend(_rows_v91())
     return rows
 
 
@@ -4554,6 +4723,209 @@ def _self_test_v9_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
 
+def _self_test_v91_rows_sentinel(wrong_results: list[str]) -> None:
+    """V91-ROWS named sentinel (Phase 27).
+
+    Asserts the 18 v9.1 milestone rows registered in _rows_v91():
+      (a) Exactly 18 rows (drift guard — not deleted, not duplicated).
+      (b) bare_id set equals the canonical 18 IDs, named in _EXPECTED_V91_IDS — set EQUALITY,
+          never a subset or membership test (the same discipline V9-ROWS's own docstring
+          states, repeated here rather than re-argued).
+      (c) Tier partition pinned BY ID, never by count: _EXPECTED_V91_AUDIT_ONLY_IDS names all
+          nine audit-only IDs individually; _EXPECTED_V91_REPRODUCIBLE_IDS is the set
+          difference. A blanket len(audit_only) == 9 assert is explicitly rejected — swapping
+          one row's tier with another's keeps the counts right and would pass silently.
+      (d) Deep-resolve artifact_link over the 9 reproducible rows via _resolve_artifact(),
+          and assert every audit-only row carries artifact_link == "". Counts printed are
+          derived from len(...), never restated as literals.
+      (e) Positive counter-check by name: REL-07 is present exactly once, is reproducible,
+          and carries a non-empty artifact_link — the anti-vacuity control.
+      (f) milestone/key lock: every row has milestone == "v9.1" AND a key prefixed "v9.1/".
+      (g) capability lock: every row's capability is in VALID_CAPABILITIES.
+      (h) LIVE ANCHOR FLOOR. Derives, from the live rows, the set of anchors of the form
+          "…py#<anchor>" whose <anchor> starts with _SELFTEST_ANCHOR_PREFIXES, and asserts
+          EQUALITY against exactly {"_self_test_headline_lock"} — equality, not membership,
+          so a rename or an added anchor cannot silently narrow or widen the dispatch-checked
+          set. Followed by a live positive: REL-07's artifact_link must resolve to [], i.e.
+          as DISPATCHED, not merely defined.
+
+    DISCLOSED BOUND — (h) reaches only REL-07, the single row carrying a `#_self_test_*`
+    anchor. The other 8 reproducible rows carry a bare script path (see _rows_v91()'s own
+    DISCLOSED BOUNDARY), so their only floor here is (d)'s file-existence resolution; this
+    sentinel does not claim (h)'s dispatch guarantee extends to them.
+
+    Called from _rows_v91() live — never hardcodes a MatrixRow literal.
+    Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier swap, or dangling artifact_link
+    fails CI.
+    """
+    # (a) Drift guard: read live, assert exactly 18 rows.
+    _v91_rows = _rows_v91()
+    _v91_count = len(_v91_rows)
+    _EXPECTED_V91_IDS = {
+        "PROSE-01", "PROSE-02", "PROSE-03", "PROSE-04",
+        "CONTAIN-01", "CONTAIN-02", "CONTAIN-03", "CONTAIN-04",
+        "NARR-01", "NARR-02",
+        "RATCHET-01", "RATCHET-02", "RATCHET-03", "RATCHET-04",
+        "REL-05", "REL-06", "REL-07", "REL-08",
+    }
+    _EXPECTED_V91_AUDIT_ONLY_IDS = {
+        "PROSE-01", "PROSE-02", "PROSE-03", "PROSE-04",
+        "CONTAIN-03", "NARR-01", "RATCHET-03", "RATCHET-04", "REL-08",
+    }
+    _EXPECTED_V91_REPRODUCIBLE_IDS = _EXPECTED_V91_IDS - _EXPECTED_V91_AUDIT_ONLY_IDS
+    if _v91_count != 18:
+        print(
+            f"  V91-ROWS FAIL: expected exactly 18 rows in _rows_v91(), "
+            f"got {_v91_count} — drift guard failed."
+        )
+        wrong_results.append("V91-ROWS: row count drift (expected 18)")
+    else:
+        print(f"  V91-ROWS PASS: row count == 18")
+
+    # (b) bare_id set assertion — equality, not subset.
+    _v91_ids = {r.bare_id for r in _v91_rows}
+    if _v91_ids != _EXPECTED_V91_IDS:
+        _missing = _EXPECTED_V91_IDS - _v91_ids
+        _extra = _v91_ids - _EXPECTED_V91_IDS
+        print(
+            f"  V91-ROWS FAIL: bare_id set mismatch — "
+            f"missing={sorted(_missing)!r}, extra={sorted(_extra)!r}"
+        )
+        wrong_results.append("V91-ROWS: bare_id set mismatch")
+    else:
+        print(f"  V91-ROWS PASS: bare_id set = {sorted(_v91_ids)!r}")
+
+    # (c) Tier partition pinned by ID, not by count.
+    _audit_only_ids = {r.bare_id for r in _v91_rows if r.coverage_tier == "audit-only"}
+    _reproducible_ids = {r.bare_id for r in _v91_rows if r.coverage_tier == "reproducible"}
+    if _audit_only_ids != _EXPECTED_V91_AUDIT_ONLY_IDS:
+        print(
+            f"  V91-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V91_AUDIT_ONLY_IDS)!r}, got={sorted(_audit_only_ids)!r}"
+        )
+        wrong_results.append("V91-ROWS: audit-only bare_id set mismatch")
+    elif _reproducible_ids != _EXPECTED_V91_REPRODUCIBLE_IDS:
+        print(
+            f"  V91-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V91_REPRODUCIBLE_IDS)!r}, got={sorted(_reproducible_ids)!r}"
+        )
+        wrong_results.append("V91-ROWS: reproducible bare_id set mismatch")
+    else:
+        print(
+            f"  V91-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
+            f"{len(_reproducible_ids)} reproducible IDs confirmed by name"
+        )
+
+    # (d) Deep-resolve artifact_link over the reproducible rows only; every audit-only
+    #     row must carry artifact_link == "" (so the skip cannot become a skip-everything).
+    _v91_repro_rows = [r for r in _v91_rows if r.coverage_tier == "reproducible"]
+    _v91_audit_rows = [r for r in _v91_rows if r.coverage_tier == "audit-only"]
+    _link_issues: list[str] = []
+    for _row in _v91_repro_rows:
+        for _issue in _resolve_artifact(_row.artifact_link):
+            _link_issues.append(f"{_row.bare_id}: {_issue}")
+    _nonempty_audit_links = [r.bare_id for r in _v91_audit_rows if r.artifact_link != ""]
+    if _link_issues:
+        for _issue in _link_issues:
+            print(f"  V91-ROWS FAIL: artifact_link issue — {_issue}")
+        wrong_results.append(f"V91-ROWS: {len(_link_issues)} artifact_link issue(s)")
+    elif _nonempty_audit_links:
+        print(
+            f"  V91-ROWS FAIL: audit-only row(s) with non-empty artifact_link — "
+            f"{_nonempty_audit_links!r}"
+        )
+        wrong_results.append("V91-ROWS: audit-only row(s) with non-empty artifact_link")
+    else:
+        print(
+            f"  V91-ROWS PASS: all {len(_v91_repro_rows)} reproducible artifact_links "
+            f"deep-resolve OK, {len(_v91_audit_rows)} audit-only row(s) carry artifact_link=''"
+        )
+
+    # (e) Positive counter-check: REL-07 is present, reproducible, non-empty artifact_link.
+    _rel07_v91_rows = [r for r in _v91_rows if r.bare_id == "REL-07"]
+    _rel07_v91_present = len(_rel07_v91_rows) == 1
+    _rel07_v91_repro = (
+        _rel07_v91_rows[0].coverage_tier == "reproducible" if _rel07_v91_rows else False
+    )
+    _rel07_v91_link = _rel07_v91_rows[0].artifact_link if _rel07_v91_rows else ""
+    if _rel07_v91_present and _rel07_v91_repro and _rel07_v91_link:
+        print(
+            f"  V91-ROWS PASS: REL-07 present and reproducible "
+            f"(artifact_link={_rel07_v91_link!r}) — counter-check non-vacuous"
+        )
+    else:
+        print(
+            f"  V91-ROWS FAIL: REL-07 positive counter-check failed "
+            f"(present={_rel07_v91_present}, reproducible={_rel07_v91_repro}, "
+            f"link={_rel07_v91_link!r})"
+        )
+        wrong_results.append("V91-ROWS: REL-07 counter-check failed")
+
+    # (f) milestone/key lock.
+    _bad_ms = [
+        r.key for r in _v91_rows
+        if r.milestone != "v9.1" or not r.key.startswith("v9.1/")
+    ]
+    if _bad_ms:
+        print(f"  V91-ROWS FAIL: milestone/key drift — {_bad_ms!r}")
+        wrong_results.append(f"V91-ROWS: milestone/key drift {_bad_ms!r}")
+    else:
+        print(f"  V91-ROWS PASS: all {_v91_count} rows carry milestone='v9.1' and 'v9.1/' key prefix")
+
+    # (g) capability lock.
+    _bad_cap = [r.bare_id for r in _v91_rows if r.capability not in VALID_CAPABILITIES]
+    if _bad_cap:
+        print(f"  V91-ROWS FAIL: invalid capability on row(s) {_bad_cap!r}")
+        wrong_results.append(f"V91-ROWS: invalid capability {_bad_cap!r}")
+    else:
+        print(
+            f"  V91-ROWS PASS: all {_v91_count} rows carry a valid capability "
+            f"(in {sorted(VALID_CAPABILITIES)!r})"
+        )
+
+    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the single anchored row
+    # (REL-07); the other 8 reproducible rows are covered by (d)'s file-existence
+    # resolution alone, not by this dispatch check.
+    _EXPECTED_V91_SELFTEST_ANCHORS = {"_self_test_headline_lock"}
+    _observed_v91_selftest_anchors: set[str] = set()
+    for _row in _v91_rows:
+        if "#" in _row.artifact_link:
+            _anchor = _row.artifact_link.split("#", 1)[1]
+            if _anchor.startswith(_SELFTEST_ANCHOR_PREFIXES):
+                _observed_v91_selftest_anchors.add(_anchor)
+    if _observed_v91_selftest_anchors != _EXPECTED_V91_SELFTEST_ANCHORS:
+        print(
+            f"  V91-ROWS FAIL: (h) LIVE ANCHOR FLOOR — expected anchor set "
+            f"{sorted(_EXPECTED_V91_SELFTEST_ANCHORS)!r}, "
+            f"observed {sorted(_observed_v91_selftest_anchors)!r}"
+        )
+        wrong_results.append("V91-ROWS: (h) live anchor floor failed")
+    else:
+        print(
+            f"  V91-ROWS PASS: (h) live self-test anchor set = "
+            f"{sorted(_observed_v91_selftest_anchors)!r} — non-vacuous"
+        )
+
+    # (h) live positive: REL-07's artifact_link must resolve to [] — i.e. as DISPATCHED,
+    # not merely defined.
+    _rel07_v91_problems = (
+        _resolve_artifact(_rel07_v91_rows[0].artifact_link)
+        if _rel07_v91_rows else ["REL-07 row missing"]
+    )
+    if _rel07_v91_problems:
+        print(
+            f"  V91-ROWS FAIL: (h) LIVE POSITIVE — REL-07 did not resolve cleanly: "
+            f"{_rel07_v91_problems!r}"
+        )
+        wrong_results.append("V91-ROWS: (h) REL-07 live positive failed")
+    else:
+        print(
+            "  V91-ROWS PASS: (h) REL-07's artifact_link resolved "
+            "_self_test_headline_lock as DISPATCHED, not merely defined"
+        )
+
+
 class _HeadlineLockContext(NamedTuple):
     """Everything the HEADLINE-LOCK stages derive from the oracle, in one place.
 
@@ -6772,6 +7144,12 @@ def _run_self_test() -> None:
                  v8.26 milestone rows against silent drift, including a tier swap between
                  two named IDs that a blanket count assert would miss; no live claude
                  session required.
+      V91-ROWS: live row count + bare_id set + ID-pinned 9/9 tier partition + deep-resolve
+                 over reproducible rows only + REL-07 positive counter-check + milestone/key
+                 attribution lock + capability lock + live anchor floor (Phase 27 / D-27-07);
+                 locks all 18 v9.1 milestone rows against silent drift, including a tier swap
+                 between two named IDs that a blanket count assert would miss; no live claude
+                 session required.
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
@@ -6791,6 +7169,7 @@ def _run_self_test() -> None:
     _self_test_v825_rows_sentinel(wrong_results)
     _self_test_v826_rows_sentinel(wrong_results)
     _self_test_v9_rows_sentinel(wrong_results)
+    _self_test_v91_rows_sentinel(wrong_results)
     _self_test_headline_lock(wrong_results)
     _self_test_describe_consistency(wrong_results)
     if wrong_results:
