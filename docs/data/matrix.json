@@ -3228,5 +3228,125 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 and v9.0 REL-04 precedent)."
+  },
+  {
+    "key": "v9.2/SUP-01",
+    "bare_id": "SUP-01",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "shared/agent/input-contract.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/SUP-02",
+    "bare_id": "SUP-02",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "shared/agent/input-contract.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Whether the bullet points at Phase 3's rule rather than restating the provenance table is a reading judgement; HARN-02's literal pins the candidate clause, not the label pointer or the absence of a restatement."
+  },
+  {
+    "key": "v9.2/SUP-03",
+    "bare_id": "SUP-03",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/SUP-04",
+    "bare_id": "SUP-04",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/GUARD-01",
+    "bare_id": "GUARD-01",
+    "milestone": "v9.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-loop-closure.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/GUARD-02",
+    "bare_id": "GUARD-02",
+    "milestone": "v9.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-focused-parity.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/GUARD-03",
+    "bare_id": "GUARD-03",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "docs/gates/HARN-02.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments. Precedent: v9.1 CONTAIN-03."
+  },
+  {
+    "key": "v9.2/REL-09",
+    "bare_id": "REL-09",
+    "milestone": "v9.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/REL-10",
+    "bare_id": "REL-10",
+    "milestone": "v9.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-firewall-battery.sh",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/REL-11",
+    "bare_id": "REL-11",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-08, REL-04."
+  },
+  {
+    "key": "v9.2/REL-12",
+    "bare_id": "REL-12",
+    "milestone": "v9.2",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2/REL-13",
+    "bare_id": "REL-13",
+    "milestone": "v9.2",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "The recurrence reading is a one-off grep recorded in the [9.2.0] entry; no gate re-runs the pre-registered pattern set over both trees. HARN-02's and HARN-03's absence pins re-run two of its shapes, on their own files only, which is not the requirement."
   }
 ]
