@@ -55,11 +55,19 @@ stands as a decision of record, but ships only once its two remaining requiremen
 - **Release** (REL-14 through REL-18). Every hand-maintained version stamp reads `9.2.1` (17,
   `VERSION-01` green); 10 matrix rows registered via `_rows_v921()` (4 reproducible + 6
   audit-only) and the coverage headline moved by `HEADLINE-LOCK`'s sweep. The recurrence reading,
-  stated as a frozen literal: the pre-registered type-mismatch pattern set from Phase 29
-  (R18-DEFECT / R18-POP / R18-BARE) read `0 / 8 / 20` at `PHASE_BASE` (`c571ccf`), `0 / 8 / 20`
-  after this release's last commit touching either tree (`9bbcbc4`), and `0 / 8 / 20`
-  re-confirmed after this entry's own commit — established by direct count, never by reading the
-  battery's own verdict line. `tests/step0-captures-v7.11/` is byte-unchanged. Restated verbatim,
+  stated as a frozen literal: the pre-registered type-mismatch pattern set, fixed before the first
+  content edit and stated here rather than referenced — **R18-DEFECT**, the count of
+  `shared/skills/*/SKILL.md` files whose frontmatter matches `Slash-only Phase (1|4|5) stub` and
+  whose body contains `candidate inputs for Phase 2`; **R18-POP**, the count of those same files
+  NOT matching `Slash-only Phase (2|3) stub` that contain that same tail (its population includes
+  the eight correctly-unclassified no-declared-phase stubs by construction, so its target is 8, not
+  0); and **R18-BARE**, the whole-tree count of files containing `candidate inputs for Phase 2`
+  across `shared/` and `first-principles/`, via `/usr/bin/grep -rl … | wc -l`. That set read
+  `0 / 8 / 20` at `PHASE_BASE` (`c571ccf`), `0 / 8 / 20` after this release's last commit touching
+  either tree (`9bbcbc4`), and `0 / 8 / 20` re-confirmed after this entry's own commit — each by
+  direct count over the three patterns above, never by reading the battery's own verdict line. The
+  pre-registration baseline the same three patterns read before the routing edit was
+  `3 / 11 / 26`. `tests/step0-captures-v7.11/` is byte-unchanged. Restated verbatim,
   on one line: **presence is checkable, obedience is not.** **Disclosed limits —** R18-POP's
   non-zero reading (`8`) is the correctly-unclassified no-declared-phase stub floor, not a
   residual defect; the standing-limit sentence proves each class's tail is present and the
