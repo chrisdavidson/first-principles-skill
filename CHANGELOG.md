@@ -11,6 +11,74 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.2.0] — 2026-09-12
+
+Closes backlog **999.50** and **999.51**: a fact the user supplies — or a focused run hands over —
+enters the main analysis as a candidate that Phase 2 classifies and Phase 3 verifies, never as a
+ground truth exempt from challenge. Covers **supplied inputs** (SUP-01, SUP-02), **focused
+handoff** (SUP-03, SUP-04), **guards** (GUARD-01 through GUARD-03), and **release** (REL-09
+through REL-13). The coverage headline moves `217 reproducible / 106 audit-only / 0 gap / 323
+total` to `225 reproducible / 110 audit-only / 0 gap / 335 total` (12 requirements registered as
+matrix rows via `_rows_v92()`, 8 reproducible + 4 audit-only). The firewall battery tally is
+unchanged at **26/26** and the CI job count unchanged at **23** this milestone — the unchanged
+totals are themselves the success criterion (REL-10), established by direct count at both
+`PHASE_BASE` (`1ccc90e`) and this release.
+
+### Changed
+
+- **Supplied inputs — 999.50** (SUP-01, SUP-02). Input Contract bullet 4 told the agent to treat a
+  supplied fact as a "fixed starting point rather than assumptions to challenge," contradicting the
+  mid-run paragraph in the same file that says an input "does not become a ground truth by virtue
+  of arriving from the user." The bullet now routes each supplied fact into Phase 2 as a candidate,
+  names the label it enters with (`reported-by-delegate` if it names a source, `unverified` if
+  not), and points at the Phase 3 verification step without restating it. **D-B:** the label is
+  carried by a pointer in the bullet; the three `reported-by-delegate` enumerations
+  (`SKILL-body.md`, `output-template.md`, `validation-rubric.md`) were not widened, and widening is
+  a later, separate change only if the pointer reads wrong in practice. **Disclosed limits —** a
+  user's own first-hand observation names no source, so it enters `unverified` and carries `?`; an
+  over-flagged ground truth costs a confidence caveat (D-28-03). The slot keeps its name, `Known
+  ground truths` (D-28-05).
+- **Focused handoff — 999.51** (SUP-03, SUP-04). Every focused stub's closing handoff now hands its
+  output to the main agent as candidate inputs for Phase 2 and states at the handoff that the run
+  opened no cited source, carrying its `?` marks forward; the re-derived population is 13 stubs
+  (the `first-principles-analysis` launcher carries none). **Disclosed limits —** the tail is
+  hand-copied into each stub source rather than generated from one token; HARN-03's per-stub
+  assertion is the drift guard.
+
+### Added
+
+- **Guards** (GUARD-01, GUARD-02, GUARD-03). HARN-02 and HARN-03 each gained one presence literal
+  and one absence literal inside an existing check, each with its own negative control; each
+  extension's REACH-or-LEVEL determination is written on its gate page — see
+  `docs/gates/HARN-02.md` § "REACH-or-LEVEL determination" and `docs/gates/HARN-03.md` §
+  "REACH-or-LEVEL determination." The standing limit, in plain words:
+  **presence is checkable, obedience is not.**
+  These checks prove the new wording is present; no gate proves that a run
+  obeys it. **Disclosed limits —** the absence literals match the exact superseded
+  wording only; HARN-02 reads the `shared/` source, not the emitted agent body (DUAL-04 covers that
+  agreement); HARN-02's and HARN-03's gate pages were promoted into `NARRATIVE_ENTRIES` to host the
+  determinations, which turns off spelled-out-number containment on those two pages — the new
+  prose was held to the stricter standard before it landed.
+- **Release** (REL-09 through REL-13). Every hand-maintained version stamp at `9.2.0` (17,
+  `VERSION-01` green); 12 matrix rows registered and the headline moved by `HEADLINE-LOCK`'s sweep
+  (see `docs/gates/CONF-SURFACE.md` bound (14) for the two surfaces that sweep verifies but does
+  not write). The recurrence reading, stated as a frozen literal: the exemption-shape pattern set —
+  seven phrases, "rather than assumptions to challenge," "fixed starting point," "as/into/to/in
+  (the) Known ground truths," "already verified," "exempt from challenge/classification/Phase,"
+  "not challenged," and "without being challenged" — was fixed before the Input Contract was
+  edited, and read `32` across `shared/` and `first-principles/` at `1ccc90e`. The reading of
+  record, taken after this release's last commit touching either tree and re-confirmed after this
+  entry's own commit, via `/usr/bin/grep -rzoiE` over that pattern set: **0**.
+  `tests/step0-captures-v7.11/` is byte-unchanged. **Disclosed limits —** the reading is a pattern
+  match, not a semantic proof: a reworded exemption in a shape outside the seven patterns would not
+  be seen. The quantity-shaped sites the v9.1 recurrence reading recorded were deliberately left
+  untouched so the next milestone's root replan (backlog 999.77) measures against this release
+  unchanged. Nothing mechanical joins `_rows_v92()` to the requirement roster; it was checked by
+  hand. One deviation was recorded during this release: plan 28-04 reworded a `CLAUDE.md`
+  delta-chain hop's line wrapping before writing it to disk, after an in-process literal scan
+  caught that the first draft would have introduced a new hand-maintained count literal that did
+  not exist before the edit.
+
 ## [9.1.0] — 2026-09-11
 
 Ships the milestone that names the mechanism behind the class [8.26.0] and [9.0.0] both shipped
