@@ -27,8 +27,7 @@ To run a complete first-principles analysis, supply:
 - **Known ground truths** — facts you want the analysis to start from. Each enters
   Phase 2 as a candidate and is classified like any other input: one that names a
   source enters as `reported-by-delegate`, one that names none as `unverified`.
-  Supplying a fact raises its priority for the Phase 3 verification step; it does
-  not discharge that step.
+  Supplying a fact does not discharge Phase 3 verification for it.
 
 If the problem statement is workable, this agent proceeds directly to the 5-phase analysis without asking for confirmation or framing.
 It requests clarification only when something essential is absent: no clear problem statement, or a constraint whose presence or absence would change the entire analysis.
