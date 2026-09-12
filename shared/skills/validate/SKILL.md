@@ -20,6 +20,8 @@ command directly.
 
 ---
 
-If a fuller analysis is needed afterward, invoke the main `first-principles`
-agent with this output as candidate inputs for Phase 2. Carry the `?` marks
-with it — this run opened no cited source.
+If a fuller analysis is needed afterward, invoke the main
+`first-principles` agent with this output as the Phase 5 verdict to act on
+— each Absent verdict routed to the phase that owns the artifact it names,
+each unresolved weak link carried with the confidence caveat it was flagged
+with. Carry the `?` marks with it — this run opened no cited source.

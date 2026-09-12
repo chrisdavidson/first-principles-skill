@@ -102,6 +102,8 @@ run that skipped the check.
 
 ---
 
-If a fuller analysis is needed afterward, invoke the main `first-principles`
-agent with this output as candidate inputs for Phase 2. Carry the `?` marks
-with it — this run opened no cited source.
+If a fuller analysis is needed afterward, invoke the main
+`first-principles` agent with this output as Derivation Chains for Phase 5
+validation, with the ground truths those chains cite entering Phase 2 as
+candidates — the chains rest on inputs this run did not verify. Carry the
+`?` marks with it — this run opened no cited source.

@@ -206,15 +206,47 @@ _WHEN_TO_REACH_HEADING = "## When to reach for this"
 # reflow that moves the line break elsewhere in the sentence.
 _CLOSING_HANDOFF_ANCHOR = "invoke the main `first-principles`"
 
-# SUP-03/SUP-04/GUARD-02, D-28-P3 (v9.2.0 Phase 28 commit B): the candidate-
-# input handoff tail every non-launcher stub carries, asserted as one
-# whitespace-flattened literal spanning both the routing clause (SUP-03) and
-# the no-cited-source clause (SUP-04) so dropping or rewording either half
-# fails Stub-13. See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination"
-# for the argument; this comment does not restate it.
+# SUP-03/GUARD-02, D-28-P3 (v9.2.0 Phase 28 commit B), narrowed at HAND-01..04
+# / D-29-P2 (v9.2.1 Phase 29 commit A): the candidate-input handoff tail. Once
+# asserted on every non-launcher stub; now asserted only on the unclassified-
+# facts stubs named by `_HANDOFF_ROUTED_SLUGS`'s complement, because the three
+# routed stubs route their output somewhere other than Phase 2 as of this
+# commit. See `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination" for the
+# argument; this comment does not restate it.
 _HANDOFF_CANDIDATE_TAIL = (
     "as candidate inputs for Phase 2. Carry the `?` marks with it — this run "
     "opened no cited source."
+)
+
+# SUP-04/HAND-04, D-29-P2 (v9.2.1 Phase 29 commit A): the no-cited-source
+# clause split out of `_HANDOFF_CANDIDATE_TAIL` — the half of the old combined
+# tail that stays universal across all 13 non-launcher stubs (every focused
+# run carries this provenance clause per `shared/spine/focused-validation-
+# step.md`) while the routing half ahead of it becomes class-specific. See
+# `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination" for the argument;
+# this comment does not restate it.
+_HANDOFF_NO_SOURCE_CLAUSE = (
+    "Carry the `?` marks with it — this run opened no cited source."
+)
+
+# D-29-A/D-29-P2 (v9.2.1 Phase 29 commit A): the explicit roster of stubs
+# whose closing handoff routes to a phase other than Phase 2. This is what it
+# is: the three stubs (`identify-essence`, `reason-upward`, `validate`) whose
+# rewritten routing clause targets Phase 1's Input Contract, Phase 5
+# validation, or the Phase 5 verdict, rather than Phase 2. This is an
+# explicit roster rather than a derivation from each stub's own `description:`
+# frontmatter (the CONTEXT.md-recommended default) because `_load_real_stubs()`
+# discards the frontmatter element of `iter_plugin_skills()`'s triple, handing
+# `_check_stub_surface` a bare `dict[str, str]` — deriving here would widen
+# that signature and every self-test call site that builds a bare-body
+# fixture, disproportionate plumbing for a phase whose own constraint is REACH
+# inside an existing check, not a new mechanism. This is the 999.63 shape and
+# is known to be one. Phase 30 inherits its removal when GUARD-04 derives the
+# four phase-of-origin classes from each stub's own declared phase. See
+# `docs/gates/HARN-03.md` § "REACH-or-LEVEL determination" for the argument;
+# this comment does not restate it.
+_HANDOFF_ROUTED_SLUGS: frozenset[str] = frozenset(
+    {"identify-essence", "reason-upward", "validate"}
 )
 
 # SUP-03, D-28-P3: the exempt slot name, asserted absent from every stub
@@ -881,13 +913,33 @@ def _check_stub_surface(stubs: dict[str, str]) -> list[str]:
                 f"generation token: {offending!r}"
             )
 
-    # --- Stub-13 (SUP-03/SUP-04, candidate handoff) --------------------------
-    for slug, body in sorted(non_launcher.items()):
+    # --- Stub-13 (SUP-03, candidate handoff) ---------------------------------
+    # Narrowed at HAND-01..04 / D-29-P2: only the unclassified-facts stubs
+    # carry this literal now — the three routed slugs route their output
+    # elsewhere and are excluded from this population.
+    unclassified_facts = {
+        slug: body
+        for slug, body in non_launcher.items()
+        if slug not in _HANDOFF_ROUTED_SLUGS
+    }
+    for slug, body in sorted(unclassified_facts.items()):
         count = _count_flex(body, _HANDOFF_CANDIDATE_TAIL)
         if count != 1:
             failures.append(
                 f"Stub-13 (SUP-03/SUP-04, candidate handoff): {slug} carries "
                 f"the candidate-input handoff tail {count} time(s), expected "
+                "exactly 1"
+            )
+    # --- Stub-13 (SUP-04, no-cited-source clause) ----------------------------
+    # HAND-04, D-29-P2: this clause is asserted on all non-launcher stubs,
+    # including the three routed slugs, because every focused run carries the
+    # provenance clause regardless of where its output routes.
+    for slug, body in sorted(non_launcher.items()):
+        count = _count_flex(body, _HANDOFF_NO_SOURCE_CLAUSE)
+        if count != 1:
+            failures.append(
+                f"Stub-13 (SUP-04, no-cited-source clause): {slug} carries "
+                f"the no-cited-source clause {count} time(s), expected "
                 "exactly 1"
             )
     for slug, body in sorted(stubs.items()):
@@ -1901,15 +1953,21 @@ def _run_self_test_body() -> int:
     g5_stubs = _append_to(real_stubs, "theoretical-limit", "{{TOOL:fishbone}}")
     _check_negative("g5", _check_stub_surface(g5_stubs), "Stub-12", "theoretical-limit")
 
-    # (g6) Stub-13 candidate-handoff-tail control: strip the tail from the
-    # `identify-essence` stub, the only non-launcher slug no existing
-    # stub-surface control mutates.
-    g6_stubs = _mutate_one(real_stubs, "identify-essence", _HANDOFF_CANDIDATE_TAIL)
+    # (g6) Stub-13 no-cited-source-clause control, repointed at HAND-01..04 /
+    # D-29-P2: `identify-essence` no longer carries `_HANDOFF_CANDIDATE_TAIL`
+    # (it is now in `_HANDOFF_ROUTED_SLUGS`), so this control's literal moved
+    # to `_HANDOFF_NO_SOURCE_CLAUSE`, which `identify-essence` still carries.
+    # Kept on `identify-essence` by id and target slug on purpose:
+    # `docs/requirements-traceability.md` and `scripts/check-traceability.py`
+    # both cite "controls g6/g7 re-run in every `--self-test`" as GUARD-02's
+    # shipped reproducible evidence, a bare id-existence claim that deleting
+    # or renaming g6 would falsify.
+    g6_stubs = _mutate_one(real_stubs, "identify-essence", _HANDOFF_NO_SOURCE_CLAUSE)
     _check_negative(
         "g6",
         _check_stub_surface(g6_stubs),
         "Stub-13",
-        "identify-essence carries the candidate-input handoff tail",
+        "identify-essence carries the no-cited-source clause",
     )
 
     # (g7) Stub-13 exempt-slot control: append a re-entry of the retired
@@ -1920,6 +1978,19 @@ def _run_self_test_body() -> int:
     )
     _check_negative(
         "g7", _check_stub_surface(g7_stubs), "Stub-13", f"{LAUNCHER_SLUG} routes its output into"
+    )
+
+    # (g8) Stub-13 narrowed candidate-handoff-tail control, added at
+    # HAND-01..04 / D-29-P2: proves the narrowed loop still reaches an
+    # unclassified-facts stub. Target slug is derived, not hand-picked, so it
+    # tracks `_HANDOFF_ROUTED_SLUGS` automatically if the roster ever changes.
+    g8_target_slug = sorted(set(real_stubs) - {LAUNCHER_SLUG} - _HANDOFF_ROUTED_SLUGS)[0]
+    g8_stubs = _mutate_one(real_stubs, g8_target_slug, _HANDOFF_CANDIDATE_TAIL)
+    _check_negative(
+        "g8",
+        _check_stub_surface(g8_stubs),
+        "Stub-13",
+        f"{g8_target_slug} carries the candidate-input handoff tail",
     )
 
     # (l) Stub-8 completion-condition control: strip validate's Exit-criterion
