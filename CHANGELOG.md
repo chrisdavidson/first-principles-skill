@@ -11,6 +11,57 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.2.1] — 2026-09-12
+
+Closes backlog **999.78**: v9.2.0 gave all 13 focused stubs one byte-identical handoff tail that
+hands their output to the main agent as unclassified candidates for Phase 2; three of them —
+`identify-essence` (Phase 1), `reason-upward` (Phase 4), `validate` (Phase 5) — do not emit
+Phase-2-shaped output, so each stub's closing handoff now hands its output to the phase its own
+declared type belongs to. Covers **handoff shapes** (HAND-01 through HAND-05) and **release**
+(REL-14 through REL-18). The coverage headline moves `225 reproducible / 110 audit-only / 0 gap /
+335 total` to `232 reproducible / 113 audit-only / 0 gap / 345 total` (10 requirements registered
+as matrix rows via `_rows_v921()`, 7 reproducible + 3 audit-only). The firewall battery tally is
+unchanged at **26/26** and the CI job count unchanged at **23** this milestone — the unchanged
+totals are established by direct count at both `PHASE_BASE` (`c571ccf`) and this release. Backlog
+**999.16**, open since Phase 11, is carried forward to **v9.3.0** by this release, not closed:
+D-29-B's recorded answer ("no — focused surfaces are parity-enforced, not contract-registered")
+stands as a decision of record, but ships only once its two remaining requirements land.
+
+### Changed
+
+- **Handoff shapes — 999.78** (HAND-01 through HAND-05). `identify-essence`'s closing handoff now
+  routes its Essence Statement into the Input Contract's Problem statement and Key constraints
+  fields as a framing, naming both fields and stating that a framing is not a candidate fact for
+  Phase 2 (**D-29-A**). `reason-upward`'s closing handoff routes its Derivation Chains to Phase 5
+  validation, with the ground truths those chains cite entering Phase 2 as candidates the run did
+  not verify (**D-29-A**). `validate`'s closing handoff routes its findings as the Phase 5 verdict
+  to act on, naming no re-entry edge that does not already exist (**D-29-A**). The remaining ten
+  unclassified-facts stubs keep the v9.2.0 tail byte-unchanged. **D-29-C** records, as a decision
+  of record, that Stub-13's remaining phase-of-origin classes are best distinguished by four
+  groups derived from each stub's own declared phase — that re-partition itself did not ship in
+  this release. **Disclosed limits —** `check-focused-parity.py --self-test` (the gate backlog
+  999.78's own entry names as the one a prose-only edit could break) exits 0, and the type-mismatch
+  reading is 0 at final HEAD, down from 3 at `1dc0892` — but the narrowing this release shipped is
+  one-directional: re-adding the superseded Phase-2 tail to a routed stub still passes both legs
+  (tracked as backlog **999.80**), and the narrowed population carries no floor of its own (tracked
+  as backlog **999.79**). Both are open, apparatus tier; the remaining re-partition work moves to
+  **v9.3.0**.
+
+### Added
+
+- **Release** (REL-14 through REL-18). Every hand-maintained version stamp reads `9.2.1` (17,
+  `VERSION-01` green); 10 matrix rows registered via `_rows_v921()` (7 reproducible + 3
+  audit-only) and the coverage headline moved by `HEADLINE-LOCK`'s sweep. The recurrence reading,
+  stated as a frozen literal: the pre-registered type-mismatch pattern set from Phase 29
+  (R18-DEFECT / R18-POP / R18-BARE) read `0 / 8 / 20` at `PHASE_BASE` (`c571ccf`), `0 / 8 / 20`
+  after this release's last commit touching either tree (`9bbcbc4`), and `0 / 8 / 20`
+  re-confirmed after this entry's own commit — established by direct count, never by reading the
+  battery's own verdict line. `tests/step0-captures-v7.11/` is byte-unchanged. Restated verbatim,
+  on one line: **presence is checkable, obedience is not.** **Disclosed limits —** R18-POP's
+  non-zero reading (`8`) is the correctly-unclassified no-declared-phase stub floor, not a
+  residual defect; the standing-limit sentence proves each class's tail is present and the
+  superseded tail is absent, never that a run obeys the routing it describes.
+
 ## [9.2.0] — 2026-09-12
 
 Closes backlog **999.50** and **999.51**: a fact the user supplies — or a focused run hands over —
