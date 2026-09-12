@@ -2314,7 +2314,7 @@ def _rows_v92() -> list[MatrixRow]:
 
 
 def _rows_v921() -> list[MatrixRow]:
-    """v9.2.1 milestone rows — 10 requirements, 7 reproducible + 3 audit-only (Phase 31 / REL-17).
+    """v9.2.1 milestone rows — 10 requirements, 4 reproducible + 6 audit-only (Phase 31 / REL-17).
 
     All rows carry milestone="v9.2.1". Keys use the milestone-qualified form "v9.2.1/<bare_id>".
 
@@ -2324,8 +2324,27 @@ def _rows_v921() -> list[MatrixRow]:
     §4's 8+2 candidate split verbatim; the split below was re-derived from
     .planning/REQUIREMENTS.md's own evidence blocks, and two rows (REL-15, REL-18) were
     given individual scrutiny rather than pattern-matched onto the nearest-looking prior row.
-    Three rows are audit-only, each named and reasoned individually here:
+    Six rows are audit-only, each named and reasoned individually here:
 
+      - HAND-01: its deliverable is `identify-essence`'s routing destination — the clause
+        handing the output to the agent as the Input Contract's Problem statement. Nothing
+        re-runs that claim. check-focused-parity.py's Stub-13 loop names `identify-essence`
+        only inside `_HANDOFF_ROUTED_SLUGS`, and that frozenset is read at exactly one check
+        site, to EXCLUDE the three routed slugs from the `_HANDOFF_CANDIDATE_TAIL`
+        assertion; the only literal the gate pins on this stub is
+        `_HANDOFF_NO_SOURCE_CLAUSE`, which is universal across all 13 non-launcher stubs and
+        names no destination. Falsified at the Phase 31 review: deleting the whole
+        destination clause from both trees left `--self-test` and the live leg at exit 0.
+        Tracked as backlog 999.79/999.80; re-tier to reproducible when a per-routed-stub
+        destination literal lands.
+      - HAND-02: same mechanism, same falsification, different deliverable —
+        `reason-upward`'s routing destination (the derivation chains handed to Phase 5
+        validation). No literal anywhere in check-focused-parity.py names that destination,
+        so nothing re-runs the claim. Same 999.79/999.80 disposition as HAND-01.
+      - HAND-03: same mechanism, same falsification, different deliverable — `validate`'s
+        routing destination (the Phase 5 verdict handed on to be acted on). No literal
+        anywhere in check-focused-parity.py names that destination, so nothing re-runs the
+        claim. Same 999.79/999.80 disposition as HAND-01.
       - REL-15: its own requirement text reads "established by direct count through
         check-registration.py's own parser ... the battery's own GREEN line recorded only
         as corroboration, never as the evidence." That sentence is itself the tell: the
@@ -2346,11 +2365,9 @@ def _rows_v921() -> list[MatrixRow]:
         The REL-13 precedent holds here unchanged — same shape, same absence of a registered
         re-run.
 
-    The remaining 7 rows are reproducible: HAND-01, HAND-02 and HAND-03 because
-    check-focused-parity.py's Stub-13 loop re-runs presence of each routed stub's own
-    handoff clause on every --self-test (precedent: v9.2 SUP-03/SUP-04); HAND-04 because the
-    same --self-test's _count_flex table re-asserts the ten unclassified-facts stubs' tail is
-    byte-unchanged on every run (precedent: v9.2 SUP-03/SUP-04, same mechanism); HAND-05
+    The remaining 4 rows are reproducible: HAND-04 because the --self-test's _count_flex
+    table re-asserts the ten unclassified-facts stubs' tail is byte-unchanged on every run
+    (precedent: v9.2 SUP-03/SUP-04, same mechanism); HAND-05
     because check-loop-closure.py's four-edge-present/five-edge-absent literals re-run in
     every --self-test (precedent: v9.2 GUARD-01, same file, same gate); REL-14 because
     VERSION-01 re-runs the 17-stamp lockstep claim on every run (precedent: REL-09, REL-05,
@@ -2368,14 +2385,14 @@ def _rows_v921() -> list[MatrixRow]:
     (its claim is about the apparatus, not a prose record); REL-14 and REL-17 are
     Test-Network — each is gate or release apparatus code.
 
-    DISCLOSED BOUNDARY. Of the 7 reproducible rows, only REL-17 carries a `#_self_test_*`
+    DISCLOSED BOUNDARY. Of the 4 reproducible rows, only REL-17 carries a `#_self_test_*`
     anchor (`scripts/check-traceability.py#_self_test_headline_lock`) — the one row whose
     claim is check-traceability.py verifying itself, mirroring v9.2/REL-12's, v9.1/REL-07's
-    and v9.0/REL-03's own precedent. The other 6 reproducible rows carry a bare script path
+    and v9.0/REL-03's own precedent. The other 3 reproducible rows carry a bare script path
     as artifact_link — none of those defines a `_selftest_`- or `_self_test_`-prefixed symbol
     this row can dispatch against, so `_resolve_artifact()`'s dispatch-reachability leg does
     not apply to them: a bare path only proves the FILE EXISTS, never that anything re-runs
-    the claim. The dispatch guarantee for these 6 rows is supplied instead by each script's
+    the claim. The dispatch guarantee for these 3 rows is supplied instead by each script's
     own `--self-test` CLI surface, exercised directly in this phase's own verification, not
     by this matrix. State this rather than letting a reader assume the `#anchor` dispatch
     guarantee extends to a bare path — overstating that reach is the defect class this
@@ -2389,6 +2406,30 @@ def _rows_v921() -> list[MatrixRow]:
     rosters live. See `_rows_v92()`'s and `_rows_v91()`'s identical paragraph for the
     precedent rather than re-arguing it.
     """
+    _audit_routed_destination_identify_essence = (
+        "Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one "
+        "check site to EXCLUDE the three routed slugs from the _HANDOFF_CANDIDATE_TAIL "
+        "assertion; the only literal it pins on this stub is the universal "
+        "_HANDOFF_NO_SOURCE_CLAUSE, which names no destination. Falsified at the Phase 31 "
+        "review: deleting the Input-Contract destination clause from both trees left "
+        "check-focused-parity.py green on both legs. Tracked as backlog 999.79/999.80; "
+        "re-tier to reproducible when a per-routed-stub destination literal lands."
+    )
+    _audit_routed_destination_reason_upward = (
+        "Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names "
+        "reason-upward's routing destination (derivation chains handed to Phase 5 "
+        "validation), so nothing re-runs the claim; the stub is excluded from the "
+        "_HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source "
+        "clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub "
+        "destination literal lands."
+    )
+    _audit_routed_destination_validate = (
+        "Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names "
+        "validate's routing destination (the Phase 5 verdict handed on to be acted on), so "
+        "nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL "
+        "assertion and pinned only by the universal no-cited-source clause. Tracked as "
+        "backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands."
+    )
     _audit_rel15_reading = (
         "Its own requirement text names the battery's GREEN line 'corroboration only, "
         "never the evidence' — the live tally is a fresh count on every run, not a "
@@ -2409,13 +2450,13 @@ def _rows_v921() -> list[MatrixRow]:
     return [
         MatrixRow("v9.2.1/HAND-01", "HAND-01", "v9.2.1", "Methodology",
                   "shared/skills/identify-essence/SKILL.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "audit-only", "", _audit_routed_destination_identify_essence),
         MatrixRow("v9.2.1/HAND-02", "HAND-02", "v9.2.1", "Methodology",
                   "shared/skills/reason-upward/SKILL.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "audit-only", "", _audit_routed_destination_reason_upward),
         MatrixRow("v9.2.1/HAND-03", "HAND-03", "v9.2.1", "Methodology",
                   "shared/skills/validate/SKILL.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "audit-only", "", _audit_routed_destination_validate),
         MatrixRow("v9.2.1/HAND-04", "HAND-04", "v9.2.1", "Methodology",
                   "first-principles/skills",
                   "reproducible", "scripts/check-focused-parity.py", ""),
@@ -2517,14 +2558,14 @@ def build_matrix_rows() -> list[MatrixRow]:
         `_rows_v92()` for the full per-row rationale and its DISCLOSED BOUNDARY: only REL-12
         carries a `#_self_test_*` anchor, the other 7 reproducible rows carry a bare script
         or directory path that `_resolve_artifact()` does not dispatch-check.
-    (l) v9.2.1 milestone (10 rows, 7 reproducible + 3 audit-only) — Phase 31/REL-17: the
+    (l) v9.2.1 milestone (10 rows, 4 reproducible + 6 audit-only) — Phase 31/REL-17: the
         milestone's HAND-*/REL-* requirements. HAND-01..05 carry Methodology (skill-stub or
         agent-body prose); REL-16 and REL-18 carry Methodology (CHANGELOG records); REL-14,
-        REL-15 and REL-17 carry Test-Network (release apparatus). REL-15, REL-16 and REL-18
-        are audit-only — named individually, never by count. See `_rows_v921()` for the full
-        per-row rationale and its DISCLOSED BOUNDARY: only REL-17 carries a `#_self_test_*`
-        anchor, the other 6 reproducible rows carry a bare script or directory path that
-        `_resolve_artifact()` does not dispatch-check.
+        REL-15 and REL-17 carry Test-Network (release apparatus). HAND-01, HAND-02,
+        HAND-03, REL-15, REL-16 and REL-18 are audit-only — named individually, never by
+        count. See `_rows_v921()` for the full per-row rationale and its DISCLOSED BOUNDARY:
+        only REL-17 carries a `#_self_test_*` anchor, the other 3 reproducible rows carry a
+        bare script or directory path that `_resolve_artifact()` does not dispatch-check.
 
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
@@ -2563,7 +2604,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v91())
     # --- v9.2 milestone (Phase 28 / D-28-P6) — 8 reproducible + 4 audit-only ---
     rows.extend(_rows_v92())
-    # --- v9.2.1 milestone (Phase 31 / REL-17) — 7 reproducible + 3 audit-only ---
+    # --- v9.2.1 milestone (Phase 31 / REL-17) — 4 reproducible + 6 audit-only ---
     rows.extend(_rows_v921())
     return rows
 
@@ -5410,10 +5451,10 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
           EQUALITY, never a subset or membership test (the same discipline every prior
           -ROWS sentinel's own docstring states, repeated here rather than re-argued).
       (c) Tier partition pinned BY ID, never by count: _EXPECTED_V921_AUDIT_ONLY_IDS names
-          all three audit-only IDs individually; _EXPECTED_V921_REPRODUCIBLE_IDS is the set
-          difference. A blanket len(audit_only) == 3 assert is explicitly rejected — swapping
+          all six audit-only IDs individually; _EXPECTED_V921_REPRODUCIBLE_IDS is the set
+          difference. A blanket len(audit_only) == 6 assert is explicitly rejected — swapping
           one row's tier with another's keeps the counts right and would pass silently.
-      (d) Deep-resolve artifact_link over the 7 reproducible rows via _resolve_artifact(),
+      (d) Deep-resolve artifact_link over the 4 reproducible rows via _resolve_artifact(),
           and assert every audit-only row carries artifact_link == "". Counts printed are
           derived from len(...), never restated as literals.
       (e) Positive counter-check by name: REL-17 is present exactly once, is reproducible,
@@ -5429,7 +5470,7 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
           as DISPATCHED, not merely defined.
 
     DISCLOSED BOUND — (h) reaches only REL-17, the single row carrying a `#_self_test_*`
-    anchor. The other 6 reproducible rows carry a bare script or directory path (see
+    anchor. The other 3 reproducible rows carry a bare script or directory path (see
     _rows_v921()'s own DISCLOSED BOUNDARY), so their only floor here is (d)'s file/directory
     existence resolution; this sentinel does not claim (h)'s dispatch guarantee extends to
     them.
@@ -5447,7 +5488,7 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
         "REL-14", "REL-15", "REL-16", "REL-17", "REL-18",
     }
     _EXPECTED_V921_AUDIT_ONLY_IDS = {
-        "REL-15", "REL-16", "REL-18",
+        "HAND-01", "HAND-02", "HAND-03", "REL-15", "REL-16", "REL-18",
     }
     _EXPECTED_V921_REPRODUCIBLE_IDS = _EXPECTED_V921_IDS - _EXPECTED_V921_AUDIT_ONLY_IDS
     if _v921_count != 10:
@@ -5567,7 +5608,7 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
         )
 
     # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the single anchored row
-    # (REL-17); the other 6 reproducible rows are covered by (d)'s file/directory-existence
+    # (REL-17); the other 3 reproducible rows are covered by (d)'s file/directory-existence
     # resolution alone, not by this dispatch check.
     _EXPECTED_V921_SELFTEST_ANCHORS = {"_self_test_headline_lock"}
     _observed_v921_selftest_anchors: set[str] = set()

@@ -19,8 +19,11 @@ hands their output to the main agent as unclassified candidates for Phase 2; thr
 Phase-2-shaped output, so each stub's closing handoff now hands its output to the phase its own
 declared type belongs to. Covers **handoff shapes** (HAND-01 through HAND-05) and **release**
 (REL-14 through REL-18). The coverage headline moves `225 reproducible / 110 audit-only / 0 gap /
-335 total` to `232 reproducible / 113 audit-only / 0 gap / 345 total` (10 requirements registered
-as matrix rows via `_rows_v921()`, 7 reproducible + 3 audit-only). The firewall battery tally is
+335 total` to `229 reproducible / 116 audit-only / 0 gap / 345 total` (10 requirements registered
+as matrix rows via `_rows_v921()`, 4 reproducible + 6 audit-only — HAND-01/02/03 were published as
+`reproducible` at milestone close and re-tiered `audit-only` at the phase-31 review, CR-01, because
+`check-focused-parity.py` pins no per-routed-stub destination literal; see
+`docs/requirements-traceability.md` headline-history row 16). The firewall battery tally is
 unchanged at **26/26** and the CI job count unchanged at **23** this milestone — the unchanged
 totals are established by direct count at both `PHASE_BASE` (`c571ccf`) and this release. Backlog
 **999.16**, open since Phase 11, is carried forward to **v9.3.0** by this release, not closed:
@@ -50,7 +53,7 @@ stands as a decision of record, but ships only once its two remaining requiremen
 ### Added
 
 - **Release** (REL-14 through REL-18). Every hand-maintained version stamp reads `9.2.1` (17,
-  `VERSION-01` green); 10 matrix rows registered via `_rows_v921()` (7 reproducible + 3
+  `VERSION-01` green); 10 matrix rows registered via `_rows_v921()` (4 reproducible + 6
   audit-only) and the coverage headline moved by `HEADLINE-LOCK`'s sweep. The recurrence reading,
   stated as a frozen literal: the pre-registered type-mismatch pattern set from Phase 29
   (R18-DEFECT / R18-POP / R18-BARE) read `0 / 8 / 20` at `PHASE_BASE` (`c571ccf`), `0 / 8 / 20`

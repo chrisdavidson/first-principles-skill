@@ -3355,9 +3355,9 @@
     "milestone": "v9.2.1",
     "capability": "Methodology",
     "deliverable_path": "shared/skills/identify-essence/SKILL.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-focused-parity.py",
-    "gap_rationale": ""
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one check site to EXCLUDE the three routed slugs from the _HANDOFF_CANDIDATE_TAIL assertion; the only literal it pins on this stub is the universal _HANDOFF_NO_SOURCE_CLAUSE, which names no destination. Falsified at the Phase 31 review: deleting the Input-Contract destination clause from both trees left check-focused-parity.py green on both legs. Tracked as backlog 999.79/999.80; re-tier to reproducible when a per-routed-stub destination literal lands."
   },
   {
     "key": "v9.2.1/HAND-02",
@@ -3365,9 +3365,9 @@
     "milestone": "v9.2.1",
     "capability": "Methodology",
     "deliverable_path": "shared/skills/reason-upward/SKILL.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-focused-parity.py",
-    "gap_rationale": ""
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names reason-upward's routing destination (derivation chains handed to Phase 5 validation), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands."
   },
   {
     "key": "v9.2.1/HAND-03",
@@ -3375,9 +3375,9 @@
     "milestone": "v9.2.1",
     "capability": "Methodology",
     "deliverable_path": "shared/skills/validate/SKILL.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-focused-parity.py",
-    "gap_rationale": ""
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names validate's routing destination (the Phase 5 verdict handed on to be acted on), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands."
   },
   {
     "key": "v9.2.1/HAND-04",
