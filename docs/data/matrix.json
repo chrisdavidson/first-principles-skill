@@ -3348,5 +3348,105 @@
     "coverage_tier": "audit-only",
     "artifact_link": "",
     "gap_rationale": "The recurrence reading is a one-off grep recorded in the [9.2.0] entry; no gate re-runs the pre-registered pattern set over both trees. HARN-02's and HARN-03's absence pins re-run two of its shapes, on their own files only, which is not the requirement."
+  },
+  {
+    "key": "v9.2.1/HAND-01",
+    "bare_id": "HAND-01",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "shared/skills/identify-essence/SKILL.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/HAND-02",
+    "bare_id": "HAND-02",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "shared/skills/reason-upward/SKILL.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/HAND-03",
+    "bare_id": "HAND-03",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "shared/skills/validate/SKILL.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/HAND-04",
+    "bare_id": "HAND-04",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "first-principles/skills",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-focused-parity.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/HAND-05",
+    "bare_id": "HAND-05",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/SKILL-body.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/REL-14",
+    "bare_id": "REL-14",
+    "milestone": "v9.2.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/REL-15",
+    "bare_id": "REL-15",
+    "milestone": "v9.2.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Its own requirement text names the battery's GREEN line 'corroboration only, never the evidence' \u2014 the live tally is a fresh count on every run, not a comparison against a stored prior baseline, so nothing fails automatically if the total drifts. The 'unchanged since last release' half of the claim is discharged by a manual direct-count snippet against two named revisions, not by a registered CI/battery control."
+  },
+  {
+    "key": "v9.2.1/REL-16",
+    "bare_id": "REL-16",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-13, REL-11, REL-08, REL-04."
+  },
+  {
+    "key": "v9.2.1/REL-17",
+    "bare_id": "REL-17",
+    "milestone": "v9.2.1",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-traceability.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-traceability.py#_self_test_headline_lock",
+    "gap_rationale": ""
+  },
+  {
+    "key": "v9.2.1/REL-18",
+    "bare_id": "REL-18",
+    "milestone": "v9.2.1",
+    "capability": "Methodology",
+    "deliverable_path": "CHANGELOG.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "The recurrence reading is a one-off pre-registered grep set read before and after the release commit and recorded in the [9.2.1] entry; no gate re-runs the pattern set over both trees. The REL-13 precedent holds unchanged."
   }
 ]
