@@ -1,0 +1,2 @@
+analysis_id	conclusion_claims	untraced_claims	untraced_flag	verdict_cells	nonconforming_verdict_cells	verdict_flag	chain_blocks	malformed_chain_blocks	chain_flag	dependency_cycles	ungrounded_chains	selfaudit_disagreements	provenance_labels	unmatched_sources	unreadable_sources	literals_checked	unlocated_literals	misattributed_literals	zero_literal_gts	orphan_fetches	provenance_flag
+DEMO-TRIAGE	8	0	0	20	20	1	8	0	0	0	0	0	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a	n/a
