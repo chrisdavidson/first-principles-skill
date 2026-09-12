@@ -36,8 +36,10 @@ including the ones the candidate-tail assertion now excludes, since every focuse
 provenance clause regardless of where its output routes); and an absence assertion
 (`_HANDOFF_EXEMPT_SLOT`, in no stub, launcher included), unchanged since v9.2.0. Each has its own
 control in the gate's self-test (the narrowed `_HANDOFF_CANDIDATE_TAIL` loop: g8, targeting a
-derived unclassified-facts slug; `_HANDOFF_NO_SOURCE_CLAUSE`: g6, repointed onto `identify-essence`
-from its v9.2.0 target; `_HANDOFF_EXEMPT_SLOT`: g7, unchanged). Every constant here and the roster
+derived unclassified-facts slug; `_HANDOFF_NO_SOURCE_CLAUSE`: g6, repointed from
+`_HANDOFF_CANDIDATE_TAIL` onto the new literal and deliberately kept on its existing
+`identify-essence` target, since g6's bare id-existence is cited GUARD-02 evidence;
+`_HANDOFF_EXEMPT_SLOT`: g7, unchanged). Every constant here and the roster
 clear the D-12 anchor-control ratchet by ordinary reference — see this page's own generated
 `disclosed_bounds_anchors` field above rather than a restated value here; none joined it. This
 page's Facts region does not move, because HARN-03 publishes no control count.

@@ -2215,8 +2215,9 @@ def _rows_v92() -> list[MatrixRow]:
     The remaining 8 rows are reproducible: SUP-01 because HARN-02's presence and absence
     literals on Input Contract bullet 4 re-run the claim on every CI run and battery pass
     (precedent: v8.18 LOOP-02, same file, same gate); SUP-03 and SUP-04 because Stub-13
-    re-runs the candidate-input tail's presence in every non-launcher stub and the slot
-    name's and no-cited-source clause's absence from every stub (precedent: v8.18 PAR-02);
+    re-runs the candidate-input tail's presence in each unclassified-facts stub, the
+    no-cited-source clause's presence in every non-launcher stub, and the slot name's
+    absence from every stub (precedent: v8.18 PAR-02);
     GUARD-01 because controls N38/N39 re-run in every `--self-test` (CI job
     `check-loop-closure`); GUARD-02 because controls g6/g7 re-run in every `--self-test` (CI
     job `check-focused-parity`); REL-09 because VERSION-01 re-runs the lockstep claim

@@ -83,6 +83,8 @@ run that skipped the check.
 
 If a fuller analysis is needed afterward, invoke the main
 `first-principles` agent with this output as the Phase 5 verdict to act on
-— each Absent verdict routed to the phase that owns the artifact it names,
-each unresolved weak link carried with the confidence caveat it was flagged
-with. Carry the `?` marks with it — this run opened no cited source.
+— a Criterion 1 Absent verdict returns to Phase 1 to re-frame the Essence
+Statement, any other Absent verdict is fixed in place under the Self-Audit
+Gate's Fix/Repeat loop, and each unresolved weak link is carried with the
+confidence caveat it was flagged with. Carry the `?` marks with it — this
+run opened no cited source.

@@ -77,5 +77,6 @@ run that skipped the check.
 
 If a fuller analysis is needed afterward, invoke the main
 `first-principles` agent with this output as the Input Contract's **Problem
-statement** and **Domain** — a framing, not a candidate fact for Phase 2.
-Carry the `?` marks with it — this run opened no cited source.
+statement**, and its success criteria as **Key constraints** — a framing, not
+a candidate fact for Phase 2. Carry the `?` marks with it — this run opened
+no cited source.
