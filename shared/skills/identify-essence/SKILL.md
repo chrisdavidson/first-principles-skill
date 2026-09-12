@@ -3,7 +3,7 @@ name: identify-essence
 description: Slash-only Phase 1 stub — expose core question by stripping framing artifacts.
 disable-model-invocation: true
 metadata:
-  version: "9.2.1"
+  version: "9.2.2"
 license: MIT
 ---
 # Focused Identify Essence Mode

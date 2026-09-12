@@ -11,6 +11,78 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.2.2] — 2026-09-12
+
+Closes backlog **999.88**: the agent body referenced `output-template.md` four times and
+instructed nobody to open it. The template now carries a read imperative in Phase 3's voice —
+naming its tool, placed ahead of the emission rather than beside it — and the run's *before*
+reading is frozen as tracked evidence first. No matrix rows are registered by this release: all
+three plans carry `requirements: []`, so the coverage headline is unchanged at `229 reproducible /
+116 audit-only / 0 gap / 345 total`. The firewall battery tally is unchanged at **26/26** and the
+CI job count unchanged at **23**, both established by direct count through
+`scripts/check-registration.py`'s own parser rather than the battery's `GREEN` line.
+
+**The bound this release ships under, stated rather than implied.** It shows the imperative is
+*present*. It shows nothing about a run *obeying* it. The *after* reading — a `reference_reads`
+census over a live capture — is filed as backlog **999.89** and is not in this release. Restated
+verbatim, on one line: **presence is checkable, obedience is not.**
+
+### Added
+
+- **Read imperative for the output template — 999.88** (`956d033`). One paragraph in
+  `shared/spine/SKILL-body.md` (line 194), emitted through `sync-content.py` to
+  `first-principles/agents/first-principles.md` (line 241). It names `Read`, fires once
+  immediately before emission, and justifies itself by what the body's own inlined section
+  summaries *omit*: the `**Confidence:**` field the template requires at the end of every
+  Derivation Chain's conclusion block (§4) and again at the end of the Conclusion section (§6),
+  and the `Unverified input rule (D-07)` (§4) that forces that field to MEDIUM or LOW whenever a
+  chain rests on a `GT-N?` input. Both referents were confirmed present in
+  `shared/spine/references/output-template.md` (lines 332-335 and 369) and confirmed absent from
+  the body's summaries, before the wording was fixed. The body's `### Turn discipline` rule —
+  *"Spend turns on what advances a named artifact"* — is resolved by placement plus an in-sentence
+  carve-out naming the signed-off analysis as that artifact, not by exempting the new instruction
+  from the rule.
+- **Frozen capture fixture — 999.88** (`4bd08ee`). `tests/reference-reads-v9.2.1/` — six files:
+  the prompt catalog, the raw `DEMO-TRIAGE.jsonl` capture, the extracted analysis, two detector
+  readings, and a chain-of-custody README — registered as the 24th `_FROZEN_PATHS` entry. The
+  five copied files are proven byte-identical to their session-scratchpad originals by `cmp` and
+  `sha256sum`. The `tool_use` census re-derived from the *frozen* copy, not the scratchpad, reads
+  **WebFetch 3, Agent 1, Skill 1, ToolSearch 1, Bash 1, and zero `Read`/`Grep`/`Glob` calls** —
+  the reading that made 999.88 a real defect rather than a suspected one. The directory keeps its
+  `v9.2.1` name: it is named for the plugin version at freeze time, and `FROZEN-EVIDENCE` blocks
+  renaming it. **Disclosed limits —** the `_FROZEN_PATHS` registration is not a new gate. It
+  extends an existing inline check's array, which increments the battery tally once regardless of
+  array length; the README states this in writing so the registration is not later mistaken for
+  coverage.
+
+### Changed
+
+- **Read-imperative census, both surfaces.** Read imperatives in the agent body directed at a
+  file, each naming its tool: **1 at `3c3ed42`, 2 at this release**, on both
+  `shared/spine/SKILL-body.md` (lines 145, 194) and `first-principles/agents/first-principles.md`
+  (lines 192, 241). The baseline was re-derived at review from
+  `git show 3c3ed42:shared/spine/SKILL-body.md`, not carried forward from a plan's claim. A bare
+  integer does not satisfy this by the agent body's own Phase 3 rule, so the four qualifying
+  sentences are enumerated by line number and verbatim quote in
+  `.planning/ROADMAP.md` § Phase 999.88.
+
+### Known limitations
+
+- **The new imperative has no paired failure-disclosure clause** (product tier, warning, 0
+  blocking — phase-999.88 review WR-01). The body's *other* file-directed read imperative (Phase
+  3's) pairs with an explicit failure record and a no-silent-fallback clause; the *Before
+  presenting conclusions* section carries its own "reference file unavailable" backstop. This one
+  carries neither, so a failed `Read` is not required to be disclosed — the silent-omission shape
+  the rest of the document repeatedly warns against. Open, not closed by this release.
+- **Priority-order #1 is still open.** R1 names both `output-template.md` and the Phase 5 rubric;
+  this release closes only the first. Closing one of a pair reads as closing the pair, so the
+  pairing bound is published rather than left implied, and the countable exit criterion is
+  recorded as 1 to 2 — the unpaired scope — not 1 to 3.
+- **No emitted artifact can only be produced by having opened the template**, so the read's
+  absence stays invisible to any offline check. Filed as backlog **999.90**, product tier.
+- **Nothing pins the new imperative's literal**, so a prose edit can dissolve it without failing
+  a gate. Filed as backlog **999.91**, apparatus tier.
+
 ## [9.2.1] — 2026-09-12
 
 Closes backlog **999.78**: v9.2.0 gave all 13 focused stubs one byte-identical handoff tail that
