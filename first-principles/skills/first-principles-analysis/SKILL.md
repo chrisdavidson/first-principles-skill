@@ -3,7 +3,7 @@ name: first-principles-analysis
 description: Runs the full five-phase first-principles analysis. Slash-only.
 disable-model-invocation: true
 metadata:
-  version: "9.1.0"
+  version: "9.2.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/first-principles-analysis/SKILL.md by sync-content.py -->
