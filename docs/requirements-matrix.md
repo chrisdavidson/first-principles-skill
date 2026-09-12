@@ -303,15 +303,15 @@
 | v8.26/SHIP-05 | SHIP-05 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04). |
 | v9.0/CONF-01 | CONF-01 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
 | v9.0/CONF-02 | CONF-02 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-03 | CONF-03 | Methodology | shared/examples/ | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-04 | CONF-04 | Methodology | shared/examples/ | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-05 | CONF-05 | Methodology | shared/examples/ | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-03 | CONF-03 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-04 | CONF-04 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-05 | CONF-05 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
 | v9.0/CONF-06 | CONF-06 | Test-Network | scripts/check-conf-gate.py | reproducible | scripts/check-conf-gate.py |  |
 | v9.0/CONF-07 | CONF-07 | Test-Network | tests/adversarial-corpus-v9.0 | reproducible | scripts/check-firewall-battery.sh |  |
 | v9.0/CONF-08 | CONF-08 | Test-Network | tests/adversarial-corpus-v9.0 | reproducible | scripts/report-conformance.py |  |
 | v9.0/CONF-09 | CONF-09 | Test-Network | tests/live-conformance-v9.0 | reproducible | scripts/report-conformance.py |  |
 | v9.0/CONF-10 | CONF-10 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-11 | CONF-11 | Test-Network | docs/gates/ | reproducible | scripts/gen-gate-docs.py |  |
+| v9.0/CONF-11 | CONF-11 | Test-Network | docs/gates | reproducible | scripts/gen-gate-docs.py |  |
 | v9.0/CONF-12 | CONF-12 | Test-Network | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
 | v9.0/CONF-13 | CONF-13 | Test-Network | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
 | v9.0/CONF-14 | CONF-14 | Methodology | docs/PROCESS.md | audit-only |  | CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it. |

@@ -2884,7 +2884,7 @@
     "bare_id": "CONF-03",
     "milestone": "v9.0",
     "capability": "Methodology",
-    "deliverable_path": "shared/examples/",
+    "deliverable_path": "shared/examples",
     "coverage_tier": "reproducible",
     "artifact_link": "scripts/check-conf-gate.py",
     "gap_rationale": ""
@@ -2894,7 +2894,7 @@
     "bare_id": "CONF-04",
     "milestone": "v9.0",
     "capability": "Methodology",
-    "deliverable_path": "shared/examples/",
+    "deliverable_path": "shared/examples",
     "coverage_tier": "reproducible",
     "artifact_link": "scripts/check-conf-gate.py",
     "gap_rationale": ""
@@ -2904,7 +2904,7 @@
     "bare_id": "CONF-05",
     "milestone": "v9.0",
     "capability": "Methodology",
-    "deliverable_path": "shared/examples/",
+    "deliverable_path": "shared/examples",
     "coverage_tier": "reproducible",
     "artifact_link": "scripts/check-conf-gate.py",
     "gap_rationale": ""
@@ -2964,7 +2964,7 @@
     "bare_id": "CONF-11",
     "milestone": "v9.0",
     "capability": "Test-Network",
-    "deliverable_path": "docs/gates/",
+    "deliverable_path": "docs/gates",
     "coverage_tier": "reproducible",
     "artifact_link": "scripts/gen-gate-docs.py",
     "gap_rationale": ""
