@@ -65,6 +65,24 @@ stands as a decision of record, but ships only once its two remaining requiremen
   residual defect; the standing-limit sentence proves each class's tail is present and the
   superseded tail is absent, never that a run obeys the routing it describes.
 
+### Fixed
+
+- **Input Contract — phase-28 review CR-01** (`1dc0892`). Bullet 4 of the shipped Input Contract
+  claimed "Supplying a fact raises its priority for the Phase 3 verification step; it does not
+  discharge that step." No such rule exists in the methodology — Phase 3's read-trigger is
+  HIGH-confidence-chain membership alone, and Phase 2's stakes-escalation rule keys on the stakes
+  of the conclusion; neither distinguishes a supplied fact from a discovered one. The bullet now
+  states only what is implemented: **supplying a fact does not discharge Phase 3 verification for
+  it.** The candidate-entry semantics, both provenance labels and `HARN-02`'s literals are
+  untouched. This overturns the fourth sentence of **D-28-01**'s locked wording, by explicit
+  developer decision at the phase-28 review gate. It reaches an installed session for the first
+  time at `9.2.1`, because the stamps still read `9.2.0` when it landed — by this file's own
+  preamble, a body edit without a bump never reaches an installed session. Recorded here at the
+  phase-31 review (CR-02), which found it named in neither the `[9.2.0]` nor the `[9.2.1]` entry.
+- **Matrix deliverable paths — 999.67** (`7dfd75f`). Four `deliverable_path` values in
+  `_rows_*()` carried a trailing slash; dropped, and `docs/requirements-matrix.md` and
+  `docs/data/matrix.json` regenerated. Same unrecorded window as the entry above, lower weight.
+
 ## [9.2.0] — 2026-09-12
 
 Closes backlog **999.50** and **999.51**: a fact the user supplies — or a focused run hands over —
