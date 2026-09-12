@@ -2365,8 +2365,16 @@ def _rows_v921() -> list[MatrixRow]:
         The REL-13 precedent holds here unchanged — same shape, same absence of a registered
         re-run.
 
-    The remaining 4 rows are reproducible: HAND-04 because the --self-test's _count_flex
-    table re-asserts the ten unclassified-facts stubs' tail is byte-unchanged on every run
+    The remaining 4 rows are reproducible: HAND-04 because the --self-test's Stub-13 table
+    asserts, on every run, that each of the ten unclassified-facts stubs carries the v9.2.0
+    tail literal exactly once, matched whitespace-flexibly by _count_flex — which
+    check-focused-parity.py documents as a "Whitespace-insensitive occurrence count" and
+    relies on as such elsewhere (see its _WRAPPER_FOLLOW_ON comment, which notes the matcher
+    absorbs a line break inside the literal). What re-runs is therefore tail PRESENCE, not
+    byte-identity, and it says nothing about the rest of the file being unchanged since
+    v9.2.0 — that byte-identity was established by a one-off sha256sum comparison against
+    git show, a manual step, not by this gate. Presence matched flexibly is still an adequate
+    re-run for this tier; overstating it as byte-identity is not (WR-02, Phase 31 review)
     (precedent: v9.2 SUP-03/SUP-04, same mechanism); HAND-05
     because check-loop-closure.py's four-edge-present/five-edge-absent literals re-run in
     every --self-test (precedent: v9.2 GUARD-01, same file, same gate); REL-14 because
