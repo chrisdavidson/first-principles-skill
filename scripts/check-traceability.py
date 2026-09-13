@@ -685,6 +685,39 @@ class MatrixRow:
     direct count through scripts/check-registration.py's parsers at the phase base and at
     phase exit.
 
+    Root-answer determination (Phase 32.1, backlog 999.102), recorded before the retirement
+    it justifies. The mechanism: Phase 32's gap closure (commit 4f18a0d) made a bare
+    skills-directory row's surfaces value depend on a hand-maintained registry that mirrored,
+    by name, the exclusion constants of the gate the row cites
+    (scripts/check-focused-parity.py), re-read live by TRACE-03's ROW-FIELDS leg. Each fix to
+    that registry narrowed the flagged instance and left the next under-registered twin: the
+    CR-01 fix left WR-01 (v9.2/SUP-03 still credited the routed stubs
+    `_HANDOFF_ROUTED_SLUGS` excludes from what that gate verifies), the prose describing the
+    pin over-claimed again, and a later reading found a current-tree constant subtracted from
+    a milestone-tag expansion taken at a different point in time. This is the docs/PROCESS.md
+    §1 depth-rule shape, and the same-class trip of §3 limit 2 halted Phase 32 on it.
+
+    Why retirement beats derivation: locking the registry against its own drift would itself
+    be a guard whose subject is another guard's own correctness — LEVEL work that stops at
+    §1, not REACH. Deriving each row's excluded population directly from
+    `scripts/check-focused-parity.py --describe` would add a cross-script read this module
+    has never had, and would point at `_HANDOFF_ROUTED_SLUGS`, which GUARD-04 replaces in
+    v9.4.0 — a derivation built now would need rebuilding then. Retirement leaves no registry
+    for a later row to under-register.
+
+    The REACH-or-LEVEL call (docs/PROCESS.md §1.1): retirement adds no guard at all — it is
+    neither REACH nor LEVEL work, and no registered gate, battery registration or CI job
+    changes (standing D-D, confirmed by direct count against the phase-base reading). The
+    only surviving check on surfaces is D-13's non-empty and in-vocabulary leg, REACH as the
+    paragraph above already records. What replaces the retired mechanism is a statement-based
+    classification rule (D-02, stated under Surfaces classification below) and a
+    forward-only supersession-note rule (D-05, stated after Statement sourcing below) — both
+    are rules on a label, not guards, and nothing re-reads either at check time.
+
+    What the matrix loses, stated plainly: no leg checks a row's surfaces against the
+    population any gate verifies; a surfaces value stays a hand-assigned classification the
+    matrix states, not a measurement it proves — the milestone's own standing limit.
+
     Limits stated where the fields live. A surfaces value is a hand-assigned classification
     the matrix states, not a measurement it proves; no statement is reconstructed (D-T4) — a
     row carries sourced wording or the literal `statement unrecoverable`; archive-era
