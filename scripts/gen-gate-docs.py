@@ -4224,11 +4224,7 @@ def _nonmodule_docstring_hits(
 # `_control_roster_arm_shape_census_vacuity`'s docstring under its own
 # CR-01-recurrence correction removed its one pre-existing hit ("two
 # fixture strings") without adding a replacement.
-# Raised 29 -> 30 by Phase 33 plan 03: extending
-# `_control_delta_chain_hops_claude_row_count_recovered`'s docstring
-# terminus history with the new `('371',)` hop (Phase 33's ROWS-01 row
-# registration) adds one hit.
-_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 30
+_SELF_FILE_NONMODULE_DOCSTRING_HITS: int = 29
 
 
 def nonmodule_docstring_selffile_ratchet_problems(
@@ -5785,9 +5781,10 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     headline paragraph yields the row-count chain's terminus `('371',)`
     (Phase 33 extended the chain's prior `('345',)` terminus, itself Phase 31
     plan 02's extension of the `('335',)` terminus before it, itself Phase 28
-    plan 04's extension of the `('323',)` terminus before that, itself Phase
-    27 plan 06's extension of the `('305',)` terminus before that, with the
-    v9.2.1 hop) among the chains assembled, proving non-adjacent linking:
+    plan 04's extension of the `('323',)` terminus before that, itself
+    Phase 27 plan 06's extension of the `('305',)` terminus before that,
+    with the v9.2.1 hop) among the chains assembled, proving non-adjacent
+    linking:
     a consecutive-only linker would fragment this chain against the
     interleaved slash-paired chain sharing the same paragraph and lose the
     terminus entirely."""
