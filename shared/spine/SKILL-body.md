@@ -198,10 +198,11 @@ every section and never a second time on a later regeneration. Use Read on the [
 Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md): the section
 summaries below do not carry the `**Confidence:**` field the template requires at the end of every
 Derivation Chain's conclusion block (§4) and again at the end of the Conclusion section (§6), nor
-the `Unverified input rule (D-07)` (§4) that forces that field to MEDIUM or LOW, with a named
-verification path, whenever the chain rests on a `GT-N?` input. An analysis assembled from the
-summaries alone has not seen either rule; a trailing `Confidence:` field going missing, or a
-`GT-N?`-fed conclusion emitting HIGH anyway, is what that omission produces. If that read fails,
+the requirement in its `Unverified input rule (D-07)` (§4) that a MEDIUM or LOW line name the
+`GT-N?` input behind it — the unverified input notation below states the rating floor and the
+verification path, not that naming requirement. An analysis assembled from the summaries alone
+has not seen either rule; a trailing `Confidence:` field going missing, or a MEDIUM or LOW line
+that never names its `GT-N?` input, is what that omission produces. If that read fails,
 still assemble the document from the section summaries below, and disclose the failed template
 read under the rule that closes "Before presenting conclusions".
 
