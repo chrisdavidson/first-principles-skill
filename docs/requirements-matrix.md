@@ -13,11 +13,11 @@
 - total: 345
 
 ## Statement Provenance
-- archive-sourced: 131
+- archive-era (unverified): 131
 - tracked-surface-sourced: 0
 - statement unrecoverable: 214
 - rows: 345
-Archive-sourced statements are the requirement text in each milestone's own requirements archive, which is not in the tracked tree; their fidelity is re-read locally and is not checked in CI. Tracked-surface citations are re-read by TRACE-03's --self-test.
+Archive-era statements are rows from v8.18 onward that do not carry the marker; each is stated to be the requirement text in its milestone's own requirements archive, which is not in the tracked tree. This count is assigned from each row's milestone, not by comparing text, and no tracked tool re-reads these statements against that archive — not CI, not TRACE-03's --self-test, not the check subcommand. Tracked-surface citations are re-read by TRACE-03's --self-test.
 
 ### Tracked-surface citations
 - none

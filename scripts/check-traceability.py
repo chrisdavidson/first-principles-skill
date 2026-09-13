@@ -687,9 +687,9 @@ class MatrixRow:
 
     Limits stated where the fields live. A surfaces value is a hand-assigned classification
     the matrix states, not a measurement it proves; no statement is reconstructed (D-T4) — a
-    row carries sourced wording or the literal `statement unrecoverable`; archive-sourced
-    statement fidelity is re-readable locally against untracked archives and is not checked
-    in CI (D-14).
+    row carries sourced wording or the literal `statement unrecoverable`; archive-era
+    statement fidelity is not re-read by any tracked tool — not CI, not `--self-test`, not
+    `check`; it was read once at Phase 32 exit by a local, untracked instrument (D-14).
 
     Surfaces classification (D-09, D-10, D-11). `surfaces` names the shipped skill(s), the
     agent, or the apparatus a requirement VERIFIES — never merely where its artifact lives.
@@ -749,10 +749,15 @@ class MatrixRow:
     slugs, then `agent`, then `apparatus`.
 
     Statement sourcing (D-01, D-02, D-03, D-T4). A row at or after `_ARCHIVE_STATEMENT_FROM`
-    carries the whole requirement bullet's own text from that milestone's own requirements
-    archive, verbatim, whitespace collapsed to one line, excluding any `Exit:` clause and any
-    nested evidence blockquote — that archive is not part of the tracked tree, so its
-    fidelity is re-read locally rather than in CI (D-14). A row before that cut, or a
+    carries the bullet's first paragraph after the bold ID — the ID line plus its
+    contiguous continuation lines, ending at the first blank line, next list item, heading
+    or blockquote line — whitespace collapsed to one line, then cut before any `Exit:`
+    clause, so a nested evidence blockquote and any later bold-labelled `Evidence`,
+    `Amended` or `Progress` paragraph under the same bullet are excluded. That
+    paragraph-break stop is a structural cut, not a sentence-boundary judgement, and is
+    disclosed here as the reading of D-01 applied (Phase 32 gap closure, WR-07); that
+    archive is not part of the tracked tree and no tracked tool re-reads it (D-14). A row
+    before that cut, or a
     `residual` row, carries a tracked-surface quote only when a tracked file presents that
     text as the milestone-qualified requirement's own wording (D-02) — a gate-table row, a
     verdict line, rationale or disposition prose, and ID-colliding text never qualify; such a
@@ -2132,7 +2137,7 @@ def _rows_v818() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     audit_v818 = (
         "Validated by inspecting the shipped record — the CHANGELOG.md milestone entry "
@@ -2436,7 +2441,7 @@ def _rows_v824() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     audit_v824 = (
         "Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this "
@@ -2610,7 +2615,7 @@ def _rows_v825() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     return [
         MatrixRow("v8.25/HEADLINE-01", "HEADLINE-01", "v8.25", "Test-Network",
@@ -2820,7 +2825,7 @@ def _rows_v826() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     _audit_scan04 = (
         "CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as "
@@ -3101,7 +3106,7 @@ def _rows_v9() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     _audit_process_prose = (
         "CLAUDE.md's own 'Review protocol' section states plainly that no script, control "
@@ -3383,7 +3388,7 @@ def _rows_v91() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     _audit_prose_named = (
         "Whether a mechanism is named in writing is not a predicate any gate evaluates."
@@ -3727,7 +3732,7 @@ def _rows_v92() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR. P-DIR rows at tag v9.2.0 expand to the skills present in `git ls-tree --name-only v9.2.0 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; SUP-03 and SUP-04 are P-DIR-SCOPED rows (CR-01) whose surfaces value is the tag-v9.2.0 expansion minus `LAUNCHER_SLUG` from `scripts/check-focused-parity.py`, matching SUP-03's own statement that the launcher carries no such line, with SUP-04's population equal to the SUP-03 population; no other row in this batch departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     _audit_sup02_reading = (
         "Whether the bullet points at Phase 3's rule rather than restating the provenance "
@@ -3979,7 +3984,7 @@ def _rows_v921() -> list[MatrixRow]:
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; HAND-04 is a P-DIR-SCOPED row (CR-01) whose surfaces value is the tag-v9.2.1 expansion minus `LAUNCHER_SLUG` and `_HANDOFF_ROUTED_SLUGS` from `scripts/check-focused-parity.py`, matching the statement's "the ten unclassified-facts stubs"; no other row in this batch departs from its path-derived value.
 
-    Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
     """
     _audit_routed_destination_identify_essence = (
         "Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one "
@@ -5087,15 +5092,17 @@ def render_matrix_markdown(rows: list[MatrixRow]) -> str:
             "Statement Provenance partition is not exhaustive — unclassified rows: "
             f"{unclassified!r}; counted {sum(provenance_counts.values())} of {len(rows)}"
         )
-    lines.append(f"- archive-sourced: {provenance_counts['archive']}")
+    lines.append(f"- archive-era (unverified): {provenance_counts['archive']}")
     lines.append(f"- tracked-surface-sourced: {provenance_counts['tracked-surface']}")
     lines.append(f"- statement unrecoverable: {provenance_counts['unrecoverable']}")
     lines.append(f"- rows: {len(rows)}")
     lines.append(
-        "Archive-sourced statements are the requirement text in each milestone's own "
-        "requirements archive, which is not in the tracked tree; their fidelity is re-read "
-        "locally and is not checked in CI. Tracked-surface citations are re-read by "
-        "TRACE-03's --self-test."
+        "Archive-era statements are rows from v8.18 onward that do not carry the marker; "
+        "each is stated to be the requirement text in its milestone's own requirements "
+        "archive, which is not in the tracked tree. This count is assigned from each row's "
+        "milestone, not by comparing text, and no tracked tool re-reads these statements "
+        "against that archive — not CI, not TRACE-03's --self-test, not the check "
+        "subcommand. Tracked-surface citations are re-read by TRACE-03's --self-test."
     )
     lines.append("")
     lines.append("### Tracked-surface citations")
