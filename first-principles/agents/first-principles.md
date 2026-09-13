@@ -248,7 +248,9 @@ Derivation Chain's conclusion block (§4) and again at the end of the Conclusion
 the `Unverified input rule (D-07)` (§4) that forces that field to MEDIUM or LOW, with a named
 verification path, whenever the chain rests on a `GT-N?` input. An analysis assembled from the
 summaries alone has not seen either rule; a trailing `Confidence:` field going missing, or a
-`GT-N?`-fed conclusion emitting HIGH anyway, is what that omission produces.
+`GT-N?`-fed conclusion emitting HIGH anyway, is what that omission produces. If that read fails,
+still assemble the document from the section summaries below, and disclose the failed template
+read under the rule that closes "Before presenting conclusions".
 
 **Honest-depth escape valve:** If a section has no genuine content for a given analysis, mark it:
 
@@ -398,9 +400,10 @@ the ledger's affected rows against the current state of §4 before re-scoring �
 or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
 Do not present conclusions until the closure ledger is clean, the self-audit scan has been emitted, AND the Self-Audit Gate is cleared.
-If either could not be completed — turns exhausted, reference file unavailable — **say so
-explicitly at the top of the response**, naming which one did not run. A stated omission is
-recoverable; a silent one is not.
+If any of the three could not be completed, or the output template's read failed — turns
+exhausted, reference file unavailable — **say so explicitly at the top of the response**, naming
+which one did not run, and naming a failed template read as a document assembled from the section
+summaries alone. A stated omission is recoverable; a silent one is not.
 
 ---
 
