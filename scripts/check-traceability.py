@@ -2510,11 +2510,12 @@ def _rows_v819() -> list[MatrixRow]:
     """
     audit_hc04 = (
         "check-high-confidence-bound.py re-runs the Criterion 3 and Criterion 5 tightening "
-        "and all three exception cases (confirmed by the v8.19/HC-01..HC-03 red breaks in "
-        "33-BREAK-TESTS.md); it does not re-run the historical battery figure this statement "
-        "quotes, which has since moved, read by direct count (rederive.py or "
-        "scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent for a "
-        "part-re-run claim)."
+        "and all three exception cases (confirmed by the v8.19/HC-01..HC-03 red breaks recorded "
+        "at Phase 33 in .planning/phases/33-row-less-milestones-and-residuals/33-BREAK-TESTS.md, "
+        "local-only, git-ignored, not present in a fresh clone); it does not re-run the "
+        "historical battery figure this statement quotes, which has since moved, read by direct "
+        "count (bash scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 "
+        "precedent for a part-re-run claim)."
     )
     return [
         MatrixRow("v8.19/HC-01", "HC-01", "v8.19", "Methodology",
@@ -2795,14 +2796,14 @@ def _rows_v821() -> list[MatrixRow]:
     audit_gate06 = (
         "scripts/check-firewall-battery.sh re-runs REG-GUARD and keeps the battery green; the "
         "historical delta this statement quotes has since moved, read by direct count "
-        "(rederive.py or scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 "
-        "precedent for a part-re-run claim)."
+        "(bash scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent "
+        "for a part-re-run claim)."
     )
     audit_val01 = (
         "scripts/check-firewall-battery.sh re-runs the full gate battery and reports its own "
         "live GREEN state; the historical count this statement quotes has since moved, read "
-        "by direct count (rederive.py or scripts/check-firewall-battery.sh), not restated "
-        "here (v9.2.1/REL-15 precedent for a part-re-run claim)."
+        "by direct count (bash scripts/check-firewall-battery.sh), not restated here "
+        "(v9.2.1/REL-15 precedent for a part-re-run claim)."
     )
     return [
         MatrixRow("v8.21/REG-01", "REG-01", "v8.21", "Test-Network",
