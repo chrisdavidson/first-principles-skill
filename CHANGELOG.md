@@ -11,6 +11,50 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.2.4] — 2026-09-12
+
+Closes the five product-tier warnings (**WR-01..WR-05**) that 999.92's phase code review raised
+against `[9.2.3]`. `[9.2.3]` was never published on its own; both releases reach an installed
+session together. No file under `scripts/` or `tests/` changed and no pinned body sentence was
+edited, so the coverage headline and the gate totals are unchanged — read them from `CLAUDE.md`'s
+generated gate-table sentence rather than from a digit restated here.
+
+### Fixed
+
+- **WR-01 — Phase 5 Operation no longer orders the criteria applied at that step**
+  (`28113d1`). `[9.2.3]` deferred the rubric *read* to the Self-Audit Gate but left "apply them"
+  in place, so the only compliant reading was to score from recollection — the failure the rubric
+  imperative names. The sentence now defers the *application* as well: the rubric is opened once,
+  and its criteria applied once, at the Self-Audit Gate, immediately after that read.
+- **WR-02 — the failed-rubric-read case is carved out of the six-verdict-block imperative**
+  (`4084e4e`). "Emit the Self-Audit Gate's six verdict blocks … regardless of what other scoring
+  instrument the analysis contains" followed the new "emit no verdict blocks" failure clause with no
+  exception. It now ends: unless the rubric read failed, in which case no verdict block is emitted,
+  neither the Validate/Fix/Repeat loop nor any Absent-verdict route runs, and the failed read is
+  disclosed.
+- **WR-05 — the template imperative's justification narrowed to what the body lacks**
+  (`38dcfbe`). The paragraph claimed the body did not carry the D-07 rating floor; the unverified
+  input notation does. It now names only what is actually absent: the trailing `**Confidence:**`
+  field and D-07's requirement that a MEDIUM or LOW line name the `GT-N?` input behind it. This
+  adds one line, so every later body line moves down by one — the line numbers in `[9.2.3]`
+  describe `154644e`.
+- **WR-03, WR-04 — `[9.2.3]` corrected in place** (`31ccb64`, `c442975`). Its claim that
+  verdict-block vocabulary "can only have come from an actual read" was false: three other linked
+  references carry those tokens, so only a `Read` of `references/validation-rubric.md` is evidence
+  of the rubric read. Its "confirmed referents" list named an earlier draft's referents, not the
+  shipped sentence's. The same evidence bound is recorded on backlog 999.89, whose census it
+  constrains.
+
+### Known limitations
+
+- **WR-01, WR-02 and WR-05 change what the agent is instructed to do.** Gates confirm the text is
+  present and well-formed; they cannot confirm a run obeys it. The *after* reading remains backlog
+  **999.89**. Presence is checkable, obedience is not.
+- **The review's three info findings are not addressed by this release:** "the section summaries
+  below" has no section summary below it (IN-01); the backstop names which step did not complete
+  but not why, so a failed rubric read reads like turn exhaustion (IN-02); and `[9.2.3]` points
+  readers at the untracked `.planning/ROADMAP.md` for its enumerations (IN-03).
+
 ## [9.2.3] — 2026-09-12
 
 Closes backlog **999.92** (Priority-order #1, the Self-Audit Gate half of R1) and 999.88 review
