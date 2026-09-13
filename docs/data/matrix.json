@@ -2751,6 +2751,34 @@
     "statement": "statement unrecoverable"
   },
   {
+    "key": "residual/RR-108-04",
+    "bare_id": "RR-108-04",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": "S-P10 (estimate): ACCEPTED-FINAL reading is CARRIED 0/5, re-pointed from _load_excerpt_v713 to _load_excerpt_v85 at Phase 156 (MEASURE-03 SC-4); _NEW_TECH_SENTINELS asserts today's v8.5 composer-structure vector [0, 0, 0, 0, 0] and per-run technique-hit sums [0, 0, 0, 1, 0], sustained at the 0/5 floor, confirmed live and by a red break (expected-vector mutation turned check-routing-battery.py --self-test red).",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "statement unrecoverable"
+  },
+  {
+    "key": "residual/RR-108-05",
+    "bare_id": "RR-108-05",
+    "milestone": "residual",
+    "capability": "Test-Network",
+    "deliverable_path": "active-tail",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/_battery_core.py#self_test_boundary",
+    "gap_rationale": "S-P14 (theoretical-limit): ACCEPTED-FINAL reading is CARRIED 0/5, re-pointed from _load_excerpt_v713 to _load_excerpt_v85 at Phase 156 (MEASURE-03 SC-4); _NEW_TECH_SENTINELS asserts today's v8.5 composer-structure vector [0, 0, 0, 0, 0] and per-run technique-hit sums [0, 0, 0, 1, 0], sustained at the 0/5 floor, confirmed live and by a red break (expected-vector mutation turned check-routing-battery.py --self-test red).",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "statement unrecoverable"
+  },
+  {
     "key": "residual/RR-108-02",
     "bare_id": "RR-108-02",
     "milestone": "residual",
@@ -3422,6 +3450,342 @@
       "apparatus"
     ],
     "statement": "`docs/` records the four gaps, the review that found them, and each gap's disposition, in the style of the existing milestone records. Evidence (Phase 4 plan 04-05): `docs/v8.18-praor-loop-closure.md`, 257 lines, 8 numbered sections, commit `5e05b7b`."
+  },
+  {
+    "key": "v8.19/HC-01",
+    "bare_id": "HC-01",
+    "milestone": "v8.19",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-high-confidence-bound.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Criterion 3 (Evidence) is tightened to require that if a ground truth is cited and its source is reachable, at least one chain using that source must be rated HIGH confidence"
+  },
+  {
+    "key": "v8.19/HC-02",
+    "bare_id": "HC-02",
+    "milestone": "v8.19",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-high-confidence-bound.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Criterion 5 (Conclusion) is tightened to require that every final conclusion is supported by at least one HIGH-confidence chain"
+  },
+  {
+    "key": "v8.19/HC-03",
+    "bare_id": "HC-03",
+    "milestone": "v8.19",
+    "capability": "Methodology",
+    "deliverable_path": "shared/spine/references/validation-rubric.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-high-confidence-bound.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "agent"
+    ],
+    "statement": "Three exception cases are documented in the rubric: (a) unreachable sources do not require HIGH chains, (b) explicitly speculative chains may remain MEDIUM, (c) absent-fails derivations may remain MEDIUM"
+  },
+  {
+    "key": "v8.19/HC-04",
+    "bare_id": "HC-04",
+    "milestone": "v8.19",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-high-confidence-bound.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-high-confidence-bound.py re-runs the Criterion 3 and Criterion 5 tightening and all three exception cases (confirmed by the v8.19/HC-01..HC-03 red breaks in 33-BREAK-TESTS.md); it does not re-run the historical battery figure this statement quotes, which has since moved, read by direct count (rederive.py or scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent for a part-re-run claim).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "A new offline gate verifies that both tightened criteria are correctly described in the emitted Self-Audit rubric and that all exception cases are documented \u2014 verified by `bash scripts/check-firewall-battery.sh` reporting FIREWALL: GREEN (21/21) with HC-BOUND passing"
+  },
+  {
+    "key": "v8.20/HARN-01-01",
+    "bare_id": "HARN-01-01",
+    "milestone": "v8.20",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb-branches.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-act-limb.py's --self-test and --describe confirm the 16-branch count live, but nothing re-reads scripts/check-act-limb-branches.md's own prose -- deleting one branch's entry there left --self-test, the live leg, gen-gate-docs.py --check and check-links.py all green (v8.24/VAL-04 precedent for a record claim no gate re-reads).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Identify and document all 16 neutralizable branches in HARN-01 self-test"
+  },
+  {
+    "key": "v8.20/HARN-01-02",
+    "bare_id": "HARN-01-02",
+    "milestone": "v8.20",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Create negative-control fixture for each of the 16 branches (each fixture proves the branch can't mask a real defect)"
+  },
+  {
+    "key": "v8.20/HARN-01-03",
+    "bare_id": "HARN-01-03",
+    "milestone": "v8.20",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Add anti-masking assertions that gate on coverage of all 16 branches"
+  },
+  {
+    "key": "v8.20/HARN-01-04",
+    "bare_id": "HARN-01-04",
+    "milestone": "v8.20",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb-branches.md",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-act-limb.py's --self-test and live leg both re-run the branch/control coverage the code itself enforces, but nothing re-reads the BRANCH COVERAGE comment block this statement names -- deleting it left both legs green (v8.24/VAL-04 precedent for a record claim no gate re-reads).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Update `scripts/check-act-limb.py` documentation with branch coverage map"
+  },
+  {
+    "key": "v8.20/HARN-01-05",
+    "bare_id": "HARN-01-05",
+    "milestone": "v8.20",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-act-limb.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-act-limb.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Verify offline `--self-test` gate still GREEN with all 16 controls in place"
+  },
+  {
+    "key": "v8.21/REG-01",
+    "bare_id": "REG-01",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate enumerates all skill directories under `first-principles/skills/` \u2713"
+  },
+  {
+    "key": "v8.21/REG-02",
+    "bare_id": "REG-02",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate enumerates the main agent at `first-principles/agents/first-principles.md` \u2713"
+  },
+  {
+    "key": "v8.21/REG-03",
+    "bare_id": "REG-03",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate reads and parses plugin manifest \u2713"
+  },
+  {
+    "key": "v8.21/REG-04",
+    "bare_id": "REG-04",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-registration.py compares each skill's frontmatter name: to its own directory basename (confirmed by the live fishbone-name break) and the live 14-skill count matches discover_skills(); it does not check manifest registration of skills -- the shipped plugin.json carries no skills/agents name or type roster for extract_registered_paths to compare against, so the 'registered in manifest' clause is not re-run by any control.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate validates all 14 skills are registered in manifest with correct name/type \u2713"
+  },
+  {
+    "key": "v8.21/REG-05",
+    "bare_id": "REG-05",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-registration.py compares the agent's frontmatter name: to the expected basename (confirmed by the live agent-name break); it does not check manifest registration of the agent -- the shipped plugin.json carries no skills/agents name or type roster for extract_registered_paths to compare against, so the 'registered in manifest' clause is not re-run by any control.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate validates main agent is registered in manifest with correct name/type \u2713"
+  },
+  {
+    "key": "v8.21/REG-06",
+    "bare_id": "REG-06",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate reports human-readable summary: registered entries vs. discovered entries \u2713"
+  },
+  {
+    "key": "v8.21/GATE-01",
+    "bare_id": "GATE-01",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-registration.py's own docstring states its --self-test runs offline, deterministic fixtures independent of the live tree and any live session; no leg compares two runs against each other or fails specifically on a live-session dependency, so this determinism claim is stated, not re-run, by any control.",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Offline gate script `check-registration.py` runs deterministically (no live session) \u2713"
+  },
+  {
+    "key": "v8.21/GATE-02",
+    "bare_id": "GATE-02",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-registration.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate includes `--self-test` fixture with positive and negative controls \u2713"
+  },
+  {
+    "key": "v8.21/GATE-03",
+    "bare_id": "GATE-03",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": ".github/workflows/validation.yml",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-registration.py#verify_ci_job_registration",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "CI job registered in `.github/workflows/validation.yml` \u2713"
+  },
+  {
+    "key": "v8.21/GATE-04",
+    "bare_id": "GATE-04",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Gate call registered in `bash scripts/check-firewall-battery.sh` \u2713"
+  },
+  {
+    "key": "v8.21/GATE-05",
+    "bare_id": "GATE-05",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "CLAUDE.md",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/gen-gate-docs.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "CLAUDE.md updated with gate definition in CI gates table \u2713"
+  },
+  {
+    "key": "v8.21/GATE-06",
+    "bare_id": "GATE-06",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "scripts/check-firewall-battery.sh re-runs REG-GUARD and keeps the battery green; the historical delta this statement quotes has since moved, read by direct count (rederive.py or scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent for a part-re-run claim).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Battery moves from 21/21 to 22/22, stays GREEN \u2713"
+  },
+  {
+    "key": "v8.21/VAL-01",
+    "bare_id": "VAL-01",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-firewall-battery.sh",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "scripts/check-firewall-battery.sh re-runs the full gate battery and reports its own live GREEN state; the historical count this statement quotes has since moved, read by direct count (rederive.py or scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent for a part-re-run claim).",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Battery runs `FIREWALL: GREEN (22/22)` \u2713"
+  },
+  {
+    "key": "v8.21/VAL-02",
+    "bare_id": "VAL-02",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/check-version-stamps.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/check-version-stamps.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "All 17 version stamps remain in lockstep (VERSION-01 still green) \u2713"
+  },
+  {
+    "key": "v8.21/VAL-03",
+    "bare_id": "VAL-03",
+    "milestone": "v8.21",
+    "capability": "Test-Network",
+    "deliverable_path": "scripts/sync-content.py",
+    "coverage_tier": "reproducible",
+    "artifact_link": "scripts/sync-content.py",
+    "gap_rationale": "",
+    "surfaces": [
+      "apparatus"
+    ],
+    "statement": "Sync between `shared/` and generated tree stays clean (DUAL-04 still green) \u2713"
   },
   {
     "key": "v8.24/CAP-01",

@@ -1885,14 +1885,22 @@ def _rows_active_tail() -> list[MatrixRow]:
     (runbook + wrapper script, Phase 89) and no longer belongs to the open-gap set.
 
     Key form: v5.3/GEN-01 and v5.3/GEN-02 carry the canonical v5.3 milestone
-    prefix. RR-80-01, RR-79-01, RR-114-01, RR-108-02, and RR-77-08 are non-milestone
-    residuals that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint,
+    prefix. RR-80-01, RR-79-01, RR-114-01, RR-108-02, RR-77-08, RR-108-04 and RR-108-05 are
+    non-milestone residuals that use the _RESIDUAL_KEY_PREFIX (confirmed at Task 3 checkpoint,
     82-02). RR-114-01 supersedes RR-108-01 (Phase 114 v7.6 carry-forward, S-P02
     inversion CARRIED 1/5); RR-108-02 is CLOSED at 4/5 (Phase 114 v7.6 re-baseline,
     S-P05 trade-off cleared min-pass — the lone canonical improver; ID retained,
     sentinel present as regression guard). Full chains: RR-79-02 ->
     RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01 (S-P02); RR-79-03 -> RR-92-02 ->
     RR-95-02 -> RR-108-02 CLOSED (S-P05).
+
+    RR-108-04 (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) are registered here at
+    Phase 33 (RESID-01): both ACCEPTED-FINAL at v8.0's terminal state, re-opened and
+    re-measured at v8.5, with their `_NEW_TECH_SENTINELS` tuple re-pointed from
+    `_load_excerpt_v713` to `_load_excerpt_v85` at Phase 156 (MEASURE-03 SC-4). Their
+    `gap_rationale` carries the live sentinel reading rather than a reconstructed statement,
+    on the same v5.3/GEN-01 precedent this function's own tail_rationale_gen01 already
+    follows — a reading, not a requirement's sourced wording.
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
 
@@ -1949,6 +1957,33 @@ def _rows_active_tail() -> list[MatrixRow]:
         # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01
         MatrixRow(f"{p}/RR-114-01", "RR-114-01", p, "Test-Network",
                   "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",),
+                  statement=_STATEMENT_UNRECOVERABLE),
+        # RR-108-04 (S-P10 estimate): ACCEPTED-FINAL at v8.0 terminal state, re-opened and
+        # re-measured at v8.5, sentinel re-pointed _load_excerpt_v713 -> _load_excerpt_v85 at
+        # Phase 156 (tuple in _NEW_TECH_SENTINELS). Registered Phase 33 (RESID-01).
+        MatrixRow(f"{p}/RR-108-04", "RR-108-04", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary",
+                  ("S-P10 (estimate): ACCEPTED-FINAL reading is CARRIED 0/5, re-pointed from "
+                   "_load_excerpt_v713 to _load_excerpt_v85 at Phase 156 (MEASURE-03 SC-4); "
+                   "_NEW_TECH_SENTINELS asserts today's v8.5 composer-structure vector "
+                   "[0, 0, 0, 0, 0] and per-run technique-hit sums [0, 0, 0, 1, 0], sustained "
+                   "at the 0/5 floor, confirmed live and by a red break (expected-vector "
+                   "mutation turned check-routing-battery.py --self-test red)."),
+                  surfaces=("agent",),
+                  statement=_STATEMENT_UNRECOVERABLE),
+        # RR-108-05 (S-P14 theoretical-limit): ACCEPTED-FINAL at v8.0 terminal state, re-opened
+        # and re-measured at v8.5, sentinel re-pointed _load_excerpt_v713 -> _load_excerpt_v85
+        # at Phase 156 (tuple in _NEW_TECH_SENTINELS). Registered Phase 33 (RESID-01).
+        MatrixRow(f"{p}/RR-108-05", "RR-108-05", p, "Test-Network",
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary",
+                  ("S-P14 (theoretical-limit): ACCEPTED-FINAL reading is CARRIED 0/5, "
+                   "re-pointed from _load_excerpt_v713 to _load_excerpt_v85 at Phase 156 "
+                   "(MEASURE-03 SC-4); _NEW_TECH_SENTINELS asserts today's v8.5 "
+                   "composer-structure vector [0, 0, 0, 0, 0] and per-run technique-hit sums "
+                   "[0, 0, 0, 1, 0], sustained at the 0/5 floor, confirmed live and by a red "
+                   "break (expected-vector mutation turned check-routing-battery.py "
+                   "--self-test red)."),
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE),
         # RR-108-02 supersedes RR-95-02 (Phase 108 v7.4 carry-forward, S-P05 trade-off CARRIED 2/5)
@@ -2427,6 +2462,439 @@ def _rows_v818() -> list[MatrixRow]:
                       "disposition, in the style of the existing milestone records. Evidence (Phase 4 "
                       "plan 04-05): `docs/v8.18-praor-loop-closure.md`, 257 lines, 8 numbered "
                       "sections, commit `5e05b7b`."
+                  )),
+    ]
+
+
+def _rows_v819() -> list[MatrixRow]:
+    """v8.19 milestone rows — 4 requirements, 3 reproducible + 1 audit-only (Phase 33 / ROWS-01).
+
+    All rows carry milestone="v8.19". Keys use the milestone-qualified form
+    "v8.19/<bare_id>".
+
+    Tiering, decided per row against "does something re-run the claim on every CI run or
+    battery pass?" (D-02), never by block — every tier here rests on a break test run once
+    at Phase 33 (33-BREAK-TESTS.md, D-02, standing instruction 7):
+
+      - HC-04 is audit-only. `scripts/check-high-confidence-bound.py` re-runs its K2 clause
+        ("a new offline gate verifies both tightened criteria... and all exception cases are
+        documented" — confirmed by the HC-01/HC-02/HC-03 red breaks below, which ARE that
+        gate); it does not re-run the K3 clause, the quoted count "FIREWALL: GREEN (21/21)",
+        which the tree has since moved past (26 today, by direct count).
+
+    The remaining 3 rows are reproducible: HC-01, HC-02 and HC-03 each broke
+    `scripts/check-high-confidence-bound.py` red on every one of their K1 clauses (deleting
+    or mutating the Criterion 3/Criterion 5 tightening sentence, or one of the three lettered
+    Exceptions Summary entries, in both `shared/spine/references/validation-rubric.md` and
+    `first-principles/agents/references/validation-rubric.md`).
+
+    Capability assignment: HC-01, HC-02 and HC-03 change the rubric's own prose (a
+    Rigorous-band tightening and its documented exceptions), so they are Methodology; HC-04 is
+    a claim about gate/battery apparatus, so it is Test-Network.
+
+    DISCLOSED BOUNDARY. None of the 3 reproducible rows carries a `#_self_test_*` anchor,
+    because `scripts/check-high-confidence-bound.py` defines no `_self_test_*`/`_selftest_*`
+    symbol (only `_run_self_test`); each row carries a bare script path, and the dispatch
+    guarantee is supplied instead by that script's own `--self-test`/live CLI, exercised
+    directly in this phase's own break tests, not by this matrix.
+
+    RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
+    function's 4-ID roster and `.planning/milestones/v8.19.0-REQUIREMENTS.md`'s own roster is
+    kept equal by transcription and by a one-off manual set-equality check run at Plan
+    01/02 time, not by anything mechanical — `.planning/` is gitignored and can never be
+    read by a CI gate, so no verb can join the two rosters live.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
+
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
+    """
+    audit_hc04 = (
+        "check-high-confidence-bound.py re-runs the Criterion 3 and Criterion 5 tightening "
+        "and all three exception cases (confirmed by the v8.19/HC-01..HC-03 red breaks in "
+        "33-BREAK-TESTS.md); it does not re-run the historical battery figure this statement "
+        "quotes, which has since moved, read by direct count (rederive.py or "
+        "scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 precedent for a "
+        "part-re-run claim)."
+    )
+    return [
+        MatrixRow("v8.19/HC-01", "HC-01", "v8.19", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible", "scripts/check-high-confidence-bound.py", "",
+                  surfaces=("agent",),
+                  statement=(
+                      "Criterion 3 (Evidence) is tightened to require that if a ground truth is "
+                      "cited and its source is reachable, at least one chain using that source "
+                      "must be rated HIGH confidence"
+                  )),
+        MatrixRow("v8.19/HC-02", "HC-02", "v8.19", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible", "scripts/check-high-confidence-bound.py", "",
+                  surfaces=("agent",),
+                  statement=(
+                      "Criterion 5 (Conclusion) is tightened to require that every final "
+                      "conclusion is supported by at least one HIGH-confidence chain"
+                  )),
+        MatrixRow("v8.19/HC-03", "HC-03", "v8.19", "Methodology",
+                  "shared/spine/references/validation-rubric.md",
+                  "reproducible", "scripts/check-high-confidence-bound.py", "",
+                  surfaces=("agent",),
+                  statement=(
+                      "Three exception cases are documented in the rubric: (a) unreachable "
+                      "sources do not require HIGH chains, (b) explicitly speculative chains may "
+                      "remain MEDIUM, (c) absent-fails derivations may remain MEDIUM"
+                  )),
+        MatrixRow("v8.19/HC-04", "HC-04", "v8.19", "Test-Network",
+                  "scripts/check-high-confidence-bound.py",
+                  "audit-only", "", audit_hc04,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "A new offline gate verifies that both tightened criteria are correctly "
+                      "described in the emitted Self-Audit rubric and that all exception cases "
+                      "are documented — verified by `bash scripts/check-firewall-battery.sh` "
+                      "reporting FIREWALL: GREEN (21/21) with HC-BOUND passing"
+                  )),
+    ]
+
+
+def _rows_v820() -> list[MatrixRow]:
+    """v8.20 milestone rows — 5 requirements, 3 reproducible + 2 audit-only (Phase 33 / ROWS-01).
+
+    All rows carry milestone="v8.20". Keys use the milestone-qualified form
+    "v8.20/<bare_id>".
+
+    Tiering, decided per row against "does something re-run the claim on every CI run or
+    battery pass?" (D-02), never by block — every tier here rests on a break test run once
+    at Phase 33 (33-BREAK-TESTS.md, D-02, standing instruction 7):
+
+      - HARN-01-01 is audit-only. `scripts/check-act-limb.py`'s `--self-test` and `--describe`
+        confirm the 16-branch count live (its K3 clause matches, not stale), but nothing
+        re-reads `scripts/check-act-limb-branches.md`'s own prose — deleting one branch's
+        entry there left `--self-test`, the live leg, `gen-gate-docs.py --check` and
+        `check-links.py` all green.
+      - HARN-01-04 is audit-only. The same `--self-test` and live leg both re-run the
+        branch/control coverage the code itself enforces, but nothing re-reads the `BRANCH
+        COVERAGE` comment block this statement names — deleting that comment block left both
+        legs green.
+
+    The remaining 3 rows are reproducible: HARN-01-02 and HARN-01-03 both broke
+    `scripts/check-act-limb.py --self-test`'s anti-masking coverage floor red on the identical
+    injected mutation (a fixture's `branch_id` argument changed to an ID outside
+    `REQUIRED_BRANCHES`); HARN-01-05 broke the same floor red on the same mutation, and its K3
+    "all 16 controls" clause matches the live `branch_count: 16` reading (not stale).
+
+    Capability assignment: all 5 rows are harness-robustness apparatus over
+    `scripts/check-act-limb.py`, so all 5 are Test-Network.
+
+    DISCLOSED BOUNDARY. None of the 3 reproducible rows carries a `#_self_test_*` anchor,
+    because `scripts/check-act-limb.py` defines no `_self_test_*`/`_selftest_*` symbol (only
+    `_run_self_test`); each row carries a bare script path, and the dispatch guarantee is
+    supplied instead by that script's own `--self-test`/live CLI, exercised directly in this
+    phase's own break tests, not by this matrix.
+
+    RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
+    function's 5-ID roster and `.planning/milestones/v8.20.0-REQUIREMENTS.md`'s own roster is
+    kept equal by transcription and by a one-off manual set-equality check run at Plan
+    01/02 time, not by anything mechanical — `.planning/` is gitignored and can never be
+    read by a CI gate, so no verb can join the two rosters live.
+
+    Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
+
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
+    """
+    audit_harn0101 = (
+        "check-act-limb.py's --self-test and --describe confirm the 16-branch count live, but "
+        "nothing re-reads scripts/check-act-limb-branches.md's own prose -- deleting one "
+        "branch's entry there left --self-test, the live leg, gen-gate-docs.py --check and "
+        "check-links.py all green (v8.24/VAL-04 precedent for a record claim no gate re-reads)."
+    )
+    audit_harn0104 = (
+        "check-act-limb.py's --self-test and live leg both re-run the branch/control coverage "
+        "the code itself enforces, but nothing re-reads the BRANCH COVERAGE comment block this "
+        "statement names -- deleting it left both legs green (v8.24/VAL-04 precedent for a "
+        "record claim no gate re-reads)."
+    )
+    return [
+        MatrixRow("v8.20/HARN-01-01", "HARN-01-01", "v8.20", "Test-Network",
+                  "scripts/check-act-limb-branches.md",
+                  "audit-only", "", audit_harn0101,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Identify and document all 16 neutralizable branches in HARN-01 self-test"
+                  )),
+        MatrixRow("v8.20/HARN-01-02", "HARN-01-02", "v8.20", "Test-Network",
+                  "scripts/check-act-limb.py",
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Create negative-control fixture for each of the 16 branches (each "
+                      "fixture proves the branch can't mask a real defect)"
+                  )),
+        MatrixRow("v8.20/HARN-01-03", "HARN-01-03", "v8.20", "Test-Network",
+                  "scripts/check-act-limb.py",
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Add anti-masking assertions that gate on coverage of all 16 branches"
+                  )),
+        MatrixRow("v8.20/HARN-01-04", "HARN-01-04", "v8.20", "Test-Network",
+                  "scripts/check-act-limb-branches.md",
+                  "audit-only", "", audit_harn0104,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Update `scripts/check-act-limb.py` documentation with branch coverage map"
+                  )),
+        MatrixRow("v8.20/HARN-01-05", "HARN-01-05", "v8.20", "Test-Network",
+                  "scripts/check-act-limb.py",
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Verify offline `--self-test` gate still GREEN with all 16 controls in "
+                      "place"
+                  )),
+    ]
+
+
+def _rows_v821() -> list[MatrixRow]:
+    """v8.21 milestone rows — 15 requirements, 10 reproducible + 5 audit-only (Phase 33 / ROWS-01).
+
+    All rows carry milestone="v8.21". Keys use the milestone-qualified form
+    "v8.21/<bare_id>".
+
+    Tiering, decided per row against "does something re-run the claim on every CI run or
+    battery pass?" (D-02), never by block — every tier here rests on a break test run once at
+    Phase 33 (33-BREAK-TESTS.md, D-02, standing instruction 7). Five rows are audit-only, each
+    named and reasoned individually here:
+
+      - v8.21/REG-04 and v8.21/REG-05: their "registered in manifest" clause is K4 — the
+        shipped `first-principles/.claude-plugin/plugin.json` carries no `skills`/`agents`
+        name-or-type roster for `extract_registered_paths()` to compare against, so no
+        registered gate re-runs that clause, even though each row's own frontmatter name/type
+        clause broke `scripts/check-registration.py` red.
+      - v8.21/GATE-01: its "runs deterministically (no live session)" clause is K4 —
+        `scripts/check-registration.py`'s own docstring asserts determinism, but no control
+        compares two runs against each other or fails specifically on a live-session
+        dependency.
+      - v8.21/GATE-06 and v8.21/VAL-01: their quoted battery counts ("22/22") are stale
+        against today's direct count (26); `scripts/check-firewall-battery.sh` re-runs the
+        battery-stays-green claim, but not the specific historical delta.
+
+    The remaining 10 rows are reproducible: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03 and
+    v8.21/REG-06 each broke `scripts/check-registration.py` red on their own K2 clause
+    (enumeration, manifest parsing, the human-readable summary); v8.21/GATE-02 broke the same
+    gate's `--self-test` coverage floor red; v8.21/GATE-03 broke
+    `scripts/check-registration.py#verify_ci_job_registration` red (the v8.24/GATE-02 anchor
+    precedent); v8.21/GATE-04 and v8.21/GATE-05 both broke `scripts/gen-gate-docs.py --check`
+    red; v8.21/VAL-02 broke `scripts/check-version-stamps.py` red; v8.21/VAL-03 broke
+    `scripts/sync-content.py --check` red.
+
+    Capability assignment: every row in this batch is release/verification apparatus — none
+    changes agent methodology prose — so all 15 rows are Test-Network, following the v8.24
+    precedent (`_rows_v824()`) rather than v8.18's Methodology/Test-Network split.
+
+    D-01's re-pointing rule, applied once in this batch: v8.21/GATE-04's statement ("Gate call
+    registered in `bash scripts/check-firewall-battery.sh`") stayed unbroken when
+    `scripts/check-registration.py`'s own live leg ran with the battery's REG-GUARD
+    registration disabled, but `scripts/gen-gate-docs.py --check` went red on the same
+    mutation (`D-01: registry names gate id(s) the battery does not register: ['REG-GUARD']`)
+    — so `artifact_link` cites `scripts/gen-gate-docs.py`, not
+    `scripts/check-registration.py`, per the rule "the gate that re-runs the claim, not the
+    milestone's headline gate." ROWS-03 is reachable at `scripts/check-registration.py`
+    directly: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03, v8.21/REG-06, v8.21/GATE-02 and
+    v8.21/GATE-03 all cite it. v8.21/VAL-02 is VERSION-01's own claim
+    (`scripts/check-version-stamps.py`); v8.21/VAL-03 is DUAL-04's own claim
+    (`scripts/sync-content.py`); v8.21/GATE-05's CI gates table is CONF-SURFACE's own claim,
+    decided next.
+
+    D-03: why the v8.18 SHIP-04/SHIP-05 audit-only precedent (the shape the 999.93 backlog
+    entry cites) does not carry over to v8.21/GATE-05. That precedent covered hand-written
+    CHANGELOG and docs/ prose that no gate re-reads. v8.21/GATE-05's own deliverable,
+    CLAUDE.md's CI gates table, is different in kind: it is generated by
+    `scripts/gen-gate-docs.py --write` from `scripts/_gate_registry.py`, and `--check` is the
+    standing drift gate (CONF-SURFACE) over that exact table. Deleting the REG-GUARD row from
+    CLAUDE.md's generated table turned `gen-gate-docs.py --check` red (`DRIFT: CLAUDE.md`) —
+    Plan 01's recorded verdict is "reproducible at scripts/gen-gate-docs.py"
+    (33-BREAK-TESTS.md), confirmed again here.
+
+    The standing-instruction-6 determination on v8.21/GATE-02: the "24" self-test-controls
+    figure this requirement's archive bullet once quoted sits in the archive's own `-
+    **Outcome:**` sub-bullet, outside the D-01-extracted statement ("Gate includes
+    `--self-test` fixture with positive and negative controls ✓") — a locked wording is not a
+    verified wording, so the row is tiered on its own extracted statement's break, not on the
+    archive's stale sub-bullet. Deleting Control 28's assertion body from `_run_self_test()`
+    turned the coverage floor red (`missing=['c28']`), confirming reproducible.
+
+    Supersession (33-SIBLINGS.md): v8.21/GATE-03 and v8.24/GATE-02 make the identical textual
+    predicate — "CI job registered in `.github/workflows/validation.yml`" — over disjoint
+    subjects. Each row's own break test confirms a different specific gate's CI job drives
+    `verify_ci_job_registration` red: v8.21/GATE-03's mutation (stripping REG-GUARD's own
+    `name: ... (<GATE-ID>)` suffix) breaks on REG-GUARD's registration; v8.24/GATE-02's own
+    docstring confirms its subject is PROV-GUARD's CI job. Neither row's population is a
+    subset of the other's, so no D-05 supersession note is appended to v8.24/GATE-02's
+    `gap_rationale` here.
+
+    The ROWS-04 convention: every v8.21 `GATE-0N`/`VAL-0N` requirement citation in this
+    docstring is qualified `v8.21/…`; the positional `bare_id` argument inside each
+    `MatrixRow(...)` call (e.g. `"REG-01"` in `MatrixRow("v8.21/REG-01", "REG-01", ...)`) is
+    data, not a prose citation, and is exempt.
+
+    DISCLOSED BOUNDARY. Only v8.21/GATE-03 carries a symbol anchor,
+    `#verify_ci_job_registration` — a named, non-prefixed anchor that `_resolve_artifact()`
+    proves defined, not dispatched (the v8.24/GATE-02 precedent). Every other reproducible row
+    in this batch carries a bare script path; neither `scripts/check-registration.py` nor
+    `scripts/gen-gate-docs.py` defines a `_self_test_*`/`_selftest_*` symbol this row can
+    dispatch against (each has only `_run_self_test`), so the dispatch guarantee for those
+    rows is supplied instead by each script's own `--self-test`/live CLI, exercised directly
+    in this phase's own break tests, not by this matrix. Renaming to a dispatch-checked prefix
+    is Phase 34's ANCH-01 scope.
+
+    RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
+    function's 15-ID roster and `.planning/milestones/v8.21.0-REQUIREMENTS.md`'s own roster is
+    kept equal by transcription and by a one-off manual set-equality check run at Plan
+    01/02 time, not by anything mechanical — `.planning/` is gitignored and can never be
+    read by a CI gate, so no verb can join the two rosters live.
+
+    Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
+
+    Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
+    """
+    audit_reg04 = (
+        "check-registration.py compares each skill's frontmatter name: to its own directory "
+        "basename (confirmed by the live fishbone-name break) and the live 14-skill count "
+        "matches discover_skills(); it does not check manifest registration of skills -- the "
+        "shipped plugin.json carries no skills/agents name or type roster for "
+        "extract_registered_paths to compare against, so the 'registered in manifest' clause "
+        "is not re-run by any control."
+    )
+    audit_reg05 = (
+        "check-registration.py compares the agent's frontmatter name: to the expected "
+        "basename (confirmed by the live agent-name break); it does not check manifest "
+        "registration of the agent -- the shipped plugin.json carries no skills/agents name "
+        "or type roster for extract_registered_paths to compare against, so the 'registered "
+        "in manifest' clause is not re-run by any control."
+    )
+    audit_gate01 = (
+        "check-registration.py's own docstring states its --self-test runs offline, "
+        "deterministic fixtures independent of the live tree and any live session; no leg "
+        "compares two runs against each other or fails specifically on a live-session "
+        "dependency, so this determinism claim is stated, not re-run, by any control."
+    )
+    audit_gate06 = (
+        "scripts/check-firewall-battery.sh re-runs REG-GUARD and keeps the battery green; the "
+        "historical delta this statement quotes has since moved, read by direct count "
+        "(rederive.py or scripts/check-firewall-battery.sh), not restated here (v9.2.1/REL-15 "
+        "precedent for a part-re-run claim)."
+    )
+    audit_val01 = (
+        "scripts/check-firewall-battery.sh re-runs the full gate battery and reports its own "
+        "live GREEN state; the historical count this statement quotes has since moved, read "
+        "by direct count (rederive.py or scripts/check-firewall-battery.sh), not restated "
+        "here (v9.2.1/REL-15 precedent for a part-re-run claim)."
+    )
+    return [
+        MatrixRow("v8.21/REG-01", "REG-01", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "reproducible", "scripts/check-registration.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate enumerates all skill directories under `first-principles/skills/` ✓"
+                  )),
+        MatrixRow("v8.21/REG-02", "REG-02", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "reproducible", "scripts/check-registration.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate enumerates the main agent at "
+                      "`first-principles/agents/first-principles.md` ✓"
+                  )),
+        MatrixRow("v8.21/REG-03", "REG-03", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "reproducible", "scripts/check-registration.py", "",
+                  surfaces=("apparatus",),
+                  statement="Gate reads and parses plugin manifest ✓"),
+        MatrixRow("v8.21/REG-04", "REG-04", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "audit-only", "", audit_reg04,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate validates all 14 skills are registered in manifest with correct "
+                      "name/type ✓"
+                  )),
+        MatrixRow("v8.21/REG-05", "REG-05", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "audit-only", "", audit_reg05,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate validates main agent is registered in manifest with correct "
+                      "name/type ✓"
+                  )),
+        MatrixRow("v8.21/REG-06", "REG-06", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "reproducible", "scripts/check-registration.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate reports human-readable summary: registered entries vs. discovered "
+                      "entries ✓"
+                  )),
+        MatrixRow("v8.21/GATE-01", "GATE-01", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "audit-only", "", audit_gate01,
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Offline gate script `check-registration.py` runs deterministically (no "
+                      "live session) ✓"
+                  )),
+        MatrixRow("v8.21/GATE-02", "GATE-02", "v8.21", "Test-Network",
+                  "scripts/check-registration.py",
+                  "reproducible", "scripts/check-registration.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate includes `--self-test` fixture with positive and negative "
+                      "controls ✓"
+                  )),
+        MatrixRow("v8.21/GATE-03", "GATE-03", "v8.21", "Test-Network",
+                  ".github/workflows/validation.yml",
+                  "reproducible",
+                  "scripts/check-registration.py#verify_ci_job_registration", "",
+                  surfaces=("apparatus",),
+                  statement="CI job registered in `.github/workflows/validation.yml` ✓"),
+        MatrixRow("v8.21/GATE-04", "GATE-04", "v8.21", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Gate call registered in `bash scripts/check-firewall-battery.sh` ✓"
+                  )),
+        MatrixRow("v8.21/GATE-05", "GATE-05", "v8.21", "Test-Network",
+                  "CLAUDE.md",
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "CLAUDE.md updated with gate definition in CI gates table ✓"
+                  )),
+        MatrixRow("v8.21/GATE-06", "GATE-06", "v8.21", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "audit-only", "", audit_gate06,
+                  surfaces=("apparatus",),
+                  statement="Battery moves from 21/21 to 22/22, stays GREEN ✓"),
+        MatrixRow("v8.21/VAL-01", "VAL-01", "v8.21", "Test-Network",
+                  "scripts/check-firewall-battery.sh",
+                  "audit-only", "", audit_val01,
+                  surfaces=("apparatus",),
+                  statement="Battery runs `FIREWALL: GREEN (22/22)` ✓"),
+        MatrixRow("v8.21/VAL-02", "VAL-02", "v8.21", "Test-Network",
+                  "scripts/check-version-stamps.py",
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "All 17 version stamps remain in lockstep (VERSION-01 still green) ✓"
+                  )),
+        MatrixRow("v8.21/VAL-03", "VAL-03", "v8.21", "Test-Network",
+                  "scripts/sync-content.py",
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("apparatus",),
+                  statement=(
+                      "Sync between `shared/` and generated tree stays clean (DUAL-04 still "
+                      "green) ✓"
                   )),
     ]
 
@@ -4194,18 +4662,20 @@ def _rows_v921() -> list[MatrixRow]:
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Twelve inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Thirteen inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
     at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12; (h) was
     added at v8.26 Phase 16; (i) was added at v9.0 Phase 23; (j) was added at v9.1 Phase 27;
-    (k) was added at v9.2 Phase 28; (l) was added at v9.2.1 Phase 31.
+    (k) was added at v9.2 Phase 28; (l) was added at v9.2.1 Phase 31;
+    (m) was added at v9.3.0 Phase 33.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
         GEN-01 reproducible (Phase 93 flip, artifact bumped to v7.11 baseline Phase 131 RECON-03),
         GEN-02 + residuals reproducible. RR-114-01 supersedes RR-108-01 (Phase 114 v7.6);
         RR-108-02 CLOSED at 4/5 v7.6 (ID retained, sentinel present);
-        RR-117-01/RR-117-02 added Phase 117 CONF-02; RR-119-01/RR-119-02 added Phase 119 CONF-04.
+        RR-117-01/RR-117-02 added Phase 117 CONF-02; RR-119-01/RR-119-02 added Phase 119 CONF-04;
+        RR-108-04/RR-108-05 added Phase 33 (RESID-01).
     (c) v7.9 milestone (8 rows) — first milestone block since v5.3; all reproducible
         (Phase 123, D-01). NEGCAT-01/02 (Phase 120), OCH-01/02/03 (Phase 121),
         COLLIDE-01/02 (Phase 122), RECON-01 (Phase 123).
@@ -4275,6 +4745,16 @@ def build_matrix_rows() -> list[MatrixRow]:
         count. See `_rows_v921()` for the full per-row rationale and its DISCLOSED BOUNDARY:
         only REL-17 carries a `#_self_test_*` anchor, the other 3 reproducible rows carry a
         bare script or directory path that `_resolve_artifact()` does not dispatch-check.
+    (m) v8.19/v8.20/v8.21 milestones (24 rows, 16 reproducible + 8 audit-only) — Phase 33/
+        ROWS-01: v8.19 (4 rows, 3 reproducible + 1 audit-only), v8.20 (5 rows, 3 reproducible
+        + 2 audit-only) and v8.21 (15 rows, 10 reproducible + 5 audit-only). v8.19/HC-01..03
+        carry Methodology (rubric prose); v8.19/HC-04, all v8.20 rows and all v8.21 rows carry
+        Test-Network (gate/harness/release apparatus). Audit-only rows, named individually,
+        never by count: v8.19/HC-04; v8.20/HARN-01-01, v8.20/HARN-01-04; v8.21/REG-04,
+        v8.21/REG-05, v8.21/GATE-01, v8.21/GATE-06, v8.21/VAL-01. Called between
+        `_rows_v818()` and `_rows_v824()`. See `_rows_v819()`, `_rows_v820()` and
+        `_rows_v821()` for the full per-row rationale and each function's own DISCLOSED
+        BOUNDARY paragraph.
 
     REACH-or-LEVEL determination (Phase 33, backlog 999.93/999.94/999.95), recorded before any
     v8.19, v8.20 or v8.21 batch function exists.
@@ -4345,6 +4825,12 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v711())
     # --- v8.18 milestone (D-05 / Phase 4) — 21 reproducible + 2 audit-only ---
     rows.extend(_rows_v818())
+    # --- v8.19 milestone (Phase 33 / ROWS-01) — 3 reproducible + 1 audit-only ---
+    rows.extend(_rows_v819())
+    # --- v8.20 milestone (Phase 33 / ROWS-01) — 3 reproducible + 2 audit-only ---
+    rows.extend(_rows_v820())
+    # --- v8.21 milestone (Phase 33 / ROWS-01) — 10 reproducible + 5 audit-only ---
+    rows.extend(_rows_v821())
     # --- v8.24 milestone (D-06 / Phase 6) — 14 reproducible + 1 audit-only ---
     rows.extend(_rows_v824())
     # --- v8.25 milestone (Phase 12 / A1 / A2) — all 14 reproducible as of Phase 13 ---
