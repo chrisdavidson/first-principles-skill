@@ -645,6 +645,30 @@ def _headline_scan_read(
 
 @dataclass(frozen=True)
 class MatrixRow:
+    """The single internal row representation `emit_matrix()` writes into both
+    `docs/data/matrix.json` and `docs/requirements-matrix.md` — every requirement's matrix
+    entry passes through exactly one instance of this class before either generated
+    artifact is rendered.
+
+    REACH-or-LEVEL determination (docs/PROCESS.md §1.1), recorded before either field exists
+    (D-15). The two planned fields, `surfaces` and `statement`, are data carried by the
+    matrix, a product surface under docs/PROCESS.md §2 because it asserts facts to readers
+    outside the build loop; adding a field is not a guard. The one guarding change planned
+    with them is D-13: TRACE-03's existing `--self-test` gains a live leg running the
+    row-field checks over `build_matrix_rows()`, which points an existing product guard at
+    more fields of the product surface it already guards. That is REACH, not LEVEL: the
+    leg's subject is the matrix rows, not another guard's correctness. No new registered
+    gate, battery registration or CI job is added (standing D-D); both counts are read by
+    direct count through scripts/check-registration.py's parsers at the phase base and at
+    phase exit.
+
+    Limits stated where the fields live. A surfaces value is a hand-assigned classification
+    the matrix states, not a measurement it proves; no statement is reconstructed (D-T4) — a
+    row carries sourced wording or the literal `statement unrecoverable`; archive-sourced
+    statement fidelity is re-readable locally against untracked archives and is not checked
+    in CI (D-14).
+    """
+
     key: str              # milestone-qualified: "v3.1/ROUTE-02"
     bare_id: str          # "ROUTE-02"
     milestone: str        # "v3.1"
