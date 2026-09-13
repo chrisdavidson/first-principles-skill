@@ -49,9 +49,13 @@ reading for both is backlog **999.89**, whose census must also count `Read` of
   `examples/composed-inversion-second-order.md` every token but `Quoted span`, and
   `assumption-taxonomy.md` `Hand-wavy` — so a verdict-block token in a live run's output is not
   evidence of the rubric read; only a `Read` `tool_use` of `references/validation-rubric.md` is.
-  Every referent the justification sentence cites (`## Scoring Model`, the
-  Rigorous descriptor, `## Verdict Block Format`, the Hand-wavy cap) was confirmed present in
-  `shared/spine/references/validation-rubric.md` before the wording was fixed.
+  Every referent the shipped justification sentence cites resolves in
+  `shared/spine/references/validation-rubric.md`: the scoring scale (`## Scoring Model`), the
+  Absent verdict (that section's **Absent** level and its **Gate:** rule), the two conditions that
+  clear the gate (`## How to Apply This Gate`'s two numbered conditions, restated as the **Pass:**
+  line under `## Scoring Model`), and the fields a verdict block carries (`## Verdict Block
+  Format`). This list was re-confirmed at the phase's code review (WR-04), which found that the
+  record first published here named an earlier draft's referents instead.
 
 ### Fixed
 
