@@ -219,7 +219,7 @@ Provenance is a property of **what this analysis did**, never of who supplied th
 
 **Entry criterion:** The Derivation Chains artifact from Phase 4 is complete — all conclusions have chains and the core question is answered.
 
-**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the criteria in the [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring, and it scores this analysis's own structure, not the subject matter. Do not re-author the criteria here; apply them.
+**Operation:** Stress-test the analysis. For each conclusion, trace the derivation chain back to its named ground truths and check that every link holds. Identify the weakest link in each chain — the step where the reasoning is most dependent on an assumption that is not fully verified, or where the inferential gap is largest. Check whether any unverified assumption (`GT-N?`) is load-bearing for a high-stakes conclusion; if it is, either verify it now or apply a confidence caveat to the conclusion. Apply the criteria in the [Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a systematic check — that document defines the criteria, levels, and scoring, and it scores this analysis's own structure, not the subject matter. Do not re-author the criteria here; apply them. The rubric is opened once, at the Self-Audit Gate under "Before presenting conclusions", immediately before scoring — not at this step.
 
 **Named artifact:** Signed-off analysis — the complete output document with all sections present, all conclusions traced to named ground truths, and all weak links either resolved or explicitly flagged with confidence caveats. The signed-off analysis is what the methodology produces as its deliverable.
 
@@ -351,8 +351,19 @@ If any Fix step adds, removes, renames or re-renders a §4 chain, or edits a §6
 This prescription binds the emission; no gate in this tree checks that a given run complied with it — a gate can assert the prescription is present and well-formed, never that a run obeyed it.
 
 Only once the ledger is clean — every surviving §6 claim carries a chain reference — does the
-Self-Audit Gate begin. Score the completed analysis against the criteria in the
-[Self-Audit Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md) as a feedback loop:
+Self-Audit Gate begin.
+
+**Open the Self-Audit Gate's rubric once, before scoring the first criterion.** This read is
+spent on the gate itself — the Fix/Repeat loop the turn discipline rule above names as the turn
+budget's first claim — so it fires once per analysis, after the self-audit scan is emitted and
+before the first verdict block, and never again on the re-score. Use Read on the [Self-Audit
+Gate](${CLAUDE_PLUGIN_ROOT}/agents/references/validation-rubric.md): this body names the gate,
+its Absent verdict and its Verdict Block Format without defining the scoring scale, the two
+conditions that clear the gate, or the fields a verdict block carries, and a gate scored without
+those definitions is scored against criteria re-authored from recollection. If that read fails,
+do not score from recollection: emit no verdict blocks, and disclose that the Self-Audit Gate did
+not run under the rule that closes this section. Otherwise, score the completed analysis against
+those criteria as a feedback loop:
 
 1. **Validate** — apply each gate criterion; quote the specific span that satisfies or fails each criterion — from the analysis text, or, per the Verdict Block Format's admission, from the self-audit scan for Criteria 4 and 6, and the Assumption Audit scan for Criterion 2.
 2. **Fix** — revise every criterion that does not pass.
