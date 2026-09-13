@@ -94,8 +94,9 @@ transcription only; the rest of either row's prose remains unasserted.
 `build_matrix_rows()` inside `--self-test`, so a matrix row with an empty surfaces value or a value
 outside the vocabulary (the directories under `shared/skills/`, plus `agent` and `apparatus`,
 derived live) fails CI; controls feed a row with empty surfaces and a row naming an unknown slug and
-require both flagged, and require `check_consistency()` to report the same problem. Disclosed bound:
-the leg proves a value is present and in vocabulary, not that it is the right classification.
+require both flagged, and require `check_consistency()` to report the empty-surfaces problem identically.
+Disclosed bound: the leg proves a value is present and in vocabulary, not that it is the right
+classification.
 
 The same leg also re-reads, live, every row registered in `_SURFACES_EVIDENCE_EXCLUSIONS` (CR-01 —
 "a gate that excludes is not a gate that pins"): it parses the row's own cited gate's named
@@ -115,9 +116,10 @@ absolute path, `.planning/`, or `docs/history/`), a missing file, or a file whos
 contain the statement (D-03) — re-reading every real `_STATEMENT_CITATIONS` entry live, plus a
 blank-statement control, an unsourced-statement control, citation positive/negative controls, an
 archive-row-citation control, and a `render_matrix_markdown()` pipe-escaping control. Disclosed bound
-(D-14): archive-sourced statement fidelity is re-read locally against each milestone's own
-untracked requirements archive and is not checked in CI — only the tracked-surface half of D-02's
-sourcing rule is CI-checked here.
+(D-14): archive-era statement wording is not re-read by any tracked tool — not CI, not this
+`--self-test`, not the `check` subcommand; the leg checks those statements for presence, one-line
+form and marker/citation form only, and only the tracked-surface half of D-02's sourcing rule is
+re-read here.
 
 ## Provenance
 
