@@ -43,9 +43,13 @@ reading for both is backlog **999.89**, whose census must also count `Read` of
   closes this section." The Phase 5 Operation site (`shared/spine/SKILL-body.md:175`, emitted
   `:222`) gained a tool-free pointer sentence deferring to this read, so the imperative still fires
   exactly once per analysis. This phase deliberately declined 999.88's own precedent of naming its
-  template's tokens: the five rubric-only tokens still read **0** in the body on both surfaces,
-  preserving R1's control that verdict-block vocabulary in a live run's output can only have come
-  from an actual read. Every referent the justification sentence cites (`## Scoring Model`, the
+  template's tokens: the five rubric-only tokens still read **0** in the body on both surfaces.
+  That zero bounds what the body itself supplies, and nothing more: three other references the
+  body links carry the same vocabulary — `examples/ishikawa-fishbone.md` all five tokens,
+  `examples/composed-inversion-second-order.md` every token but `Quoted span`, and
+  `assumption-taxonomy.md` `Hand-wavy` — so a verdict-block token in a live run's output is not
+  evidence of the rubric read; only a `Read` `tool_use` of `references/validation-rubric.md` is.
+  Every referent the justification sentence cites (`## Scoring Model`, the
   Rigorous descriptor, `## Verdict Block Format`, the Hand-wavy cap) was confirmed present in
   `shared/spine/references/validation-rubric.md` before the wording was fixed.
 
