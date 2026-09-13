@@ -98,16 +98,12 @@ require both flagged, and require `check_consistency()` to report the empty-surf
 Disclosed bound: the leg proves a value is present and in vocabulary, not that it is the right
 classification.
 
-The same leg also re-reads, live, every row registered in `_SURFACES_EVIDENCE_EXCLUSIONS` (CR-01 —
-"a gate that excludes is not a gate that pins"): it parses the row's own cited gate's named
-module-level constants via `ast.parse` and flags any slug the row's `surfaces` still credits that
-those constants exclude from what that gate verifies, and separately requires every bare
-skills-directory row citing `scripts/check-focused-parity.py` to be registered there in the first
-place. Disclosed bound: only rows citing that named gate are required to register — a
-directory-wide row citing a different gate that also excludes a slug from what it verifies is not
-detected; and the named constants are read from the gate as it stands in the working tree, not as
-it stood at the row's own milestone tag, so a later rename of a named constant fails loudly rather
-than silently excluding nothing.
+No leg of this gate checks a row's `surfaces` value against the population any gate
+verifies — surfaces is not checked against any gate's population. A bare skills-directory row's
+value is the expansion at its milestone tag minus only the slugs the row's own sourced statement
+(or a same-batch sourced statement) excludes, stated in the `MatrixRow` docstring of
+`scripts/check-traceability.py`; that value is a classification the matrix states, not a
+measurement this gate proves. An earlier live re-read of another script's constants was retired.
 
 The same leg also flags a blank or multi-line `statement`, a statement that is neither
 archive-sourced, cited in `_STATEMENT_CITATIONS`, nor the literal `statement unrecoverable` (D-T4),
