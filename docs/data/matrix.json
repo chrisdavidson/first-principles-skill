@@ -4667,7 +4667,6 @@
     "surfaces": [
       "challenge-assumptions",
       "estimate",
-      "first-principles-analysis",
       "fishbone",
       "five-whys",
       "ground-truths",
@@ -4694,7 +4693,6 @@
     "surfaces": [
       "challenge-assumptions",
       "estimate",
-      "first-principles-analysis",
       "fishbone",
       "five-whys",
       "ground-truths",
@@ -4875,18 +4873,14 @@
     "surfaces": [
       "challenge-assumptions",
       "estimate",
-      "first-principles-analysis",
       "fishbone",
       "five-whys",
       "ground-truths",
-      "identify-essence",
       "inversion",
       "pre-mortem",
-      "reason-upward",
       "second-order",
       "theoretical-limit",
-      "trade-off",
-      "validate"
+      "trade-off"
     ],
     "statement": "the ten unclassified-facts stubs keep v9.2.0's tail **byte-unchanged**. *Target: stubs in the unclassified-facts class carrying the v9.2.0 tail verbatim = the full class population, re-derived at execution time (reading: 13 stubs carry it; 10 must still carry it at close, 3 must not).*"
   },

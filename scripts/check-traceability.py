@@ -34,6 +34,7 @@ check: reads matrix.json, validates every row has a valid capability and
 """
 
 import argparse
+import ast
 import contextlib
 import io
 import json
@@ -701,11 +702,24 @@ class MatrixRow:
         `-detail.md` sibling, or the matching `first-principles/agents/references/<slug>.md`
         path names the slug PLUS `agent` — that procedure text is emitted into both the
         agent reference sibling and the skill stub, so both shipped surfaces carry it.
-      - P-DIR (D-10, locked — never overridden by a row's statement): a bare
-        `first-principles/skills` or `shared/skills` path expands to every slug present in
-        `git ls-tree --name-only <tag> first-principles/skills/`, `tag` = the row's own
-        milestone (or that milestone plus `.0` when the bare tag does not exist) — skills
-        added later do not inherit credit for requirements that predate them.
+      - P-DIR (D-10, locked by default): a bare `first-principles/skills` or `shared/skills`
+        path expands to every slug present in `git ls-tree --name-only <tag>
+        first-principles/skills/`, `tag` = the row's own milestone (or that milestone plus
+        `.0` when the bare tag does not exist) — skills added later do not inherit credit
+        for requirements that predate them. **P-DIR-SCOPED** (a scope clarification of D-10
+        made at Phase 32 gap closure, CR-01, standing instruction 7 — "a gate that excludes
+        is not a gate that pins"): when the row's own sourced statement states its
+        population as a subset of the directory, and the row's cited gate reads
+        module-level constants that exclude slugs from that population, the row's surfaces
+        value is the tag expansion MINUS the slugs those constants name. The row and the
+        constants it subtracts are registered in `_SURFACES_EVIDENCE_EXCLUSIONS` and
+        re-read live by TRACE-03's `--self-test` ROW-FIELDS leg, so a later rename or
+        removal of a named constant forces the row's classification to be revisited rather
+        than silently going stale. P-DIR-SCOPED replaces the reading Phase 32 first
+        executed here, which credited every slug at the tag unconditionally regardless of
+        the row's own statement; reversing P-DIR-SCOPED means restoring the full
+        tag-expansion tuple on the affected rows and choosing 32-REVIEW.md CR-01's fix (b)
+        instead.
       - P-AGENT: a path under `first-principles/agents/`, `shared/spine/`, `shared/agent/`,
         or `shared/examples` names `agent`.
       - P-AGENT-SUBJECT (D-11's "subject is the agent body" test, path-only): one of
@@ -723,8 +737,10 @@ class MatrixRow:
     `shared/skills/<slug>`, `first-principles/skills/<slug>`, "<slug> skill", or "<slug>
     stub" (guarding the `validate`-verb collision — the CLI verb "validate" and
     `claude plugin validate` are not the skill), that slug is added to the path-derived
-    value. P-DIR rows are exempt from this override (D-10 is locked). Every v8.18+ batch in
-    this module was hand-reviewed against this rule at Phase 32 Task 1: no row's statement
+    value. P-DIR rows never gain a slug from this override — the skill-mention addition
+    still never fires on a P-DIR row; the only departure from a plain P-DIR expansion is the
+    P-DIR-SCOPED subtraction described above. Every v8.18+ batch in this module was
+    hand-reviewed against this rule at Phase 32 Task 1: no row's statement
     contradicted its own path-derived agent/apparatus classification, so no row in this
     module's history needed an agent<->apparatus override — only the skill-mention addition
     ever fires, and it fires nowhere in the current row set.
@@ -3709,7 +3725,7 @@ def _rows_v92() -> list[MatrixRow]:
     rosters live. See `_rows_v91()`'s identical paragraph for the precedent rather than
     re-arguing it.
 
-    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR. P-DIR rows at tag v9.2.0 expand to the skills present in `git ls-tree --name-only v9.2.0 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows; none departs from its path-derived value.
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR. P-DIR rows at tag v9.2.0 expand to the skills present in `git ls-tree --name-only v9.2.0 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; SUP-03 and SUP-04 are P-DIR-SCOPED rows (CR-01) whose surfaces value is the tag-v9.2.0 expansion minus `LAUNCHER_SLUG` from `scripts/check-focused-parity.py`, matching SUP-03's own statement that the launcher carries no such line, with SUP-04's population equal to the SUP-03 population; no other row in this batch departs from its path-derived value.
 
     Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
     """
@@ -3761,7 +3777,7 @@ def _rows_v92() -> list[MatrixRow]:
         MatrixRow("v9.2/SUP-03", "SUP-03", "v9.2", "Methodology",
                   "first-principles/skills",
                   "reproducible", "scripts/check-focused-parity.py", "",
-                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate"),
+                  surfaces=("challenge-assumptions", "estimate", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate"),
                   statement=(
                       "Every focused stub carrying a closing handoff routes its output into the main "
                       "agent as a candidate input for Phase 2, not into a challenge-exempt slot. "
@@ -3773,7 +3789,7 @@ def _rows_v92() -> list[MatrixRow]:
         MatrixRow("v9.2/SUP-04", "SUP-04", "v9.2", "Methodology",
                   "first-principles/skills",
                   "reproducible", "scripts/check-focused-parity.py", "",
-                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate"),
+                  surfaces=("challenge-assumptions", "estimate", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate"),
                   statement=(
                       "Every such handoff states, at the point of handoff, that the run opened no "
                       "cited source and that its `?` marks carry forward. *Target: stubs stating it = "
@@ -3961,7 +3977,7 @@ def _rows_v921() -> list[MatrixRow]:
     rosters live. See `_rows_v92()`'s and `_rows_v91()`'s identical paragraph for the
     precedent rather than re-arguing it.
 
-    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows; none departs from its path-derived value.
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows generally; HAND-04 is a P-DIR-SCOPED row (CR-01) whose surfaces value is the tag-v9.2.1 expansion minus `LAUNCHER_SLUG` and `_HANDOFF_ROUTED_SLUGS` from `scripts/check-focused-parity.py`, matching the statement's "the ten unclassified-facts stubs"; no other row in this batch departs from its path-derived value.
 
     Statements: verbatim requirement text from this milestone's own requirements archive -- the whole bullet after the bold ID, excluding any Exit: clause and any nested evidence blockquote, whitespace collapsed (D-01).
     """
@@ -4045,7 +4061,7 @@ def _rows_v921() -> list[MatrixRow]:
         MatrixRow("v9.2.1/HAND-04", "HAND-04", "v9.2.1", "Methodology",
                   "first-principles/skills",
                   "reproducible", "scripts/check-focused-parity.py", "",
-                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate"),
+                  surfaces=("challenge-assumptions", "estimate", "fishbone", "five-whys", "ground-truths", "inversion", "pre-mortem", "second-order", "theoretical-limit", "trade-off"),
                   statement=(
                       "the ten unclassified-facts stubs keep v9.2.0's tail **byte-unchanged**. "
                       "*Target: stubs in the unclassified-facts class carrying the v9.2.0 tail "
@@ -4646,6 +4662,170 @@ def _statement_citation_problems(
     return problems
 
 
+# CR-01 (32-REVIEW.md), standing instruction 7 — "a gate that excludes is not
+# a gate that pins". Three P-DIR rows (v9.2/SUP-03, v9.2/SUP-04,
+# v9.2.1/HAND-04) credited `surfaces` with every slug the P-DIR tag expansion
+# names, even though each row's own cited gate (scripts/check-focused-parity.py)
+# reads a module-level constant naming slugs it explicitly EXCLUDES from what
+# that row's own checks verify. This map is the pin: `_surfaces_evidence_problems`
+# reads each named constant live and flags any slug the row still credits that
+# the constant excludes.
+#
+# D-10 scope clarification (P-DIR-SCOPED, applied at Phase 32 gap closure): a
+# P-DIR row whose own sourced statement states its population as a subset of
+# the directory, and whose cited gate reads module-level constants excluding
+# slugs from that population, takes the tag expansion MINUS the slugs those
+# constants name. See the `MatrixRow` docstring's P-DIR-SCOPED bullet for the
+# full rule and how to reverse it.
+#
+# Disclosed bound: `_read_module_constant_slugs` reads the named constants
+# from the gate as it stands in the CURRENT working tree, not as it stood at
+# the row's own milestone tag — a CI checkout carries no tags to read from. A
+# later rename or removal of a named constant therefore fails loudly (the read
+# returns `None`, which raises a named problem) rather than silently excluding
+# nothing, forcing the row's classification to be revisited. That is intended.
+_SURFACES_EVIDENCE_EXCLUSIONS: dict[str, tuple[str, tuple[str, ...]]] = {
+    "v9.2/SUP-03": ("scripts/check-focused-parity.py", ("LAUNCHER_SLUG",)),
+    "v9.2/SUP-04": ("scripts/check-focused-parity.py", ("LAUNCHER_SLUG",)),
+    "v9.2.1/HAND-04": (
+        "scripts/check-focused-parity.py",
+        ("LAUNCHER_SLUG", "_HANDOFF_ROUTED_SLUGS"),
+    ),
+}
+
+
+def _read_module_constant_slugs(rel_path: str, name: str) -> frozenset[str] | None:
+    """Read a top-level module constant's slug value(s) out of *rel_path* via
+    `ast.parse` alone — the file's text is never imported or executed by any
+    mechanism, because doing so would run the cited gate's top-level code
+    (T-32-14). Returns:
+
+      - a one-element frozenset for a plain `str` constant's value;
+      - the elements of a `set`/`frozenset`/`tuple`/`list` literal, or of a
+        `frozenset(...)`/`set(...)` call wrapping exactly one such literal
+        (read via `ast.literal_eval` on the literal node only, never on the
+        call);
+      - `None` when the file is missing, its resolved path falls outside
+        REPO_ROOT (T-32-15, the same confinement pattern
+        `_statement_citation_problems` uses), no top-level assignment binds
+        *name* alone, or the value is any other shape. `None` is always a
+        defect signal to the caller — it is never treated as an empty
+        exclusion set.
+    """
+    if rel_path.startswith("/"):
+        return None
+    candidate = (REPO_ROOT / rel_path).resolve()
+    if not str(candidate).startswith(str(REPO_ROOT) + "/"):
+        return None
+    if not candidate.is_file():
+        return None
+    try:
+        tree = ast.parse(candidate.read_text(encoding="utf-8"))
+    except SyntaxError:
+        return None
+    for node in tree.body:
+        if isinstance(node, ast.Assign):
+            targets = node.targets
+            value = node.value
+        elif isinstance(node, ast.AnnAssign):
+            targets = [node.target]
+            value = node.value
+        else:
+            continue
+        if len(targets) != 1 or not isinstance(targets[0], ast.Name):
+            continue
+        if targets[0].id != name or value is None:
+            continue
+        if isinstance(value, ast.Constant) and isinstance(value.value, str):
+            return frozenset({value.value})
+        literal_node = value
+        if (
+            isinstance(value, ast.Call)
+            and isinstance(value.func, ast.Name)
+            and value.func.id in ("frozenset", "set")
+            and len(value.args) == 1
+            and not value.keywords
+        ):
+            literal_node = value.args[0]
+        if isinstance(literal_node, (ast.Set, ast.Tuple, ast.List)):
+            try:
+                literal_value = ast.literal_eval(literal_node)
+            except (ValueError, SyntaxError):
+                return None
+            return frozenset(literal_value)
+        return None
+    return None
+
+
+def _surfaces_evidence_problems(
+    rows: list[MatrixRow], exclusions: dict[str, tuple[str, tuple[str, ...]]]
+) -> list[str]:
+    """CR-01 (32-REVIEW.md), standing instruction 7 — "a gate that excludes
+    is not a gate that pins". For every row registered in *exclusions*,
+    re-read the cited gate's own named module-level constants live and flag
+    any slug the row's `surfaces` still credits that those constants exclude
+    from what the row's cited gate verifies. Also requires every bare
+    skills-directory row citing `scripts/check-focused-parity.py` to be
+    registered in *exclusions* in the first place, so a future such row
+    cannot silently omit the pin.
+
+    Disclosed bound (stated, not hidden): only rows whose `artifact_link`
+    (the part before `#`) equals `scripts/check-focused-parity.py` are
+    required to register here. A directory-wide row citing a DIFFERENT gate
+    that also excludes a slug from what it verifies is not detected by this
+    check.
+
+    Scope note: a registered key absent from *rows* is skipped rather than
+    flagged, because `check_consistency()` is also called by this module's own
+    self-test fixtures on small synthetic subsets that share none of these
+    three keys — the row-existence/bare-id integrity of `v9.2/SUP-03`,
+    `v9.2/SUP-04` and `v9.2.1/HAND-04` is already floored by the batch's own
+    `_self_test_v92_rows_sentinel`/`_self_test_v921_rows_sentinel` ID locks, so
+    nothing is lost by not re-asserting it here.
+    """
+    problems: list[str] = []
+    by_key = {row.key: row for row in rows}
+
+    for key, (path, names) in exclusions.items():
+        if key not in by_key:
+            continue
+        row = by_key[key]
+        excluded_by: dict[str, str] = {}
+        for name in names:
+            slugs = _read_module_constant_slugs(path, name)
+            if slugs is None:
+                problems.append(
+                    f"{key}: surfaces exclusion constant {name!r} not readable "
+                    f"from {path!r}"
+                )
+                continue
+            for slug in slugs:
+                excluded_by.setdefault(slug, name)
+        for slug in row.surfaces:
+            if slug in excluded_by:
+                name = excluded_by[slug]
+                problems.append(
+                    f"{key}: surfaces credits {slug!r}, which {path} {name} "
+                    "excludes from what the row's cited gate verifies (CR-01)"
+                )
+
+    for row in rows:
+        link_before_hash = row.artifact_link.split("#", 1)[0]
+        deliverable_before_hash = row.deliverable_path.split("#", 1)[0]
+        is_bare_skills_dir = (
+            deliverable_before_hash in ("first-principles/skills", "shared/skills")
+            or link_before_hash in ("first-principles/skills", "shared/skills")
+        )
+        if is_bare_skills_dir and link_before_hash == "scripts/check-focused-parity.py":
+            if row.key not in exclusions:
+                problems.append(
+                    f"{row.key}: bare skills-directory row citing "
+                    "scripts/check-focused-parity.py is not registered in "
+                    "_SURFACES_EVIDENCE_EXCLUSIONS (CR-01)"
+                )
+    return problems
+
+
 def _row_field_problems(
     row: MatrixRow, citations: dict[str, str] | None = None
 ) -> list[str]:
@@ -4711,6 +4891,10 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
       - every `_STATEMENT_CITATIONS` entry is re-read live: its path must stay
         inside the tracked tree and its file must contain the row's statement
         (D-03/D-14), via `_statement_citation_problems()`
+      - every row registered in `_SURFACES_EVIDENCE_EXCLUSIONS` must not credit
+        a slug its own cited gate's named module-level constants exclude, and
+        every bare skills-directory row citing `scripts/check-focused-parity.py`
+        must be registered there (CR-01), via `_surfaces_evidence_problems()`
     """
     issues: list[str] = []
     for row in rows:
@@ -4730,6 +4914,7 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
                 issues.append(f"{row.key}: {issue}")
         issues.extend(_row_field_problems(row))
     issues.extend(_statement_citation_problems(rows, _STATEMENT_CITATIONS))
+    issues.extend(_surfaces_evidence_problems(rows, _SURFACES_EVIDENCE_EXCLUSIONS))
     return issues
 
 
@@ -9373,6 +9558,20 @@ def _self_test_row_fields_live(wrong_results: list[str]) -> None:
     (k) render control: `render_matrix_markdown()` over a two-row synthetic set (one
         statement containing a literal `|`, one the marker) escapes the pipe in the
         table and reports a `- rows:` bullet equal to the set size.
+    (l) live surfaces-evidence re-read (CR-01): `_surfaces_evidence_problems(rows,
+        _SURFACES_EVIDENCE_EXCLUSIONS)` must be empty — no registered row credits a
+        slug its own cited gate's named constants exclude, and no bare skills-directory
+        row citing `scripts/check-focused-parity.py` is left unregistered.
+    (m) credited-excluded-slug control: `v9.2/SUP-03`'s surfaces plus
+        `first-principles-analysis` must be flagged by `_surfaces_evidence_problems()`,
+        and `check_consistency()` over the full row list with that one row replaced
+        must report the identical message.
+    (n) unregistered-row control: a synthetic bare skills-directory row citing
+        `scripts/check-focused-parity.py`, added to the live rows, must be flagged as
+        unregistered in `_SURFACES_EVIDENCE_EXCLUSIONS`.
+    (o) unreadable-constant control: an exclusions mapping naming a constant that does
+        not exist in the cited gate must be flagged by name, rather than silently
+        excluding nothing.
     """
     rows = build_matrix_rows()
     if not rows:
@@ -9577,6 +9776,108 @@ def _self_test_row_fields_live(wrong_results: list[str]) -> None:
         wrong_results.append("ROW-FIELDS: (k) render control — rows bullet mismatch")
     if render_ok:
         print("check-traceability --self-test: ROW-FIELDS (k) render control PASS")
+
+    # (l) live surfaces-evidence re-read (CR-01, standing instruction 7): no
+    # registered row credits a slug its own cited gate's named constants
+    # exclude, and no bare skills-directory row citing
+    # scripts/check-focused-parity.py is left unregistered.
+    surfaces_evidence_problems = _surfaces_evidence_problems(
+        rows, _SURFACES_EVIDENCE_EXCLUSIONS
+    )
+    if surfaces_evidence_problems:
+        for p in surfaces_evidence_problems[:5]:
+            print(f"check-traceability --self-test: ROW-FIELDS FAIL (l) — {p}")
+        wrong_results.append("ROW-FIELDS: (l) surfaces-evidence problems")
+    else:
+        print(
+            "check-traceability --self-test: ROW-FIELDS (l) surfaces-evidence "
+            "exclusion re-read PASS"
+        )
+
+    # (m) credited-excluded-slug control: crediting the launcher back onto
+    # v9.2/SUP-03 must be flagged, and check_consistency() over the full row
+    # list with that one row replaced must report the identical message.
+    sup03_matches = [r for r in rows if r.key == "v9.2/SUP-03"]
+    if not sup03_matches:
+        wrong_results.append("ROW-FIELDS: (m) v9.2/SUP-03 row not found")
+    else:
+        sup03 = sup03_matches[0]
+        mutated_sup03 = replace(
+            sup03,
+            surfaces=tuple(
+                sorted(set(sup03.surfaces) | {"first-principles-analysis"})
+            ),
+        )
+        mutated_rows = [
+            mutated_sup03 if r.key == "v9.2/SUP-03" else r for r in rows
+        ]
+        direct_problems = _surfaces_evidence_problems(
+            mutated_rows, _SURFACES_EVIDENCE_EXCLUSIONS
+        )
+        matches = [
+            p
+            for p in direct_problems
+            if "v9.2/SUP-03" in p and "first-principles-analysis" in p
+        ]
+        if not matches:
+            wrong_results.append(
+                "ROW-FIELDS: (m) credited-excluded-slug control not flagged"
+            )
+        else:
+            cc_problems = check_consistency(mutated_rows)
+            if matches[0] not in cc_problems:
+                wrong_results.append(
+                    "ROW-FIELDS: (m) check_consistency() did not report the "
+                    "identical surfaces-evidence message"
+                )
+            else:
+                print(
+                    "check-traceability --self-test: ROW-FIELDS (m) "
+                    "credited-excluded-slug control PASS"
+                )
+
+    # (n) unregistered-row control: a synthetic bare skills-directory row
+    # citing scripts/check-focused-parity.py that is NOT registered in
+    # _SURFACES_EVIDENCE_EXCLUSIONS must be flagged.
+    unregistered_row = replace(
+        sample,
+        key="v9.2/CTRL-04",
+        milestone="v9.2",
+        deliverable_path="first-principles/skills",
+        artifact_link="scripts/check-focused-parity.py",
+        surfaces=("fishbone",),
+    )
+    unregistered_problems = _surfaces_evidence_problems(
+        rows + [unregistered_row], _SURFACES_EVIDENCE_EXCLUSIONS
+    )
+    if not any(
+        "v9.2/CTRL-04" in p and "_SURFACES_EVIDENCE_EXCLUSIONS" in p
+        for p in unregistered_problems
+    ):
+        wrong_results.append("ROW-FIELDS: (n) unregistered-row control not flagged")
+    else:
+        print(
+            "check-traceability --self-test: ROW-FIELDS (n) unregistered-row "
+            "control PASS"
+        )
+
+    # (o) unreadable-constant control: a renamed/nonexistent constant name
+    # must fail loudly rather than silently excluding nothing.
+    bad_exclusions = dict(_SURFACES_EVIDENCE_EXCLUSIONS)
+    bad_exclusions["v9.2/SUP-03"] = (
+        "scripts/check-focused-parity.py",
+        ("NO_SUCH_CONSTANT",),
+    )
+    unreadable_problems = _surfaces_evidence_problems(rows, bad_exclusions)
+    if not any("NO_SUCH_CONSTANT" in p for p in unreadable_problems):
+        wrong_results.append(
+            "ROW-FIELDS: (o) unreadable-constant control not flagged"
+        )
+    else:
+        print(
+            "check-traceability --self-test: ROW-FIELDS (o) unreadable-constant "
+            "control PASS"
+        )
 
 
 def _self_test_headline_lock(wrong_results: list[str]) -> None:
@@ -10011,7 +10312,11 @@ def _run_self_test() -> None:
                  negative controls, an archive-row citation control, and a
                  `render_matrix_markdown()` pipe-escaping/rows-bullet control (D-13);
                  closes the gap where `check_consistency()` was previously called live
-                 only by the `check` subcommand, never by `--self-test`.
+                 only by the `check` subcommand, never by `--self-test`. Also runs a
+                 live `_surfaces_evidence_problems()` re-read of every
+                 `_SURFACES_EVIDENCE_EXCLUSIONS` entry's own cited gate constants, plus
+                 a credited-excluded-slug control, an unregistered-row control, and an
+                 unreadable-constant control (CR-01, standing instruction 7).
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
