@@ -2655,14 +2655,14 @@ def _rows_v820() -> list[MatrixRow]:
 
 
 def _rows_v821() -> list[MatrixRow]:
-    """v8.21 milestone rows — 15 requirements, 10 reproducible + 5 audit-only (Phase 33 / ROWS-01).
+    """v8.21 milestone rows — 15 requirements, 9 reproducible + 6 audit-only (Phase 33 / ROWS-01).
 
     All rows carry milestone="v8.21". Keys use the milestone-qualified form
     "v8.21/<bare_id>".
 
     Tiering, decided per row against "does something re-run the claim on every CI run or
     battery pass?" (D-02), never by block — every tier here rests on a break test run once at
-    Phase 33 (33-BREAK-TESTS.md, D-02, standing instruction 7). Five rows are audit-only, each
+    Phase 33 (33-BREAK-TESTS.md, D-02, standing instruction 7). Six rows are audit-only, each
     named and reasoned individually here:
 
       - v8.21/REG-04 and v8.21/REG-05: their "registered in manifest" clause is K4 — the
@@ -2677,10 +2677,17 @@ def _rows_v821() -> list[MatrixRow]:
       - v8.21/GATE-06 and v8.21/VAL-01: their quoted battery counts ("22/22") are stale
         against today's direct count (26); `scripts/check-firewall-battery.sh` re-runs the
         battery-stays-green claim, but not the specific historical delta.
+      - v8.21/REG-06: its "registered entries vs. discovered entries" clause is not re-run —
+        re-tiered audit-only by the Phase 33 code review (CR-01). The Plan 01 break emptied
+        `format_report_text()` whole, which breaks every clause at once and so cannot show
+        any one clause is re-run; a clause-scoped break (removing the `Discovered skills (N):`
+        listing and the `Registration source:` line, keeping the section header) left
+        `--self-test` and the live leg green, because Control 24 pins only the REG-04/REG-05
+        header and the `Failures:` block.
 
-    The remaining 10 rows are reproducible: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03 and
-    v8.21/REG-06 each broke `scripts/check-registration.py` red on their own K2 clause
-    (enumeration, manifest parsing, the human-readable summary); v8.21/GATE-02 broke the same
+    The remaining 9 rows are reproducible: v8.21/REG-01, v8.21/REG-02 and v8.21/REG-03 each
+    broke `scripts/check-registration.py` red on their own K2 clause (enumeration, manifest
+    parsing); v8.21/GATE-02 broke the same
     gate's `--self-test` coverage floor red; v8.21/GATE-03 broke
     `scripts/check-registration.py#verify_ci_job_registration` red (the v8.24/GATE-02 anchor
     precedent); v8.21/GATE-04 and v8.21/GATE-05 both broke `scripts/gen-gate-docs.py --check`
@@ -2699,8 +2706,8 @@ def _rows_v821() -> list[MatrixRow]:
     — so `artifact_link` cites `scripts/gen-gate-docs.py`, not
     `scripts/check-registration.py`, per the rule "the gate that re-runs the claim, not the
     milestone's headline gate." ROWS-03 is reachable at `scripts/check-registration.py`
-    directly: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03, v8.21/REG-06, v8.21/GATE-02 and
-    v8.21/GATE-03 all cite it. v8.21/VAL-02 is VERSION-01's own claim
+    directly: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03, v8.21/GATE-02 and v8.21/GATE-03 all
+    cite it. v8.21/VAL-02 is VERSION-01's own claim
     (`scripts/check-version-stamps.py`); v8.21/VAL-03 is DUAL-04's own claim
     (`scripts/sync-content.py`); v8.21/GATE-05's CI gates table is CONF-SURFACE's own claim,
     decided next.
@@ -2772,6 +2779,13 @@ def _rows_v821() -> list[MatrixRow]:
         "or type roster for extract_registered_paths to compare against, so the 'registered "
         "in manifest' clause is not re-run by any control."
     )
+    audit_reg06 = (
+        "check-registration.py's Control 24 pins only the REG-04/REG-05 section header and the "
+        "Failures block; removing the discovered-skills listing and the registration-source "
+        "line from format_report_text() left --self-test and the live leg green, and the "
+        "shipped plugin.json carries no registered roster to compare against, so the "
+        "'registered vs. discovered' clause is not re-run by any control."
+    )
     audit_gate01 = (
         "check-registration.py's own docstring states its --self-test runs offline, "
         "deterministic fixtures independent of the live tree and any live session; no leg "
@@ -2829,7 +2843,7 @@ def _rows_v821() -> list[MatrixRow]:
                   )),
         MatrixRow("v8.21/REG-06", "REG-06", "v8.21", "Test-Network",
                   "scripts/check-registration.py",
-                  "reproducible", "scripts/check-registration.py", "",
+                  "audit-only", "", audit_reg06,
                   surfaces=("apparatus",),
                   statement=(
                       "Gate reports human-readable summary: registered entries vs. discovered "
@@ -4745,13 +4759,13 @@ def build_matrix_rows() -> list[MatrixRow]:
         count. See `_rows_v921()` for the full per-row rationale and its DISCLOSED BOUNDARY:
         only REL-17 carries a `#_self_test_*` anchor, the other 3 reproducible rows carry a
         bare script or directory path that `_resolve_artifact()` does not dispatch-check.
-    (m) v8.19/v8.20/v8.21 milestones (24 rows, 16 reproducible + 8 audit-only) — Phase 33/
+    (m) v8.19/v8.20/v8.21 milestones (24 rows, 15 reproducible + 9 audit-only) — Phase 33/
         ROWS-01: v8.19 (4 rows, 3 reproducible + 1 audit-only), v8.20 (5 rows, 3 reproducible
-        + 2 audit-only) and v8.21 (15 rows, 10 reproducible + 5 audit-only). v8.19/HC-01..03
+        + 2 audit-only) and v8.21 (15 rows, 9 reproducible + 6 audit-only). v8.19/HC-01..03
         carry Methodology (rubric prose); v8.19/HC-04, all v8.20 rows and all v8.21 rows carry
         Test-Network (gate/harness/release apparatus). Audit-only rows, named individually,
         never by count: v8.19/HC-04; v8.20/HARN-01-01, v8.20/HARN-01-04; v8.21/REG-04,
-        v8.21/REG-05, v8.21/GATE-01, v8.21/GATE-06, v8.21/VAL-01. Called between
+        v8.21/REG-05, v8.21/REG-06, v8.21/GATE-01, v8.21/GATE-06, v8.21/VAL-01. Called between
         `_rows_v818()` and `_rows_v824()`. See `_rows_v819()`, `_rows_v820()` and
         `_rows_v821()` for the full per-row rationale and each function's own DISCLOSED
         BOUNDARY paragraph.
@@ -4829,7 +4843,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v819())
     # --- v8.20 milestone (Phase 33 / ROWS-01) — 3 reproducible + 2 audit-only ---
     rows.extend(_rows_v820())
-    # --- v8.21 milestone (Phase 33 / ROWS-01) — 10 reproducible + 5 audit-only ---
+    # --- v8.21 milestone (Phase 33 / ROWS-01) — 9 reproducible + 6 audit-only ---
     rows.extend(_rows_v821())
     # --- v8.24 milestone (D-06 / Phase 6) — 14 reproducible + 1 audit-only ---
     rows.extend(_rows_v824())

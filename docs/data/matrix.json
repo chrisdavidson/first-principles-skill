@@ -3653,9 +3653,9 @@
     "milestone": "v8.21",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-registration.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-registration.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "check-registration.py's Control 24 pins only the REG-04/REG-05 section header and the Failures block; removing the discovered-skills listing and the registration-source line from format_report_text() left --self-test and the live leg green, and the shipped plugin.json carries no registered roster to compare against, so the 'registered vs. discovered' clause is not re-run by any control.",
     "surfaces": [
       "apparatus"
     ],
