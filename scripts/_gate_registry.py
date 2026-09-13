@@ -403,9 +403,11 @@ ENTRIES: tuple[GateEntry, ...] = (
         summary=(
             "Offline traceability gate self-test — capability/tier schema, artifact "
             "resolution, a live row-field leg checking every matrix row's surfaces "
-            "value against the shipped-skill vocabulary, plus the HEADLINE-LOCK "
-            "sentinel asserting the published coverage headline against five named "
-            "current-fact surfaces and both tracked matrix artifacts."
+            "value against the shipped-skill vocabulary and its statement against "
+            "its sourcing rule, re-reading any tracked-surface citation, plus the "
+            "HEADLINE-LOCK sentinel asserting the published coverage headline "
+            "against five named current-fact surfaces and both tracked matrix "
+            "artifacts."
         ),
         consumes=(
             "scan_globs",

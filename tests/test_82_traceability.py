@@ -126,6 +126,7 @@ def test_dangling_file_path_detected() -> None:
         artifact_link="scripts/nonexistent-check-99.py",
         gap_rationale="",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -146,6 +147,7 @@ def test_dangling_catalog_row_detected() -> None:
         artifact_link="tests/routing-battery-catalog.md#B-NONEXISTENT",
         gap_rationale="",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -170,6 +172,7 @@ def test_missing_rubric_section_detected() -> None:
         ),
         gap_rationale="",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -191,6 +194,7 @@ def test_missing_capability_detected() -> None:
         artifact_link="",
         gap_rationale="no capability assigned",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -212,6 +216,7 @@ def test_missing_coverage_tier_detected() -> None:
         artifact_link="",
         gap_rationale="no tier assigned",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -238,6 +243,7 @@ def test_audit_only_row_is_valid() -> None:
         artifact_link="",
         gap_rationale="Validated by v3.1 milestone audit; no re-runnable gate",
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -261,6 +267,7 @@ def test_gap_row_is_valid() -> None:
             "no confirming phase"
         ),
         surfaces=("apparatus",),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -339,6 +346,7 @@ def test_empty_surfaces_detected() -> None:
         artifact_link="",
         gap_rationale="test fixture",
         surfaces=(),
+        statement=mod._STATEMENT_UNRECOVERABLE,
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -380,6 +388,70 @@ def test_load_rows_retuples_surfaces() -> None:
     assert len(set(loaded_rows)) == len(loaded_rows), (
         "Expected loaded rows to be hashable and unique (a list-valued surfaces "
         "field would raise TypeError on hash())"
+    )
+
+
+def test_matrixrow_requires_statement() -> None:
+    """Omitting `statement` at construction raises TypeError (D-05: no default,
+    required at every call site)."""
+    mod = _load_check_traceability()
+    with pytest.raises(TypeError):
+        mod.MatrixRow(
+            key="test/STMT-01",
+            bare_id="STMT-01",
+            milestone="test",
+            capability="Methodology",
+            deliverable_path="scripts/check-routing.py",
+            coverage_tier="audit-only",
+            artifact_link="",
+            gap_rationale="test fixture",
+            surfaces=("apparatus",),
+        )
+
+
+def test_blank_statement_detected() -> None:
+    """A row with a blank statement is flagged by check_consistency (STMT-01)."""
+    mod = _load_check_traceability()
+    row = mod.MatrixRow(
+        key="test/STMT-02",
+        bare_id="STMT-02",
+        milestone="test",
+        capability="Methodology",
+        deliverable_path="scripts/check-routing.py",
+        coverage_tier="audit-only",
+        artifact_link="",
+        gap_rationale="test fixture",
+        surfaces=("apparatus",),
+        statement="   ",
+    )
+    issues = mod.check_consistency([row])
+    assert issues, (
+        f"Expected blank statement to be flagged; check_consistency returned: {issues!r}"
+    )
+
+
+def test_statement_pipe_escaped_in_markdown() -> None:
+    """A literal `|` inside a statement is escaped in the rendered Matrix Table
+    (D-07), so it cannot split the row into extra columns."""
+    mod = _load_check_traceability()
+    row = mod.MatrixRow(
+        key="v8.18/STMT-PIPE",
+        bare_id="STMT-PIPE",
+        milestone="v8.18",
+        capability="Methodology",
+        deliverable_path="scripts/check-routing.py",
+        coverage_tier="audit-only",
+        artifact_link="",
+        gap_rationale="test fixture",
+        surfaces=("apparatus",),
+        statement="left|right",
+    )
+    rendered = mod.render_matrix_markdown([row])
+    assert r"left\|right" in rendered, (
+        "Expected the literal | inside the statement to be escaped as \\|"
+    )
+    assert "| left|right |" not in rendered, (
+        "Unescaped pipe leaked into the Markdown table"
     )
 
 

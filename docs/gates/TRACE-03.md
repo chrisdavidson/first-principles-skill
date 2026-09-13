@@ -97,6 +97,17 @@ derived live) fails CI; controls feed a row with empty surfaces and a row naming
 require both flagged, and require `check_consistency()` to report the same problem. Disclosed bound:
 the leg proves a value is present and in vocabulary, not that it is the right classification.
 
+The same leg also flags a blank or multi-line `statement`, a statement that is neither
+archive-sourced, cited in `_STATEMENT_CITATIONS`, nor the literal `statement unrecoverable` (D-T4),
+and a tracked-surface citation naming a row that does not exist, a path outside the tracked tree (an
+absolute path, `.planning/`, or `docs/history/`), a missing file, or a file whose text does not
+contain the statement (D-03) — re-reading every real `_STATEMENT_CITATIONS` entry live, plus a
+blank-statement control, an unsourced-statement control, citation positive/negative controls, an
+archive-row-citation control, and a `render_matrix_markdown()` pipe-escaping control. Disclosed bound
+(D-14): archive-sourced statement fidelity is re-read locally against each milestone's own
+untracked requirements archive and is not checked in CI — only the tracked-surface half of D-02's
+sourcing rule is CI-checked here.
+
 ## Provenance
 
 As of Phase 13 (CR-02, dispatch reachability; widened at 13-11 for WR-01/WR-03), artifact resolution
