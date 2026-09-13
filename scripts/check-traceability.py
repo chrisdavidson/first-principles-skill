@@ -3825,7 +3825,10 @@ def _rows_v92() -> list[MatrixRow]:
                   (
                       "v9.2.1/HAND-01, v9.2.1/HAND-02 and v9.2.1/HAND-03 narrow this row's claim "
                       "from v9.2.1 on for identify-essence, reason-upward and validate "
-                      "respectively, each now routing its handoff somewhere other than Phase 2 "
+                      "respectively: identify-essence's handoff now enters as a framing and "
+                      "validate's as a Phase 5 verdict to act on, neither as a Phase 2 candidate, "
+                      "while reason-upward's derivation chains go to Phase 5 validation and only "
+                      "the ground truths they cite still enter Phase 2 as candidates "
                       "(D-05, Phase 32.1). surfaces still records the population this row claimed "
                       "at v9.2.0 (D-02); the tier is unchanged."
                   ),
