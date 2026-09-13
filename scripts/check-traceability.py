@@ -2480,7 +2480,8 @@ def _rows_v819() -> list[MatrixRow]:
         ("a new offline gate verifies both tightened criteria... and all exception cases are
         documented" — confirmed by the HC-01/HC-02/HC-03 red breaks below, which ARE that
         gate); it does not re-run the K3 clause, the quoted count "FIREWALL: GREEN (21/21)",
-        which the tree has since moved past (26 today, by direct count).
+        which the tree has since moved past (read by direct count, `bash
+        scripts/check-firewall-battery.sh`).
 
     The remaining 3 rows are reproducible: HC-01, HC-02 and HC-03 each broke
     `scripts/check-high-confidence-bound.py` red on every one of their K1 clauses (deleting
@@ -2676,7 +2677,8 @@ def _rows_v821() -> list[MatrixRow]:
         compares two runs against each other or fails specifically on a live-session
         dependency.
       - v8.21/GATE-06 and v8.21/VAL-01: their quoted battery counts ("22/22") are stale
-        against today's direct count (26); `scripts/check-firewall-battery.sh` re-runs the
+        against a total the tree has since moved past (read by direct count, `bash
+        scripts/check-firewall-battery.sh`); `scripts/check-firewall-battery.sh` re-runs the
         battery-stays-green claim, but not the specific historical delta.
       - v8.21/REG-06: its "registered entries vs. discovered entries" clause is not re-run —
         re-tiered audit-only by the Phase 33 code review (CR-01). The Plan 01 break emptied
