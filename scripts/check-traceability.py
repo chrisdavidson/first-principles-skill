@@ -40,7 +40,7 @@ import json
 import re
 import sys
 import tempfile
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import NamedTuple
 
@@ -56,6 +56,28 @@ KNOWN_CLI_GATES: set[str] = {
 # Valid values for capability and coverage_tier fields
 VALID_CAPABILITIES: set[str] = {"Methodology", "Test-Network"}
 VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
+
+
+def _surfaces_vocabulary() -> frozenset[str]:
+    """The closed `surfaces` vocabulary (D-06): every directory directly under
+    `shared/skills`, plus the two non-skill surfaces `agent` and `apparatus`.
+
+    Deliberately NOT memoized — no caching decorator, no module-level cache
+    variable, matching `_headline_literals()`'s discipline (999.63: a hand-kept
+    roster silently stops tracking reality). A cache would survive a
+    monkeypatched skills directory and silently defeat a self-test control.
+    """
+    skills_dir = REPO_ROOT / "shared" / "skills"
+    return frozenset(
+        p.name for p in skills_dir.iterdir() if p.is_dir()
+    ) | {"agent", "apparatus"}
+
+
+def _skill_slugs() -> list[str]:
+    """Sorted shipped skill slugs only (no `agent`/`apparatus`), derived live the
+    same way as `_surfaces_vocabulary()`."""
+    skills_dir = REPO_ROOT / "shared" / "skills"
+    return sorted(p.name for p in skills_dir.iterdir() if p.is_dir())
 
 # Surfaces where the published coverage headline is asserted as a present-tense claim by
 # _self_test_headline_lock(). This set is allowed to under-count without being wrong: it
@@ -667,6 +689,48 @@ class MatrixRow:
     row carries sourced wording or the literal `statement unrecoverable`; archive-sourced
     statement fidelity is re-readable locally against untracked archives and is not checked
     in CI (D-14).
+
+    Surfaces classification (D-09, D-10, D-11). `surfaces` names the shipped skill(s), the
+    agent, or the apparatus a requirement VERIFIES — never merely where its artifact lives.
+    Classification is a union over the row's `deliverable_path` and `artifact_link` (the
+    part before any `#`), by these path rules, applied in this order:
+
+      - P-SKILL: a path under `shared/skills/<slug>/` or `first-principles/skills/<slug>/`
+        names that slug.
+      - P-REF (Claude's Discretion, stated once here): `shared/references/<slug>.md`, its
+        `-detail.md` sibling, or the matching `first-principles/agents/references/<slug>.md`
+        path names the slug PLUS `agent` — that procedure text is emitted into both the
+        agent reference sibling and the skill stub, so both shipped surfaces carry it.
+      - P-DIR (D-10, locked — never overridden by a row's statement): a bare
+        `first-principles/skills` or `shared/skills` path expands to every slug present in
+        `git ls-tree --name-only <tag> first-principles/skills/`, `tag` = the row's own
+        milestone (or that milestone plus `.0` when the bare tag does not exist) — skills
+        added later do not inherit credit for requirements that predate them.
+      - P-AGENT: a path under `first-principles/agents/`, `shared/spine/`, `shared/agent/`,
+        or `shared/examples` names `agent`.
+      - P-AGENT-SUBJECT (D-11's "subject is the agent body" test, path-only): one of
+        `scripts/check-agent.py`, `scripts/check-body-budget.py`, `scripts/check-routing.py`,
+        `scripts/check-routing-battery.py`, `scripts/check-step0-emulator.py`,
+        `scripts/check-step0-live.py`, `scripts/_battery_core.py`, or a path starting with
+        `tests/routing-` or `tests/step0-`, names `agent` — each names the main agent's
+        delegation boundary, Step 0 technique selection, or body.
+      - Apparatus fallback (D-11): a row matching none of the above names `apparatus` — the
+        closed vocabulary's home for release records, process documents, CI wiring, and
+        generation tooling.
+
+    D-09 override for a sourced row (milestone version >= (8, 18), a statement exists):
+    when the row's own statement names a skill in one of the forms `/slug`, `` `slug` ``,
+    `shared/skills/<slug>`, `first-principles/skills/<slug>`, "<slug> skill", or "<slug>
+    stub" (guarding the `validate`-verb collision — the CLI verb "validate" and
+    `claude plugin validate` are not the skill), that slug is added to the path-derived
+    value. P-DIR rows are exempt from this override (D-10 is locked). Every v8.18+ batch in
+    this module was hand-reviewed against this rule at Phase 32 Task 1: no row's statement
+    contradicted its own path-derived agent/apparatus classification, so no row in this
+    module's history needed an agent<->apparatus override — only the skill-mention addition
+    ever fires, and it fires nowhere in the current row set.
+
+    Ordering convention (D-06, D-12): a `surfaces` tuple always orders as sorted skill
+    slugs, then `agent`, then `apparatus`.
     """
 
     key: str              # milestone-qualified: "v3.1/ROUTE-02"
@@ -677,6 +741,8 @@ class MatrixRow:
     coverage_tier: str    # "reproducible" | "audit-only" | "gap" | "scheduled"
     artifact_link: str    # resolves to real path/row/section or whitelist CLI
     gap_rationale: str    # non-empty when coverage_tier != "reproducible"
+    # --- appended last, D-05: no default, required at every call site ---
+    surfaces: tuple[str, ...]  # shipped skill slug(s) | "agent" | "apparatus"; never empty (D-06)
 
 
 # ---------------------------------------------------------------------------
@@ -691,111 +757,148 @@ _RESIDUAL_KEY_PREFIX = "residual"
 
 
 def _rows_methodology_agent() -> list[MatrixRow]:
-    """v3.0 agent-body, sync, migrate, PKG, EVAL reqs — Methodology."""
+    """v3.0 agent-body, sync, migrate, PKG, EVAL reqs — Methodology.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths).
+    """
     audit_rationale = "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
     return [
         MatrixRow("v3.0/AGENT-01", "AGENT-01", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/AGENT-02", "AGENT-02", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/AGENT-03", "AGENT-03", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/AGENT-04", "AGENT-04", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/AGENT-05", "AGENT-05", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/AGENT-06", "AGENT-06", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/SYNC-01", "SYNC-01", "v3.0", "Methodology",
                   "scripts/sync-content.py",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.0/SYNC-02", "SYNC-02", "v3.0", "Methodology",
                   "scripts/sync-content.py",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.0/SYNC-03", "SYNC-03", "v3.0", "Methodology",
                   "scripts/sync-content.py",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.0/SYNC-04", "SYNC-04", "v3.0", "Methodology",
                   "scripts/sync-content.py",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.0/PKG-01", "PKG-01", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/PKG-02", "PKG-02", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/EVAL-01", "EVAL-01", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_rationale),
+                  "audit-only", "", audit_rationale,
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_methodology_agent_cont() -> list[MatrixRow]:
-    """v3.0 MIGRATE/DEPR/GATE rows + v3.2 META rows — Methodology."""
+    """v3.0 MIGRATE/DEPR/GATE rows + v3.2 META rows — Methodology.
+
+    Surfaces: P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     audit_v30 = "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
     audit_v32 = "Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate"
     return [
         MatrixRow("v3.0/MIGRATE-01", "MIGRATE-01", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/MIGRATE-02", "MIGRATE-02", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/MIGRATE-03", "MIGRATE-03", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/MIGRATE-04", "MIGRATE-04", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/MIGRATE-05", "MIGRATE-05", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/MIGRATE-06", "MIGRATE-06", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/DEPR-01", "DEPR-01", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/DEPR-02", "DEPR-02", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         MatrixRow("v3.0/DEPR-03", "DEPR-03", "v3.0", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v30),
+                  "audit-only", "", audit_v30,
+                  surfaces=("agent",)),
         # v3.2 — worked examples + rubric (META-*/META-Q-*)
         MatrixRow("v3.2/META-01", "META-01", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-02", "META-02", "v3.2", "Methodology",
                   "first-principles/agents/references/assumption-taxonomy.md",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-03-SW", "META-03-SW", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-03-PB", "META-03-PB", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-03-PG", "META-03-PG", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-03-SE", "META-03-SE", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-Q1", "META-Q1", "v3.2", "Methodology",
                   "shared/spine/references/validation-rubric.md",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-Q2", "META-Q2", "v3.2", "Methodology",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-Q3", "META-Q3", "v3.2", "Methodology",
                   "first-principles/agents/references/examples",
-                  "audit-only", "", audit_v32),
+                  "audit-only", "", audit_v32,
+                  surfaces=("agent",)),
         MatrixRow("v3.2/META-Q4", "META-Q4", "v3.2", "Methodology",
                   "scripts/check-body-budget.py",
                   "audit-only", "",
@@ -805,7 +908,8 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
                   "body line count is reported every firewall-battery run ([INFO] body-size) but "
                   "is not gated. META-Q4 is therefore audit-only (reported/inspectable), not "
                   "reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 "
-                  "post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier."),
+                  "post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier.",
+                  surfaces=("agent",)),
     ]
 
 
@@ -815,6 +919,8 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     Rubric anchor strings must be substrings present in the rubric file
     (D-08 resolution: plain substring check after '#' split).
     These match the actual section headings in validation-rubric.md.
+
+    Surfaces: P-AGENT (agent-body/spine/reference paths).
     """
     rubric = "shared/spine/references/validation-rubric.md"
     # Anchor text = literal substring expected in the rubric file
@@ -828,35 +934,48 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     scoring = rubric + "#Scoring Model"
     return [
         MatrixRow("v3.7/RIGOR-01", "RIGOR-01", "v3.7", "Methodology",
-                  rubric, "reproducible", crit1, ""),
+                  rubric, "reproducible", crit1, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-02", "RIGOR-02", "v3.7", "Methodology",
-                  rubric, "reproducible", crit2, ""),
+                  rubric, "reproducible", crit2, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-03", "RIGOR-03", "v3.7", "Methodology",
-                  rubric, "reproducible", crit3, ""),
+                  rubric, "reproducible", crit3, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-04", "RIGOR-04", "v3.7", "Methodology",
-                  rubric, "reproducible", crit4, ""),
+                  rubric, "reproducible", crit4, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-05", "RIGOR-05", "v3.7", "Methodology",
-                  rubric, "reproducible", crit5, ""),
+                  rubric, "reproducible", crit5, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-06", "RIGOR-06", "v3.7", "Methodology",
-                  rubric, "reproducible", crit6, ""),
+                  rubric, "reproducible", crit6, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-07", "RIGOR-07", "v3.7", "Methodology",
-                  rubric, "reproducible", r_link, ""),
+                  rubric, "reproducible", r_link, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.7/RIGOR-08", "RIGOR-08", "v3.7", "Methodology",
-                  rubric, "reproducible", scoring, ""),
+                  rubric, "reproducible", scoring, "",
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_methodology_focused_stubs() -> list[MatrixRow]:
-    """v3.8 focused-mode stubs + v3.12 phase-level skills — Methodology."""
+    """v3.8 focused-mode stubs + v3.12 phase-level skills — Methodology.
+
+    Surfaces: P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs), P-DIR. P-DIR rows at tag v3.12 expand to the skills present in `git ls-tree --name-only v3.12 first-principles/skills/`: challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate (D-10, locked). P-DIR rows at tag v3.8 expand to the skills present in `git ls-tree --name-only v3.8 first-principles/skills/`: fishbone, five-whys, inversion, pre-mortem, second-order, trade-off (D-10, locked).
+    """
     audit_v38 = "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
     audit_v312 = "Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate"
     fp_agent = "first-principles/agents/first-principles.md"
     fp_skills = "first-principles/skills"
     return [
         MatrixRow("v3.8/DISP-01", "DISP-01", "v3.8", "Methodology",
-                  fp_agent, "audit-only", "", audit_v38),
+                  fp_agent, "audit-only", "", audit_v38,
+                  surfaces=("agent",)),
         MatrixRow("v3.8/STUB-01", "STUB-01", "v3.8", "Methodology",
-                  fp_skills, "audit-only", "", audit_v38),
+                  fp_skills, "audit-only", "", audit_v38,
+                  surfaces=("fishbone", "five-whys", "inversion", "pre-mortem", "second-order", "trade-off")),
         # EVAL-01's original deliverable, scripts/check-focused-output.py, was
         # retired at the 2026-08-16 audit (stream 2) after being superseded by
         # the merged check-routing-battery.py. The deliverable_path is repointed
@@ -868,48 +987,66 @@ def _rows_methodology_focused_stubs() -> list[MatrixRow]:
                   "audit-only", "",
                   audit_v38 + ". Original deliverable scripts/check-focused-output.py"
                   " retired 2026-08-16 (superseded by the merged battery);"
-                  " deliverable repointed to its successor."),
+                  " deliverable repointed to its successor.",
+                  surfaces=("agent",)),
         MatrixRow("v3.12/PHASE-01", "PHASE-01", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-02", "PHASE-02", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-03", "PHASE-03", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-04", "PHASE-04", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-05", "PHASE-05", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-06", "PHASE-06", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-07", "PHASE-07", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-08", "PHASE-08", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-09", "PHASE-09", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.12/PHASE-10", "PHASE-10", "v3.12", "Methodology",
-                  fp_skills, "audit-only", "", audit_v312),
+                  fp_skills, "audit-only", "", audit_v312,
+                  surfaces=("challenge-assumptions", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "trade-off", "validate")),
         MatrixRow("v3.13/TAX-01", "TAX-01", "v3.13", "Methodology",
                   "first-principles/agents/references/assumption-taxonomy.md",
                   "audit-only", "",
-                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"),
+                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
+                  surfaces=("agent",)),
         MatrixRow("v3.13/TAX-02", "TAX-02", "v3.13", "Methodology",
                   "first-principles/agents/references/assumption-taxonomy.md",
                   "audit-only", "",
-                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"),
+                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
+                  surfaces=("agent",)),
         MatrixRow("v3.13/WKEX-01", "WKEX-01", "v3.13", "Methodology",
                   "first-principles/agents/references/examples",
                   "audit-only", "",
-                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"),
+                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
+                  surfaces=("agent",)),
         MatrixRow("v3.13/WKEX-02", "WKEX-02", "v3.13", "Methodology",
                   "first-principles/agents/references/examples",
                   "audit-only", "",
-                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate"),
+                  "Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate",
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_testnet_ci_gates() -> list[MatrixRow]:
-    """CI gate rows — Test-Network (VAL-01..05, DUAL-04, GATE-01..03, HOOK-*)."""
+    """CI gate rows — Test-Network (VAL-01..05, DUAL-04, GATE-01..03, HOOK-*).
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     hook = ".githooks/pre-commit"
     audit_v30 = "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
     audit_v33 = "Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate"
@@ -918,170 +1055,235 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
         MatrixRow("v2.0/VAL-01", "VAL-01", "v2.0", "Test-Network",
                   "first-principles/agents/first-principles.md",
                   "reproducible", "claude plugin validate ./first-principles",
-                  ""),
+                  "",
+                  surfaces=("agent",)),
         MatrixRow("v2.0/VAL-02", "VAL-02", "v2.0", "Test-Network",
                   "first-principles/agents/first-principles.md",
-                  "reproducible", "markdownlint-cli2", ""),
+                  "reproducible", "markdownlint-cli2", "",
+                  surfaces=("agent",)),
         MatrixRow("v2.0/VAL-03", "VAL-03", "v2.0", "Test-Network",
                   "scripts/check-links.py",
-                  "reproducible", "scripts/check-links.py", ""),
+                  "reproducible", "scripts/check-links.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v2.0/VAL-04", "VAL-04", "v2.0", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", ""),
+                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v2.0/VAL-05", "VAL-05", "v2.0", "Test-Network",
                   "scripts/check-description-budget.py",
-                  "reproducible", "scripts/check-description-budget.py", ""),
+                  "reproducible", "scripts/check-description-budget.py", "",
+                  surfaces=("apparatus",)),
         # v3.0 GATE rows
         MatrixRow("v3.0/GATE-01", "GATE-01", "v3.0", "Test-Network",
                   "scripts/check-agent.py",
-                  "reproducible", "scripts/check-agent.py", ""),
+                  "reproducible", "scripts/check-agent.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.0/GATE-02", "GATE-02", "v3.0", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", ""),
+                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.0/GATE-03", "GATE-03", "v3.0", "Test-Network",
                   "scripts/sync-content.py",
-                  "reproducible", "scripts/sync-content.py", ""),
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("apparatus",)),
         # DUAL-04 sync-check gate
         MatrixRow("v2.0/DUAL-04", "DUAL-04", "v2.0", "Test-Network",
                   "scripts/sync-content.py",
                   "audit-only", "",
-                  "v2.0-MILESTONE-AUDIT passed; v2.0 DUAL-04 predates current --check flag"),
+                  "v2.0-MILESTONE-AUDIT passed; v2.0 DUAL-04 predates current --check flag",
+                  surfaces=("apparatus",)),
         # v3.3 body-budget pre-commit hook rows
         MatrixRow("v3.3/HOOK-01", "HOOK-01", "v3.3", "Test-Network",
-                  hook, "audit-only", "", audit_v33),
+                  hook, "audit-only", "", audit_v33,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.3/HOOK-02", "HOOK-02", "v3.3", "Test-Network",
-                  hook, "audit-only", "", audit_v33),
+                  hook, "audit-only", "", audit_v33,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.3/HOOK-03", "HOOK-03", "v3.3", "Test-Network",
-                  hook, "audit-only", "", audit_v33),
+                  hook, "audit-only", "", audit_v33,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.3/HOOK-04", "HOOK-04", "v3.3", "Test-Network",
-                  hook, "reproducible", hook, ""),
+                  hook, "reproducible", hook, "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.3/HOOK-05", "HOOK-05", "v3.3", "Test-Network",
-                  hook, "reproducible", hook, ""),
+                  hook, "reproducible", hook, "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.3/HOOK-06", "HOOK-06", "v3.3", "Test-Network",
-                  hook, "audit-only", "", audit_v33),
+                  hook, "audit-only", "", audit_v33,
+                  surfaces=("apparatus",)),
         # v3.13 INFRA rows (CI extension)
         MatrixRow("v3.13/INFRA-01", "INFRA-01", "v3.13", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", ""),
+                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.13/INFRA-02", "INFRA-02", "v3.13", "Test-Network",
                   "scripts/check-description-budget.py",
-                  "reproducible", "scripts/check-description-budget.py", ""),
+                  "reproducible", "scripts/check-description-budget.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.13/INFRA-03", "INFRA-03", "v3.13", "Test-Network",
                   "scripts/check-agent.py",
-                  "reproducible", "scripts/check-agent.py", ""),
+                  "reproducible", "scripts/check-agent.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.13/INFRA-04", "INFRA-04", "v3.13", "Test-Network",
                   "scripts/check-links.py",
-                  "reproducible", "scripts/check-links.py", ""),
+                  "reproducible", "scripts/check-links.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.13/INFRA-05", "INFRA-05", "v3.13", "Test-Network",
                   "scripts/sync-content.py",
-                  "reproducible", "scripts/sync-content.py", ""),
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.13/INFRA-06", "INFRA-06", "v3.13", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", ""),
+                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  surfaces=("apparatus",)),
     ]
 
 
 def _rows_testnet_routing_battery() -> list[MatrixRow]:
-    """Routing battery rows — Test-Network (v3.1 ROUTE + v3.4 NOISE + v3.5/3.6 CAT)."""
+    """Routing battery rows — Test-Network (v3.1 ROUTE + v3.4 NOISE + v3.5/3.6 CAT).
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     cat = "tests/routing-catalog.md"
     audit_v31 = "Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate"
     return [
         MatrixRow("v3.1/ROUTE-01", "ROUTE-01", "v3.1", "Test-Network",
                   "first-principles/agents/first-principles.md",
-                  "audit-only", "", audit_v31),
+                  "audit-only", "", audit_v31,
+                  surfaces=("agent",)),
         MatrixRow("v3.1/ROUTE-02", "ROUTE-02", "v3.1", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.1/ROUTE-03", "ROUTE-03", "v3.1", "Test-Network",
                   "docs/testing-agents-headlessly.md",
-                  "audit-only", "", audit_v31),
+                  "audit-only", "", audit_v31,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.1/DOC-01", "DOC-01", "v3.1", "Test-Network",
                   "docs/testing-agents-headlessly.md",
-                  "audit-only", "", audit_v31),
+                  "audit-only", "", audit_v31,
+                  surfaces=("apparatus",)),
         MatrixRow("v3.4/NOISE-01", "NOISE-01", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.4/NOISE-02", "NOISE-02", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.4/NOISE-03", "NOISE-03", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.4/NOISE-04", "NOISE-04", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.4/NOISE-05", "NOISE-05", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.4/NOISE-06", "NOISE-06", "v3.4", "Test-Network",
                   "scripts/check-routing.py",
-                  "reproducible", "scripts/check-routing.py", ""),
+                  "reproducible", "scripts/check-routing.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-01", "FRAG-01", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-02", "FRAG-02", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-03", "FRAG-03", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-04", "FRAG-04", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-05", "FRAG-05", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-06", "FRAG-06", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-07", "FRAG-07", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-08", "FRAG-08", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.5/FRAG-09", "FRAG-09", "v3.5", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-01", "CAT-01", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-02", "CAT-02", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-03", "CAT-03", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-04", "CAT-04", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-05", "CAT-05", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-06", "CAT-06", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-07", "CAT-07", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-08", "CAT-08", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-09", "CAT-09", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.6/CAT-10", "CAT-10", "v3.6", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_testnet_routing_v38() -> list[MatrixRow]:
-    """v3.8 FIXTURE/VERIFY/DOC-01 routing test rows — Test-Network."""
+    """v3.8 FIXTURE/VERIFY/DOC-01 routing test rows — Test-Network.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     audit_v38 = "Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate"
     batt_script = "scripts/check-routing-battery.py"
     return [
         MatrixRow("v3.8/FIXTURE-01", "FIXTURE-01", "v3.8", "Test-Network",
                   "tests/step0-fixture-catalog.md",
-                  "audit-only", "", audit_v38),
+                  "audit-only", "", audit_v38,
+                  surfaces=("agent",)),
         MatrixRow("v3.8/FIXTURE-02", "FIXTURE-02", "v3.8", "Test-Network",
                   "tests/step0-fixture-catalog.md",
-                  "audit-only", "", audit_v38),
+                  "audit-only", "", audit_v38,
+                  surfaces=("agent",)),
         MatrixRow("v3.8/VERIFY-01", "VERIFY-01", "v3.8", "Test-Network",
-                  batt_script, "reproducible", batt_script, ""),
+                  batt_script, "reproducible", batt_script, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.8/VERIFY-02", "VERIFY-02", "v3.8", "Test-Network",
-                  batt_script, "reproducible", batt_script, ""),
+                  batt_script, "reproducible", batt_script, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.8/VERIFY-03", "VERIFY-03", "v3.8", "Test-Network",
-                  batt_script, "reproducible", batt_script, ""),
+                  batt_script, "reproducible", batt_script, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.8/DOC-01", "DOC-01", "v3.8", "Test-Network",
                   "docs/testing-agents-headlessly.md",
-                  "audit-only", "", audit_v38),
+                  "audit-only", "", audit_v38,
+                  surfaces=("apparatus",)),
     ]
 
 
 def _rows_testnet_routing_v39_plus() -> list[MatrixRow]:
-    """v3.9 P8, v3.10 CONV, v3.11 MON, v3.13 META — Test-Network."""
+    """v3.9 P8, v3.10 CONV, v3.11 MON, v3.13 META — Test-Network.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     cat = "tests/routing-catalog.md"
     batt = "tests/routing-battery-catalog.md"
     audit_v39 = "Validated by v3.9-MILESTONE-AUDIT; no re-runnable gate"
@@ -1089,99 +1291,137 @@ def _rows_testnet_routing_v39_plus() -> list[MatrixRow]:
     return [
         # v3.9 P8 routing fix
         MatrixRow("v3.9/P8-01", "P8-01", "v3.9", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.9/P8-02", "P8-02", "v3.9", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.9/P8-03", "P8-03", "v3.9", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.9/P8-04", "P8-04", "v3.9", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         # v3.10 CONV — convention files (test-network: new test gates)
         MatrixRow("v3.10/CONV-01", "CONV-01", "v3.10", "Test-Network",
                   ".planning/phases",
                   "audit-only", "",
-                  "Validated by v3.10-MILESTONE-AUDIT; VERIFICATION.md convention files"),
+                  "Validated by v3.10-MILESTONE-AUDIT; VERIFICATION.md convention files",
+                  surfaces=("apparatus",)),
         MatrixRow("v3.10/CONV-02", "CONV-02", "v3.10", "Test-Network",
                   ".planning/phases",
                   "audit-only", "",
-                  "Validated by v3.10-MILESTONE-AUDIT; VALIDATION.md convention files"),
+                  "Validated by v3.10-MILESTONE-AUDIT; VALIDATION.md convention files",
+                  surfaces=("apparatus",)),
         # v3.11 MON — routing forward monitoring
         MatrixRow("v3.11/MON-01", "MON-01", "v3.11", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.11/MON-02", "MON-02", "v3.11", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.11/MON-03", "MON-03", "v3.11", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.11/MON-04", "MON-04", "v3.11", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.11/MON-05", "MON-05", "v3.11", "Test-Network",
-                  cat, "audit-only", "", audit_v311),
+                  cat, "audit-only", "", audit_v311,
+                  surfaces=("agent",)),
         # v3.13 META-01/02 (routing-catalog content)
         MatrixRow("v3.13/META-01", "META-01", "v3.13", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v3.13/META-02", "META-02", "v3.13", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_testnet_merged_battery() -> list[MatrixRow]:
-    """v4.2 focused-output + v4.3 BATT merged-battery rows — Test-Network."""
+    """v4.2 focused-output + v4.3 BATT merged-battery rows — Test-Network.
+
+    Surfaces: P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     batt = "scripts/check-routing-battery.py"
     audit_v42 = "Validated by v4.2-MILESTONE-AUDIT; no re-runnable gate"
     audit_v43 = "Validated by v4.3-MILESTONE-AUDIT; no re-runnable gate"
     bcat = "tests/routing-battery-catalog.md"
     return [
         MatrixRow("v4.2/CAT-01", "CAT-01", "v4.2", "Test-Network",
-                  bcat, "reproducible", batt, ""),
+                  bcat, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/CAT-02", "CAT-02", "v4.2", "Test-Network",
-                  bcat, "reproducible", batt, ""),
+                  bcat, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/CAT-03", "CAT-03", "v4.2", "Test-Network",
-                  bcat, "reproducible", batt, ""),
+                  bcat, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/CAT-04", "CAT-04", "v4.2", "Test-Network",
-                  bcat, "reproducible", batt, ""),
+                  bcat, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/FOCUS-01", "FOCUS-01", "v4.2", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/FOCUS-02", "FOCUS-02", "v4.2", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/FOCUS-03", "FOCUS-03", "v4.2", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/STRICT-01", "STRICT-01", "v4.2", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/STRICT-02", "STRICT-02", "v4.2", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/BASE-01", "BASE-01", "v4.2", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
                   "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", ""),
+                  "tests/test_69_merged_baseline_invariants.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v4.2/BASE-02", "BASE-02", "v4.2", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
                   "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", ""),
+                  "tests/test_69_merged_baseline_invariants.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-01", "BATT-01", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-02", "BATT-02", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-03", "BATT-03", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-04", "BATT-04", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-05", "BATT-05", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-06", "BATT-06", "v4.3", "Test-Network",
-                  batt, "reproducible", batt, ""),
+                  batt, "reproducible", batt, "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-07", "BATT-07", "v4.3", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
                   "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", ""),
+                  "tests/test_69_merged_baseline_invariants.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v4.3/BATT-08", "BATT-08", "v4.3", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
                   "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", ""),
+                  "tests/test_69_merged_baseline_invariants.py", "",
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_testnet_step0_harness() -> list[MatrixRow]:
-    """v5.0 STEP0, v5.1 FIX/DET/SAFE/BASE — Test-Network."""
+    """v5.0 STEP0, v5.1 FIX/DET/SAFE/BASE — Test-Network.
+
+    Surfaces: P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     emul = "scripts/check-step0-emulator.py"
     live = "scripts/check-step0-live.py"
     cat = "tests/step0-fixture-catalog.md"
@@ -1189,59 +1429,84 @@ def _rows_testnet_step0_harness() -> list[MatrixRow]:
     return [
         # v5.0 Step 0 harness rows
         MatrixRow("v5.0/STEP0-01", "STEP0-01", "v5.0", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-02", "STEP0-02", "v5.0", "Test-Network",
-                  live, "reproducible", live, ""),
+                  live, "reproducible", live, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-03", "STEP0-03", "v5.0", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-04", "STEP0-04", "v5.0", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-05", "STEP0-05", "v5.0", "Test-Network",
-                  live, "reproducible", live, ""),
+                  live, "reproducible", live, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-06", "STEP0-06", "v5.0", "Test-Network",
-                  live, "reproducible", live, ""),
+                  live, "reproducible", live, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-07", "STEP0-07", "v5.0", "Test-Network",
-                  live, "reproducible", live, ""),
+                  live, "reproducible", live, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-08", "STEP0-08", "v5.0", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.0/STEP0-09", "STEP0-09", "v5.0", "Test-Network",
-                  cat, "reproducible", cat, ""),
+                  cat, "reproducible", cat, "",
+                  surfaces=("agent",)),
         # v5.1 detector fix + safe rows
         MatrixRow("v5.1/FIX-01", "FIX-01", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/FIX-02", "FIX-02", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/FIX-03", "FIX-03", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/DET-01", "DET-01", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/DET-02", "DET-02", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/DET-03", "DET-03", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/SAFE-01", "SAFE-01", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/SAFE-02", "SAFE-02", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/SAFE-03", "SAFE-03", "v5.1", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.1/BASE-01", "BASE-01", "v5.1", "Test-Network",
                   "tests/step0-baseline-v5.1.md",
-                  "audit-only", "", audit_v51),
+                  "audit-only", "", audit_v51,
+                  surfaces=("agent",)),
         MatrixRow("v5.1/BASE-02", "BASE-02", "v5.1", "Test-Network",
                   "tests/step0-baseline-v5.1.md",
-                  "audit-only", "", audit_v51),
+                  "audit-only", "", audit_v51,
+                  surfaces=("agent",)),
         MatrixRow("v5.1/BASE-03", "BASE-03", "v5.1", "Test-Network",
                   "tests/step0-baseline-v5.1.md",
-                  "audit-only", "", audit_v51),
+                  "audit-only", "", audit_v51,
+                  surfaces=("agent",)),
         MatrixRow("v5.1/BASE-04", "BASE-04", "v5.1", "Test-Network",
                   "tests/step0-baseline-v5.1.md",
-                  "audit-only", "", audit_v51),
+                  "audit-only", "", audit_v51,
+                  surfaces=("agent",)),
     ]
 
 
 def _rows_testnet_v52_v53() -> list[MatrixRow]:
-    """v5.2 DIAG/DET/ROUTE-10/REBASE + v5.3 DET/SAFE/REBASE/TOOL-01 — Test-Network."""
+    """v5.2 DIAG/DET/ROUTE-10/REBASE + v5.3 DET/SAFE/REBASE/TOOL-01 — Test-Network.
+
+    Surfaces: P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
+    """
     emul = "scripts/check-step0-emulator.py"
     live = "scripts/check-step0-live.py"
     audit_v52 = "Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate"
@@ -1249,46 +1514,63 @@ def _rows_testnet_v52_v53() -> list[MatrixRow]:
     agent = "first-principles/agents/first-principles.md"
     return [
         MatrixRow("v5.2/DIAG-01", "DIAG-01", "v5.2", "Test-Network",
-                  emul, "audit-only", "", audit_v52),
+                  emul, "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/DIAG-02", "DIAG-02", "v5.2", "Test-Network",
-                  emul, "audit-only", "", audit_v52),
+                  emul, "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/DIAG-03", "DIAG-03", "v5.2", "Test-Network",
-                  emul, "audit-only", "", audit_v52),
+                  emul, "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/DET-10", "DET-10", "v5.2", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.2/DET-11", "DET-11", "v5.2", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.2/DET-12", "DET-12", "v5.2", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.2/ROUTE-10", "ROUTE-10", "v5.2", "Methodology",
-                  agent, "audit-only", "", audit_v52),
+                  agent, "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/REBASE-01", "REBASE-01", "v5.2", "Test-Network",
                   "tests/step0-baseline-v5.2.md",
-                  "audit-only", "", audit_v52),
+                  "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/REBASE-02", "REBASE-02", "v5.2", "Test-Network",
                   "tests/step0-baseline-v5.2.md",
-                  "audit-only", "", audit_v52),
+                  "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.2/REBASE-03", "REBASE-03", "v5.2", "Test-Network",
                   "tests/step0-baseline-v5.2.md",
-                  "audit-only", "", audit_v52),
+                  "audit-only", "", audit_v52,
+                  surfaces=("agent",)),
         MatrixRow("v5.3/DET-13", "DET-13", "v5.3", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.3/DET-14", "DET-14", "v5.3", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.3/DET-15", "DET-15", "v5.3", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.3/SAFE-04", "SAFE-04", "v5.3", "Test-Network",
-                  emul, "reproducible", emul, ""),
+                  emul, "reproducible", emul, "",
+                  surfaces=("agent",)),
         MatrixRow("v5.3/REBASE-04", "REBASE-04", "v5.3", "Test-Network",
                   "tests/step0-baseline-v5.3.md",
-                  "audit-only", "", audit_v53),
+                  "audit-only", "", audit_v53,
+                  surfaces=("agent",)),
         MatrixRow("v5.3/REBASE-05", "REBASE-05", "v5.3", "Test-Network",
                   "tests/step0-baseline-v5.3.md",
-                  "audit-only", "", audit_v53),
+                  "audit-only", "", audit_v53,
+                  surfaces=("agent",)),
         # v5.3/TOOL-01: quick task closure for check-routing.py (Test-Network)
         MatrixRow("v5.3/TOOL-01", "TOOL-01", "v5.3", "Test-Network",
                   "scripts/check-routing.py",
-                  "audit-only", "", audit_v53),
+                  "audit-only", "", audit_v53,
+                  surfaces=("agent",)),
     ]
 
 
@@ -1313,6 +1595,8 @@ def _rows_active_tail() -> list[MatrixRow]:
     sentinel present as regression guard). Full chains: RR-79-02 ->
     RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01 (S-P02); RR-79-03 -> RR-92-02 ->
     RR-95-02 -> RR-108-02 CLOSED (S-P05).
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_gen01 = (
@@ -1344,42 +1628,53 @@ def _rows_active_tail() -> list[MatrixRow]:
     )
     return [
         MatrixRow(f"{p}/RR-80-01", "RR-80-01", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         MatrixRow("v5.3/GEN-01", "GEN-01", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "tests/step0-baseline-v7.13.md",
-                  tail_rationale_gen01),
+                  tail_rationale_gen01,
+                  surfaces=("agent",)),
         MatrixRow("v5.3/GEN-02", "GEN-02", "v5.3", "Test-Network",
                   "active-tail", "reproducible", "docs/live-monitoring-runbook.md",
-                  tail_rationale_gen02),
+                  tail_rationale_gen02,
+                  surfaces=("apparatus",)),
         MatrixRow(f"{p}/RR-79-01", "RR-79-01", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-114-01 supersedes RR-108-01 (Phase 114 v7.6 carry-forward, S-P02 inversion CARRIED 1/5)
         # Full chain: RR-79-02 -> RR-92-01 -> RR-95-01 -> RR-108-01 -> RR-114-01
         MatrixRow(f"{p}/RR-114-01", "RR-114-01", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-108-02 supersedes RR-95-02 (Phase 108 v7.4 carry-forward, S-P05 trade-off CARRIED 2/5)
         # Full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED
         # CLOSED at 4/5 ≥ min-pass at Phase 114 v7.6 re-baseline (lone canonical improver;
         # ID retained, sentinel in _battery_core.self_test_boundary() re-pointed to v7.6 vector)
         MatrixRow(f"{p}/RR-108-02", "RR-108-02", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         MatrixRow(f"{p}/RR-77-08", "RR-77-08", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-117-01: S-P03 fishbone CLOSED at 5/5 at Phase 117 CONF-01; CLOSE SUSTAINED 4/5 at v7.8 CONF-03.
         # First fishbone vector sentinel; RR-75-03 lineage; re-pointed to v7.8 in Phase 119 CONF-04.
         MatrixRow(f"{p}/RR-117-01", "RR-117-01", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-117-02: S-N03 precision sentinel; D-17 precision finding; re-pointed to v7.8 in Phase 119 CONF-04.
         MatrixRow(f"{p}/RR-117-02", "RR-117-02", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-119-01: S-N01 over-routing RESOLVED-OVER-BAR at Phase 119 CONF-03 (v7.8 vector [0,2,1,1,3]).
         # Under-count caveat documented; NOT a reclassification (D-4, Phase 119 CONF-04).
         MatrixRow(f"{p}/RR-119-01", "RR-119-01", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         # RR-119-02: S-N02 over-routing RESOLVED-OVER-BAR at Phase 119 CONF-03 (v7.8 vector [0,3,3,1,1]).
         # Under-count caveat documented; NOT a reclassification (D-4, Phase 119 CONF-04).
         MatrixRow(f"{p}/RR-119-02", "RR-119-02", p, "Test-Network",
-                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "active-tail", "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
     ]
 
 
@@ -1408,32 +1703,42 @@ def _rows_v79() -> list[MatrixRow]:
       OCH-03:       scripts/_battery_core.py#self_test_boundary (anchor substring in file)
       COLLIDE-01/02: scripts/check-install-collisions.py (COLLIDE-01 CI gate)
       RECON-01:     scripts/check-traceability.py (TRACE-03 self-test, this file)
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs), P-REF (a shared/references/<slug>.md companion file, naming the slug plus agent).
     """
     return [
         MatrixRow("v7.9/NEGCAT-01", "NEGCAT-01", "v7.9", "Test-Network",
                   "tests/step0-fixture-catalog.md",
-                  "reproducible", "scripts/check-step0-emulator.py", ""),
+                  "reproducible", "scripts/check-step0-emulator.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v7.9/NEGCAT-02", "NEGCAT-02", "v7.9", "Test-Network",
                   "scripts/check-step0-emulator.py",
-                  "reproducible", "scripts/check-step0-emulator.py", ""),
+                  "reproducible", "scripts/check-step0-emulator.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v7.9/OCH-01", "OCH-01", "v7.9", "Methodology",
                   "shared/references/inversion.md",
-                  "reproducible", "scripts/sync-content.py", ""),
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("inversion", "agent")),
         MatrixRow("v7.9/OCH-02", "OCH-02", "v7.9", "Test-Network",
                   "scripts/_battery_core.py",
-                  "reproducible", "scripts/check-routing-battery.py", ""),
+                  "reproducible", "scripts/check-routing-battery.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v7.9/OCH-03", "OCH-03", "v7.9", "Test-Network",
                   "scripts/_battery_core.py",
-                  "reproducible", "scripts/_battery_core.py#self_test_boundary", ""),
+                  "reproducible", "scripts/_battery_core.py#self_test_boundary", "",
+                  surfaces=("agent",)),
         MatrixRow("v7.9/COLLIDE-01", "COLLIDE-01", "v7.9", "Test-Network",
                   "scripts/check-install-collisions.py",
-                  "reproducible", "scripts/check-install-collisions.py", ""),
+                  "reproducible", "scripts/check-install-collisions.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v7.9/COLLIDE-02", "COLLIDE-02", "v7.9", "Test-Network",
                   ".github/workflows/validation.yml",
-                  "reproducible", "scripts/check-install-collisions.py", ""),
+                  "reproducible", "scripts/check-install-collisions.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v7.9/RECON-01", "RECON-01", "v7.9", "Test-Network",
                   "docs/requirements-traceability.md",
-                  "reproducible", "scripts/check-traceability.py", ""),
+                  "reproducible", "scripts/check-traceability.py", "",
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1452,6 +1757,8 @@ def _rows_v711() -> list[MatrixRow]:
     RR-130-01 (the main-routing inline-answering regression) is a DOCUMENTED RESIDUAL
     with NO matrix row (v7.9 D-02 precedent) — it is recorded as prose in
     docs/requirements-traceability.md, not here.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
     """
     audit_v711 = (
         "Validated by the v7.11 whole-system live re-baseline (Phases 128-131); "
@@ -1460,27 +1767,38 @@ def _rows_v711() -> list[MatrixRow]:
     )
     return [
         MatrixRow("v7.11/READY-01", "READY-01", "v7.11", "Test-Network",
-                  "scripts/check-firewall-battery.sh", "audit-only", "", audit_v711),
+                  "scripts/check-firewall-battery.sh", "audit-only", "", audit_v711,
+                  surfaces=("apparatus",)),
         MatrixRow("v7.11/READY-02", "READY-02", "v7.11", "Test-Network",
-                  "scripts/check-step0-live.py", "audit-only", "", audit_v711),
+                  "scripts/check-step0-live.py", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/READY-03", "READY-03", "v7.11", "Test-Network",
-                  "scripts/check-firewall-battery.sh", "audit-only", "", audit_v711),
+                  "scripts/check-firewall-battery.sh", "audit-only", "", audit_v711,
+                  surfaces=("apparatus",)),
         MatrixRow("v7.11/STEP0L-01", "STEP0L-01", "v7.11", "Test-Network",
-                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711),
+                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/STEP0L-02", "STEP0L-02", "v7.11", "Test-Network",
-                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711),
+                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/STEP0L-03", "STEP0L-03", "v7.11", "Test-Network",
-                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711),
+                  "tests/step0-baseline-v7.11.md", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/ROUTEL-01", "ROUTEL-01", "v7.11", "Test-Network",
-                  "tests/routing-baseline-v7.11.md", "audit-only", "", audit_v711),
+                  "tests/routing-baseline-v7.11.md", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/ROUTEL-02", "ROUTEL-02", "v7.11", "Test-Network",
-                  "tests/routing-battery-baseline-v7.11.md", "audit-only", "", audit_v711),
+                  "tests/routing-battery-baseline-v7.11.md", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/RECON-01", "RECON-01", "v7.11", "Test-Network",
-                  "docs/whole-system-remeasure-verdict.md", "audit-only", "", audit_v711),
+                  "docs/whole-system-remeasure-verdict.md", "audit-only", "", audit_v711,
+                  surfaces=("apparatus",)),
         MatrixRow("v7.11/RECON-02", "RECON-02", "v7.11", "Test-Network",
-                  "tests/step0-captures-v7.11", "audit-only", "", audit_v711),
+                  "tests/step0-captures-v7.11", "audit-only", "", audit_v711,
+                  surfaces=("agent",)),
         MatrixRow("v7.11/RECON-03", "RECON-03", "v7.11", "Test-Network",
-                  "docs/requirements-matrix.md", "audit-only", "", audit_v711),
+                  "docs/requirements-matrix.md", "audit-only", "", audit_v711,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1522,6 +1840,8 @@ def _rows_v818() -> list[MatrixRow]:
       SHIP-02               -> scripts/check-version-stamps.py
     Rejected: all 23 reproducible (would give SHIP-04/SHIP-05 an artifact_link that does not
     exist — the vacuous-green shape this project has flagged four times).
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     audit_v818 = (
         "Validated by inspecting the shipped record — the CHANGELOG.md milestone entry "
@@ -1532,71 +1852,94 @@ def _rows_v818() -> list[MatrixRow]:
     return [
         MatrixRow("v8.18/ACT-01", "ACT-01", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/ACT-02", "ACT-02", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/ACT-03", "ACT-03", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/ACT-04", "ACT-04", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/ACT-05", "ACT-05", "v8.18", "Methodology",
                   "shared/spine/references/validation-rubric.md",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/LOOP-01", "LOOP-01", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/LOOP-02", "LOOP-02", "v8.18", "Methodology",
                   "shared/agent/input-contract.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/LOOP-03", "LOOP-03", "v8.18", "Methodology",
                   "shared/spine/references/validation-rubric.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/LOOP-04", "LOOP-04", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/LOOP-05", "LOOP-05", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/PAR-01", "PAR-01", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/PAR-02", "PAR-02", "v8.18", "Methodology",
                   "shared/spine/focused-validation-step.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/PAR-03", "PAR-03", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.18/HARN-01", "HARN-01", "v8.18", "Test-Network",
                   "scripts/check-act-limb.py",
-                  "reproducible", "scripts/check-act-limb.py", ""),
+                  "reproducible", "scripts/check-act-limb.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/HARN-02", "HARN-02", "v8.18", "Test-Network",
                   "scripts/check-loop-closure.py",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/HARN-03", "HARN-03", "v8.18", "Test-Network",
                   "scripts/check-focused-parity.py",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/HARN-04", "HARN-04", "v8.18", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-01", "SHIP-01", "v8.18", "Test-Network",
                   "scripts/sync-content.py",
-                  "reproducible", "scripts/sync-content.py", ""),
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-02", "SHIP-02", "v8.18", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-03", "SHIP-03", "v8.18", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-06", "SHIP-06", "v8.18", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-04", "SHIP-04", "v8.18", "Methodology",
-                  "CHANGELOG.md", "audit-only", "", audit_v818),
+                  "CHANGELOG.md", "audit-only", "", audit_v818,
+                  surfaces=("apparatus",)),
         MatrixRow("v8.18/SHIP-05", "SHIP-05", "v8.18", "Methodology",
-                  "docs/v8.18-praor-loop-closure.md", "audit-only", "", audit_v818),
+                  "docs/v8.18-praor-loop-closure.md", "audit-only", "", audit_v818,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1647,6 +1990,8 @@ def _rows_v824() -> list[MatrixRow]:
     REG-GUARD red -- measured as a live negative control -- so the artifact_link points at
     that assertion by symbol anchor, binding the row to the check rather than to a file's mere
     existence.
+
+    Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     audit_v824 = (
         "Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this "
@@ -1658,50 +2003,65 @@ def _rows_v824() -> list[MatrixRow]:
         MatrixRow("v8.24/CAP-01", "CAP-01", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_analysis_persistence", ""),
+                  "scripts/check-quality-harness.py#_selftest_analysis_persistence", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/CAP-02", "CAP-02", "v8.24", "Test-Network",
                   "tests/quality-provenance-v8.24/README.md",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/CAP-03", "CAP-03", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_capture_tool_reader", ""),
+                  "scripts/check-quality-harness.py#_selftest_capture_tool_reader", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/PROV-01", "PROV-01", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/PROV-02", "PROV-02", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/PROV-03", "PROV-03", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/PROV-04", "PROV-04", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/PROV-05", "PROV-05", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/GATE-01", "GATE-01", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", ""),
+                  "reproducible", "scripts/check-provenance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/GATE-02", "GATE-02", "v8.24", "Test-Network",
                   ".github/workflows/validation.yml",
                   "reproducible",
-                  "scripts/check-registration.py#verify_ci_job_registration", ""),
+                  "scripts/check-registration.py#verify_ci_job_registration", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/GATE-03", "GATE-03", "v8.24", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/VAL-01", "VAL-01", "v8.24", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/VAL-02", "VAL-02", "v8.24", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/VAL-03", "VAL-03", "v8.24", "Test-Network",
                   "scripts/sync-content.py",
-                  "reproducible", "scripts/sync-content.py", ""),
+                  "reproducible", "scripts/sync-content.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.24/VAL-04", "VAL-04", "v8.24", "Methodology",
-                  "CLAUDE.md", "audit-only", "", audit_v824),
+                  "CLAUDE.md", "audit-only", "", audit_v824,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1738,62 +2098,78 @@ def _rows_v825() -> list[MatrixRow]:
       - A2 — SHIP-03's tier. _self_test_headline_lock predates this phase's rows (authored and
         mutation-tested in Phase 10), so this is a held-out oracle applied to new input, not a
         tautology. Tiered reproducible against it.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     return [
         MatrixRow("v8.25/HEADLINE-01", "HEADLINE-01", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_headline_lock_surfaces", ""),
+                  "scripts/check-traceability.py#_headline_lock_surfaces", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/HEADLINE-02", "HEADLINE-02", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_headline_literals", ""),
+                  "scripts/check-traceability.py#_headline_literals", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/HEADLINE-03", "HEADLINE-03", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_is_historical_headline_hit", ""),
+                  "scripts/check-traceability.py#_is_historical_headline_hit", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/HEADLINE-04", "HEADLINE-04", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_headline_lock_surfaces", ""),
+                  "scripts/check-traceability.py#_headline_lock_surfaces", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/HEADLINE-05", "HEADLINE-05", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_headline_lock_scan", ""),
+                  "scripts/check-traceability.py#_headline_lock_scan", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/CONTRACT-01", "CONTRACT-01", "v8.25", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.25/CONTRACT-02", "CONTRACT-02", "v8.25", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.25/CONTRACT-03", "CONTRACT-03", "v8.25", "Methodology",
                   "shared/spine/SKILL-body.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.25/CONTRACT-04", "CONTRACT-04", "v8.25", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.25/CONTRACT-05", "CONTRACT-05", "v8.25", "Methodology",
                   "shared/spine/SKILL-body.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.25/CONTRACT-06", "CONTRACT-06", "v8.25", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", ""),
+                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/SHIP-01", "SHIP-01", "v8.25", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/SHIP-02", "SHIP-02", "v8.25", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.25/SHIP-03", "SHIP-03", "v8.25", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1842,6 +2218,8 @@ def _rows_v826() -> list[MatrixRow]:
     guarantee for these three is supplied instead by SCAN-GUARD's own validate-census
     (plan 15-09) and by the (h4) call-site census _self_test_v826_rows_sentinel() adds.
     State this rather than letting the reader assume the (h) guarantee extends here.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     _audit_scan04 = (
         "CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as "
@@ -1855,78 +2233,98 @@ def _rows_v826() -> list[MatrixRow]:
         MatrixRow("v8.26/CHAINHEAD-01", "CHAINHEAD-01", "v8.26", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/CHAINHEAD-02", "CHAINHEAD-02", "v8.26", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/CHAINHEAD-03", "CHAINHEAD-03", "v8.26", "Methodology",
                   "shared/spine/SKILL-body.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/CHAINHEAD-04", "CHAINHEAD-04", "v8.26", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/CHAINHEAD-05", "CHAINHEAD-05", "v8.26", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/CHAINHEAD-06", "CHAINHEAD-06", "v8.26", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/CHAINHEAD-07", "CHAINHEAD-07", "v8.26", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", ""),
+                  "scripts/check-quality-harness.py#_selftest_chain_detector_pin", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/LEDGER-01", "LEDGER-01", "v8.26", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/LEDGER-02", "LEDGER-02", "v8.26", "Methodology",
                   "shared/spine/references/output-template.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/LEDGER-03", "LEDGER-03", "v8.26", "Methodology",
                   "shared/spine/references/validation-rubric.md",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_render_contract", ""),
+                  "scripts/check-quality-harness.py#_selftest_render_contract", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/LEDGER-04", "LEDGER-04", "v8.26", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
-                  "scripts/check-quality-harness.py#_selftest_ledger_traceability", ""),
+                  "scripts/check-quality-harness.py#_selftest_ledger_traceability", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SCAN-01", "SCAN-01", "v8.26", "Methodology",
                   "shared/spine/SKILL-body.md",
                   "reproducible",
-                  "scripts/check-selfaudit-scan.py#_check_body_text", ""),
+                  "scripts/check-selfaudit-scan.py#_check_body_text", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/SCAN-02", "SCAN-02", "v8.26", "Methodology",
                   "shared/spine/references/validation-rubric.md",
                   "reproducible",
-                  "scripts/check-selfaudit-scan.py#_check_rubric_text", ""),
+                  "scripts/check-selfaudit-scan.py#_check_rubric_text", "",
+                  surfaces=("agent",)),
         MatrixRow("v8.26/SCAN-03", "SCAN-03", "v8.26", "Test-Network",
                   "scripts/check-selfaudit-scan.py",
                   "reproducible",
-                  "scripts/check-selfaudit-scan.py#_check_cross_surface", ""),
+                  "scripts/check-selfaudit-scan.py#_check_cross_surface", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SCAN-04", "SCAN-04", "v8.26", "Test-Network",
                   "scripts/check-selfaudit-scan.py",
-                  "audit-only", "", _audit_scan04),
+                  "audit-only", "", _audit_scan04,
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SHIP-01", "SHIP-01", "v8.26", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SHIP-02", "SHIP-02", "v8.26", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SHIP-03", "SHIP-03", "v8.26", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SHIP-04", "SHIP-04", "v8.26", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog),
+                  "audit-only", "", _audit_ship_changelog,
+                  surfaces=("apparatus",)),
         MatrixRow("v8.26/SHIP-05", "SHIP-05", "v8.26", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog),
+                  "audit-only", "", _audit_ship_changelog,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -1984,6 +2382,8 @@ def _rows_v9() -> list[MatrixRow]:
     matrix). State this rather than letting a reader assume the `#anchor` dispatch guarantee
     extends to a bare path — overstating that reach is the defect class this milestone exists
     to end.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     _audit_process_prose = (
         "CLAUDE.md's own 'Review protocol' section states plainly that no script, control "
@@ -1996,62 +2396,81 @@ def _rows_v9() -> list[MatrixRow]:
     return [
         MatrixRow("v9.0/CONF-01", "CONF-01", "v9.0", "Test-Network",
                   "docs/conformance-baseline.md",
-                  "reproducible", "scripts/report-conformance.py", ""),
+                  "reproducible", "scripts/report-conformance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-02", "CONF-02", "v9.0", "Test-Network",
                   "docs/conformance-baseline.md",
-                  "reproducible", "scripts/report-conformance.py", ""),
+                  "reproducible", "scripts/report-conformance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-03", "CONF-03", "v9.0", "Methodology",
                   "shared/examples",
-                  "reproducible", "scripts/check-conf-gate.py", ""),
+                  "reproducible", "scripts/check-conf-gate.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v9.0/CONF-04", "CONF-04", "v9.0", "Methodology",
                   "shared/examples",
-                  "reproducible", "scripts/check-conf-gate.py", ""),
+                  "reproducible", "scripts/check-conf-gate.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v9.0/CONF-05", "CONF-05", "v9.0", "Methodology",
                   "shared/examples",
-                  "reproducible", "scripts/check-conf-gate.py", ""),
+                  "reproducible", "scripts/check-conf-gate.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v9.0/CONF-06", "CONF-06", "v9.0", "Test-Network",
                   "scripts/check-conf-gate.py",
-                  "reproducible", "scripts/check-conf-gate.py", ""),
+                  "reproducible", "scripts/check-conf-gate.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-07", "CONF-07", "v9.0", "Test-Network",
                   "tests/adversarial-corpus-v9.0",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-08", "CONF-08", "v9.0", "Test-Network",
                   "tests/adversarial-corpus-v9.0",
-                  "reproducible", "scripts/report-conformance.py", ""),
+                  "reproducible", "scripts/report-conformance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-09", "CONF-09", "v9.0", "Test-Network",
                   "tests/live-conformance-v9.0",
-                  "reproducible", "scripts/report-conformance.py", ""),
+                  "reproducible", "scripts/report-conformance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-10", "CONF-10", "v9.0", "Test-Network",
                   "docs/conformance-baseline.md",
-                  "reproducible", "scripts/report-conformance.py", ""),
+                  "reproducible", "scripts/report-conformance.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-11", "CONF-11", "v9.0", "Test-Network",
                   "docs/gates",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-12", "CONF-12", "v9.0", "Test-Network",
                   "CLAUDE.md",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-13", "CONF-13", "v9.0", "Test-Network",
                   "CLAUDE.md",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-14", "CONF-14", "v9.0", "Methodology",
                   "docs/PROCESS.md",
-                  "audit-only", "", _audit_process_prose),
+                  "audit-only", "", _audit_process_prose,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/CONF-15", "CONF-15", "v9.0", "Methodology",
                   "CLAUDE.md",
-                  "audit-only", "", _audit_process_prose),
+                  "audit-only", "", _audit_process_prose,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/REL-01", "REL-01", "v9.0", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/REL-02", "REL-02", "v9.0", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/REL-03", "REL-03", "v9.0", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.0/REL-04", "REL-04", "v9.0", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog),
+                  "audit-only", "", _audit_ship_changelog,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -2122,6 +2541,8 @@ def _rows_v91() -> list[MatrixRow]:
     be read by a CI gate, so no verb can join the two rosters live. CONTEXT.md D-17 records the
     stronger roster-parsing alternative (deriving the count from `.planning/REQUIREMENTS.md` by
     equality) as considered and rejected for this milestone.
+
+    Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     _audit_prose_named = (
         "Whether a mechanism is named in writing is not a predicate any gate evaluates."
@@ -2157,59 +2578,77 @@ def _rows_v91() -> list[MatrixRow]:
     return [
         MatrixRow("v9.1/PROSE-01", "PROSE-01", "v9.1", "Methodology",
                   "docs/v9.1-claim-containment-diagnosis.md",
-                  "audit-only", "", _audit_prose_named),
+                  "audit-only", "", _audit_prose_named,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/PROSE-02", "PROSE-02", "v9.1", "Methodology",
                   "docs/v9.1-claim-containment-diagnosis.md",
-                  "audit-only", "", _audit_prose_ordering),
+                  "audit-only", "", _audit_prose_ordering,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/PROSE-03", "PROSE-03", "v9.1", "Methodology",
                   "docs/v9.1-claim-containment-diagnosis.md",
-                  "audit-only", "", _audit_prose_scope),
+                  "audit-only", "", _audit_prose_scope,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/PROSE-04", "PROSE-04", "v9.1", "Methodology",
                   "docs/v9.1-claim-containment-diagnosis.md",
-                  "audit-only", "", _audit_prose_disposition),
+                  "audit-only", "", _audit_prose_disposition,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/CONTAIN-01", "CONTAIN-01", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/CONTAIN-02", "CONTAIN-02", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/CONTAIN-03", "CONTAIN-03", "v9.1", "Methodology",
                   "docs/gates/CONF-SURFACE.md",
-                  "audit-only", "", _audit_reach_level),
+                  "audit-only", "", _audit_reach_level,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/CONTAIN-04", "CONTAIN-04", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/NARR-01", "NARR-01", "v9.1", "Methodology",
                   "docs/PROCESS.md",
-                  "audit-only", "", _audit_process_prose_v91),
+                  "audit-only", "", _audit_process_prose_v91,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/NARR-02", "NARR-02", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/RATCHET-01", "RATCHET-01", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/RATCHET-02", "RATCHET-02", "v9.1", "Test-Network",
                   "scripts/gen-gate-docs.py",
-                  "reproducible", "scripts/gen-gate-docs.py", ""),
+                  "reproducible", "scripts/gen-gate-docs.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/RATCHET-03", "RATCHET-03", "v9.1", "Methodology",
                   "docs/gates/CONF-SURFACE.md",
-                  "audit-only", "", _audit_ratchet03_drop),
+                  "audit-only", "", _audit_ratchet03_drop,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/RATCHET-04", "RATCHET-04", "v9.1", "Methodology",
                   "docs/gates/CONF-SURFACE.md",
-                  "audit-only", "", _audit_ratchet04_determinations),
+                  "audit-only", "", _audit_ratchet04_determinations,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/REL-05", "REL-05", "v9.1", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/REL-06", "REL-06", "v9.1", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/REL-07", "REL-07", "v9.1", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.1/REL-08", "REL-08", "v9.1", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog_v91),
+                  "audit-only", "", _audit_ship_changelog_v91,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -2277,6 +2716,8 @@ def _rows_v92() -> list[MatrixRow]:
     `.planning/` is gitignored and can never be read by a CI gate, so no verb can join the two
     rosters live. See `_rows_v91()`'s identical paragraph for the precedent rather than
     re-arguing it.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR. P-DIR rows at tag v9.2.0 expand to the skills present in `git ls-tree --name-only v9.2.0 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     _audit_sup02_reading = (
         "Whether the bullet points at Phase 3's rule rather than restating the provenance "
@@ -2299,41 +2740,53 @@ def _rows_v92() -> list[MatrixRow]:
     return [
         MatrixRow("v9.2/SUP-01", "SUP-01", "v9.2", "Methodology",
                   "shared/agent/input-contract.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v9.2/SUP-02", "SUP-02", "v9.2", "Methodology",
                   "shared/agent/input-contract.md",
-                  "audit-only", "", _audit_sup02_reading),
+                  "audit-only", "", _audit_sup02_reading,
+                  surfaces=("agent",)),
         MatrixRow("v9.2/SUP-03", "SUP-03", "v9.2", "Methodology",
                   "first-principles/skills",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate")),
         MatrixRow("v9.2/SUP-04", "SUP-04", "v9.2", "Methodology",
                   "first-principles/skills",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate")),
         MatrixRow("v9.2/GUARD-01", "GUARD-01", "v9.2", "Test-Network",
                   "scripts/check-loop-closure.py",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/GUARD-02", "GUARD-02", "v9.2", "Test-Network",
                   "scripts/check-focused-parity.py",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/GUARD-03", "GUARD-03", "v9.2", "Methodology",
                   "docs/gates/HARN-02.md",
-                  "audit-only", "", _audit_reach_level_v92),
+                  "audit-only", "", _audit_reach_level_v92,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/REL-09", "REL-09", "v9.2", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/REL-10", "REL-10", "v9.2", "Test-Network",
                   "scripts/check-firewall-battery.sh",
-                  "reproducible", "scripts/check-firewall-battery.sh", ""),
+                  "reproducible", "scripts/check-firewall-battery.sh", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/REL-11", "REL-11", "v9.2", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog_v92),
+                  "audit-only", "", _audit_ship_changelog_v92,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/REL-12", "REL-12", "v9.2", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2/REL-13", "REL-13", "v9.2", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_recurrence_reading_v92),
+                  "audit-only", "", _audit_recurrence_reading_v92,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -2437,6 +2890,8 @@ def _rows_v921() -> list[MatrixRow]:
     `.planning/` is gitignored and can never be read by a CI gate, so no verb can join the two
     rosters live. See `_rows_v92()`'s and `_rows_v91()`'s identical paragraph for the
     precedent rather than re-arguing it.
+
+    Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-DIR, P-SKILL (a shared/skills/<slug>/ or first-principles/skills/<slug>/ path). P-DIR rows at tag v9.2.1 expand to the skills present in `git ls-tree --name-only v9.2.1 first-principles/skills/`: challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate (D-10, locked). D-09 governs this batch's sourced rows; none departs from its path-derived value.
     """
     _audit_routed_destination_identify_essence = (
         "Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one "
@@ -2482,35 +2937,45 @@ def _rows_v921() -> list[MatrixRow]:
     return [
         MatrixRow("v9.2.1/HAND-01", "HAND-01", "v9.2.1", "Methodology",
                   "shared/skills/identify-essence/SKILL.md",
-                  "audit-only", "", _audit_routed_destination_identify_essence),
+                  "audit-only", "", _audit_routed_destination_identify_essence,
+                  surfaces=("identify-essence",)),
         MatrixRow("v9.2.1/HAND-02", "HAND-02", "v9.2.1", "Methodology",
                   "shared/skills/reason-upward/SKILL.md",
-                  "audit-only", "", _audit_routed_destination_reason_upward),
+                  "audit-only", "", _audit_routed_destination_reason_upward,
+                  surfaces=("reason-upward",)),
         MatrixRow("v9.2.1/HAND-03", "HAND-03", "v9.2.1", "Methodology",
                   "shared/skills/validate/SKILL.md",
-                  "audit-only", "", _audit_routed_destination_validate),
+                  "audit-only", "", _audit_routed_destination_validate,
+                  surfaces=("validate",)),
         MatrixRow("v9.2.1/HAND-04", "HAND-04", "v9.2.1", "Methodology",
                   "first-principles/skills",
-                  "reproducible", "scripts/check-focused-parity.py", ""),
+                  "reproducible", "scripts/check-focused-parity.py", "",
+                  surfaces=("challenge-assumptions", "estimate", "first-principles-analysis", "fishbone", "five-whys", "ground-truths", "identify-essence", "inversion", "pre-mortem", "reason-upward", "second-order", "theoretical-limit", "trade-off", "validate")),
         MatrixRow("v9.2.1/HAND-05", "HAND-05", "v9.2.1", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", ""),
+                  "reproducible", "scripts/check-loop-closure.py", "",
+                  surfaces=("agent",)),
         MatrixRow("v9.2.1/REL-14", "REL-14", "v9.2.1", "Test-Network",
                   "scripts/check-version-stamps.py",
-                  "reproducible", "scripts/check-version-stamps.py", ""),
+                  "reproducible", "scripts/check-version-stamps.py", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2.1/REL-15", "REL-15", "v9.2.1", "Test-Network",
                   "scripts/check-registration.py",
-                  "audit-only", "", _audit_rel15_reading),
+                  "audit-only", "", _audit_rel15_reading,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2.1/REL-16", "REL-16", "v9.2.1", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_ship_changelog_v921),
+                  "audit-only", "", _audit_ship_changelog_v921,
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2.1/REL-17", "REL-17", "v9.2.1", "Test-Network",
                   "scripts/check-traceability.py",
                   "reproducible",
-                  "scripts/check-traceability.py#_self_test_headline_lock", ""),
+                  "scripts/check-traceability.py#_self_test_headline_lock", "",
+                  surfaces=("apparatus",)),
         MatrixRow("v9.2.1/REL-18", "REL-18", "v9.2.1", "Methodology",
                   "CHANGELOG.md",
-                  "audit-only", "", _audit_recurrence_reading_v921),
+                  "audit-only", "", _audit_recurrence_reading_v921,
+                  surfaces=("apparatus",)),
     ]
 
 
@@ -2946,6 +3411,26 @@ def _resolve_artifact(artifact_link: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
+def _row_field_problems(row: MatrixRow) -> list[str]:
+    """D-06's `surfaces` checks for one row: non-empty, and every element inside
+    the live `_surfaces_vocabulary()`. Shared by `check_consistency()`'s per-row
+    loop and TRACE-03's ROW-FIELDS live leg (D-13) — the same function object, so
+    a control exercising the live leg proves the real `check_consistency()` path
+    too, not a parallel copy."""
+    problems: list[str] = []
+    if not row.surfaces:
+        problems.append(f"{row.key}: surfaces must be non-empty (D-06)")
+        return problems
+    vocab = _surfaces_vocabulary()
+    unknown = [s for s in row.surfaces if s not in vocab]
+    if unknown:
+        problems.append(
+            f"{row.key}: surfaces value(s) {sorted(unknown)!r} outside the "
+            "vocabulary (shared/skills directories, agent, apparatus)"
+        )
+    return problems
+
+
 def check_consistency(rows: list[MatrixRow]) -> list[str]:
     """Validate each row; return list of issue descriptions (empty == consistent).
 
@@ -2956,6 +3441,8 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
         _resolve_artifact (WR-02/D-02); a dangling scheduled artifact FAILS check
         the same as a dangling reproducible artifact
       - audit-only and gap rows with no artifact link are valid states (D-06)
+      - surfaces must be non-empty and every element must be inside the live
+        `_surfaces_vocabulary()` (D-06), via the shared `_row_field_problems()`
     """
     issues: list[str] = []
     for row in rows:
@@ -2973,6 +3460,7 @@ def check_consistency(rows: list[MatrixRow]) -> list[str]:
             link_issues = _resolve_artifact(row.artifact_link)
             for issue in link_issues:
                 issues.append(f"{row.key}: {issue}")
+        issues.extend(_row_field_problems(row))
     return issues
 
 
@@ -3131,17 +3619,44 @@ def render_matrix_markdown(rows: list[MatrixRow]) -> str:
     lines.append(f"- gap: {len(gap)}")
     lines.append(f"- total: {len(rows)}")
     lines.append("")
+    lines.append("## Surface Coverage")
+    lines.append(
+        "Rows naming each shipped skill slug, the agent, or apparatus. A surfaces "
+        "value is a hand-assigned classification the matrix states, not a "
+        "measurement it proves."
+    )
+    skill_slugs = _skill_slugs()
+    surface_counts: dict[str, int] = {}
+    for r in rows:
+        for s in r.surfaces:
+            surface_counts[s] = surface_counts.get(s, 0) + 1
+    for slug in skill_slugs:
+        count = surface_counts.get(slug, 0)
+        if count >= 1:
+            lines.append(f"- {slug}: {count}")
+    lines.append(f"- agent: {surface_counts.get('agent', 0)}")
+    lines.append(f"- apparatus: {surface_counts.get('apparatus', 0)}")
+    lines.append("")
+    lines.append("### Uncovered")
+    uncovered_slugs = [slug for slug in skill_slugs if surface_counts.get(slug, 0) == 0]
+    if uncovered_slugs:
+        for slug in uncovered_slugs:
+            lines.append(f"- {slug}")
+    else:
+        lines.append("- none")
+    lines.append("")
     lines.append("## Matrix Table")
     lines.append(
-        "| Key | Bare ID | Capability | Deliverable | Tier | "
+        "| Key | Bare ID | Capability | Surfaces | Deliverable | Tier | "
         "Artifact | Gap Rationale |"
     )
     lines.append(
-        "|-----|---------|------------|-------------|------|----------|---------------|"
+        "|-----|---------|------------|----------|-------------|------|----------|---------------|"
     )
     for r in rows:
+        surfaces_cell = ", ".join(r.surfaces).replace("|", "\\|")
         lines.append(
-            f"| {r.key} | {r.bare_id} | {r.capability} | "
+            f"| {r.key} | {r.bare_id} | {r.capability} | {surfaces_cell} | "
             f"{r.deliverable_path} | {r.coverage_tier} | "
             f"{r.artifact_link} | {r.gap_rationale} |"
         )
@@ -3186,9 +3701,16 @@ def load_rows(json_path: Path) -> list[MatrixRow]:
     """Load matrix.json → list[MatrixRow] via json.loads + dataclass constructor.
 
     The constructor catches missing fields (Don't-Hand-Roll: per RESEARCH.md).
+
+    `surfaces` is re-cast from `list` back to `tuple` after `json.loads` (JSON has
+    no tuple type) — `MatrixRow` is `@dataclass(frozen=True)`, so a `list`-valued
+    field would silently break every loaded row's hashability the first time
+    anything hashes it or puts it in a set.
     """
     raw = json.loads(json_path.read_text(encoding="utf-8"))
-    return [MatrixRow(**item) for item in raw]
+    return [
+        MatrixRow(**{**item, "surfaces": tuple(item["surfaces"])}) for item in raw
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -3208,6 +3730,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="reproducible",
         artifact_link="scripts/check-step0-emulator.py",
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues1 = check_consistency([row1])
     if issues1:
@@ -3226,6 +3749,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="audit-only",
         artifact_link="",
         gap_rationale="Validated by v3.1 milestone audit; no re-runnable gate",
+        surfaces=("apparatus",),
     )
     issues5 = check_consistency([row5])
     if issues5:
@@ -3248,6 +3772,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="gap",
         artifact_link="",
         gap_rationale="Full Step 0 classifier rearchitecture; perpetually deferred",
+        surfaces=("apparatus",),
     )
     issues6 = check_consistency([row6])
     if issues6:
@@ -3273,6 +3798,7 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="scheduled",
         artifact_link="docs/gen-01-rearch-milestone.md",
         gap_rationale="Committed future milestone GEN-01-REARCH",
+        surfaces=("apparatus",),
     )
     issues9 = check_consistency([row9])
     if issues9:
@@ -3298,17 +3824,20 @@ def _self_test_valid_rows_fixtures(wrong_results: list[str]) -> None:
         key="fixture/FOLD-REPRO-01", bare_id="FOLD-REPRO-01", milestone="fixture",
         capability="Test-Network", deliverable_path="active-tail",
         coverage_tier="reproducible", artifact_link="", gap_rationale="",
+        surfaces=("apparatus",),
     )
     _fold_repro2 = MatrixRow(
         key="fixture/FOLD-REPRO-02", bare_id="FOLD-REPRO-02", milestone="fixture",
         capability="Test-Network", deliverable_path="active-tail",
         coverage_tier="reproducible", artifact_link="", gap_rationale="",
+        surfaces=("apparatus",),
     )
     _fold_sched1 = MatrixRow(
         key="fixture/FOLD-SCHED-01", bare_id="FOLD-SCHED-01", milestone="fixture",
         capability="Test-Network", deliverable_path="active-tail",
         coverage_tier="scheduled", artifact_link="",
         gap_rationale="Synthetic scheduled row for DISTRIBUTION-FOLD fixture",
+        surfaces=("apparatus",),
     )
     _fold_rows = [_fold_repro1, _fold_repro2, _fold_sched1]  # 2 repro + 1 scheduled
     _fold_bare_reproducible = 2   # bare count (before fold)
@@ -3539,6 +4068,7 @@ def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="reproducible",
         artifact_link="scripts/nonexistent-check-99.py",
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues2 = check_consistency([row2])
     if not issues2:
@@ -3559,6 +4089,7 @@ def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="reproducible",
         artifact_link="tests/routing-battery-catalog.md#B-NONEXISTENT",
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues3 = check_consistency([row3])
     if not issues3:
@@ -3584,6 +4115,7 @@ def _self_test_dangling_fixtures(wrong_results: list[str]) -> None:
             "#criterion-99-nonexistent"
         ),
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues4 = check_consistency([row4])
     if not issues4:
@@ -3609,6 +4141,7 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="audit-only",
         artifact_link="",
         gap_rationale="no capability assigned",
+        surfaces=("apparatus",),
     )
     issues7 = check_consistency([row7])
     if not issues7:
@@ -3627,6 +4160,7 @@ def _self_test_schema_fixtures(wrong_results: list[str]) -> None:
         coverage_tier="",
         artifact_link="",
         gap_rationale="no tier assigned",
+        surfaces=("apparatus",),
     )
     issues8 = check_consistency([row8])
     if not issues8:
@@ -7488,6 +8022,82 @@ _HEADLINE_LOCK_BLOCKS: tuple[str, ...] = (
 )
 
 
+def _self_test_row_fields_live(wrong_results: list[str]) -> None:
+    """ROW-FIELDS named sentinel (D-13): runs `_row_field_problems()` — the same
+    function object `check_consistency()` calls per row — live over every row
+    `build_matrix_rows()` returns, inside `--self-test`. Before this sentinel
+    existed, `check_consistency()` was only ever called live by the `check`
+    subcommand (`_run_check`), never by `--self-test`/CI/the battery — so a future
+    batch shipping an empty or out-of-vocabulary `surfaces` value would have
+    shipped green. REACH, not LEVEL: this points an existing product guard (the
+    matrix's own consistency check) at two more fields of the product surface it
+    already guards; no new registered gate, battery registration or CI job.
+
+    (a) non-vacuity + live row-field problems: `build_matrix_rows()` must return a
+        non-empty list, and every row's `_row_field_problems()` result must be empty.
+    (b) empty-surfaces control: `dataclasses.replace(rows[0], surfaces=())` must be
+        flagged by `_row_field_problems()`, and `check_consistency()` on that single
+        mutated row must report the identical message — proving `check_consistency()`
+        really calls the shared helper, not a parallel copy.
+    (c) unknown-slug control: `dataclasses.replace(rows[0], surfaces=("no-such-skill",))`
+        must be flagged by `_row_field_problems()`.
+    (d) positive control: `_row_field_problems(rows[0])` (unmutated) returns an
+        empty list.
+    """
+    rows = build_matrix_rows()
+    if not rows:
+        wrong_results.append("ROW-FIELDS: build_matrix_rows() returned no rows")
+        return
+
+    problems: list[str] = []
+    for row in rows:
+        problems.extend(_row_field_problems(row))
+    if problems:
+        for p in problems[:5]:
+            print(f"check-traceability --self-test: ROW-FIELDS FAIL — {p}")
+        wrong_results.append("ROW-FIELDS: live row-field problems")
+    else:
+        print(
+            f"check-traceability --self-test: ROW-FIELDS PASS ({len(rows)} rows checked)"
+        )
+
+    sample = rows[0]
+
+    empty_surfaces_row = replace(sample, surfaces=())
+    empty_problems = _row_field_problems(empty_surfaces_row)
+    if not empty_problems:
+        wrong_results.append(
+            "ROW-FIELDS: empty-surfaces control not flagged by _row_field_problems"
+        )
+    else:
+        cc_problems = check_consistency([empty_surfaces_row])
+        if empty_problems[0] not in cc_problems:
+            wrong_results.append(
+                "ROW-FIELDS: check_consistency() did not report the same "
+                "empty-surfaces message as _row_field_problems()"
+            )
+        else:
+            print(
+                "check-traceability --self-test: ROW-FIELDS (b) empty-surfaces "
+                "control PASS — flagged identically by both callers"
+            )
+
+    unknown_slug_row = replace(sample, surfaces=("no-such-skill",))
+    if not _row_field_problems(unknown_slug_row):
+        wrong_results.append(
+            "ROW-FIELDS: unknown-slug control not flagged by _row_field_problems"
+        )
+    else:
+        print("check-traceability --self-test: ROW-FIELDS (c) unknown-slug control PASS")
+
+    if _row_field_problems(sample):
+        wrong_results.append(
+            "ROW-FIELDS: positive control — unmutated sample row unexpectedly flagged"
+        )
+    else:
+        print("check-traceability --self-test: ROW-FIELDS (d) positive control PASS")
+
+
 def _self_test_headline_lock(wrong_results: list[str]) -> None:
     """HEADLINE-LOCK named sentinel (WR-08 / v8.18 Phase 4 review).
 
@@ -7911,6 +8521,11 @@ def _run_self_test() -> None:
                  locks all 12 v9.2 milestone rows against silent drift, including a tier swap
                  between two named IDs that a blanket count assert would miss; no live claude
                  session required.
+      ROW-FIELDS: live `_row_field_problems()` (D-06 surfaces checks) over every row
+                 `build_matrix_rows()` returns, plus an empty-surfaces control and an
+                 unknown-slug control, each cross-checked against `check_consistency()`
+                 (D-13); closes the gap where `check_consistency()` was previously
+                 called live only by the `check` subcommand, never by `--self-test`.
       HEADLINE-LOCK: ties the published coverage headline in
                  docs/requirements-traceability.md, and both tracked artifacts
                  (docs/requirements-matrix.md, docs/data/matrix.json), back to
@@ -7933,6 +8548,7 @@ def _run_self_test() -> None:
     _self_test_v91_rows_sentinel(wrong_results)
     _self_test_v92_rows_sentinel(wrong_results)
     _self_test_v921_rows_sentinel(wrong_results)
+    _self_test_row_fields_live(wrong_results)
     _self_test_headline_lock(wrong_results)
     _self_test_describe_consistency(wrong_results)
     if wrong_results:

@@ -90,6 +90,13 @@ this file and `docs/ARCHITECTURE.md` — the two-file set is `_TRACE03_DOC_ROWS`
 `(0)` so dropping one cannot silently stop checking that row — covering the glob list's
 transcription only; the rest of either row's prose remains unasserted.
 
+`ROW-FIELDS` (D-13) runs the same row-field checks `check_consistency()` applies over
+`build_matrix_rows()` inside `--self-test`, so a matrix row with an empty surfaces value or a value
+outside the vocabulary (the directories under `shared/skills/`, plus `agent` and `apparatus`,
+derived live) fails CI; controls feed a row with empty surfaces and a row naming an unknown slug and
+require both flagged, and require `check_consistency()` to report the same problem. Disclosed bound:
+the leg proves a value is present and in vocabulary, not that it is the right classification.
+
 ## Provenance
 
 As of Phase 13 (CR-02, dispatch reachability; widened at 13-11 for WR-01/WR-03), artifact resolution

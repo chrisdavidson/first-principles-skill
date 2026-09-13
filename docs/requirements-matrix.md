@@ -12,354 +12,376 @@
 - gap: 0
 - total: 345
 
+## Surface Coverage
+Rows naming each shipped skill slug, the agent, or apparatus. A surfaces value is a hand-assigned classification the matrix states, not a measurement it proves.
+- challenge-assumptions: 13
+- estimate: 3
+- first-principles-analysis: 3
+- fishbone: 14
+- five-whys: 14
+- ground-truths: 13
+- identify-essence: 14
+- inversion: 15
+- pre-mortem: 14
+- reason-upward: 14
+- second-order: 14
+- theoretical-limit: 3
+- trade-off: 14
+- validate: 14
+- agent: 202
+- apparatus: 126
+
+### Uncovered
+- none
+
 ## Matrix Table
-| Key | Bare ID | Capability | Deliverable | Tier | Artifact | Gap Rationale |
-|-----|---------|------------|-------------|------|----------|---------------|
-| v3.0/AGENT-01 | AGENT-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/AGENT-02 | AGENT-02 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/AGENT-03 | AGENT-03 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/AGENT-04 | AGENT-04 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/AGENT-05 | AGENT-05 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/AGENT-06 | AGENT-06 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/SYNC-01 | SYNC-01 | Methodology | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/SYNC-02 | SYNC-02 | Methodology | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/SYNC-03 | SYNC-03 | Methodology | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/SYNC-04 | SYNC-04 | Methodology | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/PKG-01 | PKG-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/PKG-02 | PKG-02 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/EVAL-01 | EVAL-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-01 | MIGRATE-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-02 | MIGRATE-02 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-03 | MIGRATE-03 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-04 | MIGRATE-04 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-05 | MIGRATE-05 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/MIGRATE-06 | MIGRATE-06 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/DEPR-01 | DEPR-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/DEPR-02 | DEPR-02 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.0/DEPR-03 | DEPR-03 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-01 | META-01 | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-02 | META-02 | Methodology | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-03-SW | META-03-SW | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-03-PB | META-03-PB | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-03-PG | META-03-PG | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-03-SE | META-03-SE | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-Q1 | META-Q1 | Methodology | shared/spine/references/validation-rubric.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-Q2 | META-Q2 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-Q3 | META-Q3 | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
-| v3.2/META-Q4 | META-Q4 | Methodology | scripts/check-body-budget.py | audit-only |  | TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the body-budget pre-commit gate. scripts/check-body-budget.py is now report-only (always exits 0) and scripts/git-hooks/pre-commit no longer invokes it — the body line count is reported every firewall-battery run ([INFO] body-size) but is not gated. META-Q4 is therefore audit-only (reported/inspectable), not reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier. |
-| v3.7/RIGOR-01 | RIGOR-01 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 1: Identify Essence |  |
-| v3.7/RIGOR-02 | RIGOR-02 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 2: Challenge Assumptions |  |
-| v3.7/RIGOR-03 | RIGOR-03 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 3: Establish Ground Truths |  |
-| v3.7/RIGOR-04 | RIGOR-04 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 4: Reason Upward |  |
-| v3.7/RIGOR-05 | RIGOR-05 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 5: Validate |  |
-| v3.7/RIGOR-06 | RIGOR-06 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 6: Conclusion-to-Ground-Truth Traceability |  |
-| v3.7/RIGOR-07 | RIGOR-07 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#How to Apply This Rubric |  |
-| v3.7/RIGOR-08 | RIGOR-08 | Methodology | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Scoring Model |  |
-| v3.8/DISP-01 | DISP-01 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.8/STUB-01 | STUB-01 | Methodology | first-principles/skills | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.8/EVAL-01 | EVAL-01 | Methodology | scripts/check-routing-battery.py | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scripts/check-focused-output.py retired 2026-08-16 (superseded by the merged battery); deliverable repointed to its successor. |
-| v3.12/PHASE-01 | PHASE-01 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-02 | PHASE-02 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-03 | PHASE-03 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-04 | PHASE-04 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-05 | PHASE-05 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-06 | PHASE-06 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-07 | PHASE-07 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-08 | PHASE-08 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-09 | PHASE-09 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.12/PHASE-10 | PHASE-10 | Methodology | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/TAX-01 | TAX-01 | Methodology | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/TAX-02 | TAX-02 | Methodology | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/WKEX-01 | WKEX-01 | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/WKEX-02 | WKEX-02 | Methodology | first-principles/agents/references/examples | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
-| v2.0/VAL-01 | VAL-01 | Test-Network | first-principles/agents/first-principles.md | reproducible | claude plugin validate ./first-principles |  |
-| v2.0/VAL-02 | VAL-02 | Test-Network | first-principles/agents/first-principles.md | reproducible | markdownlint-cli2 |  |
-| v2.0/VAL-03 | VAL-03 | Test-Network | scripts/check-links.py | reproducible | scripts/check-links.py |  |
-| v2.0/VAL-04 | VAL-04 | Test-Network | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
-| v2.0/VAL-05 | VAL-05 | Test-Network | scripts/check-description-budget.py | reproducible | scripts/check-description-budget.py |  |
-| v3.0/GATE-01 | GATE-01 | Test-Network | scripts/check-agent.py | reproducible | scripts/check-agent.py |  |
-| v3.0/GATE-02 | GATE-02 | Test-Network | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
-| v3.0/GATE-03 | GATE-03 | Test-Network | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
-| v2.0/DUAL-04 | DUAL-04 | Test-Network | scripts/sync-content.py | audit-only |  | v2.0-MILESTONE-AUDIT passed; v2.0 DUAL-04 predates current --check flag |
-| v3.3/HOOK-01 | HOOK-01 | Test-Network | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
-| v3.3/HOOK-02 | HOOK-02 | Test-Network | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
-| v3.3/HOOK-03 | HOOK-03 | Test-Network | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
-| v3.3/HOOK-04 | HOOK-04 | Test-Network | .githooks/pre-commit | reproducible | .githooks/pre-commit |  |
-| v3.3/HOOK-05 | HOOK-05 | Test-Network | .githooks/pre-commit | reproducible | .githooks/pre-commit |  |
-| v3.3/HOOK-06 | HOOK-06 | Test-Network | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/INFRA-01 | INFRA-01 | Test-Network | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
-| v3.13/INFRA-02 | INFRA-02 | Test-Network | scripts/check-description-budget.py | reproducible | scripts/check-description-budget.py |  |
-| v3.13/INFRA-03 | INFRA-03 | Test-Network | scripts/check-agent.py | reproducible | scripts/check-agent.py |  |
-| v3.13/INFRA-04 | INFRA-04 | Test-Network | scripts/check-links.py | reproducible | scripts/check-links.py |  |
-| v3.13/INFRA-05 | INFRA-05 | Test-Network | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
-| v3.13/INFRA-06 | INFRA-06 | Test-Network | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
-| v3.1/ROUTE-01 | ROUTE-01 | Test-Network | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
-| v3.1/ROUTE-02 | ROUTE-02 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.1/ROUTE-03 | ROUTE-03 | Test-Network | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
-| v3.1/DOC-01 | DOC-01 | Test-Network | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
-| v3.4/NOISE-01 | NOISE-01 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.4/NOISE-02 | NOISE-02 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.4/NOISE-03 | NOISE-03 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.4/NOISE-04 | NOISE-04 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.4/NOISE-05 | NOISE-05 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.4/NOISE-06 | NOISE-06 | Test-Network | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
-| v3.5/FRAG-01 | FRAG-01 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-02 | FRAG-02 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-03 | FRAG-03 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-04 | FRAG-04 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-05 | FRAG-05 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-06 | FRAG-06 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-07 | FRAG-07 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-08 | FRAG-08 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.5/FRAG-09 | FRAG-09 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-01 | CAT-01 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-02 | CAT-02 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-03 | CAT-03 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-04 | CAT-04 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-05 | CAT-05 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-06 | CAT-06 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-07 | CAT-07 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-08 | CAT-08 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-09 | CAT-09 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.6/CAT-10 | CAT-10 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.8/FIXTURE-01 | FIXTURE-01 | Test-Network | tests/step0-fixture-catalog.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.8/FIXTURE-02 | FIXTURE-02 | Test-Network | tests/step0-fixture-catalog.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.8/VERIFY-01 | VERIFY-01 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v3.8/VERIFY-02 | VERIFY-02 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v3.8/VERIFY-03 | VERIFY-03 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v3.8/DOC-01 | DOC-01 | Test-Network | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
-| v3.9/P8-01 | P8-01 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.9/P8-02 | P8-02 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.9/P8-03 | P8-03 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.9/P8-04 | P8-04 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.10/CONV-01 | CONV-01 | Test-Network | .planning/phases | audit-only |  | Validated by v3.10-MILESTONE-AUDIT; VERIFICATION.md convention files |
-| v3.10/CONV-02 | CONV-02 | Test-Network | .planning/phases | audit-only |  | Validated by v3.10-MILESTONE-AUDIT; VALIDATION.md convention files |
-| v3.11/MON-01 | MON-01 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.11/MON-02 | MON-02 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.11/MON-03 | MON-03 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.11/MON-04 | MON-04 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.11/MON-05 | MON-05 | Test-Network | tests/routing-catalog.md | audit-only |  | Validated by v3.11-MILESTONE-AUDIT; no re-runnable gate |
-| v3.13/META-01 | META-01 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v3.13/META-02 | META-02 | Test-Network | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
-| v4.2/CAT-01 | CAT-01 | Test-Network | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/CAT-02 | CAT-02 | Test-Network | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/CAT-03 | CAT-03 | Test-Network | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/CAT-04 | CAT-04 | Test-Network | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/FOCUS-01 | FOCUS-01 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/FOCUS-02 | FOCUS-02 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/FOCUS-03 | FOCUS-03 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/STRICT-01 | STRICT-01 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/STRICT-02 | STRICT-02 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.2/BASE-01 | BASE-01 | Test-Network | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
-| v4.2/BASE-02 | BASE-02 | Test-Network | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
-| v4.3/BATT-01 | BATT-01 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-02 | BATT-02 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-03 | BATT-03 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-04 | BATT-04 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-05 | BATT-05 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-06 | BATT-06 | Test-Network | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
-| v4.3/BATT-07 | BATT-07 | Test-Network | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
-| v4.3/BATT-08 | BATT-08 | Test-Network | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
-| v5.0/STEP0-01 | STEP0-01 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.0/STEP0-02 | STEP0-02 | Test-Network | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
-| v5.0/STEP0-03 | STEP0-03 | Test-Network | tests/step0-fixture-catalog.md | reproducible | tests/step0-fixture-catalog.md |  |
-| v5.0/STEP0-04 | STEP0-04 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.0/STEP0-05 | STEP0-05 | Test-Network | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
-| v5.0/STEP0-06 | STEP0-06 | Test-Network | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
-| v5.0/STEP0-07 | STEP0-07 | Test-Network | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
-| v5.0/STEP0-08 | STEP0-08 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.0/STEP0-09 | STEP0-09 | Test-Network | tests/step0-fixture-catalog.md | reproducible | tests/step0-fixture-catalog.md |  |
-| v5.1/FIX-01 | FIX-01 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/FIX-02 | FIX-02 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/FIX-03 | FIX-03 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/DET-01 | DET-01 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/DET-02 | DET-02 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/DET-03 | DET-03 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/SAFE-01 | SAFE-01 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/SAFE-02 | SAFE-02 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/SAFE-03 | SAFE-03 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.1/BASE-01 | BASE-01 | Test-Network | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
-| v5.1/BASE-02 | BASE-02 | Test-Network | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
-| v5.1/BASE-03 | BASE-03 | Test-Network | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
-| v5.1/BASE-04 | BASE-04 | Test-Network | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/DIAG-01 | DIAG-01 | Test-Network | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/DIAG-02 | DIAG-02 | Test-Network | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/DIAG-03 | DIAG-03 | Test-Network | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/DET-10 | DET-10 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.2/DET-11 | DET-11 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.2/DET-12 | DET-12 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.2/ROUTE-10 | ROUTE-10 | Methodology | first-principles/agents/first-principles.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/REBASE-01 | REBASE-01 | Test-Network | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/REBASE-02 | REBASE-02 | Test-Network | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.2/REBASE-03 | REBASE-03 | Test-Network | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
-| v5.3/DET-13 | DET-13 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.3/DET-14 | DET-14 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.3/DET-15 | DET-15 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.3/SAFE-04 | SAFE-04 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v5.3/REBASE-04 | REBASE-04 | Test-Network | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
-| v5.3/REBASE-05 | REBASE-05 | Test-Network | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
-| v5.3/TOOL-01 | TOOL-01 | Test-Network | scripts/check-routing.py | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
-| residual/RR-80-01 | RR-80-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| v5.3/GEN-01 | GEN-01 | Test-Network | active-tail | reproducible | tests/step0-baseline-v7.13.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by committed live re-baselines (latest: v7.13 residual-delta, Phase 137). Earned by the committed baseline, not a passing score (reproducible = measured, not passing). Phase 129 v7.11 8-technique BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) — honest measured state (honesty-not-score, D-01). Prior baselines frozen: v7.6 (Phase 114, FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR), v7.8 (Phase 119 CONF-03, targeted 6-row PASS). v7.11 dispositions (Phase 129; see docs/whole-system-remeasure-verdict.md): RR-79-01 S-P01 CLOSE SUSTAINED 5/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5; RR-108-02 S-P05 trade-off CLOSE SUSTAINED 5/5; RR-114-01 S-P02 inversion CARRIED 2/5 (supersedes RR-108-01); RR-108-04 estimate CARRIED 0/5; RR-108-05 theoretical-limit CARRIED 0/5 (both first genuine live measurement, v7.4 was spend-limit-indeterminate); RR-108-03 decompose RESOLVED-BY-MERGE (v7.5; sentinel stays on frozen v7.4 evidence). v7.13 residual-delta re-measure (Phase 137, 3-row filtered catalog; tests/step0-baseline-v7.8.md remains the canonical full 8-technique baseline): S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept, no successor); S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept); S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept). Confirming artifact: tests/step0-baseline-v7.13.md. |
-| v5.3/GEN-02 | GEN-02 | Test-Network | active-tail | reproducible | docs/live-monitoring-runbook.md | Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + detector-surface changes. See docs/live-monitoring-runbook.md. |
-| residual/RR-79-01 | RR-79-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-114-01 | RR-114-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-108-02 | RR-108-02 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-77-08 | RR-77-08 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-117-01 | RR-117-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-117-02 | RR-117-02 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-119-01 | RR-119-01 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| residual/RR-119-02 | RR-119-02 | Test-Network | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| v7.9/NEGCAT-01 | NEGCAT-01 | Test-Network | tests/step0-fixture-catalog.md | reproducible | scripts/check-step0-emulator.py |  |
-| v7.9/NEGCAT-02 | NEGCAT-02 | Test-Network | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
-| v7.9/OCH-01 | OCH-01 | Methodology | shared/references/inversion.md | reproducible | scripts/sync-content.py |  |
-| v7.9/OCH-02 | OCH-02 | Test-Network | scripts/_battery_core.py | reproducible | scripts/check-routing-battery.py |  |
-| v7.9/OCH-03 | OCH-03 | Test-Network | scripts/_battery_core.py | reproducible | scripts/_battery_core.py#self_test_boundary |  |
-| v7.9/COLLIDE-01 | COLLIDE-01 | Test-Network | scripts/check-install-collisions.py | reproducible | scripts/check-install-collisions.py |  |
-| v7.9/COLLIDE-02 | COLLIDE-02 | Test-Network | .github/workflows/validation.yml | reproducible | scripts/check-install-collisions.py |  |
-| v7.9/RECON-01 | RECON-01 | Test-Network | docs/requirements-traceability.md | reproducible | scripts/check-traceability.py |  |
-| v7.11/READY-01 | READY-01 | Test-Network | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/READY-02 | READY-02 | Test-Network | scripts/check-step0-live.py | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/READY-03 | READY-03 | Test-Network | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/STEP0L-01 | STEP0L-01 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/STEP0L-02 | STEP0L-02 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/STEP0L-03 | STEP0L-03 | Test-Network | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/ROUTEL-01 | ROUTEL-01 | Test-Network | tests/routing-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/ROUTEL-02 | ROUTEL-02 | Test-Network | tests/routing-battery-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/RECON-01 | RECON-01 | Test-Network | docs/whole-system-remeasure-verdict.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/RECON-02 | RECON-02 | Test-Network | tests/step0-captures-v7.11 | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v7.11/RECON-03 | RECON-03 | Test-Network | docs/requirements-matrix.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
-| v8.18/ACT-01 | ACT-01 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
-| v8.18/ACT-02 | ACT-02 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
-| v8.18/ACT-03 | ACT-03 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
-| v8.18/ACT-04 | ACT-04 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
-| v8.18/ACT-05 | ACT-05 | Methodology | shared/spine/references/validation-rubric.md | reproducible | scripts/check-act-limb.py |  |
-| v8.18/LOOP-01 | LOOP-01 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/LOOP-02 | LOOP-02 | Methodology | shared/agent/input-contract.md | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/LOOP-03 | LOOP-03 | Methodology | shared/spine/references/validation-rubric.md | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/LOOP-04 | LOOP-04 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/LOOP-05 | LOOP-05 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/PAR-01 | PAR-01 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-focused-parity.py |  |
-| v8.18/PAR-02 | PAR-02 | Methodology | shared/spine/focused-validation-step.md | reproducible | scripts/check-focused-parity.py |  |
-| v8.18/PAR-03 | PAR-03 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-focused-parity.py |  |
-| v8.18/HARN-01 | HARN-01 | Test-Network | scripts/check-act-limb.py | reproducible | scripts/check-act-limb.py |  |
-| v8.18/HARN-02 | HARN-02 | Test-Network | scripts/check-loop-closure.py | reproducible | scripts/check-loop-closure.py |  |
-| v8.18/HARN-03 | HARN-03 | Test-Network | scripts/check-focused-parity.py | reproducible | scripts/check-focused-parity.py |  |
-| v8.18/HARN-04 | HARN-04 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.18/SHIP-01 | SHIP-01 | Test-Network | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
-| v8.18/SHIP-02 | SHIP-02 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v8.18/SHIP-03 | SHIP-03 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.18/SHIP-06 | SHIP-06 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.18/SHIP-04 | SHIP-04 | Methodology | CHANGELOG.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
-| v8.18/SHIP-05 | SHIP-05 | Methodology | docs/v8.18-praor-loop-closure.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
-| v8.24/CAP-01 | CAP-01 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_analysis_persistence |  |
-| v8.24/CAP-02 | CAP-02 | Test-Network | tests/quality-provenance-v8.24/README.md | reproducible | scripts/check-provenance.py |  |
-| v8.24/CAP-03 | CAP-03 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_capture_tool_reader |  |
-| v8.24/PROV-01 | PROV-01 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/PROV-02 | PROV-02 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/PROV-03 | PROV-03 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/PROV-04 | PROV-04 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/PROV-05 | PROV-05 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/GATE-01 | GATE-01 | Test-Network | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
-| v8.24/GATE-02 | GATE-02 | Test-Network | .github/workflows/validation.yml | reproducible | scripts/check-registration.py#verify_ci_job_registration |  |
-| v8.24/GATE-03 | GATE-03 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.24/VAL-01 | VAL-01 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.24/VAL-02 | VAL-02 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v8.24/VAL-03 | VAL-03 | Test-Network | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
-| v8.24/VAL-04 | VAL-04 | Methodology | CLAUDE.md | audit-only |  | Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this file's PROV-GUARD record -- not by a re-runnable offline gate. No gate re-runs to check that a docs record exists, and none is proposed (the v8.18 SHIP-04/SHIP-05 precedent, D-07). |
-| v8.25/HEADLINE-01 | HEADLINE-01 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_surfaces |  |
-| v8.25/HEADLINE-02 | HEADLINE-02 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_literals |  |
-| v8.25/HEADLINE-03 | HEADLINE-03 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_is_historical_headline_hit |  |
-| v8.25/HEADLINE-04 | HEADLINE-04 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_surfaces |  |
-| v8.25/HEADLINE-05 | HEADLINE-05 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_scan |  |
-| v8.25/CONTRACT-01 | CONTRACT-01 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.25/CONTRACT-02 | CONTRACT-02 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.25/CONTRACT-03 | CONTRACT-03 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.25/CONTRACT-04 | CONTRACT-04 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.25/CONTRACT-05 | CONTRACT-05 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.25/CONTRACT-06 | CONTRACT-06 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_chain_detector_pin |  |
-| v8.25/SHIP-01 | SHIP-01 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v8.25/SHIP-02 | SHIP-02 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.25/SHIP-03 | SHIP-03 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v8.26/CHAINHEAD-01 | CHAINHEAD-01 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-02 | CHAINHEAD-02 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-03 | CHAINHEAD-03 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-04 | CHAINHEAD-04 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-05 | CHAINHEAD-05 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-06 | CHAINHEAD-06 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/CHAINHEAD-07 | CHAINHEAD-07 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_chain_detector_pin |  |
-| v8.26/LEDGER-01 | LEDGER-01 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/LEDGER-02 | LEDGER-02 | Methodology | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/LEDGER-03 | LEDGER-03 | Methodology | shared/spine/references/validation-rubric.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
-| v8.26/LEDGER-04 | LEDGER-04 | Test-Network | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_ledger_traceability |  |
-| v8.26/SCAN-01 | SCAN-01 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-selfaudit-scan.py#_check_body_text |  |
-| v8.26/SCAN-02 | SCAN-02 | Methodology | shared/spine/references/validation-rubric.md | reproducible | scripts/check-selfaudit-scan.py#_check_rubric_text |  |
-| v8.26/SCAN-03 | SCAN-03 | Test-Network | scripts/check-selfaudit-scan.py | reproducible | scripts/check-selfaudit-scan.py#_check_cross_surface |  |
-| v8.26/SCAN-04 | SCAN-04 | Test-Network | scripts/check-selfaudit-scan.py | audit-only |  | CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as 'unfalsifiable rather than settled' -- no gate re-runs it. |
-| v8.26/SHIP-01 | SHIP-01 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v8.26/SHIP-02 | SHIP-02 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v8.26/SHIP-03 | SHIP-03 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v8.26/SHIP-04 | SHIP-04 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04). |
-| v8.26/SHIP-05 | SHIP-05 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04). |
-| v9.0/CONF-01 | CONF-01 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-02 | CONF-02 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-03 | CONF-03 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-04 | CONF-04 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-05 | CONF-05 | Methodology | shared/examples | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-06 | CONF-06 | Test-Network | scripts/check-conf-gate.py | reproducible | scripts/check-conf-gate.py |  |
-| v9.0/CONF-07 | CONF-07 | Test-Network | tests/adversarial-corpus-v9.0 | reproducible | scripts/check-firewall-battery.sh |  |
-| v9.0/CONF-08 | CONF-08 | Test-Network | tests/adversarial-corpus-v9.0 | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-09 | CONF-09 | Test-Network | tests/live-conformance-v9.0 | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-10 | CONF-10 | Test-Network | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
-| v9.0/CONF-11 | CONF-11 | Test-Network | docs/gates | reproducible | scripts/gen-gate-docs.py |  |
-| v9.0/CONF-12 | CONF-12 | Test-Network | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
-| v9.0/CONF-13 | CONF-13 | Test-Network | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
-| v9.0/CONF-14 | CONF-14 | Methodology | docs/PROCESS.md | audit-only |  | CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it. |
-| v9.0/CONF-15 | CONF-15 | Methodology | CLAUDE.md | audit-only |  | CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it. |
-| v9.0/REL-01 | REL-01 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v9.0/REL-02 | REL-02 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v9.0/REL-03 | REL-03 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v9.0/REL-04 | REL-04 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04 and v8.26 SHIP-04/05). |
-| v9.1/PROSE-01 | PROSE-01 | Methodology | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | Whether a mechanism is named in writing is not a predicate any gate evaluates. |
-| v9.1/PROSE-02 | PROSE-02 | Methodology | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | Whether a sibling site was located before a fix was written is a fact about ordering in history, which no re-run can establish. |
-| v9.1/PROSE-03 | PROSE-03 | Methodology | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | A written scope exclusion; no gate reads it. |
-| v9.1/PROSE-04 | PROSE-04 | Methodology | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | A recorded disposition per finding; the v8.18/v8.24/v8.26 SHIP-04/05 and v9.0 REL-04 precedent for prose records. |
-| v9.1/CONTAIN-01 | CONTAIN-01 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/CONTAIN-02 | CONTAIN-02 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/CONTAIN-03 | CONTAIN-03 | Methodology | docs/gates/CONF-SURFACE.md | audit-only |  | A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments. |
-| v9.1/CONTAIN-04 | CONTAIN-04 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/NARR-01 | NARR-01 | Methodology | docs/PROCESS.md | audit-only |  | The generalized rule is process prose; the CONF-14/CONF-15 precedent. |
-| v9.1/NARR-02 | NARR-02 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/RATCHET-01 | RATCHET-01 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/RATCHET-02 | RATCHET-02 | Test-Network | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
-| v9.1/RATCHET-03 | RATCHET-03 | Methodology | docs/gates/CONF-SURFACE.md | audit-only |  | Discharged by a recorded DROP verdict, not by a shipped mechanism -- so there is nothing to re-run, and this rationale states that rather than pointing at a mechanism which does not exist for this row. |
-| v9.1/RATCHET-04 | RATCHET-04 | Methodology | docs/gates/CONF-SURFACE.md | audit-only |  | Dated written determinations; same character as CONTAIN-03. |
-| v9.1/REL-05 | REL-05 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v9.1/REL-06 | REL-06 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v9.1/REL-07 | REL-07 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v9.1/REL-08 | REL-08 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 and v9.0 REL-04 precedent). |
-| v9.2/SUP-01 | SUP-01 | Methodology | shared/agent/input-contract.md | reproducible | scripts/check-loop-closure.py |  |
-| v9.2/SUP-02 | SUP-02 | Methodology | shared/agent/input-contract.md | audit-only |  | Whether the bullet points at Phase 3's rule rather than restating the provenance table is a reading judgement; HARN-02's literal pins the candidate clause, not the label pointer or the absence of a restatement. |
-| v9.2/SUP-03 | SUP-03 | Methodology | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
-| v9.2/SUP-04 | SUP-04 | Methodology | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
-| v9.2/GUARD-01 | GUARD-01 | Test-Network | scripts/check-loop-closure.py | reproducible | scripts/check-loop-closure.py |  |
-| v9.2/GUARD-02 | GUARD-02 | Test-Network | scripts/check-focused-parity.py | reproducible | scripts/check-focused-parity.py |  |
-| v9.2/GUARD-03 | GUARD-03 | Methodology | docs/gates/HARN-02.md | audit-only |  | A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments. Precedent: v9.1 CONTAIN-03. |
-| v9.2/REL-09 | REL-09 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v9.2/REL-10 | REL-10 | Test-Network | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
-| v9.2/REL-11 | REL-11 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-08, REL-04. |
-| v9.2/REL-12 | REL-12 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v9.2/REL-13 | REL-13 | Methodology | CHANGELOG.md | audit-only |  | The recurrence reading is a one-off grep recorded in the [9.2.0] entry; no gate re-runs the pre-registered pattern set over both trees. HARN-02's and HARN-03's absence pins re-run two of its shapes, on their own files only, which is not the requirement. |
-| v9.2.1/HAND-01 | HAND-01 | Methodology | shared/skills/identify-essence/SKILL.md | audit-only |  | Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one check site to EXCLUDE the three routed slugs from the _HANDOFF_CANDIDATE_TAIL assertion; the only literal it pins on this stub is the universal _HANDOFF_NO_SOURCE_CLAUSE, which names no destination. Falsified at the Phase 31 review: deleting the Input-Contract destination clause from both trees left check-focused-parity.py green on both legs. Tracked as backlog 999.79/999.80; re-tier to reproducible when a per-routed-stub destination literal lands. |
-| v9.2.1/HAND-02 | HAND-02 | Methodology | shared/skills/reason-upward/SKILL.md | audit-only |  | Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names reason-upward's routing destination (derivation chains handed to Phase 5 validation), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands. |
-| v9.2.1/HAND-03 | HAND-03 | Methodology | shared/skills/validate/SKILL.md | audit-only |  | Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names validate's routing destination (the Phase 5 verdict handed on to be acted on), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands. |
-| v9.2.1/HAND-04 | HAND-04 | Methodology | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
-| v9.2.1/HAND-05 | HAND-05 | Methodology | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
-| v9.2.1/REL-14 | REL-14 | Test-Network | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
-| v9.2.1/REL-15 | REL-15 | Test-Network | scripts/check-registration.py | audit-only |  | Its own requirement text names the battery's GREEN line 'corroboration only, never the evidence' — the live tally is a fresh count on every run, not a comparison against a stored prior baseline, so nothing fails automatically if the total drifts. The 'unchanged since last release' half of the claim is discharged by a manual direct-count snippet against two named revisions, not by a registered CI/battery control. |
-| v9.2.1/REL-16 | REL-16 | Methodology | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-13, REL-11, REL-08, REL-04. |
-| v9.2.1/REL-17 | REL-17 | Test-Network | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
-| v9.2.1/REL-18 | REL-18 | Methodology | CHANGELOG.md | audit-only |  | The recurrence reading is a one-off pre-registered grep set read before and after the release commit and recorded in the [9.2.1] entry; no gate re-runs the pattern set over both trees. The REL-13 precedent holds unchanged. |
+| Key | Bare ID | Capability | Surfaces | Deliverable | Tier | Artifact | Gap Rationale |
+|-----|---------|------------|----------|-------------|------|----------|---------------|
+| v3.0/AGENT-01 | AGENT-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/AGENT-02 | AGENT-02 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/AGENT-03 | AGENT-03 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/AGENT-04 | AGENT-04 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/AGENT-05 | AGENT-05 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/AGENT-06 | AGENT-06 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/SYNC-01 | SYNC-01 | Methodology | apparatus | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/SYNC-02 | SYNC-02 | Methodology | apparatus | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/SYNC-03 | SYNC-03 | Methodology | apparatus | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/SYNC-04 | SYNC-04 | Methodology | apparatus | scripts/sync-content.py | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/PKG-01 | PKG-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/PKG-02 | PKG-02 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/EVAL-01 | EVAL-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-01 | MIGRATE-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-02 | MIGRATE-02 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-03 | MIGRATE-03 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-04 | MIGRATE-04 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-05 | MIGRATE-05 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/MIGRATE-06 | MIGRATE-06 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/DEPR-01 | DEPR-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/DEPR-02 | DEPR-02 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.0/DEPR-03 | DEPR-03 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-01 | META-01 | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-02 | META-02 | Methodology | agent | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-03-SW | META-03-SW | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-03-PB | META-03-PB | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-03-PG | META-03-PG | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-03-SE | META-03-SE | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-Q1 | META-Q1 | Methodology | agent | shared/spine/references/validation-rubric.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-Q2 | META-Q2 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-Q3 | META-Q3 | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.2-MILESTONE-AUDIT; no re-runnable gate |
+| v3.2/META-Q4 | META-Q4 | Methodology | agent | scripts/check-body-budget.py | audit-only |  | TEARDOWN-01 (v8.7 Phase 163, docs/v8.7-constraint-teardown.md) retired the body-budget pre-commit gate. scripts/check-body-budget.py is now report-only (always exits 0) and scripts/git-hooks/pre-commit no longer invokes it — the body line count is reported every firewall-battery run ([INFO] body-size) but is not gated. META-Q4 is therefore audit-only (reported/inspectable), not reproducibly enforced. Re-tiered reproducible -> audit-only in the v8.8 post-close TEARDOWN-01 cleanup, replacing the prior vacuously-green tier. |
+| v3.7/RIGOR-01 | RIGOR-01 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 1: Identify Essence |  |
+| v3.7/RIGOR-02 | RIGOR-02 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 2: Challenge Assumptions |  |
+| v3.7/RIGOR-03 | RIGOR-03 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 3: Establish Ground Truths |  |
+| v3.7/RIGOR-04 | RIGOR-04 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 4: Reason Upward |  |
+| v3.7/RIGOR-05 | RIGOR-05 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 5: Validate |  |
+| v3.7/RIGOR-06 | RIGOR-06 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Criterion 6: Conclusion-to-Ground-Truth Traceability |  |
+| v3.7/RIGOR-07 | RIGOR-07 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#How to Apply This Rubric |  |
+| v3.7/RIGOR-08 | RIGOR-08 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | shared/spine/references/validation-rubric.md#Scoring Model |  |
+| v3.8/DISP-01 | DISP-01 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.8/STUB-01 | STUB-01 | Methodology | fishbone, five-whys, inversion, pre-mortem, second-order, trade-off | first-principles/skills | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.8/EVAL-01 | EVAL-01 | Methodology | agent | scripts/check-routing-battery.py | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate. Original deliverable scripts/check-focused-output.py retired 2026-08-16 (superseded by the merged battery); deliverable repointed to its successor. |
+| v3.12/PHASE-01 | PHASE-01 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-02 | PHASE-02 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-03 | PHASE-03 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-04 | PHASE-04 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-05 | PHASE-05 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-06 | PHASE-06 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-07 | PHASE-07 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-08 | PHASE-08 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-09 | PHASE-09 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.12/PHASE-10 | PHASE-10 | Methodology | challenge-assumptions, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, trade-off, validate | first-principles/skills | audit-only |  | Validated by v3.12-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/TAX-01 | TAX-01 | Methodology | agent | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/TAX-02 | TAX-02 | Methodology | agent | first-principles/agents/references/assumption-taxonomy.md | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/WKEX-01 | WKEX-01 | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/WKEX-02 | WKEX-02 | Methodology | agent | first-principles/agents/references/examples | audit-only |  | Validated by v3.13-MILESTONE-AUDIT; no re-runnable gate |
+| v2.0/VAL-01 | VAL-01 | Test-Network | agent | first-principles/agents/first-principles.md | reproducible | claude plugin validate ./first-principles |  |
+| v2.0/VAL-02 | VAL-02 | Test-Network | agent | first-principles/agents/first-principles.md | reproducible | markdownlint-cli2 |  |
+| v2.0/VAL-03 | VAL-03 | Test-Network | apparatus | scripts/check-links.py | reproducible | scripts/check-links.py |  |
+| v2.0/VAL-04 | VAL-04 | Test-Network | apparatus | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
+| v2.0/VAL-05 | VAL-05 | Test-Network | apparatus | scripts/check-description-budget.py | reproducible | scripts/check-description-budget.py |  |
+| v3.0/GATE-01 | GATE-01 | Test-Network | agent | scripts/check-agent.py | reproducible | scripts/check-agent.py |  |
+| v3.0/GATE-02 | GATE-02 | Test-Network | apparatus | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
+| v3.0/GATE-03 | GATE-03 | Test-Network | apparatus | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
+| v2.0/DUAL-04 | DUAL-04 | Test-Network | apparatus | scripts/sync-content.py | audit-only |  | v2.0-MILESTONE-AUDIT passed; v2.0 DUAL-04 predates current --check flag |
+| v3.3/HOOK-01 | HOOK-01 | Test-Network | apparatus | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
+| v3.3/HOOK-02 | HOOK-02 | Test-Network | apparatus | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
+| v3.3/HOOK-03 | HOOK-03 | Test-Network | apparatus | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
+| v3.3/HOOK-04 | HOOK-04 | Test-Network | apparatus | .githooks/pre-commit | reproducible | .githooks/pre-commit |  |
+| v3.3/HOOK-05 | HOOK-05 | Test-Network | apparatus | .githooks/pre-commit | reproducible | .githooks/pre-commit |  |
+| v3.3/HOOK-06 | HOOK-06 | Test-Network | apparatus | .githooks/pre-commit | audit-only |  | Validated by v3.3-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/INFRA-01 | INFRA-01 | Test-Network | apparatus | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
+| v3.13/INFRA-02 | INFRA-02 | Test-Network | apparatus | scripts/check-description-budget.py | reproducible | scripts/check-description-budget.py |  |
+| v3.13/INFRA-03 | INFRA-03 | Test-Network | agent | scripts/check-agent.py | reproducible | scripts/check-agent.py |  |
+| v3.13/INFRA-04 | INFRA-04 | Test-Network | apparatus | scripts/check-links.py | reproducible | scripts/check-links.py |  |
+| v3.13/INFRA-05 | INFRA-05 | Test-Network | apparatus | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
+| v3.13/INFRA-06 | INFRA-06 | Test-Network | apparatus | scripts/check-trigger-collisions.py | reproducible | scripts/check-trigger-collisions.py |  |
+| v3.1/ROUTE-01 | ROUTE-01 | Test-Network | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
+| v3.1/ROUTE-02 | ROUTE-02 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.1/ROUTE-03 | ROUTE-03 | Test-Network | apparatus | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
+| v3.1/DOC-01 | DOC-01 | Test-Network | apparatus | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.1-MILESTONE-AUDIT; no re-runnable gate |
+| v3.4/NOISE-01 | NOISE-01 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.4/NOISE-02 | NOISE-02 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.4/NOISE-03 | NOISE-03 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.4/NOISE-04 | NOISE-04 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.4/NOISE-05 | NOISE-05 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.4/NOISE-06 | NOISE-06 | Test-Network | agent | scripts/check-routing.py | reproducible | scripts/check-routing.py |  |
+| v3.5/FRAG-01 | FRAG-01 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-02 | FRAG-02 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-03 | FRAG-03 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-04 | FRAG-04 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-05 | FRAG-05 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-06 | FRAG-06 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-07 | FRAG-07 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-08 | FRAG-08 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.5/FRAG-09 | FRAG-09 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-01 | CAT-01 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-02 | CAT-02 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-03 | CAT-03 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-04 | CAT-04 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-05 | CAT-05 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-06 | CAT-06 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-07 | CAT-07 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-08 | CAT-08 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-09 | CAT-09 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.6/CAT-10 | CAT-10 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.8/FIXTURE-01 | FIXTURE-01 | Test-Network | agent | tests/step0-fixture-catalog.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.8/FIXTURE-02 | FIXTURE-02 | Test-Network | agent | tests/step0-fixture-catalog.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.8/VERIFY-01 | VERIFY-01 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v3.8/VERIFY-02 | VERIFY-02 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v3.8/VERIFY-03 | VERIFY-03 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v3.8/DOC-01 | DOC-01 | Test-Network | apparatus | docs/testing-agents-headlessly.md | audit-only |  | Validated by v3.8-MILESTONE-AUDIT; no re-runnable gate |
+| v3.9/P8-01 | P8-01 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.9/P8-02 | P8-02 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.9/P8-03 | P8-03 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.9/P8-04 | P8-04 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.10/CONV-01 | CONV-01 | Test-Network | apparatus | .planning/phases | audit-only |  | Validated by v3.10-MILESTONE-AUDIT; VERIFICATION.md convention files |
+| v3.10/CONV-02 | CONV-02 | Test-Network | apparatus | .planning/phases | audit-only |  | Validated by v3.10-MILESTONE-AUDIT; VALIDATION.md convention files |
+| v3.11/MON-01 | MON-01 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.11/MON-02 | MON-02 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.11/MON-03 | MON-03 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.11/MON-04 | MON-04 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.11/MON-05 | MON-05 | Test-Network | agent | tests/routing-catalog.md | audit-only |  | Validated by v3.11-MILESTONE-AUDIT; no re-runnable gate |
+| v3.13/META-01 | META-01 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v3.13/META-02 | META-02 | Test-Network | agent | tests/routing-catalog.md | reproducible | tests/routing-catalog.md |  |
+| v4.2/CAT-01 | CAT-01 | Test-Network | agent | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/CAT-02 | CAT-02 | Test-Network | agent | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/CAT-03 | CAT-03 | Test-Network | agent | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/CAT-04 | CAT-04 | Test-Network | agent | tests/routing-battery-catalog.md | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/FOCUS-01 | FOCUS-01 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/FOCUS-02 | FOCUS-02 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/FOCUS-03 | FOCUS-03 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/STRICT-01 | STRICT-01 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/STRICT-02 | STRICT-02 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.2/BASE-01 | BASE-01 | Test-Network | agent | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
+| v4.2/BASE-02 | BASE-02 | Test-Network | agent | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
+| v4.3/BATT-01 | BATT-01 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-02 | BATT-02 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-03 | BATT-03 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-04 | BATT-04 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-05 | BATT-05 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-06 | BATT-06 | Test-Network | agent | scripts/check-routing-battery.py | reproducible | scripts/check-routing-battery.py |  |
+| v4.3/BATT-07 | BATT-07 | Test-Network | agent | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
+| v4.3/BATT-08 | BATT-08 | Test-Network | agent | tests/routing-battery-baseline-v4.3.md | reproducible | tests/test_69_merged_baseline_invariants.py |  |
+| v5.0/STEP0-01 | STEP0-01 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.0/STEP0-02 | STEP0-02 | Test-Network | agent | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
+| v5.0/STEP0-03 | STEP0-03 | Test-Network | agent | tests/step0-fixture-catalog.md | reproducible | tests/step0-fixture-catalog.md |  |
+| v5.0/STEP0-04 | STEP0-04 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.0/STEP0-05 | STEP0-05 | Test-Network | agent | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
+| v5.0/STEP0-06 | STEP0-06 | Test-Network | agent | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
+| v5.0/STEP0-07 | STEP0-07 | Test-Network | agent | scripts/check-step0-live.py | reproducible | scripts/check-step0-live.py |  |
+| v5.0/STEP0-08 | STEP0-08 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.0/STEP0-09 | STEP0-09 | Test-Network | agent | tests/step0-fixture-catalog.md | reproducible | tests/step0-fixture-catalog.md |  |
+| v5.1/FIX-01 | FIX-01 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/FIX-02 | FIX-02 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/FIX-03 | FIX-03 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/DET-01 | DET-01 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/DET-02 | DET-02 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/DET-03 | DET-03 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/SAFE-01 | SAFE-01 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/SAFE-02 | SAFE-02 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/SAFE-03 | SAFE-03 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.1/BASE-01 | BASE-01 | Test-Network | agent | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
+| v5.1/BASE-02 | BASE-02 | Test-Network | agent | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
+| v5.1/BASE-03 | BASE-03 | Test-Network | agent | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
+| v5.1/BASE-04 | BASE-04 | Test-Network | agent | tests/step0-baseline-v5.1.md | audit-only |  | Validated by v5.1-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/DIAG-01 | DIAG-01 | Test-Network | agent | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/DIAG-02 | DIAG-02 | Test-Network | agent | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/DIAG-03 | DIAG-03 | Test-Network | agent | scripts/check-step0-emulator.py | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/DET-10 | DET-10 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.2/DET-11 | DET-11 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.2/DET-12 | DET-12 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.2/ROUTE-10 | ROUTE-10 | Methodology | agent | first-principles/agents/first-principles.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/REBASE-01 | REBASE-01 | Test-Network | agent | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/REBASE-02 | REBASE-02 | Test-Network | agent | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.2/REBASE-03 | REBASE-03 | Test-Network | agent | tests/step0-baseline-v5.2.md | audit-only |  | Validated by v5.2-MILESTONE-AUDIT; no re-runnable gate |
+| v5.3/DET-13 | DET-13 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.3/DET-14 | DET-14 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.3/DET-15 | DET-15 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.3/SAFE-04 | SAFE-04 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v5.3/REBASE-04 | REBASE-04 | Test-Network | agent | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
+| v5.3/REBASE-05 | REBASE-05 | Test-Network | agent | tests/step0-baseline-v5.3.md | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
+| v5.3/TOOL-01 | TOOL-01 | Test-Network | agent | scripts/check-routing.py | audit-only |  | Validated by v5.3-MILESTONE-AUDIT; no re-runnable gate |
+| residual/RR-80-01 | RR-80-01 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| v5.3/GEN-01 | GEN-01 | Test-Network | agent | active-tail | reproducible | tests/step0-baseline-v7.13.md | Full Step 0 classifier rearchitecture (GEN-01-REARCH, Phases 91-93). GEN-01 is now reproducible: the Step 0 classifier capability is reproducibly measured by committed live re-baselines (latest: v7.13 residual-delta, Phase 137). Earned by the committed baseline, not a passing score (reproducible = measured, not passing). Phase 129 v7.11 8-technique BATTERY: FAIL, P 4/8 (S-P01 5/5, S-P03 4/5, S-P05 5/5, S-P06 4/5 PASS; S-P02 2/5, S-P04 2/5, S-P10 0/5, S-P14 0/5 FAIL) — honest measured state (honesty-not-score, D-01). Prior baselines frozen: v7.6 (Phase 114, FAIL), v7.7 (Phase 117 CONF-01, SHORT OF BAR), v7.8 (Phase 119 CONF-03, targeted 6-row PASS). v7.11 dispositions (Phase 129; see docs/whole-system-remeasure-verdict.md): RR-79-01 S-P01 CLOSE SUSTAINED 5/5; RR-117-01 S-P03 fishbone CLOSE SUSTAINED 4/5; RR-108-02 S-P05 trade-off CLOSE SUSTAINED 5/5; RR-114-01 S-P02 inversion CARRIED 2/5 (supersedes RR-108-01); RR-108-04 estimate CARRIED 0/5; RR-108-05 theoretical-limit CARRIED 0/5 (both first genuine live measurement, v7.4 was spend-limit-indeterminate); RR-108-03 decompose RESOLVED-BY-MERGE (v7.5; sentinel stays on frozen v7.4 evidence). v7.13 residual-delta re-measure (Phase 137, 3-row filtered catalog; tests/step0-baseline-v7.8.md remains the canonical full 8-technique baseline): S-P02 inversion 1/5 CARRIED (RR-114-01, ID kept, no successor); S-P10 estimate 0/5 CARRIED (RR-108-04, ID kept); S-P14 theoretical-limit 0/5 CARRIED (RR-108-05, ID kept). Confirming artifact: tests/step0-baseline-v7.13.md. |
+| v5.3/GEN-02 | GEN-02 | Test-Network | apparatus | active-tail | reproducible | docs/live-monitoring-runbook.md | Runbook + wrapper script established (Phase 89). Cadence: milestone boundary + detector-surface changes. See docs/live-monitoring-runbook.md. |
+| residual/RR-79-01 | RR-79-01 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-114-01 | RR-114-01 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-108-02 | RR-108-02 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-77-08 | RR-77-08 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-117-01 | RR-117-01 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-117-02 | RR-117-02 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-119-01 | RR-119-01 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| residual/RR-119-02 | RR-119-02 | Test-Network | agent | active-tail | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| v7.9/NEGCAT-01 | NEGCAT-01 | Test-Network | agent | tests/step0-fixture-catalog.md | reproducible | scripts/check-step0-emulator.py |  |
+| v7.9/NEGCAT-02 | NEGCAT-02 | Test-Network | agent | scripts/check-step0-emulator.py | reproducible | scripts/check-step0-emulator.py |  |
+| v7.9/OCH-01 | OCH-01 | Methodology | inversion, agent | shared/references/inversion.md | reproducible | scripts/sync-content.py |  |
+| v7.9/OCH-02 | OCH-02 | Test-Network | agent | scripts/_battery_core.py | reproducible | scripts/check-routing-battery.py |  |
+| v7.9/OCH-03 | OCH-03 | Test-Network | agent | scripts/_battery_core.py | reproducible | scripts/_battery_core.py#self_test_boundary |  |
+| v7.9/COLLIDE-01 | COLLIDE-01 | Test-Network | apparatus | scripts/check-install-collisions.py | reproducible | scripts/check-install-collisions.py |  |
+| v7.9/COLLIDE-02 | COLLIDE-02 | Test-Network | apparatus | .github/workflows/validation.yml | reproducible | scripts/check-install-collisions.py |  |
+| v7.9/RECON-01 | RECON-01 | Test-Network | apparatus | docs/requirements-traceability.md | reproducible | scripts/check-traceability.py |  |
+| v7.11/READY-01 | READY-01 | Test-Network | apparatus | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/READY-02 | READY-02 | Test-Network | agent | scripts/check-step0-live.py | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/READY-03 | READY-03 | Test-Network | apparatus | scripts/check-firewall-battery.sh | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-01 | STEP0L-01 | Test-Network | agent | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-02 | STEP0L-02 | Test-Network | agent | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/STEP0L-03 | STEP0L-03 | Test-Network | agent | tests/step0-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/ROUTEL-01 | ROUTEL-01 | Test-Network | agent | tests/routing-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/ROUTEL-02 | ROUTEL-02 | Test-Network | agent | tests/routing-battery-baseline-v7.11.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-01 | RECON-01 | Test-Network | apparatus | docs/whole-system-remeasure-verdict.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-02 | RECON-02 | Test-Network | agent | tests/step0-captures-v7.11 | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v7.11/RECON-03 | RECON-03 | Test-Network | apparatus | docs/requirements-matrix.md | audit-only |  | Validated by the v7.11 whole-system live re-baseline (Phases 128-131); one-shot manual live run, no re-runnable offline gate (D-04). See docs/whole-system-remeasure-verdict.md. |
+| v8.18/ACT-01 | ACT-01 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
+| v8.18/ACT-02 | ACT-02 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
+| v8.18/ACT-03 | ACT-03 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
+| v8.18/ACT-04 | ACT-04 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-act-limb.py |  |
+| v8.18/ACT-05 | ACT-05 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | scripts/check-act-limb.py |  |
+| v8.18/LOOP-01 | LOOP-01 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/LOOP-02 | LOOP-02 | Methodology | agent | shared/agent/input-contract.md | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/LOOP-03 | LOOP-03 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/LOOP-04 | LOOP-04 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/LOOP-05 | LOOP-05 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/PAR-01 | PAR-01 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-focused-parity.py |  |
+| v8.18/PAR-02 | PAR-02 | Methodology | agent | shared/spine/focused-validation-step.md | reproducible | scripts/check-focused-parity.py |  |
+| v8.18/PAR-03 | PAR-03 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-focused-parity.py |  |
+| v8.18/HARN-01 | HARN-01 | Test-Network | apparatus | scripts/check-act-limb.py | reproducible | scripts/check-act-limb.py |  |
+| v8.18/HARN-02 | HARN-02 | Test-Network | apparatus | scripts/check-loop-closure.py | reproducible | scripts/check-loop-closure.py |  |
+| v8.18/HARN-03 | HARN-03 | Test-Network | apparatus | scripts/check-focused-parity.py | reproducible | scripts/check-focused-parity.py |  |
+| v8.18/HARN-04 | HARN-04 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.18/SHIP-01 | SHIP-01 | Test-Network | apparatus | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
+| v8.18/SHIP-02 | SHIP-02 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v8.18/SHIP-03 | SHIP-03 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.18/SHIP-06 | SHIP-06 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.18/SHIP-04 | SHIP-04 | Methodology | apparatus | CHANGELOG.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
+| v8.18/SHIP-05 | SHIP-05 | Methodology | apparatus | docs/v8.18-praor-loop-closure.md | audit-only |  | Validated by inspecting the shipped record — the CHANGELOG.md milestone entry (SHIP-04) or the docs/v8.18-praor-loop-closure.md milestone record (SHIP-05) — not by a re-runnable offline gate (D-06). No gate re-runs to check a changelog entry or a docs/ narrative exists, or is proposed, for either requirement. |
+| v8.24/CAP-01 | CAP-01 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_analysis_persistence |  |
+| v8.24/CAP-02 | CAP-02 | Test-Network | apparatus | tests/quality-provenance-v8.24/README.md | reproducible | scripts/check-provenance.py |  |
+| v8.24/CAP-03 | CAP-03 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_capture_tool_reader |  |
+| v8.24/PROV-01 | PROV-01 | Test-Network | apparatus | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/PROV-02 | PROV-02 | Test-Network | apparatus | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/PROV-03 | PROV-03 | Test-Network | apparatus | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/PROV-04 | PROV-04 | Test-Network | apparatus | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/PROV-05 | PROV-05 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/GATE-01 | GATE-01 | Test-Network | apparatus | scripts/check-provenance.py | reproducible | scripts/check-provenance.py |  |
+| v8.24/GATE-02 | GATE-02 | Test-Network | apparatus | .github/workflows/validation.yml | reproducible | scripts/check-registration.py#verify_ci_job_registration |  |
+| v8.24/GATE-03 | GATE-03 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.24/VAL-01 | VAL-01 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.24/VAL-02 | VAL-02 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v8.24/VAL-03 | VAL-03 | Test-Network | apparatus | scripts/sync-content.py | reproducible | scripts/sync-content.py |  |
+| v8.24/VAL-04 | VAL-04 | Methodology | apparatus | CLAUDE.md | audit-only |  | Validated by inspecting the shipped record -- CLAUDE.md's CI gates table and this file's PROV-GUARD record -- not by a re-runnable offline gate. No gate re-runs to check that a docs record exists, and none is proposed (the v8.18 SHIP-04/SHIP-05 precedent, D-07). |
+| v8.25/HEADLINE-01 | HEADLINE-01 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_surfaces |  |
+| v8.25/HEADLINE-02 | HEADLINE-02 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_literals |  |
+| v8.25/HEADLINE-03 | HEADLINE-03 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_is_historical_headline_hit |  |
+| v8.25/HEADLINE-04 | HEADLINE-04 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_surfaces |  |
+| v8.25/HEADLINE-05 | HEADLINE-05 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_headline_lock_scan |  |
+| v8.25/CONTRACT-01 | CONTRACT-01 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.25/CONTRACT-02 | CONTRACT-02 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.25/CONTRACT-03 | CONTRACT-03 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.25/CONTRACT-04 | CONTRACT-04 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.25/CONTRACT-05 | CONTRACT-05 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.25/CONTRACT-06 | CONTRACT-06 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_chain_detector_pin |  |
+| v8.25/SHIP-01 | SHIP-01 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v8.25/SHIP-02 | SHIP-02 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.25/SHIP-03 | SHIP-03 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v8.26/CHAINHEAD-01 | CHAINHEAD-01 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-02 | CHAINHEAD-02 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-03 | CHAINHEAD-03 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-04 | CHAINHEAD-04 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-05 | CHAINHEAD-05 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-06 | CHAINHEAD-06 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/CHAINHEAD-07 | CHAINHEAD-07 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_chain_detector_pin |  |
+| v8.26/LEDGER-01 | LEDGER-01 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/LEDGER-02 | LEDGER-02 | Methodology | agent | shared/spine/references/output-template.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/LEDGER-03 | LEDGER-03 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | scripts/check-quality-harness.py#_selftest_render_contract |  |
+| v8.26/LEDGER-04 | LEDGER-04 | Test-Network | apparatus | scripts/check-quality-harness.py | reproducible | scripts/check-quality-harness.py#_selftest_ledger_traceability |  |
+| v8.26/SCAN-01 | SCAN-01 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-selfaudit-scan.py#_check_body_text |  |
+| v8.26/SCAN-02 | SCAN-02 | Methodology | agent | shared/spine/references/validation-rubric.md | reproducible | scripts/check-selfaudit-scan.py#_check_rubric_text |  |
+| v8.26/SCAN-03 | SCAN-03 | Test-Network | apparatus | scripts/check-selfaudit-scan.py | reproducible | scripts/check-selfaudit-scan.py#_check_cross_surface |  |
+| v8.26/SCAN-04 | SCAN-04 | Test-Network | apparatus | scripts/check-selfaudit-scan.py | audit-only |  | CLAUDE.md's own SCAN-GUARD row discloses the SCAN-04 emission-cost figure as 'unfalsifiable rather than settled' -- no gate re-runs it. |
+| v8.26/SHIP-01 | SHIP-01 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v8.26/SHIP-02 | SHIP-02 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v8.26/SHIP-03 | SHIP-03 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v8.26/SHIP-04 | SHIP-04 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04). |
+| v8.26/SHIP-05 | SHIP-05 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04). |
+| v9.0/CONF-01 | CONF-01 | Test-Network | apparatus | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
+| v9.0/CONF-02 | CONF-02 | Test-Network | apparatus | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
+| v9.0/CONF-03 | CONF-03 | Methodology | agent | shared/examples | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-04 | CONF-04 | Methodology | agent | shared/examples | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-05 | CONF-05 | Methodology | agent | shared/examples | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-06 | CONF-06 | Test-Network | apparatus | scripts/check-conf-gate.py | reproducible | scripts/check-conf-gate.py |  |
+| v9.0/CONF-07 | CONF-07 | Test-Network | apparatus | tests/adversarial-corpus-v9.0 | reproducible | scripts/check-firewall-battery.sh |  |
+| v9.0/CONF-08 | CONF-08 | Test-Network | apparatus | tests/adversarial-corpus-v9.0 | reproducible | scripts/report-conformance.py |  |
+| v9.0/CONF-09 | CONF-09 | Test-Network | apparatus | tests/live-conformance-v9.0 | reproducible | scripts/report-conformance.py |  |
+| v9.0/CONF-10 | CONF-10 | Test-Network | apparatus | docs/conformance-baseline.md | reproducible | scripts/report-conformance.py |  |
+| v9.0/CONF-11 | CONF-11 | Test-Network | apparatus | docs/gates | reproducible | scripts/gen-gate-docs.py |  |
+| v9.0/CONF-12 | CONF-12 | Test-Network | apparatus | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
+| v9.0/CONF-13 | CONF-13 | Test-Network | apparatus | CLAUDE.md | reproducible | scripts/gen-gate-docs.py |  |
+| v9.0/CONF-14 | CONF-14 | Methodology | apparatus | docs/PROCESS.md | audit-only |  | CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it. |
+| v9.0/CONF-15 | CONF-15 | Methodology | apparatus | CLAUDE.md | audit-only |  | CLAUDE.md's own 'Review protocol' section states plainly that no script, control or CI job enforces this -- nothing re-runs to check it. |
+| v9.0/REL-01 | REL-01 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v9.0/REL-02 | REL-02 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v9.0/REL-03 | REL-03 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v9.0/REL-04 | REL-04 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 precedent, repeated at v8.24 VAL-04 and v8.26 SHIP-04/05). |
+| v9.1/PROSE-01 | PROSE-01 | Methodology | apparatus | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | Whether a mechanism is named in writing is not a predicate any gate evaluates. |
+| v9.1/PROSE-02 | PROSE-02 | Methodology | apparatus | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | Whether a sibling site was located before a fix was written is a fact about ordering in history, which no re-run can establish. |
+| v9.1/PROSE-03 | PROSE-03 | Methodology | apparatus | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | A written scope exclusion; no gate reads it. |
+| v9.1/PROSE-04 | PROSE-04 | Methodology | apparatus | docs/v9.1-claim-containment-diagnosis.md | audit-only |  | A recorded disposition per finding; the v8.18/v8.24/v8.26 SHIP-04/05 and v9.0 REL-04 precedent for prose records. |
+| v9.1/CONTAIN-01 | CONTAIN-01 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/CONTAIN-02 | CONTAIN-02 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/CONTAIN-03 | CONTAIN-03 | Methodology | apparatus | docs/gates/CONF-SURFACE.md | audit-only |  | A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments. |
+| v9.1/CONTAIN-04 | CONTAIN-04 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/NARR-01 | NARR-01 | Methodology | apparatus | docs/PROCESS.md | audit-only |  | The generalized rule is process prose; the CONF-14/CONF-15 precedent. |
+| v9.1/NARR-02 | NARR-02 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/RATCHET-01 | RATCHET-01 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/RATCHET-02 | RATCHET-02 | Test-Network | apparatus | scripts/gen-gate-docs.py | reproducible | scripts/gen-gate-docs.py |  |
+| v9.1/RATCHET-03 | RATCHET-03 | Methodology | apparatus | docs/gates/CONF-SURFACE.md | audit-only |  | Discharged by a recorded DROP verdict, not by a shipped mechanism -- so there is nothing to re-run, and this rationale states that rather than pointing at a mechanism which does not exist for this row. |
+| v9.1/RATCHET-04 | RATCHET-04 | Methodology | apparatus | docs/gates/CONF-SURFACE.md | audit-only |  | Dated written determinations; same character as CONTAIN-03. |
+| v9.1/REL-05 | REL-05 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v9.1/REL-06 | REL-06 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v9.1/REL-07 | REL-07 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v9.1/REL-08 | REL-08 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose content (the v8.18 SHIP-04/SHIP-05 and v9.0 REL-04 precedent). |
+| v9.2/SUP-01 | SUP-01 | Methodology | agent | shared/agent/input-contract.md | reproducible | scripts/check-loop-closure.py |  |
+| v9.2/SUP-02 | SUP-02 | Methodology | agent | shared/agent/input-contract.md | audit-only |  | Whether the bullet points at Phase 3's rule rather than restating the provenance table is a reading judgement; HARN-02's literal pins the candidate clause, not the label pointer or the absence of a restatement. |
+| v9.2/SUP-03 | SUP-03 | Methodology | challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
+| v9.2/SUP-04 | SUP-04 | Methodology | challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
+| v9.2/GUARD-01 | GUARD-01 | Test-Network | apparatus | scripts/check-loop-closure.py | reproducible | scripts/check-loop-closure.py |  |
+| v9.2/GUARD-02 | GUARD-02 | Test-Network | apparatus | scripts/check-focused-parity.py | reproducible | scripts/check-focused-parity.py |  |
+| v9.2/GUARD-03 | GUARD-03 | Methodology | apparatus | docs/gates/HARN-02.md | audit-only |  | A written REACH-or-LEVEL determination; the argument is the deliverable and no gate reads arguments. Precedent: v9.1 CONTAIN-03. |
+| v9.2/REL-09 | REL-09 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v9.2/REL-10 | REL-10 | Test-Network | apparatus | scripts/check-firewall-battery.sh | reproducible | scripts/check-firewall-battery.sh |  |
+| v9.2/REL-11 | REL-11 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-08, REL-04. |
+| v9.2/REL-12 | REL-12 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v9.2/REL-13 | REL-13 | Methodology | apparatus | CHANGELOG.md | audit-only |  | The recurrence reading is a one-off grep recorded in the [9.2.0] entry; no gate re-runs the pre-registered pattern set over both trees. HARN-02's and HARN-03's absence pins re-run two of its shapes, on their own files only, which is not the requirement. |
+| v9.2.1/HAND-01 | HAND-01 | Methodology | identify-essence | shared/skills/identify-essence/SKILL.md | audit-only |  | Stub-13 names identify-essence only inside _HANDOFF_ROUTED_SLUGS, read at one check site to EXCLUDE the three routed slugs from the _HANDOFF_CANDIDATE_TAIL assertion; the only literal it pins on this stub is the universal _HANDOFF_NO_SOURCE_CLAUSE, which names no destination. Falsified at the Phase 31 review: deleting the Input-Contract destination clause from both trees left check-focused-parity.py green on both legs. Tracked as backlog 999.79/999.80; re-tier to reproducible when a per-routed-stub destination literal lands. |
+| v9.2.1/HAND-02 | HAND-02 | Methodology | reason-upward | shared/skills/reason-upward/SKILL.md | audit-only |  | Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names reason-upward's routing destination (derivation chains handed to Phase 5 validation), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands. |
+| v9.2.1/HAND-03 | HAND-03 | Methodology | validate | shared/skills/validate/SKILL.md | audit-only |  | Same mechanism as HAND-01: no literal anywhere in check-focused-parity.py names validate's routing destination (the Phase 5 verdict handed on to be acted on), so nothing re-runs the claim; the stub is excluded from the _HANDOFF_CANDIDATE_TAIL assertion and pinned only by the universal no-cited-source clause. Tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands. |
+| v9.2.1/HAND-04 | HAND-04 | Methodology | challenge-assumptions, estimate, first-principles-analysis, fishbone, five-whys, ground-truths, identify-essence, inversion, pre-mortem, reason-upward, second-order, theoretical-limit, trade-off, validate | first-principles/skills | reproducible | scripts/check-focused-parity.py |  |
+| v9.2.1/HAND-05 | HAND-05 | Methodology | agent | shared/spine/SKILL-body.md | reproducible | scripts/check-loop-closure.py |  |
+| v9.2.1/REL-14 | REL-14 | Test-Network | apparatus | scripts/check-version-stamps.py | reproducible | scripts/check-version-stamps.py |  |
+| v9.2.1/REL-15 | REL-15 | Test-Network | apparatus | scripts/check-registration.py | audit-only |  | Its own requirement text names the battery's GREEN line 'corroboration only, never the evidence' — the live tally is a fresh count on every run, not a comparison against a stored prior baseline, so nothing fails automatically if the total drifts. The 'unchanged since last release' half of the claim is discharged by a manual direct-count snippet against two named revisions, not by a registered CI/battery control. |
+| v9.2.1/REL-16 | REL-16 | Methodology | apparatus | CHANGELOG.md | audit-only |  | No gate re-runs to check a CHANGELOG entry's prose. Precedent: REL-13, REL-11, REL-08, REL-04. |
+| v9.2.1/REL-17 | REL-17 | Test-Network | apparatus | scripts/check-traceability.py | reproducible | scripts/check-traceability.py#_self_test_headline_lock |  |
+| v9.2.1/REL-18 | REL-18 | Methodology | apparatus | CHANGELOG.md | audit-only |  | The recurrence reading is a one-off pre-registered grep set read before and after the release commit and recorded in the [9.2.1] entry; no gate re-runs the pattern set over both trees. The REL-13 precedent holds unchanged. |
 
 ## Gap Findings (GAP-01)
 

@@ -24,6 +24,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 REPO = Path(__file__).resolve().parents[1]
 SCRIPT = REPO / "scripts" / "check-traceability.py"
 
@@ -123,6 +125,7 @@ def test_dangling_file_path_detected() -> None:
         coverage_tier="reproducible",
         artifact_link="scripts/nonexistent-check-99.py",
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -142,6 +145,7 @@ def test_dangling_catalog_row_detected() -> None:
         coverage_tier="reproducible",
         artifact_link="tests/routing-battery-catalog.md#B-NONEXISTENT",
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -165,6 +169,7 @@ def test_missing_rubric_section_detected() -> None:
             "#criterion-99-nonexistent"
         ),
         gap_rationale="",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -185,6 +190,7 @@ def test_missing_capability_detected() -> None:
         coverage_tier="audit-only",
         artifact_link="",
         gap_rationale="no capability assigned",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -205,6 +211,7 @@ def test_missing_coverage_tier_detected() -> None:
         coverage_tier="",
         artifact_link="",
         gap_rationale="no tier assigned",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -230,6 +237,7 @@ def test_audit_only_row_is_valid() -> None:
         coverage_tier="audit-only",
         artifact_link="",
         gap_rationale="Validated by v3.1 milestone audit; no re-runnable gate",
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -252,6 +260,7 @@ def test_gap_row_is_valid() -> None:
             "Full Step 0 classifier rearchitecture; perpetually deferred; "
             "no confirming phase"
         ),
+        surfaces=("apparatus",),
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -293,6 +302,85 @@ def test_emit_writes_both_files() -> None:
     )
     assert md_out.exists(), f"MATRIX.md not written to {md_out}"
     assert json_out.exists(), f"matrix.json not written to {json_out}"
+
+
+# ---------------------------------------------------------------------------
+# Phase 32 SCHEMA-01/SCHEMA-02: surfaces field (D-05, D-06)
+# ---------------------------------------------------------------------------
+
+
+def test_matrixrow_requires_surfaces() -> None:
+    """Omitting `surfaces` at construction raises TypeError (D-05: no default,
+    required at every call site — a future batch cannot ship without it)."""
+    mod = _load_check_traceability()
+    with pytest.raises(TypeError):
+        mod.MatrixRow(
+            key="test/SURF-01",
+            bare_id="SURF-01",
+            milestone="test",
+            capability="Methodology",
+            deliverable_path="scripts/check-routing.py",
+            coverage_tier="audit-only",
+            artifact_link="",
+            gap_rationale="test fixture",
+        )
+
+
+def test_empty_surfaces_detected() -> None:
+    """A row with `surfaces=()` is flagged by check_consistency (D-06)."""
+    mod = _load_check_traceability()
+    row = mod.MatrixRow(
+        key="test/SURF-02",
+        bare_id="SURF-02",
+        milestone="test",
+        capability="Methodology",
+        deliverable_path="scripts/check-routing.py",
+        coverage_tier="audit-only",
+        artifact_link="",
+        gap_rationale="test fixture",
+        surfaces=(),
+    )
+    issues = mod.check_consistency([row])
+    assert issues, (
+        f"Expected empty surfaces to be flagged; check_consistency returned: {issues!r}"
+    )
+
+
+def test_load_rows_retuples_surfaces() -> None:
+    """load_rows() re-tuples `surfaces` after the JSON round-trip, so loaded rows
+    stay hashable (Pitfall 2: a `list`-valued field would break
+    @dataclass(frozen=True) hashability the first time anything hashes a row)."""
+    mod = _load_check_traceability()
+    phase_dir = (
+        REPO
+        / ".planning"
+        / "phases"
+        / "82-traceability-matrix-and-gap-findings"
+    )
+    md_out = phase_dir / "MATRIX.md"
+    json_out = phase_dir / "matrix.json"
+    result = subprocess.run(
+        [
+            sys.executable, str(SCRIPT), "emit",
+            "--md-output", str(md_out),
+            "--json-output", str(json_out),
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, (
+        f"emit failed (expected 0): returncode={result.returncode}\n"
+        f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+    )
+    loaded_rows = mod.load_rows(json_out)
+    assert all(isinstance(r.surfaces, tuple) for r in loaded_rows), (
+        "Expected every loaded row's surfaces to be a tuple after the JSON "
+        "round-trip"
+    )
+    assert len(set(loaded_rows)) == len(loaded_rows), (
+        "Expected loaded rows to be hashable and unique (a list-valued surfaces "
+        "field would raise TypeError on hash())"
+    )
 
 
 # ---------------------------------------------------------------------------
