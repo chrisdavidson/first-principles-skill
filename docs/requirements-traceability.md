@@ -57,6 +57,27 @@ headline above — is in the generated matrix:
 > to that rule. The Phase 142 note stands unedited as an accurate record of what was decided at
 > that time, for the milestones it names.
 
+> **Row-less shipped releases, dated 2026-09-13 (v9.3.0 Phase 33):** this is a separate note beside
+> the D-02 note above, not a widening of it — D-02 names v7.12, v7.13 and v8.0 only. `v8.22.0` and
+> `v8.23.0` are CHANGELOG-only releases with no requirements archive, so no row can carry a sourced
+> statement — every row carries its sourced wording or the literal `statement unrecoverable`; none is
+> reconstructed (D-T4). They are row-less by that rule, not by oversight. `v9.2.2`, `v9.2.3` and
+> `v9.2.4` are the same class — CHANGELOG-only post-`v9.2.1` product patches with no requirements
+> archive — and are row-less for the identical reason. The `v8.21.0` git tag is superseded: its
+> stamps read `8.20.0`, and the content it names was released under CHANGELOG `[8.22.0]`. The v8.19,
+> v8.20 and v8.21 requirements this phase registers are sourced from
+> `.planning/milestones/v8.21.0-REQUIREMENTS.md` (the archive, not the tag) and are cited
+> milestone-qualified throughout, for example `v8.21/GATE-05`, so none reads as an unqualified gate
+> id or as a v8.24 requirement.
+>
+> Two further sibling sites are named here, not fixed (out of this phase's ROWS-01..05/RESID-01/02
+> boundary): the Historical Ledger's own "v6.1 through v8.0" range sentence below does not
+> individually name-match `v6.0`, `v6.2`, `v6.3`, `v7.0`, `v7.2` or `v7.3`, though each sits inside
+> that stated range; and the point-release git tags between `v8.1` and `v8.17.5` sit past that
+> sentence's own stated endpoint (`v8.0`) and are not covered by it at all. Neither has a
+> `.planning/milestones/` archive or a `docs/history/` snapshot, so D-T4 governs regardless of how
+> precisely that sentence names its range.
+
 > **PROV-GUARD registered, dated 2026-08-31 (v8.24 Phase 6 / D-01, D-14):** `scripts/check-provenance.py`
 > is registered as gate id **`PROV-GUARD`** — not `PROV-01`, since that is a requirement id in this
 > milestone and `GATE-01` was already taken by `check-agent.py` — on both surfaces: CI job
@@ -212,6 +233,16 @@ Both rows measured this cycle landed at or above their own frozen floor; no row 
 inverse of v8.5's "no row improved"); the IDs are kept; no successor minted; detector constants
 (pre-mortem 9, fishbone 7, inversion 13, trade-off 10), MIN_HEADER_HITS, and
 _COMPOSER_FOCUS_CEILING stayed byte-unchanged and gating.
+
+> **S-P04 decision, dated 2026-09-13 (v9.3.0 Phase 33 / RESID-02):** S-P04 (five-whys) stays
+> observed-but-unbanked, with no RR ID, no BATT-06 sentinel and no matrix row. The governing record
+> is `docs/v8.7-constraint-teardown.md` §2 item 3: "K-of-5 Step 0 results are recorded observations from here forward; they may not gate a phase." The swing that record cites as its evidence is
+> S-P04's own reading across v7.11, v8.5 and v8.6 (2/5 → 0/5 → 2/5), as the table row above records.
+> `docs/v8.6-live-remeasure-verdict.md` §3 already recorded the gain as observed but not banked.
+> Minting an RR ID would add a BATT-06 assertion over existing captures and lock a single 5-run
+> sample in as an expectation; that would change what BATT-06 asserts, and nothing since v8.6
+> supplies a reason to. `rederive.py residuals` does not list S-P04 because it was never recorded
+> ACCEPTED-FINAL — this decision is its disposition.
 
 ### v8.13 DETECT-03 Accepted Limitation (2026-07-27)
 
