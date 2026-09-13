@@ -11,6 +11,84 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.2.3] — 2026-09-12
+
+Closes backlog **999.92** (Priority-order #1, the Self-Audit Gate half of R1) and 999.88 review
+**WR-01**. The Self-Audit Gate's scoring vocabulary — the five tokens `Rigorous`, `Sound`,
+`Hand-wavy`, `Band:` and `Quoted span` — is the larger half of R1's finding: nothing instructed the
+agent to open `validation-rubric.md`, so every verdict block was scored against criteria the agent
+re-authored from recollection. This release makes that read fire, and closes the failure-disclosure
+gap WR-01 found in 999.88's own template imperative. No matrix rows are registered by this release
+(no requirement IDs are mapped to this phase), so the coverage headline is unchanged at `229
+reproducible / 116 audit-only / 0 gap / 345 total`. The firewall battery tally is unchanged at
+**26/26** (24 `gate`/`gate_prereq` call sites plus 2 inline checks, established by direct count
+through `scripts/check-registration.py`'s own parser) and the CI job count unchanged at **23**.
+
+**The bound this release ships under, now covering two read imperatives.** It shows both
+imperatives are *present*. It shows nothing about a run *obeying* either of them. The *after*
+reading for both is backlog **999.89**, whose census must also count `Read` of
+`references/validation-rubric.md` now — that dependency is recorded in the amended
+`.planning/ROADMAP.md` § Phase 999.89 entry, not built here. Restated verbatim, on one line:
+**presence is checkable, obedience is not.**
+
+### Added
+
+- **Read imperative for the Self-Audit Gate's rubric — 999.92** (`7c31c886d2bc0d673fd2173865b0941f931a7712`).
+  One paragraph in `shared/spine/SKILL-body.md` (line 311), emitted through `sync-content.py` to
+  `first-principles/agents/first-principles.md` (line 358). It names `Read`; fires once, after the
+  self-audit scan is emitted and before the first verdict block — the rubric's own text states the
+  scan itself "is not performed here", so the read governs scoring, not the scan's construction. Its
+  failure sentence, paired in the same commit: "If that read fails, do not score from recollection:
+  emit no verdict blocks, and disclose that the Self-Audit Gate did not run under the rule that
+  closes this section." The Phase 5 Operation site (`shared/spine/SKILL-body.md:175`, emitted
+  `:222`) gained a tool-free pointer sentence deferring to this read, so the imperative still fires
+  exactly once per analysis. This phase deliberately declined 999.88's own precedent of naming its
+  template's tokens: the five rubric-only tokens still read **0** in the body on both surfaces,
+  preserving R1's control that verdict-block vocabulary in a live run's output can only have come
+  from an actual read. Every referent the justification sentence cites (`## Scoring Model`, the
+  Rigorous descriptor, `## Verdict Block Format`, the Hand-wavy cap) was confirmed present in
+  `shared/spine/references/validation-rubric.md` before the wording was fixed.
+
+### Fixed
+
+- **WR-01 — the template imperative's failure-disclosure clause; the backstop widened**
+  (`8d2ffb44b0b86d498b2fe517f7556076937196da`). 999.88's own `output-template.md` imperative
+  (`shared/spine/SKILL-body.md:194`) shipped with no paired failure clause. It now carries one:
+  "If that read fails, still assemble the document from the section summaries below, and disclose
+  the failed template read under the rule that closes 'Before presenting conclusions'." The shared
+  backstop sentence following the pinned `_BODY_DONOTPRESENT_AMENDED` sentence was widened in the
+  same commit from its stale two-item "either" (a leftover from a two-item pre-amendment form) to
+  cover all three pinned items plus a failed template read, naming that failure distinctly as "a
+  document assembled from the section summaries alone" so a reader can tell a skipped gate from a
+  skipped template read. The pinned sentence itself stayed byte-intact throughout.
+
+### Changed
+
+- **Read-imperative census, both surfaces.** Read imperatives in the agent body directed at a
+  file, each naming its tool: **2 at `da59f3e`, 3 at this release**, on both
+  `shared/spine/SKILL-body.md` (lines 145, 194, 311) and
+  `first-principles/agents/first-principles.md` (lines 192, 241, 358). A bare integer does not
+  satisfy this by the agent body's own Phase 3 rule, so all six qualifying sentences (three per
+  surface) are enumerated by line number and verbatim quote in `.planning/ROADMAP.md` § Phase
+  999.92.
+
+### Known limitations
+
+- **The new imperative has no paired failure-disclosure clause** (`[9.2.2]`'s Known limitations)
+  is **closed by this release** — both this phase's rubric imperative and 999.88's template
+  imperative now carry one, and the shared backstop covers both plus the ledger/scan/gate triad.
+- **Nothing pins any of five unpinned product spans** shipped by this phase (the rubric imperative,
+  its failure clause, the site-2 pointer, the WR-01 clause, and the widened backstop). The
+  REACH-or-LEVEL determination — REACH, permitted, declined — is written in full in
+  `.planning/ROADMAP.md` § Phase 999.91 (widened by this release rather than filing a new sibling
+  entry). A skipped Self-Audit Gate's conclusions are still presented, under the top-of-response
+  disclosure that they are unaudited — no confidence cap is introduced by this release.
+- **No emitted artifact can only be produced by having opened `output-template.md`**, unchanged.
+  Filed as backlog **999.90**, product tier.
+- **No live run was taken by this release**, so obedience is unverified. Backlog **999.89** owns
+  the *after* reading for both this phase's rubric imperative and 999.88's template imperative; its
+  goal is amended, not yet built.
+
 ## [9.2.2] — 2026-09-12
 
 Closes backlog **999.88**: the agent body referenced `output-template.md` four times and
