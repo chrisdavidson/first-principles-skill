@@ -4276,6 +4276,50 @@ def build_matrix_rows() -> list[MatrixRow]:
         only REL-17 carries a `#_self_test_*` anchor, the other 3 reproducible rows carry a
         bare script or directory path that `_resolve_artifact()` does not dispatch-check.
 
+    REACH-or-LEVEL determination (Phase 33, backlog 999.93/999.94/999.95), recorded before any
+    v8.19, v8.20 or v8.21 batch function exists.
+
+    The call. REACH, not LEVEL, under docs/PROCESS.md Section 1.1: the rows extend two existing
+    guards over three more shipped milestones and two residuals, which are part of the product
+    surface those guards already claim to cover (the published coverage headline) -- TRACE-03,
+    through check_consistency()'s artifact resolution and field checks, and HEADLINE-LOCK,
+    through headline agreement and matrix freshness. No guard is added whose subject is another
+    guard's correctness. No gate, battery registration or CI job changes (standing D-D, by direct
+    count). Stated limit: a reproducible tier records that a registered gate went red when the
+    row's artifact was broken once, in this phase; TRACE-03 does not re-run that break.
+
+    The pointing rule (D-01, D-02, Phase 33). Each row cites the gate whose break went red for
+    every clause of its sourced statement. Otherwise the row is audit-only, with an empty
+    artifact_link and the gate named in gap_rationale instead.
+
+    Sibling dispositions, named before registration (33-SIBLINGS.md). v8.22.0 and v8.23.0 are
+    CHANGELOG-only releases with no requirements archive, so no statement is sourceable (D-T4),
+    disclosed on docs/requirements-traceability.md. The v8.21.0 tag is superseded: its stamps read
+    the prior version, and its content was released under the CHANGELOG heading naming v8.22.0.
+    v7.12, v7.13 and v8.0 are the Phase 142 D-02 set, unchanged. v9.2.1's GUARD-04 through
+    GUARD-06 and SCOPE-01/02 are a disclosed move to v9.4.0. Pre-v8.18 milestones with no archive
+    on this machine are row-less under D-T4. RR-130-01 is resolved, row-less by the v7.9 D-02
+    precedent. RR-108-03 is resolved-by-merge, sentinel frozen at v7.4. S-P04 is decided under
+    RESID-02, this phase's own requirement. RR-114-01's ACCEPTED-FINAL reading differs from its
+    live sentinel; named, not corrected here (backlog 999.110). v8.24/VAL-01 and v8.24/GATE-03
+    are reproducible while carrying since-moved battery tallies; D-02 governs only this phase's
+    rows, and re-tiering existing rows is Phase 34's.
+
+    Supersession (33-SIBLINGS.md). v8.21/GATE-03 and v8.24/GATE-02 make the same textual
+    predicate -- "CI job registered in .github/workflows/validation.yml" -- over disjoint
+    subjects: their own break tests each confirm a different specific gate's CI job drives
+    verify_ci_job_registration red (REG-GUARD's for v8.21/GATE-03, PROV-GUARD's for
+    v8.24/GATE-02), so neither narrows the other's population. No existing row needs a
+    supersession note.
+
+    No new -ROWS sentinel (research open question 1). No success criterion requires one; every
+    exit reading is a rederive.py subcommand or the ROWS-04 pattern. The V921-ROWS shape carries
+    two filed defects: backlog 999.83 (deliverable_path is never resolved) and backlog 999.85 (the
+    sentinel reads _rows_v921() directly, so unwiring it from build_matrix_rows() stays green).
+    Three more copies would replicate them. Phase 34's TIER-01 through TIER-04 and ANCH-01
+    re-point and re-label reproducible rows; a sentinel pinning this batch's tier partition by ID
+    would need re-editing then, which is work Phase 34 would have to undo.
+
     The 'residual/' key prefix for non-milestone residuals is confirmed
     (Task 3 checkpoint, 82-02). See _RESIDUAL_KEY_PREFIX for the change point.
     """
