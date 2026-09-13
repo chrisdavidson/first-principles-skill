@@ -346,7 +346,9 @@ request also asks for a rubric, scorecard, or grading scheme applied to the thin
 (an article's argument, a proposal, a design), that is a **separate deliverable**. Producing it
 does **not** satisfy this gate, and the gate does not substitute for it: **both must appear.**
 Emit the Self-Audit Gate's six verdict blocks as process output regardless of what other scoring
-instrument the analysis contains.
+instrument the analysis contains — unless the rubric read above failed, in which case no verdict
+block is emitted, neither the Validate/Fix/Repeat loop nor any Absent-verdict route runs, and the
+failed read is disclosed under the rule that closes this section.
 
 If any Fix step adds, removes, or renames a §4 chain that the ledger references, re-verify
 the ledger's affected rows against the current state of §4 before re-scoring — a chain rename
