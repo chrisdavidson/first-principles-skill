@@ -4778,7 +4778,7 @@ def _rows_v92() -> list[MatrixRow]:
     re-runs the candidate-input tail's presence in each unclassified-facts stub, the
     no-cited-source clause's presence in every non-launcher stub, and the slot name's
     absence from every stub (precedent: v8.18 PAR-02);
-    GUARD-01 because controls N38/N39 re-run in every `--self-test` (CI job
+    GUARD-01 because control N38 re-runs in every `--self-test` (CI job
     `check-loop-closure`); GUARD-02 because controls g6/g7 re-run in every `--self-test` (CI
     job `check-focused-parity`); REL-09 because VERSION-01 re-runs the lockstep claim
     (precedent: REL-05, REL-01); REL-10 because the battery re-runs its own tally (precedent:
@@ -4794,22 +4794,27 @@ def _rows_v92() -> list[MatrixRow]:
     and REL-12 are Test-Network — each is gate or release apparatus code.
 
     DISCLOSED BOUNDARY (updated at v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes this
-    paragraph's original "only REL-12" reading). SUP-01 and GUARD-01 now also carry
-    `#_self_test_*` anchors extracted from `scripts/check-loop-closure.py`'s `_run_self_test`
-    as a behaviour-free move, dispatch-checked by TRACE-03's own `_resolve_artifact`: SUP-01 ->
-    `#_self_test_sup01_candidate_entry`, GUARD-01 -> `#_self_test_guard01_bullet4_anchor` — its
-    own independent copy of the N38 control, not a share of SUP-01's block (34-ANCH-WORKLIST.md),
-    so each row's claim break fires from inside its own row's block. Each anchor is proven by
+    paragraph's original "only REL-12" reading). GUARD-01 now also carries a `#_self_test_*`
+    anchor extracted from `scripts/check-loop-closure.py`'s `_run_self_test` as a
+    behaviour-free move, dispatch-checked by TRACE-03's own `_resolve_artifact`: GUARD-01 ->
+    `#_self_test_guard01_bullet4_anchor` — its own independent copy of the N38 control, not a
+    share of SUP-01's block (34-ANCH-WORKLIST.md), so its claim break fires from inside its own
+    block. SUP-01 was anchored at `#_self_test_sup01_candidate_entry` in the same move and
+    returned to a bare script path at the Phase 34 code review (WR-04, D-14): that block's
+    N38/N39 drive the input-contract check only, which reads `shared/agent/input-contract.md`,
+    so the statement's second target (sentences in the emitted agent body describing supplied
+    facts as exempt) is not re-run by it. The anchor is proven by
     two red breaks recorded in this phase's own break-test log: the dispatcher call removed
     (TRACE-03 `check` goes non-zero) and the claim itself broken (a `check-loop-closure.py` leg
     goes non-zero). REL-12 keeps its own pre-existing anchor
     (`scripts/check-traceability.py#_self_test_headline_lock`), mirroring v9.0/REL-03's and
-    v9.1/REL-07's own precedent. The other 5 reproducible rows (SUP-03, SUP-04, GUARD-02,
-    REL-09, REL-10) carry a bare script path (or, for SUP-03 and SUP-04, a bare directory path)
-    as artifact_link — none of those defines a `_selftest_`- or `_self_test_`-prefixed symbol
-    this row can dispatch against, so `_resolve_artifact()`'s dispatch-reachability leg does
+    v9.1/REL-07's own precedent. The other 6 reproducible rows (SUP-01, SUP-03, SUP-04,
+    GUARD-02, REL-09, REL-10) carry a bare script path (or, for SUP-03 and SUP-04, a bare
+    directory path) as artifact_link — none of those names a `_selftest_`- or
+    `_self_test_`-prefixed symbol that re-runs every clause of its row (SUP-01's reason is
+    stated above), so `_resolve_artifact()`'s dispatch-reachability leg does
     not apply to them: a bare path only proves the FILE (or DIRECTORY) EXISTS, never that
-    anything re-runs the claim. The dispatch guarantee for these 5 rows is supplied instead by
+    anything re-runs the claim. The dispatch guarantee for these 6 rows is supplied instead by
     each script's own `--self-test` CLI surface, exercised directly in this phase's own
     verification, not by this matrix. State this rather than letting a reader assume the
     `#anchor` dispatch guarantee extends to a bare path — overstating that reach is the defect
@@ -4848,7 +4853,12 @@ def _rows_v92() -> list[MatrixRow]:
     return [
         MatrixRow("v9.2/SUP-01", "SUP-01", "v9.2", "Methodology",
                   "shared/agent/input-contract.md",
-                  "reproducible", "scripts/check-loop-closure.py#_self_test_sup01_candidate_entry", "",
+                  "reproducible", "scripts/check-loop-closure.py",
+                  "Bare path (D-14, Phase 34 review WR-04): HARN-02's N38/N39 re-run the "
+                  "statement's first target (Input Contract bullets in "
+                  "shared/agent/input-contract.md); no block re-runs its second target "
+                  "(sentences in the emitted agent body describing supplied facts as "
+                  "exempt), so the row does not name _self_test_sup01_candidate_entry.",
                   surfaces=("agent",),
                   statement=(
                       "A fact supplied in the Input Contract's `Known ground truths` slot enters Phase "
@@ -8671,12 +8681,12 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
             f"(in {sorted(VALID_CAPABILITIES)!r})"
         )
 
-    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the three anchored rows
-    # (REL-12, SUP-01, GUARD-01, v9.3.0 Phase 34 ANCH-01); the other 5 reproducible rows are
-    # covered by (d)'s file/directory-existence resolution alone, not by this dispatch check.
+    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the two anchored rows
+    # (REL-12, GUARD-01, v9.3.0 Phase 34 ANCH-01; SUP-01 returned to a bare path at the
+    # Phase 34 review, WR-04); the other 6 reproducible rows are covered by (d)'s
+    # file/directory-existence resolution alone, not by this dispatch check.
     _EXPECTED_V92_SELFTEST_ANCHORS = {
         "_self_test_headline_lock",
-        "_self_test_sup01_candidate_entry",
         "_self_test_guard01_bullet4_anchor",
     }
     _observed_v92_selftest_anchors: set[str] = set()

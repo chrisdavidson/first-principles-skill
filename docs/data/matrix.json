@@ -5347,8 +5347,8 @@
     "capability": "Methodology",
     "deliverable_path": "shared/agent/input-contract.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py#_self_test_sup01_candidate_entry",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-loop-closure.py",
+    "gap_rationale": "Bare path (D-14, Phase 34 review WR-04): HARN-02's N38/N39 re-run the statement's first target (Input Contract bullets in shared/agent/input-contract.md); no block re-runs its second target (sentences in the emitted agent body describing supplied facts as exempt), so the row does not name _self_test_sup01_candidate_entry.",
     "surfaces": [
       "agent"
     ],

@@ -1056,7 +1056,14 @@ def _self_test_loop05_firing_record(body, check_body, guarded, report, holder) -
 
 def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, holder) -> None:
     """v9.2/SUP-01: a supplied fact enters Phase 2 as a candidate, and no
-    Input Contract bullet exempts it from challenge — N38, N39."""
+    Input Contract bullet exempts it from challenge — N38, N39.
+
+    Scope: both controls drive `_check_input_contract_text`, which reads
+    `shared/agent/input-contract.md` only. The row statement's second target
+    (sentences in the emitted agent body describing supplied facts as exempt
+    from challenge) is not re-run here, so v9.2/SUP-01's artifact_link stays a
+    bare script path rather than naming this block (D-14; Phase 34 review
+    WR-04)."""
     rows = [
         (
             "N38 (input-contract: strip L19, the candidate-entry clause)",

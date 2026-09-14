@@ -414,7 +414,12 @@ three were taken this phase (D-13).
 **Taken:**
 
 1. `scripts/check-loop-closure.py` — anchored: `v8.18/LOOP-01`, `v8.18/LOOP-02`, `v8.18/LOOP-03`,
-   `v8.18/LOOP-04`, `v8.18/LOOP-05`, `v9.2/SUP-01`, `v9.2/GUARD-01`, `v9.2.1/HAND-05`. Bare:
+   `v8.18/LOOP-04`, `v8.18/LOOP-05`, `v9.2/GUARD-01`, `v9.2.1/HAND-05`. Bare: `v9.2/SUP-01`
+   (D-14, returned to a bare path at the Phase 34 code review, WR-04: its statement's second
+   target, sentences in the emitted agent body describing supplied facts as exempt, is not
+   re-run by any block — `_self_test_sup01_candidate_entry` still runs N38/N39, but both drive
+   the input-contract check only, which reads `shared/agent/input-contract.md` and nothing
+   else in the agent body);
    `v8.18/HARN-02` (D-14: a whole-gate existence claim restating the combined effect of this
    script's own other rows; no distinguishable clause of its own to re-run without re-anchoring
    the whole self-test).
