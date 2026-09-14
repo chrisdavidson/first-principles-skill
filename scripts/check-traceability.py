@@ -4783,8 +4783,9 @@ def _rows_v92() -> list[MatrixRow]:
     job `check-focused-parity`); REL-09 because VERSION-01 re-runs the lockstep claim
     (precedent: REL-05, REL-01); REL-10 because the battery re-runs its own tally (precedent:
     REL-06, REL-02); REL-12 because HEADLINE-LOCK re-runs the headline claim (precedent:
-    REL-07, REL-03) — the one row in this milestone carrying a dispatch-checked
-    `#_self_test_*` anchor.
+    REL-07, REL-03) — at registration, the one row in this milestone carrying a
+    dispatch-checked `#_self_test_*` anchor (superseded at v9.3.0 Phase 34: see the
+    DISCLOSED BOUNDARY below, GUARD-01 now also anchored).
 
     Capability assignment follows _rows_v9()'s and _rows_v91()'s own discriminator ("changes
     the agent's methodology prose or its shipped reading material -> Methodology; harness and
@@ -5073,8 +5074,9 @@ def _rows_v921() -> list[MatrixRow]:
     every --self-test (precedent: v9.2 GUARD-01, same file, same gate); REL-14 because
     VERSION-01 re-runs the 17-stamp lockstep claim on every run (precedent: REL-09, REL-05,
     REL-01); REL-17 because HEADLINE-LOCK re-runs the headline claim (precedent: REL-12,
-    REL-07, REL-03) — the one row in this milestone carrying a dispatch-checked
-    `#_self_test_*` anchor.
+    REL-07, REL-03) — at registration, the one row in this milestone carrying a
+    dispatch-checked `#_self_test_*` anchor (superseded at v9.3.0 Phase 34: see the
+    DISCLOSED BOUNDARY below, HAND-05 now also anchored).
 
     Capability assignment follows the same discriminator every prior milestone's rows()
     function states ("changes the agent's methodology prose or its shipped reading material
@@ -5357,17 +5359,19 @@ def build_matrix_rows() -> list[MatrixRow]:
         REL-11 and REL-13 carry Methodology (CHANGELOG records); GUARD-01, GUARD-02, REL-09,
         REL-10 and REL-12 carry Test-Network (report/gate/release apparatus). SUP-02,
         GUARD-03, REL-11 and REL-13 are audit-only — named individually, never by count. See
-        `_rows_v92()` for the full per-row rationale and its DISCLOSED BOUNDARY: only REL-12
-        carries a `#_self_test_*` anchor, the other 7 reproducible rows carry a bare script
-        or directory path that `_resolve_artifact()` does not dispatch-check.
+        `_rows_v92()` for the full per-row rationale and its DISCLOSED BOUNDARY: REL-12 and
+        GUARD-01 carry a `#_self_test_*` anchor (GUARD-01 since v9.3.0 Phase 34, ANCH-01), the
+        other 6 reproducible rows carry a bare script or directory path that
+        `_resolve_artifact()` does not dispatch-check.
     (l) v9.2.1 milestone (10 rows, 4 reproducible + 6 audit-only) — Phase 31/REL-17: the
         milestone's HAND-*/REL-* requirements. HAND-01..05 carry Methodology (skill-stub or
         agent-body prose); REL-16 and REL-18 carry Methodology (CHANGELOG records); REL-14,
         REL-15 and REL-17 carry Test-Network (release apparatus). HAND-01, HAND-02,
         HAND-03, REL-15, REL-16 and REL-18 are audit-only — named individually, never by
         count. See `_rows_v921()` for the full per-row rationale and its DISCLOSED BOUNDARY:
-        only REL-17 carries a `#_self_test_*` anchor, the other 3 reproducible rows carry a
-        bare script or directory path that `_resolve_artifact()` does not dispatch-check.
+        REL-17 and HAND-05 carry a `#_self_test_*` anchor (HAND-05 since v9.3.0 Phase 34,
+        ANCH-01), the other 2 reproducible rows carry a bare script or directory path that
+        `_resolve_artifact()` does not dispatch-check.
     (m) v8.19/v8.20/v8.21 milestones (24 rows, 15 reproducible + 9 audit-only) — Phase 33/
         ROWS-01: v8.19 (4 rows, 3 reproducible + 1 audit-only), v8.20 (5 rows, 3 reproducible
         + 2 audit-only) and v8.21 (15 rows, 9 reproducible + 6 audit-only). v8.19/HC-01..03
@@ -8543,16 +8547,18 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
       (g) capability lock: every row's capability is in VALID_CAPABILITIES.
       (h) LIVE ANCHOR FLOOR. Derives, from the live rows, the set of anchors of the form
           "…py#<anchor>" whose <anchor> starts with _SELFTEST_ANCHOR_PREFIXES, and asserts
-          EQUALITY against exactly {"_self_test_headline_lock"} — equality, not membership,
-          so a rename or an added anchor cannot silently narrow or widen the dispatch-checked
-          set. Followed by a live positive: REL-12's artifact_link must resolve to [], i.e.
-          as DISPATCHED, not merely defined.
+          EQUALITY against exactly {"_self_test_headline_lock",
+          "_self_test_guard01_bullet4_anchor"} — equality, not membership, so a rename or an
+          added anchor cannot silently narrow or widen the dispatch-checked set. Followed by a
+          live positive: REL-12's artifact_link must resolve to [], i.e. as DISPATCHED, not
+          merely defined.
 
-    DISCLOSED BOUND — (h) reaches only REL-12, the single row carrying a `#_self_test_*`
-    anchor. The other 7 reproducible rows carry a bare script or directory path (see
-    _rows_v92()'s own DISCLOSED BOUNDARY), so their only floor here is (d)'s file/directory
-    existence resolution; this sentinel does not claim (h)'s dispatch guarantee extends to
-    them.
+    DISCLOSED BOUND — (h) reaches only REL-12 and GUARD-01, the two rows carrying a
+    `#_self_test_*` anchor (GUARD-01 since v9.3.0 Phase 34, ANCH-01). The other 6
+    reproducible rows (SUP-01 among them, returned to a bare path at the Phase 34 review,
+    WR-04) carry a bare script or directory path (see _rows_v92()'s own DISCLOSED BOUNDARY),
+    so their only floor here is (d)'s file/directory existence resolution; this sentinel
+    does not claim (h)'s dispatch guarantee extends to them.
 
     Called from _rows_v92() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
@@ -8773,16 +8779,17 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
       (g) capability lock: every row's capability is in VALID_CAPABILITIES.
       (h) LIVE ANCHOR FLOOR. Derives, from the live rows, the set of anchors of the form
           "…py#<anchor>" whose <anchor> starts with _SELFTEST_ANCHOR_PREFIXES, and asserts
-          EQUALITY against exactly {"_self_test_headline_lock"} — equality, not membership,
-          so a rename or an added anchor cannot silently narrow or widen the dispatch-checked
-          set. Followed by a live positive: REL-17's artifact_link must resolve to [], i.e.
-          as DISPATCHED, not merely defined.
+          EQUALITY against exactly {"_self_test_headline_lock",
+          "_self_test_hand05_no_new_edge"} — equality, not membership, so a rename or an added
+          anchor cannot silently narrow or widen the dispatch-checked set. Followed by a live
+          positive: REL-17's artifact_link must resolve to [], i.e. as DISPATCHED, not merely
+          defined.
 
-    DISCLOSED BOUND — (h) reaches only REL-17, the single row carrying a `#_self_test_*`
-    anchor. The other 3 reproducible rows carry a bare script or directory path (see
-    _rows_v921()'s own DISCLOSED BOUNDARY), so their only floor here is (d)'s file/directory
-    existence resolution; this sentinel does not claim (h)'s dispatch guarantee extends to
-    them.
+    DISCLOSED BOUND — (h) reaches only REL-17 and HAND-05, the two rows carrying a
+    `#_self_test_*` anchor (HAND-05 since v9.3.0 Phase 34, ANCH-01). The other 2
+    reproducible rows carry a bare script or directory path (see _rows_v921()'s own
+    DISCLOSED BOUNDARY), so their only floor here is (d)'s file/directory existence
+    resolution; this sentinel does not claim (h)'s dispatch guarantee extends to them.
 
     Called from _rows_v921() live — never hardcodes a MatrixRow literal.
     Honesty-not-score (D-01 idiom): asserts the documented reproducible/audit-only
