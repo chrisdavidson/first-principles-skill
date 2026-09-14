@@ -11,6 +11,122 @@ so every release bumps all 17 stamps together — the 14 `shared/skills/*/SKILL.
 `first-principles/.claude-plugin/plugin.json`. A body edit without a bump never reaches an
 installed session.
 
+## [9.3.0] — 2026-09-14
+
+Closes backlog **999.93** through **999.100** (the Trace Atlas milestone's own eight entries),
+**999.101** (folded in as REL-24, D-01) and **999.102** (already resolved earlier in this
+milestone by Phase 32.1, `eaf221b`) — determinations re-run and recorded in `35-CLOSURES.md`, a
+local-only, git-ignored planning record. Five further entries carrying a same-window resolved
+date — **999.36, 999.39, 999.56, 999.67, 999.78** — were confirmed closed by commits from earlier
+milestones (v9.0.0/v9.2.1); named here only for completeness of the date-window search, none is
+this milestone's own work.
+
+This is an **apparatus milestone**, taken ahead of the apparatus-cost pivot (now v9.4.0): all
+eight entries land in the matrix schema and its checking scripts, not in methodology text an agent
+reads. **REL-24 is the one exception and this release's one change to what the agent is told** —
+two sentences in `shared/spine/SKILL-body.md`'s failure-path prose, corrected under backlog
+999.101.
+
+Requirement groups, by ID: schema and statements (**SCHEMA-01, SCHEMA-02, STMT-01, STMT-02**,
+999.96/999.100); row registration and residuals (**ROWS-01..05, RESID-01, RESID-02**,
+999.93/999.94/999.95); reproducible-tier honesty and anchors (**TIER-01..04, ANCH-01, ANCH-02**,
+999.97/999.98/999.99); release (**REL-19..REL-24**).
+
+The coverage headline moved `239/132/0/371` (239 reproducible / 132 audit-only / 0 gap / 371 total)
+to `244/151/0/395` (244 reproducible / 151 audit-only / 0 gap / 395 total) — 24 new rows registered
+through `_rows_v93()`, swept across every covered surface by `HEADLINE-LOCK`'s mechanism, never by
+hand.
+
+The battery registration count and the CI job count are unchanged from this milestone's own
+baseline: by direct count through `scripts/check-registration.py`'s own parser, both at `fda29cc`
+(the pre-registered milestone base) and at this phase's own base `3c0fed0`, and again after every
+commit in between. Read the current totals from `CLAUDE.md`'s generated gate-table sentence
+rather than from a digit restated here.
+
+`[9.2.3]`, `[9.2.4]` and `[9.3.0]` were none of them published on their own — all three reach an
+installed session together, whenever that install happens; this entry assumes no date for it.
+
+A surfaces value, a battery-only marker and a live/manual label are hand-assigned classifications the matrix states, not measurements it proves.
+
+### Added
+
+- **Matrix schema — surfaces and statements (SCHEMA-01, SCHEMA-02, STMT-01, STMT-02; 999.96,
+  999.100).** `MatrixRow` carries a `surfaces` field (skill slugs, `agent`, or `apparatus`),
+  back-filled across every `_rows_v*()` batch and emitted into `docs/data/matrix.json`;
+  `docs/requirements-matrix.md` carries a generated per-skill row count, with all 14 shipped skill
+  slugs named by at least one row or recorded under its generated `### Uncovered` heading. Every
+  row carries a non-empty one-line statement or the literal marker `statement unrecoverable`, and
+  every one of the 395 rows now does. **Disclosed limits —** a fabricated but well-formed
+  archive-sourced statement stays green at every gate that could plausibly read it (confirmed by a
+  live break test this phase); archive fidelity is locally re-readable, never CI-checked.
+- **Row registration and residuals (ROWS-01..05, RESID-01, RESID-02; 999.93, 999.94, 999.95).**
+  Every v8.19, v8.20 and v8.21 requirement is now a matrix row (`_rows_v819()`, `_rows_v820()`,
+  `_rows_v821()`), no registered gate's row count reads zero, and the two ACCEPTED-FINAL Step 0
+  residuals (RR-108-04, RR-108-05) carry `residual/` rows. **Disclosed limits —** the
+  every-registered-gate-is-cited claim, the docstring tier-justification prose, and a
+  milestone-naming edit to the headline-history table are none of them re-run by any registered
+  gate — each confirmed by a live mutate-and-restore break test in `35-BREAK-TESTS.md`, a
+  local-only, git-ignored planning record, not merely asserted.
+- **Release mechanics (REL-19..REL-23).** All 17 version stamps bumped to `9.3.0` in one commit
+  (`51b3830`) carrying the body fix (`9e582cb`) to installed copies; `_rows_v93()` registered and
+  wired into `build_matrix_rows()` (`522c873`), sweeping the headline in the same commit. No new
+  `-ROWS` sentinel was added for `_rows_v93()` — a **LEVEL** determination, written into the
+  function's own docstring: the batch stays inside TRACE-03's existing ROW-FIELDS and
+  HEADLINE-LOCK legs, matching the standing pattern Phase 33 already declined a sentinel under.
+  **Disclosed limits —** a tier swap between two `v9.3` rows that holds the tier counts constant,
+  or a statement edit `emit` then regenerates, would pass both legs — a named residual, not closed.
+
+### Changed
+
+- **Reproducible-tier honesty and self-test anchors (TIER-01..04, ANCH-01, ANCH-02; 999.97,
+  999.98, 999.99).** Every non-gate-artifact reproducible row now carries an explicit
+  `rerun_by="live-manual"` label, and every row evidenced by `scripts/check-quality-harness.py`
+  carries `rerun_by="battery-only"` — **999.97 is a re-point-and-label, not a tier split (D-T3):
+  the headline's reproducible/audit-only shape is unchanged by this move.** Self-test anchors grew
+  from 35 of 229 reproducible rows (`fda29cc`) to 55 of 244 (`522c873`), call-checked from 40 of
+  239 (phase base `3c0fed0`) to 43 of 244, across three renamed scripts (`check-loop-closure.py`,
+  `check-act-limb.py`, `check-registration.py`). **Disclosed limits —** a `rerun_by` label is a
+  hand-assigned classification the matrix states, not a measurement it proves; a row could carry
+  `live-manual` or `battery-only` incorrectly and no gate would catch it.
+
+### Fixed
+
+- **REL-24 — the agent body's failure-path prose, and this CHANGELOG (999.101, IN-01..IN-03).**
+  The backstop in `shared/spine/SKILL-body.md` no longer tells a reader to assemble a document
+  from "the section summaries below" — no such section summary exists at that position. It now
+  names the six sections under `## Output format` by their own heading, and its incomplete-step
+  clause names each of the closure ledger, the self-audit scan and the Self-Audit Gate
+  individually, pairing each with a real cause (turns exhausted, or a named reference that could
+  not be read), rather than a singular "which one." The developer selected the wider of two
+  drafted scopes (**option-all**): all three mapped `section summaries` sites are fixed, not only
+  the two IN-01/IN-02 sentences 999.101 originally named, taking the whitespace-flexible count to
+  0 in both `shared/spine/SKILL-body.md` and the generated agent body. Separately (IN-03), the
+  released `[9.2.2]`, `[9.2.3]` and `[9.2.4]` entries above are corrected in place: each pointer at
+  a local-only, git-ignored planning record is replaced by its own verbatim claim or dropped and
+  named by backlog ID only, every remaining line-number citation is anchored to the release commit
+  that carries it, and every battery/CI tally is anchored the same way — the count of such pointers
+  across those three entries now reads 0, down from 5 (recorded in `35-IN03-MAP.md`, itself a
+  local-only, git-ignored planning record). **Disclosed limits —** obedience to either failure-path
+  sentence stays with backlog 999.89; presence is checkable, obedience is not.
+
+### Known limitations
+
+- **999.100's statement-fidelity residual.** All 24 new `v9.3` rows classify `"archive"` and cite
+  an archive file (`v9.3.0-REQUIREMENTS.md`) that does not exist until `/bm:complete-milestone`
+  runs; the fidelity reading (`statements matching no cited source text`) will read 24, not 0,
+  until that archive is created. Expected and time-bound, not a defect (Phase 32.1 D-02).
+- **The older `[9.0.0]`–`[9.1.0]` CHANGELOG pointers are not swept.** Four lines citing an
+  untracked, local-only planning path stay byte-identical, anchored at `3c0fed0`: lines 462, 578,
+  591, 1339 (D-03 scopes IN-03's fix to `[9.2.2]`/`[9.2.3]`/`[9.2.4]` only).
+- **`[9.2.3]` (`154644e`) and `[9.2.4]` (`fda29cc`) are released but untagged.** Retro-tagging both
+  is left to `/bm:complete-milestone`.
+- **REL-23, recurrence not compliance.** Reading 1 of all eight `rederive.py` subcommands was
+  taken after `522c873` (the last commit touching `scripts/check-traceability.py` at the time);
+  every difference from the phase-base reading was explained, none filed to backlog. Reading 2 is
+  taken after this entry's own commit and published, whatever it reads, in the dated release
+  readings section of the requirements traceability document, by the record-only commit that
+  follows this one.
+
 ## [9.2.4] — 2026-09-12
 
 Closes the five product-tier warnings (**WR-01..WR-05**) that 999.92's phase code review raised
@@ -52,8 +168,9 @@ generated gate-table sentence rather than from a digit restated here.
   **999.89**. Presence is checkable, obedience is not.
 - **The review's three info findings are not addressed by this release:** "the section summaries
   below" has no section summary below it (IN-01); the backstop names which step did not complete
-  but not why, so a failed rubric read reads like turn exhaustion (IN-02); and `[9.2.3]` points
-  readers at the untracked `.planning/ROADMAP.md` for its enumerations (IN-03).
+  but not why, so a failed rubric read reads like turn exhaustion (IN-02); and `[9.2.3]` pointed
+  readers at a local-only, git-ignored planning record for its enumerations (IN-03) — corrected in
+  place by `[9.3.0]`.
 
 ## [9.2.3] — 2026-09-12
 
@@ -64,15 +181,16 @@ agent to open `validation-rubric.md`, so every verdict block was scored against 
 re-authored from recollection. This release makes that read fire, and closes the failure-disclosure
 gap WR-01 found in 999.88's own template imperative. No matrix rows are registered by this release
 (no requirement IDs are mapped to this phase), so the coverage headline is unchanged at `229
-reproducible / 116 audit-only / 0 gap / 345 total`. The firewall battery tally is unchanged at
-**26/26** (24 `gate`/`gate_prereq` call sites plus 2 inline checks, established by direct count
-through `scripts/check-registration.py`'s own parser) and the CI job count unchanged at **23**.
+reproducible / 116 audit-only / 0 gap / 345 total`, and the firewall battery tally and CI job
+count are unchanged at **26/26** (24 `gate`/`gate_prereq` call sites plus 2 inline checks) and
+**23** respectively — both established by direct count through `scripts/check-registration.py`'s
+own parser at `154644e`.
 
 **The bound this release ships under, now covering two read imperatives.** It shows both
 imperatives are *present*. It shows nothing about a run *obeying* either of them. The *after*
 reading for both is backlog **999.89**, whose census must also count `Read` of
-`references/validation-rubric.md` now — that dependency is recorded in the amended
-`.planning/ROADMAP.md` § Phase 999.89 entry, not built here. Restated verbatim, on one line:
+`references/validation-rubric.md` now — that dependency is recorded against backlog 999.89, not
+built here. Restated verbatim, on one line:
 **presence is checkable, obedience is not.**
 
 ### Added
@@ -117,12 +235,12 @@ reading for both is backlog **999.89**, whose census must also count `Read` of
 ### Changed
 
 - **Read-imperative census, both surfaces.** Read imperatives in the agent body directed at a
-  file, each naming its tool: **2 at `da59f3e`, 3 at this release**, on both
-  `shared/spine/SKILL-body.md` (lines 145, 194, 311) and
-  `first-principles/agents/first-principles.md` (lines 192, 241, 358). A bare integer does not
-  satisfy this by the agent body's own Phase 3 rule, so all six qualifying sentences (three per
-  surface) are enumerated by line number and verbatim quote in `.planning/ROADMAP.md` § Phase
-  999.92.
+  file, each naming its tool: **2 at `da59f3e`, 3 at `154644e`**, on both
+  `shared/spine/SKILL-body.md` (lines 145, 194, 311, all at `154644e`) and
+  `first-principles/agents/first-principles.md` (lines 192, 241, 358, all at `154644e`). A bare
+  integer does not satisfy this by the agent body's own Phase 3 rule; each of the six qualifying
+  sentences names its tool (`Read`) explicitly at the cited line, confirmed by direct read of both
+  files at `154644e`.
 
 ### Known limitations
 
@@ -131,9 +249,9 @@ reading for both is backlog **999.89**, whose census must also count `Read` of
   imperative now carry one, and the shared backstop covers both plus the ledger/scan/gate triad.
 - **Nothing pins any of five unpinned product spans** shipped by this phase (the rubric imperative,
   its failure clause, the site-2 pointer, the WR-01 clause, and the widened backstop). The
-  REACH-or-LEVEL determination — REACH, permitted, declined — is written in full in
-  `.planning/ROADMAP.md` § Phase 999.91 (widened by this release rather than filing a new sibling
-  entry). A skipped Self-Audit Gate's conclusions are still presented, under the top-of-response
+  REACH-or-LEVEL determination — REACH, permitted, declined — is recorded against backlog 999.91
+  (widened by this release rather than filing a new sibling entry). A skipped Self-Audit Gate's
+  conclusions are still presented, under the top-of-response
   disclosure that they are unaudited — no confidence cap is introduced by this release.
 - **No emitted artifact can only be produced by having opened `output-template.md`**, unchanged.
   Filed as backlog **999.90**, product tier.
@@ -150,7 +268,7 @@ reading is frozen as tracked evidence first. No matrix rows are registered by th
 three plans carry `requirements: []`, so the coverage headline is unchanged at `229 reproducible /
 116 audit-only / 0 gap / 345 total`. The firewall battery tally is unchanged at **26/26** and the
 CI job count unchanged at **23**, both established by direct count through
-`scripts/check-registration.py`'s own parser rather than the battery's `GREEN` line.
+`scripts/check-registration.py`'s own parser at `da59f3e`, rather than the battery's `GREEN` line.
 
 **The bound this release ships under, stated rather than implied.** It shows the imperative is
 *present*. It shows nothing about a run *obeying* it. The *after* reading — a `reference_reads`
@@ -188,13 +306,13 @@ verbatim, on one line: **presence is checkable, obedience is not.**
 ### Changed
 
 - **Read-imperative census, both surfaces.** Read imperatives in the agent body directed at a
-  file, each naming its tool: **1 at `3c3ed42`, 2 at this release**, on both
-  `shared/spine/SKILL-body.md` (lines 145, 194) and `first-principles/agents/first-principles.md`
-  (lines 192, 241). The baseline was re-derived at review from
-  `git show 3c3ed42:shared/spine/SKILL-body.md`, not carried forward from a plan's claim. A bare
-  integer does not satisfy this by the agent body's own Phase 3 rule, so the four qualifying
-  sentences are enumerated by line number and verbatim quote in
-  `.planning/ROADMAP.md` § Phase 999.88.
+  file, each naming its tool: **1 at `3c3ed42`, 2 at `da59f3e`**, on both
+  `shared/spine/SKILL-body.md` (lines 145, 194, both at `da59f3e`) and
+  `first-principles/agents/first-principles.md` (lines 192, 241, both at `da59f3e`). The baseline
+  was re-derived at review from `git show 3c3ed42:shared/spine/SKILL-body.md`, not carried forward
+  from a plan's claim. A bare integer does not satisfy this by the agent body's own Phase 3 rule;
+  each of the four qualifying sentences names its tool (`Read`) explicitly at the cited line,
+  confirmed by direct read of both files at `da59f3e`.
 
 ### Known limitations
 
