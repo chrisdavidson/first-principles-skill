@@ -3427,7 +3427,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_loop01_phase1_route",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3442,7 +3442,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/agent/input-contract.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_loop02_askuserquestion",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3457,7 +3457,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_loop03_bounded_reentry",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3472,7 +3472,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_loop04_exit_criterion",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3487,7 +3487,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_loop05_firing_record",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -5347,7 +5347,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/agent/input-contract.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_sup01_candidate_entry",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -5431,7 +5431,7 @@
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-loop-closure.py",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_guard01_bullet4_anchor",
     "gap_rationale": "",
     "surfaces": [
       "apparatus"
@@ -5620,7 +5620,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-loop-closure.py",
+    "artifact_link": "scripts/check-loop-closure.py#_self_test_hand05_no_new_edge",
     "gap_rationale": "",
     "surfaces": [
       "agent"

@@ -2590,6 +2590,17 @@ def _rows_v818() -> list[MatrixRow]:
     combined existence of ACT-01..05's own controls with no distinguishable clause of its
     own to anchor without re-anchoring the whole gate.
 
+    LOOP-01..05 each cite a per-claim `_self_test_<claim>` function extracted from
+    `scripts/check-loop-closure.py`'s `_run_self_test` the same way, same behaviour-free
+    guarantee, same dispatch check: LOOP-01 -> `#_self_test_loop01_phase1_route`, LOOP-02 ->
+    `#_self_test_loop02_askuserquestion`, LOOP-03 -> `#_self_test_loop03_bounded_reentry`,
+    LOOP-04 -> `#_self_test_loop04_exit_criterion`, LOOP-05 ->
+    `#_self_test_loop05_firing_record`. Each anchor is proven by the same two red breaks
+    (dispatcher call removed; the claim itself broken on a `check-loop-closure.py` leg),
+    recorded in this phase's own break-test log. HARN-02 stays bare (D-14): it restates the
+    combined effect of LOOP-01..05's (and, at v9.2/v9.2.1, SUP-01's, GUARD-01's and
+    HAND-05's) own controls with no distinguishable clause of its own to anchor.
+
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
     Statements: the bullet's first paragraph after the bold ID (ending at the first blank line, next list item, heading or blockquote line), whitespace collapsed, cut before any Exit: clause; later bold-labelled Evidence/Amended/Progress paragraphs are excluded (D-01).
@@ -2653,7 +2664,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-01", "LOOP-01", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_loop01_phase1_route", "",
                   surfaces=("agent",),
                   statement=(
                       "A Criterion 1 failure has a named route back to Phase 1 to re-frame the Essence "
@@ -2662,7 +2673,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-02", "LOOP-02", "v8.18", "Methodology",
                   "shared/agent/input-contract.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_loop02_askuserquestion", "",
                   surfaces=("agent",),
                   statement=(
                       "The agent may re-open input via `AskUserQuestion` when validation reveals a "
@@ -2672,7 +2683,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-03", "LOOP-03", "v8.18", "Methodology",
                   "shared/spine/references/validation-rubric.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_loop03_bounded_reentry", "",
                   surfaces=("agent",),
                   statement=(
                       "Every re-entry edge is bounded — a stated maximum number of re-perception "
@@ -2681,7 +2692,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-04", "LOOP-04", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_loop04_exit_criterion", "",
                   surfaces=("agent",),
                   statement=(
                       "Phase 3's exit criterion no longer discourages returning for new facts in terms "
@@ -2690,7 +2701,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/LOOP-05", "LOOP-05", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_loop05_firing_record", "",
                   surfaces=("agent",),
                   statement=(
                       "When a re-entry edge fires, the analysis records that it fired and what "
@@ -4754,18 +4765,27 @@ def _rows_v92() -> list[MatrixRow]:
     REL-13 are Methodology — each is a CHANGELOG record; GUARD-01, GUARD-02, REL-09, REL-10
     and REL-12 are Test-Network — each is gate or release apparatus code.
 
-    DISCLOSED BOUNDARY. Of the 8 reproducible rows, only REL-12 carries a `#_self_test_*`
-    anchor (`scripts/check-traceability.py#_self_test_headline_lock`) — the one row whose
-    claim is check-traceability.py verifying itself, mirroring v9.0/REL-03's and v9.1/REL-07's
-    own precedent. The other 7 reproducible rows carry a bare script path (or, for SUP-03 and
-    SUP-04, a bare directory path) as artifact_link — none of those defines a `_selftest_`- or
-    `_self_test_`-prefixed symbol this row can dispatch against, so `_resolve_artifact()`'s
-    dispatch-reachability leg does not apply to them: a bare path only proves the FILE (or
-    DIRECTORY) EXISTS, never that anything re-runs the claim. The dispatch guarantee for these
-    7 rows is supplied instead by each script's own `--self-test` CLI surface, exercised
-    directly in this phase's own verification, not by this matrix. State this rather than
-    letting a reader assume the `#anchor` dispatch guarantee extends to a bare path —
-    overstating that reach is the defect class this milestone exists to end.
+    DISCLOSED BOUNDARY (updated at v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes this
+    paragraph's original "only REL-12" reading). SUP-01 and GUARD-01 now also carry
+    `#_self_test_*` anchors extracted from `scripts/check-loop-closure.py`'s `_run_self_test`
+    as a behaviour-free move, dispatch-checked by TRACE-03's own `_resolve_artifact`: SUP-01 ->
+    `#_self_test_sup01_candidate_entry`, GUARD-01 -> `#_self_test_guard01_bullet4_anchor` — its
+    own independent copy of the N38 control, not a share of SUP-01's block (34-ANCH-WORKLIST.md),
+    so each row's claim break fires from inside its own row's block. Each anchor is proven by
+    two red breaks recorded in this phase's own break-test log: the dispatcher call removed
+    (TRACE-03 `check` goes non-zero) and the claim itself broken (a `check-loop-closure.py` leg
+    goes non-zero). REL-12 keeps its own pre-existing anchor
+    (`scripts/check-traceability.py#_self_test_headline_lock`), mirroring v9.0/REL-03's and
+    v9.1/REL-07's own precedent. The other 5 reproducible rows (SUP-03, SUP-04, GUARD-02,
+    REL-09, REL-10) carry a bare script path (or, for SUP-03 and SUP-04, a bare directory path)
+    as artifact_link — none of those defines a `_selftest_`- or `_self_test_`-prefixed symbol
+    this row can dispatch against, so `_resolve_artifact()`'s dispatch-reachability leg does
+    not apply to them: a bare path only proves the FILE (or DIRECTORY) EXISTS, never that
+    anything re-runs the claim. The dispatch guarantee for these 5 rows is supplied instead by
+    each script's own `--self-test` CLI surface, exercised directly in this phase's own
+    verification, not by this matrix. State this rather than letting a reader assume the
+    `#anchor` dispatch guarantee extends to a bare path — overstating that reach is the defect
+    class this milestone exists to end.
 
     RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
     function's 12-ID roster and `.planning/REQUIREMENTS.md`'s own v9.2.0 requirement roster is
@@ -4800,7 +4820,7 @@ def _rows_v92() -> list[MatrixRow]:
     return [
         MatrixRow("v9.2/SUP-01", "SUP-01", "v9.2", "Methodology",
                   "shared/agent/input-contract.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_sup01_candidate_entry", "",
                   surfaces=("agent",),
                   statement=(
                       "A fact supplied in the Input Contract's `Known ground truths` slot enters Phase "
@@ -4862,7 +4882,7 @@ def _rows_v92() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v9.2/GUARD-01", "GUARD-01", "v9.2", "Test-Network",
                   "scripts/check-loop-closure.py",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_guard01_bullet4_anchor", "",
                   surfaces=("apparatus",),
                   statement=(
                       "HARN-02's existing input-contract check anchors the new bullet's wording with a "
@@ -5028,18 +5048,24 @@ def _rows_v921() -> list[MatrixRow]:
     (its claim is about the apparatus, not a prose record); REL-14 and REL-17 are
     Test-Network — each is gate or release apparatus code.
 
-    DISCLOSED BOUNDARY. Of the 4 reproducible rows, only REL-17 carries a `#_self_test_*`
-    anchor (`scripts/check-traceability.py#_self_test_headline_lock`) — the one row whose
-    claim is check-traceability.py verifying itself, mirroring v9.2/REL-12's, v9.1/REL-07's
-    and v9.0/REL-03's own precedent. The other 3 reproducible rows carry a bare script path
-    as artifact_link — none of those defines a `_selftest_`- or `_self_test_`-prefixed symbol
-    this row can dispatch against, so `_resolve_artifact()`'s dispatch-reachability leg does
-    not apply to them: a bare path only proves the FILE EXISTS, never that anything re-runs
-    the claim. The dispatch guarantee for these 3 rows is supplied instead by each script's
-    own `--self-test` CLI surface, exercised directly in this phase's own verification, not
-    by this matrix. State this rather than letting a reader assume the `#anchor` dispatch
-    guarantee extends to a bare path — overstating that reach is the defect class this
-    milestone exists to end.
+    DISCLOSED BOUNDARY (updated at v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes this
+    paragraph's original "only REL-17" reading). HAND-05 now also carries a `#_self_test_*`
+    anchor, `#_self_test_hand05_no_new_edge`, extracted from `scripts/check-loop-closure.py`'s
+    `_run_self_test` as a behaviour-free move, dispatch-checked by TRACE-03's own
+    `_resolve_artifact`. It is proven by two red breaks recorded in this phase's own
+    break-test log: the dispatcher call removed (TRACE-03 `check` goes non-zero) and the claim
+    itself broken (a `check-loop-closure.py` leg goes non-zero). REL-17 keeps its own
+    pre-existing anchor (`scripts/check-traceability.py#_self_test_headline_lock`) — the one
+    row whose claim is check-traceability.py verifying itself, mirroring v9.2/REL-12's,
+    v9.1/REL-07's and v9.0/REL-03's own precedent. The other 2 reproducible rows (HAND-04,
+    REL-14) carry a bare script path as artifact_link — neither defines a `_selftest_`- or
+    `_self_test_`-prefixed symbol this row can dispatch against, so `_resolve_artifact()`'s
+    dispatch-reachability leg does not apply to them: a bare path only proves the FILE EXISTS,
+    never that anything re-runs the claim. The dispatch guarantee for these 2 rows is supplied
+    instead by each script's own `--self-test` CLI surface, exercised directly in this phase's
+    own verification, not by this matrix. State this rather than letting a reader assume the
+    `#anchor` dispatch guarantee extends to a bare path — overstating that reach is the defect
+    class this milestone exists to end.
 
     RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
     function's 10-ID roster and `.planning/REQUIREMENTS.md`'s own v9.2.1 requirement roster is
@@ -5146,7 +5172,7 @@ def _rows_v921() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v9.2.1/HAND-05", "HAND-05", "v9.2.1", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-loop-closure.py", "",
+                  "reproducible", "scripts/check-loop-closure.py#_self_test_hand05_no_new_edge", "",
                   surfaces=("agent",),
                   statement=(
                       "no new re-entry edge is introduced by any of the three destinations. *Target: "
@@ -8617,10 +8643,14 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
             f"(in {sorted(VALID_CAPABILITIES)!r})"
         )
 
-    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the single anchored row
-    # (REL-12); the other 7 reproducible rows are covered by (d)'s file/directory-existence
-    # resolution alone, not by this dispatch check.
-    _EXPECTED_V92_SELFTEST_ANCHORS = {"_self_test_headline_lock"}
+    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the three anchored rows
+    # (REL-12, SUP-01, GUARD-01, v9.3.0 Phase 34 ANCH-01); the other 5 reproducible rows are
+    # covered by (d)'s file/directory-existence resolution alone, not by this dispatch check.
+    _EXPECTED_V92_SELFTEST_ANCHORS = {
+        "_self_test_headline_lock",
+        "_self_test_sup01_candidate_entry",
+        "_self_test_guard01_bullet4_anchor",
+    }
     _observed_v92_selftest_anchors: set[str] = set()
     for _row in _v92_rows:
         if "#" in _row.artifact_link:
@@ -8657,6 +8687,30 @@ def _self_test_v92_rows_sentinel(wrong_results: list[str]) -> None:
             "  V92-ROWS PASS: (h) REL-12's artifact_link resolved "
             "_self_test_headline_lock as DISPATCHED, not merely defined"
         )
+
+    # (h) live positive, v9.3.0 Phase 34 ANCH-01: SUP-01 and GUARD-01's artifact_links must
+    # each resolve to [] too — DISPATCHED, not merely defined.
+    _sup01_v92_rows = [r for r in _v92_rows if r.bare_id == "SUP-01"]
+    _guard01_v92_rows = [r for r in _v92_rows if r.bare_id == "GUARD-01"]
+    for _bare_id, _rows_for_id in (
+        ("SUP-01", _sup01_v92_rows),
+        ("GUARD-01", _guard01_v92_rows),
+    ):
+        _problems = (
+            _resolve_artifact(_rows_for_id[0].artifact_link)
+            if _rows_for_id else [f"{_bare_id} row missing"]
+        )
+        if _problems:
+            print(
+                f"  V92-ROWS FAIL: (h) LIVE POSITIVE — {_bare_id} did not resolve cleanly: "
+                f"{_problems!r}"
+            )
+            wrong_results.append(f"V92-ROWS: (h) {_bare_id} live positive failed")
+        else:
+            print(
+                f"  V92-ROWS PASS: (h) {_bare_id}'s artifact_link resolved as DISPATCHED, "
+                "not merely defined"
+            )
 
 
 def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
@@ -8824,10 +8878,13 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
             f"(in {sorted(VALID_CAPABILITIES)!r})"
         )
 
-    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the single anchored row
-    # (REL-17); the other 3 reproducible rows are covered by (d)'s file/directory-existence
-    # resolution alone, not by this dispatch check.
-    _EXPECTED_V921_SELFTEST_ANCHORS = {"_self_test_headline_lock"}
+    # (h) LIVE ANCHOR FLOOR — DISCLOSED BOUND: reaches only the two anchored rows
+    # (REL-17, HAND-05, v9.3.0 Phase 34 ANCH-01); the other 2 reproducible rows are covered by
+    # (d)'s file/directory-existence resolution alone, not by this dispatch check.
+    _EXPECTED_V921_SELFTEST_ANCHORS = {
+        "_self_test_headline_lock",
+        "_self_test_hand05_no_new_edge",
+    }
     _observed_v921_selftest_anchors: set[str] = set()
     for _row in _v921_rows:
         if "#" in _row.artifact_link:
@@ -8863,6 +8920,25 @@ def _self_test_v921_rows_sentinel(wrong_results: list[str]) -> None:
         print(
             "  V921-ROWS PASS: (h) REL-17's artifact_link resolved "
             "_self_test_headline_lock as DISPATCHED, not merely defined"
+        )
+
+    # (h) live positive, v9.3.0 Phase 34 ANCH-01: HAND-05's artifact_link must also resolve
+    # to [] — DISPATCHED, not merely defined.
+    _hand05_v921_rows = [r for r in _v921_rows if r.bare_id == "HAND-05"]
+    _hand05_v921_problems = (
+        _resolve_artifact(_hand05_v921_rows[0].artifact_link)
+        if _hand05_v921_rows else ["HAND-05 row missing"]
+    )
+    if _hand05_v921_problems:
+        print(
+            f"  V921-ROWS FAIL: (h) LIVE POSITIVE — HAND-05 did not resolve cleanly: "
+            f"{_hand05_v921_problems!r}"
+        )
+        wrong_results.append("V921-ROWS: (h) HAND-05 live positive failed")
+    else:
+        print(
+            "  V921-ROWS PASS: (h) HAND-05's artifact_link resolved as DISPATCHED, "
+            "not merely defined"
         )
 
 
