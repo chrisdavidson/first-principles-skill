@@ -3,7 +3,7 @@ name: reason-upward
 description: Slash-only Phase 4 stub — build derivation chains upward from named ground truths.
 disable-model-invocation: true
 metadata:
-  version: "9.2.4"
+  version: "9.3.0"
 license: MIT
 ---
 # Focused Reason Upward Mode

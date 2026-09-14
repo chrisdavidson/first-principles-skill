@@ -3,7 +3,7 @@ name: challenge-assumptions
 description: Slash-only Phase 2 stub — classify and test every assumption before reasoning.
 disable-model-invocation: true
 metadata:
-  version: "9.2.4"
+  version: "9.3.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/challenge-assumptions/SKILL.md by sync-content.py -->

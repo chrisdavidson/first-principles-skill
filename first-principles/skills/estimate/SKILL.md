@@ -3,7 +3,7 @@ name: estimate
 description: Runs a focused estimate only — magnitude rebuild from units. Invoke via /estimate only.
 disable-model-invocation: true
 metadata:
-  version: "9.2.4"
+  version: "9.3.0"
 license: MIT
 ---
 <!-- DO NOT EDIT — generated from shared/skills/estimate/SKILL.md by sync-content.py -->
