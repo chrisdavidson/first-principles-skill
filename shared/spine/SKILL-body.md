@@ -195,16 +195,17 @@ Every analysis produces a document with these six sections in this fixed order. 
 the signed-off analysis itself — the named artifact the turn-discipline rule above already admits
 spending turns on — so it fires once per analysis, immediately before emission begins, never on
 every section and never a second time on a later regeneration. Use Read on the [First Principles
-Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md): the section
-summaries below do not carry the `**Confidence:**` field the template requires at the end of every
-Derivation Chain's conclusion block (§4) and again at the end of the Conclusion section (§6), nor
-the requirement in its `Unverified input rule (D-07)` (§4) that a MEDIUM or LOW line name the
-`GT-N?` input behind it — the unverified input notation below states the rating floor and the
-verification path, not that naming requirement. An analysis assembled from the summaries alone
-has not seen either rule; a trailing `Confidence:` field going missing, or a MEDIUM or LOW line
-that never names its `GT-N?` input, is what that omission produces. If that read fails,
-still assemble the document from the section summaries below, and disclose the failed template
-read under the rule that closes "Before presenting conclusions".
+Analysis Output Template](${CLAUDE_PLUGIN_ROOT}/agents/references/output-template.md): the
+six-section document assembled without it does not carry the `**Confidence:**` field the template
+requires at the end of every Derivation Chain's conclusion block (§4) and again at the end of the
+Conclusion section (§6), nor the requirement in its `Unverified input rule (D-07)` (§4) that a
+MEDIUM or LOW line name the `GT-N?` input behind it — the unverified input notation below states
+the rating floor and the verification path, not that naming requirement. An analysis assembled
+without that template read has not seen either rule; a trailing `Confidence:` field going missing,
+or a MEDIUM or LOW line that never names its `GT-N?` input, is what that omission produces. If
+that read fails, still assemble the document using only the six sections named above under Output
+format, and disclose the failed template read under the rule that closes "Before presenting
+conclusions".
 
 **Honest-depth escape valve:** If a section has no genuine content for a given analysis, mark it:
 
@@ -358,8 +359,9 @@ or merge during the Fix/Repeat loop can silently invalidate an already-cleared l
 Do not present conclusions until the closure ledger is clean, the self-audit scan has been emitted, AND the Self-Audit Gate is cleared.
 If any of the three could not be completed, or the output template's read failed — turns
 exhausted, reference file unavailable — **say so explicitly at the top of the response**, naming
-which one did not run, and naming a failed template read as a document assembled from the section
-summaries alone. A stated omission is recoverable; a silent one is not.
+each of the closure ledger, the self-audit scan and the Self-Audit Gate that did not run, and
+naming a failed template read as a document assembled using only the six sections named above
+under Output format. A stated omission is recoverable; a silent one is not.
 
 ---
 
