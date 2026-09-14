@@ -806,6 +806,36 @@ class MatrixRow:
     Phase 38's GUARD-04 re-partition. Existing rows are not swept, because a sweep would rest
     on per-row intent judgement D-T4 forbids. Stated plainly: this is a rule on a label, not
     a guard, and nothing enforces it.
+
+    Re-run field (v9.3.0 Phase 34; TIER-03, TIER-04; D-01..D-04), recorded before the field
+    exists (REACH-or-LEVEL determination, docs/PROCESS.md §1.1, D-15 precedent). The next
+    commit adds a required field, `rerun_by`, carrying five values: `ci`, `battery-only`,
+    `pre-commit-only`, `live-manual`, `none` — the strongest runner that re-runs the row,
+    ordered `ci` > `battery-only` > `pre-commit-only` > `live-manual` > `none` (a stronger
+    runner implies every weaker one, since the battery is a strict superset of a CI job and
+    the pre-commit hooks run a strict subset of the battery). An audit-only or gap row reads
+    `none`; a reproducible or scheduled row never does (D-02).
+
+    A row reading `ci` is accepted in exactly three cases (D-03): its artifact's file part is
+    a `scripts/_gate_registry.ENTRIES` script with at least one entry carrying a `ci_job`; the
+    artifact is a `KNOWN_CLI_GATES` member for which an `ENTRIES` `run_command` starts with
+    that string and carries a `ci_job`; or the artifact is a key of a module-level resolution
+    map, `_RERUN_CI_VIA`, verified in both directions — the mapped gate id's entry carries a
+    `ci_job` and that entry's own script text names the artifact's basename, and every map key
+    is cited by at least one row reading `ci`. The converse also holds (D-04): a reproducible
+    row whose artifact's file part is an `ENTRIES` script carrying a `ci_job` must read `ci` —
+    it may not understate its own gate's CI status. Both checks land in `_row_field_problems()`,
+    the same shared function `check_consistency()` and TRACE-03's existing ROW-FIELDS live leg
+    (32 D-13) already call, extended with one more field's checks rather than a second,
+    parallel checking function. The `scripts/_gate_registry.ENTRIES` read is this module's
+    first read of the registry — the gate roster itself, not a gate's own internal constants,
+    so Phase 32.1 D-01 ("no gate's constants are cross-read into the matrix") is not reopened.
+
+    Stated as the REL-22 limit: the re-run field is a hand-assigned classification the matrix
+    states, not a measurement it proves. The `ci` check proves the cited script has a CI job,
+    not that the job re-runs the row's claim; the `_RERUN_CI_VIA` map proves the via gate's
+    source names the artifact, not that it reads the fact the row claims. It is not a guard —
+    no check's subject is another guard's own correctness.
     """
 
     key: str              # milestone-qualified: "v3.1/ROUTE-02"
@@ -1905,6 +1935,11 @@ def _rows_active_tail() -> list[MatrixRow]:
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
 
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
+
+    The `scripts/_battery_core.py#self_test_boundary` rows here are definition-checked, not
+    call-checked (Phase 34, D-10): their anchor carries no `_self_test_`/`_selftest_` prefix,
+    and their dispatcher is `scripts/check-routing-battery.py`'s `self_test()`, one file away —
+    TRACE-03's dispatch check reads only the anchored file, and Phase 34 leaves them unchanged.
     """
     p = _RESIDUAL_KEY_PREFIX  # e.g. "residual" — confirmed Task 3 checkpoint
     tail_rationale_gen01 = (
