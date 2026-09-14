@@ -5297,7 +5297,7 @@ def _rows_v921() -> list[MatrixRow]:
 
 
 def _rows_v93() -> list[MatrixRow]:
-    """v9.3.0 milestone rows -- 24 requirements, 5 reproducible + 19 audit-only
+    """v9.3.0 milestone rows -- 24 requirements, 4 reproducible + 20 audit-only
     (Phase 35 / REL-20).
 
     All rows carry milestone="v9.3". Keys use the milestone-qualified form "v9.3/<bare_id>".
@@ -5313,8 +5313,10 @@ def _rows_v93() -> list[MatrixRow]:
     (READ-01, SCHEMA-01, SCHEMA-02, STMT-01, STMT-02, ROWS-01..05, RESID-01, RESID-02,
     REL-19..24) are new rows broken for the first time here. REL-20's own break test (this
     plan's own Task 3) found its headline-history-row clause stays green under its own break,
-    so REL-20 re-tiers audit-only within this same commit, one headline move (D-07). 19 rows
-    are audit-only, each named and reasoned individually here (never by block count):
+    so REL-20 re-tiers audit-only within this same commit, one headline move (D-07). TIER-03
+    re-tiered audit-only afterwards, at the Phase 35 code review (CR-02), in its own headline
+    move. 20 rows are audit-only, each named and reasoned individually here (never by block
+    count):
 
       - READ-01: both clauses of READ-01's statement describe reading rederive.py and recording
         what it reads; the registration grep confirms no battery, CI, or pre-commit-hook file
@@ -5387,6 +5389,16 @@ def _rows_v93() -> list[MatrixRow]:
         unaffected by this batch-level finding, and the 'no battery/CI job was added' half of
         the clause is a constraint on what Plan 06/07 do, not a fact any gate polices.
 
+      - TIER-03: the label clause of TIER-03's own statement -- every live or manual row
+        'carries a live/manual label' -- is not re-run by any registered gate:
+        _row_field_problems() checks battery-only, pre-commit-only and live-manual for
+        vocabulary and tier consistency only. Relabelling v3.1/ROUTE-02's rerun_by from
+        live-manual to battery-only, then re-running emit, left check-traceability.py
+        --self-test and check --input docs/data/matrix.json both green (Phase 35 code review,
+        CR-02). Only the mislabel-to-ci direction is red, at D-03's registry check. Re-tiered
+        from `reproducible` at that code review; its Exit clause reads the unregistered
+        rederive.py instrument (READ-01's shape).
+
       - TIER-04: TIER-04's own statement bundles two claims: the battery-only marker's
         correctness (clause 1, gate-checked — mislabeling a QUAL-01 row ci breaks D-03 red,
         confirmed by direct mutation) and the cost/determinism measurement being recorded as the
@@ -5444,17 +5456,18 @@ def _rows_v93() -> list[MatrixRow]:
         run actually names a real cause at the backstop, or actually assembles from the six
         named sections — is deferred to backlog 999.89.
 
-    The remaining 5 rows are reproducible: SCHEMA-01 at `scripts/check-
+    The remaining 4 rows are reproducible: SCHEMA-01 at `scripts/check-
     traceability.py#_self_test_row_fields_live`, SCHEMA-02 at `scripts/check-
     traceability.py#_self_test_headline_lock`, STMT-01 at `scripts/check-
-    traceability.py#_self_test_row_fields_live`, TIER-03 at `scripts/check-
-    traceability.py#_row_field_problems`, ANCH-01 at `scripts/check-
+    traceability.py#_self_test_row_fields_live`, ANCH-01 at `scripts/check-
     traceability.py#_resolve_artifact`. Each is proven by a fresh red break recorded in
     this phase's own break-test record: the artifact's own clause broken, the row's cited gate
     confirmed non-vacuously red, then restored. REL-20 was originally drafted reproducible at
     this same anchor (`#_self_test_headline_lock`) but re-tiers audit-only per its own bullet
-    above -- its headline-history-row clause is the one clause of the six reproducible-drafted
-    rows that stayed green under its own break.
+    above -- its headline-history-row clause was the one clause of the six reproducible-drafted
+    rows that stayed green under the break test this phase ran. TIER-03 was a second: that
+    break test mislabelled a live/manual row only as `ci`, and the Phase 35 code review's
+    `battery-only` relabel stayed green (its own bullet above).
 
     Capability assignment follows the same discriminator every prior milestone's rows() function
     states ("changes the agent's methodology prose or its shipped reading material ->
@@ -5463,16 +5476,15 @@ def _rows_v93() -> list[MatrixRow]:
     respectively); every other row in this batch is Test-Network (matrix-schema, row-
     registration, tiering and release apparatus).
 
-    DISCLOSED BOUNDARY. Three of the five reproducible rows -- SCHEMA-01, SCHEMA-02 and STMT-01
+    DISCLOSED BOUNDARY. Three of the four reproducible rows -- SCHEMA-01, SCHEMA-02 and STMT-01
     -- carry a dispatch-checked `#_self_test_*` anchor (`_self_test_row_fields_live` or
     `_self_test_headline_lock`), proven called from `check-traceability.py`'s own
     `_run_self_test()` dispatcher, per `_resolve_artifact()`'s and
-    `_selftest_dispatch_problems()`'s own dispatch-reachability leg. The other two -- TIER-03
-    (`#_row_field_problems`) and ANCH-01 (`#_resolve_artifact`) -- carry an anchor naming a real
-    function in the same file, which `_resolve_artifact()` confirms is a defined top-level
-    def/class symbol, but neither anchor is `_self_test_`/`_selftest_`-prefixed, so
-    `_selftest_dispatch_problems()` returns `[]` for both without checking whether anything
-    calls them -- this proves the function EXISTS, one level deeper than a bare script path
+    `_selftest_dispatch_problems()`'s own dispatch-reachability leg. The other one -- ANCH-01
+    (`#_resolve_artifact`) -- carries an anchor naming a real function in the same file, which
+    `_resolve_artifact()` confirms is a defined top-level def/class symbol, but the anchor is
+    not `_self_test_`/`_selftest_`-prefixed, so `_selftest_dispatch_problems()` returns `[]`
+    for it without checking whether anything calls it -- this proves the function EXISTS, one level deeper than a bare script path
     (which proves only that the FILE exists), but not that a dispatcher calls it, matching the
     bound every prior milestone's rows() function states for its own bare-path reproducible
     rows.
@@ -5539,6 +5551,9 @@ def _rows_v93() -> list[MatrixRow]:
     )
     _audit_tier02_correctness_v93 = (
         "TIER-02's own statement is a batch-level claim about tier correctness and decision-recording, neither of which any registered gate re-runs: flipping v4.2/BASE-01 back to reproducible/live-manual, with the headline fully swept across every COVERED_HEADLINE_SURFACES member, leaves the full 26-gate battery GREEN; deleting the entire TIER-02 disposition sentence from headline-history row 18 (numeric cells untouched) leaves check-traceability's self-test, gen-gate-docs --check and check-links --self-test all green. The four rows' own individual tier (audit-only, Phase 34) is unaffected by this batch-level finding, and the 'no battery/CI job was added' half of the clause is a constraint on what Plan 06/07 do, not a fact any gate polices."
+    )
+    _audit_tier03_label_v93 = (
+        "the label clause of TIER-03's own statement — every live or manual row 'carries a live/manual label' — is not re-run by any registered gate: _row_field_problems() checks battery-only, pre-commit-only and live-manual for vocabulary and tier consistency only. Relabelling v3.1/ROUTE-02's rerun_by from live-manual to battery-only, then re-running emit, left check-traceability.py --self-test and check --input docs/data/matrix.json ('PASS — 395 rows consistent') both green (Phase 35 code review, CR-02); only the mislabel-to-ci direction is red, at D-03's registry check. One green clause is sufficient to keep the claim audit-only (the rule TIER-04's own rationale states), and the Exit clause reads the unregistered rederive.py instrument (READ-01's shape)."
     )
     _audit_tier04_measurement_v93 = (
         "TIER-04's own statement bundles two claims: the battery-only marker's correctness (clause 1, gate-checked — mislabeling a QUAL-01 row ci breaks D-03 red, confirmed by direct mutation) and the cost/determinism measurement being recorded as the basis for D-T2 (clause 2, unchecked — deleting the entire measurement sub-block from docs/requirements-traceability.md leaves check-traceability's self-test, gen-gate-docs --check and check-links --self-test all green). One green clause is sufficient to keep the batch-level claim audit-only; the QUAL-01-evidenced rows' own individual battery-only marker (clause 1) is separately gate-enforced and unaffected."
@@ -5679,12 +5694,12 @@ def _rows_v93() -> list[MatrixRow]:
                   rerun_by='none'),
         MatrixRow('v9.3/TIER-03', 'TIER-03', 'v9.3', 'Test-Network',
                   'tests/routing-catalog.md',
-                  'reproducible', 'scripts/check-traceability.py#_row_field_problems', "",
+                  'audit-only', '', _audit_tier03_label_v93,
                   surfaces=('apparatus',),
                   statement=(
                       'Every remaining reproducible row whose evidence is a live or manual run (`tests/routing-catalog.md`, `scripts/check-routing.py`, `v5.3/GEN-01`, `v5.3/GEN-02`) carries a live/manual label in `docs/data/matrix.json` and `docs/requirements-matrix.md`. Exit: `rederive.py tier-mix` (extended to read the label) prints only re-tiered or labelled artifacts.'
                   ),
-                  rerun_by='ci'),
+                  rerun_by='none'),
         MatrixRow('v9.3/TIER-04', 'TIER-04', 'v9.3', 'Test-Network',
                   'scripts/check-quality-harness.py',
                   'audit-only', '', _audit_tier04_measurement_v93,
@@ -5858,19 +5873,21 @@ def build_matrix_rows() -> list[MatrixRow]:
         `_rows_v818()` and `_rows_v824()`. See `_rows_v819()`, `_rows_v820()` and
         `_rows_v821()` for the full per-row rationale and each function's own DISCLOSED
         BOUNDARY paragraph.
-    (n) v9.3.0 milestone (24 rows, 5 reproducible + 19 audit-only) — Phase 35/REL-20: this
+    (n) v9.3.0 milestone (24 rows, 4 reproducible + 20 audit-only) — Phase 35/REL-20: this
         milestone's own READ-01/SCHEMA-*/STMT-*/ROWS-*/RESID-*/TIER-*/ANCH-*/REL-19..24
         requirements. REL-22, REL-23 and REL-24 carry Methodology (CHANGELOG record,
         local-only recurrence reading, agent-body prose); every other row carries
         Test-Network (matrix-schema, row-registration, tiering and release apparatus).
-        19 audit-only rows, named individually, never by count: READ-01, ROWS-01..05,
-        RESID-01, RESID-02, STMT-02, TIER-01, TIER-02, TIER-04, ANCH-02, REL-19, REL-20,
-        REL-21, REL-22, REL-23, REL-24 (REL-20 re-tiered from reproducible at this same
-        Phase 35 own break test: its headline-history-row clause stays green under its
-        own break). See `_rows_v93()` for the full per-row rationale and its DISCLOSED
-        BOUNDARY: SCHEMA-01, SCHEMA-02 and STMT-01 carry a `#_self_test_*` dispatch-checked
-        anchor; TIER-03 and ANCH-01 carry a same-file function-name anchor that
-        `_resolve_artifact()` confirms is defined but does not dispatch-check.
+        20 audit-only rows, named individually, never by count: READ-01, ROWS-01..05,
+        RESID-01, RESID-02, STMT-02, TIER-01, TIER-02, TIER-03, TIER-04, ANCH-02, REL-19,
+        REL-20, REL-21, REL-22, REL-23, REL-24 (REL-20 re-tiered from reproducible at this
+        same Phase 35 own break test: its headline-history-row clause stays green under its
+        own break; TIER-03 re-tiered from reproducible at the Phase 35 code review, CR-02: a
+        battery-only relabel of a live/manual row stays green). See `_rows_v93()` for the
+        full per-row rationale and its DISCLOSED BOUNDARY: SCHEMA-01, SCHEMA-02 and STMT-01
+        carry a `#_self_test_*` dispatch-checked anchor; ANCH-01 carries a same-file
+        function-name anchor that `_resolve_artifact()` confirms is defined but does not
+        dispatch-check.
 
     REACH-or-LEVEL determination (Phase 33, backlog 999.93/999.94/999.95), recorded before any
     v8.19, v8.20 or v8.21 batch function exists.
@@ -5961,7 +5978,7 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v92())
     # --- v9.2.1 milestone (Phase 31 / REL-17) — 4 reproducible + 6 audit-only ---
     rows.extend(_rows_v921())
-    # --- v9.3.0 milestone (Phase 35 / REL-20) — 5 reproducible + 19 audit-only ---
+    # --- v9.3.0 milestone (Phase 35 / REL-20, CR-02) — 4 reproducible + 20 audit-only ---
     rows.extend(_rows_v93())
     return rows
 

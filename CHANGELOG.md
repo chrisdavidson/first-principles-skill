@@ -35,7 +35,9 @@ Requirement groups, by ID: schema and statements (**SCHEMA-01, SCHEMA-02, STMT-0
 The coverage headline moved `239/132/0/371` (239 reproducible / 132 audit-only / 0 gap / 371 total)
 to `244/151/0/395` (244 reproducible / 151 audit-only / 0 gap / 395 total) — 24 new rows registered
 through `_rows_v93()`, swept across every covered surface by `HEADLINE-LOCK`'s mechanism, never by
-hand.
+hand — then to `243/152/0/395` (243 reproducible / 152 audit-only / 0 gap / 395 total) when the
+phase's code review re-tiered TIER-03 audit-only (relabelling a live/manual row `battery-only`
+stays green at every gate), in a second swept move.
 
 The battery registration count and the CI job count are unchanged from this milestone's own
 baseline: by direct count through `scripts/check-registration.py`'s own parser, both at `fda29cc`

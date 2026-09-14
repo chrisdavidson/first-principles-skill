@@ -310,7 +310,7 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 - **`docs/requirements-traceability.md`** — **the authoritative source of truth; start here.**
   <!-- GENERATED:CLAUDE-COVERAGE-HEADLINE -->
   Active residuals, the current coverage headline
-  (**244 reproducible / 151 audit-only / 0 gap / 395 total**), compact historical ledger, and gap
+  (**243 reproducible / 152 audit-only / 0 gap / 395 total**), compact historical ledger, and gap
   findings.
   <!-- END GENERATED:CLAUDE-COVERAGE-HEADLINE -->
   (Derived from regenerated matrix Phase 138 Plan 03; META-Q4 re-tiered
@@ -336,7 +336,8 @@ The canonical requirements and traceability surface lives in the git-tracked tre
   audit-only at the Phase 34 code review / WR-02, 242/129 → 239/132, with no matrix population
   change. The v9.3.0 milestone requirements were registered as matrix rows at Phase 35 / REL-20,
   239/132 → 244/151, row count
-  371 → 395.)
+  371 → 395. TIER-03 moved audit-only at the Phase 35 code review / CR-02, 244/151 → 243/152,
+  with no matrix population change.)
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to

@@ -5919,14 +5919,14 @@
     "milestone": "v9.3",
     "capability": "Test-Network",
     "deliverable_path": "tests/routing-catalog.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-traceability.py#_row_field_problems",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "the label clause of TIER-03's own statement \u2014 every live or manual row 'carries a live/manual label' \u2014 is not re-run by any registered gate: _row_field_problems() checks battery-only, pre-commit-only and live-manual for vocabulary and tier consistency only. Relabelling v3.1/ROUTE-02's rerun_by from live-manual to battery-only, then re-running emit, left check-traceability.py --self-test and check --input docs/data/matrix.json ('PASS \u2014 395 rows consistent') both green (Phase 35 code review, CR-02); only the mislabel-to-ci direction is red, at D-03's registry check. One green clause is sufficient to keep the claim audit-only (the rule TIER-04's own rationale states), and the Exit clause reads the unregistered rederive.py instrument (READ-01's shape).",
     "surfaces": [
       "apparatus"
     ],
     "statement": "Every remaining reproducible row whose evidence is a live or manual run (`tests/routing-catalog.md`, `scripts/check-routing.py`, `v5.3/GEN-01`, `v5.3/GEN-02`) carries a live/manual label in `docs/data/matrix.json` and `docs/requirements-matrix.md`. Exit: `rederive.py tier-mix` (extended to read the label) prints only re-tiered or labelled artifacts.",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v9.3/TIER-04",

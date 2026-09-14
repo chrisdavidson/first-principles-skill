@@ -95,7 +95,7 @@ flowchart LR
 
     TRACE["scripts/check-traceability.py\n(TRACE-03: matrix emitter + gate;\n--self-test is CI gate)"]
     MATRIX["docs/requirements-matrix.md\n(generated 395-row capability matrix)"]
-    TRACEABILITY["docs/requirements-traceability.md\n(active residuals; 244/151/0/395)"]
+    TRACEABILITY["docs/requirements-traceability.md\n(active residuals; 243/152/0/395)"]
 
     SKILLBODY -->|"reads phrase table"| EMU
 
