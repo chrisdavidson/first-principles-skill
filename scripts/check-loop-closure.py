@@ -1054,6 +1054,23 @@ def _self_test_loop05_firing_record(body, check_body, guarded, report, holder) -
     _run_negative_controls(rows, guarded, report, holder)
 
 
+def _n38_candidate_entry_row(contract, check_contract):
+    """Negative control N38, defined once (Phase 34 code review, WR-10).
+
+    Both `_self_test_sup01_candidate_entry` and `_self_test_guard01_bullet4_anchor`
+    run N38, each independently, so neither row's block depends on the other being
+    called. They build the row here rather than from two hand-kept copies, so the
+    label, mutation and expected-detail string cannot drift apart. The second run is
+    a deliberate duplicate: it prints a second N38 PASS line, and because
+    `holder["ran_ids"]` is a set, `control_count` is unchanged."""
+    return (
+        "N38 (input-contract: strip L19, the candidate-entry clause)",
+        lambda: _strip_everywhere(contract, _CANDIDATE_ENTRY),
+        check_contract,
+        f'{_CONTRACT_NAME}: the Known ground truths bullet no longer routes',
+    )
+
+
 def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, holder) -> None:
     """v9.2/SUP-01: a supplied fact enters Phase 2 as a candidate, and no
     Input Contract bullet exempts it from challenge — N38, N39.
@@ -1065,12 +1082,7 @@ def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, 
     bare script path rather than naming this block (D-14; Phase 34 review
     WR-04)."""
     rows = [
-        (
-            "N38 (input-contract: strip L19, the candidate-entry clause)",
-            lambda: _strip_everywhere(contract, _CANDIDATE_ENTRY),
-            check_contract,
-            f'{_CONTRACT_NAME}: the Known ground truths bullet no longer routes',
-        ),
+        _n38_candidate_entry_row(contract, check_contract),
         (
             "N39 (input-contract: reinstate X7 hard-wrapped beside the live bullet — the coexistence shape a presence literal cannot see)",
             lambda: _reinstate_hard_wrapped(contract, _SUPERSEDED_EXEMPTION),
@@ -1083,18 +1095,13 @@ def _self_test_sup01_candidate_entry(contract, check_contract, guarded, report, 
 
 def _self_test_guard01_bullet4_anchor(contract, check_contract, guarded, report, holder) -> None:
     """v9.2/GUARD-01: this gate's own N38 negative control is load-bearing —
-    stripping the candidate-entry clause must turn it red. Deliberately its
-    own copy of the N38 sub-table entry, not a share of SUP-01's (D-12,
-    34-ANCH-WORKLIST.md): each row's block re-runs the same control
-    independently, so neither row's anchor depends on the other row's block
-    also being called."""
+    stripping the candidate-entry clause must turn it red. Deliberately runs
+    N38 itself rather than sharing SUP-01's block (D-12, 34-ANCH-WORKLIST.md):
+    each row's block re-runs the same control independently, so neither row's
+    anchor depends on the other row's block also being called. The row itself
+    comes from `_n38_candidate_entry_row`, so the two runs cannot diverge."""
     rows = [
-        (
-            "N38 (input-contract: strip L19, the candidate-entry clause)",
-            lambda: _strip_everywhere(contract, _CANDIDATE_ENTRY),
-            check_contract,
-            f'{_CONTRACT_NAME}: the Known ground truths bullet no longer routes',
-        ),
+        _n38_candidate_entry_row(contract, check_contract),
     ]
     _run_negative_controls(rows, guarded, report, holder)
 

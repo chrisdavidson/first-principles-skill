@@ -2615,8 +2615,9 @@ def _rows_v818() -> list[MatrixRow]:
     own to anchor without re-anchoring the whole gate.
 
     LOOP-01..05 each cite a per-claim `_self_test_<claim>` function extracted from
-    `scripts/check-loop-closure.py`'s `_run_self_test` the same way, same behaviour-free
-    guarantee, same dispatch check: LOOP-01 -> `#_self_test_loop01_phase1_route`, LOOP-02 ->
+    `scripts/check-loop-closure.py`'s `_run_self_test` the same way, same behaviour-preserving
+    guarantee (that extraction's one deliberate exception, a duplicate N38 run from the
+    GUARD-01 block, is disclosed in `_rows_v92()`), same dispatch check: LOOP-01 -> `#_self_test_loop01_phase1_route`, LOOP-02 ->
     `#_self_test_loop02_askuserquestion`, LOOP-03 -> `#_self_test_loop03_bounded_reentry`,
     LOOP-04 -> `#_self_test_loop04_exit_criterion`, LOOP-05 ->
     `#_self_test_loop05_firing_record`. Each anchor is proven by the same two red breaks
@@ -4807,10 +4808,13 @@ def _rows_v92() -> list[MatrixRow]:
     DISCLOSED BOUNDARY (updated at v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes this
     paragraph's original "only REL-12" reading). GUARD-01 now also carries a `#_self_test_*`
     anchor extracted from `scripts/check-loop-closure.py`'s `_run_self_test` as a
-    behaviour-free move, dispatch-checked by TRACE-03's own `_resolve_artifact`: GUARD-01 ->
-    `#_self_test_guard01_bullet4_anchor` — its own independent copy of the N38 control, not a
-    share of SUP-01's block (34-ANCH-WORKLIST.md), so its claim break fires from inside its own
-    block. SUP-01 was anchored at `#_self_test_sup01_candidate_entry` in the same move and
+    behaviour-preserving move except for one deliberate duplicate N38 run, dispatch-checked by
+    TRACE-03's own `_resolve_artifact`: GUARD-01 -> `#_self_test_guard01_bullet4_anchor` — its
+    own independent run of the N38 control, not a share of SUP-01's block
+    (34-ANCH-WORKLIST.md), so its claim break fires from inside its own block. That second run
+    prints a second N38 PASS line and leaves `control_count` unchanged (`ran_ids` is a set);
+    the row is defined once, in `_n38_candidate_entry_row`, so the two runs cannot diverge
+    (Phase 34 code review, WR-10). SUP-01 was anchored at `#_self_test_sup01_candidate_entry` in the same move and
     returned to a bare script path at the Phase 34 code review (WR-04, D-14): that block's
     N38/N39 drive the input-contract check only, which reads `shared/agent/input-contract.md`,
     so the statement's second target (sentences in the emitted agent body describing supplied
