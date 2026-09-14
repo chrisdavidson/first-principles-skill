@@ -495,10 +495,11 @@ def test_output_path_confinement() -> None:
 
 
 def test_active_tail_items_present() -> None:
-    """GAP-01 emission guard: build_matrix_rows() must include 7 active-tail rows.
+    """GAP-01 emission guard: build_matrix_rows() must include 9 active-tail rows.
 
-    The 7 active-tail rows (D-05 path b) are:
-      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-114-01, RR-108-02, RR-77-08
+    The 9 active-tail rows (D-05 path b) are:
+      bare IDs: GEN-01, GEN-02, RR-80-01, RR-79-01, RR-114-01, RR-108-02, RR-77-08,
+      RR-108-04, RR-108-05
       (RR-80-01 = the former S-N04 residual, assigned its tracked ID in Phase 83)
       (RR-114-01 supersedes RR-108-01 supersedes RR-95-01 supersedes RR-92-01 supersedes RR-79-02,
        Phase 114 v7.6 carry-forward, S-P02 inversion CARRIED 1/5;
@@ -508,6 +509,9 @@ def test_active_tail_items_present() -> None:
        at Phase 114 v7.6 re-baseline — lone canonical improver; ID retained,
        sentinel present in _battery_core.self_test_boundary() as regression guard;
        full chain: RR-79-03 -> RR-92-02 -> RR-95-02 -> RR-108-02 CLOSED)
+      (RR-108-04 (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit): registered at
+       Phase 33 RESID-01, ACCEPTED-FINAL at v8.0, re-opened and re-measured at v8.5,
+       CARRIED 0/5 both, sentinel re-pointed to _load_excerpt_v85 at Phase 156)
       Each must be tagged:
         capability == "Test-Network"
         deliverable_path == "active-tail"
@@ -516,9 +520,12 @@ def test_active_tail_items_present() -> None:
     in Phase 93, D-08; GEN-01 artifact_link bumped v6.3->v6.4 baseline in Phase 96,
     D-03; bumped v6.4->v7.4 baseline in Phase 109, D-04; bumped v7.4->v7.6 in Phase 114,
     Plan 02 (this phase); RR-114-01 renamed from RR-108-01 in Phase 114, Plan 02;
-    RR-108-02 retained as CLOSED row — sentinel present, not removed).
-    The coverage_tier check was removed because tiers are now mixed non-gap values
-    (reproducible for all 7 rows after the Phase 93 GEN-01 flip).
+    RR-108-02 retained as CLOSED row — sentinel present, not removed; RR-108-04/RR-108-05
+    registered reproducible at Phase 33 RESID-01).
+    The coverage_tier check was removed for the general loop because tiers are mixed
+    non-gap values across the whole active-tail set; RR-108-04/RR-108-05 get an explicit
+    coverage_tier + artifact_link check below instead, since RESID-01 names those two
+    values specifically.
     """
     mod = _load_check_traceability()
     rows = mod.build_matrix_rows()
@@ -526,6 +533,7 @@ def test_active_tail_items_present() -> None:
     required_bare_ids = {
         "GEN-01", "GEN-02", "RR-80-01",
         "RR-79-01", "RR-114-01", "RR-108-02", "RR-77-08",
+        "RR-108-04", "RR-108-05",
     }
 
     found_ids = {r.bare_id for r in rows}
@@ -553,6 +561,165 @@ def test_active_tail_items_present() -> None:
             )
     assert not errors, (
         f"Active-tail row tagging errors:\n" + "\n".join(errors)
+    )
+
+    # RESID-01: RR-108-04 and RR-108-05 specifically must be reproducible, tagged
+    # residual/ keys, and carry the _battery_core.py#self_test_boundary sentinel link.
+    resid_ids = {"RR-108-04", "RR-108-05"}
+    resid_rows = {r.bare_id: r for r in rows if r.bare_id in resid_ids}
+    missing_resid = resid_ids - resid_rows.keys()
+    assert not missing_resid, (
+        f"RESID-01 rows missing from build_matrix_rows(): {sorted(missing_resid)!r}"
+    )
+    resid_errors: list[str] = []
+    for bare_id, row in resid_rows.items():
+        if row.key != f"residual/{bare_id}":
+            resid_errors.append(
+                f"{bare_id}: expected key='residual/{bare_id}', got {row.key!r}"
+            )
+        if row.coverage_tier != "reproducible":
+            resid_errors.append(
+                f"{bare_id}: expected coverage_tier='reproducible', "
+                f"got {row.coverage_tier!r}"
+            )
+        if row.artifact_link != "scripts/_battery_core.py#self_test_boundary":
+            resid_errors.append(
+                f"{bare_id}: expected artifact_link="
+                f"'scripts/_battery_core.py#self_test_boundary', "
+                f"got {row.artifact_link!r}"
+            )
+    assert not resid_errors, (
+        f"RESID-01 row field errors:\n" + "\n".join(resid_errors)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 33 ROWS-01: v8.19/v8.20/v8.21 milestone rows registered in build order
+# ---------------------------------------------------------------------------
+
+
+def test_v819_v820_v821_milestone_rows_present() -> None:
+    """ROWS-01 gap test: build_matrix_rows() must carry exactly the 24 v8.19/
+    v8.20/v8.21 milestone keys, each exactly once, positioned between the last
+    v8.18 row and the first v8.24 row in build order, each with a non-empty
+    sourced statement (never the _STATEMENT_UNRECOVERABLE sentinel — every row
+    in these three batches is either Methodology rubric prose or a quoted
+    requirement-archive bullet, per _rows_v819()/_rows_v820()/_rows_v821()'s
+    own docstrings).
+    """
+    mod = _load_check_traceability()
+    rows = mod.build_matrix_rows()
+
+    expected_keys = {
+        "v8.19/HC-01", "v8.19/HC-02", "v8.19/HC-03", "v8.19/HC-04",
+        "v8.20/HARN-01-01", "v8.20/HARN-01-02", "v8.20/HARN-01-03",
+        "v8.20/HARN-01-04", "v8.20/HARN-01-05",
+        "v8.21/REG-01", "v8.21/REG-02", "v8.21/REG-03",
+        "v8.21/REG-04", "v8.21/REG-05", "v8.21/REG-06",
+        "v8.21/GATE-01", "v8.21/GATE-02", "v8.21/GATE-03",
+        "v8.21/GATE-04", "v8.21/GATE-05", "v8.21/GATE-06",
+        "v8.21/VAL-01", "v8.21/VAL-02", "v8.21/VAL-03",
+    }
+    assert len(expected_keys) == 24, "expected-key roster itself must be 24 entries"
+
+    all_keys = [r.key for r in rows]
+    found_keys = set(all_keys)
+    missing = expected_keys - found_keys
+    assert not missing, (
+        f"ROWS-01 milestone rows missing from build_matrix_rows(): {sorted(missing)!r}"
+    )
+
+    # Each expected key must appear exactly once (no accidental duplication).
+    dup_errors = [
+        k for k in expected_keys
+        if all_keys.count(k) != 1
+    ]
+    assert not dup_errors, (
+        f"ROWS-01 keys not appearing exactly once: {sorted(dup_errors)!r} "
+        f"(counts: {[(k, all_keys.count(k)) for k in dup_errors]!r})"
+    )
+
+    # Ordering: every v8.19/v8.20/v8.21 row's index must sit strictly between the
+    # last v8.18 row's index and the first v8.24 row's index.
+    v818_indices = [i for i, r in enumerate(rows) if r.milestone == "v8.18"]
+    v824_indices = [i for i, r in enumerate(rows) if r.milestone == "v8.24"]
+    assert v818_indices, "No v8.18 rows found in build_matrix_rows() — cannot bound order"
+    assert v824_indices, "No v8.24 rows found in build_matrix_rows() — cannot bound order"
+    last_v818 = max(v818_indices)
+    first_v824 = min(v824_indices)
+
+    order_errors: list[str] = []
+    for i, r in enumerate(rows):
+        if r.key in expected_keys:
+            if not (last_v818 < i < first_v824):
+                order_errors.append(
+                    f"{r.key} at index {i} is not strictly between last v8.18 row "
+                    f"(index {last_v818}) and first v8.24 row (index {first_v824})"
+                )
+    assert not order_errors, (
+        "ROWS-01 build-order errors:\n" + "\n".join(order_errors)
+    )
+
+    # Every row must carry a non-empty, non-sentinel statement.
+    stmt_errors: list[str] = []
+    for r in rows:
+        if r.key in expected_keys:
+            stmt = r.statement
+            if not stmt or not stmt.strip():
+                stmt_errors.append(f"{r.key}: statement is empty/blank")
+            elif stmt.strip() == mod._STATEMENT_UNRECOVERABLE:
+                stmt_errors.append(
+                    f"{r.key}: statement is the _STATEMENT_UNRECOVERABLE sentinel, "
+                    f"expected a sourced statement"
+                )
+    assert not stmt_errors, (
+        "ROWS-01 statement errors:\n" + "\n".join(stmt_errors)
+    )
+
+
+# ---------------------------------------------------------------------------
+# Phase 33 ROWS-03: reproducible rows cite the three named scripts directly
+# ---------------------------------------------------------------------------
+
+
+def test_rows03_reproducible_rows_cite_new_scripts() -> None:
+    """ROWS-03 gap test: at least one `reproducible` row's artifact_link (path
+    before any `#`) equals each of scripts/check-high-confidence-bound.py,
+    scripts/check-registration.py and scripts/check-act-limb.py.
+
+    Deliberately does not pin exact counts (moving figures; CR-01 moved
+    REG-GUARD's) and deliberately does not assert v8.21/REG-06's tier (it is
+    audit-only since CR-01, not reproducible).
+    """
+    mod = _load_check_traceability()
+    rows = mod.build_matrix_rows()
+
+    required_scripts = {
+        "scripts/check-high-confidence-bound.py",
+        "scripts/check-registration.py",
+        "scripts/check-act-limb.py",
+    }
+
+    reproducible_link_paths = {
+        r.artifact_link.split("#", 1)[0]
+        for r in rows
+        if r.coverage_tier == "reproducible" and r.artifact_link
+    }
+
+    missing_scripts = required_scripts - reproducible_link_paths
+    assert not missing_scripts, (
+        f"No reproducible row cites these scripts directly as artifact_link: "
+        f"{sorted(missing_scripts)!r}. "
+        f"Reproducible artifact_link paths found: {sorted(reproducible_link_paths)!r}"
+    )
+
+    # REG-06 must not be relied on as the reproducible evidence for check-registration.py —
+    # it is audit-only since CR-01 (Phase 33 code review).
+    reg06_rows = [r for r in rows if r.key == "v8.21/REG-06"]
+    assert reg06_rows, "v8.21/REG-06 row not found"
+    assert reg06_rows[0].coverage_tier == "audit-only", (
+        f"v8.21/REG-06 expected coverage_tier='audit-only' (CR-01), "
+        f"got {reg06_rows[0].coverage_tier!r}"
     )
 
 
