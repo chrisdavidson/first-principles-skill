@@ -386,6 +386,88 @@ Decision: all four rows are re-tiered `audit-only` with an empty `artifact_link`
 `rerun_by="none"` (`check_consistency()` fixture (5); the V818-ROWS precedent). No battery
 registration or CI job is added (standing D-D).
 
+### Self-test anchor work list (ANCH-01, D-13), dated 2026-09-14
+
+A reproducible row's `artifact_link` counts as dispatch-checked, not merely defined, only when it
+names a separable `_self_test_<claim>` block that is called by literal name from its own script's
+`self_test()`/`_run_self_test()` dispatcher and re-runs every clause of the row's statement
+(D-12). `_resolve_artifact()`'s own rule decides this — a name matching the `_self_test_`/
+`_selftest_` prefix convention, not a bare regex over the anchor string. The full ranking below
+(by rows genuinely unlocked under that rule, then by reorder cost, then by whether the script
+carries its own `_check_anchor_control_coverage` ratchet) is published in order; only the top
+three were taken this phase (D-13).
+
+**Taken:**
+
+1. `scripts/check-loop-closure.py` — anchored: `v8.18/LOOP-01`, `v8.18/LOOP-02`, `v8.18/LOOP-03`,
+   `v8.18/LOOP-04`, `v8.18/LOOP-05`, `v9.2/SUP-01`, `v9.2/GUARD-01`, `v9.2.1/HAND-05`. Bare:
+   `v8.18/HARN-02` (D-14: a whole-gate existence claim restating the combined effect of this
+   script's own other rows; no distinguishable clause of its own to re-run without re-anchoring
+   the whole self-test).
+2. `scripts/check-act-limb.py` — anchored: `v8.18/ACT-01`, `v8.18/ACT-02`, `v8.18/ACT-03`,
+   `v8.18/ACT-04`, `v8.18/ACT-05`. Bare: `v8.18/HARN-01` (D-14: whole-gate existence claim, same
+   reasoning as `v8.18/HARN-02` above); `v8.20/HARN-01-02`, `v8.20/HARN-01-03`, `v8.20/HARN-01-05`
+   (D-14: historical build-log entries describing work already done, re-run only as a side effect
+   of the aggregate branch-coverage floor staying green, with no distinguishable ongoing clause of
+   their own).
+3. `scripts/check-registration.py` — anchored: `v8.21/REG-01`, `v8.21/REG-02`, `v8.21/REG-03`.
+   Bare: `v8.21/GATE-02` (D-14: whole-gate existence claim restating the combined existence of
+   every control in this script's fixture); `v8.21/GATE-03` and `v8.24/GATE-02` (D-14: already
+   anchored at a live, non-`_self_test_`-prefixed function that also runs in the live `check`
+   leg — D-12 forbids renaming it to manufacture an anchor).
+
+**Every other ranked script, with its exclusion reason:**
+
+- `scripts/check-high-confidence-bound.py` — every row's claim has a separable block, but the
+  claims require reordering non-contiguous control clusters and the script carries its own
+  `_check_anchor_control_coverage` ratchet; loses the tie-break against `check-registration.py`.
+- `scripts/check-agent.py`, `scripts/check-description-budget.py`,
+  `scripts/check-install-collisions.py`, `scripts/check-links.py` — DIRECT dispatcher shape, but
+  every row's statement is `statement unrecoverable` (D-T4): there is no sourced clause to extract
+  into a block.
+- `scripts/check-step0-live.py`, `scripts/check-trigger-collisions.py` — same reason: DIRECT
+  shape, every row's statement unrecoverable.
+- `scripts/check-version-stamps.py` — DIRECT shape, but every row's statement asserts a live-tree
+  fact re-verified only by the live `check()` walk over the real tracked files, not by an isolable
+  self-test fixture; no new block would change this (D-14).
+- `scripts/check-selfaudit-scan.py` — every row is already anchored at a live, non-`_self_test_`-
+  prefixed function that also runs outside the self-test leg; D-12 forbids renaming it.
+- `scripts/check-traceability.py` (its own remaining unanchored rows) — the model script for D-12
+  already dispatch-checks the rest of its rows; what remains is one `statement unrecoverable` row
+  plus rows already anchored at live helper functions D-12 forbids renaming.
+- `scripts/check-step0-emulator.py` — DIRECT shape, but every row's statement is unrecoverable
+  (D-T4); the raw bare-row-count leader by the research document's naive count, excluded here on
+  sourcing grounds alone.
+- `scripts/check-conf-gate.py`, `scripts/gen-gate-docs.py`, `scripts/report-conformance.py` — LOOP
+  dispatch: the call site is a loop variable (`control_fn()`) inside a `for control_id, control_fn
+  in _CONTROLS` table, never a literal function name; the anchor-name substring check can never
+  match regardless of how the controls are renamed.
+- `scripts/check-provenance.py` — INDIRECT dispatch: the dispatcher passes a function object to a
+  runner (`_run_control(name, fn)`); the literal call the checker searches for is the runner's own
+  name, never the individual control's.
+- `scripts/check-focused-parity.py` — WRAPPER dispatch: the entire dispatcher body is a single
+  delegate call to one inner function; D-12 rejects a single wrapper anchoring every row of a
+  script without adding any check.
+- `scripts/check-routing-battery.py` — CROSS-FILE dispatch: the assertion logic it calls lives in
+  `scripts/_battery_core.py`, one file removed from its own bare-path rows; also every row's
+  statement is unrecoverable.
+- `scripts/sync-content.py` — defines no top-level `self_test()`/`_run_self_test()` dispatcher at
+  all; its only self-test entry point is CLI-flag dispatched (`cmd_self_test()` via `--self-test`),
+  which the dispatch check cannot see.
+
+### Residual: self_test_boundary rows are definition-checked (D-10), dated 2026-09-14
+
+The rows citing `scripts/_battery_core.py#self_test_boundary` are left as they are: nothing is
+renamed and no wrapper is added, and they keep `rerun_by="ci"`. `_battery_core.py` defines no
+`self_test()`/`_run_self_test()` dispatcher of its own — `self_test_boundary` and its sibling
+`self_test_focused` are called from `scripts/check-routing-battery.py`'s own `self_test()`, one
+file away. `_selftest_dispatch_problems` is a same-file substring check by its own docstring, so
+it cannot see this cross-file call; `_resolve_artifact()` reports no problem for these rows only
+because `self_test_boundary` resolves as a defined top-level function, not because the dispatch is
+checked. Cross-file dispatch is outside TRACE-03's check today and is a backlog candidate, not
+fixed in this phase (standing instruction 2). `_battery_core.py` also holds the RR-* sentinels and
+INVARIANT-CHECK's constants, which is a further reason it is not touched here.
+
 ## Gap Findings
 
 Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](requirements-matrix.md) (sections "Gap Findings (GAP-01)" and "Future-Milestone Candidate Work List (GAP-02)").
