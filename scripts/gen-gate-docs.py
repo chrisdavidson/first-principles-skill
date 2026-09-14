@@ -5778,9 +5778,10 @@ def _control_delta_chain_hops_scanguard_spelled_out() -> None:
 
 def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     """CLAUDE.md's real, live outside text -- the interleaved coverage-
-    headline paragraph yields the row-count chain's terminus `('371',)`
-    (Phase 33 extended the chain's prior `('345',)` terminus, itself Phase 31
-    plan 02's extension of the `('335',)` terminus before it, itself Phase 28
+    headline paragraph yields the row-count chain's terminus `('395',)`
+    (Phase 35 extended the chain's prior `('371',)` terminus, itself Phase 33's
+    extension of the `('345',)` terminus before it, itself Phase 31
+    plan 02's extension of the `('335',)` terminus before that, itself Phase 28
     plan 04's extension of the `('323',)` terminus before that, itself
     Phase 27 plan 06's extension of the `('305',)` terminus before that,
     with the v9.2.1 hop) among the chains assembled, proving non-adjacent
@@ -5798,7 +5799,7 @@ def _control_delta_chain_hops_claude_row_count_recovered() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     termini = [chain[-1][1] for chain in chains]
-    assert ("371",) in termini, termini
+    assert ("395",) in termini, termini
 
 
 def _control_citation_shape_slash_before_arrow() -> None:

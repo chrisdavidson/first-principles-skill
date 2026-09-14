@@ -5295,15 +5295,480 @@ def _rows_v921() -> list[MatrixRow]:
     ]
 
 
+
+def _rows_v93() -> list[MatrixRow]:
+    """v9.3.0 milestone rows -- 24 requirements, 5 reproducible + 19 audit-only
+    (Phase 35 / REL-20).
+
+    All rows carry milestone="v9.3". Keys use the milestone-qualified form "v9.3/<bare_id>".
+
+    Tiering, decided per row against "does something re-run the claim on every CI run or battery
+    pass?" -- never by block, the same discipline every prior milestone's rows() function
+    states. Every tier below rests on a fresh, clause-scoped break test run once against this
+    phase's own tree, recorded in this phase's own local-only, git-ignored break-test record
+    (named without a path -- .planning/ is gitignored and outside every gate's reach, per
+    ROWS-02's own finding). The Phase 32-34 BREAK-TESTS and EXIT-READINGS records were the
+    starting point, never the evidence, for the six requirements (TIER-01, TIER-02, TIER-03,
+    TIER-04, ANCH-01, ANCH-02) whose rows already existed before this phase; the other eighteen
+    (READ-01, SCHEMA-01, SCHEMA-02, STMT-01, STMT-02, ROWS-01..05, RESID-01, RESID-02,
+    REL-19..24) are new rows broken for the first time here. REL-20's own break test (this
+    plan's own Task 3) found its headline-history-row clause stays green under its own break,
+    so REL-20 re-tiers audit-only within this same commit, one headline move (D-07). 19 rows
+    are audit-only, each named and reasoned individually here (never by block count):
+
+      - READ-01: both clauses of READ-01's statement describe reading rederive.py and recording
+        what it reads; the registration grep confirms no battery, CI, or pre-commit-hook file
+        names rederive.py, so no registered gate re-runs either the reading or the record-and-
+        explain step.
+
+      - ROWS-01: the docstring-justification clause of ROWS-01's own statement is not re-run by
+        any registered gate — deleting the HC-04 audit-only justification paragraph from
+        _rows_v819()'s docstring left check-traceability.py --self-test/check, gen-gate-docs.py
+        --check and sync-content.py --check all green; only the row-existence clause (break (a))
+        is gate-checked.
+
+      - ROWS-02: both clauses describe edits to the row's own deliverable, a gitignored local-
+        only milestone archive file no registered gate can read in CI; check-traceability.py's
+        own docstrings state this bound in three places.
+
+      - ROWS-03: the every-registered-gate-is-cited clause of ROWS-03's own statement is not re-
+        run by any registered gate — re-pointing GATE-01's two citing rows away from
+        scripts/check-agent.py drove its citation count to zero (confirmed by rederive.py gate-
+        rows's <-- zero line) while check-traceability.py --self-test/check and gen-gate-docs.py
+        --check all stayed green.
+
+      - ROWS-04: the milestone-qualification clause of ROWS-04's own statement is not re-run by
+        any registered gate — un-qualifying a v8.21/GATE-0N citation in docs/requirements-
+        traceability.md and separately in a _rows_v821() docstring both left check-
+        traceability.py --self-test, gen-gate-docs.py --check and check-links.py --self-test
+        green; no script greps for the qualification pattern.
+
+      - ROWS-05: the milestone-naming clause of ROWS-05's own statement, and its Exit clause,
+        are not re-run by any registered gate at the current row population — redacting
+        v8.19/v8.20/v8.21 from headline-history row 17 left check-traceability.py --self-test
+        green, and rederive.py rowless's own named in traceability doc check is never reached
+        for a milestone with zero ticked-but-rowless items, which all three are today; only the
+        hand-edit-without-a-sweep clause (break (b)) is gate-checked.
+
+      - RESID-01: the reading-text clause of RESID-01's own statement is not re-run by any
+        registered gate — break (b) confirms a completely fabricated gap_rationale string on the
+        RR-108-04 row leaves check-traceability.py --self-test and check-routing-battery.py
+        --self-test both green (after emit); only the row-existence clause (break (a)) and the
+        sentinel-vector clause (break (c)) are gate-checked.
+
+      - RESID-02: RESID-02's statement describes a written decision on a tracked surface;
+        deleting that decision's own paragraph from docs/requirements-traceability.md left
+        check-traceability.py --self-test, gen-gate-docs.py --check and check-links.py --self-
+        test all green — no registered gate reads for this paragraph's presence or content.
+
+      - STMT-02: the v8.18+-archive-sourcing clause of STMT-02's own statement is not re-run by
+        any registered gate — _statement_provenance() classifies a row 'archive' from its
+        milestone version alone, never by comparing the statement text to any archive file;
+        break (1) confirms a completely fabricated archive-sourced statement stays green at
+        check-traceability's self-test and check, and at check-act-limb's self-test and live
+        leg.
+
+      - TIER-01: TIER-01's own statement makes two content claims neither of which a registered
+        gate re-runs: (1) that a re-pointed row's cited gate genuinely re-reads the section —
+        D-03's registry check accepts any CI-job-backed script regardless of whether it reads
+        the cited content, confirmed by re-pointing RIGOR-03 at the unrelated scripts/check-
+        agent.py and staying green; (2) that a kept row's written reason is present — no
+        registered gate reads gap_rationale for emptiness, confirmed by blanking RIGOR-01's
+        reason and staying green. The eight RIGOR rows' own individual tiers (five reproducible,
+        three audit-only, Phase 34/WR-02) are unaffected by this batch-level finding.
+
+      - TIER-02: TIER-02's own statement is a batch-level claim about tier correctness and
+        decision-recording, neither of which any registered gate re-runs: flipping v4.2/BASE-01
+        back to reproducible/live-manual, with the headline fully swept across every
+        COVERED_HEADLINE_SURFACES member, leaves the full 26-gate battery GREEN; deleting the
+        entire TIER-02 disposition sentence from headline-history row 18 (numeric cells
+        untouched) leaves check-traceability's self-test, gen-gate-docs --check and check-links
+        --self-test all green. The four rows' own individual tier (audit-only, Phase 34) is
+        unaffected by this batch-level finding, and the 'no battery/CI job was added' half of
+        the clause is a constraint on what Plan 06/07 do, not a fact any gate polices.
+
+      - TIER-04: TIER-04's own statement bundles two claims: the battery-only marker's
+        correctness (clause 1, gate-checked — mislabeling a QUAL-01 row ci breaks D-03 red,
+        confirmed by direct mutation) and the cost/determinism measurement being recorded as the
+        basis for D-T2 (clause 2, unchecked — deleting the entire measurement sub-block from
+        docs/requirements-traceability.md leaves check-traceability's self-test, gen-gate-docs
+        --check and check-links --self-test all green). One green clause is sufficient to keep
+        the batch-level claim audit-only; the QUAL-01-evidenced rows' own individual battery-
+        only marker (clause 1) is separately gate-enforced and unaffected.
+
+      - ANCH-02: ANCH-02's own claim — that no ANCH-01 rename changes a transcribed shared/
+        literal — holds by construction for this phase's actual renames (they touch only
+        scripts/ identifiers), but no registered gate's subject is 'did a scripts/ rename move a
+        shared/ literal': the M3 pinning gates (HARN-01/HARN-02/HC-BOUND/SCAN-
+        GUARD/QUAL-01/CONF-GATE) check shared/ content against literals fixed in scripts/, the
+        inverse direction, and none reacted to a full-battery run under an ANCH-01 rename
+        mutation (confirmed: FIREWALL RED 24/26, with only TRACE-03 and HARN-02's own internal
+        self-test failing — both already ANCH-01's coverage, not a shared/-literal-transcription
+        finding). The literal-census instrument that does check this directly is a phase-local,
+        gitignored planning tool, matching READ-01's unregistered-instrument shape.
+
+      - REL-19: the value-equals-9.3.0 clause of REL-19's own statement is not re-run by any
+        registered gate — check-version-stamps.py (live and --self-test) and sync-content.py
+        --check each assert only that the 17 stamps agree with each other and with shared/,
+        never that they equal 9.3.0 or any other fixed literal; break (b) (all 17 stamps moved
+        in lockstep to 9.3.9, sync-content.py --write re-run) confirms a uniform wrong value
+        stays green on all three.
+
+      - REL-20: the headline-history-row clause of REL-20's own statement is not re-run by any
+        registered gate — deleting headline-history row 20 whole from
+        docs/requirements-traceability.md left check-traceability.py --self-test green; only
+        the row-registration, headline-sweep-across-covered-surfaces and
+        both-regenerated-artifacts clauses (each independently red under its own break) are
+        gate-checked. Re-tiered from `reproducible` to `audit-only` by this plan's own Task 3
+        break test, inside this same commit (one headline move, D-07) -- the row-spec's
+        `provisional: true` marker is what this break test resolves.
+
+      - REL-21: REL-21's own requirement text names the battery's GREEN line 'corroboration
+        only, never the evidence' — the live tally is a fresh count on every run, not a
+        comparison against a stored prior baseline, so nothing fails automatically if the total
+        drifts. The 'unchanged from fda29cc' half of the claim is discharged by a manual direct-
+        count snippet against two named revisions (phase base and close), not by a registered
+        CI/battery control (precedent v9.2.1/REL-15).
+
+      - REL-22: No gate re-runs a CHANGELOG entry's prose. Precedent: REL-08, REL-11, REL-13,
+        REL-16, REL-18.
+
+      - REL-23: The recurrence reading is taken with a local-only, gitignored planning
+        instrument — no registered gate runs it or compares its output across the two named
+        timings (precedent v9.2.1/REL-18).
+
+      - REL-24: Only presence is checked: the failure-path sentences' presence (no gate
+        transcribes either rewritten sentence, confirmed by the 35-02 census over scripts/,
+        tests/*.py and docs/gates), and the CHANGELOG local-only-planning-pointer count, which
+        is a one-time reading taken and recorded, not a standing check. Obedience — whether a
+        run actually names a real cause at the backstop, or actually assembles from the six
+        named sections — is deferred to backlog 999.89.
+
+    The remaining 5 rows are reproducible: SCHEMA-01 at `scripts/check-
+    traceability.py#_self_test_row_fields_live`, SCHEMA-02 at `scripts/check-
+    traceability.py#_self_test_headline_lock`, STMT-01 at `scripts/check-
+    traceability.py#_self_test_row_fields_live`, TIER-03 at `scripts/check-
+    traceability.py#_row_field_problems`, ANCH-01 at `scripts/check-
+    traceability.py#_resolve_artifact`. Each is proven by a fresh red break recorded in
+    this phase's own break-test record: the artifact's own clause broken, the row's cited gate
+    confirmed non-vacuously red, then restored. REL-20 was originally drafted reproducible at
+    this same anchor (`#_self_test_headline_lock`) but re-tiers audit-only per its own bullet
+    above -- its headline-history-row clause is the one clause of the six reproducible-drafted
+    rows that stayed green under its own break.
+
+    Capability assignment follows the same discriminator every prior milestone's rows() function
+    states ("changes the agent's methodology prose or its shipped reading material ->
+    Methodology; harness and release apparatus -> Test-Network"): REL-22, REL-23 and REL-24 are
+    Methodology (a CHANGELOG record, a local-only recurrence reading, and agent-body prose
+    respectively); every other row in this batch is Test-Network (matrix-schema, row-
+    registration, tiering and release apparatus).
+
+    DISCLOSED BOUNDARY. Three of the five reproducible rows -- SCHEMA-01, SCHEMA-02 and STMT-01
+    -- carry a dispatch-checked `#_self_test_*` anchor (`_self_test_row_fields_live` or
+    `_self_test_headline_lock`), proven called from `check-traceability.py`'s own
+    `_run_self_test()` dispatcher, per `_resolve_artifact()`'s and
+    `_selftest_dispatch_problems()`'s own dispatch-reachability leg. The other two -- TIER-03
+    (`#_row_field_problems`) and ANCH-01 (`#_resolve_artifact`) -- carry an anchor naming a real
+    function in the same file, which `_resolve_artifact()` confirms is a defined top-level
+    def/class symbol, but neither anchor is `_self_test_`/`_selftest_`-prefixed, so
+    `_selftest_dispatch_problems()` returns `[]` for both without checking whether anything
+    calls them -- this proves the function EXISTS, one level deeper than a bare script path
+    (which proves only that the FILE exists), but not that a dispatcher calls it, matching the
+    bound every prior milestone's rows() function states for its own bare-path reproducible
+    rows.
+
+    No new -ROWS sentinel (this plan's own corrections item 2, re-confirming research open
+    question 1). Determination: LEVEL. `_rows_v93()` is re-run by TRACE-03's existing ROW-FIELDS
+    live leg and by HEADLINE-LOCK; no new control or registration is added (standing D-D). Four
+    reasons: (1) Phase 33's build_matrix_rows() docstring already declined a sentinel for its
+    own v8.19/v8.20/v8.21 batch, citing backlog 999.83 (deliverable_path is never resolved by
+    the V921-ROWS shape) and 999.85 (that sentinel reads _rows_v921() directly, so unwiring it
+    from build_matrix_rows() would stay green) -- a fifth copy of the same shape would replicate
+    both defects; (2) Phase 34's WR-07 (`7ce78bf`) had to repair stale hand-held expectations
+    inside the V92/V921 sentinels' own anchor floors -- standing instruction 4's class, which a
+    new by-ID sentinel would re-create; (3) success criterion 2 is a count read from
+    docs/data/matrix.json, not a sentinel's own pass/fail; (4) this milestone's own REACH-or-
+    LEVEL line ("_rows_v93() and any row sentinel it carries stay inside TRACE-03") admits zero
+    sentinels as a valid reading. Residual, named rather than closed: a tier swap between two
+    `v9.3` rows that holds the tier counts constant, or a statement edit that `emit` then
+    regenerates, passes both TRACE-03's live leg and HEADLINE-LOCK -- the same residual class
+    Phase 33 accepted for its own batch, disclosed there in identical words.
+
+    REACH-or-LEVEL determination (roadmap; D-02, D-01/999.101). Plan 35-02's census over
+    scripts/, tests/*.py and docs/gates/*.md found no gate or test transcribing either the IN-01
+    or the IN-02 sentence this milestone rewrote in shared/spine/SKILL-body.md. Re-run at this
+    phase's execution time against the shipped sentences ("still assemble the document using
+    only the six sections named above under Output format" and its backstop echo), over the same
+    three globs: hit count 0 -- the one match either census finds (scripts/check-quality-
+    harness.py's pinned quote "say so explicitly at the top of the") is a pre-existing,
+    unrelated literal named in 35-02-SUMMARY.md, not a transcription of either rewritten
+    sentence. REL-24 is Methodology (agent-body prose), not Test-Network, and stays REACH inside
+    no existing guard's population -- LEVEL under docs/PROCESS.md Section 1.1 does not apply
+    because REL-24 adds no new guard at all; only presence is checked, and obedience is deferred
+    to backlog 999.89 by this row's own statement.
+    """
+    _audit_read01_reading_v93 = (
+        "both clauses of READ-01's statement describe reading rederive.py and recording what it reads; the registration grep confirms no battery, CI, or pre-commit-hook file names rederive.py, so no registered gate re-runs either the reading or the record-and-explain step."
+    )
+    _audit_rows01_docstring_v93 = (
+        "the docstring-justification clause of ROWS-01's own statement is not re-run by any registered gate — deleting the HC-04 audit-only justification paragraph from _rows_v819()'s docstring left check-traceability.py --self-test/check, gen-gate-docs.py --check and sync-content.py --check all green; only the row-existence clause (break (a)) is gate-checked."
+    )
+    _audit_rows02_archive_v93 = (
+        "both clauses describe edits to the row's own deliverable, a gitignored local-only milestone archive file no registered gate can read in CI; check-traceability.py's own docstrings state this bound in three places."
+    )
+    _audit_rows03_gate_citation_v93 = (
+        "the every-registered-gate-is-cited clause of ROWS-03's own statement is not re-run by any registered gate — re-pointing GATE-01's two citing rows away from scripts/check-agent.py drove its citation count to zero (confirmed by rederive.py gate-rows's <-- zero line) while check-traceability.py --self-test/check and gen-gate-docs.py --check all stayed green."
+    )
+    _audit_rows04_qualification_v93 = (
+        "the milestone-qualification clause of ROWS-04's own statement is not re-run by any registered gate — un-qualifying a v8.21/GATE-0N citation in docs/requirements-traceability.md and separately in a _rows_v821() docstring both left check-traceability.py --self-test, gen-gate-docs.py --check and check-links.py --self-test green; no script greps for the qualification pattern."
+    )
+    _audit_rows05_naming_v93 = (
+        "the milestone-naming clause of ROWS-05's own statement, and its Exit clause, are not re-run by any registered gate at the current row population — redacting v8.19/v8.20/v8.21 from headline-history row 17 left check-traceability.py --self-test green, and rederive.py rowless's own named in traceability doc check is never reached for a milestone with zero ticked-but-rowless items, which all three are today; only the hand-edit-without-a-sweep clause (break (b)) is gate-checked."
+    )
+    _audit_resid01_reading_v93 = (
+        "the reading-text clause of RESID-01's own statement is not re-run by any registered gate — break (b) confirms a completely fabricated gap_rationale string on the RR-108-04 row leaves check-traceability.py --self-test and check-routing-battery.py --self-test both green (after emit); only the row-existence clause (break (a)) and the sentinel-vector clause (break (c)) are gate-checked."
+    )
+    _audit_resid02_decision_v93 = (
+        "RESID-02's statement describes a written decision on a tracked surface; deleting that decision's own paragraph from docs/requirements-traceability.md left check-traceability.py --self-test, gen-gate-docs.py --check and check-links.py --self-test all green — no registered gate reads for this paragraph's presence or content."
+    )
+    _audit_stmt02_archive_fidelity_v93 = (
+        "the v8.18+-archive-sourcing clause of STMT-02's own statement is not re-run by any registered gate — _statement_provenance() classifies a row 'archive' from its milestone version alone, never by comparing the statement text to any archive file; break (1) confirms a completely fabricated archive-sourced statement stays green at check-traceability's self-test and check, and at check-act-limb's self-test and live leg."
+    )
+    _audit_tier01_content_v93 = (
+        "TIER-01's own statement makes two content claims neither of which a registered gate re-runs: (1) that a re-pointed row's cited gate genuinely re-reads the section — D-03's registry check accepts any CI-job-backed script regardless of whether it reads the cited content, confirmed by re-pointing RIGOR-03 at the unrelated scripts/check-agent.py and staying green; (2) that a kept row's written reason is present — no registered gate reads gap_rationale for emptiness, confirmed by blanking RIGOR-01's reason and staying green. The eight RIGOR rows' own individual tiers (five reproducible, three audit-only, Phase 34/WR-02) are unaffected by this batch-level finding."
+    )
+    _audit_tier02_correctness_v93 = (
+        "TIER-02's own statement is a batch-level claim about tier correctness and decision-recording, neither of which any registered gate re-runs: flipping v4.2/BASE-01 back to reproducible/live-manual, with the headline fully swept across every COVERED_HEADLINE_SURFACES member, leaves the full 26-gate battery GREEN; deleting the entire TIER-02 disposition sentence from headline-history row 18 (numeric cells untouched) leaves check-traceability's self-test, gen-gate-docs --check and check-links --self-test all green. The four rows' own individual tier (audit-only, Phase 34) is unaffected by this batch-level finding, and the 'no battery/CI job was added' half of the clause is a constraint on what Plan 06/07 do, not a fact any gate polices."
+    )
+    _audit_tier04_measurement_v93 = (
+        "TIER-04's own statement bundles two claims: the battery-only marker's correctness (clause 1, gate-checked — mislabeling a QUAL-01 row ci breaks D-03 red, confirmed by direct mutation) and the cost/determinism measurement being recorded as the basis for D-T2 (clause 2, unchecked — deleting the entire measurement sub-block from docs/requirements-traceability.md leaves check-traceability's self-test, gen-gate-docs --check and check-links --self-test all green). One green clause is sufficient to keep the batch-level claim audit-only; the QUAL-01-evidenced rows' own individual battery-only marker (clause 1) is separately gate-enforced and unaffected."
+    )
+    _audit_anch02_direction_v93 = (
+        "ANCH-02's own claim — that no ANCH-01 rename changes a transcribed shared/ literal — holds by construction for this phase's actual renames (they touch only scripts/ identifiers), but no registered gate's subject is 'did a scripts/ rename move a shared/ literal': the M3 pinning gates (HARN-01/HARN-02/HC-BOUND/SCAN-GUARD/QUAL-01/CONF-GATE) check shared/ content against literals fixed in scripts/, the inverse direction, and none reacted to a full-battery run under an ANCH-01 rename mutation (confirmed: FIREWALL RED 24/26, with only TRACE-03 and HARN-02's own internal self-test failing — both already ANCH-01's coverage, not a shared/-literal-transcription finding). The literal-census instrument that does check this directly is a phase-local, gitignored planning tool, matching READ-01's unregistered-instrument shape."
+    )
+    _audit_rel19_value_v93 = (
+        "the value-equals-9.3.0 clause of REL-19's own statement is not re-run by any registered gate — check-version-stamps.py (live and --self-test) and sync-content.py --check each assert only that the 17 stamps agree with each other and with shared/, never that they equal 9.3.0 or any other fixed literal; break (b) (all 17 stamps moved in lockstep to 9.3.9, sync-content.py --write re-run) confirms a uniform wrong value stays green on all three."
+    )
+    _audit_rel20_history_v93 = (
+        "the headline-history-row clause of REL-20's own statement is not re-run by any registered gate — deleting headline-history row 20 whole from docs/requirements-traceability.md left check-traceability.py --self-test green; only the row-registration, headline-sweep-across-covered-surfaces and both-regenerated-artifacts clauses (each independently red under its own break) are gate-checked."
+    )
+    _audit_rel21_reading_v93 = (
+        "REL-21's own requirement text names the battery's GREEN line 'corroboration only, never the evidence' — the live tally is a fresh count on every run, not a comparison against a stored prior baseline, so nothing fails automatically if the total drifts. The 'unchanged from fda29cc' half of the claim is discharged by a manual direct-count snippet against two named revisions (phase base and close), not by a registered CI/battery control (precedent v9.2.1/REL-15)."
+    )
+    _audit_rel22_changelog_v93 = (
+        "No gate re-runs a CHANGELOG entry's prose. Precedent: REL-08, REL-11, REL-13, REL-16, REL-18."
+    )
+    _audit_rel23_recurrence_v93 = (
+        'The recurrence reading is taken with a local-only, gitignored planning instrument — no registered gate runs it or compares its output across the two named timings (precedent v9.2.1/REL-18).'
+    )
+    _audit_rel24_presence_v93 = (
+        "Only presence is checked: the failure-path sentences' presence (no gate transcribes either rewritten sentence, confirmed by the 35-02 census over scripts/, tests/*.py and docs/gates), and the CHANGELOG local-only-planning-pointer count, which is a one-time reading taken and recorded, not a standing check. Obedience — whether a run actually names a real cause at the backstop, or actually assembles from the six named sections — is deferred to backlog 999.89."
+    )
+    return [
+        MatrixRow('v9.3/READ-01', 'READ-01', 'v9.3', 'Test-Network',
+                  '.planning/phases/999.93-shipped-milestones-requirements-have-no-matrix-row-undisclos/trace-atlas/rederive.py',
+                  'audit-only', '', _audit_read01_reading_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'All eight `rederive.py` subcommands are re-read at the phase base of the first content phase and recorded with that sha; if any differs from the `fda29cc` table above, the difference is recorded and explained before any edit, not absorbed.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ROWS-01', 'ROWS-01', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rows01_docstring_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "A matrix reader finds every v8.19, v8.20 and v8.21 requirement as a row — registered through `_rows_v819()`, `_rows_v820()`, `_rows_v821()` in `build_matrix_rows()`, tiered by existing precedent (gate-backed → `reproducible`; prose-record → `audit-only`), each tier justified in the function's docstring. Exit: `rederive.py rowless` prints ticked-but-rowless total 0, and every milestone it still lists is a disclosed move."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ROWS-02', 'ROWS-02', 'v9.3', 'Test-Network',
+                  '.planning/milestones/v8.19.0-REQUIREMENTS.md',
+                  'audit-only', '', _audit_rows02_archive_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'HC-01..03 in `.planning/milestones/v8.19.0-REQUIREMENTS.md` are ticked with evidence or annotated with why not, and its traceability table no longer reads `Pending` for a shipped requirement.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ROWS-03', 'ROWS-03', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rows03_gate_citation_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'Every registered gate that runs in CI and the battery is cited by at least one row — HC-BOUND rows at `scripts/check-high-confidence-bound.py`, v8.21 rows each at the gate that re-runs its claim (at least one at `scripts/check-registration.py`), v8.20 HARN-01-01..05 at `scripts/check-act-limb.py`, using a `#_self_test_*` anchor wherever the script defines one. Exit: `rederive.py gate-rows` prints no `<-- zero` line.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ROWS-04', 'ROWS-04', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rows04_qualification_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'Every prose citation of a v8.21 `GATE-0N` or `VAL-0N` requirement — in docstrings, the traceability doc and the CHANGELOG — is milestone-qualified (`v8.21/GATE-01`), so none can be read as the `GATE-01` gate or a v8.24 requirement.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ROWS-05', 'ROWS-05', 'v9.3', 'Test-Network',
+                  'docs/requirements-traceability.md',
+                  'audit-only', '', _audit_rows05_naming_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The traceability doc names v8.19, v8.20 and v8.21 in a headline-history row for the move, and the headline changes only through `HEADLINE-LOCK`'s sweep and `emit`, never by hand. Exit: `rederive.py rowless` reads `named in traceability doc: True` for all three."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/RESID-01', 'RESID-01', 'v9.3', 'Test-Network',
+                  'scripts/_battery_core.py',
+                  'audit-only', '', _audit_resid01_reading_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'A matrix reader sees RR-108-04 (S-P10 estimate) and RR-108-05 (S-P14 theoretical-limit) as `residual/` rows carrying their ACCEPTED-FINAL readings, modelled on the RR-114-01 row and evidenced by their existing `_load_excerpt_v713` sentinels. Exit: `rederive.py residuals` prints `ACCEPTED-FINAL without a row: []`.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/RESID-02', 'RESID-02', 'v9.3', 'Test-Network',
+                  'docs/requirements-traceability.md',
+                  'audit-only', '', _audit_resid02_decision_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'A written decision records whether the S-P04 five-whys swing warrants an RR ID or stays observed-but-unbanked, citing `docs/v8.7-constraint-teardown.md` §2 item 3 (K-of-5 is an observation, not a gate), on a tracked surface.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/SCHEMA-01', 'SCHEMA-01', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'reproducible', 'scripts/check-traceability.py#_self_test_row_fields_live', "",
+                  surfaces=('apparatus',),
+                  statement=(
+                      "`MatrixRow` carries a surfaces field (skill slugs, `agent`, or `apparatus`), back-filled across every `_rows_v*()` batch in lockstep and emitted into `docs/data/matrix.json`. Exit: `rederive.py skills` lists the field among `MatrixRow`'s fields."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.3/SCHEMA-02', 'SCHEMA-02', 'v9.3', 'Test-Network',
+                  'docs/requirements-matrix.md',
+                  'reproducible', 'scripts/check-traceability.py#_self_test_headline_lock', "",
+                  surfaces=('apparatus',),
+                  statement=(
+                      '`docs/requirements-matrix.md` carries a generated per-skill row count, and every shipped skill slug is named by at least one row or explicitly recorded as uncovered. No per-skill count on a product surface is hand-typed (CONF-13).'
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.3/STMT-01', 'STMT-01', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'reproducible', 'scripts/check-traceability.py#_self_test_row_fields_live', "",
+                  surfaces=('apparatus',),
+                  statement=(
+                      '`MatrixRow` carries a one-line statement field, emitted into both generated artifacts; every row carries a non-empty statement or the literal marker `statement unrecoverable`. Exit: `rederive.py no-text` is extended to count rows with neither, and reads 0.'
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.3/STMT-02', 'STMT-02', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_stmt02_archive_fidelity_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'Statements are sourced, never reconstructed: v8.18+ rows from their `.planning/milestones/*-REQUIREMENTS.md` archive text; pre-v8.18 rows from a tracked surface that quotes the requirement verbatim, with that surface cited; every other row carries `statement unrecoverable` (D-T4 — no `docs/history/` copy exists).'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/TIER-01', 'TIER-01', 'v9.3', 'Test-Network',
+                  'shared/spine/references/validation-rubric.md',
+                  'audit-only', '', _audit_tier01_content_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      '`v3.7/RIGOR-01..08` point at the gate script that re-reads the rubric section each row cites, or keep their current artifact with a written reason why no gate reads that section.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/TIER-02', 'TIER-02', 'v9.3', 'Test-Network',
+                  'tests/routing-battery-baseline-v4.3.md',
+                  'audit-only', '', _audit_tier02_correctness_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'The four `tests/test_69_merged_baseline_invariants.py` rows are re-tiered or re-pointed, with the decision recorded — without adding a battery registration or a CI job.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/TIER-03', 'TIER-03', 'v9.3', 'Test-Network',
+                  'tests/routing-catalog.md',
+                  'reproducible', 'scripts/check-traceability.py#_row_field_problems', "",
+                  surfaces=('apparatus',),
+                  statement=(
+                      'Every remaining reproducible row whose evidence is a live or manual run (`tests/routing-catalog.md`, `scripts/check-routing.py`, `v5.3/GEN-01`, `v5.3/GEN-02`) carries a live/manual label in `docs/data/matrix.json` and `docs/requirements-matrix.md`. Exit: `rederive.py tier-mix` (extended to read the label) prints only re-tiered or labelled artifacts.'
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.3/TIER-04', 'TIER-04', 'v9.3', 'Test-Network',
+                  'scripts/check-quality-harness.py',
+                  'audit-only', '', _audit_tier04_measurement_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The rows evidenced by `scripts/check-quality-harness.py` carry a battery-only marker in `docs/data/matrix.json`, so a green CI badge is not read as covering them; the QUAL-01 self-test's wall-clock cost and run-to-run determinism are measured and recorded as the basis for holding D-D (D-T2). Exit: `rederive.py qual01` reports the marker on every such row, and `validation.yml`'s job count is unchanged."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/ANCH-01', 'ANCH-01', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'reproducible', 'scripts/check-traceability.py#_resolve_artifact', "",
+                  surfaces=('apparatus',),
+                  statement=(
+                      "More reproducible rows name a function `_resolve_artifact()` dispatch-checks: per script, each row's claim is anchored at a self-test block named to the recognised prefix and called directly from that script's own dispatcher, and that script's rows are re-pointed in one lockstep batch, for the top three scripts ranked by rows unlocked. Exit: `rederive.py anchors`' call-checked line reports a higher anchored count than the phase-base reading, recorded as a before/after pair with the scripts changed — and separately, the CI-run anchored count."
+                  ),
+                  rerun_by='ci'),
+        MatrixRow('v9.3/ANCH-02', 'ANCH-02', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_anch02_direction_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "No rename under ANCH-01 changes a source literal any gate transcribes from `shared/` (M3's population, pre-registered at `c571ccf` for v9.4.0), so v9.4.0's PRE-1/PRE-2/PRE-3 readings stay comparable."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-19', 'REL-19', 'v9.3', 'Test-Network',
+                  'scripts/check-version-stamps.py',
+                  'audit-only', '', _audit_rel19_value_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'All 17 version stamps read `9.3.0`; `check-version-stamps.py` and `sync-content.py --check` pass.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-20', 'REL-20', 'v9.3', 'Test-Network',
+                  'scripts/check-traceability.py',
+                  'audit-only', '', _audit_rel20_history_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "This milestone's own requirements are registered as matrix rows (`_rows_v93()`), with the headline moved by `HEADLINE-LOCK`'s sweep across every covered surface plus both regenerated artifacts, and a headline-history row written for the move."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-21', 'REL-21', 'v9.3', 'Test-Network',
+                  'scripts/check-registration.py',
+                  'audit-only', '', _audit_rel21_reading_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      "The battery total and the CI job count are unchanged from `fda29cc`, established by direct count through `check-registration.py`'s own parser at the phase base and at close; the battery's GREEN line is corroboration only, never the evidence."
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-22', 'REL-22', 'v9.3', 'Methodology',
+                  'CHANGELOG.md',
+                  'audit-only', '', _audit_rel22_changelog_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'A `[9.3.0]` CHANGELOG entry names each closed backlog entry and states the limit: a surfaces value, a battery-only marker and a live/manual label are hand-assigned classifications the matrix states, not measurements it proves.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-23', 'REL-23', 'v9.3', 'Methodology',
+                  'docs/requirements-traceability.md',
+                  'audit-only', '', _audit_rel23_recurrence_v93,
+                  surfaces=('apparatus',),
+                  statement=(
+                      'Recurrence, not compliance — all eight `rederive.py` subcommands are re-read after the last commit touching `scripts/check-traceability.py` and again after the CHANGELOG commit, and published beside the READ-01 baseline whatever they read.'
+                  ),
+                  rerun_by='none'),
+        MatrixRow('v9.3/REL-24', 'REL-24', 'v9.3', 'Methodology',
+                  'shared/spine/SKILL-body.md',
+                  'audit-only', '', _audit_rel24_presence_v93,
+                  surfaces=('agent',),
+                  statement=(
+                      'The agent body\'s failure-path instructions name only things that exist and say why a step did not complete, and the released CHANGELOG entries this phase touches are auditable from the tracked tree (backlog 999.101, IN-01..IN-03). Exit: `/usr/bin/grep -c "section summaries" shared/spine/SKILL-body.md` reads 0; the backstop sentence names a cause for each step that did not complete; `.planning/` reads 0 in every CHANGELOG entry this phase touches, with before and after counts recorded. Only presence is checked — obedience stays with backlog 999.89.'
+                  ),
+                  rerun_by='none'),
+    ]
+
+
 def build_matrix_rows() -> list[MatrixRow]:
     """Return the curated list of MatrixRow objects (Plan 02 — fully populated).
 
-    Thirteen inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
+    Fourteen inclusion paths. (a)-(c) were enumerated per the original D-05; (d) has been in the
     body since Phase 131 RECON-03 but went undocumented here until 2026-08-29; (e) was added
     at v8.18 Phase 4; (f) was added at v8.24 Phase 6; (g) was added at v8.25 Phase 12; (h) was
     added at v8.26 Phase 16; (i) was added at v9.0 Phase 23; (j) was added at v9.1 Phase 27;
     (k) was added at v9.2 Phase 28; (l) was added at v9.2.1 Phase 31;
-    (m) was added at v9.3.0 Phase 33.
+    (m) was added at v9.3.0 Phase 33. (n) was added at v9.3.0 Phase 35.
     (a) Live-shipping requirements — deliverable-gated (D-01/D-02/D-03).
         Grouped by capability (D-04): Methodology first, then Test-Network.
     (b) Active tail — included unconditionally (see `_rows_active_tail()`); all reproducible (D-05b):
@@ -5393,6 +5858,19 @@ def build_matrix_rows() -> list[MatrixRow]:
         `_rows_v818()` and `_rows_v824()`. See `_rows_v819()`, `_rows_v820()` and
         `_rows_v821()` for the full per-row rationale and each function's own DISCLOSED
         BOUNDARY paragraph.
+    (n) v9.3.0 milestone (24 rows, 5 reproducible + 19 audit-only) — Phase 35/REL-20: this
+        milestone's own READ-01/SCHEMA-*/STMT-*/ROWS-*/RESID-*/TIER-*/ANCH-*/REL-19..24
+        requirements. REL-22, REL-23 and REL-24 carry Methodology (CHANGELOG record,
+        local-only recurrence reading, agent-body prose); every other row carries
+        Test-Network (matrix-schema, row-registration, tiering and release apparatus).
+        19 audit-only rows, named individually, never by count: READ-01, ROWS-01..05,
+        RESID-01, RESID-02, STMT-02, TIER-01, TIER-02, TIER-04, ANCH-02, REL-19, REL-20,
+        REL-21, REL-22, REL-23, REL-24 (REL-20 re-tiered from reproducible at this same
+        Phase 35 own break test: its headline-history-row clause stays green under its
+        own break). See `_rows_v93()` for the full per-row rationale and its DISCLOSED
+        BOUNDARY: SCHEMA-01, SCHEMA-02 and STMT-01 carry a `#_self_test_*` dispatch-checked
+        anchor; TIER-03 and ANCH-01 carry a same-file function-name anchor that
+        `_resolve_artifact()` confirms is defined but does not dispatch-check.
 
     REACH-or-LEVEL determination (Phase 33, backlog 999.93/999.94/999.95), recorded before any
     v8.19, v8.20 or v8.21 batch function exists.
@@ -5483,6 +5961,8 @@ def build_matrix_rows() -> list[MatrixRow]:
     rows.extend(_rows_v92())
     # --- v9.2.1 milestone (Phase 31 / REL-17) — 4 reproducible + 6 audit-only ---
     rows.extend(_rows_v921())
+    # --- v9.3.0 milestone (Phase 35 / REL-20) — 5 reproducible + 19 audit-only ---
+    rows.extend(_rows_v93())
     return rows
 
 
