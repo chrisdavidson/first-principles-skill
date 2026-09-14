@@ -1171,8 +1171,11 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     sentence. RIGOR-07's prior artifact_link anchored at the retired rubric section name "How
     to Apply This Rubric" (renamed to "How to Apply This Gate" after a historical name
     collision with subject-matter rubrics); the re-point drops the stale rubric citation
-    entirely rather than merely correcting its wording — this proves the section is re-read,
-    not that the unrecoverable v3.7 claim is.
+    entirely rather than merely correcting its wording. Each re-point proves only that the
+    credited gate re-reads its named literal(s) at the scope each row's gap_rationale states
+    (HC-BOUND: the Rigorous band of Criterion 3/5; SCAN-GUARD Rubric-9: the Criterion 4
+    slice; QUAL-01 R11 and SCAN-GUARD Rubric-2: whole-file presence) — not that the rest of
+    the section is re-read, and not that the unrecoverable v3.7 claim is.
     """
     rubric = "shared/spine/references/validation-rubric.md"
     hc_bound = "scripts/check-high-confidence-bound.py"
@@ -1204,9 +1207,11 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   rubric, "reproducible", hc_bound,
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
                   "validation-rubric.md's Criterion 3: Establish Ground Truths turned "
-                  "HC-BOUND (scripts/check-high-confidence-bound.py) red, so that gate "
-                  "re-reads the section; this proves the section is re-read, not that the "
-                  "unrecoverable v3.7 requirement's claim is (D-T4).",
+                  "HC-BOUND (scripts/check-high-confidence-bound.py) red. Scope of the "
+                  "re-read: HC-BOUND's HC-3..HC-6 pin the v8.19 HIGH-confidence-tightening "
+                  "literals ('at least one HIGH-confidence chain', its EXCEPT clause) inside "
+                  "Criterion 3's Rigorous band only; no other sentence of the section is "
+                  "re-read, and the unrecoverable v3.7 requirement's claim is not (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
@@ -1214,9 +1219,11 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   rubric, "reproducible", scan_guard,
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
                   "validation-rubric.md's Criterion 4: Reason Upward turned SCAN-GUARD "
-                  "(scripts/check-selfaudit-scan.py) red, so that gate re-reads the "
-                  "section; this proves the section is re-read, not that the "
-                  "unrecoverable v3.7 requirement's claim is (D-T4).",
+                  "(scripts/check-selfaudit-scan.py) red. Scope of the re-read: "
+                  "SCAN-GUARD's Rubric-9 asserts the scan-half quoted-span sentence and "
+                  "its direct-quotation half each occur exactly once inside the Criterion 4 "
+                  "slice; no other sentence of the section is re-read, and the "
+                  "unrecoverable v3.7 requirement's claim is not (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
@@ -1224,9 +1231,11 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   rubric, "reproducible", hc_bound,
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
                   "validation-rubric.md's Criterion 5: Validate turned HC-BOUND "
-                  "(scripts/check-high-confidence-bound.py) red, so that gate re-reads "
-                  "the section; this proves the section is re-read, not that the "
-                  "unrecoverable v3.7 requirement's claim is (D-T4).",
+                  "(scripts/check-high-confidence-bound.py) red. Scope of the re-read: "
+                  "HC-BOUND's HC-9..HC-12 pin the v8.19 HIGH-confidence-tightening "
+                  "literals ('at least one HIGH-confidence', its EXCEPT clauses) inside "
+                  "Criterion 5's Rigorous band only; no other sentence of the section is "
+                  "re-read, and the unrecoverable v3.7 requirement's claim is not (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
@@ -1234,10 +1243,12 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   rubric, "reproducible", "scripts/check-quality-harness.py",
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
                   "validation-rubric.md's Criterion 6: Conclusion-to-Ground-Truth "
-                  "Traceability turned QUAL-01 (scripts/check-quality-harness.py) red, "
-                  "so that gate re-reads the section; this proves the section is "
-                  "re-read, not that the unrecoverable v3.7 requirement's claim is "
-                  "(D-T4).",
+                  "Traceability turned QUAL-01 (scripts/check-quality-harness.py) red. "
+                  "Scope of the re-read: QUAL-01's render_contract positive control "
+                  "asserts rule R11's one literal is present somewhere in the file "
+                  "(whole-file scope, not section-scoped); no other sentence of the "
+                  "section is re-read, and the unrecoverable v3.7 requirement's claim is "
+                  "not (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="battery-only"),
@@ -1245,9 +1256,12 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   rubric, "reproducible", scan_guard,
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
                   "validation-rubric.md's How to Apply This Gate section turned "
-                  "SCAN-GUARD (scripts/check-selfaudit-scan.py) red, so that gate "
-                  "re-reads the section; this proves the section is re-read, not that "
-                  "the unrecoverable v3.7 requirement's claim is (D-T4). The row's "
+                  "SCAN-GUARD (scripts/check-selfaudit-scan.py) red. Scope of the "
+                  "re-read: SCAN-GUARD's Rubric-2 asserts the '**Assumption Audit (verify "
+                  "before scoring)**' line is present somewhere in the file (whole-file "
+                  "scope, plus its order relative to the scan block; not checked to sit "
+                  "in this section); no other sentence of the section is re-read, and "
+                  "the unrecoverable v3.7 requirement's claim is not (D-T4). The row's "
                   "prior anchor named the section's retired name; the re-point drops "
                   "the rubric citation entirely.",
                   surfaces=("agent",),

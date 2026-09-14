@@ -349,22 +349,36 @@ transcribed from `_rows_methodology_rigor()`'s own docstring in `scripts/check-t
   synthetic self-test fixture, never a live read of the rubric file).
 - **RIGOR-03** (Criterion 3: Establish Ground Truths) — re-pointed at
   `scripts/check-high-confidence-bound.py` (HC-BOUND), which broke red naming the deleted text.
+  Scope: HC-3..HC-6 pin the v8.19 HIGH-confidence-tightening literals (`at least one
+  HIGH-confidence chain` and its EXCEPT clause) inside Criterion 3's Rigorous band only; no
+  other sentence of the section is re-read.
 - **RIGOR-04** (Criterion 4: Reason Upward) — re-pointed at `scripts/check-selfaudit-scan.py`
-  (SCAN-GUARD), whose self-test and live leg both broke red naming the deleted sentence.
+  (SCAN-GUARD), whose self-test and live leg both broke red naming the deleted sentence. Scope:
+  Rubric-9 asserts the scan-half quoted-span sentence and its direct-quotation half each occur
+  exactly once inside the Criterion 4 slice; no other sentence of the section is re-read.
 - **RIGOR-05** (Criterion 5: Validate) — re-pointed at
   `scripts/check-high-confidence-bound.py` (HC-BOUND), which broke red naming the deleted text.
+  Scope: HC-9..HC-12 pin the v8.19 HIGH-confidence-tightening literals (`at least one
+  HIGH-confidence` and its EXCEPT clauses) inside Criterion 5's Rigorous band only; no other
+  sentence of the section is re-read.
 - **RIGOR-06** (Criterion 6: Conclusion-to-Ground-Truth Traceability) — re-pointed at
   `scripts/check-quality-harness.py` (QUAL-01, battery-only); its render_contract positive
-  control broke red naming the section's rule number.
+  control broke red naming the section's rule number. Scope: that control asserts rule R11's
+  one literal is present somewhere in the file (whole-file, not section-scoped); no other
+  sentence of the section is re-read.
 - **RIGOR-07** (the section now headed "How to Apply This Gate") — re-pointed at
   `scripts/check-selfaudit-scan.py` (SCAN-GUARD). The row's prior anchor named the section's
   retired name, "How to Apply This Rubric"; the re-point drops the rubric citation entirely
-  rather than merely correcting the wording.
+  rather than merely correcting the wording. Scope: Rubric-2 asserts the `**Assumption Audit
+  (verify before scoring)**` line is present somewhere in the file (whole-file, plus its order
+  relative to the scan block), not that it sits in this section; no other sentence of the
+  section is re-read.
 - **RIGOR-08** (Scoring Model) — kept at its rubric anchor. No registered gate transcribes a
   literal from this section; TRACE-03 re-checks only that the heading is present.
 
-Every re-point proves the cited section is re-read by a live gate, not that the row's own
-unrecoverable v3.7 requirement claim is reconstructed (D-T4). Row count and tier are unchanged
+Every re-point proves that a live gate re-reads the named literal(s) at the stated scope, not
+that the rest of the section is re-read and not that the row's own unrecoverable v3.7
+requirement claim is reconstructed (D-T4). Row count and tier are unchanged
 for this batch; only `artifact_link`, `gap_rationale` and (for RIGOR-06) `rerun_by` moved.
 
 ### test_69 rows (TIER-02, D-06), dated 2026-09-14
