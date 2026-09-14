@@ -11,7 +11,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/AGENT-02",
@@ -25,7 +26,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/AGENT-03",
@@ -39,7 +41,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/AGENT-04",
@@ -53,7 +56,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/AGENT-05",
@@ -67,7 +71,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/AGENT-06",
@@ -81,7 +86,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/SYNC-01",
@@ -95,7 +101,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/SYNC-02",
@@ -109,7 +116,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/SYNC-03",
@@ -123,7 +131,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/SYNC-04",
@@ -137,7 +146,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/PKG-01",
@@ -151,7 +161,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/PKG-02",
@@ -165,7 +176,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/EVAL-01",
@@ -179,7 +191,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-01",
@@ -193,7 +206,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-02",
@@ -207,7 +221,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-03",
@@ -221,7 +236,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-04",
@@ -235,7 +251,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-05",
@@ -249,7 +266,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/MIGRATE-06",
@@ -263,7 +281,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/DEPR-01",
@@ -277,7 +296,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/DEPR-02",
@@ -291,7 +311,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/DEPR-03",
@@ -305,7 +326,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-01",
@@ -319,7 +341,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-02",
@@ -333,7 +356,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-03-SW",
@@ -347,7 +371,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-03-PB",
@@ -361,7 +386,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-03-PG",
@@ -375,7 +401,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-03-SE",
@@ -389,7 +416,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-Q1",
@@ -403,7 +431,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-Q2",
@@ -417,7 +446,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-Q3",
@@ -431,7 +461,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.2/META-Q4",
@@ -445,7 +476,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.7/RIGOR-01",
@@ -459,7 +491,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-02",
@@ -473,7 +506,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-03",
@@ -487,7 +521,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-04",
@@ -501,7 +536,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-05",
@@ -515,7 +551,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-06",
@@ -529,7 +566,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-07",
@@ -543,7 +581,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.7/RIGOR-08",
@@ -557,7 +596,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.8/DISP-01",
@@ -571,7 +611,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.8/STUB-01",
@@ -590,7 +631,8 @@
       "second-order",
       "trade-off"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.8/EVAL-01",
@@ -604,7 +646,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-01",
@@ -628,7 +671,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-02",
@@ -652,7 +696,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-03",
@@ -676,7 +721,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-04",
@@ -700,7 +746,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-05",
@@ -724,7 +771,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-06",
@@ -748,7 +796,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-07",
@@ -772,7 +821,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-08",
@@ -796,7 +846,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-09",
@@ -820,7 +871,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.12/PHASE-10",
@@ -844,7 +896,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/TAX-01",
@@ -858,7 +911,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/TAX-02",
@@ -872,7 +926,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/WKEX-01",
@@ -886,7 +941,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/WKEX-02",
@@ -900,7 +956,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v2.0/VAL-01",
@@ -914,7 +971,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v2.0/VAL-02",
@@ -928,7 +986,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v2.0/VAL-03",
@@ -942,7 +1001,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v2.0/VAL-04",
@@ -956,7 +1016,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v2.0/VAL-05",
@@ -970,7 +1031,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.0/GATE-01",
@@ -984,7 +1046,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.0/GATE-02",
@@ -998,7 +1061,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.0/GATE-03",
@@ -1012,7 +1076,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v2.0/DUAL-04",
@@ -1026,7 +1091,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.3/HOOK-01",
@@ -1040,7 +1106,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.3/HOOK-02",
@@ -1054,7 +1121,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.3/HOOK-03",
@@ -1068,7 +1136,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.3/HOOK-04",
@@ -1082,7 +1151,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v3.3/HOOK-05",
@@ -1096,7 +1166,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v3.3/HOOK-06",
@@ -1110,7 +1181,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/INFRA-01",
@@ -1124,7 +1196,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.13/INFRA-02",
@@ -1138,7 +1211,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.13/INFRA-03",
@@ -1152,7 +1226,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.13/INFRA-04",
@@ -1166,7 +1241,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.13/INFRA-05",
@@ -1180,7 +1256,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.13/INFRA-06",
@@ -1194,7 +1271,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.1/ROUTE-01",
@@ -1208,7 +1286,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.1/ROUTE-02",
@@ -1222,7 +1301,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.1/ROUTE-03",
@@ -1236,7 +1316,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.1/DOC-01",
@@ -1250,7 +1331,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.4/NOISE-01",
@@ -1264,7 +1346,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.4/NOISE-02",
@@ -1278,7 +1361,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.4/NOISE-03",
@@ -1292,7 +1376,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.4/NOISE-04",
@@ -1306,7 +1391,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.4/NOISE-05",
@@ -1320,7 +1406,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.4/NOISE-06",
@@ -1334,7 +1421,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-01",
@@ -1348,7 +1436,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-02",
@@ -1362,7 +1451,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-03",
@@ -1376,7 +1466,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-04",
@@ -1390,7 +1481,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-05",
@@ -1404,7 +1496,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-06",
@@ -1418,7 +1511,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-07",
@@ -1432,7 +1526,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-08",
@@ -1446,7 +1541,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.5/FRAG-09",
@@ -1460,7 +1556,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-01",
@@ -1474,7 +1571,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-02",
@@ -1488,7 +1586,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-03",
@@ -1502,7 +1601,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-04",
@@ -1516,7 +1616,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-05",
@@ -1530,7 +1631,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-06",
@@ -1544,7 +1646,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-07",
@@ -1558,7 +1661,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-08",
@@ -1572,7 +1676,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-09",
@@ -1586,7 +1691,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.6/CAT-10",
@@ -1600,7 +1706,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.8/FIXTURE-01",
@@ -1614,7 +1721,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.8/FIXTURE-02",
@@ -1628,7 +1736,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.8/VERIFY-01",
@@ -1642,7 +1751,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.8/VERIFY-02",
@@ -1656,7 +1766,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.8/VERIFY-03",
@@ -1670,7 +1781,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v3.8/DOC-01",
@@ -1684,7 +1796,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.9/P8-01",
@@ -1698,7 +1811,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.9/P8-02",
@@ -1712,7 +1826,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.9/P8-03",
@@ -1726,7 +1841,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.9/P8-04",
@@ -1740,7 +1856,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.10/CONV-01",
@@ -1754,7 +1871,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.10/CONV-02",
@@ -1768,7 +1886,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.11/MON-01",
@@ -1782,7 +1901,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.11/MON-02",
@@ -1796,7 +1916,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.11/MON-03",
@@ -1810,7 +1931,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.11/MON-04",
@@ -1824,7 +1946,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.11/MON-05",
@@ -1838,7 +1961,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/META-01",
@@ -1852,7 +1976,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v3.13/META-02",
@@ -1866,7 +1991,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v4.2/CAT-01",
@@ -1880,7 +2006,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/CAT-02",
@@ -1894,7 +2021,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/CAT-03",
@@ -1908,7 +2036,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/CAT-04",
@@ -1922,7 +2051,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/FOCUS-01",
@@ -1936,7 +2066,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/FOCUS-02",
@@ -1950,7 +2081,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/FOCUS-03",
@@ -1964,7 +2096,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/STRICT-01",
@@ -1978,7 +2111,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/STRICT-02",
@@ -1992,7 +2126,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.2/BASE-01",
@@ -2006,7 +2141,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v4.2/BASE-02",
@@ -2020,7 +2156,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v4.3/BATT-01",
@@ -2034,7 +2171,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-02",
@@ -2048,7 +2186,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-03",
@@ -2062,7 +2201,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-04",
@@ -2076,7 +2216,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-05",
@@ -2090,7 +2231,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-06",
@@ -2104,7 +2246,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v4.3/BATT-07",
@@ -2118,7 +2261,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v4.3/BATT-08",
@@ -2132,7 +2276,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v5.0/STEP0-01",
@@ -2146,7 +2291,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-02",
@@ -2160,7 +2306,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-03",
@@ -2174,7 +2321,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-04",
@@ -2188,7 +2336,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-05",
@@ -2202,7 +2351,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-06",
@@ -2216,7 +2366,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-07",
@@ -2230,7 +2381,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-08",
@@ -2244,7 +2396,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.0/STEP0-09",
@@ -2258,7 +2411,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/FIX-01",
@@ -2272,7 +2426,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/FIX-02",
@@ -2286,7 +2441,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/FIX-03",
@@ -2300,7 +2456,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/DET-01",
@@ -2314,7 +2471,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/DET-02",
@@ -2328,7 +2486,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/DET-03",
@@ -2342,7 +2501,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/SAFE-01",
@@ -2356,7 +2516,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/SAFE-02",
@@ -2370,7 +2531,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/SAFE-03",
@@ -2384,7 +2546,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.1/BASE-01",
@@ -2398,7 +2561,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.1/BASE-02",
@@ -2412,7 +2576,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.1/BASE-03",
@@ -2426,7 +2591,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.1/BASE-04",
@@ -2440,7 +2606,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/DIAG-01",
@@ -2454,7 +2621,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/DIAG-02",
@@ -2468,7 +2636,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/DIAG-03",
@@ -2482,7 +2651,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/DET-10",
@@ -2496,7 +2666,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.2/DET-11",
@@ -2510,7 +2681,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.2/DET-12",
@@ -2524,7 +2696,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.2/ROUTE-10",
@@ -2538,7 +2711,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/REBASE-01",
@@ -2552,7 +2726,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/REBASE-02",
@@ -2566,7 +2741,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.2/REBASE-03",
@@ -2580,7 +2756,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.3/DET-13",
@@ -2594,7 +2771,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.3/DET-14",
@@ -2608,7 +2786,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.3/DET-15",
@@ -2622,7 +2801,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.3/SAFE-04",
@@ -2636,7 +2816,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.3/REBASE-04",
@@ -2650,7 +2831,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.3/REBASE-05",
@@ -2664,7 +2846,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v5.3/TOOL-01",
@@ -2678,7 +2861,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "residual/RR-80-01",
@@ -2692,7 +2876,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v5.3/GEN-01",
@@ -2706,7 +2891,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "v5.3/GEN-02",
@@ -2720,7 +2906,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "live-manual"
   },
   {
     "key": "residual/RR-79-01",
@@ -2734,7 +2921,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-114-01",
@@ -2748,7 +2936,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-108-04",
@@ -2762,7 +2951,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-108-05",
@@ -2776,7 +2966,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-108-02",
@@ -2790,7 +2981,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-77-08",
@@ -2804,7 +2996,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-117-01",
@@ -2818,7 +3011,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-117-02",
@@ -2832,7 +3026,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-119-01",
@@ -2846,7 +3041,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "residual/RR-119-02",
@@ -2860,7 +3056,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/NEGCAT-01",
@@ -2874,7 +3071,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/NEGCAT-02",
@@ -2888,7 +3086,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/OCH-01",
@@ -2903,7 +3102,8 @@
       "inversion",
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/OCH-02",
@@ -2917,7 +3117,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/OCH-03",
@@ -2931,7 +3132,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/COLLIDE-01",
@@ -2945,7 +3147,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/COLLIDE-02",
@@ -2959,7 +3162,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.9/RECON-01",
@@ -2973,7 +3177,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "ci"
   },
   {
     "key": "v7.11/READY-01",
@@ -2987,7 +3192,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/READY-02",
@@ -3001,7 +3207,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/READY-03",
@@ -3015,7 +3222,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/STEP0L-01",
@@ -3029,7 +3237,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/STEP0L-02",
@@ -3043,7 +3252,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/STEP0L-03",
@@ -3057,7 +3267,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/ROUTEL-01",
@@ -3071,7 +3282,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/ROUTEL-02",
@@ -3085,7 +3297,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/RECON-01",
@@ -3099,7 +3312,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/RECON-02",
@@ -3113,7 +3327,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v7.11/RECON-03",
@@ -3127,7 +3342,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "statement unrecoverable"
+    "statement": "statement unrecoverable",
+    "rerun_by": "none"
   },
   {
     "key": "v8.18/ACT-01",
@@ -3141,7 +3357,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Phase 3 names an explicit verification action \u2014 open the cited source with Read / Grep / WebFetch \u2014 so that `read-at-source` provenance is reachable by a step the procedure actually prescribes, not merely by a label the agent may apply."
+    "statement": "Phase 3 names an explicit verification action \u2014 open the cited source with Read / Grep / WebFetch \u2014 so that `read-at-source` provenance is reachable by a step the procedure actually prescribes, not merely by a label the agent may apply.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/ACT-02",
@@ -3155,7 +3372,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The agent assigns each ground truth's provenance suffix from what it read, and the body states that a well-formed citation it did not open stays `reported-by-delegate` and keeps the `?`."
+    "statement": "The agent assigns each ground truth's provenance suffix from what it read, and the body states that a well-formed citation it did not open stays `reported-by-delegate` and keeps the `?`.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/ACT-03",
@@ -3169,7 +3387,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "When a source cannot be opened, the agent records the failure \u2014 which source, why unreachable \u2014 carries the `?`, and does not silently fall back to an unmarked ground truth."
+    "statement": "When a source cannot be opened, the agent records the failure \u2014 which source, why unreachable \u2014 carries the `?`, and does not silently fall back to an unmarked ground truth.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/ACT-04",
@@ -3183,7 +3402,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The verification step is explicitly bounded so it cannot consume the turn budget the Self-Audit Gate needs; the body states which ground truths earn a read (those feeding HIGH-confidence chains) and which do not."
+    "statement": "The verification step is explicitly bounded so it cannot consume the turn budget the Self-Audit Gate needs; the body states which ground truths earn a read (those feeding HIGH-confidence chains) and which do not.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/ACT-05",
@@ -3197,7 +3417,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Self-Audit Gate Criterion 3 names both Fix branches \u2014 acquire the evidence, or downgrade the confidence \u2014 and states that acquisition is preferred when the source is reachable, so the gate stops resolving only toward weaker output."
+    "statement": "Self-Audit Gate Criterion 3 names both Fix branches \u2014 acquire the evidence, or downgrade the confidence \u2014 and states that acquisition is preferred when the source is reachable, so the gate stops resolving only toward weaker output.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/LOOP-01",
@@ -3211,7 +3432,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "A Criterion 1 failure has a named route back to Phase 1 to re-frame the Essence Statement, rather than only a prose revision in place."
+    "statement": "A Criterion 1 failure has a named route back to Phase 1 to re-frame the Essence Statement, rather than only a prose revision in place.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/LOOP-02",
@@ -3225,7 +3447,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The agent may re-open input via `AskUserQuestion` when validation reveals a missing input, not only before the analysis starts; `input-contract.md` states this."
+    "statement": "The agent may re-open input via `AskUserQuestion` when validation reveals a missing input, not only before the analysis starts; `input-contract.md` states this.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/LOOP-03",
@@ -3239,7 +3462,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Every re-entry edge is bounded \u2014 a stated maximum number of re-perception passes \u2014 so the Fix/Repeat loop cannot spin against a `maxTurns: 60` budget."
+    "statement": "Every re-entry edge is bounded \u2014 a stated maximum number of re-perception passes \u2014 so the Fix/Repeat loop cannot spin against a `maxTurns: 60` budget.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/LOOP-04",
@@ -3253,7 +3477,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Phase 3's exit criterion no longer discourages returning for new facts in terms that contradict the re-entry edges added by LOOP-01 and LOOP-02."
+    "statement": "Phase 3's exit criterion no longer discourages returning for new facts in terms that contradict the re-entry edges added by LOOP-01 and LOOP-02.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/LOOP-05",
@@ -3267,7 +3492,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "When a re-entry edge fires, the analysis records that it fired and what changed, so a reader can tell a revised analysis from a first draft."
+    "statement": "When a re-entry edge fires, the analysis records that it fired and what changed, so a reader can tell a revised analysis from a first draft.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/PAR-01",
@@ -3281,7 +3507,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "A slash-invoked focused skill and the agent's own `focused-<technique>` mode complete the same loop, or the divergence is documented in both surfaces with a stated reason a reader can evaluate."
+    "statement": "A slash-invoked focused skill and the agent's own `focused-<technique>` mode complete the same loop, or the divergence is documented in both surfaces with a stated reason a reader can evaluate.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/PAR-02",
@@ -3295,7 +3522,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Each focused stub emits a validation step proportionate to its scope, so a focused run has an Observe limb rather than ending at its procedure's output."
+    "statement": "Each focused stub emits a validation step proportionate to its scope, so a focused run has an Observe limb rather than ending at its procedure's output.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/PAR-03",
@@ -3309,7 +3537,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Step 0's execution-branching text names Validate in its list of phases that run under focused mode, closing the parenthetical that currently omits it."
+    "statement": "Step 0's execution-branching text names Validate in its list of phases that run under focused mode, closing the parenthetical that currently omits it.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/HARN-01",
@@ -3323,7 +3552,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "An offline deterministic gate asserts the Phase 3 verification action is present and well-formed in the emitted agent body, with a negative control that fails when the step is stripped."
+    "statement": "An offline deterministic gate asserts the Phase 3 verification action is present and well-formed in the emitted agent body, with a negative control that fails when the step is stripped.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/HARN-02",
@@ -3337,7 +3567,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "An offline deterministic gate asserts the Observe\u2192Perceive re-entry edges are present in the body and in `input-contract.md`, with negative controls."
+    "statement": "An offline deterministic gate asserts the Observe\u2192Perceive re-entry edges are present in the body and in `input-contract.md`, with negative controls.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/HARN-03",
@@ -3351,7 +3582,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "An offline deterministic gate asserts focused-mode parity between the stub surface and the agent's focused branch, so the two cannot drift apart silently. Stub-surface half shipped in `03-03` (`scripts/check-focused-parity.py`, ten `Stub-N` assertions, D-11 generated-tree-only); `03-04` completed the gate with eight `Agent-N` agent-surface assertions, the D-10 cross-surface parity derivation (`Parity-1`..`Parity-5`, set equality between the agent note and all 13 stub notes, three anti-vacuity guards), and static derivation (`_PARITY_TOKENS`) plus a coherence check tying both surfaces to one token set. 03-04's own \"0 of 52\" audit figure used a message-deleting operator (`pass`) confounded by the D-12 anchor-control ratchet and is superseded (see `03-04-SUMMARY.md`'s SUPERSEDED markers). `03-05` closed the one real gap that operator concealed (Stub-4's `_UNCONDITIONAL_CLAUSE` sub-assertion, control `(g2)`) plus a region split so the ratchet can no longer credit an assertion's own failure message as its own control, and several same-defect-class findings (WR-04/WR-10/WR-11/WR-12, `Stub-11`/`Stub-12`). `03-06` re-ran the whole-file audit under a message-preserving operator (`failures.append(EXPR)` replaced with the bare expression `EXPR`, no exclusions \u2014 `Stub-0` included this time) against all 58 `failures.append(...)` sites and measured **0 of 58** survivors; the reviewer's independent `if False and ...` cross-check on the Stub-4 site agrees, exiting 1 and naming `g2`. Every assertion site now carries a real, ID-and-detail-matched negative control per D-12. `03-07` closed `03-UAT.md`'s test-2 cosmetic gap: `_check_negative`/`_check_positive` gained a wording-only `expect_rejection` flag (default `False`, opted into only at the four `(n0a-n0d)` meta-control call sites), so a green `--self-test` transcript prints `meta-control fired as intended` instead of alarm-shaped `WRONGLY`/`WRONG reason` text, with `_problems.append(...)` and the `n0_delta == 4` accounting unchanged; three new controls (`n0f`, `s`, `s2`) prove the flag cannot mask a real control failure. Not yet registered in `scripts/check-firewall-battery.sh` \u2014 `HARN-04` (Phase 4) owns registration; this entry does not claim registration."
+    "statement": "An offline deterministic gate asserts focused-mode parity between the stub surface and the agent's focused branch, so the two cannot drift apart silently. Stub-surface half shipped in `03-03` (`scripts/check-focused-parity.py`, ten `Stub-N` assertions, D-11 generated-tree-only); `03-04` completed the gate with eight `Agent-N` agent-surface assertions, the D-10 cross-surface parity derivation (`Parity-1`..`Parity-5`, set equality between the agent note and all 13 stub notes, three anti-vacuity guards), and static derivation (`_PARITY_TOKENS`) plus a coherence check tying both surfaces to one token set. 03-04's own \"0 of 52\" audit figure used a message-deleting operator (`pass`) confounded by the D-12 anchor-control ratchet and is superseded (see `03-04-SUMMARY.md`'s SUPERSEDED markers). `03-05` closed the one real gap that operator concealed (Stub-4's `_UNCONDITIONAL_CLAUSE` sub-assertion, control `(g2)`) plus a region split so the ratchet can no longer credit an assertion's own failure message as its own control, and several same-defect-class findings (WR-04/WR-10/WR-11/WR-12, `Stub-11`/`Stub-12`). `03-06` re-ran the whole-file audit under a message-preserving operator (`failures.append(EXPR)` replaced with the bare expression `EXPR`, no exclusions \u2014 `Stub-0` included this time) against all 58 `failures.append(...)` sites and measured **0 of 58** survivors; the reviewer's independent `if False and ...` cross-check on the Stub-4 site agrees, exiting 1 and naming `g2`. Every assertion site now carries a real, ID-and-detail-matched negative control per D-12. `03-07` closed `03-UAT.md`'s test-2 cosmetic gap: `_check_negative`/`_check_positive` gained a wording-only `expect_rejection` flag (default `False`, opted into only at the four `(n0a-n0d)` meta-control call sites), so a green `--self-test` transcript prints `meta-control fired as intended` instead of alarm-shaped `WRONGLY`/`WRONG reason` text, with `_problems.append(...)` and the `n0_delta == 4` accounting unchanged; three new controls (`n0f`, `s`, `s2`) prove the flag cannot mask a real control failure. Not yet registered in `scripts/check-firewall-battery.sh` \u2014 `HARN-04` (Phase 4) owns registration; this entry does not claim registration.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/HARN-04",
@@ -3365,7 +3597,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The new gates are registered in `scripts/check-firewall-battery.sh`, the battery's printed tally moves to match, and `FIREWALL: GREEN` still holds. Evidence (Phase 4 plan 04-06): `bash scripts/check-firewall-battery.sh` prints `[PASS] HARN-01`, `[PASS] HARN-02`, `[PASS] HARN-03` and a final `FIREWALL: GREEN (20/20)`, exit 0."
+    "statement": "The new gates are registered in `scripts/check-firewall-battery.sh`, the battery's printed tally moves to match, and `FIREWALL: GREEN` still holds. Evidence (Phase 4 plan 04-06): `bash scripts/check-firewall-battery.sh` prints `[PASS] HARN-01`, `[PASS] HARN-02`, `[PASS] HARN-03` and a final `FIREWALL: GREEN (20/20)`, exit 0.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.18/SHIP-01",
@@ -3379,7 +3612,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every change lands in `shared/`; `sync-content.py --write` regenerates the tree and `--check` reports no drift. Evidence (Phase 4 plan 04-06): `sync-content.py --write` printed `wrote 48 files` then left `git diff --stat first-principles/` empty; `sync-content.py --check` exited 0."
+    "statement": "Every change lands in `shared/`; `sync-content.py --write` regenerates the tree and `--check` reports no drift. Evidence (Phase 4 plan 04-06): `sync-content.py --write` printed `wrote 48 files` then left `git diff --stat first-principles/` empty; `sync-content.py --check` exited 0.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/SHIP-02",
@@ -3393,7 +3627,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps carry the same new value and VERSION-01 passes. Evidence (Phase 4 plan 04-06): `check-version-stamps.py` printed `check-version-stamps: 17 stamps, all '8.18.0'` then `check-version-stamps: PASS`, exit 0."
+    "statement": "All 17 hand-maintained version stamps carry the same new value and VERSION-01 passes. Evidence (Phase 4 plan 04-06): `check-version-stamps.py` printed `check-version-stamps: 17 stamps, all '8.18.0'` then `check-version-stamps: PASS`, exit 0.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.18/SHIP-03",
@@ -3407,7 +3642,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The full offline battery passes, including the gates added under HARN-01 through HARN-04. Evidence (Phase 4 plan 04-06): `bash scripts/check-firewall-battery.sh` printed `FIREWALL: GREEN (20/20)`, exit 0, zero `[FAIL]` and zero `[PREREQ]` lines."
+    "statement": "The full offline battery passes, including the gates added under HARN-01 through HARN-04. Evidence (Phase 4 plan 04-06): `bash scripts/check-firewall-battery.sh` printed `FIREWALL: GREEN (20/20)`, exit 0, zero `[FAIL]` and zero `[PREREQ]` lines.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.18/SHIP-06",
@@ -3421,7 +3657,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` under the repo's bare `python3`. Originally: it could not \u2014 the script called `python3 -m pytest` and pytest existed only in the uv-managed `.venv`, so VAL-03 failed on a clean tree even though both of its real link checks passed; the battery needed to resolve an interpreter that has pytest (prefer `.venv/bin/python3` when present, fall back to `python3`). CI was unaffected \u2014 `.github/workflows/validation.yml` pip-installs pytest first. Per `03-CONTEXT.md` D-13, this requirement's scope was re-cast from *implement* to *verify*: plan 03-08 (Phase 3) already implemented `resolve_pytest_python()` (interpreter resolution behind an `import pytest` execution preflight) and `gate_prereq()` (a `PREREQ` counter distinct from `PASS`/`FAIL`), giving the battery its three-state `GREEN`/`RED`/`BLOCKED` verdict. Phase 4 plan 04-06 re-confirmed the fix after HARN-04's registrations landed: `bash scripts/check-firewall-battery.sh` under the bare `python3` (no `uv run` wrapper) printed `FIREWALL: GREEN (20/20)`, exit 0."
+    "statement": "`bash scripts/check-firewall-battery.sh` reaches `FIREWALL: GREEN` under the repo's bare `python3`. Originally: it could not \u2014 the script called `python3 -m pytest` and pytest existed only in the uv-managed `.venv`, so VAL-03 failed on a clean tree even though both of its real link checks passed; the battery needed to resolve an interpreter that has pytest (prefer `.venv/bin/python3` when present, fall back to `python3`). CI was unaffected \u2014 `.github/workflows/validation.yml` pip-installs pytest first. Per `03-CONTEXT.md` D-13, this requirement's scope was re-cast from *implement* to *verify*: plan 03-08 (Phase 3) already implemented `resolve_pytest_python()` (interpreter resolution behind an `import pytest` execution preflight) and `gate_prereq()` (a `PREREQ` counter distinct from `PASS`/`FAIL`), giving the battery its three-state `GREEN`/`RED`/`BLOCKED` verdict. Phase 4 plan 04-06 re-confirmed the fix after HARN-04's registrations landed: `bash scripts/check-firewall-battery.sh` under the bare `python3` (no `uv run` wrapper) printed `FIREWALL: GREEN (20/20)`, exit 0.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.18/SHIP-04",
@@ -3435,7 +3672,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CHANGELOG.md` records the milestone with its tag-table entry. Evidence (Phase 4 plan 04-05): `CHANGELOG.md`'s `## [8.18.0]` entry, commit `c73d45b`."
+    "statement": "`CHANGELOG.md` records the milestone with its tag-table entry. Evidence (Phase 4 plan 04-05): `CHANGELOG.md`'s `## [8.18.0]` entry, commit `c73d45b`.",
+    "rerun_by": "none"
   },
   {
     "key": "v8.18/SHIP-05",
@@ -3449,7 +3687,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`docs/` records the four gaps, the review that found them, and each gap's disposition, in the style of the existing milestone records. Evidence (Phase 4 plan 04-05): `docs/v8.18-praor-loop-closure.md`, 257 lines, 8 numbered sections, commit `5e05b7b`."
+    "statement": "`docs/` records the four gaps, the review that found them, and each gap's disposition, in the style of the existing milestone records. Evidence (Phase 4 plan 04-05): `docs/v8.18-praor-loop-closure.md`, 257 lines, 8 numbered sections, commit `5e05b7b`.",
+    "rerun_by": "none"
   },
   {
     "key": "v8.19/HC-01",
@@ -3463,7 +3702,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Criterion 3 (Evidence) is tightened to require that if a ground truth is cited and its source is reachable, at least one chain using that source must be rated HIGH confidence"
+    "statement": "Criterion 3 (Evidence) is tightened to require that if a ground truth is cited and its source is reachable, at least one chain using that source must be rated HIGH confidence",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.19/HC-02",
@@ -3477,7 +3717,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Criterion 5 (Conclusion) is tightened to require that every final conclusion is supported by at least one HIGH-confidence chain"
+    "statement": "Criterion 5 (Conclusion) is tightened to require that every final conclusion is supported by at least one HIGH-confidence chain",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.19/HC-03",
@@ -3491,7 +3732,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Three exception cases are documented in the rubric: (a) unreachable sources do not require HIGH chains, (b) explicitly speculative chains may remain MEDIUM, (c) absent-fails derivations may remain MEDIUM"
+    "statement": "Three exception cases are documented in the rubric: (a) unreachable sources do not require HIGH chains, (b) explicitly speculative chains may remain MEDIUM, (c) absent-fails derivations may remain MEDIUM",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.19/HC-04",
@@ -3505,7 +3747,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A new offline gate verifies that both tightened criteria are correctly described in the emitted Self-Audit rubric and that all exception cases are documented \u2014 verified by `bash scripts/check-firewall-battery.sh` reporting FIREWALL: GREEN (21/21) with HC-BOUND passing"
+    "statement": "A new offline gate verifies that both tightened criteria are correctly described in the emitted Self-Audit rubric and that all exception cases are documented \u2014 verified by `bash scripts/check-firewall-battery.sh` reporting FIREWALL: GREEN (21/21) with HC-BOUND passing",
+    "rerun_by": "none"
   },
   {
     "key": "v8.20/HARN-01-01",
@@ -3519,7 +3762,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Identify and document all 16 neutralizable branches in HARN-01 self-test"
+    "statement": "Identify and document all 16 neutralizable branches in HARN-01 self-test",
+    "rerun_by": "none"
   },
   {
     "key": "v8.20/HARN-01-02",
@@ -3533,7 +3777,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Create negative-control fixture for each of the 16 branches (each fixture proves the branch can't mask a real defect)"
+    "statement": "Create negative-control fixture for each of the 16 branches (each fixture proves the branch can't mask a real defect)",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.20/HARN-01-03",
@@ -3547,7 +3792,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Add anti-masking assertions that gate on coverage of all 16 branches"
+    "statement": "Add anti-masking assertions that gate on coverage of all 16 branches",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.20/HARN-01-04",
@@ -3561,7 +3807,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Update `scripts/check-act-limb.py` documentation with branch coverage map"
+    "statement": "Update `scripts/check-act-limb.py` documentation with branch coverage map",
+    "rerun_by": "none"
   },
   {
     "key": "v8.20/HARN-01-05",
@@ -3575,7 +3822,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Verify offline `--self-test` gate still GREEN with all 16 controls in place"
+    "statement": "Verify offline `--self-test` gate still GREEN with all 16 controls in place",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/REG-01",
@@ -3589,7 +3837,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate enumerates all skill directories under `first-principles/skills/` \u2713"
+    "statement": "Gate enumerates all skill directories under `first-principles/skills/` \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/REG-02",
@@ -3603,7 +3852,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate enumerates the main agent at `first-principles/agents/first-principles.md` \u2713"
+    "statement": "Gate enumerates the main agent at `first-principles/agents/first-principles.md` \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/REG-03",
@@ -3617,7 +3867,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate reads and parses plugin manifest \u2713"
+    "statement": "Gate reads and parses plugin manifest \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/REG-04",
@@ -3631,7 +3882,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate validates all 14 skills are registered in manifest with correct name/type \u2713"
+    "statement": "Gate validates all 14 skills are registered in manifest with correct name/type \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/REG-05",
@@ -3645,7 +3897,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate validates main agent is registered in manifest with correct name/type \u2713"
+    "statement": "Gate validates main agent is registered in manifest with correct name/type \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/REG-06",
@@ -3659,7 +3912,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate reports human-readable summary: registered entries vs. discovered entries \u2713"
+    "statement": "Gate reports human-readable summary: registered entries vs. discovered entries \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/GATE-01",
@@ -3673,7 +3927,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Offline gate script `check-registration.py` runs deterministically (no live session) \u2713"
+    "statement": "Offline gate script `check-registration.py` runs deterministically (no live session) \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/GATE-02",
@@ -3687,7 +3942,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate includes `--self-test` fixture with positive and negative controls \u2713"
+    "statement": "Gate includes `--self-test` fixture with positive and negative controls \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/GATE-03",
@@ -3701,7 +3957,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "CI job registered in `.github/workflows/validation.yml` \u2713"
+    "statement": "CI job registered in `.github/workflows/validation.yml` \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/GATE-04",
@@ -3715,7 +3972,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate call registered in `bash scripts/check-firewall-battery.sh` \u2713"
+    "statement": "Gate call registered in `bash scripts/check-firewall-battery.sh` \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/GATE-05",
@@ -3729,7 +3987,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "CLAUDE.md updated with gate definition in CI gates table \u2713"
+    "statement": "CLAUDE.md updated with gate definition in CI gates table \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/GATE-06",
@@ -3743,7 +4002,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Battery moves from 21/21 to 22/22, stays GREEN \u2713"
+    "statement": "Battery moves from 21/21 to 22/22, stays GREEN \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/VAL-01",
@@ -3757,7 +4017,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Battery runs `FIREWALL: GREEN (22/22)` \u2713"
+    "statement": "Battery runs `FIREWALL: GREEN (22/22)` \u2713",
+    "rerun_by": "none"
   },
   {
     "key": "v8.21/VAL-02",
@@ -3771,7 +4032,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 version stamps remain in lockstep (VERSION-01 still green) \u2713"
+    "statement": "All 17 version stamps remain in lockstep (VERSION-01 still green) \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.21/VAL-03",
@@ -3785,7 +4047,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Sync between `shared/` and generated tree stays clean (DUAL-04 still green) \u2713"
+    "statement": "Sync between `shared/` and generated tree stays clean (DUAL-04 still green) \u2713",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/CAP-01",
@@ -3799,7 +4062,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The `--probe` and `--single` CLI paths persist the extracted analysis beside its source `.jsonl`, so a run's provenance remains checkable after the run ends. **Scope corrected 2026-08-31 after measurement:** `run_generation_arm` (line 5922) already writes sibling `captures/` and `analyses/` dirs, so `--run` needs no change; `--probe` (7407) writes only the raw capture and `--single` (7424) writes the analysis only into `build_judge_packet`'s sealed, outside-repo, exactly-two-files packet. As originally worded this requirement was already satisfied and would have passed vacuously"
+    "statement": "The `--probe` and `--single` CLI paths persist the extracted analysis beside its source `.jsonl`, so a run's provenance remains checkable after the run ends. **Scope corrected 2026-08-31 after measurement:** `run_generation_arm` (line 5922) already writes sibling `captures/` and `analyses/` dirs, so `--run` needs no change; `--probe` (7407) writes only the raw capture and `--single` (7424) writes the analysis only into `build_judge_packet`'s sealed, outside-repo, exactly-two-files packet. As originally worded this requirement was already satisfied and would have passed vacuously",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/CAP-02",
@@ -3813,7 +4077,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A git-tracked capture fixture carrying real `WebFetch`/`Read` tool calls is committed at **`tests/quality-provenance-v8.24/`**, with a README recording its provenance, prompt, and event inventory, and registered in the battery's FROZEN-EVIDENCE path list. **Directory name is load-bearing:** `.gitignore` lines 19-20 exclude `tests/step0-captures-*/**/*.jsonl` and `tests/quality-baseline-*/**/*.jsonl` by glob, so either of those names would silently drop the fixture from the commit. Verified clean with `git check-ignore` on 2026-08-31"
+    "statement": "A git-tracked capture fixture carrying real `WebFetch`/`Read` tool calls is committed at **`tests/quality-provenance-v8.24/`**, with a README recording its provenance, prompt, and event inventory, and registered in the battery's FROZEN-EVIDENCE path list. **Directory name is load-bearing:** `.gitignore` lines 19-20 exclude `tests/step0-captures-*/**/*.jsonl` and `tests/quality-baseline-*/**/*.jsonl` by glob, so either of those names would silently drop the fixture from the commit. Verified clean with `git check-ignore` on 2026-08-31",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/CAP-03",
@@ -3827,7 +4092,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A capture-reading helper yields `(tool_name, target, retrieved_text)` triples from a capture, without altering `extract_agent_analysis`'s Guardrail A or Guardrail B behaviour"
+    "statement": "A capture-reading helper yields `(tool_name, target, retrieved_text)` triples from a capture, without altering `extract_agent_analysis`'s Guardrail A or Guardrail B behaviour",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/PROV-01",
@@ -3841,7 +4107,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The verifier parses section 3 ground truths and their `*Provenance: \u2026*` labels from an analysis document"
+    "statement": "The verifier parses section 3 ground truths and their `*Provenance: \u2026*` labels from an analysis document",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/PROV-02",
@@ -3855,7 +4122,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every `read-at-source` ground truth maps to a real `WebFetch`/`Read` of that source in the capture; an unmatched label is reported as a defect"
+    "statement": "Every `read-at-source` ground truth maps to a real `WebFetch`/`Read` of that source in the capture; an unmatched label is reported as a defect",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/PROV-03",
@@ -3869,7 +4137,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every literal a `read-at-source` ground truth states appears verbatim in that source's retrieved text; an unlocated literal is reported as a defect"
+    "statement": "Every literal a `read-at-source` ground truth states appears verbatim in that source's retrieved text; an unlocated literal is reported as a defect",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/PROV-04",
@@ -3883,7 +4152,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Verification reads only the stored capture \u2014 the verifier performs no network access on any code path"
+    "statement": "Verification reads only the stored capture \u2014 the verifier performs no network access on any code path",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/PROV-05",
@@ -3897,7 +4167,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Findings are emitted as named `_DEFECT_RECORD_FIELDS` columns, not audit-only underscore fields, so the TSV records fabrication alongside every other defect"
+    "statement": "Findings are emitted as named `_DEFECT_RECORD_FIELDS` columns, not audit-only underscore fields, so the TSV records fabrication alongside every other defect",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/GATE-01",
@@ -3911,7 +4182,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`scripts/check-provenance.py --self-test` runs deterministically with positive, negative and anti-masking controls"
+    "statement": "`scripts/check-provenance.py --self-test` runs deterministically with positive, negative and anti-masking controls",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/GATE-02",
@@ -3925,7 +4197,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "CI job registered in `.github/workflows/validation.yml`"
+    "statement": "CI job registered in `.github/workflows/validation.yml`",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/GATE-03",
@@ -3939,7 +4212,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Gate registered in `scripts/check-firewall-battery.sh`; battery moves 22/22 to 23/23 and stays GREEN"
+    "statement": "Gate registered in `scripts/check-firewall-battery.sh`; battery moves 22/22 to 23/23 and stays GREEN",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/VAL-01",
@@ -3953,7 +4227,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`bash scripts/check-firewall-battery.sh` reports `FIREWALL: GREEN (23/23)`"
+    "statement": "`bash scripts/check-firewall-battery.sh` reports `FIREWALL: GREEN (23/23)`",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/VAL-02",
@@ -3967,7 +4242,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps move to `8.24.0` in lockstep (VERSION-01 green)"
+    "statement": "All 17 hand-maintained version stamps move to `8.24.0` in lockstep (VERSION-01 green)",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/VAL-03",
@@ -3981,7 +4257,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`shared/` and the generated tree stay in sync (DUAL-04 green)"
+    "statement": "`shared/` and the generated tree stay in sync (DUAL-04 green)",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.24/VAL-04",
@@ -3995,7 +4272,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "CLAUDE.md CI gates table and `docs/requirements-traceability.md` record the new gate"
+    "statement": "CLAUDE.md CI gates table and `docs/requirements-traceability.md` record the new gate",
+    "rerun_by": "none"
   },
   {
     "key": "v8.25/HEADLINE-01",
@@ -4009,7 +4287,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`HEADLINE-LOCK` asserts the current coverage headline against every tracked surface that states it as a current-state claim \u2014 at minimum `CLAUDE.md`, `docs/README.md`, `docs/MEASUREMENT-MAP.md` and `docs/COMPONENT-DIAGRAM.md` \u2014 and not only `docs/requirements-traceability.md`."
+    "statement": "`HEADLINE-LOCK` asserts the current coverage headline against every tracked surface that states it as a current-state claim \u2014 at minimum `CLAUDE.md`, `docs/README.md`, `docs/MEASUREMENT-MAP.md` and `docs/COMPONENT-DIAGRAM.md` \u2014 and not only `docs/requirements-traceability.md`.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/HEADLINE-02",
@@ -4023,7 +4302,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The gate recognises both published renderings of the figure: the prose form (`161 reproducible / 91 audit-only / 0 gap / 252 total`) and the compact slash form (`161/91/0/252`). A surface cannot escape coverage by rendering the figure differently."
+    "statement": "The gate recognises both published renderings of the figure: the prose form (`161 reproducible / 91 audit-only / 0 gap / 252 total`) and the compact slash form (`161/91/0/252`). A surface cannot escape coverage by rendering the figure differently.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/HEADLINE-03",
@@ -4037,7 +4317,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Historical and delta statements of superseded headlines \u2014 the traceability ledger's `147/90/0/237 \u2192 161/91/0/252` rows, `CHANGELOG.md`, and the whole of `docs/v8.0-final-closure.md`, whose purpose is recording counts that have since moved \u2014 are distinguished from current-state assertions and do **not** fail the gate. A correct document must not lose to a stale assertion."
+    "statement": "Historical and delta statements of superseded headlines \u2014 the traceability ledger's `147/90/0/237 \u2192 161/91/0/252` rows, `CHANGELOG.md`, and the whole of `docs/v8.0-final-closure.md`, whose purpose is recording counts that have since moved \u2014 are distinguished from current-state assertions and do **not** fail the gate. A correct document must not lose to a stale assertion.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/HEADLINE-04",
@@ -4051,7 +4332,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every newly covered surface carries its own non-vacuity control: perturbing that surface's figure makes the gate report a mismatch naming that surface. A rewritten assertion that always passes must be distinguishable from a passing assertion."
+    "statement": "Every newly covered surface carries its own non-vacuity control: perturbing that surface's figure makes the gate report a mismatch naming that surface. A rewritten assertion that always passes must be distinguishable from a passing assertion.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/HEADLINE-05",
@@ -4065,7 +4347,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A tracked surface that states the headline as current fact but is not registered with the gate is itself detected and fails. A hand-maintained surface list goes stale by construction \u2014 the same reasoning `CLAUDE.md` already applies to the gate inventory \u2014 and that staleness is precisely how this hole opened. Depends on HEADLINE-03: the discrimination between history and current fact must be sound before an unregistered hit can be trusted as a real finding."
+    "statement": "A tracked surface that states the headline as current fact but is not registered with the gate is itself detected and fails. A hand-maintained surface list goes stale by construction \u2014 the same reasoning `CLAUDE.md` already applies to the gate inventory \u2014 and that staleness is precisely how this hole opened. Depends on HEADLINE-03: the discrimination between history and current fact must be sound before an unregistered hit can be trusted as a real finding.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/CONTRACT-01",
@@ -4079,7 +4362,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "`output-template.md` \u00a74 states the derivation-chain rendering prescriptively \u2014 head form, hop form, and whether a hop may wrap across physical lines \u2014 and shows at least one explicitly non-conforming example alongside the conforming one."
+    "statement": "`output-template.md` \u00a74 states the derivation-chain rendering prescriptively \u2014 head form, hop form, and whether a hop may wrap across physical lines \u2014 and shows at least one explicitly non-conforming example alongside the conforming one.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/CONTRACT-02",
@@ -4093,7 +4377,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "`output-template.md` \u00a76 states the citation form prescriptively, to the same standard as \u00a74: what conforms, and what does not."
+    "statement": "`output-template.md` \u00a76 states the citation form prescriptively, to the same standard as \u00a74: what conforms, and what does not.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/CONTRACT-03",
@@ -4107,7 +4392,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Case A is closed \u2014 the hop-wrapping rule is stated on both canonical surfaces, and a control fails if the rule is dropped from either. Today the rule as written (*every line after the head begins with `\u2192`*) is satisfiable only by never breaking a hop, which neither surface says; run 3 passed by emitting 479-character unwrapped lines and run 4 failed 8/8 by wrapping near 90 columns, with neither told which to do."
+    "statement": "Case A is closed \u2014 the hop-wrapping rule is stated on both canonical surfaces, and a control fails if the rule is dropped from either. Today the rule as written (*every line after the head begins with `\u2192`*) is satisfiable only by never breaking a hop, which neither surface says; run 3 passed by emitting 479-character unwrapped lines and run 4 failed 8/8 by wrapping near 90 columns, with neither told which to do.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/CONTRACT-04",
@@ -4121,7 +4407,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Case B is closed \u2014 the Verdict Vocabulary carries a worked example showing a `current constraint` row recording its expiry at the point of use, and a control fails if the example is dropped. This is an example, not a schema change: run 3 rendered four such rows conformingly on the same prompt, so the vocabulary was demonstrated adequate one milestone before run 4 moved the qualifier into the token slot."
+    "statement": "Case B is closed \u2014 the Verdict Vocabulary carries a worked example showing a `current constraint` row recording its expiry at the point of use, and a control fails if the example is dropped. This is an example, not a schema change: run 3 rendered four such rows conformingly on the same prompt, so the vocabulary was demonstrated adequate one milestone before run 4 moved the qualifier into the token slot.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/CONTRACT-05",
@@ -4135,7 +4422,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The head-form difference between `SKILL-body.md` and `output-template.md` is reconciled. Measured real but proven **non-causal** for the wrapping failure \u2014 both prescribed head forms pass unwrapped and fail wrapped \u2014 so it is fixed on its own merits while the contract work already has both files open."
+    "statement": "The head-form difference between `SKILL-body.md` and `output-template.md` is reconciled. Measured real but proven **non-causal** for the wrapping failure \u2014 both prescribed head forms pass unwrapped and fail wrapped \u2014 so it is fixed on its own merits while the contract work already has both files open.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/CONTRACT-06",
@@ -4149,7 +4437,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The detector is not widened to absorb run 4's rendering. If Case A instead resolves toward teaching `_chain_block_well_formed`'s bounded join bracket-awareness (option (b)), the milestone goal is amended in writing, with the reason widening won recorded \u2014 not quietly contradicted. A goal that can be silently contradicted is not a goal."
+    "statement": "The detector is not widened to absorb run 4's rendering. If Case A instead resolves toward teaching `_chain_block_well_formed`'s bounded join bracket-awareness (option (b)), the milestone goal is amended in writing, with the reason widening won recorded \u2014 not quietly contradicted. A goal that can be silently contradicted is not a goal.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/SHIP-01",
@@ -4163,7 +4452,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps carry `8.25.0`, bumped in lockstep (VERSION-01). A bump touches all 17 or none \u2014 installs are version-gated, not content-gated."
+    "statement": "All 17 hand-maintained version stamps carry `8.25.0`, bumped in lockstep (VERSION-01). A bump touches all 17 or none \u2014 installs are version-gated, not content-gated.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.25/SHIP-02",
@@ -4177,7 +4467,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`bash scripts/check-firewall-battery.sh` reports `FIREWALL: GREEN`, with the gate tally and every count in the battery header correct rather than merely unchanged."
+    "statement": "`bash scripts/check-firewall-battery.sh` reports `FIREWALL: GREEN`, with the gate tally and every count in the battery header correct rather than merely unchanged.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.25/SHIP-03",
@@ -4191,7 +4482,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "This milestone's requirements are registered as matrix rows, and the resulting coverage-headline move is swept by the gate delivered in HEADLINE-01..05 rather than by hand. The milestone verifies its own deliverable."
+    "statement": "This milestone's requirements are registered as matrix rows, and the resulting coverage-headline move is swept by the gate delivered in HEADLINE-01..05 rather than by hand. The milestone verifies its own deliverable.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/CHAINHEAD-01",
@@ -4205,7 +4497,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "`output-template.md` \u00a74 states the head-line grammar prescriptively \u2014 consumed inputs are `GT-N` **or** `Cn` identifiers, each optionally glossed in parentheses, joined by `+`, with the first `\u2192` closing the head \u2014 so a chain consuming an upstream chain has a stated form rather than an inferred one."
+    "statement": "`output-template.md` \u00a74 states the head-line grammar prescriptively \u2014 consumed inputs are `GT-N` **or** `Cn` identifiers, each optionally glossed in parentheses, joined by `+`, with the first `\u2192` closing the head \u2014 so a chain consuming an upstream chain has a stated form rather than an inferred one.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-02",
@@ -4219,7 +4512,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The same section shows at least one explicitly **non-conforming** head rendering, including the possessive/prose form (`C2's threshold`) that the 2026-09-02 run emitted, with the reason it does not parse."
+    "statement": "The same section shows at least one explicitly **non-conforming** head rendering, including the possessive/prose form (`C2's threshold`) that the 2026-09-02 run emitted, with the reason it does not parse.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-03",
@@ -4233,7 +4527,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The rule is stated in byte-identical words on every canonical surface that states the chain form, and registered in QUAL-01's cross-surface literal set with its per-surface required-rule mapping \u2014 the three-surface registry v8.25.0 Phase 11 established."
+    "statement": "The rule is stated in byte-identical words on every canonical surface that states the chain form, and registered in QUAL-01's cross-surface literal set with its per-surface required-rule mapping \u2014 the three-surface registry v8.25.0 Phase 11 established.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-04",
@@ -4247,7 +4542,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A control fails if the rule literal is dropped from any registered surface, and an anti-masking floor fails if any registered surface goes unchecked."
+    "statement": "A control fails if the rule literal is dropped from any registered surface, and an anti-masking floor fails if any registered surface goes unchecked.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-05",
@@ -4261,7 +4557,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "A conforming and a non-conforming worked example ship in `output-template.md`, are extracted at self-test time, and are scored by the **unmodified** `_chain_block_well_formed` \u2014 with a consumption floor that fails if either example is not requested and scored."
+    "statement": "A conforming and a non-conforming worked example ship in `output-template.md`, are extracted at self-test time, and are scored by the **unmodified** `_chain_block_well_formed` \u2014 with a consumption floor that fails if either example is not requested and scored.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-06",
@@ -4275,7 +4572,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The C6 head from the 2026-09-02 capture is pinned as a fixture in both directions: as emitted it scores malformed, and re-rendered under the new rule it scores well-formed. A rule that accepts both is not discriminating and must fail this."
+    "statement": "The C6 head from the 2026-09-02 capture is pinned as a fixture in both directions: as emitted it scores malformed, and re-rendered under the new rule it scores well-formed. A rule that accepts both is not discriminating and must fail this.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/CHAINHEAD-07",
@@ -4289,7 +4587,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "*(absorbed 999.17)*: A sha256 digest pin over `_chain_block_well_formed`'s source is added **after** the rule work lands, mirroring the `_RENDER_RULE_LITERALS` pin; CONTRACT-06 is re-tiered `reproducible` with its `artifact_link` pointing at the new pin."
+    "statement": "*(absorbed 999.17)*: A sha256 digest pin over `_chain_block_well_formed`'s source is added **after** the rule work lands, mirroring the `_RENDER_RULE_LITERALS` pin; CONTRACT-06 is re-tiered `reproducible` with its `artifact_link` pointing at the new pin.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/LEDGER-01",
@@ -4303,7 +4602,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The \u00a76\u2192\u00a74 closure ledger's **claim-extraction rule** is stated on both canonical surfaces \u2014 which section-6 constructs count as claims and which are excluded \u2014 matching what `_conclusion_claims` extracts, so the ledger enumerates by rule rather than by recollection."
+    "statement": "The \u00a76\u2192\u00a74 closure ledger's **claim-extraction rule** is stated on both canonical surfaces \u2014 which section-6 constructs count as claims and which are excluded \u2014 matching what `_conclusion_claims` extracts, so the ledger enumerates by rule rather than by recollection.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/LEDGER-02",
@@ -4317,7 +4617,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The rule names *trade-offs acknowledged* explicitly as a claim class that must cite a chain, closing the gap between `output-template.md` (which prescribes the paragraph) and Criterion 6's Rigorous band (which already requires it to trace)."
+    "statement": "The rule names *trade-offs acknowledged* explicitly as a claim class that must cite a chain, closing the gap between `output-template.md` (which prescribes the paragraph) and Criterion 6's Rigorous band (which already requires it to trace).",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/LEDGER-03",
@@ -4331,7 +4632,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The open sub-question is decided and stated: a caveat qualifying an existing claim either cites the chain it qualifies, or carries an explicit *no chain \u2014 flagged assumption only* marker. The decision is recorded on the contract surfaces, **not** by loosening `_conclusion_claims`."
+    "statement": "The open sub-question is decided and stated: a caveat qualifying an existing claim either cites the chain it qualifies, or carries an explicit *no chain \u2014 flagged assumption only* marker. The decision is recorded on the contract surfaces, **not** by loosening `_conclusion_claims`.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/LEDGER-04",
@@ -4345,7 +4647,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A control fails if the rule literal is dropped, and the 2026-09-02 analysis is registered as a fixture asserting its measured reading \u2014 exactly one untraced claim, being the trade-offs paragraph \u2014 so a later loosening that silently discharges it fails the gate. (The rubric band that reading implies \u2014 Criterion 6 **Sound**, not Rigorous \u2014 is recorded as the expected reading in ROADMAP.md Phase 14, deliberately *not* as an acceptance criterion: a band is assigned by a model and no gate in this tree can check it.)"
+    "statement": "A control fails if the rule literal is dropped, and the 2026-09-02 analysis is registered as a fixture asserting its measured reading \u2014 exactly one untraced claim, being the trade-offs paragraph \u2014 so a later loosening that silently discharges it fails the gate. (The rubric band that reading implies \u2014 Criterion 6 **Sound**, not Rigorous \u2014 is recorded as the expected reading in ROADMAP.md Phase 14, deliberately *not* as an acceptance criterion: a band is assigned by a model and no gate in this tree can check it.)",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/SCAN-01",
@@ -4359,7 +4662,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Phase 5 emits a chain-form and claim-inventory scan as **process output**, shaped like the existing Assumption Audit scan: one row per chain block and one per section-6 claim, each row stating what was checked and what it found."
+    "statement": "Phase 5 emits a chain-form and claim-inventory scan as **process output**, shaped like the existing Assumption Audit scan: one row per chain block and one per section-6 claim, each row stating what was checked and what it found.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/SCAN-02",
@@ -4373,7 +4677,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The Self-Audit Gate's Criterion 4 and Criterion 6 entries quote that scan as their evidence rather than asserting a band, so a band that contradicts the scan is visible in the emission itself."
+    "statement": "The Self-Audit Gate's Criterion 4 and Criterion 6 entries quote that scan as their evidence rather than asserting a band, so a band that contradicts the scan is visible in the emission itself.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/SCAN-03",
@@ -4387,7 +4692,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A structural gate asserts the scan's presence, placement and internal coherence in the emitted tree on both the agent and skill-stub surfaces, with per-source negative controls \u2014 the HARN-01/HARN-02 pattern."
+    "statement": "A structural gate asserts the scan's presence, placement and internal coherence in the emitted tree on both the agent and skill-stub surfaces, with per-source negative controls \u2014 the HARN-01/HARN-02 pattern.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/SCAN-04",
@@ -4401,7 +4707,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The scan's emission cost is measured against the Assumption Audit scan's cost on the same staged capture and recorded; Phase 5's ordering and its `maxTurns` budget headroom are unchanged. A scan that costs more than it catches is a real risk and must be sized, not assumed."
+    "statement": "The scan's emission cost is measured against the Assumption Audit scan's cost on the same staged capture and recorded; Phase 5's ordering and its `maxTurns` budget headroom are unchanged. A scan that costs more than it catches is a real risk and must be sized, not assumed.",
+    "rerun_by": "none"
   },
   {
     "key": "v8.26/SHIP-01",
@@ -4415,7 +4722,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps move to `8.26.0` in lockstep, VERSION-01 green, no sync drift."
+    "statement": "All 17 hand-maintained version stamps move to `8.26.0` in lockstep, VERSION-01 green, no sync drift.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/SHIP-02",
@@ -4429,7 +4737,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`scripts/check-firewall-battery.sh` reports GREEN with every new control registered, and every surface stating the battery's gate count agrees with what it runs."
+    "statement": "`scripts/check-firewall-battery.sh` reports GREEN with every new control registered, and every surface stating the battery's gate count agrees with what it runs.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.26/SHIP-03",
@@ -4443,7 +4752,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "This milestone's requirements are registered as matrix rows, and the resulting coverage-headline move is swept by `HEADLINE-LOCK` rather than hand-edited \u2014 the mechanism v8.25.0 Phase 10 shipped, exercised a second time. CHAINHEAD-07's CONTRACT-06 re-tier is reflected in the same regeneration."
+    "statement": "This milestone's requirements are registered as matrix rows, and the resulting coverage-headline move is swept by `HEADLINE-LOCK` rather than hand-edited \u2014 the mechanism v8.25.0 Phase 10 shipped, exercised a second time. CHAINHEAD-07's CONTRACT-06 re-tier is reflected in the same regeneration.",
+    "rerun_by": "ci"
   },
   {
     "key": "v8.26/SHIP-04",
@@ -4457,7 +4767,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CHANGELOG.md` carries an `[8.26.0]` entry naming both contract rules, the scan, and the disclosed limits of each."
+    "statement": "`CHANGELOG.md` carries an `[8.26.0]` entry naming both contract rules, the scan, and the disclosed limits of each.",
+    "rerun_by": "none"
   },
   {
     "key": "v8.26/SHIP-05",
@@ -4471,7 +4782,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "That `[8.26.0]` entry also states the measured conformance state of the shipped worked examples \u2014 4/14 unreadable, 69/69 verdict cells non-conforming, 56/58 claims untraced (0 marker-flagged), 19/28 chain blocks malformed under the unmodified frozen detectors, measured 2026-09-04 \u2014 and names v9.0.0 as where it closes. A release that adds R7-R12 while shipping exemplars violating R1-R12 at 68-100% must say so; the number is held, so omitting it is a disclosure failure, not an oversight."
+    "statement": "That `[8.26.0]` entry also states the measured conformance state of the shipped worked examples \u2014 4/14 unreadable, 69/69 verdict cells non-conforming, 56/58 claims untraced (0 marker-flagged), 19/28 chain blocks malformed under the unmodified frozen detectors, measured 2026-09-04 \u2014 and names v9.0.0 as where it closes. A release that adds R7-R12 while shipping exemplars violating R1-R12 at 68-100% must say so; the number is held, so omitting it is a disclosure failure, not an oversight.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.0/CONF-01",
@@ -4485,7 +4797,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A regenerable per-artifact conformance report exists over every shipped surface, emitting every `_DEFECT_RECORD_FIELDS` reading for all 14 `shared/examples/*.md` and separately for `shared/spine/references/output-template.md`, **naming files the detector cannot read rather than skipping them**"
+    "statement": "A regenerable per-artifact conformance report exists over every shipped surface, emitting every `_DEFECT_RECORD_FIELDS` reading for all 14 `shared/examples/*.md` and separately for `shared/spine/references/output-template.md`, **naming files the detector cannot read rather than skipping them**",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v9.0/CONF-02",
@@ -4499,7 +4812,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The baseline is committed (`docs/conformance-baseline.md`, `docs/data/conformance.json`) with a `--check` mode that reproduces the committed artifacts byte for byte and exits 1 on drift; it states no target, blocks no gate, and its numbers are dated \u2014 a measurement, not a contract"
+    "statement": "The baseline is committed (`docs/conformance-baseline.md`, `docs/data/conformance.json`) with a `--check` mode that reproduces the committed artifacts byte for byte and exits 1 on drift; it states no target, blocks no gate, and its numbers are dated \u2014 a measurement, not a contract",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v9.0/CONF-03",
@@ -4513,7 +4827,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "All 14 shipped worked examples resolve into six template sections under `_slice_sections` \u2014 `SectionResolutionError` count **4 \u2192 0**"
+    "statement": "All 14 shipped worked examples resolve into six template sections under `_slice_sections` \u2014 `SectionResolutionError` count **4 \u2192 0**",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-04",
@@ -4527,7 +4842,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Zero malformed chain blocks in `shared/examples/` and its generated twin, scored by the unmodified `_chain_block_well_formed` across every `### Conclusion` heading \u2014 **19 \u2192 0** (of 28)"
+    "statement": "Zero malformed chain blocks in `shared/examples/` and its generated twin, scored by the unmodified `_chain_block_well_formed` across every `### Conclusion` heading \u2014 **19 \u2192 0** (of 28)",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-05",
@@ -4541,7 +4857,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "Zero non-conforming \u00a72 verdict cells under the unmodified `_verdict_conforms` (**69 \u2192 0**); and zero **silent** untraced \u00a76 claims (**56 \u2192 0**) \u2014 every claim either names its chain inline or carries the `no chain \u2014 flagged assumption only` marker already prescribed by `output-template.md`, `validation-rubric.md` and `SKILL-body.md`. The `untraced_claims` reading itself **will not reach zero and must not be expected to**: a marked caveat still scores untraced by design (`R-CLAIM-CAVEAT-MARKED`). The marked residual is **established by this phase, not pre-declared**, published in `docs/conformance-baseline.md`, and pinned as a **ratchet \u2014 it may fall, never rise.** Citation *correctness* is explicitly out of scope and remains backlog 999.4"
+    "statement": "Zero non-conforming \u00a72 verdict cells under the unmodified `_verdict_conforms` (**69 \u2192 0**); and zero **silent** untraced \u00a76 claims (**56 \u2192 0**) \u2014 every claim either names its chain inline or carries the `no chain \u2014 flagged assumption only` marker already prescribed by `output-template.md`, `validation-rubric.md` and `SKILL-body.md`. The `untraced_claims` reading itself **will not reach zero and must not be expected to**: a marked caveat still scores untraced by design (`R-CLAIM-CAVEAT-MARKED`). The marked residual is **established by this phase, not pre-declared**, published in `docs/conformance-baseline.md`, and pinned as a **ratchet \u2014 it may fall, never rise.** Citation *correctness* is explicitly out of scope and remains backlog 999.4",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-06",
@@ -4555,7 +4872,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A standing battery gate (`CONF-GATE`) fails if any count in CONF-03..05 rises above its target on **either** surface \u2014 source and emitted bytes \u2014 registered in `check-firewall-battery.sh` and `.github/workflows/validation.yml`, moving the battery **24 \u2192 25**"
+    "statement": "A standing battery gate (`CONF-GATE`) fails if any count in CONF-03..05 rises above its target on **either** surface \u2014 source and emitted bytes \u2014 registered in `check-firewall-battery.sh` and `.github/workflows/validation.yml`, moving the battery **24 \u2192 25**",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-07",
@@ -4569,7 +4887,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`tests/adversarial-corpus-v9.0/` ships **at least 12** analyses that pass every form check (0 malformed blocks, 0 non-conforming verdicts, 0 untraced claims) while being substantively wrong, each with a written statement of what is false about it and which rule *ought* to have caught it \u2014 including 999.2's seed case, a closure ledger citing arbitrary chains \u2014 and is registered under `_FROZEN_PATHS` so FROZEN-EVIDENCE catches tampering"
+    "statement": "`tests/adversarial-corpus-v9.0/` ships **at least 12** analyses that pass every form check (0 malformed blocks, 0 non-conforming verdicts, 0 untraced claims) while being substantively wrong, each with a written statement of what is false about it and which rule *ought* to have caught it \u2014 including 999.2's seed case, a closure ledger citing arbitrary chains \u2014 and is registered under `_FROZEN_PATHS` so FROZEN-EVIDENCE catches tampering",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v9.0/CONF-08",
@@ -4583,7 +4902,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`detect_defects` is run over the whole corpus and the false-negative rate is published as a single figure in `docs/conformance-baseline.md`; every corpus item scoring fully clean is filed as a **named hole** with an explicit disposition \u2014 fix, accept-with-reason, or defer-with-owner. **Zero silent passes.**"
+    "statement": "`detect_defects` is run over the whole corpus and the false-negative rate is published as a single figure in `docs/conformance-baseline.md`; every corpus item scoring fully clean is filed as a **named hole** with an explicit disposition \u2014 fix, accept-with-reason, or defer-with-owner. **Zero silent passes.**",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v9.0/CONF-09",
@@ -4597,7 +4917,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "**At least 5** live runs are captured on the shipped v8.26.0 body across the fixture set, with each capture's full `detect_defects` reading committed under `tests/live-conformance-v9.0/`"
+    "statement": "**At least 5** live runs are captured on the shipped v8.26.0 body across the fixture set, with each capture's full `detect_defects` reading committed under `tests/live-conformance-v9.0/`",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v9.0/CONF-10",
@@ -4611,7 +4932,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A live conformance rate \u2014 runs with zero form defects over runs attempted \u2014 is published in `docs/conformance-baseline.md` as an **observation with its N stated**, subject to the same noise discipline the K-of-5 record establishes (*\"at N=5, noise equals effect\"*). It may inform a phase; it may not block one. Every defect the live runs expose is filed against the **artifact or the prescription**, never closed by widening a detector"
+    "statement": "A live conformance rate \u2014 runs with zero form defects over runs attempted \u2014 is published in `docs/conformance-baseline.md` as an **observation with its N stated**, subject to the same noise discipline the K-of-5 record establishes (*\"at N=5, noise equals effect\"*). It may inform a phase; it may not block one. Every defect the live runs expose is filed against the **artifact or the prescription**, never closed by widening a detector",
+    "rerun_by": "pre-commit-only"
   },
   {
     "key": "v9.0/CONF-11",
@@ -4625,7 +4947,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every registered gate script supports `--describe`, emitting its own documentation row from its live constants \u2014 branch counts, registered surfaces, disclosed bounds"
+    "statement": "Every registered gate script supports `--describe`, emitting its own documentation row from its live constants \u2014 branch counts, registered surfaces, disclosed bounds",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-12",
@@ -4639,7 +4962,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CLAUDE.md`'s CI-gate table and `docs/ARCHITECTURE.md`'s inventory are **generated** from those emissions, with a gate failing when committed text \u2260 emitted text; per-gate detail moves to `docs/gates/<GATE-ID>.md`."
+    "statement": "`CLAUDE.md`'s CI-gate table and `docs/ARCHITECTURE.md`'s inventory are **generated** from those emissions, with a gate failing when committed text \u2260 emitted text; per-gate detail moves to `docs/gates/<GATE-ID>.md`.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-13",
@@ -4653,7 +4977,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Hand-maintained branch-count literals in prose \u2192 **0**, verified by a check that fails if one reappears. A deliberately partial sweep finds 9 across `CLAUDE.md`, `docs/ARCHITECTURE.md` and `check-selfaudit-scan.py`'s docstring; spelled-out forms (\"fifty-eight to seventy-two\", \"eighty-six\", \"ninety-four\") are uncovered by that sweep, so **establishing the real figure is this requirement's first task**"
+    "statement": "Hand-maintained branch-count literals in prose \u2192 **0**, verified by a check that fails if one reappears. A deliberately partial sweep finds 9 across `CLAUDE.md`, `docs/ARCHITECTURE.md` and `check-selfaudit-scan.py`'s docstring; spelled-out forms (\"fifty-eight to seventy-two\", \"eighty-six\", \"ninety-four\") are uncovered by that sweep, so **establishing the real figure is this requirement's first task**",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/CONF-14",
@@ -4667,7 +4992,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The depth rule \u2014 **\"a guard guards the product; a guard is not itself guarded\"** \u2014 is stated in `CLAUDE.md` and `CONTRIBUTING.md` with the `999.27 \u2192 999.28 \u2192 999.30` chain cited as its measured justification; backlog **999.30** and **999.31** each carry a recorded terminal disposition \u2014 closed-by-decision under the depth rule, or promoted with a written bound. Neither remains open-and-unowned"
+    "statement": "The depth rule \u2014 **\"a guard guards the product; a guard is not itself guarded\"** \u2014 is stated in `CLAUDE.md` and `CONTRIBUTING.md` with the `999.27 \u2192 999.28 \u2192 999.30` chain cited as its measured justification; backlog **999.30** and **999.31** each carry a recorded terminal disposition \u2014 closed-by-decision under the depth rule, or promoted with a written bound. Neither remains open-and-unowned",
+    "rerun_by": "none"
   },
   {
     "key": "v9.0/CONF-15",
@@ -4681,7 +5007,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The review protocol distinguishes **product findings** (block the phase) from **apparatus findings** (auto-file to backlog, never block), `/bm:code-review`'s output reflects the split, and a phase-level rework cap is written down: **more than 2 gap-closure plans halts the phase and forces a replan**"
+    "statement": "The review protocol distinguishes **product findings** (block the phase) from **apparatus findings** (auto-file to backlog, never block), `/bm:code-review`'s output reflects the split, and a phase-level rework cap is written down: **more than 2 gap-closure plans halts the phase and forces a replan**",
+    "rerun_by": "none"
   },
   {
     "key": "v9.0/REL-01",
@@ -4695,7 +5022,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps read `9.0.0`; VERSION-01 green; `sync-content.py --check` clean"
+    "statement": "All 17 hand-maintained version stamps read `9.0.0`; VERSION-01 green; `sync-content.py --check` clean",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/REL-02",
@@ -4709,7 +5037,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`check-firewall-battery.sh` reports GREEN with `CONF-GATE` and every Phase 21/22 control registered, and every surface stating the gate count agrees with what it runs"
+    "statement": "`check-firewall-battery.sh` reports GREEN with `CONF-GATE` and every Phase 21/22 control registered, and every surface stating the gate count agrees with what it runs",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v9.0/REL-03",
@@ -4723,7 +5052,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "This milestone's requirements are registered as matrix rows and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit"
+    "statement": "This milestone's requirements are registered as matrix rows and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.0/REL-04",
@@ -4737,7 +5067,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CHANGELOG.md` carries a `[9.0.0]` entry that **closes the SHIP-05 disclosure by name** \u2014 restating the v8.26.0 figures with the post-fix reading beside each, so the two entries read as one before/after pair rather than two unrelated snapshots; and `docs/conformance-baseline.md` carries its final post-milestone reading with the marked-claim residual stated as the ratchet's standing value"
+    "statement": "`CHANGELOG.md` carries a `[9.0.0]` entry that **closes the SHIP-05 disclosure by name** \u2014 restating the v8.26.0 figures with the post-fix reading beside each, so the two entries read as one before/after pair rather than two unrelated snapshots; and `docs/conformance-baseline.md` carries its final post-milestone reading with the marked-claim residual stated as the ratchet's standing value",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/PROSE-01",
@@ -4751,7 +5082,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The mechanism is named in writing \u2014 why quantity-shaped claims in hand-written prose go stale on generated-surface pages \u2014 identifying containment's `N \u2192 M` delta exemption as the structural cause of CR-01, **at the level of the mechanism rather than the instance**. The exemption is correct in intent (prose must be able to narrate a quantity's history) and strips the *whole* vector including its terminus, so a chain whose final value has gone stale is indistinguishable from one that is current."
+    "statement": "The mechanism is named in writing \u2014 why quantity-shaped claims in hand-written prose go stale on generated-surface pages \u2014 identifying containment's `N \u2192 M` delta exemption as the structural cause of CR-01, **at the level of the mechanism rather than the instance**. The exemption is correct in intent (prose must be able to narrate a quantity's history) and strips the *whole* vector including its terminus, so a chain whose final value has gone stale is indistinguishable from one that is current.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/PROSE-02",
@@ -4765,7 +5097,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The diagnosis names at least one currently-unflagged site where the identical shape could recur, located **before** any fix is written. (WYLFIWYF \u2014 a diagnosis stopping at the instance already found is not yet at the level the defect lives at.)"
+    "statement": "The diagnosis names at least one currently-unflagged site where the identical shape could recur, located **before** any fix is written. (WYLFIWYF \u2014 a diagnosis stopping at the instance already found is not yet at the level the defect lives at.)",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/PROSE-03",
@@ -4779,7 +5112,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The milestone states in writing that the consistency-shaped (no-digit) class is **not** covered, names 999.50 / 999.51 as its answer, and states why no mechanism proposed here reaches it."
+    "statement": "The milestone states in writing that the consistency-shaped (no-digit) class is **not** covered, names 999.50 / 999.51 as its answer, and states why no mechanism proposed here reaches it.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/PROSE-04",
@@ -4793,7 +5127,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "CR-01, CR-02 and CR-03 each carry a **recorded disposition** \u2014 closed, or explicitly accepted with a stated bound naming where it closes. This is v9.0.0's held-release condition (`23-CONTEXT.md` D-06); discharging it is what lets Phase 23's release act run. CR-02 is consistency-shaped and therefore dispositioned by routing, not by fix \u2014 recording that routing, with its reason, satisfies this requirement."
+    "statement": "CR-01, CR-02 and CR-03 each carry a **recorded disposition** \u2014 closed, or explicitly accepted with a stated bound naming where it closes. This is v9.0.0's held-release condition (`23-CONTEXT.md` D-06); discharging it is what lets Phase 23's release act run. CR-02 is consistency-shaped and therefore dispositioned by routing, not by fix \u2014 recording that routing, with its reason, satisfies this requirement.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/CONTAIN-01",
@@ -4807,7 +5142,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CONF-SURFACE`'s containment check reaches `CLAUDE.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`, not `docs/gates/*.md` alone. Marker constants already exist (`_generated_marker_pairs_for()`)."
+    "statement": "`CONF-SURFACE`'s containment check reaches `CLAUDE.md`, `docs/ARCHITECTURE.md` and `docs/TESTING.md`, not `docs/gates/*.md` alone. Marker constants already exist (`_generated_marker_pairs_for()`).",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/CONTAIN-02",
@@ -4821,7 +5157,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A chain-terminus arm asserts an `N \u2192 M` delta chain's final value against a live fence value. **CR-01 fails the check before the fix and passes after** \u2014 demonstrated by mutation, not asserted."
+    "statement": "A chain-terminus arm asserts an `N \u2192 M` delta chain's final value against a live fence value. **CR-01 fails the check before the fix and passes after** \u2014 demonstrated by mutation, not asserted.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/CONTAIN-03",
@@ -4835,7 +5172,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Every containment change carries a written REACH-or-LEVEL determination per `docs/PROCESS.md` \u00a71.1, with the argument stated rather than the label asserted."
+    "statement": "Every containment change carries a written REACH-or-LEVEL determination per `docs/PROCESS.md` \u00a71.1, with the argument stated rather than the label asserted.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/CONTAIN-04",
@@ -4849,7 +5187,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "After wider containment lands, the deferred-literal ledger is reconciled and `_DEFERRED_LEDGER_MAX` re-pinned to the new live size, with the delta **measured and published**, never estimated. (Research estimates \"tens, not hundreds\" and flags it unmeasured; that estimate may not be restated as a finding.) **Containment half: plan 26-05** \u2014 the deferred-**containment** ledger (`_DEFERRED_CONTAINMENT_HITS`, D-05's other ledger) reconciled 26 \u2192 23, re-pinned `_CONTAINMENT_LEDGER_MAX` and its key digest in the same commit, with the measured delta and per-class residue published on `docs/gates/CONF-SURFACE.md`'s disclosed bound (11). **Literal half: plan 26-06** \u2014 re-checking every ledger reason asserting a live `--describe` value found `('CLAUDE.md', '(43 controls)')`'s reason had gone false (43 vs. the live 44); the stale hand-typed parenthetical was replaced with a pointer to `CLAUDE.md`'s own generated CONF-GATE row, `_DEFERRED_LEDGER_MAX`/`_DEFERRED_LEDGER_KEYS_DIGEST` were re-pinned 181 \u2192 180 in the same commit, and the twin containment entry the fix also invalidated was reconciled in the same commit (23 \u2192 22, keeping plan 26-05's ratchet green). Neither ledger is empty \u2014 both retain a `cannot_reach`/`frozen_historical` (or mechanically-pinned) residue, genuinely reconciled but not closeable by construction; see `docs/gates/ CONF-SURFACE.md`'s disclosed bounds (11)/(12) and backlog `999.69`/`999.41`."
+    "statement": "After wider containment lands, the deferred-literal ledger is reconciled and `_DEFERRED_LEDGER_MAX` re-pinned to the new live size, with the delta **measured and published**, never estimated. (Research estimates \"tens, not hundreds\" and flags it unmeasured; that estimate may not be restated as a finding.) **Containment half: plan 26-05** \u2014 the deferred-**containment** ledger (`_DEFERRED_CONTAINMENT_HITS`, D-05's other ledger) reconciled 26 \u2192 23, re-pinned `_CONTAINMENT_LEDGER_MAX` and its key digest in the same commit, with the measured delta and per-class residue published on `docs/gates/CONF-SURFACE.md`'s disclosed bound (11). **Literal half: plan 26-06** \u2014 re-checking every ledger reason asserting a live `--describe` value found `('CLAUDE.md', '(43 controls)')`'s reason had gone false (43 vs. the live 44); the stale hand-typed parenthetical was replaced with a pointer to `CLAUDE.md`'s own generated CONF-GATE row, `_DEFERRED_LEDGER_MAX`/`_DEFERRED_LEDGER_KEYS_DIGEST` were re-pinned 181 \u2192 180 in the same commit, and the twin containment entry the fix also invalidated was reconciled in the same commit (23 \u2192 22, keeping plan 26-05's ratchet green). Neither ledger is empty \u2014 both retain a `cannot_reach`/`frozen_historical` (or mechanically-pinned) residue, genuinely reconciled but not closeable by construction; see `docs/gates/ CONF-SURFACE.md`'s disclosed bounds (11)/(12) and backlog `999.69`/`999.41`.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/NARR-01",
@@ -4863,7 +5202,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`docs/PROCESS.md` \u00a72's digit-narrowing rule is generalized from the gate-battery count to every restated moving count, preserving the frozen-historical-count exception \u00a72 already draws. Complete: plan 26-02, commit `2162730` \u2014 the standing constraint's opening scope clause widened to bind every restated moving count, the frozen-historical-count paragraph verified byte-unchanged by `git diff` (context-only), the enforcement CONF-13 already provides named rather than re-built, and `docs/v9.1-claim-containment-diagnosis.md` \u00a75a's REACH classification cited rather than re-derived."
+    "statement": "`docs/PROCESS.md` \u00a72's digit-narrowing rule is generalized from the gate-battery count to every restated moving count, preserving the frozen-historical-count exception \u00a72 already draws. Complete: plan 26-02, commit `2162730` \u2014 the standing constraint's opening scope clause widened to bind every restated moving count, the frozen-historical-count paragraph verified byte-unchanged by `git diff` (context-only), the enforcement CONF-13 already provides named rather than re-built, and `docs/v9.1-claim-containment-diagnosis.md` \u00a75a's REACH classification cited rather than re-derived.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/NARR-02",
@@ -4877,7 +5217,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Generated narrative regions, produced by `scripts/gen-gate-docs.py`'s existing marker-region machinery (`_replace_region`/`_replace_or_bootstrap_region`, not `cogapp` \u2014 amended by D-04, `.planning/research/ARCHITECTURE.md` \u00a72's rejection, `docs/gates/ CONF-SURFACE.md`'s recorded D-04 amendment), replace hand-typed live literals in narrative prose on surfaces containment cannot reach. **Suppression mechanism, corrected in the same amendment**: what removes a hit is registering the new surface's marker pair in `_generated_marker_pairs_for()` \u2014 `_literal_hits_outside_generated()` filters a fenced hit out of the scan before any exemption class ever sees it. The `generated-narrative-region` entry added to `LITERAL_EXEMPTION_CLASSES` is a named, auditable declaration of the class, not the suppression mechanism itself (resolution (a) of `26-RESEARCH.md`'s two options)."
+    "statement": "Generated narrative regions, produced by `scripts/gen-gate-docs.py`'s existing marker-region machinery (`_replace_region`/`_replace_or_bootstrap_region`, not `cogapp` \u2014 amended by D-04, `.planning/research/ARCHITECTURE.md` \u00a72's rejection, `docs/gates/ CONF-SURFACE.md`'s recorded D-04 amendment), replace hand-typed live literals in narrative prose on surfaces containment cannot reach. **Suppression mechanism, corrected in the same amendment**: what removes a hit is registering the new surface's marker pair in `_generated_marker_pairs_for()` \u2014 `_literal_hits_outside_generated()` filters a fenced hit out of the scan before any exemption class ever sees it. The `generated-narrative-region` entry added to `LITERAL_EXEMPTION_CLASSES` is a named, auditable declaration of the class, not the suppression mechanism itself (resolution (a) of `26-RESEARCH.md`'s two options).",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/RATCHET-01",
@@ -4891,7 +5232,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`scripts/gen-gate-docs.py --check` (`cogapp` is not adopted; amended by D-04 from `cog --check`, same citations as NARR-02 above) runs as **pre-commit gate 5**, already present; a stale generated narrative region blocks the commit. No sixth pre-commit gate is added. **Proved by mutation, plan 26-07 Task 1**: on a disposable `rsync --exclude .git` scratch copy, Arm A (unmutated) passed `--check` exit 0; Arm B (`docs/README.md`'s region mutated) failed exit 1 with a `DRIFT:` line naming that file; Arm C (`CLAUDE.md`'s region mutated, a different host surface) failed exit 1 naming that second file; the census arm (a hand-typed restatement appended to `docs/MEASUREMENT-MAP.md`, outside any fence) failed exit 1 naming the file and the exact line. Every mutation was restored and `md5sum`-confirmed against the real repository before the next arm ran; the real repository's `git status --porcelain` read empty before the first mutation and after the last. Full transcript in `26-07-SUMMARY.md`."
+    "statement": "`scripts/gen-gate-docs.py --check` (`cogapp` is not adopted; amended by D-04 from `cog --check`, same citations as NARR-02 above) runs as **pre-commit gate 5**, already present; a stale generated narrative region blocks the commit. No sixth pre-commit gate is added. **Proved by mutation, plan 26-07 Task 1**: on a disposable `rsync --exclude .git` scratch copy, Arm A (unmutated) passed `--check` exit 0; Arm B (`docs/README.md`'s region mutated) failed exit 1 with a `DRIFT:` line naming that file; Arm C (`CLAUDE.md`'s region mutated, a different host surface) failed exit 1 naming that second file; the census arm (a hand-typed restatement appended to `docs/MEASUREMENT-MAP.md`, outside any fence) failed exit 1 naming the file and the exact line. Every mutation was restored and `md5sum`-confirmed against the real repository before the next arm ran; the real repository's `git status --porcelain` read empty before the first mutation and after the last. Full transcript in `26-07-SUMMARY.md`.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/RATCHET-02",
@@ -4905,7 +5247,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "The deferred-literal ledger carries a non-increase assertion, with its **growth-only limit stated where the assertion lives**, so it is never read as verifying that existing entries are still correctly exempted. **Containment half: plan 26-05** \u2014 `_CONTAINMENT_LEDGER_MAX`'s own comment block states the size-only scope explicitly, citing the concrete `('CLAUDE.md', '43')` instance this plan found (a reason gone stale one day after being written, with no size or key-set change to trip any ratchet predicate). **Literal half: plan 26-06** \u2014 the identical size-only scope sentence is added to `_DEFERRED_LEDGER_MAX`'s own comment block (this requirement's own named subject), citing the same concrete instance from the literal-ledger side (`('CLAUDE.md', '(43 controls)')`'s reason going stale one day after being written)."
+    "statement": "The deferred-literal ledger carries a non-increase assertion, with its **growth-only limit stated where the assertion lives**, so it is never read as verifying that existing entries are still correctly exempted. **Containment half: plan 26-05** \u2014 `_CONTAINMENT_LEDGER_MAX`'s own comment block states the size-only scope explicitly, citing the concrete `('CLAUDE.md', '43')` instance this plan found (a reason gone stale one day after being written, with no size or key-set change to trip any ratchet predicate). **Literal half: plan 26-06** \u2014 the identical size-only scope sentence is added to `_DEFERRED_LEDGER_MAX`'s own comment block (this requirement's own named subject), citing the same concrete instance from the literal-ledger side (`('CLAUDE.md', '(43 controls)')`'s reason going stale one day after being written).",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/RATCHET-03",
@@ -4919,7 +5262,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A diff-review scan flags a removed literal replaced by a hedge word with no compensating precision added elsewhere \u2014 CR-05's gaming move made detectable. **Discharged by a recorded DROP with its reason** (plan 26-01, commit `78b45a9`), which criterion 5's own wording calls a success: `docs/v9.1-claim-containment-diagnosis.md` \u00a76's \"RATCHET-03\" subsection states the argument (its trigger cannot be adjudicated from the diff alone, only by referencing CONF-13's own state at the moment of the edit \u2014 a LEVEL move, not REACH); the verdict is landed at both sites \u2014 `.planning/ROADMAP.md`'s criterion 4 pointer and criterion 5's own drop slot \u2014 and `docs/gates/CONF-SURFACE.md`'s \"The RATCHET verdicts, landed\" subsection cites it rather than re-deriving it. Read: `/usr/bin/grep -n \"RATCHET-03\" .planning/ROADMAP.md docs/gates/CONF-SURFACE.md` shows the DROP recorded at both landing sites, with no new mechanism built to carry it."
+    "statement": "A diff-review scan flags a removed literal replaced by a hedge word with no compensating precision added elsewhere \u2014 CR-05's gaming move made detectable. **Discharged by a recorded DROP with its reason** (plan 26-01, commit `78b45a9`), which criterion 5's own wording calls a success: `docs/v9.1-claim-containment-diagnosis.md` \u00a76's \"RATCHET-03\" subsection states the argument (its trigger cannot be adjudicated from the diff alone, only by referencing CONF-13's own state at the moment of the edit \u2014 a LEVEL move, not REACH); the verdict is landed at both sites \u2014 `.planning/ROADMAP.md`'s criterion 4 pointer and criterion 5's own drop slot \u2014 and `docs/gates/CONF-SURFACE.md`'s \"The RATCHET verdicts, landed\" subsection cites it rather than re-deriving it. Read: `/usr/bin/grep -n \"RATCHET-03\" .planning/ROADMAP.md docs/gates/CONF-SURFACE.md` shows the DROP recorded at both landing sites, with no new mechanism built to carry it.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/RATCHET-04",
@@ -4933,7 +5277,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Each of RATCHET-01..03 carries a written REACH-or-LEVEL determination **before** it is built, and the milestone records the argument that the three together do not constitute the meta-guard regress `docs/PROCESS.md` \u00a71 caps. This requirement exists because the research argued against this branch \u2014 see the standing risk note in PROJECT.md. **Discharged**: `docs/gates/CONF-SURFACE.md`'s \"## REACH-or-LEVEL determinations (Phase 26, NARR-01, NARR-02, RATCHET-01, RATCHET-02, RATCHET-03)\" section, landed by plan 26-01 (commit `78b45a9`) before any of NARR-01/NARR-02/RATCHET-01/RATCHET-02/the roster-and-census wiring existed, carries all three RATCHET verdicts (cited from `docs/v9.1-claim-containment- diagnosis.md` \u00a76, not restated), the meta-guard-regress argument, and the forward determinations for this phase's own new mechanisms. Plan 26-07's own \"The four self-referential tests, answered for this phase\" section (`docs/gates/CONF-SURFACE.md`) confirms test 3 by pointing at that same dated section rather than re-deriving it."
+    "statement": "Each of RATCHET-01..03 carries a written REACH-or-LEVEL determination **before** it is built, and the milestone records the argument that the three together do not constitute the meta-guard regress `docs/PROCESS.md` \u00a71 caps. This requirement exists because the research argued against this branch \u2014 see the standing risk note in PROJECT.md. **Discharged**: `docs/gates/CONF-SURFACE.md`'s \"## REACH-or-LEVEL determinations (Phase 26, NARR-01, NARR-02, RATCHET-01, RATCHET-02, RATCHET-03)\" section, landed by plan 26-01 (commit `78b45a9`) before any of NARR-01/NARR-02/RATCHET-01/RATCHET-02/the roster-and-census wiring existed, carries all three RATCHET verdicts (cited from `docs/v9.1-claim-containment- diagnosis.md` \u00a76, not restated), the meta-guard-regress argument, and the forward determinations for this phase's own new mechanisms. Plan 26-07's own \"The four self-referential tests, answered for this phase\" section (`docs/gates/CONF-SURFACE.md`) confirms test 3 by pointing at that same dated section rather than re-deriving it.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.1/REL-05",
@@ -4947,7 +5292,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps read `9.1.0`; VERSION-01 green; `sync-content.py --check` clean."
+    "statement": "All 17 hand-maintained version stamps read `9.1.0`; VERSION-01 green; `sync-content.py --check` clean.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/REL-06",
@@ -4961,7 +5307,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`check-firewall-battery.sh` reports GREEN and the battery total is **still 26** \u2014 the unchanged total is itself a success criterion, per D-D."
+    "statement": "`check-firewall-battery.sh` reports GREEN and the battery total is **still 26** \u2014 the unchanged total is itself a success criterion, per D-D.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v9.1/REL-07",
@@ -4975,7 +5322,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "This milestone's requirements are registered as matrix rows and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit."
+    "statement": "This milestone's requirements are registered as matrix rows and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.1/REL-08",
@@ -4989,7 +5337,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`CHANGELOG.md` carries a `[9.1.0]` entry, and verification is measured against **product recurrence** \u2014 does the defect class recur, checked the way `docs/PROCESS.md` measured the four prior recurrences \u2014 never against \"was the new convention followed\"."
+    "statement": "`CHANGELOG.md` carries a `[9.1.0]` entry, and verification is measured against **product recurrence** \u2014 does the defect class recur, checked the way `docs/PROCESS.md` measured the four prior recurrences \u2014 never against \"was the new convention followed\".",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2/SUP-01",
@@ -5003,7 +5352,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "A fact supplied in the Input Contract's `Known ground truths` slot enters Phase 2 as a candidate and is classified like any other input \u2014 no Input Contract bullet exempts its contents from challenge. *Target: bullets in `shared/agent/input-contract.md` exempting their contents from Phase 2 classification \u2192 0 (reading at `1ccc90e`: 1 of 4); sentences in the emitted agent body describing supplied facts as exempt from challenge \u2192 0 (reading: 1, the bullet's second line in `first-principles/agents/first-principles.md`).*"
+    "statement": "A fact supplied in the Input Contract's `Known ground truths` slot enters Phase 2 as a candidate and is classified like any other input \u2014 no Input Contract bullet exempts its contents from challenge. *Target: bullets in `shared/agent/input-contract.md` exempting their contents from Phase 2 classification \u2192 0 (reading at `1ccc90e`: 1 of 4); sentences in the emitted agent body describing supplied facts as exempt from challenge \u2192 0 (reading: 1, the bullet's second line in `first-principles/agents/first-principles.md`).*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/SUP-02",
@@ -5017,7 +5367,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "The rewritten bullet states which provenance label a supplied fact receives \u2014 a fact naming a source enters as `reported-by-delegate`, one naming none enters as `unverified` \u2014 and that supplying a fact does not discharge Phase 3 verification for it. It points at Phase 3's rule rather than restating the provenance table (D-B), so the rule keeps one home. *Target: the bullet names both labels and points at Phase 3 verification; sentences added anywhere in `shared/` restating the provenance table \u2192 0.*"
+    "statement": "The rewritten bullet states which provenance label a supplied fact receives \u2014 a fact naming a source enters as `reported-by-delegate`, one naming none enters as `unverified` \u2014 and that supplying a fact does not discharge Phase 3 verification for it. It points at Phase 3's rule rather than restating the provenance table (D-B), so the rule keeps one home. *Target: the bullet names both labels and points at Phase 3 verification; sentences added anywhere in `shared/` restating the provenance table \u2192 0.*",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2/SUP-03",
@@ -5043,7 +5394,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "Every focused stub carrying a closing handoff routes its output into the main agent as a candidate input for Phase 2, not into a challenge-exempt slot. *Population: `grep -l \"invoke the main \\`first-principles\\`\" shared/skills/*/SKILL.md` (reading at `1ccc90e`: 13; the `first-principles-analysis` launcher carries no such line). Target: stubs whose handoff routes into `Known ground truths` \u2192 0.*"
+    "statement": "Every focused stub carrying a closing handoff routes its output into the main agent as a candidate input for Phase 2, not into a challenge-exempt slot. *Population: `grep -l \"invoke the main \\`first-principles\\`\" shared/skills/*/SKILL.md` (reading at `1ccc90e`: 13; the `first-principles-analysis` launcher carries no such line). Target: stubs whose handoff routes into `Known ground truths` \u2192 0.*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/SUP-04",
@@ -5069,7 +5421,8 @@
       "trade-off",
       "validate"
     ],
-    "statement": "Every such handoff states, at the point of handoff, that the run opened no cited source and that its `?` marks carry forward. *Target: stubs stating it = the SUP-03 population (reading at `1ccc90e`: 0). `_CLOSING_HANDOFF_ANCHOR` stays verbatim and in position.*"
+    "statement": "Every such handoff states, at the point of handoff, that the run opened no cited source and that its `?` marks carry forward. *Target: stubs stating it = the SUP-03 population (reading at `1ccc90e`: 0). `_CLOSING_HANDOFF_ANCHOR` stays verbatim and in position.*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/GUARD-01",
@@ -5083,7 +5436,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "HARN-02's existing input-contract check anchors the new bullet's wording with a presence literal, and its `--self-test` carries a negative control proving that literal is load-bearing. Lands in commit A. *Target: literals in `scripts/check-loop-closure.py` anchoring Input Contract bullet 4 \u2192 at least 1 (reading at `1ccc90e`: 0).*"
+    "statement": "HARN-02's existing input-contract check anchors the new bullet's wording with a presence literal, and its `--self-test` carries a negative control proving that literal is load-bearing. Lands in commit A. *Target: literals in `scripts/check-loop-closure.py` anchoring Input Contract bullet 4 \u2192 at least 1 (reading at `1ccc90e`: 0).*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/GUARD-02",
@@ -5097,7 +5451,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "HARN-03's stub-surface check anchors the new handoff tail with a presence literal, and its `--self-test` carries a negative control proving that literal is load-bearing. Lands in commit B. *Target: literals in `scripts/check-focused-parity.py` anchoring the handoff tail \u2192 at least 1 (reading at `1ccc90e`: 0 \u2014 the tail is anchored nowhere in the repository).*"
+    "statement": "HARN-03's stub-surface check anchors the new handoff tail with a presence literal, and its `--self-test` carries a negative control proving that literal is load-bearing. Lands in commit B. *Target: literals in `scripts/check-focused-parity.py` anchoring the handoff tail \u2192 at least 1 (reading at `1ccc90e`: 0 \u2014 the tail is anchored nowhere in the repository).*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/GUARD-03",
@@ -5111,7 +5466,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Each guard extension carries a written REACH-or-LEVEL determination under `docs/PROCESS.md` \u00a71.1, with the argument stated rather than the label asserted (expected: REACH \u2014 an existing product guard pointed at more product text)."
+    "statement": "Each guard extension carries a written REACH-or-LEVEL determination under `docs/PROCESS.md` \u00a71.1, with the argument stated rather than the label asserted (expected: REACH \u2014 an existing product guard pointed at more product text).",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2/REL-09",
@@ -5125,7 +5481,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "All 17 hand-maintained version stamps read `9.2.0`; `VERSION-01` green; `sync-content.py --check` clean."
+    "statement": "All 17 hand-maintained version stamps read `9.2.0`; `VERSION-01` green; `sync-content.py --check` clean.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/REL-10",
@@ -5139,7 +5496,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "`check-firewall-battery.sh` reports `FIREWALL: GREEN`, the registered battery total is unchanged from its reading at `1ccc90e` (26) and the CI job count is unchanged (23) \u2014 the unchanged totals are themselves the criterion."
+    "statement": "`check-firewall-battery.sh` reports `FIREWALL: GREEN`, the registered battery total is unchanged from its reading at `1ccc90e` (26) and the CI job count is unchanged (23) \u2014 the unchanged totals are themselves the criterion.",
+    "rerun_by": "battery-only"
   },
   {
     "key": "v9.2/REL-11",
@@ -5153,7 +5511,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "A `[9.2.0]` CHANGELOG entry names 999.50 and 999.51 as closed, records the label decision (D-B), and states the standing limit in plain words: presence is checkable, obedience is not."
+    "statement": "A `[9.2.0]` CHANGELOG entry names 999.50 and 999.51 as closed, records the label decision (D-B), and states the standing limit in plain words: presence is checkable, obedience is not.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2/REL-12",
@@ -5167,7 +5526,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "This milestone's requirements are registered as matrix rows, and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit."
+    "statement": "This milestone's requirements are registered as matrix rows, and the coverage-headline move is produced by `HEADLINE-LOCK`'s sweep, not a hand edit.",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2/REL-13",
@@ -5181,7 +5541,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "Verified against recurrence, not compliance. After the release commit, the exemption shape \u2014 a supplied or handed-over input described as exempt from challenge, or routed into a slot so described \u2014 recurs at 0 sites across `shared/` and `first-principles/`, derived by grep over both trees, with `tests/step0-captures-v7.11/` byte-unchanged (FROZEN-EVIDENCE green)."
+    "statement": "Verified against recurrence, not compliance. After the release commit, the exemption shape \u2014 a supplied or handed-over input described as exempt from challenge, or routed into a slot so described \u2014 recurs at 0 sites across `shared/` and `first-principles/`, derived by grep over both trees, with `tests/step0-captures-v7.11/` byte-unchanged (FROZEN-EVIDENCE green).",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/HAND-01",
@@ -5195,7 +5556,8 @@
     "surfaces": [
       "identify-essence"
     ],
-    "statement": "`identify-essence`'s closing handoff routes its Essence Statement into the Input Contract's problem-statement/domain fields as a **framing**, and says in as many words that a framing is not a candidate fact for Phase 2. *Target: focused stubs whose closing handoff routes a Phase 1 artifact into Phase 2 \u2192 0 (reading at `1dc0892`: 1). The rewritten tail names the Input Contract field it targets.*"
+    "statement": "`identify-essence`'s closing handoff routes its Essence Statement into the Input Contract's problem-statement/domain fields as a **framing**, and says in as many words that a framing is not a candidate fact for Phase 2. *Target: focused stubs whose closing handoff routes a Phase 1 artifact into Phase 2 \u2192 0 (reading at `1dc0892`: 1). The rewritten tail names the Input Contract field it targets.*",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/HAND-02",
@@ -5209,7 +5571,8 @@
     "surfaces": [
       "reason-upward"
     ],
-    "statement": "`reason-upward`'s closing handoff routes its Derivation Chains to **Phase 5 validation**, and routes the ground truths those chains cite to Phase 2 as candidates \u2014 stating that the chains rest on inputs the focused run did not verify. *Target: focused stubs whose closing handoff routes a Phase 4 conclusion back in as an unclassified candidate \u2192 0 (reading: 1). The rewritten tail names both destinations.*"
+    "statement": "`reason-upward`'s closing handoff routes its Derivation Chains to **Phase 5 validation**, and routes the ground truths those chains cite to Phase 2 as candidates \u2014 stating that the chains rest on inputs the focused run did not verify. *Target: focused stubs whose closing handoff routes a Phase 4 conclusion back in as an unclassified candidate \u2192 0 (reading: 1). The rewritten tail names both destinations.*",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/HAND-03",
@@ -5223,7 +5586,8 @@
     "surfaces": [
       "validate"
     ],
-    "statement": "`validate`'s closing handoff routes its findings as **the Phase 5 verdict to act on**, with each Absent or Weak verdict going to the phase its own existing re-entry edge names. *Target: focused stubs whose closing handoff routes a Phase 5 verdict into Phase 2 \u2192 0 (reading: 1). The rewritten tail names no edge that does not already exist.*"
+    "statement": "`validate`'s closing handoff routes its findings as **the Phase 5 verdict to act on**, with each Absent or Weak verdict going to the phase its own existing re-entry edge names. *Target: focused stubs whose closing handoff routes a Phase 5 verdict into Phase 2 \u2192 0 (reading: 1). The rewritten tail names no edge that does not already exist.*",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/HAND-04",
@@ -5246,7 +5610,8 @@
       "theoretical-limit",
       "trade-off"
     ],
-    "statement": "the ten unclassified-facts stubs keep v9.2.0's tail **byte-unchanged**. *Target: stubs in the unclassified-facts class carrying the v9.2.0 tail verbatim = the full class population, re-derived at execution time (reading: 13 stubs carry it; 10 must still carry it at close, 3 must not).*"
+    "statement": "the ten unclassified-facts stubs keep v9.2.0's tail **byte-unchanged**. *Target: stubs in the unclassified-facts class carrying the v9.2.0 tail verbatim = the full class population, re-derived at execution time (reading: 13 stubs carry it; 10 must still carry it at close, 3 must not).*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2.1/HAND-05",
@@ -5260,7 +5625,8 @@
     "surfaces": [
       "agent"
     ],
-    "statement": "no new re-entry edge is introduced by any of the three destinations. *Target: HARN-02's four-edge literal present = 1, its five-edge literal present = 0 (both unchanged from `1dc0892`).*"
+    "statement": "no new re-entry edge is introduced by any of the three destinations. *Target: HARN-02's four-edge literal present = 1, its five-edge literal present = 0 (both unchanged from `1dc0892`).*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2.1/REL-14",
@@ -5274,7 +5640,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "all 17 hand-maintained version stamps read `9.2.1`, the plugin tree regenerated by `sync-content.py --write` and never hand-edited. *Target: stamps at `9.2.1` = 17; VERSION-01 and DUAL-04 both PASS.*"
+    "statement": "all 17 hand-maintained version stamps read `9.2.1`, the plugin tree regenerated by `sync-content.py --write` and never hand-edited. *Target: stamps at `9.2.1` = 17; VERSION-01 and DUAL-04 both PASS.*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2.1/REL-15",
@@ -5288,7 +5655,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "the registered battery total is **unchanged at 26** and the CI job count **unchanged at 23**, each established by **direct count** through `check-registration.py`'s own parser at both the phase base and HEAD \u2014 the battery's own GREEN line recorded only as corroboration, never as the evidence."
+    "statement": "the registered battery total is **unchanged at 26** and the CI job count **unchanged at 23**, each established by **direct count** through `check-registration.py`'s own parser at both the phase base and HEAD \u2014 the battery's own GREEN line recorded only as corroboration, never as the evidence.",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/REL-16",
@@ -5302,7 +5670,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "a `[9.2.1]` CHANGELOG entry names **999.78 closed**, records **D-29-A and D-29-C**, names **999.16 as carried forward to v9.3.0** (not closed), and restates the standing limit \u2014 presence is checkable, obedience is not. *(Amended 2026-09-12 under the M3 pivot: the four-class partition moved to v9.3.0 with Phase 30's dissolution, so there is no partition in this release to make a claim about; D-29-B's answer stands but ships with SCOPE-01/02.)*"
+    "statement": "a `[9.2.1]` CHANGELOG entry names **999.78 closed**, records **D-29-A and D-29-C**, names **999.16 as carried forward to v9.3.0** (not closed), and restates the standing limit \u2014 presence is checkable, obedience is not. *(Amended 2026-09-12 under the M3 pivot: the four-class partition moved to v9.3.0 with Phase 30's dissolution, so there is no partition in this release to make a claim about; D-29-B's answer stands but ships with SCOPE-01/02.)*",
+    "rerun_by": "none"
   },
   {
     "key": "v9.2.1/REL-17",
@@ -5316,7 +5685,8 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "this milestone's requirements are registered as matrix rows, and the coverage headline moves on every `COVERED_HEADLINE_SURFACES` member by `HEADLINE-LOCK`'s sweep rather than by hand. *Target: `v9.2.1/` rows in `docs/requirements-matrix.md` = this milestone's requirement count, re-derived at execution time; `HEADLINE-LOCK` PASS on the published headline.*"
+    "statement": "this milestone's requirements are registered as matrix rows, and the coverage headline moves on every `COVERED_HEADLINE_SURFACES` member by `HEADLINE-LOCK`'s sweep rather than by hand. *Target: `v9.2.1/` rows in `docs/requirements-matrix.md` = this milestone's requirement count, re-derived at execution time; `HEADLINE-LOCK` PASS on the published headline.*",
+    "rerun_by": "ci"
   },
   {
     "key": "v9.2.1/REL-18",
@@ -5330,6 +5700,7 @@
     "surfaces": [
       "apparatus"
     ],
-    "statement": "verified against **recurrence, not compliance**. After the release commit, the type-mismatch shape \u2014 a focused stub's handoff routing its output into a phase that does not match the stub's own declared phase \u2014 recurs at 0 sites across `shared/` and `first-principles/`, derived by grep over both trees with a **pattern set fixed and read before the first content edit**; `tests/step0-captures-v7.11/` byte-unchanged (FROZEN-EVIDENCE green). The reading is taken both before and after the release's own last commit."
+    "statement": "verified against **recurrence, not compliance**. After the release commit, the type-mismatch shape \u2014 a focused stub's handoff routing its output into a phase that does not match the stub's own declared phase \u2014 recurs at 0 sites across `shared/` and `first-principles/`, derived by grep over both trees with a **pattern set fixed and read before the first content edit**; `tests/step0-captures-v7.11/` byte-unchanged (FROZEN-EVIDENCE green). The reading is taken both before and after the release's own last commit.",
+    "rerun_by": "none"
   }
 ]

@@ -127,6 +127,7 @@ def test_dangling_file_path_detected() -> None:
         gap_rationale="",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="live-manual",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -148,6 +149,7 @@ def test_dangling_catalog_row_detected() -> None:
         gap_rationale="",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="live-manual",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -173,6 +175,7 @@ def test_missing_rubric_section_detected() -> None:
         gap_rationale="",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="live-manual",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -195,6 +198,7 @@ def test_missing_capability_detected() -> None:
         gap_rationale="no capability assigned",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -217,6 +221,7 @@ def test_missing_coverage_tier_detected() -> None:
         gap_rationale="no tier assigned",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -244,6 +249,7 @@ def test_audit_only_row_is_valid() -> None:
         gap_rationale="Validated by v3.1 milestone audit; no re-runnable gate",
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -268,6 +274,7 @@ def test_gap_row_is_valid() -> None:
         ),
         surfaces=("apparatus",),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert not issues, (
@@ -347,6 +354,7 @@ def test_empty_surfaces_detected() -> None:
         gap_rationale="test fixture",
         surfaces=(),
         statement=mod._STATEMENT_UNRECOVERABLE,
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -409,6 +417,26 @@ def test_matrixrow_requires_statement() -> None:
         )
 
 
+def test_matrixrow_requires_rerun_by() -> None:
+    """Omitting `rerun_by` at construction raises TypeError (D-01: no default,
+    required at every call site — a future batch cannot ship without stating
+    what re-runs it)."""
+    mod = _load_check_traceability()
+    with pytest.raises(TypeError):
+        mod.MatrixRow(
+            key="test/RERUN-01",
+            bare_id="RERUN-01",
+            milestone="test",
+            capability="Methodology",
+            deliverable_path="scripts/check-routing.py",
+            coverage_tier="audit-only",
+            artifact_link="",
+            gap_rationale="test fixture",
+            surfaces=("apparatus",),
+            statement=mod._STATEMENT_UNRECOVERABLE,
+        )
+
+
 def test_blank_statement_detected() -> None:
     """A row with a blank statement is flagged by check_consistency (STMT-01)."""
     mod = _load_check_traceability()
@@ -423,6 +451,7 @@ def test_blank_statement_detected() -> None:
         gap_rationale="test fixture",
         surfaces=("apparatus",),
         statement="   ",
+        rerun_by="none",
     )
     issues = mod.check_consistency([row])
     assert issues, (
@@ -445,6 +474,7 @@ def test_statement_pipe_escaped_in_markdown() -> None:
         gap_rationale="test fixture",
         surfaces=("apparatus",),
         statement="left|right",
+        rerun_by="none",
     )
     rendered = mod.render_matrix_markdown([row])
     assert r"left\|right" in rendered, (
