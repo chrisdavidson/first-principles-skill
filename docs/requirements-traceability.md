@@ -497,6 +497,76 @@ checked. Cross-file dispatch is outside TRACE-03's check today and is a backlog 
 fixed in this phase (standing instruction 2). `_battery_core.py` also holds the RR-* sentinels and
 INVARIANT-CHECK's constants, which is a further reason it is not touched here.
 
+## Release readings (v9.3.0 Phase 35)
+
+These are the two recurrence readings REL-23 requires and the REL-21 direct counts. The instrument
+is `rederive.py`, local-only and git-ignored — it lives under
+`.planning/phases/999.93-shipped-milestones-requirements-have-no-matrix-row-undisclos/trace-atlas/`,
+is not present in a fresh clone, and is not a registered gate. Every reading below is recorded
+against the tracked artifact it reads. Differences are published unreconciled; an unexplained
+difference is filed to backlog, never fixed in the ship phase. This section carries no slash-form
+coverage headline — see the Status line and the Headline history table above for that. The section
+was committed after the second reading it records.
+
+### Direct counts (REL-21), dated 2026-09-14
+
+Via `check-registration.py`'s own `extract_battery_gate_ids` (piped `git show <rev>:...`) and the
+parsed `.github/workflows/validation.yml` `jobs` key, never the battery's own GREEN line: at
+`fda29cc` (`MILESTONE_BASE`), at `3c0fed0` (`PHASE_BASE`, Phase 35's first content commit) and at
+`fe06ec9` (the `[9.3.0]` CHANGELOG commit, the phase's last content commit and Reading 2's
+timing), the battery total reads 24 `extract_battery_gate_ids` registrations plus the 2 inline
+checks (INVARIANT-CHECK, FROZEN-EVIDENCE), and the CI `jobs:` key count is read the same way at all
+three revisions. All three revisions read the identical total and the identical CI job count — the
+close count equals `fda29cc`'s exactly (standing D-D holds). `bash scripts/check-firewall-battery.sh`
+was run once after Reading 2 and printed its `FIREWALL:` verdict line at `GREEN`; that verdict line
+is recorded here only as corroboration, never as REL-21's evidence — the parser counts above are the
+evidence.
+
+### Reading 1 (REL-23), after `522c873`, dated 2026-09-14
+
+`522c873` (Plan 35-07's row-registration/headline-sweep commit) was, at the time of this reading,
+the last commit touching `scripts/check-traceability.py`: `git log -1 --format=%h --
+scripts/check-traceability.py` and `git rev-parse --short HEAD` both read `522c873`. Instrument
+sha256 unchanged from the phase-base value (no instrument edit). All eight `rederive.py`
+subcommands were run with no argument; full verbatim stdout is recorded in the local-only planning
+tree, never on this tracked surface.
+
+| Subcommand | Tracked artifact(s) read | Reading at `522c873` | Differs from phase base? | Explanation |
+|---|---|---|---|---|
+| rowless | docs/data/matrix.json, docs/requirements-traceability.md (plus untracked milestone archives) | ticked-but-rowless total 0; v9.2.1's 5 unticked named (disclosed move) | No | — |
+| gate-rows | docs/data/matrix.json, scripts/_gate_registry.py | Full 22-row table unchanged except TRACE-03's own artifact count, which rose | Yes | Plan 35-07's commit registered 5 `reproducible` v9.3 rows that all cite `scripts/check-traceability.py`. |
+| residuals | docs/data/matrix.json, docs/requirements-traceability.md | `ACCEPTED-FINAL without a row: []` (unchanged) | No | — |
+| skills | scripts/check-traceability.py, docs/data/matrix.json | `MatrixRow` fields unchanged; rows carrying no valid surfaces value: 0 | No | `_rows_v93()`'s new rows all carry `surfaces=("apparatus",)`. |
+| tier-mix | docs/data/matrix.json, scripts/_gate_registry.py, scripts/check-firewall-battery.sh, .github/workflows/validation.yml, .githooks/pre-commit | reproducible count rose; non-gate artifact count unchanged | Yes | The same 5 new reproducible rows raise the denominator; all 5 cite a registered gate script, so none joins the non-gate list. |
+| qual01 | docs/data/matrix.json, .github/workflows/validation.yml | row count unchanged; marked battery-only for all of them | No | `_rows_v93()` carries no QUAL-01-evidenced row. |
+| anchors | docs/data/matrix.json, .github/workflows/validation.yml | anchored count and call-checked count both rose | Yes | 3 of the 5 new rows anchor at a `#_self_test_*` block matching the anchored/call-checked regex; the other 2 cite `scripts/check-traceability.py` too but their anchor names carry no `self_test`/`selftest` substring, so this subcommand's filters count fewer than the `gate-rows` move. |
+| no-text | docs/data/matrix.json | row count rose by the new rows' count; statement provenance moved to `archive` for all of them; a new set of statements match no cited source text | Yes — expected per the phase's own pre-registered correction | The new v9.3 rows classify `archive` by the instrument's own milestone-version rule and expect a `.planning/milestones/v9.3.0-REQUIREMENTS.md` archive that does not exist until `/bm:complete-milestone` archives this milestone — a pre-registered, disclosed gap, not a defect. `check-traceability.py`'s own live leg reads no archive file at all, so no registered gate reads this line and the gate stays green. |
+
+Unexplained differences: 0. Differences fixed inside this phase: 0.
+
+### Reading 2 (REL-23), after `fe06ec9`, dated 2026-09-14
+
+`fe06ec9` (Plan 35-09's `[9.3.0]` CHANGELOG commit) is HEAD; `git show --numstat --format= HEAD`
+names exactly one file, `CHANGELOG.md`; `git log -1 --format=%h -- scripts/check-traceability.py`
+still reads `522c873`, unchanged since Reading 1 — the intervening commit touched only
+`CHANGELOG.md`, which no subcommand reads. Instrument sha256 unchanged from Reading 1 (no
+instrument edit).
+
+| Subcommand | Tracked artifact(s) read | Reading at `fe06ec9` | Differs from Reading 1? | Explanation |
+|---|---|---|---|---|
+| rowless | docs/data/matrix.json, docs/requirements-traceability.md (plus untracked milestone archives) | ticked-but-rowless total 0 (unchanged) | No | — |
+| gate-rows | docs/data/matrix.json, scripts/_gate_registry.py | Full 22-row table unchanged | No | — |
+| residuals | docs/data/matrix.json, docs/requirements-traceability.md | `ACCEPTED-FINAL without a row: []` (unchanged) | No | — |
+| skills | scripts/check-traceability.py, docs/data/matrix.json | `MatrixRow` fields unchanged; rows carrying no valid surfaces value: 0 (unchanged) | No | — |
+| tier-mix | docs/data/matrix.json, scripts/_gate_registry.py, scripts/check-firewall-battery.sh, .github/workflows/validation.yml, .githooks/pre-commit | reproducible and non-gate artifact counts both unchanged | No | — |
+| qual01 | docs/data/matrix.json, .github/workflows/validation.yml | row count unchanged | No | — |
+| anchors | docs/data/matrix.json, .github/workflows/validation.yml | anchored and call-checked counts both unchanged | No | — |
+| no-text | docs/data/matrix.json | row count unchanged; statements matching no cited source text unchanged | No | — |
+
+Unexplained differences: 0. Differences fixed inside this phase: 0. A byte-for-byte diff of
+Reading 2's full verbatim stdout against Reading 1's full verbatim stdout, both held in the
+local-only planning tree, was empty.
+
 ## Gap Findings
 
 Summary of Phase 82 gap analysis. Full details in [`requirements-matrix.md`](requirements-matrix.md) (sections "Gap Findings (GAP-01)" and "Future-Milestone Candidate Work List (GAP-02)").
