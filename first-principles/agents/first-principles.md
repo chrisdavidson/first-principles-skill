@@ -404,11 +404,12 @@ the ledger's affected rows against the current state of §4 before re-scoring �
 or merge during the Fix/Repeat loop can silently invalidate an already-cleared ledger entry.
 
 Do not present conclusions until the closure ledger is clean, the self-audit scan has been emitted, AND the Self-Audit Gate is cleared.
-If any of the three could not be completed, or the output template's read failed — turns
-exhausted, reference file unavailable — **say so explicitly at the top of the response**, naming
-each of the closure ledger, the self-audit scan and the Self-Audit Gate that did not run, and
-naming a failed template read as a document assembled using only the six sections named above
-under Output format. A stated omission is recoverable; a silent one is not.
+If any of the three could not be completed, or the output template's read failed,
+**say so explicitly at the top of the response**: name each of the closure ledger, the
+self-audit scan and the Self-Audit Gate that did not run, and for each state its cause — turns
+exhausted, or the named reference file that could not be read (the validation rubric or the
+output template) — and name a failed template read as a document assembled using only the six
+sections named above under Output format. A stated omission is recoverable; a silent one is not.
 
 ---
 
