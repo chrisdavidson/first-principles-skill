@@ -708,6 +708,179 @@ def _write_skills_fixture(base: Path) -> None:
     (base / "notes.txt").write_text("", encoding="utf-8")
 
 
+def _self_test_reg01_discover_skills(
+    tmp_path: Path, discover_skills, _executed: list[str]
+) -> None:
+    """Controls 1-4 (v8.21/REG-01) — discover_skills() dotfile/symlink/
+    non-directory exclusion (D-10/D-11/D-12) and absent-directory tolerance,
+    against the tempdir fixture _write_skills_fixture built. Appends c1-c4
+    to _executed, the same accumulator _run_self_test's coverage floor
+    reads, as each control passes."""
+    # Control 1 — D-10 dotfile exclusion. Set equality (not a membership
+    # check) proves the filter removed .hidden AND kept the real entries.
+    result = discover_skills(tmp_path)
+    if result != {"alpha", "beta"}:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-10 dotfile "
+            f"exclusion: discover_skills returned {sorted(result)}, "
+            "expected ['alpha', 'beta']\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c1")
+    # Control 2 — D-11 symlink exclusion. Anti-masking: the symlink
+    # target (alpha) itself must survive the exclusion.
+    if "gamma" in result:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-11 symlink "
+            "exclusion: 'gamma' present in discover_skills result\n"
+        )
+        sys.exit(1)
+    if "alpha" not in result:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-11 symlink "
+            "exclusion: 'alpha' (the symlink target) missing from "
+            "discover_skills result — filter is over-broad\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c2")
+    # Control 3 — D-12 non-directory exclusion.
+    if "notes.txt" in result or "notes" in result:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-12 non-directory "
+            f"exclusion: plain file leaked into result {sorted(result)}\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c3")
+    # Control 4 — absent skills dir returns empty set, never raises.
+    absent_result = discover_skills(tmp_path / "does-not-exist")
+    if absent_result != set():
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — absent skills dir: "
+            f"discover_skills returned {sorted(absent_result)}, expected []\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c4")
+
+
+def _self_test_reg02_discover_agent(
+    tmp_path: Path, discover_agent, _executed: list[str]
+) -> None:
+    """Controls 5-6 (v8.21/REG-02) — discover_agent() presence and absence,
+    against the shared tempdir. Appends c5-c6 to _executed."""
+    # Control 5 — agent present.
+    agent_file = tmp_path / "agent.md"
+    agent_file.write_text("agent body\n", encoding="utf-8")
+    present, path = discover_agent(agent_file)
+    if not (present is True and path == agent_file):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — agent present: "
+            f"discover_agent returned ({present!r}, {path!r})\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c5")
+    # Control 6 — agent absent.
+    missing_agent = tmp_path / "missing.md"
+    present, path = discover_agent(missing_agent)
+    if not (present is False and path == missing_agent):
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — agent absent: "
+            f"discover_agent returned ({present!r}, {path!r})\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c6")
+
+
+def _self_test_reg03_parse_manifest(
+    tmp_path: Path, parse_manifest, _executed: list[str]
+) -> None:
+    """Controls 7-10 (v8.21/REG-03) — parse_manifest() valid/malformed
+    JSON/non-object root/missing file (D-05/D-09), against the shared
+    tempdir. Appends c7-c10 to _executed."""
+    # Control 7 — manifest valid.
+    good_manifest = tmp_path / "good.json"
+    good_manifest.write_text('{"name": "x"}', encoding="utf-8")
+    parsed = parse_manifest(good_manifest)
+    if parsed != {"name": "x"}:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — manifest valid: "
+            f"parse_manifest returned {parsed!r}\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c7")
+    # Control 8 — D-09 malformed JSON fail-fast. Must prove SystemExit
+    # actually fires, not merely that no exception escaped.
+    bad_manifest = tmp_path / "bad.json"
+    bad_manifest.write_text("{not json", encoding="utf-8")
+    raised = False
+    try:
+        parse_manifest(bad_manifest)
+    except SystemExit as exc:
+        raised = True
+        if exc.code != 2:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — D-09 malformed "
+                f"JSON fail-fast: exit code {exc.code}, expected 2\n"
+            )
+            sys.exit(1)
+    if not raised:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — D-09 malformed JSON "
+            "fail-fast: parse_manifest did not raise SystemExit\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c8")
+    # Control 9 — non-object manifest root.
+    array_manifest = tmp_path / "arr.json"
+    array_manifest.write_text("[]", encoding="utf-8")
+    raised = False
+    try:
+        parse_manifest(array_manifest)
+    except SystemExit as exc:
+        raised = True
+        if exc.code != 2:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — non-object "
+                f"manifest root: exit code {exc.code}, expected 2\n"
+            )
+            sys.exit(1)
+    if not raised:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — non-object manifest "
+            "root: parse_manifest did not raise SystemExit\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c9")
+    # Control 10 — missing manifest.
+    raised = False
+    try:
+        parse_manifest(tmp_path / "nope.json")
+    except SystemExit as exc:
+        raised = True
+        if exc.code != 2:
+            sys.stderr.write(
+                "check-registration --self-test: FAIL — missing "
+                f"manifest: exit code {exc.code}, expected 2\n"
+            )
+            sys.exit(1)
+    if not raised:
+        sys.stderr.write(
+            "check-registration --self-test: FAIL — missing manifest: "
+            "parse_manifest did not raise SystemExit\n"
+        )
+        sys.exit(1)
+
+    _executed.append("c10")
+
+
 def _run_self_test() -> None:
     """Run 29 named, decision-traceable offline controls against the
     production helpers, using tempdir and in-memory fixtures only.
@@ -723,154 +896,9 @@ def _run_self_test() -> None:
         tmp_path = Path(tmp)
         _write_skills_fixture(tmp_path)
 
-        # Control 1 — D-10 dotfile exclusion. Set equality (not a membership
-        # check) proves the filter removed .hidden AND kept the real entries.
-        result = discover_skills(tmp_path)
-        if result != {"alpha", "beta"}:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — D-10 dotfile "
-                f"exclusion: discover_skills returned {sorted(result)}, "
-                "expected ['alpha', 'beta']\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c1")
-        # Control 2 — D-11 symlink exclusion. Anti-masking: the symlink
-        # target (alpha) itself must survive the exclusion.
-        if "gamma" in result:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — D-11 symlink "
-                "exclusion: 'gamma' present in discover_skills result\n"
-            )
-            sys.exit(1)
-        if "alpha" not in result:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — D-11 symlink "
-                "exclusion: 'alpha' (the symlink target) missing from "
-                "discover_skills result — filter is over-broad\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c2")
-        # Control 3 — D-12 non-directory exclusion.
-        if "notes.txt" in result or "notes" in result:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — D-12 non-directory "
-                f"exclusion: plain file leaked into result {sorted(result)}\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c3")
-        # Control 4 — absent skills dir returns empty set, never raises.
-        absent_result = discover_skills(tmp_path / "does-not-exist")
-        if absent_result != set():
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — absent skills dir: "
-                f"discover_skills returned {sorted(absent_result)}, expected []\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c4")
-        # Control 5 — agent present.
-        agent_file = tmp_path / "agent.md"
-        agent_file.write_text("agent body\n", encoding="utf-8")
-        present, path = discover_agent(agent_file)
-        if not (present is True and path == agent_file):
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — agent present: "
-                f"discover_agent returned ({present!r}, {path!r})\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c5")
-        # Control 6 — agent absent.
-        missing_agent = tmp_path / "missing.md"
-        present, path = discover_agent(missing_agent)
-        if not (present is False and path == missing_agent):
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — agent absent: "
-                f"discover_agent returned ({present!r}, {path!r})\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c6")
-        # Control 7 — manifest valid.
-        good_manifest = tmp_path / "good.json"
-        good_manifest.write_text('{"name": "x"}', encoding="utf-8")
-        parsed = parse_manifest(good_manifest)
-        if parsed != {"name": "x"}:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — manifest valid: "
-                f"parse_manifest returned {parsed!r}\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c7")
-        # Control 8 — D-09 malformed JSON fail-fast. Must prove SystemExit
-        # actually fires, not merely that no exception escaped.
-        bad_manifest = tmp_path / "bad.json"
-        bad_manifest.write_text("{not json", encoding="utf-8")
-        raised = False
-        try:
-            parse_manifest(bad_manifest)
-        except SystemExit as exc:
-            raised = True
-            if exc.code != 2:
-                sys.stderr.write(
-                    "check-registration --self-test: FAIL — D-09 malformed "
-                    f"JSON fail-fast: exit code {exc.code}, expected 2\n"
-                )
-                sys.exit(1)
-        if not raised:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — D-09 malformed JSON "
-                "fail-fast: parse_manifest did not raise SystemExit\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c8")
-        # Control 9 — non-object manifest root.
-        array_manifest = tmp_path / "arr.json"
-        array_manifest.write_text("[]", encoding="utf-8")
-        raised = False
-        try:
-            parse_manifest(array_manifest)
-        except SystemExit as exc:
-            raised = True
-            if exc.code != 2:
-                sys.stderr.write(
-                    "check-registration --self-test: FAIL — non-object "
-                    f"manifest root: exit code {exc.code}, expected 2\n"
-                )
-                sys.exit(1)
-        if not raised:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — non-object manifest "
-                "root: parse_manifest did not raise SystemExit\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c9")
-        # Control 10 — missing manifest.
-        raised = False
-        try:
-            parse_manifest(tmp_path / "nope.json")
-        except SystemExit as exc:
-            raised = True
-            if exc.code != 2:
-                sys.stderr.write(
-                    "check-registration --self-test: FAIL — missing "
-                    f"manifest: exit code {exc.code}, expected 2\n"
-                )
-                sys.exit(1)
-        if not raised:
-            sys.stderr.write(
-                "check-registration --self-test: FAIL — missing manifest: "
-                "parse_manifest did not raise SystemExit\n"
-            )
-            sys.exit(1)
-
-        _executed.append("c10")
+        _self_test_reg01_discover_skills(tmp_path, discover_skills, _executed)
+        _self_test_reg02_discover_agent(tmp_path, discover_agent, _executed)
+        _self_test_reg03_parse_manifest(tmp_path, parse_manifest, _executed)
     # Control 11 — D-07 absent keys tolerated. Direct negative control
     # against the Pitfall-3 failure mode (treating an absent key as an error).
     absent_keys_result = extract_registered_paths({})
