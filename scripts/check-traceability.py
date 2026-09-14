@@ -3177,15 +3177,26 @@ def _rows_v821() -> list[MatrixRow]:
     `MatrixRow(...)` call (e.g. `"REG-01"` in `MatrixRow("v8.21/REG-01", "REG-01", ...)`) is
     data, not a prose citation, and is exempt.
 
-    DISCLOSED BOUNDARY. Only v8.21/GATE-03 carries a symbol anchor,
-    `#verify_ci_job_registration` — a named, non-prefixed anchor that `_resolve_artifact()`
-    proves defined, not dispatched (the v8.24/GATE-02 precedent). Every other reproducible row
-    in this batch carries a bare script path; neither `scripts/check-registration.py` nor
-    `scripts/gen-gate-docs.py` defines a `_self_test_*`/`_selftest_*` symbol this row can
-    dispatch against (each has only `_run_self_test`), so the dispatch guarantee for those
-    rows is supplied instead by each script's own `--self-test`/live CLI, exercised directly
-    in this phase's own break tests, not by this matrix. Renaming to a dispatch-checked prefix
-    is Phase 34's ANCH-01 scope.
+    DISCLOSED BOUNDARY (v9.3.0 Phase 34, ANCH-01, D-12/D-13 — supersedes the pre-Phase-34
+    "only v8.21/GATE-03 carries a symbol anchor" state). `scripts/check-registration.py` gained
+    three top-level `_self_test_<claim>` functions in a behaviour-free extraction (ANCH-02
+    census diff 0), each called by literal name from `_run_self_test`'s own comment-stripped
+    body slice: v8.21/REG-01 -> `#_self_test_reg01_discover_skills` (Controls 1-4), v8.21/REG-02
+    -> `#_self_test_reg02_discover_agent` (Controls 5-6), v8.21/REG-03 ->
+    `#_self_test_reg03_parse_manifest` (Controls 7-10) — all three dispatch-checked and proven by
+    a red anchor-pin break and a red claim break (34-BREAK-TESTS.md). v8.21/GATE-02 stays bare
+    (D-14: whole-gate existence claim restating all 29 controls combined; no distinguishable
+    clause of its own to anchor without re-anchoring the entire fixture). v8.21/GATE-03 keeps its
+    non-prefixed live anchor, `#verify_ci_job_registration` — a named function `_resolve_artifact()`
+    proves defined, not dispatched (the v8.24/GATE-02 precedent) — because its claim ("CI job
+    registered in `.github/workflows/validation.yml`") is re-run by the live leg, not a self-test
+    block: D-12 forbids renaming a function that also executes in the live `check` leg. Every
+    other reproducible row in this batch (`GATE-04`, `GATE-05`, `VAL-02`, `VAL-03`) still carries
+    a bare script path; neither `scripts/gen-gate-docs.py`, `scripts/check-version-stamps.py` nor
+    `scripts/sync-content.py` defines a `_self_test_*`/`_selftest_*` symbol these rows can
+    dispatch against, so the dispatch guarantee for those rows is supplied instead by each
+    script's own `--self-test`/live CLI, exercised directly in this phase's own break tests, not
+    by this matrix.
 
     RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
     function's 15-ID roster and `.planning/milestones/v8.21.0-REQUIREMENTS.md`'s own roster is
@@ -3240,7 +3251,8 @@ def _rows_v821() -> list[MatrixRow]:
     return [
         MatrixRow("v8.21/REG-01", "REG-01", "v8.21", "Test-Network",
                   "scripts/check-registration.py",
-                  "reproducible", "scripts/check-registration.py", "",
+                  "reproducible",
+                  "scripts/check-registration.py#_self_test_reg01_discover_skills", "",
                   surfaces=("apparatus",),
                   statement=(
                       "Gate enumerates all skill directories under `first-principles/skills/` ✓"
@@ -3248,7 +3260,8 @@ def _rows_v821() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.21/REG-02", "REG-02", "v8.21", "Test-Network",
                   "scripts/check-registration.py",
-                  "reproducible", "scripts/check-registration.py", "",
+                  "reproducible",
+                  "scripts/check-registration.py#_self_test_reg02_discover_agent", "",
                   surfaces=("apparatus",),
                   statement=(
                       "Gate enumerates the main agent at "
@@ -3257,7 +3270,8 @@ def _rows_v821() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.21/REG-03", "REG-03", "v8.21", "Test-Network",
                   "scripts/check-registration.py",
-                  "reproducible", "scripts/check-registration.py", "",
+                  "reproducible",
+                  "scripts/check-registration.py#_self_test_reg03_parse_manifest", "",
                   surfaces=("apparatus",),
                   statement="Gate reads and parses plugin manifest ✓",
                   rerun_by="ci"),

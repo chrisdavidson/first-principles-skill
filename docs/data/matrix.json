@@ -3832,7 +3832,7 @@
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-registration.py",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-registration.py",
+    "artifact_link": "scripts/check-registration.py#_self_test_reg01_discover_skills",
     "gap_rationale": "",
     "surfaces": [
       "apparatus"
@@ -3847,7 +3847,7 @@
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-registration.py",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-registration.py",
+    "artifact_link": "scripts/check-registration.py#_self_test_reg02_discover_agent",
     "gap_rationale": "",
     "surfaces": [
       "apparatus"
@@ -3862,7 +3862,7 @@
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-registration.py",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-registration.py",
+    "artifact_link": "scripts/check-registration.py#_self_test_reg03_parse_manifest",
     "gap_rationale": "",
     "surfaces": [
       "apparatus"
