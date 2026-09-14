@@ -87,18 +87,14 @@ VALID_RERUN_BY: set[str] = {"ci", "battery-only", "pre-commit-only", "live-manua
 # and on every artifact through this very module (which names them all in `MatrixRow`
 # literals), both meaningless "named by a CI-registered script" conditions.
 #
-# DISCLOSED EXEMPTION (Phase 34 code review, WR-08): for the TRACE-03 entry the basename leg
-# cannot fail. TRACE-03's script is this module, and this module names
-# `validation-rubric.md` in its own `MatrixRow` literals, which is exactly the meaningless
-# condition the paragraph above rejects. That leg is therefore not verification for this
-# entry. What does re-read the rubric is `check_consistency()` -> `_resolve_artifact()`'s
-# heading-substring check over every row citing it, run by TRACE-03's CI job; that
-# relationship is real, but `_rerun_via_problems()` does not prove it. The other two
+# A `validation-rubric.md` -> TRACE-03 entry was removed at the Phase 34 code review (WR-02).
+# Its basename leg could not fail (TRACE-03's script is this module, which names the rubric in
+# its own `MatrixRow` literals, WR-08), and its only citers, RIGOR-01/02/08, were re-tiered
+# audit-only because a heading-presence check re-reads no section content. Both remaining
 # entries' basename legs read a script other than this module and are real checks.
 _RERUN_CI_VIA: dict[str, str] = {
     "scripts/_battery_core.py": "BATT-06",
     "tests/step0-fixture-catalog.md": "STEP0-08",
-    "shared/spine/references/validation-rubric.md": "TRACE-03",
 }
 
 
@@ -1151,9 +1147,8 @@ def _rows_methodology_agent_cont() -> list[MatrixRow]:
 def _rows_methodology_rigor() -> list[MatrixRow]:
     """v3.7 RIGOR rows — Methodology (validation rubric).
 
-    Rubric anchor strings must be substrings present in the rubric file
-    (D-08 resolution: plain substring check after '#' split).
-    These match the actual section headings in validation-rubric.md.
+    No row in this batch carries a rubric heading anchor any longer: five cite the gate
+    script whose break test turned red, and three are audit-only with an empty link.
 
     Surfaces: P-AGENT (agent-body/spine/reference paths).
 
@@ -1162,12 +1157,17 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     Re-run disposition (v9.3.0 Phase 34, TIER-01, D-05): each of the eight rubric sections
     was break-tested by deleting a sentence and confirming which registered gate goes red
     (34-BREAK-TESTS.md). RIGOR-01 (Criterion 1: Identify Essence) and RIGOR-08 (Scoring
-    Model) are kept at their rubric anchor: no registered gate transcribes a literal from
-    either section, so TRACE-03's own heading-presence check is the only re-read, and each
-    row's gap_rationale says so. RIGOR-02 (Criterion 2: Challenge Assumptions) is also kept:
-    its one literal candidate, check-quality-harness.py, stayed green on break — the census
-    match was a coincidental substring hit inside a synthetic self-test fixture, never a live
-    read of the rubric file. RIGOR-03 (Criterion 3: Establish Ground Truths) and RIGOR-05
+    Model) are re-tiered audit-only: no registered gate transcribes a literal from either
+    section, so no break was possible. RIGOR-02 (Criterion 2: Challenge Assumptions) is
+    re-tiered audit-only too: its one literal candidate, check-quality-harness.py, stayed
+    green on break — the census match was a coincidental substring hit inside a synthetic
+    self-test fixture, never a live read of the rubric file. All three were first kept
+    reproducible at their rubric heading anchor, with rerun_by="ci" via TRACE-03's
+    heading-presence check (D-05's keep branch); the Phase 34 code review (WR-02) re-tiered
+    them, because deleting everything under a heading leaves that check green — a looser
+    bar than the one that re-tiered the four test_69 rows (TIER-02), whose break was at
+    least caught by an unregistered pytest module. Each carries an empty artifact_link and
+    rerun_by="none" (check_consistency() fixture (5)), the test_69 shape. RIGOR-03 (Criterion 3: Establish Ground Truths) and RIGOR-05
     (Criterion 5: Validate) are re-pointed at scripts/check-high-confidence-bound.py
     (HC-BOUND), whose own literal broke the gate red on each section's deletion, naming the
     deleted text exactly. RIGOR-04 (Criterion 4: Reason Upward) and RIGOR-07 (the section now
@@ -1190,29 +1190,29 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     rubric = "shared/spine/references/validation-rubric.md"
     hc_bound = "scripts/check-high-confidence-bound.py"
     scan_guard = "scripts/check-selfaudit-scan.py"
-    # Anchor text = literal substring expected in the rubric file
-    crit1 = rubric + "#Criterion 1: Identify Essence"
-    crit2 = rubric + "#Criterion 2: Challenge Assumptions"
-    scoring = rubric + "#Scoring Model"
+
+    def heading_only_audit(section: str) -> str:
+        return (
+            "Re-tiered audit-only at the v9.3.0 Phase 34 code review (TIER-01, WR-02): "
+            f"no registered gate re-reads any sentence of validation-rubric.md's {section}. "
+            "The row was kept reproducible at its heading anchor, but TRACE-03 checked "
+            "only that the heading is present, so deleting the whole section body left CI "
+            "green; the unrecoverable v3.7 requirement's claim is not re-run (D-T4)."
+        )
+
     return [
         MatrixRow("v3.7/RIGOR-01", "RIGOR-01", "v3.7", "Methodology",
-                  rubric, "reproducible", crit1,
-                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
-                  "sentence of validation-rubric.md's Criterion 1: Identify Essence; "
-                  "TRACE-03 re-checks only that the heading is present, not the "
-                  "unrecoverable v3.7 requirement's claim (D-T4).",
+                  rubric, "audit-only", "",
+                  heading_only_audit("Criterion 1: Identify Essence"),
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v3.7/RIGOR-02", "RIGOR-02", "v3.7", "Methodology",
-                  rubric, "reproducible", crit2,
-                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
-                  "sentence of validation-rubric.md's Criterion 2: Challenge Assumptions; "
-                  "TRACE-03 re-checks only that the heading is present, not the "
-                  "unrecoverable v3.7 requirement's claim (D-T4).",
+                  rubric, "audit-only", "",
+                  heading_only_audit("Criterion 2: Challenge Assumptions"),
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v3.7/RIGOR-03", "RIGOR-03", "v3.7", "Methodology",
                   rubric, "reproducible", hc_bound,
                   "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
@@ -1278,14 +1278,11 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-08", "RIGOR-08", "v3.7", "Methodology",
-                  rubric, "reproducible", scoring,
-                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
-                  "sentence of validation-rubric.md's Scoring Model; TRACE-03 "
-                  "re-checks only that the heading is present, not the unrecoverable "
-                  "v3.7 requirement's claim (D-T4).",
+                  rubric, "audit-only", "",
+                  heading_only_audit("Scoring Model"),
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
     ]
 
 
@@ -6042,8 +6039,9 @@ def _rerun_via_problems(
       - the gate id must exist in `_gate_registry.ENTRIES` with a `ci_job`;
       - that entry's own script text must contain the artifact's basename (the
         module stem for a `.py` artifact, the bare filename otherwise). This leg is
-        vacuous when the gate's script is this module (the TRACE-03 entry): see the
-        DISCLOSED EXEMPTION on `_RERUN_CI_VIA`;
+        vacuous whenever the gate's script is this module, which names every
+        artifact in its own `MatrixRow` literals; no current entry maps to TRACE-03
+        (the rubric entry was removed at the Phase 34 code review, WR-02);
       - at least one row reading `rerun_by == "ci"` must carry that artifact as
         its file part — an unused map entry silently widens what `ci` could
         accept without ever being exercised by a real row.

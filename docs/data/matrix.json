@@ -485,14 +485,14 @@
     "milestone": "v3.7",
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 1: Identify Essence",
-    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Criterion 1: Identify Essence; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at the v9.3.0 Phase 34 code review (TIER-01, WR-02): no registered gate re-reads any sentence of validation-rubric.md's Criterion 1: Identify Essence. The row was kept reproducible at its heading anchor, but TRACE-03 checked only that the heading is present, so deleting the whole section body left CI green; the unrecoverable v3.7 requirement's claim is not re-run (D-T4).",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.7/RIGOR-02",
@@ -500,14 +500,14 @@
     "milestone": "v3.7",
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 2: Challenge Assumptions",
-    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Criterion 2: Challenge Assumptions; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at the v9.3.0 Phase 34 code review (TIER-01, WR-02): no registered gate re-reads any sentence of validation-rubric.md's Criterion 2: Challenge Assumptions. The row was kept reproducible at its heading anchor, but TRACE-03 checked only that the heading is present, so deleting the whole section body left CI green; the unrecoverable v3.7 requirement's claim is not re-run (D-T4).",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.7/RIGOR-03",
@@ -590,14 +590,14 @@
     "milestone": "v3.7",
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Scoring Model",
-    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Scoring Model; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at the v9.3.0 Phase 34 code review (TIER-01, WR-02): no registered gate re-reads any sentence of validation-rubric.md's Scoring Model. The row was kept reproducible at its heading anchor, but TRACE-03 checked only that the heading is present, so deleting the whole section body left CI green; the unrecoverable v3.7 requirement's claim is not re-run (D-T4).",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.8/DISP-01",
