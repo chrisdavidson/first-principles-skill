@@ -22,9 +22,14 @@ created it.
 
 | Tier | Files | Size | Definition |
 |---|---|---|---|
-| **gate-pinned** | **102** (18.5 %) | 0.52 MB | Opened at runtime by an offline gate's `--self-test`, or named as a matrix `artifact_link` — which TRACE-03 deep-resolves, so the file must exist. Deleting one turns the battery RED. |
-| **live-unwired** | **7** (1.3 %) | 0.08 MB | Executed by `pytest`, and **by no CI job**. Real assertions, no automation behind them. |
-| **archive** | **441** (80.2 %) | 2.25 MB | No executable relationship. Tracked, often cited in prose, never read by anything that runs. |
+| **gate-pinned** | **105** (17.3 %) | 0.82 MB | Opened at runtime by an offline gate's `--self-test`, or named as a matrix `artifact_link` — which TRACE-03 deep-resolves, so the file must exist. Deleting one turns the battery RED. |
+| **live-unwired** | **8** (1.3 %) | 0.11 MB | Executed by `pytest`, and **by no CI job**. Real assertions, no automation behind them. |
+| **archive** | **493** (81.4 %) | 5.82 MB | No executable relationship. Tracked, often cited in prose, never read by anything that runs. |
+
+Counts re-derived by `scripts/trace-tests-usage.py` at v9.3.0 Phase 34: `v4.2/BASE-01`,
+`v4.2/BASE-02`, `v4.3/BATT-07` and `v4.3/BATT-08` re-tiered audit-only with an empty
+`artifact_link` (34-BREAK-TESTS.md, TIER-02), which moved `test_69_merged_baseline_invariants.py`
+out of `gate-pinned` and into `live-unwired`.
 
 The two-way split this replaces (pinned / archival) is what let the second tier hide inside the
 third.
@@ -40,7 +45,7 @@ assertions between them and are run by no CI job**:
 | `test_67_battery_core.py` | 26 | BATT-06 sentinel internals |
 | `test_65_doc_invariants.py` | 23 | Doc invariants — **including the retirement guards stream 2 migrated here** |
 | `test_66_baseline_invariants.py` | 22 | Frozen-baseline invariants |
-| `test_69_merged_baseline_invariants.py` | 20 | Merged routing-battery baselines (also `artifact_link`-pinned, so it counts as gate-pinned above) |
+| `test_69_merged_baseline_invariants.py` | 20 | Merged routing-battery baselines |
 | `test_82_traceability.py` | 14 | Traceability schema |
 | `test_step0_live_task1.py` | 8 | Step 0 live-harness parsing |
 | `test_70_step0_emulator_invariants.py` | 5 | Emulator invariants |

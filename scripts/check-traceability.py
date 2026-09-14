@@ -1148,55 +1148,117 @@ def _rows_methodology_rigor() -> list[MatrixRow]:
     Surfaces: P-AGENT (agent-body/spine/reference paths).
 
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
+
+    Re-run disposition (v9.3.0 Phase 34, TIER-01, D-05): each of the eight rubric sections
+    was break-tested by deleting a sentence and confirming which registered gate goes red
+    (34-BREAK-TESTS.md). RIGOR-01 (Criterion 1: Identify Essence) and RIGOR-08 (Scoring
+    Model) are kept at their rubric anchor: no registered gate transcribes a literal from
+    either section, so TRACE-03's own heading-presence check is the only re-read, and each
+    row's gap_rationale says so. RIGOR-02 (Criterion 2: Challenge Assumptions) is also kept:
+    its one literal candidate, check-quality-harness.py, stayed green on break — the census
+    match was a coincidental substring hit inside a synthetic self-test fixture, never a live
+    read of the rubric file. RIGOR-03 (Criterion 3: Establish Ground Truths) and RIGOR-05
+    (Criterion 5: Validate) are re-pointed at scripts/check-high-confidence-bound.py
+    (HC-BOUND), whose own literal broke the gate red on each section's deletion, naming the
+    deleted text exactly. RIGOR-04 (Criterion 4: Reason Upward) and RIGOR-07 (the section now
+    headed "How to Apply This Gate") are re-pointed at scripts/check-selfaudit-scan.py
+    (SCAN-GUARD), whose self-test and live leg both broke red naming the deleted sentence.
+    RIGOR-06 (Criterion 6: Conclusion-to-Ground-Truth Traceability) is re-pointed at
+    scripts/check-quality-harness.py (QUAL-01, battery-only): the check-conf-gate.py
+    candidate's own literals stayed green (a coincidental substring match), but
+    check-quality-harness.py's render_contract positive control — sharing the same deleted
+    physical line — broke red naming the section's rule number (R11) and the exact missing
+    sentence. RIGOR-07's prior artifact_link anchored at the retired rubric section name "How
+    to Apply This Rubric" (renamed to "How to Apply This Gate" after a historical name
+    collision with subject-matter rubrics); the re-point drops the stale rubric citation
+    entirely rather than merely correcting its wording — this proves the section is re-read,
+    not that the unrecoverable v3.7 claim is.
     """
     rubric = "shared/spine/references/validation-rubric.md"
+    hc_bound = "scripts/check-high-confidence-bound.py"
+    scan_guard = "scripts/check-selfaudit-scan.py"
     # Anchor text = literal substring expected in the rubric file
     crit1 = rubric + "#Criterion 1: Identify Essence"
     crit2 = rubric + "#Criterion 2: Challenge Assumptions"
-    crit3 = rubric + "#Criterion 3: Establish Ground Truths"
-    crit4 = rubric + "#Criterion 4: Reason Upward"
-    crit5 = rubric + "#Criterion 5: Validate"
-    crit6 = rubric + "#Criterion 6: Conclusion-to-Ground-Truth Traceability"
-    r_link = rubric + "#How to Apply This Rubric"
     scoring = rubric + "#Scoring Model"
     return [
         MatrixRow("v3.7/RIGOR-01", "RIGOR-01", "v3.7", "Methodology",
-                  rubric, "reproducible", crit1, "",
+                  rubric, "reproducible", crit1,
+                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
+                  "sentence of validation-rubric.md's Criterion 1: Identify Essence; "
+                  "TRACE-03 re-checks only that the heading is present, not the "
+                  "unrecoverable v3.7 requirement's claim (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-02", "RIGOR-02", "v3.7", "Methodology",
-                  rubric, "reproducible", crit2, "",
+                  rubric, "reproducible", crit2,
+                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
+                  "sentence of validation-rubric.md's Criterion 2: Challenge Assumptions; "
+                  "TRACE-03 re-checks only that the heading is present, not the "
+                  "unrecoverable v3.7 requirement's claim (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-03", "RIGOR-03", "v3.7", "Methodology",
-                  rubric, "reproducible", crit3, "",
+                  rubric, "reproducible", hc_bound,
+                  "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
+                  "validation-rubric.md's Criterion 3: Establish Ground Truths turned "
+                  "HC-BOUND (scripts/check-high-confidence-bound.py) red, so that gate "
+                  "re-reads the section; this proves the section is re-read, not that the "
+                  "unrecoverable v3.7 requirement's claim is (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-04", "RIGOR-04", "v3.7", "Methodology",
-                  rubric, "reproducible", crit4, "",
+                  rubric, "reproducible", scan_guard,
+                  "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
+                  "validation-rubric.md's Criterion 4: Reason Upward turned SCAN-GUARD "
+                  "(scripts/check-selfaudit-scan.py) red, so that gate re-reads the "
+                  "section; this proves the section is re-read, not that the "
+                  "unrecoverable v3.7 requirement's claim is (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-05", "RIGOR-05", "v3.7", "Methodology",
-                  rubric, "reproducible", crit5, "",
+                  rubric, "reproducible", hc_bound,
+                  "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
+                  "validation-rubric.md's Criterion 5: Validate turned HC-BOUND "
+                  "(scripts/check-high-confidence-bound.py) red, so that gate re-reads "
+                  "the section; this proves the section is re-read, not that the "
+                  "unrecoverable v3.7 requirement's claim is (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-06", "RIGOR-06", "v3.7", "Methodology",
-                  rubric, "reproducible", crit6, "",
+                  rubric, "reproducible", "scripts/check-quality-harness.py",
+                  "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
+                  "validation-rubric.md's Criterion 6: Conclusion-to-Ground-Truth "
+                  "Traceability turned QUAL-01 (scripts/check-quality-harness.py) red, "
+                  "so that gate re-reads the section; this proves the section is "
+                  "re-read, not that the unrecoverable v3.7 requirement's claim is "
+                  "(D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="battery-only"),
         MatrixRow("v3.7/RIGOR-07", "RIGOR-07", "v3.7", "Methodology",
-                  rubric, "reproducible", r_link, "",
+                  rubric, "reproducible", scan_guard,
+                  "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of "
+                  "validation-rubric.md's How to Apply This Gate section turned "
+                  "SCAN-GUARD (scripts/check-selfaudit-scan.py) red, so that gate "
+                  "re-reads the section; this proves the section is re-read, not that "
+                  "the unrecoverable v3.7 requirement's claim is (D-T4). The row's "
+                  "prior anchor named the section's retired name; the re-point drops "
+                  "the rubric citation entirely.",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
         MatrixRow("v3.7/RIGOR-08", "RIGOR-08", "v3.7", "Methodology",
-                  rubric, "reproducible", scoring, "",
+                  rubric, "reproducible", scoring,
+                  "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a "
+                  "sentence of validation-rubric.md's Scoring Model; TRACE-03 "
+                  "re-checks only that the heading is present, not the unrecoverable "
+                  "v3.7 requirement's claim (D-T4).",
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
                   rerun_by="ci"),
@@ -1770,11 +1832,35 @@ def _rows_testnet_merged_battery() -> list[MatrixRow]:
     Surfaces: P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
 
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
+
+    Re-run disposition (v9.3.0 Phase 34, TIER-02, D-06): the four test_69 rows
+    (v4.2/BASE-01, v4.2/BASE-02, v4.3/BATT-07, v4.3/BATT-08) were break-tested with two
+    mutations against tests/routing-battery-baseline-v4.3.md — flipping its
+    "BATTERY: PASS" verdict line to "BATTERY: FAIL", and replacing its lineage commit
+    151b197 with 0000000 — each restored before the next (34-BREAK-TESTS.md). Both
+    mutations turned FROZEN-EVIDENCE red, but FROZEN-EVIDENCE is not credited as the pin:
+    its mechanism is `git diff --quiet HEAD` against the last committed state of every
+    `_FROZEN_PATHS` member, which catches only an uncommitted edit sitting in the working
+    tree — a committed edit to the baseline file makes its diff clean again immediately,
+    so it cannot detect the drift a normal commit would introduce. No other registered
+    gate went red on either mutation; only the local, unregistered
+    tests/test_69_merged_baseline_invariants.py pytest module (no battery registration,
+    no CI job) caught either change. All four rows are therefore re-tiered audit-only
+    with an empty artifact_link and rerun_by="none" (check_consistency() fixture (5); the
+    V818-ROWS precedent).
     """
     batt = "scripts/check-routing-battery.py"
     audit_v42 = "Validated by v4.2-MILESTONE-AUDIT; no re-runnable gate"
     audit_v43 = "Validated by v4.3-MILESTONE-AUDIT; no re-runnable gate"
     bcat = "tests/routing-battery-catalog.md"
+    test69_audit = (
+        "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): "
+        "tests/test_69_merged_baseline_invariants.py asserts this baseline's "
+        "invariants but is a manual pytest run that no battery registration or CI "
+        "job re-runs; FROZEN-EVIDENCE is not a pin, since its git diff --quiet HEAD "
+        "catches only an uncommitted edit and a committed edit to "
+        "tests/routing-battery-baseline-v4.3.md passes."
+    )
     return [
         MatrixRow("v4.2/CAT-01", "CAT-01", "v4.2", "Test-Network",
                   bcat, "reproducible", batt, "",
@@ -1823,18 +1909,16 @@ def _rows_testnet_merged_battery() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v4.2/BASE-01", "BASE-01", "v4.2", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
-                  "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", "",
+                  "audit-only", "", test69_audit,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="live-manual"),
+                  rerun_by="none"),
         MatrixRow("v4.2/BASE-02", "BASE-02", "v4.2", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
-                  "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", "",
+                  "audit-only", "", test69_audit,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="live-manual"),
+                  rerun_by="none"),
         MatrixRow("v4.3/BATT-01", "BATT-01", "v4.3", "Test-Network",
                   batt, "reproducible", batt, "",
                   surfaces=("agent",),
@@ -1867,18 +1951,16 @@ def _rows_testnet_merged_battery() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v4.3/BATT-07", "BATT-07", "v4.3", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
-                  "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", "",
+                  "audit-only", "", test69_audit,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="live-manual"),
+                  rerun_by="none"),
         MatrixRow("v4.3/BATT-08", "BATT-08", "v4.3", "Test-Network",
                   "tests/routing-battery-baseline-v4.3.md",
-                  "reproducible",
-                  "tests/test_69_merged_baseline_invariants.py", "",
+                  "audit-only", "", test69_audit,
                   surfaces=("agent",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="live-manual"),
+                  rerun_by="none"),
     ]
 
 

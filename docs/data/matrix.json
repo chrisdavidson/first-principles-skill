@@ -487,7 +487,7 @@
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
     "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 1: Identify Essence",
-    "gap_rationale": "",
+    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Criterion 1: Identify Essence; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -502,7 +502,7 @@
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
     "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 2: Challenge Assumptions",
-    "gap_rationale": "",
+    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Criterion 2: Challenge Assumptions; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -516,8 +516,8 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 3: Establish Ground Truths",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-high-confidence-bound.py",
+    "gap_rationale": "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of validation-rubric.md's Criterion 3: Establish Ground Truths turned HC-BOUND (scripts/check-high-confidence-bound.py) red, so that gate re-reads the section; this proves the section is re-read, not that the unrecoverable v3.7 requirement's claim is (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -531,8 +531,8 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 4: Reason Upward",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of validation-rubric.md's Criterion 4: Reason Upward turned SCAN-GUARD (scripts/check-selfaudit-scan.py) red, so that gate re-reads the section; this proves the section is re-read, not that the unrecoverable v3.7 requirement's claim is (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -546,8 +546,8 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 5: Validate",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-high-confidence-bound.py",
+    "gap_rationale": "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of validation-rubric.md's Criterion 5: Validate turned HC-BOUND (scripts/check-high-confidence-bound.py) red, so that gate re-reads the section; this proves the section is re-read, not that the unrecoverable v3.7 requirement's claim is (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -561,13 +561,13 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#Criterion 6: Conclusion-to-Ground-Truth Traceability",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-quality-harness.py",
+    "gap_rationale": "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of validation-rubric.md's Criterion 6: Conclusion-to-Ground-Truth Traceability turned QUAL-01 (scripts/check-quality-harness.py) red, so that gate re-reads the section; this proves the section is re-read, not that the unrecoverable v3.7 requirement's claim is (D-T4).",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "battery-only"
   },
   {
     "key": "v3.7/RIGOR-07",
@@ -576,8 +576,8 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "shared/spine/references/validation-rubric.md#How to Apply This Rubric",
-    "gap_rationale": "",
+    "artifact_link": "scripts/check-selfaudit-scan.py",
+    "gap_rationale": "Re-pointed at v9.3.0 Phase 34 (TIER-01): deleting a sentence of validation-rubric.md's How to Apply This Gate section turned SCAN-GUARD (scripts/check-selfaudit-scan.py) red, so that gate re-reads the section; this proves the section is re-read, not that the unrecoverable v3.7 requirement's claim is (D-T4). The row's prior anchor named the section's retired name; the re-point drops the rubric citation entirely.",
     "surfaces": [
       "agent"
     ],
@@ -592,7 +592,7 @@
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
     "artifact_link": "shared/spine/references/validation-rubric.md#Scoring Model",
-    "gap_rationale": "",
+    "gap_rationale": "Kept at v9.3.0 Phase 34 (TIER-01): no registered gate transcribes a sentence of validation-rubric.md's Scoring Model; TRACE-03 re-checks only that the heading is present, not the unrecoverable v3.7 requirement's claim (D-T4).",
     "surfaces": [
       "agent"
     ],
@@ -2135,14 +2135,14 @@
     "milestone": "v4.2",
     "capability": "Test-Network",
     "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): tests/test_69_merged_baseline_invariants.py asserts this baseline's invariants but is a manual pytest run that no battery registration or CI job re-runs; FROZEN-EVIDENCE is not a pin, since its git diff --quiet HEAD catches only an uncommitted edit and a committed edit to tests/routing-battery-baseline-v4.3.md passes.",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "live-manual"
+    "rerun_by": "none"
   },
   {
     "key": "v4.2/BASE-02",
@@ -2150,14 +2150,14 @@
     "milestone": "v4.2",
     "capability": "Test-Network",
     "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): tests/test_69_merged_baseline_invariants.py asserts this baseline's invariants but is a manual pytest run that no battery registration or CI job re-runs; FROZEN-EVIDENCE is not a pin, since its git diff --quiet HEAD catches only an uncommitted edit and a committed edit to tests/routing-battery-baseline-v4.3.md passes.",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "live-manual"
+    "rerun_by": "none"
   },
   {
     "key": "v4.3/BATT-01",
@@ -2255,14 +2255,14 @@
     "milestone": "v4.3",
     "capability": "Test-Network",
     "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): tests/test_69_merged_baseline_invariants.py asserts this baseline's invariants but is a manual pytest run that no battery registration or CI job re-runs; FROZEN-EVIDENCE is not a pin, since its git diff --quiet HEAD catches only an uncommitted edit and a committed edit to tests/routing-battery-baseline-v4.3.md passes.",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "live-manual"
+    "rerun_by": "none"
   },
   {
     "key": "v4.3/BATT-08",
@@ -2270,14 +2270,14 @@
     "milestone": "v4.3",
     "capability": "Test-Network",
     "deliverable_path": "tests/routing-battery-baseline-v4.3.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "tests/test_69_merged_baseline_invariants.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "Re-tiered audit-only at v9.3.0 Phase 34 (TIER-02, D-06): tests/test_69_merged_baseline_invariants.py asserts this baseline's invariants but is a manual pytest run that no battery registration or CI job re-runs; FROZEN-EVIDENCE is not a pin, since its git diff --quiet HEAD catches only an uncommitted edit and a committed edit to tests/routing-battery-baseline-v4.3.md passes.",
     "surfaces": [
       "agent"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "live-manual"
+    "rerun_by": "none"
   },
   {
     "key": "v5.0/STEP0-01",

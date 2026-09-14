@@ -4,7 +4,7 @@ This file is the active canonical source of truth for requirements and traceabil
 
 ## Status
 
-**Coverage headline:** 246 reproducible / 125 audit-only / 0 gap / 371 total
+**Coverage headline:** 242 reproducible / 129 audit-only / 0 gap / 371 total
 
 The full capability-to-requirement-to-test mapping — its row count is the total in the coverage
 headline above — is in the generated matrix:
@@ -137,6 +137,7 @@ Every delta below is already discharged — no row is a currently-open action it
 | 15 | v9.2 Phase 28 (REL-12) | 217/106/0/323 → 225/110/0/335 | **+8 reproducible / +4 audit-only.** The 12 v9.2 milestone requirements (SUP-01..04, GUARD-01..03, REL-09..13) were registered as matrix rows for the first time (`_rows_v92()`, `scripts/check-traceability.py`). 8 are reproducible: SUP-01 points at `scripts/check-loop-closure.py` (HARN-02's presence/absence literals on Input Contract bullet 4 re-run the claim on every CI run and battery pass); SUP-03 and SUP-04 point at `scripts/check-focused-parity.py` (Stub-13 re-runs the candidate-input tail's presence in each unclassified-facts stub, the no-cited-source clause's presence in every non-launcher stub, and the slot name's absence from every stub); GUARD-01 points at `scripts/check-loop-closure.py` (controls N38/N39 re-run in every `--self-test`); GUARD-02 points at `scripts/check-focused-parity.py` (controls g6/g7 re-run in every `--self-test`); REL-09 points at `scripts/check-version-stamps.py`; REL-10 points at `scripts/check-firewall-battery.sh`; REL-12 points at `scripts/check-traceability.py#_self_test_headline_lock`. All 4 audit-only rows are named individually, transcribed from `_rows_v92()`'s own docstring: SUP-02 — whether the bullet points at Phase 3's rule rather than restating the provenance table is a reading judgement, HARN-02's literal pins the candidate clause, not the label pointer or the absence of a restatement; GUARD-03 — a written REACH-or-LEVEL determination, the argument is the deliverable and no gate reads arguments (precedent: v9.1 CONTAIN-03); REL-11 — no gate re-runs to check a CHANGELOG entry's prose (precedent: REL-08, REL-04); REL-13 — the recurrence reading is a one-off grep recorded in the `[9.2.0]` entry, no gate re-runs the pre-registered pattern set over both trees, and HARN-02's/HARN-03's absence pins re-run two of its shapes on their own files only, which is not the requirement. `_rows_v92()`'s docstring discloses a DISCLOSED BOUNDARY carried into this row: of the 8 reproducible rows, only REL-12 carries a `#_self_test_*` anchor (`_self_test_headline_lock`) that `_resolve_artifact()` dispatch-checks; the other 7 carry a bare script or directory path, because none defines a `_selftest_`/`_self_test_`-prefixed symbol — a bare path only proves the file/directory exists, never that anything re-runs the claim; each script's own `--self-test` CLI surface supplies that guarantee instead, exercised directly in this phase's own verification rather than by this matrix. |
 | 16 | v9.2.1 Phase 31 (REL-17) | 225/110/0/335 → 229/116/0/345 | **+4 reproducible / +6 audit-only.** The 10 v9.2.1 milestone requirements (HAND-01..05, REL-14..18) were registered as matrix rows for the first time (`_rows_v921()`, `scripts/check-traceability.py`). 4 are reproducible: HAND-04 points at `scripts/check-focused-parity.py` (Stub-13 asserts each of the ten unclassified-facts stubs carries the v9.2.0 tail literal exactly once, matched whitespace-flexibly by `_count_flex`; byte-identity against v9.2.0 was established by a one-off `sha256sum` comparison, not by this gate); HAND-05 points at `scripts/check-loop-closure.py` (the four-edge-present/five-edge-absent literals re-run in every `--self-test`); REL-14 points at `scripts/check-version-stamps.py`; REL-17 points at `scripts/check-traceability.py#_self_test_headline_lock`. All 6 audit-only rows are named individually, transcribed from `_rows_v921()`'s own docstring: HAND-01, HAND-02 and HAND-03 — each row's deliverable is one routed stub's own routing destination (`identify-essence` → the Input Contract's Problem statement, `reason-upward` → Phase 5 validation, `validate` → the Phase 5 verdict to act on), and nothing re-runs that claim: `check-focused-parity.py`'s Stub-13 loop reads `_HANDOFF_ROUTED_SLUGS` at exactly one check site, to EXCLUDE the three routed slugs from the `_HANDOFF_CANDIDATE_TAIL` assertion, and the only literal it pins on those stubs is the universal `_HANDOFF_NO_SOURCE_CLAUSE`, which names no destination — falsified at the Phase 31 review by deleting a destination clause from both trees and observing `--self-test` and the live leg both still at exit 0 (tracked as backlog 999.79/999.80; re-tier when a per-routed-stub destination literal lands). These three were published as `reproducible` when the milestone closed and were corrected here at the Phase 31 review (CR-01), which is why this row's delta reads +4/+6 rather than the +7/+3 first recorded; REL-15 — its own requirement text names the battery's GREEN line "corroboration only, never the evidence", so the live tally is a fresh count on every run, not a comparison against a stored prior baseline, and nothing fails automatically if the total drifts; the "unchanged since last release" half of the claim is discharged by a manual direct-count snippet against two named revisions, not by a registered CI/battery control; REL-16 — no gate re-runs to check a CHANGELOG entry's prose (precedent: REL-13, REL-11, REL-08, REL-04); REL-18 — the recurrence reading is a one-off pre-registered grep set read before and after the release commit and recorded in the `[9.2.1]` entry, no gate re-runs the pattern set over both trees (the REL-13 precedent holds unchanged). `_rows_v921()`'s docstring discloses a DISCLOSED BOUNDARY carried into this row: of the 4 reproducible rows, only REL-17 carries a `#_self_test_*` anchor (`_self_test_headline_lock`) that `_resolve_artifact()` dispatch-checks; the other 3 carry a bare script or directory path, because none defines a `_selftest_`/`_self_test_`-prefixed symbol — a bare path only proves the file/directory exists, never that anything re-runs the claim; each script's own `--self-test` CLI surface supplies that guarantee instead, exercised directly in this phase's own verification rather than by this matrix. |
 | 17 | v9.3.0 Phase 33 (ROWS-01, RESID-01) | 229/116/0/345 → 246/125/0/371 | **+17 reproducible / +9 audit-only.** The v8.19 (HC-01..04), v8.20 (HARN-01-01..05) and v8.21 (v8.21/REG-01..06, v8.21/GATE-01..06, v8.21/VAL-01..03) milestone requirements, plus residuals RR-108-04 and RR-108-05, were registered as matrix rows for the first time (`_rows_v819()`, `_rows_v820()`, `_rows_v821()`, `_rows_active_tail()`, `scripts/check-traceability.py`), in one headline move. v8.19: HC-01, HC-02 and HC-03 are reproducible, each backed by `scripts/check-high-confidence-bound.py`; HC-04 is audit-only — the gate re-runs its tightened-criteria clause but not the stale "FIREWALL: GREEN (21/21)" count it quotes. v8.20: HARN-01-02, HARN-01-03 and HARN-01-05 are reproducible, each backed by `scripts/check-act-limb.py`'s anti-masking coverage floor; HARN-01-01 and HARN-01-04 are audit-only — the gate re-runs the branch coverage `check-act-limb.py --describe` reports but nothing re-reads the named branch-specification or comment-block prose. v8.21: v8.21/REG-01, v8.21/REG-02, v8.21/REG-03, v8.21/GATE-02 and v8.21/GATE-03 are reproducible at `scripts/check-registration.py` (v8.21/GATE-03 by its own `#verify_ci_job_registration` anchor); v8.21/GATE-04 and v8.21/GATE-05 are reproducible at `scripts/gen-gate-docs.py` (re-pointed from REG-GUARD per the D-01 re-pointing rule); v8.21/VAL-02 is reproducible at `scripts/check-version-stamps.py`; v8.21/VAL-03 is reproducible at `scripts/sync-content.py`. v8.21/REG-04 and v8.21/REG-05 are audit-only — their "registered in manifest" clause is K4, the shipped manifest carries no name/type roster to check against; v8.21/REG-06 is audit-only — a clause-scoped break of its "registered entries vs. discovered entries" summary left `scripts/check-registration.py` green (re-tiered by the Phase 33 code review, CR-01, from the reproducible tier first published in this row); v8.21/GATE-01 is audit-only — its "runs deterministically" clause is K4, stated but never re-run; v8.21/GATE-06 and v8.21/VAL-01 are audit-only — their quoted battery counts ("22/22") are stale against the battery's current total (CLAUDE.md's generated population-arithmetic sentence). RR-108-04 and RR-108-05 are reproducible at `scripts/_battery_core.py#self_test_boundary`, both ACCEPTED-FINAL at v8.0, re-measured at v8.5 and sustained at the 0/5 floor via `_NEW_TECH_SENTINELS` (Phase 156 re-point to `_load_excerpt_v85`). Every tier here rests on a break test run once at Phase 33, recorded in `.planning/phases/33-row-less-milestones-and-residuals/33-BREAK-TESTS.md` (local-only, git-ignored; not present in a fresh clone), under the rule that a tier stands only if a clause-scoped break turns the cited gate red. DISCLOSED BOUNDARY: only v8.21/GATE-03 carries a symbol anchor (`#verify_ci_job_registration`, non-prefixed); no row in this batch carries a `#_self_test_*` anchor. |
+| 18 | v9.3.0 Phase 34 (TIER-02) | 246/125/0/371 → 242/129/0/371 | **-4 reproducible / +4 audit-only.** The four test_69 rows (v4.2/BASE-01, v4.2/BASE-02, v4.3/BATT-07, v4.3/BATT-08) were re-tiered audit-only after a Phase 34 break test (34-BREAK-TESTS.md, standing instruction 7): mutating `tests/routing-battery-baseline-v4.3.md`'s BATTERY verdict line, and separately its lineage commit hash, left every registered gate green except FROZEN-EVIDENCE, which is excluded as the pin because its `git diff --quiet HEAD` check catches only an uncommitted edit and a committed edit to the same file passes clean; only the local, unregistered `tests/test_69_merged_baseline_invariants.py` pytest module (no battery registration, no CI job) detected either change. No battery registration or CI job was added (standing D-D). The eight v3.7 RIGOR rows (RIGOR-01..08) stay reproducible: three are re-pointed at the registered gate whose break test broke it red (RIGOR-03/RIGOR-05 at HC-BOUND, RIGOR-04/RIGOR-07 at SCAN-GUARD, RIGOR-06 at QUAL-01, battery-only), and the remaining three (RIGOR-01, RIGOR-02, RIGOR-08) are kept at their rubric anchor with a written reason — no registered gate transcribes a literal from those sections, so TRACE-03's own heading-presence check is the only re-read. Row count and tier for the RIGOR batch are unchanged; only their `artifact_link` and `gap_rationale` moved. |
 
 > **Honesty note (v8.8 D-01 — RESOLVED):** the prior "known-stale / vacuously-green" flag on
 > META-Q4 (TRACE-03 reporting coverage that no longer existed — "green because nothing checks it")
@@ -312,6 +313,78 @@ Exactly 12 live items (v7.13: RR-130-01 RESOLVED/CLOSE at Phase 136 live re-meas
 11. **RR-119-02** [MEDIUM] — S-N02 over-routing, resolved-over-bar (Phase 119 CONF-04, minted). At v7.7: S-N02 2/5 (over-routes on 3 of 5 runs). At v7.8 CONF-03: S-N02 3/5 PASS (Phase-118 FIX-03/FIX-04 prose fix moved over bar). Residual disposition: RESOLVED-OVER-BAR with detector-under-count caveat (runs 2,3 are documented detector under-counts where agent still ran a pre-mortem; D-01). NOT a reclassification (D-4). Sentinel asserts v7.8 vector [0,3,3,1,1]. Confirmed by BATT-06 (RR-119-02 sentinel in `_battery_core.self_test_boundary()`)..
 
 12. **RR-130-01** [HIGH] — Main-routing inline-answering regression (Phase 130). P **1/13** DELEGATE FAIL at the v7.11 live re-baseline (`tests/routing-baseline-v7.11.md`) vs the v3.13 anchor (P 11/13); the orchestrator answers the first-principles prompt **inline** (`num_turns:1`, `stop_reason:end_turn`, no `Task` tool_use) instead of auto-delegating — only P4 delegated. Likely a newer/more-capable orchestrator model satisfying the prompt directly. Negatives unchanged (N 20/20). ID kept (RR-`<phase>`-NN convention; Phase-130 slot free). **Documented residual with NO matrix row** (v7.9 D-02 precedent); named the open whole-system gap by `docs/whole-system-remeasure-verdict.md`. honesty-not-score (D-01): recorded as observed, never forced. Offline fix **applied at Phase 133** (imperative `description:` rewrite of `shared/spine/SKILL.meta.yml`, regenerated at zero drift; STRENGTHEN verdict per `docs/rr-130-01-diagnosis.md`). **RESOLVED/CLOSE at Phase 136 live re-measure** (P **11/13** = v3.13 anchor recovery, N 20/20; `tests/routing-baseline-v7.13.md`; see `docs/v7.13-live-remeasure-verdict.md`). ID kept as regression sentinel (row-less, v7.9 D-02 precedent; no count change — RR-130-01 was minted row-less and RESOLVE moves no count). D-04 RESOLVE disposition.
+
+## Reproducible-tier re-run record (v9.3.0 Phase 34)
+
+Three dated sub-blocks recording Phase 34's own re-run basis: the QUAL-01 measurement TIER-04
+rests on, and the per-row disposition RIGOR-01..08 (TIER-01) and the four test_69 rows (TIER-02)
+carry after their break tests (`.planning/phases/34-reproducible-tier-honesty-and-anchors/34-BREAK-TESTS.md`,
+local-only, git-ignored; not present in a fresh clone). This section carries no slash-form
+coverage headline — see the Status line and the Headline history table above for that.
+
+### QUAL-01 cost and determinism (TIER-04, D-T2), dated 2026-09-14
+
+`python3 scripts/check-quality-harness.py --self-test` was run ten times in one process loop at
+BASE commit `5dad4eb`, timed with `time.perf_counter()` around each `subprocess.run` call, with
+nothing else running concurrently. Wall-clock: min 0.421 seconds, median 0.4290 seconds, max
+0.524 seconds (one outlier run, +0.09 seconds over the rest, consistent with ordinary OS
+scheduling jitter). Distinct stdout sha256 across all ten runs: one. Distinct exit codes across
+all ten runs: one (0). The self-test is deterministic over these ten runs — no differing lines
+between any pair of runs.
+
+Decision: D-T2 is held — no QUAL-01 CI job is added. QUAL-01's rows carry `battery-only` in the
+matrix's Re-run By column, so a green CI badge is never read as covering them; only the offline
+battery's own `--self-test` leg re-runs QUAL-01's claims.
+
+### RIGOR-01..08 (TIER-01, D-05), dated 2026-09-14
+
+Each of the eight `v3.7/RIGOR-*` rows was break-tested by deleting a sentence from its cited
+validation-rubric.md section and confirming which registered gate goes red. Dispositions,
+transcribed from `_rows_methodology_rigor()`'s own docstring in `scripts/check-traceability.py`:
+
+- **RIGOR-01** (Criterion 1: Identify Essence) — kept at its rubric anchor. No registered gate
+  transcribes a literal from this section; TRACE-03 re-checks only that the heading is present.
+- **RIGOR-02** (Criterion 2: Challenge Assumptions) — kept. Its one literal candidate,
+  check-quality-harness.py, stayed green on break (a coincidental substring match inside a
+  synthetic self-test fixture, never a live read of the rubric file).
+- **RIGOR-03** (Criterion 3: Establish Ground Truths) — re-pointed at
+  `scripts/check-high-confidence-bound.py` (HC-BOUND), which broke red naming the deleted text.
+- **RIGOR-04** (Criterion 4: Reason Upward) — re-pointed at `scripts/check-selfaudit-scan.py`
+  (SCAN-GUARD), whose self-test and live leg both broke red naming the deleted sentence.
+- **RIGOR-05** (Criterion 5: Validate) — re-pointed at
+  `scripts/check-high-confidence-bound.py` (HC-BOUND), which broke red naming the deleted text.
+- **RIGOR-06** (Criterion 6: Conclusion-to-Ground-Truth Traceability) — re-pointed at
+  `scripts/check-quality-harness.py` (QUAL-01, battery-only); its render_contract positive
+  control broke red naming the section's rule number.
+- **RIGOR-07** (the section now headed "How to Apply This Gate") — re-pointed at
+  `scripts/check-selfaudit-scan.py` (SCAN-GUARD). The row's prior anchor named the section's
+  retired name, "How to Apply This Rubric"; the re-point drops the rubric citation entirely
+  rather than merely correcting the wording.
+- **RIGOR-08** (Scoring Model) — kept at its rubric anchor. No registered gate transcribes a
+  literal from this section; TRACE-03 re-checks only that the heading is present.
+
+Every re-point proves the cited section is re-read by a live gate, not that the row's own
+unrecoverable v3.7 requirement claim is reconstructed (D-T4). Row count and tier are unchanged
+for this batch; only `artifact_link`, `gap_rationale` and (for RIGOR-06) `rerun_by` moved.
+
+### test_69 rows (TIER-02, D-06), dated 2026-09-14
+
+The four `test_69`-evidenced rows (`v4.2/BASE-01`, `v4.2/BASE-02`, `v4.3/BATT-07`,
+`v4.3/BATT-08`) were break-tested with two mutations against
+`tests/routing-battery-baseline-v4.3.md`: flipping its `BATTERY: PASS` verdict line to
+`BATTERY: FAIL`, and separately replacing its lineage commit `151b197` with `0000000` — each
+mutation restored before the next. Both mutations turned FROZEN-EVIDENCE red, but
+FROZEN-EVIDENCE is not credited as the pin: its mechanism is `git diff --quiet HEAD` against the
+last committed state of every `_FROZEN_PATHS` member, which catches only an uncommitted edit
+sitting in the working tree — a committed edit to the baseline file makes its diff clean again
+immediately, so it cannot detect the drift a normal commit would introduce. No other registered
+gate went red on either mutation; only the local, unregistered
+`tests/test_69_merged_baseline_invariants.py` pytest module (no battery registration, no CI job)
+caught either change.
+
+Decision: all four rows are re-tiered `audit-only` with an empty `artifact_link` and
+`rerun_by="none"` (`check_consistency()` fixture (5); the V818-ROWS precedent). No battery
+registration or CI job is added (standing D-D).
 
 ## Gap Findings
 
