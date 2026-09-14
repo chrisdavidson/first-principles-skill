@@ -3352,7 +3352,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-act-limb.py",
+    "artifact_link": "scripts/check-act-limb.py#_self_test_act01_verification_step",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3367,7 +3367,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-act-limb.py",
+    "artifact_link": "scripts/check-act-limb.py#_self_test_act02_provenance_labels",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3382,7 +3382,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-act-limb.py",
+    "artifact_link": "scripts/check-act-limb.py#_self_test_act03_failure_path",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3397,7 +3397,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/SKILL-body.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-act-limb.py",
+    "artifact_link": "scripts/check-act-limb.py#_self_test_act04_verification_bound",
     "gap_rationale": "",
     "surfaces": [
       "agent"
@@ -3412,7 +3412,7 @@
     "capability": "Methodology",
     "deliverable_path": "shared/spine/references/validation-rubric.md",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-act-limb.py",
+    "artifact_link": "scripts/check-act-limb.py#_self_test_act05_fix_note",
     "gap_rationale": "",
     "surfaces": [
       "agent"

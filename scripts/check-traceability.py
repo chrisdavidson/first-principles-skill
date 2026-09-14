@@ -2567,7 +2567,7 @@ def _rows_v818() -> list[MatrixRow]:
     SHIP-04 (CHANGELOG entry exists) and SHIP-05 (docs record exists) are audit-only, with
     artifact_link="" and a non-empty gap_rationale — no gate re-runs to check a changelog
     entry or a docs/ record. The other 21 are reproducible with a named artifact_link:
-      ACT-*                -> scripts/check-act-limb.py
+      ACT-*                -> scripts/check-act-limb.py (per-claim anchors, see below)
       LOOP-*                -> scripts/check-loop-closure.py
       PAR-* / HARN-03       -> scripts/check-focused-parity.py
       HARN-01               -> scripts/check-act-limb.py
@@ -2577,6 +2577,18 @@ def _rows_v818() -> list[MatrixRow]:
       SHIP-02               -> scripts/check-version-stamps.py
     Rejected: all 23 reproducible (would give SHIP-04/SHIP-05 an artifact_link that does not
     exist — the vacuous-green shape this project has flagged four times).
+
+    Re-run disposition (v9.3.0 Phase 34, ANCH-01, D-12/D-13). ACT-01..05 each cite a
+    per-claim `_self_test_<claim>` function extracted from `scripts/check-act-limb.py`'s
+    `_run_self_test` as a behaviour-free move, dispatch-checked by TRACE-03's own
+    `_resolve_artifact`: ACT-01 -> `#_self_test_act01_verification_step`, ACT-02 ->
+    `#_self_test_act02_provenance_labels`, ACT-03 -> `#_self_test_act03_failure_path`,
+    ACT-04 -> `#_self_test_act04_verification_bound`, ACT-05 -> `#_self_test_act05_fix_note`.
+    Each anchor is proven by two red breaks recorded in this phase's own break-test log: the
+    dispatcher call removed (TRACE-03 `check` goes non-zero) and the claim itself broken (a
+    `check-act-limb.py` leg goes non-zero). HARN-01 stays bare (D-14): it restates the
+    combined existence of ACT-01..05's own controls with no distinguishable clause of its
+    own to anchor without re-anchoring the whole gate.
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
@@ -2591,7 +2603,7 @@ def _rows_v818() -> list[MatrixRow]:
     return [
         MatrixRow("v8.18/ACT-01", "ACT-01", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", "",
+                  "reproducible", "scripts/check-act-limb.py#_self_test_act01_verification_step", "",
                   surfaces=("agent",),
                   statement=(
                       "Phase 3 names an explicit verification action — open the cited source with Read "
@@ -2601,7 +2613,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/ACT-02", "ACT-02", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", "",
+                  "reproducible", "scripts/check-act-limb.py#_self_test_act02_provenance_labels", "",
                   surfaces=("agent",),
                   statement=(
                       "The agent assigns each ground truth's provenance suffix from what it read, and "
@@ -2611,7 +2623,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/ACT-03", "ACT-03", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", "",
+                  "reproducible", "scripts/check-act-limb.py#_self_test_act03_failure_path", "",
                   surfaces=("agent",),
                   statement=(
                       "When a source cannot be opened, the agent records the failure — which source, "
@@ -2621,7 +2633,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/ACT-04", "ACT-04", "v8.18", "Methodology",
                   "shared/spine/SKILL-body.md",
-                  "reproducible", "scripts/check-act-limb.py", "",
+                  "reproducible", "scripts/check-act-limb.py#_self_test_act04_verification_bound", "",
                   surfaces=("agent",),
                   statement=(
                       "The verification step is explicitly bounded so it cannot consume the turn "
@@ -2631,7 +2643,7 @@ def _rows_v818() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.18/ACT-05", "ACT-05", "v8.18", "Methodology",
                   "shared/spine/references/validation-rubric.md",
-                  "reproducible", "scripts/check-act-limb.py", "",
+                  "reproducible", "scripts/check-act-limb.py#_self_test_act05_fix_note", "",
                   surfaces=("agent",),
                   statement=(
                       "Self-Audit Gate Criterion 3 names both Fix branches — acquire the evidence, or "
@@ -2982,11 +2994,18 @@ def _rows_v820() -> list[MatrixRow]:
     Capability assignment: all 5 rows are harness-robustness apparatus over
     `scripts/check-act-limb.py`, so all 5 are Test-Network.
 
-    DISCLOSED BOUNDARY. None of the 3 reproducible rows carries a `#_self_test_*` anchor,
-    because `scripts/check-act-limb.py` defines no `_self_test_*`/`_selftest_*` symbol (only
-    `_run_self_test`); each row carries a bare script path, and the dispatch guarantee is
-    supplied instead by that script's own `--self-test`/live CLI, exercised directly in this
-    phase's own break tests, not by this matrix.
+    Re-run disposition (v9.3.0 Phase 34, ANCH-01, D-14). `scripts/check-act-limb.py` now
+    defines five per-claim `_self_test_<claim>` functions (extracted at Phase 34 for the
+    v8.18/ACT-01..05 rows above), but none of this batch's 3 reproducible rows cites one:
+    HARN-01-02 and HARN-01-03 are historical build-log entries — "create a fixture for each
+    branch" / "add anti-masking assertions" — re-run only as a side effect of the whole
+    self-test staying green, since the anti-masking floor (`_check_anchor_control_coverage`)
+    is an aggregate mechanism, not a single named block either row's own clause could anchor
+    without re-anchoring the whole floor; HARN-01-05 is a one-time historical confirmation
+    ("verify `--self-test` still GREEN with all 16 controls in place"), re-run the same way.
+    Each stays bare (D-14) with its own script path, and the dispatch guarantee for these 3
+    rows is supplied instead by `scripts/check-act-limb.py`'s own `--self-test`/live CLI,
+    exercised directly in this phase's own break tests, not by a per-claim matrix anchor.
 
     RESIDUAL LIMITATION (disclosed, not closed here). The correspondence between this
     function's 5-ID roster and `.planning/milestones/v8.20.0-REQUIREMENTS.md`'s own roster is
