@@ -15,8 +15,9 @@ installed session.
 
 Closes backlog **999.93** through **999.100** (the Trace Atlas milestone's own eight entries),
 **999.101** (folded in as REL-24, D-01) and **999.102** (already resolved earlier in this
-milestone by Phase 32.1, `eaf221b`) — determinations re-run and recorded in `35-CLOSURES.md`, a
-local-only, git-ignored planning record. Five further entries carrying a same-window resolved
+milestone by Phase 32.1, `eaf221b`) — each determination re-run against that entry's own named
+check at `522c873`, and all ten read closed (999.100 with the residual disclosed under Known
+limitations below). Five further entries carrying a same-window resolved
 date — **999.36, 999.39, 999.56, 999.67, 999.78** — were confirmed closed by commits from earlier
 milestones (v9.0.0/v9.2.1); named here only for completeness of the date-window search, none is
 this milestone's own work.
@@ -69,8 +70,11 @@ A surfaces value, a battery-only marker and a live/manual label are hand-assigne
   residuals (RR-108-04, RR-108-05) carry `residual/` rows. **Disclosed limits —** the
   every-registered-gate-is-cited claim, the docstring tier-justification prose, and a
   milestone-naming edit to the headline-history table are none of them re-run by any registered
-  gate — each confirmed by a live mutate-and-restore break test in `35-BREAK-TESTS.md`, a
-  local-only, git-ignored planning record, not merely asserted.
+  gate — each confirmed by a live mutate-and-restore break test, not merely asserted: re-pointing
+  GATE-01's two citing rows away from `scripts/check-agent.py` (its citation count reads zero),
+  deleting the HC-04 audit-only justification paragraph from `_rows_v819()`'s docstring, and
+  redacting v8.19/v8.20/v8.21 from headline-history row 17 each left
+  `scripts/check-traceability.py --self-test` green.
 - **Release mechanics (REL-19..REL-23).** All 17 version stamps bumped to `9.3.0` in one commit
   (`51b3830`) carrying the body fix (`9e582cb`) to installed copies; `_rows_v93()` registered and
   wired into `build_matrix_rows()` (`522c873`), sweeping the headline in the same commit. No new
@@ -109,8 +113,7 @@ A surfaces value, a battery-only marker and a live/manual label are hand-assigne
   a local-only, git-ignored planning record is replaced by its own verbatim claim or dropped and
   named by backlog ID only, every remaining line-number citation is anchored to the release commit
   that carries it, and every battery/CI tally is anchored the same way — the count of such pointers
-  across those three entries now reads 0, down from 5 (recorded in `35-IN03-MAP.md`, itself a
-  local-only, git-ignored planning record). **Disclosed limits —** obedience to either failure-path
+  across those three entries now reads 0, down from 5. **Disclosed limits —** obedience to either failure-path
   sentence stays with backlog 999.89; presence is checkable, obedience is not.
 
 ### Known limitations
