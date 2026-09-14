@@ -18,7 +18,7 @@
 > <!-- GENERATED:README-COVERAGE-HEADLINE -->
 > **Current state — start here:** [`requirements-traceability.md`](requirements-traceability.md)
 > — the authoritative surface: active residuals, dispositions, and the **current** coverage
-> headline of **243 reproducible / 152 audit-only / 0 gap / 395 total**.
+> headline of **240 reproducible / 155 audit-only / 0 gap / 395 total**.
 >
 > <!-- END GENERATED:README-COVERAGE-HEADLINE -->
 > **Historical terminal record:** [`v8.0-final-closure.md`](v8.0-final-closure.md) — accepted

@@ -8,7 +8,7 @@
 - `branch_roster` (19): `0`, `a`, `b`, `c`, `d`, `e`, `f`, `f2`, `g`, `h`, `h2`, `i`, `i2`, `i3`, `j`, `k`, `l`, `m`, `n`
 - `branch_count`: `19`
 - `locked_constants` (4 entries): `headline_lock_stage_names`='_headline_lock_preamble | _headline_lock_surfaces | _headline_lock_scan | _headline_lock_doc_rows', `historical_exempt_files`='CHANGELOG.md | docs/v8.0-final-closure.md', `selftest_anchor_prefixes`='_selftest_ | _self_test_', `trace03_doc_rows`='CLAUDE.md | docs/ARCHITECTURE.md'
-- `coverage_headline` (2 entries): `prose`='243 reproducible / 152 audit-only / 0 gap / 395 total', `slash`='243/152/0/395'
+- `coverage_headline` (2 entries): `prose`='240 reproducible / 155 audit-only / 0 gap / 395 total', `slash`='240/155/0/395'
 <!-- END GENERATED:FACTS -->
 
 <!-- GENERATED:HOW-TO-RUN -->

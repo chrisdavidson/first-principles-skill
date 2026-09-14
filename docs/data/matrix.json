@@ -5829,14 +5829,14 @@
     "milestone": "v9.3",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-traceability.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-traceability.py#_self_test_row_fields_live",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "the Exit clause of SCHEMA-01's own statement \u2014 `rederive.py skills` lists the field among MatrixRow's fields \u2014 is not re-run by any registered gate: rederive.py is a local-only, git-ignored planning instrument that no battery, CI or pre-commit-hook file names (READ-01's registration grep, re-run at the Phase 35 code review). The field-presence, lockstep-population and JSON-emission clauses are each red under their own break at check-traceability.py's _self_test_row_fields_live and HEADLINE-LOCK; one clause no gate re-runs is sufficient to keep the claim audit-only (the rule ROWS-05's and TIER-04's own rationales apply). Re-tiered from reproducible at the Phase 35 code review (WR-01).",
     "surfaces": [
       "apparatus"
     ],
     "statement": "`MatrixRow` carries a surfaces field (skill slugs, `agent`, or `apparatus`), back-filled across every `_rows_v*()` batch in lockstep and emitted into `docs/data/matrix.json`. Exit: `rederive.py skills` lists the field among `MatrixRow`'s fields.",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v9.3/SCHEMA-02",
@@ -5859,14 +5859,14 @@
     "milestone": "v9.3",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-traceability.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-traceability.py#_self_test_row_fields_live",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "the Exit clause of STMT-01's own statement \u2014 `rederive.py no-text` is extended to count rows with neither a statement nor the marker, and reads 0 \u2014 describes an edit to, and a reading of, a local-only, git-ignored planning instrument that no battery, CI or pre-commit-hook file names (READ-01's registration grep, re-run at the Phase 35 code review), so no registered gate re-runs it. The field-presence, non-empty-or-marker, one-line and emitted-into-both-artifacts clauses are each red under their own break at check-traceability.py's _self_test_row_fields_live and HEADLINE-LOCK; one clause no gate re-runs is sufficient to keep the claim audit-only (the rule ROWS-05's and TIER-04's own rationales apply). Re-tiered from reproducible at the Phase 35 code review (WR-01).",
     "surfaces": [
       "apparatus"
     ],
     "statement": "`MatrixRow` carries a one-line statement field, emitted into both generated artifacts; every row carries a non-empty statement or the literal marker `statement unrecoverable`. Exit: `rederive.py no-text` is extended to count rows with neither, and reads 0.",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v9.3/STMT-02",
@@ -5949,14 +5949,14 @@
     "milestone": "v9.3",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-traceability.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-traceability.py#_resolve_artifact",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "three clauses of ANCH-01's own statement are not re-run by any registered gate: the comparative 'more reproducible rows' and the Exit clause's before/after pair against the phase-base reading (no gate stores a prior anchored count to compare against), the 'top three scripts ranked by rows unlocked' ranking (no gate recomputes it), and the `rederive.py anchors` reading itself (a local-only, git-ignored instrument no battery, CI or pre-commit-hook file names, per READ-01's registration grep). Only the mechanism clauses are gate-checked \u2014 removing a dispatcher call, and separately renaming an anchored block, each turn check-traceability.py check red at _resolve_artifact()'s dispatch-reachability and symbol-resolution legs. Re-tiered from reproducible at the Phase 35 code review (WR-01).",
     "surfaces": [
       "apparatus"
     ],
     "statement": "More reproducible rows name a function `_resolve_artifact()` dispatch-checks: per script, each row's claim is anchored at a self-test block named to the recognised prefix and called directly from that script's own dispatcher, and that script's rows are re-pointed in one lockstep batch, for the top three scripts ranked by rows unlocked. Exit: `rederive.py anchors`' call-checked line reports a higher anchored count than the phase-base reading, recorded as a before/after pair with the scripts changed \u2014 and separately, the CI-run anchored count.",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v9.3/ANCH-02",

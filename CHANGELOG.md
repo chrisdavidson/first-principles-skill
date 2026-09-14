@@ -37,7 +37,9 @@ to `244/151/0/395` (244 reproducible / 151 audit-only / 0 gap / 395 total) — 2
 through `_rows_v93()`, swept across every covered surface by `HEADLINE-LOCK`'s mechanism, never by
 hand — then to `243/152/0/395` (243 reproducible / 152 audit-only / 0 gap / 395 total) when the
 phase's code review re-tiered TIER-03 audit-only (relabelling a live/manual row `battery-only`
-stays green at every gate), in a second swept move.
+stays green at every gate), in a second swept move — and to `240/155/0/395` (240 reproducible /
+155 audit-only / 0 gap / 395 total) when the same review re-tiered SCHEMA-01, STMT-01 and ANCH-01
+audit-only (each statement carries a clause no registered gate re-runs), in a third.
 
 The battery registration count and the CI job count are unchanged from this milestone's own
 baseline: by direct count through `scripts/check-registration.py`'s own parser, both at `fda29cc`
