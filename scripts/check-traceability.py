@@ -77,7 +77,8 @@ VALID_TIERS: set[str] = {"reproducible", "audit-only", "gap", "scheduled"}
 VALID_RERUN_BY: set[str] = {"ci", "battery-only", "pre-commit-only", "live-manual", "none"}
 
 # D-03 resolution map: a non-registry-script artifact -> the gate id that reads it. Each
-# entry is verified in both directions by `_rerun_via_problems()` — the mapped gate id's
+# entry is checked in both directions by `_rerun_via_problems()` (one disclosed exemption
+# below) — the mapped gate id's
 # `_gate_registry.ENTRIES` entry must carry a `ci_job`, that entry's own script text must
 # name the artifact's basename, and every map key must be cited by at least one row reading
 # `ci` (34-SIBLINGS.md Determination 4). This is a short, explicit, individually-justified
@@ -85,6 +86,15 @@ VALID_RERUN_BY: set[str] = {"ci", "battery-only", "pre-commit-only", "live-manua
 # `scripts/check-firewall-battery.sh` (named in `scripts/check-registration.py`'s own text)
 # and on every artifact through this very module (which names them all in `MatrixRow`
 # literals), both meaningless "named by a CI-registered script" conditions.
+#
+# DISCLOSED EXEMPTION (Phase 34 code review, WR-08): for the TRACE-03 entry the basename leg
+# cannot fail. TRACE-03's script is this module, and this module names
+# `validation-rubric.md` in its own `MatrixRow` literals, which is exactly the meaningless
+# condition the paragraph above rejects. That leg is therefore not verification for this
+# entry. What does re-read the rubric is `check_consistency()` -> `_resolve_artifact()`'s
+# heading-substring check over every row citing it, run by TRACE-03's CI job; that
+# relationship is real, but `_rerun_via_problems()` does not prove it. The other two
+# entries' basename legs read a script other than this module and are real checks.
 _RERUN_CI_VIA: dict[str, str] = {
     "scripts/_battery_core.py": "BATT-06",
     "tests/step0-fixture-catalog.md": "STEP0-08",
@@ -6027,7 +6037,9 @@ def _rerun_via_problems(
     gate id):
       - the gate id must exist in `_gate_registry.ENTRIES` with a `ci_job`;
       - that entry's own script text must contain the artifact's basename (the
-        module stem for a `.py` artifact, the bare filename otherwise);
+        module stem for a `.py` artifact, the bare filename otherwise). This leg is
+        vacuous when the gate's script is this module (the TRACE-03 entry): see the
+        DISCLOSED EXEMPTION on `_RERUN_CI_VIA`;
       - at least one row reading `rerun_by == "ci"` must carry that artifact as
         its file part — an unused map entry silently widens what `ci` could
         accept without ever being exercised by a real row.
