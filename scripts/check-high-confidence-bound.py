@@ -11,7 +11,8 @@ Phase 5 tightened the rubric's prose to require HIGH-confidence chains
 supporting ground truths and conclusions, with three documented exceptions.
 Nothing currently stops a future edit from silently reverting it — no existing
 gate reads the Criterion 3 or Criterion 5 Rigorous descriptors for the
-HIGH-confidence bound, and VAL-04 is structurally blind to rubric content.
+HIGH-confidence bound, and the retired VAL-04 collision scan
+(docs/v9.4-gate-retirement.md §2.2) was structurally blind to rubric content.
 This gate is the ratchet that makes the tightening permanent.
 
 This gate validates rubric structure only. It does NOT measure whether the

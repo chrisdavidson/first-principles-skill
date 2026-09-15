@@ -72,20 +72,6 @@ jobs:
       - run: uv run python3 scripts/check-links.py
       - run: uv run python3 -m pytest scripts/check-links_anchors_test.py -q
 
-  check-trigger-collisions:
-    name: check-trigger-collisions (VAL-04/GATE-02)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: ${{ env.UV_VERSION }}
-          enable-cache: true
-      - run: uv sync --locked --group dev
-      - run: uv run python3 scripts/check-trigger-collisions.py --self-test
-      - run: uv run python3 scripts/check-trigger-collisions.py
-
   check-version-stamps:
     name: check-version-stamps (VERSION-01)
     runs-on: ubuntu-latest

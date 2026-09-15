@@ -527,7 +527,7 @@ NARRATIVE_ENTRIES: frozenset[str] = frozenset(
         # REACH-or-LEVEL determination, because a thin page is regenerated
         # end to end (D-08) and would erase it.
         "HARN-03",
-        "VAL-01", "VAL-02", "VAL-03", "VAL-04", "VAL-05", "VERSION-01",
+        "VAL-01", "VAL-02", "VAL-03", "VAL-05", "VERSION-01",
         "DUAL-04", "GATE-01", "BATT-06", "STEP0-08", "STEP0-06",
         # HARN-02 joined in v9.2.0 Phase 28 commit A to host its GUARD-03
         # REACH-or-LEVEL determination, because a thin page is regenerated
@@ -2549,7 +2549,8 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
     ('CLAUDE.md', '17'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` emits `registered_surfaces` (4 path strings) and `stamp_source_kind_count: 4` -- no field exposes "17 hand-maintained stamps" itself today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
     ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above.'),
-    ('CLAUDE.md', '23'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "The tally is 23 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, re-worded from the prior \'24\' entry when COLLIDE-01 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.1); the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it. Second occurrence, same key: a FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3), "the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05" -- an arrow-free historical count in the requirements-ledger paragraph, the same exception as \'14\'/\'15\'/\'20\' above. This entry\'s coincidental in-fence corroboration from the pre-retirement CI-job count (23) broke when COLLIDE-01\'s CI job was removed, surfacing both occurrences as live findings for the first time.'),
+    ('CLAUDE.md', '22'): ('999.104', 2, 'CANNOT-REACH (no harvest field): "The tally is 22 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, re-worded from the prior \'23\' entry when VAL-04 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.2); the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it. Second occurrence, same key: NOT A COUNT CLAIM, "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. This entry\'s coincidental in-fence corroboration from the pre-retirement CI-job count (22) broke when VAL-04\'s CI job was removed, surfacing both occurrences as live findings for the first time.'),
+    ('CLAUDE.md', '23'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05" -- an arrow-free historical count in the requirements-ledger paragraph, the same exception as \'14\'/\'15\'/\'20\' above. Occurrence count lowered from 2 to 1 when VAL-04\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.2) reworded the tally sentence off \'23\' entirely, onto \'22\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '26'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "docs/history/ -- frozen per-milestone REQUIREMENTS.md / ROADMAP.md / MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3)" -- an archived milestone-snapshot count under the Requirements surface section, unrelated to the battery/CI gate totals it happens to share a digit with. This entry\'s coincidental in-fence corroboration from the pre-retirement battery total (26) broke when COLLIDE-01 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.1) moved that total to 25; the sibling "battery total (26, see above)" sentence this same coincidence used to cover was a genuinely stale current-fact claim and was corrected to 25 in the same commit rather than ledgered.'),
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
@@ -2687,7 +2688,17 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # (`('CLAUDE.md', '22')`, `('CLAUDE.md', '24')` -- both re-covered by the
 # new CI-job/battery totals by the same coincidence mechanism). Net: three
 # keys added, two removed (21 -> 22).
-_CONTAINMENT_LEDGER_MAX: int = 22
+#
+# Raised 22 -> 23 by Phase 40 plan 06 Task 2: retiring VAL-04
+# (docs/v9.4-gate-retirement.md §2.2) moved the CI job count 22 -> 21 and
+# the battery total 25 -> 24, breaking the `('CLAUDE.md', '22')`
+# coincidental in-fence corroboration the pre-retirement CI-job count used
+# to supply for the tally sentence's own re-worded '22' -- added under
+# 999.104 (no `check-firewall-battery.sh` `--describe` leg exists to reach
+# it). The sibling `('CLAUDE.md', '23')` entry's pinned occurrence count
+# was lowered 2 -> 1 in the same commit (no key removed, no key added by
+# that change) once the tally sentence itself moved off '23' onto '22'.
+_CONTAINMENT_LEDGER_MAX: int = 23
 
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
@@ -2723,8 +2734,14 @@ _CONTAINMENT_LEDGER_MAX: int = 22
 # added keys (`('CLAUDE.md', '23')`, `('CLAUDE.md', '26')`,
 # `('docs/gates/CONF-SURFACE.md', '5')`) and the two removed keys
 # (`('CLAUDE.md', '22')`, `('CLAUDE.md', '24')`).
+#
+# Re-pinned again by Phase 40 plan 06 Task 2, in the SAME commit as the
+# 22 -> 23 reconciliation above: the key set changed by exactly the one
+# added key (`('CLAUDE.md', '22')`); no key was removed (the sibling
+# `('CLAUDE.md', '23')` entry's pinned occurrence count changed, but the
+# key itself survives, so it does not move this digest).
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:76822b3a65ea60576fe9ce72e3ab71e6e85925b25ffee010889d20793a259100"
+    "sha256:5baa3393b18f03d604d4205333d4c91d873833fc6d8f8cb9e1cbe8bc197c5da6"
 )
 
 
@@ -3469,10 +3486,8 @@ _DEFERRED_LITERAL_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CONTRIBUTING.md', 'Five gates'): ('999.44', 1, "Correct: the same fixed five-gate pre-commit pipeline (sync-drift, conformance generator self-test, conformance-baseline drift, claim-surface generator self-test, claim-surface drift) already ledgered for CLAUDE.md's and docs/TESTING.md's own 'Five gates' hits (999.42) -- verified again here against both hook scripts, 2026-09-08, on this newly-registered surface (plan 22-07)."),
     ('CONTRIBUTING.md', 'one shot and check'): ('999.44', 1, "NOT-A-COUNT: 'run the whole offline set in one shot and check for a GREEN verdict' uses 'one shot' as an idiom for a single invocation of the battery script, not a count of any external population."),
     ('docs/ARCHITECTURE.md', '(five gates'): ('999.42', 1, "Correct: both pre-commit hooks now run 5 gates each -- same fact as 'up from three)' above, second number on the same line."),
-    ('docs/ARCHITECTURE.md', '**Two gates'): ('999.42', 1, "NOT-A-COUNT: 'Two gates are called GATE-02' identifies two DIFFERENT gates that share a display name (VAL-04/GATE-02 vs GATE-02-v8.5) -- the number is correct but attached to a disambiguation, not a population count."),
     ('docs/ARCHITECTURE.md', 'one entry'): ('999.42', 1, "NOT-A-COUNT: 'holds one entry per companion-tool slug' states a per-slug cardinality invariant (a ratio), not a population total -- the adjacency heuristic attaches it to the 'entry' noun as though it counted the whole file."),
     ('docs/ARCHITECTURE.md', 'stamps rather than 13.'): ('999.42', 1, "Correct: shared/skills/*/SKILL.md held 13 version stamps before the first-principles-analysis launcher was added (now 14) -- a correct historical count, adjacent to the version-stamp narrative but not caught by the version-stamp-count exemption's literal 'version stamp' substring match."),
-    ('docs/ARCHITECTURE.md', 'two unrelated checks.'): ('999.42', 1, "NOT-A-COUNT: same paragraph and same false-positive class as '**Two gates' above -- 'conflates two unrelated checks' names which two, not how many checks exist in total."),
     ('docs/ARCHITECTURE.md', 'up from three)'): ('999.42', 1, 'Correct: both pre-commit hooks moved from 3 to 5 gates each when CONF-SURFACE landed -- verified against both hook scripts in plan 21-13.'),
     ('docs/PROCESS.md', "'gate and the five')`,"): ('999.44', 1, "NOT-A-COUNT: verbatim citation of the ('docs/README.md', 'gate and the five') ledger key this same plan (22-09) adds to §1.2 -- the adjacency heuristic fires on the word 'five' inside the quoted key string, but the key names a lookup fragment, not a measured quantity; the count and its adjudication live in that cited entry itself, not here."),
     ('docs/PROCESS.md', '"13 plans,"'): ('999.44', 1, "Correct: the first of four quoted exemplars ('13 plans,' '4 rounds,' '41%,' '17 figures') naming the CLASS of frozen historical counts this file's own section-2 standing constraint distinguishes from the moving battery total -- itself the closed Phase 21 measured figure (13 gap-closure plans), restated here as a citation, not a fresh count."),
@@ -3753,7 +3768,7 @@ def _deferred_ledger_keys_digest(
 # reconciliation discipline (re-deriving every "live-verified" reason from
 # a fresh `--describe` invocation, never trusting a prior reading) for the
 # practice that actually catches this, since the ratchet itself cannot.
-_DEFERRED_LEDGER_MAX: int = 180
+_DEFERRED_LEDGER_MAX: int = 178
 
 
 # A sha256 pin over the ledger's sorted `(relpath, text)` key set (plan
@@ -3775,14 +3790,13 @@ _DEFERRED_LEDGER_MAX: int = 180
 # apart from a rubber-stamped one; it can only prove the set is not
 # drifting silently underneath an unchanged pin.
 #
-# Re-pinned by plan 40-05 Task 1, in the same commit as
-# scripts/check-registration.py's 999.104 successor assertion: the ledger key
-# naming that file's own module docstring moved from '29 named,
-# decision-traceable controls' to '32 named, decision-traceable controls'
-# (three new controls, c30-c32) -- same key count, one key's literal text
-# changed to match the live docstring.
+# Re-pinned by plan 40-06 Task 2, in the same commit as VAL-04's retirement:
+# two keys removed -- ('docs/ARCHITECTURE.md', '**Two gates') and
+# ('docs/ARCHITECTURE.md', 'two unrelated checks.') -- both NOT-A-COUNT
+# permits for the "Two gates are called GATE-02" paragraph this plan
+# replaced, per docs/v9.4-gate-retirement.md §2.2. 180 -> 178.
 _DEFERRED_LEDGER_KEYS_DIGEST = (
-    "sha256:d5ebe8654b7e6114d106807ed2e3ea72376ae58818f6105776a3024e0608877c"
+    "sha256:e2f7cf42e6ea19b03f66117e50b507521dccf18d8b4050990b1d70e71d9c4367"
 )
 
 
@@ -5730,11 +5744,11 @@ def _control_containment_slash_paired_vector_stripped() -> None:
 
 def _control_delta_chain_hops_confsurface_corrected() -> None:
     """docs/gates/CONF-SURFACE.md's real, live outside text, driven through
-    `generate_all()` (never a paraphrase) -- AFTER plan 26-06 Task 2's own
-    correction: one chain, hop count 6, terminus `('180',)`, matching the
+    `generate_all()` (never a paraphrase) -- AFTER plan 40-06 Task 2's own
+    correction: one chain, hop count 7, terminus `('178',)`, matching the
     live `_DEFERRED_LEDGER_MAX`. This control is LIVE-TEXT-DRIVEN; plan
-    22-10's own Task 2 correction previously set it to hop count 5,
-    terminus `('181',)`. Revised again here in the SAME commit that
+    26-06 Task 2's own correction previously set it to hop count 6,
+    terminus `('180',)`. Revised again here in the SAME commit that
     corrects the real page, per the plan's own note that a live-text
     control tracks whatever the live text says. See
     `_control_chain_terminus_pre_fix_synthetic_fixture` for the control
@@ -5750,15 +5764,15 @@ def _control_delta_chain_hops_confsurface_corrected() -> None:
     ]
     chains = _link_delta_chains(_delta_chain_hops("\n".join(outside_lines)))
     assert len(chains) == 1, chains
-    assert len(chains[0]) == 6, chains[0]
-    assert chains[0][-1][1] == ("180",), chains[0]
+    assert len(chains[0]) == 7, chains[0]
+    assert chains[0][-1][1] == ("178",), chains[0]
     inside_numbers = _normalise_numbers(
         _strip_citation_shaped_numbers(
             "\n".join(line for line, is_in in zip(lines, inside) if is_in)
         ),
         include_spelled_out=True,
     )
-    assert "180" in inside_numbers, inside_numbers
+    assert "178" in inside_numbers, inside_numbers
 
 
 def _control_delta_chain_hops_qual01_out_of_grammar() -> None:

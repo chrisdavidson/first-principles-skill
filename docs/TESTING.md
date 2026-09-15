@@ -15,7 +15,6 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | VAL-01 | [`docs/gates/VAL-01.md`](gates/VAL-01.md) | `claude plugin validate ./first-principles` |
 | VAL-02 | [`docs/gates/VAL-02.md`](gates/VAL-02.md) | `markdownlint-cli2 --config .markdownlint.jsonc 'first-principles/**/*.md'` |
 | VAL-03 | [`docs/gates/VAL-03.md`](gates/VAL-03.md) | `python3 scripts/check-links.py --self-test && python3 scripts/check-links.py && .venv/bin/python3 -m pytest scripts/check-links_anchors_test.py -q  # or any pytest-capable interpreter` |
-| VAL-04 / GATE-02 | [`docs/gates/VAL-04.md`](gates/VAL-04.md) | `python3 scripts/check-trigger-collisions.py --self-test && python3 scripts/check-trigger-collisions.py` |
 | VAL-05 | [`docs/gates/VAL-05.md`](gates/VAL-05.md) | `python3 scripts/check-description-budget.py` |
 | VERSION-01 | [`docs/gates/VERSION-01.md`](gates/VERSION-01.md) | `python3 scripts/check-version-stamps.py --self-test && python3 scripts/check-version-stamps.py` |
 | REG-GUARD | [`docs/gates/REG-GUARD.md`](gates/REG-GUARD.md) | `python3 scripts/check-registration.py --self-test && python3 scripts/check-registration.py` |
@@ -132,8 +131,6 @@ python3 scripts/check-body-budget.py    # reports body size; not a gate (TEARDOW
 python3 scripts/check-agent.py --self-test
 python3 scripts/check-agent.py --file first-principles/agents/first-principles.md
 python3 scripts/check-links.py
-python3 scripts/check-trigger-collisions.py --self-test
-python3 scripts/check-trigger-collisions.py
 python3 scripts/check-description-budget.py
 python3 scripts/sync-content.py --check
 python3 scripts/check-routing-battery.py --self-test

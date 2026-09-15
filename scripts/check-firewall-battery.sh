@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 25 offline gate commands, captures each exit code, and prints a
+# Runs all 24 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,21 +15,21 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (25):
+# Gates (24):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
-#   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
-#   GATE-01   BATT-06       TRACE-03  QUAL-01   HARN-01
-#   HARN-02   HARN-03       HC-BOUND  REG-GUARD PROV-GUARD
-#   SCAN-GUARD  CONF-GATE   CONF-SURFACE  INVARIANT-CHECK
+#   VAL-02    VAL-03        VAL-05    VERSION-01  GATE-01
+#   BATT-06   TRACE-03      QUAL-01   HARN-01   HARN-02
+#   HARN-03   HC-BOUND      REG-GUARD PROV-GUARD SCAN-GUARD
+#   CONF-GATE   CONF-SURFACE  INVARIANT-CHECK
 #   FROZEN-EVIDENCE
 #
-# 22 of the 23 non-inline gates are registered through the `gate` helper
+# 21 of the 22 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 23 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 22 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 25.
+# than going through `gate`, for a reported total of 24.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -202,6 +202,17 @@
 # already, owned entirely by REG-GUARD and GATE-01. Battery composition
 # moved 26 -> 25. A gate that disappears silently is indistinguishable from
 # a gate that never fired.
+#
+# Composition change (VAL-04 retired, Phase 40, v9.4.0 --
+# docs/v9.4-gate-retirement.md §2.2): the battery lost one gate, VAL-04
+# (the v3.0 4-gram trigger-collision scanner, carrying extra id GATE-02). With
+# every shipped skill stub slash-only (disable-model-invocation: true), only
+# one routing description -- the agent's own -- remains in the model's
+# context, and a 4-gram collision needs two competing descriptions; the scan
+# could not fail for any reason that affects routing. The property it was a
+# proxy for -- every stub carrying disable-model-invocation: true -- is now
+# asserted inside REG-GUARD's existing entry (plan 40-05), not a new
+# registered gate. Battery composition moved 25 -> 24.
 #
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
@@ -413,12 +424,6 @@ else
         "python3 scripts/check-links.py --self-test" \
         "python3 scripts/check-links.py"
 fi
-
-# VAL-04 — 4-gram trigger-phrase collision scan (self-test + live)
-gate "VAL-04" \
-    "check-trigger-collisions.py --self-test + live" \
-    "python3 scripts/check-trigger-collisions.py --self-test" \
-    "python3 scripts/check-trigger-collisions.py"
 
 # VAL-05 — skill-listing description budget (≤2000 chars)
 gate "VAL-05" \

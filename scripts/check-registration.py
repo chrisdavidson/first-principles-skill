@@ -79,7 +79,8 @@ _BATTERY_GATE_RE = re.compile(r'^[ \t]*gate(?:_prereq)?[ \t]+"([^"]+)"', re.MULT
 
 # `check-provenance (PROV-GUARD)` → job "check-provenance", ids "PROV-GUARD".
 # A job name with no parenthetical (`GATE-02-v8.5`) is treated as the gate id
-# itself; a parenthetical holding several ids (`VAL-04/GATE-02`) splits on "/".
+# itself; a parenthetical holding several ids (`ALPHA-01/BETA-02`) splits on
+# "/".
 _CI_JOB_NAME_RE = re.compile(r"^(?P<job>.*?)\s*\((?P<ids>[^()]+)\)\s*$")
 
 # Matches scripts/_skill_io.py's constant of the same name — splits frontmatter
@@ -564,7 +565,7 @@ def parse_ci_job_name(job_name: str) -> list[str]:
 
     Three observed forms in `.github/workflows/validation.yml`:
       - `check-provenance (PROV-GUARD)`      -> ["PROV-GUARD"]
-      - `check-trigger-collisions (VAL-04/GATE-02)` -> ["VAL-04", "GATE-02"]
+      - `check-example (ALPHA-01/BETA-02)`   -> ["ALPHA-01", "BETA-02"]
       - `GATE-02-v8.5`                       -> ["GATE-02-v8.5"]
 
     The third form is the bare-name job; treating the whole name as the id is
@@ -1645,7 +1646,7 @@ def _run_self_test() -> None:
     # Control 26 — parse_ci_job_name over all three observed name forms.
     for job_name_26, expected_26 in (
         ("check-provenance (PROV-GUARD)", ["PROV-GUARD"]),
-        ("check-trigger-collisions (VAL-04/GATE-02)", ["VAL-04", "GATE-02"]),
+        ("check-example (ALPHA-01/BETA-02)", ["ALPHA-01", "BETA-02"]),
         ("GATE-02-v8.5", ["GATE-02-v8.5"]),
         ("", []),
     ):
@@ -1666,17 +1667,17 @@ def _run_self_test() -> None:
         "name": "validation",
         "jobs": {
             "prov": {"name": "check-provenance (PROV-GUARD)"},
-            "trig": {"name": "check-trigger-collisions (VAL-04/GATE-02)"},
+            "trig": {"name": "check-example (ALPHA-01/BETA-02)"},
             "pointer": {"name": "GATE-02-v8.5"},
             "nameless": {"runs-on": "ubuntu-latest"},
         },
     }
     ci_map_27 = extract_ci_gate_ids(workflow_27)
-    if set(ci_map_27) != {"PROV-GUARD", "VAL-04", "GATE-02", "GATE-02-v8.5"}:
+    if set(ci_map_27) != {"PROV-GUARD", "ALPHA-01", "BETA-02", "GATE-02-v8.5"}:
         sys.stderr.write(
             "check-registration --self-test: FAIL — Control 27: "
             f"extract_ci_gate_ids returned ids {sorted(ci_map_27)!r}, expected "
-            "['GATE-02', 'GATE-02-v8.5', 'PROV-GUARD', 'VAL-04']\n"
+            "['ALPHA-01', 'BETA-02', 'GATE-02-v8.5', 'PROV-GUARD']\n"
         )
         sys.exit(1)
     if "validation" in ci_map_27:
@@ -1685,10 +1686,10 @@ def _run_self_test() -> None:
             "the workflow-level name 'validation' was harvested as a gate id\n"
         )
         sys.exit(1)
-    if ci_map_27["VAL-04"] != "check-trigger-collisions (VAL-04/GATE-02)":
+    if ci_map_27["ALPHA-01"] != "check-example (ALPHA-01/BETA-02)":
         sys.stderr.write(
-            "check-registration --self-test: FAIL — Control 27: VAL-04 mapped "
-            f"to job {ci_map_27['VAL-04']!r}, expected the declaring job name\n"
+            "check-registration --self-test: FAIL — Control 27: ALPHA-01 mapped "
+            f"to job {ci_map_27['ALPHA-01']!r}, expected the declaring job name\n"
         )
         sys.exit(1)
     if extract_ci_gate_ids({}) != {}:

@@ -707,9 +707,10 @@ def _run_self_test() -> None:
     #       is now owned by the merged five-whys row in the phrase table.
     #   (b) The WR-01 mis-route framing ("decompose this problem from first
     #       principles: …") does NOT fire any trigger → full-composer.
-    #       This is the CI-invisible WR-01 guard: check-trigger-collisions.py
-    #       scans only skill descriptions, never the Step 0 phrase table, so
-    #       this hardcoded assertion is the only CI gate that catches a
+    #       This is the CI-invisible WR-01 guard: the retired VAL-04 collision
+    #       scan (docs/v9.4-gate-retirement.md §2.2) scanned only skill
+    #       descriptions, never the Step 0 phrase table, so this hardcoded
+    #       assertion is the only CI gate that catches a
     #       mis-route regression. The absorbed phrase requires "claim" or
     #       "into primitives", not "problem from first principles".
     # Both literals are catalog-independent (D-04): deleting S-P16 or S-N08
@@ -803,9 +804,10 @@ def _run_self_test() -> None:
     #   (b) The S-N06 over-firing prompt ("estimate the impact of …") does NOT
     #       fire any estimate trigger → full-composer.
     #       This is the only CI gate catching an estimate over-firing regression:
-    #       check-trigger-collisions.py scans only skill descriptions, never the
-    #       Step 0 phrase table, so this hardcoded assertion is the only CI gate
-    #       that catches a phrase over-firing regression on 'estimate the impact
+    #       the retired VAL-04 collision scan (docs/v9.4-gate-retirement.md
+    #       §2.2) scanned only skill descriptions, never the Step 0 phrase
+    #       table, so this hardcoded assertion is the only CI gate that
+    #       catches a phrase over-firing regression on 'estimate the impact
     #       of' vs 'estimate the (size|number|magnitude|cost) of'.
     # Both literals are catalog-independent (D-04): deleting S-P10 or S-N06
     # from step0-fixture-catalog.md cannot silently drop these gates.
@@ -902,9 +904,10 @@ def _run_self_test() -> None:
     #       This is the ONLY CI guard for the WR-01 'upper bound on' narrowing boundary
     #       (the Phase-105 over-firing fix narrowed 'upper bound on |.*' to
     #       'upper bound on what.?s achievable' in commit 57bf737):
-    #       check-trigger-collisions.py scans only skill descriptions, never the
-    #       Step 0 phrase table, so this hardcoded assertion is the only CI gate
-    #       that catches a WR-01 regression where the narrowed phrase re-broadens
+    #       the retired VAL-04 collision scan (docs/v9.4-gate-retirement.md
+    #       §2.2) scanned only skill descriptions, never the Step 0 phrase
+    #       table, so this hardcoded assertion is the only CI gate that
+    #       catches a WR-01 regression where the narrowed phrase re-broadens
     #       to match a generic 'upper bound on [other]' prompt.
     #       This makes S-N07 analogous to decompose's S-N05 (a real mis-route guard),
     #       not estimate's S-N06 (mere over-firing guard).
@@ -1007,10 +1010,11 @@ def _run_self_test() -> None:
     # (Plan 107-01 moved theoretical-limit above inversion; Phase 110 merged
     # decompose into five-whys — the formerly-separate decompose row no longer
     # exists; its absorbed triggers are now part of the five-whys row).
-    # check-trigger-collisions.py (VAL-04) is structurally blind to this
-    # disambiguation — it scans only skill description text, never the Step 0
-    # phrase table — so this Category 7 block is the only CI gate that locks the
-    # post-reorder intended winner for each pair (VAL-04 complementarity, GT-6).
+    # The retired VAL-04 collision scan (docs/v9.4-gate-retirement.md §2.2) was
+    # structurally blind to this disambiguation — it scanned only skill
+    # description text, never the Step 0 phrase table — so this Category 7
+    # block is the only CI gate that locks the post-reorder intended winner
+    # for each pair (VAL-04 complementarity, GT-6).
     #
     # Pair 1: absorbed-decompose phrase vs. five-whys native phrase (S-A01)
     #   Both triggers fire within the merged five-whys row: the absorbed
@@ -1021,9 +1025,9 @@ def _run_self_test() -> None:
     #   the same row is not applicable — the whole merged row routes to one
     #   technique).  This is an intra-merged-technique co-fire, not a
     #   cross-technique disambiguation.
-    #   VAL-04 complementarity: a 4-gram collision scan on the SKILL-body text
-    #   cannot detect this case — the classifier is phrase-table-aware, VAL-04
-    #   is not.
+    #   VAL-04 complementarity: the retired VAL-04 4-gram collision scan on
+    #   the SKILL-body text (docs/v9.4-gate-retirement.md §2.2) never read
+    #   this case — the classifier is phrase-table-aware, that scan never was.
     #
     # Pair 2: theoretical-limit vs. inversion (S-A03)
     #   Both triggers fire: "theoretical limit" fires theoretical-limit; the
@@ -1040,7 +1044,8 @@ def _run_self_test() -> None:
     # Pairs 4-6 added at the 2026-08-16 audit, stream 6 (finding CAP-1). The audit
     # found three further plausible overlap pairs disambiguated only in reference
     # prose, with no SEMGATE row and no phrase-table precedence lock — so a row-order
-    # change could silently flip any of them, and VAL-04 is structurally blind to it.
+    # change could silently flip any of them, and the retired VAL-04 collision
+    # scan was structurally blind to it.
     # Each was measured before it was asserted; none required a phrase-table change.
     #
     # Pair 4: fishbone vs. five-whys (S-A07)
@@ -1304,34 +1309,34 @@ def _run_self_test() -> None:
     # -----------------------------------------------------------------------
     # Category 7 (continued): VAL-04 complementarity assertion (GT-6)
     #
-    # GT-6: check-trigger-collisions.py (VAL-04) scans skill description text
-    # for lexical 4-gram collisions between skill names.  It is structurally
-    # blind to the Step 0 phrase table: it never reads SKILL-body.md and cannot
-    # detect that two technique rows share a common trigger phrase.  SEMGATE
-    # fills this gap.
+    # GT-6: the retired VAL-04 collision scan (docs/v9.4-gate-retirement.md
+    # §2.2) scanned skill description text for lexical 4-gram collisions
+    # between skill names.  It was structurally blind to the Step 0 phrase
+    # table: it never read SKILL-body.md and could not detect that two
+    # technique rows share a common trigger phrase.  SEMGATE fills this gap.
     #
     # Assertion: the S-A01 co-fire literal (absorbed-decompose-phrase + five-whys
     # native phrase) classifies to focused-five-whys — a semantic-overlap case
-    # that VAL-04 cannot detect because: (a) VAL-04 scans description text, not
-    # phrase-table rows, and (b) even if it found a collision, it would not know
-    # which row-ORDER wins (or, after the Phase 110 merge, that both phrases are
-    # now owned by the same row).
+    # that VAL-04 could never have detected because: (a) it scanned description
+    # text, not phrase-table rows, and (b) even if it found a collision, it
+    # would not know which row-ORDER wins (or, after the Phase 110 merge, that
+    # both phrases are now owned by the same row).
     # The assertion above (SEMGATE-07 S-A01) already proved this.  The comment
     # below makes the GT-6 complementarity explicit and findable.
     #
     # Complementarity summary:
-    #   VAL-04 asks: "do two skills share a 4-gram in their descriptions?"
+    #   VAL-04 asked: "do two skills share a 4-gram in their descriptions?"
     #   SEMGATE asks: "when two phrase-table rows BOTH fire on the same prompt,
     #                  does first-row-wins return the INTENDED winner?"
-    # These are orthogonal checks — VAL-04 never reads the phrase table, so a
-    # row-order regression is CI-invisible to VAL-04.  SEMGATE-07 is the only
+    # These were orthogonal checks — VAL-04 never read the phrase table, so a
+    # row-order regression was CI-invisible to it.  SEMGATE-07 is the only
     # CI gate that catches it.
     # -----------------------------------------------------------------------
 
     # VAL-04 complementarity is demonstrated by the SEMGATE-07 S-A01 assertion
     # above: the co-fire literal was classified to focused-five-whys by classify()
     # using the post-Phase-110-merge phrase table.  The classify() call uses
-    # SKILL-body.md row order — information VAL-04 never accesses.  No additional
+    # SKILL-body.md row order — information the retired VAL-04 scan never accessed.  No additional
     # runtime check is needed here; the assertion is already recorded in the
     # wrong[] list if it failed.  The comment above satisfies the GT-6
     # documentation requirement.

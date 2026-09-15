@@ -92,7 +92,7 @@ import textwrap
 from pathlib import Path
 
 # Adjust sys.path so _skill_io is importable when invoked from any cwd —
-# mirrors scripts/check-trigger-collisions.py.
+# same idiom scripts/check-description-budget.py uses for the same import.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _skill_io import PLUGIN_SKILLS_DIR, REPO_ROOT, iter_plugin_skills  # noqa: E402

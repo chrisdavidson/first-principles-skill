@@ -3,7 +3,7 @@
 # requires-python = ">=3.12"
 # dependencies = ["pyyaml>=6.0"]
 # ///
-"""Internal helper: shared frontmatter+body reader for VAL-03/04/05 scripts.
+"""Internal helper: shared frontmatter+body reader for VAL-03/05 scripts.
 
 Not directly invocable (underscore prefix per D-19-5). Exposes:
   - REPO_ROOT       Path to the repository root
@@ -41,8 +41,8 @@ def iter_plugin_skills() -> Iterator[tuple[str, dict, str]]:
 
     Defensive early-return: if PLUGIN_SKILLS_DIR does not exist (e.g., after
     the Phase 26.1 migration deletes first-principles/skills/), yield nothing
-    rather than raising FileNotFoundError. Consumers (check-trigger-collisions,
-    check-description-budget) treat an empty iterator as "0 plugin skills" —
+    rather than raising FileNotFoundError. Consumers (check-description-budget,
+    check-focused-parity) treat an empty iterator as "0 plugin skills" —
     the agent surface is checked separately.
     """
     if not PLUGIN_SKILLS_DIR.exists():

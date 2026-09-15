@@ -78,10 +78,11 @@ class GateEntry:
     which have no battery registration at all.
 
     `extra_ids` carries additional ids the SAME row states but the battery
-    does not itself register under (`VAL-04` row also states `GATE-02` — the
-    pre-existing v3.0 trigger-collision-scanner id; the battery only ever
-    calls `gate "VAL-04"`). `extra_ids` is deliberately excluded from the
-    D-01 battery-id equality floor — see `registry_id_problems()`.
+    does not itself register under. No live entry carries one today — the
+    one worked example, the retired VAL-04 row's `GATE-02` alongside
+    `VAL-04` (docs/v9.4-gate-retirement.md §2.2), was removed with that row.
+    `extra_ids` is deliberately excluded from the D-01 battery-id equality
+    floor — see `registry_id_problems()`.
 
     `consumes` is the set of `--describe` field names this entry's table row
     and `docs/gates/<ID>.md` detail page are expected to read. It starts
@@ -200,26 +201,6 @@ ENTRIES: tuple[GateEntry, ...] = (
                 "battery tally slot — this is a leg of THIS entry, never a second one"
             ),
         },
-    ),
-    GateEntry(
-        key="VAL-04",
-        gate_id="VAL-04",
-        extra_ids=("GATE-02",),
-        mechanism=_ci("check-trigger-collisions"),
-        ci_job="check-trigger-collisions",
-        script="scripts/check-trigger-collisions.py",
-        run_command=(
-            "python3 scripts/check-trigger-collisions.py --self-test && "
-            "python3 scripts/check-trigger-collisions.py"
-        ),
-        summary=(
-            "No 4-gram collision across skill descriptions. Carries the pre-existing "
-            "v3.0 GATE-02 id alongside VAL-04 — the battery registers this row under "
-            "`VAL-04` only; `GATE-02` is a name the row also carries, not a second "
-            "battery registration (see `extra_ids` on this entry, excluded from the "
-            "D-01 battery-id equality floor by construction)."
-        ),
-        consumes=("derived_counts",),
     ),
     GateEntry(
         key="VAL-05",
