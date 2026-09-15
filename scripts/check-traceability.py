@@ -1410,6 +1410,14 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT (agent-body/spine/reference paths), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs).
 
     Statements: no tracked surface quotes these requirements as their own wording (D-02), so each row carries _STATEMENT_UNRECOVERABLE (D-T4); this batch has no citation exception.
+
+    Phase 40 re-tier (D-01, docs/v9.4-gate-retirement.md §2.2/§2.3): VAL-04's retirement re-tiers
+    `v2.0/VAL-04`, `v3.0/GATE-02`, `v3.13/INFRA-01` and `v3.13/INFRA-06` audit-only (each named
+    `scripts/check-trigger-collisions.py` as its artifact); VAL-05's retirement re-tiers
+    `v2.0/VAL-05` and `v3.13/INFRA-02` audit-only (each named `scripts/check-description-budget.py`).
+    All six carry `artifact_link=""` and `rerun_by="none"` — REG-GUARD's replacement
+    `disable-model-invocation` value assertion checks a different property than the retired
+    collision-scan claim, and VAL-05 has no successor assertion at all.
     """
     hook = ".githooks/pre-commit"
     audit_v30 = "Validated by v3.0-MILESTONE-AUDIT; no re-runnable gate"
@@ -1437,16 +1445,24 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v2.0/VAL-04", "VAL-04", "v2.0", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  "audit-only", "",
+                  "VAL-04 (scripts/check-trigger-collisions.py) is retired at "
+                  "docs/v9.4-gate-retirement.md §2.2; REG-GUARD's new "
+                  "disable-model-invocation value assertion checks a different property "
+                  "than this row's retired-collision-scan claim, so no surviving gate "
+                  "re-runs it.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v2.0/VAL-05", "VAL-05", "v2.0", "Test-Network",
                   "scripts/check-description-budget.py",
-                  "reproducible", "scripts/check-description-budget.py", "",
+                  "audit-only", "",
+                  "VAL-05 (scripts/check-description-budget.py) is retired outright at "
+                  "docs/v9.4-gate-retirement.md §2.3 with no successor assertion; no "
+                  "gate remains to re-run this claim.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         # v3.0 GATE rows
         MatrixRow("v3.0/GATE-01", "GATE-01", "v3.0", "Test-Network",
                   "scripts/check-agent.py",
@@ -1456,10 +1472,15 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v3.0/GATE-02", "GATE-02", "v3.0", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  "audit-only", "",
+                  "VAL-04 (scripts/check-trigger-collisions.py) is retired at "
+                  "docs/v9.4-gate-retirement.md §2.2, overruled from a re-point per "
+                  "standing instruction 7 — REG-GUARD's new disable-model-invocation "
+                  "value assertion checks a different property than this row's "
+                  "retired-collision-scan claim, so no surviving gate re-runs it.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v3.0/GATE-03", "GATE-03", "v3.0", "Test-Network",
                   "scripts/sync-content.py",
                   "reproducible", "scripts/sync-content.py", "",
@@ -1508,16 +1529,24 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
         # v3.13 INFRA rows (CI extension)
         MatrixRow("v3.13/INFRA-01", "INFRA-01", "v3.13", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  "audit-only", "",
+                  "VAL-04 (scripts/check-trigger-collisions.py) is retired at "
+                  "docs/v9.4-gate-retirement.md §2.2; REG-GUARD's new "
+                  "disable-model-invocation value assertion checks a different property "
+                  "than this row's retired-collision-scan claim, so no surviving gate "
+                  "re-runs it.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v3.13/INFRA-02", "INFRA-02", "v3.13", "Test-Network",
                   "scripts/check-description-budget.py",
-                  "reproducible", "scripts/check-description-budget.py", "",
+                  "audit-only", "",
+                  "VAL-05 (scripts/check-description-budget.py) is retired outright at "
+                  "docs/v9.4-gate-retirement.md §2.3 with no successor assertion; no "
+                  "gate remains to re-run this claim.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v3.13/INFRA-03", "INFRA-03", "v3.13", "Test-Network",
                   "scripts/check-agent.py",
                   "reproducible", "scripts/check-agent.py", "",
@@ -1538,10 +1567,15 @@ def _rows_testnet_ci_gates() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v3.13/INFRA-06", "INFRA-06", "v3.13", "Test-Network",
                   "scripts/check-trigger-collisions.py",
-                  "reproducible", "scripts/check-trigger-collisions.py", "",
+                  "audit-only", "",
+                  "VAL-04 (scripts/check-trigger-collisions.py) is retired at "
+                  "docs/v9.4-gate-retirement.md §2.2; REG-GUARD's new "
+                  "disable-model-invocation value assertion checks a different property "
+                  "than this row's retired-collision-scan claim, so no surviving gate "
+                  "re-runs it.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
     ]
 
 
@@ -2395,10 +2429,12 @@ def _rows_active_tail() -> list[MatrixRow]:
 
 
 def _rows_v79() -> list[MatrixRow]:
-    """v7.9 milestone rows — 8 reproducible requirements (D-01 / Phase 123).
+    """v7.9 milestone rows — 8 requirements, 6 reproducible + 2 audit-only since v9.4.0
+    Phase 40 (D-01 / Phase 123; re-tiered docs/v9.4-gate-retirement.md §2.1).
 
-    All rows carry milestone="v7.9", coverage_tier="reproducible", gap_rationale="".
-    Keys use the milestone-qualified form "v7.9/<bare_id>".
+    All rows carry milestone="v7.9". Keys use the milestone-qualified form "v7.9/<bare_id>".
+    COLLIDE-01 and COLLIDE-02 carry coverage_tier="audit-only", artifact_link="" and
+    rerun_by="none"; every other row keeps coverage_tier="reproducible", gap_rationale="".
 
     D-02 PROHIBITION: no coverage_tier="scheduled" row here; RR-114-01 / trade-off
     live re-measure is a documented residual handled as prose in 123-02 (not a
@@ -2417,7 +2453,9 @@ def _rows_v79() -> list[MatrixRow]:
       OCH-02:       scripts/check-routing-battery.py (BATT-06 owns inversion/trade-off
                     heading-anchored marker assertions)
       OCH-03:       scripts/_battery_core.py#self_test_boundary (anchor substring in file)
-      COLLIDE-01/02: scripts/check-install-collisions.py (COLLIDE-01 CI gate)
+      COLLIDE-01/02: audit-only since v9.4.0 Phase 40 (docs/v9.4-gate-retirement.md §2.1) —
+                    COLLIDE-01's own live scan was vacuous (no second install surface to
+                    collide against), so no successor assertion is proposed
       RECON-01:     scripts/check-traceability.py (TRACE-03 self-test, this file)
 
     Surfaces: the apparatus fallback (no path rule matched), P-AGENT-SUBJECT (the named routing/Step 0 harness scripts and catalogs), P-REF (a shared/references/<slug>.md companion file, naming the slug plus agent).
@@ -2457,16 +2495,24 @@ def _rows_v79() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v7.9/COLLIDE-01", "COLLIDE-01", "v7.9", "Test-Network",
                   "scripts/check-install-collisions.py",
-                  "reproducible", "scripts/check-install-collisions.py", "",
+                  "audit-only", "",
+                  "COLLIDE-01 (scripts/check-install-collisions.py) is retired outright "
+                  "at docs/v9.4-gate-retirement.md §2.1; its live scan was vacuous (no "
+                  "second install surface to collide against), so no successor "
+                  "assertion is proposed and no gate re-runs this claim.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v7.9/COLLIDE-02", "COLLIDE-02", "v7.9", "Test-Network",
                   ".github/workflows/validation.yml",
-                  "reproducible", "scripts/check-install-collisions.py", "",
+                  "audit-only", "",
+                  "COLLIDE-01 (scripts/check-install-collisions.py) is retired outright "
+                  "at docs/v9.4-gate-retirement.md §2.1; its live scan was vacuous (no "
+                  "second install surface to collide against), so no successor "
+                  "assertion is proposed and no gate re-runs this claim.",
                   surfaces=("apparatus",),
                   statement=_STATEMENT_UNRECOVERABLE,
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v7.9/RECON-01", "RECON-01", "v7.9", "Test-Network",
                   "docs/requirements-traceability.md",
                   "reproducible", "scripts/check-traceability.py", "",
@@ -3398,7 +3444,8 @@ def _rows_v821() -> list[MatrixRow]:
 
 
 def _rows_v824() -> list[MatrixRow]:
-    """v8.24 milestone rows — 15 requirements, 14 reproducible + 1 audit-only (D-06/D-07, Phase 6).
+    """v8.24 milestone rows — 15 requirements, 10 reproducible + 5 audit-only as of v9.4.0
+    Phase 40 (originally 14 reproducible + 1 audit-only, D-06/D-07, Phase 6).
 
     All rows carry milestone="v8.24". Keys use the milestone-qualified form
     "v8.24/<bare_id>".
@@ -3414,10 +3461,28 @@ def _rows_v824() -> list[MatrixRow]:
     -> Methodology, because those requirements are properties of gate scripts and a test
     fixture, not of the agent's prose.
 
-    Tiering (D-07, decided per row against "does something re-run", not by block): 14
+    Tiering (D-07, decided per row against "does something re-run", not by block): originally 14
     reproducible, VAL-04 audit-only. All 15 reproducible is rejected for the same reason
     _rows_v818() rejects it -- VAL-04 would get an artifact_link that does not exist, the
     vacuous-green shape.
+
+    Phase 40 re-tier (D-01, docs/v9.4-gate-retirement.md §2.4, PROV-GUARD option B; plan 40-03).
+    Four more rows move audit-only, each decided by a clause-break test against
+    check-provenance.py --self-test and check-quality-harness.py --self-test (40-EVIDENCE.md):
+    GATE-02 (its "CI job registered" clause can no longer be re-run once PD-1 deletes the
+    check-provenance CI job by design), CAP-02 (its cited fixture was read only by the dropped
+    live leg; deleting its README left the self-test green), PROV-04 (removing the
+    PROV04-network-blocked control's own network-block mock left both self-tests green) and
+    GATE-01 (deleting one negative control's body left both self-tests green). PROV-01, PROV-02
+    and PROV-03 each broke red under check-provenance.py --self-test (label parsing, source join
+    and literal location respectively) and stay reproducible, rerun_by="ci" unchanged, because
+    PROV-GUARD's script still carries a CI job in this commit (rule (v), _row_field_problems).
+    PROV-05 broke green under check-provenance.py --self-test but red under
+    check-quality-harness.py --self-test (removing the nine provenance columns from
+    _DEFECT_RECORD_FIELDS crashes _selftest_incidence_schema_compat), so it is re-pointed at that
+    assertion by symbol anchor with rerun_by="battery-only" rather than re-tiered — it stays
+    reproducible because a real self-test control does falsify the removed columns, just not the
+    one this row originally cited.
 
     CAP-01/CAP-03 (CR-02, v8.24 code review): both rows deliver into
     scripts/check-quality-harness.py, and both originally pointed their artifact_link at
@@ -3443,7 +3508,9 @@ def _rows_v824() -> list[MatrixRow]:
     battery-only exemption). Deleting the check-provenance job from validation.yml now turns
     REG-GUARD red -- measured as a live negative control -- so the artifact_link points at
     that assertion by symbol anchor, binding the row to the check rather than to a file's mere
-    existence.
+    existence. (Superseded at v9.4.0 Phase 40: PD-1 deletes the check-provenance CI job by
+    design, so REG-GUARD's verify_ci_job_registration no longer re-runs this row's claim; it
+    re-tiers audit-only with empty artifact_link -- see the Phase 40 re-tier paragraph above.)
 
     Surfaces: the apparatus fallback (no path rule matched). D-09 governs this batch's sourced rows; none departs from its path-derived value.
 
@@ -3474,7 +3541,13 @@ def _rows_v824() -> list[MatrixRow]:
                   rerun_by="battery-only"),
         MatrixRow("v8.24/CAP-02", "CAP-02", "v8.24", "Test-Network",
                   "tests/quality-provenance-v8.24/README.md",
-                  "reproducible", "scripts/check-provenance.py", "",
+                  "audit-only", "",
+                  "This row's cited fixture was read only by PROV-GUARD's live leg, "
+                  "dropped at docs/v9.4-gate-retirement.md §2.4 (PROV-GUARD option B); "
+                  "the Phase 40 clause break test (40-EVIDENCE.md) confirmed deleting "
+                  "tests/quality-provenance-v8.24/README.md still leaves "
+                  "check-provenance.py --self-test PASS (exit 0), so no surviving "
+                  "self-test control re-runs this claim.",
                   surfaces=("apparatus",),
                   statement=(
                       "A git-tracked capture fixture carrying real `WebFetch`/`Read` tool calls is "
@@ -3486,7 +3559,7 @@ def _rows_v824() -> list[MatrixRow]:
                       "silently drop the fixture from the commit. Verified clean with `git "
                       "check-ignore` on 2026-08-31"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v8.24/CAP-03", "CAP-03", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
                   "reproducible",
@@ -3527,38 +3600,54 @@ def _rows_v824() -> list[MatrixRow]:
                   rerun_by="ci"),
         MatrixRow("v8.24/PROV-04", "PROV-04", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", "",
+                  "audit-only", "",
+                  "docs/v9.4-gate-retirement.md §2.4's clause break test (40-EVIDENCE.md, "
+                  "plan 40-03) removed the PROV04-network-blocked control's own "
+                  "socket.socket/socket.create_connection mock and both "
+                  "check-provenance.py --self-test and check-quality-harness.py "
+                  "--self-test stayed green (exit 0), so no surviving self-test control "
+                  "falsifies this claim.",
                   surfaces=("apparatus",),
                   statement=(
                       "Verification reads only the stored capture — the verifier performs no network "
                       "access on any code path"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v8.24/PROV-05", "PROV-05", "v8.24", "Test-Network",
                   "scripts/check-quality-harness.py",
-                  "reproducible", "scripts/check-provenance.py", "",
+                  "reproducible",
+                  "scripts/check-quality-harness.py#_selftest_incidence_schema_compat", "",
                   surfaces=("apparatus",),
                   statement=(
                       "Findings are emitted as named `_DEFECT_RECORD_FIELDS` columns, not audit-only "
                       "underscore fields, so the TSV records fabrication alongside every other defect"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="battery-only"),
         MatrixRow("v8.24/GATE-01", "GATE-01", "v8.24", "Test-Network",
                   "scripts/check-provenance.py",
-                  "reproducible", "scripts/check-provenance.py", "",
+                  "audit-only", "",
+                  "docs/v9.4-gate-retirement.md §2.4's clause break test (40-EVIDENCE.md, "
+                  "plan 40-03) deleted one negative control's body "
+                  "(_control_prov02_readarm_negative) and both check-provenance.py "
+                  "--self-test and check-quality-harness.py --self-test stayed green "
+                  "(exit 0), so this row's 'positive, negative and anti-masking "
+                  "controls' claim is not falsified by any surviving control.",
                   surfaces=("apparatus",),
                   statement=(
                       "`scripts/check-provenance.py --self-test` runs deterministically with positive, "
                       "negative and anti-masking controls"
                   ),
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v8.24/GATE-02", "GATE-02", "v8.24", "Test-Network",
                   ".github/workflows/validation.yml",
-                  "reproducible",
-                  "scripts/check-registration.py#verify_ci_job_registration", "",
+                  "audit-only", "",
+                  "This row's statement — \"CI job registered in "
+                  "`.github/workflows/validation.yml`\" — can no longer be re-run: "
+                  "docs/v9.4-gate-retirement.md §2.4 (PROV-GUARD option B) deletes the "
+                  "check-provenance (PROV-GUARD) CI job by design.",
                   surfaces=("apparatus",),
                   statement="CI job registered in `.github/workflows/validation.yml`",
-                  rerun_by="ci"),
+                  rerun_by="none"),
         MatrixRow("v8.24/GATE-03", "GATE-03", "v8.24", "Test-Network",
                   "scripts/check-firewall-battery.sh",
                   "reproducible", "scripts/check-firewall-battery.sh", "",
@@ -7548,8 +7637,14 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
     Asserts the 8 v7.9 milestone rows registered in _rows_v79():
       (a) Exactly 8 rows (drift guard — not deleted, not duplicated).
       (b) bare_id set equals the canonical 8 IDs.
-      (c) Every row's coverage_tier == "reproducible" (D-02: no "scheduled" rows).
-      (d) Every artifact_link deep-resolves via _resolve_artifact (zero issues).
+      (c) Exact-set tier pin (Phase 40, docs/v9.4-gate-retirement.md §2.1): the
+          reproducible bare_id set is exactly {NEGCAT-01, NEGCAT-02, OCH-01, OCH-02,
+          OCH-03, RECON-01} AND the audit-only bare_id set is exactly
+          {COLLIDE-01, COLLIDE-02} — named both ways, not by count, so a tier swap in
+          either direction fails by name (D-02: no "scheduled" rows either way).
+      (d) Every reproducible row's artifact_link deep-resolves via _resolve_artifact
+          (zero issues); restricted to the reproducible rows because COLLIDE-01/02 now
+          carry an empty artifact_link by design (audit-only, rerun_by="none").
       (e) Positive counter-check: RECON-01 is present and reproducible, proving
           the assertion is non-vacuous (mirrors GEN-01-REPRODUCIBLE idiom).
       (f) milestone/key lock: every row has milestone == "v7.9" AND a key prefixed
@@ -7558,8 +7653,9 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
           TRACE-01 whitelist check_consistency enforces; not re-run by --self-test).
 
     Called from _rows_v79() live — never hardcodes a MatrixRow literal (Pitfall 4).
-    Honesty-not-score (D-01): asserts the documented reproducible registration,
-    not a live pass-rate. Any deletion, tier revert, or dangling artifact_link fails CI.
+    Honesty-not-score (D-01): asserts the documented reproducible/audit-only
+    registration, not a live pass-rate. Any deletion, tier drift, or dangling
+    artifact_link fails CI.
     """
     # (a) Drift guard: read live, assert exactly 8 rows.
     _v79_rows = _rows_v79()
@@ -7588,20 +7684,40 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(f"  V79-ROWS PASS: bare_id set = {sorted(_v79_ids)!r}")
 
-    # (c) Every row must be reproducible (D-02 prohibition on "scheduled" rows).
-    _non_repro = [r for r in _v79_rows if r.coverage_tier != "reproducible"]
-    if _non_repro:
+    # (c) Exact-set tier pin (Phase 40, docs/v9.4-gate-retirement.md §2.1): named both
+    #     ways so a tier swap in either direction fails by name, not by count.
+    _EXPECTED_V79_REPRODUCIBLE_IDS = {
+        "NEGCAT-01", "NEGCAT-02", "OCH-01", "OCH-02", "OCH-03", "RECON-01",
+    }
+    _EXPECTED_V79_AUDIT_ONLY_IDS = {"COLLIDE-01", "COLLIDE-02"}
+    _v79_reproducible_ids = {r.bare_id for r in _v79_rows if r.coverage_tier == "reproducible"}
+    _v79_audit_only_ids = {r.bare_id for r in _v79_rows if r.coverage_tier == "audit-only"}
+    if _v79_reproducible_ids != _EXPECTED_V79_REPRODUCIBLE_IDS:
         print(
-            f"  V79-ROWS FAIL: {len(_non_repro)} row(s) are not 'reproducible': "
-            f"{[r.bare_id for r in _non_repro]!r}"
+            f"  V79-ROWS FAIL: reproducible bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V79_REPRODUCIBLE_IDS)!r}, got={sorted(_v79_reproducible_ids)!r}"
         )
-        wrong_results.append("V79-ROWS: non-reproducible row(s) found")
+        wrong_results.append("V79-ROWS: reproducible bare_id set mismatch")
+    elif _v79_audit_only_ids != _EXPECTED_V79_AUDIT_ONLY_IDS:
+        print(
+            f"  V79-ROWS FAIL: audit-only bare_id set mismatch — "
+            f"expected={sorted(_EXPECTED_V79_AUDIT_ONLY_IDS)!r}, got={sorted(_v79_audit_only_ids)!r}"
+        )
+        wrong_results.append("V79-ROWS: audit-only bare_id set mismatch")
     else:
-        print(f"  V79-ROWS PASS: all {_v79_count} rows are coverage_tier='reproducible'")
+        print(
+            f"  V79-ROWS PASS: tier partition pinned by name — reproducible="
+            f"{sorted(_v79_reproducible_ids)!r}, audit-only={sorted(_v79_audit_only_ids)!r}"
+        )
 
-    # (d) Deep-resolve every artifact_link; assert zero issues.
+    # (d) Deep-resolve every reproducible row's artifact_link; assert zero issues.
+    # Restricted to reproducible rows — COLLIDE-01/02 carry artifact_link="" by design
+    # (audit-only since Phase 40); an empty link would resolve vacuously either way, but
+    # the restriction states the intent rather than relying on _resolve_artifact's
+    # empty-string short-circuit.
+    _v79_repro_rows = [r for r in _v79_rows if r.coverage_tier == "reproducible"]
     _link_issues: list[str] = []
-    for _row in _v79_rows:
+    for _row in _v79_repro_rows:
         for _issue in _resolve_artifact(_row.artifact_link):
             _link_issues.append(f"{_row.bare_id}: {_issue}")
     if _link_issues:
@@ -7609,7 +7725,7 @@ def _self_test_v79_rows_sentinel(wrong_results: list[str]) -> None:
             print(f"  V79-ROWS FAIL: artifact_link issue — {_issue}")
         wrong_results.append(f"V79-ROWS: {len(_link_issues)} artifact_link issue(s)")
     else:
-        print(f"  V79-ROWS PASS: all {_v79_count} artifact_links deep-resolve OK")
+        print(f"  V79-ROWS PASS: all {len(_v79_repro_rows)} reproducible artifact_links deep-resolve OK")
 
     # (e) Positive counter-check: RECON-01 is present and reproducible.
     _recon01_rows = [r for r in _v79_rows if r.bare_id == "RECON-01"]
@@ -7809,11 +7925,12 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
     Asserts the 15 v8.24 milestone rows registered in _rows_v824():
       (a) Exactly 15 rows (drift guard — not deleted, not duplicated).
       (b) bare_id set equals the canonical 15 IDs.
-      (c) Tier partition pinned by ID, not by count (D-07): the audit-only bare_id set is
-          exactly {"VAL-04"} AND the reproducible bare_id set is exactly the other 14, named.
-          A blanket 14/1 count assert is explicitly rejected — swapping VAL-04's tier with a
-          reproducible row's would keep the counts right and pass silently.
-      (d) Deep-resolve artifact_link over the 14 reproducible rows only. Also asserts the
+      (c) Tier partition pinned by ID, not by count (D-07, re-tiered v9.4.0 Phase 40 per
+          docs/v9.4-gate-retirement.md §2.4): the audit-only bare_id set is exactly
+          {"VAL-04", "GATE-01", "GATE-02", "CAP-02", "PROV-04"} AND the reproducible bare_id set
+          is exactly the other 10, named. A blanket count assert is explicitly rejected —
+          swapping any row's tier would keep the counts right and pass silently.
+      (d) Deep-resolve artifact_link over the 10 reproducible rows only. Also asserts every
           audit-only row carries artifact_link == "", so the skip cannot silently become a
           skip-everything.
       (e) Positive counter-check: GATE-03 is present exactly once, reproducible, and carries a
@@ -7837,7 +7954,7 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
         "GATE-01", "GATE-02", "GATE-03",
         "VAL-01", "VAL-02", "VAL-03", "VAL-04",
     }
-    _EXPECTED_V824_AUDIT_ONLY_IDS = {"VAL-04"}
+    _EXPECTED_V824_AUDIT_ONLY_IDS = {"VAL-04", "GATE-01", "GATE-02", "CAP-02", "PROV-04"}
     _EXPECTED_V824_REPRODUCIBLE_IDS = _EXPECTED_V824_IDS - _EXPECTED_V824_AUDIT_ONLY_IDS
     if _v824_count != 15:
         print(
@@ -7879,10 +7996,10 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(
             f"  V824-ROWS PASS: tier partition pinned by ID — audit-only={sorted(_audit_only_ids)!r}, "
-            f"14 reproducible IDs confirmed by name"
+            f"{len(_reproducible_ids)} reproducible IDs confirmed by name"
         )
 
-    # (d) Deep-resolve artifact_link over the 14 reproducible rows only; the audit-only
+    # (d) Deep-resolve artifact_link over the reproducible rows only; every audit-only
     #     row must carry artifact_link == "" (so the skip cannot become a skip-everything).
     _v824_repro_rows = [r for r in _v824_rows if r.coverage_tier == "reproducible"]
     _v824_audit_rows = [r for r in _v824_rows if r.coverage_tier == "audit-only"]
@@ -7904,7 +8021,7 @@ def _self_test_v824_rows_sentinel(wrong_results: list[str]) -> None:
     else:
         print(
             f"  V824-ROWS PASS: all {len(_v824_repro_rows)} reproducible artifact_links "
-            f"deep-resolve OK, audit-only row carries artifact_link=''"
+            f"deep-resolve OK, all {len(_v824_audit_rows)} audit-only rows carry artifact_link=''"
         )
 
     # (e) Positive counter-check: GATE-03 is present, reproducible, non-empty artifact_link.

@@ -1010,14 +1010,14 @@
     "milestone": "v2.0",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-trigger-collisions.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-trigger-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-04 (scripts/check-trigger-collisions.py) is retired at docs/v9.4-gate-retirement.md \u00a72.2; REG-GUARD's new disable-model-invocation value assertion checks a different property than this row's retired-collision-scan claim, so no surviving gate re-runs it.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v2.0/VAL-05",
@@ -1025,14 +1025,14 @@
     "milestone": "v2.0",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-description-budget.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-description-budget.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-05 (scripts/check-description-budget.py) is retired outright at docs/v9.4-gate-retirement.md \u00a72.3 with no successor assertion; no gate remains to re-run this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/GATE-01",
@@ -1055,14 +1055,14 @@
     "milestone": "v3.0",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-trigger-collisions.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-trigger-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-04 (scripts/check-trigger-collisions.py) is retired at docs/v9.4-gate-retirement.md \u00a72.2, overruled from a re-point per standing instruction 7 \u2014 REG-GUARD's new disable-model-invocation value assertion checks a different property than this row's retired-collision-scan claim, so no surviving gate re-runs it.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.0/GATE-03",
@@ -1190,14 +1190,14 @@
     "milestone": "v3.13",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-trigger-collisions.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-trigger-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-04 (scripts/check-trigger-collisions.py) is retired at docs/v9.4-gate-retirement.md \u00a72.2; REG-GUARD's new disable-model-invocation value assertion checks a different property than this row's retired-collision-scan claim, so no surviving gate re-runs it.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/INFRA-02",
@@ -1205,14 +1205,14 @@
     "milestone": "v3.13",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-description-budget.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-description-budget.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-05 (scripts/check-description-budget.py) is retired outright at docs/v9.4-gate-retirement.md \u00a72.3 with no successor assertion; no gate remains to re-run this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.13/INFRA-03",
@@ -1265,14 +1265,14 @@
     "milestone": "v3.13",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-trigger-collisions.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-trigger-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "VAL-04 (scripts/check-trigger-collisions.py) is retired at docs/v9.4-gate-retirement.md \u00a72.2; REG-GUARD's new disable-model-invocation value assertion checks a different property than this row's retired-collision-scan claim, so no surviving gate re-runs it.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v3.1/ROUTE-01",
@@ -3141,14 +3141,14 @@
     "milestone": "v7.9",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-install-collisions.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-install-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "COLLIDE-01 (scripts/check-install-collisions.py) is retired outright at docs/v9.4-gate-retirement.md \u00a72.1; its live scan was vacuous (no second install surface to collide against), so no successor assertion is proposed and no gate re-runs this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v7.9/COLLIDE-02",
@@ -3156,14 +3156,14 @@
     "milestone": "v7.9",
     "capability": "Test-Network",
     "deliverable_path": ".github/workflows/validation.yml",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-install-collisions.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "COLLIDE-01 (scripts/check-install-collisions.py) is retired outright at docs/v9.4-gate-retirement.md \u00a72.1; its live scan was vacuous (no second install surface to collide against), so no successor assertion is proposed and no gate re-runs this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "statement unrecoverable",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v7.9/RECON-01",
@@ -4071,14 +4071,14 @@
     "milestone": "v8.24",
     "capability": "Test-Network",
     "deliverable_path": "tests/quality-provenance-v8.24/README.md",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-provenance.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "This row's cited fixture was read only by PROV-GUARD's live leg, dropped at docs/v9.4-gate-retirement.md \u00a72.4 (PROV-GUARD option B); the Phase 40 clause break test (40-EVIDENCE.md) confirmed deleting tests/quality-provenance-v8.24/README.md still leaves check-provenance.py --self-test PASS (exit 0), so no surviving self-test control re-runs this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "A git-tracked capture fixture carrying real `WebFetch`/`Read` tool calls is committed at **`tests/quality-provenance-v8.24/`**, with a README recording its provenance, prompt, and event inventory, and registered in the battery's FROZEN-EVIDENCE path list. **Directory name is load-bearing:** `.gitignore` lines 19-20 exclude `tests/step0-captures-*/**/*.jsonl` and `tests/quality-baseline-*/**/*.jsonl` by glob, so either of those names would silently drop the fixture from the commit. Verified clean with `git check-ignore` on 2026-08-31",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v8.24/CAP-03",
@@ -4146,14 +4146,14 @@
     "milestone": "v8.24",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-provenance.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-provenance.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "docs/v9.4-gate-retirement.md \u00a72.4's clause break test (40-EVIDENCE.md, plan 40-03) removed the PROV04-network-blocked control's own socket.socket/socket.create_connection mock and both check-provenance.py --self-test and check-quality-harness.py --self-test stayed green (exit 0), so no surviving self-test control falsifies this claim.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "Verification reads only the stored capture \u2014 the verifier performs no network access on any code path",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v8.24/PROV-05",
@@ -4162,13 +4162,13 @@
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-quality-harness.py",
     "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-provenance.py",
+    "artifact_link": "scripts/check-quality-harness.py#_selftest_incidence_schema_compat",
     "gap_rationale": "",
     "surfaces": [
       "apparatus"
     ],
     "statement": "Findings are emitted as named `_DEFECT_RECORD_FIELDS` columns, not audit-only underscore fields, so the TSV records fabrication alongside every other defect",
-    "rerun_by": "ci"
+    "rerun_by": "battery-only"
   },
   {
     "key": "v8.24/GATE-01",
@@ -4176,14 +4176,14 @@
     "milestone": "v8.24",
     "capability": "Test-Network",
     "deliverable_path": "scripts/check-provenance.py",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-provenance.py",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "docs/v9.4-gate-retirement.md \u00a72.4's clause break test (40-EVIDENCE.md, plan 40-03) deleted one negative control's body (_control_prov02_readarm_negative) and both check-provenance.py --self-test and check-quality-harness.py --self-test stayed green (exit 0), so this row's 'positive, negative and anti-masking controls' claim is not falsified by any surviving control.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "`scripts/check-provenance.py --self-test` runs deterministically with positive, negative and anti-masking controls",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v8.24/GATE-02",
@@ -4191,14 +4191,14 @@
     "milestone": "v8.24",
     "capability": "Test-Network",
     "deliverable_path": ".github/workflows/validation.yml",
-    "coverage_tier": "reproducible",
-    "artifact_link": "scripts/check-registration.py#verify_ci_job_registration",
-    "gap_rationale": "",
+    "coverage_tier": "audit-only",
+    "artifact_link": "",
+    "gap_rationale": "This row's statement \u2014 \"CI job registered in `.github/workflows/validation.yml`\" \u2014 can no longer be re-run: docs/v9.4-gate-retirement.md \u00a72.4 (PROV-GUARD option B) deletes the check-provenance (PROV-GUARD) CI job by design.",
     "surfaces": [
       "apparatus"
     ],
     "statement": "CI job registered in `.github/workflows/validation.yml`",
-    "rerun_by": "ci"
+    "rerun_by": "none"
   },
   {
     "key": "v8.24/GATE-03",
