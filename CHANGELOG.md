@@ -110,7 +110,11 @@ A surfaces value, a battery-only marker and a live/manual label are hand-assigne
   not be read), rather than a singular "which one." The developer selected the wider of two
   drafted scopes (**option-all**): all three mapped `section summaries` sites are fixed, not only
   the two IN-01/IN-02 sentences 999.101 originally named, taking the whitespace-flexible count to
-  0 in both `shared/spine/SKILL-body.md` and the generated agent body. Separately (IN-03), the
+  0 in both `shared/spine/SKILL-body.md` and the generated agent body. The third site is the
+  template-read justification that `[9.2.4]`'s WR-05 (`38dcfbe`) last narrowed to what the body
+  lacks: option-all re-points its phantom referent at the six-section document assembled without
+  the template read, and carries WR-05's narrowed claim — the trailing `**Confidence:**` field and
+  D-07's naming requirement are absent, the rating floor is not — over unchanged. Separately (IN-03), the
   released `[9.2.2]`, `[9.2.3]` and `[9.2.4]` entries above are corrected in place: each pointer at
   a local-only, git-ignored planning record is replaced by its own verbatim claim or dropped and
   named by backlog ID only, every remaining line-number citation is anchored to the release commit
