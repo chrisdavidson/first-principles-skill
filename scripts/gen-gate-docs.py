@@ -1220,9 +1220,9 @@ _NUMBER_RE = re.compile(r"\b\d[\d,]*\b")
 
 # The slash-paired transition-vector pattern's own string, named so this
 # module's own ordering control (`_control_citation_shape_slash_before_arrow`)
-# and `scripts/census-delta-vectors.py`'s `_EXPECTED_SLASH_PATTERN` can both
-# assert against the identical literal without a third, independent retyping
-# of it inside `_CITATION_SHAPE_RES` itself.
+# and `_delta_chain_hops` (CONTAIN-02) can both assert against the identical
+# literal without a second, independent retyping of it inside
+# `_CITATION_SHAPE_RES` itself.
 _SLASH_PAIRED_TRANSITION_PATTERN: str = (
     r"\d[\d,]*(?:/\d[\d,]*)+\s*(?:→|-->|->)\s*\d[\d,]*(?:/\d[\d,]*)+"
 )
@@ -2289,11 +2289,10 @@ def _select_delta_chain_patterns() -> tuple[re.Pattern[str], re.Pattern[str], re
     selected out of `_CITATION_SHAPE_RES` by exact `.pattern` string match
     against the same named constants the tuple's own entries are compiled
     from (`_SLASH_PAIRED_TRANSITION_PATTERN`, `_ARROW_TRANSITION_PATTERN`,
-    `_ENGLISH_PROSE_TRANSITION_PATTERN`) -- mirroring
-    `scripts/census-delta-vectors.py`'s `select_delta_patterns()` idiom, so a
-    future edit to a delta pattern cannot leave a hand-copied twin behind.
-    This module IS `_CITATION_SHAPE_RES`'s own source of truth, so (unlike
-    that cross-file census) no separate fidelity-floor length pin is needed
+    `_ENGLISH_PROSE_TRANSITION_PATTERN`), this module's own exact-string
+    selection discipline so a future edit to a delta pattern cannot leave a
+    hand-copied twin behind. This module IS `_CITATION_SHAPE_RES`'s own
+    source of truth, so no separate fidelity-floor length pin is needed
     here; a pattern absent from the live tuple raises `LookupError` naming
     which one, rather than degrading silently."""
     slash: re.Pattern[str] | None = None
@@ -5954,26 +5953,6 @@ def _control_citation_shape_slash_before_arrow() -> None:
     assert slash_idx < arrow_idx, (slash_idx, arrow_idx)
 
 
-def _control_citation_shape_len_matches_census_pin() -> None:
-    """`len(_CITATION_SHAPE_RES)` must equal
-    `scripts/census-delta-vectors.py`'s `_PINNED_TUPLE_LEN`, imported from
-    that module rather than retyped here -- the same discipline
-    `_CLAIM_FLOORS_LOCK`/`_BRANCH_ROSTER_LOCK` apply elsewhere (a second,
-    independently-loaded read of the pin), applied to a cross-file pin
-    instead of a same-file one. A tuple growth landed without the
-    same-commit re-pin in `census-delta-vectors.py` would otherwise only
-    be caught by that unregistered census tool's own FIDELITY FLOOR check;
-    this control makes the drift visible in this module's own
-    `--self-test` too."""
-    census_path = REPO_ROOT / "scripts" / "census-delta-vectors.py"
-    spec = importlib.util.spec_from_file_location("_census_delta_vectors_probe", census_path)
-    census = importlib.util.module_from_spec(spec)  # type: ignore[arg-type]
-    spec.loader.exec_module(census)  # type: ignore[union-attr]
-    assert len(_CITATION_SHAPE_RES) == census._PINNED_TUPLE_LEN, (
-        len(_CITATION_SHAPE_RES), census._PINNED_TUPLE_LEN
-    )
-
-
 def _control_version01_narrative_control_ids_live() -> None:
     """T-21-19-01: the real docs/gates/VERSION-01.md narrative's cited
     control ids are all live `expect(` names in check-version-stamps.py,
@@ -7434,10 +7413,6 @@ _CONTROLS: tuple[tuple[str, object], ...] = (
         _control_delta_chain_hops_claude_row_count_recovered,
     ),
     ("citation-shape-slash-before-arrow", _control_citation_shape_slash_before_arrow),
-    (
-        "citation-shape-len-matches-census-pin",
-        _control_citation_shape_len_matches_census_pin,
-    ),
     ("version01-narrative-control-ids-live", _control_version01_narrative_control_ids_live),
     ("confsurface-census-narrative-joined", _control_confsurface_census_narrative_joined),
     ("check-reports-full-drift-count", _control_page_check_dispatch_wired),
@@ -7636,7 +7611,6 @@ _CONTROL_IDS: tuple[str, ...] = (
     "delta-chain-hops-scanguard-spelled-out",
     "delta-chain-hops-claude-row-count-recovered",
     "citation-shape-slash-before-arrow",
-    "citation-shape-len-matches-census-pin",
     "version01-narrative-control-ids-live",
     "confsurface-census-narrative-joined",
     "check-reports-full-drift-count",
