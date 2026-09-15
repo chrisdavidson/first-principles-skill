@@ -19,7 +19,6 @@ For the full at-a-glance gate inventory — every gate mapped to its owning scri
 | VAL-05 | [`docs/gates/VAL-05.md`](gates/VAL-05.md) | `python3 scripts/check-description-budget.py` |
 | VERSION-01 | [`docs/gates/VERSION-01.md`](gates/VERSION-01.md) | `python3 scripts/check-version-stamps.py --self-test && python3 scripts/check-version-stamps.py` |
 | REG-GUARD | [`docs/gates/REG-GUARD.md`](gates/REG-GUARD.md) | `python3 scripts/check-registration.py --self-test && python3 scripts/check-registration.py` |
-| COLLIDE-01 | [`docs/gates/COLLIDE-01.md`](gates/COLLIDE-01.md) | `python3 scripts/check-install-collisions.py --self-test && python3 scripts/check-install-collisions.py` |
 | DUAL-04 | [`docs/gates/DUAL-04.md`](gates/DUAL-04.md) | `python3 scripts/sync-content.py --check` |
 | GATE-02-v8.5 | [`docs/gates/GATE-02-v8.5.md`](gates/GATE-02-v8.5.md) | `python3 scripts/sync-content.py --self-test` |
 | GATE-01 | [`docs/gates/GATE-01.md`](gates/GATE-01.md) | `python3 scripts/check-agent.py --self-test && python3 scripts/check-agent.py` |

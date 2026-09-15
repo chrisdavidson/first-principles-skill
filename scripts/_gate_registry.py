@@ -280,23 +280,6 @@ ENTRIES: tuple[GateEntry, ...] = (
         ),
     ),
     GateEntry(
-        key="COLLIDE-01",
-        gate_id="COLLIDE-01",
-        extra_ids=(),
-        mechanism=_ci("check-install-collisions"),
-        ci_job="check-install-collisions",
-        script="scripts/check-install-collisions.py",
-        run_command=(
-            "python3 scripts/check-install-collisions.py --self-test && "
-            "python3 scripts/check-install-collisions.py"
-        ),
-        summary=(
-            "Dual-install name-collision scan: no skill/agent name collisions "
-            "between the plugin and monolith install surfaces."
-        ),
-        consumes=("registered_surfaces", "disclosed_bounds_anchors"),
-    ),
-    GateEntry(
         key="DUAL-04",
         gate_id="DUAL-04",
         extra_ids=(),

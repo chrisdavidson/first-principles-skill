@@ -73,7 +73,7 @@ On push or PR to master, the full CI suite runs in `.github/workflows/validation
 matters for the data flow is the *shape* of that stage rather than its membership: the gates
 divide into those that check the generated artifact is faithful to `shared/` (DUAL-04, GATE-01,
 GATE-02-v8.5), those that check the artifact is well-formed for distribution (VAL-01, VAL-02,
-VAL-03, VAL-04, VAL-05, VERSION-01, COLLIDE-01), and those that check the measurement subsystem
+VAL-03, VAL-04, VAL-05, VERSION-01), and those that check the measurement subsystem
 still measures what it claims (BATT-06, STEP0-06, STEP0-08, TRACE-03, and QUAL-01 in the offline
 battery). A change that survives all three classes is shippable.
 

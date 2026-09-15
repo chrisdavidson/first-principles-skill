@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 26 offline gate commands, captures each exit code, and prints a
+# Runs all 25 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,21 +15,21 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (26):
+# Gates (25):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
 #   VAL-02    VAL-03        VAL-04    VAL-05    VERSION-01
-#   GATE-01   BATT-06       TRACE-03  COLLIDE-01    QUAL-01
-#   HARN-01   HARN-02       HARN-03   HC-BOUND     REG-GUARD
-#   PROV-GUARD  SCAN-GUARD  CONF-GATE  CONF-SURFACE  INVARIANT-CHECK
+#   GATE-01   BATT-06       TRACE-03  QUAL-01   HARN-01
+#   HARN-02   HARN-03       HC-BOUND  REG-GUARD PROV-GUARD
+#   SCAN-GUARD  CONF-GATE   CONF-SURFACE  INVARIANT-CHECK
 #   FROZEN-EVIDENCE
 #
-# 23 of the 24 non-inline gates are registered through the `gate` helper
+# 22 of the 23 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 24 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 23 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 26.
+# than going through `gate`, for a reported total of 25.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -191,6 +191,17 @@
 # that comparison is meaningless if the generator is broken.
 # CONF-SURFACE: Battery composition moved 25 -> 26. A gate that appears
 # silently is indistinguishable from a gate that was always there.
+#
+# Composition change (COLLIDE-01 retired, Phase 40, v9.4.0 --
+# docs/v9.4-gate-retirement.md §2.1): the battery lost one gate, COLLIDE-01
+# (scripts/check-install-collisions.py). Its live scan compared the plugin's
+# names against a second, monolith install surface that was removed at
+# v3.0.0, well before this gate's own registration at v7.9 -- "monolith
+# names: 0" on every run means it could never fail for any product reason.
+# The name-versus-directory property it was believed to enforce is, and was
+# already, owned entirely by REG-GUARD and GATE-01. Battery composition
+# moved 26 -> 25. A gate that disappears silently is indistinguishable from
+# a gate that never fired.
 #
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
@@ -460,12 +471,6 @@ gate "BATT-06" \
 gate "TRACE-03" \
     "check-traceability.py --self-test" \
     "python3 scripts/check-traceability.py --self-test"
-
-# COLLIDE-01 — plugin/monolith name-collision scan (self-test + live)
-gate "COLLIDE-01" \
-    "check-install-collisions.py --self-test + live" \
-    "python3 scripts/check-install-collisions.py --self-test" \
-    "python3 scripts/check-install-collisions.py"
 
 # QUAL-01 — quality-measurement harness offline self-test: extraction
 #           guardrails A/B, scoreline parser, blinding integrity, tabulation

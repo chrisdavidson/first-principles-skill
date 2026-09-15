@@ -1740,7 +1740,7 @@ def main() -> None:
         skills, agent_present, agent_path, manifest, MANIFEST_PATH
     )
 
-    # Non-vacuity guards, mirroring COLLIDE-01's `if not plugin_names` guard.
+    # Non-vacuity guards: an empty discovery is a collector regression, never a pass.
     if not skills:
         sys.stderr.write(
             "check-registration: FAIL — discovered 0 skill directories under "

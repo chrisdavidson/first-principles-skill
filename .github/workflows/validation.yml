@@ -100,20 +100,6 @@ jobs:
       - run: uv run python3 scripts/check-version-stamps.py --self-test
       - run: uv run python3 scripts/check-version-stamps.py
 
-  check-install-collisions:
-    name: check-install-collisions (COLLIDE-01)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: ${{ env.UV_VERSION }}
-          enable-cache: true
-      - run: uv sync --locked --group dev
-      - run: uv run python3 scripts/check-install-collisions.py --self-test
-      - run: uv run python3 scripts/check-install-collisions.py
-
   check-description-budget:
     name: check-description-budget (VAL-05)
     runs-on: ubuntu-latest

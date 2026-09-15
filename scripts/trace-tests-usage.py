@@ -64,8 +64,6 @@ GATE_COMMANDS: tuple[tuple[str, ...], ...] = (
     ("scripts/check-agent.py", "--file", "first-principles/agents/first-principles.md"),
     ("scripts/check-routing-battery.py", "--self-test"),
     ("scripts/check-traceability.py", "--self-test"),
-    ("scripts/check-install-collisions.py", "--self-test"),
-    ("scripts/check-install-collisions.py",),
     ("scripts/check-quality-harness.py", "--self-test"),
     ("scripts/check-body-budget.py",),
 )
