@@ -3,7 +3,7 @@
 #
 # One-shot offline battery runner — Phase 128 READY-03 (D-06).
 #
-# Runs all 24 offline gate commands, captures each exit code, and prints a
+# Runs all 23 offline gate commands, captures each exit code, and prints a
 # FIREWALL: GREEN / RED / BLOCKED verdict. A GREEN result is the hard
 # authorization gate for the Phase-129/130 live runs (D-01). VAL-01 (claude
 # plugin validate) is a CLI schema check that spends ZERO model tokens and is
@@ -15,21 +15,21 @@
 #         2 = FIREWALL BLOCKED (no gate failed, but a prerequisite is unmet —
 #             currently only VAL-03's pytest interpreter; see below)
 #
-# Gates (24):
+# Gates (23):
 #   DUAL-04   GATE-02-v8.5  STEP0-06  STEP0-08  VAL-01
-#   VAL-02    VAL-03        VAL-05    VERSION-01  GATE-01
+#   VAL-02    VAL-03        VERSION-01  GATE-01
 #   BATT-06   TRACE-03      QUAL-01   HARN-01   HARN-02
 #   HARN-03   HC-BOUND      REG-GUARD PROV-GUARD SCAN-GUARD
 #   CONF-GATE   CONF-SURFACE  INVARIANT-CHECK
 #   FROZEN-EVIDENCE
 #
-# 21 of the 22 non-inline gates are registered through the `gate` helper
+# 20 of the 21 non-inline gates are registered through the `gate` helper
 # below. VAL-03 is registered through EITHER `gate` (a pytest-capable
 # interpreter was resolved for its third leg) OR `gate_prereq` (none was —
 # see "VAL-03 pytest resolution" below); either way it occupies exactly one
-# of the 22 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
+# of the 21 tally slots. The final two (INVARIANT-CHECK, FROZEN-EVIDENCE) are
 # inline checks that each increment the same PASS/FAIL/TOTAL tally rather
-# than going through `gate`, for a reported total of 24.
+# than going through `gate`, for a reported total of 23.
 #
 # VAL-03 pytest resolution (SHIP-06, plan 03-08):
 # VAL-03's third leg runs scripts/check-links_anchors_test.py under pytest.
@@ -213,6 +213,17 @@
 # proxy for -- every stub carrying disable-model-invocation: true -- is now
 # asserted inside REG-GUARD's existing entry (plan 40-05), not a new
 # registered gate. Battery composition moved 25 -> 24.
+#
+# Composition change (VAL-05 retired, Phase 40, v9.4.0 --
+# docs/v9.4-gate-retirement.md §2.3): the battery lost one gate, VAL-05
+# (the retired 2,000-character combined skill-description budget scan). The
+# platform documents no such ceiling -- the only figure it states for this
+# surface is a 1,536-character *combined* description+when_to_use truncation
+# in the skill listing, and every shipped skill stub is
+# disable-model-invocation: true (§2.2), so that listing never renders for
+# any of them. No successor limit is added, because the only documented
+# ceiling would guard a listing the slash-only stubs are not in.
+# Battery composition moved 24 -> 23.
 #
 # Composition NON-change, recorded deliberately (WR-05, Phase 20 20-REVIEW):
 # scripts/report-conformance.py is NOT registered here, and its ~98-control
@@ -424,11 +435,6 @@ else
         "python3 scripts/check-links.py --self-test" \
         "python3 scripts/check-links.py"
 fi
-
-# VAL-05 — skill-listing description budget (≤2000 chars)
-gate "VAL-05" \
-    "check-description-budget.py" \
-    "python3 scripts/check-description-budget.py"
 
 # VERSION-01 — every hand-maintained version stamp carries the same value.
 # Runs the live scan as well as the self-test: unlike most gates here, the

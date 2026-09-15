@@ -92,7 +92,9 @@ import textwrap
 from pathlib import Path
 
 # Adjust sys.path so _skill_io is importable when invoked from any cwd —
-# same idiom scripts/check-description-budget.py uses for the same import.
+# this script is the sole live importer of _skill_io.iter_plugin_skills()
+# left in the tree since VAL-05's retirement (Phase 40, v9.4.0,
+# docs/v9.4-gate-retirement.md §2.3).
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _skill_io import PLUGIN_SKILLS_DIR, REPO_ROOT, iter_plugin_skills  # noqa: E402

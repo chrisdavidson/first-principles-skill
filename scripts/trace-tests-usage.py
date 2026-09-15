@@ -55,7 +55,6 @@ GATE_COMMANDS: tuple[tuple[str, ...], ...] = (
     ("scripts/check-step0-emulator.py", "--self-test"),
     ("scripts/check-links.py", "--self-test"),
     ("scripts/check-links.py",),
-    ("scripts/check-description-budget.py",),
     ("scripts/check-version-stamps.py", "--self-test"),
     ("scripts/check-version-stamps.py",),
     ("scripts/check-agent.py", "--self-test"),

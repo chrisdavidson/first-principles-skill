@@ -86,19 +86,6 @@ jobs:
       - run: uv run python3 scripts/check-version-stamps.py --self-test
       - run: uv run python3 scripts/check-version-stamps.py
 
-  check-description-budget:
-    name: check-description-budget (VAL-05)
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
-        with:
-          version: ${{ env.UV_VERSION }}
-          enable-cache: true
-      - run: uv sync --locked --group dev
-      - run: uv run python3 scripts/check-description-budget.py
-
   sync-check:
     name: sync-check (DUAL-04)
     runs-on: ubuntu-latest

@@ -527,7 +527,7 @@ NARRATIVE_ENTRIES: frozenset[str] = frozenset(
         # REACH-or-LEVEL determination, because a thin page is regenerated
         # end to end (D-08) and would erase it.
         "HARN-03",
-        "VAL-01", "VAL-02", "VAL-03", "VAL-05", "VERSION-01",
+        "VAL-01", "VAL-02", "VAL-03", "VERSION-01",
         "DUAL-04", "GATE-01", "BATT-06", "STEP0-08", "STEP0-06",
         # HARN-02 joined in v9.2.0 Phase 28 commit A to host its GUARD-03
         # REACH-or-LEVEL determination, because a thin page is regenerated
@@ -2545,12 +2545,11 @@ def _chain_terminus_live_tallies() -> tuple[int, int, int]:
 
 _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('CLAUDE.md', '03'): ('999.73', 2, "NOT A COUNT CLAIM: the half-stripped digit suffix of the slash-compound gate-id mention \"HARN-01/02/03\" (§ 'Standing of the ...' framing text) -- \"HARN-01\" matches the letter-prefixed identifier pattern and is stripped whole, stranding \"02\"/\"03\" as bare fragments, the same half-strip shape CONTAIN-02's terminus arm addresses for delta chains but here for an identifier compound. Out of Phase 26's D-E quantity-shaped scope: closes only when containment's own citation-shape stripper is widened to recognise slash-compound identifiers, not by a generated region. Split out of 999.69 into 999.73 at Phase 26 plan 05 (CONTAIN-04 reconciles quantity-shaped residue only)."),
-    ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- VAL-05\'s own hand-maintained budget ceiling. Re-verified live this plan: `python3 scripts/check-description-budget.py --describe` emits only `locked_constants: {"cap": 2000}` -- no field for the 1,024 figure exists today. CONTAIN-04 reconciles this residue once such a field is added; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
+    ('CLAUDE.md', '1024'): ('999.69', 1, 'CANNOT-REACH (no harvest field IN THIS FILE\'S OWN generated fence): "Skill `description` fields must be third-person, ≤ 1,024 chars" (Key invariants) -- the agent-side ceiling GATE-01 (`scripts/check-agent.py`) enforces via `_MAX_DESCRIPTION_LEN = 1024`, re-used in the same sentence as a skill-side convention. VAL-05, which once carried this residue, is retired (docs/v9.4-gate-retirement.md §2.3); GATE-01 asserts the agent-side bound directly. For skill descriptions the figure has no source on the platform\'s skills page and no gate behind it (M3(b), 40-EVIDENCE.md: a 1,100-character skill description left both `claude plugin validate` and `check-agent.py` green) -- it stays a documented convention, matching docs/CONFIGURATION.md\'s row. Re-verified live this plan: `python3 scripts/check-agent.py --describe` DOES emit `locked_constants: {"max_description_len": 1024}`, and `docs/gates/GATE-01.md` -- a DIFFERENT file -- renders it verbatim; but CLAUDE.md\'s own generated GATE-01 table row only ever states `locked_constants=N entries` (a count, never the raw values), so this file\'s own inside-fence text still carries no `1024` for the outside occurrence to corroborate against -- containment is scored per file (`_containment_missing_numbers`), not tree-wide. CONTAIN-04 reconciles this residue if CLAUDE.md\'s own table row is ever widened to inline raw constant values; deferred as cannot-reach residue (D-06 proviso 2) until then.'),
     ('CLAUDE.md', '15'): ('999.69', 2, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "15 v4.0/v4.1 builder requirements retired at quick task" and "the 15 v8.24 milestone requirements registered as matrix rows" -- both arrow-free historical counts in the requirements-ledger paragraph, the same exception as \'14\' above.'),
     ('CLAUDE.md', '17'): ('999.69', 2, 'CANNOT-REACH (no harvest field): "all 17 version stamps move in lockstep" and "A bump touches all 17 or none" -- VERSION-01\'s own registered-surfaces count. Re-verified live this plan: `python3 scripts/check-version-stamps.py --describe` emits `registered_surfaces` (4 path strings) and `stamp_source_kind_count: 4` -- no field exposes "17 hand-maintained stamps" itself today. Deferred as cannot-reach residue (D-06 proviso 2) until such a field is added.'),
-    ('CLAUDE.md', '20'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 20 v8.26 milestone requirements registered as matrix rows at Phase 16" -- an arrow-free restatement of a prior milestone\'s requirement count in the historical requirements-ledger paragraph, the same exception as \'14\'/\'15\' above.'),
-    ('CLAUDE.md', '22'): ('999.104', 2, 'CANNOT-REACH (no harvest field): "The tally is 22 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, re-worded from the prior \'23\' entry when VAL-04 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.2); the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it. Second occurrence, same key: NOT A COUNT CLAIM, "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. This entry\'s coincidental in-fence corroboration from the pre-retirement CI-job count (22) broke when VAL-04\'s CI job was removed, surfacing both occurrences as live findings for the first time.'),
-    ('CLAUDE.md', '23'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "the 23 v8.18 milestone requirements registered as matrix rows at Phase 4 / D-05" -- an arrow-free historical count in the requirements-ledger paragraph, the same exception as \'14\'/\'15\'/\'20\' above. Occurrence count lowered from 2 to 1 when VAL-04\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.2) reworded the tally sentence off \'23\' entirely, onto \'22\' (see that key\'s own entry).'),
+    ('CLAUDE.md', '21'): ('999.105', 1, 'CANNOT-REACH (no harvest field): "The tally is 21 `gate`/`gate_prereq` registrations plus two inline checks" -- `scripts/check-firewall-battery.sh`\'s own call-site count, re-worded from the prior \'22\' entry when VAL-05 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.3); the battery is a shell script with no `--describe` leg, so `harvest()` never reaches it. This entry\'s coincidental in-fence corroboration from the pre-retirement CI-job count (21, HC-BOUND\'s "moved it from 20 to 21" delta-chain hop) is stripped structurally by the citation-shape stripper before counting, so it never covered this occurrence in the first place -- this is a genuinely new bare digit, not a re-covered one.'),
+    ('CLAUDE.md', '22'): ('999.104', 1, 'NOT A COUNT CLAIM: "this phase\'s own `/bm:code-review 22`" -- a phase-number citation, the same shape as `CLAUDE.md`\'s own \'03\' half-strip entry above, not a population total. Occurrence count lowered from 2 to 1 when VAL-05\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.3) reworded the tally sentence off \'22\' entirely, onto \'21\' (see that key\'s own entry).'),
     ('CLAUDE.md', '260728'): ('999.73', 1, 'NOT A COUNT CLAIM: "quick task `260728-vxn`" -- a quick-task id (date-shaped digits plus a suffix), not a count. Out of Phase 26\'s D-E quantity-shaped scope: closes only when containment\'s own citation-shape stripper recognises quick-task-id shapes. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('CLAUDE.md', '26'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "docs/history/ -- frozen per-milestone REQUIREMENTS.md / ROADMAP.md / MILESTONE-AUDIT.md snapshots (26 milestones, v1.0 through v5.3)" -- an archived milestone-snapshot count under the Requirements surface section, unrelated to the battery/CI gate totals it happens to share a digit with. This entry\'s coincidental in-fence corroboration from the pre-retirement battery total (26) broke when COLLIDE-01 was retired (Phase 40, docs/v9.4-gate-retirement.md §2.1) moved that total to 25; the sibling "battery total (26, see above)" sentence this same coincidence used to cover was a genuinely stale current-fact claim and was corrected to 25 in the same commit rather than ledgered.'),
     ('CLAUDE.md', '266'): ('999.69', 1, 'FROZEN HISTORICAL COUNT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "... 174/92, 214 -> 237 rows; ... unchanged at 266; the 20 v8.26 milestone requirements ..." -- an arrow-free restatement of a prior milestone\'s row count inside the historical requirements-ledger paragraph (its two arrow-adjacent occurrences elsewhere in the same paragraph are already stripped structurally by the slash-paired and single-operand delta patterns).'),
@@ -2566,7 +2565,6 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
     ('docs/TESTING.md', '4'): ('999.69', 3, 'CANNOT-REACH (no harvest field): `_COMPOSER_FOCUS_CEILING: int = 4`, the bolded "`_COMPOSER_FOCUS_CEILING=4`" heading, and "the value itself stays 4" -- `scripts/_battery_core.py`\'s own constant (its `== 4` comparison elsewhere on this page is already stripped structurally). Re-verified live this plan: `python3 scripts/check-routing-battery.py --describe`\'s `locked_constants` exposes only the four routing thresholds -- no field for `_COMPOSER_FOCUS_CEILING` exists today. Deferred as cannot-reach residue (D-06 proviso 2).'),
     ('docs/TESTING.md', '5'): ('999.73', 1, 'NOT A COUNT CLAIM: "--repeat 5 --min-pass 3" (the routing-battery run command) -- the sibling CLI flag value to \'3\' immediately above, in the same reproduced shell command. Out of Phase 26\'s D-E quantity-shaped scope, same disposition as \'3\'. Split out of 999.69 into 999.73 at Phase 26 plan 05.'),
     ('docs/TESTING.md', '644'): ('999.69', 1, 'FROZEN/RETIRED HISTORICAL CONSTANT (docs/PROCESS.md §2\'s exception, D-06 proviso 3): "The 644-line figure survives in the script as an annotated historical reference constant (`MAX_LINES: int = 644`)" -- the same retired body-budget figure (TEARDOWN-01) ledgered on `docs/ARCHITECTURE.md`\'s own \'644\' entry above.'),
-    ('docs/gates/CONF-SURFACE.md', '5'): ('999.69', 4, 'NOT A COUNT CLAIM: four occurrences, none a count -- "the landing site is pre-commit gate 5" and "it runs entirely through pre-commit gate 5" (the fifth of five fixed pre-commit gates, an ordinal position) plus two "§5a" section-reference citations into `docs/v9.1-claim-containment-diagnosis.md` (a document section identifier, not a count-noun-adjacent claim). This entry\'s coincidental in-fence corroboration from `derived_counts`\' `chain_termini_current`/`containment_ledger_frozen_historical` (both 5 at the time this page was first generated clean) broke when COLLIDE-01\'s retirement (Phase 40, docs/v9.4-gate-retirement.md §2.1) shifted both derived counts to 6, surfacing this pre-existing residue as a live finding for the first time.'),
 }
 
 # The ledger's pinned maximum size and key-set digest. Standing rule, in
@@ -2698,8 +2696,7 @@ _DEFERRED_CONTAINMENT_HITS: dict[tuple[str, str], tuple[str, int, str]] = {
 # it). The sibling `('CLAUDE.md', '23')` entry's pinned occurrence count
 # was lowered 2 -> 1 in the same commit (no key removed, no key added by
 # that change) once the tally sentence itself moved off '23' onto '22'.
-_CONTAINMENT_LEDGER_MAX: int = 23
-
+#
 # A sha256 pin over the ledger's sorted `(relpath, number)` key set,
 # reusing `_deferred_ledger_keys_digest()` (already generic over any
 # `dict[tuple[str, str], tuple[str, int, str]]` — the deferred-literal
@@ -2740,8 +2737,34 @@ _CONTAINMENT_LEDGER_MAX: int = 23
 # added key (`('CLAUDE.md', '22')`); no key was removed (the sibling
 # `('CLAUDE.md', '23')` entry's pinned occurrence count changed, but the
 # key itself survives, so it does not move this digest).
+#
+# Lowered 23 -> 21 by Phase 40 plan 07 Task 2: retiring VAL-05
+# (docs/v9.4-gate-retirement.md §2.3) moved the CI job count 21 -> 20 and
+# the battery total 24 -> 23, breaking two same-page in-fence coincidental
+# corroborations that predated any ledger entry naming them:
+# `('CLAUDE.md', '20')` (the generated table's own "20 in CI"/"20 CI gates"
+# occurrences newly cover the pre-existing "20 v8.26 milestone requirements"
+# historical mention) and `('CLAUDE.md', '23')` (the generated table's own
+# "23 tallied"/"= 23" occurrences newly cover the pre-existing "23 v8.18
+# milestone requirements" historical mention) -- both removed, since neither
+# corresponds to a live finding any more. One key was added
+# (`('CLAUDE.md', '21')`, the tally sentence's own re-worded literal, with
+# no in-fence cover of its own -- the "20 to 21" delta-chain hop that would
+# coincidentally corroborate it is stripped structurally before counting).
+# The sibling `('CLAUDE.md', '22')` entry's pinned occurrence count was
+# lowered 2 -> 1 in the same commit (the tally sentence itself moved off
+# '22' onto '21', leaving only the `/bm:code-review 22` phase-number
+# citation). A third stale key, `('docs/gates/CONF-SURFACE.md', '5')`, was
+# also removed: VAL-05's retirement moved `registered_surfaces` 38 -> 37 and
+# `checked_files` 66 -> 64 on that page, and neither replacement value
+# renders a bare "5" into the fence, so this key's live finding disappeared
+# outright rather than being re-covered by coincidence -- confirmed by a
+# fresh `_containment_live_finding_counts()` reading returning no entry for
+# that page at all. Net: one key added, three removed (23 -> 21).
+_CONTAINMENT_LEDGER_MAX: int = 21
+
 _CONTAINMENT_LEDGER_KEYS_DIGEST = (
-    "sha256:5baa3393b18f03d604d4205333d4c91d873833fc6d8f8cb9e1cbe8bc197c5da6"
+    "sha256:e49208f43e4324eb40ba64194cd7d23c618d88975cb2c89cbc3158a8aea65f5d"
 )
 
 

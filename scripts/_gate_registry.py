@@ -203,17 +203,6 @@ ENTRIES: tuple[GateEntry, ...] = (
         },
     ),
     GateEntry(
-        key="VAL-05",
-        gate_id="VAL-05",
-        extra_ids=(),
-        mechanism=_ci("check-description-budget"),
-        ci_job="check-description-budget",
-        script="scripts/check-description-budget.py",
-        run_command="python3 scripts/check-description-budget.py",
-        summary="All skill listings stay under the 2000-character budget cap.",
-        consumes=("locked_constants",),
-    ),
-    GateEntry(
         key="VERSION-01",
         gate_id="VERSION-01",
         extra_ids=(),

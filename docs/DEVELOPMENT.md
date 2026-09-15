@@ -138,7 +138,6 @@ Run these locally before pushing. For the full CI gate inventory (every gate map
 |--------|------|---------|----------------|
 | `check-agent.py` | GATE-01 | `python3 scripts/check-agent.py` | Agent structural integrity |
 | `check-links.py` | VAL-03 | `python3 scripts/check-links.py` | Relative MD links resolve (scans `first-principles/`, `shared/`, and `docs/`; `docs/` anchors validated) |
-| `check-description-budget.py` | VAL-05 | `python3 scripts/check-description-budget.py` | Skill listings ≤ 2000 chars |
 | `check-version-stamps.py` | VERSION-01 | `python3 scripts/check-version-stamps.py` | Every hand-maintained version stamp carries the same value; run `--self-test` for the fault-injection fixtures |
 | `check-body-budget.py` | report-only | `python3 scripts/check-body-budget.py` | Reports the agent body's current line count; gate retired under TEARDOWN-01 (`docs/v8.7-constraint-teardown.md`) |
 

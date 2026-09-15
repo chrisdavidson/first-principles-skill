@@ -184,7 +184,7 @@ distinction is worth keeping visible.
 | Invariant | Enforced by |
 |---|---|
 | `name` in frontmatter must match the parent directory name exactly | GATE-01, REG-GUARD |
-| `description` fields must be third-person, ≤ 1,024 chars, no XML tags | GATE-01, VAL-05 |
+| `description` fields must be third-person, ≤ 1,024 chars, no XML tags | GATE-01 (agent description); skill descriptions: convention — no gate |
 | Reserved words `anthropic` and `claude` are forbidden in skill `name` fields | VAL-01 |
 | `metadata.version` must be a double-quoted YAML string — never a bare number | VERSION-01 |
 | Every hand-maintained version stamp carries the **same** value | VERSION-01 |
