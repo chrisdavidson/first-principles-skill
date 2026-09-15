@@ -158,13 +158,17 @@ under Phase 3 (REG-03) — it has a CI job plus a battery `gate` call that runs 
 the live scan, matching VERSION-01 and GATE-01, and is counted in the battery total above.
 PROV-GUARD was registered at v8.24.0 under Phase 6 (GATE-02/GATE-03) — a CI job plus a battery `gate`
 call running both `--self-test` **and** the live leg, matching VERSION-01, GATE-01 and
-REG-GUARD — and is counted in the battery total above. SCAN-GUARD was registered at v8.26.0 under
-Phase 15 — a CI job plus a battery `gate` call running both `--self-test` **and** the live leg
-(plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05 finding), matching PROV-GUARD's and
-REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's `--self-test`-only shape.
+REG-GUARD — and is counted in the battery total above; its CI job and live leg were retired at
+v9.4.0 Phase 40, leaving a battery-only `--self-test` call
+([`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md)). SCAN-GUARD was registered at v8.26.0
+under Phase 15 — a CI job plus a battery `gate` call running both `--self-test` **and** the live leg
+(plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05 finding), matching REG-GUARD's shape (and
+PROV-GUARD's, until v9.4.0 Phase 40) rather than HARN-01/02/03's and HC-BOUND's `--self-test`-only
+shape.
 SCAN-GUARD is counted in the battery total above. CONF-GATE was registered at v9.0.0 under
 Phase 18 — a CI job plus a battery `gate` call running both `--self-test` **and** the live
-leg, matching PROV-GUARD's and SCAN-GUARD's shape, and is counted in the battery total above.
+leg, matching SCAN-GUARD's shape (and PROV-GUARD's, until v9.4.0 Phase 40), and is counted in the
+battery total above.
 CONF-SURFACE was registered at v9.0.0 under Phase 21 (D-21-C, plan 21-11) — a CI job plus a
 battery `gate` call running `gen-gate-docs.py --self-test` then `--check`, and both pre-commit
 hooks (five gates each, up from three) — and is counted in the battery total above: this is the

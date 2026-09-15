@@ -182,10 +182,13 @@ HARN-01, HARN-02 and HARN-03 were registered under HARN-04 at v8.18.0 — each i
 single `--self-test`-only battery `gate` call, and each is counted in the battery total below. HC-BOUND
 was registered at v8.19.0 under Phase 6 (HC-04). REG-GUARD was registered at v8.21.0 under Phase 3 (REG-03).
 PROV-GUARD was registered at v8.24.0 under Phase 6 (GATE-02/GATE-03) — a CI job plus a battery `gate`
-call running both `--self-test` and the live leg — and is counted in the battery total below.
+call running both `--self-test` and the live leg — and is counted in the battery total below; its CI
+job and live leg were retired at v9.4.0 Phase 40, leaving a battery-only `--self-test` call
+([`docs/v9.4-gate-retirement.md`](docs/v9.4-gate-retirement.md)).
 SCAN-GUARD was registered at v8.26.0 under Phase 15 — a CI job plus a battery `gate` call running
 both `--self-test` and the live leg (plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05
-finding), matching PROV-GUARD's and REG-GUARD's shape rather than HARN-01/02/03's and HC-BOUND's
+finding), matching REG-GUARD's shape (and PROV-GUARD's, until v9.4.0 Phase 40) rather than
+HARN-01/02/03's and HC-BOUND's
 `--self-test`-only shape — and is counted in the battery total below. CONF-SURFACE was registered
 at v9.0.0 under Phase 21 (D-21-C, plan 21-11) — a CI job plus a battery `gate` call running
 `gen-gate-docs.py --self-test` then `--check` — and is counted in the battery total below.

@@ -37,7 +37,8 @@ This gate is registered as `SCAN-GUARD` in `scripts/check-firewall-battery.sh`
 and as the CI job `check-selfaudit-scan (SCAN-GUARD)` in
 `.github/workflows/validation.yml`. Both surfaces run TWO legs — `--self-test`
 plus the bare live invocation against the shipped `AGENT_FILE`/`RUBRIC_FILE` —
-matching the PROV-GUARD and REG-GUARD registration shape (plan 15-09, closing
+matching REG-GUARD's registration shape (PROV-GUARD's matched until its live leg
+was retired at v9.4.0 Phase 40) (plan 15-09, closing
 `15-VERIFICATION.md` gap 2's WR-05 finding). The battery tally is unchanged by
 the second leg: `gate()` increments its total once per gate id regardless of
 how many commands run under it. The battery first gained this gate id at plan

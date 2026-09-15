@@ -43,6 +43,12 @@ Exit codes:
 Phase 6 note: `scripts/check-firewall-battery.sh:346-349` already registers a battery
 gate literally named `GATE-01` (bound to `check-agent.py`), so this gate must be
 registered under a distinct id such as `PROV-GUARD` when Phase 6 wires it in.
+
+Phase 40 note: the CI job and the battery's live leg named above were retired at
+v9.4.0 Phase 40 (`docs/v9.4-gate-retirement.md` section 2.4). The battery now runs
+`--self-test` alone; CI runs nothing for this gate. The bare live invocation shown
+in this module's own command-line help remains runnable by hand as a manual fixture
+regression against the frozen capture, but neither the battery nor CI invokes it.
 """
 
 from __future__ import annotations

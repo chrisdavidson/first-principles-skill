@@ -26,7 +26,8 @@ CI job: `check-conf-gate`
 ## What it asserts
 
 Registered — CI job `check-conf-gate (CONF-GATE)` plus battery registration, both running
-`--self-test` **and** the live leg, matching PROV-GUARD's and SCAN-GUARD's shape. Measures the
+`--self-test` **and** the live leg, matching SCAN-GUARD's shape (and PROV-GUARD's, until v9.4.0
+Phase 40). Measures the
 fourteen shipped worked examples through `report-conformance.py`'s discovery/measurement surface and
 asserts the four conformance counts (`unreadable`, `heading_malformed_blocks`,
 `nonconforming_verdict_cells`, `silent_untraced_claims`) are zero on both gated surfaces

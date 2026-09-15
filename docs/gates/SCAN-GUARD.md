@@ -27,8 +27,9 @@ CI job: `check-selfaudit-scan`
 ## What it asserts
 
 Registered — CI job `check-selfaudit-scan (SCAN-GUARD)` plus battery registration, both running
-`--self-test` **and** the live leg against the shipped `AGENT_FILE`/`RUBRIC_FILE`, matching the
-PROV-GUARD and REG-GUARD shape (plan 15-09, closing `15-VERIFICATION.md` gap 2's WR-05 finding); the
+`--self-test` **and** the live leg against the shipped `AGENT_FILE`/`RUBRIC_FILE`, matching
+REG-GUARD's shape (and PROV-GUARD's, until v9.4.0 Phase 40) (plan 15-09, closing
+`15-VERIFICATION.md` gap 2's WR-05 finding); the
 battery tally is unchanged because `gate()` increments its total once per gate id regardless of how
 many commands run under it. Asserts the Phase 15 self-audit scan prescription (agent body) and the
 `**Self-audit scan (verify before scoring)**` block plus the Criterion 4 / Criterion 6 quote-source

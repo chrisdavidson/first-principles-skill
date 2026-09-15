@@ -87,8 +87,9 @@ headline above — is in the generated matrix:
 > every literal the ground truth states appears verbatim in that source's retrieved text. Live
 > result, quoted verbatim rather than paraphrased: `7/7 sources matched, 35/35 literals located`.
 > In one sentence: every other column `detect_defects` emits scores the *form* of an analysis; this
-> is the first check in the stack that can falsify a `*Provenance: read-at-source*` label against
-> what the run actually fetched — it records fact, not form.
+> is the only check in the stack that tests a `*Provenance: read-at-source*` label against what a
+> run actually fetched, and it has done so for exactly one frozen run — the v8.24 capture — so it
+> records fact, not form, for that run alone.
 >
 > **What it does not assert** — four documented limits, each traceable to the module docstring:
 > 1. it verifies a stated number appears in the retrieved text of the named source; it does not
@@ -109,6 +110,14 @@ headline above — is in the generated matrix:
 > `v8.24/GATE-01` have been audit-only since this phase (see
 > [`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.4 and headline-history row 23) —
 > VAL-04 is no longer this milestone's only audit-only row.
+>
+> **Scope restated, dated 2026-09-15 (v9.4.0 Phase 40):** the CI job `check-provenance (PROV-GUARD)`
+> and the battery's live leg were retired under
+> [`docs/v9.4-gate-retirement.md`](v9.4-gate-retirement.md) §2.4. PROV-GUARD is now a battery-only
+> gate running `--self-test` alone: a regression test of the verifier's own parsing, source join
+> and literal-location logic on in-memory fixtures. No product change can fail it, and nothing yet
+> applies `verify()` to any newer capture (backlog `999.117`). The registration sentence above
+> records the 2026-08-31 state and is left as history.
 
 **Headline history (D-01).** The coverage headline has moved once for every row of this table
 except rows 4 and 5, which the table itself marks as deliberate zero-drift reconciliations that
