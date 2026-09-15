@@ -342,8 +342,8 @@ The canonical requirements and traceability surface lives in the git-tracked tre
 - **`docs/v8.0-final-closure.md`** — **historical record, not current state.** Accepted
   limitations (RR-114-01 1/5, RR-108-04 0/5, RR-108-05 0/5) and deferred-ledger disposition as of
   v8.0 (Phase 142). It calls 133/96/0/229 the "final" coverage headline because v8.0 was meant to
-  wrap the project; work continued and that figure has been superseded seven times — see the
-  bullet above. Do not quote its headline as current.
+  wrap the project; work continued and that figure has since been superseded repeatedly — see
+  the bullet above. Do not quote its headline as current.
 - **`docs/requirements-matrix.md`** — generated capability→requirement→test matrix (row count:
   see the coverage headline above). Regenerate with:
   ```sh
